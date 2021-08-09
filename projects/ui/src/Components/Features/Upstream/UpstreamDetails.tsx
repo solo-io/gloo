@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams } from 'react-router';
 import styled from '@emotion/styled/macro';
 import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
-import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gloo_resources_pb';
+import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { FailoverScheme } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/failover_scheme_pb';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { glooResourceApi } from 'API/gloo-resource';

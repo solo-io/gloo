@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled/macro';
 import { ReactComponent as ErrorIcon } from 'assets/big-unsuccessful-x.svg';
 import { ReactComponent as ConnectionIssueImage } from 'assets/connection-error-graphic.svg';
-import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb_service';
+import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 import { colors } from 'Styles/colors';
 
 type DataErrorContainerProps = {

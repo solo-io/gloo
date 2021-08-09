@@ -1,10 +1,10 @@
-import { VirtualServiceRoutesApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/rt_selector_pb_service';
+import { VirtualServiceRoutesApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/rt_selector_pb_service';
 import { host, getClusterRefClassFromClusterRefObj } from './helpers';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
   GetVirtualServiceRoutesRequest,
   SubRouteTableRow
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/rt_selector_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/rt_selector_pb';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 /*****

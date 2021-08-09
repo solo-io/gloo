@@ -8,7 +8,7 @@ import { GlooAdminProxy } from './GlooAdminProxy';
 import { GlooAdminSettings } from './GlooAdminSettings';
 import useSWR from 'swr';
 import { glooInstanceApi } from 'API/gloo-instance';
-import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/glooinstance_pb';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { useListGlooInstances } from 'API/hooks';
 import { DataError } from 'Components/Common/DataError';
 import { Loading } from 'Components/Common/Loading';

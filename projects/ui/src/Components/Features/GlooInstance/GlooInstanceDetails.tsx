@@ -3,7 +3,7 @@ import styled from '@emotion/styled/macro';
 import { TabPanels, Tabs } from '@reach/tabs';
 import { Loading } from 'Components/Common/Loading';
 import { useParams } from 'react-router';
-import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/glooinstance_pb';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as GlooIcon } from 'assets/Gloo.svg';
 import { ReactComponent as MeshIcon } from 'assets/mesh-icon.svg';

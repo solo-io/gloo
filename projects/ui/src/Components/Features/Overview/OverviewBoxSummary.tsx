@@ -17,7 +17,7 @@ import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { VirtualServiceStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service_pb';
 import { CountBox } from 'Components/Common/CountBox';
 import { SoloLink } from 'Components/Common/SoloLink';
-import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb_service';
+import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 import { DataError } from 'Components/Common/DataError';
 
 type BoxProps = {

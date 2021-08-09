@@ -13,7 +13,7 @@ import {
   GetFederatedRateLimitConfigYamlRequest,
 } from '../proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_ratelimit_resources_pb';
 import { ObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { ResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common_pb';
+import { ResourceYaml } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
 
 const federatedGlooResourceApiClient = new FederatedEnterpriseGlooResourceApiClient(
   host,

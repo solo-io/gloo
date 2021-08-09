@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gloo_resources_pb';
+import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import {
   getUpstreamType,
   TYPE_AWS,

@@ -17,7 +17,7 @@ import { IconHolder } from 'Styles/StyledComponents/icons';
 import { HealthNotificationBox } from 'Components/Common/HealthNotificationBox';
 import { DataError } from 'Components/Common/DataError';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
-import { ConfigDump } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/glooinstance_pb';
+import { ConfigDump } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { config } from 'process';
 
 const TitleRow = styled.div`

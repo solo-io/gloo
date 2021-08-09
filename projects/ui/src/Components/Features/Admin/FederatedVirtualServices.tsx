@@ -14,7 +14,7 @@ import { ReactComponent as GlooIcon } from 'assets/Gloo.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { useNavigate } from 'react-router';
 import { useListFederatedVirtualServices } from 'API/hooks';
-import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb';
+import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { Loading } from 'Components/Common/Loading';
 import { FederatedVirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_gateway_resources_pb';
 import { federatedGatewayResourceApi } from 'API/federated-gateway';

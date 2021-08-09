@@ -6,13 +6,13 @@ import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_ratelimit_v1alpha1_rate_limit_config_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.ratelimit/v1alpha1/rate_limit_config_pb";
 import * as github_com_solo_io_skv2_api_core_v1_core_pb from "../../../../../../../../github.com/solo-io/skv2/api/core/v1/core_pb";
-import * as github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common_pb";
+import * as github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb";
 
 export class FederatedRateLimitConfig extends jspb.Message {
   hasMetadata(): boolean;
   clearMetadata(): void;
-  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta | undefined;
-  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta): void;
+  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta | undefined;
+  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta): void;
 
   hasSpec(): boolean;
   clearSpec(): void;
@@ -36,7 +36,7 @@ export class FederatedRateLimitConfig extends jspb.Message {
 
 export namespace FederatedRateLimitConfig {
   export type AsObject = {
-    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.AsObject,
+    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
     spec?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_ratelimit_v1alpha1_rate_limit_config_pb.FederatedRateLimitConfigSpec.AsObject,
     status?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_ratelimit_v1alpha1_rate_limit_config_pb.FederatedRateLimitConfigStatus.AsObject,
   }
@@ -105,8 +105,8 @@ export namespace GetFederatedRateLimitConfigYamlRequest {
 export class GetFederatedRateLimitConfigYamlResponse extends jspb.Message {
   hasYamlData(): boolean;
   clearYamlData(): void;
-  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml | undefined;
-  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml): void;
+  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml | undefined;
+  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetFederatedRateLimitConfigYamlResponse.AsObject;
@@ -120,6 +120,6 @@ export class GetFederatedRateLimitConfigYamlResponse extends jspb.Message {
 
 export namespace GetFederatedRateLimitConfigYamlResponse {
   export type AsObject = {
-    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.AsObject,
+    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
   }
 }

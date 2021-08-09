@@ -6,13 +6,13 @@ import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_enterprise_gloo_v1_auth_config_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.enterprise.gloo/v1/auth_config_pb";
 import * as github_com_solo_io_skv2_api_core_v1_core_pb from "../../../../../../../../github.com/solo-io/skv2/api/core/v1/core_pb";
-import * as github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common_pb";
+import * as github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb";
 
 export class FederatedAuthConfig extends jspb.Message {
   hasMetadata(): boolean;
   clearMetadata(): void;
-  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta | undefined;
-  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta): void;
+  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta | undefined;
+  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta): void;
 
   hasSpec(): boolean;
   clearSpec(): void;
@@ -36,7 +36,7 @@ export class FederatedAuthConfig extends jspb.Message {
 
 export namespace FederatedAuthConfig {
   export type AsObject = {
-    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.AsObject,
+    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
     spec?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_enterprise_gloo_v1_auth_config_pb.FederatedAuthConfigSpec.AsObject,
     status?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_enterprise_gloo_v1_auth_config_pb.FederatedAuthConfigStatus.AsObject,
   }
@@ -105,8 +105,8 @@ export namespace GetFederatedAuthConfigYamlRequest {
 export class GetFederatedAuthConfigYamlResponse extends jspb.Message {
   hasYamlData(): boolean;
   clearYamlData(): void;
-  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml | undefined;
-  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml): void;
+  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml | undefined;
+  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetFederatedAuthConfigYamlResponse.AsObject;
@@ -120,6 +120,6 @@ export class GetFederatedAuthConfigYamlResponse extends jspb.Message {
 
 export namespace GetFederatedAuthConfigYamlResponse {
   export type AsObject = {
-    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.AsObject,
+    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
   }
 }

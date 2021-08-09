@@ -13,7 +13,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	enterprise_gloo_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -24,7 +24,7 @@ func NewEnterpriseGlooResourceHandler(
 	instanceClient fedv1.GlooInstanceClient,
 	mcEnterpriseGlooCRDClientset enterprise_gloo_solo_io_v1.MulticlusterClientset,
 
-) rpc_v1.EnterpriseGlooResourceApiServer {
+) rpc_edge_v1.EnterpriseGlooResourceApiServer {
 	return &enterprise_glooResourceHandler{
 		instanceClient:               instanceClient,
 		mcEnterpriseGlooCRDClientset: mcEnterpriseGlooCRDClientset,
@@ -36,63 +36,63 @@ type enterprise_glooResourceHandler struct {
 	mcEnterpriseGlooCRDClientset enterprise_gloo_solo_io_v1.MulticlusterClientset
 }
 
-func (k *enterprise_glooResourceHandler) ListAuthConfigs(ctx context.Context, request *rpc_v1.ListAuthConfigsRequest) (*rpc_v1.ListAuthConfigsResponse, error) {
+func (k *enterprise_glooResourceHandler) ListAuthConfigs(ctx context.Context, request *rpc_edge_v1.ListAuthConfigsRequest) (*rpc_edge_v1.ListAuthConfigsResponse, error) {
 
-	var rpcAuthConfigs []*rpc_v1.AuthConfig
+	var rpcAuthConfigs []*rpc_edge_v1.AuthConfig
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
-		// List authConfigs across all enterprise_gloo instances
+		// List authConfigs across all gloo edge instances
 		instanceList, err := k.instanceClient.ListGlooInstance(ctx)
 		if err != nil {
-			wrapped := eris.Wrapf(err, "Failed to list gloo instances")
+			wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
 			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 			return nil, wrapped
 		}
-		for _, enterprise_glooInstance := range instanceList.Items {
-			rpcAuthConfigList, err := k.listAuthConfigsForGlooInstance(ctx, &enterprise_glooInstance)
+		for _, instance := range instanceList.Items {
+			rpcAuthConfigList, err := k.listAuthConfigsForGlooInstance(ctx, &instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to get enterprise_gloo instance %s.%s", enterprise_glooInstance.GetNamespace(), enterprise_glooInstance.GetName())
+				wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
 			rpcAuthConfigs = append(rpcAuthConfigs, rpcAuthConfigList...)
 		}
 	} else {
-		// List authConfigs for a specific gloo instance
-		enterprise_glooInstance, err := k.instanceClient.GetGlooInstance(ctx, types.NamespacedName{
+		// List authConfigs for a specific gloo edge instance
+		instance, err := k.instanceClient.GetGlooInstance(ctx, types.NamespacedName{
 			Name:      request.GetGlooInstanceRef().GetName(),
 			Namespace: request.GetGlooInstanceRef().GetNamespace(),
 		})
 		if err != nil {
-			wrapped := eris.Wrapf(err, "Failed to get enterprise_gloo instance %s.%s", enterprise_glooInstance.GetNamespace(), enterprise_glooInstance.GetName())
+			wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 			return nil, wrapped
 		}
-		rpcAuthConfigs, err = k.listAuthConfigsForGlooInstance(ctx, enterprise_glooInstance)
+		rpcAuthConfigs, err = k.listAuthConfigsForGlooInstance(ctx, instance)
 		if err != nil {
-			wrapped := eris.Wrapf(err, "Failed to list authConfigs for enterprise_gloo instance %s.%s", enterprise_glooInstance.GetNamespace(), enterprise_glooInstance.GetName())
+			wrapped := eris.Wrapf(err, "Failed to list authConfigs for gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 			return nil, wrapped
 		}
 	}
 
-	return &rpc_v1.ListAuthConfigsResponse{
+	return &rpc_edge_v1.ListAuthConfigsResponse{
 		AuthConfigs: rpcAuthConfigs,
 	}, nil
 }
 
-func (k *enterprise_glooResourceHandler) listAuthConfigsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_v1.AuthConfig, error) {
+func (k *enterprise_glooResourceHandler) listAuthConfigsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.AuthConfig, error) {
 
 	enterprise_glooCRDClientset, err := k.mcEnterpriseGlooCRDClientset.Cluster(instance.Spec.GetCluster())
 	if err != nil {
 		return nil, err
 	}
-	usClient := enterprise_glooCRDClientset.AuthConfigs()
+	authConfigClient := enterprise_glooCRDClientset.AuthConfigs()
 
 	var enterprise_glooAuthConfigList []*enterprise_gloo_solo_io_v1.AuthConfig
 	watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
 	if len(watchedNamespaces) != 0 {
 		for _, ns := range watchedNamespaces {
-			list, err := usClient.ListAuthConfig(ctx, client.InNamespace(ns))
+			list, err := authConfigClient.ListAuthConfig(ctx, client.InNamespace(ns))
 			if err != nil {
 				return nil, err
 			}
@@ -101,7 +101,7 @@ func (k *enterprise_glooResourceHandler) listAuthConfigsForGlooInstance(ctx cont
 			}
 		}
 	} else {
-		list, err := usClient.ListAuthConfig(ctx)
+		list, err := authConfigClient.ListAuthConfig(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +115,7 @@ func (k *enterprise_glooResourceHandler) listAuthConfigsForGlooInstance(ctx cont
 		return x.GetNamespace()+x.GetName() < y.GetNamespace()+y.GetName()
 	})
 
-	var rpcAuthConfigs []*rpc_v1.AuthConfig
+	var rpcAuthConfigs []*rpc_edge_v1.AuthConfig
 	for _, authConfig := range enterprise_glooAuthConfigList {
 		rpcAuthConfigs = append(rpcAuthConfigs, BuildRpcAuthConfig(authConfig, &skv2v1.ObjectRef{
 			Name:      instance.GetName(),
@@ -125,8 +125,8 @@ func (k *enterprise_glooResourceHandler) listAuthConfigsForGlooInstance(ctx cont
 	return rpcAuthConfigs, nil
 }
 
-func BuildRpcAuthConfig(authConfig *enterprise_gloo_solo_io_v1.AuthConfig, glooInstance *skv2v1.ObjectRef, cluster string) *rpc_v1.AuthConfig {
-	m := &rpc_v1.AuthConfig{
+func BuildRpcAuthConfig(authConfig *enterprise_gloo_solo_io_v1.AuthConfig, glooInstance *skv2v1.ObjectRef, cluster string) *rpc_edge_v1.AuthConfig {
+	m := &rpc_edge_v1.AuthConfig{
 		Metadata:     apiserverutils.ToMetadata(authConfig.ObjectMeta),
 		GlooInstance: glooInstance,
 		Spec:         &authConfig.Spec,
@@ -136,7 +136,7 @@ func BuildRpcAuthConfig(authConfig *enterprise_gloo_solo_io_v1.AuthConfig, glooI
 	return m
 }
 
-func (k *enterprise_glooResourceHandler) GetAuthConfigYaml(ctx context.Context, request *rpc_v1.GetAuthConfigYamlRequest) (*rpc_v1.GetAuthConfigYamlResponse, error) {
+func (k *enterprise_glooResourceHandler) GetAuthConfigYaml(ctx context.Context, request *rpc_edge_v1.GetAuthConfigYamlRequest) (*rpc_edge_v1.GetAuthConfigYamlResponse, error) {
 	enterprise_glooClientSet, err := k.mcEnterpriseGlooCRDClientset.Cluster(request.GetAuthConfigRef().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get enterprise_gloo client set")
@@ -158,8 +158,8 @@ func (k *enterprise_glooResourceHandler) GetAuthConfigYaml(ctx context.Context, 
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &rpc_v1.GetAuthConfigYamlResponse{
-		YamlData: &rpc_v1.ResourceYaml{
+	return &rpc_edge_v1.GetAuthConfigYamlResponse{
+		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
 	}, nil

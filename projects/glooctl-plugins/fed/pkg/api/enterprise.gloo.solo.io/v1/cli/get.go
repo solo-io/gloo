@@ -11,7 +11,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/solo-io/gloo/pkg/cliutil"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/glooctl-plugins/fed/pkg/cmd/options"
 	"github.com/solo-io/solo-projects/projects/glooctl-plugins/fed/pkg/constants"
 	"github.com/spf13/cobra"
@@ -47,8 +47,8 @@ func AuthConfig(opts *options.Options) *cobra.Command {
 				return err
 			}
 			defer conn.Close()
-			client := rpc_v1.NewEnterpriseGlooResourceApiClient(conn)
-			authConfigs, err := client.ListAuthConfigs(opts.Ctx, &rpc_v1.ListAuthConfigsRequest{})
+			client := rpc_edge_v1.NewEnterpriseGlooResourceApiClient(conn)
+			authConfigs, err := client.ListAuthConfigs(opts.Ctx, &rpc_edge_v1.ListAuthConfigsRequest{})
 			if err != nil {
 				return err
 			}

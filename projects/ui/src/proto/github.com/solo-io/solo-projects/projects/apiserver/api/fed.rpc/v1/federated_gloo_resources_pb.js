@@ -17,7 +17,7 @@ var github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_gloo_v1_upstream_
 var github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_gloo_v1_upstream_group_pb = require('../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/upstream_group_pb.js');
 var github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_gloo_v1_settings_pb = require('../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/settings_pb.js');
 var github_com_solo$io_skv2_api_core_v1_core_pb = require('../../../../../../../../github.com/solo-io/skv2/api/core/v1/core_pb.js');
-var github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb = require('../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common_pb.js');
+var github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb = require('../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb.js');
 goog.exportSymbol('proto.fed.rpc.solo.io.FederatedSettings', null, global);
 goog.exportSymbol('proto.fed.rpc.solo.io.FederatedUpstream', null, global);
 goog.exportSymbol('proto.fed.rpc.solo.io.FederatedUpstreamGroup', null, global);
@@ -80,7 +80,7 @@ proto.fed.rpc.solo.io.FederatedUpstream.prototype.toObject = function(opt_includ
  */
 proto.fed.rpc.solo.io.FederatedUpstream.toObject = function(includeInstance, msg) {
   var f, obj = {
-    metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.toObject(includeInstance, f),
+    metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.toObject(includeInstance, f),
     spec: (f = msg.getSpec()) && github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_gloo_v1_upstream_pb.FederatedUpstreamSpec.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_gloo_v1_upstream_pb.FederatedUpstreamStatus.toObject(includeInstance, f)
   };
@@ -120,8 +120,8 @@ proto.fed.rpc.solo.io.FederatedUpstream.deserializeBinaryFromReader = function(m
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta;
-      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.deserializeBinaryFromReader);
       msg.setMetadata(value);
       break;
     case 2:
@@ -168,7 +168,7 @@ proto.fed.rpc.solo.io.FederatedUpstream.serializeBinaryToWriter = function(messa
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.serializeBinaryToWriter
+      github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.serializeBinaryToWriter
     );
   }
   f = message.getSpec();
@@ -191,16 +191,16 @@ proto.fed.rpc.solo.io.FederatedUpstream.serializeBinaryToWriter = function(messa
 
 
 /**
- * optional ObjectMeta metadata = 1;
- * @return {?proto.fed.rpc.solo.io.ObjectMeta}
+ * optional rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.ObjectMeta}
  */
 proto.fed.rpc.solo.io.FederatedUpstream.prototype.getMetadata = function() {
-  return /** @type{?proto.fed.rpc.solo.io.ObjectMeta} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta, 1));
+  return /** @type{?proto.rpc.edge.gloo.solo.io.ObjectMeta} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta, 1));
 };
 
 
-/** @param {?proto.fed.rpc.solo.io.ObjectMeta|undefined} value */
+/** @param {?proto.rpc.edge.gloo.solo.io.ObjectMeta|undefined} value */
 proto.fed.rpc.solo.io.FederatedUpstream.prototype.setMetadata = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
@@ -327,7 +327,7 @@ proto.fed.rpc.solo.io.FederatedUpstreamGroup.prototype.toObject = function(opt_i
  */
 proto.fed.rpc.solo.io.FederatedUpstreamGroup.toObject = function(includeInstance, msg) {
   var f, obj = {
-    metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.toObject(includeInstance, f),
+    metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.toObject(includeInstance, f),
     spec: (f = msg.getSpec()) && github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_gloo_v1_upstream_group_pb.FederatedUpstreamGroupSpec.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_gloo_v1_upstream_group_pb.FederatedUpstreamGroupStatus.toObject(includeInstance, f)
   };
@@ -367,8 +367,8 @@ proto.fed.rpc.solo.io.FederatedUpstreamGroup.deserializeBinaryFromReader = funct
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta;
-      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.deserializeBinaryFromReader);
       msg.setMetadata(value);
       break;
     case 2:
@@ -415,7 +415,7 @@ proto.fed.rpc.solo.io.FederatedUpstreamGroup.serializeBinaryToWriter = function(
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.serializeBinaryToWriter
+      github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.serializeBinaryToWriter
     );
   }
   f = message.getSpec();
@@ -438,16 +438,16 @@ proto.fed.rpc.solo.io.FederatedUpstreamGroup.serializeBinaryToWriter = function(
 
 
 /**
- * optional ObjectMeta metadata = 1;
- * @return {?proto.fed.rpc.solo.io.ObjectMeta}
+ * optional rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.ObjectMeta}
  */
 proto.fed.rpc.solo.io.FederatedUpstreamGroup.prototype.getMetadata = function() {
-  return /** @type{?proto.fed.rpc.solo.io.ObjectMeta} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta, 1));
+  return /** @type{?proto.rpc.edge.gloo.solo.io.ObjectMeta} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta, 1));
 };
 
 
-/** @param {?proto.fed.rpc.solo.io.ObjectMeta|undefined} value */
+/** @param {?proto.rpc.edge.gloo.solo.io.ObjectMeta|undefined} value */
 proto.fed.rpc.solo.io.FederatedUpstreamGroup.prototype.setMetadata = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
@@ -574,7 +574,7 @@ proto.fed.rpc.solo.io.FederatedSettings.prototype.toObject = function(opt_includ
  */
 proto.fed.rpc.solo.io.FederatedSettings.toObject = function(includeInstance, msg) {
   var f, obj = {
-    metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.toObject(includeInstance, f),
+    metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.toObject(includeInstance, f),
     spec: (f = msg.getSpec()) && github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_gloo_v1_settings_pb.FederatedSettingsSpec.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_gloo_v1_settings_pb.FederatedSettingsStatus.toObject(includeInstance, f)
   };
@@ -614,8 +614,8 @@ proto.fed.rpc.solo.io.FederatedSettings.deserializeBinaryFromReader = function(m
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta;
-      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.deserializeBinaryFromReader);
       msg.setMetadata(value);
       break;
     case 2:
@@ -662,7 +662,7 @@ proto.fed.rpc.solo.io.FederatedSettings.serializeBinaryToWriter = function(messa
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.serializeBinaryToWriter
+      github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.serializeBinaryToWriter
     );
   }
   f = message.getSpec();
@@ -685,16 +685,16 @@ proto.fed.rpc.solo.io.FederatedSettings.serializeBinaryToWriter = function(messa
 
 
 /**
- * optional ObjectMeta metadata = 1;
- * @return {?proto.fed.rpc.solo.io.ObjectMeta}
+ * optional rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.ObjectMeta}
  */
 proto.fed.rpc.solo.io.FederatedSettings.prototype.getMetadata = function() {
-  return /** @type{?proto.fed.rpc.solo.io.ObjectMeta} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta, 1));
+  return /** @type{?proto.rpc.edge.gloo.solo.io.ObjectMeta} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta, 1));
 };
 
 
-/** @param {?proto.fed.rpc.solo.io.ObjectMeta|undefined} value */
+/** @param {?proto.rpc.edge.gloo.solo.io.ObjectMeta|undefined} value */
 proto.fed.rpc.solo.io.FederatedSettings.prototype.setMetadata = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
@@ -1264,7 +1264,7 @@ proto.fed.rpc.solo.io.GetFederatedUpstreamYamlResponse.prototype.toObject = func
  */
 proto.fed.rpc.solo.io.GetFederatedUpstreamYamlResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    yamlData: (f = msg.getYamlData()) && github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.toObject(includeInstance, f)
+    yamlData: (f = msg.getYamlData()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1302,8 +1302,8 @@ proto.fed.rpc.solo.io.GetFederatedUpstreamYamlResponse.deserializeBinaryFromRead
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml;
-      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.deserializeBinaryFromReader);
       msg.setYamlData(value);
       break;
     default:
@@ -1340,23 +1340,23 @@ proto.fed.rpc.solo.io.GetFederatedUpstreamYamlResponse.serializeBinaryToWriter =
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.serializeBinaryToWriter
+      github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional ResourceYaml yaml_data = 1;
- * @return {?proto.fed.rpc.solo.io.ResourceYaml}
+ * optional rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.ResourceYaml}
  */
 proto.fed.rpc.solo.io.GetFederatedUpstreamYamlResponse.prototype.getYamlData = function() {
-  return /** @type{?proto.fed.rpc.solo.io.ResourceYaml} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml, 1));
+  return /** @type{?proto.rpc.edge.gloo.solo.io.ResourceYaml} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml, 1));
 };
 
 
-/** @param {?proto.fed.rpc.solo.io.ResourceYaml|undefined} value */
+/** @param {?proto.rpc.edge.gloo.solo.io.ResourceYaml|undefined} value */
 proto.fed.rpc.solo.io.GetFederatedUpstreamYamlResponse.prototype.setYamlData = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
@@ -1866,7 +1866,7 @@ proto.fed.rpc.solo.io.GetFederatedUpstreamGroupYamlResponse.prototype.toObject =
  */
 proto.fed.rpc.solo.io.GetFederatedUpstreamGroupYamlResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    yamlData: (f = msg.getYamlData()) && github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.toObject(includeInstance, f)
+    yamlData: (f = msg.getYamlData()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1904,8 +1904,8 @@ proto.fed.rpc.solo.io.GetFederatedUpstreamGroupYamlResponse.deserializeBinaryFro
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml;
-      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.deserializeBinaryFromReader);
       msg.setYamlData(value);
       break;
     default:
@@ -1942,23 +1942,23 @@ proto.fed.rpc.solo.io.GetFederatedUpstreamGroupYamlResponse.serializeBinaryToWri
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.serializeBinaryToWriter
+      github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional ResourceYaml yaml_data = 1;
- * @return {?proto.fed.rpc.solo.io.ResourceYaml}
+ * optional rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.ResourceYaml}
  */
 proto.fed.rpc.solo.io.GetFederatedUpstreamGroupYamlResponse.prototype.getYamlData = function() {
-  return /** @type{?proto.fed.rpc.solo.io.ResourceYaml} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml, 1));
+  return /** @type{?proto.rpc.edge.gloo.solo.io.ResourceYaml} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml, 1));
 };
 
 
-/** @param {?proto.fed.rpc.solo.io.ResourceYaml|undefined} value */
+/** @param {?proto.rpc.edge.gloo.solo.io.ResourceYaml|undefined} value */
 proto.fed.rpc.solo.io.GetFederatedUpstreamGroupYamlResponse.prototype.setYamlData = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
@@ -2468,7 +2468,7 @@ proto.fed.rpc.solo.io.GetFederatedSettingsYamlResponse.prototype.toObject = func
  */
 proto.fed.rpc.solo.io.GetFederatedSettingsYamlResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    yamlData: (f = msg.getYamlData()) && github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.toObject(includeInstance, f)
+    yamlData: (f = msg.getYamlData()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2506,8 +2506,8 @@ proto.fed.rpc.solo.io.GetFederatedSettingsYamlResponse.deserializeBinaryFromRead
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml;
-      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.deserializeBinaryFromReader);
       msg.setYamlData(value);
       break;
     default:
@@ -2544,23 +2544,23 @@ proto.fed.rpc.solo.io.GetFederatedSettingsYamlResponse.serializeBinaryToWriter =
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.serializeBinaryToWriter
+      github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional ResourceYaml yaml_data = 1;
- * @return {?proto.fed.rpc.solo.io.ResourceYaml}
+ * optional rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.ResourceYaml}
  */
 proto.fed.rpc.solo.io.GetFederatedSettingsYamlResponse.prototype.getYamlData = function() {
-  return /** @type{?proto.fed.rpc.solo.io.ResourceYaml} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml, 1));
+  return /** @type{?proto.rpc.edge.gloo.solo.io.ResourceYaml} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml, 1));
 };
 
 
-/** @param {?proto.fed.rpc.solo.io.ResourceYaml|undefined} value */
+/** @param {?proto.rpc.edge.gloo.solo.io.ResourceYaml|undefined} value */
 proto.fed.rpc.solo.io.GetFederatedSettingsYamlResponse.prototype.setYamlData = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };

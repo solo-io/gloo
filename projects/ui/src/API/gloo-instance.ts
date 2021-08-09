@@ -1,4 +1,4 @@
-import { GlooInstanceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/glooinstance_pb_service';
+import { GlooInstanceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb_service';
 import { getObjectRefClassFromRefObj, host } from './helpers';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
@@ -8,7 +8,7 @@ import {
   ListClusterDetailsRequest,
   GetConfigDumpsRequest,
   ConfigDump,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/glooinstance_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { ObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 const glooInstanceApiClient = new GlooInstanceApiClient(host, {

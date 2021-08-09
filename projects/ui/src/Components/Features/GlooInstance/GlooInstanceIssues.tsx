@@ -1,5 +1,5 @@
 import React from 'react';
-import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/glooinstance_pb';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { getIssues } from 'utils/gloo-instance-check-helpers';
 import {
   NotificationBox,

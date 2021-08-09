@@ -17,12 +17,12 @@ import { ReactComponent as SecretsIcon } from 'assets/cloud-key-icon.svg';
 import { Loading } from 'Components/Common/Loading';
 import { PlacementStatus } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/placement_pb';
 import { GlooInstanceSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/instance_pb';
-import { Gateway } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb';
+import { Gateway } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { StatusType } from 'utils/health-status';
 import { GatewayStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/gateway_pb';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { SimpleLinkProps, SoloLink } from 'Components/Common/SoloLink';
-import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb_service';
+import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 import { DataError } from 'Components/Common/DataError';
 
 const ContentWrapper = styled(CardSubsectionContent)`

@@ -5,8 +5,8 @@ import (
 
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-projects/projects/apiserver/internal/settings"
-	fed_rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
-	edge_rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
+	rpc_fed_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/health_check"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -15,19 +15,19 @@ import (
 func NewGlooFedServerRunnable(
 	rootCtx context.Context,
 	cfg *settings.ApiServerSettings,
-	bootstrapService edge_rpc_v1.BootstrapApiServer,
-	glooInstanceService fed_rpc_v1.GlooInstanceApiServer,
-	failoverSchemeService fed_rpc_v1.FailoverSchemeApiServer,
-	routeTableSelectorService fed_rpc_v1.VirtualServiceRoutesApiServer,
-	wasmFilterService fed_rpc_v1.WasmFilterApiServer,
-	glooResourceService fed_rpc_v1.GlooResourceApiServer,
-	gatewayResourceService fed_rpc_v1.GatewayResourceApiServer,
-	glooEnterpriseResourceService fed_rpc_v1.EnterpriseGlooResourceApiServer,
-	ratelimitResourceService fed_rpc_v1.RatelimitResourceApiServer,
-	glooFedResourceService fed_rpc_v1.FederatedGlooResourceApiServer,
-	gatewayFedResourceService fed_rpc_v1.FederatedGatewayResourceApiServer,
-	glooEnterpriseFedResourceService fed_rpc_v1.FederatedEnterpriseGlooResourceApiServer,
-	ratelimitFedResourceService fed_rpc_v1.FederatedRatelimitResourceApiServer,
+	bootstrapService rpc_edge_v1.BootstrapApiServer,
+	glooInstanceService rpc_edge_v1.GlooInstanceApiServer,
+	failoverSchemeService rpc_fed_v1.FailoverSchemeApiServer,
+	routeTableSelectorService rpc_edge_v1.VirtualServiceRoutesApiServer,
+	wasmFilterService rpc_edge_v1.WasmFilterApiServer,
+	glooResourceService rpc_edge_v1.GlooResourceApiServer,
+	gatewayResourceService rpc_edge_v1.GatewayResourceApiServer,
+	glooEnterpriseResourceService rpc_edge_v1.EnterpriseGlooResourceApiServer,
+	ratelimitResourceService rpc_edge_v1.RatelimitResourceApiServer,
+	glooFedResourceService rpc_fed_v1.FederatedGlooResourceApiServer,
+	gatewayFedResourceService rpc_fed_v1.FederatedGatewayResourceApiServer,
+	glooEnterpriseFedResourceService rpc_fed_v1.FederatedEnterpriseGlooResourceApiServer,
+	ratelimitFedResourceService rpc_fed_v1.FederatedRatelimitResourceApiServer,
 ) manager.Runnable {
 	return manager.RunnableFunc(func(ctx context.Context) error {
 		ctx = contextutils.WithLogger(rootCtx, "gloo-fed-apiserver")
@@ -39,14 +39,14 @@ func NewGlooFedServerRunnable(
 	})
 }
 
-func NewGlooInstanceServerRunnable(
+func NewSingleClusterGlooServerRunnable(
 	rootCtx context.Context,
 	cfg *settings.ApiServerSettings,
-	bootstrapService edge_rpc_v1.BootstrapApiServer,
+	bootstrapService rpc_edge_v1.BootstrapApiServer,
 ) manager.Runnable {
 	return manager.RunnableFunc(func(ctx context.Context) error {
 		ctx = contextutils.WithLogger(rootCtx, "gloo-ee-apiserver")
-		apiServer := server.NewGlooInstanceGrpcServer(ctx, bootstrapService, health_check.NewHealthChecker())
+		apiServer := server.NewSingleClusterGlooGrpcServer(ctx, bootstrapService, health_check.NewHealthChecker())
 
 		return apiServer.Run(ctx, cfg)
 	})

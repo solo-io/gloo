@@ -36,7 +36,7 @@ import { PlacementStatus } from 'proto/github.com/solo-io/solo-projects/projects
 import { IconHolder } from 'Styles/StyledComponents/icons';
 import { StatusType } from 'utils/health-status';
 import { DataError } from 'Components/Common/DataError';
-import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb_service';
+import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 
 const VerticalCenterer = styled.div`
   display: flex;

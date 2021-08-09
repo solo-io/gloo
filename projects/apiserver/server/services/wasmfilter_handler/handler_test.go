@@ -13,7 +13,7 @@ import (
 	mock_gateway_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1/mocks"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	"github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/options/wasm"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/wasmfilter_handler"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	mock_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/mocks"
@@ -96,7 +96,7 @@ var _ = Describe("wasm filter handler", func() {
 						Options: &gloov1.HttpListenerOptions{
 							Wasm: &wasm.PluginSource{
 								Filters: []*wasm.WasmFilter{
-									&wasm.WasmFilter{
+									{
 										Src: &wasm.WasmFilter_Image{
 											Image: "wasm-image",
 										},
@@ -127,19 +127,19 @@ var _ = Describe("wasm filter handler", func() {
 		}, nil)
 
 		wasmFilterServer := wasmfilter_handler.NewWasmFilterHandler(instanceClient, mcGatewayCRDClientset)
-		resp, err := wasmFilterServer.ListWasmFilters(ctx, &rpc_v1.ListWasmFiltersRequest{})
+		resp, err := wasmFilterServer.ListWasmFilters(ctx, &rpc_edge_v1.ListWasmFiltersRequest{})
 		Expect(err).NotTo(HaveOccurred())
 		localGatewayRef := apiserverutils.ToClusterObjectRef("test-gateway", "test-namespace", "local-cluster")
 		remoteGatewayRef := apiserverutils.ToClusterObjectRef("test-gateway", "test-namespace", "remote-cluster")
-		Expect(resp).To(Equal(&rpc_v1.ListWasmFiltersResponse{
-			WasmFilters: []*rpc_v1.WasmFilter{
-				&rpc_v1.WasmFilter{
+		Expect(resp).To(Equal(&rpc_edge_v1.ListWasmFiltersResponse{
+			WasmFilters: []*rpc_edge_v1.WasmFilter{
+				{
 					Name:   "filter-1",
 					RootId: "filter-1",
 					Source: "wasm-image",
 					Config: "",
-					Locations: []*rpc_v1.WasmFilter_Location{
-						&rpc_v1.WasmFilter_Location{
+					Locations: []*rpc_edge_v1.WasmFilter_Location{
+						{
 							GatewayRef: &localGatewayRef,
 							GatewayStatus: &gatewayv1.GatewayStatus{
 								State: 1,
@@ -149,7 +149,7 @@ var _ = Describe("wasm filter handler", func() {
 								Namespace: "gloo-system",
 							},
 						},
-						&rpc_v1.WasmFilter_Location{
+						{
 							GatewayRef: &remoteGatewayRef,
 							GatewayStatus: &gatewayv1.GatewayStatus{
 								State: 1,
@@ -174,7 +174,7 @@ var _ = Describe("wasm filter handler", func() {
 			Return(&remoteGateway, nil)
 
 		wasmFilterServer := wasmfilter_handler.NewWasmFilterHandler(instanceClient, mcGatewayCRDClientset)
-		resp, err := wasmFilterServer.DescribeWasmFilter(ctx, &rpc_v1.DescribeWasmFilterRequest{
+		resp, err := wasmFilterServer.DescribeWasmFilter(ctx, &rpc_edge_v1.DescribeWasmFilterRequest{
 			Name:   "filter-1",
 			RootId: "filter-1",
 			GatewayRef: &v1.ObjectRef{
@@ -185,13 +185,13 @@ var _ = Describe("wasm filter handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 		localGatewayRef := apiserverutils.ToClusterObjectRef("test-gateway", "test-namespace", "local-cluster")
 		remoteGatewayRef := apiserverutils.ToClusterObjectRef("test-gateway", "test-namespace", "remote-cluster")
-		Expect(resp).To(Equal(&rpc_v1.DescribeWasmFilterResponse{
-			WasmFilter: &rpc_v1.WasmFilter{
+		Expect(resp).To(Equal(&rpc_edge_v1.DescribeWasmFilterResponse{
+			WasmFilter: &rpc_edge_v1.WasmFilter{
 				Name:   "filter-1",
 				RootId: "filter-1",
 				Source: "wasm-image",
-				Locations: []*rpc_v1.WasmFilter_Location{
-					&rpc_v1.WasmFilter_Location{
+				Locations: []*rpc_edge_v1.WasmFilter_Location{
+					{
 						GatewayRef: &localGatewayRef,
 						GatewayStatus: &gatewayv1.GatewayStatus{
 							State: 1,
@@ -201,7 +201,7 @@ var _ = Describe("wasm filter handler", func() {
 							Namespace: "gloo-system",
 						},
 					},
-					&rpc_v1.WasmFilter_Location{
+					{
 						GatewayRef: &remoteGatewayRef,
 						GatewayStatus: &gatewayv1.GatewayStatus{
 							State: 1,

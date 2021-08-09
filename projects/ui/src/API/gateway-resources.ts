@@ -1,4 +1,4 @@
-import { GatewayResourceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb_service';
+import { GatewayResourceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 import {
   host,
   getObjectRefClassFromRefObj,
@@ -13,7 +13,7 @@ import {
   GetVirtualServiceYamlRequest,
   GetGatewayYamlRequest,
   GetRouteTableYamlRequest,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import {
   ObjectRef,
   ClusterObjectRef,

@@ -118,6 +118,7 @@ clean-artifacts:
 .PHONY: clean-generated-protos
 clean-generated-protos:
 	rm -rf $(ROOTDIR)/projects/apiserver/api/fed.rpc/v1/*resources.proto
+	rm -rf $(ROOTDIR)/projects/apiserver/api/rpc.edge.gloo/v1/*resources.proto
 
 # Clean
 .PHONY: clean-fed

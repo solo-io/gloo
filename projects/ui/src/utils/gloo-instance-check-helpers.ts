@@ -1,5 +1,5 @@
 import { ObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/glooinstance_pb';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { Issue } from 'Components/Common/NotificationBox';
 
 const getLink = (

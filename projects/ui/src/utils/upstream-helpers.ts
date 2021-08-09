@@ -1,4 +1,4 @@
-import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gloo_resources_pb';
+import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { WeightedDestination } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb';
 
 export const TYPE_AWS = 'AWS';

@@ -11,7 +11,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/solo-io/gloo/pkg/cliutil"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/glooctl-plugins/fed/pkg/cmd/options"
 	"github.com/solo-io/solo-projects/projects/glooctl-plugins/fed/pkg/constants"
 	"github.com/spf13/cobra"
@@ -47,8 +47,8 @@ func Upstream(opts *options.Options) *cobra.Command {
 				return err
 			}
 			defer conn.Close()
-			client := rpc_v1.NewGlooResourceApiClient(conn)
-			upstreams, err := client.ListUpstreams(opts.Ctx, &rpc_v1.ListUpstreamsRequest{})
+			client := rpc_edge_v1.NewGlooResourceApiClient(conn)
+			upstreams, err := client.ListUpstreams(opts.Ctx, &rpc_edge_v1.ListUpstreamsRequest{})
 			if err != nil {
 				return err
 			}
@@ -98,8 +98,8 @@ func UpstreamGroup(opts *options.Options) *cobra.Command {
 				return err
 			}
 			defer conn.Close()
-			client := rpc_v1.NewGlooResourceApiClient(conn)
-			upstreamGroups, err := client.ListUpstreamGroups(opts.Ctx, &rpc_v1.ListUpstreamGroupsRequest{})
+			client := rpc_edge_v1.NewGlooResourceApiClient(conn)
+			upstreamGroups, err := client.ListUpstreamGroups(opts.Ctx, &rpc_edge_v1.ListUpstreamGroupsRequest{})
 			if err != nil {
 				return err
 			}
@@ -149,8 +149,8 @@ func Settings(opts *options.Options) *cobra.Command {
 				return err
 			}
 			defer conn.Close()
-			client := rpc_v1.NewGlooResourceApiClient(conn)
-			settings, err := client.ListSettings(opts.Ctx, &rpc_v1.ListSettingsRequest{})
+			client := rpc_edge_v1.NewGlooResourceApiClient(conn)
+			settings, err := client.ListSettings(opts.Ctx, &rpc_edge_v1.ListSettingsRequest{})
 			if err != nil {
 				return err
 			}
@@ -200,8 +200,8 @@ func Proxy(opts *options.Options) *cobra.Command {
 				return err
 			}
 			defer conn.Close()
-			client := rpc_v1.NewGlooResourceApiClient(conn)
-			proxies, err := client.ListProxies(opts.Ctx, &rpc_v1.ListProxiesRequest{})
+			client := rpc_edge_v1.NewGlooResourceApiClient(conn)
+			proxies, err := client.ListProxies(opts.Ctx, &rpc_edge_v1.ListProxiesRequest{})
 			if err != nil {
 				return err
 			}

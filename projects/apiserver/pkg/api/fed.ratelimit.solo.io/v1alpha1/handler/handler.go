@@ -10,7 +10,8 @@ import (
 	"gopkg.in/yaml.v1"
 
 	"github.com/solo-io/go-utils/contextutils"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_fed_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
 	ratelimit_solo_io_v1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -19,7 +20,7 @@ import (
 func NewFederatedRatelimitResourceHandler(
 	ratelimitFedClient ratelimit_solo_io_v1alpha1.Clientset,
 
-) rpc_v1.FederatedRatelimitResourceApiServer {
+) rpc_fed_v1.FederatedRatelimitResourceApiServer {
 	return &ratelimitFedResourceHandler{
 		ratelimitFedClient: ratelimitFedClient,
 	}
@@ -29,8 +30,8 @@ type ratelimitFedResourceHandler struct {
 	ratelimitFedClient ratelimit_solo_io_v1alpha1.Clientset
 }
 
-func (k *ratelimitFedResourceHandler) ListFederatedRateLimitConfigs(ctx context.Context, request *rpc_v1.ListFederatedRateLimitConfigsRequest) (*rpc_v1.ListFederatedRateLimitConfigsResponse, error) {
-	var rpcFederatedRateLimitConfigs []*rpc_v1.FederatedRateLimitConfig
+func (k *ratelimitFedResourceHandler) ListFederatedRateLimitConfigs(ctx context.Context, request *rpc_fed_v1.ListFederatedRateLimitConfigsRequest) (*rpc_fed_v1.ListFederatedRateLimitConfigsResponse, error) {
+	var rpcFederatedRateLimitConfigs []*rpc_fed_v1.FederatedRateLimitConfig
 	list, err := k.ratelimitFedClient.FederatedRateLimitConfigs().ListFederatedRateLimitConfig(ctx)
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to list federatedRateLimitConfig")
@@ -40,20 +41,20 @@ func (k *ratelimitFedResourceHandler) ListFederatedRateLimitConfigs(ctx context.
 	for i, _ := range list.Items {
 		rpcFederatedRateLimitConfigs = append(rpcFederatedRateLimitConfigs, BuildRpcFederatedRateLimitConfig(&list.Items[i]))
 	}
-	return &rpc_v1.ListFederatedRateLimitConfigsResponse{
+	return &rpc_fed_v1.ListFederatedRateLimitConfigsResponse{
 		FederatedRateLimitConfigs: rpcFederatedRateLimitConfigs,
 	}, nil
 }
 
-func BuildRpcFederatedRateLimitConfig(federatedRateLimitConfig *ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig) *rpc_v1.FederatedRateLimitConfig {
-	return &rpc_v1.FederatedRateLimitConfig{
+func BuildRpcFederatedRateLimitConfig(federatedRateLimitConfig *ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig) *rpc_fed_v1.FederatedRateLimitConfig {
+	return &rpc_fed_v1.FederatedRateLimitConfig{
 		Metadata: apiserverutils.ToMetadata(federatedRateLimitConfig.ObjectMeta),
 		Spec:     &federatedRateLimitConfig.Spec,
 		Status:   &federatedRateLimitConfig.Status,
 	}
 }
 
-func (k *ratelimitFedResourceHandler) GetFederatedRateLimitConfigYaml(ctx context.Context, request *rpc_v1.GetFederatedRateLimitConfigYamlRequest) (*rpc_v1.GetFederatedRateLimitConfigYamlResponse, error) {
+func (k *ratelimitFedResourceHandler) GetFederatedRateLimitConfigYaml(ctx context.Context, request *rpc_fed_v1.GetFederatedRateLimitConfigYamlRequest) (*rpc_fed_v1.GetFederatedRateLimitConfigYamlResponse, error) {
 	federatedRateLimitConfig, err := k.ratelimitFedClient.FederatedRateLimitConfigs().GetFederatedRateLimitConfig(ctx, client.ObjectKey{
 		Namespace: request.GetFederatedRateLimitConfigRef().GetNamespace(),
 		Name:      request.GetFederatedRateLimitConfigRef().GetName(),
@@ -69,8 +70,8 @@ func (k *ratelimitFedResourceHandler) GetFederatedRateLimitConfigYaml(ctx contex
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &rpc_v1.GetFederatedRateLimitConfigYamlResponse{
-		YamlData: &rpc_v1.ResourceYaml{
+	return &rpc_fed_v1.GetFederatedRateLimitConfigYamlResponse{
+		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
 	}, nil

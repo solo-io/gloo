@@ -1,4 +1,4 @@
-import { GlooResourceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gloo_resources_pb_service';
+import { GlooResourceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb_service';
 import {
   host,
   getObjectRefClassFromRefObj,
@@ -17,7 +17,7 @@ import {
   Proxy,
   Settings,
   GetSettingsYamlRequest,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gloo_resources_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { ObjectRef, ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 const glooResourceApiClient = new GlooResourceApiClient(host, {

@@ -10,7 +10,8 @@ import (
 	"gopkg.in/yaml.v1"
 
 	"github.com/solo-io/go-utils/contextutils"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_fed_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
 	enterprise_gloo_solo_io_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -19,7 +20,7 @@ import (
 func NewFederatedEnterpriseGlooResourceHandler(
 	enterprise_glooFedClient enterprise_gloo_solo_io_v1.Clientset,
 
-) rpc_v1.FederatedEnterpriseGlooResourceApiServer {
+) rpc_fed_v1.FederatedEnterpriseGlooResourceApiServer {
 	return &enterprise_glooFedResourceHandler{
 		enterprise_glooFedClient: enterprise_glooFedClient,
 	}
@@ -29,8 +30,8 @@ type enterprise_glooFedResourceHandler struct {
 	enterprise_glooFedClient enterprise_gloo_solo_io_v1.Clientset
 }
 
-func (k *enterprise_glooFedResourceHandler) ListFederatedAuthConfigs(ctx context.Context, request *rpc_v1.ListFederatedAuthConfigsRequest) (*rpc_v1.ListFederatedAuthConfigsResponse, error) {
-	var rpcFederatedAuthConfigs []*rpc_v1.FederatedAuthConfig
+func (k *enterprise_glooFedResourceHandler) ListFederatedAuthConfigs(ctx context.Context, request *rpc_fed_v1.ListFederatedAuthConfigsRequest) (*rpc_fed_v1.ListFederatedAuthConfigsResponse, error) {
+	var rpcFederatedAuthConfigs []*rpc_fed_v1.FederatedAuthConfig
 	list, err := k.enterprise_glooFedClient.FederatedAuthConfigs().ListFederatedAuthConfig(ctx)
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to list federatedAuthConfig")
@@ -40,20 +41,20 @@ func (k *enterprise_glooFedResourceHandler) ListFederatedAuthConfigs(ctx context
 	for i, _ := range list.Items {
 		rpcFederatedAuthConfigs = append(rpcFederatedAuthConfigs, BuildRpcFederatedAuthConfig(&list.Items[i]))
 	}
-	return &rpc_v1.ListFederatedAuthConfigsResponse{
+	return &rpc_fed_v1.ListFederatedAuthConfigsResponse{
 		FederatedAuthConfigs: rpcFederatedAuthConfigs,
 	}, nil
 }
 
-func BuildRpcFederatedAuthConfig(federatedAuthConfig *enterprise_gloo_solo_io_v1.FederatedAuthConfig) *rpc_v1.FederatedAuthConfig {
-	return &rpc_v1.FederatedAuthConfig{
+func BuildRpcFederatedAuthConfig(federatedAuthConfig *enterprise_gloo_solo_io_v1.FederatedAuthConfig) *rpc_fed_v1.FederatedAuthConfig {
+	return &rpc_fed_v1.FederatedAuthConfig{
 		Metadata: apiserverutils.ToMetadata(federatedAuthConfig.ObjectMeta),
 		Spec:     &federatedAuthConfig.Spec,
 		Status:   &federatedAuthConfig.Status,
 	}
 }
 
-func (k *enterprise_glooFedResourceHandler) GetFederatedAuthConfigYaml(ctx context.Context, request *rpc_v1.GetFederatedAuthConfigYamlRequest) (*rpc_v1.GetFederatedAuthConfigYamlResponse, error) {
+func (k *enterprise_glooFedResourceHandler) GetFederatedAuthConfigYaml(ctx context.Context, request *rpc_fed_v1.GetFederatedAuthConfigYamlRequest) (*rpc_fed_v1.GetFederatedAuthConfigYamlResponse, error) {
 	federatedAuthConfig, err := k.enterprise_glooFedClient.FederatedAuthConfigs().GetFederatedAuthConfig(ctx, client.ObjectKey{
 		Namespace: request.GetFederatedAuthConfigRef().GetNamespace(),
 		Name:      request.GetFederatedAuthConfigRef().GetName(),
@@ -69,8 +70,8 @@ func (k *enterprise_glooFedResourceHandler) GetFederatedAuthConfigYaml(ctx conte
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &rpc_v1.GetFederatedAuthConfigYamlResponse{
-		YamlData: &rpc_v1.ResourceYaml{
+	return &rpc_fed_v1.GetFederatedAuthConfigYamlResponse{
+		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
 	}, nil

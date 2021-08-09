@@ -8,10 +8,11 @@ import (
 var baseTemplateBox = packr.NewBox("./custom_templates/base_gloo_resource_templates")
 
 var BaseGlooResourceTemplates = func() []model.CustomTemplates {
-	apiserverHandler, err := baseTemplateBox.FindString("apiserver/apiserver_handler.gotmpl")
+	fedApiserverHandler, err := baseTemplateBox.FindString("apiserver/fed_apiserver_handler.gotmpl")
 	if err != nil {
 		panic(err)
 	}
+	// TODO add edge_apiserver_handler here
 	apiserverProtos, err := baseTemplateBox.FindString("apiserver/apiserver_protos.gotmpl")
 	if err != nil {
 		panic(err)
@@ -21,6 +22,9 @@ var BaseGlooResourceTemplates = func() []model.CustomTemplates {
 		panic(err)
 	}
 	checker, err := baseTemplateBox.FindString("discovery_check/check.gotmpl")
+	if err != nil {
+		panic(err)
+	}
 
 	return []model.CustomTemplates{
 		{
@@ -31,7 +35,7 @@ var BaseGlooResourceTemplates = func() []model.CustomTemplates {
 		},
 		{
 			Templates: map[string]string{
-				"handler/handler.go": apiserverHandler,
+				"handler/handler.go": fedApiserverHandler,
 			},
 			Funcs: GetTemplateFuncs(),
 		},

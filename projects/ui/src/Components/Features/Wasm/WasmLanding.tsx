@@ -11,7 +11,7 @@ import {
   ObjectRef,
 } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import { objectMetasAreEqual } from 'API/helpers';
-import { ObjectMeta } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common_pb';
+import { ObjectMeta } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
 import { useParams } from 'react-router';
 import { DataError } from 'Components/Common/DataError';
 import { Loading } from 'Components/Common/Loading';

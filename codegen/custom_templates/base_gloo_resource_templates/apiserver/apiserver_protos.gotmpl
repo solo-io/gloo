@@ -1,6 +1,6 @@
 syntax = "proto3";
-package fed.rpc.solo.io;
-option go_package = "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1";
+package rpc.edge.gloo.solo.io;
+option go_package = "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1";
 
 import "extproto/ext.proto";
 option (extproto.equal_all) = true;
@@ -16,16 +16,16 @@ option (extproto.hash_all) = true;
 import "github.com/solo-io/solo-apis/api/gloo/{{ $base_proto_group_shorthand }}/{{ base_group_version $ }}/{{ $kind_snake_case }}.proto";
 {{- end }}
 import "github.com/solo-io/skv2/api/core/v1/core.proto";
-import "github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common.proto";
+import "github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common.proto";
 
 {{- range $resource := $.Resources }}
 {{- $base_kind := base_kind $resource.Kind }}
 
 message {{ $base_kind }} {
-    fed.rpc.solo.io.ObjectMeta metadata = 1;
-    {{ $base_proto_group }}.{{ $base_kind }}Spec spec = 2;
-    {{ $base_proto_group }}.{{ $base_kind }}Status status = 3;
-    core.skv2.solo.io.ObjectRef gloo_instance = 4;
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .{{ $base_proto_group }}.{{ $base_kind }}Spec spec = 2;
+    .{{ $base_proto_group }}.{{ $base_kind }}Status status = 3;
+    .core.skv2.solo.io.ObjectRef gloo_instance = 4;
 }
 
 {{- end }}
@@ -35,7 +35,7 @@ message {{ $base_kind }} {
 {{- $kind_snake_case := snake $resource.Kind }}
 
 message List{{ pluralize $base_kind }}Request {
-    core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
 }
 
 message List{{ pluralize $base_kind }}Response {
@@ -43,11 +43,11 @@ message List{{ pluralize $base_kind }}Response {
 }
 
 message Get{{ $base_kind }}YamlRequest {
-    core.skv2.solo.io.ClusterObjectRef {{ $kind_snake_case }}_ref = 1;
+    .core.skv2.solo.io.ClusterObjectRef {{ $kind_snake_case }}_ref = 1;
 }
 
 message Get{{ $base_kind }}YamlResponse {
-    fed.rpc.solo.io.ResourceYaml yaml_data = 1;
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
 {{- end }}

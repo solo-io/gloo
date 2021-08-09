@@ -10,7 +10,7 @@ import { useListSettings } from 'API/hooks';
 import { glooResourceApi } from 'API/gloo-resource';
 import { doDownload } from 'download-helper';
 import YamlDisplayer from 'Components/Common/YamlDisplayer';
-import { Settings } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gloo_resources_pb';
+import { Settings } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { IconHolder } from 'Styles/StyledComponents/icons';
 import { DataError } from 'Components/Common/DataError';
 

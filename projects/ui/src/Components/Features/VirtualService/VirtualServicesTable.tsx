@@ -17,7 +17,7 @@ import {
   useListGlooInstances,
   useListVirtualServices,
 } from 'API/hooks';
-import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb';
+import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { Loading } from 'Components/Common/Loading';
 import { objectMetasAreEqual } from 'API/helpers';
 import { SimpleLinkProps, RenderSimpleLink } from 'Components/Common/SoloLink';

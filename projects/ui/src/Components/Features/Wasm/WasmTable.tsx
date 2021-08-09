@@ -28,8 +28,8 @@ import {
   ClusterObjectRef,
   ObjectRef,
 } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { ObjectMeta } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common_pb';
-import { WasmFilter } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/wasm_pb';
+import { ObjectMeta } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
+import { WasmFilter } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/wasm_pb';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { WasmFilterDetails } from './WasmFilterDetails';
 

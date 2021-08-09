@@ -5,14 +5,14 @@
 import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_v1_failover_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/failover_pb";
-import * as github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common_pb";
+import * as github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb";
 import * as github_com_solo_io_skv2_api_core_v1_core_pb from "../../../../../../../../github.com/solo-io/skv2/api/core/v1/core_pb";
 
 export class FailoverScheme extends jspb.Message {
   hasMetadata(): boolean;
   clearMetadata(): void;
-  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta | undefined;
-  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta): void;
+  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta | undefined;
+  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta): void;
 
   hasSpec(): boolean;
   clearSpec(): void;
@@ -36,7 +36,7 @@ export class FailoverScheme extends jspb.Message {
 
 export namespace FailoverScheme {
   export type AsObject = {
-    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.AsObject,
+    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
     spec?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_v1_failover_pb.FailoverSchemeSpec.AsObject,
     status?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_v1_failover_pb.FailoverSchemeStatus.AsObject,
   }
@@ -111,8 +111,8 @@ export namespace GetFailoverSchemeYamlRequest {
 export class GetFailoverSchemeYamlResponse extends jspb.Message {
   hasYamlData(): boolean;
   clearYamlData(): void;
-  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml | undefined;
-  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml): void;
+  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml | undefined;
+  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetFailoverSchemeYamlResponse.AsObject;
@@ -126,6 +126,6 @@ export class GetFailoverSchemeYamlResponse extends jspb.Message {
 
 export namespace GetFailoverSchemeYamlResponse {
   export type AsObject = {
-    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.AsObject,
+    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
   }
 }

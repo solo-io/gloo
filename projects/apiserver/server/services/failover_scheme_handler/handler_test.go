@@ -4,8 +4,8 @@ import (
 	"context"
 
 	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
-
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_fed_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/failover_scheme_handler"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	mock_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/mocks"
@@ -71,20 +71,20 @@ var _ = Describe("failover scheme handler", func() {
 
 	It("returns nil if there are no failover schemes for an upstream", func() {
 		failoverSchemeServer := failover_scheme_handler.NewFailoverSchemeHandler(failoverSchemeClient)
-		resp, err := failoverSchemeServer.GetFailoverScheme(context.TODO(), &rpc_v1.GetFailoverSchemeRequest{
+		resp, err := failoverSchemeServer.GetFailoverScheme(context.TODO(), &rpc_fed_v1.GetFailoverSchemeRequest{
 			UpstreamRef: &v1.ClusterObjectRef{
 				Name: "nonexistent-test-name",
 			},
 		})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(resp).To(Equal(&rpc_v1.GetFailoverSchemeResponse{
-			FailoverScheme: &rpc_v1.FailoverScheme{},
+		Expect(resp).To(Equal(&rpc_fed_v1.GetFailoverSchemeResponse{
+			FailoverScheme: &rpc_fed_v1.FailoverScheme{},
 		}))
 	})
 
 	It("returns a failover if there is a failover scheme that matches an upstream", func() {
 		failoverSchemeServer := failover_scheme_handler.NewFailoverSchemeHandler(failoverSchemeClient)
-		resp, err := failoverSchemeServer.GetFailoverScheme(context.TODO(), &rpc_v1.GetFailoverSchemeRequest{
+		resp, err := failoverSchemeServer.GetFailoverScheme(context.TODO(), &rpc_fed_v1.GetFailoverSchemeRequest{
 			UpstreamRef: &v1.ClusterObjectRef{
 				Name:        "test-name",
 				Namespace:   "test-namespace",
@@ -92,9 +92,9 @@ var _ = Describe("failover scheme handler", func() {
 			},
 		})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(resp).To(Equal(&rpc_v1.GetFailoverSchemeResponse{
-			FailoverScheme: &rpc_v1.FailoverScheme{
-				Metadata: &rpc_v1.ObjectMeta{
+		Expect(resp).To(Equal(&rpc_fed_v1.GetFailoverSchemeResponse{
+			FailoverScheme: &rpc_fed_v1.FailoverScheme{
+				Metadata: &rpc_edge_v1.ObjectMeta{
 					Name:      "failover-test",
 					Namespace: "gloo-system",
 				},

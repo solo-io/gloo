@@ -27,15 +27,17 @@ do
 done
 
 # fix generated proto paths
-mv projects/gloo-fed/pkg/api/gloo.solo.io/v1/resource_apis.proto projects/apiserver/api/fed.rpc/v1/gloo_resources.proto > /dev/null
-mv projects/gloo-fed/pkg/api/gateway.solo.io/v1/resource_apis.proto projects/apiserver/api/fed.rpc/v1/gateway_resources.proto > /dev/null
-mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/resource_apis.proto projects/apiserver/api/fed.rpc/v1/enterprise_gloo_resources.proto > /dev/null
-mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/resource_apis.proto projects/apiserver/api/fed.rpc/v1/ratelimit_resources.proto > /dev/null
+mv projects/gloo-fed/pkg/api/gloo.solo.io/v1/resource_apis.proto projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources.proto > /dev/null
+mv projects/gloo-fed/pkg/api/gateway.solo.io/v1/resource_apis.proto projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources.proto > /dev/null
+mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/resource_apis.proto projects/apiserver/api/rpc.edge.gloo/v1/enterprise_gloo_resources.proto > /dev/null
+mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/resource_apis.proto projects/apiserver/api/rpc.edge.gloo/v1/ratelimit_resources.proto > /dev/null
 mv projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1/resource_apis.proto projects/apiserver/api/fed.rpc/v1/federated_gloo_resources.proto > /dev/null
 mv projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1/resource_apis.proto projects/apiserver/api/fed.rpc/v1/federated_gateway_resources.proto > /dev/null
 mv projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1/resource_apis.proto projects/apiserver/api/fed.rpc/v1/federated_enterprise_gloo_resources.proto > /dev/null
 mv projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1/resource_apis.proto projects/apiserver/api/fed.rpc/v1/federated_ratelimit_resources.proto > /dev/null
+
 cp projects/apiserver/api/fed.rpc/v1/*resources.proto vendor_any/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/ > /dev/null
+cp projects/apiserver/api/rpc.edge.gloo/v1/*resources.proto vendor_any/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/ > /dev/null
 
 # fix cli paths
 mkdir -p projects/glooctl-plugins/fed/pkg/api/gloo.solo.io/v1/cli

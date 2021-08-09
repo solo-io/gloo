@@ -13,7 +13,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	ratelimit_solo_io_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -24,7 +24,7 @@ func NewRatelimitResourceHandler(
 	instanceClient fedv1.GlooInstanceClient,
 	mcRatelimitCRDClientset ratelimit_solo_io_v1alpha1.MulticlusterClientset,
 
-) rpc_v1.RatelimitResourceApiServer {
+) rpc_edge_v1.RatelimitResourceApiServer {
 	return &ratelimitResourceHandler{
 		instanceClient:          instanceClient,
 		mcRatelimitCRDClientset: mcRatelimitCRDClientset,
@@ -36,63 +36,63 @@ type ratelimitResourceHandler struct {
 	mcRatelimitCRDClientset ratelimit_solo_io_v1alpha1.MulticlusterClientset
 }
 
-func (k *ratelimitResourceHandler) ListRateLimitConfigs(ctx context.Context, request *rpc_v1.ListRateLimitConfigsRequest) (*rpc_v1.ListRateLimitConfigsResponse, error) {
+func (k *ratelimitResourceHandler) ListRateLimitConfigs(ctx context.Context, request *rpc_edge_v1.ListRateLimitConfigsRequest) (*rpc_edge_v1.ListRateLimitConfigsResponse, error) {
 
-	var rpcRateLimitConfigs []*rpc_v1.RateLimitConfig
+	var rpcRateLimitConfigs []*rpc_edge_v1.RateLimitConfig
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
-		// List rateLimitConfigs across all ratelimit instances
+		// List rateLimitConfigs across all gloo edge instances
 		instanceList, err := k.instanceClient.ListGlooInstance(ctx)
 		if err != nil {
-			wrapped := eris.Wrapf(err, "Failed to list gloo instances")
+			wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
 			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 			return nil, wrapped
 		}
-		for _, ratelimitInstance := range instanceList.Items {
-			rpcRateLimitConfigList, err := k.listRateLimitConfigsForGlooInstance(ctx, &ratelimitInstance)
+		for _, instance := range instanceList.Items {
+			rpcRateLimitConfigList, err := k.listRateLimitConfigsForGlooInstance(ctx, &instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to get ratelimit instance %s.%s", ratelimitInstance.GetNamespace(), ratelimitInstance.GetName())
+				wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
 			rpcRateLimitConfigs = append(rpcRateLimitConfigs, rpcRateLimitConfigList...)
 		}
 	} else {
-		// List rateLimitConfigs for a specific gloo instance
-		ratelimitInstance, err := k.instanceClient.GetGlooInstance(ctx, types.NamespacedName{
+		// List rateLimitConfigs for a specific gloo edge instance
+		instance, err := k.instanceClient.GetGlooInstance(ctx, types.NamespacedName{
 			Name:      request.GetGlooInstanceRef().GetName(),
 			Namespace: request.GetGlooInstanceRef().GetNamespace(),
 		})
 		if err != nil {
-			wrapped := eris.Wrapf(err, "Failed to get ratelimit instance %s.%s", ratelimitInstance.GetNamespace(), ratelimitInstance.GetName())
+			wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 			return nil, wrapped
 		}
-		rpcRateLimitConfigs, err = k.listRateLimitConfigsForGlooInstance(ctx, ratelimitInstance)
+		rpcRateLimitConfigs, err = k.listRateLimitConfigsForGlooInstance(ctx, instance)
 		if err != nil {
-			wrapped := eris.Wrapf(err, "Failed to list rateLimitConfigs for ratelimit instance %s.%s", ratelimitInstance.GetNamespace(), ratelimitInstance.GetName())
+			wrapped := eris.Wrapf(err, "Failed to list rateLimitConfigs for gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 			return nil, wrapped
 		}
 	}
 
-	return &rpc_v1.ListRateLimitConfigsResponse{
+	return &rpc_edge_v1.ListRateLimitConfigsResponse{
 		RateLimitConfigs: rpcRateLimitConfigs,
 	}, nil
 }
 
-func (k *ratelimitResourceHandler) listRateLimitConfigsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_v1.RateLimitConfig, error) {
+func (k *ratelimitResourceHandler) listRateLimitConfigsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.RateLimitConfig, error) {
 
 	ratelimitCRDClientset, err := k.mcRatelimitCRDClientset.Cluster(instance.Spec.GetCluster())
 	if err != nil {
 		return nil, err
 	}
-	usClient := ratelimitCRDClientset.RateLimitConfigs()
+	rateLimitConfigClient := ratelimitCRDClientset.RateLimitConfigs()
 
 	var ratelimitRateLimitConfigList []*ratelimit_solo_io_v1alpha1.RateLimitConfig
 	watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
 	if len(watchedNamespaces) != 0 {
 		for _, ns := range watchedNamespaces {
-			list, err := usClient.ListRateLimitConfig(ctx, client.InNamespace(ns))
+			list, err := rateLimitConfigClient.ListRateLimitConfig(ctx, client.InNamespace(ns))
 			if err != nil {
 				return nil, err
 			}
@@ -101,7 +101,7 @@ func (k *ratelimitResourceHandler) listRateLimitConfigsForGlooInstance(ctx conte
 			}
 		}
 	} else {
-		list, err := usClient.ListRateLimitConfig(ctx)
+		list, err := rateLimitConfigClient.ListRateLimitConfig(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +115,7 @@ func (k *ratelimitResourceHandler) listRateLimitConfigsForGlooInstance(ctx conte
 		return x.GetNamespace()+x.GetName() < y.GetNamespace()+y.GetName()
 	})
 
-	var rpcRateLimitConfigs []*rpc_v1.RateLimitConfig
+	var rpcRateLimitConfigs []*rpc_edge_v1.RateLimitConfig
 	for _, rateLimitConfig := range ratelimitRateLimitConfigList {
 		rpcRateLimitConfigs = append(rpcRateLimitConfigs, BuildRpcRateLimitConfig(rateLimitConfig, &skv2v1.ObjectRef{
 			Name:      instance.GetName(),
@@ -125,8 +125,8 @@ func (k *ratelimitResourceHandler) listRateLimitConfigsForGlooInstance(ctx conte
 	return rpcRateLimitConfigs, nil
 }
 
-func BuildRpcRateLimitConfig(rateLimitConfig *ratelimit_solo_io_v1alpha1.RateLimitConfig, glooInstance *skv2v1.ObjectRef, cluster string) *rpc_v1.RateLimitConfig {
-	m := &rpc_v1.RateLimitConfig{
+func BuildRpcRateLimitConfig(rateLimitConfig *ratelimit_solo_io_v1alpha1.RateLimitConfig, glooInstance *skv2v1.ObjectRef, cluster string) *rpc_edge_v1.RateLimitConfig {
+	m := &rpc_edge_v1.RateLimitConfig{
 		Metadata:     apiserverutils.ToMetadata(rateLimitConfig.ObjectMeta),
 		GlooInstance: glooInstance,
 		Spec:         &rateLimitConfig.Spec,
@@ -136,7 +136,7 @@ func BuildRpcRateLimitConfig(rateLimitConfig *ratelimit_solo_io_v1alpha1.RateLim
 	return m
 }
 
-func (k *ratelimitResourceHandler) GetRateLimitConfigYaml(ctx context.Context, request *rpc_v1.GetRateLimitConfigYamlRequest) (*rpc_v1.GetRateLimitConfigYamlResponse, error) {
+func (k *ratelimitResourceHandler) GetRateLimitConfigYaml(ctx context.Context, request *rpc_edge_v1.GetRateLimitConfigYamlRequest) (*rpc_edge_v1.GetRateLimitConfigYamlResponse, error) {
 	ratelimitClientSet, err := k.mcRatelimitCRDClientset.Cluster(request.GetRateLimitConfigRef().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get ratelimit client set")
@@ -158,8 +158,8 @@ func (k *ratelimitResourceHandler) GetRateLimitConfigYaml(ctx context.Context, r
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &rpc_v1.GetRateLimitConfigYamlResponse{
-		YamlData: &rpc_v1.ResourceYaml{
+	return &rpc_edge_v1.GetRateLimitConfigYamlResponse{
+		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
 	}, nil

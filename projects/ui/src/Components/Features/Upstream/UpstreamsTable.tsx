@@ -20,7 +20,7 @@ import {
 } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
 import { objectMetasAreEqual } from 'API/helpers';
-import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gloo_resources_pb';
+import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { SimpleLinkProps, RenderSimpleLink } from 'Components/Common/SoloLink';
 import { glooResourceApi } from 'API/gloo-resource';

@@ -10,7 +10,8 @@ import (
 	"gopkg.in/yaml.v1"
 
 	"github.com/solo-io/go-utils/contextutils"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_fed_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
 	gateway_solo_io_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -19,7 +20,7 @@ import (
 func NewFederatedGatewayResourceHandler(
 	gatewayFedClient gateway_solo_io_v1.Clientset,
 
-) rpc_v1.FederatedGatewayResourceApiServer {
+) rpc_fed_v1.FederatedGatewayResourceApiServer {
 	return &gatewayFedResourceHandler{
 		gatewayFedClient: gatewayFedClient,
 	}
@@ -29,8 +30,8 @@ type gatewayFedResourceHandler struct {
 	gatewayFedClient gateway_solo_io_v1.Clientset
 }
 
-func (k *gatewayFedResourceHandler) ListFederatedGateways(ctx context.Context, request *rpc_v1.ListFederatedGatewaysRequest) (*rpc_v1.ListFederatedGatewaysResponse, error) {
-	var rpcFederatedGateways []*rpc_v1.FederatedGateway
+func (k *gatewayFedResourceHandler) ListFederatedGateways(ctx context.Context, request *rpc_fed_v1.ListFederatedGatewaysRequest) (*rpc_fed_v1.ListFederatedGatewaysResponse, error) {
+	var rpcFederatedGateways []*rpc_fed_v1.FederatedGateway
 	list, err := k.gatewayFedClient.FederatedGateways().ListFederatedGateway(ctx)
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to list federatedGateway")
@@ -40,20 +41,20 @@ func (k *gatewayFedResourceHandler) ListFederatedGateways(ctx context.Context, r
 	for i, _ := range list.Items {
 		rpcFederatedGateways = append(rpcFederatedGateways, BuildRpcFederatedGateway(&list.Items[i]))
 	}
-	return &rpc_v1.ListFederatedGatewaysResponse{
+	return &rpc_fed_v1.ListFederatedGatewaysResponse{
 		FederatedGateways: rpcFederatedGateways,
 	}, nil
 }
 
-func BuildRpcFederatedGateway(federatedGateway *gateway_solo_io_v1.FederatedGateway) *rpc_v1.FederatedGateway {
-	return &rpc_v1.FederatedGateway{
+func BuildRpcFederatedGateway(federatedGateway *gateway_solo_io_v1.FederatedGateway) *rpc_fed_v1.FederatedGateway {
+	return &rpc_fed_v1.FederatedGateway{
 		Metadata: apiserverutils.ToMetadata(federatedGateway.ObjectMeta),
 		Spec:     &federatedGateway.Spec,
 		Status:   &federatedGateway.Status,
 	}
 }
 
-func (k *gatewayFedResourceHandler) GetFederatedGatewayYaml(ctx context.Context, request *rpc_v1.GetFederatedGatewayYamlRequest) (*rpc_v1.GetFederatedGatewayYamlResponse, error) {
+func (k *gatewayFedResourceHandler) GetFederatedGatewayYaml(ctx context.Context, request *rpc_fed_v1.GetFederatedGatewayYamlRequest) (*rpc_fed_v1.GetFederatedGatewayYamlResponse, error) {
 	federatedGateway, err := k.gatewayFedClient.FederatedGateways().GetFederatedGateway(ctx, client.ObjectKey{
 		Namespace: request.GetFederatedGatewayRef().GetNamespace(),
 		Name:      request.GetFederatedGatewayRef().GetName(),
@@ -69,15 +70,15 @@ func (k *gatewayFedResourceHandler) GetFederatedGatewayYaml(ctx context.Context,
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &rpc_v1.GetFederatedGatewayYamlResponse{
-		YamlData: &rpc_v1.ResourceYaml{
+	return &rpc_fed_v1.GetFederatedGatewayYamlResponse{
+		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
 	}, nil
 }
 
-func (k *gatewayFedResourceHandler) ListFederatedVirtualServices(ctx context.Context, request *rpc_v1.ListFederatedVirtualServicesRequest) (*rpc_v1.ListFederatedVirtualServicesResponse, error) {
-	var rpcFederatedVirtualServices []*rpc_v1.FederatedVirtualService
+func (k *gatewayFedResourceHandler) ListFederatedVirtualServices(ctx context.Context, request *rpc_fed_v1.ListFederatedVirtualServicesRequest) (*rpc_fed_v1.ListFederatedVirtualServicesResponse, error) {
+	var rpcFederatedVirtualServices []*rpc_fed_v1.FederatedVirtualService
 	list, err := k.gatewayFedClient.FederatedVirtualServices().ListFederatedVirtualService(ctx)
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to list federatedVirtualService")
@@ -87,20 +88,20 @@ func (k *gatewayFedResourceHandler) ListFederatedVirtualServices(ctx context.Con
 	for i, _ := range list.Items {
 		rpcFederatedVirtualServices = append(rpcFederatedVirtualServices, BuildRpcFederatedVirtualService(&list.Items[i]))
 	}
-	return &rpc_v1.ListFederatedVirtualServicesResponse{
+	return &rpc_fed_v1.ListFederatedVirtualServicesResponse{
 		FederatedVirtualServices: rpcFederatedVirtualServices,
 	}, nil
 }
 
-func BuildRpcFederatedVirtualService(federatedVirtualService *gateway_solo_io_v1.FederatedVirtualService) *rpc_v1.FederatedVirtualService {
-	return &rpc_v1.FederatedVirtualService{
+func BuildRpcFederatedVirtualService(federatedVirtualService *gateway_solo_io_v1.FederatedVirtualService) *rpc_fed_v1.FederatedVirtualService {
+	return &rpc_fed_v1.FederatedVirtualService{
 		Metadata: apiserverutils.ToMetadata(federatedVirtualService.ObjectMeta),
 		Spec:     &federatedVirtualService.Spec,
 		Status:   &federatedVirtualService.Status,
 	}
 }
 
-func (k *gatewayFedResourceHandler) GetFederatedVirtualServiceYaml(ctx context.Context, request *rpc_v1.GetFederatedVirtualServiceYamlRequest) (*rpc_v1.GetFederatedVirtualServiceYamlResponse, error) {
+func (k *gatewayFedResourceHandler) GetFederatedVirtualServiceYaml(ctx context.Context, request *rpc_fed_v1.GetFederatedVirtualServiceYamlRequest) (*rpc_fed_v1.GetFederatedVirtualServiceYamlResponse, error) {
 	federatedVirtualService, err := k.gatewayFedClient.FederatedVirtualServices().GetFederatedVirtualService(ctx, client.ObjectKey{
 		Namespace: request.GetFederatedVirtualServiceRef().GetNamespace(),
 		Name:      request.GetFederatedVirtualServiceRef().GetName(),
@@ -116,15 +117,15 @@ func (k *gatewayFedResourceHandler) GetFederatedVirtualServiceYaml(ctx context.C
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &rpc_v1.GetFederatedVirtualServiceYamlResponse{
-		YamlData: &rpc_v1.ResourceYaml{
+	return &rpc_fed_v1.GetFederatedVirtualServiceYamlResponse{
+		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
 	}, nil
 }
 
-func (k *gatewayFedResourceHandler) ListFederatedRouteTables(ctx context.Context, request *rpc_v1.ListFederatedRouteTablesRequest) (*rpc_v1.ListFederatedRouteTablesResponse, error) {
-	var rpcFederatedRouteTables []*rpc_v1.FederatedRouteTable
+func (k *gatewayFedResourceHandler) ListFederatedRouteTables(ctx context.Context, request *rpc_fed_v1.ListFederatedRouteTablesRequest) (*rpc_fed_v1.ListFederatedRouteTablesResponse, error) {
+	var rpcFederatedRouteTables []*rpc_fed_v1.FederatedRouteTable
 	list, err := k.gatewayFedClient.FederatedRouteTables().ListFederatedRouteTable(ctx)
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to list federatedRouteTable")
@@ -134,20 +135,20 @@ func (k *gatewayFedResourceHandler) ListFederatedRouteTables(ctx context.Context
 	for i, _ := range list.Items {
 		rpcFederatedRouteTables = append(rpcFederatedRouteTables, BuildRpcFederatedRouteTable(&list.Items[i]))
 	}
-	return &rpc_v1.ListFederatedRouteTablesResponse{
+	return &rpc_fed_v1.ListFederatedRouteTablesResponse{
 		FederatedRouteTables: rpcFederatedRouteTables,
 	}, nil
 }
 
-func BuildRpcFederatedRouteTable(federatedRouteTable *gateway_solo_io_v1.FederatedRouteTable) *rpc_v1.FederatedRouteTable {
-	return &rpc_v1.FederatedRouteTable{
+func BuildRpcFederatedRouteTable(federatedRouteTable *gateway_solo_io_v1.FederatedRouteTable) *rpc_fed_v1.FederatedRouteTable {
+	return &rpc_fed_v1.FederatedRouteTable{
 		Metadata: apiserverutils.ToMetadata(federatedRouteTable.ObjectMeta),
 		Spec:     &federatedRouteTable.Spec,
 		Status:   &federatedRouteTable.Status,
 	}
 }
 
-func (k *gatewayFedResourceHandler) GetFederatedRouteTableYaml(ctx context.Context, request *rpc_v1.GetFederatedRouteTableYamlRequest) (*rpc_v1.GetFederatedRouteTableYamlResponse, error) {
+func (k *gatewayFedResourceHandler) GetFederatedRouteTableYaml(ctx context.Context, request *rpc_fed_v1.GetFederatedRouteTableYamlRequest) (*rpc_fed_v1.GetFederatedRouteTableYamlResponse, error) {
 	federatedRouteTable, err := k.gatewayFedClient.FederatedRouteTables().GetFederatedRouteTable(ctx, client.ObjectKey{
 		Namespace: request.GetFederatedRouteTableRef().GetNamespace(),
 		Name:      request.GetFederatedRouteTableRef().GetName(),
@@ -163,8 +164,8 @@ func (k *gatewayFedResourceHandler) GetFederatedRouteTableYaml(ctx context.Conte
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &rpc_v1.GetFederatedRouteTableYamlResponse{
-		YamlData: &rpc_v1.ResourceYaml{
+	return &rpc_fed_v1.GetFederatedRouteTableYamlResponse{
+		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
 	}, nil

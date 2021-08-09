@@ -10,12 +10,12 @@ option (extproto.hash_all) = true;
 option go_package = "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1";
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.enterprise.gloo/v1/auth_config.proto";
 import "github.com/solo-io/skv2/api/core/v1/core.proto";
-import "github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common.proto";
+import "github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common.proto";
 
 message FederatedAuthConfig {
-    fed.rpc.solo.io.ObjectMeta metadata = 1;
-    enterprise.gloo.solo.io.FederatedAuthConfigSpec spec = 2;
-    enterprise.gloo.solo.io.FederatedAuthConfigStatus status = 3;
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .fed.enterprise.gloo.solo.io.FederatedAuthConfigSpec spec = 2;
+    .fed.enterprise.gloo.solo.io.FederatedAuthConfigStatus status = 3;
 }
 
 message ListFederatedAuthConfigsRequest {}
@@ -25,11 +25,11 @@ message ListFederatedAuthConfigsResponse {
 }
 
 message GetFederatedAuthConfigYamlRequest {
-    core.skv2.solo.io.ObjectRef federated_auth_config_ref = 1;
+    .core.skv2.solo.io.ObjectRef federated_auth_config_ref = 1;
 }
 
 message GetFederatedAuthConfigYamlResponse {
-    fed.rpc.solo.io.ResourceYaml yaml_data = 1;
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
 service FederatedEnterpriseGlooResourceApi {

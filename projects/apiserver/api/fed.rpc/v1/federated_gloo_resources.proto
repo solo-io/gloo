@@ -12,24 +12,24 @@ import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/upstr
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/upstream_group.proto";
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/settings.proto";
 import "github.com/solo-io/skv2/api/core/v1/core.proto";
-import "github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common.proto";
+import "github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common.proto";
 
 message FederatedUpstream {
-    fed.rpc.solo.io.ObjectMeta metadata = 1;
-    gloo.solo.io.FederatedUpstreamSpec spec = 2;
-    gloo.solo.io.FederatedUpstreamStatus status = 3;
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .fed.gloo.solo.io.FederatedUpstreamSpec spec = 2;
+    .fed.gloo.solo.io.FederatedUpstreamStatus status = 3;
 }
 
 message FederatedUpstreamGroup {
-    fed.rpc.solo.io.ObjectMeta metadata = 1;
-    gloo.solo.io.FederatedUpstreamGroupSpec spec = 2;
-    gloo.solo.io.FederatedUpstreamGroupStatus status = 3;
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .fed.gloo.solo.io.FederatedUpstreamGroupSpec spec = 2;
+    .fed.gloo.solo.io.FederatedUpstreamGroupStatus status = 3;
 }
 
 message FederatedSettings {
-    fed.rpc.solo.io.ObjectMeta metadata = 1;
-    gloo.solo.io.FederatedSettingsSpec spec = 2;
-    gloo.solo.io.FederatedSettingsStatus status = 3;
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .fed.gloo.solo.io.FederatedSettingsSpec spec = 2;
+    .fed.gloo.solo.io.FederatedSettingsStatus status = 3;
 }
 
 message ListFederatedUpstreamsRequest {}
@@ -39,11 +39,11 @@ message ListFederatedUpstreamsResponse {
 }
 
 message GetFederatedUpstreamYamlRequest {
-    core.skv2.solo.io.ObjectRef federated_upstream_ref = 1;
+    .core.skv2.solo.io.ObjectRef federated_upstream_ref = 1;
 }
 
 message GetFederatedUpstreamYamlResponse {
-    fed.rpc.solo.io.ResourceYaml yaml_data = 1;
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
 message ListFederatedUpstreamGroupsRequest {}
@@ -53,11 +53,11 @@ message ListFederatedUpstreamGroupsResponse {
 }
 
 message GetFederatedUpstreamGroupYamlRequest {
-    core.skv2.solo.io.ObjectRef federated_upstream_group_ref = 1;
+    .core.skv2.solo.io.ObjectRef federated_upstream_group_ref = 1;
 }
 
 message GetFederatedUpstreamGroupYamlResponse {
-    fed.rpc.solo.io.ResourceYaml yaml_data = 1;
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
 message ListFederatedSettingsRequest {}
@@ -67,11 +67,11 @@ message ListFederatedSettingsResponse {
 }
 
 message GetFederatedSettingsYamlRequest {
-    core.skv2.solo.io.ObjectRef federated_settings_ref = 1;
+    .core.skv2.solo.io.ObjectRef federated_settings_ref = 1;
 }
 
 message GetFederatedSettingsYamlResponse {
-    fed.rpc.solo.io.ResourceYaml yaml_data = 1;
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
 service FederatedGlooResourceApi {

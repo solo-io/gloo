@@ -1,17 +1,17 @@
-import { GatewayResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb_service';
+import { GatewayResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 import useSWR from 'swr';
 import {
   VirtualService,
   Gateway,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { gatewayResourceApi } from './gateway-resources';
-import { GlooResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gloo_resources_pb_service';
+import { GlooResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb_service';
 import {
   Upstream,
   UpstreamGroup,
   Proxy,
   Settings,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gloo_resources_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { glooResourceApi } from './gloo-resource';
 import { FailoverSchemeApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/failover_scheme_pb_service';
 import { FailoverScheme } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/failover_scheme_pb';
@@ -20,13 +20,13 @@ import {
   ObjectRef,
   ClusterObjectRef,
 } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { GlooInstanceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/glooinstance_pb_service';
+import { GlooInstanceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb_service';
 import { glooInstanceApi } from './gloo-instance';
 import {
   GlooInstance,
   ClusterDetails,
   ConfigDump,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/glooinstance_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { federatedGatewayResourceApi } from './federated-gateway';
 import { FederatedGatewayResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_gateway_resources_pb_service';
 import {
@@ -45,15 +45,15 @@ import { FederatedAuthConfig } from '../proto/github.com/solo-io/solo-projects/p
 import { FederatedEnterpriseGlooResourceApi } from '../proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_enterprise_gloo_resources_pb_service';
 import { FederatedRatelimitResourceApi } from '../proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_ratelimit_resources_pb_service';
 import { federatedEnterpriseGlooResourceApi } from './federated-enterprise-gloo';
-import { SubRouteTableRow } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/rt_selector_pb';
+import { SubRouteTableRow } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/rt_selector_pb';
 import { routeTablesSelectorApi } from './virtual-service-routes';
 import {
   DescribeWasmFilterRequest,
   WasmFilter,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/wasm_pb';
-import { WasmFilterApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/wasm_pb_service';
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/wasm_pb';
+import { WasmFilterApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/wasm_pb_service';
 import { wasmFilterApi } from './wasm-filter';
-import { VirtualServiceRoutesApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/rt_selector_pb_service';
+import { VirtualServiceRoutesApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/rt_selector_pb_service';
 import { FederatedRateLimitConfig } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_ratelimit_resources_pb';
 import { BootstrapApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb_service';
 import { bootstrapApi } from './bootstrap';

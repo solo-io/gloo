@@ -9,7 +9,7 @@ import { ReactComponent as LockIcon } from 'assets/lock-icon.svg';
 import { ReactComponent as SecretsIcon } from 'assets/cloud-key-icon.svg';
 import { ReactComponent as DocumentsIcon } from 'assets/document.svg';
 import { Loading } from 'Components/Common/Loading';
-import { Proxy } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gloo_resources_pb';
+import { Proxy } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { useListProxies, useListSettings } from 'API/hooks';
 import { glooResourceApi } from 'API/gloo-resource';
 import { doDownload } from 'download-helper';

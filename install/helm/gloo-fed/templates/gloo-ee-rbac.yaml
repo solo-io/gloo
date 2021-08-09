@@ -1,0 +1,40 @@
+# This is used if gloo-fed is NOT enabled, i.e. we are using the single-cluster Gloo apiserver
+# TODO change the ServiceAccount name once we split out the single-cluster Gloo apiserver into its own helm chart
+{{- if not .Values.enabled }}
+{{- if .Values.glooFedApiserver.enable }}
+{{- if .Values.rbac.create }}
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-console
+  labels:
+    app: gloo
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-console
+  labels:
+    app: gloo
+subjects:
+- kind: ServiceAccount
+  name: gloo-fed-console
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: gloo-console
+  apiGroup: rbac.authorization.k8s.io
+{{- end }} {{/* .Values.rbac.create */}}
+{{- end }} {{/* .Values.glooFedApiserver.enable */}}
+{{- end }} {{/* not .Values.enabled */}}

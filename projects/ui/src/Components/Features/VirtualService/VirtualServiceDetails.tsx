@@ -7,7 +7,7 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as GlooIcon } from 'assets/Gloo.svg';
 import { RouteTablesTable } from './RouteTable/RouteTablesTable';
 import { useListVirtualServices } from 'API/hooks';
-import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/gateway_resources_pb';
+import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { StringCardsList } from 'Components/Common/StringCardsList';
 import { AreaTitle } from 'Styles/StyledComponents/headings';
 import { RateLimitSection } from './RouteTable/RateLimit';

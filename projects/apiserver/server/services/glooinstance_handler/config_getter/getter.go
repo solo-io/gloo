@@ -3,7 +3,7 @@ package config_getter
 import (
 	"context"
 
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 
 	skv2_multicluster "github.com/solo-io/skv2/pkg/multicluster"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
@@ -13,15 +13,15 @@ import (
 //go:generate mockgen -source ./getter.go -destination mocks/mock_getter.go
 
 type EnvoyConfigDumpGetter interface {
-	GetConfigs(ctx context.Context, glooInstance fedv1.GlooInstance) ([]*rpc_v1.ConfigDump, error)
+	GetConfigs(ctx context.Context, glooInstance fedv1.GlooInstance) ([]*rpc_edge_v1.ConfigDump, error)
 }
 
 type configDumpGetter struct {
 	clusterWatcher skv2_multicluster.ManagerSet
 }
 
-func (c *configDumpGetter) GetConfigs(ctx context.Context, glooInstance fedv1.GlooInstance) ([]*rpc_v1.ConfigDump, error) {
-	var configDumps []*rpc_v1.ConfigDump
+func (c *configDumpGetter) GetConfigs(ctx context.Context, glooInstance fedv1.GlooInstance) ([]*rpc_edge_v1.ConfigDump, error) {
+	var configDumps []*rpc_edge_v1.ConfigDump
 	mgr, err := c.clusterWatcher.Cluster(glooInstance.Spec.GetCluster())
 	if err != nil {
 		return nil, err
@@ -33,14 +33,14 @@ func (c *configDumpGetter) GetConfigs(ctx context.Context, glooInstance fedv1.Gl
 
 	for _, proxy := range glooInstance.Spec.Proxies { // Get a config dump for each proxy.
 		if !proxy.GetReadConfigMulticlusterEnabled() {
-			configDumps = append(configDumps, &rpc_v1.ConfigDump{
+			configDumps = append(configDumps, &rpc_edge_v1.ConfigDump{
 				Name:  proxy.GetName(),
 				Error: "No config dumps available! When installing Gloo, the readConfig and readConfigMulticluster values must be set to true.",
 			})
 			continue
 		}
 		if proxy.GetAvailableReplicas() == 0 {
-			configDumps = append(configDumps, &rpc_v1.ConfigDump{
+			configDumps = append(configDumps, &rpc_edge_v1.ConfigDump{
 				Name:  proxy.GetName(),
 				Error: "No replicas available for this proxy yet!",
 			})
@@ -50,12 +50,12 @@ func (c *configDumpGetter) GetConfigs(ctx context.Context, glooInstance fedv1.Gl
 		result := clientset.RESTClient().Get().AbsPath(configProxyServicePath).Do(ctx)
 		configDump, err := result.Raw()
 		if err != nil {
-			configDumps = append(configDumps, &rpc_v1.ConfigDump{
+			configDumps = append(configDumps, &rpc_edge_v1.ConfigDump{
 				Name:  proxy.GetName(),
 				Error: "No config dumps found!",
 			})
 		}
-		configDumps = append(configDumps, &rpc_v1.ConfigDump{
+		configDumps = append(configDumps, &rpc_edge_v1.ConfigDump{
 			Name: proxy.GetName(),
 			Raw:  string(configDump),
 		})

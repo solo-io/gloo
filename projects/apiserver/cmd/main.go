@@ -61,7 +61,7 @@ func main() {
 	if glooFedEnabled {
 		initializeGlooFed(rootCtx, mgr, cfg)
 	} else {
-		initializeGlooInstance(rootCtx, mgr, cfg)
+		initializeSingleClusterGloo(rootCtx, mgr, cfg)
 	}
 
 	err = mgr.Start(rootCtx)
@@ -118,10 +118,10 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, cfg *settings.A
 	}
 }
 
-func initializeGlooInstance(ctx context.Context, mgr manager.Manager, cfg *settings.ApiServerSettings) {
+func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, cfg *settings.ApiServerSettings) {
 	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig())
 
-	if err := mgr.Add(apiserver.NewGlooInstanceServerRunnable(ctx, cfg, bootstrapService)); err != nil {
+	if err := mgr.Add(apiserver.NewSingleClusterGlooServerRunnable(ctx, cfg, bootstrapService)); err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("Unable to set up GlooEE apiserver", zap.Error(err))
 	}
 }

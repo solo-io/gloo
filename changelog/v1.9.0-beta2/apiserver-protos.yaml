@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/2429
+    description: Refactor apiserver protos to be used by single-cluster and fed UIs.
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/gloo/issues/4933
+    description: Refactor apiserver protos to be used by single-cluster and fed UIs.

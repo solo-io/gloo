@@ -10,12 +10,12 @@ option (extproto.hash_all) = true;
 option go_package = "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1";
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.ratelimit/v1alpha1/rate_limit_config.proto";
 import "github.com/solo-io/skv2/api/core/v1/core.proto";
-import "github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common.proto";
+import "github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common.proto";
 
 message FederatedRateLimitConfig {
-    fed.rpc.solo.io.ObjectMeta metadata = 1;
-    ratelimit.solo.io.FederatedRateLimitConfigSpec spec = 2;
-    ratelimit.solo.io.FederatedRateLimitConfigStatus status = 3;
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .fed.ratelimit.solo.io.FederatedRateLimitConfigSpec spec = 2;
+    .fed.ratelimit.solo.io.FederatedRateLimitConfigStatus status = 3;
 }
 
 message ListFederatedRateLimitConfigsRequest {}
@@ -25,11 +25,11 @@ message ListFederatedRateLimitConfigsResponse {
 }
 
 message GetFederatedRateLimitConfigYamlRequest {
-    core.skv2.solo.io.ObjectRef federated_rate_limit_config_ref = 1;
+    .core.skv2.solo.io.ObjectRef federated_rate_limit_config_ref = 1;
 }
 
 message GetFederatedRateLimitConfigYamlResponse {
-    fed.rpc.solo.io.ResourceYaml yaml_data = 1;
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
 service FederatedRatelimitResourceApi {

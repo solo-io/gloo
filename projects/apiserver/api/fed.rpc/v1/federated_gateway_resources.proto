@@ -12,24 +12,24 @@ import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/ga
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/virtual_service.proto";
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/route_table.proto";
 import "github.com/solo-io/skv2/api/core/v1/core.proto";
-import "github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common.proto";
+import "github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common.proto";
 
 message FederatedGateway {
-    fed.rpc.solo.io.ObjectMeta metadata = 1;
-    gateway.solo.io.FederatedGatewaySpec spec = 2;
-    gateway.solo.io.FederatedGatewayStatus status = 3;
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .fed.gateway.solo.io.FederatedGatewaySpec spec = 2;
+    .fed.gateway.solo.io.FederatedGatewayStatus status = 3;
 }
 
 message FederatedVirtualService {
-    fed.rpc.solo.io.ObjectMeta metadata = 1;
-    gateway.solo.io.FederatedVirtualServiceSpec spec = 2;
-    gateway.solo.io.FederatedVirtualServiceStatus status = 3;
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .fed.gateway.solo.io.FederatedVirtualServiceSpec spec = 2;
+    .fed.gateway.solo.io.FederatedVirtualServiceStatus status = 3;
 }
 
 message FederatedRouteTable {
-    fed.rpc.solo.io.ObjectMeta metadata = 1;
-    gateway.solo.io.FederatedRouteTableSpec spec = 2;
-    gateway.solo.io.FederatedRouteTableStatus status = 3;
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .fed.gateway.solo.io.FederatedRouteTableSpec spec = 2;
+    .fed.gateway.solo.io.FederatedRouteTableStatus status = 3;
 }
 
 message ListFederatedGatewaysRequest {}
@@ -39,11 +39,11 @@ message ListFederatedGatewaysResponse {
 }
 
 message GetFederatedGatewayYamlRequest {
-    core.skv2.solo.io.ObjectRef federated_gateway_ref = 1;
+    .core.skv2.solo.io.ObjectRef federated_gateway_ref = 1;
 }
 
 message GetFederatedGatewayYamlResponse {
-    fed.rpc.solo.io.ResourceYaml yaml_data = 1;
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
 message ListFederatedVirtualServicesRequest {}
@@ -53,11 +53,11 @@ message ListFederatedVirtualServicesResponse {
 }
 
 message GetFederatedVirtualServiceYamlRequest {
-    core.skv2.solo.io.ObjectRef federated_virtual_service_ref = 1;
+    .core.skv2.solo.io.ObjectRef federated_virtual_service_ref = 1;
 }
 
 message GetFederatedVirtualServiceYamlResponse {
-    fed.rpc.solo.io.ResourceYaml yaml_data = 1;
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
 message ListFederatedRouteTablesRequest {}
@@ -67,11 +67,11 @@ message ListFederatedRouteTablesResponse {
 }
 
 message GetFederatedRouteTableYamlRequest {
-    core.skv2.solo.io.ObjectRef federated_route_table_ref = 1;
+    .core.skv2.solo.io.ObjectRef federated_route_table_ref = 1;
 }
 
 message GetFederatedRouteTableYamlResponse {
-    fed.rpc.solo.io.ResourceYaml yaml_data = 1;
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
 service FederatedGatewayResourceApi {

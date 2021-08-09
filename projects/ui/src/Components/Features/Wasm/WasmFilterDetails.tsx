@@ -15,7 +15,7 @@ import { HealthNotificationBox } from 'Components/Common/HealthNotificationBox';
 import { PolicyHeaderTitle } from './DetailModalHeader';
 import YamlDisplayer from 'Components/Common/YamlDisplayer';
 import { Tooltip } from 'antd';
-import { WasmFilter } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/wasm_pb';
+import { WasmFilter } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/wasm_pb';
 import { objectMetasAreEqual } from 'API/helpers';
 import { colors } from 'Styles/colors';
 import { useListGateways } from 'API/hooks';
@@ -26,7 +26,7 @@ import {
   TableActions,
 } from 'Components/Common/SoloTable';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { ObjectMeta } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common_pb';
+import { ObjectMeta } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
 import { gatewayResourceApi } from 'API/gateway-resources';
 import { doDownload } from 'download-helper';
 

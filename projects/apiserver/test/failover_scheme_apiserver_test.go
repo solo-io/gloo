@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_fed_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/failover_scheme_handler"
 	fed_solo_io_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	mock_fed_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/mocks"
@@ -21,7 +21,7 @@ var _ = Describe("FailoverSchemeApiServer", func() {
 		ctrl                    *gomock.Controller
 		ctx                     context.Context
 		failoverSchemeClient    *mock_fed_v1.MockFailoverSchemeClient
-		failoverSchemeApiServer rpc_v1.FailoverSchemeApiServer
+		failoverSchemeApiServer rpc_fed_v1.FailoverSchemeApiServer
 	)
 
 	BeforeEach(func() {
@@ -63,7 +63,7 @@ spec:
 			},
 		}
 		failoverSchemeClient.EXPECT().ListFailoverScheme(ctx).Return(failoverSchemeList, nil)
-		resp, err := failoverSchemeApiServer.GetFailoverScheme(ctx, &rpc_v1.GetFailoverSchemeRequest{
+		resp, err := failoverSchemeApiServer.GetFailoverScheme(ctx, &rpc_fed_v1.GetFailoverSchemeRequest{
 			UpstreamRef: &skv2v1.ClusterObjectRef{
 				Name:        "default-service-blue-test",
 				Namespace:   "gloo-system",

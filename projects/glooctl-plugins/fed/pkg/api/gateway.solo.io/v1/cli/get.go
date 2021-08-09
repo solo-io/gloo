@@ -11,7 +11,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/solo-io/gloo/pkg/cliutil"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/glooctl-plugins/fed/pkg/cmd/options"
 	"github.com/solo-io/solo-projects/projects/glooctl-plugins/fed/pkg/constants"
 	"github.com/spf13/cobra"
@@ -47,8 +47,8 @@ func Gateway(opts *options.Options) *cobra.Command {
 				return err
 			}
 			defer conn.Close()
-			client := rpc_v1.NewGatewayResourceApiClient(conn)
-			gateways, err := client.ListGateways(opts.Ctx, &rpc_v1.ListGatewaysRequest{})
+			client := rpc_edge_v1.NewGatewayResourceApiClient(conn)
+			gateways, err := client.ListGateways(opts.Ctx, &rpc_edge_v1.ListGatewaysRequest{})
 			if err != nil {
 				return err
 			}
@@ -98,8 +98,8 @@ func VirtualService(opts *options.Options) *cobra.Command {
 				return err
 			}
 			defer conn.Close()
-			client := rpc_v1.NewGatewayResourceApiClient(conn)
-			virtualServices, err := client.ListVirtualServices(opts.Ctx, &rpc_v1.ListVirtualServicesRequest{})
+			client := rpc_edge_v1.NewGatewayResourceApiClient(conn)
+			virtualServices, err := client.ListVirtualServices(opts.Ctx, &rpc_edge_v1.ListVirtualServicesRequest{})
 			if err != nil {
 				return err
 			}
@@ -149,8 +149,8 @@ func RouteTable(opts *options.Options) *cobra.Command {
 				return err
 			}
 			defer conn.Close()
-			client := rpc_v1.NewGatewayResourceApiClient(conn)
-			routeTables, err := client.ListRouteTables(opts.Ctx, &rpc_v1.ListRouteTablesRequest{})
+			client := rpc_edge_v1.NewGatewayResourceApiClient(conn)
+			routeTables, err := client.ListRouteTables(opts.Ctx, &rpc_edge_v1.ListRouteTablesRequest{})
 			if err != nil {
 				return err
 			}

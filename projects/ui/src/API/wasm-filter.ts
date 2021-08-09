@@ -1,11 +1,11 @@
-import { WasmFilterApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/wasm_pb_service';
+import { WasmFilterApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/wasm_pb_service';
 import { getObjectRefClassFromRefObj, host } from './helpers';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
   WasmFilter,
   ListWasmFiltersRequest,
   DescribeWasmFilterRequest,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/wasm_pb';
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/wasm_pb';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 /*****

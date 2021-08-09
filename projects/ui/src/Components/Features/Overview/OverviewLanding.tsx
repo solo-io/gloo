@@ -17,7 +17,7 @@ import {
 import { useListClusterDetails, useListGlooInstances } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
-import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/glooinstance_pb';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import {
   getGlooInstanceListStatus,
   getGlooInstanceStatus,

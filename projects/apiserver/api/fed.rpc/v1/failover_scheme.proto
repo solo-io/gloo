@@ -8,17 +8,17 @@ option (extproto.hash_all) = true;
 option go_package = "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1";
 
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/failover.proto";
-import "github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common.proto";
+import "github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common.proto";
 import "github.com/solo-io/skv2/api/core/v1/core.proto";
 
 message FailoverScheme {
-    fed.rpc.solo.io.ObjectMeta metadata = 1;
-    fed.solo.io.FailoverSchemeSpec spec = 2;
-    fed.solo.io.FailoverSchemeStatus status = 3;
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .fed.solo.io.FailoverSchemeSpec spec = 2;
+    .fed.solo.io.FailoverSchemeStatus status = 3;
 }
 
 message GetFailoverSchemeRequest {
-    core.skv2.solo.io.ClusterObjectRef upstream_ref = 1;
+    .core.skv2.solo.io.ClusterObjectRef upstream_ref = 1;
 }
 
 message GetFailoverSchemeResponse {
@@ -26,11 +26,11 @@ message GetFailoverSchemeResponse {
 }
 
 message GetFailoverSchemeYamlRequest {
-    core.skv2.solo.io.ObjectRef failover_scheme_ref = 1;
+    .core.skv2.solo.io.ObjectRef failover_scheme_ref = 1;
 }
 
 message GetFailoverSchemeYamlResponse {
-    fed.rpc.solo.io.ResourceYaml yaml_data = 1;
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
 service FailoverSchemeApi {

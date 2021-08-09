@@ -11,7 +11,7 @@ import (
 	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	gateway_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	mock_gateway_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1/mocks"
-	rpc_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/fed.rpc/v1"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/rt_selector_handler"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -27,7 +27,7 @@ var _ = Describe("VirtualServiceRoutesApiServer", func() {
 
 		mockVSClient                  *mock_gateway_v1.MockVirtualServiceClient
 		mockRTClient                  *mock_gateway_v1.MockRouteTableClient
-		virtualServiceRoutesApiServer rpc_v1.VirtualServiceRoutesApiServer
+		virtualServiceRoutesApiServer rpc_edge_v1.VirtualServiceRoutesApiServer
 	)
 
 	BeforeEach(func() {
@@ -187,7 +187,7 @@ spec:
 			Name:      "c-routes",
 		}).Return(testRTc, nil)
 
-		resp, err := virtualServiceRoutesApiServer.GetVirtualServiceRoutes(ctx, &rpc_v1.GetVirtualServiceRoutesRequest{
+		resp, err := virtualServiceRoutesApiServer.GetVirtualServiceRoutes(ctx, &rpc_edge_v1.GetVirtualServiceRoutesRequest{
 			VirtualServiceRef: &v1.ClusterObjectRef{
 				Name:        "example",
 				Namespace:   "gloo-system",

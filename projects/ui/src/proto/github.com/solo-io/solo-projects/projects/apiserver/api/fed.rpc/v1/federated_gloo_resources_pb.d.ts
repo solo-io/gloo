@@ -8,13 +8,13 @@ import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gloo_v1_u
 import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gloo_v1_upstream_group_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/upstream_group_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gloo_v1_settings_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/settings_pb";
 import * as github_com_solo_io_skv2_api_core_v1_core_pb from "../../../../../../../../github.com/solo-io/skv2/api/core/v1/core_pb";
-import * as github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/common_pb";
+import * as github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb";
 
 export class FederatedUpstream extends jspb.Message {
   hasMetadata(): boolean;
   clearMetadata(): void;
-  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta | undefined;
-  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta): void;
+  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta | undefined;
+  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta): void;
 
   hasSpec(): boolean;
   clearSpec(): void;
@@ -38,7 +38,7 @@ export class FederatedUpstream extends jspb.Message {
 
 export namespace FederatedUpstream {
   export type AsObject = {
-    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.AsObject,
+    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
     spec?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gloo_v1_upstream_pb.FederatedUpstreamSpec.AsObject,
     status?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gloo_v1_upstream_pb.FederatedUpstreamStatus.AsObject,
   }
@@ -47,8 +47,8 @@ export namespace FederatedUpstream {
 export class FederatedUpstreamGroup extends jspb.Message {
   hasMetadata(): boolean;
   clearMetadata(): void;
-  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta | undefined;
-  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta): void;
+  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta | undefined;
+  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta): void;
 
   hasSpec(): boolean;
   clearSpec(): void;
@@ -72,7 +72,7 @@ export class FederatedUpstreamGroup extends jspb.Message {
 
 export namespace FederatedUpstreamGroup {
   export type AsObject = {
-    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.AsObject,
+    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
     spec?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gloo_v1_upstream_group_pb.FederatedUpstreamGroupSpec.AsObject,
     status?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gloo_v1_upstream_group_pb.FederatedUpstreamGroupStatus.AsObject,
   }
@@ -81,8 +81,8 @@ export namespace FederatedUpstreamGroup {
 export class FederatedSettings extends jspb.Message {
   hasMetadata(): boolean;
   clearMetadata(): void;
-  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta | undefined;
-  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta): void;
+  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta | undefined;
+  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta): void;
 
   hasSpec(): boolean;
   clearSpec(): void;
@@ -106,7 +106,7 @@ export class FederatedSettings extends jspb.Message {
 
 export namespace FederatedSettings {
   export type AsObject = {
-    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ObjectMeta.AsObject,
+    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
     spec?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gloo_v1_settings_pb.FederatedSettingsSpec.AsObject,
     status?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_gloo_v1_settings_pb.FederatedSettingsStatus.AsObject,
   }
@@ -175,8 +175,8 @@ export namespace GetFederatedUpstreamYamlRequest {
 export class GetFederatedUpstreamYamlResponse extends jspb.Message {
   hasYamlData(): boolean;
   clearYamlData(): void;
-  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml | undefined;
-  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml): void;
+  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml | undefined;
+  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetFederatedUpstreamYamlResponse.AsObject;
@@ -190,7 +190,7 @@ export class GetFederatedUpstreamYamlResponse extends jspb.Message {
 
 export namespace GetFederatedUpstreamYamlResponse {
   export type AsObject = {
-    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.AsObject,
+    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
   }
 }
 
@@ -257,8 +257,8 @@ export namespace GetFederatedUpstreamGroupYamlRequest {
 export class GetFederatedUpstreamGroupYamlResponse extends jspb.Message {
   hasYamlData(): boolean;
   clearYamlData(): void;
-  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml | undefined;
-  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml): void;
+  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml | undefined;
+  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetFederatedUpstreamGroupYamlResponse.AsObject;
@@ -272,7 +272,7 @@ export class GetFederatedUpstreamGroupYamlResponse extends jspb.Message {
 
 export namespace GetFederatedUpstreamGroupYamlResponse {
   export type AsObject = {
-    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.AsObject,
+    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
   }
 }
 
@@ -339,8 +339,8 @@ export namespace GetFederatedSettingsYamlRequest {
 export class GetFederatedSettingsYamlResponse extends jspb.Message {
   hasYamlData(): boolean;
   clearYamlData(): void;
-  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml | undefined;
-  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml): void;
+  getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml | undefined;
+  setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetFederatedSettingsYamlResponse.AsObject;
@@ -354,6 +354,6 @@ export class GetFederatedSettingsYamlResponse extends jspb.Message {
 
 export namespace GetFederatedSettingsYamlResponse {
   export type AsObject = {
-    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_common_pb.ResourceYaml.AsObject,
+    yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
   }
 }

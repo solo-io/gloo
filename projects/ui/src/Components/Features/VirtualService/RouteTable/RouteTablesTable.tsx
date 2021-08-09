@@ -8,7 +8,7 @@ import { ReactComponent as ArrowToggle } from 'assets/arrow-toggle.svg';
 import { colors } from 'Styles/colors';
 import { useParams } from 'react-router';
 import { useGetSubroutesForVirtualService } from 'API/hooks';
-import { SubRouteTableRow } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/rt_selector_pb';
+import { SubRouteTableRow } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/rt_selector_pb';
 import { IconHolder } from 'Styles/StyledComponents/icons';
 import { DataError } from 'Components/Common/DataError';
 import { Loading } from 'Components/Common/Loading';
