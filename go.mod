@@ -41,7 +41,7 @@ require (
 	github.com/solo-io/cli-kit v0.2.0
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.18.0
+	github.com/solo-io/ext-auth-service v0.19.2
 	github.com/solo-io/external-apis v0.1.4
 	github.com/solo-io/gloo v1.9.0-beta7
 	github.com/solo-io/go-list-licenses v0.1.3

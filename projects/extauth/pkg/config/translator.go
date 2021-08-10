@@ -136,8 +136,8 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			nil, // not supported in deprecated API, net-new feature
 			cfg.Oauth.GetScopes(),
 			oidc.SessionParameters{},
-			nil,
-			nil,
+			&oidc.HeaderConfig{},
+			&oidc.DiscoveryData{},
 			DefaultOIDCDiscoveryPollInterval,
 			jwks.NewNilKeySourceFactory())
 
@@ -165,8 +165,14 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			}
 
 			headersConfig := ToHeaderConfig(oidcCfg.GetHeaders())
+			if headersConfig == nil {
+				headersConfig = &oidc.HeaderConfig{}
+			}
 
 			discoveryDataOverride := ToDiscoveryDataOverride(oidcCfg.GetDiscoveryOverride())
+			if discoveryDataOverride == nil {
+				discoveryDataOverride = &oidc.DiscoveryData{}
+			}
 
 			discoveryPollInterval := oidcCfg.GetDiscoveryPollInterval()
 			if discoveryPollInterval == nil {

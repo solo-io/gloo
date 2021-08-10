@@ -211,8 +211,8 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				nil,
 				nil,
 				oidc.SessionParameters{},
-				nil,
-				nil,
+				&oidc.HeaderConfig{},
+				&oidc.DiscoveryData{},
 				config.DefaultOIDCDiscoveryPollInterval,
 				jwks.NewNilKeySourceFactory(),
 			).Return(authServiceMock, nil)
@@ -583,8 +583,8 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				map[string]string{"token": "param"},
 				[]string{"foo", "bar"},
 				oidc.SessionParameters{},
-				nil,
-				nil,
+				&oidc.HeaderConfig{},
+				&oidc.DiscoveryData{},
 				config.DefaultOIDCDiscoveryPollInterval,
 				jwks.NewNilKeySourceFactory(),
 			).Return(authServiceMock, nil)
@@ -612,8 +612,8 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				map[string]string{"token": "param"},
 				[]string{"foo", "bar"},
 				oidc.SessionParameters{},
-				nil,
-				nil,
+				&oidc.HeaderConfig{},
+				&oidc.DiscoveryData{},
 				oneMinute.AsDuration(),
 				jwks.NewNilKeySourceFactory(),
 			).Return(authServiceMock, nil)
@@ -667,8 +667,8 @@ var _ = Describe("Ext Auth Config Translator", func() {
 					map[string]string{"token": "param"},
 					[]string{"foo", "bar"},
 					oidc.SessionParameters{},
-					nil,
-					nil,
+					&oidc.HeaderConfig{},
+					&oidc.DiscoveryData{},
 					config.DefaultOIDCDiscoveryPollInterval,
 					expectedCacheRefreshPolicy,
 				).Return(authServiceMock, nil)
