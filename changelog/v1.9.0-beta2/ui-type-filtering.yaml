@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Upstreams page can now filter by type, and toggle the upstream group table on and off
+    issueLink: https://github.com/solo-io/gloo/issues/4936

@@ -27,6 +27,8 @@ import { glooResourceApi } from 'API/gloo-resource';
 import { doDownload } from 'download-helper';
 import { IconHolder } from 'Styles/StyledComponents/icons';
 import { DataError } from 'Components/Common/DataError';
+import { CheckboxFilterProps } from './UpstreamsLanding';
+import { getUpstreamType } from 'utils/upstream-helpers';
 
 const UpstreamIconHolder = styled.div`
   display: flex;
@@ -54,6 +56,7 @@ const TableHolder = styled.div<TableHolderProps>`
 type Props = {
   statusFilter?: UpstreamStatus.StateMap[keyof UpstreamStatus.StateMap];
   nameFilter?: string;
+  typeFilters?: CheckboxFilterProps[];
   glooInstanceFilter?: {
     name: string;
     namespace: string;
@@ -94,6 +97,7 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
 
   useEffect(() => {
     if (upstreams) {
+      let typeCheckboxesNotSet = props.typeFilters?.every(c => !c.checked);
       setTableData(
         upstreams
           .filter(
@@ -101,6 +105,7 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
               upstream.metadata?.name.includes(props.nameFilter ?? '') &&
               (props.statusFilter === undefined ||
                 upstream.status?.state === props.statusFilter) &&
+                (typeCheckboxesNotSet || props.typeFilters?.find(c => c.label === getUpstreamType(upstream))?.checked) &&
               (!props.glooInstanceFilter ||
                 objectMetasAreEqual(
                   {
@@ -149,6 +154,7 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
     upstreams,
     props.nameFilter,
     props.statusFilter,
+    props.typeFilters,
     props.glooInstanceFilter,
   ]);
 

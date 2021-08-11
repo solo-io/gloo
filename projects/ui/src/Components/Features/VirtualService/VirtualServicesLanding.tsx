@@ -8,6 +8,7 @@ import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { VirtualServiceStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service_pb';
 import { colors } from 'Styles/colors';
+import { SoloCheckbox } from 'Components/Common/SoloCheckbox';
 
 const VirtualServiceLandingContainer = styled.div`
   display: grid;
@@ -36,11 +37,23 @@ const HorizontalDivider = styled.div`
   }
 `;
 
+const CheckboxWrapper = styled.div`
+  > div {
+    width: 190px;
+    margin-bottom: 8px;
+  }
+`;
+
+const RouteTableToggleWrapper = styled.div`
+  margin-top: 15px;
+`;
+
 export const VirtualServicesLanding = () => {
   const [nameFilter, setNameFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<
     VirtualServiceStatus.StateMap[keyof VirtualServiceStatus.StateMap]
   >();
+  const [showRT, setShowRT] = useState(false);
 
   const changeNameFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNameFilter(e.target.value);
@@ -60,6 +73,16 @@ export const VirtualServicesLanding = () => {
           onChange={changeNameFilter}
           placeholder={'Filter by name...'}
         />
+        {/* <RouteTableToggleWrapper>
+          <SoloCheckbox
+            title={'Show Route Tables'}
+            checked={showRT}
+            withWrapper={true}
+            onChange={evt => {
+              setShowRT(evt.target.checked);
+            }}
+          />
+        </RouteTableToggleWrapper> */}
 
         <HorizontalDivider>
           <div>Status Filter</div>
@@ -89,10 +112,14 @@ export const VirtualServicesLanding = () => {
           onChange={changeStatus}
         />
       </div>
-      <VirtualServicesPageTable
-        nameFilter={nameFilter}
-        statusFilter={statusFilter}
-      />
+      <div>
+        {/* {showRT && } */}
+
+        <VirtualServicesPageTable
+          nameFilter={nameFilter}
+          statusFilter={statusFilter}
+        />
+      </div>
     </VirtualServiceLandingContainer>
   );
 };
