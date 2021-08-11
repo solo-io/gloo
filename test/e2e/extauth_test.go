@@ -271,13 +271,17 @@ var _ = Describe("External auth", func() {
 					oauth2          *extauth.OAuth2_OidcAuthorizationCode
 					privateKey      *rsa.PrivateKey
 					discoveryServer fakeDiscoveryServer
+					handlerStats    map[string]int
 					secret          *gloov1.Secret
 					proxy           *gloov1.Proxy
 					token           string
 					cookies         []*http.Cookie
 				)
 				BeforeEach(func() {
-					discoveryServer = fakeDiscoveryServer{}
+					handlerStats = make(map[string]int)
+					discoveryServer = fakeDiscoveryServer{
+						handlerStats: handlerStats,
+					}
 					privateKey = discoveryServer.Start()
 
 					clientSecret := &extauth.OauthSecret{
@@ -341,7 +345,18 @@ var _ = Describe("External auth", func() {
 					discoveryServer.Stop()
 				})
 
-				ExpectHappyPathToWork := func(loginSuccessExpectation func()) {
+				makeSingleRequest := func(client *http.Client) (http.Response, error) {
+					req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/success?foo=bar", "localhost", envoyPort), nil)
+					Expect(err).NotTo(HaveOccurred())
+					r, err := client.Do(req)
+					if err != nil {
+						return http.Response{}, err
+					}
+
+					return *r, err
+				}
+
+				ExpectHappyPathToWork := func(makeSingleRequest func(client *http.Client) (http.Response, error), loginSuccessExpectation func()) {
 					// do auth flow and make sure we have a cookie named cookie:
 					appPage, err := url.Parse(fmt.Sprintf("http://%s:%d/", "localhost", envoyPort))
 					Expect(err).NotTo(HaveOccurred())
@@ -361,13 +376,7 @@ var _ = Describe("External auth", func() {
 					}
 
 					Eventually(func() (http.Response, error) {
-						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/success?foo=bar", "localhost", envoyPort), nil)
-						Expect(err).NotTo(HaveOccurred())
-						r, err := client.Do(req)
-						if err != nil {
-							return http.Response{}, err
-						}
-						return *r, err
+						return makeSingleRequest(client)
 					}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
 						"StatusCode": Equal(http.StatusOK),
 					}))
@@ -436,7 +445,7 @@ var _ = Describe("External auth", func() {
 					})
 
 					It("should work", func() {
-						ExpectHappyPathToWork(func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {
 							Expect(cookies[0].Name).To(Equal(cookieName))
 						})
 					})
@@ -444,10 +453,46 @@ var _ = Describe("External auth", func() {
 					It("should refresh token", func() {
 						discoveryServer.createExpiredToken = true
 						discoveryServer.updateToken("")
-						ExpectHappyPathToWork(func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {
 							Expect(cookies[0].Name).To(Equal(cookieName))
 						})
 						Expect(discoveryServer.lastGrant).To(Equal("refresh_token"))
+					})
+
+					It("should auth successfully after refreshing token", func() {
+						forceTokenRefresh := func(client *http.Client) (http.Response, error) {
+							// Create token that will expire in 1 second
+							discoveryServer.createNearlyExpiredToken = true
+							discoveryServer.updateToken("")
+							discoveryServer.createNearlyExpiredToken = false
+							Expect(handlerStats["/token"]).To(BeEquivalentTo(0))
+
+							// execute first request.
+							Eventually(func() (http.Response, error) {
+								return makeSingleRequest(client)
+							}, "10s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
+								"StatusCode": Equal(http.StatusOK),
+							}))
+
+							// sleep for 1 second, so the token expires
+							time.Sleep(time.Second)
+
+							// execute second request.
+							r, err := makeSingleRequest(client)
+							Expect(err).NotTo(HaveOccurred())
+
+							// execute third request. We should not hit the /token handler, because the refreshed token should be in the store.
+							baseRefreshes := handlerStats["/token"]
+							r, err = makeSingleRequest(client)
+							Expect(err).NotTo(HaveOccurred())
+							Expect(handlerStats["/token"]).To(BeNumerically("==", baseRefreshes))
+
+							return r, err
+						}
+
+						ExpectHappyPathToWork(forceTokenRefresh, func() {
+							Expect(cookies[0].Name).To(Equal(cookieName))
+						})
 					})
 
 					Context("no refreshing", func() {
@@ -491,7 +536,7 @@ var _ = Describe("External auth", func() {
 					})
 
 					It("should work", func() {
-						ExpectHappyPathToWork(func() {})
+						ExpectHappyPathToWork(makeSingleRequest, func() {})
 
 						select {
 						case r := <-testUpstream.C:
@@ -755,7 +800,7 @@ var _ = Describe("External auth", func() {
 
 				Context("happy path with default settings (no redis)", func() {
 					It("should work", func() {
-						ExpectHappyPathToWork(func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {
 							Expect(cookies).ToNot(BeEmpty())
 							var cookienames []string
 							for _, c := range cookies {
@@ -798,7 +843,7 @@ var _ = Describe("External auth", func() {
 							}
 							fmt.Fprintf(GinkgoWriter, "headers are %v \n", resp.Header)
 							return string(body), nil
-						}, "5s", "0.5s").Should(Equal("auth"))
+						}, "10s", "0.5s").Should(Equal("auth"))
 					})
 
 					It("should include email scope in url", func() {
@@ -1746,7 +1791,7 @@ var _ = Describe("External auth", func() {
 								return "", err
 							}
 							return string(body), nil
-						}, "5s", "0.5s").Should(Equal("auth"))
+						}, "10s", "0.5s").Should(Equal("auth"))
 					})
 
 					It("should include email scope in url", func() {
@@ -1989,10 +2034,12 @@ var startDiscoveryServerOnce sync.Once
 var cachedPrivateKey *rsa.PrivateKey
 
 type fakeDiscoveryServer struct {
-	s                  http.Server
-	createExpiredToken bool
-	token              string
-	lastGrant          string
+	s                        http.Server
+	createExpiredToken       bool
+	createNearlyExpiredToken bool
+	token                    string
+	lastGrant                string
+	handlerStats             map[string]int
 
 	// The set of key IDs that are supported by the server
 	keyIds []string
@@ -2021,6 +2068,9 @@ func (f *fakeDiscoveryServer) updateToken(grantType string) {
 	if grantType == "" && f.createExpiredToken {
 		// create expired token so we can test refresh
 		claims["exp"] = time.Now().Add(-time.Minute).Unix()
+	} else if grantType == "" && f.createNearlyExpiredToken {
+		// create token that expires ten ms from now
+		claims["exp"] = time.Now().Add(10 * time.Millisecond).Unix()
 	}
 
 	tokenToSign := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
@@ -2057,6 +2107,9 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 		defer GinkgoRecover()
 		rw.Header().Set("content-type", "application/json")
 
+		if f.handlerStats != nil {
+			f.handlerStats[r.URL.Path] += 1
+		}
 		switch r.URL.Path {
 		case "/auth":
 			// redirect back immediately. This simulates a user that's already logged in by the IDP.
