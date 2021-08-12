@@ -41,11 +41,11 @@ require (
 	github.com/solo-io/cli-kit v0.2.0
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.19.2
+	github.com/solo-io/ext-auth-service v0.19.3
 	github.com/solo-io/external-apis v0.1.4
-	github.com/solo-io/gloo v1.9.0-beta7
+	github.com/solo-io/gloo v1.9.0-beta8
 	github.com/solo-io/go-list-licenses v0.1.3
-	github.com/solo-io/go-utils v0.21.14
+	github.com/solo-io/go-utils v0.21.15
 	github.com/solo-io/k8s-utils v0.0.10
 	github.com/solo-io/licensing v0.1.20
 	github.com/solo-io/protoc-gen-ext v0.0.15
@@ -53,7 +53,8 @@ require (
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.17.19
 	github.com/solo-io/skv2-enterprise v0.0.8
-	github.com/solo-io/solo-apis v0.0.0-20210805204020-880175af21e2
+	// gloo-v1.9.0-beta8
+	github.com/solo-io/solo-apis v0.0.0-20210811132703-28c4b006b9df
 	github.com/solo-io/solo-kit v0.21.1
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -62,10 +63,10 @@ require (
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.22.6
 	go.uber.org/zap v1.16.0
-	golang.org/x/mod v0.4.1
+	golang.org/x/mod v0.4.2
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/tools v0.1.2-0.20210512205948-8287d5da45e4
+	golang.org/x/tools v0.1.5
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/square/go-jose.v2 v2.5.1

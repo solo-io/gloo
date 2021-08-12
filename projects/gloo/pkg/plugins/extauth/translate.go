@@ -145,6 +145,15 @@ func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, cfg *extauth.Aut
 					Config: config.PassThroughAuth.Config,
 				},
 			}
+		case *extauth.PassThroughAuth_Http:
+			extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_PassThroughAuth{
+				PassThroughAuth: &extauth.PassThroughAuth{
+					Protocol: &extauth.PassThroughAuth_Http{
+						Http: protocolConfig.Http,
+					},
+					Config: config.PassThroughAuth.Config,
+				},
+			}
 		default:
 			return nil, unknownPassThroughProtocolType(config.PassThroughAuth.Protocol)
 		}

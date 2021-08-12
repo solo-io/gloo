@@ -2,10 +2,16 @@ package config
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/base64"
 	"fmt"
+	"os"
 	"runtime/debug"
 	"strings"
 	"time"
+
+	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
 
@@ -23,7 +29,8 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation/utils"
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
-	"github.com/solo-io/ext-auth-service/pkg/config/passthrough"
+	grpcPassthrough "github.com/solo-io/ext-auth-service/pkg/config/passthrough/grpc"
+	httpPassthrough "github.com/solo-io/ext-auth-service/pkg/config/passthrough/http"
 	"github.com/solo-io/ext-auth-service/pkg/session"
 	redissession "github.com/solo-io/ext-auth-service/pkg/session/redis"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -299,6 +306,12 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				return nil, "", err
 			}
 			return grpcSvc, config.GetName().GetValue(), nil
+		case *extauthv1.PassThroughAuth_Http:
+			svc, err := getPassThroughHttpService(ctx, cfg.PassThroughAuth.GetConfig(), protocolConfig.Http)
+			if err != nil {
+				return nil, "", err
+			}
+			return svc, config.GetName().GetValue(), nil
 		default:
 			return nil, config.GetName().GetValue(), errors.Errorf("Unhandled pass through auth protocol: %+v", cfg.PassThroughAuth.Protocol)
 		}
@@ -365,17 +378,68 @@ func getPassThroughGrpcAuthService(ctx context.Context, passthroughAuthCfg *stru
 		connectionTimeout = timeout
 	}
 
-	clientManagerConfig := &passthrough.ClientManagerConfig{
+	clientManagerConfig := &grpcPassthrough.ClientManagerConfig{
 		Address:           grpcConfig.GetAddress(),
 		ConnectionTimeout: connectionTimeout,
 	}
 
-	grpcClientManager, err := passthrough.NewGrpcClientManager(ctx, clientManagerConfig)
+	grpcClientManager, err := grpcPassthrough.NewGrpcClientManager(ctx, clientManagerConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create grpc client manager")
 	}
 
-	return passthrough.NewGrpcService(grpcClientManager, passthroughAuthCfg), nil
+	return grpcPassthrough.NewGrpcService(grpcClientManager, passthroughAuthCfg), nil
+}
+
+func getPassThroughHttpService(ctx context.Context, authCfgCfg *structpb.Struct, httpPassthroughConfig *extauthv1.PassThroughHttp) (api.AuthService, error) {
+	connectionTimeout := 5 * time.Second
+	if timeout := httpPassthroughConfig.GetConnectionTimeout(); timeout != nil {
+		timeout, err := ptypes.Duration(timeout)
+		if err != nil {
+			return nil, err
+		}
+		connectionTimeout = timeout
+	}
+
+	allowedHeadersMap := map[string]bool{}
+	for _, header := range httpPassthroughConfig.GetRequest().GetAllowedHeaders() {
+		allowedHeadersMap[header] = true
+	}
+
+	var tlsConfig *tls.Config
+	if rootCa := os.Getenv(translation.HttpsPassthroughCaCert); rootCa != "" {
+		rootCaBytes, err := base64.StdEncoding.DecodeString(rootCa)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error base64 decoding root ca %s", rootCa)
+		}
+		caCertPool := x509.NewCertPool()
+		ok := caCertPool.AppendCertsFromPEM(rootCaBytes)
+		if !ok {
+			return nil, errors.Errorf("ca cert base64 encoded - (%s) is not OK", rootCa)
+		}
+
+		tlsConfig = &tls.Config{
+			RootCAs: caCertPool,
+			// this needs to be true so we can use our self-signed certs we generate in
+			// e2e tests.
+			InsecureSkipVerify: true,
+		}
+	}
+
+	cfg := &httpPassthrough.PassthroughConfig{
+		PassThroughFilterMetadata: httpPassthroughConfig.GetRequest().GetPassThroughFilterMetadata(),
+		PassThroughState:          httpPassthroughConfig.GetRequest().GetPassThroughState(),
+		PassThroughBody:           httpPassthroughConfig.GetRequest().GetPassThroughBody(),
+		AllowedHeaders:            allowedHeadersMap,
+		HeadersToAdd:              httpPassthroughConfig.GetRequest().GetHeadersToAdd(),
+		Url:                       httpPassthroughConfig.Url,
+		ConnectionTimeout:         connectionTimeout,
+		AllowedUpstreamHeaders:    httpPassthroughConfig.GetResponse().GetAllowedUpstreamHeaders(),
+		AllowedClientHeaders:      httpPassthroughConfig.GetResponse().GetAllowedClientHeadersOnDenied(),
+		ReadStateFromResponse:     httpPassthroughConfig.GetResponse().GetReadStateFromResponse(),
+		TLSClientConfig:           tlsConfig,
+	}
+	return httpPassthrough.NewHttpService(cfg, authCfgCfg), nil
 }
 
 func convertAprUsers(users map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassword) map[string]apr.SaltAndHashedPassword {

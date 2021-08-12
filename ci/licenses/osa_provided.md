@@ -31,7 +31,7 @@ Name|Version|License
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.5|BSD 3-clause "New" or "Revised" License
 [go.opencensus.io](https://go.opencensus.io)|v0.22.6|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.16.0|MIT License
-[x/mod](https://golang.org/x/mod)|v0.4.1|BSD 3-clause "New" or "Revised" License
+[x/mod](https://golang.org/x/mod)|v0.4.2|BSD 3-clause "New" or "Revised" License
 [x/net](https://golang.org/x/net)|v0.0.0-20210405180319-a5a99cb37ef4|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.0.0-20210220032951-036812b2e83c|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License

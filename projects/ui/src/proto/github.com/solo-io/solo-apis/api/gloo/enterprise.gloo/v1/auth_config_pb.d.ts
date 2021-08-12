@@ -1387,6 +1387,11 @@ export class PassThroughAuth extends jspb.Message {
   getGrpc(): PassThroughGrpc | undefined;
   setGrpc(value?: PassThroughGrpc): void;
 
+  hasHttp(): boolean;
+  clearHttp(): void;
+  getHttp(): PassThroughHttp | undefined;
+  setHttp(value?: PassThroughHttp): void;
+
   hasConfig(): boolean;
   clearConfig(): void;
   getConfig(): google_protobuf_struct_pb.Struct | undefined;
@@ -1406,12 +1411,14 @@ export class PassThroughAuth extends jspb.Message {
 export namespace PassThroughAuth {
   export type AsObject = {
     grpc?: PassThroughGrpc.AsObject,
+    http?: PassThroughHttp.AsObject,
     config?: google_protobuf_struct_pb.Struct.AsObject,
   }
 
   export enum ProtocolCase {
     PROTOCOL_NOT_SET = 0,
     GRPC = 1,
+    HTTP = 2,
   }
 }
 
@@ -1438,6 +1445,113 @@ export namespace PassThroughGrpc {
   export type AsObject = {
     address: string,
     connectionTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+  }
+}
+
+export class PassThroughHttp extends jspb.Message {
+  getUrl(): string;
+  setUrl(value: string): void;
+
+  hasRequest(): boolean;
+  clearRequest(): void;
+  getRequest(): PassThroughHttp.Request | undefined;
+  setRequest(value?: PassThroughHttp.Request): void;
+
+  hasResponse(): boolean;
+  clearResponse(): void;
+  getResponse(): PassThroughHttp.Response | undefined;
+  setResponse(value?: PassThroughHttp.Response): void;
+
+  hasConnectionTimeout(): boolean;
+  clearConnectionTimeout(): void;
+  getConnectionTimeout(): google_protobuf_duration_pb.Duration | undefined;
+  setConnectionTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PassThroughHttp.AsObject;
+  static toObject(includeInstance: boolean, msg: PassThroughHttp): PassThroughHttp.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PassThroughHttp, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PassThroughHttp;
+  static deserializeBinaryFromReader(message: PassThroughHttp, reader: jspb.BinaryReader): PassThroughHttp;
+}
+
+export namespace PassThroughHttp {
+  export type AsObject = {
+    url: string,
+    request?: PassThroughHttp.Request.AsObject,
+    response?: PassThroughHttp.Response.AsObject,
+    connectionTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+  }
+
+  export class Request extends jspb.Message {
+    clearAllowedHeadersList(): void;
+    getAllowedHeadersList(): Array<string>;
+    setAllowedHeadersList(value: Array<string>): void;
+    addAllowedHeaders(value: string, index?: number): string;
+
+    getHeadersToAddMap(): jspb.Map<string, string>;
+    clearHeadersToAddMap(): void;
+    getPassThroughState(): boolean;
+    setPassThroughState(value: boolean): void;
+
+    getPassThroughFilterMetadata(): boolean;
+    setPassThroughFilterMetadata(value: boolean): void;
+
+    getPassThroughBody(): boolean;
+    setPassThroughBody(value: boolean): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Request.AsObject;
+    static toObject(includeInstance: boolean, msg: Request): Request.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Request, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Request;
+    static deserializeBinaryFromReader(message: Request, reader: jspb.BinaryReader): Request;
+  }
+
+  export namespace Request {
+    export type AsObject = {
+      allowedHeadersList: Array<string>,
+      headersToAddMap: Array<[string, string]>,
+      passThroughState: boolean,
+      passThroughFilterMetadata: boolean,
+      passThroughBody: boolean,
+    }
+  }
+
+  export class Response extends jspb.Message {
+    clearAllowedUpstreamHeadersList(): void;
+    getAllowedUpstreamHeadersList(): Array<string>;
+    setAllowedUpstreamHeadersList(value: Array<string>): void;
+    addAllowedUpstreamHeaders(value: string, index?: number): string;
+
+    clearAllowedClientHeadersOnDeniedList(): void;
+    getAllowedClientHeadersOnDeniedList(): Array<string>;
+    setAllowedClientHeadersOnDeniedList(value: Array<string>): void;
+    addAllowedClientHeadersOnDenied(value: string, index?: number): string;
+
+    getReadStateFromResponse(): boolean;
+    setReadStateFromResponse(value: boolean): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Response.AsObject;
+    static toObject(includeInstance: boolean, msg: Response): Response.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Response, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Response;
+    static deserializeBinaryFromReader(message: Response, reader: jspb.BinaryReader): Response;
+  }
+
+  export namespace Response {
+    export type AsObject = {
+      allowedUpstreamHeadersList: Array<string>,
+      allowedClientHeadersOnDeniedList: Array<string>,
+      readStateFromResponse: boolean,
+    }
   }
 }
 

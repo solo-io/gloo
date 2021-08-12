@@ -1,0 +1,8 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/4685
+    description: >
+      Adds support for HTTP Passthrough Auth. This allows for authentication requests to be "passed through"
+      to an external HTTP server. The HTTP server can authorize requests by responding back with a HTTP 200 response.
+      In addition, additional configuration allows for the HTTP server to modify the original request headers to the upstream.
+      Docs are available [here](https://docs.solo.io/gloo-edge/master/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/extauth/v1/extauth.proto.sk/#passthroughhttp).
