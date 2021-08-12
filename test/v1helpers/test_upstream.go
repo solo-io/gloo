@@ -1,22 +1,17 @@
 package v1helpers
 
 import (
-	"bytes"
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"crypto/tls"
-	"crypto/x509"
-	"crypto/x509/pkix"
-	"encoding/pem"
 	"fmt"
 	"io/ioutil"
-	"math/big"
 	"net"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/solo-io/gloo/test/helpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -50,88 +45,24 @@ func NewTestHttpsUpstream(ctx context.Context, addr string) ([]byte, *TestUpstre
 }
 
 func NewTestHttpsUpstreamWithHandler(ctx context.Context, addr string, handlerFunc ExtraHandlerFunc) ([]byte, *TestUpstream) {
-	certSubject := pkix.Name{
-		Organization: []string{"solo.io"},
-		Country:      []string{"US"},
-		Province:     []string{""},
-		Locality:     []string{"Cambridge"},
-	}
-	// Generate Certificates for TLS
-	ca := &x509.Certificate{
-		SerialNumber:          big.NewInt(2019),
-		Subject:               certSubject,
-		IsCA:                  true,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
-		BasicConstraintsValid: true,
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(10, 0, 0),
-	}
-	caPrivKey, err := rsa.GenerateKey(rand.Reader, 4096)
-	Expect(err).NotTo(HaveOccurred())
-	caBytes, err := x509.CreateCertificate(rand.Reader, ca, ca, &caPrivKey.PublicKey, caPrivKey)
-	caPEM := new(bytes.Buffer)
-	err = pem.Encode(caPEM, &pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: caBytes,
+	cert, privKey := helpers.GetCerts(helpers.Params{
+		Hosts:      "127.0.0.1",
+		IsCA:       true,
+		EcdsaCurve: "P256",
 	})
+
+	serverCert, err := tls.X509KeyPair([]byte(cert), []byte(privKey))
 	Expect(err).NotTo(HaveOccurred())
 
-	caPrivKeyPEM := new(bytes.Buffer)
-	err = pem.Encode(caPrivKeyPEM, &pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(caPrivKey),
-	})
-	Expect(err).NotTo(HaveOccurred())
-	cert := &x509.Certificate{
-		SerialNumber: big.NewInt(1658),
-		Subject:      certSubject,
-		IPAddresses:  []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
-		SubjectKeyId: []byte{1, 2, 3, 4, 6},
-		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		KeyUsage:     x509.KeyUsageDigitalSignature,
-		NotBefore:    time.Now(),
-		NotAfter:     time.Now().AddDate(10, 0, 0),
-	}
-	certPrivKey, err := rsa.GenerateKey(rand.Reader, 4096)
-	Expect(err).NotTo(HaveOccurred())
-
-	certBytes, err := x509.CreateCertificate(rand.Reader, cert, ca, &certPrivKey.PublicKey, caPrivKey)
-	Expect(err).NotTo(HaveOccurred())
-
-	certPEM := new(bytes.Buffer)
-	err = pem.Encode(certPEM, &pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: certBytes,
-	})
-	Expect(err).NotTo(HaveOccurred())
-
-	certPrivKeyPEM := new(bytes.Buffer)
-	err = pem.Encode(certPrivKeyPEM, &pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(certPrivKey),
-	})
-	Expect(err).NotTo(HaveOccurred())
-
-	serverCert, err := tls.X509KeyPair(certPEM.Bytes(), certPrivKeyPEM.Bytes())
-	Expect(err).NotTo(HaveOccurred())
-
-	serverTLSConf := &tls.Config{
-		Certificates: []tls.Certificate{serverCert},
-	}
-
-	certpool := x509.NewCertPool()
-	certpool.AppendCertsFromPEM(caPEM.Bytes())
 	server := &HttpsServer{
-		tlsConfig: serverTLSConf,
+		tlsConfig: &tls.Config{
+			Certificates: []tls.Certificate{serverCert},
+		},
 	}
 
-	caCertPool := x509.NewCertPool()
-	ok := caCertPool.AppendCertsFromPEM(caPEM.Bytes())
-	Expect(ok).To(BeTrue())
 	backendport, responses := RunTestServer(ctx, server, handlerFunc)
 	// Return the ca cert to be used in https client tls
-	return caPEM.Bytes(), newTestUpstream(addr, backendport, responses)
+	return []byte(cert), newTestUpstream(addr, backendport, responses)
 }
 
 type TestUpstream struct {

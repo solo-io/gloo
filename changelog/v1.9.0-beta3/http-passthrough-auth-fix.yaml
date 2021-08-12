@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Remove InsecureSkipVerify from Tls Config for http passthrough when using TLS.

@@ -420,9 +420,6 @@ func getPassThroughHttpService(ctx context.Context, authCfgCfg *structpb.Struct,
 
 		tlsConfig = &tls.Config{
 			RootCAs: caCertPool,
-			// this needs to be true so we can use our self-signed certs we generate in
-			// e2e tests.
-			InsecureSkipVerify: true,
 		}
 	}
 
