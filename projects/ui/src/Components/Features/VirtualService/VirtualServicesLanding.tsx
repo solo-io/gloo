@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import styled from '@emotion/styled/macro';
-import {
-  VirtualServicesTable,
-  VirtualServicesPageTable,
-} from './VirtualServicesTable';
+import { VirtualServicesPageTable } from './VirtualServicesTable';
+import { RouteTablesPageTable } from './RouteTablesTable';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { VirtualServiceStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service_pb';
@@ -73,7 +71,7 @@ export const VirtualServicesLanding = () => {
           onChange={changeNameFilter}
           placeholder={'Filter by name...'}
         />
-        {/* <RouteTableToggleWrapper>
+        <RouteTableToggleWrapper>
           <SoloCheckbox
             title={'Show Route Tables'}
             checked={showRT}
@@ -82,7 +80,7 @@ export const VirtualServicesLanding = () => {
               setShowRT(evt.target.checked);
             }}
           />
-        </RouteTableToggleWrapper> */}
+        </RouteTableToggleWrapper>
 
         <HorizontalDivider>
           <div>Status Filter</div>
@@ -113,7 +111,7 @@ export const VirtualServicesLanding = () => {
         />
       </div>
       <div>
-        {/* {showRT && } */}
+        {showRT && <RouteTablesPageTable nameFilter={nameFilter} statusFilter={statusFilter} />}
 
         <VirtualServicesPageTable
           nameFilter={nameFilter}

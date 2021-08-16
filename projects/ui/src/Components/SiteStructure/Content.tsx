@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router';
+import { Routes, Route, Navigate } from 'react-router';
 import { ErrorBoundary } from '../Common/ErrorBoundary';
 import styled from '@emotion/styled';
 import { OverviewLanding } from 'Components/Features/Overview/OverviewLanding';
@@ -20,6 +20,7 @@ import { WasmLanding } from 'Components/Features/Wasm/WasmLanding';
 import { useIsGlooFedEnabled } from 'API/hooks';
 import { DataError } from 'Components/Common/DataError';
 import { Loading } from 'Components/Common/Loading';
+import { RouteTableDetails } from 'Components/Features/VirtualService/RouteTableDetails';
 
 const ScrollContainer = styled.div`
   max-height: 100%;
@@ -98,6 +99,21 @@ export const Content = () => {
                 </ErrorBoundary>
               }
             />
+
+            <Route
+              path='/gloo-instances/:namespace/:name/route-tables/:routeTableClusterName/:routeTableNamespace/:routeTableName'
+              element={
+                <ErrorBoundary
+                  fallback={
+                    <div>
+                      Unable to pull information on Route Table Details.
+                    </div>
+                  }>
+                  <RouteTableDetails />
+                </ErrorBoundary>
+              }
+            />
+
             <Route
               path='/gloo-instances/:namespace/:name/upstreams/:upstreamClusterName/:upstreamNamespace/:upstreamName'
               element={
@@ -154,6 +170,8 @@ export const Content = () => {
                 </ErrorBoundary>
               }
             />
+
+            <Route path='/route-tables/' element={<Navigate replace to="/virtual-services" />} />
 
             <Route
               path='/upstreams/'

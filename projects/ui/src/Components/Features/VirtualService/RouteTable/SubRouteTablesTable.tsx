@@ -323,7 +323,7 @@ type Props = {
   onlyTable?: boolean;
 };
 // This is almost a dupe of VSTable, but as we are in early stages keeping it decoupled for now.
-export const RouteTablesTable = (props: Props) => {
+export const SubRouteTablesTable = (props: Props) => {
   const {
     virtualservicename,
     virtualservicenamespace,

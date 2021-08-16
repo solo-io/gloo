@@ -3,6 +3,7 @@ import useSWR from 'swr';
 import {
   VirtualService,
   Gateway,
+  RouteTable,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { gatewayResourceApi } from './gateway-resources';
 import { GlooResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb_service';
@@ -100,6 +101,20 @@ export function useGetSubroutesForVirtualService(
   return useSWR<SubRouteTableRow.AsObject[]>(
     key,
     () => routeTablesSelectorApi.getSubroutesForVirtualService(ref),
+    { refreshInterval: normalRefreshInterval }
+  );
+}
+
+export function useListRouteTables(ref?: ObjectRef.AsObject) {
+  let key = !!ref
+    ? !!ref.name && !!ref.namespace
+      ? `${GatewayResourceApi.ListRouteTables.methodName}/${ref.namespace}/${ref.name}`
+      : null
+    : GatewayResourceApi.ListRouteTables.methodName;
+
+  return useSWR<RouteTable.AsObject[]>(
+    key,
+    () => gatewayResourceApi.listRouteTables(ref),
     { refreshInterval: normalRefreshInterval }
   );
 }

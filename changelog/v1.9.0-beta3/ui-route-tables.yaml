@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/4630
+    description: Added a list of route tables to virtual service page and the ability to view specific route tables

@@ -91,6 +91,7 @@ const skippableNames: { [key: string]: boolean } = {
 
 const breakPathNames: { [key: string]: string } = {
   'virtual-services': 'Virtual Services',
+  'route-tables': 'Route Tables',
   upstreams: 'Upstreams',
   'upstream-groups': 'Upstream Groups',
 };
@@ -102,6 +103,7 @@ const nonLinkNames: { [key: string]: string } = {
 const pathsHaveClutterAfter: { [key: string]: number[] } = {
   'gloo-instances': [1], // namespace
   'virtual-services': [1, 2], // clustername + namespace
+  'route-tables': [1, 2], // clustername + namespace
   upstreams: [1, 2], // clustername + namespace
   'upstream-groups': [1, 2], // clustername + namespace
 };

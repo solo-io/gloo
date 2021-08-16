@@ -27,6 +27,7 @@ import { SoloLink } from 'Components/Common/SoloLink';
 import { useListGlooInstances } from 'API/hooks';
 import { GlooInstanceIssues } from './GlooInstanceIssues';
 import { DataError } from 'Components/Common/DataError';
+import { GlooInstanceRouteTables } from './GlooInstanceRouteTables';
 
 const GlooIconHolder = styled.div`
   display: flex;
@@ -228,6 +229,7 @@ export const GlooInstancesDetails = () => {
             <Tabs index={tabIndex} onChange={handleTabsChange}>
               <FolderTabList>
                 <FolderTab>Virtual Services</FolderTab>
+                <FolderTab>Route Tables</FolderTab>
                 <FolderTab>Upstreams</FolderTab>
                 <FolderTab>Upstream Groups</FolderTab>
               </FolderTabList>
@@ -236,6 +238,11 @@ export const GlooInstancesDetails = () => {
                 <StyledTabPanel>
                   <FolderTabContent>
                     <GlooInstanceVirtualServices />
+                  </FolderTabContent>
+                </StyledTabPanel>
+                <StyledTabPanel>
+                  <FolderTabContent>
+                    <GlooInstanceRouteTables />
                   </FolderTabContent>
                 </StyledTabPanel>
                 <StyledTabPanel>

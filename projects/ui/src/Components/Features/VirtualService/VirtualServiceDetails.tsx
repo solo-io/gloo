@@ -5,7 +5,7 @@ import { useParams } from 'react-router';
 import { HealthNotificationBox } from 'Components/Common/HealthNotificationBox';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as GlooIcon } from 'assets/Gloo.svg';
-import { RouteTablesTable } from './RouteTable/RouteTablesTable';
+import { SubRouteTablesTable } from './RouteTable/SubRouteTablesTable';
 import { useListVirtualServices } from 'API/hooks';
 import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { StringCardsList } from 'Components/Common/StringCardsList';
@@ -133,7 +133,7 @@ export const VirtualServiceDetails = () => {
 
           <RoutesArea>
             <AreaTitle>Routes</AreaTitle>
-            <RouteTablesTable onlyTable={true} />
+            <SubRouteTablesTable onlyTable={true} />
           </RoutesArea>
           <ConfigurationArea>
             <AreaTitle>Configuration</AreaTitle>
