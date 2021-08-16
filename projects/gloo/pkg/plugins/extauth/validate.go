@@ -111,6 +111,10 @@ func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports
 				if protocolCfg.Grpc.GetAddress() == "" {
 					reports.AddError(ac, NewInvalidAuthConfigError("passthrough grpc", ac.GetMetadata().Ref()))
 				}
+			case *extauth.PassThroughAuth_Http:
+				if protocolCfg.Http.GetUrl() == "" {
+					reports.AddError(ac, NewInvalidAuthConfigError("passthrough http", ac.GetMetadata().Ref()))
+				}
 			default:
 				reports.AddError(ac, errors.Errorf("Unknown passthrough protocol type for %v", ac.Metadata.Ref()))
 			}

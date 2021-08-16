@@ -160,6 +160,65 @@ var _ = Describe("ValidateAuthConfig", func() {
 
 			Expect(reports.ValidateStrict()).NotTo(HaveOccurred())
 		})
+
+		It("http should report error if url missing", func() {
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "test-auth",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{
+					{
+						AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+							PassThroughAuth: &extauth.PassThroughAuth{
+								Protocol: &extauth.PassThroughAuth_Http{
+									Http: &extauth.PassThroughHttp{
+										// Missing URL
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			apiSnapshot.AuthConfigs = extauth.AuthConfigList{authConfig}
+			reports.Accept(apiSnapshot.AuthConfigs.AsInputResources()...)
+
+			ValidateAuthConfig(authConfig, reports)
+
+			Expect(reports.ValidateStrict()).To(HaveOccurred())
+			Expect(reports.ValidateStrict().Error()).To(
+				ContainSubstring(`Invalid configurations for passthrough http auth config test-auth.gloo-system`))
+		})
+
+		It("http should succeed if url present", func() {
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "test-auth",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{
+					{
+						AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+							PassThroughAuth: &extauth.PassThroughAuth{
+								Protocol: &extauth.PassThroughAuth_Http{
+									Http: &extauth.PassThroughHttp{
+										Url: "http://extauth.com",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			apiSnapshot.AuthConfigs = extauth.AuthConfigList{authConfig}
+			reports.Accept(apiSnapshot.AuthConfigs.AsInputResources()...)
+
+			ValidateAuthConfig(authConfig, reports)
+
+			Expect(reports.ValidateStrict()).NotTo(HaveOccurred())
+		})
+
 	})
 
 	DescribeTable("validating OAuth2.0 auth configs",
