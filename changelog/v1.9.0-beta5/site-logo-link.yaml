@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5183
+    description: Clicking on site logo brings you back to overview page

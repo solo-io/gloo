@@ -8,8 +8,9 @@ import { ReactComponent as AdminGearHover } from 'assets/admin-settings-hover.sv
 import { SoloLink } from 'Components/Common/SoloLink';
 import { useListClusterDetails, useListGlooInstances } from 'API/hooks';
 import { useLocation } from 'react-router';
+import { Link } from 'react-router-dom';
 
-const GlooIconHolder = styled.span`
+const GlooIconHolder = styled(Link)`
   height: 35px;
   margin-right: 5px;
 
@@ -76,7 +77,7 @@ export const MainMenu = () => {
       <InnerContainer>
         <Flexor>
           <AppTitleBox>
-            <GlooIconHolder>
+            <GlooIconHolder to='/'>
               <GlooFedIcon />
             </GlooIconHolder>
           </AppTitleBox>
