@@ -1,0 +1,11 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Bumped gloo dependency to pick up 'fips' option for installation.
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.9.0-beta9
+
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/5111
+    description: Remove usage reporting setup code that was also removed from OSS gloo.
+    resolvesIssue: false

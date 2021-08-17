@@ -6,11 +6,7 @@ import (
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/transformer"
 
-	"github.com/solo-io/go-utils/contextutils"
-	"go.uber.org/zap"
-
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
-	"github.com/solo-io/gloo/pkg/utils/usage"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
@@ -41,11 +37,6 @@ const (
 
 func Main() error {
 
-	enterpriseUsageReader, err := NewEnterpriseUsageReader()
-	if err != nil {
-		contextutils.LoggerFrom(context.Background()).Warnw("Could not create enterprise usage reporter", zap.Error(err))
-	}
-
 	cancellableCtx, _ := context.WithCancel(context.Background())
 	apiEmitterChan := make(chan struct{})
 
@@ -54,11 +45,10 @@ func Main() error {
 			GetGlooEeExtensions(cancellableCtx, apiEmitterChan),
 			apiEmitterChan,
 		),
-		ExitOnError:   true,
-		LoggerName:    "gloo-ee",
-		Version:       version.Version,
-		UsageReporter: enterpriseUsageReader,
-		CustomCtx:     cancellableCtx,
+		ExitOnError: true,
+		LoggerName:  "gloo-ee",
+		Version:     version.Version,
+		CustomCtx:   cancellableCtx,
 	})
 }
 
@@ -117,14 +107,6 @@ func (e *enterpriseUsageReader) GetPayload(ctx context.Context) (map[string]stri
 	defaultPayload[licenseKey] = os.Getenv("GLOO_LICENSE_KEY")
 
 	return enterprisePayload, nil
-}
-
-func NewEnterpriseUsageReader() (client.UsagePayloadReader, error) {
-	defaultPayloadReader := usage.DefaultUsageReader{}
-
-	return &enterpriseUsageReader{
-		defaultPayloadReader: &defaultPayloadReader,
-	}, nil
 }
 
 var _ client.UsagePayloadReader = &enterpriseUsageReader{}
