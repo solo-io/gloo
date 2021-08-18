@@ -111,7 +111,8 @@ proto.gloo.solo.io.SslConfig.toObject = function(includeInstance, msg) {
     verifySubjectAltNameList: jspb.Message.getRepeatedField(msg, 5),
     parameters: (f = msg.getParameters()) && proto.gloo.solo.io.SslParameters.toObject(includeInstance, f),
     alpnProtocolsList: jspb.Message.getRepeatedField(msg, 7),
-    oneWayTls: (f = msg.getOneWayTls()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    oneWayTls: (f = msg.getOneWayTls()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    disableTlsSessionResumption: (f = msg.getDisableTlsSessionResumption()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -184,6 +185,11 @@ proto.gloo.solo.io.SslConfig.deserializeBinaryFromReader = function(msg, reader)
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setOneWayTls(value);
+      break;
+    case 9:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setDisableTlsSessionResumption(value);
       break;
     default:
       reader.skipField();
@@ -271,6 +277,14 @@ proto.gloo.solo.io.SslConfig.serializeBinaryToWriter = function(message, writer)
   if (f != null) {
     writer.writeMessage(
       8,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getDisableTlsSessionResumption();
+  if (f != null) {
+    writer.writeMessage(
+      9,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
@@ -512,6 +526,36 @@ proto.gloo.solo.io.SslConfig.prototype.clearOneWayTls = function() {
  */
 proto.gloo.solo.io.SslConfig.prototype.hasOneWayTls = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue disable_tls_session_resumption = 9;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.SslConfig.prototype.getDisableTlsSessionResumption = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 9));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.SslConfig.prototype.setDisableTlsSessionResumption = function(value) {
+  jspb.Message.setWrapperField(this, 9, value);
+};
+
+
+proto.gloo.solo.io.SslConfig.prototype.clearDisableTlsSessionResumption = function() {
+  this.setDisableTlsSessionResumption(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SslConfig.prototype.hasDisableTlsSessionResumption = function() {
+  return jspb.Message.getField(this, 9) != null;
 };
 
 

@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Add `validationServerGrpcMaxSizeBytes` to expected values in Helm tests.
+    issueLink: https://github.com/solo-io/gloo/issues/5085
