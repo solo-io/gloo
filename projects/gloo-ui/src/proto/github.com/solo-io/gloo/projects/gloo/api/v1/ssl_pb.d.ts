@@ -48,6 +48,11 @@ export class SslConfig extends jspb.Message {
   getOneWayTls(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setOneWayTls(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasDisableTlsSessionResumption(): boolean;
+  clearDisableTlsSessionResumption(): void;
+  getDisableTlsSessionResumption(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setDisableTlsSessionResumption(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   getSslSecretsCase(): SslConfig.SslSecretsCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SslConfig.AsObject;
@@ -69,6 +74,7 @@ export namespace SslConfig {
     parameters?: SslParameters.AsObject,
     alpnProtocolsList: Array<string>,
     oneWayTls?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    disableTlsSessionResumption?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export enum SslSecretsCase {

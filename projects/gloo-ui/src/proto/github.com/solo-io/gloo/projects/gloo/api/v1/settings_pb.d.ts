@@ -923,10 +923,10 @@ export namespace GatewayOptions {
     getDisableTransformationValidation(): google_protobuf_wrappers_pb.BoolValue | undefined;
     setDisableTransformationValidation(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
-    hasValidationServerGrpcMaxSize(): boolean;
-    clearValidationServerGrpcMaxSize(): void;
-    getValidationServerGrpcMaxSize(): google_protobuf_wrappers_pb.Int64Value | undefined;
-    setValidationServerGrpcMaxSize(value?: google_protobuf_wrappers_pb.Int64Value): void;
+    hasValidationServerGrpcMaxSizeBytes(): boolean;
+    clearValidationServerGrpcMaxSizeBytes(): void;
+    getValidationServerGrpcMaxSizeBytes(): google_protobuf_wrappers_pb.Int32Value | undefined;
+    setValidationServerGrpcMaxSizeBytes(value?: google_protobuf_wrappers_pb.Int32Value): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ValidationOptions.AsObject;
@@ -948,7 +948,7 @@ export namespace GatewayOptions {
       allowWarnings?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       warnRouteShortCircuiting?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       disableTransformationValidation?: google_protobuf_wrappers_pb.BoolValue.AsObject,
-      validationServerGrpcMaxSize?: google_protobuf_wrappers_pb.Int64Value.AsObject,
+      validationServerGrpcMaxSizeBytes?: google_protobuf_wrappers_pb.Int32Value.AsObject,
     }
   }
 }

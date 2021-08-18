@@ -6065,7 +6065,7 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.toObject = function(includeI
     allowWarnings: (f = msg.getAllowWarnings()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     warnRouteShortCircuiting: (f = msg.getWarnRouteShortCircuiting()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     disableTransformationValidation: (f = msg.getDisableTransformationValidation()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    validationServerGrpcMaxSize: (f = msg.getValidationServerGrpcMaxSize()) && google_protobuf_wrappers_pb.Int64Value.toObject(includeInstance, f)
+    validationServerGrpcMaxSizeBytes: (f = msg.getValidationServerGrpcMaxSizeBytes()) && google_protobuf_wrappers_pb.Int32Value.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -6138,10 +6138,10 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.deserializeBinaryFromReader 
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setDisableTransformationValidation(value);
       break;
-    case 10:
-      var value = new google_protobuf_wrappers_pb.Int64Value;
-      reader.readMessage(value,google_protobuf_wrappers_pb.Int64Value.deserializeBinaryFromReader);
-      msg.setValidationServerGrpcMaxSize(value);
+    case 11:
+      var value = new google_protobuf_wrappers_pb.Int32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.Int32Value.deserializeBinaryFromReader);
+      msg.setValidationServerGrpcMaxSizeBytes(value);
       break;
     default:
       reader.skipField();
@@ -6232,12 +6232,12 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.serializeBinaryToWriter = fu
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
-  f = message.getValidationServerGrpcMaxSize();
+  f = message.getValidationServerGrpcMaxSizeBytes();
   if (f != null) {
     writer.writeMessage(
-      10,
+      11,
       f,
-      google_protobuf_wrappers_pb.Int64Value.serializeBinaryToWriter
+      google_protobuf_wrappers_pb.Int32Value.serializeBinaryToWriter
     );
   }
 };
@@ -6426,23 +6426,23 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.hasDisableTransfor
 
 
 /**
- * optional google.protobuf.Int64Value validation_server_grpc_max_size = 10;
- * @return {?proto.google.protobuf.Int64Value}
+ * optional google.protobuf.Int32Value validation_server_grpc_max_size_bytes = 11;
+ * @return {?proto.google.protobuf.Int32Value}
  */
-proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.getValidationServerGrpcMaxSize = function() {
-  return /** @type{?proto.google.protobuf.Int64Value} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.Int64Value, 10));
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.getValidationServerGrpcMaxSizeBytes = function() {
+  return /** @type{?proto.google.protobuf.Int32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.Int32Value, 11));
 };
 
 
-/** @param {?proto.google.protobuf.Int64Value|undefined} value */
-proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.setValidationServerGrpcMaxSize = function(value) {
-  jspb.Message.setWrapperField(this, 10, value);
+/** @param {?proto.google.protobuf.Int32Value|undefined} value */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.setValidationServerGrpcMaxSizeBytes = function(value) {
+  jspb.Message.setWrapperField(this, 11, value);
 };
 
 
-proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.clearValidationServerGrpcMaxSize = function() {
-  this.setValidationServerGrpcMaxSize(undefined);
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.clearValidationServerGrpcMaxSizeBytes = function() {
+  this.setValidationServerGrpcMaxSizeBytes(undefined);
 };
 
 
@@ -6450,8 +6450,8 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.clearValidationSer
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.hasValidationServerGrpcMaxSize = function() {
-  return jspb.Message.getField(this, 10) != null;
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.hasValidationServerGrpcMaxSizeBytes = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 
