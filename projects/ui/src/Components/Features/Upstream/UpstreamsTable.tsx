@@ -97,7 +97,8 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
 
   useEffect(() => {
     if (upstreams) {
-      let typeCheckboxesNotSet = props.typeFilters?.every(c => !c.checked);
+      let typeCheckboxesNotSet =
+        !props.typeFilters?.length || props.typeFilters.every(c => !c.checked);
       setTableData(
         upstreams
           .filter(
@@ -105,7 +106,10 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
               upstream.metadata?.name.includes(props.nameFilter ?? '') &&
               (props.statusFilter === undefined ||
                 upstream.status?.state === props.statusFilter) &&
-                (typeCheckboxesNotSet || props.typeFilters?.find(c => c.label === getUpstreamType(upstream))?.checked) &&
+              (typeCheckboxesNotSet ||
+                props.typeFilters?.find(
+                  c => c.label === getUpstreamType(upstream)
+                )?.checked) &&
               (!props.glooInstanceFilter ||
                 objectMetasAreEqual(
                   {
@@ -115,7 +119,17 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
                   props.glooInstanceFilter
                 ))
           )
-          .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (!props.wholePage ? 0 : (gA.glooInstance?.name ?? '').localeCompare(gB.glooInstance?.name ?? '')))
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (!props.wholePage
+                ? 0
+                : (gA.glooInstance?.name ?? '').localeCompare(
+                    gB.glooInstance?.name ?? ''
+                  ))
+          )
           .map(upstream => {
             const glooInstNamespace = upstream.glooInstance?.namespace;
             const glooInstName = upstream.glooInstance?.name;
