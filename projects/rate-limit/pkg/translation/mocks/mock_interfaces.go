@@ -13,30 +13,44 @@ import (
 	v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 )
 
-// MockBasicRateLimitTranslator is a mock of BasicRateLimitTranslator interface
+// MockBasicRateLimitTranslator is a mock of BasicRateLimitTranslator interface.
 type MockBasicRateLimitTranslator struct {
 	ctrl     *gomock.Controller
 	recorder *MockBasicRateLimitTranslatorMockRecorder
 }
 
-// MockBasicRateLimitTranslatorMockRecorder is the mock recorder for MockBasicRateLimitTranslator
+// MockBasicRateLimitTranslatorMockRecorder is the mock recorder for MockBasicRateLimitTranslator.
 type MockBasicRateLimitTranslatorMockRecorder struct {
 	mock *MockBasicRateLimitTranslator
 }
 
-// NewMockBasicRateLimitTranslator creates a new mock instance
+// NewMockBasicRateLimitTranslator creates a new mock instance.
 func NewMockBasicRateLimitTranslator(ctrl *gomock.Controller) *MockBasicRateLimitTranslator {
 	mock := &MockBasicRateLimitTranslator{ctrl: ctrl}
 	mock.recorder = &MockBasicRateLimitTranslatorMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBasicRateLimitTranslator) EXPECT() *MockBasicRateLimitTranslatorMockRecorder {
 	return m.recorder
 }
 
-// GenerateServerConfig mocks base method
+// GenerateResourceConfig mocks base method.
+func (m *MockBasicRateLimitTranslator) GenerateResourceConfig(resourceName, headerName string, stage uint32) []*envoy_config_route_v3.RateLimit {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateResourceConfig", resourceName, headerName, stage)
+	ret0, _ := ret[0].([]*envoy_config_route_v3.RateLimit)
+	return ret0
+}
+
+// GenerateResourceConfig indicates an expected call of GenerateResourceConfig.
+func (mr *MockBasicRateLimitTranslatorMockRecorder) GenerateResourceConfig(resourceName, headerName, stage interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateResourceConfig", reflect.TypeOf((*MockBasicRateLimitTranslator)(nil).GenerateResourceConfig), resourceName, headerName, stage)
+}
+
+// GenerateServerConfig mocks base method.
 func (m *MockBasicRateLimitTranslator) GenerateServerConfig(resourceName string, ingressRl ratelimit.IngressRateLimit) (*v1alpha1.Descriptor, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateServerConfig", resourceName, ingressRl)
@@ -45,22 +59,8 @@ func (m *MockBasicRateLimitTranslator) GenerateServerConfig(resourceName string,
 	return ret0, ret1
 }
 
-// GenerateServerConfig indicates an expected call of GenerateServerConfig
+// GenerateServerConfig indicates an expected call of GenerateServerConfig.
 func (mr *MockBasicRateLimitTranslatorMockRecorder) GenerateServerConfig(resourceName, ingressRl interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateServerConfig", reflect.TypeOf((*MockBasicRateLimitTranslator)(nil).GenerateServerConfig), resourceName, ingressRl)
-}
-
-// GenerateResourceConfig mocks base method
-func (m *MockBasicRateLimitTranslator) GenerateResourceConfig(resourceName, headerName string, stage uint32) []*envoy_config_route_v3.RateLimit {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateResourceConfig", resourceName, headerName, stage)
-	ret0, _ := ret[0].([]*envoy_config_route_v3.RateLimit)
-	return ret0
-}
-
-// GenerateResourceConfig indicates an expected call of GenerateResourceConfig
-func (mr *MockBasicRateLimitTranslatorMockRecorder) GenerateResourceConfig(resourceName, headerName, stage interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateResourceConfig", reflect.TypeOf((*MockBasicRateLimitTranslator)(nil).GenerateResourceConfig), resourceName, headerName, stage)
 }

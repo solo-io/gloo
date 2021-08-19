@@ -15,54 +15,54 @@ import (
 	zap "go.uber.org/zap"
 )
 
-// MockConfigCollector is a mock of ConfigCollector interface
+// MockConfigCollector is a mock of ConfigCollector interface.
 type MockConfigCollector struct {
 	ctrl     *gomock.Controller
 	recorder *MockConfigCollectorMockRecorder
 }
 
-// MockConfigCollectorMockRecorder is the mock recorder for MockConfigCollector
+// MockConfigCollectorMockRecorder is the mock recorder for MockConfigCollector.
 type MockConfigCollectorMockRecorder struct {
 	mock *MockConfigCollector
 }
 
-// NewMockConfigCollector creates a new mock instance
+// NewMockConfigCollector creates a new mock instance.
 func NewMockConfigCollector(ctrl *gomock.Controller) *MockConfigCollector {
 	mock := &MockConfigCollector{ctrl: ctrl}
 	mock.recorder = &MockConfigCollectorMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockConfigCollector) EXPECT() *MockConfigCollectorMockRecorder {
 	return m.recorder
 }
 
-// ProcessVirtualHost mocks base method
-func (m *MockConfigCollector) ProcessVirtualHost(virtualHost *v1.VirtualHost, proxy *v1.Proxy, reports reporter.ResourceReports) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "ProcessVirtualHost", virtualHost, proxy, reports)
-}
-
-// ProcessVirtualHost indicates an expected call of ProcessVirtualHost
-func (mr *MockConfigCollectorMockRecorder) ProcessVirtualHost(virtualHost, proxy, reports interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessVirtualHost", reflect.TypeOf((*MockConfigCollector)(nil).ProcessVirtualHost), virtualHost, proxy, reports)
-}
-
-// ProcessRoute mocks base method
+// ProcessRoute mocks base method.
 func (m *MockConfigCollector) ProcessRoute(route *v1.Route, virtualHost *v1.VirtualHost, proxy *v1.Proxy, reports reporter.ResourceReports) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ProcessRoute", route, virtualHost, proxy, reports)
 }
 
-// ProcessRoute indicates an expected call of ProcessRoute
+// ProcessRoute indicates an expected call of ProcessRoute.
 func (mr *MockConfigCollectorMockRecorder) ProcessRoute(route, virtualHost, proxy, reports interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessRoute", reflect.TypeOf((*MockConfigCollector)(nil).ProcessRoute), route, virtualHost, proxy, reports)
 }
 
-// ToXdsConfiguration mocks base method
+// ProcessVirtualHost mocks base method.
+func (m *MockConfigCollector) ProcessVirtualHost(virtualHost *v1.VirtualHost, proxy *v1.Proxy, reports reporter.ResourceReports) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "ProcessVirtualHost", virtualHost, proxy, reports)
+}
+
+// ProcessVirtualHost indicates an expected call of ProcessVirtualHost.
+func (mr *MockConfigCollectorMockRecorder) ProcessVirtualHost(virtualHost, proxy, reports interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessVirtualHost", reflect.TypeOf((*MockConfigCollector)(nil).ProcessVirtualHost), virtualHost, proxy, reports)
+}
+
+// ToXdsConfiguration mocks base method.
 func (m *MockConfigCollector) ToXdsConfiguration() (*enterprise.RateLimitConfig, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ToXdsConfiguration")
@@ -71,36 +71,36 @@ func (m *MockConfigCollector) ToXdsConfiguration() (*enterprise.RateLimitConfig,
 	return ret0, ret1
 }
 
-// ToXdsConfiguration indicates an expected call of ToXdsConfiguration
+// ToXdsConfiguration indicates an expected call of ToXdsConfiguration.
 func (mr *MockConfigCollectorMockRecorder) ToXdsConfiguration() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToXdsConfiguration", reflect.TypeOf((*MockConfigCollector)(nil).ToXdsConfiguration))
 }
 
-// MockConfigCollectorFactory is a mock of ConfigCollectorFactory interface
+// MockConfigCollectorFactory is a mock of ConfigCollectorFactory interface.
 type MockConfigCollectorFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockConfigCollectorFactoryMockRecorder
 }
 
-// MockConfigCollectorFactoryMockRecorder is the mock recorder for MockConfigCollectorFactory
+// MockConfigCollectorFactoryMockRecorder is the mock recorder for MockConfigCollectorFactory.
 type MockConfigCollectorFactoryMockRecorder struct {
 	mock *MockConfigCollectorFactory
 }
 
-// NewMockConfigCollectorFactory creates a new mock instance
+// NewMockConfigCollectorFactory creates a new mock instance.
 func NewMockConfigCollectorFactory(ctrl *gomock.Controller) *MockConfigCollectorFactory {
 	mock := &MockConfigCollectorFactory{ctrl: ctrl}
 	mock.recorder = &MockConfigCollectorFactoryMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockConfigCollectorFactory) EXPECT() *MockConfigCollectorFactoryMockRecorder {
 	return m.recorder
 }
 
-// MakeInstance mocks base method
+// MakeInstance mocks base method.
 func (m *MockConfigCollectorFactory) MakeInstance(typ collectors.CollectorType, snapshot *v1.ApiSnapshot, logger *zap.SugaredLogger) (collectors.ConfigCollector, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MakeInstance", typ, snapshot, logger)
@@ -109,7 +109,7 @@ func (m *MockConfigCollectorFactory) MakeInstance(typ collectors.CollectorType, 
 	return ret0, ret1
 }
 
-// MakeInstance indicates an expected call of MakeInstance
+// MakeInstance indicates an expected call of MakeInstance.
 func (mr *MockConfigCollectorFactoryMockRecorder) MakeInstance(typ, snapshot, logger interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeInstance", reflect.TypeOf((*MockConfigCollectorFactory)(nil).MakeInstance), typ, snapshot, logger)

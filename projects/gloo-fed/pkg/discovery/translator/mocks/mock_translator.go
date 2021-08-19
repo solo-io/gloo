@@ -13,30 +13,30 @@ import (
 	input "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/input"
 )
 
-// MockGlooInstanceTranslator is a mock of GlooInstanceTranslator interface
+// MockGlooInstanceTranslator is a mock of GlooInstanceTranslator interface.
 type MockGlooInstanceTranslator struct {
 	ctrl     *gomock.Controller
 	recorder *MockGlooInstanceTranslatorMockRecorder
 }
 
-// MockGlooInstanceTranslatorMockRecorder is the mock recorder for MockGlooInstanceTranslator
+// MockGlooInstanceTranslatorMockRecorder is the mock recorder for MockGlooInstanceTranslator.
 type MockGlooInstanceTranslatorMockRecorder struct {
 	mock *MockGlooInstanceTranslator
 }
 
-// NewMockGlooInstanceTranslator creates a new mock instance
+// NewMockGlooInstanceTranslator creates a new mock instance.
 func NewMockGlooInstanceTranslator(ctrl *gomock.Controller) *MockGlooInstanceTranslator {
 	mock := &MockGlooInstanceTranslator{ctrl: ctrl}
 	mock.recorder = &MockGlooInstanceTranslatorMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockGlooInstanceTranslator) EXPECT() *MockGlooInstanceTranslatorMockRecorder {
 	return m.recorder
 }
 
-// FromSnapshot mocks base method
+// FromSnapshot mocks base method.
 func (m *MockGlooInstanceTranslator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) []*v1.GlooInstance {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FromSnapshot", ctx, snapshot)
@@ -44,7 +44,7 @@ func (m *MockGlooInstanceTranslator) FromSnapshot(ctx context.Context, snapshot 
 	return ret0
 }
 
-// FromSnapshot indicates an expected call of FromSnapshot
+// FromSnapshot indicates an expected call of FromSnapshot.
 func (mr *MockGlooInstanceTranslatorMockRecorder) FromSnapshot(ctx, snapshot interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FromSnapshot", reflect.TypeOf((*MockGlooInstanceTranslator)(nil).FromSnapshot), ctx, snapshot)

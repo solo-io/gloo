@@ -14,45 +14,30 @@ import (
 	types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 )
 
-// MockFailoverProcessor is a mock of FailoverProcessor interface
+// MockFailoverProcessor is a mock of FailoverProcessor interface.
 type MockFailoverProcessor struct {
 	ctrl     *gomock.Controller
 	recorder *MockFailoverProcessorMockRecorder
 }
 
-// MockFailoverProcessorMockRecorder is the mock recorder for MockFailoverProcessor
+// MockFailoverProcessorMockRecorder is the mock recorder for MockFailoverProcessor.
 type MockFailoverProcessorMockRecorder struct {
 	mock *MockFailoverProcessor
 }
 
-// NewMockFailoverProcessor creates a new mock instance
+// NewMockFailoverProcessor creates a new mock instance.
 func NewMockFailoverProcessor(ctrl *gomock.Controller) *MockFailoverProcessor {
 	mock := &MockFailoverProcessor{ctrl: ctrl}
 	mock.recorder = &MockFailoverProcessorMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFailoverProcessor) EXPECT() *MockFailoverProcessorMockRecorder {
 	return m.recorder
 }
 
-// ProcessFailoverUpdate mocks base method
-func (m *MockFailoverProcessor) ProcessFailoverUpdate(ctx context.Context, obj *v10.FailoverScheme) (*v1.Upstream, *types.FailoverSchemeStatus) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ProcessFailoverUpdate", ctx, obj)
-	ret0, _ := ret[0].(*v1.Upstream)
-	ret1, _ := ret[1].(*types.FailoverSchemeStatus)
-	return ret0, ret1
-}
-
-// ProcessFailoverUpdate indicates an expected call of ProcessFailoverUpdate
-func (mr *MockFailoverProcessorMockRecorder) ProcessFailoverUpdate(ctx, obj interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessFailoverUpdate", reflect.TypeOf((*MockFailoverProcessor)(nil).ProcessFailoverUpdate), ctx, obj)
-}
-
-// ProcessFailoverDelete mocks base method
+// ProcessFailoverDelete mocks base method.
 func (m *MockFailoverProcessor) ProcessFailoverDelete(ctx context.Context, obj *v10.FailoverScheme) (*v1.Upstream, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ProcessFailoverDelete", ctx, obj)
@@ -61,8 +46,23 @@ func (m *MockFailoverProcessor) ProcessFailoverDelete(ctx context.Context, obj *
 	return ret0, ret1
 }
 
-// ProcessFailoverDelete indicates an expected call of ProcessFailoverDelete
+// ProcessFailoverDelete indicates an expected call of ProcessFailoverDelete.
 func (mr *MockFailoverProcessorMockRecorder) ProcessFailoverDelete(ctx, obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessFailoverDelete", reflect.TypeOf((*MockFailoverProcessor)(nil).ProcessFailoverDelete), ctx, obj)
+}
+
+// ProcessFailoverUpdate mocks base method.
+func (m *MockFailoverProcessor) ProcessFailoverUpdate(ctx context.Context, obj *v10.FailoverScheme) (*v1.Upstream, *types.FailoverSchemeStatus) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ProcessFailoverUpdate", ctx, obj)
+	ret0, _ := ret[0].(*v1.Upstream)
+	ret1, _ := ret[1].(*types.FailoverSchemeStatus)
+	return ret0, ret1
+}
+
+// ProcessFailoverUpdate indicates an expected call of ProcessFailoverUpdate.
+func (mr *MockFailoverProcessorMockRecorder) ProcessFailoverUpdate(ctx, obj interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessFailoverUpdate", reflect.TypeOf((*MockFailoverProcessor)(nil).ProcessFailoverUpdate), ctx, obj)
 }

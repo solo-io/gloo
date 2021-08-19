@@ -701,7 +701,20 @@ var _ = Describe("Helm Test", func() {
 
 				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
 			})
+			It("Uses fips images", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.image.fips=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
 
+				actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+					return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "extauth"
+				})
+				expectedDeployment.Spec.Template.Spec.Containers[0].Image = "quay.io/solo-io/extauth-ee-fips:" + version
+				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+			})
 			It("configures headers to redact", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
@@ -1361,6 +1374,17 @@ global:
 				})
 				Expect(err).NotTo(HaveOccurred())
 				includeStatConfig()
+				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+			})
+
+			It("creates a deployment with fips envoy", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.image.fips=true",
+					},
+				})
+				gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Image = "quay.io/solo-io/gloo-ee-envoy-wrapper-fips:" + version
+				Expect(err).NotTo(HaveOccurred())
 				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 			})
 
@@ -2772,6 +2796,14 @@ spec:
 					}
 				}
 
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+			It("should support getting fips images", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"global.image.fips=true"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				expectedDeployment.Spec.Template.Spec.Containers[0].Image = "quay.io/solo-io/rate-limit-ee-fips:" + version
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 		})

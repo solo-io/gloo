@@ -14,30 +14,30 @@ import (
 	predicate "sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-// MockFederatedUpstreamEventHandler is a mock of FederatedUpstreamEventHandler interface
+// MockFederatedUpstreamEventHandler is a mock of FederatedUpstreamEventHandler interface.
 type MockFederatedUpstreamEventHandler struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamEventHandlerMockRecorder
 }
 
-// MockFederatedUpstreamEventHandlerMockRecorder is the mock recorder for MockFederatedUpstreamEventHandler
+// MockFederatedUpstreamEventHandlerMockRecorder is the mock recorder for MockFederatedUpstreamEventHandler.
 type MockFederatedUpstreamEventHandlerMockRecorder struct {
 	mock *MockFederatedUpstreamEventHandler
 }
 
-// NewMockFederatedUpstreamEventHandler creates a new mock instance
+// NewMockFederatedUpstreamEventHandler creates a new mock instance.
 func NewMockFederatedUpstreamEventHandler(ctrl *gomock.Controller) *MockFederatedUpstreamEventHandler {
 	mock := &MockFederatedUpstreamEventHandler{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamEventHandlerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamEventHandler) EXPECT() *MockFederatedUpstreamEventHandlerMockRecorder {
 	return m.recorder
 }
 
-// CreateFederatedUpstream mocks base method
+// CreateFederatedUpstream mocks base method.
 func (m *MockFederatedUpstreamEventHandler) CreateFederatedUpstream(obj *v1.FederatedUpstream) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateFederatedUpstream", obj)
@@ -45,27 +45,13 @@ func (m *MockFederatedUpstreamEventHandler) CreateFederatedUpstream(obj *v1.Fede
 	return ret0
 }
 
-// CreateFederatedUpstream indicates an expected call of CreateFederatedUpstream
+// CreateFederatedUpstream indicates an expected call of CreateFederatedUpstream.
 func (mr *MockFederatedUpstreamEventHandlerMockRecorder) CreateFederatedUpstream(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamEventHandler)(nil).CreateFederatedUpstream), obj)
 }
 
-// UpdateFederatedUpstream mocks base method
-func (m *MockFederatedUpstreamEventHandler) UpdateFederatedUpstream(old, new *v1.FederatedUpstream) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateFederatedUpstream", old, new)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedUpstream indicates an expected call of UpdateFederatedUpstream
-func (mr *MockFederatedUpstreamEventHandlerMockRecorder) UpdateFederatedUpstream(old, new interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamEventHandler)(nil).UpdateFederatedUpstream), old, new)
-}
-
-// DeleteFederatedUpstream mocks base method
+// DeleteFederatedUpstream mocks base method.
 func (m *MockFederatedUpstreamEventHandler) DeleteFederatedUpstream(obj *v1.FederatedUpstream) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteFederatedUpstream", obj)
@@ -73,13 +59,13 @@ func (m *MockFederatedUpstreamEventHandler) DeleteFederatedUpstream(obj *v1.Fede
 	return ret0
 }
 
-// DeleteFederatedUpstream indicates an expected call of DeleteFederatedUpstream
+// DeleteFederatedUpstream indicates an expected call of DeleteFederatedUpstream.
 func (mr *MockFederatedUpstreamEventHandlerMockRecorder) DeleteFederatedUpstream(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamEventHandler)(nil).DeleteFederatedUpstream), obj)
 }
 
-// GenericFederatedUpstream mocks base method
+// GenericFederatedUpstream mocks base method.
 func (m *MockFederatedUpstreamEventHandler) GenericFederatedUpstream(obj *v1.FederatedUpstream) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenericFederatedUpstream", obj)
@@ -87,36 +73,50 @@ func (m *MockFederatedUpstreamEventHandler) GenericFederatedUpstream(obj *v1.Fed
 	return ret0
 }
 
-// GenericFederatedUpstream indicates an expected call of GenericFederatedUpstream
+// GenericFederatedUpstream indicates an expected call of GenericFederatedUpstream.
 func (mr *MockFederatedUpstreamEventHandlerMockRecorder) GenericFederatedUpstream(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenericFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamEventHandler)(nil).GenericFederatedUpstream), obj)
 }
 
-// MockFederatedUpstreamEventWatcher is a mock of FederatedUpstreamEventWatcher interface
+// UpdateFederatedUpstream mocks base method.
+func (m *MockFederatedUpstreamEventHandler) UpdateFederatedUpstream(old, new *v1.FederatedUpstream) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateFederatedUpstream", old, new)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedUpstream indicates an expected call of UpdateFederatedUpstream.
+func (mr *MockFederatedUpstreamEventHandlerMockRecorder) UpdateFederatedUpstream(old, new interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamEventHandler)(nil).UpdateFederatedUpstream), old, new)
+}
+
+// MockFederatedUpstreamEventWatcher is a mock of FederatedUpstreamEventWatcher interface.
 type MockFederatedUpstreamEventWatcher struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamEventWatcherMockRecorder
 }
 
-// MockFederatedUpstreamEventWatcherMockRecorder is the mock recorder for MockFederatedUpstreamEventWatcher
+// MockFederatedUpstreamEventWatcherMockRecorder is the mock recorder for MockFederatedUpstreamEventWatcher.
 type MockFederatedUpstreamEventWatcherMockRecorder struct {
 	mock *MockFederatedUpstreamEventWatcher
 }
 
-// NewMockFederatedUpstreamEventWatcher creates a new mock instance
+// NewMockFederatedUpstreamEventWatcher creates a new mock instance.
 func NewMockFederatedUpstreamEventWatcher(ctrl *gomock.Controller) *MockFederatedUpstreamEventWatcher {
 	mock := &MockFederatedUpstreamEventWatcher{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamEventWatcherMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamEventWatcher) EXPECT() *MockFederatedUpstreamEventWatcherMockRecorder {
 	return m.recorder
 }
 
-// AddEventHandler mocks base method
+// AddEventHandler mocks base method.
 func (m *MockFederatedUpstreamEventWatcher) AddEventHandler(ctx context.Context, h controller.FederatedUpstreamEventHandler, predicates ...predicate.Predicate) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, h}
@@ -128,37 +128,37 @@ func (m *MockFederatedUpstreamEventWatcher) AddEventHandler(ctx context.Context,
 	return ret0
 }
 
-// AddEventHandler indicates an expected call of AddEventHandler
+// AddEventHandler indicates an expected call of AddEventHandler.
 func (mr *MockFederatedUpstreamEventWatcherMockRecorder) AddEventHandler(ctx, h interface{}, predicates ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, h}, predicates...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEventHandler", reflect.TypeOf((*MockFederatedUpstreamEventWatcher)(nil).AddEventHandler), varargs...)
 }
 
-// MockFederatedUpstreamGroupEventHandler is a mock of FederatedUpstreamGroupEventHandler interface
+// MockFederatedUpstreamGroupEventHandler is a mock of FederatedUpstreamGroupEventHandler interface.
 type MockFederatedUpstreamGroupEventHandler struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamGroupEventHandlerMockRecorder
 }
 
-// MockFederatedUpstreamGroupEventHandlerMockRecorder is the mock recorder for MockFederatedUpstreamGroupEventHandler
+// MockFederatedUpstreamGroupEventHandlerMockRecorder is the mock recorder for MockFederatedUpstreamGroupEventHandler.
 type MockFederatedUpstreamGroupEventHandlerMockRecorder struct {
 	mock *MockFederatedUpstreamGroupEventHandler
 }
 
-// NewMockFederatedUpstreamGroupEventHandler creates a new mock instance
+// NewMockFederatedUpstreamGroupEventHandler creates a new mock instance.
 func NewMockFederatedUpstreamGroupEventHandler(ctrl *gomock.Controller) *MockFederatedUpstreamGroupEventHandler {
 	mock := &MockFederatedUpstreamGroupEventHandler{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamGroupEventHandlerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamGroupEventHandler) EXPECT() *MockFederatedUpstreamGroupEventHandlerMockRecorder {
 	return m.recorder
 }
 
-// CreateFederatedUpstreamGroup mocks base method
+// CreateFederatedUpstreamGroup mocks base method.
 func (m *MockFederatedUpstreamGroupEventHandler) CreateFederatedUpstreamGroup(obj *v1.FederatedUpstreamGroup) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateFederatedUpstreamGroup", obj)
@@ -166,27 +166,13 @@ func (m *MockFederatedUpstreamGroupEventHandler) CreateFederatedUpstreamGroup(ob
 	return ret0
 }
 
-// CreateFederatedUpstreamGroup indicates an expected call of CreateFederatedUpstreamGroup
+// CreateFederatedUpstreamGroup indicates an expected call of CreateFederatedUpstreamGroup.
 func (mr *MockFederatedUpstreamGroupEventHandlerMockRecorder) CreateFederatedUpstreamGroup(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupEventHandler)(nil).CreateFederatedUpstreamGroup), obj)
 }
 
-// UpdateFederatedUpstreamGroup mocks base method
-func (m *MockFederatedUpstreamGroupEventHandler) UpdateFederatedUpstreamGroup(old, new *v1.FederatedUpstreamGroup) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamGroup", old, new)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedUpstreamGroup indicates an expected call of UpdateFederatedUpstreamGroup
-func (mr *MockFederatedUpstreamGroupEventHandlerMockRecorder) UpdateFederatedUpstreamGroup(old, new interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupEventHandler)(nil).UpdateFederatedUpstreamGroup), old, new)
-}
-
-// DeleteFederatedUpstreamGroup mocks base method
+// DeleteFederatedUpstreamGroup mocks base method.
 func (m *MockFederatedUpstreamGroupEventHandler) DeleteFederatedUpstreamGroup(obj *v1.FederatedUpstreamGroup) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteFederatedUpstreamGroup", obj)
@@ -194,13 +180,13 @@ func (m *MockFederatedUpstreamGroupEventHandler) DeleteFederatedUpstreamGroup(ob
 	return ret0
 }
 
-// DeleteFederatedUpstreamGroup indicates an expected call of DeleteFederatedUpstreamGroup
+// DeleteFederatedUpstreamGroup indicates an expected call of DeleteFederatedUpstreamGroup.
 func (mr *MockFederatedUpstreamGroupEventHandlerMockRecorder) DeleteFederatedUpstreamGroup(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupEventHandler)(nil).DeleteFederatedUpstreamGroup), obj)
 }
 
-// GenericFederatedUpstreamGroup mocks base method
+// GenericFederatedUpstreamGroup mocks base method.
 func (m *MockFederatedUpstreamGroupEventHandler) GenericFederatedUpstreamGroup(obj *v1.FederatedUpstreamGroup) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenericFederatedUpstreamGroup", obj)
@@ -208,36 +194,50 @@ func (m *MockFederatedUpstreamGroupEventHandler) GenericFederatedUpstreamGroup(o
 	return ret0
 }
 
-// GenericFederatedUpstreamGroup indicates an expected call of GenericFederatedUpstreamGroup
+// GenericFederatedUpstreamGroup indicates an expected call of GenericFederatedUpstreamGroup.
 func (mr *MockFederatedUpstreamGroupEventHandlerMockRecorder) GenericFederatedUpstreamGroup(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenericFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupEventHandler)(nil).GenericFederatedUpstreamGroup), obj)
 }
 
-// MockFederatedUpstreamGroupEventWatcher is a mock of FederatedUpstreamGroupEventWatcher interface
+// UpdateFederatedUpstreamGroup mocks base method.
+func (m *MockFederatedUpstreamGroupEventHandler) UpdateFederatedUpstreamGroup(old, new *v1.FederatedUpstreamGroup) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamGroup", old, new)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedUpstreamGroup indicates an expected call of UpdateFederatedUpstreamGroup.
+func (mr *MockFederatedUpstreamGroupEventHandlerMockRecorder) UpdateFederatedUpstreamGroup(old, new interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupEventHandler)(nil).UpdateFederatedUpstreamGroup), old, new)
+}
+
+// MockFederatedUpstreamGroupEventWatcher is a mock of FederatedUpstreamGroupEventWatcher interface.
 type MockFederatedUpstreamGroupEventWatcher struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamGroupEventWatcherMockRecorder
 }
 
-// MockFederatedUpstreamGroupEventWatcherMockRecorder is the mock recorder for MockFederatedUpstreamGroupEventWatcher
+// MockFederatedUpstreamGroupEventWatcherMockRecorder is the mock recorder for MockFederatedUpstreamGroupEventWatcher.
 type MockFederatedUpstreamGroupEventWatcherMockRecorder struct {
 	mock *MockFederatedUpstreamGroupEventWatcher
 }
 
-// NewMockFederatedUpstreamGroupEventWatcher creates a new mock instance
+// NewMockFederatedUpstreamGroupEventWatcher creates a new mock instance.
 func NewMockFederatedUpstreamGroupEventWatcher(ctrl *gomock.Controller) *MockFederatedUpstreamGroupEventWatcher {
 	mock := &MockFederatedUpstreamGroupEventWatcher{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamGroupEventWatcherMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamGroupEventWatcher) EXPECT() *MockFederatedUpstreamGroupEventWatcherMockRecorder {
 	return m.recorder
 }
 
-// AddEventHandler mocks base method
+// AddEventHandler mocks base method.
 func (m *MockFederatedUpstreamGroupEventWatcher) AddEventHandler(ctx context.Context, h controller.FederatedUpstreamGroupEventHandler, predicates ...predicate.Predicate) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, h}
@@ -249,37 +249,37 @@ func (m *MockFederatedUpstreamGroupEventWatcher) AddEventHandler(ctx context.Con
 	return ret0
 }
 
-// AddEventHandler indicates an expected call of AddEventHandler
+// AddEventHandler indicates an expected call of AddEventHandler.
 func (mr *MockFederatedUpstreamGroupEventWatcherMockRecorder) AddEventHandler(ctx, h interface{}, predicates ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, h}, predicates...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEventHandler", reflect.TypeOf((*MockFederatedUpstreamGroupEventWatcher)(nil).AddEventHandler), varargs...)
 }
 
-// MockFederatedSettingsEventHandler is a mock of FederatedSettingsEventHandler interface
+// MockFederatedSettingsEventHandler is a mock of FederatedSettingsEventHandler interface.
 type MockFederatedSettingsEventHandler struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedSettingsEventHandlerMockRecorder
 }
 
-// MockFederatedSettingsEventHandlerMockRecorder is the mock recorder for MockFederatedSettingsEventHandler
+// MockFederatedSettingsEventHandlerMockRecorder is the mock recorder for MockFederatedSettingsEventHandler.
 type MockFederatedSettingsEventHandlerMockRecorder struct {
 	mock *MockFederatedSettingsEventHandler
 }
 
-// NewMockFederatedSettingsEventHandler creates a new mock instance
+// NewMockFederatedSettingsEventHandler creates a new mock instance.
 func NewMockFederatedSettingsEventHandler(ctrl *gomock.Controller) *MockFederatedSettingsEventHandler {
 	mock := &MockFederatedSettingsEventHandler{ctrl: ctrl}
 	mock.recorder = &MockFederatedSettingsEventHandlerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedSettingsEventHandler) EXPECT() *MockFederatedSettingsEventHandlerMockRecorder {
 	return m.recorder
 }
 
-// CreateFederatedSettings mocks base method
+// CreateFederatedSettings mocks base method.
 func (m *MockFederatedSettingsEventHandler) CreateFederatedSettings(obj *v1.FederatedSettings) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateFederatedSettings", obj)
@@ -287,27 +287,13 @@ func (m *MockFederatedSettingsEventHandler) CreateFederatedSettings(obj *v1.Fede
 	return ret0
 }
 
-// CreateFederatedSettings indicates an expected call of CreateFederatedSettings
+// CreateFederatedSettings indicates an expected call of CreateFederatedSettings.
 func (mr *MockFederatedSettingsEventHandlerMockRecorder) CreateFederatedSettings(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedSettings", reflect.TypeOf((*MockFederatedSettingsEventHandler)(nil).CreateFederatedSettings), obj)
 }
 
-// UpdateFederatedSettings mocks base method
-func (m *MockFederatedSettingsEventHandler) UpdateFederatedSettings(old, new *v1.FederatedSettings) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateFederatedSettings", old, new)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedSettings indicates an expected call of UpdateFederatedSettings
-func (mr *MockFederatedSettingsEventHandlerMockRecorder) UpdateFederatedSettings(old, new interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedSettings", reflect.TypeOf((*MockFederatedSettingsEventHandler)(nil).UpdateFederatedSettings), old, new)
-}
-
-// DeleteFederatedSettings mocks base method
+// DeleteFederatedSettings mocks base method.
 func (m *MockFederatedSettingsEventHandler) DeleteFederatedSettings(obj *v1.FederatedSettings) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteFederatedSettings", obj)
@@ -315,13 +301,13 @@ func (m *MockFederatedSettingsEventHandler) DeleteFederatedSettings(obj *v1.Fede
 	return ret0
 }
 
-// DeleteFederatedSettings indicates an expected call of DeleteFederatedSettings
+// DeleteFederatedSettings indicates an expected call of DeleteFederatedSettings.
 func (mr *MockFederatedSettingsEventHandlerMockRecorder) DeleteFederatedSettings(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedSettings", reflect.TypeOf((*MockFederatedSettingsEventHandler)(nil).DeleteFederatedSettings), obj)
 }
 
-// GenericFederatedSettings mocks base method
+// GenericFederatedSettings mocks base method.
 func (m *MockFederatedSettingsEventHandler) GenericFederatedSettings(obj *v1.FederatedSettings) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenericFederatedSettings", obj)
@@ -329,36 +315,50 @@ func (m *MockFederatedSettingsEventHandler) GenericFederatedSettings(obj *v1.Fed
 	return ret0
 }
 
-// GenericFederatedSettings indicates an expected call of GenericFederatedSettings
+// GenericFederatedSettings indicates an expected call of GenericFederatedSettings.
 func (mr *MockFederatedSettingsEventHandlerMockRecorder) GenericFederatedSettings(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenericFederatedSettings", reflect.TypeOf((*MockFederatedSettingsEventHandler)(nil).GenericFederatedSettings), obj)
 }
 
-// MockFederatedSettingsEventWatcher is a mock of FederatedSettingsEventWatcher interface
+// UpdateFederatedSettings mocks base method.
+func (m *MockFederatedSettingsEventHandler) UpdateFederatedSettings(old, new *v1.FederatedSettings) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateFederatedSettings", old, new)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedSettings indicates an expected call of UpdateFederatedSettings.
+func (mr *MockFederatedSettingsEventHandlerMockRecorder) UpdateFederatedSettings(old, new interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedSettings", reflect.TypeOf((*MockFederatedSettingsEventHandler)(nil).UpdateFederatedSettings), old, new)
+}
+
+// MockFederatedSettingsEventWatcher is a mock of FederatedSettingsEventWatcher interface.
 type MockFederatedSettingsEventWatcher struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedSettingsEventWatcherMockRecorder
 }
 
-// MockFederatedSettingsEventWatcherMockRecorder is the mock recorder for MockFederatedSettingsEventWatcher
+// MockFederatedSettingsEventWatcherMockRecorder is the mock recorder for MockFederatedSettingsEventWatcher.
 type MockFederatedSettingsEventWatcherMockRecorder struct {
 	mock *MockFederatedSettingsEventWatcher
 }
 
-// NewMockFederatedSettingsEventWatcher creates a new mock instance
+// NewMockFederatedSettingsEventWatcher creates a new mock instance.
 func NewMockFederatedSettingsEventWatcher(ctrl *gomock.Controller) *MockFederatedSettingsEventWatcher {
 	mock := &MockFederatedSettingsEventWatcher{ctrl: ctrl}
 	mock.recorder = &MockFederatedSettingsEventWatcherMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedSettingsEventWatcher) EXPECT() *MockFederatedSettingsEventWatcherMockRecorder {
 	return m.recorder
 }
 
-// AddEventHandler mocks base method
+// AddEventHandler mocks base method.
 func (m *MockFederatedSettingsEventWatcher) AddEventHandler(ctx context.Context, h controller.FederatedSettingsEventHandler, predicates ...predicate.Predicate) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, h}
@@ -370,7 +370,7 @@ func (m *MockFederatedSettingsEventWatcher) AddEventHandler(ctx context.Context,
 	return ret0
 }
 
-// AddEventHandler indicates an expected call of AddEventHandler
+// AddEventHandler indicates an expected call of AddEventHandler.
 func (mr *MockFederatedSettingsEventWatcherMockRecorder) AddEventHandler(ctx, h interface{}, predicates ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, h}, predicates...)

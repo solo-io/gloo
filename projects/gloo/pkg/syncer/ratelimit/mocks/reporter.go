@@ -13,30 +13,30 @@ import (
 	reporter "github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 )
 
-// MockReporter is a mock of Reporter interface
+// MockReporter is a mock of Reporter interface.
 type MockReporter struct {
 	ctrl     *gomock.Controller
 	recorder *MockReporterMockRecorder
 }
 
-// MockReporterMockRecorder is the mock recorder for MockReporter
+// MockReporterMockRecorder is the mock recorder for MockReporter.
 type MockReporterMockRecorder struct {
 	mock *MockReporter
 }
 
-// NewMockReporter creates a new mock instance
+// NewMockReporter creates a new mock instance.
 func NewMockReporter(ctrl *gomock.Controller) *MockReporter {
 	mock := &MockReporter{ctrl: ctrl}
 	mock.recorder = &MockReporterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockReporter) EXPECT() *MockReporterMockRecorder {
 	return m.recorder
 }
 
-// WriteReports mocks base method
+// WriteReports mocks base method.
 func (m *MockReporter) WriteReports(arg0 context.Context, arg1 reporter.ResourceReports, arg2 map[string]*core.Status) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WriteReports", arg0, arg1, arg2)
@@ -44,7 +44,7 @@ func (m *MockReporter) WriteReports(arg0 context.Context, arg1 reporter.Resource
 	return ret0
 }
 
-// WriteReports indicates an expected call of WriteReports
+// WriteReports indicates an expected call of WriteReports.
 func (mr *MockReporterMockRecorder) WriteReports(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteReports", reflect.TypeOf((*MockReporter)(nil).WriteReports), arg0, arg1, arg2)

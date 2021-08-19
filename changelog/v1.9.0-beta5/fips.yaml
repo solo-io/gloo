@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add a Helm option to install data plane images that have been built with fips crytpo libraries.
+    issueLink: https://github.com/solo-io/solo-projects/issues/2420
+    resolvesIssue: false

@@ -11,30 +11,30 @@ import (
 	grafana "github.com/solo-io/solo-projects/projects/observability/pkg/grafana"
 )
 
-// MockSnapshotClient is a mock of SnapshotClient interface
+// MockSnapshotClient is a mock of SnapshotClient interface.
 type MockSnapshotClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockSnapshotClientMockRecorder
 }
 
-// MockSnapshotClientMockRecorder is the mock recorder for MockSnapshotClient
+// MockSnapshotClientMockRecorder is the mock recorder for MockSnapshotClient.
 type MockSnapshotClientMockRecorder struct {
 	mock *MockSnapshotClient
 }
 
-// NewMockSnapshotClient creates a new mock instance
+// NewMockSnapshotClient creates a new mock instance.
 func NewMockSnapshotClient(ctrl *gomock.Controller) *MockSnapshotClient {
 	mock := &MockSnapshotClient{ctrl: ctrl}
 	mock.recorder = &MockSnapshotClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSnapshotClient) EXPECT() *MockSnapshotClientMockRecorder {
 	return m.recorder
 }
 
-// DeleteSnapshot mocks base method
+// DeleteSnapshot mocks base method.
 func (m *MockSnapshotClient) DeleteSnapshot(arg0 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteSnapshot", arg0)
@@ -42,13 +42,13 @@ func (m *MockSnapshotClient) DeleteSnapshot(arg0 string) error {
 	return ret0
 }
 
-// DeleteSnapshot indicates an expected call of DeleteSnapshot
+// DeleteSnapshot indicates an expected call of DeleteSnapshot.
 func (mr *MockSnapshotClientMockRecorder) DeleteSnapshot(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSnapshot", reflect.TypeOf((*MockSnapshotClient)(nil).DeleteSnapshot), arg0)
 }
 
-// GetSnapshots mocks base method
+// GetSnapshots mocks base method.
 func (m *MockSnapshotClient) GetSnapshots() ([]grafana.SnapshotListResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSnapshots")
@@ -57,13 +57,13 @@ func (m *MockSnapshotClient) GetSnapshots() ([]grafana.SnapshotListResponse, err
 	return ret0, ret1
 }
 
-// GetSnapshots indicates an expected call of GetSnapshots
+// GetSnapshots indicates an expected call of GetSnapshots.
 func (mr *MockSnapshotClientMockRecorder) GetSnapshots() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSnapshots", reflect.TypeOf((*MockSnapshotClient)(nil).GetSnapshots))
 }
 
-// SetRawSnapshot mocks base method
+// SetRawSnapshot mocks base method.
 func (m *MockSnapshotClient) SetRawSnapshot(arg0 []byte) (*grafana.SnapshotResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetRawSnapshot", arg0)
@@ -72,7 +72,7 @@ func (m *MockSnapshotClient) SetRawSnapshot(arg0 []byte) (*grafana.SnapshotRespo
 	return ret0, ret1
 }
 
-// SetRawSnapshot indicates an expected call of SetRawSnapshot
+// SetRawSnapshot indicates an expected call of SetRawSnapshot.
 func (mr *MockSnapshotClientMockRecorder) SetRawSnapshot(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRawSnapshot", reflect.TypeOf((*MockSnapshotClient)(nil).SetRawSnapshot), arg0)

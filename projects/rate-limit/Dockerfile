@@ -1,8 +1,8 @@
 #####################################################################################################################
 #
-#   This Dockerfile describes a container that serves as a reproducible build environment for the ext auth server.
+#   This Dockerfile describes a container that serves as a reproducible build environment for the rate limit server.
 #
-#   Also, to be able to load Go plugins and to build with goboring, the ext auth server has to be built with CGO_ENABLED=1 (the Go runtime relies
+#   Also, to be able to build with goboring, the rate limit server has to be built with CGO_ENABLED=1 (the Go runtime relies
 #   on C code and libraries to load plugins), so cross compiling isn't as easy as `GOARCH=amd64 GOOS=linux go build`
 #   anymore. Using this container you can build the binary on any architecture.
 #
@@ -13,13 +13,12 @@ FROM $GO_BUILD_IMAGE as build-env
 ARG VERSION
 ARG GCFLAGS
 ARG GITHUB_TOKEN
-ARG USE_APK
+ARG USE_APT
 
 # Fail if VERSION is not set
 RUN if [[ ! $VERSION ]]; then echo "Required VERSION build argument not set" && exit 1; fi
 
-RUN echo $USE_APK
-RUN if [[ $USE_APK ]]; then apk add --no-cache gcc musl-dev git; fi
+RUN if [[ ! $USE_APT]]; then apk add --no-cache gcc musl-dev git; fi
 
 ADD . /go/src/github.com/solo-io/solo-projects
 WORKDIR /go/src/github.com/solo-io/solo-projects
@@ -28,19 +27,13 @@ RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https
 
 RUN go env -w GOPRIVATE=github.com/solo-io
 
-# Build ext-auth server with CGO enabled
+# Build rate-limit server with CGO enabled
 RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
     -gcflags="$GCFLAGS" \
     -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION" \
-    -o extauth-linux-amd64 \
-    projects/extauth/cmd/main.go
+    -o rate-limit-linux-amd64 \
+    projects/rate-limit/cmd/main.go
 
-# Build script to verify if a plugin can be loaded by the ext-auth server
-RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
-    -gcflags="$GCFLAGS" \
-    -o verify-plugins-linux-amd64 \
-    projects/extauth/scripts/verify_plugins.go
 
 FROM alpine:3.13.5
-COPY --from=build-env /go/src/github.com/solo-io/solo-projects/extauth-linux-amd64 /
-COPY --from=build-env /go/src/github.com/solo-io/solo-projects/verify-plugins-linux-amd64 /
+COPY --from=build-env /go/src/github.com/solo-io/solo-projects/rate-limit-linux-amd64 /

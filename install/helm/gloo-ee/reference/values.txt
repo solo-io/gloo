@@ -1100,7 +1100,7 @@
 |global.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
 |global.image.pullSecret|string||image pull policy for the container |
 |global.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|global.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|global.image.fips|bool|false|if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
 |global.extensions|interface|||
 |global.glooRbac.create|bool|true|create rbac rules for the gloo-system service account|
 |global.glooRbac.namespaced|bool||use Roles instead of ClusterRoles|

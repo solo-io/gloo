@@ -78,15 +78,17 @@ steps:
   waitFor: ["yarn-install"]
   id: "yarn-build"
 
-# Setup and run e2es
+# Setup and run E2E tests (from here until "test")
+
+# Pull Envoy images
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.4.9'
   entrypoint: "bash"
   args:
     - "-ce"
     - |
       ENVOY_VERSION=v$$(make print-ENVOY_GLOO_IMAGE | cut -d: -f2)
-      gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/envoy.stripped /workspace/envoy
-      gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/libsaxon-solo.so /workspace/libsaxon-solo.so
+      gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION//envoy.stripped /workspace/envoy
+      gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION//libsaxon-solo.so /workspace/libsaxon-solo.so
       chmod +x /workspace/envoy
   dir: &dir "/workspace/solo-projects"
   waitFor: ['prepare-workspace']

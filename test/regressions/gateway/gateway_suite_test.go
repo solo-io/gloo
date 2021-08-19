@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
 
@@ -32,7 +33,8 @@ import (
 )
 
 func TestGateway(t *testing.T) {
-	if os.Getenv("KUBE2E_TESTS") != "gateway" {
+	tests := os.Getenv("KUBE2E_TESTS")
+	if tests != "gateway" {
 		log.Warnf("This test is disabled. " +
 			"To enable, set KUBE2E_TESTS to 'gateway' in your env.")
 		return
@@ -74,7 +76,8 @@ var _ = BeforeSuite(func() {
 	skhelpers.RegisterPreFailHandler(helpers.KubeDumpOnFail(GinkgoWriter, testHelper.InstallNamespace))
 
 	// Install Gloo
-	values, cleanup := getHelmOverrides()
+	useFips, _ := strconv.ParseBool(os.Getenv("USE_FIPS"))
+	values, cleanup := getHelmOverrides(useFips)
 	defer cleanup()
 	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values, "--with-gloo-fed=false"))
 	Expect(err).NotTo(HaveOccurred())
@@ -126,11 +129,10 @@ var _ = AfterSuite(func() {
 	}
 })
 
-func getHelmOverrides() (filename string, cleanup func()) {
+func getHelmOverrides(fips bool) (filename string, cleanup func()) {
 	values, err := ioutil.TempFile("", "*.yaml")
 	Expect(err).NotTo(HaveOccurred())
-	_, err = values.Write([]byte(`
-gloo:
+	valuesYaml := `gloo:
   gatewayProxies:
     gatewayProxy:
       healthyPanicThreshold: 0
@@ -151,7 +153,14 @@ global:
     extAuth:
       # we want to deploy extauth as both a standalone deployment (the default) and as a sidecar in the envoy pod, so we can test both
       envoySidecar: true
-`))
+`
+	if fips {
+		valuesYaml = valuesYaml + `
+  image:
+    fips: true`
+
+	}
+	_, err = values.Write([]byte(valuesYaml))
 	Expect(err).NotTo(HaveOccurred())
 	err = values.Close()
 	Expect(err).NotTo(HaveOccurred())

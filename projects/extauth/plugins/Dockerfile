@@ -6,13 +6,15 @@ FROM $GO_BUILD_IMAGE AS build-env
 ARG GC_FLAGS
 ARG VERIFY_SCRIPT
 ARG GITHUB_TOKEN
+ARG USE_APK
 
 # Fail if VERIFY_SCRIPT not set
 RUN if [[ ! $VERIFY_SCRIPT ]]; then echo "Required VERIFY_SCRIPT build argument not set" && exit 1; fi
 
-RUN apk add --no-cache gcc musl-dev git
+RUN if [[ $USE_APK ]]; then apk add --no-cache gcc musl-dev git; fi
 
 ADD . /go/src/github.com/solo-io/solo-projects/
+RUN ls -R
 WORKDIR /go/src/github.com/solo-io/solo-projects/
 
 RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https://github.com/

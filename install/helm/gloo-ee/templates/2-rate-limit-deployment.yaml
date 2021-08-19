@@ -48,7 +48,7 @@ spec:
       {{- include "gloo.podSpecStandardFields" .Values.global.extensions.rateLimit.deployment | nindent 6 -}}
       serviceAccountName: {{ .Values.global.extensions.rateLimit.service.name }}
       containers:
-        - image: {{template "gloo.image" $image}}
+        - image: {{ template "gloo.image" $image}}
           imagePullPolicy: {{ $image.pullPolicy }}
           name: rate-limit
           {{- if .Values.global.extensions.rateLimit.deployment.resources }}

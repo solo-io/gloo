@@ -13,30 +13,30 @@ import (
 	v10 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 )
 
-// MockEnvoyConfigDumpGetter is a mock of EnvoyConfigDumpGetter interface
+// MockEnvoyConfigDumpGetter is a mock of EnvoyConfigDumpGetter interface.
 type MockEnvoyConfigDumpGetter struct {
 	ctrl     *gomock.Controller
 	recorder *MockEnvoyConfigDumpGetterMockRecorder
 }
 
-// MockEnvoyConfigDumpGetterMockRecorder is the mock recorder for MockEnvoyConfigDumpGetter
+// MockEnvoyConfigDumpGetterMockRecorder is the mock recorder for MockEnvoyConfigDumpGetter.
 type MockEnvoyConfigDumpGetterMockRecorder struct {
 	mock *MockEnvoyConfigDumpGetter
 }
 
-// NewMockEnvoyConfigDumpGetter creates a new mock instance
+// NewMockEnvoyConfigDumpGetter creates a new mock instance.
 func NewMockEnvoyConfigDumpGetter(ctrl *gomock.Controller) *MockEnvoyConfigDumpGetter {
 	mock := &MockEnvoyConfigDumpGetter{ctrl: ctrl}
 	mock.recorder = &MockEnvoyConfigDumpGetterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockEnvoyConfigDumpGetter) EXPECT() *MockEnvoyConfigDumpGetterMockRecorder {
 	return m.recorder
 }
 
-// GetConfigs mocks base method
+// GetConfigs mocks base method.
 func (m *MockEnvoyConfigDumpGetter) GetConfigs(ctx context.Context, glooInstance v10.GlooInstance) ([]*v1.ConfigDump, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfigs", ctx, glooInstance)
@@ -45,7 +45,7 @@ func (m *MockEnvoyConfigDumpGetter) GetConfigs(ctx context.Context, glooInstance
 	return ret0, ret1
 }
 
-// GetConfigs indicates an expected call of GetConfigs
+// GetConfigs indicates an expected call of GetConfigs.
 func (mr *MockEnvoyConfigDumpGetterMockRecorder) GetConfigs(ctx, glooInstance interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfigs", reflect.TypeOf((*MockEnvoyConfigDumpGetter)(nil).GetConfigs), ctx, glooInstance)

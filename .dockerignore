@@ -10,3 +10,4 @@
 # We need the verification script in the `auth-plugins` make target
 /_output
 !/_output/extauth/verify-plugins-linux-amd64
+!/_output/extauth_fips/verify-plugins-linux-amd64

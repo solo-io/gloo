@@ -15,30 +15,157 @@ import (
 	sets0 "k8s.io/apimachinery/pkg/util/sets"
 )
 
-// MockFederatedAuthConfigSet is a mock of FederatedAuthConfigSet interface
+// MockFederatedAuthConfigSet is a mock of FederatedAuthConfigSet interface.
 type MockFederatedAuthConfigSet struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedAuthConfigSetMockRecorder
 }
 
-// MockFederatedAuthConfigSetMockRecorder is the mock recorder for MockFederatedAuthConfigSet
+// MockFederatedAuthConfigSetMockRecorder is the mock recorder for MockFederatedAuthConfigSet.
 type MockFederatedAuthConfigSetMockRecorder struct {
 	mock *MockFederatedAuthConfigSet
 }
 
-// NewMockFederatedAuthConfigSet creates a new mock instance
+// NewMockFederatedAuthConfigSet creates a new mock instance.
 func NewMockFederatedAuthConfigSet(ctrl *gomock.Controller) *MockFederatedAuthConfigSet {
 	mock := &MockFederatedAuthConfigSet{ctrl: ctrl}
 	mock.recorder = &MockFederatedAuthConfigSetMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedAuthConfigSet) EXPECT() *MockFederatedAuthConfigSetMockRecorder {
 	return m.recorder
 }
 
-// Keys mocks base method
+// Delete mocks base method.
+func (m *MockFederatedAuthConfigSet) Delete(federatedAuthConfig ezkube.ResourceId) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Delete", federatedAuthConfig)
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Delete(federatedAuthConfig interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Delete), federatedAuthConfig)
+}
+
+// Delta mocks base method.
+func (m *MockFederatedAuthConfigSet) Delta(newSet v1sets.FederatedAuthConfigSet) sets.ResourceDelta {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delta", newSet)
+	ret0, _ := ret[0].(sets.ResourceDelta)
+	return ret0
+}
+
+// Delta indicates an expected call of Delta.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Delta(newSet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delta", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Delta), newSet)
+}
+
+// Difference mocks base method.
+func (m *MockFederatedAuthConfigSet) Difference(set v1sets.FederatedAuthConfigSet) v1sets.FederatedAuthConfigSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Difference", set)
+	ret0, _ := ret[0].(v1sets.FederatedAuthConfigSet)
+	return ret0
+}
+
+// Difference indicates an expected call of Difference.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Difference(set interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Difference", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Difference), set)
+}
+
+// Equal mocks base method.
+func (m *MockFederatedAuthConfigSet) Equal(federatedAuthConfigSet v1sets.FederatedAuthConfigSet) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Equal", federatedAuthConfigSet)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Equal indicates an expected call of Equal.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Equal(federatedAuthConfigSet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Equal", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Equal), federatedAuthConfigSet)
+}
+
+// Find mocks base method.
+func (m *MockFederatedAuthConfigSet) Find(id ezkube.ResourceId) (*v1.FederatedAuthConfig, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Find", id)
+	ret0, _ := ret[0].(*v1.FederatedAuthConfig)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Find indicates an expected call of Find.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Find(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Find), id)
+}
+
+// Generic mocks base method.
+func (m *MockFederatedAuthConfigSet) Generic() sets.ResourceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generic")
+	ret0, _ := ret[0].(sets.ResourceSet)
+	return ret0
+}
+
+// Generic indicates an expected call of Generic.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Generic() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generic", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Generic))
+}
+
+// Has mocks base method.
+func (m *MockFederatedAuthConfigSet) Has(federatedAuthConfig ezkube.ResourceId) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Has", federatedAuthConfig)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Has indicates an expected call of Has.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Has(federatedAuthConfig interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Has), federatedAuthConfig)
+}
+
+// Insert mocks base method.
+func (m *MockFederatedAuthConfigSet) Insert(federatedAuthConfig ...*v1.FederatedAuthConfig) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range federatedAuthConfig {
+		varargs = append(varargs, a)
+	}
+	m.ctrl.Call(m, "Insert", varargs...)
+}
+
+// Insert indicates an expected call of Insert.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Insert(federatedAuthConfig ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Insert), federatedAuthConfig...)
+}
+
+// Intersection mocks base method.
+func (m *MockFederatedAuthConfigSet) Intersection(set v1sets.FederatedAuthConfigSet) v1sets.FederatedAuthConfigSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Intersection", set)
+	ret0, _ := ret[0].(v1sets.FederatedAuthConfigSet)
+	return ret0
+}
+
+// Intersection indicates an expected call of Intersection.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Intersection(set interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Intersection", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Intersection), set)
+}
+
+// Keys mocks base method.
 func (m *MockFederatedAuthConfigSet) Keys() sets0.String {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Keys")
@@ -46,13 +173,27 @@ func (m *MockFederatedAuthConfigSet) Keys() sets0.String {
 	return ret0
 }
 
-// Keys indicates an expected call of Keys
+// Keys indicates an expected call of Keys.
 func (mr *MockFederatedAuthConfigSetMockRecorder) Keys() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Keys", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Keys))
 }
 
-// List mocks base method
+// Length mocks base method.
+func (m *MockFederatedAuthConfigSet) Length() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Length")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// Length indicates an expected call of Length.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Length() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Length))
+}
+
+// List mocks base method.
 func (m *MockFederatedAuthConfigSet) List(filterResource ...func(*v1.FederatedAuthConfig) bool) []*v1.FederatedAuthConfig {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -64,13 +205,41 @@ func (m *MockFederatedAuthConfigSet) List(filterResource ...func(*v1.FederatedAu
 	return ret0
 }
 
-// List indicates an expected call of List
+// List indicates an expected call of List.
 func (mr *MockFederatedAuthConfigSetMockRecorder) List(filterResource ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).List), filterResource...)
 }
 
-// UnsortedList mocks base method
+// Map mocks base method.
+func (m *MockFederatedAuthConfigSet) Map() map[string]*v1.FederatedAuthConfig {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Map")
+	ret0, _ := ret[0].(map[string]*v1.FederatedAuthConfig)
+	return ret0
+}
+
+// Map indicates an expected call of Map.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Map() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Map", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Map))
+}
+
+// Union mocks base method.
+func (m *MockFederatedAuthConfigSet) Union(set v1sets.FederatedAuthConfigSet) v1sets.FederatedAuthConfigSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Union", set)
+	ret0, _ := ret[0].(v1sets.FederatedAuthConfigSet)
+	return ret0
+}
+
+// Union indicates an expected call of Union.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Union(set interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Union", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Union), set)
+}
+
+// UnsortedList mocks base method.
 func (m *MockFederatedAuthConfigSet) UnsortedList(filterResource ...func(*v1.FederatedAuthConfig) bool) []*v1.FederatedAuthConfig {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -82,177 +251,8 @@ func (m *MockFederatedAuthConfigSet) UnsortedList(filterResource ...func(*v1.Fed
 	return ret0
 }
 
-// UnsortedList indicates an expected call of UnsortedList
+// UnsortedList indicates an expected call of UnsortedList.
 func (mr *MockFederatedAuthConfigSetMockRecorder) UnsortedList(filterResource ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).UnsortedList), filterResource...)
-}
-
-// Map mocks base method
-func (m *MockFederatedAuthConfigSet) Map() map[string]*v1.FederatedAuthConfig {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Map")
-	ret0, _ := ret[0].(map[string]*v1.FederatedAuthConfig)
-	return ret0
-}
-
-// Map indicates an expected call of Map
-func (mr *MockFederatedAuthConfigSetMockRecorder) Map() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Map", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Map))
-}
-
-// Insert mocks base method
-func (m *MockFederatedAuthConfigSet) Insert(federatedAuthConfig ...*v1.FederatedAuthConfig) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{}
-	for _, a := range federatedAuthConfig {
-		varargs = append(varargs, a)
-	}
-	m.ctrl.Call(m, "Insert", varargs...)
-}
-
-// Insert indicates an expected call of Insert
-func (mr *MockFederatedAuthConfigSetMockRecorder) Insert(federatedAuthConfig ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Insert), federatedAuthConfig...)
-}
-
-// Equal mocks base method
-func (m *MockFederatedAuthConfigSet) Equal(federatedAuthConfigSet v1sets.FederatedAuthConfigSet) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Equal", federatedAuthConfigSet)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// Equal indicates an expected call of Equal
-func (mr *MockFederatedAuthConfigSetMockRecorder) Equal(federatedAuthConfigSet interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Equal", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Equal), federatedAuthConfigSet)
-}
-
-// Has mocks base method
-func (m *MockFederatedAuthConfigSet) Has(federatedAuthConfig ezkube.ResourceId) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Has", federatedAuthConfig)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// Has indicates an expected call of Has
-func (mr *MockFederatedAuthConfigSetMockRecorder) Has(federatedAuthConfig interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Has), federatedAuthConfig)
-}
-
-// Delete mocks base method
-func (m *MockFederatedAuthConfigSet) Delete(federatedAuthConfig ezkube.ResourceId) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Delete", federatedAuthConfig)
-}
-
-// Delete indicates an expected call of Delete
-func (mr *MockFederatedAuthConfigSetMockRecorder) Delete(federatedAuthConfig interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Delete), federatedAuthConfig)
-}
-
-// Union mocks base method
-func (m *MockFederatedAuthConfigSet) Union(set v1sets.FederatedAuthConfigSet) v1sets.FederatedAuthConfigSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Union", set)
-	ret0, _ := ret[0].(v1sets.FederatedAuthConfigSet)
-	return ret0
-}
-
-// Union indicates an expected call of Union
-func (mr *MockFederatedAuthConfigSetMockRecorder) Union(set interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Union", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Union), set)
-}
-
-// Difference mocks base method
-func (m *MockFederatedAuthConfigSet) Difference(set v1sets.FederatedAuthConfigSet) v1sets.FederatedAuthConfigSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Difference", set)
-	ret0, _ := ret[0].(v1sets.FederatedAuthConfigSet)
-	return ret0
-}
-
-// Difference indicates an expected call of Difference
-func (mr *MockFederatedAuthConfigSetMockRecorder) Difference(set interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Difference", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Difference), set)
-}
-
-// Intersection mocks base method
-func (m *MockFederatedAuthConfigSet) Intersection(set v1sets.FederatedAuthConfigSet) v1sets.FederatedAuthConfigSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Intersection", set)
-	ret0, _ := ret[0].(v1sets.FederatedAuthConfigSet)
-	return ret0
-}
-
-// Intersection indicates an expected call of Intersection
-func (mr *MockFederatedAuthConfigSetMockRecorder) Intersection(set interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Intersection", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Intersection), set)
-}
-
-// Find mocks base method
-func (m *MockFederatedAuthConfigSet) Find(id ezkube.ResourceId) (*v1.FederatedAuthConfig, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Find", id)
-	ret0, _ := ret[0].(*v1.FederatedAuthConfig)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Find indicates an expected call of Find
-func (mr *MockFederatedAuthConfigSetMockRecorder) Find(id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Find), id)
-}
-
-// Length mocks base method
-func (m *MockFederatedAuthConfigSet) Length() int {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Length")
-	ret0, _ := ret[0].(int)
-	return ret0
-}
-
-// Length indicates an expected call of Length
-func (mr *MockFederatedAuthConfigSetMockRecorder) Length() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Length))
-}
-
-// Generic mocks base method
-func (m *MockFederatedAuthConfigSet) Generic() sets.ResourceSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Generic")
-	ret0, _ := ret[0].(sets.ResourceSet)
-	return ret0
-}
-
-// Generic indicates an expected call of Generic
-func (mr *MockFederatedAuthConfigSetMockRecorder) Generic() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generic", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Generic))
-}
-
-// Delta mocks base method
-func (m *MockFederatedAuthConfigSet) Delta(newSet v1sets.FederatedAuthConfigSet) sets.ResourceDelta {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delta", newSet)
-	ret0, _ := ret[0].(sets.ResourceDelta)
-	return ret0
-}
-
-// Delta indicates an expected call of Delta
-func (mr *MockFederatedAuthConfigSetMockRecorder) Delta(newSet interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delta", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Delta), newSet)
 }

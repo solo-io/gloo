@@ -14,30 +14,30 @@ import (
 	predicate "sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-// MockFederatedAuthConfigEventHandler is a mock of FederatedAuthConfigEventHandler interface
+// MockFederatedAuthConfigEventHandler is a mock of FederatedAuthConfigEventHandler interface.
 type MockFederatedAuthConfigEventHandler struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedAuthConfigEventHandlerMockRecorder
 }
 
-// MockFederatedAuthConfigEventHandlerMockRecorder is the mock recorder for MockFederatedAuthConfigEventHandler
+// MockFederatedAuthConfigEventHandlerMockRecorder is the mock recorder for MockFederatedAuthConfigEventHandler.
 type MockFederatedAuthConfigEventHandlerMockRecorder struct {
 	mock *MockFederatedAuthConfigEventHandler
 }
 
-// NewMockFederatedAuthConfigEventHandler creates a new mock instance
+// NewMockFederatedAuthConfigEventHandler creates a new mock instance.
 func NewMockFederatedAuthConfigEventHandler(ctrl *gomock.Controller) *MockFederatedAuthConfigEventHandler {
 	mock := &MockFederatedAuthConfigEventHandler{ctrl: ctrl}
 	mock.recorder = &MockFederatedAuthConfigEventHandlerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedAuthConfigEventHandler) EXPECT() *MockFederatedAuthConfigEventHandlerMockRecorder {
 	return m.recorder
 }
 
-// CreateFederatedAuthConfig mocks base method
+// CreateFederatedAuthConfig mocks base method.
 func (m *MockFederatedAuthConfigEventHandler) CreateFederatedAuthConfig(obj *v1.FederatedAuthConfig) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateFederatedAuthConfig", obj)
@@ -45,27 +45,13 @@ func (m *MockFederatedAuthConfigEventHandler) CreateFederatedAuthConfig(obj *v1.
 	return ret0
 }
 
-// CreateFederatedAuthConfig indicates an expected call of CreateFederatedAuthConfig
+// CreateFederatedAuthConfig indicates an expected call of CreateFederatedAuthConfig.
 func (mr *MockFederatedAuthConfigEventHandlerMockRecorder) CreateFederatedAuthConfig(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedAuthConfig", reflect.TypeOf((*MockFederatedAuthConfigEventHandler)(nil).CreateFederatedAuthConfig), obj)
 }
 
-// UpdateFederatedAuthConfig mocks base method
-func (m *MockFederatedAuthConfigEventHandler) UpdateFederatedAuthConfig(old, new *v1.FederatedAuthConfig) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateFederatedAuthConfig", old, new)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedAuthConfig indicates an expected call of UpdateFederatedAuthConfig
-func (mr *MockFederatedAuthConfigEventHandlerMockRecorder) UpdateFederatedAuthConfig(old, new interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedAuthConfig", reflect.TypeOf((*MockFederatedAuthConfigEventHandler)(nil).UpdateFederatedAuthConfig), old, new)
-}
-
-// DeleteFederatedAuthConfig mocks base method
+// DeleteFederatedAuthConfig mocks base method.
 func (m *MockFederatedAuthConfigEventHandler) DeleteFederatedAuthConfig(obj *v1.FederatedAuthConfig) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteFederatedAuthConfig", obj)
@@ -73,13 +59,13 @@ func (m *MockFederatedAuthConfigEventHandler) DeleteFederatedAuthConfig(obj *v1.
 	return ret0
 }
 
-// DeleteFederatedAuthConfig indicates an expected call of DeleteFederatedAuthConfig
+// DeleteFederatedAuthConfig indicates an expected call of DeleteFederatedAuthConfig.
 func (mr *MockFederatedAuthConfigEventHandlerMockRecorder) DeleteFederatedAuthConfig(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedAuthConfig", reflect.TypeOf((*MockFederatedAuthConfigEventHandler)(nil).DeleteFederatedAuthConfig), obj)
 }
 
-// GenericFederatedAuthConfig mocks base method
+// GenericFederatedAuthConfig mocks base method.
 func (m *MockFederatedAuthConfigEventHandler) GenericFederatedAuthConfig(obj *v1.FederatedAuthConfig) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenericFederatedAuthConfig", obj)
@@ -87,36 +73,50 @@ func (m *MockFederatedAuthConfigEventHandler) GenericFederatedAuthConfig(obj *v1
 	return ret0
 }
 
-// GenericFederatedAuthConfig indicates an expected call of GenericFederatedAuthConfig
+// GenericFederatedAuthConfig indicates an expected call of GenericFederatedAuthConfig.
 func (mr *MockFederatedAuthConfigEventHandlerMockRecorder) GenericFederatedAuthConfig(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenericFederatedAuthConfig", reflect.TypeOf((*MockFederatedAuthConfigEventHandler)(nil).GenericFederatedAuthConfig), obj)
 }
 
-// MockFederatedAuthConfigEventWatcher is a mock of FederatedAuthConfigEventWatcher interface
+// UpdateFederatedAuthConfig mocks base method.
+func (m *MockFederatedAuthConfigEventHandler) UpdateFederatedAuthConfig(old, new *v1.FederatedAuthConfig) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateFederatedAuthConfig", old, new)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedAuthConfig indicates an expected call of UpdateFederatedAuthConfig.
+func (mr *MockFederatedAuthConfigEventHandlerMockRecorder) UpdateFederatedAuthConfig(old, new interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedAuthConfig", reflect.TypeOf((*MockFederatedAuthConfigEventHandler)(nil).UpdateFederatedAuthConfig), old, new)
+}
+
+// MockFederatedAuthConfigEventWatcher is a mock of FederatedAuthConfigEventWatcher interface.
 type MockFederatedAuthConfigEventWatcher struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedAuthConfigEventWatcherMockRecorder
 }
 
-// MockFederatedAuthConfigEventWatcherMockRecorder is the mock recorder for MockFederatedAuthConfigEventWatcher
+// MockFederatedAuthConfigEventWatcherMockRecorder is the mock recorder for MockFederatedAuthConfigEventWatcher.
 type MockFederatedAuthConfigEventWatcherMockRecorder struct {
 	mock *MockFederatedAuthConfigEventWatcher
 }
 
-// NewMockFederatedAuthConfigEventWatcher creates a new mock instance
+// NewMockFederatedAuthConfigEventWatcher creates a new mock instance.
 func NewMockFederatedAuthConfigEventWatcher(ctrl *gomock.Controller) *MockFederatedAuthConfigEventWatcher {
 	mock := &MockFederatedAuthConfigEventWatcher{ctrl: ctrl}
 	mock.recorder = &MockFederatedAuthConfigEventWatcherMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedAuthConfigEventWatcher) EXPECT() *MockFederatedAuthConfigEventWatcherMockRecorder {
 	return m.recorder
 }
 
-// AddEventHandler mocks base method
+// AddEventHandler mocks base method.
 func (m *MockFederatedAuthConfigEventWatcher) AddEventHandler(ctx context.Context, h controller.FederatedAuthConfigEventHandler, predicates ...predicate.Predicate) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, h}
@@ -128,7 +128,7 @@ func (m *MockFederatedAuthConfigEventWatcher) AddEventHandler(ctx context.Contex
 	return ret0
 }
 
-// AddEventHandler indicates an expected call of AddEventHandler
+// AddEventHandler indicates an expected call of AddEventHandler.
 func (mr *MockFederatedAuthConfigEventWatcherMockRecorder) AddEventHandler(ctx, h interface{}, predicates ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, h}, predicates...)

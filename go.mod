@@ -17,7 +17,7 @@ require (
 	github.com/go-test/deep v1.0.4
 	github.com/gobuffalo/logger v1.0.3 // indirect
 	github.com/gobuffalo/packr v1.30.1
-	github.com/golang/mock v1.4.4
+	github.com/golang/mock v1.5.0
 	github.com/golang/protobuf v1.4.3
 	github.com/google/wire v0.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
@@ -38,7 +38,7 @@ require (
 	github.com/rotisserie/eris v0.5.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/solo-io/anyvendor v0.0.3
-	github.com/solo-io/cli-kit v0.2.0
+	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.3

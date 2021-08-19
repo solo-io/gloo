@@ -73,6 +73,8 @@ jobs:
       - name: Setup Kind
         run: |
           GLOO_LICENSE_KEY=${{ secrets.LICENSE_KEY }} ./projects/gloo-fed/ci/setup-kind.sh local remote
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
       - name: Run tests
         run: |
           GOPATH=$HOME go install github.com/onsi/ginkgo/ginkgo
@@ -90,6 +92,10 @@ jobs:
     strategy:
       matrix:
         kube-e2e-test-type: ['gateway', 'gloo-mtls', 'redis-clientside-sharding', 'wasm']
+        use-fips: ['false']
+        include:
+          - kube-e2e-test-type: 'gateway'
+            use-fips: 'true'
     steps:
       - name: Cancel Previous Actions
         uses: styfle/cancel-workflow-action@0.4.1
@@ -165,6 +171,7 @@ jobs:
       - name: Testing - kube e2e regression tests
         env:
           KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type }}
+          USE_FIPS: ${{ matrix.use-fips }}
         run: |
           make run-ci-regression-tests
       - uses: testspace-com/setup-testspace@v1

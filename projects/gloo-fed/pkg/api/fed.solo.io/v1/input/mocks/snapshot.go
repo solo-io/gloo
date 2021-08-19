@@ -20,184 +20,30 @@ import (
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// MockSnapshot is a mock of Snapshot interface
+// MockSnapshot is a mock of Snapshot interface.
 type MockSnapshot struct {
 	ctrl     *gomock.Controller
 	recorder *MockSnapshotMockRecorder
 }
 
-// MockSnapshotMockRecorder is the mock recorder for MockSnapshot
+// MockSnapshotMockRecorder is the mock recorder for MockSnapshot.
 type MockSnapshotMockRecorder struct {
 	mock *MockSnapshot
 }
 
-// NewMockSnapshot creates a new mock instance
+// NewMockSnapshot creates a new mock instance.
 func NewMockSnapshot(ctrl *gomock.Controller) *MockSnapshot {
 	mock := &MockSnapshot{ctrl: ctrl}
 	mock.recorder = &MockSnapshotMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSnapshot) EXPECT() *MockSnapshotMockRecorder {
 	return m.recorder
 }
 
-// Services mocks base method
-func (m *MockSnapshot) Services() v1sets0.ServiceSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Services")
-	ret0, _ := ret[0].(v1sets0.ServiceSet)
-	return ret0
-}
-
-// Services indicates an expected call of Services
-func (mr *MockSnapshotMockRecorder) Services() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Services", reflect.TypeOf((*MockSnapshot)(nil).Services))
-}
-
-// Pods mocks base method
-func (m *MockSnapshot) Pods() v1sets0.PodSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Pods")
-	ret0, _ := ret[0].(v1sets0.PodSet)
-	return ret0
-}
-
-// Pods indicates an expected call of Pods
-func (mr *MockSnapshotMockRecorder) Pods() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Pods", reflect.TypeOf((*MockSnapshot)(nil).Pods))
-}
-
-// Deployments mocks base method
-func (m *MockSnapshot) Deployments() v1sets.DeploymentSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Deployments")
-	ret0, _ := ret[0].(v1sets.DeploymentSet)
-	return ret0
-}
-
-// Deployments indicates an expected call of Deployments
-func (mr *MockSnapshotMockRecorder) Deployments() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Deployments", reflect.TypeOf((*MockSnapshot)(nil).Deployments))
-}
-
-// DaemonSets mocks base method
-func (m *MockSnapshot) DaemonSets() v1sets.DaemonSetSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DaemonSets")
-	ret0, _ := ret[0].(v1sets.DaemonSetSet)
-	return ret0
-}
-
-// DaemonSets indicates an expected call of DaemonSets
-func (mr *MockSnapshotMockRecorder) DaemonSets() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DaemonSets", reflect.TypeOf((*MockSnapshot)(nil).DaemonSets))
-}
-
-// Gateways mocks base method
-func (m *MockSnapshot) Gateways() v1sets2.GatewaySet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Gateways")
-	ret0, _ := ret[0].(v1sets2.GatewaySet)
-	return ret0
-}
-
-// Gateways indicates an expected call of Gateways
-func (mr *MockSnapshotMockRecorder) Gateways() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Gateways", reflect.TypeOf((*MockSnapshot)(nil).Gateways))
-}
-
-// VirtualServices mocks base method
-func (m *MockSnapshot) VirtualServices() v1sets2.VirtualServiceSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VirtualServices")
-	ret0, _ := ret[0].(v1sets2.VirtualServiceSet)
-	return ret0
-}
-
-// VirtualServices indicates an expected call of VirtualServices
-func (mr *MockSnapshotMockRecorder) VirtualServices() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VirtualServices", reflect.TypeOf((*MockSnapshot)(nil).VirtualServices))
-}
-
-// RouteTables mocks base method
-func (m *MockSnapshot) RouteTables() v1sets2.RouteTableSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RouteTables")
-	ret0, _ := ret[0].(v1sets2.RouteTableSet)
-	return ret0
-}
-
-// RouteTables indicates an expected call of RouteTables
-func (mr *MockSnapshotMockRecorder) RouteTables() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RouteTables", reflect.TypeOf((*MockSnapshot)(nil).RouteTables))
-}
-
-// Upstreams mocks base method
-func (m *MockSnapshot) Upstreams() v1sets3.UpstreamSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Upstreams")
-	ret0, _ := ret[0].(v1sets3.UpstreamSet)
-	return ret0
-}
-
-// Upstreams indicates an expected call of Upstreams
-func (mr *MockSnapshotMockRecorder) Upstreams() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upstreams", reflect.TypeOf((*MockSnapshot)(nil).Upstreams))
-}
-
-// UpstreamGroups mocks base method
-func (m *MockSnapshot) UpstreamGroups() v1sets3.UpstreamGroupSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpstreamGroups")
-	ret0, _ := ret[0].(v1sets3.UpstreamGroupSet)
-	return ret0
-}
-
-// UpstreamGroups indicates an expected call of UpstreamGroups
-func (mr *MockSnapshotMockRecorder) UpstreamGroups() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpstreamGroups", reflect.TypeOf((*MockSnapshot)(nil).UpstreamGroups))
-}
-
-// Settings mocks base method
-func (m *MockSnapshot) Settings() v1sets3.SettingsSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Settings")
-	ret0, _ := ret[0].(v1sets3.SettingsSet)
-	return ret0
-}
-
-// Settings indicates an expected call of Settings
-func (mr *MockSnapshotMockRecorder) Settings() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Settings", reflect.TypeOf((*MockSnapshot)(nil).Settings))
-}
-
-// Proxies mocks base method
-func (m *MockSnapshot) Proxies() v1sets3.ProxySet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Proxies")
-	ret0, _ := ret[0].(v1sets3.ProxySet)
-	return ret0
-}
-
-// Proxies indicates an expected call of Proxies
-func (mr *MockSnapshotMockRecorder) Proxies() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Proxies", reflect.TypeOf((*MockSnapshot)(nil).Proxies))
-}
-
-// AuthConfigs mocks base method
+// AuthConfigs mocks base method.
 func (m *MockSnapshot) AuthConfigs() v1sets1.AuthConfigSet {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AuthConfigs")
@@ -205,55 +51,55 @@ func (m *MockSnapshot) AuthConfigs() v1sets1.AuthConfigSet {
 	return ret0
 }
 
-// AuthConfigs indicates an expected call of AuthConfigs
+// AuthConfigs indicates an expected call of AuthConfigs.
 func (mr *MockSnapshotMockRecorder) AuthConfigs() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthConfigs", reflect.TypeOf((*MockSnapshot)(nil).AuthConfigs))
 }
 
-// RateLimitConfigs mocks base method
-func (m *MockSnapshot) RateLimitConfigs() v1alpha1sets.RateLimitConfigSet {
+// DaemonSets mocks base method.
+func (m *MockSnapshot) DaemonSets() v1sets.DaemonSetSet {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RateLimitConfigs")
-	ret0, _ := ret[0].(v1alpha1sets.RateLimitConfigSet)
+	ret := m.ctrl.Call(m, "DaemonSets")
+	ret0, _ := ret[0].(v1sets.DaemonSetSet)
 	return ret0
 }
 
-// RateLimitConfigs indicates an expected call of RateLimitConfigs
-func (mr *MockSnapshotMockRecorder) RateLimitConfigs() *gomock.Call {
+// DaemonSets indicates an expected call of DaemonSets.
+func (mr *MockSnapshotMockRecorder) DaemonSets() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RateLimitConfigs", reflect.TypeOf((*MockSnapshot)(nil).RateLimitConfigs))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DaemonSets", reflect.TypeOf((*MockSnapshot)(nil).DaemonSets))
 }
 
-// SyncStatusesMultiCluster mocks base method
-func (m *MockSnapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicluster.Client, opts input.SyncStatusOptions) error {
+// Deployments mocks base method.
+func (m *MockSnapshot) Deployments() v1sets.DeploymentSet {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SyncStatusesMultiCluster", ctx, mcClient, opts)
-	ret0, _ := ret[0].(error)
+	ret := m.ctrl.Call(m, "Deployments")
+	ret0, _ := ret[0].(v1sets.DeploymentSet)
 	return ret0
 }
 
-// SyncStatusesMultiCluster indicates an expected call of SyncStatusesMultiCluster
-func (mr *MockSnapshotMockRecorder) SyncStatusesMultiCluster(ctx, mcClient, opts interface{}) *gomock.Call {
+// Deployments indicates an expected call of Deployments.
+func (mr *MockSnapshotMockRecorder) Deployments() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncStatusesMultiCluster", reflect.TypeOf((*MockSnapshot)(nil).SyncStatusesMultiCluster), ctx, mcClient, opts)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Deployments", reflect.TypeOf((*MockSnapshot)(nil).Deployments))
 }
 
-// SyncStatuses mocks base method
-func (m *MockSnapshot) SyncStatuses(ctx context.Context, c client.Client, opts input.SyncStatusOptions) error {
+// Gateways mocks base method.
+func (m *MockSnapshot) Gateways() v1sets2.GatewaySet {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SyncStatuses", ctx, c, opts)
-	ret0, _ := ret[0].(error)
+	ret := m.ctrl.Call(m, "Gateways")
+	ret0, _ := ret[0].(v1sets2.GatewaySet)
 	return ret0
 }
 
-// SyncStatuses indicates an expected call of SyncStatuses
-func (mr *MockSnapshotMockRecorder) SyncStatuses(ctx, c, opts interface{}) *gomock.Call {
+// Gateways indicates an expected call of Gateways.
+func (mr *MockSnapshotMockRecorder) Gateways() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncStatuses", reflect.TypeOf((*MockSnapshot)(nil).SyncStatuses), ctx, c, opts)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Gateways", reflect.TypeOf((*MockSnapshot)(nil).Gateways))
 }
 
-// MarshalJSON mocks base method
+// MarshalJSON mocks base method.
 func (m *MockSnapshot) MarshalJSON() ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MarshalJSON")
@@ -262,36 +108,190 @@ func (m *MockSnapshot) MarshalJSON() ([]byte, error) {
 	return ret0, ret1
 }
 
-// MarshalJSON indicates an expected call of MarshalJSON
+// MarshalJSON indicates an expected call of MarshalJSON.
 func (mr *MockSnapshotMockRecorder) MarshalJSON() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarshalJSON", reflect.TypeOf((*MockSnapshot)(nil).MarshalJSON))
 }
 
-// MockBuilder is a mock of Builder interface
+// Pods mocks base method.
+func (m *MockSnapshot) Pods() v1sets0.PodSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Pods")
+	ret0, _ := ret[0].(v1sets0.PodSet)
+	return ret0
+}
+
+// Pods indicates an expected call of Pods.
+func (mr *MockSnapshotMockRecorder) Pods() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Pods", reflect.TypeOf((*MockSnapshot)(nil).Pods))
+}
+
+// Proxies mocks base method.
+func (m *MockSnapshot) Proxies() v1sets3.ProxySet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Proxies")
+	ret0, _ := ret[0].(v1sets3.ProxySet)
+	return ret0
+}
+
+// Proxies indicates an expected call of Proxies.
+func (mr *MockSnapshotMockRecorder) Proxies() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Proxies", reflect.TypeOf((*MockSnapshot)(nil).Proxies))
+}
+
+// RateLimitConfigs mocks base method.
+func (m *MockSnapshot) RateLimitConfigs() v1alpha1sets.RateLimitConfigSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RateLimitConfigs")
+	ret0, _ := ret[0].(v1alpha1sets.RateLimitConfigSet)
+	return ret0
+}
+
+// RateLimitConfigs indicates an expected call of RateLimitConfigs.
+func (mr *MockSnapshotMockRecorder) RateLimitConfigs() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RateLimitConfigs", reflect.TypeOf((*MockSnapshot)(nil).RateLimitConfigs))
+}
+
+// RouteTables mocks base method.
+func (m *MockSnapshot) RouteTables() v1sets2.RouteTableSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RouteTables")
+	ret0, _ := ret[0].(v1sets2.RouteTableSet)
+	return ret0
+}
+
+// RouteTables indicates an expected call of RouteTables.
+func (mr *MockSnapshotMockRecorder) RouteTables() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RouteTables", reflect.TypeOf((*MockSnapshot)(nil).RouteTables))
+}
+
+// Services mocks base method.
+func (m *MockSnapshot) Services() v1sets0.ServiceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Services")
+	ret0, _ := ret[0].(v1sets0.ServiceSet)
+	return ret0
+}
+
+// Services indicates an expected call of Services.
+func (mr *MockSnapshotMockRecorder) Services() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Services", reflect.TypeOf((*MockSnapshot)(nil).Services))
+}
+
+// Settings mocks base method.
+func (m *MockSnapshot) Settings() v1sets3.SettingsSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Settings")
+	ret0, _ := ret[0].(v1sets3.SettingsSet)
+	return ret0
+}
+
+// Settings indicates an expected call of Settings.
+func (mr *MockSnapshotMockRecorder) Settings() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Settings", reflect.TypeOf((*MockSnapshot)(nil).Settings))
+}
+
+// SyncStatuses mocks base method.
+func (m *MockSnapshot) SyncStatuses(ctx context.Context, c client.Client, opts input.SyncStatusOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SyncStatuses", ctx, c, opts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SyncStatuses indicates an expected call of SyncStatuses.
+func (mr *MockSnapshotMockRecorder) SyncStatuses(ctx, c, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncStatuses", reflect.TypeOf((*MockSnapshot)(nil).SyncStatuses), ctx, c, opts)
+}
+
+// SyncStatusesMultiCluster mocks base method.
+func (m *MockSnapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicluster.Client, opts input.SyncStatusOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SyncStatusesMultiCluster", ctx, mcClient, opts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SyncStatusesMultiCluster indicates an expected call of SyncStatusesMultiCluster.
+func (mr *MockSnapshotMockRecorder) SyncStatusesMultiCluster(ctx, mcClient, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncStatusesMultiCluster", reflect.TypeOf((*MockSnapshot)(nil).SyncStatusesMultiCluster), ctx, mcClient, opts)
+}
+
+// UpstreamGroups mocks base method.
+func (m *MockSnapshot) UpstreamGroups() v1sets3.UpstreamGroupSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpstreamGroups")
+	ret0, _ := ret[0].(v1sets3.UpstreamGroupSet)
+	return ret0
+}
+
+// UpstreamGroups indicates an expected call of UpstreamGroups.
+func (mr *MockSnapshotMockRecorder) UpstreamGroups() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpstreamGroups", reflect.TypeOf((*MockSnapshot)(nil).UpstreamGroups))
+}
+
+// Upstreams mocks base method.
+func (m *MockSnapshot) Upstreams() v1sets3.UpstreamSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Upstreams")
+	ret0, _ := ret[0].(v1sets3.UpstreamSet)
+	return ret0
+}
+
+// Upstreams indicates an expected call of Upstreams.
+func (mr *MockSnapshotMockRecorder) Upstreams() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upstreams", reflect.TypeOf((*MockSnapshot)(nil).Upstreams))
+}
+
+// VirtualServices mocks base method.
+func (m *MockSnapshot) VirtualServices() v1sets2.VirtualServiceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VirtualServices")
+	ret0, _ := ret[0].(v1sets2.VirtualServiceSet)
+	return ret0
+}
+
+// VirtualServices indicates an expected call of VirtualServices.
+func (mr *MockSnapshotMockRecorder) VirtualServices() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VirtualServices", reflect.TypeOf((*MockSnapshot)(nil).VirtualServices))
+}
+
+// MockBuilder is a mock of Builder interface.
 type MockBuilder struct {
 	ctrl     *gomock.Controller
 	recorder *MockBuilderMockRecorder
 }
 
-// MockBuilderMockRecorder is the mock recorder for MockBuilder
+// MockBuilderMockRecorder is the mock recorder for MockBuilder.
 type MockBuilderMockRecorder struct {
 	mock *MockBuilder
 }
 
-// NewMockBuilder creates a new mock instance
+// NewMockBuilder creates a new mock instance.
 func NewMockBuilder(ctrl *gomock.Controller) *MockBuilder {
 	mock := &MockBuilder{ctrl: ctrl}
 	mock.recorder = &MockBuilderMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBuilder) EXPECT() *MockBuilderMockRecorder {
 	return m.recorder
 }
 
-// BuildSnapshot mocks base method
+// BuildSnapshot mocks base method.
 func (m *MockBuilder) BuildSnapshot(ctx context.Context, name string, opts input.BuildOptions) (input.Snapshot, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BuildSnapshot", ctx, name, opts)
@@ -300,7 +300,7 @@ func (m *MockBuilder) BuildSnapshot(ctx context.Context, name string, opts input
 	return ret0, ret1
 }
 
-// BuildSnapshot indicates an expected call of BuildSnapshot
+// BuildSnapshot indicates an expected call of BuildSnapshot.
 func (mr *MockBuilderMockRecorder) BuildSnapshot(ctx, name, opts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildSnapshot", reflect.TypeOf((*MockBuilder)(nil).BuildSnapshot), ctx, name, opts)

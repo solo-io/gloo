@@ -13,30 +13,30 @@ import (
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// MockMulticlusterClientset is a mock of MulticlusterClientset interface
+// MockMulticlusterClientset is a mock of MulticlusterClientset interface.
 type MockMulticlusterClientset struct {
 	ctrl     *gomock.Controller
 	recorder *MockMulticlusterClientsetMockRecorder
 }
 
-// MockMulticlusterClientsetMockRecorder is the mock recorder for MockMulticlusterClientset
+// MockMulticlusterClientsetMockRecorder is the mock recorder for MockMulticlusterClientset.
 type MockMulticlusterClientsetMockRecorder struct {
 	mock *MockMulticlusterClientset
 }
 
-// NewMockMulticlusterClientset creates a new mock instance
+// NewMockMulticlusterClientset creates a new mock instance.
 func NewMockMulticlusterClientset(ctrl *gomock.Controller) *MockMulticlusterClientset {
 	mock := &MockMulticlusterClientset{ctrl: ctrl}
 	mock.recorder = &MockMulticlusterClientsetMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMulticlusterClientset) EXPECT() *MockMulticlusterClientsetMockRecorder {
 	return m.recorder
 }
 
-// Cluster mocks base method
+// Cluster mocks base method.
 func (m *MockMulticlusterClientset) Cluster(cluster string) (v1.Clientset, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Cluster", cluster)
@@ -45,64 +45,36 @@ func (m *MockMulticlusterClientset) Cluster(cluster string) (v1.Clientset, error
 	return ret0, ret1
 }
 
-// Cluster indicates an expected call of Cluster
+// Cluster indicates an expected call of Cluster.
 func (mr *MockMulticlusterClientsetMockRecorder) Cluster(cluster interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cluster", reflect.TypeOf((*MockMulticlusterClientset)(nil).Cluster), cluster)
 }
 
-// MockClientset is a mock of Clientset interface
+// MockClientset is a mock of Clientset interface.
 type MockClientset struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientsetMockRecorder
 }
 
-// MockClientsetMockRecorder is the mock recorder for MockClientset
+// MockClientsetMockRecorder is the mock recorder for MockClientset.
 type MockClientsetMockRecorder struct {
 	mock *MockClientset
 }
 
-// NewMockClientset creates a new mock instance
+// NewMockClientset creates a new mock instance.
 func NewMockClientset(ctrl *gomock.Controller) *MockClientset {
 	mock := &MockClientset{ctrl: ctrl}
 	mock.recorder = &MockClientsetMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClientset) EXPECT() *MockClientsetMockRecorder {
 	return m.recorder
 }
 
-// FederatedUpstreams mocks base method
-func (m *MockClientset) FederatedUpstreams() v1.FederatedUpstreamClient {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FederatedUpstreams")
-	ret0, _ := ret[0].(v1.FederatedUpstreamClient)
-	return ret0
-}
-
-// FederatedUpstreams indicates an expected call of FederatedUpstreams
-func (mr *MockClientsetMockRecorder) FederatedUpstreams() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FederatedUpstreams", reflect.TypeOf((*MockClientset)(nil).FederatedUpstreams))
-}
-
-// FederatedUpstreamGroups mocks base method
-func (m *MockClientset) FederatedUpstreamGroups() v1.FederatedUpstreamGroupClient {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FederatedUpstreamGroups")
-	ret0, _ := ret[0].(v1.FederatedUpstreamGroupClient)
-	return ret0
-}
-
-// FederatedUpstreamGroups indicates an expected call of FederatedUpstreamGroups
-func (mr *MockClientsetMockRecorder) FederatedUpstreamGroups() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FederatedUpstreamGroups", reflect.TypeOf((*MockClientset)(nil).FederatedUpstreamGroups))
-}
-
-// FederatedSettings mocks base method
+// FederatedSettings mocks base method.
 func (m *MockClientset) FederatedSettings() v1.FederatedSettingsClient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FederatedSettings")
@@ -110,36 +82,64 @@ func (m *MockClientset) FederatedSettings() v1.FederatedSettingsClient {
 	return ret0
 }
 
-// FederatedSettings indicates an expected call of FederatedSettings
+// FederatedSettings indicates an expected call of FederatedSettings.
 func (mr *MockClientsetMockRecorder) FederatedSettings() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FederatedSettings", reflect.TypeOf((*MockClientset)(nil).FederatedSettings))
 }
 
-// MockFederatedUpstreamReader is a mock of FederatedUpstreamReader interface
+// FederatedUpstreamGroups mocks base method.
+func (m *MockClientset) FederatedUpstreamGroups() v1.FederatedUpstreamGroupClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FederatedUpstreamGroups")
+	ret0, _ := ret[0].(v1.FederatedUpstreamGroupClient)
+	return ret0
+}
+
+// FederatedUpstreamGroups indicates an expected call of FederatedUpstreamGroups.
+func (mr *MockClientsetMockRecorder) FederatedUpstreamGroups() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FederatedUpstreamGroups", reflect.TypeOf((*MockClientset)(nil).FederatedUpstreamGroups))
+}
+
+// FederatedUpstreams mocks base method.
+func (m *MockClientset) FederatedUpstreams() v1.FederatedUpstreamClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FederatedUpstreams")
+	ret0, _ := ret[0].(v1.FederatedUpstreamClient)
+	return ret0
+}
+
+// FederatedUpstreams indicates an expected call of FederatedUpstreams.
+func (mr *MockClientsetMockRecorder) FederatedUpstreams() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FederatedUpstreams", reflect.TypeOf((*MockClientset)(nil).FederatedUpstreams))
+}
+
+// MockFederatedUpstreamReader is a mock of FederatedUpstreamReader interface.
 type MockFederatedUpstreamReader struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamReaderMockRecorder
 }
 
-// MockFederatedUpstreamReaderMockRecorder is the mock recorder for MockFederatedUpstreamReader
+// MockFederatedUpstreamReaderMockRecorder is the mock recorder for MockFederatedUpstreamReader.
 type MockFederatedUpstreamReaderMockRecorder struct {
 	mock *MockFederatedUpstreamReader
 }
 
-// NewMockFederatedUpstreamReader creates a new mock instance
+// NewMockFederatedUpstreamReader creates a new mock instance.
 func NewMockFederatedUpstreamReader(ctrl *gomock.Controller) *MockFederatedUpstreamReader {
 	mock := &MockFederatedUpstreamReader{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamReaderMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamReader) EXPECT() *MockFederatedUpstreamReaderMockRecorder {
 	return m.recorder
 }
 
-// GetFederatedUpstream mocks base method
+// GetFederatedUpstream mocks base method.
 func (m *MockFederatedUpstreamReader) GetFederatedUpstream(ctx context.Context, key client.ObjectKey) (*v1.FederatedUpstream, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFederatedUpstream", ctx, key)
@@ -148,13 +148,13 @@ func (m *MockFederatedUpstreamReader) GetFederatedUpstream(ctx context.Context, 
 	return ret0, ret1
 }
 
-// GetFederatedUpstream indicates an expected call of GetFederatedUpstream
+// GetFederatedUpstream indicates an expected call of GetFederatedUpstream.
 func (mr *MockFederatedUpstreamReaderMockRecorder) GetFederatedUpstream(ctx, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamReader)(nil).GetFederatedUpstream), ctx, key)
 }
 
-// ListFederatedUpstream mocks base method
+// ListFederatedUpstream mocks base method.
 func (m *MockFederatedUpstreamReader) ListFederatedUpstream(ctx context.Context, opts ...client.ListOption) (*v1.FederatedUpstreamList, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
@@ -167,37 +167,37 @@ func (m *MockFederatedUpstreamReader) ListFederatedUpstream(ctx context.Context,
 	return ret0, ret1
 }
 
-// ListFederatedUpstream indicates an expected call of ListFederatedUpstream
+// ListFederatedUpstream indicates an expected call of ListFederatedUpstream.
 func (mr *MockFederatedUpstreamReaderMockRecorder) ListFederatedUpstream(ctx interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamReader)(nil).ListFederatedUpstream), varargs...)
 }
 
-// MockFederatedUpstreamWriter is a mock of FederatedUpstreamWriter interface
+// MockFederatedUpstreamWriter is a mock of FederatedUpstreamWriter interface.
 type MockFederatedUpstreamWriter struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamWriterMockRecorder
 }
 
-// MockFederatedUpstreamWriterMockRecorder is the mock recorder for MockFederatedUpstreamWriter
+// MockFederatedUpstreamWriterMockRecorder is the mock recorder for MockFederatedUpstreamWriter.
 type MockFederatedUpstreamWriterMockRecorder struct {
 	mock *MockFederatedUpstreamWriter
 }
 
-// NewMockFederatedUpstreamWriter creates a new mock instance
+// NewMockFederatedUpstreamWriter creates a new mock instance.
 func NewMockFederatedUpstreamWriter(ctrl *gomock.Controller) *MockFederatedUpstreamWriter {
 	mock := &MockFederatedUpstreamWriter{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamWriterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamWriter) EXPECT() *MockFederatedUpstreamWriterMockRecorder {
 	return m.recorder
 }
 
-// CreateFederatedUpstream mocks base method
+// CreateFederatedUpstream mocks base method.
 func (m *MockFederatedUpstreamWriter) CreateFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.CreateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
@@ -209,71 +209,14 @@ func (m *MockFederatedUpstreamWriter) CreateFederatedUpstream(ctx context.Contex
 	return ret0
 }
 
-// CreateFederatedUpstream indicates an expected call of CreateFederatedUpstream
+// CreateFederatedUpstream indicates an expected call of CreateFederatedUpstream.
 func (mr *MockFederatedUpstreamWriterMockRecorder) CreateFederatedUpstream(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamWriter)(nil).CreateFederatedUpstream), varargs...)
 }
 
-// DeleteFederatedUpstream mocks base method
-func (m *MockFederatedUpstreamWriter) DeleteFederatedUpstream(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, key}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "DeleteFederatedUpstream", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteFederatedUpstream indicates an expected call of DeleteFederatedUpstream
-func (mr *MockFederatedUpstreamWriterMockRecorder) DeleteFederatedUpstream(ctx, key interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, key}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamWriter)(nil).DeleteFederatedUpstream), varargs...)
-}
-
-// UpdateFederatedUpstream mocks base method
-func (m *MockFederatedUpstreamWriter) UpdateFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedUpstream", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedUpstream indicates an expected call of UpdateFederatedUpstream
-func (mr *MockFederatedUpstreamWriterMockRecorder) UpdateFederatedUpstream(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamWriter)(nil).UpdateFederatedUpstream), varargs...)
-}
-
-// PatchFederatedUpstream mocks base method
-func (m *MockFederatedUpstreamWriter) PatchFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, patch client.Patch, opts ...client.PatchOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj, patch}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "PatchFederatedUpstream", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// PatchFederatedUpstream indicates an expected call of PatchFederatedUpstream
-func (mr *MockFederatedUpstreamWriterMockRecorder) PatchFederatedUpstream(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj, patch}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamWriter)(nil).PatchFederatedUpstream), varargs...)
-}
-
-// DeleteAllOfFederatedUpstream mocks base method
+// DeleteAllOfFederatedUpstream mocks base method.
 func (m *MockFederatedUpstreamWriter) DeleteAllOfFederatedUpstream(ctx context.Context, opts ...client.DeleteAllOfOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
@@ -285,14 +228,71 @@ func (m *MockFederatedUpstreamWriter) DeleteAllOfFederatedUpstream(ctx context.C
 	return ret0
 }
 
-// DeleteAllOfFederatedUpstream indicates an expected call of DeleteAllOfFederatedUpstream
+// DeleteAllOfFederatedUpstream indicates an expected call of DeleteAllOfFederatedUpstream.
 func (mr *MockFederatedUpstreamWriterMockRecorder) DeleteAllOfFederatedUpstream(ctx interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllOfFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamWriter)(nil).DeleteAllOfFederatedUpstream), varargs...)
 }
 
-// UpsertFederatedUpstream mocks base method
+// DeleteFederatedUpstream mocks base method.
+func (m *MockFederatedUpstreamWriter) DeleteFederatedUpstream(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, key}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteFederatedUpstream", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFederatedUpstream indicates an expected call of DeleteFederatedUpstream.
+func (mr *MockFederatedUpstreamWriterMockRecorder) DeleteFederatedUpstream(ctx, key interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, key}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamWriter)(nil).DeleteFederatedUpstream), varargs...)
+}
+
+// PatchFederatedUpstream mocks base method.
+func (m *MockFederatedUpstreamWriter) PatchFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, patch client.Patch, opts ...client.PatchOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj, patch}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchFederatedUpstream", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PatchFederatedUpstream indicates an expected call of PatchFederatedUpstream.
+func (mr *MockFederatedUpstreamWriterMockRecorder) PatchFederatedUpstream(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj, patch}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamWriter)(nil).PatchFederatedUpstream), varargs...)
+}
+
+// UpdateFederatedUpstream mocks base method.
+func (m *MockFederatedUpstreamWriter) UpdateFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedUpstream", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedUpstream indicates an expected call of UpdateFederatedUpstream.
+func (mr *MockFederatedUpstreamWriterMockRecorder) UpdateFederatedUpstream(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamWriter)(nil).UpdateFederatedUpstream), varargs...)
+}
+
+// UpsertFederatedUpstream mocks base method.
 func (m *MockFederatedUpstreamWriter) UpsertFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, transitionFuncs ...v1.FederatedUpstreamTransitionFunction) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
@@ -304,56 +304,37 @@ func (m *MockFederatedUpstreamWriter) UpsertFederatedUpstream(ctx context.Contex
 	return ret0
 }
 
-// UpsertFederatedUpstream indicates an expected call of UpsertFederatedUpstream
+// UpsertFederatedUpstream indicates an expected call of UpsertFederatedUpstream.
 func (mr *MockFederatedUpstreamWriterMockRecorder) UpsertFederatedUpstream(ctx, obj interface{}, transitionFuncs ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj}, transitionFuncs...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamWriter)(nil).UpsertFederatedUpstream), varargs...)
 }
 
-// MockFederatedUpstreamStatusWriter is a mock of FederatedUpstreamStatusWriter interface
+// MockFederatedUpstreamStatusWriter is a mock of FederatedUpstreamStatusWriter interface.
 type MockFederatedUpstreamStatusWriter struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamStatusWriterMockRecorder
 }
 
-// MockFederatedUpstreamStatusWriterMockRecorder is the mock recorder for MockFederatedUpstreamStatusWriter
+// MockFederatedUpstreamStatusWriterMockRecorder is the mock recorder for MockFederatedUpstreamStatusWriter.
 type MockFederatedUpstreamStatusWriterMockRecorder struct {
 	mock *MockFederatedUpstreamStatusWriter
 }
 
-// NewMockFederatedUpstreamStatusWriter creates a new mock instance
+// NewMockFederatedUpstreamStatusWriter creates a new mock instance.
 func NewMockFederatedUpstreamStatusWriter(ctrl *gomock.Controller) *MockFederatedUpstreamStatusWriter {
 	mock := &MockFederatedUpstreamStatusWriter{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamStatusWriterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamStatusWriter) EXPECT() *MockFederatedUpstreamStatusWriterMockRecorder {
 	return m.recorder
 }
 
-// UpdateFederatedUpstreamStatus mocks base method
-func (m *MockFederatedUpstreamStatusWriter) UpdateFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamStatus", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedUpstreamStatus indicates an expected call of UpdateFederatedUpstreamStatus
-func (mr *MockFederatedUpstreamStatusWriterMockRecorder) UpdateFederatedUpstreamStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamStatus", reflect.TypeOf((*MockFederatedUpstreamStatusWriter)(nil).UpdateFederatedUpstreamStatus), varargs...)
-}
-
-// PatchFederatedUpstreamStatus mocks base method
+// PatchFederatedUpstreamStatus mocks base method.
 func (m *MockFederatedUpstreamStatusWriter) PatchFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, patch client.Patch, opts ...client.PatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
@@ -365,37 +346,113 @@ func (m *MockFederatedUpstreamStatusWriter) PatchFederatedUpstreamStatus(ctx con
 	return ret0
 }
 
-// PatchFederatedUpstreamStatus indicates an expected call of PatchFederatedUpstreamStatus
+// PatchFederatedUpstreamStatus indicates an expected call of PatchFederatedUpstreamStatus.
 func (mr *MockFederatedUpstreamStatusWriterMockRecorder) PatchFederatedUpstreamStatus(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj, patch}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedUpstreamStatus", reflect.TypeOf((*MockFederatedUpstreamStatusWriter)(nil).PatchFederatedUpstreamStatus), varargs...)
 }
 
-// MockFederatedUpstreamClient is a mock of FederatedUpstreamClient interface
+// UpdateFederatedUpstreamStatus mocks base method.
+func (m *MockFederatedUpstreamStatusWriter) UpdateFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamStatus", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedUpstreamStatus indicates an expected call of UpdateFederatedUpstreamStatus.
+func (mr *MockFederatedUpstreamStatusWriterMockRecorder) UpdateFederatedUpstreamStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamStatus", reflect.TypeOf((*MockFederatedUpstreamStatusWriter)(nil).UpdateFederatedUpstreamStatus), varargs...)
+}
+
+// MockFederatedUpstreamClient is a mock of FederatedUpstreamClient interface.
 type MockFederatedUpstreamClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamClientMockRecorder
 }
 
-// MockFederatedUpstreamClientMockRecorder is the mock recorder for MockFederatedUpstreamClient
+// MockFederatedUpstreamClientMockRecorder is the mock recorder for MockFederatedUpstreamClient.
 type MockFederatedUpstreamClientMockRecorder struct {
 	mock *MockFederatedUpstreamClient
 }
 
-// NewMockFederatedUpstreamClient creates a new mock instance
+// NewMockFederatedUpstreamClient creates a new mock instance.
 func NewMockFederatedUpstreamClient(ctrl *gomock.Controller) *MockFederatedUpstreamClient {
 	mock := &MockFederatedUpstreamClient{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamClient) EXPECT() *MockFederatedUpstreamClientMockRecorder {
 	return m.recorder
 }
 
-// GetFederatedUpstream mocks base method
+// CreateFederatedUpstream mocks base method.
+func (m *MockFederatedUpstreamClient) CreateFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.CreateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateFederatedUpstream", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateFederatedUpstream indicates an expected call of CreateFederatedUpstream.
+func (mr *MockFederatedUpstreamClientMockRecorder) CreateFederatedUpstream(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).CreateFederatedUpstream), varargs...)
+}
+
+// DeleteAllOfFederatedUpstream mocks base method.
+func (m *MockFederatedUpstreamClient) DeleteAllOfFederatedUpstream(ctx context.Context, opts ...client.DeleteAllOfOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteAllOfFederatedUpstream", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAllOfFederatedUpstream indicates an expected call of DeleteAllOfFederatedUpstream.
+func (mr *MockFederatedUpstreamClientMockRecorder) DeleteAllOfFederatedUpstream(ctx interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllOfFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).DeleteAllOfFederatedUpstream), varargs...)
+}
+
+// DeleteFederatedUpstream mocks base method.
+func (m *MockFederatedUpstreamClient) DeleteFederatedUpstream(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, key}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteFederatedUpstream", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFederatedUpstream indicates an expected call of DeleteFederatedUpstream.
+func (mr *MockFederatedUpstreamClientMockRecorder) DeleteFederatedUpstream(ctx, key interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, key}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).DeleteFederatedUpstream), varargs...)
+}
+
+// GetFederatedUpstream mocks base method.
 func (m *MockFederatedUpstreamClient) GetFederatedUpstream(ctx context.Context, key client.ObjectKey) (*v1.FederatedUpstream, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFederatedUpstream", ctx, key)
@@ -404,13 +461,13 @@ func (m *MockFederatedUpstreamClient) GetFederatedUpstream(ctx context.Context, 
 	return ret0, ret1
 }
 
-// GetFederatedUpstream indicates an expected call of GetFederatedUpstream
+// GetFederatedUpstream indicates an expected call of GetFederatedUpstream.
 func (mr *MockFederatedUpstreamClientMockRecorder) GetFederatedUpstream(ctx, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).GetFederatedUpstream), ctx, key)
 }
 
-// ListFederatedUpstream mocks base method
+// ListFederatedUpstream mocks base method.
 func (m *MockFederatedUpstreamClient) ListFederatedUpstream(ctx context.Context, opts ...client.ListOption) (*v1.FederatedUpstreamList, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
@@ -423,71 +480,14 @@ func (m *MockFederatedUpstreamClient) ListFederatedUpstream(ctx context.Context,
 	return ret0, ret1
 }
 
-// ListFederatedUpstream indicates an expected call of ListFederatedUpstream
+// ListFederatedUpstream indicates an expected call of ListFederatedUpstream.
 func (mr *MockFederatedUpstreamClientMockRecorder) ListFederatedUpstream(ctx interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).ListFederatedUpstream), varargs...)
 }
 
-// CreateFederatedUpstream mocks base method
-func (m *MockFederatedUpstreamClient) CreateFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.CreateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "CreateFederatedUpstream", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateFederatedUpstream indicates an expected call of CreateFederatedUpstream
-func (mr *MockFederatedUpstreamClientMockRecorder) CreateFederatedUpstream(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).CreateFederatedUpstream), varargs...)
-}
-
-// DeleteFederatedUpstream mocks base method
-func (m *MockFederatedUpstreamClient) DeleteFederatedUpstream(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, key}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "DeleteFederatedUpstream", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteFederatedUpstream indicates an expected call of DeleteFederatedUpstream
-func (mr *MockFederatedUpstreamClientMockRecorder) DeleteFederatedUpstream(ctx, key interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, key}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).DeleteFederatedUpstream), varargs...)
-}
-
-// UpdateFederatedUpstream mocks base method
-func (m *MockFederatedUpstreamClient) UpdateFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedUpstream", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedUpstream indicates an expected call of UpdateFederatedUpstream
-func (mr *MockFederatedUpstreamClientMockRecorder) UpdateFederatedUpstream(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).UpdateFederatedUpstream), varargs...)
-}
-
-// PatchFederatedUpstream mocks base method
+// PatchFederatedUpstream mocks base method.
 func (m *MockFederatedUpstreamClient) PatchFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, patch client.Patch, opts ...client.PatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
@@ -499,71 +499,14 @@ func (m *MockFederatedUpstreamClient) PatchFederatedUpstream(ctx context.Context
 	return ret0
 }
 
-// PatchFederatedUpstream indicates an expected call of PatchFederatedUpstream
+// PatchFederatedUpstream indicates an expected call of PatchFederatedUpstream.
 func (mr *MockFederatedUpstreamClientMockRecorder) PatchFederatedUpstream(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj, patch}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).PatchFederatedUpstream), varargs...)
 }
 
-// DeleteAllOfFederatedUpstream mocks base method
-func (m *MockFederatedUpstreamClient) DeleteAllOfFederatedUpstream(ctx context.Context, opts ...client.DeleteAllOfOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "DeleteAllOfFederatedUpstream", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteAllOfFederatedUpstream indicates an expected call of DeleteAllOfFederatedUpstream
-func (mr *MockFederatedUpstreamClientMockRecorder) DeleteAllOfFederatedUpstream(ctx interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllOfFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).DeleteAllOfFederatedUpstream), varargs...)
-}
-
-// UpsertFederatedUpstream mocks base method
-func (m *MockFederatedUpstreamClient) UpsertFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, transitionFuncs ...v1.FederatedUpstreamTransitionFunction) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range transitionFuncs {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpsertFederatedUpstream", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpsertFederatedUpstream indicates an expected call of UpsertFederatedUpstream
-func (mr *MockFederatedUpstreamClientMockRecorder) UpsertFederatedUpstream(ctx, obj interface{}, transitionFuncs ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, transitionFuncs...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).UpsertFederatedUpstream), varargs...)
-}
-
-// UpdateFederatedUpstreamStatus mocks base method
-func (m *MockFederatedUpstreamClient) UpdateFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamStatus", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedUpstreamStatus indicates an expected call of UpdateFederatedUpstreamStatus
-func (mr *MockFederatedUpstreamClientMockRecorder) UpdateFederatedUpstreamStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamStatus", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).UpdateFederatedUpstreamStatus), varargs...)
-}
-
-// PatchFederatedUpstreamStatus mocks base method
+// PatchFederatedUpstreamStatus mocks base method.
 func (m *MockFederatedUpstreamClient) PatchFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, patch client.Patch, opts ...client.PatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
@@ -575,37 +518,94 @@ func (m *MockFederatedUpstreamClient) PatchFederatedUpstreamStatus(ctx context.C
 	return ret0
 }
 
-// PatchFederatedUpstreamStatus indicates an expected call of PatchFederatedUpstreamStatus
+// PatchFederatedUpstreamStatus indicates an expected call of PatchFederatedUpstreamStatus.
 func (mr *MockFederatedUpstreamClientMockRecorder) PatchFederatedUpstreamStatus(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj, patch}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedUpstreamStatus", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).PatchFederatedUpstreamStatus), varargs...)
 }
 
-// MockMulticlusterFederatedUpstreamClient is a mock of MulticlusterFederatedUpstreamClient interface
+// UpdateFederatedUpstream mocks base method.
+func (m *MockFederatedUpstreamClient) UpdateFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedUpstream", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedUpstream indicates an expected call of UpdateFederatedUpstream.
+func (mr *MockFederatedUpstreamClientMockRecorder) UpdateFederatedUpstream(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).UpdateFederatedUpstream), varargs...)
+}
+
+// UpdateFederatedUpstreamStatus mocks base method.
+func (m *MockFederatedUpstreamClient) UpdateFederatedUpstreamStatus(ctx context.Context, obj *v1.FederatedUpstream, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamStatus", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedUpstreamStatus indicates an expected call of UpdateFederatedUpstreamStatus.
+func (mr *MockFederatedUpstreamClientMockRecorder) UpdateFederatedUpstreamStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamStatus", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).UpdateFederatedUpstreamStatus), varargs...)
+}
+
+// UpsertFederatedUpstream mocks base method.
+func (m *MockFederatedUpstreamClient) UpsertFederatedUpstream(ctx context.Context, obj *v1.FederatedUpstream, transitionFuncs ...v1.FederatedUpstreamTransitionFunction) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range transitionFuncs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpsertFederatedUpstream", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpsertFederatedUpstream indicates an expected call of UpsertFederatedUpstream.
+func (mr *MockFederatedUpstreamClientMockRecorder) UpsertFederatedUpstream(ctx, obj interface{}, transitionFuncs ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, transitionFuncs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertFederatedUpstream", reflect.TypeOf((*MockFederatedUpstreamClient)(nil).UpsertFederatedUpstream), varargs...)
+}
+
+// MockMulticlusterFederatedUpstreamClient is a mock of MulticlusterFederatedUpstreamClient interface.
 type MockMulticlusterFederatedUpstreamClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockMulticlusterFederatedUpstreamClientMockRecorder
 }
 
-// MockMulticlusterFederatedUpstreamClientMockRecorder is the mock recorder for MockMulticlusterFederatedUpstreamClient
+// MockMulticlusterFederatedUpstreamClientMockRecorder is the mock recorder for MockMulticlusterFederatedUpstreamClient.
 type MockMulticlusterFederatedUpstreamClientMockRecorder struct {
 	mock *MockMulticlusterFederatedUpstreamClient
 }
 
-// NewMockMulticlusterFederatedUpstreamClient creates a new mock instance
+// NewMockMulticlusterFederatedUpstreamClient creates a new mock instance.
 func NewMockMulticlusterFederatedUpstreamClient(ctrl *gomock.Controller) *MockMulticlusterFederatedUpstreamClient {
 	mock := &MockMulticlusterFederatedUpstreamClient{ctrl: ctrl}
 	mock.recorder = &MockMulticlusterFederatedUpstreamClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMulticlusterFederatedUpstreamClient) EXPECT() *MockMulticlusterFederatedUpstreamClientMockRecorder {
 	return m.recorder
 }
 
-// Cluster mocks base method
+// Cluster mocks base method.
 func (m *MockMulticlusterFederatedUpstreamClient) Cluster(cluster string) (v1.FederatedUpstreamClient, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Cluster", cluster)
@@ -614,36 +614,36 @@ func (m *MockMulticlusterFederatedUpstreamClient) Cluster(cluster string) (v1.Fe
 	return ret0, ret1
 }
 
-// Cluster indicates an expected call of Cluster
+// Cluster indicates an expected call of Cluster.
 func (mr *MockMulticlusterFederatedUpstreamClientMockRecorder) Cluster(cluster interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cluster", reflect.TypeOf((*MockMulticlusterFederatedUpstreamClient)(nil).Cluster), cluster)
 }
 
-// MockFederatedUpstreamGroupReader is a mock of FederatedUpstreamGroupReader interface
+// MockFederatedUpstreamGroupReader is a mock of FederatedUpstreamGroupReader interface.
 type MockFederatedUpstreamGroupReader struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamGroupReaderMockRecorder
 }
 
-// MockFederatedUpstreamGroupReaderMockRecorder is the mock recorder for MockFederatedUpstreamGroupReader
+// MockFederatedUpstreamGroupReaderMockRecorder is the mock recorder for MockFederatedUpstreamGroupReader.
 type MockFederatedUpstreamGroupReaderMockRecorder struct {
 	mock *MockFederatedUpstreamGroupReader
 }
 
-// NewMockFederatedUpstreamGroupReader creates a new mock instance
+// NewMockFederatedUpstreamGroupReader creates a new mock instance.
 func NewMockFederatedUpstreamGroupReader(ctrl *gomock.Controller) *MockFederatedUpstreamGroupReader {
 	mock := &MockFederatedUpstreamGroupReader{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamGroupReaderMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamGroupReader) EXPECT() *MockFederatedUpstreamGroupReaderMockRecorder {
 	return m.recorder
 }
 
-// GetFederatedUpstreamGroup mocks base method
+// GetFederatedUpstreamGroup mocks base method.
 func (m *MockFederatedUpstreamGroupReader) GetFederatedUpstreamGroup(ctx context.Context, key client.ObjectKey) (*v1.FederatedUpstreamGroup, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFederatedUpstreamGroup", ctx, key)
@@ -652,13 +652,13 @@ func (m *MockFederatedUpstreamGroupReader) GetFederatedUpstreamGroup(ctx context
 	return ret0, ret1
 }
 
-// GetFederatedUpstreamGroup indicates an expected call of GetFederatedUpstreamGroup
+// GetFederatedUpstreamGroup indicates an expected call of GetFederatedUpstreamGroup.
 func (mr *MockFederatedUpstreamGroupReaderMockRecorder) GetFederatedUpstreamGroup(ctx, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupReader)(nil).GetFederatedUpstreamGroup), ctx, key)
 }
 
-// ListFederatedUpstreamGroup mocks base method
+// ListFederatedUpstreamGroup mocks base method.
 func (m *MockFederatedUpstreamGroupReader) ListFederatedUpstreamGroup(ctx context.Context, opts ...client.ListOption) (*v1.FederatedUpstreamGroupList, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
@@ -671,37 +671,37 @@ func (m *MockFederatedUpstreamGroupReader) ListFederatedUpstreamGroup(ctx contex
 	return ret0, ret1
 }
 
-// ListFederatedUpstreamGroup indicates an expected call of ListFederatedUpstreamGroup
+// ListFederatedUpstreamGroup indicates an expected call of ListFederatedUpstreamGroup.
 func (mr *MockFederatedUpstreamGroupReaderMockRecorder) ListFederatedUpstreamGroup(ctx interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupReader)(nil).ListFederatedUpstreamGroup), varargs...)
 }
 
-// MockFederatedUpstreamGroupWriter is a mock of FederatedUpstreamGroupWriter interface
+// MockFederatedUpstreamGroupWriter is a mock of FederatedUpstreamGroupWriter interface.
 type MockFederatedUpstreamGroupWriter struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamGroupWriterMockRecorder
 }
 
-// MockFederatedUpstreamGroupWriterMockRecorder is the mock recorder for MockFederatedUpstreamGroupWriter
+// MockFederatedUpstreamGroupWriterMockRecorder is the mock recorder for MockFederatedUpstreamGroupWriter.
 type MockFederatedUpstreamGroupWriterMockRecorder struct {
 	mock *MockFederatedUpstreamGroupWriter
 }
 
-// NewMockFederatedUpstreamGroupWriter creates a new mock instance
+// NewMockFederatedUpstreamGroupWriter creates a new mock instance.
 func NewMockFederatedUpstreamGroupWriter(ctrl *gomock.Controller) *MockFederatedUpstreamGroupWriter {
 	mock := &MockFederatedUpstreamGroupWriter{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamGroupWriterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamGroupWriter) EXPECT() *MockFederatedUpstreamGroupWriterMockRecorder {
 	return m.recorder
 }
 
-// CreateFederatedUpstreamGroup mocks base method
+// CreateFederatedUpstreamGroup mocks base method.
 func (m *MockFederatedUpstreamGroupWriter) CreateFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.CreateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
@@ -713,71 +713,14 @@ func (m *MockFederatedUpstreamGroupWriter) CreateFederatedUpstreamGroup(ctx cont
 	return ret0
 }
 
-// CreateFederatedUpstreamGroup indicates an expected call of CreateFederatedUpstreamGroup
+// CreateFederatedUpstreamGroup indicates an expected call of CreateFederatedUpstreamGroup.
 func (mr *MockFederatedUpstreamGroupWriterMockRecorder) CreateFederatedUpstreamGroup(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupWriter)(nil).CreateFederatedUpstreamGroup), varargs...)
 }
 
-// DeleteFederatedUpstreamGroup mocks base method
-func (m *MockFederatedUpstreamGroupWriter) DeleteFederatedUpstreamGroup(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, key}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "DeleteFederatedUpstreamGroup", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteFederatedUpstreamGroup indicates an expected call of DeleteFederatedUpstreamGroup
-func (mr *MockFederatedUpstreamGroupWriterMockRecorder) DeleteFederatedUpstreamGroup(ctx, key interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, key}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupWriter)(nil).DeleteFederatedUpstreamGroup), varargs...)
-}
-
-// UpdateFederatedUpstreamGroup mocks base method
-func (m *MockFederatedUpstreamGroupWriter) UpdateFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamGroup", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedUpstreamGroup indicates an expected call of UpdateFederatedUpstreamGroup
-func (mr *MockFederatedUpstreamGroupWriterMockRecorder) UpdateFederatedUpstreamGroup(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupWriter)(nil).UpdateFederatedUpstreamGroup), varargs...)
-}
-
-// PatchFederatedUpstreamGroup mocks base method
-func (m *MockFederatedUpstreamGroupWriter) PatchFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, patch client.Patch, opts ...client.PatchOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj, patch}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "PatchFederatedUpstreamGroup", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// PatchFederatedUpstreamGroup indicates an expected call of PatchFederatedUpstreamGroup
-func (mr *MockFederatedUpstreamGroupWriterMockRecorder) PatchFederatedUpstreamGroup(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj, patch}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupWriter)(nil).PatchFederatedUpstreamGroup), varargs...)
-}
-
-// DeleteAllOfFederatedUpstreamGroup mocks base method
+// DeleteAllOfFederatedUpstreamGroup mocks base method.
 func (m *MockFederatedUpstreamGroupWriter) DeleteAllOfFederatedUpstreamGroup(ctx context.Context, opts ...client.DeleteAllOfOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
@@ -789,14 +732,71 @@ func (m *MockFederatedUpstreamGroupWriter) DeleteAllOfFederatedUpstreamGroup(ctx
 	return ret0
 }
 
-// DeleteAllOfFederatedUpstreamGroup indicates an expected call of DeleteAllOfFederatedUpstreamGroup
+// DeleteAllOfFederatedUpstreamGroup indicates an expected call of DeleteAllOfFederatedUpstreamGroup.
 func (mr *MockFederatedUpstreamGroupWriterMockRecorder) DeleteAllOfFederatedUpstreamGroup(ctx interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllOfFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupWriter)(nil).DeleteAllOfFederatedUpstreamGroup), varargs...)
 }
 
-// UpsertFederatedUpstreamGroup mocks base method
+// DeleteFederatedUpstreamGroup mocks base method.
+func (m *MockFederatedUpstreamGroupWriter) DeleteFederatedUpstreamGroup(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, key}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteFederatedUpstreamGroup", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFederatedUpstreamGroup indicates an expected call of DeleteFederatedUpstreamGroup.
+func (mr *MockFederatedUpstreamGroupWriterMockRecorder) DeleteFederatedUpstreamGroup(ctx, key interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, key}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupWriter)(nil).DeleteFederatedUpstreamGroup), varargs...)
+}
+
+// PatchFederatedUpstreamGroup mocks base method.
+func (m *MockFederatedUpstreamGroupWriter) PatchFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, patch client.Patch, opts ...client.PatchOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj, patch}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchFederatedUpstreamGroup", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PatchFederatedUpstreamGroup indicates an expected call of PatchFederatedUpstreamGroup.
+func (mr *MockFederatedUpstreamGroupWriterMockRecorder) PatchFederatedUpstreamGroup(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj, patch}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupWriter)(nil).PatchFederatedUpstreamGroup), varargs...)
+}
+
+// UpdateFederatedUpstreamGroup mocks base method.
+func (m *MockFederatedUpstreamGroupWriter) UpdateFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamGroup", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedUpstreamGroup indicates an expected call of UpdateFederatedUpstreamGroup.
+func (mr *MockFederatedUpstreamGroupWriterMockRecorder) UpdateFederatedUpstreamGroup(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupWriter)(nil).UpdateFederatedUpstreamGroup), varargs...)
+}
+
+// UpsertFederatedUpstreamGroup mocks base method.
 func (m *MockFederatedUpstreamGroupWriter) UpsertFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, transitionFuncs ...v1.FederatedUpstreamGroupTransitionFunction) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
@@ -808,56 +808,37 @@ func (m *MockFederatedUpstreamGroupWriter) UpsertFederatedUpstreamGroup(ctx cont
 	return ret0
 }
 
-// UpsertFederatedUpstreamGroup indicates an expected call of UpsertFederatedUpstreamGroup
+// UpsertFederatedUpstreamGroup indicates an expected call of UpsertFederatedUpstreamGroup.
 func (mr *MockFederatedUpstreamGroupWriterMockRecorder) UpsertFederatedUpstreamGroup(ctx, obj interface{}, transitionFuncs ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj}, transitionFuncs...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupWriter)(nil).UpsertFederatedUpstreamGroup), varargs...)
 }
 
-// MockFederatedUpstreamGroupStatusWriter is a mock of FederatedUpstreamGroupStatusWriter interface
+// MockFederatedUpstreamGroupStatusWriter is a mock of FederatedUpstreamGroupStatusWriter interface.
 type MockFederatedUpstreamGroupStatusWriter struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamGroupStatusWriterMockRecorder
 }
 
-// MockFederatedUpstreamGroupStatusWriterMockRecorder is the mock recorder for MockFederatedUpstreamGroupStatusWriter
+// MockFederatedUpstreamGroupStatusWriterMockRecorder is the mock recorder for MockFederatedUpstreamGroupStatusWriter.
 type MockFederatedUpstreamGroupStatusWriterMockRecorder struct {
 	mock *MockFederatedUpstreamGroupStatusWriter
 }
 
-// NewMockFederatedUpstreamGroupStatusWriter creates a new mock instance
+// NewMockFederatedUpstreamGroupStatusWriter creates a new mock instance.
 func NewMockFederatedUpstreamGroupStatusWriter(ctrl *gomock.Controller) *MockFederatedUpstreamGroupStatusWriter {
 	mock := &MockFederatedUpstreamGroupStatusWriter{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamGroupStatusWriterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamGroupStatusWriter) EXPECT() *MockFederatedUpstreamGroupStatusWriterMockRecorder {
 	return m.recorder
 }
 
-// UpdateFederatedUpstreamGroupStatus mocks base method
-func (m *MockFederatedUpstreamGroupStatusWriter) UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamGroupStatus", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedUpstreamGroupStatus indicates an expected call of UpdateFederatedUpstreamGroupStatus
-func (mr *MockFederatedUpstreamGroupStatusWriterMockRecorder) UpdateFederatedUpstreamGroupStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamGroupStatus", reflect.TypeOf((*MockFederatedUpstreamGroupStatusWriter)(nil).UpdateFederatedUpstreamGroupStatus), varargs...)
-}
-
-// PatchFederatedUpstreamGroupStatus mocks base method
+// PatchFederatedUpstreamGroupStatus mocks base method.
 func (m *MockFederatedUpstreamGroupStatusWriter) PatchFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, patch client.Patch, opts ...client.PatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
@@ -869,37 +850,113 @@ func (m *MockFederatedUpstreamGroupStatusWriter) PatchFederatedUpstreamGroupStat
 	return ret0
 }
 
-// PatchFederatedUpstreamGroupStatus indicates an expected call of PatchFederatedUpstreamGroupStatus
+// PatchFederatedUpstreamGroupStatus indicates an expected call of PatchFederatedUpstreamGroupStatus.
 func (mr *MockFederatedUpstreamGroupStatusWriterMockRecorder) PatchFederatedUpstreamGroupStatus(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj, patch}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedUpstreamGroupStatus", reflect.TypeOf((*MockFederatedUpstreamGroupStatusWriter)(nil).PatchFederatedUpstreamGroupStatus), varargs...)
 }
 
-// MockFederatedUpstreamGroupClient is a mock of FederatedUpstreamGroupClient interface
+// UpdateFederatedUpstreamGroupStatus mocks base method.
+func (m *MockFederatedUpstreamGroupStatusWriter) UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamGroupStatus", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedUpstreamGroupStatus indicates an expected call of UpdateFederatedUpstreamGroupStatus.
+func (mr *MockFederatedUpstreamGroupStatusWriterMockRecorder) UpdateFederatedUpstreamGroupStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamGroupStatus", reflect.TypeOf((*MockFederatedUpstreamGroupStatusWriter)(nil).UpdateFederatedUpstreamGroupStatus), varargs...)
+}
+
+// MockFederatedUpstreamGroupClient is a mock of FederatedUpstreamGroupClient interface.
 type MockFederatedUpstreamGroupClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedUpstreamGroupClientMockRecorder
 }
 
-// MockFederatedUpstreamGroupClientMockRecorder is the mock recorder for MockFederatedUpstreamGroupClient
+// MockFederatedUpstreamGroupClientMockRecorder is the mock recorder for MockFederatedUpstreamGroupClient.
 type MockFederatedUpstreamGroupClientMockRecorder struct {
 	mock *MockFederatedUpstreamGroupClient
 }
 
-// NewMockFederatedUpstreamGroupClient creates a new mock instance
+// NewMockFederatedUpstreamGroupClient creates a new mock instance.
 func NewMockFederatedUpstreamGroupClient(ctrl *gomock.Controller) *MockFederatedUpstreamGroupClient {
 	mock := &MockFederatedUpstreamGroupClient{ctrl: ctrl}
 	mock.recorder = &MockFederatedUpstreamGroupClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedUpstreamGroupClient) EXPECT() *MockFederatedUpstreamGroupClientMockRecorder {
 	return m.recorder
 }
 
-// GetFederatedUpstreamGroup mocks base method
+// CreateFederatedUpstreamGroup mocks base method.
+func (m *MockFederatedUpstreamGroupClient) CreateFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.CreateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateFederatedUpstreamGroup", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateFederatedUpstreamGroup indicates an expected call of CreateFederatedUpstreamGroup.
+func (mr *MockFederatedUpstreamGroupClientMockRecorder) CreateFederatedUpstreamGroup(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).CreateFederatedUpstreamGroup), varargs...)
+}
+
+// DeleteAllOfFederatedUpstreamGroup mocks base method.
+func (m *MockFederatedUpstreamGroupClient) DeleteAllOfFederatedUpstreamGroup(ctx context.Context, opts ...client.DeleteAllOfOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteAllOfFederatedUpstreamGroup", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAllOfFederatedUpstreamGroup indicates an expected call of DeleteAllOfFederatedUpstreamGroup.
+func (mr *MockFederatedUpstreamGroupClientMockRecorder) DeleteAllOfFederatedUpstreamGroup(ctx interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllOfFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).DeleteAllOfFederatedUpstreamGroup), varargs...)
+}
+
+// DeleteFederatedUpstreamGroup mocks base method.
+func (m *MockFederatedUpstreamGroupClient) DeleteFederatedUpstreamGroup(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, key}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteFederatedUpstreamGroup", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFederatedUpstreamGroup indicates an expected call of DeleteFederatedUpstreamGroup.
+func (mr *MockFederatedUpstreamGroupClientMockRecorder) DeleteFederatedUpstreamGroup(ctx, key interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, key}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).DeleteFederatedUpstreamGroup), varargs...)
+}
+
+// GetFederatedUpstreamGroup mocks base method.
 func (m *MockFederatedUpstreamGroupClient) GetFederatedUpstreamGroup(ctx context.Context, key client.ObjectKey) (*v1.FederatedUpstreamGroup, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFederatedUpstreamGroup", ctx, key)
@@ -908,13 +965,13 @@ func (m *MockFederatedUpstreamGroupClient) GetFederatedUpstreamGroup(ctx context
 	return ret0, ret1
 }
 
-// GetFederatedUpstreamGroup indicates an expected call of GetFederatedUpstreamGroup
+// GetFederatedUpstreamGroup indicates an expected call of GetFederatedUpstreamGroup.
 func (mr *MockFederatedUpstreamGroupClientMockRecorder) GetFederatedUpstreamGroup(ctx, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).GetFederatedUpstreamGroup), ctx, key)
 }
 
-// ListFederatedUpstreamGroup mocks base method
+// ListFederatedUpstreamGroup mocks base method.
 func (m *MockFederatedUpstreamGroupClient) ListFederatedUpstreamGroup(ctx context.Context, opts ...client.ListOption) (*v1.FederatedUpstreamGroupList, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
@@ -927,71 +984,14 @@ func (m *MockFederatedUpstreamGroupClient) ListFederatedUpstreamGroup(ctx contex
 	return ret0, ret1
 }
 
-// ListFederatedUpstreamGroup indicates an expected call of ListFederatedUpstreamGroup
+// ListFederatedUpstreamGroup indicates an expected call of ListFederatedUpstreamGroup.
 func (mr *MockFederatedUpstreamGroupClientMockRecorder) ListFederatedUpstreamGroup(ctx interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).ListFederatedUpstreamGroup), varargs...)
 }
 
-// CreateFederatedUpstreamGroup mocks base method
-func (m *MockFederatedUpstreamGroupClient) CreateFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.CreateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "CreateFederatedUpstreamGroup", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateFederatedUpstreamGroup indicates an expected call of CreateFederatedUpstreamGroup
-func (mr *MockFederatedUpstreamGroupClientMockRecorder) CreateFederatedUpstreamGroup(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).CreateFederatedUpstreamGroup), varargs...)
-}
-
-// DeleteFederatedUpstreamGroup mocks base method
-func (m *MockFederatedUpstreamGroupClient) DeleteFederatedUpstreamGroup(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, key}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "DeleteFederatedUpstreamGroup", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteFederatedUpstreamGroup indicates an expected call of DeleteFederatedUpstreamGroup
-func (mr *MockFederatedUpstreamGroupClientMockRecorder) DeleteFederatedUpstreamGroup(ctx, key interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, key}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).DeleteFederatedUpstreamGroup), varargs...)
-}
-
-// UpdateFederatedUpstreamGroup mocks base method
-func (m *MockFederatedUpstreamGroupClient) UpdateFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamGroup", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedUpstreamGroup indicates an expected call of UpdateFederatedUpstreamGroup
-func (mr *MockFederatedUpstreamGroupClientMockRecorder) UpdateFederatedUpstreamGroup(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).UpdateFederatedUpstreamGroup), varargs...)
-}
-
-// PatchFederatedUpstreamGroup mocks base method
+// PatchFederatedUpstreamGroup mocks base method.
 func (m *MockFederatedUpstreamGroupClient) PatchFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, patch client.Patch, opts ...client.PatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
@@ -1003,71 +1003,14 @@ func (m *MockFederatedUpstreamGroupClient) PatchFederatedUpstreamGroup(ctx conte
 	return ret0
 }
 
-// PatchFederatedUpstreamGroup indicates an expected call of PatchFederatedUpstreamGroup
+// PatchFederatedUpstreamGroup indicates an expected call of PatchFederatedUpstreamGroup.
 func (mr *MockFederatedUpstreamGroupClientMockRecorder) PatchFederatedUpstreamGroup(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj, patch}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).PatchFederatedUpstreamGroup), varargs...)
 }
 
-// DeleteAllOfFederatedUpstreamGroup mocks base method
-func (m *MockFederatedUpstreamGroupClient) DeleteAllOfFederatedUpstreamGroup(ctx context.Context, opts ...client.DeleteAllOfOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "DeleteAllOfFederatedUpstreamGroup", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteAllOfFederatedUpstreamGroup indicates an expected call of DeleteAllOfFederatedUpstreamGroup
-func (mr *MockFederatedUpstreamGroupClientMockRecorder) DeleteAllOfFederatedUpstreamGroup(ctx interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllOfFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).DeleteAllOfFederatedUpstreamGroup), varargs...)
-}
-
-// UpsertFederatedUpstreamGroup mocks base method
-func (m *MockFederatedUpstreamGroupClient) UpsertFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, transitionFuncs ...v1.FederatedUpstreamGroupTransitionFunction) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range transitionFuncs {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpsertFederatedUpstreamGroup", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpsertFederatedUpstreamGroup indicates an expected call of UpsertFederatedUpstreamGroup
-func (mr *MockFederatedUpstreamGroupClientMockRecorder) UpsertFederatedUpstreamGroup(ctx, obj interface{}, transitionFuncs ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, transitionFuncs...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).UpsertFederatedUpstreamGroup), varargs...)
-}
-
-// UpdateFederatedUpstreamGroupStatus mocks base method
-func (m *MockFederatedUpstreamGroupClient) UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamGroupStatus", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedUpstreamGroupStatus indicates an expected call of UpdateFederatedUpstreamGroupStatus
-func (mr *MockFederatedUpstreamGroupClientMockRecorder) UpdateFederatedUpstreamGroupStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamGroupStatus", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).UpdateFederatedUpstreamGroupStatus), varargs...)
-}
-
-// PatchFederatedUpstreamGroupStatus mocks base method
+// PatchFederatedUpstreamGroupStatus mocks base method.
 func (m *MockFederatedUpstreamGroupClient) PatchFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, patch client.Patch, opts ...client.PatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
@@ -1079,37 +1022,94 @@ func (m *MockFederatedUpstreamGroupClient) PatchFederatedUpstreamGroupStatus(ctx
 	return ret0
 }
 
-// PatchFederatedUpstreamGroupStatus indicates an expected call of PatchFederatedUpstreamGroupStatus
+// PatchFederatedUpstreamGroupStatus indicates an expected call of PatchFederatedUpstreamGroupStatus.
 func (mr *MockFederatedUpstreamGroupClientMockRecorder) PatchFederatedUpstreamGroupStatus(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj, patch}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedUpstreamGroupStatus", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).PatchFederatedUpstreamGroupStatus), varargs...)
 }
 
-// MockMulticlusterFederatedUpstreamGroupClient is a mock of MulticlusterFederatedUpstreamGroupClient interface
+// UpdateFederatedUpstreamGroup mocks base method.
+func (m *MockFederatedUpstreamGroupClient) UpdateFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamGroup", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedUpstreamGroup indicates an expected call of UpdateFederatedUpstreamGroup.
+func (mr *MockFederatedUpstreamGroupClientMockRecorder) UpdateFederatedUpstreamGroup(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).UpdateFederatedUpstreamGroup), varargs...)
+}
+
+// UpdateFederatedUpstreamGroupStatus mocks base method.
+func (m *MockFederatedUpstreamGroupClient) UpdateFederatedUpstreamGroupStatus(ctx context.Context, obj *v1.FederatedUpstreamGroup, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedUpstreamGroupStatus", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedUpstreamGroupStatus indicates an expected call of UpdateFederatedUpstreamGroupStatus.
+func (mr *MockFederatedUpstreamGroupClientMockRecorder) UpdateFederatedUpstreamGroupStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedUpstreamGroupStatus", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).UpdateFederatedUpstreamGroupStatus), varargs...)
+}
+
+// UpsertFederatedUpstreamGroup mocks base method.
+func (m *MockFederatedUpstreamGroupClient) UpsertFederatedUpstreamGroup(ctx context.Context, obj *v1.FederatedUpstreamGroup, transitionFuncs ...v1.FederatedUpstreamGroupTransitionFunction) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range transitionFuncs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpsertFederatedUpstreamGroup", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpsertFederatedUpstreamGroup indicates an expected call of UpsertFederatedUpstreamGroup.
+func (mr *MockFederatedUpstreamGroupClientMockRecorder) UpsertFederatedUpstreamGroup(ctx, obj interface{}, transitionFuncs ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, transitionFuncs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertFederatedUpstreamGroup", reflect.TypeOf((*MockFederatedUpstreamGroupClient)(nil).UpsertFederatedUpstreamGroup), varargs...)
+}
+
+// MockMulticlusterFederatedUpstreamGroupClient is a mock of MulticlusterFederatedUpstreamGroupClient interface.
 type MockMulticlusterFederatedUpstreamGroupClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockMulticlusterFederatedUpstreamGroupClientMockRecorder
 }
 
-// MockMulticlusterFederatedUpstreamGroupClientMockRecorder is the mock recorder for MockMulticlusterFederatedUpstreamGroupClient
+// MockMulticlusterFederatedUpstreamGroupClientMockRecorder is the mock recorder for MockMulticlusterFederatedUpstreamGroupClient.
 type MockMulticlusterFederatedUpstreamGroupClientMockRecorder struct {
 	mock *MockMulticlusterFederatedUpstreamGroupClient
 }
 
-// NewMockMulticlusterFederatedUpstreamGroupClient creates a new mock instance
+// NewMockMulticlusterFederatedUpstreamGroupClient creates a new mock instance.
 func NewMockMulticlusterFederatedUpstreamGroupClient(ctrl *gomock.Controller) *MockMulticlusterFederatedUpstreamGroupClient {
 	mock := &MockMulticlusterFederatedUpstreamGroupClient{ctrl: ctrl}
 	mock.recorder = &MockMulticlusterFederatedUpstreamGroupClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMulticlusterFederatedUpstreamGroupClient) EXPECT() *MockMulticlusterFederatedUpstreamGroupClientMockRecorder {
 	return m.recorder
 }
 
-// Cluster mocks base method
+// Cluster mocks base method.
 func (m *MockMulticlusterFederatedUpstreamGroupClient) Cluster(cluster string) (v1.FederatedUpstreamGroupClient, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Cluster", cluster)
@@ -1118,36 +1118,36 @@ func (m *MockMulticlusterFederatedUpstreamGroupClient) Cluster(cluster string) (
 	return ret0, ret1
 }
 
-// Cluster indicates an expected call of Cluster
+// Cluster indicates an expected call of Cluster.
 func (mr *MockMulticlusterFederatedUpstreamGroupClientMockRecorder) Cluster(cluster interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cluster", reflect.TypeOf((*MockMulticlusterFederatedUpstreamGroupClient)(nil).Cluster), cluster)
 }
 
-// MockFederatedSettingsReader is a mock of FederatedSettingsReader interface
+// MockFederatedSettingsReader is a mock of FederatedSettingsReader interface.
 type MockFederatedSettingsReader struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedSettingsReaderMockRecorder
 }
 
-// MockFederatedSettingsReaderMockRecorder is the mock recorder for MockFederatedSettingsReader
+// MockFederatedSettingsReaderMockRecorder is the mock recorder for MockFederatedSettingsReader.
 type MockFederatedSettingsReaderMockRecorder struct {
 	mock *MockFederatedSettingsReader
 }
 
-// NewMockFederatedSettingsReader creates a new mock instance
+// NewMockFederatedSettingsReader creates a new mock instance.
 func NewMockFederatedSettingsReader(ctrl *gomock.Controller) *MockFederatedSettingsReader {
 	mock := &MockFederatedSettingsReader{ctrl: ctrl}
 	mock.recorder = &MockFederatedSettingsReaderMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedSettingsReader) EXPECT() *MockFederatedSettingsReaderMockRecorder {
 	return m.recorder
 }
 
-// GetFederatedSettings mocks base method
+// GetFederatedSettings mocks base method.
 func (m *MockFederatedSettingsReader) GetFederatedSettings(ctx context.Context, key client.ObjectKey) (*v1.FederatedSettings, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFederatedSettings", ctx, key)
@@ -1156,13 +1156,13 @@ func (m *MockFederatedSettingsReader) GetFederatedSettings(ctx context.Context, 
 	return ret0, ret1
 }
 
-// GetFederatedSettings indicates an expected call of GetFederatedSettings
+// GetFederatedSettings indicates an expected call of GetFederatedSettings.
 func (mr *MockFederatedSettingsReaderMockRecorder) GetFederatedSettings(ctx, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFederatedSettings", reflect.TypeOf((*MockFederatedSettingsReader)(nil).GetFederatedSettings), ctx, key)
 }
 
-// ListFederatedSettings mocks base method
+// ListFederatedSettings mocks base method.
 func (m *MockFederatedSettingsReader) ListFederatedSettings(ctx context.Context, opts ...client.ListOption) (*v1.FederatedSettingsList, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
@@ -1175,37 +1175,37 @@ func (m *MockFederatedSettingsReader) ListFederatedSettings(ctx context.Context,
 	return ret0, ret1
 }
 
-// ListFederatedSettings indicates an expected call of ListFederatedSettings
+// ListFederatedSettings indicates an expected call of ListFederatedSettings.
 func (mr *MockFederatedSettingsReaderMockRecorder) ListFederatedSettings(ctx interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFederatedSettings", reflect.TypeOf((*MockFederatedSettingsReader)(nil).ListFederatedSettings), varargs...)
 }
 
-// MockFederatedSettingsWriter is a mock of FederatedSettingsWriter interface
+// MockFederatedSettingsWriter is a mock of FederatedSettingsWriter interface.
 type MockFederatedSettingsWriter struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedSettingsWriterMockRecorder
 }
 
-// MockFederatedSettingsWriterMockRecorder is the mock recorder for MockFederatedSettingsWriter
+// MockFederatedSettingsWriterMockRecorder is the mock recorder for MockFederatedSettingsWriter.
 type MockFederatedSettingsWriterMockRecorder struct {
 	mock *MockFederatedSettingsWriter
 }
 
-// NewMockFederatedSettingsWriter creates a new mock instance
+// NewMockFederatedSettingsWriter creates a new mock instance.
 func NewMockFederatedSettingsWriter(ctrl *gomock.Controller) *MockFederatedSettingsWriter {
 	mock := &MockFederatedSettingsWriter{ctrl: ctrl}
 	mock.recorder = &MockFederatedSettingsWriterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedSettingsWriter) EXPECT() *MockFederatedSettingsWriterMockRecorder {
 	return m.recorder
 }
 
-// CreateFederatedSettings mocks base method
+// CreateFederatedSettings mocks base method.
 func (m *MockFederatedSettingsWriter) CreateFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, opts ...client.CreateOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
@@ -1217,71 +1217,14 @@ func (m *MockFederatedSettingsWriter) CreateFederatedSettings(ctx context.Contex
 	return ret0
 }
 
-// CreateFederatedSettings indicates an expected call of CreateFederatedSettings
+// CreateFederatedSettings indicates an expected call of CreateFederatedSettings.
 func (mr *MockFederatedSettingsWriterMockRecorder) CreateFederatedSettings(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedSettings", reflect.TypeOf((*MockFederatedSettingsWriter)(nil).CreateFederatedSettings), varargs...)
 }
 
-// DeleteFederatedSettings mocks base method
-func (m *MockFederatedSettingsWriter) DeleteFederatedSettings(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, key}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "DeleteFederatedSettings", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteFederatedSettings indicates an expected call of DeleteFederatedSettings
-func (mr *MockFederatedSettingsWriterMockRecorder) DeleteFederatedSettings(ctx, key interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, key}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedSettings", reflect.TypeOf((*MockFederatedSettingsWriter)(nil).DeleteFederatedSettings), varargs...)
-}
-
-// UpdateFederatedSettings mocks base method
-func (m *MockFederatedSettingsWriter) UpdateFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedSettings", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedSettings indicates an expected call of UpdateFederatedSettings
-func (mr *MockFederatedSettingsWriterMockRecorder) UpdateFederatedSettings(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedSettings", reflect.TypeOf((*MockFederatedSettingsWriter)(nil).UpdateFederatedSettings), varargs...)
-}
-
-// PatchFederatedSettings mocks base method
-func (m *MockFederatedSettingsWriter) PatchFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, patch client.Patch, opts ...client.PatchOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj, patch}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "PatchFederatedSettings", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// PatchFederatedSettings indicates an expected call of PatchFederatedSettings
-func (mr *MockFederatedSettingsWriterMockRecorder) PatchFederatedSettings(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj, patch}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedSettings", reflect.TypeOf((*MockFederatedSettingsWriter)(nil).PatchFederatedSettings), varargs...)
-}
-
-// DeleteAllOfFederatedSettings mocks base method
+// DeleteAllOfFederatedSettings mocks base method.
 func (m *MockFederatedSettingsWriter) DeleteAllOfFederatedSettings(ctx context.Context, opts ...client.DeleteAllOfOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
@@ -1293,14 +1236,71 @@ func (m *MockFederatedSettingsWriter) DeleteAllOfFederatedSettings(ctx context.C
 	return ret0
 }
 
-// DeleteAllOfFederatedSettings indicates an expected call of DeleteAllOfFederatedSettings
+// DeleteAllOfFederatedSettings indicates an expected call of DeleteAllOfFederatedSettings.
 func (mr *MockFederatedSettingsWriterMockRecorder) DeleteAllOfFederatedSettings(ctx interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllOfFederatedSettings", reflect.TypeOf((*MockFederatedSettingsWriter)(nil).DeleteAllOfFederatedSettings), varargs...)
 }
 
-// UpsertFederatedSettings mocks base method
+// DeleteFederatedSettings mocks base method.
+func (m *MockFederatedSettingsWriter) DeleteFederatedSettings(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, key}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteFederatedSettings", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFederatedSettings indicates an expected call of DeleteFederatedSettings.
+func (mr *MockFederatedSettingsWriterMockRecorder) DeleteFederatedSettings(ctx, key interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, key}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedSettings", reflect.TypeOf((*MockFederatedSettingsWriter)(nil).DeleteFederatedSettings), varargs...)
+}
+
+// PatchFederatedSettings mocks base method.
+func (m *MockFederatedSettingsWriter) PatchFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, patch client.Patch, opts ...client.PatchOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj, patch}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchFederatedSettings", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PatchFederatedSettings indicates an expected call of PatchFederatedSettings.
+func (mr *MockFederatedSettingsWriterMockRecorder) PatchFederatedSettings(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj, patch}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedSettings", reflect.TypeOf((*MockFederatedSettingsWriter)(nil).PatchFederatedSettings), varargs...)
+}
+
+// UpdateFederatedSettings mocks base method.
+func (m *MockFederatedSettingsWriter) UpdateFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedSettings", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedSettings indicates an expected call of UpdateFederatedSettings.
+func (mr *MockFederatedSettingsWriterMockRecorder) UpdateFederatedSettings(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedSettings", reflect.TypeOf((*MockFederatedSettingsWriter)(nil).UpdateFederatedSettings), varargs...)
+}
+
+// UpsertFederatedSettings mocks base method.
 func (m *MockFederatedSettingsWriter) UpsertFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, transitionFuncs ...v1.FederatedSettingsTransitionFunction) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj}
@@ -1312,56 +1312,37 @@ func (m *MockFederatedSettingsWriter) UpsertFederatedSettings(ctx context.Contex
 	return ret0
 }
 
-// UpsertFederatedSettings indicates an expected call of UpsertFederatedSettings
+// UpsertFederatedSettings indicates an expected call of UpsertFederatedSettings.
 func (mr *MockFederatedSettingsWriterMockRecorder) UpsertFederatedSettings(ctx, obj interface{}, transitionFuncs ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj}, transitionFuncs...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertFederatedSettings", reflect.TypeOf((*MockFederatedSettingsWriter)(nil).UpsertFederatedSettings), varargs...)
 }
 
-// MockFederatedSettingsStatusWriter is a mock of FederatedSettingsStatusWriter interface
+// MockFederatedSettingsStatusWriter is a mock of FederatedSettingsStatusWriter interface.
 type MockFederatedSettingsStatusWriter struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedSettingsStatusWriterMockRecorder
 }
 
-// MockFederatedSettingsStatusWriterMockRecorder is the mock recorder for MockFederatedSettingsStatusWriter
+// MockFederatedSettingsStatusWriterMockRecorder is the mock recorder for MockFederatedSettingsStatusWriter.
 type MockFederatedSettingsStatusWriterMockRecorder struct {
 	mock *MockFederatedSettingsStatusWriter
 }
 
-// NewMockFederatedSettingsStatusWriter creates a new mock instance
+// NewMockFederatedSettingsStatusWriter creates a new mock instance.
 func NewMockFederatedSettingsStatusWriter(ctrl *gomock.Controller) *MockFederatedSettingsStatusWriter {
 	mock := &MockFederatedSettingsStatusWriter{ctrl: ctrl}
 	mock.recorder = &MockFederatedSettingsStatusWriterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedSettingsStatusWriter) EXPECT() *MockFederatedSettingsStatusWriterMockRecorder {
 	return m.recorder
 }
 
-// UpdateFederatedSettingsStatus mocks base method
-func (m *MockFederatedSettingsStatusWriter) UpdateFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedSettingsStatus", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedSettingsStatus indicates an expected call of UpdateFederatedSettingsStatus
-func (mr *MockFederatedSettingsStatusWriterMockRecorder) UpdateFederatedSettingsStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedSettingsStatus", reflect.TypeOf((*MockFederatedSettingsStatusWriter)(nil).UpdateFederatedSettingsStatus), varargs...)
-}
-
-// PatchFederatedSettingsStatus mocks base method
+// PatchFederatedSettingsStatus mocks base method.
 func (m *MockFederatedSettingsStatusWriter) PatchFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, patch client.Patch, opts ...client.PatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
@@ -1373,37 +1354,113 @@ func (m *MockFederatedSettingsStatusWriter) PatchFederatedSettingsStatus(ctx con
 	return ret0
 }
 
-// PatchFederatedSettingsStatus indicates an expected call of PatchFederatedSettingsStatus
+// PatchFederatedSettingsStatus indicates an expected call of PatchFederatedSettingsStatus.
 func (mr *MockFederatedSettingsStatusWriterMockRecorder) PatchFederatedSettingsStatus(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj, patch}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedSettingsStatus", reflect.TypeOf((*MockFederatedSettingsStatusWriter)(nil).PatchFederatedSettingsStatus), varargs...)
 }
 
-// MockFederatedSettingsClient is a mock of FederatedSettingsClient interface
+// UpdateFederatedSettingsStatus mocks base method.
+func (m *MockFederatedSettingsStatusWriter) UpdateFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedSettingsStatus", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedSettingsStatus indicates an expected call of UpdateFederatedSettingsStatus.
+func (mr *MockFederatedSettingsStatusWriterMockRecorder) UpdateFederatedSettingsStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedSettingsStatus", reflect.TypeOf((*MockFederatedSettingsStatusWriter)(nil).UpdateFederatedSettingsStatus), varargs...)
+}
+
+// MockFederatedSettingsClient is a mock of FederatedSettingsClient interface.
 type MockFederatedSettingsClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedSettingsClientMockRecorder
 }
 
-// MockFederatedSettingsClientMockRecorder is the mock recorder for MockFederatedSettingsClient
+// MockFederatedSettingsClientMockRecorder is the mock recorder for MockFederatedSettingsClient.
 type MockFederatedSettingsClientMockRecorder struct {
 	mock *MockFederatedSettingsClient
 }
 
-// NewMockFederatedSettingsClient creates a new mock instance
+// NewMockFederatedSettingsClient creates a new mock instance.
 func NewMockFederatedSettingsClient(ctrl *gomock.Controller) *MockFederatedSettingsClient {
 	mock := &MockFederatedSettingsClient{ctrl: ctrl}
 	mock.recorder = &MockFederatedSettingsClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedSettingsClient) EXPECT() *MockFederatedSettingsClientMockRecorder {
 	return m.recorder
 }
 
-// GetFederatedSettings mocks base method
+// CreateFederatedSettings mocks base method.
+func (m *MockFederatedSettingsClient) CreateFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, opts ...client.CreateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateFederatedSettings", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateFederatedSettings indicates an expected call of CreateFederatedSettings.
+func (mr *MockFederatedSettingsClientMockRecorder) CreateFederatedSettings(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).CreateFederatedSettings), varargs...)
+}
+
+// DeleteAllOfFederatedSettings mocks base method.
+func (m *MockFederatedSettingsClient) DeleteAllOfFederatedSettings(ctx context.Context, opts ...client.DeleteAllOfOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteAllOfFederatedSettings", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAllOfFederatedSettings indicates an expected call of DeleteAllOfFederatedSettings.
+func (mr *MockFederatedSettingsClientMockRecorder) DeleteAllOfFederatedSettings(ctx interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllOfFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).DeleteAllOfFederatedSettings), varargs...)
+}
+
+// DeleteFederatedSettings mocks base method.
+func (m *MockFederatedSettingsClient) DeleteFederatedSettings(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, key}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteFederatedSettings", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFederatedSettings indicates an expected call of DeleteFederatedSettings.
+func (mr *MockFederatedSettingsClientMockRecorder) DeleteFederatedSettings(ctx, key interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, key}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).DeleteFederatedSettings), varargs...)
+}
+
+// GetFederatedSettings mocks base method.
 func (m *MockFederatedSettingsClient) GetFederatedSettings(ctx context.Context, key client.ObjectKey) (*v1.FederatedSettings, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFederatedSettings", ctx, key)
@@ -1412,13 +1469,13 @@ func (m *MockFederatedSettingsClient) GetFederatedSettings(ctx context.Context, 
 	return ret0, ret1
 }
 
-// GetFederatedSettings indicates an expected call of GetFederatedSettings
+// GetFederatedSettings indicates an expected call of GetFederatedSettings.
 func (mr *MockFederatedSettingsClientMockRecorder) GetFederatedSettings(ctx, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).GetFederatedSettings), ctx, key)
 }
 
-// ListFederatedSettings mocks base method
+// ListFederatedSettings mocks base method.
 func (m *MockFederatedSettingsClient) ListFederatedSettings(ctx context.Context, opts ...client.ListOption) (*v1.FederatedSettingsList, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx}
@@ -1431,71 +1488,14 @@ func (m *MockFederatedSettingsClient) ListFederatedSettings(ctx context.Context,
 	return ret0, ret1
 }
 
-// ListFederatedSettings indicates an expected call of ListFederatedSettings
+// ListFederatedSettings indicates an expected call of ListFederatedSettings.
 func (mr *MockFederatedSettingsClientMockRecorder) ListFederatedSettings(ctx interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).ListFederatedSettings), varargs...)
 }
 
-// CreateFederatedSettings mocks base method
-func (m *MockFederatedSettingsClient) CreateFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, opts ...client.CreateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "CreateFederatedSettings", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateFederatedSettings indicates an expected call of CreateFederatedSettings
-func (mr *MockFederatedSettingsClientMockRecorder) CreateFederatedSettings(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).CreateFederatedSettings), varargs...)
-}
-
-// DeleteFederatedSettings mocks base method
-func (m *MockFederatedSettingsClient) DeleteFederatedSettings(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, key}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "DeleteFederatedSettings", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteFederatedSettings indicates an expected call of DeleteFederatedSettings
-func (mr *MockFederatedSettingsClientMockRecorder) DeleteFederatedSettings(ctx, key interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, key}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).DeleteFederatedSettings), varargs...)
-}
-
-// UpdateFederatedSettings mocks base method
-func (m *MockFederatedSettingsClient) UpdateFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedSettings", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedSettings indicates an expected call of UpdateFederatedSettings
-func (mr *MockFederatedSettingsClientMockRecorder) UpdateFederatedSettings(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).UpdateFederatedSettings), varargs...)
-}
-
-// PatchFederatedSettings mocks base method
+// PatchFederatedSettings mocks base method.
 func (m *MockFederatedSettingsClient) PatchFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, patch client.Patch, opts ...client.PatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
@@ -1507,71 +1507,14 @@ func (m *MockFederatedSettingsClient) PatchFederatedSettings(ctx context.Context
 	return ret0
 }
 
-// PatchFederatedSettings indicates an expected call of PatchFederatedSettings
+// PatchFederatedSettings indicates an expected call of PatchFederatedSettings.
 func (mr *MockFederatedSettingsClientMockRecorder) PatchFederatedSettings(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj, patch}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).PatchFederatedSettings), varargs...)
 }
 
-// DeleteAllOfFederatedSettings mocks base method
-func (m *MockFederatedSettingsClient) DeleteAllOfFederatedSettings(ctx context.Context, opts ...client.DeleteAllOfOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "DeleteAllOfFederatedSettings", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteAllOfFederatedSettings indicates an expected call of DeleteAllOfFederatedSettings
-func (mr *MockFederatedSettingsClientMockRecorder) DeleteAllOfFederatedSettings(ctx interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllOfFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).DeleteAllOfFederatedSettings), varargs...)
-}
-
-// UpsertFederatedSettings mocks base method
-func (m *MockFederatedSettingsClient) UpsertFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, transitionFuncs ...v1.FederatedSettingsTransitionFunction) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range transitionFuncs {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpsertFederatedSettings", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpsertFederatedSettings indicates an expected call of UpsertFederatedSettings
-func (mr *MockFederatedSettingsClientMockRecorder) UpsertFederatedSettings(ctx, obj interface{}, transitionFuncs ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, transitionFuncs...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).UpsertFederatedSettings), varargs...)
-}
-
-// UpdateFederatedSettingsStatus mocks base method
-func (m *MockFederatedSettingsClient) UpdateFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, opts ...client.UpdateOption) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, obj}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFederatedSettingsStatus", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFederatedSettingsStatus indicates an expected call of UpdateFederatedSettingsStatus
-func (mr *MockFederatedSettingsClientMockRecorder) UpdateFederatedSettingsStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, obj}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedSettingsStatus", reflect.TypeOf((*MockFederatedSettingsClient)(nil).UpdateFederatedSettingsStatus), varargs...)
-}
-
-// PatchFederatedSettingsStatus mocks base method
+// PatchFederatedSettingsStatus mocks base method.
 func (m *MockFederatedSettingsClient) PatchFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, patch client.Patch, opts ...client.PatchOption) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, obj, patch}
@@ -1583,37 +1526,94 @@ func (m *MockFederatedSettingsClient) PatchFederatedSettingsStatus(ctx context.C
 	return ret0
 }
 
-// PatchFederatedSettingsStatus indicates an expected call of PatchFederatedSettingsStatus
+// PatchFederatedSettingsStatus indicates an expected call of PatchFederatedSettingsStatus.
 func (mr *MockFederatedSettingsClientMockRecorder) PatchFederatedSettingsStatus(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, obj, patch}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedSettingsStatus", reflect.TypeOf((*MockFederatedSettingsClient)(nil).PatchFederatedSettingsStatus), varargs...)
 }
 
-// MockMulticlusterFederatedSettingsClient is a mock of MulticlusterFederatedSettingsClient interface
+// UpdateFederatedSettings mocks base method.
+func (m *MockFederatedSettingsClient) UpdateFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedSettings", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedSettings indicates an expected call of UpdateFederatedSettings.
+func (mr *MockFederatedSettingsClientMockRecorder) UpdateFederatedSettings(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).UpdateFederatedSettings), varargs...)
+}
+
+// UpdateFederatedSettingsStatus mocks base method.
+func (m *MockFederatedSettingsClient) UpdateFederatedSettingsStatus(ctx context.Context, obj *v1.FederatedSettings, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedSettingsStatus", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedSettingsStatus indicates an expected call of UpdateFederatedSettingsStatus.
+func (mr *MockFederatedSettingsClientMockRecorder) UpdateFederatedSettingsStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedSettingsStatus", reflect.TypeOf((*MockFederatedSettingsClient)(nil).UpdateFederatedSettingsStatus), varargs...)
+}
+
+// UpsertFederatedSettings mocks base method.
+func (m *MockFederatedSettingsClient) UpsertFederatedSettings(ctx context.Context, obj *v1.FederatedSettings, transitionFuncs ...v1.FederatedSettingsTransitionFunction) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range transitionFuncs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpsertFederatedSettings", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpsertFederatedSettings indicates an expected call of UpsertFederatedSettings.
+func (mr *MockFederatedSettingsClientMockRecorder) UpsertFederatedSettings(ctx, obj interface{}, transitionFuncs ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, transitionFuncs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertFederatedSettings", reflect.TypeOf((*MockFederatedSettingsClient)(nil).UpsertFederatedSettings), varargs...)
+}
+
+// MockMulticlusterFederatedSettingsClient is a mock of MulticlusterFederatedSettingsClient interface.
 type MockMulticlusterFederatedSettingsClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockMulticlusterFederatedSettingsClientMockRecorder
 }
 
-// MockMulticlusterFederatedSettingsClientMockRecorder is the mock recorder for MockMulticlusterFederatedSettingsClient
+// MockMulticlusterFederatedSettingsClientMockRecorder is the mock recorder for MockMulticlusterFederatedSettingsClient.
 type MockMulticlusterFederatedSettingsClientMockRecorder struct {
 	mock *MockMulticlusterFederatedSettingsClient
 }
 
-// NewMockMulticlusterFederatedSettingsClient creates a new mock instance
+// NewMockMulticlusterFederatedSettingsClient creates a new mock instance.
 func NewMockMulticlusterFederatedSettingsClient(ctrl *gomock.Controller) *MockMulticlusterFederatedSettingsClient {
 	mock := &MockMulticlusterFederatedSettingsClient{ctrl: ctrl}
 	mock.recorder = &MockMulticlusterFederatedSettingsClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMulticlusterFederatedSettingsClient) EXPECT() *MockMulticlusterFederatedSettingsClientMockRecorder {
 	return m.recorder
 }
 
-// Cluster mocks base method
+// Cluster mocks base method.
 func (m *MockMulticlusterFederatedSettingsClient) Cluster(cluster string) (v1.FederatedSettingsClient, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Cluster", cluster)
@@ -1622,7 +1622,7 @@ func (m *MockMulticlusterFederatedSettingsClient) Cluster(cluster string) (v1.Fe
 	return ret0, ret1
 }
 
-// Cluster indicates an expected call of Cluster
+// Cluster indicates an expected call of Cluster.
 func (mr *MockMulticlusterFederatedSettingsClientMockRecorder) Cluster(cluster interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cluster", reflect.TypeOf((*MockMulticlusterFederatedSettingsClient)(nil).Cluster), cluster)

@@ -82,6 +82,7 @@ observability:
 global:
   image:
     pullPolicy: IfNotPresent
+    fips: false
   glooRbac:
     create: true
   extensions:

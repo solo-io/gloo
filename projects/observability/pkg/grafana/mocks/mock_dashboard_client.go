@@ -11,30 +11,30 @@ import (
 	grafana "github.com/solo-io/solo-projects/projects/observability/pkg/grafana"
 )
 
-// MockDashboardClient is a mock of DashboardClient interface
+// MockDashboardClient is a mock of DashboardClient interface.
 type MockDashboardClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockDashboardClientMockRecorder
 }
 
-// MockDashboardClientMockRecorder is the mock recorder for MockDashboardClient
+// MockDashboardClientMockRecorder is the mock recorder for MockDashboardClient.
 type MockDashboardClientMockRecorder struct {
 	mock *MockDashboardClient
 }
 
-// NewMockDashboardClient creates a new mock instance
+// NewMockDashboardClient creates a new mock instance.
 func NewMockDashboardClient(ctrl *gomock.Controller) *MockDashboardClient {
 	mock := &MockDashboardClient{ctrl: ctrl}
 	mock.recorder = &MockDashboardClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockDashboardClient) EXPECT() *MockDashboardClientMockRecorder {
 	return m.recorder
 }
 
-// DeleteDashboard mocks base method
+// DeleteDashboard mocks base method.
 func (m *MockDashboardClient) DeleteDashboard(arg0 string) (grafana.StatusMessage, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteDashboard", arg0)
@@ -43,13 +43,13 @@ func (m *MockDashboardClient) DeleteDashboard(arg0 string) (grafana.StatusMessag
 	return ret0, ret1
 }
 
-// DeleteDashboard indicates an expected call of DeleteDashboard
+// DeleteDashboard indicates an expected call of DeleteDashboard.
 func (mr *MockDashboardClientMockRecorder) DeleteDashboard(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteDashboard", reflect.TypeOf((*MockDashboardClient)(nil).DeleteDashboard), arg0)
 }
 
-// GetAllFolderIds mocks base method
+// GetAllFolderIds mocks base method.
 func (m *MockDashboardClient) GetAllFolderIds() ([]grafana.FolderProperties, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllFolderIds")
@@ -58,13 +58,13 @@ func (m *MockDashboardClient) GetAllFolderIds() ([]grafana.FolderProperties, err
 	return ret0, ret1
 }
 
-// GetAllFolderIds indicates an expected call of GetAllFolderIds
+// GetAllFolderIds indicates an expected call of GetAllFolderIds.
 func (mr *MockDashboardClientMockRecorder) GetAllFolderIds() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllFolderIds", reflect.TypeOf((*MockDashboardClient)(nil).GetAllFolderIds))
 }
 
-// GetDashboardVersions mocks base method
+// GetDashboardVersions mocks base method.
 func (m *MockDashboardClient) GetDashboardVersions(arg0 float64) ([]*grafana.Version, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDashboardVersions", arg0)
@@ -73,13 +73,13 @@ func (m *MockDashboardClient) GetDashboardVersions(arg0 float64) ([]*grafana.Ver
 	return ret0, ret1
 }
 
-// GetDashboardVersions indicates an expected call of GetDashboardVersions
+// GetDashboardVersions indicates an expected call of GetDashboardVersions.
 func (mr *MockDashboardClientMockRecorder) GetDashboardVersions(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDashboardVersions", reflect.TypeOf((*MockDashboardClient)(nil).GetDashboardVersions), arg0)
 }
 
-// GetRawDashboard mocks base method
+// GetRawDashboard mocks base method.
 func (m *MockDashboardClient) GetRawDashboard(arg0 string) ([]byte, grafana.BoardProperties, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRawDashboard", arg0)
@@ -89,13 +89,13 @@ func (m *MockDashboardClient) GetRawDashboard(arg0 string) ([]byte, grafana.Boar
 	return ret0, ret1, ret2
 }
 
-// GetRawDashboard indicates an expected call of GetRawDashboard
+// GetRawDashboard indicates an expected call of GetRawDashboard.
 func (mr *MockDashboardClientMockRecorder) GetRawDashboard(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawDashboard", reflect.TypeOf((*MockDashboardClient)(nil).GetRawDashboard), arg0)
 }
 
-// SearchDashboards mocks base method
+// SearchDashboards mocks base method.
 func (m *MockDashboardClient) SearchDashboards(arg0 string, arg1 bool, arg2 ...string) ([]grafana.FoundBoard, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1}
@@ -108,14 +108,14 @@ func (m *MockDashboardClient) SearchDashboards(arg0 string, arg1 bool, arg2 ...s
 	return ret0, ret1
 }
 
-// SearchDashboards indicates an expected call of SearchDashboards
+// SearchDashboards indicates an expected call of SearchDashboards.
 func (mr *MockDashboardClientMockRecorder) SearchDashboards(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchDashboards", reflect.TypeOf((*MockDashboardClient)(nil).SearchDashboards), varargs...)
 }
 
-// SetRawDashboard mocks base method
+// SetRawDashboard mocks base method.
 func (m *MockDashboardClient) SetRawDashboard(arg0 []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetRawDashboard", arg0)
@@ -123,7 +123,7 @@ func (m *MockDashboardClient) SetRawDashboard(arg0 []byte) error {
 	return ret0
 }
 
-// SetRawDashboard indicates an expected call of SetRawDashboard
+// SetRawDashboard indicates an expected call of SetRawDashboard.
 func (mr *MockDashboardClientMockRecorder) SetRawDashboard(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRawDashboard", reflect.TypeOf((*MockDashboardClient)(nil).SetRawDashboard), arg0)

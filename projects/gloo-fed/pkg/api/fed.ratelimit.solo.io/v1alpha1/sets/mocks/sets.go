@@ -15,30 +15,157 @@ import (
 	sets0 "k8s.io/apimachinery/pkg/util/sets"
 )
 
-// MockFederatedRateLimitConfigSet is a mock of FederatedRateLimitConfigSet interface
+// MockFederatedRateLimitConfigSet is a mock of FederatedRateLimitConfigSet interface.
 type MockFederatedRateLimitConfigSet struct {
 	ctrl     *gomock.Controller
 	recorder *MockFederatedRateLimitConfigSetMockRecorder
 }
 
-// MockFederatedRateLimitConfigSetMockRecorder is the mock recorder for MockFederatedRateLimitConfigSet
+// MockFederatedRateLimitConfigSetMockRecorder is the mock recorder for MockFederatedRateLimitConfigSet.
 type MockFederatedRateLimitConfigSetMockRecorder struct {
 	mock *MockFederatedRateLimitConfigSet
 }
 
-// NewMockFederatedRateLimitConfigSet creates a new mock instance
+// NewMockFederatedRateLimitConfigSet creates a new mock instance.
 func NewMockFederatedRateLimitConfigSet(ctrl *gomock.Controller) *MockFederatedRateLimitConfigSet {
 	mock := &MockFederatedRateLimitConfigSet{ctrl: ctrl}
 	mock.recorder = &MockFederatedRateLimitConfigSetMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedRateLimitConfigSet) EXPECT() *MockFederatedRateLimitConfigSetMockRecorder {
 	return m.recorder
 }
 
-// Keys mocks base method
+// Delete mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Delete(federatedRateLimitConfig ezkube.ResourceId) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Delete", federatedRateLimitConfig)
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Delete(federatedRateLimitConfig interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Delete), federatedRateLimitConfig)
+}
+
+// Delta mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Delta(newSet v1alpha1sets.FederatedRateLimitConfigSet) sets.ResourceDelta {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delta", newSet)
+	ret0, _ := ret[0].(sets.ResourceDelta)
+	return ret0
+}
+
+// Delta indicates an expected call of Delta.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Delta(newSet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delta", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Delta), newSet)
+}
+
+// Difference mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Difference(set v1alpha1sets.FederatedRateLimitConfigSet) v1alpha1sets.FederatedRateLimitConfigSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Difference", set)
+	ret0, _ := ret[0].(v1alpha1sets.FederatedRateLimitConfigSet)
+	return ret0
+}
+
+// Difference indicates an expected call of Difference.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Difference(set interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Difference", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Difference), set)
+}
+
+// Equal mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Equal(federatedRateLimitConfigSet v1alpha1sets.FederatedRateLimitConfigSet) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Equal", federatedRateLimitConfigSet)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Equal indicates an expected call of Equal.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Equal(federatedRateLimitConfigSet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Equal", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Equal), federatedRateLimitConfigSet)
+}
+
+// Find mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Find(id ezkube.ResourceId) (*v1alpha1.FederatedRateLimitConfig, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Find", id)
+	ret0, _ := ret[0].(*v1alpha1.FederatedRateLimitConfig)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Find indicates an expected call of Find.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Find(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Find), id)
+}
+
+// Generic mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Generic() sets.ResourceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generic")
+	ret0, _ := ret[0].(sets.ResourceSet)
+	return ret0
+}
+
+// Generic indicates an expected call of Generic.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Generic() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generic", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Generic))
+}
+
+// Has mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Has(federatedRateLimitConfig ezkube.ResourceId) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Has", federatedRateLimitConfig)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Has indicates an expected call of Has.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Has(federatedRateLimitConfig interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Has), federatedRateLimitConfig)
+}
+
+// Insert mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Insert(federatedRateLimitConfig ...*v1alpha1.FederatedRateLimitConfig) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range federatedRateLimitConfig {
+		varargs = append(varargs, a)
+	}
+	m.ctrl.Call(m, "Insert", varargs...)
+}
+
+// Insert indicates an expected call of Insert.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Insert(federatedRateLimitConfig ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Insert), federatedRateLimitConfig...)
+}
+
+// Intersection mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Intersection(set v1alpha1sets.FederatedRateLimitConfigSet) v1alpha1sets.FederatedRateLimitConfigSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Intersection", set)
+	ret0, _ := ret[0].(v1alpha1sets.FederatedRateLimitConfigSet)
+	return ret0
+}
+
+// Intersection indicates an expected call of Intersection.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Intersection(set interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Intersection", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Intersection), set)
+}
+
+// Keys mocks base method.
 func (m *MockFederatedRateLimitConfigSet) Keys() sets0.String {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Keys")
@@ -46,13 +173,27 @@ func (m *MockFederatedRateLimitConfigSet) Keys() sets0.String {
 	return ret0
 }
 
-// Keys indicates an expected call of Keys
+// Keys indicates an expected call of Keys.
 func (mr *MockFederatedRateLimitConfigSetMockRecorder) Keys() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Keys", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Keys))
 }
 
-// List mocks base method
+// Length mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Length() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Length")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// Length indicates an expected call of Length.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Length() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Length))
+}
+
+// List mocks base method.
 func (m *MockFederatedRateLimitConfigSet) List(filterResource ...func(*v1alpha1.FederatedRateLimitConfig) bool) []*v1alpha1.FederatedRateLimitConfig {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -64,13 +205,41 @@ func (m *MockFederatedRateLimitConfigSet) List(filterResource ...func(*v1alpha1.
 	return ret0
 }
 
-// List indicates an expected call of List
+// List indicates an expected call of List.
 func (mr *MockFederatedRateLimitConfigSetMockRecorder) List(filterResource ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).List), filterResource...)
 }
 
-// UnsortedList mocks base method
+// Map mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Map() map[string]*v1alpha1.FederatedRateLimitConfig {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Map")
+	ret0, _ := ret[0].(map[string]*v1alpha1.FederatedRateLimitConfig)
+	return ret0
+}
+
+// Map indicates an expected call of Map.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Map() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Map", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Map))
+}
+
+// Union mocks base method.
+func (m *MockFederatedRateLimitConfigSet) Union(set v1alpha1sets.FederatedRateLimitConfigSet) v1alpha1sets.FederatedRateLimitConfigSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Union", set)
+	ret0, _ := ret[0].(v1alpha1sets.FederatedRateLimitConfigSet)
+	return ret0
+}
+
+// Union indicates an expected call of Union.
+func (mr *MockFederatedRateLimitConfigSetMockRecorder) Union(set interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Union", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Union), set)
+}
+
+// UnsortedList mocks base method.
 func (m *MockFederatedRateLimitConfigSet) UnsortedList(filterResource ...func(*v1alpha1.FederatedRateLimitConfig) bool) []*v1alpha1.FederatedRateLimitConfig {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
@@ -82,177 +251,8 @@ func (m *MockFederatedRateLimitConfigSet) UnsortedList(filterResource ...func(*v
 	return ret0
 }
 
-// UnsortedList indicates an expected call of UnsortedList
+// UnsortedList indicates an expected call of UnsortedList.
 func (mr *MockFederatedRateLimitConfigSetMockRecorder) UnsortedList(filterResource ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsortedList", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).UnsortedList), filterResource...)
-}
-
-// Map mocks base method
-func (m *MockFederatedRateLimitConfigSet) Map() map[string]*v1alpha1.FederatedRateLimitConfig {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Map")
-	ret0, _ := ret[0].(map[string]*v1alpha1.FederatedRateLimitConfig)
-	return ret0
-}
-
-// Map indicates an expected call of Map
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Map() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Map", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Map))
-}
-
-// Insert mocks base method
-func (m *MockFederatedRateLimitConfigSet) Insert(federatedRateLimitConfig ...*v1alpha1.FederatedRateLimitConfig) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{}
-	for _, a := range federatedRateLimitConfig {
-		varargs = append(varargs, a)
-	}
-	m.ctrl.Call(m, "Insert", varargs...)
-}
-
-// Insert indicates an expected call of Insert
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Insert(federatedRateLimitConfig ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Insert), federatedRateLimitConfig...)
-}
-
-// Equal mocks base method
-func (m *MockFederatedRateLimitConfigSet) Equal(federatedRateLimitConfigSet v1alpha1sets.FederatedRateLimitConfigSet) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Equal", federatedRateLimitConfigSet)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// Equal indicates an expected call of Equal
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Equal(federatedRateLimitConfigSet interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Equal", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Equal), federatedRateLimitConfigSet)
-}
-
-// Has mocks base method
-func (m *MockFederatedRateLimitConfigSet) Has(federatedRateLimitConfig ezkube.ResourceId) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Has", federatedRateLimitConfig)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// Has indicates an expected call of Has
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Has(federatedRateLimitConfig interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Has), federatedRateLimitConfig)
-}
-
-// Delete mocks base method
-func (m *MockFederatedRateLimitConfigSet) Delete(federatedRateLimitConfig ezkube.ResourceId) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Delete", federatedRateLimitConfig)
-}
-
-// Delete indicates an expected call of Delete
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Delete(federatedRateLimitConfig interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Delete), federatedRateLimitConfig)
-}
-
-// Union mocks base method
-func (m *MockFederatedRateLimitConfigSet) Union(set v1alpha1sets.FederatedRateLimitConfigSet) v1alpha1sets.FederatedRateLimitConfigSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Union", set)
-	ret0, _ := ret[0].(v1alpha1sets.FederatedRateLimitConfigSet)
-	return ret0
-}
-
-// Union indicates an expected call of Union
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Union(set interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Union", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Union), set)
-}
-
-// Difference mocks base method
-func (m *MockFederatedRateLimitConfigSet) Difference(set v1alpha1sets.FederatedRateLimitConfigSet) v1alpha1sets.FederatedRateLimitConfigSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Difference", set)
-	ret0, _ := ret[0].(v1alpha1sets.FederatedRateLimitConfigSet)
-	return ret0
-}
-
-// Difference indicates an expected call of Difference
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Difference(set interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Difference", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Difference), set)
-}
-
-// Intersection mocks base method
-func (m *MockFederatedRateLimitConfigSet) Intersection(set v1alpha1sets.FederatedRateLimitConfigSet) v1alpha1sets.FederatedRateLimitConfigSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Intersection", set)
-	ret0, _ := ret[0].(v1alpha1sets.FederatedRateLimitConfigSet)
-	return ret0
-}
-
-// Intersection indicates an expected call of Intersection
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Intersection(set interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Intersection", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Intersection), set)
-}
-
-// Find mocks base method
-func (m *MockFederatedRateLimitConfigSet) Find(id ezkube.ResourceId) (*v1alpha1.FederatedRateLimitConfig, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Find", id)
-	ret0, _ := ret[0].(*v1alpha1.FederatedRateLimitConfig)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Find indicates an expected call of Find
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Find(id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Find), id)
-}
-
-// Length mocks base method
-func (m *MockFederatedRateLimitConfigSet) Length() int {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Length")
-	ret0, _ := ret[0].(int)
-	return ret0
-}
-
-// Length indicates an expected call of Length
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Length() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Length", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Length))
-}
-
-// Generic mocks base method
-func (m *MockFederatedRateLimitConfigSet) Generic() sets.ResourceSet {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Generic")
-	ret0, _ := ret[0].(sets.ResourceSet)
-	return ret0
-}
-
-// Generic indicates an expected call of Generic
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Generic() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generic", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Generic))
-}
-
-// Delta mocks base method
-func (m *MockFederatedRateLimitConfigSet) Delta(newSet v1alpha1sets.FederatedRateLimitConfigSet) sets.ResourceDelta {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delta", newSet)
-	ret0, _ := ret[0].(sets.ResourceDelta)
-	return ret0
-}
-
-// Delta indicates an expected call of Delta
-func (mr *MockFederatedRateLimitConfigSetMockRecorder) Delta(newSet interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delta", reflect.TypeOf((*MockFederatedRateLimitConfigSet)(nil).Delta), newSet)
 }
