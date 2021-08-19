@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/solo-projects/issues/2430
+    description: Add single-cluster GlooInstance handler.
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/gloo/issues/4933
+    description: Add single-cluster GlooInstance handler.

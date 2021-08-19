@@ -50,6 +50,7 @@ func GetAuthConfigSummary(ctx context.Context, set sets.AuthConfigSet, watchedNa
 				Message: authConfig.Status.Reason,
 			})
 		}
+
 	}
 
 	summarize.SortLists(summary)

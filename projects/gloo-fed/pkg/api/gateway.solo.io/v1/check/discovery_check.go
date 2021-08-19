@@ -50,6 +50,7 @@ func GetGatewaySummary(ctx context.Context, set sets.GatewaySet, watchedNamespac
 				Message: gateway.Status.Reason,
 			})
 		}
+
 	}
 
 	summarize.SortLists(summary)
@@ -93,6 +94,7 @@ func GetVirtualServiceSummary(ctx context.Context, set sets.VirtualServiceSet, w
 				Message: virtualService.Status.Reason,
 			})
 		}
+
 	}
 
 	summarize.SortLists(summary)
@@ -136,6 +138,7 @@ func GetRouteTableSummary(ctx context.Context, set sets.RouteTableSet, watchedNa
 				Message: routeTable.Status.Reason,
 			})
 		}
+
 	}
 
 	summarize.SortLists(summary)

@@ -8,7 +8,6 @@ import (
 	"github.com/rotisserie/eris"
 	k8s_core_v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
 	"github.com/solo-io/skv2/contrib/pkg/sets"
-	fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	k8s_core_types "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -37,6 +36,27 @@ var (
 	}
 )
 
+/*
+	ExternalIpFinder takes a list of k8s services and the cluster they are located on, it can then find
+	the string address to communicate with the endpoints via an external network
+*/
+type ExternalIpFinder interface {
+	GetExternalIps(
+		ctx context.Context,
+		svcs []*k8s_core_types.Service,
+	) ([]*IngressEndpoint, error)
+}
+
+type Port struct {
+	Port uint32
+	Name string
+}
+type IngressEndpoint struct {
+	Address     string
+	Ports       []*Port
+	ServiceName string
+}
+
 func NewExternalIpFinder(
 	clusterName string,
 	podClient k8s_core_v1.PodClient,
@@ -58,8 +78,8 @@ type externalIpFinderImpl struct {
 func (f *externalIpFinderImpl) GetExternalIps(
 	ctx context.Context,
 	svcs []*k8s_core_types.Service,
-) ([]*fed_types.GlooInstanceSpec_Proxy_IngressEndpoint, error) {
-	result := make([]*fed_types.GlooInstanceSpec_Proxy_IngressEndpoint, 0, len(svcs))
+) ([]*IngressEndpoint, error) {
+	result := make([]*IngressEndpoint, 0, len(svcs))
 	multiErr := multierror.Error{}
 
 	// Pre sort the svcs so that the output is idempotent
@@ -86,12 +106,12 @@ func (f *externalIpFinderImpl) GetExternalIps(
 				multiErr.Errors = append(multiErr.Errors, NoExternallyResolvableIp(svc, f.clusterName))
 				continue
 			}
-			ep := &fed_types.GlooInstanceSpec_Proxy_IngressEndpoint{
+			ep := &IngressEndpoint{
 				Address:     address,
 				ServiceName: svc.GetName(),
 			}
 			for _, port := range svc.Spec.Ports {
-				ep.Ports = append(ep.Ports, &fed_types.GlooInstanceSpec_Proxy_IngressEndpoint_Port{
+				ep.Ports = append(ep.Ports, &Port{
 					Port: uint32(port.Port),
 					Name: port.Name,
 				})
@@ -105,12 +125,12 @@ func (f *externalIpFinderImpl) GetExternalIps(
 				multiErr.Errors = append(multiErr.Errors, err)
 				continue
 			}
-			ep := &fed_types.GlooInstanceSpec_Proxy_IngressEndpoint{
+			ep := &IngressEndpoint{
 				Address:     address,
 				ServiceName: svc.GetName(),
 			}
 			for _, port := range svc.Spec.Ports {
-				ep.Ports = append(ep.Ports, &fed_types.GlooInstanceSpec_Proxy_IngressEndpoint_Port{
+				ep.Ports = append(ep.Ports, &Port{
 					Port: uint32(port.NodePort),
 					Name: port.Name,
 				})

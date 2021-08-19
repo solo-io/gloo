@@ -49,16 +49,21 @@ mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/cli/* projects/glooctl-p
 mkdir -p projects/glooctl-plugins/fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli
 mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli/* projects/glooctl-plugins/fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli  > /dev/null
 
-# fix apiserver handler paths
+# fix apiserver handler and single-cluster check paths (for base resources)
 mkdir -p projects/apiserver/pkg/api/gloo.solo.io/v1/handler
 mv projects/gloo-fed/pkg/api/gloo.solo.io/v1/handler/* projects/apiserver/pkg/api/gloo.solo.io/v1/handler  > /dev/null
+mv projects/gloo-fed/pkg/api/gloo.solo.io/v1/check/single_cluster_check.go projects/apiserver/pkg/api/gloo.solo.io/v1/handler  > /dev/null
 mkdir -p projects/apiserver/pkg/api/gateway.solo.io/v1/handler
 mv projects/gloo-fed/pkg/api/gateway.solo.io/v1/handler/* projects/apiserver/pkg/api/gateway.solo.io/v1/handler  > /dev/null
+mv projects/gloo-fed/pkg/api/gateway.solo.io/v1/check/single_cluster_check.go projects/apiserver/pkg/api/gateway.solo.io/v1/handler  > /dev/null
 mkdir -p projects/apiserver/pkg/api/enterprise.gloo.solo.io/v1/handler
 mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/handler/* projects/apiserver/pkg/api/enterprise.gloo.solo.io/v1/handler  > /dev/null
+mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/check/single_cluster_check.go projects/apiserver/pkg/api/enterprise.gloo.solo.io/v1/handler  > /dev/null
 mkdir -p projects/apiserver/pkg/api/ratelimit.api.solo.io/v1alpha1/handler
 mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/handler/* projects/apiserver/pkg/api/ratelimit.api.solo.io/v1alpha1/handler  > /dev/null
+mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/check/single_cluster_check.go projects/apiserver/pkg/api/ratelimit.api.solo.io/v1alpha1/handler  > /dev/null
 
+# fix apiserver handler paths (for federated resources)
 mkdir -p projects/apiserver/pkg/api/fed.gloo.solo.io/v1/handler
 mv projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1/handler/* projects/apiserver/pkg/api/fed.gloo.solo.io/v1/handler  > /dev/null
 mkdir -p projects/apiserver/pkg/api/fed.gateway.solo.io/v1/handler

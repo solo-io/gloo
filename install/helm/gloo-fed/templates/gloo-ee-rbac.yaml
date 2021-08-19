@@ -11,14 +11,61 @@ metadata:
     app: gloo
 rules:
 - apiGroups:
-  - apps
+  - gloo.solo.io
   resources:
-  - deployments
+  - proxies
+  - settings
+  - upstreams
+  - upstreamgroups
   verbs:
   - get
   - list
   - watch
-
+- apiGroups:
+  - gateway.solo.io
+  resources:
+  - gateways
+  - routetables
+  - virtualservices
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - enterprise.gloo.solo.io
+  resources:
+  - authconfigs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ratelimit.api.solo.io
+  resources:
+  - ratelimitconfigs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - pods
+  - services
+  verbs:
+  - get
+  - list
+  - watch
 ---
 
 kind: ClusterRoleBinding

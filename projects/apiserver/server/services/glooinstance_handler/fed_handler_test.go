@@ -20,7 +20,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("gloo instance and cluster handler", func() {
+var _ = Describe("fed gloo instance and cluster handler", func() {
 	var (
 		ctrl                 *gomock.Controller
 		ctx                  context.Context
@@ -133,7 +133,7 @@ var _ = Describe("gloo instance and cluster handler", func() {
 			ListGlooInstance(ctx).
 			Return(testGlooInstanceList, nil)
 
-		clusterServer := glooinstance_handler.NewGlooInstanceHandler(clusterClient, mockGetter, instanceClient)
+		clusterServer := glooinstance_handler.NewFedGlooInstanceHandler(clusterClient, mockGetter, instanceClient)
 		resp, err := clusterServer.ListGlooInstances(ctx, &rpc_edge_v1.ListGlooInstancesRequest{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(resp).To(Equal(&rpc_edge_v1.ListGlooInstancesResponse{
@@ -301,7 +301,7 @@ var _ = Describe("gloo instance and cluster handler", func() {
 			ListGlooInstance(ctx).
 			Return(testGlooInstanceList, nil)
 
-		clusterServer := glooinstance_handler.NewGlooInstanceHandler(clusterClient, mockGetter, instanceClient)
+		clusterServer := glooinstance_handler.NewFedGlooInstanceHandler(clusterClient, mockGetter, instanceClient)
 		resp, err := clusterServer.ListClusterDetails(ctx, &rpc_edge_v1.ListClusterDetailsRequest{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(resp).To(Equal(&rpc_edge_v1.ListClusterDetailsResponse{
@@ -501,7 +501,7 @@ var _ = Describe("gloo instance and cluster handler", func() {
 			}, nil)
 			instanceClient.EXPECT().GetGlooInstance(ctx, client.ObjectKey{Name: "test", Namespace: "gloo-system"}).Return(
 				&glooInstance, nil)
-			clusterServer := glooinstance_handler.NewGlooInstanceHandler(clusterClient, mockGetter, instanceClient)
+			clusterServer := glooinstance_handler.NewFedGlooInstanceHandler(clusterClient, mockGetter, instanceClient)
 			resp, err := clusterServer.GetConfigDumps(ctx, &rpc_edge_v1.GetConfigDumpsRequest{
 				GlooInstanceRef: &v1.ObjectRef{
 					Name:      "test",
@@ -536,7 +536,7 @@ var _ = Describe("gloo instance and cluster handler", func() {
 			mockGetter.EXPECT().GetConfigs(ctx, glooInstance).Return([]*rpc_edge_v1.ConfigDump{}, eris.New("test"))
 			instanceClient.EXPECT().GetGlooInstance(ctx, client.ObjectKey{Name: "test", Namespace: "gloo-system"}).Return(
 				&glooInstance, nil)
-			clusterServer := glooinstance_handler.NewGlooInstanceHandler(clusterClient, mockGetter, instanceClient)
+			clusterServer := glooinstance_handler.NewFedGlooInstanceHandler(clusterClient, mockGetter, instanceClient)
 			_, err := clusterServer.GetConfigDumps(ctx, &rpc_edge_v1.GetConfigDumpsRequest{
 				GlooInstanceRef: &v1.ObjectRef{
 					Name:      "test",

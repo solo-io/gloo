@@ -50,6 +50,7 @@ func GetUpstreamSummary(ctx context.Context, set sets.UpstreamSet, watchedNamesp
 				Message: upstream.Status.Reason,
 			})
 		}
+
 	}
 
 	summarize.SortLists(summary)
@@ -93,6 +94,7 @@ func GetUpstreamGroupSummary(ctx context.Context, set sets.UpstreamGroupSet, wat
 				Message: upstreamGroup.Status.Reason,
 			})
 		}
+
 	}
 
 	summarize.SortLists(summary)
@@ -136,6 +138,7 @@ func GetSettingsSummary(ctx context.Context, set sets.SettingsSet, watchedNamesp
 				Message: settings.Status.Reason,
 			})
 		}
+
 	}
 
 	summarize.SortLists(summary)
@@ -179,6 +182,7 @@ func GetProxySummary(ctx context.Context, set sets.ProxySet, watchedNamespaces [
 				Message: proxy.Status.Reason,
 			})
 		}
+
 	}
 
 	summarize.SortLists(summary)

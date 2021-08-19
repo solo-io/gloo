@@ -7,16 +7,16 @@ import (
 	v1sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
 	"github.com/solo-io/go-utils/contextutils"
 	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator/summarize"
 	corev1 "k8s.io/api/core/v1"
 )
 
-func GetPodsSummary(ctx context.Context, set v1sets.PodSet, namespace, cluster string) *types.GlooInstanceSpec_Check_Summary {
-	summary := &types.GlooInstanceSpec_Check_Summary{}
+// Get a summary of pods in the given namespace and cluster. To bypass the cluster check (e.g. for single-cluster
+// use, pass in "" for the cluster.
+func GetPodsSummary(ctx context.Context, set v1sets.PodSet, namespace, cluster string) *Summary {
+	summary := &Summary{}
 	for _, podIter := range set.List() {
 		pod := podIter
-		if pod.ClusterName != cluster || pod.Namespace != namespace {
+		if (cluster != "" && pod.ClusterName != cluster) || pod.Namespace != namespace {
 			continue
 		}
 
@@ -37,7 +37,7 @@ func GetPodsSummary(ctx context.Context, set v1sets.PodSet, namespace, cluster s
 				if conditionNotMet {
 					summary.Errors = append(
 						summary.Errors,
-						&types.GlooInstanceSpec_Check_Summary_ResourceReport{
+						&ResourceReport{
 							Ref: &v1.ObjectRef{
 								Namespace: pod.Namespace,
 								Name:      pod.Name,
@@ -50,7 +50,7 @@ func GetPodsSummary(ctx context.Context, set v1sets.PodSet, namespace, cluster s
 				if conditionNotMet {
 					summary.Errors = append(
 						summary.Errors,
-						&types.GlooInstanceSpec_Check_Summary_ResourceReport{
+						&ResourceReport{
 							Ref: &v1.ObjectRef{
 								Namespace: pod.Namespace,
 								Name:      pod.Name,
@@ -63,7 +63,7 @@ func GetPodsSummary(ctx context.Context, set v1sets.PodSet, namespace, cluster s
 				if conditionNotMet {
 					summary.Errors = append(
 						summary.Errors,
-						&types.GlooInstanceSpec_Check_Summary_ResourceReport{
+						&ResourceReport{
 							Ref: &v1.ObjectRef{
 								Namespace: pod.Namespace,
 								Name:      pod.Name,
@@ -76,7 +76,7 @@ func GetPodsSummary(ctx context.Context, set v1sets.PodSet, namespace, cluster s
 				if conditionNotMet {
 					summary.Errors = append(
 						summary.Errors,
-						&types.GlooInstanceSpec_Check_Summary_ResourceReport{
+						&ResourceReport{
 							Ref: &v1.ObjectRef{
 								Namespace: pod.Namespace,
 								Name:      pod.Name,
@@ -89,7 +89,7 @@ func GetPodsSummary(ctx context.Context, set v1sets.PodSet, namespace, cluster s
 				if conditionNotMet {
 					summary.Errors = append(
 						summary.Errors,
-						&types.GlooInstanceSpec_Check_Summary_ResourceReport{
+						&ResourceReport{
 							Ref: &v1.ObjectRef{
 								Namespace: pod.Namespace,
 								Name:      pod.Name,
@@ -104,6 +104,6 @@ func GetPodsSummary(ctx context.Context, set v1sets.PodSet, namespace, cluster s
 		}
 	}
 
-	summarize.SortLists(summary)
+	SortLists(summary)
 	return summary
 }

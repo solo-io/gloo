@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 
+	apps_v1 "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
+	core_v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	client "github.com/solo-io/skv2/pkg/multicluster"
 	"github.com/solo-io/skv2/pkg/multicluster/watch"
-	enterprisev1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
-	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
-	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	ratelimitv1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	enterprise_gloo_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
+	gateway_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
+	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	ratelimit_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/apiserver"
 	"github.com/solo-io/solo-projects/projects/apiserver/internal/settings"
@@ -33,10 +35,12 @@ import (
 	gloofedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1"
 	ratelimitfedv1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/bootstrap"
+	fed_bootstrap "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/bootstrap"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/fields"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/multicluster"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
 	"go.uber.org/zap"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	// required import to enable kube client-go auth plugins
@@ -45,23 +49,29 @@ import (
 
 func main() {
 	rootCtx := bootstrap.CreateRootContext(context.Background(), "gloo-fed-apiserver")
-	cfg := settings.New()
+	apiserverSettings := settings.New()
 
-	if err := license.IsLicenseValid(rootCtx, cfg.LicenseKey); err != nil {
+	cfg, err := config.GetConfig()
+	if err != nil {
+		contextutils.LoggerFrom(rootCtx).Fatalw("A fatal error occurred while getting config", zap.Error(err))
+	}
+
+	if err := license.IsLicenseValid(rootCtx, apiserverSettings.LicenseKey); err != nil {
 		contextutils.LoggerFrom(rootCtx).Fatalw("License is invalid", zap.String("error", err.Error()))
 	}
 
-	mgr := bootstrap.MustLocalManager(rootCtx)
-
-	glooFedEnabled, err := apiserverutils.IsGlooFedEnabled(rootCtx, mgr.GetConfig())
+	glooFedEnabled, err := apiserverutils.IsGlooFedEnabled(rootCtx, cfg)
 	if err != nil {
 		contextutils.LoggerFrom(rootCtx).Fatalw("An error occurred when checking if Gloo Fed is enabled", zap.Error(err))
 	}
 
+	var mgr manager.Manager
 	if glooFedEnabled {
-		initializeGlooFed(rootCtx, mgr, cfg)
+		mgr = fed_bootstrap.MustLocalManagerWithConfig(rootCtx, cfg)
+		initializeGlooFed(rootCtx, mgr, apiserverSettings)
 	} else {
-		initializeSingleClusterGloo(rootCtx, mgr, cfg)
+		mgr = fed_bootstrap.MustSingleClusterManagerWithConfig(rootCtx, cfg)
+		initializeSingleClusterGloo(rootCtx, mgr, apiserverSettings)
 	}
 
 	err = mgr.Start(rootCtx)
@@ -71,7 +81,7 @@ func main() {
 	contextutils.LoggerFrom(rootCtx).Infow("Shutting down, root context cancelled.")
 }
 
-func initializeGlooFed(ctx context.Context, mgr manager.Manager, cfg *settings.ApiServerSettings) {
+func initializeGlooFed(ctx context.Context, mgr manager.Manager, apiserverSettings *settings.ApiServerSettings) {
 	if err := fields.AddGlooInstanceIndexer(ctx, mgr); err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while adding cluster indexer to GlooInstance", zap.Error(err))
 	}
@@ -83,18 +93,18 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, cfg *settings.A
 	gatewayFedClient := gatewayfedv1.NewClientset(mgr.GetClient())
 	ratelimitFedClient := ratelimitfedv1alpha1.NewClientset(mgr.GetClient())
 	clusterWatcher := watch.NewClusterWatcher(ctx, manager.Options{
-		Scheme: bootstrap.MustRemoteScheme(ctx),
+		Scheme: fed_bootstrap.MustRemoteScheme(ctx),
 	})
 	clusterSet := multicluster.NewClusterSet()
 	clusterWatcher.RegisterClusterHandler(clusterSet)
 	mcClient := client.NewClient(clusterWatcher)
-	glooMCClient := gloov1.NewMulticlusterClientset(mcClient)
-	gatewayMClient := gatewayv1.NewMulticlusterClientset(mcClient)
-	glooEnterpriseMCClient := enterprisev1.NewMulticlusterClientset(mcClient)
-	ratelimitMCCLient := ratelimitv1.NewMulticlusterClientset(mcClient)
+	glooMCClient := gloo_v1.NewMulticlusterClientset(mcClient)
+	gatewayMClient := gateway_v1.NewMulticlusterClientset(mcClient)
+	glooEnterpriseMCClient := enterprise_gloo_v1.NewMulticlusterClientset(mcClient)
+	ratelimitMCCLient := ratelimit_v1alpha1.NewMulticlusterClientset(mcClient)
 
 	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig())
-	glooInstanceService := glooinstance_handler.NewGlooInstanceHandler(clusterSet, config_getter.NewEnvoyConfigDumpGetter(clusterWatcher), glooInstanceClient)
+	glooInstanceService := glooinstance_handler.NewFedGlooInstanceHandler(clusterSet, config_getter.NewEnvoyConfigDumpGetter(clusterWatcher), glooInstanceClient)
 	failoverSchemeService := failover_scheme_handler.NewFailoverSchemeHandler(failoverSchemeClient)
 	routeTableSelectorService := rt_selector_handler.NewVirtualServiceRoutesHandler(gatewayMClient)
 	wasmFilterService := wasmfilter_handler.NewWasmFilterHandler(glooInstanceClient, gatewayMClient)
@@ -107,7 +117,7 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, cfg *settings.A
 	glooEnterpriseFedResourceService := federated_enterprise_gloo_resource_handler.NewFederatedEnterpriseGlooResourceHandler(glooEnterpriseFedClient)
 	ratelimitFedResourceService := federated_ratelimit_resource_handler.NewFederatedRatelimitResourceHandler(ratelimitFedClient)
 
-	if err := mgr.Add(apiserver.NewGlooFedServerRunnable(ctx, cfg, bootstrapService, glooInstanceService, failoverSchemeService, routeTableSelectorService,
+	if err := mgr.Add(apiserver.NewGlooFedServerRunnable(ctx, apiserverSettings, bootstrapService, glooInstanceService, failoverSchemeService, routeTableSelectorService,
 		wasmFilterService, glooResourceService, gatewayResourceService, glooEnterpriseResourceService, ratelimitResourceService,
 		glooFedResourceService, gatewayFedResourceService, glooEnterpriseFedResourceService, ratelimitFedResourceService)); err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("Unable to set up GlooFed apiserver", zap.Error(err))
@@ -118,10 +128,18 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, cfg *settings.A
 	}
 }
 
-func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, cfg *settings.ApiServerSettings) {
-	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig())
+func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, apiserverSettings *settings.ApiServerSettings) {
+	coreClientset := core_v1.NewClientset(mgr.GetClient())
+	appsClientset := apps_v1.NewClientset(mgr.GetClient())
+	gatewayClientset := gateway_v1.NewClientset(mgr.GetClient())
+	glooClientset := gloo_v1.NewClientset(mgr.GetClient())
+	enterpriseGlooClientset := enterprise_gloo_v1.NewClientset(mgr.GetClient())
+	ratelimitClientset := ratelimit_v1alpha1.NewClientset(mgr.GetClient())
 
-	if err := mgr.Add(apiserver.NewSingleClusterGlooServerRunnable(ctx, cfg, bootstrapService)); err != nil {
+	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig())
+	glooInstanceService := glooinstance_handler.NewSingleClusterGlooInstanceHandler(coreClientset, appsClientset, gatewayClientset, glooClientset, enterpriseGlooClientset, ratelimitClientset)
+
+	if err := mgr.Add(apiserver.NewSingleClusterGlooServerRunnable(ctx, apiserverSettings, bootstrapService, glooInstanceService)); err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("Unable to set up GlooEE apiserver", zap.Error(err))
 	}
 }

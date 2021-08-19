@@ -6,7 +6,6 @@ import (
 
 	k8s_core_v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
 	k8s_core_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
-	v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/stringutils"
@@ -16,14 +15,13 @@ import (
 	v1sets "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/sets"
 	enterprise_check "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/check"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
-	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/input"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	gateway_check "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/gateway.solo.io/v1/check"
 	gloo_check "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/gloo.solo.io/v1/check"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/images"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator/internal/checker"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator/internal/locality"
+	"github.com/solo-io/solo-projects/projects/gloo/utils/checker"
+	"github.com/solo-io/solo-projects/projects/gloo/utils/images"
+	"github.com/solo-io/solo-projects/projects/gloo/utils/locality"
 	"go.uber.org/zap"
 	k8s_core_types "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -53,11 +51,11 @@ func NewTranslator(
 }
 
 // Detect all GlooInstances from a multicluster snapshot of all the deployments
-func (t *translator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) []*v1.GlooInstance {
-	var instances []*v1.GlooInstance
+func (t *translator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) []*fedv1.GlooInstance {
+	var instances []*fedv1.GlooInstance
 	for _, deployment := range snapshot.Deployments().List() {
-		image, isEnterprise, ok := images.GetControlPlaneImage(deployment)
-		if !ok {
+		tag, isEnterprise, isControlPlane := images.GetControlPlaneImage(deployment)
+		if !isControlPlane {
 			// There should be one Gloo Instance per cluster's control plane deployment, so skip all other deployments.
 			continue
 		}
@@ -88,7 +86,7 @@ func (t *translator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) 
 				Cluster:      cluster,
 				IsEnterprise: isEnterprise,
 				ControlPlane: &types.GlooInstanceSpec_ControlPlane{
-					Version:           images.GetVersion(image),
+					Version:           tag,
 					Namespace:         deployment.Namespace,
 					WatchedNamespaces: watchedNamespaces,
 				},
@@ -98,12 +96,12 @@ func (t *translator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) 
 		}
 
 		// Proxy and admin info
-		instance.Spec.Proxies = getProxiesFromSnapshot(ctx, cluster, localityFinder, ipFinder, snapshot)
+		instance.Spec.Proxies = getProxiesFromSnapshot(ctx, deployment.Namespace, cluster, localityFinder, ipFinder, snapshot)
 		instance.Spec.Admin = getAdminInfo(instance.Spec.ControlPlane.GetNamespace(), watchedNamespaces, instance.Spec.Proxies)
 
 		// Check -- workloads
-		instance.Spec.Check.Pods = checker.GetPodsSummary(ctx, snapshot.Pods(), instance.Spec.ControlPlane.GetNamespace(), cluster)
-		instance.Spec.Check.Deployments = checker.GetDeploymentsSummary(ctx, snapshot.Deployments(), instance.Spec.ControlPlane.GetNamespace(), cluster)
+		instance.Spec.Check.Pods = convertSummary(checker.GetPodsSummary(ctx, snapshot.Pods(), instance.Spec.ControlPlane.GetNamespace(), cluster))
+		instance.Spec.Check.Deployments = convertSummary(checker.GetDeploymentsSummary(ctx, snapshot.Deployments(), instance.Spec.ControlPlane.GetNamespace(), cluster))
 
 		// Check -- resources
 		// Gloo
@@ -199,6 +197,7 @@ func getProxyForGlooInstance(installNamespace string, proxies []*types.GlooInsta
 
 func getProxiesFromSnapshot(
 	ctx context.Context,
+	namespace string,
 	cluster string,
 	localityFinder locality.LocalityFinder,
 	ipFinder locality.ExternalIpFinder,
@@ -211,7 +210,10 @@ func getProxiesFromSnapshot(
 		if deployment.GetClusterName() != cluster {
 			continue
 		}
-		if image, wasmEnabled, ok := images.GetGatewayProxyImage(&deployment.Spec.Template); ok {
+		if deployment.GetNamespace() != namespace {
+			continue
+		}
+		if tag, wasmEnabled, isProxy := images.GetGatewayProxyImage(&deployment.Spec.Template); isProxy {
 			zones, err := localityFinder.ZonesForDeployment(ctx, deployment)
 			if err != nil {
 				contextutils.LoggerFrom(ctx).Debugw("failed to get zones for deployment", zap.Error(err), zap.Any("deployment", deployment))
@@ -223,7 +225,7 @@ func getProxiesFromSnapshot(
 				ReadyReplicas:                 deployment.Status.ReadyReplicas,
 				WasmEnabled:                   wasmEnabled,
 				ReadConfigMulticlusterEnabled: findProxyConfigDumpService(snapshot.Services(), deployment.GetName(), deployment.GetNamespace()),
-				Version:                       images.GetVersion(image),
+				Version:                       tag,
 				Name:                          deployment.GetName(),
 				Namespace:                     deployment.GetNamespace(),
 				WorkloadControllerType:        types.GlooInstanceSpec_Proxy_DEPLOYMENT,
@@ -237,14 +239,18 @@ func getProxiesFromSnapshot(
 			if err != nil {
 				contextutils.LoggerFrom(ctx).Debugw("error while determining ingress endpoints", zap.Error(err))
 			}
-			proxy.IngressEndpoints = ingressEndpoints
+			proxy.IngressEndpoints = convertIngressEndpoints(ingressEndpoints)
 
 			proxies = append(proxies, proxy)
 		}
 	}
 
 	for _, daemonset := range snapshot.DaemonSets().List() {
-		if image, wasmEnabled, ok := images.GetGatewayProxyImage(&daemonset.Spec.Template); ok {
+		daemonset := daemonset
+		if daemonset.GetNamespace() != namespace {
+			continue
+		}
+		if tag, wasmEnabled, isProxy := images.GetGatewayProxyImage(&daemonset.Spec.Template); isProxy {
 			zones, err := localityFinder.ZonesForDaemonSet(ctx, daemonset)
 			if err != nil {
 				contextutils.LoggerFrom(ctx).Debugw("failed to get zones for daemonset", zap.Error(err), zap.Any("daemonset", daemonset))
@@ -255,7 +261,7 @@ func getProxiesFromSnapshot(
 				AvailableReplicas:      daemonset.Status.NumberAvailable,
 				ReadyReplicas:          daemonset.Status.NumberReady,
 				WasmEnabled:            wasmEnabled,
-				Version:                images.GetVersion(image),
+				Version:                tag,
 				Name:                   daemonset.GetName(),
 				Namespace:              daemonset.GetNamespace(),
 				WorkloadControllerType: types.GlooInstanceSpec_Proxy_DAEMON_SET,
@@ -269,7 +275,7 @@ func getProxiesFromSnapshot(
 			if err != nil {
 				contextutils.LoggerFrom(ctx).Debugw("error while determining ingress endpoints", zap.Error(err))
 			}
-			proxy.IngressEndpoints = ingressEndpoints
+			proxy.IngressEndpoints = convertIngressEndpoints(ingressEndpoints)
 
 			proxies = append(proxies, proxy)
 		}
@@ -284,7 +290,7 @@ func getProxiesFromSnapshot(
 
 }
 
-func findProxyConfigDumpService(services v1_sets.ServiceSet, name, namespace string) bool {
+func findProxyConfigDumpService(services k8s_core_sets.ServiceSet, name, namespace string) bool {
 	for _, svc := range services.List() {
 		if svc.Name == name+"-config-dump-service" && svc.Namespace == namespace {
 			return true
@@ -315,4 +321,50 @@ func getSettings(set v1sets.SettingsSet, namespace, cluster string) *gloov1.Sett
 		}
 	}
 	return nil
+}
+
+// Convert from the generic structs to the Gloo Fed types
+func convertIngressEndpoints(ingressEndpoints []*locality.IngressEndpoint) []*types.GlooInstanceSpec_Proxy_IngressEndpoint {
+	convertedEndpoints := make([]*types.GlooInstanceSpec_Proxy_IngressEndpoint, 0, len(ingressEndpoints))
+	for _, endpoint := range ingressEndpoints {
+		convertedEndpoints = append(convertedEndpoints, &types.GlooInstanceSpec_Proxy_IngressEndpoint{
+			Address:     endpoint.Address,
+			Ports:       convertPorts(endpoint.Ports),
+			ServiceName: endpoint.ServiceName,
+		})
+	}
+	return convertedEndpoints
+}
+
+func convertPorts(ports []*locality.Port) []*types.GlooInstanceSpec_Proxy_IngressEndpoint_Port {
+	convertedPorts := make([]*types.GlooInstanceSpec_Proxy_IngressEndpoint_Port, 0, len(ports))
+	for _, port := range ports {
+		convertedPorts = append(convertedPorts, &types.GlooInstanceSpec_Proxy_IngressEndpoint_Port{
+			Port: port.Port,
+			Name: port.Name,
+		})
+	}
+	return convertedPorts
+}
+
+func convertSummary(summary *checker.Summary) *types.GlooInstanceSpec_Check_Summary {
+	return &types.GlooInstanceSpec_Check_Summary{
+		Total:    summary.Total,
+		Errors:   convertResourceReports(summary.Errors),
+		Warnings: convertResourceReports(summary.Warnings),
+	}
+}
+
+func convertResourceReports(resourceReports []*checker.ResourceReport) []*types.GlooInstanceSpec_Check_Summary_ResourceReport {
+	if len(resourceReports) == 0 {
+		return nil
+	}
+	convertedResourceReports := make([]*types.GlooInstanceSpec_Check_Summary_ResourceReport, 0, len(resourceReports))
+	for _, resourceReport := range resourceReports {
+		convertedResourceReports = append(convertedResourceReports, &types.GlooInstanceSpec_Check_Summary_ResourceReport{
+			Ref:     resourceReport.Ref,
+			Message: resourceReport.Message,
+		})
+	}
+	return convertedResourceReports
 }

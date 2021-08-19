@@ -12,7 +12,10 @@ var BaseGlooResourceTemplates = func() []model.CustomTemplates {
 	if err != nil {
 		panic(err)
 	}
-	// TODO add edge_apiserver_handler here
+	// singleClusterApiserverHandler, err := baseTemplateBox.FindString("apiserver/single_cluster_apiserver_handler.gotmpl")
+	// if err != nil {
+	// 	panic(err)
+	// }
 	apiserverProtos, err := baseTemplateBox.FindString("apiserver/apiserver_protos.gotmpl")
 	if err != nil {
 		panic(err)
@@ -21,7 +24,16 @@ var BaseGlooResourceTemplates = func() []model.CustomTemplates {
 	if err != nil {
 		panic(err)
 	}
-	checker, err := baseTemplateBox.FindString("discovery_check/check.gotmpl")
+
+	// these are the templates that auto-generate the code that returns summaries (counts, errors, warnings) for the various resources.
+	// the fed checker is used during gloo fed discovery and the single cluster checker is used for the single-cluster apiserver/UI
+	fedChecker, err := baseTemplateBox.FindString("discovery_check/fed_check.gotmpl")
+	if err != nil {
+		panic(err)
+	}
+	// since the single-cluster checker is only needed for the apiserver/UI (rather than discovery, etc), we put the template
+	// in the apiserver dir
+	singleClusterChecker, err := baseTemplateBox.FindString("apiserver/single_cluster_check.gotmpl")
 	if err != nil {
 		panic(err)
 	}
@@ -29,16 +41,28 @@ var BaseGlooResourceTemplates = func() []model.CustomTemplates {
 	return []model.CustomTemplates{
 		{
 			Templates: map[string]string{
-				"check/discovery_check.go": checker,
+				"check/discovery_check.go": fedChecker,
 			},
 			Funcs: GetTemplateFuncs(),
 		},
 		{
 			Templates: map[string]string{
-				"handler/handler.go": fedApiserverHandler,
+				"check/single_cluster_check.go": singleClusterChecker,
 			},
 			Funcs: GetTemplateFuncs(),
 		},
+		{
+			Templates: map[string]string{
+				"handler/fed_handler.go": fedApiserverHandler,
+			},
+			Funcs: GetTemplateFuncs(),
+		},
+		// {
+		// 	Templates: map[string]string{
+		// 		"handler/single_cluster_handler.go": singleClusterApiserverHandler,
+		// 	},
+		// 	Funcs: GetTemplateFuncs(),
+		// },
 		{
 			Templates: map[string]string{
 				"resource_apis.proto": apiserverProtos,

@@ -34,25 +34,27 @@ func Get{{ $resource.Kind }}Summary(ctx context.Context, set sets.{{ $resource.K
 
         summary.Total += 1
 
-        if {{ $kindLowerCamel }}.Status.GetState() == types2.{{ $resource.Kind }}Status_Rejected {
+        if {{ $kindLowerCamel }}.Status.GetState() == types2.{{ $resource.Kind }}Status_{{ rejected_status_name $ }} {
             summary.Errors = append(summary.Errors, &types.GlooInstanceSpec_Check_Summary_ResourceReport{
                 Ref: &corev1.ObjectRef{
                     Name:      {{ $kindLowerCamel }}.Name,
                     Namespace: {{ $kindLowerCamel }}.Namespace,
                 },
-                Message: {{ $kindLowerCamel }}.Status.Reason,
+                Message: {{ $kindLowerCamel }}.Status.{{ status_reason_field $ }},
             })
         }
 
+        {{ if has_warning_status $ }}
         if {{ $kindLowerCamel }}.Status.GetState() == types2.{{ $resource.Kind }}Status_Warning {
             summary.Warnings = append(summary.Warnings, &types.GlooInstanceSpec_Check_Summary_ResourceReport{
                 Ref: &corev1.ObjectRef{
                     Name:      {{ $kindLowerCamel }}.Name,
                     Namespace: {{ $kindLowerCamel }}.Namespace,
                 },
-                Message: {{ $kindLowerCamel }}.Status.Reason,
+                Message: {{ $kindLowerCamel }}.Status.{{ status_reason_field $ }},
             })
         }
+        {{ end }}
     }
 
     summarize.SortLists(summary)

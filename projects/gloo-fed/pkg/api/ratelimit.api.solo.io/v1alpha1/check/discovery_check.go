@@ -31,25 +31,16 @@ func GetRateLimitConfigSummary(ctx context.Context, set sets.RateLimitConfigSet,
 
 		summary.Total += 1
 
-		if rateLimitConfig.Status.GetState() == types2.RateLimitConfigStatus_Rejected {
+		if rateLimitConfig.Status.GetState() == types2.RateLimitConfigStatus_REJECTED {
 			summary.Errors = append(summary.Errors, &types.GlooInstanceSpec_Check_Summary_ResourceReport{
 				Ref: &corev1.ObjectRef{
 					Name:      rateLimitConfig.Name,
 					Namespace: rateLimitConfig.Namespace,
 				},
-				Message: rateLimitConfig.Status.Reason,
+				Message: rateLimitConfig.Status.Message,
 			})
 		}
 
-		if rateLimitConfig.Status.GetState() == types2.RateLimitConfigStatus_Warning {
-			summary.Warnings = append(summary.Warnings, &types.GlooInstanceSpec_Check_Summary_ResourceReport{
-				Ref: &corev1.ObjectRef{
-					Name:      rateLimitConfig.Name,
-					Namespace: rateLimitConfig.Namespace,
-				},
-				Message: rateLimitConfig.Status.Reason,
-			})
-		}
 	}
 
 	summarize.SortLists(summary)

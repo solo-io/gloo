@@ -20,12 +20,13 @@ import (
 	gloofed "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1/federation"
 	fedratelimitv1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1"
 	ratelimitfed "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1/federation"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/bootstrap"
+	fed_bootstrap "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/bootstrap"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/fields"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/multicluster"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/routing/failover"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
 	"go.uber.org/zap"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -41,14 +42,14 @@ func main() {
 		logger.Fatalw("License is invalid", zap.String("error", err.Error()))
 	}
 
-	mgr := bootstrap.MustLocalManager(rootCtx)
+	mgr := fed_bootstrap.MustLocalManager(rootCtx)
 
 	if err := fields.AddGlooInstanceIndexer(rootCtx, mgr); err != nil {
 		logger.Fatalw("A fatal error occurred while adding cluster indexer to GlooInstance", zap.Error(err))
 	}
 
 	clusterWatcher := watch.NewClusterWatcher(rootCtx, manager.Options{
-		Scheme: bootstrap.MustRemoteScheme(rootCtx),
+		Scheme: fed_bootstrap.MustRemoteScheme(rootCtx),
 	})
 	clusterSet := multicluster.NewClusterSet()
 	clusterWatcher.RegisterClusterHandler(clusterSet)

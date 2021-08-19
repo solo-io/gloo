@@ -307,8 +307,8 @@ run-fed-ui:
  	yarn --cwd $(APISERVER_UI_DIR) install && \
 	yarn --cwd $(APISERVER_UI_DIR) start
 
-.PHONY: run-ee-ui
-run-ee-ui:
+.PHONY: run-single-cluster-ui
+run-single-cluster-ui:
 	yarn --cwd $(APISERVER_UI_DIR) install && \
 	yarn --cwd $(APISERVER_UI_DIR) start
 

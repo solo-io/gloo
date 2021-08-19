@@ -12,6 +12,20 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+/*
+	LocalityFinder aids in the discovery of the locality associated with kubernetes workloads.
+	It does this by checking well-known node labels https://kubernetes.io/docs/reference/kubernetes-api/labels-annotations-taints/.
+	If no locality can be found on the nodes, than an empty string will be returned for region, and an empty list for zones.
+*/
+type LocalityFinder interface {
+	// GetRegion attempts to get the region for a given kubernetes cluster. If no region can be found, will return ""
+	GetRegion(ctx context.Context) (string, error)
+	// ZonesForDeployment gets the zones in which a deployment's replicas reside in, if none are found will return nil
+	ZonesForDeployment(ctx context.Context, deployment *appsv1.Deployment) ([]string, error)
+	// ZonesForDaemonSet gets the zones in which a daemonset's pods reside in, if none are found will return nil
+	ZonesForDaemonSet(ctx context.Context, set *appsv1.DaemonSet) ([]string, error)
+}
+
 func NewLocalityFinder(nodeClient k8s_core_v1.NodeClient, podClient k8s_core_v1.PodClient) LocalityFinder {
 	return &localityFinderImpl{
 		nodeClient: nodeClient,
@@ -33,7 +47,7 @@ func (l *localityFinderImpl) GetRegion(ctx context.Context) (string, error) {
 		if len(node.Labels) == 0 {
 			continue
 		}
-		// Try stable labels, followed by deprecated tosupport earlier kube versions
+		// Try stable labels, followed by deprecated to support earlier kube versions
 		if regionStable, ok := node.Labels[corev1.LabelZoneRegionStable]; ok {
 			return regionStable, nil
 		} else if regionDeprecated, okDep := node.Labels[corev1.LabelZoneRegion]; okDep {

@@ -15,30 +15,30 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func NewGlooInstanceHandler(
+func NewFedGlooInstanceHandler(
 	clusterClient multicluster.ClusterSet,
 	configClient config_getter.EnvoyConfigDumpGetter,
 	glooInstanceClient fedv1.GlooInstanceClient,
 ) rpc_edge_v1.GlooInstanceApiServer {
-	return &glooInstanceHandler{
+	return &fedGlooInstanceHandler{
 		clusterClient:      clusterClient,
 		configClient:       configClient,
 		glooInstanceClient: glooInstanceClient,
 	}
 }
 
-type glooInstanceHandler struct {
+type fedGlooInstanceHandler struct {
 	clusterClient      multicluster.ClusterSet
 	configClient       config_getter.EnvoyConfigDumpGetter
 	glooInstanceClient fedv1.GlooInstanceClient
 }
 
-func (k *glooInstanceHandler) ListClusterDetails(ctx context.Context, request *rpc_edge_v1.ListClusterDetailsRequest) (*rpc_edge_v1.ListClusterDetailsResponse, error) {
+func (h *fedGlooInstanceHandler) ListClusterDetails(ctx context.Context, request *rpc_edge_v1.ListClusterDetailsRequest) (*rpc_edge_v1.ListClusterDetailsResponse, error) {
 	glooInstancesByCluster := make(map[string][]*rpc_edge_v1.GlooInstance)
-	for _, cluster := range k.clusterClient.ListClusters() {
+	for _, cluster := range h.clusterClient.ListClusters() {
 		glooInstancesByCluster[cluster] = []*rpc_edge_v1.GlooInstance{}
 	}
-	list, err := k.glooInstanceClient.ListGlooInstance(ctx)
+	list, err := h.glooInstanceClient.ListGlooInstance(ctx)
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to list gloo instances")
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -67,8 +67,8 @@ func (k *glooInstanceHandler) ListClusterDetails(ctx context.Context, request *r
 	}, nil
 }
 
-func (k *glooInstanceHandler) ListGlooInstances(ctx context.Context, request *rpc_edge_v1.ListGlooInstancesRequest) (*rpc_edge_v1.ListGlooInstancesResponse, error) {
-	list, err := k.glooInstanceClient.ListGlooInstance(ctx)
+func (h *fedGlooInstanceHandler) ListGlooInstances(ctx context.Context, request *rpc_edge_v1.ListGlooInstancesRequest) (*rpc_edge_v1.ListGlooInstancesResponse, error) {
+	list, err := h.glooInstanceClient.ListGlooInstance(ctx)
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to list gloo instances")
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -85,16 +85,8 @@ func (k *glooInstanceHandler) ListGlooInstances(ctx context.Context, request *rp
 	}, nil
 }
 
-func sortGlooInstances(glooInstances []*rpc_edge_v1.GlooInstance) {
-	sort.Slice(glooInstances, func(i, j int) bool {
-		x := glooInstances[i]
-		y := glooInstances[j]
-		return x.GetMetadata().GetNamespace()+x.GetMetadata().GetName() < y.GetMetadata().GetNamespace()+y.GetMetadata().GetName()
-	})
-}
-
-func (k *glooInstanceHandler) GetConfigDumps(ctx context.Context, request *rpc_edge_v1.GetConfigDumpsRequest) (*rpc_edge_v1.GetConfigDumpsResponse, error) {
-	glooInstance, err := k.glooInstanceClient.GetGlooInstance(ctx, client.ObjectKey{
+func (h *fedGlooInstanceHandler) GetConfigDumps(ctx context.Context, request *rpc_edge_v1.GetConfigDumpsRequest) (*rpc_edge_v1.GetConfigDumpsResponse, error) {
+	glooInstance, err := h.glooInstanceClient.GetGlooInstance(ctx, client.ObjectKey{
 		Name:      request.GlooInstanceRef.GetName(),
 		Namespace: request.GlooInstanceRef.GetNamespace(),
 	})
@@ -102,7 +94,7 @@ func (k *glooInstanceHandler) GetConfigDumps(ctx context.Context, request *rpc_e
 		return nil, eris.Wrapf(err, "could not find gloo instance %v.%v", request.GlooInstanceRef.GetName(), request.GlooInstanceRef.GetNamespace())
 	}
 	// Get envoy proxy config dumps for gloo instance
-	configDumps, err := k.configClient.GetConfigs(ctx, *glooInstance)
+	configDumps, err := h.configClient.GetConfigs(ctx, *glooInstance)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Warnf("Unable to get config dump for Gloo Instance %s", glooInstance.GetName())
 		return nil, err

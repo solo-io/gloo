@@ -63,7 +63,7 @@ var FederatedResourceTemplates = func() []model.CustomTemplates {
 		},
 		{
 			Templates: map[string]string{
-				"handler/handler.go": fedApiserverHandler,
+				"handler/fed_handler.go": fedApiserverHandler,
 			},
 			Funcs: GetTemplateFuncs(),
 		},

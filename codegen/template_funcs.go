@@ -44,6 +44,22 @@ func GetTemplateFuncs() template.FuncMap {
 		"lowercase": func(str string) string {
 			return strings.ToLower(str)
 		},
+		// ratelimit api fields are slightly different from others
+		"rejected_status_name": func(grp render.Group) string {
+			if strings.Contains(grp.Group, "ratelimit") {
+				return "REJECTED"
+			}
+			return "Rejected"
+		},
+		"has_warning_status": func(grp render.Group) bool {
+			return !strings.Contains(grp.Group, "ratelimit")
+		},
+		"status_reason_field": func(grp render.Group) string {
+			if strings.Contains(grp.Group, "ratelimit") {
+				return "Message"
+			}
+			return "Reason"
+		},
 	}
 }
 

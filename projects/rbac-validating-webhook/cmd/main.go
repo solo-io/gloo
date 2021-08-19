@@ -6,7 +6,8 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	rbacconfig "github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/pkg/config"
 	"github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/pkg/webhook"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/bootstrap"
+	fed_bootstrap "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/bootstrap"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-projects/projects/rbac-validating-webhook/pkg/placement"
 	"go.uber.org/zap"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -14,7 +15,7 @@ import (
 
 func main() {
 	rootCtx := bootstrap.CreateRootContext(context.Background(), "gloo-fed-rbac-validation")
-	mgr := bootstrap.MustLocalManager(rootCtx)
+	mgr := fed_bootstrap.MustLocalManager(rootCtx)
 	rbacCfg := rbacconfig.NewConfig()
 
 	if err := webhook.InitializeWebhook(

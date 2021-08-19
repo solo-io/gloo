@@ -1,0 +1,65 @@
+package {{ base_group $ }}_resource_handler
+
+import (
+	"context"
+
+	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/go-utils/stringutils"
+	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+    types "github.com/solo-io/solo-apis/pkg/api/{{ base_proto_group_shorthand $ }}.solo.io/{{ base_group_version $ }}"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
+	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
+	"go.uber.org/zap"
+)
+
+{{- range $resource := $.Resources }}
+
+{{- $kindLowerCamel := lower_camel $resource.Kind }}
+
+func Get{{ $resource.Kind }}Summary(ctx context.Context, {{ $kindLowerCamel }}Client types.{{ $resource.Kind }}Client, watchedNamespaces []string) *rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary {
+    summary := &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{}
+
+	{{ $kindLowerCamel }}List, err := {{ $kindLowerCamel }}Client.List{{ $resource.Kind }}(ctx)
+	if err != nil {
+		contextutils.LoggerFrom(ctx).Warnw("Failed to get {{ $resource.Kind }} summary", zap.Error(err), zap.Any("watchedNamespaces", watchedNamespaces))
+		return summary
+	}
+
+	for _, {{ $kindLowerCamel }} := range {{ $kindLowerCamel }}List.Items {
+		{{ $kindLowerCamel }} := {{ $kindLowerCamel }}
+
+        // If the resource is not in a watched namespace, continue
+        if len(watchedNamespaces) > 0 && !stringutils.ContainsString({{ $kindLowerCamel }}.Namespace, watchedNamespaces) {
+        	continue
+        }
+
+        summary.Total += 1
+
+        if {{ $kindLowerCamel }}.Status.GetState() == types.{{ $resource.Kind }}Status_{{ rejected_status_name $ }} {
+            summary.Errors = append(summary.Errors, &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
+                Ref: &corev1.ObjectRef{
+                    Name:      {{ $kindLowerCamel }}.Name,
+                    Namespace: {{ $kindLowerCamel }}.Namespace,
+                },
+                Message: {{ $kindLowerCamel }}.Status.{{ status_reason_field $ }},
+            })
+        }
+
+        {{ if has_warning_status $ }}
+        if {{ $kindLowerCamel }}.Status.GetState() == types.{{ $resource.Kind }}Status_Warning {
+            summary.Warnings = append(summary.Warnings, &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
+                Ref: &corev1.ObjectRef{
+                    Name:      {{ $kindLowerCamel }}.Name,
+                    Namespace: {{ $kindLowerCamel }}.Namespace,
+                },
+                Message: {{ $kindLowerCamel }}.Status.{{ status_reason_field $ }},
+            })
+        }
+        {{ end }}
+    }
+
+    apiserverutils.SortCheckSummaryLists(summary)
+    return summary
+}
+
+{{- end }}

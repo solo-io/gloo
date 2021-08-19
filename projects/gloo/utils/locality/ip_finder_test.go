@@ -7,9 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	mock_k8s_core_clients "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/mocks"
-	. "github.com/solo-io/solo-kit/test/matchers"
-	fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator/internal/locality"
+	"github.com/solo-io/solo-projects/projects/gloo/utils/locality"
 	core_v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -65,9 +63,9 @@ var _ = Describe("IpFinder", func() {
 			},
 		}
 
-		expected := &fed_types.GlooInstanceSpec_Proxy_IngressEndpoint{
+		expected := &locality.IngressEndpoint{
 			Address: svc.Status.LoadBalancer.Ingress[0].IP,
-			Ports: []*fed_types.GlooInstanceSpec_Proxy_IngressEndpoint_Port{
+			Ports: []*locality.Port{
 				{
 					Port: uint32(svc.Spec.Ports[0].Port),
 					Name: svc.Spec.Ports[0].Name,
@@ -79,7 +77,7 @@ var _ = Describe("IpFinder", func() {
 		eps, err := externalIpGetter.GetExternalIps(ctx, []*core_v1.Service{svc})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(eps).To(HaveLen(1))
-		Expect(eps[0]).To(MatchProto(expected))
+		Expect(eps[0]).To(Equal(expected))
 	})
 
 	It("can return endpoints for a NodePort Service", func() {
@@ -127,9 +125,9 @@ var _ = Describe("IpFinder", func() {
 			},
 		}
 
-		expected := &fed_types.GlooInstanceSpec_Proxy_IngressEndpoint{
+		expected := &locality.IngressEndpoint{
 			Address: node.Status.Addresses[0].Address,
-			Ports: []*fed_types.GlooInstanceSpec_Proxy_IngressEndpoint_Port{
+			Ports: []*locality.Port{
 				{
 					Port: uint32(svc.Spec.Ports[0].NodePort),
 					Name: svc.Spec.Ports[0].Name,
@@ -151,7 +149,7 @@ var _ = Describe("IpFinder", func() {
 		eps, err := externalIpGetter.GetExternalIps(ctx, []*core_v1.Service{svc})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(eps).To(HaveLen(1))
-		Expect(eps[0]).To(MatchProto(expected))
+		Expect(eps[0]).To(Equal(expected))
 	})
 
 })

@@ -1,6 +1,9 @@
 package apiserverutils
 
 import (
+	"sort"
+
+	"github.com/solo-io/skv2/contrib/pkg/sets"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	fedv1types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
@@ -115,4 +118,16 @@ func convertToRpcResourceReports(resourceReports []*fedv1types.GlooInstanceSpec_
 		})
 	}
 	return rpcResourceReports
+}
+
+// Performs the same function as `projects/gloo-fed/pkg/discovery/translator/summarize/sort.go`
+// but does not depend on Fed APIs
+func SortCheckSummaryLists(summary *rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary) {
+	sort.SliceStable(summary.Errors, func(i, j int) bool {
+		return sets.Key(summary.Errors[i].GetRef()) < sets.Key(summary.Errors[j].GetRef())
+	})
+
+	sort.SliceStable(summary.Warnings, func(i, j int) bool {
+		return sets.Key(summary.Warnings[i].GetRef()) < sets.Key(summary.Warnings[j].GetRef())
+	})
 }

@@ -7,19 +7,19 @@ import (
 	v1sets "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1/sets"
 	"github.com/solo-io/go-utils/contextutils"
 	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator/summarize"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 )
 
-func GetDeploymentsSummary(ctx context.Context, deployments v1sets.DeploymentSet, namespace, cluster string) *types.GlooInstanceSpec_Check_Summary {
-	summary := &types.GlooInstanceSpec_Check_Summary{}
+// Get a summary of deployments in the given namespace and cluster. To bypass the cluster check (e.g. for single-cluster
+// use), pass in "" for the cluster.
+func GetDeploymentsSummary(ctx context.Context, deployments v1sets.DeploymentSet, namespace, cluster string) *Summary {
+	summary := &Summary{}
 
 	for _, deploymentIter := range deployments.List() {
 		deployment := deploymentIter
 
-		if deployment.ClusterName != cluster || deployment.Namespace != namespace {
+		if (cluster != "" && deployment.ClusterName != cluster) || deployment.Namespace != namespace {
 			continue
 		}
 
@@ -31,7 +31,7 @@ func GetDeploymentsSummary(ctx context.Context, deployments v1sets.DeploymentSet
 		}
 	}
 
-	summarize.SortLists(summary)
+	SortLists(summary)
 	return summary
 }
 
@@ -83,8 +83,8 @@ func getErrorMessage(ctx context.Context, deployment *appsv1.Deployment) string 
 	return ""
 }
 
-func getDeploymentError(deployment *appsv1.Deployment, message string) *types.GlooInstanceSpec_Check_Summary_ResourceReport {
-	return &types.GlooInstanceSpec_Check_Summary_ResourceReport{
+func getDeploymentError(deployment *appsv1.Deployment, message string) *ResourceReport {
+	return &ResourceReport{
 		Ref: &v1.ObjectRef{
 			Namespace: deployment.Namespace,
 			Name:      deployment.Name,

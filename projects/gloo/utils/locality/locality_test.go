@@ -9,7 +9,7 @@ import (
 	"github.com/rotisserie/eris"
 	mock_k8s_core_clients "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/mocks"
 	"github.com/solo-io/go-utils/testutils"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator/internal/locality"
+	"github.com/solo-io/solo-projects/projects/gloo/utils/locality"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
