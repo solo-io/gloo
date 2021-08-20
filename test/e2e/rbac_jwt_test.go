@@ -182,7 +182,7 @@ var _ = Describe("JWT + RBAC", func() {
 		}
 	})
 
-	ExpectAccess := func(bar, fooget, foopost int, augmentRequest func(*http.Request)) {
+	ExpectAccess := func(bar, fooget, foopost int, getBookRecommendations int, getVerifiedEmail int, augmentRequest func(*http.Request)) {
 		query := func(method, path string) (*http.Response, error) {
 			url := fmt.Sprintf("http://%s:%d%s", "localhost", envoyPort, path)
 			By("Querying " + url)
@@ -219,6 +219,18 @@ var _ = Describe("JWT + RBAC", func() {
 		resp, err = query("POST", "/foo")
 		ExpectWithOffset(1, err).NotTo(HaveOccurred())
 		ExpectWithOffset(1, resp.StatusCode).To(Equal(foopost))
+
+		// These endpoints are only for those with advanced nested claims, -1 to skip
+		if getBookRecommendations != -1 {
+			resp, err = query("GET", "/book-recommendations")
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
+			ExpectWithOffset(1, resp.StatusCode).To(Equal(getBookRecommendations))
+		}
+		if getVerifiedEmail != -1 {
+			resp, err = query("GET", "/verified-email")
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
+			ExpectWithOffset(1, resp.StatusCode).To(Equal(getVerifiedEmail))
+		}
 	}
 
 	getTokenFor := func(sub string) string {
@@ -232,7 +244,7 @@ var _ = Describe("JWT + RBAC", func() {
 		return tok
 	}
 
-	getNestedClaimTokenFor := func(sub string) string {
+	getAdvancedClaimTokenFor := func(sub string, emailVerified bool, hobbies []string) string {
 		claims := jwt.MapClaims{
 			"iss": issuer,
 			"aud": []string{audience},
@@ -241,11 +253,17 @@ var _ = Describe("JWT + RBAC", func() {
 				"foo": map[string]interface{}{
 					"role": sub,
 				},
+				"email_verified": emailVerified,
+				"hobbies":        hobbies,
 			},
 		}
 		tok := getToken(claims, privateKey)
 		By("using token " + tok)
 		return tok
+	}
+
+	getDefaultAdvancedClaimTokenFor := func(sub string) string {
+		return getAdvancedClaimTokenFor(sub, true, []string{"long walks", "reading", "writing e2e tests"})
 	}
 
 	getMapTokenFor := func(sub string) string {
@@ -268,8 +286,11 @@ var _ = Describe("JWT + RBAC", func() {
 	addToken := func(req *http.Request, sub string) {
 		addBearer(req, getTokenFor(sub))
 	}
-	addNestedClaimToken := func(req *http.Request, sub string) {
-		addBearer(req, getNestedClaimTokenFor(sub))
+	addAdvancedClaimToken := func(req *http.Request, sub string, emailVerified bool, hobbies []string) {
+		addBearer(req, getAdvancedClaimTokenFor(sub, emailVerified, hobbies))
+	}
+	addDefaultAdvancedClaimToken := func(req *http.Request, sub string) {
+		addBearer(req, getDefaultAdvancedClaimTokenFor(sub))
 	}
 
 	Context("jwt tests", func() {
@@ -435,7 +456,7 @@ var _ = Describe("JWT + RBAC", func() {
 
 		Context("non admin user", func() {
 			It("should allow non admin user access to GET foo", func() {
-				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusForbidden,
+				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusForbidden, -1, -1,
 					func(req *http.Request) { addToken(req, "user") })
 			})
 
@@ -443,21 +464,21 @@ var _ = Describe("JWT + RBAC", func() {
 
 		Context("editor user", func() {
 			It("should allow most things", func() {
-				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusOK,
+				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusOK, -1, -1,
 					func(req *http.Request) { addToken(req, "editor") })
 			})
 		})
 
 		Context("admin user", func() {
 			It("should allow everything", func() {
-				ExpectAccess(http.StatusOK, http.StatusOK, http.StatusOK,
+				ExpectAccess(http.StatusOK, http.StatusOK, http.StatusOK, -1, -1,
 					func(req *http.Request) { addToken(req, "admin") })
 			})
 		})
 
 		Context("anonymous user", func() {
 			It("should only allow public route", func() {
-				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
+				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized, -1, -1,
 					func(req *http.Request) {})
 			})
 		})
@@ -467,7 +488,7 @@ var _ = Describe("JWT + RBAC", func() {
 				token := getTokenFor("admin")
 				// remove some stuff to make the signature invalid
 				badToken := token[:len(token)-10]
-				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
+				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized, -1, -1,
 					func(req *http.Request) { addBearer(req, badToken) })
 			})
 		})
@@ -505,29 +526,29 @@ var _ = Describe("JWT + RBAC", func() {
 
 		Context("non admin user", func() {
 			It("should allow non admin user access to GET foo", func() {
-				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusForbidden,
-					func(req *http.Request) { addNestedClaimToken(req, "user") })
+				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusForbidden, http.StatusOK, http.StatusOK,
+					func(req *http.Request) { addDefaultAdvancedClaimToken(req, "user") })
 			})
 
 		})
 
 		Context("editor user", func() {
 			It("should allow most things", func() {
-				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusOK,
-					func(req *http.Request) { addNestedClaimToken(req, "editor") })
+				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusOK, http.StatusOK, http.StatusOK,
+					func(req *http.Request) { addDefaultAdvancedClaimToken(req, "editor") })
 			})
 		})
 
 		Context("admin user", func() {
 			It("should allow everything", func() {
-				ExpectAccess(http.StatusOK, http.StatusOK, http.StatusOK,
-					func(req *http.Request) { addNestedClaimToken(req, "admin") })
+				ExpectAccess(http.StatusOK, http.StatusOK, http.StatusOK, http.StatusOK, http.StatusOK,
+					func(req *http.Request) { addDefaultAdvancedClaimToken(req, "admin") })
 			})
 		})
 
 		Context("anonymous user", func() {
 			It("should only allow public route", func() {
-				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
+				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
 					func(req *http.Request) {})
 			})
 		})
@@ -537,7 +558,7 @@ var _ = Describe("JWT + RBAC", func() {
 				token := getTokenFor("admin")
 				// remove some stuff to make the signature invalid
 				badToken := token[:len(token)-10]
-				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
+				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
 					func(req *http.Request) { addBearer(req, badToken) })
 			})
 		})
@@ -548,7 +569,29 @@ var _ = Describe("JWT + RBAC", func() {
 			// claim named "metadata.foo.role"
 			It("should deny everything", func() {
 				ExpectAccess(http.StatusForbidden, http.StatusForbidden, http.StatusForbidden,
-					func(req *http.Request) { addNestedClaimToken(req, "noDelimiterAdmin") })
+					http.StatusOK, // there is a delimiter on the book-recommendations policy, so that one should be 200
+					http.StatusOK, // there is a delimiter on the verified-email policy, so that one should be 200
+					func(req *http.Request) { addDefaultAdvancedClaimToken(req, "noDelimiterAdmin") })
+			})
+		})
+
+		// Tests ClaimMatcher.LIST_CONTAINS
+		Context("users that don't like to read", func() {
+			It("should not have access to book recommendations", func() {
+				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusForbidden, http.StatusForbidden, http.StatusOK,
+					func(req *http.Request) {
+						addAdvancedClaimToken(req, "user", true, []string{"long walks", "writing e2e tests"})
+					})
+			})
+		})
+
+		// Tests ClaimMatcher.BOOLEAN
+		Context("non-verified emails", func() {
+			It("should not have access to /verified-email", func() {
+				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusForbidden, http.StatusOK, http.StatusForbidden,
+					func(req *http.Request) {
+						addAdvancedClaimToken(req, "user", false, []string{"long walks", "reading", "writing e2e tests"})
+					})
 			})
 		})
 	})
@@ -623,6 +666,36 @@ func getProxyJwtRbacNestedClaims(envoyPort uint32, jwtksServerRef, upstream *cor
 					},
 				}},
 				Permissions: &rbac.Permissions{},
+			},
+			"book-recommendations": {
+				Principals: []*rbac.Principal{{
+					JwtPrincipal: &rbac.JWTPrincipal{
+						Claims: map[string]string{
+							"metadata.hobbies": "reading",
+						},
+						Matcher: rbac.JWTPrincipal_LIST_CONTAINS,
+					},
+				}},
+				Permissions: &rbac.Permissions{
+					PathPrefix: "/book-recommendations",
+					Methods:    []string{"GET"},
+				},
+				NestedClaimDelimiter: ".",
+			},
+			"verified-email": {
+				Principals: []*rbac.Principal{{
+					JwtPrincipal: &rbac.JWTPrincipal{
+						Claims: map[string]string{
+							"metadata.email_verified": "true",
+						},
+						Matcher: rbac.JWTPrincipal_BOOLEAN,
+					},
+				}},
+				Permissions: &rbac.Permissions{
+					PathPrefix: "/verified-email",
+					Methods:    []string{"GET"},
+				},
+				NestedClaimDelimiter: ".",
 			},
 		},
 	}

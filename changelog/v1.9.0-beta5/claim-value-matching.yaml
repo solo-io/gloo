@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/4873
+    resolvesIssue: false
+    description: Add support for non-string JWT claim value matching in JWT RBAC.

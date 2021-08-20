@@ -311,3 +311,36 @@ var _ = Describe("Plugin", func() {
 	})
 
 })
+
+var _ = Describe("Translation Tests", func() {
+
+	Context("GetValueMatcher", func() {
+		It("works", func() {
+			matcher, err := GetValueMatcher("zebra", rbac.JWTPrincipal_EXACT_STRING)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(matcher.GetStringMatch().GetExact()).To(Equal("zebra"))
+		})
+
+		It("Returns an error when ClaimMatcher.BOOLEAN is used with a non-boolean value", func() {
+			_, err := GetValueMatcher("thisisnotabool", rbac.JWTPrincipal_BOOLEAN)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Value cannot be parsed to a bool to use ClaimMatcher.BOOLEAN: thisisnotabool"))
+		})
+
+		It("works with booleans", func() {
+			matcher, err := GetValueMatcher("true", rbac.JWTPrincipal_BOOLEAN)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(matcher.GetBoolMatch()).To(BeTrue())
+			matcher, err = GetValueMatcher("false", rbac.JWTPrincipal_BOOLEAN)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(matcher.GetBoolMatch()).To(BeFalse())
+		})
+
+		It("works with lists too", func() {
+			matcher, err := GetValueMatcher("somelistelement", rbac.JWTPrincipal_LIST_CONTAINS)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(matcher.GetListMatch().GetOneOf().GetStringMatch().GetExact()).To(Equal("somelistelement"))
+		})
+	})
+
+})

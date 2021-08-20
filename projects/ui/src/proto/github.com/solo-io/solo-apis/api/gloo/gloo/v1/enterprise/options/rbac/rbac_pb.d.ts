@@ -108,6 +108,9 @@ export class JWTPrincipal extends jspb.Message {
   getProvider(): string;
   setProvider(value: string): void;
 
+  getMatcher(): JWTPrincipal.ClaimMatcherMap[keyof JWTPrincipal.ClaimMatcherMap];
+  setMatcher(value: JWTPrincipal.ClaimMatcherMap[keyof JWTPrincipal.ClaimMatcherMap]): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): JWTPrincipal.AsObject;
   static toObject(includeInstance: boolean, msg: JWTPrincipal): JWTPrincipal.AsObject;
@@ -122,7 +125,16 @@ export namespace JWTPrincipal {
   export type AsObject = {
     claimsMap: Array<[string, string]>,
     provider: string,
+    matcher: JWTPrincipal.ClaimMatcherMap[keyof JWTPrincipal.ClaimMatcherMap],
   }
+
+  export interface ClaimMatcherMap {
+    EXACT_STRING: 0;
+    BOOLEAN: 1;
+    LIST_CONTAINS: 2;
+  }
+
+  export const ClaimMatcher: ClaimMatcherMap;
 }
 
 export class Permissions extends jspb.Message {

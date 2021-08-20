@@ -15,6 +15,7 @@ var global = Function('return this')();
 var extproto_ext_pb = require('../../../../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.rbac.options.gloo.solo.io.ExtensionSettings', null, global);
 goog.exportSymbol('proto.rbac.options.gloo.solo.io.JWTPrincipal', null, global);
+goog.exportSymbol('proto.rbac.options.gloo.solo.io.JWTPrincipal.ClaimMatcher', null, global);
 goog.exportSymbol('proto.rbac.options.gloo.solo.io.Permissions', null, global);
 goog.exportSymbol('proto.rbac.options.gloo.solo.io.Policy', null, global);
 goog.exportSymbol('proto.rbac.options.gloo.solo.io.Principal', null, global);
@@ -782,7 +783,8 @@ proto.rbac.options.gloo.solo.io.JWTPrincipal.prototype.toObject = function(opt_i
 proto.rbac.options.gloo.solo.io.JWTPrincipal.toObject = function(includeInstance, msg) {
   var f, obj = {
     claimsMap: (f = msg.getClaimsMap()) ? f.toObject(includeInstance, undefined) : [],
-    provider: jspb.Message.getFieldWithDefault(msg, 2, "")
+    provider: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    matcher: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -829,6 +831,10 @@ proto.rbac.options.gloo.solo.io.JWTPrincipal.deserializeBinaryFromReader = funct
       var value = /** @type {string} */ (reader.readString());
       msg.setProvider(value);
       break;
+    case 3:
+      var value = /** @type {!proto.rbac.options.gloo.solo.io.JWTPrincipal.ClaimMatcher} */ (reader.readEnum());
+      msg.setMatcher(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -869,8 +875,24 @@ proto.rbac.options.gloo.solo.io.JWTPrincipal.serializeBinaryToWriter = function(
       f
     );
   }
+  f = message.getMatcher();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      3,
+      f
+    );
+  }
 };
 
+
+/**
+ * @enum {number}
+ */
+proto.rbac.options.gloo.solo.io.JWTPrincipal.ClaimMatcher = {
+  EXACT_STRING: 0,
+  BOOLEAN: 1,
+  LIST_CONTAINS: 2
+};
 
 /**
  * map<string, string> claims = 1;
@@ -902,6 +924,21 @@ proto.rbac.options.gloo.solo.io.JWTPrincipal.prototype.getProvider = function() 
 /** @param {string} value */
 proto.rbac.options.gloo.solo.io.JWTPrincipal.prototype.setProvider = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional ClaimMatcher matcher = 3;
+ * @return {!proto.rbac.options.gloo.solo.io.JWTPrincipal.ClaimMatcher}
+ */
+proto.rbac.options.gloo.solo.io.JWTPrincipal.prototype.getMatcher = function() {
+  return /** @type {!proto.rbac.options.gloo.solo.io.JWTPrincipal.ClaimMatcher} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/** @param {!proto.rbac.options.gloo.solo.io.JWTPrincipal.ClaimMatcher} value */
+proto.rbac.options.gloo.solo.io.JWTPrincipal.prototype.setMatcher = function(value) {
+  jspb.Message.setProto3EnumField(this, 3, value);
 };
 
 

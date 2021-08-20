@@ -3,7 +3,10 @@ package rbac
 import (
 	"context"
 	"sort"
+	"strconv"
 	"strings"
+
+	"github.com/solo-io/solo-kit/pkg/errors"
 
 	envoycfgauthz "github.com/envoyproxy/go-control-plane/envoy/config/rbac/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -135,7 +138,11 @@ func translateRbac(ctx context.Context, vhostname string, userPolicies map[strin
 	}
 	if userPolicies != nil {
 		for k, v := range userPolicies {
-			policies[k] = translatePolicy(contextutils.WithLogger(ctx, k), vhostname, v)
+			var err error
+			policies[k], err = translatePolicy(contextutils.WithLogger(ctx, k), vhostname, v)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	return res, nil
@@ -168,10 +175,13 @@ func translatedMethods(methods []string) *envoycfgauthz.Permission {
 	}
 }
 
-func translatePolicy(ctx context.Context, vhostname string, p *rbac.Policy) *envoycfgauthz.Policy {
+func translatePolicy(ctx context.Context, vhostname string, p *rbac.Policy) (*envoycfgauthz.Policy, error) {
 	outPolicy := &envoycfgauthz.Policy{}
 	for _, principal := range p.GetPrincipals() {
-		outPrincipal := translateJwtPrincipal(ctx, vhostname, principal.JwtPrincipal, p.GetNestedClaimDelimiter())
+		outPrincipal, err := translateJwtPrincipal(ctx, vhostname, principal.JwtPrincipal, p.GetNestedClaimDelimiter())
+		if err != nil {
+			return nil, err
+		}
 		if outPrincipal != nil {
 			outPolicy.Principals = append(outPolicy.Principals, outPrincipal)
 		}
@@ -215,7 +225,7 @@ func translatePolicy(ctx context.Context, vhostname string, p *rbac.Policy) *env
 		}}
 	}
 
-	return outPolicy
+	return outPolicy, nil
 }
 
 func getName(vhostname string, jwtPrincipal *rbac.JWTPrincipal) string {
@@ -236,26 +246,22 @@ func sortedKeys(m map[string]string) (keys []string) {
 	return
 }
 
-func translateJwtPrincipal(ctx context.Context, vhostname string, jwtPrincipal *rbac.JWTPrincipal, nestedClaimsDelimiter string) *envoycfgauthz.Principal {
+func translateJwtPrincipal(ctx context.Context, vhostname string, jwtPrincipal *rbac.JWTPrincipal, nestedClaimsDelimiter string) (*envoycfgauthz.Principal, error) {
 	var jwtPrincipals []*envoycfgauthz.Principal
 	claims := jwtPrincipal.GetClaims()
 	// sort for idempotency
 	for _, claim := range sortedKeys(claims) {
 		value := claims[claim]
+		valueMatcher, err := GetValueMatcher(value, jwtPrincipal.GetMatcher())
+		if err != nil {
+			return nil, err
+		}
 		claimPrincipal := &envoycfgauthz.Principal{
 			Identifier: &envoycfgauthz.Principal_Metadata{
 				Metadata: &envoymatcher.MetadataMatcher{
 					Filter: "envoy.filters.http.jwt_authn",
 					Path:   getPath(claim, vhostname, jwtPrincipal, nestedClaimsDelimiter),
-					Value: &envoymatcher.ValueMatcher{
-						MatchPattern: &envoymatcher.ValueMatcher_StringMatch{
-							StringMatch: &envoymatcher.StringMatcher{
-								MatchPattern: &envoymatcher.StringMatcher_Exact{
-									Exact: value,
-								},
-							},
-						},
-					},
+					Value:  valueMatcher,
 				},
 			},
 		}
@@ -265,9 +271,9 @@ func translateJwtPrincipal(ctx context.Context, vhostname string, jwtPrincipal *
 	if len(jwtPrincipals) == 0 {
 		logger := contextutils.LoggerFrom(ctx)
 		logger.Info("RBAC JWT Principal with zero claims - ignoring")
-		return nil
+		return nil, nil
 	} else if len(jwtPrincipals) == 1 {
-		return jwtPrincipals[0]
+		return jwtPrincipals[0], nil
 	}
 	return &envoycfgauthz.Principal{
 		Identifier: &envoycfgauthz.Principal_AndIds{
@@ -275,7 +281,7 @@ func translateJwtPrincipal(ctx context.Context, vhostname string, jwtPrincipal *
 				Ids: jwtPrincipals,
 			},
 		},
-	}
+	}, nil
 }
 
 func getPath(claim string, vhostname string, jwtPrincipal *rbac.JWTPrincipal, nestedClaimsDelimiter string) []*envoymatcher.MetadataMatcher_PathSegment {
@@ -324,5 +330,46 @@ func getPath(claim string, vhostname string, jwtPrincipal *rbac.JWTPrincipal, ne
 				},
 			},
 		}
+	}
+}
+
+func GetValueMatcher(value string, claimMatcher rbac.JWTPrincipal_ClaimMatcher) (*envoymatcher.ValueMatcher, error) {
+	switch claimMatcher {
+	case rbac.JWTPrincipal_EXACT_STRING:
+		return getExactStringValueMatcher(value), nil
+	case rbac.JWTPrincipal_BOOLEAN:
+		boolValue, err := strconv.ParseBool(value)
+		if err != nil {
+			return nil, errors.Errorf("Value cannot be parsed to a bool to use ClaimMatcher.BOOLEAN: %v", value)
+		}
+		return &envoymatcher.ValueMatcher{
+			MatchPattern: &envoymatcher.ValueMatcher_BoolMatch{
+				BoolMatch: boolValue,
+			},
+		}, nil
+	case rbac.JWTPrincipal_LIST_CONTAINS:
+		return &envoymatcher.ValueMatcher{
+			MatchPattern: &envoymatcher.ValueMatcher_ListMatch{
+				ListMatch: &envoymatcher.ListMatcher{
+					MatchPattern: &envoymatcher.ListMatcher_OneOf{
+						OneOf: getExactStringValueMatcher(value),
+					},
+				},
+			},
+		}, nil
+	default:
+		return nil, errors.Errorf("No implementation defined for ClaimMatcher: %v", claimMatcher)
+	}
+}
+
+func getExactStringValueMatcher(value string) *envoymatcher.ValueMatcher {
+	return &envoymatcher.ValueMatcher{
+		MatchPattern: &envoymatcher.ValueMatcher_StringMatch{
+			StringMatch: &envoymatcher.StringMatcher{
+				MatchPattern: &envoymatcher.StringMatcher_Exact{
+					Exact: value,
+				},
+			},
+		},
 	}
 }
