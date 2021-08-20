@@ -1053,7 +1053,7 @@ DEPS_BUCKET=gloo-ee-dependencies
 
 .PHONY: publish-dependencies
 publish-dependencies: $(DEPS_DIR)/go.mod $(DEPS_DIR)/go.sum $(DEPS_DIR)/dependencies $(DEPS_DIR)/dependencies.json \
-	$(DEPS_DIR)/build_env $(DEPS_DIR)/verify-plugins-linux-amd64
+	$(DEPS_DIR)/build_env $(DEPS_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)/fips-verify-plugins-linux-amd64
 	gsutil cp -r $(DEPS_DIR) gs://$(DEPS_BUCKET)
 
 $(DEPS_DIR):
@@ -1073,10 +1073,13 @@ $(DEPS_DIR)/go.sum: $(DEPS_DIR) go.sum
 
 $(DEPS_DIR)/build_env: $(DEPS_DIR)
 	echo "GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE)" > $@
+	echo "FIPS_GO_BUILD_IMAGE=$(EXTAUTH_FIPS_GO_BUILD_IMAGE)" >> $@
 	echo "GC_FLAGS=$(GCFLAGS)" >> $@
 
 $(DEPS_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
 	cp $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
+$(DEPS_DIR)/fips-verify-plugins-linux-amd64: $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)
+	cp $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)/fips-verify-plugins-linux-amd64
 
 #----------------------------------------------------------------------------------
 # Docker push
