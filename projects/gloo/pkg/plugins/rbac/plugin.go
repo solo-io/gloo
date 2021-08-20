@@ -3,6 +3,7 @@ package rbac
 import (
 	"context"
 	"sort"
+	"strings"
 
 	envoycfgauthz "github.com/envoyproxy/go-control-plane/envoy/config/rbac/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -170,7 +171,7 @@ func translatedMethods(methods []string) *envoycfgauthz.Permission {
 func translatePolicy(ctx context.Context, vhostname string, p *rbac.Policy) *envoycfgauthz.Policy {
 	outPolicy := &envoycfgauthz.Policy{}
 	for _, principal := range p.GetPrincipals() {
-		outPrincipal := translateJwtPrincipal(ctx, vhostname, principal.JwtPrincipal)
+		outPrincipal := translateJwtPrincipal(ctx, vhostname, principal.JwtPrincipal, p.GetNestedClaimDelimiter())
 		if outPrincipal != nil {
 			outPolicy.Principals = append(outPolicy.Principals, outPrincipal)
 		}
@@ -235,7 +236,7 @@ func sortedKeys(m map[string]string) (keys []string) {
 	return
 }
 
-func translateJwtPrincipal(ctx context.Context, vhostname string, jwtPrincipal *rbac.JWTPrincipal) *envoycfgauthz.Principal {
+func translateJwtPrincipal(ctx context.Context, vhostname string, jwtPrincipal *rbac.JWTPrincipal, nestedClaimsDelimiter string) *envoycfgauthz.Principal {
 	var jwtPrincipals []*envoycfgauthz.Principal
 	claims := jwtPrincipal.GetClaims()
 	// sort for idempotency
@@ -245,18 +246,7 @@ func translateJwtPrincipal(ctx context.Context, vhostname string, jwtPrincipal *
 			Identifier: &envoycfgauthz.Principal_Metadata{
 				Metadata: &envoymatcher.MetadataMatcher{
 					Filter: "envoy.filters.http.jwt_authn",
-					Path: []*envoymatcher.MetadataMatcher_PathSegment{
-						{
-							Segment: &envoymatcher.MetadataMatcher_PathSegment_Key{
-								Key: getName(vhostname, jwtPrincipal),
-							},
-						},
-						{
-							Segment: &envoymatcher.MetadataMatcher_PathSegment_Key{
-								Key: claim,
-							},
-						},
-					},
+					Path:   getPath(claim, vhostname, jwtPrincipal, nestedClaimsDelimiter),
 					Value: &envoymatcher.ValueMatcher{
 						MatchPattern: &envoymatcher.ValueMatcher_StringMatch{
 							StringMatch: &envoymatcher.StringMatcher{
@@ -285,5 +275,54 @@ func translateJwtPrincipal(ctx context.Context, vhostname string, jwtPrincipal *
 				Ids: jwtPrincipals,
 			},
 		},
+	}
+}
+
+func getPath(claim string, vhostname string, jwtPrincipal *rbac.JWTPrincipal, nestedClaimsDelimiter string) []*envoymatcher.MetadataMatcher_PathSegment {
+	// If the claim name contains the nestedClaimsDelimiter then it's a nested claim, and the path
+	// should contain a segment for each layer of nesting, for example:
+	// {
+	//   "sub": "1234567890",
+	//   "name": "John Doe",
+	//   "iat": 1516239022,
+	//   "metadata": {
+	//     "role": [
+	//       "user",
+	//       "editor",
+	//       "admin"
+	//     ]
+	//   }
+	// }
+	// The nested claim name "role" would get a [metadata] segment and a [role] segment.
+	// The claim name "sub" would only have a single [sub] segment.
+	if nestedClaimsDelimiter != "" && strings.Contains(claim, nestedClaimsDelimiter) {
+		substrings := strings.Split(claim, nestedClaimsDelimiter)
+		path := make([]*envoymatcher.MetadataMatcher_PathSegment, len(substrings)+1)
+		path[0] = &envoymatcher.MetadataMatcher_PathSegment{
+			Segment: &envoymatcher.MetadataMatcher_PathSegment_Key{
+				Key: getName(vhostname, jwtPrincipal),
+			},
+		}
+		for i, substring := range substrings {
+			path[i+1] = &envoymatcher.MetadataMatcher_PathSegment{
+				Segment: &envoymatcher.MetadataMatcher_PathSegment_Key{
+					Key: substring,
+				},
+			}
+		}
+		return path
+	} else {
+		return []*envoymatcher.MetadataMatcher_PathSegment{
+			{
+				Segment: &envoymatcher.MetadataMatcher_PathSegment_Key{
+					Key: getName(vhostname, jwtPrincipal),
+				},
+			},
+			{
+				Segment: &envoymatcher.MetadataMatcher_PathSegment_Key{
+					Key: claim,
+				},
+			},
+		}
 	}
 }

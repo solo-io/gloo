@@ -43,9 +43,10 @@ const (
 	issuer   = "issuer"
 	audience = "thats-us"
 
-	admin  = "admin"
-	editor = "editor"
-	user   = "user"
+	admin            = "admin"
+	editor           = "editor"
+	user             = "user"
+	noDelimiterAdmin = "noDelimiterAdmin"
 )
 
 func jwks(ctx context.Context) (uint32, *rsa.PrivateKey) {
@@ -86,7 +87,7 @@ func jwks(ctx context.Context) (uint32, *rsa.PrivateKey) {
 	return jwksPort, priv
 }
 
-func getToken(claims jwt.StandardClaims, key *rsa.PrivateKey) string {
+func getToken(claims jwt.Claims, key *rsa.PrivateKey) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	s, err := token.SignedString(key)
 	Expect(err).NotTo(HaveOccurred())
@@ -231,6 +232,22 @@ var _ = Describe("JWT + RBAC", func() {
 		return tok
 	}
 
+	getNestedClaimTokenFor := func(sub string) string {
+		claims := jwt.MapClaims{
+			"iss": issuer,
+			"aud": []string{audience},
+			"sub": sub,
+			"metadata": map[string]interface{}{
+				"foo": map[string]interface{}{
+					"role": sub,
+				},
+			},
+		}
+		tok := getToken(claims, privateKey)
+		By("using token " + tok)
+		return tok
+	}
+
 	getMapTokenFor := func(sub string) string {
 		claims := jwt.MapClaims{
 			"iss": issuer,
@@ -250,6 +267,9 @@ var _ = Describe("JWT + RBAC", func() {
 	}
 	addToken := func(req *http.Request, sub string) {
 		addBearer(req, getTokenFor(sub))
+	}
+	addNestedClaimToken := func(req *http.Request, sub string) {
+		addBearer(req, getNestedClaimTokenFor(sub))
 	}
 
 	Context("jwt tests", func() {
@@ -453,7 +473,162 @@ var _ = Describe("JWT + RBAC", func() {
 		})
 
 	})
+
+	Context("User access with nested claims", func() {
+		BeforeEach(func() {
+			proxy := getProxyJwtRbacNestedClaims(envoyPort, jwtksServerRef, testUpstream.Upstream.Metadata.Ref())
+
+			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(func() (core.Status, error) {
+				proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+				if err != nil {
+					return core.Status{}, err
+				}
+				if proxy.Status == nil {
+					return core.Status{}, nil
+				}
+				return *proxy.Status, nil
+			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+				"Reason": BeEmpty(),
+				"State":  Equal(core.Status_Accepted),
+			}))
+
+			// wait for key service to start
+			Eventually(func() error {
+				_, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
+				return err
+			}, "5s", "0.5s").ShouldNot(HaveOccurred())
+
+		})
+
+		Context("non admin user", func() {
+			It("should allow non admin user access to GET foo", func() {
+				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusForbidden,
+					func(req *http.Request) { addNestedClaimToken(req, "user") })
+			})
+
+		})
+
+		Context("editor user", func() {
+			It("should allow most things", func() {
+				ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusOK,
+					func(req *http.Request) { addNestedClaimToken(req, "editor") })
+			})
+		})
+
+		Context("admin user", func() {
+			It("should allow everything", func() {
+				ExpectAccess(http.StatusOK, http.StatusOK, http.StatusOK,
+					func(req *http.Request) { addNestedClaimToken(req, "admin") })
+			})
+		})
+
+		Context("anonymous user", func() {
+			It("should only allow public route", func() {
+				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
+					func(req *http.Request) {})
+			})
+		})
+
+		Context("bad token user", func() {
+			It("should only allow public route", func() {
+				token := getTokenFor("admin")
+				// remove some stuff to make the signature invalid
+				badToken := token[:len(token)-10]
+				ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
+					func(req *http.Request) { addBearer(req, badToken) })
+			})
+		})
+
+		Context("noDelimiterAdmin user", func() {
+			// Without the nestedClaimDelimiter the "role" claim value should never be found,
+			// because the matcher is not looking for a path, it's looking for a top-level
+			// claim named "metadata.foo.role"
+			It("should deny everything", func() {
+				ExpectAccess(http.StatusForbidden, http.StatusForbidden, http.StatusForbidden,
+					func(req *http.Request) { addNestedClaimToken(req, "noDelimiterAdmin") })
+			})
+		})
+	})
 })
+
+// Essentially the same as getProxyJwtRbac, but requires a "metadata.foo.role"
+// nested claim, rather than the "iss" and "sub" claims.
+func getProxyJwtRbacNestedClaims(envoyPort uint32, jwtksServerRef, upstream *core.ResourceRef) *gloov1.Proxy {
+	jwtCfg := &jwtplugin.VhostExtension{
+		Providers: map[string]*jwtplugin.Provider{
+			"testprovider": {
+				Jwks: &jwtplugin.Jwks{
+					Jwks: &jwtplugin.Jwks_Remote{
+						Remote: &jwtplugin.RemoteJwks{
+							Url:         "http://test/keys",
+							UpstreamRef: jwtksServerRef,
+						},
+					},
+				},
+				Audiences: []string{audience},
+				Issuer:    issuer,
+			}},
+	}
+
+	rbacCfg := &rbac.ExtensionSettings{
+		Policies: map[string]*rbac.Policy{
+			"user": {
+				Principals: []*rbac.Principal{{
+					JwtPrincipal: &rbac.JWTPrincipal{
+						Claims: map[string]string{
+							"metadata.foo.role": user,
+						},
+					},
+				}},
+				Permissions: &rbac.Permissions{
+					PathPrefix: "/foo",
+					Methods:    []string{"GET"},
+				},
+				NestedClaimDelimiter: ".",
+			},
+			"editor": {
+				Principals: []*rbac.Principal{{
+					JwtPrincipal: &rbac.JWTPrincipal{
+						Claims: map[string]string{
+							"metadata.foo.role": editor,
+						},
+					},
+				}},
+				Permissions: &rbac.Permissions{
+					PathPrefix: "/foo",
+					Methods:    []string{"GET", "POST"},
+				},
+				NestedClaimDelimiter: ".",
+			},
+			"admin": {
+				Principals: []*rbac.Principal{{
+					JwtPrincipal: &rbac.JWTPrincipal{
+						Claims: map[string]string{
+							"metadata.foo.role": admin,
+						},
+					},
+				}},
+				Permissions:          &rbac.Permissions{},
+				NestedClaimDelimiter: ".",
+			},
+			"noDelimiterAdmin": {
+				Principals: []*rbac.Principal{{
+					JwtPrincipal: &rbac.JWTPrincipal{
+						Claims: map[string]string{
+							"metadata.foo.role": noDelimiterAdmin,
+						},
+					},
+				}},
+				Permissions: &rbac.Permissions{},
+			},
+		},
+	}
+
+	return getProxyJwtRbacWithExtensions(envoyPort, jwtksServerRef, upstream, jwtCfg, rbacCfg)
+}
 
 func getProxyJwtRbac(envoyPort uint32, jwtksServerRef, upstream *core.ResourceRef) *gloov1.Proxy {
 

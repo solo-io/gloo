@@ -59,6 +59,9 @@ export class Policy extends jspb.Message {
   getPermissions(): Permissions | undefined;
   setPermissions(value?: Permissions): void;
 
+  getNestedClaimDelimiter(): string;
+  setNestedClaimDelimiter(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Policy.AsObject;
   static toObject(includeInstance: boolean, msg: Policy): Policy.AsObject;
@@ -73,6 +76,7 @@ export namespace Policy {
   export type AsObject = {
     principalsList: Array<Principal.AsObject>,
     permissions?: Permissions.AsObject,
+    nestedClaimDelimiter: string,
   }
 }
 

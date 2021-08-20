@@ -392,7 +392,8 @@ proto.rbac.options.gloo.solo.io.Policy.toObject = function(includeInstance, msg)
   var f, obj = {
     principalsList: jspb.Message.toObjectList(msg.getPrincipalsList(),
     proto.rbac.options.gloo.solo.io.Principal.toObject, includeInstance),
-    permissions: (f = msg.getPermissions()) && proto.rbac.options.gloo.solo.io.Permissions.toObject(includeInstance, f)
+    permissions: (f = msg.getPermissions()) && proto.rbac.options.gloo.solo.io.Permissions.toObject(includeInstance, f),
+    nestedClaimDelimiter: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -439,6 +440,10 @@ proto.rbac.options.gloo.solo.io.Policy.deserializeBinaryFromReader = function(ms
       reader.readMessage(value,proto.rbac.options.gloo.solo.io.Permissions.deserializeBinaryFromReader);
       msg.setPermissions(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setNestedClaimDelimiter(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -482,6 +487,13 @@ proto.rbac.options.gloo.solo.io.Policy.serializeBinaryToWriter = function(messag
       2,
       f,
       proto.rbac.options.gloo.solo.io.Permissions.serializeBinaryToWriter
+    );
+  }
+  f = message.getNestedClaimDelimiter();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
     );
   }
 };
@@ -545,6 +557,21 @@ proto.rbac.options.gloo.solo.io.Policy.prototype.clearPermissions = function() {
  */
 proto.rbac.options.gloo.solo.io.Policy.prototype.hasPermissions = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string nested_claim_delimiter = 3;
+ * @return {string}
+ */
+proto.rbac.options.gloo.solo.io.Policy.prototype.getNestedClaimDelimiter = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.rbac.options.gloo.solo.io.Policy.prototype.setNestedClaimDelimiter = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 

@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/2744
+    resolvesIssue: false
+    description: Add support for nested claims (rather than just top-level claims) in JWT RBAC.
