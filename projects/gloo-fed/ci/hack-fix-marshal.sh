@@ -49,21 +49,35 @@ mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/cli/* projects/glooctl-p
 mkdir -p projects/glooctl-plugins/fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli
 mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli/* projects/glooctl-plugins/fed/pkg/api/ratelimit.api.solo.io/v1alpha1/cli  > /dev/null
 
-# fix apiserver handler and single-cluster check paths (for base resources)
+
+# All of the generated files get created under projects/gloo-fed by default. Move the apiserver-related files to the appropriate apiserver folders:
+
+# Create folders for the base resource handlers
 mkdir -p projects/apiserver/pkg/api/gloo.solo.io/v1/handler
-mv projects/gloo-fed/pkg/api/gloo.solo.io/v1/handler/* projects/apiserver/pkg/api/gloo.solo.io/v1/handler  > /dev/null
-mv projects/gloo-fed/pkg/api/gloo.solo.io/v1/check/single_cluster_check.go projects/apiserver/pkg/api/gloo.solo.io/v1/handler  > /dev/null
 mkdir -p projects/apiserver/pkg/api/gateway.solo.io/v1/handler
-mv projects/gloo-fed/pkg/api/gateway.solo.io/v1/handler/* projects/apiserver/pkg/api/gateway.solo.io/v1/handler  > /dev/null
-mv projects/gloo-fed/pkg/api/gateway.solo.io/v1/check/single_cluster_check.go projects/apiserver/pkg/api/gateway.solo.io/v1/handler  > /dev/null
 mkdir -p projects/apiserver/pkg/api/enterprise.gloo.solo.io/v1/handler
-mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/handler/* projects/apiserver/pkg/api/enterprise.gloo.solo.io/v1/handler  > /dev/null
-mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/check/single_cluster_check.go projects/apiserver/pkg/api/enterprise.gloo.solo.io/v1/handler  > /dev/null
 mkdir -p projects/apiserver/pkg/api/ratelimit.api.solo.io/v1alpha1/handler
-mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/handler/* projects/apiserver/pkg/api/ratelimit.api.solo.io/v1alpha1/handler  > /dev/null
+
+# Move Gloo Fed base resource handlers into their pkg dirs
+mv projects/gloo-fed/pkg/api/gloo.solo.io/v1/handler/fed_handler.go projects/apiserver/pkg/api/gloo.solo.io/v1/handler  > /dev/null
+mv projects/gloo-fed/pkg/api/gateway.solo.io/v1/handler/fed_handler.go projects/apiserver/pkg/api/gateway.solo.io/v1/handler  > /dev/null
+mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/handler/fed_handler.go projects/apiserver/pkg/api/enterprise.gloo.solo.io/v1/handler  > /dev/null
+mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/handler/fed_handler.go projects/apiserver/pkg/api/ratelimit.api.solo.io/v1alpha1/handler  > /dev/null
+
+# Move the single-cluster base resource checkers (i.e. the files that return resource summaries for GlooInstances) into their pkg dirs
+mv projects/gloo-fed/pkg/api/gloo.solo.io/v1/check/single_cluster_check.go projects/apiserver/pkg/api/gloo.solo.io/v1/handler  > /dev/null
+mv projects/gloo-fed/pkg/api/gateway.solo.io/v1/check/single_cluster_check.go projects/apiserver/pkg/api/gateway.solo.io/v1/handler  > /dev/null
+mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/check/single_cluster_check.go projects/apiserver/pkg/api/enterprise.gloo.solo.io/v1/handler  > /dev/null
 mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/check/single_cluster_check.go projects/apiserver/pkg/api/ratelimit.api.solo.io/v1alpha1/handler  > /dev/null
 
-# fix apiserver handler paths (for federated resources)
+# The single-cluster base resource handlers depend on the glooinstance handler, which in turn depends on the pkg/api handlers above, so to avoid circular dependencies,
+# we put the base resource handlers in a different folder instead of the pkg/api folders above
+mv projects/gloo-fed/pkg/api/gloo.solo.io/v1/handler/single_cluster_handler.go projects/apiserver/server/services/single_cluster_resource_handler/single_cluster_gloo_handler.go  > /dev/null
+mv projects/gloo-fed/pkg/api/gateway.solo.io/v1/handler/single_cluster_handler.go projects/apiserver/server/services/single_cluster_resource_handler/single_cluster_gateway_handler.go  > /dev/null
+mv projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/handler/single_cluster_handler.go projects/apiserver/server/services/single_cluster_resource_handler/single_cluster_enterprise_gloo_handler.go  > /dev/null
+mv projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/handler/single_cluster_handler.go projects/apiserver/server/services/single_cluster_resource_handler/single_cluster_ratelimit_handler.go  > /dev/null
+
+# Create folders for the federated resource handlers and move the files over.
 mkdir -p projects/apiserver/pkg/api/fed.gloo.solo.io/v1/handler
 mv projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1/handler/* projects/apiserver/pkg/api/fed.gloo.solo.io/v1/handler  > /dev/null
 mkdir -p projects/apiserver/pkg/api/fed.gateway.solo.io/v1/handler

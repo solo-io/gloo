@@ -128,6 +128,7 @@ clean-fed: clean-artifacts clean-generated-protos
 	rm -rf $(ROOTDIR)/projects/gloo-fed/pkg/api
 	rm -rf $(ROOTDIR)/projects/apiserver/pkg/api
 	rm -rf $(ROOTDIR)/projects/glooctl-plugins/fed/pkg/api
+	rm -rf $(ROOTDIR)/projects/apiserver/server/services/single_cluster_resource_handler/*
 
 # command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run

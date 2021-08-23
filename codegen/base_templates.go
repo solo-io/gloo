@@ -8,14 +8,17 @@ import (
 var baseTemplateBox = packr.NewBox("./custom_templates/base_gloo_resource_templates")
 
 var BaseGlooResourceTemplates = func() []model.CustomTemplates {
+	// these templates generate the handlers that get information about base Gloo resources.
+	// we have a Gloo Fed version and a single-cluster version which take different input
 	fedApiserverHandler, err := baseTemplateBox.FindString("apiserver/fed_apiserver_handler.gotmpl")
 	if err != nil {
 		panic(err)
 	}
-	// singleClusterApiserverHandler, err := baseTemplateBox.FindString("apiserver/single_cluster_apiserver_handler.gotmpl")
-	// if err != nil {
-	// 	panic(err)
-	// }
+	singleClusterApiserverHandler, err := baseTemplateBox.FindString("apiserver/single_cluster_apiserver_handler.gotmpl")
+	if err != nil {
+		panic(err)
+	}
+
 	apiserverProtos, err := baseTemplateBox.FindString("apiserver/apiserver_protos.gotmpl")
 	if err != nil {
 		panic(err)
@@ -57,12 +60,12 @@ var BaseGlooResourceTemplates = func() []model.CustomTemplates {
 			},
 			Funcs: GetTemplateFuncs(),
 		},
-		// {
-		// 	Templates: map[string]string{
-		// 		"handler/single_cluster_handler.go": singleClusterApiserverHandler,
-		// 	},
-		// 	Funcs: GetTemplateFuncs(),
-		// },
+		{
+			Templates: map[string]string{
+				"handler/single_cluster_handler.go": singleClusterApiserverHandler,
+			},
+			Funcs: GetTemplateFuncs(),
+		},
 		{
 			Templates: map[string]string{
 				"resource_apis.proto": apiserverProtos,

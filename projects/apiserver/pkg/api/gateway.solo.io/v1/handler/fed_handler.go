@@ -20,23 +20,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func NewGatewayResourceHandler(
+func NewFedGatewayResourceHandler(
 	instanceClient fedv1.GlooInstanceClient,
 	mcGatewayCRDClientset gateway_solo_io_v1.MulticlusterClientset,
 
 ) rpc_edge_v1.GatewayResourceApiServer {
-	return &gatewayResourceHandler{
+	return &fedGatewayResourceHandler{
 		instanceClient:        instanceClient,
 		mcGatewayCRDClientset: mcGatewayCRDClientset,
 	}
 }
 
-type gatewayResourceHandler struct {
+type fedGatewayResourceHandler struct {
 	instanceClient        fedv1.GlooInstanceClient
 	mcGatewayCRDClientset gateway_solo_io_v1.MulticlusterClientset
 }
 
-func (k *gatewayResourceHandler) ListGateways(ctx context.Context, request *rpc_edge_v1.ListGatewaysRequest) (*rpc_edge_v1.ListGatewaysResponse, error) {
+func (k *fedGatewayResourceHandler) ListGateways(ctx context.Context, request *rpc_edge_v1.ListGatewaysRequest) (*rpc_edge_v1.ListGatewaysResponse, error) {
 
 	var rpcGateways []*rpc_edge_v1.Gateway
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -50,7 +50,7 @@ func (k *gatewayResourceHandler) ListGateways(ctx context.Context, request *rpc_
 		for _, instance := range instanceList.Items {
 			rpcGatewayList, err := k.listGatewaysForGlooInstance(ctx, &instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
+				wrapped := eris.Wrapf(err, "Failed to list gateways for gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
@@ -80,7 +80,7 @@ func (k *gatewayResourceHandler) ListGateways(ctx context.Context, request *rpc_
 	}, nil
 }
 
-func (k *gatewayResourceHandler) listGatewaysForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.Gateway, error) {
+func (k *fedGatewayResourceHandler) listGatewaysForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.Gateway, error) {
 
 	gatewayCRDClientset, err := k.mcGatewayCRDClientset.Cluster(instance.Spec.GetCluster())
 	if err != nil {
@@ -136,7 +136,7 @@ func BuildRpcGateway(gateway *gateway_solo_io_v1.Gateway, glooInstance *skv2v1.O
 	return m
 }
 
-func (k *gatewayResourceHandler) GetGatewayYaml(ctx context.Context, request *rpc_edge_v1.GetGatewayYamlRequest) (*rpc_edge_v1.GetGatewayYamlResponse, error) {
+func (k *fedGatewayResourceHandler) GetGatewayYaml(ctx context.Context, request *rpc_edge_v1.GetGatewayYamlRequest) (*rpc_edge_v1.GetGatewayYamlResponse, error) {
 	gatewayClientSet, err := k.mcGatewayCRDClientset.Cluster(request.GetGatewayRef().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get gateway client set")
@@ -165,7 +165,7 @@ func (k *gatewayResourceHandler) GetGatewayYaml(ctx context.Context, request *rp
 	}, nil
 }
 
-func (k *gatewayResourceHandler) ListVirtualServices(ctx context.Context, request *rpc_edge_v1.ListVirtualServicesRequest) (*rpc_edge_v1.ListVirtualServicesResponse, error) {
+func (k *fedGatewayResourceHandler) ListVirtualServices(ctx context.Context, request *rpc_edge_v1.ListVirtualServicesRequest) (*rpc_edge_v1.ListVirtualServicesResponse, error) {
 
 	var rpcVirtualServices []*rpc_edge_v1.VirtualService
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -179,7 +179,7 @@ func (k *gatewayResourceHandler) ListVirtualServices(ctx context.Context, reques
 		for _, instance := range instanceList.Items {
 			rpcVirtualServiceList, err := k.listVirtualServicesForGlooInstance(ctx, &instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
+				wrapped := eris.Wrapf(err, "Failed to list virtualServices for gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
@@ -209,7 +209,7 @@ func (k *gatewayResourceHandler) ListVirtualServices(ctx context.Context, reques
 	}, nil
 }
 
-func (k *gatewayResourceHandler) listVirtualServicesForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.VirtualService, error) {
+func (k *fedGatewayResourceHandler) listVirtualServicesForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.VirtualService, error) {
 
 	gatewayCRDClientset, err := k.mcGatewayCRDClientset.Cluster(instance.Spec.GetCluster())
 	if err != nil {
@@ -265,7 +265,7 @@ func BuildRpcVirtualService(virtualService *gateway_solo_io_v1.VirtualService, g
 	return m
 }
 
-func (k *gatewayResourceHandler) GetVirtualServiceYaml(ctx context.Context, request *rpc_edge_v1.GetVirtualServiceYamlRequest) (*rpc_edge_v1.GetVirtualServiceYamlResponse, error) {
+func (k *fedGatewayResourceHandler) GetVirtualServiceYaml(ctx context.Context, request *rpc_edge_v1.GetVirtualServiceYamlRequest) (*rpc_edge_v1.GetVirtualServiceYamlResponse, error) {
 	gatewayClientSet, err := k.mcGatewayCRDClientset.Cluster(request.GetVirtualServiceRef().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get gateway client set")
@@ -294,7 +294,7 @@ func (k *gatewayResourceHandler) GetVirtualServiceYaml(ctx context.Context, requ
 	}, nil
 }
 
-func (k *gatewayResourceHandler) ListRouteTables(ctx context.Context, request *rpc_edge_v1.ListRouteTablesRequest) (*rpc_edge_v1.ListRouteTablesResponse, error) {
+func (k *fedGatewayResourceHandler) ListRouteTables(ctx context.Context, request *rpc_edge_v1.ListRouteTablesRequest) (*rpc_edge_v1.ListRouteTablesResponse, error) {
 
 	var rpcRouteTables []*rpc_edge_v1.RouteTable
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -308,7 +308,7 @@ func (k *gatewayResourceHandler) ListRouteTables(ctx context.Context, request *r
 		for _, instance := range instanceList.Items {
 			rpcRouteTableList, err := k.listRouteTablesForGlooInstance(ctx, &instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
+				wrapped := eris.Wrapf(err, "Failed to list routeTables for gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
@@ -338,7 +338,7 @@ func (k *gatewayResourceHandler) ListRouteTables(ctx context.Context, request *r
 	}, nil
 }
 
-func (k *gatewayResourceHandler) listRouteTablesForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.RouteTable, error) {
+func (k *fedGatewayResourceHandler) listRouteTablesForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.RouteTable, error) {
 
 	gatewayCRDClientset, err := k.mcGatewayCRDClientset.Cluster(instance.Spec.GetCluster())
 	if err != nil {
@@ -394,7 +394,7 @@ func BuildRpcRouteTable(routeTable *gateway_solo_io_v1.RouteTable, glooInstance 
 	return m
 }
 
-func (k *gatewayResourceHandler) GetRouteTableYaml(ctx context.Context, request *rpc_edge_v1.GetRouteTableYamlRequest) (*rpc_edge_v1.GetRouteTableYamlResponse, error) {
+func (k *fedGatewayResourceHandler) GetRouteTableYaml(ctx context.Context, request *rpc_edge_v1.GetRouteTableYamlRequest) (*rpc_edge_v1.GetRouteTableYamlResponse, error) {
 	gatewayClientSet, err := k.mcGatewayCRDClientset.Cluster(request.GetRouteTableRef().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get gateway client set")

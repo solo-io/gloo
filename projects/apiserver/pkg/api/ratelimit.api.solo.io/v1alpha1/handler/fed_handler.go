@@ -20,23 +20,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func NewRatelimitResourceHandler(
+func NewFedRatelimitResourceHandler(
 	instanceClient fedv1.GlooInstanceClient,
 	mcRatelimitCRDClientset ratelimit_solo_io_v1alpha1.MulticlusterClientset,
 
 ) rpc_edge_v1.RatelimitResourceApiServer {
-	return &ratelimitResourceHandler{
+	return &fedRatelimitResourceHandler{
 		instanceClient:          instanceClient,
 		mcRatelimitCRDClientset: mcRatelimitCRDClientset,
 	}
 }
 
-type ratelimitResourceHandler struct {
+type fedRatelimitResourceHandler struct {
 	instanceClient          fedv1.GlooInstanceClient
 	mcRatelimitCRDClientset ratelimit_solo_io_v1alpha1.MulticlusterClientset
 }
 
-func (k *ratelimitResourceHandler) ListRateLimitConfigs(ctx context.Context, request *rpc_edge_v1.ListRateLimitConfigsRequest) (*rpc_edge_v1.ListRateLimitConfigsResponse, error) {
+func (k *fedRatelimitResourceHandler) ListRateLimitConfigs(ctx context.Context, request *rpc_edge_v1.ListRateLimitConfigsRequest) (*rpc_edge_v1.ListRateLimitConfigsResponse, error) {
 
 	var rpcRateLimitConfigs []*rpc_edge_v1.RateLimitConfig
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -50,7 +50,7 @@ func (k *ratelimitResourceHandler) ListRateLimitConfigs(ctx context.Context, req
 		for _, instance := range instanceList.Items {
 			rpcRateLimitConfigList, err := k.listRateLimitConfigsForGlooInstance(ctx, &instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
+				wrapped := eris.Wrapf(err, "Failed to list rateLimitConfigs for gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
@@ -80,7 +80,7 @@ func (k *ratelimitResourceHandler) ListRateLimitConfigs(ctx context.Context, req
 	}, nil
 }
 
-func (k *ratelimitResourceHandler) listRateLimitConfigsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.RateLimitConfig, error) {
+func (k *fedRatelimitResourceHandler) listRateLimitConfigsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.RateLimitConfig, error) {
 
 	ratelimitCRDClientset, err := k.mcRatelimitCRDClientset.Cluster(instance.Spec.GetCluster())
 	if err != nil {
@@ -136,7 +136,7 @@ func BuildRpcRateLimitConfig(rateLimitConfig *ratelimit_solo_io_v1alpha1.RateLim
 	return m
 }
 
-func (k *ratelimitResourceHandler) GetRateLimitConfigYaml(ctx context.Context, request *rpc_edge_v1.GetRateLimitConfigYamlRequest) (*rpc_edge_v1.GetRateLimitConfigYamlResponse, error) {
+func (k *fedRatelimitResourceHandler) GetRateLimitConfigYaml(ctx context.Context, request *rpc_edge_v1.GetRateLimitConfigYamlRequest) (*rpc_edge_v1.GetRateLimitConfigYamlResponse, error) {
 	ratelimitClientSet, err := k.mcRatelimitCRDClientset.Cluster(request.GetRateLimitConfigRef().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get ratelimit client set")

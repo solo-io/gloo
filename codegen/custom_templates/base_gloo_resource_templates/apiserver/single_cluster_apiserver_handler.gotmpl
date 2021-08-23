@@ -1,0 +1,151 @@
+{{- $base_import_prefix := base_group_import_name $ }}
+{{- $base_group := base_group $ }}
+{{- $base_Group := base_Group $ }}
+{{- $base_proto_group_shorthand := base_proto_group_shorthand $ }}
+
+package single_cluster_resource_handler
+
+import (
+	"context"
+	"sort"
+
+	"github.com/ghodss/yaml"
+	"github.com/rotisserie/eris"
+	"github.com/solo-io/go-utils/contextutils"
+	skv2_v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	{{ $base_import_prefix }} "github.com/solo-io/solo-apis/pkg/api/{{ $base_proto_group_shorthand }}.solo.io/{{ base_group_version $ }}"
+	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
+	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
+	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler"
+	"go.uber.org/zap"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+func NewSingleCluster{{ $base_Group }}ResourceHandler(
+	{{ $base_group }}Clientset {{ $base_import_prefix }}.Clientset,
+	glooInstanceLister glooinstance_handler.SingleClusterGlooInstanceLister,
+) rpc_edge_v1.{{ $base_Group }}ResourceApiServer {
+	return &singleCluster{{ $base_Group }}ResourceHandler{
+		{{ $base_group }}Clientset:      {{ $base_group }}Clientset,
+		glooInstanceLister: glooInstanceLister,
+	}
+}
+
+type singleCluster{{ $base_Group }}ResourceHandler struct {
+	{{ $base_group }}Clientset      {{ $base_import_prefix }}.Clientset
+	glooInstanceLister glooinstance_handler.SingleClusterGlooInstanceLister
+}
+
+{{- range $resource := $.Resources }}
+
+{{- $kindLowerCamel := lower_camel $resource.Kind }}
+{{- $baseKind := base_kind $resource.Kind }}
+
+func (h *singleCluster{{ $base_Group }}ResourceHandler) List{{ pluralize $baseKind }}(ctx context.Context, request *rpc_edge_v1.List{{ pluralize $baseKind }}Request) (*rpc_edge_v1.List{{ pluralize $baseKind }}Response, error) {
+	var rpc{{ pluralize $baseKind }} []*rpc_edge_v1.{{ $baseKind }}
+	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
+		// List {{ pluralize $kindLowerCamel }} across all gloo edge instances
+		instanceList, err := h.glooInstanceLister.ListGlooInstances(ctx)
+		if err != nil {
+			wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+			return nil, wrapped
+		}
+		for _, instance := range instanceList {
+			rpc{{ $baseKind }}List, err := h.list{{ pluralize $baseKind }}ForGlooInstance(ctx, instance)
+			if err != nil {
+				wrapped := eris.Wrapf(err, "Failed to list {{ pluralize $kindLowerCamel }} for gloo edge instance %v", instance)
+				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+				return nil, wrapped
+			}
+			rpc{{ pluralize $baseKind }} = append(rpc{{ pluralize $baseKind }}, rpc{{ $baseKind }}List...)
+		}
+	} else {
+		// List {{ pluralize $kindLowerCamel }} for a specific gloo edge instance
+		instance, err := h.glooInstanceLister.GetGlooInstance(ctx, request.GetGlooInstanceRef())
+		if err != nil {
+			wrapped := eris.Wrap(err, "Failed to get gloo edge instance")
+			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+			return nil, wrapped
+		}
+		rpc{{ pluralize $baseKind }}, err = h.list{{ pluralize $baseKind }}ForGlooInstance(ctx, instance)
+		if err != nil {
+			wrapped := eris.Wrapf(err, "Failed to list {{ pluralize $kindLowerCamel }} for gloo edge instance %v", instance)
+			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+			return nil, wrapped
+		}
+	}
+
+	return &rpc_edge_v1.List{{ pluralize $baseKind }}Response{
+		{{ pluralize $baseKind }}: rpc{{ pluralize $baseKind }},
+	}, nil
+}
+
+func (h *singleCluster{{ $base_Group }}ResourceHandler) list{{ pluralize $baseKind }}ForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.{{ $baseKind }}, error) {
+	var {{ $kindLowerCamel }}List []*{{ $base_import_prefix }}.{{ $baseKind }}
+	watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+	if len(watchedNamespaces) != 0 {
+		for _, ns := range watchedNamespaces {
+			list, err := h.{{ $base_group }}Clientset.{{ pluralize $baseKind }}().List{{ $baseKind }}(ctx, client.InNamespace(ns))
+			if err != nil {
+				return nil, err
+			}
+			for i, _ := range list.Items {
+				{{ $kindLowerCamel }}List = append({{ $kindLowerCamel }}List, &list.Items[i])
+			}
+		}
+	} else {
+		list, err := h.{{ $base_group }}Clientset.{{ pluralize $baseKind }}().List{{ $baseKind }}(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for i, _ := range list.Items {
+			{{ $kindLowerCamel }}List = append({{ $kindLowerCamel }}List, &list.Items[i])
+		}
+	}
+	sort.Slice({{ $kindLowerCamel }}List, func(i, j int) bool {
+		x := {{ $kindLowerCamel }}List[i]
+		y := {{ $kindLowerCamel }}List[j]
+		return x.GetNamespace()+x.GetName() < y.GetNamespace()+y.GetName()
+	})
+
+	var rpc{{ pluralize $baseKind }} []*rpc_edge_v1.{{ $baseKind }}
+	glooInstanceRef := &skv2_v1.ObjectRef{
+		Name:      instance.GetMetadata().GetName(),
+		Namespace: instance.GetMetadata().GetNamespace(),
+	}
+	for _, {{ $kindLowerCamel }} := range {{ $kindLowerCamel }}List {
+		rpc{{ pluralize $baseKind }} = append(rpc{{ pluralize $baseKind }}, &rpc_edge_v1.{{ $baseKind }}{
+			Metadata:     apiserverutils.ToMetadata({{ $kindLowerCamel }}.ObjectMeta),
+			GlooInstance: glooInstanceRef,
+			Spec:         &{{ $kindLowerCamel }}.Spec,
+			Status:       &{{ $kindLowerCamel }}.Status,
+		})
+	}
+	return rpc{{ pluralize $baseKind }}, nil
+}
+
+func (h *singleCluster{{ $base_Group }}ResourceHandler) Get{{ $baseKind }}Yaml(ctx context.Context, request *rpc_edge_v1.Get{{ $baseKind }}YamlRequest) (*rpc_edge_v1.Get{{ $baseKind }}YamlResponse, error) {
+	{{ $kindLowerCamel }}, err := h.{{ $base_group }}Clientset.{{ pluralize $baseKind }}().Get{{ $baseKind }}(ctx, client.ObjectKey{
+		Namespace: request.Get{{ $baseKind }}Ref().GetNamespace(),
+		Name:      request.Get{{ $baseKind }}Ref().GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get {{ $kindLowerCamel }}")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	content, err := yaml.Marshal({{ $kindLowerCamel }})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to marshal kube resource into yaml")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	return &rpc_edge_v1.Get{{ $baseKind }}YamlResponse{
+		YamlData: &rpc_edge_v1.ResourceYaml{
+			Yaml: string(content),
+		},
+	}, nil
+}
+
+{{- end }}

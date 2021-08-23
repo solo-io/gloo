@@ -85,6 +85,10 @@ func NewSingleClusterGlooGrpcServer(
 	ctx context.Context,
 	bootstrapService rpc_edge_v1.BootstrapApiServer,
 	glooInstanceService rpc_edge_v1.GlooInstanceApiServer,
+	gatewayResourceService rpc_edge_v1.GatewayResourceApiServer,
+	glooResourceService rpc_edge_v1.GlooResourceApiServer,
+	glooEnterpriseResourceService rpc_edge_v1.EnterpriseGlooResourceApiServer,
+	ratelimitResourceService rpc_edge_v1.RatelimitResourceApiServer,
 	healthChecker health_check.HealthChecker,
 ) GrpcServer {
 	logger := contextutils.LoggerFrom(ctx)
@@ -98,6 +102,10 @@ func NewSingleClusterGlooGrpcServer(
 	// register handlers
 	rpc_edge_v1.RegisterBootstrapApiServer(server, bootstrapService)
 	rpc_edge_v1.RegisterGlooInstanceApiServer(server, glooInstanceService)
+	rpc_edge_v1.RegisterGatewayResourceApiServer(server, gatewayResourceService)
+	rpc_edge_v1.RegisterGlooResourceApiServer(server, glooResourceService)
+	rpc_edge_v1.RegisterEnterpriseGlooResourceApiServer(server, glooEnterpriseResourceService)
+	rpc_edge_v1.RegisterRatelimitResourceApiServer(server, ratelimitResourceService)
 
 	return &grpcServer{
 		healthChecker: healthChecker,

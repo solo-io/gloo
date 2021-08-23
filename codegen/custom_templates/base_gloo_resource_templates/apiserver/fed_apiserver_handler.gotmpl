@@ -24,18 +24,18 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func New{{ $base_Group }}ResourceHandler(
+func NewFed{{ $base_Group }}ResourceHandler(
 	instanceClient fedv1.GlooInstanceClient,
 	mc{{ $base_Group }}CRDClientset {{ $base_import_prefix }}.MulticlusterClientset,
 
 ) rpc_edge_v1.{{ $base_Group }}ResourceApiServer {
-	return &{{ $base_group }}ResourceHandler{
+	return &fed{{ $base_Group }}ResourceHandler{
 		instanceClient:     instanceClient,
 		mc{{ $base_Group }}CRDClientset: mc{{ $base_Group }}CRDClientset,
 	}
 }
 
-type {{ $base_group }}ResourceHandler struct {
+type fed{{ $base_Group }}ResourceHandler struct {
 	instanceClient     fedv1.GlooInstanceClient
 	mc{{ $base_Group }}CRDClientset {{ $base_import_prefix }}.MulticlusterClientset
 }
@@ -46,7 +46,7 @@ type {{ $base_group }}ResourceHandler struct {
 {{- $kindLowerCamel := lower_camel $resource.Kind }}
 {{- $baseKind := base_kind $resource.Kind }}
 
-func (k *{{ $base_group }}ResourceHandler) List{{ pluralize $baseKind }}(ctx context.Context, request *rpc_edge_v1.List{{ pluralize $baseKind }}Request) (*rpc_edge_v1.List{{ pluralize $baseKind }}Response, error) {
+func (k *fed{{ $base_Group }}ResourceHandler) List{{ pluralize $baseKind }}(ctx context.Context, request *rpc_edge_v1.List{{ pluralize $baseKind }}Request) (*rpc_edge_v1.List{{ pluralize $baseKind }}Response, error) {
 
 	var rpc{{ pluralize $baseKind }} []*rpc_edge_v1.{{ $baseKind }}
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -60,7 +60,7 @@ func (k *{{ $base_group }}ResourceHandler) List{{ pluralize $baseKind }}(ctx con
 		for _, instance := range instanceList.Items {
 			rpc{{ $baseKind }}List, err := k.list{{ pluralize $baseKind }}ForGlooInstance(ctx, &instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
+				wrapped := eris.Wrapf(err, "Failed to list {{ pluralize $kindLowerCamel }} for gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
@@ -90,7 +90,7 @@ func (k *{{ $base_group }}ResourceHandler) List{{ pluralize $baseKind }}(ctx con
 	}, nil
 }
 
-func (k *{{ $base_group }}ResourceHandler) list{{ pluralize $baseKind }}ForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.{{ $baseKind }}, error) {
+func (k *fed{{ $base_Group }}ResourceHandler) list{{ pluralize $baseKind }}ForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.{{ $baseKind }}, error) {
 
 	{{ $base_group }}CRDClientset, err := k.mc{{ $base_Group }}CRDClientset.Cluster(instance.Spec.GetCluster())
 	if err != nil {
@@ -146,7 +146,7 @@ func BuildRpc{{ $baseKind }}({{ $kindLowerCamel }} *{{ $base_import_prefix }}.{{
 	return m
 }
 
-func (k *{{ $base_group }}ResourceHandler) Get{{ $baseKind }}Yaml(ctx context.Context, request *rpc_edge_v1.Get{{ $baseKind }}YamlRequest) (*rpc_edge_v1.Get{{ $baseKind }}YamlResponse, error) {
+func (k *fed{{ $base_Group }}ResourceHandler) Get{{ $baseKind }}Yaml(ctx context.Context, request *rpc_edge_v1.Get{{ $baseKind }}YamlRequest) (*rpc_edge_v1.Get{{ $baseKind }}YamlResponse, error) {
 	{{ $base_group }}ClientSet, err := k.mc{{ $base_Group }}CRDClientset.Cluster(request.Get{{ $baseKind }}Ref().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get {{ $base_group }} client set")

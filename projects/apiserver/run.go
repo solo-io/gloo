@@ -44,10 +44,16 @@ func NewSingleClusterGlooServerRunnable(
 	cfg *settings.ApiServerSettings,
 	bootstrapService rpc_edge_v1.BootstrapApiServer,
 	glooInstanceService rpc_edge_v1.GlooInstanceApiServer,
+	gatewayResourceService rpc_edge_v1.GatewayResourceApiServer,
+	glooResourceService rpc_edge_v1.GlooResourceApiServer,
+	glooEnterpriseResourceService rpc_edge_v1.EnterpriseGlooResourceApiServer,
+	ratelimitResourceService rpc_edge_v1.RatelimitResourceApiServer,
 ) manager.Runnable {
 	return manager.RunnableFunc(func(ctx context.Context) error {
 		ctx = contextutils.WithLogger(rootCtx, "gloo-ee-apiserver")
-		apiServer := server.NewSingleClusterGlooGrpcServer(ctx, bootstrapService, glooInstanceService, health_check.NewHealthChecker())
+		apiServer := server.NewSingleClusterGlooGrpcServer(ctx, bootstrapService, glooInstanceService,
+			gatewayResourceService, glooResourceService, glooEnterpriseResourceService, ratelimitResourceService,
+			health_check.NewHealthChecker())
 
 		return apiServer.Run(ctx, cfg)
 	})

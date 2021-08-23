@@ -20,23 +20,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func NewGlooResourceHandler(
+func NewFedGlooResourceHandler(
 	instanceClient fedv1.GlooInstanceClient,
 	mcGlooCRDClientset gloo_solo_io_v1.MulticlusterClientset,
 
 ) rpc_edge_v1.GlooResourceApiServer {
-	return &glooResourceHandler{
+	return &fedGlooResourceHandler{
 		instanceClient:     instanceClient,
 		mcGlooCRDClientset: mcGlooCRDClientset,
 	}
 }
 
-type glooResourceHandler struct {
+type fedGlooResourceHandler struct {
 	instanceClient     fedv1.GlooInstanceClient
 	mcGlooCRDClientset gloo_solo_io_v1.MulticlusterClientset
 }
 
-func (k *glooResourceHandler) ListUpstreams(ctx context.Context, request *rpc_edge_v1.ListUpstreamsRequest) (*rpc_edge_v1.ListUpstreamsResponse, error) {
+func (k *fedGlooResourceHandler) ListUpstreams(ctx context.Context, request *rpc_edge_v1.ListUpstreamsRequest) (*rpc_edge_v1.ListUpstreamsResponse, error) {
 
 	var rpcUpstreams []*rpc_edge_v1.Upstream
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -50,7 +50,7 @@ func (k *glooResourceHandler) ListUpstreams(ctx context.Context, request *rpc_ed
 		for _, instance := range instanceList.Items {
 			rpcUpstreamList, err := k.listUpstreamsForGlooInstance(ctx, &instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
+				wrapped := eris.Wrapf(err, "Failed to list upstreams for gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
@@ -80,7 +80,7 @@ func (k *glooResourceHandler) ListUpstreams(ctx context.Context, request *rpc_ed
 	}, nil
 }
 
-func (k *glooResourceHandler) listUpstreamsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.Upstream, error) {
+func (k *fedGlooResourceHandler) listUpstreamsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.Upstream, error) {
 
 	glooCRDClientset, err := k.mcGlooCRDClientset.Cluster(instance.Spec.GetCluster())
 	if err != nil {
@@ -136,7 +136,7 @@ func BuildRpcUpstream(upstream *gloo_solo_io_v1.Upstream, glooInstance *skv2v1.O
 	return m
 }
 
-func (k *glooResourceHandler) GetUpstreamYaml(ctx context.Context, request *rpc_edge_v1.GetUpstreamYamlRequest) (*rpc_edge_v1.GetUpstreamYamlResponse, error) {
+func (k *fedGlooResourceHandler) GetUpstreamYaml(ctx context.Context, request *rpc_edge_v1.GetUpstreamYamlRequest) (*rpc_edge_v1.GetUpstreamYamlResponse, error) {
 	glooClientSet, err := k.mcGlooCRDClientset.Cluster(request.GetUpstreamRef().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get gloo client set")
@@ -165,7 +165,7 @@ func (k *glooResourceHandler) GetUpstreamYaml(ctx context.Context, request *rpc_
 	}, nil
 }
 
-func (k *glooResourceHandler) ListUpstreamGroups(ctx context.Context, request *rpc_edge_v1.ListUpstreamGroupsRequest) (*rpc_edge_v1.ListUpstreamGroupsResponse, error) {
+func (k *fedGlooResourceHandler) ListUpstreamGroups(ctx context.Context, request *rpc_edge_v1.ListUpstreamGroupsRequest) (*rpc_edge_v1.ListUpstreamGroupsResponse, error) {
 
 	var rpcUpstreamGroups []*rpc_edge_v1.UpstreamGroup
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -179,7 +179,7 @@ func (k *glooResourceHandler) ListUpstreamGroups(ctx context.Context, request *r
 		for _, instance := range instanceList.Items {
 			rpcUpstreamGroupList, err := k.listUpstreamGroupsForGlooInstance(ctx, &instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
+				wrapped := eris.Wrapf(err, "Failed to list upstreamGroups for gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
@@ -209,7 +209,7 @@ func (k *glooResourceHandler) ListUpstreamGroups(ctx context.Context, request *r
 	}, nil
 }
 
-func (k *glooResourceHandler) listUpstreamGroupsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.UpstreamGroup, error) {
+func (k *fedGlooResourceHandler) listUpstreamGroupsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.UpstreamGroup, error) {
 
 	glooCRDClientset, err := k.mcGlooCRDClientset.Cluster(instance.Spec.GetCluster())
 	if err != nil {
@@ -265,7 +265,7 @@ func BuildRpcUpstreamGroup(upstreamGroup *gloo_solo_io_v1.UpstreamGroup, glooIns
 	return m
 }
 
-func (k *glooResourceHandler) GetUpstreamGroupYaml(ctx context.Context, request *rpc_edge_v1.GetUpstreamGroupYamlRequest) (*rpc_edge_v1.GetUpstreamGroupYamlResponse, error) {
+func (k *fedGlooResourceHandler) GetUpstreamGroupYaml(ctx context.Context, request *rpc_edge_v1.GetUpstreamGroupYamlRequest) (*rpc_edge_v1.GetUpstreamGroupYamlResponse, error) {
 	glooClientSet, err := k.mcGlooCRDClientset.Cluster(request.GetUpstreamGroupRef().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get gloo client set")
@@ -294,7 +294,7 @@ func (k *glooResourceHandler) GetUpstreamGroupYaml(ctx context.Context, request 
 	}, nil
 }
 
-func (k *glooResourceHandler) ListSettings(ctx context.Context, request *rpc_edge_v1.ListSettingsRequest) (*rpc_edge_v1.ListSettingsResponse, error) {
+func (k *fedGlooResourceHandler) ListSettings(ctx context.Context, request *rpc_edge_v1.ListSettingsRequest) (*rpc_edge_v1.ListSettingsResponse, error) {
 
 	var rpcSettings []*rpc_edge_v1.Settings
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -308,7 +308,7 @@ func (k *glooResourceHandler) ListSettings(ctx context.Context, request *rpc_edg
 		for _, instance := range instanceList.Items {
 			rpcSettingsList, err := k.listSettingsForGlooInstance(ctx, &instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
+				wrapped := eris.Wrapf(err, "Failed to list settings for gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
@@ -338,7 +338,7 @@ func (k *glooResourceHandler) ListSettings(ctx context.Context, request *rpc_edg
 	}, nil
 }
 
-func (k *glooResourceHandler) listSettingsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.Settings, error) {
+func (k *fedGlooResourceHandler) listSettingsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.Settings, error) {
 
 	glooCRDClientset, err := k.mcGlooCRDClientset.Cluster(instance.Spec.GetCluster())
 	if err != nil {
@@ -394,7 +394,7 @@ func BuildRpcSettings(settings *gloo_solo_io_v1.Settings, glooInstance *skv2v1.O
 	return m
 }
 
-func (k *glooResourceHandler) GetSettingsYaml(ctx context.Context, request *rpc_edge_v1.GetSettingsYamlRequest) (*rpc_edge_v1.GetSettingsYamlResponse, error) {
+func (k *fedGlooResourceHandler) GetSettingsYaml(ctx context.Context, request *rpc_edge_v1.GetSettingsYamlRequest) (*rpc_edge_v1.GetSettingsYamlResponse, error) {
 	glooClientSet, err := k.mcGlooCRDClientset.Cluster(request.GetSettingsRef().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get gloo client set")
@@ -423,7 +423,7 @@ func (k *glooResourceHandler) GetSettingsYaml(ctx context.Context, request *rpc_
 	}, nil
 }
 
-func (k *glooResourceHandler) ListProxies(ctx context.Context, request *rpc_edge_v1.ListProxiesRequest) (*rpc_edge_v1.ListProxiesResponse, error) {
+func (k *fedGlooResourceHandler) ListProxies(ctx context.Context, request *rpc_edge_v1.ListProxiesRequest) (*rpc_edge_v1.ListProxiesResponse, error) {
 
 	var rpcProxies []*rpc_edge_v1.Proxy
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -437,7 +437,7 @@ func (k *glooResourceHandler) ListProxies(ctx context.Context, request *rpc_edge
 		for _, instance := range instanceList.Items {
 			rpcProxyList, err := k.listProxiesForGlooInstance(ctx, &instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to get gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
+				wrapped := eris.Wrapf(err, "Failed to list proxies for gloo edge instance %s.%s", instance.GetNamespace(), instance.GetName())
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
@@ -467,7 +467,7 @@ func (k *glooResourceHandler) ListProxies(ctx context.Context, request *rpc_edge
 	}, nil
 }
 
-func (k *glooResourceHandler) listProxiesForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.Proxy, error) {
+func (k *fedGlooResourceHandler) listProxiesForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.Proxy, error) {
 
 	glooCRDClientset, err := k.mcGlooCRDClientset.Cluster(instance.Spec.GetCluster())
 	if err != nil {
@@ -523,7 +523,7 @@ func BuildRpcProxy(proxy *gloo_solo_io_v1.Proxy, glooInstance *skv2v1.ObjectRef,
 	return m
 }
 
-func (k *glooResourceHandler) GetProxyYaml(ctx context.Context, request *rpc_edge_v1.GetProxyYamlRequest) (*rpc_edge_v1.GetProxyYamlResponse, error) {
+func (k *fedGlooResourceHandler) GetProxyYaml(ctx context.Context, request *rpc_edge_v1.GetProxyYamlRequest) (*rpc_edge_v1.GetProxyYamlResponse, error) {
 	glooClientSet, err := k.mcGlooCRDClientset.Cluster(request.GetProxyRef().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get gloo client set")
