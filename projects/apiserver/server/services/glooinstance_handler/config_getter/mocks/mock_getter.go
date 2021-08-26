@@ -10,7 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
-	v10 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
+	discovery "k8s.io/client-go/discovery"
 )
 
 // MockEnvoyConfigDumpGetter is a mock of EnvoyConfigDumpGetter interface.
@@ -37,16 +37,16 @@ func (m *MockEnvoyConfigDumpGetter) EXPECT() *MockEnvoyConfigDumpGetterMockRecor
 }
 
 // GetConfigs mocks base method.
-func (m *MockEnvoyConfigDumpGetter) GetConfigs(ctx context.Context, glooInstance v10.GlooInstance) ([]*v1.ConfigDump, error) {
+func (m *MockEnvoyConfigDumpGetter) GetConfigs(ctx context.Context, glooInstance *v1.GlooInstance, discoveryClient discovery.DiscoveryClient) ([]*v1.ConfigDump, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetConfigs", ctx, glooInstance)
+	ret := m.ctrl.Call(m, "GetConfigs", ctx, glooInstance, discoveryClient)
 	ret0, _ := ret[0].([]*v1.ConfigDump)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetConfigs indicates an expected call of GetConfigs.
-func (mr *MockEnvoyConfigDumpGetterMockRecorder) GetConfigs(ctx, glooInstance interface{}) *gomock.Call {
+func (mr *MockEnvoyConfigDumpGetterMockRecorder) GetConfigs(ctx, glooInstance, discoveryClient interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfigs", reflect.TypeOf((*MockEnvoyConfigDumpGetter)(nil).GetConfigs), ctx, glooInstance)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfigs", reflect.TypeOf((*MockEnvoyConfigDumpGetter)(nil).GetConfigs), ctx, glooInstance, discoveryClient)
 }

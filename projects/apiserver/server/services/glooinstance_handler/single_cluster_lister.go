@@ -2,7 +2,6 @@ package glooinstance_handler
 
 import (
 	"context"
-	"sort"
 
 	"github.com/rotisserie/eris"
 	apps_v1 "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
@@ -11,7 +10,6 @@ import (
 	core_v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/skv2/contrib/pkg/sets"
 	skv2_v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"github.com/solo-io/skv2/pkg/ezkube"
 	enterprise_gloo_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
@@ -26,11 +24,10 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/utils/checker"
 	"github.com/solo-io/solo-projects/projects/gloo/utils/images"
 	"github.com/solo-io/solo-projects/projects/gloo/utils/locality"
+	"github.com/solo-io/solo-projects/projects/gloo/utils/proxy"
 	"go.uber.org/zap"
 	k8s_apps_types "k8s.io/api/apps/v1"
 	k8s_core_types "k8s.io/api/core/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -165,6 +162,7 @@ func (l *singleClusterGlooInstanceLister) GetGlooInstance(ctx context.Context, g
 	if err != nil {
 		return nil, err
 	}
+
 	glooInstance, err := l.buildGlooInstanceFromDeployment(ctx, deployment, tag, isEnterprise, deployments, daemonSets, services, pods)
 	if err != nil {
 		return nil, err
@@ -224,7 +222,9 @@ func (l *singleClusterGlooInstanceLister) buildGlooInstanceFromDeployment(
 	}
 
 	// proxy info
-	instance.Spec.Proxies = l.getProxies(ctx, deployment.GetNamespace(), deployments, daemonSets, services, localityFinder, ipFinder)
+	instance.Spec.Proxies = convertProxies(proxy.GetGlooInstanceProxies(ctx, "", deployment.GetNamespace(),
+		apps_v1_sets.NewDeploymentSetFromList(deployments), apps_v1_sets.NewDaemonSetSetFromList(daemonSets),
+		core_v1_sets.NewServiceSetFromList(services), localityFinder, ipFinder))
 
 	// pod and deployment summaries
 	podSet := core_v1_sets.NewPodSetFromList(pods)
@@ -247,123 +247,39 @@ func (l *singleClusterGlooInstanceLister) buildGlooInstanceFromDeployment(
 	return instance, nil
 }
 
-// This follows the same logic as the Gloo Fed translator projects/gloo-fed/pkg/discovery/translator/translator.go
-// but for a single cluster
-func (l *singleClusterGlooInstanceLister) getProxies(
-	ctx context.Context,
-	namespace string,
-	deployments *k8s_apps_types.DeploymentList,
-	daemonSets *k8s_apps_types.DaemonSetList,
-	services *k8s_core_types.ServiceList,
-	localityFinder locality.LocalityFinder,
-	ipFinder locality.ExternalIpFinder,
-) []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy {
-
-	var proxies []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy
-	for _, deployment := range deployments.Items {
-		deployment := deployment
-		if deployment.GetNamespace() != namespace {
-			continue
-		}
-		if tag, wasmEnabled, isProxy := images.GetGatewayProxyImage(&deployment.Spec.Template); isProxy {
-			zones, err := localityFinder.ZonesForDeployment(ctx, &deployment)
-			if err != nil {
-				contextutils.LoggerFrom(ctx).Debugw("failed to get zones for deployment", zap.Error(err), zap.Any("deployment", deployment))
-			}
-
-			proxy := &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy{
-				Replicas:                      deployment.Status.Replicas,
-				AvailableReplicas:             deployment.Status.AvailableReplicas,
-				ReadyReplicas:                 deployment.Status.ReadyReplicas,
-				WasmEnabled:                   wasmEnabled,
-				ReadConfigMulticlusterEnabled: findProxyConfigDumpService(services, deployment.GetName(), deployment.GetNamespace()),
-				Version:                       tag,
-				Name:                          deployment.GetName(),
-				Namespace:                     deployment.GetNamespace(),
-				WorkloadControllerType:        rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy_DEPLOYMENT,
-				Zones:                         zones,
-			}
-
-			ingressEndpoints, err := ipFinder.GetExternalIps(
-				ctx,
-				filterServices(services, &deployment, deployment.Spec.Template.Labels),
-			)
-			if err != nil {
-				contextutils.LoggerFrom(ctx).Debugw("error while determining ingress endpoints", zap.Error(err))
-			}
-			proxy.IngressEndpoints = convertIngressEndpoints(ingressEndpoints)
-
-			proxies = append(proxies, proxy)
-		}
-	}
-
-	for _, daemonSet := range daemonSets.Items {
-		daemonSet := daemonSet
-		if daemonSet.GetNamespace() != namespace {
-			continue
-		}
-		if tag, wasmEnabled, isProxy := images.GetGatewayProxyImage(&daemonSet.Spec.Template); isProxy {
-			zones, err := localityFinder.ZonesForDaemonSet(ctx, &daemonSet)
-			if err != nil {
-				contextutils.LoggerFrom(ctx).Debugw("failed to get zones for daemonSet", zap.Error(err), zap.Any("daemonSet", daemonSet))
-			}
-
-			proxy := &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy{
-				Replicas:               daemonSet.Status.DesiredNumberScheduled,
-				AvailableReplicas:      daemonSet.Status.NumberAvailable,
-				ReadyReplicas:          daemonSet.Status.NumberReady,
-				WasmEnabled:            wasmEnabled,
-				Version:                tag,
-				Name:                   daemonSet.GetName(),
-				Namespace:              daemonSet.GetNamespace(),
-				WorkloadControllerType: rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy_DAEMON_SET,
-				Zones:                  zones,
-			}
-
-			ingressEndpoints, err := ipFinder.GetExternalIps(
-				ctx,
-				filterServices(services, &daemonSet, daemonSet.Spec.Template.Labels),
-			)
-			if err != nil {
-				contextutils.LoggerFrom(ctx).Debugw("error while determining ingress endpoints", zap.Error(err))
-			}
-			proxy.IngressEndpoints = convertIngressEndpoints(ingressEndpoints)
-
-			proxies = append(proxies, proxy)
-		}
-	}
-
-	// Sort all proxies for idempotence, this is especially important when selecting admin info.
-	sort.SliceStable(proxies, func(i, j int) bool {
-		return proxies[i].WorkloadControllerType.String()+sets.Key(proxies[i]) < proxies[j].WorkloadControllerType.String()+sets.Key(proxies[j])
-	})
-
-	return proxies
-
-}
-
-func findProxyConfigDumpService(services *k8s_core_types.ServiceList, name, namespace string) bool {
-	for _, svc := range services.Items {
-		if svc.Name == name+"-config-dump-service" && svc.Namespace == namespace {
-			return true
-		}
-	}
-	return false
-}
-
-func filterServices(services *k8s_core_types.ServiceList, obj meta_v1.Object, matchLabels map[string]string) []*k8s_core_types.Service {
-	var result []*k8s_core_types.Service
-	for _, svc := range services.Items {
-		if svc.GetClusterName() == obj.GetClusterName() &&
-			svc.GetNamespace() == obj.GetNamespace() &&
-			labels.SelectorFromSet(svc.Spec.Selector).Matches(labels.Set(matchLabels)) {
-			result = append(result, &svc)
-		}
-	}
-	return result
-}
-
 // Convert from the generic structs to the GlooEE apiserver types
+
+func convertProxies(proxies []*proxy.Proxy) []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy {
+	convertedProxies := make([]*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy, 0, len(proxies))
+	for _, p := range proxies {
+		convertedProxies = append(convertedProxies, &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy{
+			Replicas:                      p.Replicas,
+			AvailableReplicas:             p.AvailableReplicas,
+			ReadyReplicas:                 p.ReadyReplicas,
+			WasmEnabled:                   p.WasmEnabled,
+			ReadConfigMulticlusterEnabled: p.ReadConfigMulticlusterEnabled,
+			Version:                       p.Version,
+			Name:                          p.Name,
+			Namespace:                     p.Namespace,
+			WorkloadControllerType:        convertWorkloadControllerType(p.WorkloadControllerType),
+			Zones:                         p.Zones,
+			IngressEndpoints:              convertIngressEndpoints(p.IngressEndpoints),
+		})
+	}
+	return convertedProxies
+}
+
+func convertWorkloadControllerType(workloadControllerType proxy.WorkloadController) rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy_WorkloadController {
+	switch workloadControllerType {
+	case proxy.DEPLOYMENT:
+		return rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy_DEPLOYMENT
+	case proxy.DAEMON_SET:
+		return rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy_DAEMON_SET
+	default:
+		return rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy_UNDEFINED
+	}
+}
+
 func convertIngressEndpoints(ingressEndpoints []*locality.IngressEndpoint) []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint {
 	convertedEndpoints := make([]*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint, 0, len(ingressEndpoints))
 	for _, endpoint := range ingressEndpoints {

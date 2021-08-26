@@ -10,7 +10,7 @@ import (
 )
 
 // Converts a Fed GlooInstance into an Apiserver GlooInstance
-func ConvertToRpcGlooInstance(glooInstance fedv1.GlooInstance) *rpc_edge_v1.GlooInstance {
+func ConvertToRpcGlooInstance(glooInstance *fedv1.GlooInstance) *rpc_edge_v1.GlooInstance {
 	spec := glooInstance.Spec
 	rpcSpec := &rpc_edge_v1.GlooInstance_GlooInstanceSpec{
 		Cluster:      spec.GetCluster(),

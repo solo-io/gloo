@@ -8,6 +8,7 @@ Name|Version|License
 [fgrosse/zaptest](https://github.com/fgrosse/zaptest)|v1.1.0|MIT License
 [form3tech-oss/jwt-go](https://github.com/form3tech-oss/jwt-go)|v3.2.3+incompatible|MIT License
 [ghodss/yaml](https://github.com/ghodss/yaml)|v1.0.1-0.20190212211648-25d852aebe32|MIT License
+[go-logr/logr](https://github.com/go-logr/logr)|v0.4.0|Apache License 2.0
 [go-logr/zapr](https://github.com/go-logr/zapr)|v0.2.0|Apache License 2.0
 [redis/v8](https://github.com/go-redis/redis)|v8.2.3|BSD 2-clause "Simplified" License
 [go-test/deep](https://github.com/go-test/deep)|v1.0.4|MIT License

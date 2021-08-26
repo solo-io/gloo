@@ -37,7 +37,9 @@ var singleClusterSchemes = runtime.SchemeBuilder{
 	scheme.AddToScheme,
 }
 
-func MustSingleClusterManagerWithConfig(ctx context.Context, cfg *rest.Config) manager.Manager {
+// MustSingleClusterManagerFromConfig creates a new manager from a config, adds single-cluster Gloo resources to the
+// scheme, and returns the manager.
+func MustSingleClusterManagerFromConfig(ctx context.Context, cfg *rest.Config) manager.Manager {
 	die := func(err error) {
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting single cluster manager", zap.Error(err))
 	}
@@ -54,7 +56,9 @@ func MustSingleClusterManagerWithConfig(ctx context.Context, cfg *rest.Config) m
 	return mgr
 }
 
-func MustLocalManagerWithConfig(ctx context.Context, cfg *rest.Config) manager.Manager {
+// MustLocalManagerFromConfig creates a new manager from a config, adds local Gloo Fed resources to the scheme,
+// and returns the manager.
+func MustLocalManagerFromConfig(ctx context.Context, cfg *rest.Config) manager.Manager {
 	die := func(err error) {
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting local manager", zap.Error(err))
 	}
@@ -71,19 +75,17 @@ func MustLocalManagerWithConfig(ctx context.Context, cfg *rest.Config) manager.M
 	return mgr
 }
 
+// MustLocalManager creates a new manager, adds local Gloo Fed resources to the scheme, and returns the manager.
 func MustLocalManager(ctx context.Context) manager.Manager {
-	die := func(err error) {
-		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting local manager", zap.Error(err))
-	}
-
 	cfg, err := config.GetConfig()
 	if err != nil {
-		die(err)
+		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting config", zap.Error(err))
 	}
 
-	return MustLocalManagerWithConfig(ctx, cfg)
+	return MustLocalManagerFromConfig(ctx, cfg)
 }
 
+// MustRemoteScheme adds remote Gloo Fed resources to a new scheme and returns the scheme.
 func MustRemoteScheme(ctx context.Context) *runtime.Scheme {
 	die := func(err error) {
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting remote cluster scheme", zap.Error(err))

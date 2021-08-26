@@ -3,7 +3,7 @@ package apiserverutils
 import (
 	"context"
 
-	appsv1client "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
+	apps_v1 "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -18,7 +18,7 @@ func IsGlooFedEnabled(ctx context.Context, config *rest.Config) (bool, error) {
 	}
 
 	// look for the Gloo Fed deployment in the install namespace
-	deploymentClient := appsv1client.NewDeploymentClient(kubeClient)
+	deploymentClient := apps_v1.NewDeploymentClient(kubeClient)
 	_, err = deploymentClient.GetDeployment(ctx, client.ObjectKey{
 		Namespace: GetInstallNamespace(),
 		Name:      DefaultDeploymentName,

@@ -66,6 +66,7 @@ rules:
   - get
   - list
   - watch
+
 ---
 
 kind: ClusterRoleBinding
@@ -82,6 +83,39 @@ roleRef:
   kind: ClusterRole
   name: gloo-console
   apiGroup: rbac.authorization.k8s.io
+
+---
+
+# For reading envoy config dumps
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-console
+  namespace: {{ .Release.Namespace }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services/proxy
+  verbs:
+  - get
+
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-console
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: gloo-console
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: gloo-fed-console
+  namespace: {{ .Release.Namespace }}
+
 {{- end }} {{/* .Values.rbac.create */}}
 {{- end }} {{/* .Values.glooFedApiserver.enable */}}
 {{- end }} {{/* not .Values.enabled */}}

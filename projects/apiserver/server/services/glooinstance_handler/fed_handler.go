@@ -6,36 +6,41 @@ import (
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/contextutils"
+	skv2_multicluster "github.com/solo-io/skv2/pkg/multicluster"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler/config_getter"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/multicluster"
 	"go.uber.org/zap"
+	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func NewFedGlooInstanceHandler(
-	clusterClient multicluster.ClusterSet,
-	configClient config_getter.EnvoyConfigDumpGetter,
+	managerSet skv2_multicluster.ManagerSet,
+	clusterSet multicluster.ClusterSet,
+	envoyConfigClient config_getter.EnvoyConfigDumpGetter,
 	glooInstanceClient fedv1.GlooInstanceClient,
 ) rpc_edge_v1.GlooInstanceApiServer {
 	return &fedGlooInstanceHandler{
-		clusterClient:      clusterClient,
-		configClient:       configClient,
+		managerSet:         managerSet,
+		clusterSet:         clusterSet,
+		envoyConfigClient:  envoyConfigClient,
 		glooInstanceClient: glooInstanceClient,
 	}
 }
 
 type fedGlooInstanceHandler struct {
-	clusterClient      multicluster.ClusterSet
-	configClient       config_getter.EnvoyConfigDumpGetter
+	managerSet         skv2_multicluster.ManagerSet
+	clusterSet         multicluster.ClusterSet
+	envoyConfigClient  config_getter.EnvoyConfigDumpGetter
 	glooInstanceClient fedv1.GlooInstanceClient
 }
 
 func (h *fedGlooInstanceHandler) ListClusterDetails(ctx context.Context, request *rpc_edge_v1.ListClusterDetailsRequest) (*rpc_edge_v1.ListClusterDetailsResponse, error) {
 	glooInstancesByCluster := make(map[string][]*rpc_edge_v1.GlooInstance)
-	for _, cluster := range h.clusterClient.ListClusters() {
+	for _, cluster := range h.clusterSet.ListClusters() {
 		glooInstancesByCluster[cluster] = []*rpc_edge_v1.GlooInstance{}
 	}
 	list, err := h.glooInstanceClient.ListGlooInstance(ctx)
@@ -45,8 +50,9 @@ func (h *fedGlooInstanceHandler) ListClusterDetails(ctx context.Context, request
 		return nil, wrapped
 	}
 	for _, glooInstance := range list.Items {
+		glooInstance := glooInstance
 		glooInstancesByCluster[glooInstance.Spec.Cluster] = append(glooInstancesByCluster[glooInstance.Spec.Cluster],
-			apiserverutils.ConvertToRpcGlooInstance(glooInstance))
+			apiserverutils.ConvertToRpcGlooInstance(&glooInstance))
 	}
 
 	var rpcClusterDetails []*rpc_edge_v1.ClusterDetails
@@ -76,7 +82,8 @@ func (h *fedGlooInstanceHandler) ListGlooInstances(ctx context.Context, request 
 	}
 	var glooInstances []*rpc_edge_v1.GlooInstance
 	for _, glooInstance := range list.Items {
-		glooInstances = append(glooInstances, apiserverutils.ConvertToRpcGlooInstance(glooInstance))
+		glooInstance := glooInstance
+		glooInstances = append(glooInstances, apiserverutils.ConvertToRpcGlooInstance(&glooInstance))
 	}
 	sortGlooInstances(glooInstances)
 
@@ -91,12 +98,23 @@ func (h *fedGlooInstanceHandler) GetConfigDumps(ctx context.Context, request *rp
 		Namespace: request.GlooInstanceRef.GetNamespace(),
 	})
 	if err != nil {
-		return nil, eris.Wrapf(err, "could not find gloo instance %v.%v", request.GlooInstanceRef.GetName(), request.GlooInstanceRef.GetNamespace())
+		return nil, eris.Wrapf(err, "could not find gloo instance %v", request.GetGlooInstanceRef())
 	}
-	// Get envoy proxy config dumps for gloo instance
-	configDumps, err := h.configClient.GetConfigs(ctx, *glooInstance)
+
+	rpcGlooInstance := apiserverutils.ConvertToRpcGlooInstance(glooInstance)
+	mgr, err := h.managerSet.Cluster(glooInstance.Spec.GetCluster())
 	if err != nil {
-		contextutils.LoggerFrom(ctx).Warnf("Unable to get config dump for Gloo Instance %s", glooInstance.GetName())
+		return nil, err
+	}
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
+	if err != nil {
+		return nil, err
+	}
+
+	// Get envoy proxy config dumps for gloo instance
+	configDumps, err := h.envoyConfigClient.GetConfigs(ctx, rpcGlooInstance, *discoveryClient)
+	if err != nil {
+		contextutils.LoggerFrom(ctx).Warnf("Unable to get config dump for Gloo Instance %v", glooInstance)
 		return nil, err
 	}
 

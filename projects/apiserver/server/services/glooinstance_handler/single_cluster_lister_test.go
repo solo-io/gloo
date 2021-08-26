@@ -23,6 +23,57 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+var (
+	testGlooInstance = &rpc_edge_v1.GlooInstance{
+		Metadata: &rpc_edge_v1.ObjectMeta{
+			Name:      "gloo",
+			Namespace: "gloo-system",
+		},
+		Spec: &rpc_edge_v1.GlooInstance_GlooInstanceSpec{
+			Cluster:      "cluster",
+			IsEnterprise: true,
+			ControlPlane: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_ControlPlane{
+				Version:           "1.2.3",
+				Namespace:         "gloo-system",
+				WatchedNamespaces: []string{"ns1", "ns2", "gloo-system"},
+			},
+			Proxies: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy{},
+			Check: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check{
+				Gateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+					Total: 2,
+				},
+				VirtualServices: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
+				RouteTables:     &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
+				AuthConfigs:     &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
+				Settings: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+					Total: 1,
+				},
+				Upstreams: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+					Total: 3,
+					Errors: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
+						{
+							Ref:     &v1.ObjectRef{Name: "us1", Namespace: "ns2"},
+							Message: "i don't need a reason",
+						},
+					},
+					Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
+						{
+							Ref:     &v1.ObjectRef{Name: "us2", Namespace: "ns1"},
+							Message: "uh oh",
+						},
+					},
+				},
+				UpstreamGroups: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
+				Proxies:        &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
+				Deployments: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+					Total: 2,
+				},
+				Pods: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
+			},
+		},
+	}
+)
+
 var _ = Describe("single cluster gloo instance lister", func() {
 	var (
 		ctrl *gomock.Controller
@@ -50,8 +101,6 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		mockUpstreamGroupClient  *mock_gloo_v1.MockUpstreamGroupClient
 		mockProxyClient          *mock_gloo_v1.MockProxyClient
 		mockAuthConfigClient     *mock_enterprise_gloo_v1.MockAuthConfigClient
-
-		expectedGlooInstance *rpc_edge_v1.GlooInstance
 	)
 
 	BeforeEach(func() {
@@ -229,54 +278,6 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		mockAuthConfigClient.EXPECT().ListAuthConfig(ctx).Return(&enterprise_gloo_v1.AuthConfigList{
 			Items: []enterprise_gloo_v1.AuthConfig{},
 		}, nil)
-
-		expectedGlooInstance = &rpc_edge_v1.GlooInstance{
-			Metadata: &rpc_edge_v1.ObjectMeta{
-				Name:      "gloo",
-				Namespace: "gloo-system",
-			},
-			Spec: &rpc_edge_v1.GlooInstance_GlooInstanceSpec{
-				Cluster:      glooinstance_handler.ClusterName,
-				IsEnterprise: true,
-				ControlPlane: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_ControlPlane{
-					Version:           "1.2.3",
-					Namespace:         "gloo-system",
-					WatchedNamespaces: []string{"ns1", "ns2", "gloo-system"},
-				},
-				Check: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check{
-					Gateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
-						Total: 2,
-					},
-					VirtualServices: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
-					RouteTables:     &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
-					AuthConfigs:     &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
-					Settings: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
-						Total: 1,
-					},
-					Upstreams: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
-						Total: 3,
-						Errors: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
-							{
-								Ref:     &v1.ObjectRef{Name: "us1", Namespace: "ns2"},
-								Message: "i don't need a reason",
-							},
-						},
-						Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
-							{
-								Ref:     &v1.ObjectRef{Name: "us2", Namespace: "ns1"},
-								Message: "uh oh",
-							},
-						},
-					},
-					UpstreamGroups: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
-					Proxies:        &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
-					Deployments: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
-						Total: 2,
-					},
-					Pods: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
-				},
-			},
-		}
 	})
 
 	AfterEach(func() {
@@ -294,7 +295,7 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		)
 		glooInstance, err := lister.GetGlooInstance(ctx, &v1.ObjectRef{Name: "gloo", Namespace: "gloo-system"})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(glooInstance).To(Equal(expectedGlooInstance))
+		Expect(glooInstance).To(Equal(testGlooInstance))
 	})
 
 	It("can list gloo instances", func() {
@@ -310,7 +311,7 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(glooInstances).To(HaveLen(1))
 		Expect(glooInstances).To(Equal([]*rpc_edge_v1.GlooInstance{
-			expectedGlooInstance,
+			testGlooInstance,
 		}))
 	})
 })

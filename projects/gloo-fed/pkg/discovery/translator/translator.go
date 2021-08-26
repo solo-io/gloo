@@ -2,14 +2,11 @@ package translator
 
 import (
 	"context"
-	"sort"
 
 	k8s_core_v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
-	k8s_core_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/stringutils"
-	"github.com/solo-io/skv2/contrib/pkg/sets"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	v1sets "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/sets"
@@ -22,10 +19,8 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/utils/checker"
 	"github.com/solo-io/solo-projects/projects/gloo/utils/images"
 	"github.com/solo-io/solo-projects/projects/gloo/utils/locality"
-	"go.uber.org/zap"
-	k8s_core_types "k8s.io/api/core/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/utils/proxy"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 )
 
 //go:generate mockgen -source ./translator.go -destination ./mocks/mock_translator.go
@@ -96,7 +91,7 @@ func (t *translator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) 
 		}
 
 		// Proxy and admin info
-		instance.Spec.Proxies = getProxiesFromSnapshot(ctx, deployment.Namespace, cluster, localityFinder, ipFinder, snapshot)
+		instance.Spec.Proxies = convertProxies(proxy.GetGlooInstanceProxies(ctx, cluster, deployment.Namespace, snapshot.Deployments(), snapshot.DaemonSets(), snapshot.Services(), localityFinder, ipFinder))
 		instance.Spec.Admin = getAdminInfo(instance.Spec.ControlPlane.GetNamespace(), watchedNamespaces, instance.Spec.Proxies)
 
 		// Check -- workloads
@@ -195,122 +190,6 @@ func getProxyForGlooInstance(installNamespace string, proxies []*types.GlooInsta
 	}
 }
 
-func getProxiesFromSnapshot(
-	ctx context.Context,
-	namespace string,
-	cluster string,
-	localityFinder locality.LocalityFinder,
-	ipFinder locality.ExternalIpFinder,
-	snapshot input.Snapshot,
-) []*types.GlooInstanceSpec_Proxy {
-
-	var proxies []*types.GlooInstanceSpec_Proxy
-	for _, deploymentIter := range snapshot.Deployments().List() {
-		deployment := deploymentIter
-		if deployment.GetClusterName() != cluster {
-			continue
-		}
-		if deployment.GetNamespace() != namespace {
-			continue
-		}
-		if tag, wasmEnabled, isProxy := images.GetGatewayProxyImage(&deployment.Spec.Template); isProxy {
-			zones, err := localityFinder.ZonesForDeployment(ctx, deployment)
-			if err != nil {
-				contextutils.LoggerFrom(ctx).Debugw("failed to get zones for deployment", zap.Error(err), zap.Any("deployment", deployment))
-			}
-
-			proxy := &types.GlooInstanceSpec_Proxy{
-				Replicas:                      deployment.Status.Replicas,
-				AvailableReplicas:             deployment.Status.AvailableReplicas,
-				ReadyReplicas:                 deployment.Status.ReadyReplicas,
-				WasmEnabled:                   wasmEnabled,
-				ReadConfigMulticlusterEnabled: findProxyConfigDumpService(snapshot.Services(), deployment.GetName(), deployment.GetNamespace()),
-				Version:                       tag,
-				Name:                          deployment.GetName(),
-				Namespace:                     deployment.GetNamespace(),
-				WorkloadControllerType:        types.GlooInstanceSpec_Proxy_DEPLOYMENT,
-				Zones:                         zones,
-			}
-
-			ingressEndpoints, err := ipFinder.GetExternalIps(
-				ctx,
-				filterServices(snapshot.Services(), deployment, deployment.Spec.Template.Labels),
-			)
-			if err != nil {
-				contextutils.LoggerFrom(ctx).Debugw("error while determining ingress endpoints", zap.Error(err))
-			}
-			proxy.IngressEndpoints = convertIngressEndpoints(ingressEndpoints)
-
-			proxies = append(proxies, proxy)
-		}
-	}
-
-	for _, daemonset := range snapshot.DaemonSets().List() {
-		daemonset := daemonset
-		if daemonset.GetNamespace() != namespace {
-			continue
-		}
-		if tag, wasmEnabled, isProxy := images.GetGatewayProxyImage(&daemonset.Spec.Template); isProxy {
-			zones, err := localityFinder.ZonesForDaemonSet(ctx, daemonset)
-			if err != nil {
-				contextutils.LoggerFrom(ctx).Debugw("failed to get zones for daemonset", zap.Error(err), zap.Any("daemonset", daemonset))
-			}
-
-			proxy := &types.GlooInstanceSpec_Proxy{
-				Replicas:               daemonset.Status.DesiredNumberScheduled,
-				AvailableReplicas:      daemonset.Status.NumberAvailable,
-				ReadyReplicas:          daemonset.Status.NumberReady,
-				WasmEnabled:            wasmEnabled,
-				Version:                tag,
-				Name:                   daemonset.GetName(),
-				Namespace:              daemonset.GetNamespace(),
-				WorkloadControllerType: types.GlooInstanceSpec_Proxy_DAEMON_SET,
-				Zones:                  zones,
-			}
-
-			ingressEndpoints, err := ipFinder.GetExternalIps(
-				ctx,
-				filterServices(snapshot.Services(), daemonset, daemonset.Spec.Template.Labels),
-			)
-			if err != nil {
-				contextutils.LoggerFrom(ctx).Debugw("error while determining ingress endpoints", zap.Error(err))
-			}
-			proxy.IngressEndpoints = convertIngressEndpoints(ingressEndpoints)
-
-			proxies = append(proxies, proxy)
-		}
-	}
-
-	// Sort all proxies for idempotence, this is especially important when selecting admin info.
-	sort.SliceStable(proxies, func(i, j int) bool {
-		return proxies[i].WorkloadControllerType.String()+sets.Key(proxies[i]) < proxies[j].WorkloadControllerType.String()+sets.Key(proxies[j])
-	})
-
-	return proxies
-
-}
-
-func findProxyConfigDumpService(services k8s_core_sets.ServiceSet, name, namespace string) bool {
-	for _, svc := range services.List() {
-		if svc.Name == name+"-config-dump-service" && svc.Namespace == namespace {
-			return true
-		}
-	}
-	return false
-}
-
-func filterServices(svcs k8s_core_sets.ServiceSet, obj metav1.Object, matchLabels map[string]string) []*k8s_core_types.Service {
-	var result []*k8s_core_types.Service
-	for _, svc := range svcs.List() {
-		if svc.GetClusterName() == obj.GetClusterName() &&
-			svc.GetNamespace() == obj.GetNamespace() &&
-			labels.SelectorFromSet(svc.Spec.Selector).Matches(labels.Set(matchLabels)) {
-			result = append(result, svc)
-		}
-	}
-	return result
-}
-
 // GetSettings returns the first settings object in the given namespace and cluster.
 // In all known real-world cases, this should be the "default"-named settings object.
 func getSettings(set v1sets.SettingsSet, namespace, cluster string) *gloov1.Settings {
@@ -324,6 +203,38 @@ func getSettings(set v1sets.SettingsSet, namespace, cluster string) *gloov1.Sett
 }
 
 // Convert from the generic structs to the Gloo Fed types
+
+func convertProxies(proxies []*proxy.Proxy) []*types.GlooInstanceSpec_Proxy {
+	convertedProxies := make([]*types.GlooInstanceSpec_Proxy, 0, len(proxies))
+	for _, p := range proxies {
+		convertedProxies = append(convertedProxies, &types.GlooInstanceSpec_Proxy{
+			Replicas:                      p.Replicas,
+			AvailableReplicas:             p.AvailableReplicas,
+			ReadyReplicas:                 p.ReadyReplicas,
+			WasmEnabled:                   p.WasmEnabled,
+			ReadConfigMulticlusterEnabled: p.ReadConfigMulticlusterEnabled,
+			Version:                       p.Version,
+			Name:                          p.Name,
+			Namespace:                     p.Namespace,
+			WorkloadControllerType:        convertWorkloadControllerType(p.WorkloadControllerType),
+			Zones:                         p.Zones,
+			IngressEndpoints:              convertIngressEndpoints(p.IngressEndpoints),
+		})
+	}
+	return convertedProxies
+}
+
+func convertWorkloadControllerType(workloadControllerType proxy.WorkloadController) types.GlooInstanceSpec_Proxy_WorkloadController {
+	switch workloadControllerType {
+	case proxy.DEPLOYMENT:
+		return types.GlooInstanceSpec_Proxy_DEPLOYMENT
+	case proxy.DAEMON_SET:
+		return types.GlooInstanceSpec_Proxy_DAEMON_SET
+	default:
+		return types.GlooInstanceSpec_Proxy_UNDEFINED
+	}
+}
+
 func convertIngressEndpoints(ingressEndpoints []*locality.IngressEndpoint) []*types.GlooInstanceSpec_Proxy_IngressEndpoint {
 	convertedEndpoints := make([]*types.GlooInstanceSpec_Proxy_IngressEndpoint, 0, len(ingressEndpoints))
 	for _, endpoint := range ingressEndpoints {
