@@ -14,6 +14,7 @@ import { ReactComponent as FailoverIcon } from 'assets/GlooFed-Specific/failover
 import { colors } from 'Styles/colors';
 import { useParams, useNavigate } from 'react-router';
 import {
+  useIsGlooFedEnabled,
   useListClusterDetails,
   useListGlooInstances,
   useListUpstreams,
@@ -91,6 +92,12 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
   const { data: glooInstances, error: glooError } = useListGlooInstances();
   const { data: clusterDetailsList, error: cError } = useListClusterDetails();
 
+  const {
+    data: glooFedCheckResponse,
+    error: glooFedCheckError,
+  } = useIsGlooFedEnabled();
+  const isGlooFedEnabled = glooFedCheckResponse?.enabled;
+
   const multipleClustersOrInstances =
     (clusterDetailsList && clusterDetailsList.length > 1) ||
     (glooInstances && glooInstances.length > 1);
@@ -136,14 +143,9 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
             const upstreamCluster = upstream.metadata?.clusterName ?? '';
             const upstreamNamespace = upstream.metadata?.namespace ?? '';
             const upstreamName = upstream.metadata?.name ?? '';
-            const link =
-              glooInstNamespace &&
-              glooInstName &&
-              upstreamCluster &&
-              upstreamNamespace &&
-              upstreamName
-                ? `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upstreamCluster}/${upstreamNamespace}/${upstreamName}`
-                : '';
+            const link = isGlooFedEnabled
+              ? `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upstreamCluster}/${upstreamNamespace}/${upstreamName}`
+              : `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upstreamNamespace}/${upstreamName}`;
             return {
               key:
                 upstream.metadata?.uid ??

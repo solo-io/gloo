@@ -15,8 +15,7 @@ import { ReactComponent as EnvoyIcon } from 'assets/envoy-logo.svg';
 import { ReactComponent as WatchedNamespacesIcon } from 'assets/watched-namespace-icon.svg';
 import { ReactComponent as SecretsIcon } from 'assets/cloud-key-icon.svg';
 import { Loading } from 'Components/Common/Loading';
-import { PlacementStatus } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/placement_pb';
-import { GlooInstanceSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/instance_pb';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { Gateway } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { StatusType } from 'utils/health-status';
 import { GatewayStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/gateway_pb';
@@ -81,7 +80,7 @@ const LowerCase = styled.span`
 type BoxProps = {
   title: string;
   logo: React.ReactNode;
-  status?: PlacementStatus.StateMap[keyof PlacementStatus.StateMap];
+  status?: UpstreamStatus.StateMap[keyof UpstreamStatus.StateMap];
   description: string;
   issuesCount?: number;
   count?: number;
@@ -112,7 +111,7 @@ const AdminBoxSummary = ({
             {status !== undefined && (
               <HealthIndicator
                 healthStatus={status}
-                statusType={StatusType.PLACEMENT}
+                statusType={StatusType.DEFAULT}
               />
             )}
           </BoxSummaryTitle>
@@ -153,7 +152,7 @@ const AdminBoxSummary = ({
                   {count !== undefined && (
                     <CountBox
                       count={count}
-                      message={`${title}s are configured within Gloo Fed`}
+                      message={`${title}s are configured within Gloo Edge`}
                       healthy={true}
                     />
                   )}
@@ -231,15 +230,15 @@ export const GlooAdminGatewaysBox = ({
 };
 
 export const GlooAdminProxiesBox = ({
-  spec,
+  glooInstance,
   error,
 }: {
-  spec?: GlooInstanceSpec.AsObject;
+  glooInstance?: GlooInstance.AsObject;
   error?: ServiceError;
 }) => {
   const issuesCount =
-    (spec?.check?.proxies?.errorsList.length ?? 0) +
-    (spec?.check?.proxies?.warningsList.length ?? 0);
+    (glooInstance?.spec?.check?.proxies?.errorsList.length ?? 0) +
+    (glooInstance?.spec?.check?.proxies?.warningsList.length ?? 0);
 
   return (
     <AdminBoxSummary
@@ -250,7 +249,7 @@ export const GlooAdminProxiesBox = ({
         </LogoHolder>
       }
       loadError={error}
-      loading={spec === undefined}
+      loading={glooInstance?.spec === undefined}
       status={
         !!issuesCount
           ? UpstreamStatus.State.REJECTED
@@ -260,7 +259,7 @@ export const GlooAdminProxiesBox = ({
         'Gloo generates proxy configs from upstreams, virtual services, and gateways, and then transforms them directly into Envoy config. If a proxy config is rejected, it means Envoy will not receive configuration updates.'
       }
       issuesCount={issuesCount}
-      count={spec?.proxiesList.length ?? 0}
+      count={glooInstance?.spec?.proxiesList.length ?? 0}
       link={{
         displayElement: 'View Proxy',
         link: 'proxy/',
@@ -270,17 +269,20 @@ export const GlooAdminProxiesBox = ({
 };
 
 export const GlooAdminEnvoyConfigurationsBox = ({
-  spec,
+  glooInstance,
   error,
 }: {
-  spec?: GlooInstanceSpec.AsObject;
+  glooInstance?: GlooInstance.AsObject;
   error?: ServiceError;
 }) => {
-  const replicasCount = spec // sort of the 'all possible' count
-    ? spec.proxiesList.reduce((total, proxy) => total + proxy.replicas, 0)
+  const replicasCount = glooInstance?.spec // sort of the 'all possible' count
+    ? glooInstance?.spec.proxiesList.reduce(
+        (total, proxy) => total + proxy.replicas,
+        0
+      )
     : 0;
-  const availableReplicasCount = spec // sort of the 'all usable' count
-    ? spec.proxiesList.reduce(
+  const availableReplicasCount = glooInstance?.spec // sort of the 'all usable' count
+    ? glooInstance?.spec.proxiesList.reduce(
         (total, proxy) => total + proxy.availableReplicas,
         0
       )
@@ -295,9 +297,9 @@ export const GlooAdminEnvoyConfigurationsBox = ({
         </LogoHolder>
       }
       loadError={error}
-      loading={spec === undefined}
+      loading={glooInstance?.spec === undefined}
       status={
-        spec?.proxiesList.length ?? 0 > 0
+        glooInstance?.spec?.proxiesList.length ?? 0 > 0
           ? availableReplicasCount < replicasCount
             ? UpstreamStatus.State.REJECTED
             : UpstreamStatus.State.ACCEPTED

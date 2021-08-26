@@ -236,7 +236,7 @@ var _ = Describe("single cluster gloo instance lister", func() {
 				Namespace: "gloo-system",
 			},
 			Spec: &rpc_edge_v1.GlooInstance_GlooInstanceSpec{
-				Cluster:      "cluster",
+				Cluster:      glooinstance_handler.ClusterName,
 				IsEnterprise: true,
 				ControlPlane: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_ControlPlane{
 					Version:           "1.2.3",

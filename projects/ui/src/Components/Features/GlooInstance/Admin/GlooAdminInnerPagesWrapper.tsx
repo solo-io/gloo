@@ -13,7 +13,7 @@ import { useListGlooInstances } from 'API/hooks';
 import { DataError } from 'Components/Common/DataError';
 import { Loading } from 'Components/Common/Loading';
 import { GlooAdminEnvoy } from './GlooAdminEnvoy';
-import { GlooAdminWatchdNamespaces } from './GlooAdminWatchNamespaces';
+import { GlooAdminWatchedNamespaces } from './GlooAdminWatchNamespaces';
 import { GlooAdminSecrets } from './GlooAdminSecrets';
 
 const GlooAdminInnerPagesContainer = styled.div`
@@ -110,7 +110,7 @@ export const GlooAdminInnerPagesWrapper = () => {
           ) : adminPage === 'settings' ? (
             <GlooAdminSettings />
           ) : adminPage === 'watched-namespaces' ? (
-            <GlooAdminWatchdNamespaces spec={glooInstance.spec} />
+            <GlooAdminWatchedNamespaces glooInstance={glooInstance} />
           ) : adminPage === 'secrets' ? (
             <GlooAdminSecrets />
           ) : (

@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react';
-import { useParams, useNavigate, Routes, Route } from 'react-router';
+import { useParams } from 'react-router';
 import { colors } from 'Styles/colors';
 import styled from '@emotion/styled';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { GlooInstanceSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/instance_pb';
 import { ProxyStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb';
 import { ReactComponent as LockIcon } from 'assets/lock-icon.svg';
-import { ReactComponent as proxyIcon } from 'assets/proxy-small-icon.svg';
 import { ReactComponent as DocumentsIcon } from 'assets/document.svg';
 import { Loading } from 'Components/Common/Loading';
 import { Proxy } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';

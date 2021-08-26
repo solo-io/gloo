@@ -12,7 +12,7 @@ import { ReactComponent as UpstreamGroupIcon } from 'assets/upstream-group-icon.
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { colors } from 'Styles/colors';
 import { useParams, useNavigate } from 'react-router';
-import { useListUpstreamGroups } from 'API/hooks';
+import { useListUpstreamGroups, useIsGlooFedEnabled } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
 import { objectMetasAreEqual } from 'API/helpers';
 import { UpstreamGroup } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
@@ -81,6 +81,12 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
       : undefined
   );
 
+  const {
+    data: glooFedCheckResponse,
+    error: glooFedCheckError,
+  } = useIsGlooFedEnabled();
+  const isGlooFedEnabled = glooFedCheckResponse?.enabled;
+
   useEffect(() => {
     if (upstreamGroups) {
       setTableData(
@@ -99,14 +105,26 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
                   props.glooInstanceFilter
                 ))
           )
-          .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (!props.wholePage ? 0 : (gA.glooInstance?.name ?? '').localeCompare(gB.glooInstance?.name ?? '')))
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (!props.wholePage
+                ? 0
+                : (gA.glooInstance?.name ?? '').localeCompare(
+                    gB.glooInstance?.name ?? ''
+                  ))
+          )
           .map(group => {
             return {
               key: group.metadata?.uid ?? 'An group was provided with no UID',
               name: {
                 displayElement: group.metadata?.name ?? '',
                 link: group.metadata
-                  ? `/gloo-instances/${group.glooInstance?.namespace}/${group.glooInstance?.name}/upstream-groups/${group.metadata.clusterName}/${group.metadata.namespace}/${group.metadata.name}/`
+                  ? isGlooFedEnabled
+                    ? `/gloo-instances/${group.glooInstance?.namespace}/${group.glooInstance?.name}/upstream-groups/${group.metadata.clusterName}/${group.metadata.namespace}/${group.metadata.name}/`
+                    : `/gloo-instances/${group.glooInstance?.namespace}/${group.glooInstance?.name}/upstream-groups/${group.metadata.namespace}/${group.metadata.name}/`
                   : '',
               },
               namespace: group.metadata?.namespace ?? '',

@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/solo-projects/issues/2431
+    description: Enable the single-cluster UI.
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/gloo/issues/4933
+    description: Enable the single-cluster UI.

@@ -1,13 +1,14 @@
 import React from 'react';
 import styled from '@emotion/styled/macro';
-import { FailoverScheme } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/failover_scheme_pb';
 import { FailoverSchemeStatus } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/failover_pb';
+import { useGetFailoverScheme } from 'API/hooks';
 import { failoverSchemeApi } from 'API/failover-scheme';
 import { AreaTitle } from 'Styles/StyledComponents/headings';
 import AreaHeader from 'Components/Common/AreaHeader';
 import { CardSubsectionWrapper } from 'Components/Common/Card';
 import { StatusType } from 'utils/health-status';
 import UpstreamFailoverGroup from './UpstreamFailoverGroup';
+import { DataError } from 'Components/Common/DataError';
 
 const NoFailoverWrapper = styled(CardSubsectionWrapper)`
   text-align: center;
@@ -20,11 +21,27 @@ const FailoverGroupsContainer = styled.div`
 `;
 
 type Props = {
-  failoverScheme?: FailoverScheme.AsObject;
+  upstreamName: string;
+  upstreamNamespace: string;
+  upstreamClusterName: string;
 };
 
-const UpstreamFailoverGroups = ({ failoverScheme }: Props) => {
-  if (!failoverScheme) {
+const UpstreamFailoverGroups = ({
+  upstreamName,
+  upstreamNamespace,
+  upstreamClusterName,
+}: Props) => {
+  const { data: failoverScheme, error: failoverError } = useGetFailoverScheme({
+    name: upstreamName,
+    namespace: upstreamNamespace,
+    clusterName: upstreamClusterName,
+  });
+
+  if (failoverError) {
+    return <DataError error={failoverError} />;
+  }
+
+  if (!failoverScheme || !failoverScheme?.metadata) {
     return (
       <>
         <AreaTitle>Failover Groups</AreaTitle>
@@ -35,8 +52,8 @@ const UpstreamFailoverGroups = ({ failoverScheme }: Props) => {
     );
   }
 
-  const name = failoverScheme?.metadata?.name;
-  const namespace = failoverScheme?.metadata?.namespace;
+  const name = failoverScheme.metadata.name;
+  const namespace = failoverScheme.metadata.namespace;
 
   const loadYaml = async () => {
     if (!name || !namespace) {

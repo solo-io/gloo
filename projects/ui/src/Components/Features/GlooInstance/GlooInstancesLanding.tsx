@@ -395,7 +395,7 @@ const GlooInstanceCard = ({
             <HorizontalDivider />
 
             <div>
-              Advanced Administration for your Gloo Configuration.{' '}
+              Advanced Administration for your Gloo Edge Configuration.{' '}
               <SoloLink
                 inline={true}
                 link={`${instance.metadata?.namespace}/${instance.metadata?.name}/gloo-admin/`}

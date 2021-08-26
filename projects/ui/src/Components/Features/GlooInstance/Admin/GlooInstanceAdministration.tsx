@@ -95,7 +95,7 @@ export const GlooInstanceAdministration = () => {
         <div>
           <HeadingTitle>{name} Administration</HeadingTitle>
           <HeadingSubtitle>
-            Advanced Administration for your Gloo Configuration
+            Advanced Administration for your Gloo Edge Configuration
           </HeadingSubtitle>
         </div>
         <HeadingLogo>
@@ -113,11 +113,11 @@ export const GlooInstanceAdministration = () => {
             <TopRow>
               <GlooAdminGatewaysBox gateways={gateways} error={gatewaysError} />
               <GlooAdminProxiesBox
-                spec={glooInstance.spec}
+                glooInstance={glooInstance}
                 error={instancesError}
               />
               <GlooAdminEnvoyConfigurationsBox
-                spec={glooInstance.spec}
+                glooInstance={glooInstance}
                 error={instancesError}
               />
             </TopRow>

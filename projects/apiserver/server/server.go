@@ -85,6 +85,8 @@ func NewSingleClusterGlooGrpcServer(
 	ctx context.Context,
 	bootstrapService rpc_edge_v1.BootstrapApiServer,
 	glooInstanceService rpc_edge_v1.GlooInstanceApiServer,
+	routeTableSelectorService rpc_edge_v1.VirtualServiceRoutesApiServer,
+	wasmFilterService rpc_edge_v1.WasmFilterApiServer,
 	gatewayResourceService rpc_edge_v1.GatewayResourceApiServer,
 	glooResourceService rpc_edge_v1.GlooResourceApiServer,
 	glooEnterpriseResourceService rpc_edge_v1.EnterpriseGlooResourceApiServer,
@@ -102,6 +104,8 @@ func NewSingleClusterGlooGrpcServer(
 	// register handlers
 	rpc_edge_v1.RegisterBootstrapApiServer(server, bootstrapService)
 	rpc_edge_v1.RegisterGlooInstanceApiServer(server, glooInstanceService)
+	rpc_edge_v1.RegisterVirtualServiceRoutesApiServer(server, routeTableSelectorService)
+	rpc_edge_v1.RegisterWasmFilterApiServer(server, wasmFilterService)
 	rpc_edge_v1.RegisterGatewayResourceApiServer(server, gatewayResourceService)
 	rpc_edge_v1.RegisterGlooResourceApiServer(server, glooResourceService)
 	rpc_edge_v1.RegisterEnterpriseGlooResourceApiServer(server, glooEnterpriseResourceService)

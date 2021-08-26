@@ -1,24 +1,18 @@
-import React, { useEffect } from 'react';
-import { useParams, useNavigate, Routes, Route } from 'react-router';
+import React from 'react';
+import { useParams } from 'react-router';
 import { colors } from 'Styles/colors';
 import styled from '@emotion/styled';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { GlooInstanceSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/instance_pb';
-import { ProxyStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb';
 import { ReactComponent as EnvoyLogo } from 'assets/envoy-logo.svg';
-import { ReactComponent as proxyIcon } from 'assets/proxy-small-icon.svg';
 import { ReactComponent as DocumentsIcon } from 'assets/document.svg';
 import { Loading } from 'Components/Common/Loading';
-import { useGetConfigDumps, useListProxies } from 'API/hooks';
-import { glooResourceApi } from 'API/gloo-resource';
+import { useGetConfigDumps } from 'API/hooks';
 import { doDownload } from 'download-helper';
 import YamlDisplayer from 'Components/Common/YamlDisplayer';
 import { IconHolder } from 'Styles/StyledComponents/icons';
-import { HealthNotificationBox } from 'Components/Common/HealthNotificationBox';
 import { DataError } from 'Components/Common/DataError';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { ConfigDump } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
-import { config } from 'process';
 
 const TitleRow = styled.div`
   display: flex;

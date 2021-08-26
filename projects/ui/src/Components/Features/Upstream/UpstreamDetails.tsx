@@ -2,17 +2,14 @@ import React from 'react';
 import { useParams } from 'react-router';
 import styled from '@emotion/styled/macro';
 import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
-import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
-import { FailoverScheme } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/failover_scheme_pb';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { glooResourceApi } from 'API/gloo-resource';
-import { useGetUpstreamDetails, useGetFailoverScheme } from 'API/hooks';
+import { useGetUpstreamDetails, useIsGlooFedEnabled } from 'API/hooks';
 import { getUpstreamType } from 'utils/upstream-helpers';
 import { SectionCard } from 'Components/Common/SectionCard';
 import AreaHeader from 'Components/Common/AreaHeader';
 import { HealthNotificationBox } from 'Components/Common/HealthNotificationBox';
 import { IconHolder } from 'Styles/StyledComponents/icons';
-import { AreaTitle } from 'Styles/StyledComponents/headings';
 import UpstreamConfiguration from './UpstreamConfiguration';
 import UpstreamFailoverGroups from './UpstreamFailoverGroups';
 import { DataError } from 'Components/Common/DataError';
@@ -40,11 +37,11 @@ export const UpstreamDetails = () => {
     }
   );
 
-  const { data: failoverScheme, error: failoverError } = useGetFailoverScheme({
-    name: upstreamName,
-    namespace: upstreamNamespace,
-    clusterName: upstreamClusterName,
-  });
+  const {
+    data: glooFedCheckResponse,
+    error: glooFedCheckError,
+  } = useIsGlooFedEnabled();
+  const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
   if (!!upstreamError) {
     return <DataError error={upstreamError} />;
@@ -53,7 +50,7 @@ export const UpstreamDetails = () => {
   }
 
   const loadYaml = async () => {
-    if (!upstreamName || !upstreamNamespace || !upstreamClusterName) {
+    if (!upstreamName || !upstreamNamespace) {
       return '';
     }
 
@@ -102,16 +99,12 @@ export const UpstreamDetails = () => {
           <UpstreamConfiguration upstream={upstream} />
         </ConfigArea>
 
-        {!!failoverError ? (
-          <DataError error={failoverError} />
-        ) : !failoverScheme ? (
-          <Loading
-            message={`Retrieving failover scheme for upstream: ${upstreamName}...`}
+        {isGlooFedEnabled && (
+          <UpstreamFailoverGroups
+            upstreamName={upstreamName}
+            upstreamNamespace={upstreamNamespace}
+            upstreamClusterName={upstreamClusterName}
           />
-        ) : (
-          !!failoverScheme?.metadata && (
-            <UpstreamFailoverGroups failoverScheme={failoverScheme} />
-          )
         )}
       </>
     </SectionCard>

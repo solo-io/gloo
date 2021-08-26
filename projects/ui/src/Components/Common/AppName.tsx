@@ -1,11 +1,15 @@
-import { useListGlooInstances } from 'API/hooks';
 import React from 'react';
-import { useLocation, Link, LinkProps } from 'react-router-dom';
+import { useIsGlooFedEnabled } from 'API/hooks';
 
 export const AppName = () => {
-  const { data: glooInstances, error: instancesError } = useListGlooInstances();
+  const {
+    data: glooFedCheckResponse,
+    error: glooFedCheckError,
+  } = useIsGlooFedEnabled();
 
-  return (
-    <>{glooInstances && glooInstances.length > 1 ? 'Gloo Edge' : 'Gloo Fed'}</>
-  );
+  if (glooFedCheckError) {
+    console.error('Could not check if Gloo Fed is enabled', glooFedCheckError);
+  }
+
+  return <>{glooFedCheckResponse?.enabled ? 'Gloo Fed' : 'Gloo Edge'}</>;
 };

@@ -41,7 +41,7 @@ var _ = Describe("VirtualServiceRoutesApiServer", func() {
 		mockGatewayClientSet.EXPECT().VirtualServices().Return(mockVSClient).AnyTimes()
 		mockMCGatewayCRDClientset.EXPECT().Cluster("kind-local").Return(mockGatewayClientSet, nil).AnyTimes()
 
-		virtualServiceRoutesApiServer = rt_selector_handler.NewVirtualServiceRoutesHandler(mockMCGatewayCRDClientset)
+		virtualServiceRoutesApiServer = rt_selector_handler.NewFedVirtualServiceRoutesHandler(mockMCGatewayCRDClientset)
 	})
 
 	AfterEach(func() {

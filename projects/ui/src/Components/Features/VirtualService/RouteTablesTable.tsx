@@ -1,12 +1,18 @@
 import React, { useEffect } from 'react';
 import styled from '@emotion/styled/macro';
 import { colors } from 'Styles/colors';
-import { SoloTable, RenderStatus, TableActionCircle, TableActions, RenderCluster } from 'Components/Common/SoloTable';
+import {
+  SoloTable,
+  RenderStatus,
+  TableActionCircle,
+  TableActions,
+  RenderCluster,
+} from 'Components/Common/SoloTable';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as RouteTableIcon } from 'assets/route-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { useParams, useNavigate } from 'react-router';
-import { useListRouteTables } from 'API/hooks';
+import { useListRouteTables, useIsGlooFedEnabled } from 'API/hooks';
 import { RouteTable } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { Loading } from 'Components/Common/Loading';
 import { objectMetasAreEqual } from 'API/helpers';
@@ -46,19 +52,26 @@ type RouteTableTableFields = {
   actions: RouteTable.AsObject;
 };
 
-function fillRowFields(rt: RouteTable.AsObject): RouteTableTableFields {
+function fillRowFields(
+  rt: RouteTable.AsObject,
+  isGlooFedEnabled?: boolean
+): RouteTableTableFields {
   return {
-    key: rt.metadata?.name ?? "",
+    key: rt.metadata?.name ?? '',
     name: {
-      displayElement: rt.metadata?.name ?? "",
-      link: rt.metadata ? `/gloo-instances/${rt.glooInstance?.namespace}/${rt.glooInstance?.name}/route-tables/${rt.metadata.clusterName}/${rt.metadata.namespace}/${rt.metadata.name}/` : "",
+      displayElement: rt.metadata?.name ?? '',
+      link: rt.metadata
+        ? isGlooFedEnabled
+          ? `/gloo-instances/${rt.glooInstance?.namespace}/${rt.glooInstance?.name}/route-tables/${rt.metadata.clusterName}/${rt.metadata.namespace}/${rt.metadata.name}/`
+          : `/gloo-instances/${rt.glooInstance?.namespace}/${rt.glooInstance?.name}/route-tables/${rt.metadata.namespace}/${rt.metadata.name}/`
+        : '',
     },
-    namespace: rt.metadata?.namespace ?? "",
-    version: rt.metadata?.resourceVersion ?? "",
+    namespace: rt.metadata?.namespace ?? '',
+    version: rt.metadata?.resourceVersion ?? '',
     status: rt.status?.state,
     routes: rt.spec?.routesList.length ?? 0,
     glooInstance: rt.glooInstance,
-    cluster: rt.metadata?.clusterName ?? "",
+    cluster: rt.metadata?.clusterName ?? '',
     actions: rt,
   };
 }
@@ -89,19 +102,31 @@ const onDownloadRouteTable = (rt: RouteTable.AsObject) => {
         clusterName: rt.metadata.clusterName,
       })
       .then(yaml => {
-        doDownload(yaml,`${rt.metadata?.namespace}--${rt.metadata?.name}.yaml`);
+        doDownload(
+          yaml,
+          `${rt.metadata?.namespace}--${rt.metadata?.name}.yaml`
+        );
       });
   }
 };
 
 type TableProps = {
-  routeTables: RouteTable.AsObject[],
+  routeTables: RouteTable.AsObject[];
 } & TableHolderProps;
+
 export const RouteTablesTable = ({ routeTables, wholePage }: TableProps) => {
   const [tableData, setTableData] = React.useState<RouteTableTableFields[]>([]);
 
+  const {
+    data: glooFedCheckResponse,
+    error: glooFedCheckError,
+  } = useIsGlooFedEnabled();
+  const isGlooFedEnabled = glooFedCheckResponse?.enabled;
+
   useEffect(() => {
-    setTableData(routeTables.map(gwRoute => fillRowFields(gwRoute)));
+    setTableData(
+      routeTables.map(gwRoute => fillRowFields(gwRoute, isGlooFedEnabled))
+    );
   }, [routeTables]);
 
   let columns: any = [
@@ -115,23 +140,25 @@ export const RouteTablesTable = ({ routeTables, wholePage }: TableProps) => {
       title: 'Namespace',
       dataIndex: 'namespace',
     },
-    
-    ...(wholePage ? [
-      {
-        title: 'Gloo Instance',
-        dataIndex: 'glooInstance',
-        render: renderGlooInstanceList,
-      },
-      {
-        title: 'Cluster',
-        dataIndex: 'cluster',
-        render: RenderCluster,
-      },
-    ] : [{}]),
-    
+
+    ...(wholePage
+      ? [
+          {
+            title: 'Gloo Instance',
+            dataIndex: 'glooInstance',
+            render: renderGlooInstanceList,
+          },
+          {
+            title: 'Cluster',
+            dataIndex: 'cluster',
+            render: RenderCluster,
+          },
+        ]
+      : [{}]),
+
     {
       title: 'Version',
-      dataIndex: 'version'
+      dataIndex: 'version',
     },
     {
       title: 'Routes',
@@ -142,7 +169,7 @@ export const RouteTablesTable = ({ routeTables, wholePage }: TableProps) => {
       dataIndex: 'status',
       render: RenderStatus,
     },
-  
+
     {
       title: 'Actions',
       dataIndex: 'actions',
@@ -182,10 +209,9 @@ export const RouteTablesPageCardContents = (props: Props) => {
 
   const [tableData, setTableData] = React.useState<RouteTable.AsObject[]>([]);
 
-  const {
-    data: routeTables,
-    error: routeTablesError,
-  } = useListRouteTables(!!name && !!namespace ? {name, namespace} : undefined);
+  const { data: routeTables, error: routeTablesError } = useListRouteTables(
+    !!name && !!namespace ? { name, namespace } : undefined
+  );
 
   useEffect(() => {
     if (routeTables) {
@@ -205,7 +231,15 @@ export const RouteTablesPageCardContents = (props: Props) => {
                   props.glooInstanceFilter
                 ))
           )
-          .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.glooInstance?.name ?? '').localeCompare(gB.glooInstance?.name ?? ''))
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (gA.glooInstance?.name ?? '').localeCompare(
+                gB.glooInstance?.name ?? ''
+              )
+          )
       );
     } else {
       setTableData([]);

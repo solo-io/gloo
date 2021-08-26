@@ -126,7 +126,7 @@ var _ = Describe("wasm filter handler", func() {
 			Items: []gatewayv1.Gateway{buildGateway("remote-cluster")},
 		}, nil)
 
-		wasmFilterServer := wasmfilter_handler.NewWasmFilterHandler(instanceClient, mcGatewayCRDClientset)
+		wasmFilterServer := wasmfilter_handler.NewFedWasmFilterHandler(instanceClient, mcGatewayCRDClientset)
 		resp, err := wasmFilterServer.ListWasmFilters(ctx, &rpc_edge_v1.ListWasmFiltersRequest{})
 		Expect(err).NotTo(HaveOccurred())
 		localGatewayRef := apiserverutils.ToClusterObjectRef("test-gateway", "test-namespace", "local-cluster")
@@ -173,7 +173,7 @@ var _ = Describe("wasm filter handler", func() {
 		mockGatewayClient2.EXPECT().GetGateway(ctx, client.ObjectKey{Name: "test-gateway", Namespace: "test-namespace"}).
 			Return(&remoteGateway, nil)
 
-		wasmFilterServer := wasmfilter_handler.NewWasmFilterHandler(instanceClient, mcGatewayCRDClientset)
+		wasmFilterServer := wasmfilter_handler.NewFedWasmFilterHandler(instanceClient, mcGatewayCRDClientset)
 		resp, err := wasmFilterServer.DescribeWasmFilter(ctx, &rpc_edge_v1.DescribeWasmFilterRequest{
 			Name:   "filter-1",
 			RootId: "filter-1",

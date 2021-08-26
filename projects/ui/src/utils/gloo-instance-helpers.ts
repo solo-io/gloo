@@ -1,7 +1,6 @@
 // @ts-ignore
 import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
-import { GlooInstanceSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/instance_pb';
 
 export const getGlooInstanceStatus = (
   instance?: GlooInstance.AsObject,
@@ -10,7 +9,7 @@ export const getGlooInstanceStatus = (
   const check = instance?.spec?.check || {};
 
   if (!!specificCheckSubfield) {
-    const checkSummary: GlooInstanceSpec.Check.Summary.AsObject =
+    const checkSummary: GlooInstance.GlooInstanceSpec.Check.Summary.AsObject =
       // @ts-ignore getting past ts' inability to deal with [] referencing
       check[specificCheckSubfield];
 
@@ -24,8 +23,9 @@ export const getGlooInstanceStatus = (
   } else {
     let warningSeen = false;
     Object.keys(check).forEach(key => {
-      // @ts-ignore getting past ts' inability to deal with [] referencing
-      const checkSummary: GlooInstanceSpec.Check.Summary.AsObject = check[key];
+      const checkSummary: GlooInstance.GlooInstanceSpec.Check.Summary.AsObject =
+        // @ts-ignore getting past ts' inability to deal with [] referencing
+        check[key];
 
       if (checkSummary.errorsList.length > 0) {
         return UpstreamStatus.State.REJECTED;

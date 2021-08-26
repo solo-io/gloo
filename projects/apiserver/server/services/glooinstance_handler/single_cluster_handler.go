@@ -47,5 +47,7 @@ func (h *singleClusterGlooInstanceHandler) ListGlooInstances(ctx context.Context
 
 func (h *singleClusterGlooInstanceHandler) GetConfigDumps(ctx context.Context, request *rpc_edge_v1.GetConfigDumpsRequest) (*rpc_edge_v1.GetConfigDumpsResponse, error) {
 	// TODO implement
-	return nil, nil
+	return &rpc_edge_v1.GetConfigDumpsResponse{
+		ConfigDumps: []*rpc_edge_v1.ConfigDump{},
+	}, nil
 }

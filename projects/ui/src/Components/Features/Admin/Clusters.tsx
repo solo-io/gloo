@@ -252,7 +252,6 @@ export const Clusters = () => {
         <RealClusterName
           onClick={() =>
             setShowingClusterRows(oldRows => {
-              console.log(oldRows, data);
               if (!oldRows) {
                 return [data.rowInd!];
               } else if (oldRows.includes(data.rowInd!)) {

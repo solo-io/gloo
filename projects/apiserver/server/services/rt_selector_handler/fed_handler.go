@@ -14,15 +14,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func NewVirtualServiceRoutesHandler(
+func NewFedVirtualServiceRoutesHandler(
 	mcGatewayCRDClientset gateway_solo_io_v1.MulticlusterClientset,
 ) rpc_edge_v1.VirtualServiceRoutesApiServer {
-	return &vsRoutesHandler{
+	return &fedVsRoutesHandler{
 		mcGatewayCRDClientset: mcGatewayCRDClientset,
 	}
 }
 
-type vsRoutesHandler struct {
+type fedVsRoutesHandler struct {
 	mcGatewayCRDClientset gateway_solo_io_v1.MulticlusterClientset
 }
 
@@ -32,8 +32,8 @@ const (
 	MatchtypeRegex  = "REGEX"
 )
 
-func (k *vsRoutesHandler) GetVirtualServiceRoutes(ctx context.Context, request *rpc_edge_v1.GetVirtualServiceRoutesRequest) (*rpc_edge_v1.GetVirtualServiceRoutesResponse, error) {
-	gatewayClientSet, err := k.mcGatewayCRDClientset.Cluster(request.GetVirtualServiceRef().GetClusterName())
+func (h *fedVsRoutesHandler) GetVirtualServiceRoutes(ctx context.Context, request *rpc_edge_v1.GetVirtualServiceRoutesRequest) (*rpc_edge_v1.GetVirtualServiceRoutesResponse, error) {
+	gatewayClientSet, err := h.mcGatewayCRDClientset.Cluster(request.GetVirtualServiceRef().GetClusterName())
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get gateway client set for cluster %s", request.GetVirtualServiceRef().GetClusterName())
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -56,7 +56,7 @@ func (k *vsRoutesHandler) GetVirtualServiceRoutes(ctx context.Context, request *
 	for _, vsRoute := range vs.Spec.GetVirtualHost().GetRoutes() {
 		var subRouteTableRows []*rpc_edge_v1.SubRouteTableRow
 		if action := vsRoute.GetDelegateAction(); action != nil {
-			subRouteTableRows, err = k.listSubRouteTableRows(ctx, selector, vsRoute.GetDelegateAction(), request.GetVirtualServiceRef().GetNamespace())
+			subRouteTableRows, err = h.listSubRouteTableRows(ctx, selector, vsRoute.GetDelegateAction(), request.GetVirtualServiceRef().GetNamespace())
 		}
 		for _, vsRouteMatcher := range vsRoute.GetMatchers() {
 			rpcVirtualServiceRouteRows = append(rpcVirtualServiceRouteRows,
@@ -68,7 +68,7 @@ func (k *vsRoutesHandler) GetVirtualServiceRoutes(ctx context.Context, request *
 	}, nil
 }
 
-func (k *vsRoutesHandler) listSubRouteTableRows(ctx context.Context, selector RouteTableSelector, action *gatewayv1.DelegateAction,
+func (h *fedVsRoutesHandler) listSubRouteTableRows(ctx context.Context, selector RouteTableSelector, action *gatewayv1.DelegateAction,
 	parentNamespace string) ([]*rpc_edge_v1.SubRouteTableRow, error) {
 	routeTables, err := selector.SelectRouteTables(action, parentNamespace)
 	if err != nil {
@@ -81,7 +81,7 @@ func (k *vsRoutesHandler) listSubRouteTableRows(ctx context.Context, selector Ro
 		for _, routeTableRoute := range routeTable.Spec.GetRoutes() {
 			var subRouteTableRows []*rpc_edge_v1.SubRouteTableRow
 			if action := routeTableRoute.GetDelegateAction(); action != nil {
-				subRouteTableRows, err = k.listSubRouteTableRows(ctx, selector, action, routeTable.GetNamespace())
+				subRouteTableRows, err = h.listSubRouteTableRows(ctx, selector, action, routeTable.GetNamespace())
 			}
 			for _, rtRouteMatcher := range routeTableRoute.GetMatchers() {
 				rpcRouteTableRows = append(rpcRouteTableRows,

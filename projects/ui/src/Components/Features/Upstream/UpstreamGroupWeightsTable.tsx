@@ -16,6 +16,7 @@ import {
 } from 'utils/upstream-helpers';
 import { IconHolder } from 'Styles/StyledComponents/icons';
 import { RenderSimpleLink } from 'Components/Common/SoloLink';
+import { useIsGlooFedEnabled } from 'API/hooks';
 
 /* 
 !!** NOTE: all of this Type stuff will likely come back, but is removed for immediate future.
@@ -59,6 +60,12 @@ export const UpstreamGroupWeightsTable = ({ destinations }: Props) => {
     namespace: glooInstanceNamespace,
     upstreamGroupClusterName: cluster,
   } = useParams();
+
+  const {
+    data: glooFedCheckResponse,
+    error: glooFedCheckError,
+  } = useIsGlooFedEnabled();
+  const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
   useEffect(() => {
     if (destinations) {
@@ -117,7 +124,11 @@ export const UpstreamGroupWeightsTable = ({ destinations }: Props) => {
       return (
         <RenderSimpleLink
           displayElement={name}
-          link={`/gloo-instances/${glooInstanceNamespace}/${glooInstanceName}/upstreams/${cluster}/${namespace}/${name}`}
+          link={
+            isGlooFedEnabled
+              ? `/gloo-instances/${glooInstanceNamespace}/${glooInstanceName}/upstreams/${cluster}/${namespace}/${name}`
+              : `/gloo-instances/${glooInstanceNamespace}/${glooInstanceName}/upstreams/${namespace}/${name}`
+          }
           inline
         />
       );

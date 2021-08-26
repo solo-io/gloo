@@ -36,21 +36,33 @@ const getLink = (
     case 'virtualServices':
       return {
         detailsLink:
-          glooInstanceRef && objRef && cluster
-            ? `/gloo-instances/${glooInstanceRef.namespace}/${glooInstanceRef.name}/virtual-services/${cluster}/${objRef.namespace}/${objRef.name}`
+          glooInstanceRef && objRef
+            ? cluster
+              ? `/gloo-instances/${glooInstanceRef.namespace}/${glooInstanceRef.name}/virtual-services/${cluster}/${objRef.namespace}/${objRef.name}`
+              : `/gloo-instances/${glooInstanceRef.namespace}/${glooInstanceRef.name}/virtual-services/${objRef.namespace}/${objRef.name}`
             : '',
         linkTitle: 'View Virtual Service Details',
       };
 
     case 'upstreams':
       return {
-        detailsLink: `/gloo-instances/:namespace/:name/upstreams/:upstreamClusterName/:upstreamNamespace/:upstreamName`,
+        detailsLink:
+          glooInstanceRef && objRef
+            ? cluster
+              ? `/gloo-instances/${glooInstanceRef.namespace}/${glooInstanceRef.name}/upstreams/${cluster}/${objRef.namespace}/${objRef.name}`
+              : `/gloo-instances/${glooInstanceRef.namespace}/${glooInstanceRef.name}/upstreams/${objRef.namespace}/${objRef.name}`
+            : '',
         linkTitle: 'View Upstream Details',
       };
 
     case 'upstreamGroups':
       return {
-        detailsLink: `/gloo-instances/:namespace/:name/upstream-groups/:upstreamGroupClusterName/:upstreamGroupNamespace/:upstreamGroupName`,
+        detailsLink:
+          glooInstanceRef && objRef
+            ? cluster
+              ? `/gloo-instances/${glooInstanceRef.namespace}/${glooInstanceRef.name}/upstream-groups/${cluster}/${objRef.namespace}/${objRef.name}`
+              : `/gloo-instances/${glooInstanceRef.namespace}/${glooInstanceRef.name}/upstream-groups/${objRef.namespace}/${objRef.name}`
+            : '',
         linkTitle: 'View Upstream Group Details',
       };
   }

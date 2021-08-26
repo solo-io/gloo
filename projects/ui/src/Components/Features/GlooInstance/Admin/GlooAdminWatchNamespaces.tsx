@@ -3,7 +3,7 @@ import { useParams, useNavigate, Routes, Route } from 'react-router';
 import { colors } from 'Styles/colors';
 import styled from '@emotion/styled';
 import { SectionCard } from 'Components/Common/SectionCard';
-import { GlooInstanceSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/instance_pb';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { ProxyStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb';
 import { ReactComponent as LockIcon } from 'assets/lock-icon.svg';
 import { ReactComponent as WatchedNamespacesIcon } from 'assets/watched-namespace-icon.svg';
@@ -42,10 +42,10 @@ const NamespaceBlock = styled.div`
   margin-right: 8px;
 `;
 
-export const GlooAdminWatchdNamespaces = ({
-  spec,
+export const GlooAdminWatchedNamespaces = ({
+  glooInstance,
 }: {
-  spec: GlooInstanceSpec.AsObject;
+  glooInstance: GlooInstance.AsObject;
 }) => {
   const { name, namespace } = useParams();
 
@@ -77,15 +77,17 @@ export const GlooAdminWatchdNamespaces = ({
         }
       </Description>
       <TitleRow>
-        {!!spec.controlPlane?.watchedNamespacesList.length
+        {!!glooInstance?.spec?.controlPlane?.watchedNamespacesList.length
           ? 'You are currently watching the following namespaces:'
           : 'You are currently watching all namespaces.'}
       </TitleRow>
-      {!!spec.controlPlane?.watchedNamespacesList && (
+      {!!glooInstance?.spec?.controlPlane?.watchedNamespacesList && (
         <BlocksContainer>
-          {spec.controlPlane?.watchedNamespacesList.map(watchedNS => (
-            <NamespaceBlock>{watchedNS}</NamespaceBlock>
-          ))}
+          {glooInstance?.spec?.controlPlane?.watchedNamespacesList.map(
+            watchedNS => (
+              <NamespaceBlock>{watchedNS}</NamespaceBlock>
+            )
+          )}
         </BlocksContainer>
       )}
     </SectionCard>

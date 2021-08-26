@@ -18,7 +18,10 @@ import {
   Settings,
   GetSettingsYamlRequest,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
-import { ObjectRef, ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
+import {
+  ObjectRef,
+  ClusterObjectRef,
+} from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 const glooResourceApiClient = new GlooResourceApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -150,7 +153,8 @@ function getUpstream(
         const upstreamsList = data!.toObject().upstreamsList;
         const upstream = upstreamsList.find(
           u =>
-            u.metadata?.clusterName === upstreamRef.clusterName &&
+            (!upstreamRef.clusterName ||
+              u.metadata?.clusterName === upstreamRef.clusterName) &&
             u.metadata?.namespace === upstreamRef.namespace &&
             u.metadata?.name === upstreamRef.name
         );
@@ -182,7 +186,8 @@ function getUpstreamGroup(
         const upstreamGroupsList = data!.toObject().upstreamGroupsList;
         const upstreamGroup = upstreamGroupsList.find(
           u =>
-            u.metadata?.clusterName === upstreamGroupRef.clusterName &&
+            (!upstreamGroupRef.clusterName ||
+              u.metadata?.clusterName === upstreamGroupRef.clusterName) &&
             u.metadata?.namespace === upstreamGroupRef.namespace &&
             u.metadata?.name === upstreamGroupRef.name
         );

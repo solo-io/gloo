@@ -336,9 +336,7 @@ export const SubRouteTablesTable = (props: Props) => {
     data: routeTables,
     error: rtError,
   } = useGetSubroutesForVirtualService(
-    !!virtualservicenamespace &&
-      !!virtualservicename &&
-      !!virtualserviceclustername
+    !!virtualservicenamespace && !!virtualservicename
       ? {
           clusterName: virtualserviceclustername,
           name: virtualservicename,

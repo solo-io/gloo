@@ -13,6 +13,7 @@ import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { colors } from 'Styles/colors';
 import { useParams, useNavigate } from 'react-router';
 import {
+  useIsGlooFedEnabled,
   useListClusterDetails,
   useListGlooInstances,
   useListVirtualServices,
@@ -79,6 +80,11 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
 
   const { data: glooInstances, error: glooError } = useListGlooInstances();
   const { data: clusterDetailsList, error: cError } = useListClusterDetails();
+  const {
+    data: glooFedCheckResponse,
+    error: glooFedCheckError,
+  } = useIsGlooFedEnabled();
+  const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
   const multipleClustersOrInstances =
     (clusterDetailsList && clusterDetailsList.length > 1) ||
@@ -114,7 +120,17 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
                   props.glooInstanceFilter
                 ))
           )
-          .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (!props.wholePage ? 0 : (gA.glooInstance?.name ?? '').localeCompare(gB.glooInstance?.name ?? '')))
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (!props.wholePage
+                ? 0
+                : (gA.glooInstance?.name ?? '').localeCompare(
+                    gB.glooInstance?.name ?? ''
+                  ))
+          )
           .map(vs => {
             let dataItem: VirtualServiceTableFields = {
               key:
@@ -123,7 +139,9 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
               name: {
                 displayElement: vs.metadata?.name ?? '',
                 link: vs.metadata
-                  ? `/gloo-instances/${vs.glooInstance?.namespace}/${vs.glooInstance?.name}/virtual-services/${vs.metadata.clusterName}/${vs.metadata.namespace}/${vs.metadata.name}/`
+                  ? isGlooFedEnabled
+                    ? `/gloo-instances/${vs.glooInstance?.namespace}/${vs.glooInstance?.name}/virtual-services/${vs.metadata.clusterName}/${vs.metadata.namespace}/${vs.metadata.name}/`
+                    : `/gloo-instances/${vs.glooInstance?.namespace}/${vs.glooInstance?.name}/virtual-services/${vs.metadata.namespace}/${vs.metadata.name}/`
                   : '',
               },
               namespace: vs.metadata?.namespace ?? '',

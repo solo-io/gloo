@@ -19,27 +19,27 @@ import (
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 )
 
-func NewWasmFilterHandler(
+func NewFedWasmFilterHandler(
 	glooInstanceClient fedv1.GlooInstanceClient,
 	mcGatewayCRDClientset gateway_solo_io_v1.MulticlusterClientset,
 ) rpc_edge_v1.WasmFilterApiServer {
-	return &wasmFilterHandler{
+	return &fedWasmFilterHandler{
 		glooInstanceClient: glooInstanceClient,
 		gatewayMCClientset: mcGatewayCRDClientset,
 	}
 }
 
-type wasmFilterHandler struct {
+type fedWasmFilterHandler struct {
 	glooInstanceClient fedv1.GlooInstanceClient
 	gatewayMCClientset gateway_solo_io_v1.MulticlusterClientset
 }
 
-func (k *wasmFilterHandler) DescribeWasmFilter(ctx context.Context, request *rpc_edge_v1.DescribeWasmFilterRequest) (*rpc_edge_v1.DescribeWasmFilterResponse, error) {
+func (h *fedWasmFilterHandler) DescribeWasmFilter(ctx context.Context, request *rpc_edge_v1.DescribeWasmFilterRequest) (*rpc_edge_v1.DescribeWasmFilterResponse, error) {
 	if request.GetName() == "" || request.GetGatewayRef() == nil {
 		return nil, eris.Errorf("invalid request, %v", request)
 	}
 	var wasmFilter *rpc_edge_v1.WasmFilter
-	glooInstanceList, err := k.glooInstanceClient.ListGlooInstance(ctx)
+	glooInstanceList, err := h.glooInstanceClient.ListGlooInstance(ctx)
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get list gloo instances")
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -48,7 +48,7 @@ func (k *wasmFilterHandler) DescribeWasmFilter(ctx context.Context, request *rpc
 	for _, glooInstance := range glooInstanceList.Items {
 		glooInstanceRef := apiserverutils.ToObjectRef(glooInstance.GetName(), glooInstance.GetNamespace())
 		cluster := glooInstance.Spec.GetCluster()
-		gatewayClient, err := k.gatewayMCClientset.Cluster(cluster)
+		gatewayClient, err := h.gatewayMCClientset.Cluster(cluster)
 		if err != nil {
 			wrapped := eris.Wrapf(err, "Failed to get multicluster gateway client set")
 			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -88,8 +88,8 @@ func (k *wasmFilterHandler) DescribeWasmFilter(ctx context.Context, request *rpc
 	}, nil
 }
 
-func (k *wasmFilterHandler) ListWasmFilters(ctx context.Context, request *rpc_edge_v1.ListWasmFiltersRequest) (*rpc_edge_v1.ListWasmFiltersResponse, error) {
-	glooInstanceList, err := k.glooInstanceClient.ListGlooInstance(ctx)
+func (h *fedWasmFilterHandler) ListWasmFilters(ctx context.Context, request *rpc_edge_v1.ListWasmFiltersRequest) (*rpc_edge_v1.ListWasmFiltersResponse, error) {
+	glooInstanceList, err := h.glooInstanceClient.ListGlooInstance(ctx)
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to get list gloo instances")
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -99,7 +99,7 @@ func (k *wasmFilterHandler) ListWasmFilters(ctx context.Context, request *rpc_ed
 	for _, glooInstance := range glooInstanceList.Items {
 		glooInstanceRef := apiserverutils.ToObjectRef(glooInstance.GetName(), glooInstance.GetNamespace())
 		cluster := glooInstance.Spec.GetCluster()
-		gatewayClient, err := k.gatewayMCClientset.Cluster(cluster)
+		gatewayClient, err := h.gatewayMCClientset.Cluster(cluster)
 		if err != nil {
 			wrapped := eris.Wrapf(err, "Failed to get multicluster gateway client set")
 			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
