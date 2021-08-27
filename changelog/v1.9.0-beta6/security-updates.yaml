@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/2683 
+    resolvesIssue: false
+    description: >
+      Run updates in Docker builds to get latest version of packages.

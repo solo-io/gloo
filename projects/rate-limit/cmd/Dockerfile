@@ -1,8 +1,7 @@
 FROM alpine:3.13.5
 ARG EXTRA_PACKAGES
 
-RUN apk update && apk add ca-certificates $EXTRA_PACKAGES && rm -rf /var/cache/apk/*
-
+RUN apk -U upgrade && apk add ca-certificates $EXTRA_PACKAGES && rm -rf /var/cache/apk/*
 COPY rate-limit-linux-amd64 /usr/local/bin/rate-limit
 
 USER 10101

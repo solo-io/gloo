@@ -1,5 +1,6 @@
 FROM nginx:1.19.8-alpine
 
+RUN apk -U upgrade
 # Replace existing NGINX configuration
 RUN rm -rf /etc/nginx/conf.d /etc/nginx/nginx.conf
 COPY ./conf /etc/nginx
