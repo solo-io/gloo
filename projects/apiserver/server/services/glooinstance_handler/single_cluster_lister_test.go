@@ -16,6 +16,7 @@ import (
 	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	mock_gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/mocks"
 	mock_ratelimit_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1/mocks"
+	. "github.com/solo-io/solo-kit/test/matchers"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler"
 	apps_v1 "k8s.io/api/apps/v1"
@@ -295,7 +296,7 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		)
 		glooInstance, err := lister.GetGlooInstance(ctx, &v1.ObjectRef{Name: "gloo", Namespace: "gloo-system"})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(glooInstance).To(Equal(testGlooInstance))
+		Expect(glooInstance).To(MatchProto(testGlooInstance))
 	})
 
 	It("can list gloo instances", func() {
@@ -310,8 +311,6 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		glooInstances, err := lister.ListGlooInstances(ctx)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(glooInstances).To(HaveLen(1))
-		Expect(glooInstances).To(Equal([]*rpc_edge_v1.GlooInstance{
-			testGlooInstance,
-		}))
+		Expect(glooInstances[0]).To(MatchProto(testGlooInstance))
 	})
 })
