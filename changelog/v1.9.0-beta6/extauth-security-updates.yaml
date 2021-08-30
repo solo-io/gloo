@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/2683
+    resolvesIssue: false
+    description: >
+      Install updated versions of packages during Ext-Auth Docker builds.
