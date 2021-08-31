@@ -1,0 +1,9 @@
+changelog:
+ - type: DEPENDENCY_BUMP
+   dependencyOwner: solo-io
+   dependencyRepo: rate-limiter
+   dependencyTag: v0.4.5
+   description: >
+      Bump the version of ratelimit to get the option to 
+      return which rules were breached in the headers
+   

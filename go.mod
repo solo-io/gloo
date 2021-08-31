@@ -46,11 +46,11 @@ require (
 	github.com/solo-io/external-apis v0.1.4
 	github.com/solo-io/gloo v1.9.0-beta14
 	github.com/solo-io/go-list-licenses v0.1.3
-	github.com/solo-io/go-utils v0.21.16
+	github.com/solo-io/go-utils v0.21.18
 	github.com/solo-io/k8s-utils v0.0.10
 	github.com/solo-io/licensing v0.1.20
 	github.com/solo-io/protoc-gen-ext v0.0.15
-	github.com/solo-io/rate-limiter v0.4.1
+	github.com/solo-io/rate-limiter v0.4.5
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.17.19
 	github.com/solo-io/skv2-enterprise v0.0.8
