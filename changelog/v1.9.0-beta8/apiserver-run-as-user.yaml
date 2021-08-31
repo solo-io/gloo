@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/gloo/issues/4819
+    description: Allow custom runAsUser for all containers in apiserver deployment.

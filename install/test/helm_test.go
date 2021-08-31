@@ -2832,6 +2832,9 @@ spec:
 					},
 				}
 
+				truez := true
+				falsez := false
+
 				uiContainer := v1.Container{
 					Name:            "console",
 					Image:           "quay.io/solo-io/gloo-federation-console:" + version,
@@ -2841,7 +2844,13 @@ spec:
 						{Name: "empty-run", MountPath: "/var/run"},
 					},
 					SecurityContext: &v1.SecurityContext{
-						RunAsUser: aws.Int64(101),
+						Capabilities: &v1.Capabilities{
+							Drop: []v1.Capability{"ALL"},
+						},
+						RunAsNonRoot:             &truez,
+						RunAsUser:                aws.Int64(101),
+						ReadOnlyRootFilesystem:   &truez,
+						AllowPrivilegeEscalation: &falsez,
 					},
 					Ports: []v1.ContainerPort{{Name: "static", ContainerPort: 8090, Protocol: v1.ProtocolTCP}},
 					Resources: v1.ResourceRequirements{
@@ -2864,8 +2873,6 @@ spec:
 					},
 				}
 
-				truez := true
-				falsez := false
 				grpcServerContainer := v1.Container{
 					Name:            "apiserver",
 					Image:           "quay.io/solo-io/gloo-fed-apiserver:" + version,
@@ -2886,6 +2893,7 @@ spec:
 						Capabilities: &v1.Capabilities{
 							Drop: []v1.Capability{"ALL"},
 						},
+						RunAsNonRoot:             &truez,
 						RunAsUser:                aws.Int64(101),
 						ReadOnlyRootFilesystem:   &truez,
 						AllowPrivilegeEscalation: &falsez,
@@ -2916,7 +2924,13 @@ spec:
 						},
 					},
 					SecurityContext: &v1.SecurityContext{
-						RunAsUser: aws.Int64(101),
+						Capabilities: &v1.Capabilities{
+							Drop: []v1.Capability{"ALL"},
+						},
+						RunAsNonRoot:             &truez,
+						RunAsUser:                aws.Int64(101),
+						ReadOnlyRootFilesystem:   &truez,
+						AllowPrivilegeEscalation: &falsez,
 					},
 					ReadinessProbe: &v1.Probe{
 						Handler: v1.Handler{HTTPGet: &v1.HTTPGetAction{
@@ -3057,6 +3071,8 @@ spec:
 				uid := int64(10102)
 				// Apiserver container
 				expectedDeployment.Spec.Template.Spec.Containers[0].SecurityContext.RunAsUser = &uid
+				expectedDeployment.Spec.Template.Spec.Containers[1].SecurityContext.RunAsUser = &uid
+				expectedDeployment.Spec.Template.Spec.Containers[2].SecurityContext.RunAsUser = &uid
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 
 			})

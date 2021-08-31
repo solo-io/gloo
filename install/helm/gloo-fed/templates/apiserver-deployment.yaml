@@ -84,6 +84,7 @@ spec:
             memory: 256Mi
 {{- end}}
         securityContext:
+          runAsNonRoot: true
           {{- if not $glooFedApiserver.floatingUserId }}
           runAsUser: {{ printf "%.0f" (float64 $glooFedApiserver.runAsUser) -}}
           {{- end }}
@@ -94,7 +95,15 @@ spec:
             - ALL
       - name: console
         securityContext:
-          runAsUser: 101
+          runAsNonRoot: true
+          {{- if not $glooFedApiserver.floatingUserId }}
+          runAsUser: {{ printf "%.0f" (float64 $glooFedApiserver.runAsUser) -}}
+          {{- end }}
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         image: {{ $consoleImage.registry }}/{{ $consoleImage.repository }}:{{ $consoleImage.tag }}
         imagePullPolicy: {{ $consoleImage.pullPolicy }}
         volumeMounts:
@@ -117,7 +126,15 @@ spec:
 {{- end}}
       - name: envoy
         securityContext:
-          runAsUser: 101
+          runAsNonRoot: true
+          {{- if not $glooFedApiserver.floatingUserId }}
+          runAsUser: {{ printf "%.0f" (float64 $glooFedApiserver.runAsUser) -}}
+          {{- end }}
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         env:
           {{/* Prevents Envoy from trying to chown things away from default user 101 */}}
           - name: ENVOY_UID
