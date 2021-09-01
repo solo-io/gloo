@@ -162,6 +162,10 @@ const DestinationHolder = styled.div<DestinationHolderProps>`
   span {
     margin-right: 5px;
   }
+
+  svg.toggle {
+    height: 15px;
+  }
 `;
 
 const getSingleDestinationName = (dest: Destination.AsObject): string => {
