@@ -205,11 +205,12 @@ func getRelevantActions(ctx context.Context, dlpActions []*dlp.Action) []*transf
 		case dlp.Action_CUSTOM:
 			customAction := dlpAction.GetCustomAction()
 			transformAction = append(transformAction, &transformation_ee.Action{
-				Name:     customAction.GetName(),
-				Regex:    customAction.GetRegex(),
-				Shadow:   dlpAction.GetShadow(),
-				Percent:  customAction.GetPercent(),
-				MaskChar: customAction.GetMaskChar(),
+				Name:         customAction.GetName(),
+				Regex:        customAction.GetRegex(),
+				RegexActions: customAction.GetRegexActions(),
+				Shadow:       dlpAction.GetShadow(),
+				Percent:      customAction.GetPercent(),
+				MaskChar:     customAction.GetMaskChar(),
 			})
 		default:
 			transformAction = GetTransformsFromMap(dlpAction.ActionType)

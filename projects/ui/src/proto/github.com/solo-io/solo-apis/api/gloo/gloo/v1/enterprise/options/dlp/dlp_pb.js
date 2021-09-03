@@ -12,8 +12,10 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var validate_validate_pb = require('../../../../../../../../../../validate/validate_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_matchers_matchers_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb.js');
 var github_com_solo$io_solo$kit_api_external_envoy_type_percent_pb = require('../../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/type/percent_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/transformation_ee/transformation_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.dlp.options.gloo.solo.io.Action', null, global);
 goog.exportSymbol('proto.dlp.options.gloo.solo.io.Action.ActionType', null, global);
@@ -897,7 +899,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.dlp.options.gloo.solo.io.CustomAction.repeatedFields_ = [2];
+proto.dlp.options.gloo.solo.io.CustomAction.repeatedFields_ = [2,5];
 
 
 
@@ -931,7 +933,9 @@ proto.dlp.options.gloo.solo.io.CustomAction.toObject = function(includeInstance,
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     regexList: jspb.Message.getRepeatedField(msg, 2),
     maskChar: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    percent: (f = msg.getPercent()) && github_com_solo$io_solo$kit_api_external_envoy_type_percent_pb.Percent.toObject(includeInstance, f)
+    percent: (f = msg.getPercent()) && github_com_solo$io_solo$kit_api_external_envoy_type_percent_pb.Percent.toObject(includeInstance, f),
+    regexActionsList: jspb.Message.toObjectList(msg.getRegexActionsList(),
+    github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.RegexAction.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -984,6 +988,11 @@ proto.dlp.options.gloo.solo.io.CustomAction.deserializeBinaryFromReader = functi
       var value = new github_com_solo$io_solo$kit_api_external_envoy_type_percent_pb.Percent;
       reader.readMessage(value,github_com_solo$io_solo$kit_api_external_envoy_type_percent_pb.Percent.deserializeBinaryFromReader);
       msg.setPercent(value);
+      break;
+    case 5:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.RegexAction;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.RegexAction.deserializeBinaryFromReader);
+      msg.addRegexActions(value);
       break;
     default:
       reader.skipField();
@@ -1041,6 +1050,14 @@ proto.dlp.options.gloo.solo.io.CustomAction.serializeBinaryToWriter = function(m
       4,
       f,
       github_com_solo$io_solo$kit_api_external_envoy_type_percent_pb.Percent.serializeBinaryToWriter
+    );
+  }
+  f = message.getRegexActionsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      5,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.RegexAction.serializeBinaryToWriter
     );
   }
 };
@@ -1132,6 +1149,37 @@ proto.dlp.options.gloo.solo.io.CustomAction.prototype.clearPercent = function() 
  */
 proto.dlp.options.gloo.solo.io.CustomAction.prototype.hasPercent = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * repeated envoy.config.filter.http.transformation_ee.v2.RegexAction regex_actions = 5;
+ * @return {!Array<!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction>}
+ */
+proto.dlp.options.gloo.solo.io.CustomAction.prototype.getRegexActionsList = function() {
+  return /** @type{!Array<!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.RegexAction, 5));
+};
+
+
+/** @param {!Array<!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction>} value */
+proto.dlp.options.gloo.solo.io.CustomAction.prototype.setRegexActionsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 5, value);
+};
+
+
+/**
+ * @param {!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction}
+ */
+proto.dlp.options.gloo.solo.io.CustomAction.prototype.addRegexActions = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 5, opt_value, proto.envoy.config.filter.http.transformation_ee.v2.RegexAction, opt_index);
+};
+
+
+proto.dlp.options.gloo.solo.io.CustomAction.prototype.clearRegexActionsList = function() {
+  this.setRegexActionsList([]);
 };
 
 

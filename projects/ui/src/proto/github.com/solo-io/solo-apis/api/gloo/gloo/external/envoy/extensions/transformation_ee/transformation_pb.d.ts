@@ -162,6 +162,11 @@ export class Action extends jspb.Message {
   setRegexList(value: Array<string>): void;
   addRegex(value: string, index?: number): string;
 
+  clearRegexActionsList(): void;
+  getRegexActionsList(): Array<RegexAction>;
+  setRegexActionsList(value: Array<RegexAction>): void;
+  addRegexActions(value?: RegexAction, index?: number): RegexAction;
+
   getShadow(): boolean;
   setShadow(value: boolean): void;
 
@@ -187,8 +192,33 @@ export namespace Action {
   export type AsObject = {
     name: string,
     regexList: Array<string>,
+    regexActionsList: Array<RegexAction.AsObject>,
     shadow: boolean,
     percent?: github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb.Percent.AsObject,
     maskChar: string,
+  }
+}
+
+export class RegexAction extends jspb.Message {
+  getRegex(): string;
+  setRegex(value: string): void;
+
+  getSubgroup(): number;
+  setSubgroup(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RegexAction.AsObject;
+  static toObject(includeInstance: boolean, msg: RegexAction): RegexAction.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RegexAction, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RegexAction;
+  static deserializeBinaryFromReader(message: RegexAction, reader: jspb.BinaryReader): RegexAction;
+}
+
+export namespace RegexAction {
+  export type AsObject = {
+    regex: string,
+    subgroup: number,
   }
 }

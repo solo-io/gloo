@@ -18,6 +18,7 @@ do
   sed "s|../google/api/http_pb.js|../github.com/solo-io/solo-kit/api/external/google/api/http_pb.js|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   sed "s|../udpa/annotations|../github.com/solo-io/solo-apis/api/gloo/gloo/external/udpa/annotations|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   sed "s|../envoy/annotations|../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/annotations|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
+  sed "s|\.\./envoy/api/v2|../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/api/v2|g" "$file" > "$file".tmp && mv "$file".tmp "$file"
   printf '%s\n%s\n' "/* eslint-disable */" "$(cat "$file")" > "$file"
 done
 

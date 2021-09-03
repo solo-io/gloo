@@ -44,6 +44,9 @@ var _ = Describe("dlp plugin", func() {
 					Value: 75,
 				},
 				MaskChar: "Z",
+				RegexActions: []*transformation_ee.RegexAction{
+					{Regex: "actionRegex", Subgroup: 1},
+				},
 			},
 		}
 	)
@@ -135,6 +138,9 @@ var _ = Describe("dlp plugin", func() {
 		Expect(customTransform.Name).To(Equal(customTestAction.CustomAction.Name))
 		Expect(customTransform.Percent.Equal(customTestAction.CustomAction.Percent)).To(BeTrue())
 		Expect(customTransform.Regex).To(Equal(customTestAction.CustomAction.Regex))
+		Expect(len(customTransform.RegexActions)).To(Equal(1))
+		Expect(customTransform.RegexActions[0].GetRegex()).To(Equal(customTestAction.CustomAction.RegexActions[0].GetRegex()))
+		Expect(customTransform.RegexActions[0].GetSubgroup()).To(Equal(customTestAction.CustomAction.RegexActions[0].GetSubgroup()))
 	}
 
 	Context("process snapshot", func() {

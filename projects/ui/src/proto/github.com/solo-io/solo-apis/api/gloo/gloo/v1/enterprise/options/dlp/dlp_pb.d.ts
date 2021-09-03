@@ -3,8 +3,10 @@
 // file: github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/dlp/dlp.proto
 
 import * as jspb from "google-protobuf";
+import * as validate_validate_pb from "../../../../../../../../../../validate/validate_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_matchers_matchers_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb";
 import * as github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb from "../../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/type/percent_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/transformation_ee/transformation_pb";
 import * as extproto_ext_pb from "../../../../../../../../../../extproto/ext_pb";
 
 export class FilterConfig extends jspb.Message {
@@ -165,6 +167,11 @@ export class CustomAction extends jspb.Message {
   getPercent(): github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb.Percent | undefined;
   setPercent(value?: github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb.Percent): void;
 
+  clearRegexActionsList(): void;
+  getRegexActionsList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.RegexAction>;
+  setRegexActionsList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.RegexAction>): void;
+  addRegexActions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.RegexAction, index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.RegexAction;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CustomAction.AsObject;
   static toObject(includeInstance: boolean, msg: CustomAction): CustomAction.AsObject;
@@ -181,5 +188,6 @@ export namespace CustomAction {
     regexList: Array<string>,
     maskChar: string,
     percent?: github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb.Percent.AsObject,
+    regexActionsList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.RegexAction.AsObject>,
   }
 }

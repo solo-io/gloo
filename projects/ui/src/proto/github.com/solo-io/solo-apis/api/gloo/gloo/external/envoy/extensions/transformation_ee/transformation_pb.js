@@ -13,11 +13,12 @@ var goog = jspb;
 var global = Function('return this')();
 
 var validate_validate_pb = require('../../../../../../../../../../validate/validate_pb.js');
-var envoy_api_v2_route_route_pb = require('../../../../../../../../../../envoy/api/v2/route/route_pb.js');
+var envoy_api_v2_route_route_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/api/v2/route/route_pb.js');
 var github_com_solo$io_solo$kit_api_external_envoy_type_percent_pb = require('../../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/type/percent_pb.js');
 goog.exportSymbol('proto.envoy.config.filter.http.transformation_ee.v2.Action', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.transformation_ee.v2.FilterTransformations', null, global);
+goog.exportSymbol('proto.envoy.config.filter.http.transformation_ee.v2.RegexAction', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.transformation_ee.v2.Transformation', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.transformation_ee.v2.TransformationRule', null, global);
@@ -1101,7 +1102,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.envoy.config.filter.http.transformation_ee.v2.Action.repeatedFields_ = [2];
+proto.envoy.config.filter.http.transformation_ee.v2.Action.repeatedFields_ = [2,6];
 
 
 
@@ -1134,6 +1135,8 @@ proto.envoy.config.filter.http.transformation_ee.v2.Action.toObject = function(i
   var f, obj = {
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     regexList: jspb.Message.getRepeatedField(msg, 2),
+    regexActionsList: jspb.Message.toObjectList(msg.getRegexActionsList(),
+    proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.toObject, includeInstance),
     shadow: jspb.Message.getFieldWithDefault(msg, 3, false),
     percent: (f = msg.getPercent()) && github_com_solo$io_solo$kit_api_external_envoy_type_percent_pb.Percent.toObject(includeInstance, f),
     maskChar: jspb.Message.getFieldWithDefault(msg, 5, "")
@@ -1180,6 +1183,11 @@ proto.envoy.config.filter.http.transformation_ee.v2.Action.deserializeBinaryFrom
     case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.addRegex(value);
+      break;
+    case 6:
+      var value = new proto.envoy.config.filter.http.transformation_ee.v2.RegexAction;
+      reader.readMessage(value,proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.deserializeBinaryFromReader);
+      msg.addRegexActions(value);
       break;
     case 3:
       var value = /** @type {boolean} */ (reader.readBool());
@@ -1235,6 +1243,14 @@ proto.envoy.config.filter.http.transformation_ee.v2.Action.serializeBinaryToWrit
     writer.writeRepeatedString(
       2,
       f
+    );
+  }
+  f = message.getRegexActionsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      6,
+      f,
+      proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.serializeBinaryToWriter
     );
   }
   f = message.getShadow();
@@ -1307,6 +1323,37 @@ proto.envoy.config.filter.http.transformation_ee.v2.Action.prototype.clearRegexL
 
 
 /**
+ * repeated RegexAction regex_actions = 6;
+ * @return {!Array<!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction>}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.Action.prototype.getRegexActionsList = function() {
+  return /** @type{!Array<!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.envoy.config.filter.http.transformation_ee.v2.RegexAction, 6));
+};
+
+
+/** @param {!Array<!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction>} value */
+proto.envoy.config.filter.http.transformation_ee.v2.Action.prototype.setRegexActionsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 6, value);
+};
+
+
+/**
+ * @param {!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.Action.prototype.addRegexActions = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 6, opt_value, proto.envoy.config.filter.http.transformation_ee.v2.RegexAction, opt_index);
+};
+
+
+proto.envoy.config.filter.http.transformation_ee.v2.Action.prototype.clearRegexActionsList = function() {
+  this.setRegexActionsList([]);
+};
+
+
+/**
  * optional bool shadow = 3;
  * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
  * You should avoid comparisons like {@code val === true/false} in those cases.
@@ -1365,6 +1412,175 @@ proto.envoy.config.filter.http.transformation_ee.v2.Action.prototype.getMaskChar
 /** @param {string} value */
 proto.envoy.config.filter.http.transformation_ee.v2.Action.prototype.setMaskChar = function(value) {
   jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.RegexAction = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.envoy.config.filter.http.transformation_ee.v2.RegexAction, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.displayName = 'proto.envoy.config.filter.http.transformation_ee.v2.RegexAction';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.prototype.toObject = function(opt_includeInstance) {
+  return proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    regex: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    subgroup: jspb.Message.getFieldWithDefault(msg, 2, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.envoy.config.filter.http.transformation_ee.v2.RegexAction;
+  return proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRegex(value);
+      break;
+    case 2:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setSubgroup(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.envoy.config.filter.http.transformation_ee.v2.RegexAction} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRegex();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getSubgroup();
+  if (f !== 0) {
+    writer.writeUint32(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string regex = 1;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.prototype.getRegex = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.prototype.setRegex = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional uint32 subgroup = 2;
+ * @return {number}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.prototype.getSubgroup = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/** @param {number} value */
+proto.envoy.config.filter.http.transformation_ee.v2.RegexAction.prototype.setSubgroup = function(value) {
+  jspb.Message.setProto3IntField(this, 2, value);
 };
 
 
