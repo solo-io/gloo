@@ -438,6 +438,7 @@ func translateJwks(j jwksSource, out *v3.JwtProvider) error {
 						Cluster: translator.UpstreamToClusterName(jwks.Remote.UpstreamRef),
 					},
 				},
+				AsyncFetch: jwks.Remote.AsyncFetch,
 			},
 		}
 	case *jwt.Jwks_Local:

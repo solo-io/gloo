@@ -1,0 +1,10 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/4838
+    description: Support the Envoy feature to refresh the Jwks cache in the background.
+
+  - type: DEPENDENCY_BUMP
+    description: Bump the gloo version to get the API for JwksAsyncFetch
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.9.0-beta17

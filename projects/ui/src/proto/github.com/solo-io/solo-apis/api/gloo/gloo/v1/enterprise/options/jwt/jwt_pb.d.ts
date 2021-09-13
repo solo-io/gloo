@@ -4,6 +4,7 @@
 
 import * as jspb from "google-protobuf";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/jwt_authn/v3/config_pb";
 import * as extproto_ext_pb from "../../../../../../../../../../extproto/ext_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 
@@ -203,6 +204,11 @@ export class RemoteJwks extends jspb.Message {
   getCacheDuration(): google_protobuf_duration_pb.Duration | undefined;
   setCacheDuration(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasAsyncFetch(): boolean;
+  clearAsyncFetch(): void;
+  getAsyncFetch(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb.JwksAsyncFetch | undefined;
+  setAsyncFetch(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb.JwksAsyncFetch): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RemoteJwks.AsObject;
   static toObject(includeInstance: boolean, msg: RemoteJwks): RemoteJwks.AsObject;
@@ -218,6 +224,7 @@ export namespace RemoteJwks {
     url: string,
     upstreamRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     cacheDuration?: google_protobuf_duration_pb.Duration.AsObject,
+    asyncFetch?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb.JwksAsyncFetch.AsObject,
   }
 }
 

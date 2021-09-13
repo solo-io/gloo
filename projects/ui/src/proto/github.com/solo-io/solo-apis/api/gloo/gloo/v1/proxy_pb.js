@@ -98,6 +98,7 @@ proto.gloo.solo.io.ProxySpec.prototype.toObject = function(opt_includeInstance) 
  */
 proto.gloo.solo.io.ProxySpec.toObject = function(includeInstance, msg) {
   var f, obj = {
+    compressedspec: jspb.Message.getFieldWithDefault(msg, 3, ""),
     listenersList: jspb.Message.toObjectList(msg.getListenersList(),
     proto.gloo.solo.io.Listener.toObject, includeInstance)
   };
@@ -136,6 +137,10 @@ proto.gloo.solo.io.ProxySpec.deserializeBinaryFromReader = function(msg, reader)
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCompressedspec(value);
+      break;
     case 2:
       var value = new proto.gloo.solo.io.Listener;
       reader.readMessage(value,proto.gloo.solo.io.Listener.deserializeBinaryFromReader);
@@ -170,6 +175,13 @@ proto.gloo.solo.io.ProxySpec.prototype.serializeBinary = function() {
  */
 proto.gloo.solo.io.ProxySpec.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getCompressedspec();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
   f = message.getListenersList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
@@ -178,6 +190,21 @@ proto.gloo.solo.io.ProxySpec.serializeBinaryToWriter = function(message, writer)
       proto.gloo.solo.io.Listener.serializeBinaryToWriter
     );
   }
+};
+
+
+/**
+ * optional string compressedSpec = 3;
+ * @return {string}
+ */
+proto.gloo.solo.io.ProxySpec.prototype.getCompressedspec = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.ProxySpec.prototype.setCompressedspec = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 

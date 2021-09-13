@@ -96,6 +96,11 @@ export class RemoteJwks extends jspb.Message {
   getCacheDuration(): google_protobuf_duration_pb.Duration | undefined;
   setCacheDuration(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasAsyncFetch(): boolean;
+  clearAsyncFetch(): void;
+  getAsyncFetch(): JwksAsyncFetch | undefined;
+  setAsyncFetch(value?: JwksAsyncFetch): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RemoteJwks.AsObject;
   static toObject(includeInstance: boolean, msg: RemoteJwks): RemoteJwks.AsObject;
@@ -110,6 +115,27 @@ export namespace RemoteJwks {
   export type AsObject = {
     httpUri?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.AsObject,
     cacheDuration?: google_protobuf_duration_pb.Duration.AsObject,
+    asyncFetch?: JwksAsyncFetch.AsObject,
+  }
+}
+
+export class JwksAsyncFetch extends jspb.Message {
+  getFastListener(): boolean;
+  setFastListener(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): JwksAsyncFetch.AsObject;
+  static toObject(includeInstance: boolean, msg: JwksAsyncFetch): JwksAsyncFetch.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: JwksAsyncFetch, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): JwksAsyncFetch;
+  static deserializeBinaryFromReader(message: JwksAsyncFetch, reader: jspb.BinaryReader): JwksAsyncFetch;
+}
+
+export namespace JwksAsyncFetch {
+  export type AsObject = {
+    fastListener: boolean,
   }
 }
 

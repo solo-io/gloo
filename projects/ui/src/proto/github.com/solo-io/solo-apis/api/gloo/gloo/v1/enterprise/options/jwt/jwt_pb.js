@@ -13,6 +13,7 @@ var goog = jspb;
 var global = Function('return this')();
 
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/jwt_authn/v3/config_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../../extproto/ext_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 goog.exportSymbol('proto.jwt.options.gloo.solo.io.ClaimToHeader', null, global);
@@ -1380,7 +1381,8 @@ proto.jwt.options.gloo.solo.io.RemoteJwks.toObject = function(includeInstance, m
   var f, obj = {
     url: jspb.Message.getFieldWithDefault(msg, 1, ""),
     upstreamRef: (f = msg.getUpstreamRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    cacheDuration: (f = msg.getCacheDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+    cacheDuration: (f = msg.getCacheDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    asyncFetch: (f = msg.getAsyncFetch()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb.JwksAsyncFetch.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1430,6 +1432,11 @@ proto.jwt.options.gloo.solo.io.RemoteJwks.deserializeBinaryFromReader = function
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setCacheDuration(value);
+      break;
+    case 3:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb.JwksAsyncFetch;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb.JwksAsyncFetch.deserializeBinaryFromReader);
+      msg.setAsyncFetch(value);
       break;
     default:
       reader.skipField();
@@ -1481,6 +1488,14 @@ proto.jwt.options.gloo.solo.io.RemoteJwks.serializeBinaryToWriter = function(mes
       4,
       f,
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getAsyncFetch();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb.JwksAsyncFetch.serializeBinaryToWriter
     );
   }
 };
@@ -1558,6 +1573,36 @@ proto.jwt.options.gloo.solo.io.RemoteJwks.prototype.clearCacheDuration = functio
  */
 proto.jwt.options.gloo.solo.io.RemoteJwks.prototype.hasCacheDuration = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional solo.io.envoy.extensions.filters.http.jwt_authn.v3.JwksAsyncFetch async_fetch = 3;
+ * @return {?proto.solo.io.envoy.extensions.filters.http.jwt_authn.v3.JwksAsyncFetch}
+ */
+proto.jwt.options.gloo.solo.io.RemoteJwks.prototype.getAsyncFetch = function() {
+  return /** @type{?proto.solo.io.envoy.extensions.filters.http.jwt_authn.v3.JwksAsyncFetch} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb.JwksAsyncFetch, 3));
+};
+
+
+/** @param {?proto.solo.io.envoy.extensions.filters.http.jwt_authn.v3.JwksAsyncFetch|undefined} value */
+proto.jwt.options.gloo.solo.io.RemoteJwks.prototype.setAsyncFetch = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.jwt.options.gloo.solo.io.RemoteJwks.prototype.clearAsyncFetch = function() {
+  this.setAsyncFetch(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.jwt.options.gloo.solo.io.RemoteJwks.prototype.hasAsyncFetch = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

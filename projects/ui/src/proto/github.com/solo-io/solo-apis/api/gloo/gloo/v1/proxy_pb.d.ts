@@ -15,6 +15,9 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb from "../..
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_matchers_matchers_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb";
 
 export class ProxySpec extends jspb.Message {
+  getCompressedspec(): string;
+  setCompressedspec(value: string): void;
+
   clearListenersList(): void;
   getListenersList(): Array<Listener>;
   setListenersList(value: Array<Listener>): void;
@@ -32,6 +35,7 @@ export class ProxySpec extends jspb.Message {
 
 export namespace ProxySpec {
   export type AsObject = {
+    compressedspec: string,
     listenersList: Array<Listener.AsObject>,
   }
 }

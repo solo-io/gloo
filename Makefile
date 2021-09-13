@@ -181,8 +181,10 @@ GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' 
 
 .PHONY: check-solo-apis
 check-solo-apis:
+ifeq ($(GLOO_BRANCH_BUILD),)
 	# Ensure that the gloo and solo-apis dependencies are in lockstep
 	go get github.com/solo-io/solo-apis@gloo-$(GLOO_VERSION)
+endif
 
 SUBDIRS:=projects install pkg test
 .PHONY: generated-code

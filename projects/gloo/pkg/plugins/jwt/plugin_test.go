@@ -623,6 +623,9 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 									CacheDuration: &duration.Duration{Seconds: 5},
 									Url:           "before_testium",
 									UpstreamRef:   &core.ResourceRef{Name: "test", Namespace: "testns"},
+									AsyncFetch: &v3.JwksAsyncFetch{
+										FastListener: true,
+									},
 								},
 							},
 						},
@@ -860,6 +863,9 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 											HttpUpstreamType: &envoycore.HttpUri_Cluster{
 												Cluster: translator.UpstreamToClusterName(beforeExtAuthJwtVhost.Providers["before_provider"].GetJwks().GetRemote().UpstreamRef),
 											},
+										},
+										AsyncFetch: &v3.JwksAsyncFetch{
+											FastListener: true,
 										},
 									},
 								},
