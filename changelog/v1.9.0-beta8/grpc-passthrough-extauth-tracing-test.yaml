@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5234
+    description: Bump extauth dependecy to include tracing on gRPC passthrough and add e2e testing for that functionality
+    resolvesIssue: false

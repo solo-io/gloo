@@ -227,5 +227,5 @@ func getProxyCustomAuth(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Pr
 		Spec: &extauth.ExtAuthExtension_CustomAuth{
 			CustomAuth: &extauth.CustomAuth{},
 		}}
-	return getProxyExtAuth(envoyPort, upstream, extauthCfg)
+	return getProxyExtAuth(envoyPort, upstream, extauthCfg, false)
 }

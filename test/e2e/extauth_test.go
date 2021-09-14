@@ -44,9 +44,12 @@ import (
 	passthrough_test_utils "github.com/solo-io/ext-auth-service/pkg/config/passthrough/test_utils"
 	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
 	"github.com/solo-io/ext-auth-service/pkg/server"
+	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -1528,7 +1531,7 @@ var _ = Describe("External auth", func() {
 							return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
 						})
 
-						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
+						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref(), false)
 						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 
 						// ensure proxy is accepted
@@ -1827,7 +1830,7 @@ var _ = Describe("External auth", func() {
 							return testClients.AuthConfigClient.Read(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.ReadOpts{})
 						})
 
-						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
+						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref(), false)
 						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 
 						// ensure proxy is accepted
@@ -1934,7 +1937,7 @@ var _ = Describe("External auth", func() {
 							return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
 						})
 
-						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
+						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref(), false)
 						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 
 						// ensure proxy is accepted
@@ -1967,6 +1970,7 @@ var _ = Describe("External auth", func() {
 						proxy          *gloov1.Proxy
 						authServer     *passthrough_test_utils.GrpcAuthServer
 						authServerPort = 5556
+						zipkinTracing  bool
 					)
 
 					expectRequestEventuallyReturnsResponseCode := func(responseCode int) {
@@ -2005,7 +2009,7 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// get proxy with pass through auth extension
-						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
+						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref(), zipkinTracing)
 
 						// write proxy
 						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
@@ -2086,6 +2090,43 @@ var _ = Describe("External auth", func() {
 
 					})
 
+					Context("when auth server returns ok response when tracing metadata is present", func() {
+
+						BeforeEach(func() {
+							// create zipkin upstream
+							zipkinUs := &gloov1.Upstream{
+								Metadata: &core.Metadata{
+									Name:      "zipkin",
+									Namespace: "default",
+								},
+								UpstreamType: &gloov1.Upstream_Static{
+									Static: &gloov1static.UpstreamSpec{
+										Hosts: []*gloov1static.Host{
+											{
+												Addr: envoyInstance.LocalAddr(),
+												Port: 9411,
+											},
+										},
+									},
+								},
+							}
+							_, err := testClients.UpstreamClient.Write(zipkinUs, clients.WriteOpts{})
+							Expect(err).NotTo(HaveOccurred())
+
+							zipkinTracing = true
+							authServer = passthrough_test_utils.NewGrpcAuthServerWithTracingRequired()
+						})
+
+						AfterEach(func() {
+							zipkinTracing = false
+						})
+
+						It("should accept extauth passthrough", func() {
+							expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+						})
+
+					})
+
 				})
 
 				Context("passthrough chaining sanity", func() {
@@ -2147,7 +2188,7 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// get proxy with pass through auth extension
-						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
+						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref(), false)
 
 						// write proxy
 						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
@@ -2300,7 +2341,7 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// get proxy with pass through auth extension
-						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref())
+						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref(), false)
 
 						// write proxy
 						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
@@ -2937,7 +2978,7 @@ func getOauthTokenIntrospectionExtAuthExtension() *extauth.ExtAuthExtension {
 }
 
 func getProxyExtAuthOauthTokenIntrospection(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
-	return getProxyExtAuth(envoyPort, upstream, getOauthTokenIntrospectionExtAuthExtension())
+	return getProxyExtAuth(envoyPort, upstream, getOauthTokenIntrospectionExtAuthExtension(), false)
 }
 
 func getOauthConfig(envoyPort uint32, secretRef *core.ResourceRef) *extauth.OAuth {
@@ -2966,7 +3007,7 @@ func getOidcAuthCodeConfig(envoyPort uint32, secretRef *core.ResourceRef) *extau
 }
 
 func getProxyExtAuthOIDC(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
-	return getProxyExtAuth(envoyPort, upstream, getOidcExtAuthExtension())
+	return getProxyExtAuth(envoyPort, upstream, getOidcExtAuthExtension(), false)
 }
 
 func getOidcExtAuthExtension() *extauth.ExtAuthExtension {
@@ -2981,7 +3022,7 @@ func getOidcExtAuthExtension() *extauth.ExtAuthExtension {
 }
 
 func getProxyExtAuthOIDCAndOpa(envoyPort uint32, secretRef, upstream *core.ResourceRef, modules []*core.ResourceRef) *gloov1.Proxy {
-	return getProxyExtAuth(envoyPort, upstream, getOidcAndOpaExtAuthExtension())
+	return getProxyExtAuth(envoyPort, upstream, getOidcAndOpaExtAuthExtension(), false)
 }
 
 func getOidcAndOpaExtAuthExtension() *extauth.ExtAuthExtension {
@@ -3004,7 +3045,7 @@ func getOpaConfig(modules []*core.ResourceRef, options *extauth.OpaAuthOptions) 
 }
 
 func getProxyExtAuthBasicAuth(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
-	return getProxyExtAuth(envoyPort, upstream, GetBasicAuthExtension())
+	return getProxyExtAuth(envoyPort, upstream, GetBasicAuthExtension(), false)
 }
 
 func GetBasicAuthExtension() *extauth.ExtAuthExtension {
@@ -3034,7 +3075,7 @@ func getBasicAuthConfig() *extauth.BasicAuth {
 }
 
 func getProxyExtAuthApiKeyAuth(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
-	return getProxyExtAuth(envoyPort, upstream, getApiKeyExtAuthExtension())
+	return getProxyExtAuth(envoyPort, upstream, getApiKeyExtAuthExtension(), false)
 }
 
 func getApiKeyAuthConfig() *extauth.ApiKeyAuth {
@@ -3060,8 +3101,8 @@ func getApiKeyExtAuthExtension() *extauth.ExtAuthExtension {
 	}
 }
 
-func getProxyExtAuthPassThroughAuth(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
-	return getProxyExtAuth(envoyPort, upstream, GetPassThroughExtAuthExtension())
+func getProxyExtAuthPassThroughAuth(envoyPort uint32, upstream *core.ResourceRef, zipkinTracing bool) *gloov1.Proxy {
+	return getProxyExtAuth(envoyPort, upstream, GetPassThroughExtAuthExtension(), zipkinTracing)
 }
 
 func GetPassThroughExtAuthExtension() *extauth.ExtAuthExtension {
@@ -3101,7 +3142,7 @@ func getPassThroughAuthConfig(address string) *extauth.PassThroughAuth {
 	}
 }
 
-func getProxyExtAuth(envoyPort uint32, upstream *core.ResourceRef, extauthCfg *extauth.ExtAuthExtension) *gloov1.Proxy {
+func getProxyExtAuth(envoyPort uint32, upstream *core.ResourceRef, extauthCfg *extauth.ExtAuthExtension, zipkinTracing bool) *gloov1.Proxy {
 	var vhosts []*gloov1.VirtualHost
 
 	vhost := &gloov1.VirtualHost{
@@ -3142,6 +3183,37 @@ func getProxyExtAuth(envoyPort uint32, upstream *core.ResourceRef, extauthCfg *e
 				},
 			},
 		}},
+	}
+
+	if zipkinTracing {
+		p.Listeners[0] = &gloov1.Listener{
+			Name:        "listener",
+			BindAddress: "0.0.0.0",
+			BindPort:    envoyPort,
+			ListenerType: &gloov1.Listener_HttpListener{
+				HttpListener: &gloov1.HttpListener{
+					VirtualHosts: vhosts,
+					Options: &gloov1.HttpListenerOptions{
+						HttpConnectionManagerSettings: &hcm.HttpConnectionManagerSettings{
+							Tracing: &tracing.ListenerTracingSettings{
+								ProviderConfig: &tracing.ListenerTracingSettings_ZipkinConfig{
+									ZipkinConfig: &v3.ZipkinConfig{
+										CollectorCluster: &v3.ZipkinConfig_CollectorUpstreamRef{
+											CollectorUpstreamRef: &core.ResourceRef{
+												Namespace: "default",
+												Name:      "zipkin",
+											},
+										},
+										CollectorEndpoint:        "/api/v2/spans",
+										CollectorEndpointVersion: v3.ZipkinConfig_HTTP_JSON,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
 	}
 
 	return p

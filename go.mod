@@ -42,7 +42,7 @@ require (
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.19.3
+	github.com/solo-io/ext-auth-service v0.19.4
 	github.com/solo-io/external-apis v0.1.4
 	github.com/solo-io/gloo v1.9.0-beta17
 	github.com/solo-io/go-list-licenses v0.1.3
@@ -93,7 +93,6 @@ replace (
 	// to avoid error about it being used for two different module paths
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v0.0.0-20210511163231-5b2d2b5f6c34
 	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
-
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 	// needed by gloo
 	github.com/google/go-github/v32 => github.com/google/go-github/v32 v32.0.0
