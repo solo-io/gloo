@@ -118,6 +118,9 @@ export class UpstreamSpec extends jspb.Message {
   getHttpProxyHostname(): google_protobuf_wrappers_pb.StringValue | undefined;
   setHttpProxyHostname(value?: google_protobuf_wrappers_pb.StringValue): void;
 
+  getIgnoreHealthOnHostRemoval(): boolean;
+  setIgnoreHealthOnHostRemoval(value: boolean): void;
+
   getUpstreamTypeCase(): UpstreamSpec.UpstreamTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSpec.AsObject;
@@ -150,6 +153,7 @@ export namespace UpstreamSpec {
     initialStreamWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     initialConnectionWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     httpProxyHostname?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    ignoreHealthOnHostRemoval: boolean,
   }
 
   export enum UpstreamTypeCase {

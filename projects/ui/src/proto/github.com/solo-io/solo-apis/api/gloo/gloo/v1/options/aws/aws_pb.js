@@ -529,6 +529,7 @@ proto.aws.options.gloo.solo.io.DestinationSpec.toObject = function(includeInstan
   var f, obj = {
     logicalName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     invocationStyle: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    requestTransformation: jspb.Message.getFieldWithDefault(msg, 6, false),
     responseTransformation: jspb.Message.getFieldWithDefault(msg, 5, false)
   };
 
@@ -573,6 +574,10 @@ proto.aws.options.gloo.solo.io.DestinationSpec.deserializeBinaryFromReader = fun
     case 2:
       var value = /** @type {!proto.aws.options.gloo.solo.io.DestinationSpec.InvocationStyle} */ (reader.readEnum());
       msg.setInvocationStyle(value);
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setRequestTransformation(value);
       break;
     case 5:
       var value = /** @type {boolean} */ (reader.readBool());
@@ -621,6 +626,13 @@ proto.aws.options.gloo.solo.io.DestinationSpec.serializeBinaryToWriter = functio
       f
     );
   }
+  f = message.getRequestTransformation();
+  if (f) {
+    writer.writeBool(
+      6,
+      f
+    );
+  }
   f = message.getResponseTransformation();
   if (f) {
     writer.writeBool(
@@ -666,6 +678,23 @@ proto.aws.options.gloo.solo.io.DestinationSpec.prototype.getInvocationStyle = fu
 /** @param {!proto.aws.options.gloo.solo.io.DestinationSpec.InvocationStyle} value */
 proto.aws.options.gloo.solo.io.DestinationSpec.prototype.setInvocationStyle = function(value) {
   jspb.Message.setProto3EnumField(this, 2, value);
+};
+
+
+/**
+ * optional bool request_transformation = 6;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.aws.options.gloo.solo.io.DestinationSpec.prototype.getRequestTransformation = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
+};
+
+
+/** @param {boolean} value */
+proto.aws.options.gloo.solo.io.DestinationSpec.prototype.setRequestTransformation = function(value) {
+  jspb.Message.setProto3BooleanField(this, 6, value);
 };
 
 

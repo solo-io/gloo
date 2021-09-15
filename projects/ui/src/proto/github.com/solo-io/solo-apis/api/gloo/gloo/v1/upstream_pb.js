@@ -138,7 +138,8 @@ proto.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance, msg) {
     failover: (f = msg.getFailover()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_failover_pb.Failover.toObject(includeInstance, f),
     initialStreamWindowSize: (f = msg.getInitialStreamWindowSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     initialConnectionWindowSize: (f = msg.getInitialConnectionWindowSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
-    httpProxyHostname: (f = msg.getHttpProxyHostname()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
+    httpProxyHostname: (f = msg.getHttpProxyHostname()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    ignoreHealthOnHostRemoval: jspb.Message.getFieldWithDefault(msg, 22, false)
   };
 
   if (includeInstance) {
@@ -269,6 +270,10 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       var value = new google_protobuf_wrappers_pb.StringValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setHttpProxyHostname(value);
+      break;
+    case 22:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setIgnoreHealthOnHostRemoval(value);
       break;
     default:
       reader.skipField();
@@ -449,6 +454,13 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
       21,
       f,
       google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getIgnoreHealthOnHostRemoval();
+  if (f) {
+    writer.writeBool(
+      22,
+      f
     );
   }
 };
@@ -1022,6 +1034,23 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearHttpProxyHostname = function() {
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasHttpProxyHostname = function() {
   return jspb.Message.getField(this, 21) != null;
+};
+
+
+/**
+ * optional bool ignore_health_on_host_removal = 22;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getIgnoreHealthOnHostRemoval = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 22, false));
+};
+
+
+/** @param {boolean} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setIgnoreHealthOnHostRemoval = function(value) {
+  jspb.Message.setProto3BooleanField(this, 22, value);
 };
 
 

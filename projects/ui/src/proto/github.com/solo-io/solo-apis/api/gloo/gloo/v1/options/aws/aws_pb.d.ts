@@ -77,6 +77,9 @@ export class DestinationSpec extends jspb.Message {
   getInvocationStyle(): DestinationSpec.InvocationStyleMap[keyof DestinationSpec.InvocationStyleMap];
   setInvocationStyle(value: DestinationSpec.InvocationStyleMap[keyof DestinationSpec.InvocationStyleMap]): void;
 
+  getRequestTransformation(): boolean;
+  setRequestTransformation(value: boolean): void;
+
   getResponseTransformation(): boolean;
   setResponseTransformation(value: boolean): void;
 
@@ -94,6 +97,7 @@ export namespace DestinationSpec {
   export type AsObject = {
     logicalName: string,
     invocationStyle: DestinationSpec.InvocationStyleMap[keyof DestinationSpec.InvocationStyleMap],
+    requestTransformation: boolean,
     responseTransformation: boolean,
   }
 
