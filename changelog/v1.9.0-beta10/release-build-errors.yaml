@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Make releases fail when docker-push fails.
+    issueLink: https://github.com/solo-io/gloo/issues/5318
