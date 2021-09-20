@@ -197,7 +197,7 @@ steps:
 
   # Run make targets to retag and push docker images to GCR
 - name: 'gcr.io/$PROJECT_ID/go-mod-make:0.4.9'
-  args: ['docker-push-extended']
+  args: ['docker-retag-images']
   env:
   - "TAGGED_VERSION=$TAG_NAME"
   - "PROJECT_ROOT=github.com/solo-io/solo-projects"

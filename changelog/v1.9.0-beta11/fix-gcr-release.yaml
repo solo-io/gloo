@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+       Update the build step that pushes images to gcr so that it doesn't attempt to rebuild all of the images.
