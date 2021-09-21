@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/5318
+    resolvesIssue: false
+    description: >
+      Do not try to retag `ext-auth-ee-plugins:$(VERSION)-extended` images for gcr during releases.
+      Add -fips suffix to gcr tag for fips builds.
