@@ -82,6 +82,7 @@ observability:
 global:
   image:
     pullPolicy: IfNotPresent
+    registry: quay.io/solo-io
     fips: false
   glooRbac:
     create: true
@@ -125,6 +126,7 @@ global:
         name: "extauth"
         image:
           repository: extauth-ee
+          registry: quay.io/solo-io
         port: 8083
         runAsUser: 10101
         fsGroup: 10101
@@ -138,9 +140,13 @@ global:
     glooRedis:
       enableAcl: true
   glooMtls:
+    enabled: false
     envoy:
       image:
         repository: gloo-ee-envoy-wrapper
+  glooStats:
+    enabled: true
+    routePrefixRewrite: /stats/prometheus
   extraSpecs: true
   extauthCustomYaml: false
 ########################################################################

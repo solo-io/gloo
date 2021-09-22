@@ -1,0 +1,5 @@
+changelog:
+ - type: NON_USER_FACING
+   issueLink: https://github.com/solo-io/solo-projects/issues/2743
+   resolvesIssue: true
+   description: The way we used "Global chart values" was potentially a source of data leak across (sub)charts. The changes brought in this commit fix that.
