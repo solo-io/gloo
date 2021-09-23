@@ -69,8 +69,8 @@ var _ = Describe("Grafana Syncer", func() {
 			UpstreamType: &gloov1.Upstream_Aws{
 				Aws: &aws.UpstreamSpec{Region: "test"},
 			},
-			Status:   &core.Status{},
-			Metadata: &core.Metadata{Name: "test-upstream-one", Namespace: "ns"},
+			NamespacedStatuses: &core.NamespacedStatuses{},
+			Metadata:           &core.Metadata{Name: "test-upstream-one", Namespace: "ns"},
 		}
 		upstreamTwo = &gloov1.Upstream{
 			UpstreamType: &gloov1.Upstream_Kube{
@@ -80,8 +80,8 @@ var _ = Describe("Grafana Syncer", func() {
 					ServicePort:      80,
 				},
 			},
-			Status:   &core.Status{},
-			Metadata: &core.Metadata{Name: "test-upstream-two", Namespace: "ns"},
+			NamespacedStatuses: &core.NamespacedStatuses{},
+			Metadata:           &core.Metadata{Name: "test-upstream-two", Namespace: "ns"},
 		}
 		upstreamList = []*gloov1.Upstream{upstreamOne, upstreamTwo}
 

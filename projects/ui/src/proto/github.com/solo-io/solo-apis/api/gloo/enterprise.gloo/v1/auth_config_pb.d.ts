@@ -2173,3 +2173,22 @@ export namespace AuthConfigStatus {
 
   export const State: StateMap;
 }
+
+export class AuthConfigNamespacedStatuses extends jspb.Message {
+  getStatusesMap(): jspb.Map<string, AuthConfigStatus>;
+  clearStatusesMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AuthConfigNamespacedStatuses.AsObject;
+  static toObject(includeInstance: boolean, msg: AuthConfigNamespacedStatuses): AuthConfigNamespacedStatuses.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AuthConfigNamespacedStatuses, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AuthConfigNamespacedStatuses;
+  static deserializeBinaryFromReader(message: AuthConfigNamespacedStatuses, reader: jspb.BinaryReader): AuthConfigNamespacedStatuses;
+}
+
+export namespace AuthConfigNamespacedStatuses {
+  export type AsObject = {
+    statusesMap: Array<[string, AuthConfigStatus.AsObject]>,
+  }
+}

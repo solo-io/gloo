@@ -118,8 +118,10 @@ export class UpstreamSpec extends jspb.Message {
   getHttpProxyHostname(): google_protobuf_wrappers_pb.StringValue | undefined;
   setHttpProxyHostname(value?: google_protobuf_wrappers_pb.StringValue): void;
 
-  getIgnoreHealthOnHostRemoval(): boolean;
-  setIgnoreHealthOnHostRemoval(value: boolean): void;
+  hasIgnoreHealthOnHostRemoval(): boolean;
+  clearIgnoreHealthOnHostRemoval(): void;
+  getIgnoreHealthOnHostRemoval(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setIgnoreHealthOnHostRemoval(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   getUpstreamTypeCase(): UpstreamSpec.UpstreamTypeCase;
   serializeBinary(): Uint8Array;
@@ -153,7 +155,7 @@ export namespace UpstreamSpec {
     initialStreamWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     initialConnectionWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     httpProxyHostname?: google_protobuf_wrappers_pb.StringValue.AsObject,
-    ignoreHealthOnHostRemoval: boolean,
+    ignoreHealthOnHostRemoval?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export enum UpstreamTypeCase {
@@ -231,4 +233,23 @@ export namespace UpstreamStatus {
   }
 
   export const State: StateMap;
+}
+
+export class UpstreamNamespacedStatuses extends jspb.Message {
+  getStatusesMap(): jspb.Map<string, UpstreamStatus>;
+  clearStatusesMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpstreamNamespacedStatuses.AsObject;
+  static toObject(includeInstance: boolean, msg: UpstreamNamespacedStatuses): UpstreamNamespacedStatuses.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpstreamNamespacedStatuses, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpstreamNamespacedStatuses;
+  static deserializeBinaryFromReader(message: UpstreamNamespacedStatuses, reader: jspb.BinaryReader): UpstreamNamespacedStatuses;
+}
+
+export namespace UpstreamNamespacedStatuses {
+  export type AsObject = {
+    statusesMap: Array<[string, UpstreamStatus.AsObject]>,
+  }
 }

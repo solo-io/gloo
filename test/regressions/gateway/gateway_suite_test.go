@@ -10,6 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
+
 	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
@@ -51,6 +54,7 @@ const (
 	ldapAssetDir               = "./../assets/ldap"
 	ldapServerConfigDirName    = "ldif"
 	ldapServerManifestFilename = "ldap-server-manifest.yaml"
+	namespace                  = defaults.GlooSystem
 )
 
 var (
@@ -64,11 +68,14 @@ var _ = BeforeSuite(func() {
 	cwd, err := os.Getwd()
 	Expect(err).NotTo(HaveOccurred())
 
+	err = os.Setenv(statusutils.PodNamespaceEnvName, namespace)
+	Expect(err).NotTo(HaveOccurred())
+
 	testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
 		defaults.RootDir = filepath.Join(cwd, "../../..")
 		defaults.HelmChartName = "gloo-ee"
 		defaults.LicenseKey = "eyJleHAiOjM4Nzk1MTY3ODYsImlhdCI6MTU1NDk0MDM0OCwiayI6IkJ3ZXZQQSJ9.tbJ9I9AUltZ-iMmHBertugI2YIg1Z8Q0v6anRjc66Jo"
-		defaults.InstallNamespace = "gloo-system"
+		defaults.InstallNamespace = namespace
 		return defaults
 	})
 	Expect(err).NotTo(HaveOccurred())
@@ -112,6 +119,9 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
+	err := os.Unsetenv(statusutils.PodNamespaceEnvName)
+	Expect(err).NotTo(HaveOccurred())
+
 	if os.Getenv("TEAR_DOWN") == "true" {
 		cleanupLdapServer(ctx, regressions.MustKubeClient())
 

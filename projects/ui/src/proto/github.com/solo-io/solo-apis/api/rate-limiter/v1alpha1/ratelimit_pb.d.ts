@@ -104,6 +104,25 @@ export namespace RateLimitConfigStatus {
   export const State: StateMap;
 }
 
+export class RateLimitConfigNamespacedStatuses extends jspb.Message {
+  getStatusesMap(): jspb.Map<string, RateLimitConfigStatus>;
+  clearStatusesMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RateLimitConfigNamespacedStatuses.AsObject;
+  static toObject(includeInstance: boolean, msg: RateLimitConfigNamespacedStatuses): RateLimitConfigNamespacedStatuses.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RateLimitConfigNamespacedStatuses, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RateLimitConfigNamespacedStatuses;
+  static deserializeBinaryFromReader(message: RateLimitConfigNamespacedStatuses, reader: jspb.BinaryReader): RateLimitConfigNamespacedStatuses;
+}
+
+export namespace RateLimitConfigNamespacedStatuses {
+  export type AsObject = {
+    statusesMap: Array<[string, RateLimitConfigStatus.AsObject]>,
+  }
+}
+
 export class Descriptor extends jspb.Message {
   getKey(): string;
   setKey(value: string): void;

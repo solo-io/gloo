@@ -4,6 +4,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/solo-io/gloo/pkg/utils/statusutils"
+
 	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -171,14 +173,15 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 	}
 
 	return translator.Opts{
-		WriteNamespace:     ns,
-		WatchNamespaces:    []string{"default", ns},
-		Gateways:           f,
-		VirtualServices:    f,
-		Proxies:            f,
-		RouteTables:        f,
-		RouteOptions:       f,
-		VirtualHostOptions: f,
+		WriteNamespace:          ns,
+		StatusReporterNamespace: statusutils.GetStatusReporterNamespaceOrDefault(defaults.GlooSystem),
+		WatchNamespaces:         []string{"default", ns},
+		Gateways:                f,
+		VirtualServices:         f,
+		Proxies:                 f,
+		RouteTables:             f,
+		RouteOptions:            f,
+		VirtualHostOptions:      f,
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
@@ -214,15 +217,16 @@ func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 		Cache: cache,
 	}
 	return bootstrap.Opts{
-		WriteNamespace:   ns,
-		Upstreams:        f,
-		UpstreamGroups:   f,
-		Proxies:          f,
-		Secrets:          f,
-		Artifacts:        f,
-		AuthConfigs:      f,
-		RateLimitConfigs: f,
-		WatchNamespaces:  []string{"default", ns},
+		WriteNamespace:          ns,
+		StatusReporterNamespace: statusutils.GetStatusReporterNamespaceOrDefault(defaults.GlooSystem),
+		Upstreams:               f,
+		UpstreamGroups:          f,
+		Proxies:                 f,
+		Secrets:                 f,
+		Artifacts:               f,
+		AuthConfigs:             f,
+		RateLimitConfigs:        f,
+		WatchNamespaces:         []string{"default", ns},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,

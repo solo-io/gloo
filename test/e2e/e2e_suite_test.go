@@ -1,7 +1,10 @@
 package e2e_test
 
 import (
+	"os"
 	"testing"
+
+	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
@@ -16,10 +19,16 @@ import (
 var (
 	envoyFactory  *services.EnvoyFactory
 	consulFactory *services.ConsulFactory
+
+	namespace = defaults.GlooSystem
 )
 
 var _ = BeforeSuite(func() {
 	var err error
+
+	err = os.Setenv(statusutils.PodNamespaceEnvName, namespace)
+	Expect(err).NotTo(HaveOccurred())
+
 	envoyFactory, err = services.NewEnvoyFactory()
 	Expect(err).NotTo(HaveOccurred())
 	consulFactory, err = services.NewConsulFactory()
@@ -28,6 +37,9 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
+	err := os.Unsetenv(statusutils.PodNamespaceEnvName)
+	Expect(err).NotTo(HaveOccurred())
+
 	_ = envoyFactory.Clean()
 	_ = consulFactory.Clean()
 })

@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/solo-io/gloo/pkg/utils/statusutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/hashicorp/go-multierror"
 	. "github.com/onsi/ginkgo"
@@ -39,6 +42,8 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		proxyClient      clients.ResourceClient
 		reports          reporter.ResourceReports
 		settings         *gloov1.Settings
+
+		statusClient resources.StatusClient
 	)
 
 	JustBeforeEach(func() {
@@ -72,6 +77,8 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		}
 		snapCache = &mockSetSnapshot{}
 		settings = setupSettings(ctx)
+
+		statusClient = statusutils.GetStatusClientFromEnvOrDefault(namespace)
 	})
 
 	AfterEach(func() {
@@ -249,20 +256,26 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 				Expect(goodAuth).NotTo(BeNil())
 				goodAuthConfig, ok := goodAuth.(*extauth.AuthConfig)
 				Expect(ok).To(BeTrue())
-				Expect(goodAuthConfig.Status).To(BeNil(), "should not have been written yet (meaning 'nil' for in-memory client)")
+
+				status := statusClient.GetStatus(goodAuthConfig)
+				Expect(status).To(BeNil(), "should not have been written yet (meaning 'nil' for in-memory client)")
 
 				badAuth, err := authConfigClient.Read(defaults.GlooSystem, "bad-auth", clients.ReadOpts{})
 				Expect(err).To(BeNil())
 				Expect(badAuth).NotTo(BeNil())
 				badAuthConfig, ok := badAuth.(*extauth.AuthConfig)
-				Expect(badAuthConfig.Status).To(BeNil(), "should not have been written yet (meaning 'nil' for in-memory client)")
+
+				status = statusClient.GetStatus(badAuthConfig)
+				Expect(status).To(BeNil(), "should not have been written yet (meaning 'nil' for in-memory client)")
 
 				proxyRes, err := proxyClient.Read(defaults.GlooSystem, "proxy", clients.ReadOpts{})
 				Expect(err).To(BeNil())
 				Expect(proxyRes).NotTo(BeNil())
 				pr, ok := proxyRes.(*gloov1.Proxy)
 				Expect(ok).To(BeTrue())
-				Expect(pr.Status).To(BeNil(), "should not have been written yet (meaning 'nil' for in-memory client)")
+
+				status = statusClient.GetStatus(pr)
+				Expect(status).To(BeNil(), "should not have been written yet (meaning 'nil' for in-memory client)")
 			})
 		})
 	})

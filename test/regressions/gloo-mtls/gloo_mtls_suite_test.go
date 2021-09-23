@@ -8,6 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
+
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-projects/test/regressions"
 
@@ -45,6 +48,8 @@ var (
 	testHelper *helper.SoloTestHelper
 	ctx        context.Context
 	cancel     context.CancelFunc
+
+	namespace = defaults.GlooSystem
 )
 
 var _ = BeforeSuite(func() {
@@ -52,11 +57,14 @@ var _ = BeforeSuite(func() {
 	cwd, err := os.Getwd()
 	Expect(err).NotTo(HaveOccurred())
 
+	err = os.Setenv(statusutils.PodNamespaceEnvName, namespace)
+	Expect(err).NotTo(HaveOccurred())
+
 	testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
 		defaults.RootDir = filepath.Join(cwd, "../../..")
 		defaults.HelmChartName = "gloo-ee"
 		defaults.LicenseKey = "eyJleHAiOjM4Nzk1MTY3ODYsImlhdCI6MTU1NDk0MDM0OCwiayI6IkJ3ZXZQQSJ9.tbJ9I9AUltZ-iMmHBertugI2YIg1Z8Q0v6anRjc66Jo"
-		defaults.InstallNamespace = "gloo-system"
+		defaults.InstallNamespace = namespace
 		return defaults
 	})
 	Expect(err).NotTo(HaveOccurred())
@@ -95,6 +103,9 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
+	err := os.Unsetenv(statusutils.PodNamespaceEnvName)
+	Expect(err).NotTo(HaveOccurred())
+
 	if os.Getenv("TEAR_DOWN") == "true" {
 		err := testHelper.UninstallGlooAll()
 		Expect(err).NotTo(HaveOccurred())

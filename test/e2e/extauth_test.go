@@ -23,6 +23,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/solo-io/gloo/test/helpers"
+
 	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"github.com/fgrosse/zaptest"
 	"github.com/form3tech-oss/jwt-go"
@@ -219,7 +221,7 @@ var _ = Describe("External auth", func() {
 			_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-			v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 				return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 			})
 		}
@@ -327,7 +329,7 @@ var _ = Describe("External auth", func() {
 					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
-					v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 						return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 					})
 				})
@@ -1056,14 +1058,14 @@ var _ = Describe("External auth", func() {
 					// Write the auth configuration and ensure it is accepted
 					_, err := testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
-					v1helpers.EventuallyResourceAcceptedWithOffset(1, func() (resources.InputResource, error) {
+					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 						return testClients.AuthConfigClient.Read(authConfig.GetMetadata().GetNamespace(), authConfig.GetMetadata().GetName(), clients.ReadOpts{Ctx: ctx})
 					})
 
 					// Write the proxy and ensure it is accepted
 					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
-					v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 						return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 					})
 				})
@@ -1384,7 +1386,7 @@ var _ = Describe("External auth", func() {
 					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
-					v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 						return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 					})
 				})
@@ -1527,7 +1529,7 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// ensure auth config is accepted
-						v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
 						})
 
@@ -1535,7 +1537,7 @@ var _ = Describe("External auth", func() {
 						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 
 						// ensure proxy is accepted
-						v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						})
 					})
@@ -1826,7 +1828,7 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// ensure auth config is accepted
-						v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.AuthConfigClient.Read(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.ReadOpts{})
 						})
 
@@ -1834,7 +1836,7 @@ var _ = Describe("External auth", func() {
 						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 
 						// ensure proxy is accepted
-						v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						})
 					})
@@ -1933,7 +1935,7 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// ensure auth config is accepted
-						v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
 						})
 
@@ -1941,7 +1943,7 @@ var _ = Describe("External auth", func() {
 						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 
 						// ensure proxy is accepted
-						v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						})
 					})
@@ -2016,7 +2018,7 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// ensure proxy is accepted
-						v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						})
 					})
@@ -2195,7 +2197,7 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// ensure proxy is accepted
-						v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						})
 					})
@@ -2348,7 +2350,7 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// ensure proxy is accepted
-						v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						})
 					})
@@ -2438,7 +2440,7 @@ var _ = Describe("External auth", func() {
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
-					v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 						return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 					})
 				})

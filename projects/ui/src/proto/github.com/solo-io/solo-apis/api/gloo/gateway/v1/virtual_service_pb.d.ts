@@ -365,3 +365,22 @@ export namespace VirtualServiceStatus {
 
   export const State: StateMap;
 }
+
+export class VirtualServiceNamespacedStatuses extends jspb.Message {
+  getStatusesMap(): jspb.Map<string, VirtualServiceStatus>;
+  clearStatusesMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): VirtualServiceNamespacedStatuses.AsObject;
+  static toObject(includeInstance: boolean, msg: VirtualServiceNamespacedStatuses): VirtualServiceNamespacedStatuses.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: VirtualServiceNamespacedStatuses, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): VirtualServiceNamespacedStatuses;
+  static deserializeBinaryFromReader(message: VirtualServiceNamespacedStatuses, reader: jspb.BinaryReader): VirtualServiceNamespacedStatuses;
+}
+
+export namespace VirtualServiceNamespacedStatuses {
+  export type AsObject = {
+    statusesMap: Array<[string, VirtualServiceStatus.AsObject]>,
+  }
+}

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/solo-io/gloo/test/helpers"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
 
 	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
@@ -220,7 +222,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 			// write proxy and ensure it is accepted
 			_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
-			v1helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 				return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 			})
 		})

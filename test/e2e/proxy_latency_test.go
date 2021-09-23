@@ -6,6 +6,9 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	envoy_admin_v3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	envoy_listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	envoy_hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
@@ -15,7 +18,6 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gstruct"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/proxylatency"
@@ -115,19 +117,9 @@ var _ = Describe("Proxy latency", func() {
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(func() (core.Status, error) {
-					proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-					if err != nil {
-						return core.Status{}, err
-					}
-					if proxy.Status == nil {
-						return core.Status{}, nil
-					}
-					return *proxy.Status, nil
-				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-					"Reason": BeEmpty(),
-					"State":  Equal(core.Status_Accepted),
-				}))
+				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+					return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+				})
 			})
 
 			It("should be last", func() {

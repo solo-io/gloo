@@ -29,6 +29,7 @@ goog.exportSymbol('proto.gloo.solo.io.HttpListener', null, global);
 goog.exportSymbol('proto.gloo.solo.io.KubernetesServiceDestination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Listener', null, global);
 goog.exportSymbol('proto.gloo.solo.io.MultiDestination', null, global);
+goog.exportSymbol('proto.gloo.solo.io.ProxyNamespacedStatuses', null, global);
 goog.exportSymbol('proto.gloo.solo.io.ProxySpec', null, global);
 goog.exportSymbol('proto.gloo.solo.io.ProxyStatus', null, global);
 goog.exportSymbol('proto.gloo.solo.io.ProxyStatus.State', null, global);
@@ -39,6 +40,7 @@ goog.exportSymbol('proto.gloo.solo.io.RouteAction', null, global);
 goog.exportSymbol('proto.gloo.solo.io.TcpHost', null, global);
 goog.exportSymbol('proto.gloo.solo.io.TcpHost.TcpAction', null, global);
 goog.exportSymbol('proto.gloo.solo.io.TcpListener', null, global);
+goog.exportSymbol('proto.gloo.solo.io.UpstreamGroupNamespacedStatuses', null, global);
 goog.exportSymbol('proto.gloo.solo.io.UpstreamGroupSpec', null, global);
 goog.exportSymbol('proto.gloo.solo.io.UpstreamGroupStatus', null, global);
 goog.exportSymbol('proto.gloo.solo.io.UpstreamGroupStatus.State', null, global);
@@ -5037,6 +5039,150 @@ proto.gloo.solo.io.UpstreamGroupStatus.prototype.hasDetails = function() {
  * @extends {jspb.Message}
  * @constructor
  */
+proto.gloo.solo.io.UpstreamGroupNamespacedStatuses = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.UpstreamGroupNamespacedStatuses, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.displayName = 'proto.gloo.solo.io.UpstreamGroupNamespacedStatuses';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.UpstreamGroupNamespacedStatuses} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    statusesMap: (f = msg.getStatusesMap()) ? f.toObject(includeInstance, proto.gloo.solo.io.UpstreamGroupStatus.toObject) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.UpstreamGroupNamespacedStatuses}
+ */
+proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.UpstreamGroupNamespacedStatuses;
+  return proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.UpstreamGroupNamespacedStatuses} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.UpstreamGroupNamespacedStatuses}
+ */
+proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = msg.getStatusesMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.gloo.solo.io.UpstreamGroupStatus.deserializeBinaryFromReader, "");
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.UpstreamGroupNamespacedStatuses} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getStatusesMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.gloo.solo.io.UpstreamGroupStatus.serializeBinaryToWriter);
+  }
+};
+
+
+/**
+ * map<string, UpstreamGroupStatus> statuses = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.gloo.solo.io.UpstreamGroupStatus>}
+ */
+proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.prototype.getStatusesMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.gloo.solo.io.UpstreamGroupStatus>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      proto.gloo.solo.io.UpstreamGroupStatus));
+};
+
+
+proto.gloo.solo.io.UpstreamGroupNamespacedStatuses.prototype.clearStatusesMap = function() {
+  this.getStatusesMap().clear();
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.gloo.solo.io.ProxyStatus = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
@@ -5302,6 +5448,150 @@ proto.gloo.solo.io.ProxyStatus.prototype.clearDetails = function() {
  */
 proto.gloo.solo.io.ProxyStatus.prototype.hasDetails = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.ProxyNamespacedStatuses = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.ProxyNamespacedStatuses, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.ProxyNamespacedStatuses.displayName = 'proto.gloo.solo.io.ProxyNamespacedStatuses';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.ProxyNamespacedStatuses.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.ProxyNamespacedStatuses.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.ProxyNamespacedStatuses} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.ProxyNamespacedStatuses.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    statusesMap: (f = msg.getStatusesMap()) ? f.toObject(includeInstance, proto.gloo.solo.io.ProxyStatus.toObject) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.ProxyNamespacedStatuses}
+ */
+proto.gloo.solo.io.ProxyNamespacedStatuses.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.ProxyNamespacedStatuses;
+  return proto.gloo.solo.io.ProxyNamespacedStatuses.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.ProxyNamespacedStatuses} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.ProxyNamespacedStatuses}
+ */
+proto.gloo.solo.io.ProxyNamespacedStatuses.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = msg.getStatusesMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.gloo.solo.io.ProxyStatus.deserializeBinaryFromReader, "");
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.ProxyNamespacedStatuses.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.ProxyNamespacedStatuses.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.ProxyNamespacedStatuses} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.ProxyNamespacedStatuses.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getStatusesMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.gloo.solo.io.ProxyStatus.serializeBinaryToWriter);
+  }
+};
+
+
+/**
+ * map<string, ProxyStatus> statuses = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.gloo.solo.io.ProxyStatus>}
+ */
+proto.gloo.solo.io.ProxyNamespacedStatuses.prototype.getStatusesMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.gloo.solo.io.ProxyStatus>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      proto.gloo.solo.io.ProxyStatus));
+};
+
+
+proto.gloo.solo.io.ProxyNamespacedStatuses.prototype.clearStatusesMap = function() {
+  this.getStatusesMap().clear();
 };
 
 

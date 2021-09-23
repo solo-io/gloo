@@ -738,6 +738,25 @@ export namespace UpstreamGroupStatus {
   export const State: StateMap;
 }
 
+export class UpstreamGroupNamespacedStatuses extends jspb.Message {
+  getStatusesMap(): jspb.Map<string, UpstreamGroupStatus>;
+  clearStatusesMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpstreamGroupNamespacedStatuses.AsObject;
+  static toObject(includeInstance: boolean, msg: UpstreamGroupNamespacedStatuses): UpstreamGroupNamespacedStatuses.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpstreamGroupNamespacedStatuses, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpstreamGroupNamespacedStatuses;
+  static deserializeBinaryFromReader(message: UpstreamGroupNamespacedStatuses, reader: jspb.BinaryReader): UpstreamGroupNamespacedStatuses;
+}
+
+export namespace UpstreamGroupNamespacedStatuses {
+  export type AsObject = {
+    statusesMap: Array<[string, UpstreamGroupStatus.AsObject]>,
+  }
+}
+
 export class ProxyStatus extends jspb.Message {
   getState(): ProxyStatus.StateMap[keyof ProxyStatus.StateMap];
   setState(value: ProxyStatus.StateMap[keyof ProxyStatus.StateMap]): void;
@@ -782,4 +801,23 @@ export namespace ProxyStatus {
   }
 
   export const State: StateMap;
+}
+
+export class ProxyNamespacedStatuses extends jspb.Message {
+  getStatusesMap(): jspb.Map<string, ProxyStatus>;
+  clearStatusesMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ProxyNamespacedStatuses.AsObject;
+  static toObject(includeInstance: boolean, msg: ProxyNamespacedStatuses): ProxyNamespacedStatuses.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ProxyNamespacedStatuses, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ProxyNamespacedStatuses;
+  static deserializeBinaryFromReader(message: ProxyNamespacedStatuses, reader: jspb.BinaryReader): ProxyNamespacedStatuses;
+}
+
+export namespace ProxyNamespacedStatuses {
+  export type AsObject = {
+    statusesMap: Array<[string, ProxyStatus.AsObject]>,
+  }
 }

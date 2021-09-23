@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/golang/protobuf/ptypes/empty"
 
 	"github.com/fgrosse/zaptest"
@@ -15,7 +17,6 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gstruct"
 	kubeconverters "github.com/solo-io/gloo/projects/gloo/pkg/api/converters/kube"
 	corev2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -209,19 +210,9 @@ var _ = Describe("Failover", func() {
 				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-				EventuallyWithOffset(1, func() (core.Status, error) {
-					proxy, err = testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-					if err != nil {
-						return core.Status{}, err
-					}
-					if proxy.Status == nil {
-						return core.Status{}, nil
-					}
-					return *proxy.Status, nil
-				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-					"Reason": BeEmpty(),
-					"State":  Equal(core.Status_Accepted),
-				}))
+				helpers.EventuallyResourceStatusMatchesState(1, func() (resources.InputResource, error) {
+					return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+				}, core.Status_Accepted)
 
 				testRequestReturns("hello")
 				unhealthyCancel()
@@ -307,19 +298,9 @@ var _ = Describe("Failover", func() {
 				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-				EventuallyWithOffset(1, func() (core.Status, error) {
-					proxy, err = testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-					if err != nil {
-						return core.Status{}, err
-					}
-					if proxy.Status == nil {
-						return core.Status{}, nil
-					}
-					return *proxy.Status, nil
-				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-					"Reason": BeEmpty(),
-					"State":  Equal(core.Status_Accepted),
-				}))
+				helpers.EventuallyResourceStatusMatchesState(1, func() (resources.InputResource, error) {
+					return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+				}, core.Status_Accepted)
 
 				testRequestReturns("hello")
 				unhealthyCancel()
@@ -452,19 +433,9 @@ var _ = Describe("Failover", func() {
 				_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-				EventuallyWithOffset(1, func() (core.Status, error) {
-					proxy, err = testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-					if err != nil {
-						return core.Status{}, err
-					}
-					if proxy.Status == nil {
-						return core.Status{}, nil
-					}
-					return *proxy.Status, nil
-				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-					"Reason": BeEmpty(),
-					"State":  Equal(core.Status_Accepted),
-				}))
+				helpers.EventuallyResourceStatusMatchesState(1, func() (resources.InputResource, error) {
+					return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+				}, core.Status_Accepted)
 			}
 
 			var testRequestReturnsPercentOfTime = func(expectedResponsePercentages map[string]int) {

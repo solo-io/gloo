@@ -994,3 +994,22 @@ export namespace SettingsStatus {
 
   export const State: StateMap;
 }
+
+export class SettingsNamespacedStatuses extends jspb.Message {
+  getStatusesMap(): jspb.Map<string, SettingsStatus>;
+  clearStatusesMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SettingsNamespacedStatuses.AsObject;
+  static toObject(includeInstance: boolean, msg: SettingsNamespacedStatuses): SettingsNamespacedStatuses.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SettingsNamespacedStatuses, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SettingsNamespacedStatuses;
+  static deserializeBinaryFromReader(message: SettingsNamespacedStatuses, reader: jspb.BinaryReader): SettingsNamespacedStatuses;
+}
+
+export namespace SettingsNamespacedStatuses {
+  export type AsObject = {
+    statusesMap: Array<[string, SettingsStatus.AsObject]>,
+  }
+}

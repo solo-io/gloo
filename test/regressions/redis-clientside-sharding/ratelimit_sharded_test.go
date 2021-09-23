@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/gloo/pkg/utils/statusutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
@@ -47,6 +50,8 @@ var _ = Describe("RateLimit tests", func() {
 		virtualServiceClient v1.VirtualServiceClient
 		settingsClient       gloov1.SettingsClient
 		origSettings         *gloov1.Settings // used to capture & restore initial Settings so each test can modify them
+
+		statusClient resources.StatusClient
 	)
 
 	const (
@@ -113,6 +118,8 @@ var _ = Describe("RateLimit tests", func() {
 		currentSettings.RatelimitServer.DenyOnFail = true
 		_, err = settingsClient.Write(currentSettings, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
 		Expect(err).ToNot(HaveOccurred())
+
+		statusClient = statusutils.GetStatusClientFromEnvOrDefault(namespace)
 	})
 
 	AfterEach(func() {
@@ -135,14 +142,19 @@ var _ = Describe("RateLimit tests", func() {
 		// wait for default gateway to be created
 		EventuallyWithOffset(2, func() (*v2.Gateway, error) {
 			g, err := gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
-			status, ok := g.Status.SubresourceStatuses["*v1.Proxy.gloo-system.gateway-proxy"]
+			if err != nil {
+				return nil, fmt.Errorf("failed to read gateway resource")
+			}
+
+			gatewayStatus := statusClient.GetStatus(g)
+			proxyStatus, ok := gatewayStatus.GetSubresourceStatuses()["*v1.Proxy.gloo-system.gateway-proxy"]
 			if !ok {
 				return nil, fmt.Errorf("gateway proxy not yet ready")
 			}
-			if g.Status.State != core.Status_Accepted {
+			if gatewayStatus.GetState() != core.Status_Accepted {
 				return nil, fmt.Errorf("gateway resource not yet accepted")
 			}
-			if status.State != core.Status_Accepted {
+			if proxyStatus.GetState() != core.Status_Accepted {
 				return nil, fmt.Errorf("gateway proxy resource not yet accepted")
 			}
 			return g, err

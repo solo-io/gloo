@@ -264,3 +264,22 @@ export namespace GatewayStatus {
 
   export const State: StateMap;
 }
+
+export class GatewayNamespacedStatuses extends jspb.Message {
+  getStatusesMap(): jspb.Map<string, GatewayStatus>;
+  clearStatusesMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GatewayNamespacedStatuses.AsObject;
+  static toObject(includeInstance: boolean, msg: GatewayNamespacedStatuses): GatewayNamespacedStatuses.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GatewayNamespacedStatuses, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GatewayNamespacedStatuses;
+  static deserializeBinaryFromReader(message: GatewayNamespacedStatuses, reader: jspb.BinaryReader): GatewayNamespacedStatuses;
+}
+
+export namespace GatewayNamespacedStatuses {
+  export type AsObject = {
+    statusesMap: Array<[string, GatewayStatus.AsObject]>,
+  }
+}

@@ -7,10 +7,12 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/fgrosse/zaptest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gstruct"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
@@ -168,19 +170,9 @@ var _ = Describe("dlp", func() {
 			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(func() (core.Status, error) {
-				proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				if err != nil {
-					return core.Status{}, err
-				}
-				if proxy.Status == nil {
-					return core.Status{}, nil
-				}
-				return *proxy.Status, nil
-			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-				"Reason": BeEmpty(),
-				"State":  Equal(core.Status_Accepted),
-			}))
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+			})
 		}
 
 		BeforeEach(func() {

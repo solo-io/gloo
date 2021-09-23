@@ -82,3 +82,22 @@ export namespace RouteTableStatus {
 
   export const State: StateMap;
 }
+
+export class RouteTableNamespacedStatuses extends jspb.Message {
+  getStatusesMap(): jspb.Map<string, RouteTableStatus>;
+  clearStatusesMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RouteTableNamespacedStatuses.AsObject;
+  static toObject(includeInstance: boolean, msg: RouteTableNamespacedStatuses): RouteTableNamespacedStatuses.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RouteTableNamespacedStatuses, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RouteTableNamespacedStatuses;
+  static deserializeBinaryFromReader(message: RouteTableNamespacedStatuses, reader: jspb.BinaryReader): RouteTableNamespacedStatuses;
+}
+
+export namespace RouteTableNamespacedStatuses {
+  export type AsObject = {
+    statusesMap: Array<[string, RouteTableStatus.AsObject]>,
+  }
+}

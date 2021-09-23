@@ -6,6 +6,25 @@ import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../extproto/ext_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 
+export class NamespacedStatuses extends jspb.Message {
+  getStatusesMap(): jspb.Map<string, Status>;
+  clearStatusesMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NamespacedStatuses.AsObject;
+  static toObject(includeInstance: boolean, msg: NamespacedStatuses): NamespacedStatuses.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NamespacedStatuses, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NamespacedStatuses;
+  static deserializeBinaryFromReader(message: NamespacedStatuses, reader: jspb.BinaryReader): NamespacedStatuses;
+}
+
+export namespace NamespacedStatuses {
+  export type AsObject = {
+    statusesMap: Array<[string, Status.AsObject]>,
+  }
+}
+
 export class Status extends jspb.Message {
   getState(): Status.StateMap[keyof Status.StateMap];
   setState(value: Status.StateMap[keyof Status.StateMap]): void;

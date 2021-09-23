@@ -8,6 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
+
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/go-utils/log"
@@ -36,13 +39,16 @@ func TestWasm(t *testing.T) {
 
 var testHelper *helper.SoloTestHelper
 var ctx, cancel = context.WithCancel(context.Background())
-var installNamespace = "gloo-system"
+var installNamespace = defaults.GlooSystem
 
 var _ = BeforeSuite(StartTestHelper)
 var _ = AfterSuite(TearDownTestHelper)
 
 func StartTestHelper() {
 	cwd, err := os.Getwd()
+	Expect(err).NotTo(HaveOccurred())
+
+	err = os.Setenv(statusutils.PodNamespaceEnvName, installNamespace)
 	Expect(err).NotTo(HaveOccurred())
 
 	testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
@@ -106,6 +112,9 @@ gloo:
 }
 
 func TearDownTestHelper() {
+	err := os.Unsetenv(statusutils.PodNamespaceEnvName)
+	Expect(err).NotTo(HaveOccurred())
+
 	if os.Getenv("TEAR_DOWN") == "true" {
 		Expect(testHelper).ToNot(BeNil())
 		err := testHelper.UninstallGlooAll()

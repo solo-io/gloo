@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gstruct"
-
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-projects/test/services"
 
@@ -150,20 +151,9 @@ var _ = Describe("External http", func() {
 			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(func() (core.Status, error) {
-				proxyFromStorage, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				if err != nil {
-					return core.Status{}, err
-				}
-				if proxyFromStorage.Status == nil {
-					return core.Status{}, nil
-				}
-
-				return *proxyFromStorage.Status, nil
-			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-				"Reason": BeEmpty(),
-				"State":  Equal(core.Status_Accepted),
-			}))
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+			})
 		})
 
 		It("should deny ext auth envoy", func() {

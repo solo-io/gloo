@@ -9,13 +9,15 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/fgrosse/zaptest"
 	"github.com/form3tech-oss/jwt-go"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gstruct"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -116,7 +118,6 @@ var _ = Describe("JWT + RBAC", func() {
 	)
 
 	BeforeEach(func() {
-
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 		contextutils.SetFallbackLogger(logger.Sugar())
 
@@ -173,6 +174,10 @@ var _ = Describe("JWT + RBAC", func() {
 		up := testUpstream.Upstream
 		_, err = testClients.UpstreamClient.Write(up, opts)
 		Expect(err).NotTo(HaveOccurred())
+
+		helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+			return testClients.UpstreamClient.Read(up.GetMetadata().GetNamespace(), up.GetMetadata().GetName(), clients.ReadOpts{})
+		})
 	})
 
 	AfterEach(func() {
@@ -300,19 +305,9 @@ var _ = Describe("JWT + RBAC", func() {
 			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(func() (core.Status, error) {
-				proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				if err != nil {
-					return core.Status{}, err
-				}
-				if proxy.Status == nil {
-					return core.Status{}, nil
-				}
-				return *proxy.Status, nil
-			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-				"Reason": BeEmpty(),
-				"State":  Equal(core.Status_Accepted),
-			}))
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+			})
 
 			// wait for key service to start
 			Eventually(func() error {
@@ -432,19 +427,9 @@ var _ = Describe("JWT + RBAC", func() {
 			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(func() (core.Status, error) {
-				proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				if err != nil {
-					return core.Status{}, err
-				}
-				if proxy.Status == nil {
-					return core.Status{}, nil
-				}
-				return *proxy.Status, nil
-			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-				"Reason": BeEmpty(),
-				"State":  Equal(core.Status_Accepted),
-			}))
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+			})
 
 			// wait for key service to start
 			Eventually(func() error {
@@ -502,19 +487,9 @@ var _ = Describe("JWT + RBAC", func() {
 			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(func() (core.Status, error) {
-				proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				if err != nil {
-					return core.Status{}, err
-				}
-				if proxy.Status == nil {
-					return core.Status{}, nil
-				}
-				return *proxy.Status, nil
-			}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
-				"Reason": BeEmpty(),
-				"State":  Equal(core.Status_Accepted),
-			}))
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+			})
 
 			// wait for key service to start
 			Eventually(func() error {

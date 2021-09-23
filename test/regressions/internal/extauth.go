@@ -8,12 +8,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/solo-io/gloo/test/helpers"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
 
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-projects/test/v1helpers"
-
 	"github.com/solo-io/go-utils/testutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -335,9 +335,9 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 				// Wait for auth config to be created
-				v1helpers.EventuallyResourceAcceptedWithOffset(1, func() (resources.InputResource, error) {
+				helpers.EventuallyResourceStatusMatchesState(1, func() (resources.InputResource, error) {
 					return authConfigClient.Read(testHelper.InstallNamespace, ac.Metadata.Name, clients.ReadOpts{Ctx: ctx})
-				})
+				}, core.Status_Accepted)
 
 				authConfigRef := ac.Metadata.Ref()
 				return authConfigRef, func() {
@@ -372,9 +372,9 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				}, "30s", "1s").Should(BeNil())
 
 				// Wait for proxy to be accepted
-				v1helpers.EventuallyResourceAcceptedWithOffset(1, func() (resources.InputResource, error) {
+				helpers.EventuallyResourceStatusMatchesState(1, func() (resources.InputResource, error) {
 					return proxyClient.Read(testHelper.InstallNamespace, defaults.GatewayProxyName, clients.ReadOpts{Ctx: ctx})
-				})
+				}, core.Status_Accepted)
 
 				return func() {
 					regressions.DeleteVirtualService(virtualServiceClient, vs.Metadata.Namespace, vs.Metadata.Name, clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})

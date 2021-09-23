@@ -6,6 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
+
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
@@ -40,15 +43,18 @@ var (
 	mcRole               *v1alpha1.MultiClusterRole
 	mcRoleBinding        *v1alpha1.MultiClusterRoleBinding
 	err                  error
+	namespace            = defaults.GlooSystem
 )
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-	namespace := "gloo-system"
 	if os.Getenv("REMOTE_CLUSTER_CONTEXT") == "" {
 		return nil
 	}
 	remoteClusterContext = os.Getenv("REMOTE_CLUSTER_CONTEXT")
 	localClusterContext = os.Getenv("LOCAL_CLUSTER_CONTEXT")
+
+	err = os.Setenv(statusutils.PodNamespaceEnvName, namespace)
+	Expect(err).NotTo(HaveOccurred())
 
 	restCfg := skv2_test.MustConfig(localClusterContext)
 	// Wait for the Gloo Instances to be created
@@ -64,11 +70,13 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	Eventually(func() (gloov1.UpstreamStatus_State, error) {
 		us, err := glooClient.Upstreams().GetUpstream(context.TODO(), client.ObjectKey{
 			Name:      "default-service-blue-10000",
-			Namespace: "gloo-system",
+			Namespace: namespace,
 		})
 		if err != nil {
+			log.Printf("failed to get upstream: %v", err)
 			return 0, err
 		}
+
 		return us.Status.GetState(), nil
 	}, time.Second*30, time.Millisecond*500).Should(Equal(gloov1.UpstreamStatus_Accepted))
 
@@ -78,7 +86,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	Eventually(func() (gloov1.UpstreamStatus_State, error) {
 		us, err := remoteGlooClient.Upstreams().GetUpstream(context.TODO(), client.ObjectKey{
 			Name:      "default-service-green-10000",
-			Namespace: "gloo-system",
+			Namespace: namespace,
 		})
 		if err != nil {
 			return 0, err
@@ -91,11 +99,12 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	Eventually(func() (gatewayv1.VirtualServiceStatus_State, error) {
 		vs, err := gatewayClient.VirtualServices().GetVirtualService(context.TODO(), client.ObjectKey{
 			Name:      "simple-route",
-			Namespace: "gloo-system",
+			Namespace: namespace,
 		})
 		if err != nil {
 			return 0, err
 		}
+
 		return vs.Status.GetState(), nil
 	}, time.Second*10, time.Millisecond*500).Should(Equal(gatewayv1.VirtualServiceStatus_Accepted))
 
@@ -105,7 +114,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		for i := 0; i < 60; i++ {
 			failover, err := clientset.FailoverSchemes().GetFailoverScheme(context.TODO(), client.ObjectKey{
 				Name:      "failover-test-scheme",
-				Namespace: "gloo-system",
+				Namespace: namespace,
 			})
 			if err != nil {
 				continue
@@ -182,6 +191,9 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 }, func([]byte) {})
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
+	err := os.Unsetenv(statusutils.PodNamespaceEnvName)
+	Expect(err).NotTo(HaveOccurred())
+
 	if mcRoleBinding != nil {
 		rbacClientset, err := v1alpha1.NewClientsetFromConfig(skv2_test.MustConfig(localClusterContext))
 		Expect(err).NotTo(HaveOccurred())
