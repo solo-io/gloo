@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/soak-testing/issues/18
+    resolvesIssue: false
+    description: >
+      Update general usage guidelines in top-level README.md and escrow configuration guidelines in ci/escrow/README.md.
