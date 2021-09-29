@@ -2,7 +2,7 @@ Name|Version|License
 ---|---|---
 [avast/retry-go](https://github.com/avast/retry-go)|v2.4.3+incompatible|MIT License
 [aws/aws-sdk-go](https://github.com/aws/aws-sdk-go)|v1.36.30|Apache License 2.0
-[deislabs/oras](https://github.com/deislabs/oras)|v0.8.1|MIT License
+[deislabs/oras](https://github.com/deislabs/oras)|v0.10.0|MIT License
 [envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.9.9-0.20210511190911-87d352569d55|Apache License 2.0
 [envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v0.4.1|Apache License 2.0
 [fgrosse/zaptest](https://github.com/fgrosse/zaptest)|v1.1.0|MIT License
