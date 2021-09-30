@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      While fixing a CVE for https://github.com/solo-io/gloo/issues/5406,
+      I accidentally introduced a new one.
+      Upgrade the github.com/docker/distribution version to fix CVE-2017-11468.
