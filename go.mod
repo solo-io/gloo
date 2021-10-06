@@ -11,6 +11,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.4.1
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
+	github.com/gertd/go-pluralize v0.1.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.2.0
@@ -78,7 +79,7 @@ require (
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/code-generator v0.19.7
 	k8s.io/kubernetes v1.19.6
-	k8s.io/utils v0.19.6 // indirect
+	k8s.io/utils v0.19.6
 	sigs.k8s.io/controller-runtime v0.7.0
 	sigs.k8s.io/yaml v1.2.0
 )
