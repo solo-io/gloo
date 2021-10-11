@@ -267,17 +267,17 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 				global.EXPECT().ToXdsConfiguration().Return(config2, nil)
 				crd.EXPECT().ToXdsConfiguration().Return(config3, nil)
 
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "foo",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "foo", "foo",
 					&v1alpha1.RateLimitConfigSpec_Raw{
 						Descriptors:    config1.Descriptors,
 						SetDescriptors: config1.SetDescriptors,
 					}).Return(nil, nil)
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "bar",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "bar", "bar",
 					&v1alpha1.RateLimitConfigSpec_Raw{
 						Descriptors:    config2.Descriptors,
 						SetDescriptors: config2.SetDescriptors,
 					}).Return(nil, nil)
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "baz",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "baz", "baz",
 					&v1alpha1.RateLimitConfigSpec_Raw{
 						Descriptors:    config3.Descriptors,
 						SetDescriptors: config3.SetDescriptors,
@@ -306,14 +306,14 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 				global.EXPECT().ToXdsConfiguration().Return(&enterprise.RateLimitConfig{Domain: config2.Domain}, testErr)
 				crd.EXPECT().ToXdsConfiguration().Return(config3, nil)
 
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "foo",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "foo", "foo",
 					&v1alpha1.RateLimitConfigSpec_Raw{
 						Descriptors:    config1.Descriptors,
 						SetDescriptors: config1.SetDescriptors,
 					}).Return(nil, nil)
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "bar",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "bar", "bar",
 					&v1alpha1.RateLimitConfigSpec_Raw{}).Return(nil, nil)
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "baz",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "baz", "baz",
 					&v1alpha1.RateLimitConfigSpec_Raw{
 						Descriptors:    config3.Descriptors,
 						SetDescriptors: config3.SetDescriptors,
@@ -342,17 +342,17 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 				global.EXPECT().ToXdsConfiguration().Return(config2, nil)
 				crd.EXPECT().ToXdsConfiguration().Return(config3, nil)
 
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "foo",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "foo", "foo",
 					&v1alpha1.RateLimitConfigSpec_Raw{
 						Descriptors:    config1.Descriptors,
 						SetDescriptors: config1.SetDescriptors,
 					}).Return(nil, nil)
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "bar",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "bar", "bar",
 					&v1alpha1.RateLimitConfigSpec_Raw{
 						Descriptors:    config2.Descriptors,
 						SetDescriptors: config2.SetDescriptors,
 					}).Return(nil, testErr)
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "baz",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "baz", "baz",
 					&v1alpha1.RateLimitConfigSpec_Raw{
 						Descriptors:    config3.Descriptors,
 						SetDescriptors: config3.SetDescriptors,
@@ -380,17 +380,17 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 				global.EXPECT().ToXdsConfiguration().Return(config2, nil)
 				crd.EXPECT().ToXdsConfiguration().Return(config3, nil)
 
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "foo",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "foo", "foo",
 					&v1alpha1.RateLimitConfigSpec_Raw{
 						Descriptors:    config1.Descriptors,
 						SetDescriptors: config1.SetDescriptors,
 					}).Return(nil, nil)
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "bar",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "bar", "bar",
 					&v1alpha1.RateLimitConfigSpec_Raw{
 						Descriptors:    config2.Descriptors,
 						SetDescriptors: config2.SetDescriptors,
 					}).Return(nil, nil)
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "baz",
+				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "baz", "baz",
 					&v1alpha1.RateLimitConfigSpec_Raw{
 						Descriptors:    config3.Descriptors,
 						SetDescriptors: config3.SetDescriptors,
@@ -467,11 +467,11 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 		})
 
 		It("returns the expected error", func() {
-			domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, rlPluginOS.CustomDomain,
+			domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, rlPluginOS.CustomDomain, rlPluginOS.CustomDomain,
 				&v1alpha1.RateLimitConfigSpec_Raw{}).Return(nil, nil)
-			domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, rlPlugin.IngressDomain,
+			domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, rlPlugin.IngressDomain, rlPlugin.IngressDomain,
 				&v1alpha1.RateLimitConfigSpec_Raw{}).Return(nil, nil)
-			domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, rlPlugin.ConfigCrdDomain,
+			domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, rlPlugin.ConfigCrdDomain, rlPlugin.ConfigCrdDomain,
 				&v1alpha1.RateLimitConfigSpec_Raw{}).Return(nil, nil)
 
 			Expect(reports).To(HaveLen(0))

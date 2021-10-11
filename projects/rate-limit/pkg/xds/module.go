@@ -102,7 +102,8 @@ func (x *configSource) Run(ctx context.Context, service ratelimit.RateLimitServi
 			logger.Debugw("received new rate limit config", zap.Any("config", resources))
 
 			for _, cfg := range resources {
-				domain, err := x.domainGenerator.NewRateLimitDomain(ctx, cfg.Domain,
+				// Use the domain for configId for xds resources
+				domain, err := x.domainGenerator.NewRateLimitDomain(ctx, cfg.Domain, cfg.Domain,
 					&solo_api_rl.RateLimitConfigSpec_Raw{Descriptors: cfg.Descriptors, SetDescriptors: cfg.SetDescriptors})
 				if err != nil {
 					logger.Errorw("failed to generate configuration for domain", zap.String("domain", cfg.Domain), zap.Error(err))

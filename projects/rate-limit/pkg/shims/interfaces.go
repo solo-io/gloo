@@ -20,7 +20,7 @@ type RateLimitConfigTranslator interface {
 
 // A shim for `github.com/solo-io/rate-limiter/pkg/config.RateLimitDomain`
 type RateLimitDomainGenerator interface {
-	NewRateLimitDomain(ctx context.Context, domain string, rateLimitConfig *solo_apis.RateLimitConfigSpec_Raw) (config.RateLimitDomain, error)
+	NewRateLimitDomain(ctx context.Context, configId, domain string, rateLimitConfig *solo_apis.RateLimitConfigSpec_Raw) (config.RateLimitDomain, error)
 }
 
 // A shim for `github.com/solo-io/rate-limiter/pkg/config/translation.GlobalRateLimitTranslator`

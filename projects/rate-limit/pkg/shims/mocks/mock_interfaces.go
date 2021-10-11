@@ -90,18 +90,18 @@ func (m *MockRateLimitDomainGenerator) EXPECT() *MockRateLimitDomainGeneratorMoc
 }
 
 // NewRateLimitDomain mocks base method.
-func (m *MockRateLimitDomainGenerator) NewRateLimitDomain(ctx context.Context, domain string, rateLimitConfig *v1alpha1.RateLimitConfigSpec_Raw) (config.RateLimitDomain, error) {
+func (m *MockRateLimitDomainGenerator) NewRateLimitDomain(ctx context.Context, configId, domain string, rateLimitConfig *v1alpha1.RateLimitConfigSpec_Raw) (config.RateLimitDomain, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewRateLimitDomain", ctx, domain, rateLimitConfig)
+	ret := m.ctrl.Call(m, "NewRateLimitDomain", ctx, configId, domain, rateLimitConfig)
 	ret0, _ := ret[0].(config.RateLimitDomain)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // NewRateLimitDomain indicates an expected call of NewRateLimitDomain.
-func (mr *MockRateLimitDomainGeneratorMockRecorder) NewRateLimitDomain(ctx, domain, rateLimitConfig interface{}) *gomock.Call {
+func (mr *MockRateLimitDomainGeneratorMockRecorder) NewRateLimitDomain(ctx, configId, domain, rateLimitConfig interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewRateLimitDomain", reflect.TypeOf((*MockRateLimitDomainGenerator)(nil).NewRateLimitDomain), ctx, domain, rateLimitConfig)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewRateLimitDomain", reflect.TypeOf((*MockRateLimitDomainGenerator)(nil).NewRateLimitDomain), ctx, configId, domain, rateLimitConfig)
 }
 
 // MockGlobalRateLimitTranslator is a mock of GlobalRateLimitTranslator interface.

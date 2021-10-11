@@ -165,7 +165,7 @@ func (s *translatorSyncerExtension) Sync(
 
 	for _, cfg := range configs {
 		// Verify xDS configuration can be translated to valid RL server configuration
-		if _, err := s.domainGenerator.NewRateLimitDomain(ctx, cfg.Domain,
+		if _, err := s.domainGenerator.NewRateLimitDomain(ctx, cfg.Domain, cfg.Domain,
 			&solo_api_rl.RateLimitConfigSpec_Raw{Descriptors: cfg.Descriptors, SetDescriptors: cfg.SetDescriptors}); err != nil {
 			errs = multierror.Append(errs, err)
 		}
