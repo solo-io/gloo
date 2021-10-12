@@ -21,6 +21,7 @@ func main() {
 	if err := generate.GetArguments(args); err != nil {
 		log.Fatalf("unable to get valid generation arguments: %v", err)
 	}
+	log.Printf("Running generate with args: %v", args)
 	err := generate.Run(args, glooEGenerationFiles)
 	if err != nil {
 		log.Fatalf("error while running generation: %v", err)

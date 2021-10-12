@@ -14,7 +14,6 @@ RUN if [[ ! $VERIFY_SCRIPT ]]; then echo "Required VERIFY_SCRIPT build argument 
 RUN if [[ $USE_APK ]]; then apk add --no-cache gcc musl-dev git; fi
 
 ADD . /go/src/github.com/solo-io/solo-projects/
-RUN ls -R
 WORKDIR /go/src/github.com/solo-io/solo-projects/
 
 RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https://github.com/

@@ -1,0 +1,9 @@
+changelog:
+  - type: HELM
+    description: Bump Helm's Prometheus dependency to 13.3.3
+    issueLink: https://github.com/solo-io/gloo/issues/5453
+    resolvesIssue: true
+  - type: NON_USER_FACING
+    description: Optimize CI to only build and load required images for regression tests
+    issueLink: https://github.com/solo-io/solo-projects/issues/2761
+    resolvesIssue: true

@@ -69,7 +69,6 @@ func ArtifactName(artifact Artifact) string {
 
 // Run generates the helm artifacts for the corresponding file sets
 func Run(args *GenerationArguments, fileSets ...*GenerationFiles) error {
-
 	osGlooVersion, err := GetGlooOsVersion(fileSets...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to determine open source Gloo version")

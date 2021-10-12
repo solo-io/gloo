@@ -13,12 +13,13 @@ FROM $GO_BUILD_IMAGE as build-env
 ARG VERSION
 ARG GCFLAGS
 ARG GITHUB_TOKEN
-ARG USE_APT
+ARG USE_APK
 
 # Fail if VERSION is not set
 RUN if [[ ! $VERSION ]]; then echo "Required VERSION build argument not set" && exit 1; fi
 
-RUN if [[ ! $USE_APT]]; then apk add --no-cache gcc musl-dev git; fi
+RUN echo $USE_APK
+RUN if [[ $USE_APK ]]; then apk add --no-cache gcc musl-dev git; fi
 
 ADD . /go/src/github.com/solo-io/solo-projects
 WORKDIR /go/src/github.com/solo-io/solo-projects
