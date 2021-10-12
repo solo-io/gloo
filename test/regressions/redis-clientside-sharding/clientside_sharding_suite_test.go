@@ -73,7 +73,7 @@ var _ = BeforeSuite(func() {
 	values, cleanup := getHelmOverrides()
 	defer cleanup()
 
-	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values, "-v", "--with-gloo-fed=false"))
+	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values))
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() error {
 		opts := &options.Options{
@@ -143,6 +143,10 @@ grafana:
 global:
   glooMtls:
     enabled: true
+gloo-fed:
+  enabled: false
+  glooFedApiserver:
+    enable: false
 redis:
   clientSideShardingEnabled: true
   deployment:

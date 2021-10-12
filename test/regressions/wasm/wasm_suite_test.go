@@ -66,7 +66,7 @@ func StartTestHelper() {
 	valueOverrideFile, cleanupFunc := getHelmaWasmValuesOverrideFile()
 	defer cleanupFunc()
 
-	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", valueOverrideFile, "--with-gloo-fed=false"))
+	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", valueOverrideFile))
 	Expect(err).NotTo(HaveOccurred())
 
 	// Check that everything is OK
@@ -96,6 +96,10 @@ global:
   glooRbac:
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix
+gloo-fed:
+  enabled: false
+  glooFedApiserver:
+    enable: false
 gloo:
   deployment:
     disableUsageStatistics: true

@@ -3,7 +3,7 @@ dependencies:
     repository: https://storage.googleapis.com/solo-public-helm
   - name: prometheus
     repository: https://prometheus-community.github.io/helm-charts
-    version: 11.16.9
+    version: 13.3.3
     condition: prometheus.enabled
     tags:
       - monitoring

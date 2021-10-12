@@ -1,5 +1,0 @@
-changelog:
-  - type: NEW_FEATURE
-    issueLink: https://github.com/solo-io/gloo/issues/4304
-    resolvesIssue: true
-    description: Gloo Fed CRDs are now v1

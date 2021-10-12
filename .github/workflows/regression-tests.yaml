@@ -62,6 +62,7 @@ jobs:
           version: 'v1.18.8'
       - uses: engineerd/setup-kind@v0.5.0
         with:
+          # We rely on the `projects/gloo-fed/ci/setup-kind` script to create a kind cluster
           skipClusterCreation: "true"
           version: v0.11.1
       - name: Yarn Install
@@ -144,8 +145,8 @@ jobs:
             ${{ runner.os }}-go-
       - uses: engineerd/setup-kind@v0.5.0
         with:
-          name: kind
-          image: 'kindest/node:v1.17.17@sha256:66f1d0d91a88b8a001811e2f1054af60eef3b669a9a74f9b6db871f2f1eeed00'
+          # We rely on the `ci/setup-kind` script to create a kind cluster
+          skipClusterCreation: true
           version: v0.11.1
       - uses: azure/setup-kubectl@v1
         id: kubectl
@@ -161,13 +162,14 @@ jobs:
           TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
         run: git config --global url."https://soloio_bot:${TOKEN}@github.com".insteadOf "https://github.com"
       - name: Setup test env
-        run: |
-          make VERSION=$(./git-semver.sh) LOCAL_BUILD=true CLUSTER_NAME=kind push-kind-images
-          make VERSION=$(./git-semver.sh) cleanup-local-docker-images
-          make VERSION=$(./git-semver.sh) build-test-chart glooctl-linux-amd64
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          USE_FIPS: ${{ matrix.use-fips }}
+          CLUSTER_NAME: 'kind'
+          CLUSTER_NODE_VERSION: 'v1.17.17@sha256:66f1d0d91a88b8a001811e2f1054af60eef3b669a9a74f9b6db871f2f1eeed00'
+        run: |
+          VERSION=$(./git-semver.sh) ./ci/setup-kind.sh
       - name: Testing - kube e2e regression tests
         env:
           KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type }}

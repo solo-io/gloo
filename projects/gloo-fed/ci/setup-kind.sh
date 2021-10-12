@@ -25,9 +25,7 @@ go mod tidy
 
 GLOO_VERSION="$(echo $(go list -m github.com/solo-io/gloo) | cut -d' ' -f2)"
 # NOTE: If inter-PR dependency is needed, this must be changed to a hard-coded version (ex: v1.7.0-beta25).
-#GLOO_VERSION_TEST_INSTALL=$GLOO_VERSION
-# Temporary - don't rely on gloo commit as opposed to release
-GLOO_VERSION_TEST_INSTALL=v1.9.0
+GLOO_VERSION_TEST_INSTALL=$GLOO_VERSION
 VERSION=$(. $GIT_SEMVER_SCRIPT)
 
 # Install glooctl

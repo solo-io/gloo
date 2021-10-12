@@ -86,7 +86,7 @@ var _ = BeforeSuite(func() {
 	useFips, _ := strconv.ParseBool(os.Getenv("USE_FIPS"))
 	values, cleanup := getHelmOverrides(useFips)
 	defer cleanup()
-	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values, "--with-gloo-fed=false"))
+	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values))
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() error {
 		opts := &options.Options{
@@ -158,6 +158,10 @@ prometheus:
 grafana:
   testFramework:
     enabled: false
+gloo-fed:
+  enabled: false
+  glooFedApiserver:
+    enable: false
 global:
   extensions:
     extAuth:

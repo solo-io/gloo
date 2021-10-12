@@ -1,3 +1,5 @@
+include Makefile.docker
+
 #----------------------------------------------------------------------------------
 # Base
 #----------------------------------------------------------------------------------
@@ -568,7 +570,6 @@ cleanup-local-docker-images:
 
 RATELIMIT_DIR=projects/rate-limit
 RATELIMIT_SOURCES=$(shell find $(RATELIMIT_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-RATELIMIT_GO_BUILD_IMAGE=golang:1.16.3-alpine
 RATELIMIT_OUT_DIR=$(OUTPUT_DIR)/rate-limit
 _ := $(shell mkdir -p $(RATELIMIT_OUT_DIR))
 
@@ -578,7 +579,7 @@ $(RATELIMIT_OUT_DIR)/Dockerfile.build: $(RATELIMIT_DIR)/Dockerfile
 $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RATELIMIT_OUT_DIR)/Dockerfile.build
 	docker build -t $(IMAGE_REPO)/rate-limit-ee-build-container:$(VERSION) \
 		-f $(RATELIMIT_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(RATELIMIT_GO_BUILD_IMAGE) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
     --build-arg USE_APK=true \
@@ -611,7 +612,6 @@ $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker: $(RATELIMIT_OUT_DIR)/rate-limit-linu
 # RateLimit-fips
 #----------------------------------------------------------------------------------
 
-RATELIMIT_FIPS_GO_BUILD_IMAGE=goboring/golang:1.16.3b7
 RATELIMIT_FIPS_OUT_DIR=$(OUTPUT_DIR)/rate-limit-fips
 _ := $(shell mkdir -p $(RATELIMIT_FIPS_OUT_DIR))
 
@@ -621,7 +621,7 @@ $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build: $(RATELIMIT_DIR)/Dockerfile
 $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build
 	docker build -t $(IMAGE_REPO)/rate-limit-ee-build-container-fips:$(VERSION) \
 		-f $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(RATELIMIT_FIPS_GO_BUILD_IMAGE) \
+		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
     --build-arg GITHUB_TOKEN \
@@ -656,7 +656,6 @@ $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker: $(RATELIMIT_FIPS_OUT_DIR)/rate-
 
 EXTAUTH_DIR=projects/extauth
 EXTAUTH_SOURCES=$(shell find $(EXTAUTH_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-EXTAUTH_GO_BUILD_IMAGE=golang:1.16.3-alpine
 EXTAUTH_OUT_DIR=$(OUTPUT_DIR)/extauth
 RELATIVE_EXTAUTH_OUT_DIR=$(RELATIVE_OUTPUT_DIR)/extauth
 _ := $(shell mkdir -p $(EXTAUTH_OUT_DIR))
@@ -670,7 +669,7 @@ $(EXTAUTH_OUT_DIR)/Dockerfile: $(EXTAUTH_DIR)/cmd/Dockerfile
 $(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_OUT_DIR)/Dockerfile.build
 	docker build -t $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) \
 		-f $(EXTAUTH_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg USE_APK=true \
@@ -698,7 +697,7 @@ extauth: $(EXTAUTH_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_OUT_DIR)/verify-plugin
 .PHONY: ext-auth-plugins-docker
 ext-auth-plugins-docker: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 	docker build -t $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
-		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE) \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(RELATIVE_EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 \
 		--build-arg GITHUB_TOKEN \
@@ -717,7 +716,6 @@ $(EXTAUTH_OUT_DIR)/.extauth-ee-docker: $(EXTAUTH_OUT_DIR)/extauth-linux-amd64 $(
 # ExtAuth-fips
 #----------------------------------------------------------------------------------
 
-EXTAUTH_FIPS_GO_BUILD_IMAGE=goboring/golang:1.16.3b7
 EXTAUTH_FIPS_OUT_DIR=$(OUTPUT_DIR)/extauth_fips
 RELATIVE_EXTAUTH_FIPS_OUT_DIR=$(RELATIVE_OUTPUT_DIR)/extauth_fips
 _ := $(shell mkdir -p $(EXTAUTH_FIPS_OUT_DIR))
@@ -731,7 +729,7 @@ $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile: $(EXTAUTH_DIR)/cmd/Dockerfile
 $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile.build
 	docker build -t $(IMAGE_REPO)/extauth-ee-build-container-fips:$(VERSION) \
 		-f $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_FIPS_GO_BUILD_IMAGE) \
+		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg GITHUB_TOKEN \
@@ -759,7 +757,7 @@ extauth-fips: $(EXTAUTH_FIPS_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_FIPS_OUT_DIR
 .PHONY: ext-auth-plugins-fips-docker
 ext-auth-plugins-fips-docker: $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64
 	docker build -t $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION) -f projects/extauth/plugins/Dockerfile \
-		--build-arg GO_BUILD_IMAGE=$(EXTAUTH_FIPS_GO_BUILD_IMAGE) \
+		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(RELATIVE_EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 \
 		--build-arg GITHUB_TOKEN \
@@ -1197,30 +1195,36 @@ ifeq ($(RELEASE),"true")
 endif
 
 # Helper targets for CI
-.PHONY: kind-test-docker-images
- kind-test-docker-images: gloo-federation-console-docker gloo-fed-apiserver-envoy-docker gloo-fed-apiserver-docker \
-        rate-limit-ee-fips-docker rate-limit-ee-docker extauth-ee-fips-docker extauth-ee-docker gloo-ee-docker gloo-fips-ee-docker \
-       gloo-ee-envoy-wrapper-docker gloo-ee-envoy-wrapper-fips-docker observability-ee-docker ext-auth-plugins-docker ext-auth-plugins-fips-docker \
-       gloo-fed-docker gloo-fed-rbac-validating-webhook-docker
-
 CLUSTER_NAME?=kind
-push-kind-images: kind-test-docker-images
-	kind load docker-image $(IMAGE_REPO)/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/gloo-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/observability-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/extauth-ee:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/extauth-ee-fips:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) --name $(CLUSTER_NAME)  --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION) --name $(CLUSTER_NAME)  --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/gloo-federation-console:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/gloo-fed:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION) --name $(CLUSTER_NAME)
+
+.PHONY: push-kind-images
+push-kind-images:
+ifeq ($(USE_FIPS),true)
+push-kind-images: build-and-load-kind-images-fips
+endif
+ifeq ($(USE_FIPS),false)
+push-kind-images: build-and-load-kind-images-non-fips
+endif
+
+# Build and load images for a non-fips compliant (data plane) installation of Gloo Edge
+# Used in CI during regression tests
+.PHONY: build-and-load-kind-images-non-fips
+build-and-load-kind-images-non-fips: gloo-ee-docker kind-load-gloo-ee # gloo
+build-and-load-kind-images-non-fips: gloo-ee-envoy-wrapper-docker kind-load-gloo-ee-envoy-wrapper # envoy
+build-and-load-kind-images-non-fips: rate-limit-ee-docker kind-load-rate-limit-ee # rate limit
+build-and-load-kind-images-non-fips: extauth-ee-docker kind-load-extauth-ee # ext auth
+build-and-load-kind-images-non-fips: ext-auth-plugins-docker kind-load-ext-auth-plugins # ext auth plugins
+build-and-load-kind-images-non-fips: observability-ee-docker kind-load-observability-ee # observability
+
+# Build and load images for a fips compliant (data plane) installation of Gloo Edge
+# Used in CI during regression tests
+.PHONY: build-and-load-kind-images-fips
+build-and-load-kind-images-fips: gloo-fips-ee-docker kind-load-gloo-ee-fips # gloo
+build-and-load-kind-images-fips: gloo-ee-envoy-wrapper-fips-docker kind-load-gloo-ee-envoy-wrapper-fips # envoy
+build-and-load-kind-images-fips: rate-limit-ee-fips-docker kind-load-rate-limit-ee-fips # rate limit
+build-and-load-kind-images-fips: extauth-ee-fips-docker kind-load-extauth-ee-fips # ext auth
+build-and-load-kind-images-fips: ext-auth-plugins-fips-docker kind-load-ext-auth-plugins-fips # ext auth plugins
+build-and-load-kind-images-fips: observability-ee-docker kind-load-observability-ee # observability
 
 .PHONY: build-kind-assets
 build-kind-assets: push-kind-images build-test-chart
