@@ -9,7 +9,7 @@ dependencies:
       - monitoring
   - name: grafana
     repository: https://grafana.github.io/helm-charts
-    version: 5.0.8
+    version: 6.16.14
     condition: grafana.defaultInstallationEnabled
     tags:
       - monitoring

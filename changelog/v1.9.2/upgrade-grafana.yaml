@@ -1,0 +1,5 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/5474
+    resolvesIssue: false
+    description: Bump Helm's Grafana chart dependency to 6.16.14
