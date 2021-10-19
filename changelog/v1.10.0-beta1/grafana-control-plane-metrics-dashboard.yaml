@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Show metrics that can be used for alerting. Expose these metrics in a new Grafana dashboard. Requires Grafana v8.1+. See also https://github.com/solo-io/solo-projects/pull/2786
+    issueLink: https://github.com/solo-io/gloo/issues/5474
+    resolvesIssue: true
