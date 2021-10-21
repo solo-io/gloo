@@ -1268,8 +1268,21 @@ build-test-chart: build-test-chart-fed
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
 	helm repo index $(TEST_ASSET_DIR)
 
+	# unarchive all files in the test archive directory in-place
+	ls $(TEST_ASSET_DIR)/*.tgz | xargs -n1 tar -C $(TEST_ASSET_DIR) -xf
+
+	echo "\n\
+	\x1B[32mSuccessfully built 'gloo-ee' helm chart!  now render templates locally! \n\n\
+	Local rendering Docs: https://helm.sh/docs/helm/helm_template/ \n\
+	Suggested first command: \n\
+	\t\033[1m$$ helm template ./_test/gloo-ee\033[0m\n"
+
+
 .PHONY: build-test-chart-fed
 build-test-chart-fed: gloofed-helm-template
+	if [ $(FORCE_CLEAN_TEST_ASSET_DIR) = true ] ; then\
+		rm -rf $(TEST_ASSET_DIR);\
+	fi
 	mkdir -p $(TEST_ASSET_DIR)
 	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo-fed https://storage.googleapis.com/gloo-fed-helm

@@ -1,0 +1,3 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Locally rendering helm charts now links to docs+suggested render command.
