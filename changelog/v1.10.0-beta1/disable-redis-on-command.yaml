@@ -1,0 +1,5 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/5346
+    resolvesIssue: true
+    description: add redis disable flag.

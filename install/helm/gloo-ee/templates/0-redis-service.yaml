@@ -27,7 +27,7 @@ spec:
 {{- end }} {{/* with (first .) */}}
 {{- end }}{{/* define "redis.serviceSpec" */}}
 
-{{- if .Values.global.extensions.rateLimit.enabled }}
+{{- if and .Values.global.extensions.rateLimit.enabled (not .Values.redis.disabled) }}
 {{- include "gloo.dataplaneperproxyhelper" $ }}
 {{- $override := .Values.redis.service.kubeResourceOverride}}
 {{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
@@ -36,4 +36,4 @@ spec:
 {{- include "gloo.util.merge" (list $ctx $override "redis.serviceSpec") -}}
 {{- end }} {{/* if not $spec.disabled */}}
 {{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
-{{- end }} {{/* .Values.global.extensions.rateLimit.enabled */}}
+{{- end }} {{/* if and .Values.global.extensions.rateLimit.enabled (not .Values.redis.disabled) */}}

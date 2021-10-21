@@ -1004,6 +1004,30 @@ gloo:
 					assertExpectedResourcesForDisabledProxy("gateway-proxy")
 				})
 
+				It("Redis objects are not created when .Values.redis.disabled is set", func() {
+					// file creation operations to support test
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
+
+					proxyName := "gateway-proxy"
+
+					// assert no redis resources exist wtih "redis.disabled=true"
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
+						valuesArgs: []string{"redis.disabled=true"},
+					})
+
+					gatewayProxyRedisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetLabels()["gloo"] == fmt.Sprintf("redis-%s", proxyName)
+					})
+					Expect(gatewayProxyRedisResources.NumResources()).To(Equal(0), fmt.Sprintf("%s: Expecting Redis Deployment and Service to not be created", proxyName))
+				})
+
 				It("doesn't duplicate resources across proxies when dataplane per proxy is false", func() {
 
 					helmOverrideFile := "helm-override-*.yaml"
