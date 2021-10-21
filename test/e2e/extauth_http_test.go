@@ -52,10 +52,22 @@ var _ = Describe("External http", func() {
 		ok := func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}
+		checkHeaders := func(w http.ResponseWriter, r *http.Request) {
+			if len(r.Header.Get("allowed")) > 0 {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			if len(r.Header.Get("pattern")) > 0 {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			w.WriteHeader(http.StatusUnauthorized)
+		}
 		srvMux.HandleFunc("/deny", fail)
 		srvMux.HandleFunc("/allow", ok)
 		srvMux.HandleFunc("/prefix/prefixdeny", fail)
 		srvMux.HandleFunc("/prefix/prefixallow", ok)
+		srvMux.HandleFunc("/headers", checkHeaders)
 
 		var srv http.Server
 		srv.Handler = srvMux
@@ -176,6 +188,63 @@ var _ = Describe("External http", func() {
 			}, "5s", "0.5s").Should(Equal(http.StatusOK))
 		})
 
+		Context("with allowed header", func() {
+			client := &http.Client{}
+
+			BeforeEach(func() {
+				ref := extauthServer.Metadata.Ref()
+				extauthSettings = &extauth.Settings{
+					ExtauthzServerRef: ref,
+					HttpService: &extauth.HttpService{
+						// test that exact match allowed header works correctly
+						Request: &extauth.HttpService_Request{
+							AllowedHeaders:      []string{"allowed"},
+							AllowedHeadersRegex: []string{"pa[ter]+n"},
+						},
+					},
+				}
+			})
+
+			It("should allow ext auth with exact header match present", func() {
+				Eventually(func() (int, error) {
+					req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/headers", "localhost", envoyPort), nil)
+					Expect(err).NotTo(HaveOccurred())
+					req.Header.Add("allowed", "foo")
+					resp, err := client.Do(req)
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+			})
+
+			It("should allow ext auth with regex header match present", func() {
+				Eventually(func() (int, error) {
+					req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/headers", "localhost", envoyPort), nil)
+					Expect(err).NotTo(HaveOccurred())
+					req.Header.Add("pattern", "foo")
+					resp, err := client.Do(req)
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+			})
+
+			It("should deny ext auth without header match present", func() {
+				Eventually(func() (int, error) {
+					req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/headers", "localhost", envoyPort), nil)
+					Expect(err).NotTo(HaveOccurred())
+					req.Header.Add("denied", "foo")
+					resp, err := client.Do(req)
+					if err != nil {
+						return 0, err
+					}
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
+			})
+		})
+
 		Context("with prefix", func() {
 
 			BeforeEach(func() {
@@ -209,6 +278,7 @@ var _ = Describe("External http", func() {
 				}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
 			})
 		})
+
 	})
 })
 

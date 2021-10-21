@@ -3,6 +3,7 @@
 // file: github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl.proto
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
@@ -53,6 +54,11 @@ export class SslConfig extends jspb.Message {
   getDisableTlsSessionResumption(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setDisableTlsSessionResumption(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasTransportSocketConnectTimeout(): boolean;
+  clearTransportSocketConnectTimeout(): void;
+  getTransportSocketConnectTimeout(): google_protobuf_duration_pb.Duration | undefined;
+  setTransportSocketConnectTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
   getSslSecretsCase(): SslConfig.SslSecretsCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SslConfig.AsObject;
@@ -75,6 +81,7 @@ export namespace SslConfig {
     alpnProtocolsList: Array<string>,
     oneWayTls?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     disableTlsSessionResumption?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    transportSocketConnectTimeout?: google_protobuf_duration_pb.Duration.AsObject,
   }
 
   export enum SslSecretsCase {

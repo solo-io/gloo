@@ -12,6 +12,7 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var extproto_ext_pb = require('../../../../../../../extproto/ext_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
@@ -112,7 +113,8 @@ proto.gloo.solo.io.SslConfig.toObject = function(includeInstance, msg) {
     parameters: (f = msg.getParameters()) && proto.gloo.solo.io.SslParameters.toObject(includeInstance, f),
     alpnProtocolsList: jspb.Message.getRepeatedField(msg, 7),
     oneWayTls: (f = msg.getOneWayTls()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    disableTlsSessionResumption: (f = msg.getDisableTlsSessionResumption()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    disableTlsSessionResumption: (f = msg.getDisableTlsSessionResumption()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    transportSocketConnectTimeout: (f = msg.getTransportSocketConnectTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -190,6 +192,11 @@ proto.gloo.solo.io.SslConfig.deserializeBinaryFromReader = function(msg, reader)
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setDisableTlsSessionResumption(value);
+      break;
+    case 10:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setTransportSocketConnectTimeout(value);
       break;
     default:
       reader.skipField();
@@ -287,6 +294,14 @@ proto.gloo.solo.io.SslConfig.serializeBinaryToWriter = function(message, writer)
       9,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getTransportSocketConnectTimeout();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -556,6 +571,36 @@ proto.gloo.solo.io.SslConfig.prototype.clearDisableTlsSessionResumption = functi
  */
 proto.gloo.solo.io.SslConfig.prototype.hasDisableTlsSessionResumption = function() {
   return jspb.Message.getField(this, 9) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration transport_socket_connect_timeout = 10;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.gloo.solo.io.SslConfig.prototype.getTransportSocketConnectTimeout = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 10));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.gloo.solo.io.SslConfig.prototype.setTransportSocketConnectTimeout = function(value) {
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.gloo.solo.io.SslConfig.prototype.clearTransportSocketConnectTimeout = function() {
+  this.setTransportSocketConnectTimeout(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SslConfig.prototype.hasTransportSocketConnectTimeout = function() {
+  return jspb.Message.getField(this, 10) != null;
 };
 
 
