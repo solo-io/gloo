@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Provide a unified Grafana dashboard for Upstreams
+    issueLink: https://github.com/solo-io/gloo/issues/5485
+    resolvesIssue: true
