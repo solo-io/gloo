@@ -1,0 +1,9 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.9.1
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/5317
+    resolvesIssue: false
+    description: add e2e tests for extauth allowed headers

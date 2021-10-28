@@ -282,6 +282,11 @@ export namespace HttpService {
 
     getHeadersToAddMap(): jspb.Map<string, string>;
     clearHeadersToAddMap(): void;
+    clearAllowedHeadersRegexList(): void;
+    getAllowedHeadersRegexList(): Array<string>;
+    setAllowedHeadersRegexList(value: Array<string>): void;
+    addAllowedHeadersRegex(value: string, index?: number): string;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Request.AsObject;
     static toObject(includeInstance: boolean, msg: Request): Request.AsObject;
@@ -296,6 +301,7 @@ export namespace HttpService {
     export type AsObject = {
       allowedHeadersList: Array<string>,
       headersToAddMap: Array<[string, string]>,
+      allowedHeadersRegexList: Array<string>,
     }
   }
 

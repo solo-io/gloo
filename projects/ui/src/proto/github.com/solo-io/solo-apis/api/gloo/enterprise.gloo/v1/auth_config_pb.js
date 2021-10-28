@@ -1797,7 +1797,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.enterprise.gloo.solo.io.HttpService.Request.repeatedFields_ = [1];
+proto.enterprise.gloo.solo.io.HttpService.Request.repeatedFields_ = [1,3];
 
 
 
@@ -1829,7 +1829,8 @@ proto.enterprise.gloo.solo.io.HttpService.Request.prototype.toObject = function(
 proto.enterprise.gloo.solo.io.HttpService.Request.toObject = function(includeInstance, msg) {
   var f, obj = {
     allowedHeadersList: jspb.Message.getRepeatedField(msg, 1),
-    headersToAddMap: (f = msg.getHeadersToAddMap()) ? f.toObject(includeInstance, undefined) : []
+    headersToAddMap: (f = msg.getHeadersToAddMap()) ? f.toObject(includeInstance, undefined) : [],
+    allowedHeadersRegexList: jspb.Message.getRepeatedField(msg, 3)
   };
 
   if (includeInstance) {
@@ -1876,6 +1877,10 @@ proto.enterprise.gloo.solo.io.HttpService.Request.deserializeBinaryFromReader = 
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
          });
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addAllowedHeadersRegex(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1915,6 +1920,13 @@ proto.enterprise.gloo.solo.io.HttpService.Request.serializeBinaryToWriter = func
   f = message.getHeadersToAddMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getAllowedHeadersRegexList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      3,
+      f
+    );
   }
 };
 
@@ -1963,6 +1975,35 @@ proto.enterprise.gloo.solo.io.HttpService.Request.prototype.getHeadersToAddMap =
 
 proto.enterprise.gloo.solo.io.HttpService.Request.prototype.clearHeadersToAddMap = function() {
   this.getHeadersToAddMap().clear();
+};
+
+
+/**
+ * repeated string allowed_headers_regex = 3;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.HttpService.Request.prototype.getAllowedHeadersRegexList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.HttpService.Request.prototype.setAllowedHeadersRegexList = function(value) {
+  jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.HttpService.Request.prototype.addAllowedHeadersRegex = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.HttpService.Request.prototype.clearAllowedHeadersRegexList = function() {
+  this.setAllowedHeadersRegexList([]);
 };
 
 
