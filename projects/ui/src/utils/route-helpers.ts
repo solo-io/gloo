@@ -13,9 +13,16 @@ export function getRouteSingleUpstream(route: Route.AsObject) {
       let functionName = '';
       if (!!route.routeAction.single.destinationSpec) {
         const spec = route.routeAction.single.destinationSpec;
-        functionName = spec.aws?.logicalName ?? spec.azure?.functionName ?? spec.grpc?.pb_function ?? spec.rest?.functionName ?? '';
+        functionName =
+          spec.aws?.logicalName ??
+          spec.azure?.functionName ??
+          spec.grpc?.pb_function ??
+          spec.rest?.functionName ??
+          '';
       }
-      return `${route.routeAction.single.upstream.name}${functionName && ':' + functionName}`;
+      return `${route.routeAction.single.upstream.name}${
+        functionName && ':' + functionName
+      }`;
     }
   } else if (route.delegateAction) {
     return route.delegateAction.name;

@@ -1,14 +1,25 @@
-import React, { useEffect } from 'react';
 import styled from '@emotion/styled/macro';
-import { SoloTable } from 'Components/Common/SoloTable';
+import { ColumnsType } from 'antd/lib/table';
+import { ReactComponent as ArrowToggle } from 'assets/arrow-toggle.svg';
 import { ReactComponent as KubeIcon } from 'assets/kubernetes-icon.svg';
 import { ReactComponent as RouteIcon } from 'assets/route-icon.svg';
-import { ReactComponent as ArrowToggle } from 'assets/arrow-toggle.svg';
+import { SoloTable } from 'Components/Common/SoloTable';
+import { Route } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service_pb';
+import {
+  HeaderMatcher,
+  QueryParameterMatcher,
+} from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb';
+import { Destination } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb';
+import React, { useEffect } from 'react';
 import { colors } from 'Styles/colors';
 import { IconHolder } from 'Styles/StyledComponents/icons';
-import { Destination } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb';
-import { Route } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service_pb';
-import { getRouteHeaders, getRouteMatcher, getRouteMethods, getRouteQueryParams, getRouteSingleUpstream } from 'utils/route-helpers';
+import {
+  getRouteHeaders,
+  getRouteMatcher,
+  getRouteMethods,
+  getRouteQueryParams,
+  getRouteSingleUpstream,
+} from 'utils/route-helpers';
 
 const RouteIconHolder = styled.div`
   display: flex;
@@ -188,7 +199,7 @@ const getRouteDestinations = (rt: Route.AsObject): string => {
   );
 };
 
-type RouteTableFields = {
+interface RouteTableFields {
   key: string;
   destination: {
     destination: string;
@@ -197,10 +208,10 @@ type RouteTableFields = {
   matcher: string;
   matchType: string;
   methods: string;
-  headers: { name: string; value: string }[];
-  queryParams: { name: string; value: string }[];
+  headers: HeaderMatcher.AsObject[];
+  queryParams: QueryParameterMatcher.AsObject[];
   children?: RouteTableFields[];
-};
+}
 
 const renderDestinationCell = (cellInfo: {
   destination: string;
@@ -232,6 +243,7 @@ const renderDestinationCell = (cellInfo: {
 function fillRowFields(rt: Route.AsObject): RouteTableFields {
   const upstreamName = getRouteSingleUpstream(rt) || '';
   const { matcher, matchType } = getRouteMatcher(rt);
+
   return {
     key: `${matcher}-${upstreamName}`,
     destination: {
@@ -240,7 +252,6 @@ function fillRowFields(rt: Route.AsObject): RouteTableFields {
     },
     matcher: matcher,
     matchType: matchType,
-
     methods: getRouteMethods(rt),
     headers: getRouteHeaders(rt),
     queryParams: getRouteQueryParams(rt),
@@ -268,12 +279,30 @@ const columns = [
   {
     title: 'Headers',
     dataIndex: 'headers',
+    render: (value: any, record: RouteTableFields, index: number) => (
+      <div key={record.key}>
+        {record.headers.map(header => (
+          <div key={`${header?.name ?? index}-${header?.value ?? ''}`}>
+            {header.name} : {header.value}
+          </div>
+        ))}
+      </div>
+    ),
   },
   {
     title: 'Query Parameters',
     dataIndex: 'queryParams',
+    render: (value: any, record: RouteTableFields, index: number) => (
+      <div key={record.key}>
+        {record.queryParams.map(queryParam => (
+          <div key={`${queryParam?.name ?? index}-${queryParam?.value ?? ''}`}>
+            {queryParam.name} : {queryParam.value}
+          </div>
+        ))}
+      </div>
+    ),
   },
-];
+] as ColumnsType<RouteTableFields>;
 
 /* FULL COMPONENT PIECES */
 
@@ -284,12 +313,18 @@ export const RoutesTable = ({ routes }: Props) => {
   const [tableData, setTableData] = React.useState<RouteTableFields[]>([]);
 
   useEffect(() => {
-    setTableData(routes.map(rt=>fillRowFields(rt)));
+    setTableData(routes.map(rt => fillRowFields(rt)));
   }, [routes]);
 
   return (
     <RouteTableContainer>
-      <SoloTable columns={columns} dataSource={tableData} removePaging removeShadows curved />
+      <SoloTable
+        columns={columns}
+        dataSource={tableData}
+        removePaging
+        removeShadows
+        curved
+      />
     </RouteTableContainer>
   );
 };

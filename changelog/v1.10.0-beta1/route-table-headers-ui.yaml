@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Ensure the Gloo Fed UI works correctly with Route Table headers.
+    issueLink: https://github.com/solo-io/gloo/issues/5511
