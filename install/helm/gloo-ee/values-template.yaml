@@ -126,7 +126,6 @@ global:
         name: "extauth"
         image:
           repository: extauth-ee
-          registry: quay.io/solo-io
         port: 8083
         runAsUser: 10101
         fsGroup: 10101

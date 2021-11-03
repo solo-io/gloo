@@ -1,0 +1,5 @@
+changelog:
+  - type: HELM
+    description: ext-auth image uses global registry by default 
+    issueLink: https://github.com/solo-io/gloo/issues/5493
+    resolvesIssue: false
