@@ -4,6 +4,8 @@ import (
 	"net"
 	"time"
 
+	v1alpha12 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 
 	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
@@ -54,6 +56,7 @@ type TestClients struct {
 	ServiceClient         skkube.ServiceClient
 	AuthConfigClient      extauthv1.AuthConfigClient
 	RateLimitConfigClient v1alpha1.RateLimitConfigClient
+	GraphQLSchemaClient   v1alpha12.GraphQLSchemaClient
 	GlooPort              int
 }
 
@@ -102,6 +105,8 @@ func GetTestClients(ctx context.Context, cache memory.InMemoryResourceCache) Tes
 	Expect(err).NotTo(HaveOccurred())
 	rlcClient, err := v1alpha1.NewRateLimitConfigClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
+	gqlClient, err := v1alpha12.NewGraphQLSchemaClient(ctx, rcFactory)
+	Expect(err).NotTo(HaveOccurred())
 
 	return TestClients{
 		GatewayClient:         gatewayClient,
@@ -112,6 +117,7 @@ func GetTestClients(ctx context.Context, cache memory.InMemoryResourceCache) Tes
 		ProxyClient:           proxyClient,
 		AuthConfigClient:      authConfigClient,
 		RateLimitConfigClient: rlcClient,
+		GraphQLSchemaClient:   gqlClient,
 	}
 }
 
@@ -226,6 +232,7 @@ func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 		Artifacts:               f,
 		AuthConfigs:             f,
 		RateLimitConfigs:        f,
+		GraphQLSchemas:          f,
 		WatchNamespaces:         []string{"default", ns},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,

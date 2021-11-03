@@ -30,8 +30,8 @@ endif
 
 VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 
-ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.19.0-patch4
-ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.19.0-patch4
+ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.19.0-patch7
+ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.19.0-patch7
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
@@ -212,7 +212,7 @@ generate-gloo-fed-code: clean-fed
 	PATH=$(DEPSGOBIN):$$PATH go mod tidy
 
 .PHONY: generate-helm-docs
-generate-helm-docs: 
+generate-helm-docs:
 	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/install/helm/gloo-ee/generate.go $(VERSION) --generate-helm-docs # Generate Helm Documentation
 
 #################

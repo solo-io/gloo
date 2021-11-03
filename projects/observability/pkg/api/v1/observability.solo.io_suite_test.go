@@ -50,6 +50,8 @@ var (
 		testutils.ErrorNotOccuredOrNotFound(err)
 		err = clientset.ApiextensionsV1().CustomResourceDefinitions().Delete(ctx, "gateways.gateway.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
+		err = clientset.ApiextensionsV1().CustomResourceDefinitions().Delete(ctx, "graphqlschemas.graphql.gloo.solo.io", metav1.DeleteOptions{})
+		testutils.ErrorNotOccuredOrNotFound(err)
 		err = clientset.ApiextensionsV1().CustomResourceDefinitions().Delete(ctx, "ingresses.ingress.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
 		err = clientset.ApiextensionsV1().CustomResourceDefinitions().Delete(ctx, "services.ingress.solo.io", metav1.DeleteOptions{})

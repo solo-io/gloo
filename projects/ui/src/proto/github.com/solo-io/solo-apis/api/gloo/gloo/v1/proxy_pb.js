@@ -2164,7 +2164,7 @@ proto.gloo.solo.io.Route.repeatedFields_ = [1];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.Route.oneofGroups_ = [[2,3,4]];
+proto.gloo.solo.io.Route.oneofGroups_ = [[2,3,4,8]];
 
 /**
  * @enum {number}
@@ -2173,7 +2173,8 @@ proto.gloo.solo.io.Route.ActionCase = {
   ACTION_NOT_SET: 0,
   ROUTE_ACTION: 2,
   REDIRECT_ACTION: 3,
-  DIRECT_RESPONSE_ACTION: 4
+  DIRECT_RESPONSE_ACTION: 4,
+  GRAPHQL_SCHEMA_REF: 8
 };
 
 /**
@@ -2217,6 +2218,7 @@ proto.gloo.solo.io.Route.toObject = function(includeInstance, msg) {
     routeAction: (f = msg.getRouteAction()) && proto.gloo.solo.io.RouteAction.toObject(includeInstance, f),
     redirectAction: (f = msg.getRedirectAction()) && proto.gloo.solo.io.RedirectAction.toObject(includeInstance, f),
     directResponseAction: (f = msg.getDirectResponseAction()) && proto.gloo.solo.io.DirectResponseAction.toObject(includeInstance, f),
+    graphqlSchemaRef: (f = msg.getGraphqlSchemaRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     options: (f = msg.getOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteOptions.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
     name: jspb.Message.getFieldWithDefault(msg, 7, "")
@@ -2275,6 +2277,11 @@ proto.gloo.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) {
       var value = new proto.gloo.solo.io.DirectResponseAction;
       reader.readMessage(value,proto.gloo.solo.io.DirectResponseAction.deserializeBinaryFromReader);
       msg.setDirectResponseAction(value);
+      break;
+    case 8:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setGraphqlSchemaRef(value);
       break;
     case 5:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteOptions;
@@ -2349,6 +2356,14 @@ proto.gloo.solo.io.Route.serializeBinaryToWriter = function(message, writer) {
       4,
       f,
       proto.gloo.solo.io.DirectResponseAction.serializeBinaryToWriter
+    );
+  }
+  f = message.getGraphqlSchemaRef();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
     );
   }
   f = message.getOptions();
@@ -2495,6 +2510,36 @@ proto.gloo.solo.io.Route.prototype.clearDirectResponseAction = function() {
  */
 proto.gloo.solo.io.Route.prototype.hasDirectResponseAction = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef graphql_schema_ref = 8;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.gloo.solo.io.Route.prototype.getGraphqlSchemaRef = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 8));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.gloo.solo.io.Route.prototype.setGraphqlSchemaRef = function(value) {
+  jspb.Message.setOneofWrapperField(this, 8, proto.gloo.solo.io.Route.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.Route.prototype.clearGraphqlSchemaRef = function() {
+  this.setGraphqlSchemaRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Route.prototype.hasGraphqlSchemaRef = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 

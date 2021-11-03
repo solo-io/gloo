@@ -127,6 +127,11 @@ export class Route extends jspb.Message {
   getDelegateAction(): DelegateAction | undefined;
   setDelegateAction(value?: DelegateAction): void;
 
+  hasGraphqlSchemaRef(): boolean;
+  clearGraphqlSchemaRef(): void;
+  getGraphqlSchemaRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setGraphqlSchemaRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
   hasOptions(): boolean;
   clearOptions(): void;
   getOptions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteOptions | undefined;
@@ -161,6 +166,7 @@ export namespace Route {
     redirectAction?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_proxy_pb.RedirectAction.AsObject,
     directResponseAction?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_proxy_pb.DirectResponseAction.AsObject,
     delegateAction?: DelegateAction.AsObject,
+    graphqlSchemaRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteOptions.AsObject,
     name: string,
     optionsConfigRefs?: DelegateOptionsRefs.AsObject,
@@ -172,6 +178,7 @@ export namespace Route {
     REDIRECT_ACTION = 3,
     DIRECT_RESPONSE_ACTION = 4,
     DELEGATE_ACTION = 5,
+    GRAPHQL_SCHEMA_REF = 11,
   }
 
   export enum ExternalOptionsConfigCase {
