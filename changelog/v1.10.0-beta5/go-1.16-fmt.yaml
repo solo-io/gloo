@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+
+    description: >-
+      Ran fmt at Go 1.17 to add the new build tags that are supported as of Go 1.16. 
