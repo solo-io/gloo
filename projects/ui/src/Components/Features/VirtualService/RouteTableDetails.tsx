@@ -27,8 +27,7 @@ export const RouteTableDetails = () => {
     name,
     namespace,
   });
-
-  const [ routeTable, setRouteTable ] = useState<RouteTable.AsObject>();
+  const [routeTable, setRouteTable] = useState<RouteTable.AsObject>();
 
   useEffect(() => {
     if (!!allRouteTables) {

@@ -6,7 +6,7 @@ import { SoloLink } from 'Components/Common/SoloLink';
 import { HealthIndicator } from './HealthIndicator';
 import { ReactComponent as ClusterIcon } from 'assets/cluster-instance-icon.svg';
 import { Tooltip } from 'antd';
-import { ExpandableConfig } from 'antd/lib/table/interface';
+import { ColumnsType, ExpandableConfig } from 'antd/lib/table/interface';
 
 const ListExtraCount = styled.div`
   margin-left: 4px;
@@ -327,7 +327,7 @@ export const TableContainer = styled.div<TableContainerProps>`
 `;
 
 export interface TableProps {
-  columns: any[];
+  columns: ColumnsType<any>;
   dataSource: any[];
   formComponent?: React.FC;
   removeShadows?: boolean;
