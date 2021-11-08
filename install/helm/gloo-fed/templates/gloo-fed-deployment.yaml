@@ -20,7 +20,7 @@ spec:
         app: gloo-fed
       annotations:
         prometheus.io/path: /metrics
-        prometheus.io/port: "9091"
+        prometheus.io/port: "8080"
         prometheus.io/scrape: "true"
     spec:
       serviceAccountName: gloo-fed
