@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: Incorrect prometheus port in gloo-fed
+    issueLink: https://github.com/solo-io/gloo/issues/5528
+    resolvesIssue: false
