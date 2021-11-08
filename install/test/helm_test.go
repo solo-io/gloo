@@ -1460,6 +1460,7 @@ spec:
       invalidRouteResponseCode: 404
       replaceInvalidRoutes: false
   ratelimitServer:
+    rateLimitBeforeAuth: false
     ratelimitServerRef:
       namespace: ` + namespace + `
       name: rate-limit
@@ -1523,6 +1524,7 @@ spec:
       invalidRouteResponseCode: 404
       replaceInvalidRoutes: false
   ratelimitServer:
+    rateLimitBeforeAuth: false
     ratelimitServerRef:
       namespace: ` + namespace + `
       name: rate-limit
@@ -1581,6 +1583,7 @@ spec:
       invalidRouteResponseCode: 404
       replaceInvalidRoutes: false
   ratelimitServer:
+    rateLimitBeforeAuth: false
     ratelimitServerRef:
       namespace: ` + namespace + `
       name: rate-limit
@@ -1641,6 +1644,7 @@ spec:
     awsOptions:
       enableCredentialsDiscovey: true
   ratelimitServer:
+    rateLimitBeforeAuth: false
     ratelimitServerRef:
       namespace: ` + namespace + `
       name: rate-limit
@@ -1702,6 +1706,7 @@ spec:
       invalidRouteResponseCode: 404
       replaceInvalidRoutes: false
   ratelimitServer:
+    rateLimitBeforeAuth: false
     ratelimitServerRef:
       namespace: ` + namespace + `
       name: rate-limit
@@ -1772,6 +1777,7 @@ spec:
       invalidRouteResponseCode: 404
       replaceInvalidRoutes: false
   ratelimitServer:
+    rateLimitBeforeAuth: false
     ratelimitServerRef:
       namespace: ` + namespace + `
       name: rate-limit
