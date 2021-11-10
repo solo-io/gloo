@@ -2836,6 +2836,62 @@ spec:
 				expectedDeployment.Spec.Template.Spec.Containers[0].Image = "quay.io/solo-io/rate-limit-ee-fips:" + version
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
+			It("should support setting beforeAuth", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"global.extensions.rateLimit.beforeAuth=true"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				settings := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  labels:
+    app: gloo
+    gloo: settings
+  name: default
+  namespace: ` + namespace + `
+spec:
+  discovery:
+    fdsMode: WHITELIST
+  extauth:
+    transportApiVersion: V3
+    extauthzServerRef:
+      name: extauth
+      namespace: ` + namespace + `
+    userIdHeader: "x-user-id"
+  gateway:
+    readGatewaysFromAllNamespaces: false
+    validation:
+      alwaysAccept: true
+      proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
+      allowWarnings: true
+      warnRouteShortCircuiting: false
+      validationServerGrpcMaxSizeBytes: 4000000
+  gloo:
+    enableRestEds: false
+    xdsBindAddr: 0.0.0.0:9977
+    restXdsBindAddr: 0.0.0.0:9976
+    disableKubernetesDestinations: false
+    disableProxyGarbageCollection: false
+    invalidConfigPolicy:
+      replaceInvalidRoutes: false
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
+  ratelimitServer:
+    rateLimitBeforeAuth: true
+    ratelimitServerRef:
+      namespace: ` + namespace + `
+      name: rate-limit
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  discoveryNamespace: ` + namespace + `
+`)
+				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
 		})
 
 		Context("gloo-fed apiserver deployment", func() {

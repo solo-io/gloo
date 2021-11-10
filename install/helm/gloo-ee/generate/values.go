@@ -49,6 +49,7 @@ type RateLimit struct {
 	Service         *RateLimitService             `json:"service,omitempty"`
 	Upstream        *glooGen.KubeResourceOverride `json:"upstream,omitempty"`
 	CustomRateLimit interface{}                   `json:"customRateLimit,omitempty"`
+	BeforeAuth      bool                          `json:"beforeAuth,omitempty" desc:"If true, rate limiting checks occur before auth (default false)."`
 }
 
 type DynamoDb struct {

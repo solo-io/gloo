@@ -1031,6 +1031,7 @@
 |rateLimit.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |rateLimit.upstream.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |rateLimit.customRateLimit|interface|||
+|rateLimit.beforeAuth|bool||If true, rate limiting checks occur before auth (default false).|
 |observability.enabled|bool|true|if true, deploy observability service (default true)|
 |observability.deployment.image.tag|string|Version number, ex. 1.8.0|tag for the container|
 |observability.deployment.image.repository|string|observability-ee|image name (repository) for the container.|
