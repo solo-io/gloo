@@ -59,6 +59,9 @@ export class ValueProvider extends jspb.Message {
   getGraphqlParent(): ValueProvider.GraphQLParentExtraction | undefined;
   setGraphqlParent(value?: ValueProvider.GraphQLParentExtraction): void;
 
+  getProviderTemplate(): string;
+  setProviderTemplate(value: string): void;
+
   getProviderCase(): ValueProvider.ProviderCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ValueProvider.AsObject;
@@ -75,6 +78,7 @@ export namespace ValueProvider {
     graphqlArg?: ValueProvider.GraphQLArgExtraction.AsObject,
     typedProvider?: ValueProvider.TypedValueProvider.AsObject,
     graphqlParent?: ValueProvider.GraphQLParentExtraction.AsObject,
+    providerTemplate: string,
   }
 
   export class GraphQLArgExtraction extends jspb.Message {

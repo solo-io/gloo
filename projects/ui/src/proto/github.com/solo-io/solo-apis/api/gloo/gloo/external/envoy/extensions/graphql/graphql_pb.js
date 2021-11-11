@@ -335,7 +335,8 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.toObject = function(incl
   var f, obj = {
     graphqlArg: (f = msg.getGraphqlArg()) && proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.toObject(includeInstance, f),
     typedProvider: (f = msg.getTypedProvider()) && proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.toObject(includeInstance, f),
-    graphqlParent: (f = msg.getGraphqlParent()) && proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction.toObject(includeInstance, f)
+    graphqlParent: (f = msg.getGraphqlParent()) && proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction.toObject(includeInstance, f),
+    providerTemplate: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -386,6 +387,10 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.deserializeBinaryFromRea
       var value = new proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction;
       reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction.deserializeBinaryFromReader);
       msg.setGraphqlParent(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setProviderTemplate(value);
       break;
     default:
       reader.skipField();
@@ -438,6 +443,13 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.serializeBinaryToWriter 
       3,
       f,
       proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction.serializeBinaryToWriter
+    );
+  }
+  f = message.getProviderTemplate();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
     );
   }
 };
@@ -1153,6 +1165,21 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.clearGraphqlPa
  */
 proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.hasGraphqlParent = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional string provider_template = 4;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.getProviderTemplate = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.setProviderTemplate = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
 };
 
 

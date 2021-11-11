@@ -105,11 +105,19 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getMaxStreamDuration(): google_protobuf_duration_pb.Duration | undefined;
   setMaxStreamDuration(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasMaxHeadersCount(): boolean;
+  clearMaxHeadersCount(): void;
+  getMaxHeadersCount(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setMaxHeadersCount(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
   getServerHeaderTransformation(): HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap];
   setServerHeaderTransformation(value: HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap]): void;
 
   getPathWithEscapedSlashesAction(): HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap[keyof HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap];
   setPathWithEscapedSlashesAction(value: HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap[keyof HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap]): void;
+
+  getCodecType(): HttpConnectionManagerSettings.CodecTypeMap[keyof HttpConnectionManagerSettings.CodecTypeMap];
+  setCodecType(value: HttpConnectionManagerSettings.CodecTypeMap[keyof HttpConnectionManagerSettings.CodecTypeMap]): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
@@ -146,8 +154,10 @@ export namespace HttpConnectionManagerSettings {
     upgradesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.AsObject>,
     maxConnectionDuration?: google_protobuf_duration_pb.Duration.AsObject,
     maxStreamDuration?: google_protobuf_duration_pb.Duration.AsObject,
+    maxHeadersCount?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     serverHeaderTransformation: HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap],
     pathWithEscapedSlashesAction: HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap[keyof HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap],
+    codecType: HttpConnectionManagerSettings.CodecTypeMap[keyof HttpConnectionManagerSettings.CodecTypeMap],
   }
 
   export class SetCurrentClientCertDetails extends jspb.Message {
@@ -215,4 +225,12 @@ export namespace HttpConnectionManagerSettings {
   }
 
   export const PathWithEscapedSlashesAction: PathWithEscapedSlashesActionMap;
+
+  export interface CodecTypeMap {
+    AUTO: 0;
+    HTTP1: 1;
+    HTTP2: 2;
+  }
+
+  export const CodecType: CodecTypeMap;
 }

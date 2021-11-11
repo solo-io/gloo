@@ -18,6 +18,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tracing_tracing_pb = r
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/protocol_upgrade/protocol_upgrade_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings', null, global);
+goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CodecType', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ForwardClientCertDetails', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlashesAction', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ServerHeaderTransformation', null, global);
@@ -100,8 +101,10 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.toObject, includeInstance),
     maxConnectionDuration: (f = msg.getMaxConnectionDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     maxStreamDuration: (f = msg.getMaxStreamDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    maxHeadersCount: (f = msg.getMaxHeadersCount()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     serverHeaderTransformation: jspb.Message.getFieldWithDefault(msg, 25, 0),
-    pathWithEscapedSlashesAction: jspb.Message.getFieldWithDefault(msg, 26, 0)
+    pathWithEscapedSlashesAction: jspb.Message.getFieldWithDefault(msg, 26, 0),
+    codecType: jspb.Message.getFieldWithDefault(msg, 28, 0)
   };
 
   if (includeInstance) {
@@ -243,6 +246,11 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setMaxStreamDuration(value);
       break;
+    case 27:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setMaxHeadersCount(value);
+      break;
     case 25:
       var value = /** @type {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ServerHeaderTransformation} */ (reader.readEnum());
       msg.setServerHeaderTransformation(value);
@@ -250,6 +258,10 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
     case 26:
       var value = /** @type {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlashesAction} */ (reader.readEnum());
       msg.setPathWithEscapedSlashesAction(value);
+      break;
+    case 28:
+      var value = /** @type {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CodecType} */ (reader.readEnum());
+      msg.setCodecType(value);
       break;
     default:
       reader.skipField();
@@ -454,6 +466,14 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
+  f = message.getMaxHeadersCount();
+  if (f != null) {
+    writer.writeMessage(
+      27,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
+    );
+  }
   f = message.getServerHeaderTransformation();
   if (f !== 0.0) {
     writer.writeEnum(
@@ -465,6 +485,13 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
   if (f !== 0.0) {
     writer.writeEnum(
       26,
+      f
+    );
+  }
+  f = message.getCodecType();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      28,
       f
     );
   }
@@ -500,6 +527,15 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlas
   REJECT_REQUEST: 2,
   UNESCAPE_AND_REDIRECT: 3,
   UNESCAPE_AND_FORWARD: 4
+};
+
+/**
+ * @enum {number}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CodecType = {
+  AUTO: 0,
+  HTTP1: 1,
+  HTTP2: 2
 };
 
 
@@ -1329,6 +1365,36 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasMaxStr
 
 
 /**
+ * optional google.protobuf.UInt32Value max_headers_count = 27;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getMaxHeadersCount = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 27));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setMaxHeadersCount = function(value) {
+  jspb.Message.setWrapperField(this, 27, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearMaxHeadersCount = function() {
+  this.setMaxHeadersCount(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasMaxHeadersCount = function() {
+  return jspb.Message.getField(this, 27) != null;
+};
+
+
+/**
  * optional ServerHeaderTransformation server_header_transformation = 25;
  * @return {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ServerHeaderTransformation}
  */
@@ -1355,6 +1421,21 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getPathWi
 /** @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlashesAction} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setPathWithEscapedSlashesAction = function(value) {
   jspb.Message.setProto3EnumField(this, 26, value);
+};
+
+
+/**
+ * optional CodecType codec_type = 28;
+ * @return {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CodecType}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getCodecType = function() {
+  return /** @type {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CodecType} */ (jspb.Message.getFieldWithDefault(this, 28, 0));
+};
+
+
+/** @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CodecType} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setCodecType = function(value) {
+  jspb.Message.setProto3EnumField(this, 28, value);
 };
 
 
