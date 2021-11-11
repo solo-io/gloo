@@ -171,7 +171,6 @@ Expand the name of the chart.
     - name: HEADERS_TO_REDACT
       value: {{ $extAuth.headersToRedact | quote }}
     {{- end }}
-  {{- if ne $extAuthMode "sidecar" }}
   readinessProbe:
     httpGet:
       port: 8082
@@ -180,7 +179,6 @@ Expand the name of the chart.
     periodSeconds: 5
     failureThreshold: 2
     successThreshold: 1
-  {{- end }}
 {{- if or $extAuth.deployment.extraVolumeMount (or $extAuth.plugins (eq $extAuthMode "sidecar")) }}
   volumeMounts:
   {{- if $extAuth.deployment.extraVolumeMount }}

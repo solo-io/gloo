@@ -1042,9 +1042,6 @@ package-gloo-fed-chart: gloofed-helm-template
 # Release
 #----------------------------------------------------------------------------------
 
-.PHONY: release-gcs-assets
-release-gcs-assets: build-and-upload-gcs-release-assets
-
 .PHONY: upload-github-release-assets
 upload-github-release-assets: produce-manifests
 	$(GO_BUILD_FLAGS) go run ci/upload_github_release_assets.go
@@ -1094,7 +1091,7 @@ endif
 .PHONY: docker docker-push
  docker: rate-limit-ee-docker rate-limit-ee-fips-docker extauth-ee-docker \
        extauth-ee-fips-docker gloo-ee-docker gloo-fips-ee-docker gloo-ee-envoy-wrapper-docker \
-       gloo-ee-envoy-wrapper-fips-docker observability-ee-docker ext-auth-plugins-docker ext-auth-plugins-fips-docker\
+       gloo-ee-envoy-wrapper-fips-docker observability-ee-docker ext-auth-plugins-docker ext-auth-plugins-fips-docker \
        gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker gloo-federation-console-docker gloo-fed-rbac-validating-webhook-docker
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
@@ -1201,8 +1198,7 @@ CLUSTER_NAME?=kind
 push-kind-images:
 ifeq ($(USE_FIPS),true)
 push-kind-images: build-and-load-kind-images-fips
-endif
-ifeq ($(USE_FIPS),false)
+else
 push-kind-images: build-and-load-kind-images-non-fips
 endif
 
@@ -1231,7 +1227,6 @@ build-kind-assets: push-kind-images build-test-chart
 
 TEST_DOCKER_TARGETS := gloo-federation-console-docker-test apiserver-envoy-docker-test gloo-fed-apiserver-docker-test rate-limit-ee-docker-test extauth-ee-docker-test observability-ee-docker-test gloo-ee-docker-test gloo-ee-envoy-wrapper-docker-test
 
-.PHONY: push-test-images $(TEST_DOCKER_TARGETS)
 push-test-images: $(TEST_DOCKER_TARGETS)
 
 gloo-fed-apiserver-docker-test: $(OUTPUT_DIR)/gloo-fed-apiserver-linux-amd64 $(OUTPUT_DIR)/.gloo-fed-apiserver-docker

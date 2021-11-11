@@ -1967,6 +1967,21 @@ spec:
 								MountPath: "/usr/share/shared-data",
 							},
 						},
+						ReadinessProbe: &v1.Probe{
+							Handler: v1.Handler{
+								HTTPGet: &v1.HTTPGetAction{
+									Path: "/healthcheck",
+									Port: intstr.IntOrString{
+										Type:   0,
+										IntVal: 8082,
+									},
+								},
+							},
+							InitialDelaySeconds: 2,
+							PeriodSeconds:       5,
+							FailureThreshold:    2,
+							SuccessThreshold:    1,
+						},
 					})
 
 				testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
@@ -2078,6 +2093,21 @@ spec:
 								Name:      "shared-data",
 								MountPath: "/usr/share/shared-data",
 							},
+						},
+						ReadinessProbe: &v1.Probe{
+							Handler: v1.Handler{
+								HTTPGet: &v1.HTTPGetAction{
+									Path: "/healthcheck",
+									Port: intstr.IntOrString{
+										Type:   0,
+										IntVal: 8082,
+									},
+								},
+							},
+							InitialDelaySeconds: 2,
+							PeriodSeconds:       5,
+							FailureThreshold:    2,
+							SuccessThreshold:    1,
 						},
 					})
 
