@@ -46,7 +46,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.4
 	github.com/solo-io/external-apis v0.1.4
-	github.com/solo-io/gloo v1.10.0-beta5
+	github.com/solo-io/gloo v1.10.0-beta6
 	github.com/solo-io/go-list-licenses v0.1.3
 	github.com/solo-io/go-utils v0.21.18
 	github.com/solo-io/k8s-utils v0.0.10
@@ -56,7 +56,7 @@ require (
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.17.19
 	github.com/solo-io/skv2-enterprise v0.0.8
-	github.com/solo-io/solo-apis v0.0.0-20211110205258-8ae3e8ec9fc7
+	github.com/solo-io/solo-apis v0.0.0-20211115183647-aacb1e8286c6
 	github.com/solo-io/solo-kit v0.24.0
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -87,7 +87,7 @@ require (
 replace (
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/apache/thrift => github.com/apache/thrift v0.14.0
-	github.com/containerd/containerd => github.com/containerd/containerd v1.4.3
+	github.com/containerd/containerd => github.com/containerd/containerd v1.4.11
 
 	// pin to the jwt-go fork to fix CVE.
 	// using the pseudo version of github.com/form3tech-oss/jwt-go@v3.2.3 instead of the version directly,
