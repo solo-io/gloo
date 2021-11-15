@@ -566,3 +566,100 @@ export namespace GetConfigDumpsResponse {
     configDumpsList: Array<ConfigDump.AsObject>,
   }
 }
+
+export class GetUpstreamHostsRequest extends jspb.Message {
+  hasGlooInstanceRef(): boolean;
+  clearGlooInstanceRef(): void;
+  getGlooInstanceRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef | undefined;
+  setGlooInstanceRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetUpstreamHostsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetUpstreamHostsRequest): GetUpstreamHostsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetUpstreamHostsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetUpstreamHostsRequest;
+  static deserializeBinaryFromReader(message: GetUpstreamHostsRequest, reader: jspb.BinaryReader): GetUpstreamHostsRequest;
+}
+
+export namespace GetUpstreamHostsRequest {
+  export type AsObject = {
+    glooInstanceRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
+  }
+}
+
+export class GetUpstreamHostsResponse extends jspb.Message {
+  getUpstreamHostsMap(): jspb.Map<string, HostList>;
+  clearUpstreamHostsMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetUpstreamHostsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetUpstreamHostsResponse): GetUpstreamHostsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetUpstreamHostsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetUpstreamHostsResponse;
+  static deserializeBinaryFromReader(message: GetUpstreamHostsResponse, reader: jspb.BinaryReader): GetUpstreamHostsResponse;
+}
+
+export namespace GetUpstreamHostsResponse {
+  export type AsObject = {
+    upstreamHostsMap: Array<[string, HostList.AsObject]>,
+  }
+}
+
+export class HostList extends jspb.Message {
+  clearHostsList(): void;
+  getHostsList(): Array<Host>;
+  setHostsList(value: Array<Host>): void;
+  addHosts(value?: Host, index?: number): Host;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HostList.AsObject;
+  static toObject(includeInstance: boolean, msg: HostList): HostList.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HostList, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HostList;
+  static deserializeBinaryFromReader(message: HostList, reader: jspb.BinaryReader): HostList;
+}
+
+export namespace HostList {
+  export type AsObject = {
+    hostsList: Array<Host.AsObject>,
+  }
+}
+
+export class Host extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  getPort(): number;
+  setPort(value: number): void;
+
+  getWeight(): number;
+  setWeight(value: number): void;
+
+  hasProxyRef(): boolean;
+  clearProxyRef(): void;
+  getProxyRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef | undefined;
+  setProxyRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Host.AsObject;
+  static toObject(includeInstance: boolean, msg: Host): Host.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Host, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Host;
+  static deserializeBinaryFromReader(message: Host, reader: jspb.BinaryReader): Host;
+}
+
+export namespace Host {
+  export type AsObject = {
+    address: string,
+    port: number,
+    weight: number,
+    proxyRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
+  }
+}

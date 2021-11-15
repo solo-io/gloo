@@ -9,7 +9,7 @@ import (
 	skv2_multicluster "github.com/solo-io/skv2/pkg/multicluster"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
-	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler/config_getter"
+	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler/envoy_admin"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/multicluster"
 	"go.uber.org/zap"
@@ -20,13 +20,13 @@ import (
 func NewFedGlooInstanceHandler(
 	managerSet skv2_multicluster.ManagerSet,
 	clusterSet multicluster.ClusterSet,
-	envoyConfigClient config_getter.EnvoyConfigDumpGetter,
+	envoyAdminClient envoy_admin.EnvoyAdminClient,
 	glooInstanceClient fedv1.GlooInstanceClient,
 ) rpc_edge_v1.GlooInstanceApiServer {
 	return &fedGlooInstanceHandler{
 		managerSet:         managerSet,
 		clusterSet:         clusterSet,
-		envoyConfigClient:  envoyConfigClient,
+		envoyAdminClient:   envoyAdminClient,
 		glooInstanceClient: glooInstanceClient,
 	}
 }
@@ -34,7 +34,7 @@ func NewFedGlooInstanceHandler(
 type fedGlooInstanceHandler struct {
 	managerSet         skv2_multicluster.ManagerSet
 	clusterSet         multicluster.ClusterSet
-	envoyConfigClient  config_getter.EnvoyConfigDumpGetter
+	envoyAdminClient   envoy_admin.EnvoyAdminClient
 	glooInstanceClient fedv1.GlooInstanceClient
 }
 
@@ -112,7 +112,7 @@ func (h *fedGlooInstanceHandler) GetConfigDumps(ctx context.Context, request *rp
 	}
 
 	// Get envoy proxy config dumps for gloo instance
-	configDumps, err := h.envoyConfigClient.GetConfigs(ctx, rpcGlooInstance, *discoveryClient)
+	configDumps, err := h.envoyAdminClient.GetConfigs(ctx, rpcGlooInstance, discoveryClient.RESTClient())
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Warnf("Unable to get config dump for Gloo Instance %v", glooInstance)
 		return nil, err
@@ -120,5 +120,36 @@ func (h *fedGlooInstanceHandler) GetConfigDumps(ctx context.Context, request *rp
 
 	return &rpc_edge_v1.GetConfigDumpsResponse{
 		ConfigDumps: configDumps,
+	}, nil
+}
+
+func (h *fedGlooInstanceHandler) GetUpstreamHosts(ctx context.Context, request *rpc_edge_v1.GetUpstreamHostsRequest) (*rpc_edge_v1.GetUpstreamHostsResponse, error) {
+	glooInstance, err := h.glooInstanceClient.GetGlooInstance(ctx, client.ObjectKey{
+		Name:      request.GlooInstanceRef.GetName(),
+		Namespace: request.GlooInstanceRef.GetNamespace(),
+	})
+	if err != nil {
+		return nil, eris.Wrapf(err, "could not find gloo instance %v", request.GetGlooInstanceRef())
+	}
+
+	rpcGlooInstance := apiserverutils.ConvertToRpcGlooInstance(glooInstance)
+	mgr, err := h.managerSet.Cluster(glooInstance.Spec.GetCluster())
+	if err != nil {
+		return nil, err
+	}
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
+	if err != nil {
+		return nil, err
+	}
+
+	// Get upstream to host list mapping for gloo instance
+	upstreamHosts, err := h.envoyAdminClient.GetHostsByUpstream(ctx, rpcGlooInstance, discoveryClient.RESTClient())
+	if err != nil {
+		contextutils.LoggerFrom(ctx).Warnf("Unable to get upstream hosts for Gloo Instance %v", glooInstance)
+		return nil, err
+	}
+
+	return &rpc_edge_v1.GetUpstreamHostsResponse{
+		UpstreamHosts: upstreamHosts,
 	}, nil
 }

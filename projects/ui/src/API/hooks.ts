@@ -27,6 +27,7 @@ import {
   GlooInstance,
   ClusterDetails,
   ConfigDump,
+  HostList,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { federatedGatewayResourceApi } from './federated-gateway';
 import { FederatedGatewayResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_gateway_resources_pb_service';
@@ -320,6 +321,18 @@ export function useGetConfigDumps(glooInstanceRef: ObjectRef.AsObject) {
   return useSWR<ConfigDump.AsObject[]>(
     key,
     () => glooInstanceApi.getConfigDumps(glooInstanceRef),
+    {
+      refreshInterval: normalRefreshInterval,
+    }
+  );
+}
+
+export function useGetUpstreamHosts(glooInstanceRef: ObjectRef.AsObject) {
+  let key = `${GlooInstanceApi.GetUpstreamHosts.methodName}/${glooInstanceRef.namespace}/${glooInstanceRef.name}`;
+
+  return useSWR<Map<string, HostList.AsObject>>(
+    key,
+    () => glooInstanceApi.getUpstreamHosts(glooInstanceRef),
     {
       refreshInterval: normalRefreshInterval,
     }

@@ -31,11 +31,21 @@ type GlooInstanceApiGetConfigDumps = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetConfigDumpsResponse;
 };
 
+type GlooInstanceApiGetUpstreamHosts = {
+  readonly methodName: string;
+  readonly service: typeof GlooInstanceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetUpstreamHostsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetUpstreamHostsResponse;
+};
+
 export class GlooInstanceApi {
   static readonly serviceName: string;
   static readonly ListGlooInstances: GlooInstanceApiListGlooInstances;
   static readonly ListClusterDetails: GlooInstanceApiListClusterDetails;
   static readonly GetConfigDumps: GlooInstanceApiGetConfigDumps;
+  static readonly GetUpstreamHosts: GlooInstanceApiGetUpstreamHosts;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -96,6 +106,15 @@ export class GlooInstanceApiClient {
   getConfigDumps(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetConfigDumpsRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetConfigDumpsResponse|null) => void
+  ): UnaryResponse;
+  getUpstreamHosts(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetUpstreamHostsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetUpstreamHostsResponse|null) => void
+  ): UnaryResponse;
+  getUpstreamHosts(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetUpstreamHostsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetUpstreamHostsResponse|null) => void
   ): UnaryResponse;
 }
 

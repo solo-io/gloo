@@ -37,6 +37,15 @@ GlooInstanceApi.GetConfigDumps = {
   responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetConfigDumpsResponse
 };
 
+GlooInstanceApi.GetUpstreamHosts = {
+  methodName: "GetUpstreamHosts",
+  service: GlooInstanceApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetUpstreamHostsRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_pb.GetUpstreamHostsResponse
+};
+
 exports.GlooInstanceApi = GlooInstanceApi;
 
 function GlooInstanceApiClient(serviceHost, options) {
@@ -111,6 +120,37 @@ GlooInstanceApiClient.prototype.getConfigDumps = function getConfigDumps(request
     callback = arguments[1];
   }
   var client = grpc.unary(GlooInstanceApi.GetConfigDumps, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+GlooInstanceApiClient.prototype.getUpstreamHosts = function getUpstreamHosts(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(GlooInstanceApi.GetUpstreamHosts, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

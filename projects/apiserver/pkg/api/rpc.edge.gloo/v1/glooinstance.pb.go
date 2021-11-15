@@ -437,6 +437,7 @@ type GetConfigDumpsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// A reference to the gloo instance to get the config dumps for. This field is required.
 	GlooInstanceRef *v1.ObjectRef `protobuf:"bytes,1,opt,name=gloo_instance_ref,json=glooInstanceRef,proto3" json:"gloo_instance_ref,omitempty"`
 }
 
@@ -526,6 +527,225 @@ func (x *GetConfigDumpsResponse) GetConfigDumps() []*ConfigDump {
 	return nil
 }
 
+type GetUpstreamHostsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// A reference to the gloo instance to get the upstream hosts mapping for. This field is required.
+	GlooInstanceRef *v1.ObjectRef `protobuf:"bytes,1,opt,name=gloo_instance_ref,json=glooInstanceRef,proto3" json:"gloo_instance_ref,omitempty"`
+}
+
+func (x *GetUpstreamHostsRequest) Reset() {
+	*x = GetUpstreamHostsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetUpstreamHostsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUpstreamHostsRequest) ProtoMessage() {}
+
+func (x *GetUpstreamHostsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUpstreamHostsRequest.ProtoReflect.Descriptor instead.
+func (*GetUpstreamHostsRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetUpstreamHostsRequest) GetGlooInstanceRef() *v1.ObjectRef {
+	if x != nil {
+		return x.GlooInstanceRef
+	}
+	return nil
+}
+
+type GetUpstreamHostsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// map of upstream key (<namespace>.<name>) to list of hosts for the upstream
+	UpstreamHosts map[string]*HostList `protobuf:"bytes,1,rep,name=upstream_hosts,json=upstreamHosts,proto3" json:"upstream_hosts,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *GetUpstreamHostsResponse) Reset() {
+	*x = GetUpstreamHostsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetUpstreamHostsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUpstreamHostsResponse) ProtoMessage() {}
+
+func (x *GetUpstreamHostsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUpstreamHostsResponse.ProtoReflect.Descriptor instead.
+func (*GetUpstreamHostsResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetUpstreamHostsResponse) GetUpstreamHosts() map[string]*HostList {
+	if x != nil {
+		return x.UpstreamHosts
+	}
+	return nil
+}
+
+type HostList struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Hosts []*Host `protobuf:"bytes,1,rep,name=hosts,proto3" json:"hosts,omitempty"`
+}
+
+func (x *HostList) Reset() {
+	*x = HostList{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *HostList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HostList) ProtoMessage() {}
+
+func (x *HostList) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HostList.ProtoReflect.Descriptor instead.
+func (*HostList) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *HostList) GetHosts() []*Host {
+	if x != nil {
+		return x.Hosts
+	}
+	return nil
+}
+
+// Represents an upstream host
+type Host struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// IP or hostname
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// Listening port
+	Port uint32 `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`
+	// Load balancing weight
+	Weight uint32 `protobuf:"varint,3,opt,name=weight,proto3" json:"weight,omitempty"`
+	// A reference to the proxy that this host is associated with
+	ProxyRef *v1.ObjectRef `protobuf:"bytes,4,opt,name=proxy_ref,json=proxyRef,proto3" json:"proxy_ref,omitempty"`
+}
+
+func (x *Host) Reset() {
+	*x = Host{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Host) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Host) ProtoMessage() {}
+
+func (x *Host) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Host.ProtoReflect.Descriptor instead.
+func (*Host) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *Host) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *Host) GetPort() uint32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *Host) GetWeight() uint32 {
+	if x != nil {
+		return x.Weight
+	}
+	return 0
+}
+
+func (x *Host) GetProxyRef() *v1.ObjectRef {
+	if x != nil {
+		return x.ProxyRef
+	}
+	return nil
+}
+
 // The following is a copy of the spec from `projects/gloo-fed/api/fed/v1/instance.proto`.
 // We have a copy here so we can use it without having a direct dependency on the Gloo Fed APIs
 // (since this is also used by the Single Cluster Gloo apiserver)
@@ -548,7 +768,7 @@ type GlooInstance_GlooInstanceSpec struct {
 func (x *GlooInstance_GlooInstanceSpec) Reset() {
 	*x = GlooInstance_GlooInstanceSpec{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[9]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -561,7 +781,7 @@ func (x *GlooInstance_GlooInstanceSpec) String() string {
 func (*GlooInstance_GlooInstanceSpec) ProtoMessage() {}
 
 func (x *GlooInstance_GlooInstanceSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[9]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -628,7 +848,7 @@ type GlooInstance_GlooInstanceStatus struct {
 func (x *GlooInstance_GlooInstanceStatus) Reset() {
 	*x = GlooInstance_GlooInstanceStatus{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[10]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -641,7 +861,7 @@ func (x *GlooInstance_GlooInstanceStatus) String() string {
 func (*GlooInstance_GlooInstanceStatus) ProtoMessage() {}
 
 func (x *GlooInstance_GlooInstanceStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[10]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -674,7 +894,7 @@ type GlooInstance_GlooInstanceSpec_ControlPlane struct {
 func (x *GlooInstance_GlooInstanceSpec_ControlPlane) Reset() {
 	*x = GlooInstance_GlooInstanceSpec_ControlPlane{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[11]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -687,7 +907,7 @@ func (x *GlooInstance_GlooInstanceSpec_ControlPlane) String() string {
 func (*GlooInstance_GlooInstanceSpec_ControlPlane) ProtoMessage() {}
 
 func (x *GlooInstance_GlooInstanceSpec_ControlPlane) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[11]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -757,7 +977,7 @@ type GlooInstance_GlooInstanceSpec_Proxy struct {
 func (x *GlooInstance_GlooInstanceSpec_Proxy) Reset() {
 	*x = GlooInstance_GlooInstanceSpec_Proxy{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[12]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -770,7 +990,7 @@ func (x *GlooInstance_GlooInstanceSpec_Proxy) String() string {
 func (*GlooInstance_GlooInstanceSpec_Proxy) ProtoMessage() {}
 
 func (x *GlooInstance_GlooInstanceSpec_Proxy) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[12]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -894,7 +1114,7 @@ type GlooInstance_GlooInstanceSpec_Check struct {
 func (x *GlooInstance_GlooInstanceSpec_Check) Reset() {
 	*x = GlooInstance_GlooInstanceSpec_Check{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[13]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -907,7 +1127,7 @@ func (x *GlooInstance_GlooInstanceSpec_Check) String() string {
 func (*GlooInstance_GlooInstanceSpec_Check) ProtoMessage() {}
 
 func (x *GlooInstance_GlooInstanceSpec_Check) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[13]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1007,7 +1227,7 @@ type GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint struct {
 func (x *GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint) Reset() {
 	*x = GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[14]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1020,7 +1240,7 @@ func (x *GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint) String() string {
 func (*GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint) ProtoMessage() {}
 
 func (x *GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[14]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1069,7 +1289,7 @@ type GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint_Port struct {
 func (x *GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint_Port) Reset() {
 	*x = GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint_Port{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[15]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1082,7 +1302,7 @@ func (x *GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint_Port) String() stri
 func (*GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint_Port) ProtoMessage() {}
 
 func (x *GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint_Port) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[15]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1129,7 +1349,7 @@ type GlooInstance_GlooInstanceSpec_Check_Summary struct {
 func (x *GlooInstance_GlooInstanceSpec_Check_Summary) Reset() {
 	*x = GlooInstance_GlooInstanceSpec_Check_Summary{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[16]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1142,7 +1362,7 @@ func (x *GlooInstance_GlooInstanceSpec_Check_Summary) String() string {
 func (*GlooInstance_GlooInstanceSpec_Check_Summary) ProtoMessage() {}
 
 func (x *GlooInstance_GlooInstanceSpec_Check_Summary) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[16]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1192,7 +1412,7 @@ type GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport struct {
 func (x *GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport) Reset() {
 	*x = GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[17]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1205,7 +1425,7 @@ func (x *GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport) String() st
 func (*GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport) ProtoMessage() {}
 
 func (x *GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[17]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1483,30 +1703,71 @@ var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v
 	0x64, 0x75, 0x6d, 0x70, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x72, 0x70,
 	0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f,
 	0x2e, 0x69, 0x6f, 0x2e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x75, 0x6d, 0x70, 0x52, 0x0b,
-	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x75, 0x6d, 0x70, 0x73, 0x32, 0xf9, 0x02, 0x0a, 0x0f,
-	0x47, 0x6c, 0x6f, 0x6f, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x41, 0x70, 0x69, 0x12,
-	0x78, 0x0a, 0x11, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x6c, 0x6f, 0x6f, 0x49, 0x6e, 0x73, 0x74, 0x61,
-	0x6e, 0x63, 0x65, 0x73, 0x12, 0x2f, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e,
-	0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73,
-	0x74, 0x47, 0x6c, 0x6f, 0x6f, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x30, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65,
-	0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69,
-	0x73, 0x74, 0x47, 0x6c, 0x6f, 0x6f, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7b, 0x0a, 0x12, 0x4c, 0x69, 0x73,
-	0x74, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x12,
-	0x30, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e,
-	0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x6c, 0x75, 0x73,
-	0x74, 0x65, 0x72, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x31, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
-	0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x6c,
-	0x75, 0x73, 0x74, 0x65, 0x72, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x6f, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x44, 0x75, 0x6d, 0x70, 0x73, 0x12, 0x2c, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
+	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x75, 0x6d, 0x70, 0x73, 0x22, 0x63, 0x0a, 0x17, 0x47,
+	0x65, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x48, 0x6f, 0x73, 0x74, 0x73, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x48, 0x0a, 0x11, 0x67, 0x6c, 0x6f, 0x6f, 0x5f, 0x69,
+	0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x1c, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f,
+	0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52,
+	0x0f, 0x67, 0x6c, 0x6f, 0x6f, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x66,
+	0x22, 0xe8, 0x01, 0x0a, 0x18, 0x47, 0x65, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x48, 0x6f, 0x73, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x69, 0x0a,
+	0x0e, 0x75, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x5f, 0x68, 0x6f, 0x73, 0x74, 0x73, 0x18,
+	0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x42, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65,
+	0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65,
+	0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x48, 0x6f, 0x73, 0x74, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x48,
+	0x6f, 0x73, 0x74, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x0d, 0x75, 0x70, 0x73, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x48, 0x6f, 0x73, 0x74, 0x73, 0x1a, 0x61, 0x0a, 0x12, 0x55, 0x70, 0x73, 0x74,
+	0x72, 0x65, 0x61, 0x6d, 0x48, 0x6f, 0x73, 0x74, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10,
+	0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79,
+	0x12, 0x35, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x1f, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e,
+	0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x48, 0x6f, 0x73, 0x74, 0x4c, 0x69, 0x73, 0x74,
+	0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x3d, 0x0a, 0x08, 0x48,
+	0x6f, 0x73, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x31, 0x0a, 0x05, 0x68, 0x6f, 0x73, 0x74, 0x73,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67,
+	0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x48,
+	0x6f, 0x73, 0x74, 0x52, 0x05, 0x68, 0x6f, 0x73, 0x74, 0x73, 0x22, 0x87, 0x01, 0x0a, 0x04, 0x48,
+	0x6f, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x12, 0x0a,
+	0x04, 0x70, 0x6f, 0x72, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x04, 0x70, 0x6f, 0x72,
+	0x74, 0x12, 0x16, 0x0a, 0x06, 0x77, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x0d, 0x52, 0x06, 0x77, 0x65, 0x69, 0x67, 0x68, 0x74, 0x12, 0x39, 0x0a, 0x09, 0x70, 0x72, 0x6f,
+	0x78, 0x79, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x63,
+	0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
+	0x2e, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52, 0x08, 0x70, 0x72, 0x6f, 0x78,
+	0x79, 0x52, 0x65, 0x66, 0x32, 0xf0, 0x03, 0x0a, 0x0f, 0x47, 0x6c, 0x6f, 0x6f, 0x49, 0x6e, 0x73,
+	0x74, 0x61, 0x6e, 0x63, 0x65, 0x41, 0x70, 0x69, 0x12, 0x78, 0x0a, 0x11, 0x4c, 0x69, 0x73, 0x74,
+	0x47, 0x6c, 0x6f, 0x6f, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x12, 0x2f, 0x2e,
+	0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f,
+	0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x6c, 0x6f, 0x6f, 0x49, 0x6e,
+	0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x30,
+	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73,
+	0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x6c, 0x6f, 0x6f, 0x49,
+	0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x7b, 0x0a, 0x12, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65,
+	0x72, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x12, 0x30, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
 	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
-	0x2e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x75, 0x6d, 0x70, 0x73, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2d, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67,
-	0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47,
-	0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x75, 0x6d, 0x70, 0x73, 0x52, 0x65, 0x73,
+	0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x44, 0x65, 0x74, 0x61,
+	0x69, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e,
+	0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x44, 0x65,
+	0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
+	0x6f, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x75, 0x6d, 0x70,
+	0x73, 0x12, 0x2c, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
+	0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x44, 0x75, 0x6d, 0x70, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x2d, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e,
+	0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x44, 0x75, 0x6d, 0x70, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x75, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x48,
+	0x6f, 0x73, 0x74, 0x73, 0x12, 0x2e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e,
+	0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74,
+	0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x48, 0x6f, 0x73, 0x74, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e,
+	0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74,
+	0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x48, 0x6f, 0x73, 0x74, 0x73, 0x52, 0x65, 0x73,
 	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x56, 0x5a, 0x4c, 0x67, 0x69, 0x74, 0x68, 0x75,
 	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x73, 0x6f,
 	0x6c, 0x6f, 0x2d, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x6a,
@@ -1529,7 +1790,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 }
 
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_goTypes = []interface{}{
 	(GlooInstance_GlooInstanceSpec_Proxy_WorkloadController)(0), // 0: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.WorkloadController
 	(*GlooInstance)(nil),                                               // 1: rpc.edge.gloo.solo.io.GlooInstance
@@ -1541,57 +1802,69 @@ var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v
 	(*ConfigDump)(nil),                                                 // 7: rpc.edge.gloo.solo.io.ConfigDump
 	(*GetConfigDumpsRequest)(nil),                                      // 8: rpc.edge.gloo.solo.io.GetConfigDumpsRequest
 	(*GetConfigDumpsResponse)(nil),                                     // 9: rpc.edge.gloo.solo.io.GetConfigDumpsResponse
-	(*GlooInstance_GlooInstanceSpec)(nil),                              // 10: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec
-	(*GlooInstance_GlooInstanceStatus)(nil),                            // 11: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceStatus
-	(*GlooInstance_GlooInstanceSpec_ControlPlane)(nil),                 // 12: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.ControlPlane
-	(*GlooInstance_GlooInstanceSpec_Proxy)(nil),                        // 13: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy
-	(*GlooInstance_GlooInstanceSpec_Check)(nil),                        // 14: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check
-	(*GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint)(nil),        // 15: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.IngressEndpoint
-	(*GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint_Port)(nil),   // 16: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.IngressEndpoint.Port
-	(*GlooInstance_GlooInstanceSpec_Check_Summary)(nil),                // 17: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
-	(*GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport)(nil), // 18: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.ResourceReport
-	(*ObjectMeta)(nil),                                                 // 19: rpc.edge.gloo.solo.io.ObjectMeta
-	(*v1.ObjectRef)(nil),                                               // 20: core.skv2.solo.io.ObjectRef
+	(*GetUpstreamHostsRequest)(nil),                                    // 10: rpc.edge.gloo.solo.io.GetUpstreamHostsRequest
+	(*GetUpstreamHostsResponse)(nil),                                   // 11: rpc.edge.gloo.solo.io.GetUpstreamHostsResponse
+	(*HostList)(nil),                                                   // 12: rpc.edge.gloo.solo.io.HostList
+	(*Host)(nil),                                                       // 13: rpc.edge.gloo.solo.io.Host
+	(*GlooInstance_GlooInstanceSpec)(nil),                              // 14: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec
+	(*GlooInstance_GlooInstanceStatus)(nil),                            // 15: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceStatus
+	(*GlooInstance_GlooInstanceSpec_ControlPlane)(nil),                 // 16: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.ControlPlane
+	(*GlooInstance_GlooInstanceSpec_Proxy)(nil),                        // 17: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy
+	(*GlooInstance_GlooInstanceSpec_Check)(nil),                        // 18: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check
+	(*GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint)(nil),        // 19: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.IngressEndpoint
+	(*GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint_Port)(nil),   // 20: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.IngressEndpoint.Port
+	(*GlooInstance_GlooInstanceSpec_Check_Summary)(nil),                // 21: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
+	(*GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport)(nil), // 22: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.ResourceReport
+	nil,                  // 23: rpc.edge.gloo.solo.io.GetUpstreamHostsResponse.UpstreamHostsEntry
+	(*ObjectMeta)(nil),   // 24: rpc.edge.gloo.solo.io.ObjectMeta
+	(*v1.ObjectRef)(nil), // 25: core.skv2.solo.io.ObjectRef
 }
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_depIdxs = []int32{
-	19, // 0: rpc.edge.gloo.solo.io.GlooInstance.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
-	10, // 1: rpc.edge.gloo.solo.io.GlooInstance.spec:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec
-	11, // 2: rpc.edge.gloo.solo.io.GlooInstance.status:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceStatus
+	24, // 0: rpc.edge.gloo.solo.io.GlooInstance.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
+	14, // 1: rpc.edge.gloo.solo.io.GlooInstance.spec:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec
+	15, // 2: rpc.edge.gloo.solo.io.GlooInstance.status:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceStatus
 	1,  // 3: rpc.edge.gloo.solo.io.ListGlooInstancesResponse.gloo_instances:type_name -> rpc.edge.gloo.solo.io.GlooInstance
 	1,  // 4: rpc.edge.gloo.solo.io.ClusterDetails.gloo_instances:type_name -> rpc.edge.gloo.solo.io.GlooInstance
 	4,  // 5: rpc.edge.gloo.solo.io.ListClusterDetailsResponse.cluster_details:type_name -> rpc.edge.gloo.solo.io.ClusterDetails
-	20, // 6: rpc.edge.gloo.solo.io.GetConfigDumpsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
+	25, // 6: rpc.edge.gloo.solo.io.GetConfigDumpsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
 	7,  // 7: rpc.edge.gloo.solo.io.GetConfigDumpsResponse.config_dumps:type_name -> rpc.edge.gloo.solo.io.ConfigDump
-	12, // 8: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.control_plane:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.ControlPlane
-	13, // 9: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.proxies:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy
-	14, // 10: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.check:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check
-	0,  // 11: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.workload_controller_type:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.WorkloadController
-	15, // 12: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.ingress_endpoints:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.IngressEndpoint
-	17, // 13: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.gateways:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
-	17, // 14: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.virtual_services:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
-	17, // 15: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.route_tables:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
-	17, // 16: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.auth_configs:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
-	17, // 17: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.settings:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
-	17, // 18: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.upstreams:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
-	17, // 19: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.upstream_groups:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
-	17, // 20: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.proxies:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
-	17, // 21: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.deployments:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
-	17, // 22: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.pods:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
-	16, // 23: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.IngressEndpoint.ports:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.IngressEndpoint.Port
-	18, // 24: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.errors:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.ResourceReport
-	18, // 25: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.warnings:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.ResourceReport
-	20, // 26: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.ResourceReport.ref:type_name -> core.skv2.solo.io.ObjectRef
-	2,  // 27: rpc.edge.gloo.solo.io.GlooInstanceApi.ListGlooInstances:input_type -> rpc.edge.gloo.solo.io.ListGlooInstancesRequest
-	5,  // 28: rpc.edge.gloo.solo.io.GlooInstanceApi.ListClusterDetails:input_type -> rpc.edge.gloo.solo.io.ListClusterDetailsRequest
-	8,  // 29: rpc.edge.gloo.solo.io.GlooInstanceApi.GetConfigDumps:input_type -> rpc.edge.gloo.solo.io.GetConfigDumpsRequest
-	3,  // 30: rpc.edge.gloo.solo.io.GlooInstanceApi.ListGlooInstances:output_type -> rpc.edge.gloo.solo.io.ListGlooInstancesResponse
-	6,  // 31: rpc.edge.gloo.solo.io.GlooInstanceApi.ListClusterDetails:output_type -> rpc.edge.gloo.solo.io.ListClusterDetailsResponse
-	9,  // 32: rpc.edge.gloo.solo.io.GlooInstanceApi.GetConfigDumps:output_type -> rpc.edge.gloo.solo.io.GetConfigDumpsResponse
-	30, // [30:33] is the sub-list for method output_type
-	27, // [27:30] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	25, // 8: rpc.edge.gloo.solo.io.GetUpstreamHostsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
+	23, // 9: rpc.edge.gloo.solo.io.GetUpstreamHostsResponse.upstream_hosts:type_name -> rpc.edge.gloo.solo.io.GetUpstreamHostsResponse.UpstreamHostsEntry
+	13, // 10: rpc.edge.gloo.solo.io.HostList.hosts:type_name -> rpc.edge.gloo.solo.io.Host
+	25, // 11: rpc.edge.gloo.solo.io.Host.proxy_ref:type_name -> core.skv2.solo.io.ObjectRef
+	16, // 12: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.control_plane:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.ControlPlane
+	17, // 13: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.proxies:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy
+	18, // 14: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.check:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check
+	0,  // 15: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.workload_controller_type:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.WorkloadController
+	19, // 16: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.ingress_endpoints:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.IngressEndpoint
+	21, // 17: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.gateways:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
+	21, // 18: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.virtual_services:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
+	21, // 19: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.route_tables:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
+	21, // 20: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.auth_configs:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
+	21, // 21: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.settings:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
+	21, // 22: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.upstreams:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
+	21, // 23: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.upstream_groups:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
+	21, // 24: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.proxies:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
+	21, // 25: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.deployments:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
+	21, // 26: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.pods:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary
+	20, // 27: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.IngressEndpoint.ports:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Proxy.IngressEndpoint.Port
+	22, // 28: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.errors:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.ResourceReport
+	22, // 29: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.warnings:type_name -> rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.ResourceReport
+	25, // 30: rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.ResourceReport.ref:type_name -> core.skv2.solo.io.ObjectRef
+	12, // 31: rpc.edge.gloo.solo.io.GetUpstreamHostsResponse.UpstreamHostsEntry.value:type_name -> rpc.edge.gloo.solo.io.HostList
+	2,  // 32: rpc.edge.gloo.solo.io.GlooInstanceApi.ListGlooInstances:input_type -> rpc.edge.gloo.solo.io.ListGlooInstancesRequest
+	5,  // 33: rpc.edge.gloo.solo.io.GlooInstanceApi.ListClusterDetails:input_type -> rpc.edge.gloo.solo.io.ListClusterDetailsRequest
+	8,  // 34: rpc.edge.gloo.solo.io.GlooInstanceApi.GetConfigDumps:input_type -> rpc.edge.gloo.solo.io.GetConfigDumpsRequest
+	10, // 35: rpc.edge.gloo.solo.io.GlooInstanceApi.GetUpstreamHosts:input_type -> rpc.edge.gloo.solo.io.GetUpstreamHostsRequest
+	3,  // 36: rpc.edge.gloo.solo.io.GlooInstanceApi.ListGlooInstances:output_type -> rpc.edge.gloo.solo.io.ListGlooInstancesResponse
+	6,  // 37: rpc.edge.gloo.solo.io.GlooInstanceApi.ListClusterDetails:output_type -> rpc.edge.gloo.solo.io.ListClusterDetailsResponse
+	9,  // 38: rpc.edge.gloo.solo.io.GlooInstanceApi.GetConfigDumps:output_type -> rpc.edge.gloo.solo.io.GetConfigDumpsResponse
+	11, // 39: rpc.edge.gloo.solo.io.GlooInstanceApi.GetUpstreamHosts:output_type -> rpc.edge.gloo.solo.io.GetUpstreamHostsResponse
+	36, // [36:40] is the sub-list for method output_type
+	32, // [32:36] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() {
@@ -1712,7 +1985,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GlooInstance_GlooInstanceSpec); i {
+			switch v := v.(*GetUpstreamHostsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1724,7 +1997,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GlooInstance_GlooInstanceStatus); i {
+			switch v := v.(*GetUpstreamHostsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1736,7 +2009,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GlooInstance_GlooInstanceSpec_ControlPlane); i {
+			switch v := v.(*HostList); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1748,7 +2021,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GlooInstance_GlooInstanceSpec_Proxy); i {
+			switch v := v.(*Host); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1760,7 +2033,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GlooInstance_GlooInstanceSpec_Check); i {
+			switch v := v.(*GlooInstance_GlooInstanceSpec); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1772,7 +2045,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint); i {
+			switch v := v.(*GlooInstance_GlooInstanceStatus); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1784,7 +2057,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint_Port); i {
+			switch v := v.(*GlooInstance_GlooInstanceSpec_ControlPlane); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1796,7 +2069,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GlooInstance_GlooInstanceSpec_Check_Summary); i {
+			switch v := v.(*GlooInstance_GlooInstanceSpec_Proxy); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1808,6 +2081,54 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GlooInstance_GlooInstanceSpec_Check); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GlooInstance_GlooInstanceSpec_Proxy_IngressEndpoint_Port); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GlooInstance_GlooInstanceSpec_Check_Summary); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport); i {
 			case 0:
 				return &v.state
@@ -1826,7 +2147,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_glooinstance_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   18,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -1856,6 +2177,7 @@ type GlooInstanceApiClient interface {
 	ListGlooInstances(ctx context.Context, in *ListGlooInstancesRequest, opts ...grpc.CallOption) (*ListGlooInstancesResponse, error)
 	ListClusterDetails(ctx context.Context, in *ListClusterDetailsRequest, opts ...grpc.CallOption) (*ListClusterDetailsResponse, error)
 	GetConfigDumps(ctx context.Context, in *GetConfigDumpsRequest, opts ...grpc.CallOption) (*GetConfigDumpsResponse, error)
+	GetUpstreamHosts(ctx context.Context, in *GetUpstreamHostsRequest, opts ...grpc.CallOption) (*GetUpstreamHostsResponse, error)
 }
 
 type glooInstanceApiClient struct {
@@ -1893,11 +2215,21 @@ func (c *glooInstanceApiClient) GetConfigDumps(ctx context.Context, in *GetConfi
 	return out, nil
 }
 
+func (c *glooInstanceApiClient) GetUpstreamHosts(ctx context.Context, in *GetUpstreamHostsRequest, opts ...grpc.CallOption) (*GetUpstreamHostsResponse, error) {
+	out := new(GetUpstreamHostsResponse)
+	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GlooInstanceApi/GetUpstreamHosts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GlooInstanceApiServer is the server API for GlooInstanceApi service.
 type GlooInstanceApiServer interface {
 	ListGlooInstances(context.Context, *ListGlooInstancesRequest) (*ListGlooInstancesResponse, error)
 	ListClusterDetails(context.Context, *ListClusterDetailsRequest) (*ListClusterDetailsResponse, error)
 	GetConfigDumps(context.Context, *GetConfigDumpsRequest) (*GetConfigDumpsResponse, error)
+	GetUpstreamHosts(context.Context, *GetUpstreamHostsRequest) (*GetUpstreamHostsResponse, error)
 }
 
 // UnimplementedGlooInstanceApiServer can be embedded to have forward compatible implementations.
@@ -1912,6 +2244,9 @@ func (*UnimplementedGlooInstanceApiServer) ListClusterDetails(context.Context, *
 }
 func (*UnimplementedGlooInstanceApiServer) GetConfigDumps(context.Context, *GetConfigDumpsRequest) (*GetConfigDumpsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConfigDumps not implemented")
+}
+func (*UnimplementedGlooInstanceApiServer) GetUpstreamHosts(context.Context, *GetUpstreamHostsRequest) (*GetUpstreamHostsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUpstreamHosts not implemented")
 }
 
 func RegisterGlooInstanceApiServer(s *grpc.Server, srv GlooInstanceApiServer) {
@@ -1972,6 +2307,24 @@ func _GlooInstanceApi_GetConfigDumps_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GlooInstanceApi_GetUpstreamHosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUpstreamHostsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GlooInstanceApiServer).GetUpstreamHosts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.edge.gloo.solo.io.GlooInstanceApi/GetUpstreamHosts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GlooInstanceApiServer).GetUpstreamHosts(ctx, req.(*GetUpstreamHostsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _GlooInstanceApi_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "rpc.edge.gloo.solo.io.GlooInstanceApi",
 	HandlerType: (*GlooInstanceApiServer)(nil),
@@ -1987,6 +2340,10 @@ var _GlooInstanceApi_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetConfigDumps",
 			Handler:    _GlooInstanceApi_GetConfigDumps_Handler,
+		},
+		{
+			MethodName: "GetUpstreamHosts",
+			Handler:    _GlooInstanceApi_GetUpstreamHosts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

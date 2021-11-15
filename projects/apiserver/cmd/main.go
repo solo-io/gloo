@@ -27,7 +27,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/bootstrap_handler"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/failover_scheme_handler"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler"
-	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler/config_getter"
+	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler/envoy_admin"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/rt_selector_handler"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/single_cluster_resource_handler"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/wasmfilter_handler"
@@ -105,7 +105,7 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, apiserverSettin
 	ratelimitMCCLient := ratelimit_v1alpha1.NewMulticlusterClientset(mcClient)
 
 	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig())
-	glooInstanceService := glooinstance_handler.NewFedGlooInstanceHandler(clusterWatcher, clusterSet, config_getter.NewEnvoyConfigDumpGetter(), glooInstanceClient)
+	glooInstanceService := glooinstance_handler.NewFedGlooInstanceHandler(clusterWatcher, clusterSet, envoy_admin.NewEnvoyAdminClient(), glooInstanceClient)
 	failoverSchemeService := failover_scheme_handler.NewFailoverSchemeHandler(failoverSchemeClient)
 	routeTableSelectorService := rt_selector_handler.NewFedVirtualServiceRoutesHandler(gatewayMClient)
 	wasmFilterService := wasmfilter_handler.NewFedWasmFilterHandler(glooInstanceClient, gatewayMClient)
@@ -143,7 +143,8 @@ func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, apise
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("Could not create discovery client", zap.Error(err))
 	}
-	glooInstanceService := glooinstance_handler.NewSingleClusterGlooInstanceHandler(glooInstanceLister, *discoveryClient, config_getter.NewEnvoyConfigDumpGetter())
+	restClient := discoveryClient.RESTClient()
+	glooInstanceService := glooinstance_handler.NewSingleClusterGlooInstanceHandler(glooInstanceLister, restClient, envoy_admin.NewEnvoyAdminClient())
 
 	routeTableSelectorService := rt_selector_handler.NewSingleClusterVirtualServiceRoutesHandler()
 	wasmFilterService := wasmfilter_handler.NewSingleClusterWasmFilterHandler()

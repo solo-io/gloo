@@ -175,6 +175,7 @@ message ConfigDump {
 }
 
 message GetConfigDumpsRequest {
+    // A reference to the gloo instance to get the config dumps for. This field is required.
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
 }
 
@@ -182,8 +183,36 @@ message GetConfigDumpsResponse {
     repeated ConfigDump config_dumps = 1;
 }
 
+message GetUpstreamHostsRequest {
+    // A reference to the gloo instance to get the upstream hosts mapping for. This field is required.
+    .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+}
+
+message GetUpstreamHostsResponse {
+    // map of upstream key (<namespace>.<name>) to list of hosts for the upstream
+    map<string, HostList> upstream_hosts = 1;
+}
+
+message HostList {
+    repeated Host hosts = 1;
+}
+
+// Represents an upstream host
+message Host {
+    // IP or hostname
+    string address = 1;
+    // Listening port
+    uint32 port = 2;
+    // Load balancing weight
+    uint32 weight = 3;
+
+    // A reference to the proxy that this host is associated with
+    .core.skv2.solo.io.ObjectRef proxy_ref = 4;
+}
+
 service GlooInstanceApi {
     rpc ListGlooInstances (ListGlooInstancesRequest) returns (ListGlooInstancesResponse) {}
     rpc ListClusterDetails (ListClusterDetailsRequest) returns (ListClusterDetailsResponse) {}
     rpc GetConfigDumps (GetConfigDumpsRequest) returns (GetConfigDumpsResponse) {}
+    rpc GetUpstreamHosts (GetUpstreamHostsRequest) returns (GetUpstreamHostsResponse) {}
 }

@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/5447
+    resolvesIssue: false
+    description: Apiserver work to enable UI to display IPs that an upstream is mapped to.
