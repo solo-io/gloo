@@ -18,6 +18,10 @@ spec:
   - name: grpc
     port: {{ .Values.global.extensions.rateLimit.service.port }}
     protocol: TCP
+{{- if .Values.global.glooStats.serviceMonitor }}
+  - name: http-monitoring
+    port: 9091
+{{- end }}
   selector:
     gloo: {{ $rateLimitName }}
 ---

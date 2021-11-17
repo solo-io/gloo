@@ -44,6 +44,11 @@ spec:
               key: license-key
         imagePullPolicy: {{ $glooFedImage.pullPolicy }}
         name: gloo-fed
+        {{- if .Values.global.glooStats.serviceMonitor }}
+        ports:
+          - name: http-monitoring
+            containerPort: 8080
+        {{- end }}
 {{- if $glooFed.resources }}
         resources:
 {{ toYaml $glooFed.resources | indent 10}}

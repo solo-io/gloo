@@ -33,7 +33,7 @@ spec:
       annotations:
         {{- if $statsConfig.enabled}}
         prometheus.io/path: /metrics
-        prometheus.io/port: "9091"
+        prometheus.io/port: "8080"
         prometheus.io/scrape: "true"
         {{- end}}
         {{- if .Values.global.istioIntegration.disableAutoinjection }}
@@ -74,6 +74,10 @@ spec:
           - name: healthcheck
             containerPort: {{ $glooFedApiserver.healthCheckPort}}
             protocol: TCP
+          {{- if .Values.global.glooStats.serviceMonitor }}
+          - name: http-monitoring
+            containerPort: 8080
+          {{- end }}
 {{- if $glooFedApiserver.resources }}
         resources:
 {{ toYaml $glooFedApiserver.resources | indent 10}}

@@ -21,6 +21,10 @@ spec:
     - name: healthcheck
       port: {{ $glooFedApiserver.healthCheckPort }}
       protocol: TCP
+    {{- if .Values.global.glooStats.serviceMonitor }}
+    - name: http-monitoring
+      port: 8080
+    {{- end }}
   selector:
     app: gloo-fed
     gloo-fed: console

@@ -88,6 +88,11 @@ spec:
                 name: {{.Release.Name}}-observability-config
             - secretRef:
                 name: {{.Release.Name}}-observability-secrets
+          {{- if .Values.global.glooStats.serviceMonitor }}
+          ports:
+            - name: http-monitoring
+              containerPort: 9091
+          {{- end }}
       securityContext:
         runAsNonRoot: true
         {{- if not .Values.observability.deployment.floatingUserId }}

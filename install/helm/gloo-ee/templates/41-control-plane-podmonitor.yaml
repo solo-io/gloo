@@ -1,0 +1,24 @@
+{{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" ) ( .Values.global.glooStats.serviceMonitor ) }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: gloo-component-podmonitor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    monitoring: gloo-components
+    release: prom
+spec:
+  jobLabel: gloo-control-plane-stats
+  podTargetLabels: [app, gloo, gloo-fed]
+  selector:
+    matchExpressions:
+    - {key: gloo-prometheus-ignore, operator: DoesNotExist}
+  namespaceSelector:
+    any: false
+    matchNames:
+      - {{ .Release.Namespace }}
+  podMetricsEndpoints:
+  - port: http-monitoring
+    path: /metrics
+    interval: 15s
+{{- end }}

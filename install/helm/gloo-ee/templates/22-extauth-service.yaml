@@ -19,6 +19,10 @@ spec:
   - name: grpc
     port: {{ $extAuth.service.port }}
     protocol: TCP
+{{- if .Values.global.glooStats.serviceMonitor }}
+  - name: http-monitoring
+    port: 9091
+{{- end }}
   selector:
     gloo: {{ $extAuthName }}
 ---
