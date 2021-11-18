@@ -19,6 +19,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_cors_cors_pb = require
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_rest_rest_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/rest/rest_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_grpc_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/grpc/grpc_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_als_als_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/als/als_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/proxy_protocol/proxy_protocol_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_web_grpc_web_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/grpc_web/grpc_web_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/grpc_json/grpc_json_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_hcm_hcm_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/hcm/hcm_pb.js');
@@ -117,7 +118,8 @@ proto.gloo.solo.io.ListenerOptions.toObject = function(includeInstance, msg) {
     extensions: (f = msg.getExtensions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_extensions_pb.Extensions.toObject(includeInstance, f),
     perConnectionBufferLimitBytes: (f = msg.getPerConnectionBufferLimitBytes()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     socketOptionsList: jspb.Message.toObjectList(msg.getSocketOptionsList(),
-    github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_socket_option_pb.SocketOption.toObject, includeInstance)
+    github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_socket_option_pb.SocketOption.toObject, includeInstance),
+    proxyProtocol: (f = msg.getProxyProtocol()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb.ProxyProtocol.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -173,6 +175,11 @@ proto.gloo.solo.io.ListenerOptions.deserializeBinaryFromReader = function(msg, r
       var value = new github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_socket_option_pb.SocketOption;
       reader.readMessage(value,github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_socket_option_pb.SocketOption.deserializeBinaryFromReader);
       msg.addSocketOptions(value);
+      break;
+    case 5:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb.ProxyProtocol;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb.ProxyProtocol.deserializeBinaryFromReader);
+      msg.setProxyProtocol(value);
       break;
     default:
       reader.skipField();
@@ -233,6 +240,14 @@ proto.gloo.solo.io.ListenerOptions.serializeBinaryToWriter = function(message, w
       4,
       f,
       github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_socket_option_pb.SocketOption.serializeBinaryToWriter
+    );
+  }
+  f = message.getProxyProtocol();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb.ProxyProtocol.serializeBinaryToWriter
     );
   }
 };
@@ -356,6 +371,36 @@ proto.gloo.solo.io.ListenerOptions.prototype.addSocketOptions = function(opt_val
 
 proto.gloo.solo.io.ListenerOptions.prototype.clearSocketOptionsList = function() {
   this.setSocketOptionsList([]);
+};
+
+
+/**
+ * optional proxy_protocol.options.gloo.solo.io.ProxyProtocol proxy_protocol = 5;
+ * @return {?proto.proxy_protocol.options.gloo.solo.io.ProxyProtocol}
+ */
+proto.gloo.solo.io.ListenerOptions.prototype.getProxyProtocol = function() {
+  return /** @type{?proto.proxy_protocol.options.gloo.solo.io.ProxyProtocol} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb.ProxyProtocol, 5));
+};
+
+
+/** @param {?proto.proxy_protocol.options.gloo.solo.io.ProxyProtocol|undefined} value */
+proto.gloo.solo.io.ListenerOptions.prototype.setProxyProtocol = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.gloo.solo.io.ListenerOptions.prototype.clearProxyProtocol = function() {
+  this.setProxyProtocol(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.ListenerOptions.prototype.hasProxyProtocol = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

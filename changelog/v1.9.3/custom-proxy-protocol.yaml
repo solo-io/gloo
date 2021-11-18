@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/5403
+    resolvesIssue: false
+    description: >-
+      Add implementation for new `allow_requests_without_proxy_protocol` field on proxy protocol filter which supports
+      allowing requests through that do not use proxy protocol.

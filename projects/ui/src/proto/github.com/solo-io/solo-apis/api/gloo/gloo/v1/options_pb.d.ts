@@ -10,6 +10,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_cors_cors_pb f
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_rest_rest_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/rest/rest_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_grpc_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/grpc/grpc_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_als_als_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/als/als_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/proxy_protocol/proxy_protocol_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_web_grpc_web_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/grpc_web/grpc_web_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/grpc_json/grpc_json_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_hcm_hcm_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/hcm/hcm_pb";
@@ -64,6 +65,11 @@ export class ListenerOptions extends jspb.Message {
   setSocketOptionsList(value: Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_socket_option_pb.SocketOption>): void;
   addSocketOptions(value?: github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_socket_option_pb.SocketOption, index?: number): github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_socket_option_pb.SocketOption;
 
+  hasProxyProtocol(): boolean;
+  clearProxyProtocol(): void;
+  getProxyProtocol(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb.ProxyProtocol | undefined;
+  setProxyProtocol(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb.ProxyProtocol): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: ListenerOptions): ListenerOptions.AsObject;
@@ -80,6 +86,7 @@ export namespace ListenerOptions {
     extensions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_extensions_pb.Extensions.AsObject,
     perConnectionBufferLimitBytes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     socketOptionsList: Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_socket_option_pb.SocketOption.AsObject>,
+    proxyProtocol?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb.ProxyProtocol.AsObject,
   }
 }
 
