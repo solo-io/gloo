@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxyprotocol"
+
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/transformer"
@@ -91,6 +93,7 @@ func GetGlooEeExtensions(ctx context.Context, apiEmitterChan chan struct{}) setu
 			func() plugins.Plugin { return leftmost_xff_address.NewPlugin() },
 			func() plugins.Plugin { return transformer.NewPlugin() },
 			func() plugins.Plugin { return graphql.NewPlugin() },
+			func() plugins.Plugin { return proxyprotocol.NewPlugin() },
 		},
 	}
 }

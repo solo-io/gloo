@@ -119,6 +119,14 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getCodecType(): HttpConnectionManagerSettings.CodecTypeMap[keyof HttpConnectionManagerSettings.CodecTypeMap];
   setCodecType(value: HttpConnectionManagerSettings.CodecTypeMap[keyof HttpConnectionManagerSettings.CodecTypeMap]): void;
 
+  getMergeSlashes(): boolean;
+  setMergeSlashes(value: boolean): void;
+
+  hasNormalizePath(): boolean;
+  clearNormalizePath(): void;
+  getNormalizePath(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setNormalizePath(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
   static toObject(includeInstance: boolean, msg: HttpConnectionManagerSettings): HttpConnectionManagerSettings.AsObject;
@@ -158,6 +166,8 @@ export namespace HttpConnectionManagerSettings {
     serverHeaderTransformation: HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap],
     pathWithEscapedSlashesAction: HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap[keyof HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap],
     codecType: HttpConnectionManagerSettings.CodecTypeMap[keyof HttpConnectionManagerSettings.CodecTypeMap],
+    mergeSlashes: boolean,
+    normalizePath?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export class SetCurrentClientCertDetails extends jspb.Message {

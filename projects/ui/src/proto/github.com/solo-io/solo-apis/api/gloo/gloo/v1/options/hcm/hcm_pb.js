@@ -104,7 +104,9 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     maxHeadersCount: (f = msg.getMaxHeadersCount()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     serverHeaderTransformation: jspb.Message.getFieldWithDefault(msg, 25, 0),
     pathWithEscapedSlashesAction: jspb.Message.getFieldWithDefault(msg, 26, 0),
-    codecType: jspb.Message.getFieldWithDefault(msg, 28, 0)
+    codecType: jspb.Message.getFieldWithDefault(msg, 28, 0),
+    mergeSlashes: jspb.Message.getFieldWithDefault(msg, 29, false),
+    normalizePath: (f = msg.getNormalizePath()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -262,6 +264,15 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
     case 28:
       var value = /** @type {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CodecType} */ (reader.readEnum());
       msg.setCodecType(value);
+      break;
+    case 29:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setMergeSlashes(value);
+      break;
+    case 30:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setNormalizePath(value);
       break;
     default:
       reader.skipField();
@@ -493,6 +504,21 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
     writer.writeEnum(
       28,
       f
+    );
+  }
+  f = message.getMergeSlashes();
+  if (f) {
+    writer.writeBool(
+      29,
+      f
+    );
+  }
+  f = message.getNormalizePath();
+  if (f != null) {
+    writer.writeMessage(
+      30,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -1436,6 +1462,53 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getCodecT
 /** @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CodecType} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setCodecType = function(value) {
   jspb.Message.setProto3EnumField(this, 28, value);
+};
+
+
+/**
+ * optional bool merge_slashes = 29;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getMergeSlashes = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 29, false));
+};
+
+
+/** @param {boolean} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setMergeSlashes = function(value) {
+  jspb.Message.setProto3BooleanField(this, 29, value);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue normalize_path = 30;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getNormalizePath = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 30));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setNormalizePath = function(value) {
+  jspb.Message.setWrapperField(this, 30, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearNormalizePath = function() {
+  this.setNormalizePath(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasNormalizePath = function() {
+  return jspb.Message.getField(this, 30) != null;
 };
 
 
