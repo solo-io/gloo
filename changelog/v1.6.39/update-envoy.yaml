@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5558
+    resolvesIssue: false
+    description: Fixes high CPU in WAF logic when using @validateXmlSchema rule.
