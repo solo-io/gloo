@@ -11,6 +11,7 @@ import "validate/validate.proto";
 import "extproto/ext.proto";
 option (extproto.hash_all) = true;
 option (extproto.equal_all) = true;
+option (extproto.clone_all) = true;
 
 message RouteAbort {
     // Percentage of requests that should be aborted, defaulting to 0.

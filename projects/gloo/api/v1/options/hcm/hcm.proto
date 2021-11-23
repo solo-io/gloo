@@ -12,6 +12,7 @@ import "github.com/solo-io/gloo/projects/gloo/api/v1/options/protocol_upgrade/pr
 import "extproto/ext.proto";
 option (extproto.hash_all) = true;
 option (extproto.equal_all) = true;
+option (extproto.clone_all) = true;
 
 // Contains various settings for Envoy's http connection manager.
 // See here for more information: https://www.envoyproxy.io/docs/envoy/v1.9.0/configuration/http_conn_man/http_conn_man
