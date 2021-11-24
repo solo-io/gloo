@@ -115,10 +115,12 @@ gateway:
   proxyServiceAccount:
     extraAnnotations:
       eks.amazonaws.com/role-arn: ${AWS_ROLE_ARN}
+      eks.amazonaws.com/token-expiration: 3600
 discovery:
   serviceAccount:
     extraAnnotations:
       eks.amazonaws.com/role-arn: ${AWS_ROLE_ARN}
+      eks.amazonaws.com/token-expiration: 3600
 EOF
 {{< /tab >}}
 {{< tab name="Enterprise" codelang="shell">}}
@@ -133,10 +135,12 @@ gloo:
     proxyServiceAccount:
       extraAnnotations:
         eks.amazonaws.com/role-arn: ${AWS_ROLE_ARN}
+        eks.amazonaws.com/token-expiration: 3600
   discovery:
     serviceAccount:
       extraAnnotations:
         eks.amazonaws.com/role-arn: ${AWS_ROLE_ARN}
+        eks.amazonaws.com/token-expiration: 3600
 EOF
 {{< /tab >}}
 {{< /tabs >}}
