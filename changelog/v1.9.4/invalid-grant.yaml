@@ -1,0 +1,8 @@
+changelog:
+ - type: DEPENDENCY_BUMP
+   description: Bump ext-auth-service version to get fix for invalid grants
+   dependencyOwner: solo-io
+   dependencyRepo: ext-auth-service
+   dependencyTag: v0.19.9
+   issueLink: https://github.com/solo-io/gloo/issues/4927
+   resolvesIssue: false
