@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/solo-io/licensing/pkg/defaults"
+	"github.com/solo-io/licensing/pkg/model"
 )
 
 var (
@@ -33,6 +34,10 @@ func IsLicenseValid(ctx context.Context, license string) error {
 	decryptedLicense, err := validator.ValidateKey(ctx, license)
 	if err != nil {
 		return err
+	}
+	// Do not fail on expired enterprise licenses
+	if decryptedLicense.License.LicenseType == model.LicenseType_Enterprise {
+		return nil
 	}
 	if decryptedLicense.IsExpired() {
 		return LicenseExpiredError
