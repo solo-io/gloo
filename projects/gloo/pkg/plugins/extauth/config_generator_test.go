@@ -150,7 +150,7 @@ var _ = Describe("ExtAuthzConfigGenerator", func() {
 							MatchPattern: &envoymatcher.ValueMatcher_StringMatch{
 								StringMatch: &envoymatcher.StringMatcher{
 									MatchPattern: &envoymatcher.StringMatcher_Exact{
-										Exact: extauth.DefaultAuthServiceName,
+										Exact: extauth.DefaultCustomAuthServiceName,
 									},
 								},
 							},

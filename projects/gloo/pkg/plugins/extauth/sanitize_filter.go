@@ -18,7 +18,7 @@ func buildSanitizeFilter(userIdHeader string, includeCustomAuthServiceName bool)
 	}
 
 	if includeCustomAuthServiceName {
-		sanitizeConf.CustomAuthServerName = DefaultAuthServiceName
+		sanitizeConf.CustomAuthServerName = DefaultCustomAuthServiceName
 	}
 
 	return plugins.NewStagedFilterWithConfig(SanitizeFilterName, sanitizeConf, sanitizeFilterStage)
@@ -56,9 +56,9 @@ func buildSanitizePerRouteConfig(customAuth *extauthapi.CustomAuth, availableCus
 	customAuthServiceName := customAuth.GetName()
 
 	// If name is not provided, or doesn't match any available names
-	// don't configure a per-route config, and rely on the default configuration
+	// rely on the default configuration as the per-route config
 	if _, ok := availableCustomAuth[customAuthServiceName]; !ok {
-		return nil
+		customAuthServiceName = DefaultCustomAuthServiceName
 	}
 
 	return &SanitizePerRoute{

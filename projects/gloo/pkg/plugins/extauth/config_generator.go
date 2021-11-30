@@ -130,7 +130,7 @@ func NewEnterpriseMultiConfigGenerator(defaultSettings *extauthv1.Settings, name
 // enable certain filters. We associate this name with the default filter configuration
 // and configure the sanitize filter to default to emit dynamic metadata with this name.
 // This value can be anything as long as it doesn't clash with users defined service names
-const DefaultAuthServiceName string = "solo.io.extauth.default_12345"
+const DefaultCustomAuthServiceName string = "solo.io.extauth.default_12345"
 
 // The key in dynamic metadata used to set the value of the custom auth server name
 // https://github.com/solo-io/envoy-gloo-ee/blob/37ecff2a46529ac50aabb5044f0ca00b00c17bca/source/extensions/filters/http/sanitize/config.h#L22
@@ -153,7 +153,7 @@ func (m *EnterpriseMultiConfigGenerator) GenerateListenerExtAuthzConfig(listener
 	}
 
 	extAuthSettings := make(map[string]*extauthv1.Settings)
-	extAuthSettings[DefaultAuthServiceName] = m.defaultSettings
+	extAuthSettings[DefaultCustomAuthServiceName] = m.defaultSettings
 	for k, v := range m.namedSettings {
 		extAuthSettings[k] = v
 	}
