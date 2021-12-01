@@ -1,11 +1,11 @@
 {{- if .Values.glooFedApiserver.enable }}
 # Deployment manifest for gloo-fed-apiserver
 {{- $glooFedApiserver := $.Values.glooFedApiserver}}
-{{- $glooFedApiserverImage := $glooFedApiserver.image }}
+{{- $glooFedApiserverImage := merge $glooFedApiserver.image .Values.global.image }}
 {{- $envoy := $glooFedApiserver.envoy }}
-{{- $envoyImage := $envoy.image }}
+{{- $envoyImage := merge $envoy.image .Values.global.image }}
 {{- $console := $glooFedApiserver.console }}
-{{- $consoleImage := $console.image }}
+{{- $consoleImage := merge $console.image .Values.global.image }}
 {{- $statsConfig := $.Values.glooFedApiserver.stats }}
 
 apiVersion: apps/v1

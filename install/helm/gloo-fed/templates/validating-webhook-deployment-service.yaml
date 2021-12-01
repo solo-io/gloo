@@ -3,7 +3,7 @@
 
 # Deployment manifest for gloo-fed-rbac-validating-webhook
 {{- $rbacWebhook := $.Values.rbacWebhook}}
-{{- $image := $rbacWebhook.image }}
+{{- $image := merge $rbacWebhook.image .Values.global.image }}
 
 apiVersion: apps/v1
 kind: Deployment

@@ -1,7 +1,7 @@
 # Deployment manifest for gloo-fed
 {{- if .Values.enabled }}
 {{- $glooFed := $.Values.glooFed}}
-{{- $glooFedImage := $glooFed.image }}
+{{- $glooFedImage := merge $glooFed.image .Values.global.image }}
 
 apiVersion: apps/v1
 kind: Deployment

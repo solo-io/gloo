@@ -3132,6 +3132,20 @@ spec:
 				testManifest.Expect(expectedDeployment.Kind, expectedDeployment.Namespace, expectedDeployment.Name).To(BeNil())
 			})
 
+			It("can override image registry globally", func() {
+				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
+					valuesArgs: []string{
+						"global.image.registry=myregistry",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedDeployment.Spec.Template.Spec.Containers[0].Image = "myregistry/gloo-fed-apiserver:" + version
+				expectedDeployment.Spec.Template.Spec.Containers[1].Image = "myregistry/gloo-federation-console:" + version
+				expectedDeployment.Spec.Template.Spec.Containers[2].Image = "myregistry/gloo-fed-apiserver-envoy:" + version
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
 			It("does render the default bootstrap config map for the envoy sidecar", func() {
 				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())
