@@ -2535,7 +2535,7 @@ spec:
 				expectedDeployment.Spec.Template.Spec.InitContainers = []v1.Container{
 					{
 						Name:    "createconf",
-						Image:   "busybox:1.28",
+						Image:   "docker.io/busybox:1.28",
 						Command: []string{"/bin/sh", "-c", "echo 'aclfile /redis-acl/users.acl' > /conf/redis.conf"},
 						VolumeMounts: []v1.VolumeMount{
 							{
@@ -2602,6 +2602,24 @@ spec:
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedDeployment.Spec.Template.Spec.SecurityContext = nil
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("can override redis images", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"redis.deployment.image.registry=X",
+						"redis.deployment.image.repository=Y",
+						"redis.deployment.image.tag=Z",
+						"redis.deployment.initContainer.image.registry=A",
+						"redis.deployment.initContainer.image.repository=B",
+						"redis.deployment.initContainer.image.tag=C",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedDeployment.Spec.Template.Spec.Containers[0].Image = "X/Y:Z"
+				expectedDeployment.Spec.Template.Spec.InitContainers[0].Image = "A/B:C"
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 		})

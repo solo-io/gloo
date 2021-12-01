@@ -53,6 +53,11 @@ redis:
     runAsGroup: 999
     fsGroup: 999
     enablePodSecurityContext: true
+    initContainer:
+      image:
+        tag: "1.28"
+        repository: busybox
+        registry: docker.io
   service:
     port: 6379
     name: redis

@@ -2,6 +2,7 @@
 {{- $name := (index . 1) }}
 {{- with (first .) }}
 {{- $image := merge .Values.redis.deployment.image .Values.global.image }}
+{{- $initImage := merge .Values.redis.deployment.initContainer.image .Values.global.image }}
 {{- $redisName := .Values.redis.deployment.name }}
 {{- if .Values.global.extensions.dataplanePerProxy }}
 {{- $redisName = printf "%s-%s" $redisName ($name | kebabcase) }}
@@ -39,7 +40,7 @@ spec:
       {{- if .Values.global.extensions.glooRedis.enableAcl -}}
       initContainers:
         - name: createconf
-          image: busybox:1.28
+          image: {{template "glooe.imagenonextended" $initImage}}
           command: [ "/bin/sh", "-c", "echo 'aclfile /redis-acl/users.acl' > /conf/redis.conf" ]
           volumeMounts:
             - name: conf

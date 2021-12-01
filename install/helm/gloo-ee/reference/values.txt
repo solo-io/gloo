@@ -927,6 +927,13 @@
 |redis.deployment.image.pullSecret|string||image pull policy for the container |
 |redis.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
 |redis.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|redis.deployment.initContainer.image.tag|string|1.28|tag for the container|
+|redis.deployment.initContainer.image.repository|string|busybox|image name (repository) for the container.|
+|redis.deployment.initContainer.image.registry|string|docker.io|image prefix/registry e.g. (quay.io/solo-io)|
+|redis.deployment.initContainer.image.pullPolicy|string||image pull policy for the container|
+|redis.deployment.initContainer.image.pullSecret|string||image pull policy for the container |
+|redis.deployment.initContainer.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
+|redis.deployment.initContainer.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
 |redis.deployment.name|string|redis||
 |redis.deployment.staticPort|uint|6379||
 |redis.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 999|
