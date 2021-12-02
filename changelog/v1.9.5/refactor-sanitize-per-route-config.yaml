@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Prevent virtualhost-level named customauth settings from overriding route-level customauth settings
+    issueLink: https://github.com/solo-io/gloo/issues/5566

@@ -55,9 +55,13 @@ func buildSanitizePerRouteConfig(customAuth *extauthapi.CustomAuth, availableCus
 
 	customAuthServiceName := customAuth.GetName()
 
-	// If name is not provided, or doesn't match any available names
-	// don't configure a per-route config, and rely on the default configuration
-	if _, ok := availableCustomAuth[customAuthServiceName]; !ok {
+	if customAuthServiceName == "" {
+		// if name is not provided rely on the default configuration as the per-route config
+		// this is the case when an unnamed CustomAuth ExtAuthExtension has been explicitly configured,
+		// and when a ConfigRef ExtAuthExtension has been configured
+		customAuthServiceName = DefaultAuthServiceName
+	} else if _, ok := availableCustomAuth[customAuthServiceName]; !ok {
+		// If name doesn't match any available names default to the higher-order config
 		return nil
 	}
 
