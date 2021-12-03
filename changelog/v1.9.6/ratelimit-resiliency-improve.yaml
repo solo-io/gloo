@@ -1,0 +1,5 @@
+changelog:
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/5496
+    resolvesIssue: false
+    description: added readiness probe when deploying extauth in sidecar mode (using 'global.extensions.extAuth.envoySidecar=true')
