@@ -19,6 +19,11 @@ export class PathSegment extends jspb.Message {
   getIndex(): number;
   setIndex(value: number): void;
 
+  hasAll(): boolean;
+  clearAll(): void;
+  getAll(): boolean;
+  setAll(value: boolean): void;
+
   getSegmentCase(): PathSegment.SegmentCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PathSegment.AsObject;
@@ -34,12 +39,14 @@ export namespace PathSegment {
   export type AsObject = {
     key: string,
     index: number,
+    all: boolean,
   }
 
   export enum SegmentCase {
     SEGMENT_NOT_SET = 0,
     KEY = 1,
     INDEX = 2,
+    ALL = 3,
   }
 }
 
@@ -90,6 +97,9 @@ export namespace ValueProvider {
     setPathList(value: Array<PathSegment>): void;
     addPath(value?: PathSegment, index?: number): PathSegment;
 
+    getRequired(): boolean;
+    setRequired(value: boolean): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GraphQLArgExtraction.AsObject;
     static toObject(includeInstance: boolean, msg: GraphQLArgExtraction): GraphQLArgExtraction.AsObject;
@@ -104,6 +114,7 @@ export namespace ValueProvider {
     export type AsObject = {
       argName: string,
       pathList: Array<PathSegment.AsObject>,
+      required: boolean,
     }
   }
 
@@ -185,14 +196,78 @@ export namespace ValueProvider {
   }
 }
 
+export class JsonValueList extends jspb.Message {
+  clearValuesList(): void;
+  getValuesList(): Array<JsonValue>;
+  setValuesList(value: Array<JsonValue>): void;
+  addValues(value?: JsonValue, index?: number): JsonValue;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): JsonValueList.AsObject;
+  static toObject(includeInstance: boolean, msg: JsonValueList): JsonValueList.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: JsonValueList, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): JsonValueList;
+  static deserializeBinaryFromReader(message: JsonValueList, reader: jspb.BinaryReader): JsonValueList;
+}
+
+export namespace JsonValueList {
+  export type AsObject = {
+    valuesList: Array<JsonValue.AsObject>,
+  }
+}
+
+export class JsonValue extends jspb.Message {
+  hasNode(): boolean;
+  clearNode(): void;
+  getNode(): JsonNode | undefined;
+  setNode(value?: JsonNode): void;
+
+  hasValueProvider(): boolean;
+  clearValueProvider(): void;
+  getValueProvider(): ValueProvider | undefined;
+  setValueProvider(value?: ValueProvider): void;
+
+  hasList(): boolean;
+  clearList(): void;
+  getList(): JsonValueList | undefined;
+  setList(value?: JsonValueList): void;
+
+  getJsonValCase(): JsonValue.JsonValCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): JsonValue.AsObject;
+  static toObject(includeInstance: boolean, msg: JsonValue): JsonValue.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: JsonValue, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): JsonValue;
+  static deserializeBinaryFromReader(message: JsonValue, reader: jspb.BinaryReader): JsonValue;
+}
+
+export namespace JsonValue {
+  export type AsObject = {
+    node?: JsonNode.AsObject,
+    valueProvider?: ValueProvider.AsObject,
+    list?: JsonValueList.AsObject,
+  }
+
+  export enum JsonValCase {
+    JSON_VAL_NOT_SET = 0,
+    NODE = 1,
+    VALUE_PROVIDER = 2,
+    LIST = 3,
+  }
+}
+
 export class JsonKeyValue extends jspb.Message {
   getKey(): string;
   setKey(value: string): void;
 
   hasValue(): boolean;
   clearValue(): void;
-  getValue(): JsonKeyValue.JsonValue | undefined;
-  setValue(value?: JsonKeyValue.JsonValue): void;
+  getValue(): JsonValue | undefined;
+  setValue(value?: JsonValue): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): JsonKeyValue.AsObject;
@@ -207,71 +282,7 @@ export class JsonKeyValue extends jspb.Message {
 export namespace JsonKeyValue {
   export type AsObject = {
     key: string,
-    value?: JsonKeyValue.JsonValue.AsObject,
-  }
-
-  export class JsonValueList extends jspb.Message {
-    clearValuesList(): void;
-    getValuesList(): Array<JsonKeyValue.JsonValue>;
-    setValuesList(value: Array<JsonKeyValue.JsonValue>): void;
-    addValues(value?: JsonKeyValue.JsonValue, index?: number): JsonKeyValue.JsonValue;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): JsonValueList.AsObject;
-    static toObject(includeInstance: boolean, msg: JsonValueList): JsonValueList.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: JsonValueList, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): JsonValueList;
-    static deserializeBinaryFromReader(message: JsonValueList, reader: jspb.BinaryReader): JsonValueList;
-  }
-
-  export namespace JsonValueList {
-    export type AsObject = {
-      valuesList: Array<JsonKeyValue.JsonValue.AsObject>,
-    }
-  }
-
-  export class JsonValue extends jspb.Message {
-    hasNode(): boolean;
-    clearNode(): void;
-    getNode(): JsonNode | undefined;
-    setNode(value?: JsonNode): void;
-
-    hasValueProvider(): boolean;
-    clearValueProvider(): void;
-    getValueProvider(): ValueProvider | undefined;
-    setValueProvider(value?: ValueProvider): void;
-
-    hasList(): boolean;
-    clearList(): void;
-    getList(): JsonKeyValue.JsonValueList | undefined;
-    setList(value?: JsonKeyValue.JsonValueList): void;
-
-    getJsonValCase(): JsonValue.JsonValCase;
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): JsonValue.AsObject;
-    static toObject(includeInstance: boolean, msg: JsonValue): JsonValue.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: JsonValue, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): JsonValue;
-    static deserializeBinaryFromReader(message: JsonValue, reader: jspb.BinaryReader): JsonValue;
-  }
-
-  export namespace JsonValue {
-    export type AsObject = {
-      node?: JsonNode.AsObject,
-      valueProvider?: ValueProvider.AsObject,
-      list?: JsonKeyValue.JsonValueList.AsObject,
-    }
-
-    export enum JsonValCase {
-      JSON_VAL_NOT_SET = 0,
-      NODE = 1,
-      VALUE_PROVIDER = 2,
-      LIST = 3,
-    }
+    value?: JsonValue.AsObject,
   }
 }
 
@@ -302,12 +313,11 @@ export class RequestTemplate extends jspb.Message {
   clearHeadersMap(): void;
   getQueryParamsMap(): jspb.Map<string, ValueProvider>;
   clearQueryParamsMap(): void;
-  hasJson(): boolean;
-  clearJson(): void;
-  getJson(): JsonNode | undefined;
-  setJson(value?: JsonNode): void;
+  hasOutgoingBody(): boolean;
+  clearOutgoingBody(): void;
+  getOutgoingBody(): JsonValue | undefined;
+  setOutgoingBody(value?: JsonValue): void;
 
-  getOutgoingBodyCase(): RequestTemplate.OutgoingBodyCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RequestTemplate.AsObject;
   static toObject(includeInstance: boolean, msg: RequestTemplate): RequestTemplate.AsObject;
@@ -322,12 +332,7 @@ export namespace RequestTemplate {
   export type AsObject = {
     headersMap: Array<[string, ValueProvider.AsObject]>,
     queryParamsMap: Array<[string, ValueProvider.AsObject]>,
-    json?: JsonNode.AsObject,
-  }
-
-  export enum OutgoingBodyCase {
-    OUTGOING_BODY_NOT_SET = 0,
-    JSON = 3,
+    outgoingBody?: JsonValue.AsObject,
   }
 }
 

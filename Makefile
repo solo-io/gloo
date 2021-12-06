@@ -30,8 +30,8 @@ endif
 
 VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 
-ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.19.0-patch13
-ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.19.0-patch13
+ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.19.0-patch15
+ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.19.0-patch15
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
@@ -109,6 +109,7 @@ install-go-tools: mod-download
 	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/mockgen
 	GOBIN=$(DEPSGOBIN) go install github.com/google/wire/cmd/wire
 	GOBIN=$(DEPSGOBIN) go install github.com/onsi/ginkgo/ginkgo
+	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-openapi
 
 .PHONY: mod-download
 mod-download:

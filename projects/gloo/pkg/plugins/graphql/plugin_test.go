@@ -204,25 +204,27 @@ var _ = Describe("Graphql plugin", func() {
 													},
 												},
 											},
-											OutgoingBody: &v1alpha1.RequestTemplate_Json{
+											OutgoingBody: &v1alpha1.JsonValue{
 												// let's test the recursive translation
-												Json: &v1alpha1.JsonNode{
-													KeyValues: []*v1alpha1.JsonKeyValue{
-														{
-															Key: "k1",
-															Value: &v1alpha1.JsonKeyValue_JsonValue{
-																JsonVal: &v1alpha1.JsonKeyValue_JsonValue_Node{
-																	Node: &v1alpha1.JsonNode{
-																		KeyValues: []*v1alpha1.JsonKeyValue{
-																			{
-																				Key: "k2",
-																				Value: &v1alpha1.JsonKeyValue_JsonValue{
-																					JsonVal: &v1alpha1.JsonKeyValue_JsonValue_ValueProvider{
-																						ValueProvider: &v1alpha1.ValueProvider{
-																							Provider: &v1alpha1.ValueProvider_TypedProvider{
-																								TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
-																									Type:        v1alpha1.ValueProvider_TypedValueProvider_STRING,
-																									ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{Value: "val"},
+												JsonVal: &v1alpha1.JsonValue_Node{
+													Node: &v1alpha1.JsonNode{
+														KeyValues: []*v1alpha1.JsonKeyValue{
+															{
+																Key: "k1",
+																Value: &v1alpha1.JsonValue{
+																	JsonVal: &v1alpha1.JsonValue_Node{
+																		Node: &v1alpha1.JsonNode{
+																			KeyValues: []*v1alpha1.JsonKeyValue{
+																				{
+																					Key: "k2",
+																					Value: &v1alpha1.JsonValue{
+																						JsonVal: &v1alpha1.JsonValue_ValueProvider{
+																							ValueProvider: &v1alpha1.ValueProvider{
+																								Provider: &v1alpha1.ValueProvider_TypedProvider{
+																									TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
+																										Type:        v1alpha1.ValueProvider_TypedValueProvider_STRING,
+																										ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{Value: "val"},
+																									},
 																								},
 																							},
 																						},
@@ -263,9 +265,9 @@ var _ = Describe("Graphql plugin", func() {
 						Expect(restResolver.GetRequestTransform().GetQueryParams()["qp"].GetTypedProvider().GetValue()).To(Equal("true"))
 
 						// testing the recursive translation
-						Expect(restResolver.GetRequestTransform().GetJson().GetKeyValues()[0].GetKey()).To(Equal("k1"))
-						Expect(restResolver.GetRequestTransform().GetJson().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k2"))
-						Expect(restResolver.GetRequestTransform().GetJson().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetValue().GetValueProvider().GetTypedProvider().GetValue()).To(Equal("val"))
+						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k1"))
+						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k2"))
+						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetValue().GetValueProvider().GetTypedProvider().GetValue()).To(Equal("val"))
 					})
 
 				})

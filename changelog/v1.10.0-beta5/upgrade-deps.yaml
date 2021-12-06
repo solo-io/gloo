@@ -2,7 +2,7 @@ changelog:
   - type: DEPENDENCY_BUMP
     dependencyOwner: solo-io
     dependencyRepo: gloo
-    dependencyTag: v1.10.0-beta9
+    dependencyTag: v1.10.0-beta10
   - type: DEPENDENCY_BUMP
     dependencyOwner: solo-io
     dependencyRepo: skv2

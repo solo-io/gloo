@@ -246,19 +246,21 @@ var _ = Describe("graphql", func() {
 			Context("with body to upstream", func() {
 
 				BeforeEach(func() {
-					graphQlSchema.Resolutions[0].GetRestResolver().RequestTransform.OutgoingBody = &v1alpha1.RequestTemplate_Json{
-						Json: &v1alpha1.JsonNode{
-							KeyValues: []*v1alpha1.JsonKeyValue{
-								{
-									Key: "key1",
-									Value: &v1alpha1.JsonKeyValue_JsonValue{
-										JsonVal: &v1alpha1.JsonKeyValue_JsonValue_ValueProvider{
-											ValueProvider: &v1alpha1.ValueProvider{
-												Provider: &v1alpha1.ValueProvider_TypedProvider{
-													TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
-														Type: v1alpha1.ValueProvider_TypedValueProvider_STRING,
-														ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{
-															Value: "value1",
+					graphQlSchema.Resolutions[0].GetRestResolver().RequestTransform.OutgoingBody = &v1alpha1.JsonValue{
+						JsonVal: &v1alpha1.JsonValue_Node{
+							Node: &v1alpha1.JsonNode{
+								KeyValues: []*v1alpha1.JsonKeyValue{
+									{
+										Key: "key1",
+										Value: &v1alpha1.JsonValue{
+											JsonVal: &v1alpha1.JsonValue_ValueProvider{
+												ValueProvider: &v1alpha1.ValueProvider{
+													Provider: &v1alpha1.ValueProvider_TypedProvider{
+														TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
+															Type: v1alpha1.ValueProvider_TypedValueProvider_STRING,
+															ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{
+																Value: "value1",
+															},
 														},
 													},
 												},

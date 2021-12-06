@@ -1,3 +1,4 @@
+//go:build tools
 // +build tools
 
 /*
@@ -21,8 +22,10 @@ import (
 	_ "github.com/golang/mock/mockgen"
 	_ "github.com/google/wire/cmd/wire"
 	_ "github.com/solo-io/protoc-gen-ext"
+	_ "github.com/solo-io/protoc-gen-openapi"
 	_ "github.com/solo-io/solo-apis"
 	_ "golang.org/x/tools/cmd/goimports"
 	_ "istio.io/pkg/version"
+	_ "istio.io/tools/cmd/protoc-gen-jsonshim"
 	_ "k8s.io/code-generator"
 )

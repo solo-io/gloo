@@ -189,16 +189,18 @@ func translateRequestTransform(transform *v1alpha1.RequestTemplate) (*v2.Request
 		OutgoingBody: nil, // filled in later
 	}
 
-	switch ob := transform.OutgoingBody.(type) {
-	case *v1alpha1.RequestTemplate_Json:
-		jn, err := translateJsonNode(ob.Json)
+	switch ob := transform.OutgoingBody.GetJsonVal().(type) {
+	case *v1alpha1.JsonValue_Node:
+		jn, err := translateJsonNode(ob.Node)
 		if err != nil {
 			return nil, err
 		}
-		converted := &v2.RequestTemplate_Json{
-			Json: jn,
+		converted := &v2.JsonValue_Node{
+			Node: jn,
 		}
-		rt.OutgoingBody = converted
+		rt.OutgoingBody = &v2.JsonValue{
+			JsonVal: converted,
+		}
 	default:
 		if ob != nil {
 			return nil, errors.Errorf("unimplemented outgoing body type: %T", ob)
@@ -220,8 +222,8 @@ func translateJsonNode(jn *v1alpha1.JsonNode) (*v2.JsonNode, error) {
 
 		newkv := &v2.JsonKeyValue{
 			Key: kv.Key,
-			Value: &v2.JsonKeyValue_JsonValue{
-				JsonVal: newVal.JsonVal,
+			Value: &v2.JsonValue{
+				JsonVal: newVal.GetJsonVal(),
 			},
 		}
 		convertedKvs = append(convertedKvs, newkv)
@@ -229,21 +231,21 @@ func translateJsonNode(jn *v1alpha1.JsonNode) (*v2.JsonNode, error) {
 	return &v2.JsonNode{KeyValues: convertedKvs}, nil
 }
 
-func translateJsonValue(kv *v1alpha1.JsonKeyValue_JsonValue) (*v2.JsonKeyValue_JsonValue, error) {
-	newkv := &v2.JsonKeyValue_JsonValue{
+func translateJsonValue(kv *v1alpha1.JsonValue) (*v2.JsonValue, error) {
+	newkv := &v2.JsonValue{
 		JsonVal: nil, // filled in later
 	}
 
 	switch jv := kv.JsonVal.(type) {
-	case *v1alpha1.JsonKeyValue_JsonValue_Node:
+	case *v1alpha1.JsonValue_Node:
 		recurseNode, err := translateJsonNode(jv.Node)
 		if err != nil {
 			return nil, err
 		}
-		node := &v2.JsonKeyValue_JsonValue_Node{Node: recurseNode}
+		node := &v2.JsonValue_Node{Node: recurseNode}
 		newkv.JsonVal = node
-	case *v1alpha1.JsonKeyValue_JsonValue_List:
-		var convertedList []*v2.JsonKeyValue_JsonValue
+	case *v1alpha1.JsonValue_List:
+		var convertedList []*v2.JsonValue
 		for _, val := range jv.List.Values {
 			newVal, err := translateJsonValue(val)
 			if err != nil {
@@ -252,18 +254,18 @@ func translateJsonValue(kv *v1alpha1.JsonKeyValue_JsonValue) (*v2.JsonKeyValue_J
 			convertedList = append(convertedList, newVal)
 		}
 
-		list := &v2.JsonKeyValue_JsonValue_List{
-			List: &v2.JsonKeyValue_JsonValueList{
+		list := &v2.JsonValue_List{
+			List: &v2.JsonValueList{
 				Values: convertedList,
 			},
 		}
 		newkv.JsonVal = list
-	case *v1alpha1.JsonKeyValue_JsonValue_ValueProvider:
+	case *v1alpha1.JsonValue_ValueProvider:
 		convertedVp, err := translateValueProvider(jv.ValueProvider)
 		if err != nil {
 			return nil, err
 		}
-		vp := &v2.JsonKeyValue_JsonValue_ValueProvider{
+		vp := &v2.JsonValue_ValueProvider{
 			ValueProvider: convertedVp,
 		}
 		newkv.JsonVal = vp
