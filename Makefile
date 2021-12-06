@@ -47,7 +47,7 @@ ifneq ($(EMPTY_IF_NOT_DEFAULT),)
     ON_DEFAULT_BRANCH = "true"
 endif
 
-LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
+LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION) -X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn"
 GCFLAGS := 'all=-N -l'
 
 GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64
@@ -100,8 +100,8 @@ DEPSGOBIN=$(ROOTDIR)/.bin
 install-go-tools: mod-download
 	mkdir -p $(DEPSGOBIN)
 	GOBIN=$(DEPSGOBIN) go install istio.io/tools/cmd/protoc-gen-jsonshim
+	GOBIN=$(DEPSGOBIN) go install istio.io/pkg/version
 	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-ext
-	GOBIN=$(DEPSGOBIN) go install github.com/sam-heilbron/protoc-gen-openapi
 	GOBIN=$(DEPSGOBIN) go install golang.org/x/tools/cmd/goimports
 	GOBIN=$(DEPSGOBIN) go install github.com/envoyproxy/protoc-gen-validate
 	GOBIN=$(DEPSGOBIN) go install github.com/golang/protobuf/protoc-gen-go
@@ -138,6 +138,11 @@ clean-fed: clean-artifacts clean-generated-protos
 run-ci-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
 	$(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/$(KUBE2E_TESTS)/...
+
+.PHONE: run-ci-gloo-fed-regression-tests
+run-ci-gloo-fed-regression-tests: install-go-tools
+	go env -w GOPRIVATE=github.com/solo-io
+	REMOTE_CLUSTER_CONTEXT=kind-remote LOCAL_CLUSTER_CONTEXT=kind-local $(DEPSGOBIN)/ginkgo -r ./test/gloo-fed-e2e/...
 
 # command to run e2e tests
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
@@ -582,8 +587,9 @@ $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RATELIM
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
-    --build-arg USE_APK=true \
-    --build-arg GITHUB_TOKEN \
+		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg USE_APK=true \
+		--build-arg GITHUB_TOKEN \
 		.
 	touch $@
 
@@ -624,7 +630,8 @@ $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RA
 		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
-    --build-arg GITHUB_TOKEN \
+		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg GITHUB_TOKEN \
 		.
 	touch $@
 
@@ -672,6 +679,7 @@ $(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_OUT_DI
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg USE_APK=true \
 		--build-arg GITHUB_TOKEN \
 		.
@@ -699,6 +707,7 @@ ext-auth-plugins-docker: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 	docker build -t $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(RELATIVE_EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 \
 		--build-arg GITHUB_TOKEN \
 		--build-arg USE_APK=true \
@@ -732,6 +741,7 @@ $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_F
 		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg GITHUB_TOKEN \
 		.
 	touch $@
@@ -759,6 +769,7 @@ ext-auth-plugins-fips-docker: $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64
 	docker build -t $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(RELATIVE_EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 \
 		--build-arg GITHUB_TOKEN \
 		.
@@ -968,14 +979,13 @@ GLOOE_HELM_BUCKET := gs://gloo-ee-helm
 GLOO_FED_HELM_BUCKET := gs://gloo-fed-helm
 
 .PHONY: manifest
-manifest: helm-template init-helm produce-manifests
+manifest: init-helm produce-manifests
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
 .PHONY: helm-template
 helm-template:
 	mkdir -p $(MANIFEST_DIR)
 	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
-	mkdir -p $(HELM_SYNC_DIR_GLOO_FED)
 	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)"
 
 .PHONY: init-helm
@@ -989,7 +999,7 @@ $(OUTPUT_DIR)/.helm-initialized:
 	touch $@
 
 .PHONY: produce-manifests
-produce-manifests: init-helm gloofed-produce-manifests
+produce-manifests: gloofed-produce-manifests
 	helm template glooe install/helm/gloo-ee --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_EE)
 
 .PHONY: package-gloo-edge-chart

@@ -38,6 +38,20 @@ func (m *MockFederatedUpstreamSet) EXPECT() *MockFederatedUpstreamSetMockRecorde
 	return m.recorder
 }
 
+// Clone mocks base method.
+func (m *MockFederatedUpstreamSet) Clone() v1sets.FederatedUpstreamSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(v1sets.FederatedUpstreamSet)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockFederatedUpstreamSetMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockFederatedUpstreamSet)(nil).Clone))
+}
+
 // Delete mocks base method.
 func (m *MockFederatedUpstreamSet) Delete(federatedUpstream ezkube.ResourceId) {
 	m.ctrl.T.Helper()
@@ -280,6 +294,20 @@ func (m *MockFederatedUpstreamGroupSet) EXPECT() *MockFederatedUpstreamGroupSetM
 	return m.recorder
 }
 
+// Clone mocks base method.
+func (m *MockFederatedUpstreamGroupSet) Clone() v1sets.FederatedUpstreamGroupSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(v1sets.FederatedUpstreamGroupSet)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockFederatedUpstreamGroupSetMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockFederatedUpstreamGroupSet)(nil).Clone))
+}
+
 // Delete mocks base method.
 func (m *MockFederatedUpstreamGroupSet) Delete(federatedUpstreamGroup ezkube.ResourceId) {
 	m.ctrl.T.Helper()
@@ -520,6 +548,20 @@ func NewMockFederatedSettingsSet(ctrl *gomock.Controller) *MockFederatedSettings
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedSettingsSet) EXPECT() *MockFederatedSettingsSetMockRecorder {
 	return m.recorder
+}
+
+// Clone mocks base method.
+func (m *MockFederatedSettingsSet) Clone() v1sets.FederatedSettingsSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(v1sets.FederatedSettingsSet)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockFederatedSettingsSetMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockFederatedSettingsSet)(nil).Clone))
 }
 
 // Delete mocks base method.

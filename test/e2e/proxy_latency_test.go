@@ -3,7 +3,6 @@ package e2e_test
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/solo-io/gloo/test/helpers"
@@ -14,14 +13,10 @@ import (
 	envoy_hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/fgrosse/zaptest"
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/proxylatency"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
@@ -55,6 +50,7 @@ var _ = Describe("Proxy latency", func() {
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
 		// Initialize settings for extauthrunner
+		settings.GlooAddress = fmt.Sprintf("localhost:%d", testClients.GlooPort)
 		settings.ExtAuthSettings.HealthCheckHttpPath = "/healthcheck"
 		settings.ExtAuthSettings.HealthCheckHttpPort = int(services.AllocateGlooPort())
 
@@ -146,7 +142,13 @@ func getFilters(envoyInstance *services.EnvoyInstance) ([]string, error) {
 		return nil, err
 	}
 
-	jsonpbMarshaler := &jsonpb.Unmarshaler{AnyResolver: anyResolver{}} // needs AnyResolver to unmarshal gogo protos, only golang protos are registered
+	jsonpbMarshaler := &jsonpb.Unmarshaler{
+		// Ever since upgrading the go-control-plane to v0.10.1 this test fails with the following error:
+		// unknown field \"hidden_envoy_deprecated_build_version\" in envoy.config.core.v3.Node"
+		// Set AllowUnknownFields to true to get around this
+		AllowUnknownFields: true,
+	}
+
 	var cfgDump envoy_admin_v3.ConfigDump
 	if err = jsonpbMarshaler.Unmarshal(resp.Body, &cfgDump); err != nil {
 		return nil, err
@@ -239,27 +241,4 @@ func getProxyLatencyProxy(envoyPort uint32, upstream *core.ResourceRef) *gloov1.
 	}
 
 	return p
-}
-
-type anyResolver struct{}
-
-func (a anyResolver) Resolve(typeUrl string) (proto.Message, error) {
-	messageType := typeUrl
-	if slash := strings.LastIndex(typeUrl, "/"); slash >= 0 {
-		messageType = messageType[slash+1:]
-	}
-	switch messageType {
-	case "envoy.config.filter.http.modsecurity.v2.ModSecurity":
-		return &waf.ModSecurity{}, nil
-	case "envoy.config.filter.http.sanitize.v2.Sanitize":
-		return &extauth.Sanitize{}, nil
-	case "envoy.config.filter.http.proxylatency.v2.ProxyLatency":
-		return &proxylatency.ProxyLatency{}, nil
-	default:
-		mt := proto.MessageType(messageType)
-		if mt == nil {
-			return nil, eris.Errorf("unknown message type %q", messageType)
-		}
-		return reflect.New(mt.Elem()).Interface().(proto.Message), nil
-	}
 }

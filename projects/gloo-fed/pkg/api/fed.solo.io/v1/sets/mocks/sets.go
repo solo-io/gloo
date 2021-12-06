@@ -38,6 +38,20 @@ func (m *MockGlooInstanceSet) EXPECT() *MockGlooInstanceSetMockRecorder {
 	return m.recorder
 }
 
+// Clone mocks base method.
+func (m *MockGlooInstanceSet) Clone() v1sets.GlooInstanceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(v1sets.GlooInstanceSet)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockGlooInstanceSetMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockGlooInstanceSet)(nil).Clone))
+}
+
 // Delete mocks base method.
 func (m *MockGlooInstanceSet) Delete(glooInstance ezkube.ResourceId) {
 	m.ctrl.T.Helper()
@@ -278,6 +292,20 @@ func NewMockFailoverSchemeSet(ctrl *gomock.Controller) *MockFailoverSchemeSet {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFailoverSchemeSet) EXPECT() *MockFailoverSchemeSetMockRecorder {
 	return m.recorder
+}
+
+// Clone mocks base method.
+func (m *MockFailoverSchemeSet) Clone() v1sets.FailoverSchemeSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(v1sets.FailoverSchemeSet)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockFailoverSchemeSetMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockFailoverSchemeSet)(nil).Clone))
 }
 
 // Delete mocks base method.

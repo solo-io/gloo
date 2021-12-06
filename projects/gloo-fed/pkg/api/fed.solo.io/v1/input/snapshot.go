@@ -30,6 +30,8 @@ import (
 	"context"
 	"encoding/json"
 
+	snapshotutils "github.com/solo-io/skv2/contrib/pkg/snapshot"
+
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/skv2/pkg/resource"
 	"github.com/solo-io/skv2/pkg/verifier"
@@ -70,7 +72,6 @@ import (
 
 // SnapshotGVKs is a list of the GVKs included in this snapshot
 var SnapshotGVKs = []schema.GroupVersionKind{
-
 	schema.GroupVersionKind{
 		Group:   "",
 		Version: "v1",
@@ -81,7 +82,6 @@ var SnapshotGVKs = []schema.GroupVersionKind{
 		Version: "v1",
 		Kind:    "Pod",
 	},
-
 	schema.GroupVersionKind{
 		Group:   "apps",
 		Version: "v1",
@@ -92,7 +92,6 @@ var SnapshotGVKs = []schema.GroupVersionKind{
 		Version: "v1",
 		Kind:    "DaemonSet",
 	},
-
 	schema.GroupVersionKind{
 		Group:   "gateway.solo.io",
 		Version: "v1",
@@ -108,7 +107,6 @@ var SnapshotGVKs = []schema.GroupVersionKind{
 		Version: "v1",
 		Kind:    "RouteTable",
 	},
-
 	schema.GroupVersionKind{
 		Group:   "gloo.solo.io",
 		Version: "v1",
@@ -129,13 +127,11 @@ var SnapshotGVKs = []schema.GroupVersionKind{
 		Version: "v1",
 		Kind:    "Proxy",
 	},
-
 	schema.GroupVersionKind{
 		Group:   "enterprise.gloo.solo.io",
 		Version: "v1",
 		Kind:    "AuthConfig",
 	},
-
 	schema.GroupVersionKind{
 		Group:   "ratelimit.api.solo.io",
 		Version: "v1alpha1",
@@ -185,6 +181,15 @@ type Snapshot interface {
 	SyncStatuses(ctx context.Context, c client.Client, opts SyncStatusOptions) error
 	// serialize the entire snapshot as JSON
 	MarshalJSON() ([]byte, error)
+
+	// Clone the snapshot
+	Clone() Snapshot
+
+	// convert this snapshot to its generic form.
+	Generic() resource.ClusterSnapshot
+
+	// iterate over the objects contained in the snapshot
+	ForEachObject(handleObject func(cluster string, gvk schema.GroupVersionKind, obj resource.TypedObject))
 }
 
 // options for syncing input object statuses
@@ -456,59 +461,59 @@ func NewSnapshotFromGeneric(
 	)
 }
 
-func (s snapshot) Services() v1_sets.ServiceSet {
+func (s *snapshot) Services() v1_sets.ServiceSet {
 	return s.services
 }
 
-func (s snapshot) Pods() v1_sets.PodSet {
+func (s *snapshot) Pods() v1_sets.PodSet {
 	return s.pods
 }
 
-func (s snapshot) Deployments() apps_v1_sets.DeploymentSet {
+func (s *snapshot) Deployments() apps_v1_sets.DeploymentSet {
 	return s.deployments
 }
 
-func (s snapshot) DaemonSets() apps_v1_sets.DaemonSetSet {
+func (s *snapshot) DaemonSets() apps_v1_sets.DaemonSetSet {
 	return s.daemonSets
 }
 
-func (s snapshot) Gateways() gateway_solo_io_v1_sets.GatewaySet {
+func (s *snapshot) Gateways() gateway_solo_io_v1_sets.GatewaySet {
 	return s.gateways
 }
 
-func (s snapshot) VirtualServices() gateway_solo_io_v1_sets.VirtualServiceSet {
+func (s *snapshot) VirtualServices() gateway_solo_io_v1_sets.VirtualServiceSet {
 	return s.virtualServices
 }
 
-func (s snapshot) RouteTables() gateway_solo_io_v1_sets.RouteTableSet {
+func (s *snapshot) RouteTables() gateway_solo_io_v1_sets.RouteTableSet {
 	return s.routeTables
 }
 
-func (s snapshot) Upstreams() gloo_solo_io_v1_sets.UpstreamSet {
+func (s *snapshot) Upstreams() gloo_solo_io_v1_sets.UpstreamSet {
 	return s.upstreams
 }
 
-func (s snapshot) UpstreamGroups() gloo_solo_io_v1_sets.UpstreamGroupSet {
+func (s *snapshot) UpstreamGroups() gloo_solo_io_v1_sets.UpstreamGroupSet {
 	return s.upstreamGroups
 }
 
-func (s snapshot) Settings() gloo_solo_io_v1_sets.SettingsSet {
+func (s *snapshot) Settings() gloo_solo_io_v1_sets.SettingsSet {
 	return s.settings
 }
 
-func (s snapshot) Proxies() gloo_solo_io_v1_sets.ProxySet {
+func (s *snapshot) Proxies() gloo_solo_io_v1_sets.ProxySet {
 	return s.proxies
 }
 
-func (s snapshot) AuthConfigs() enterprise_gloo_solo_io_v1_sets.AuthConfigSet {
+func (s *snapshot) AuthConfigs() enterprise_gloo_solo_io_v1_sets.AuthConfigSet {
 	return s.authConfigs
 }
 
-func (s snapshot) RateLimitConfigs() ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet {
+func (s *snapshot) RateLimitConfigs() ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet {
 	return s.rateLimitConfigs
 }
 
-func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicluster.Client, opts SyncStatusOptions) error {
+func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicluster.Client, opts SyncStatusOptions) error {
 	var errs error
 
 	if opts.Gateway {
@@ -625,7 +630,7 @@ func (s snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multicl
 	return errs
 }
 
-func (s snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncStatusOptions) error {
+func (s *snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncStatusOptions) error {
 	var errs error
 
 	if opts.Gateway {
@@ -697,23 +702,262 @@ func (s snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncSt
 	return errs
 }
 
-func (s snapshot) MarshalJSON() ([]byte, error) {
+func (s *snapshot) MarshalJSON() ([]byte, error) {
 	snapshotMap := map[string]interface{}{"name": s.name}
 
-	snapshotMap["services"] = s.services.List()
-	snapshotMap["pods"] = s.pods.List()
-	snapshotMap["deployments"] = s.deployments.List()
-	snapshotMap["daemonSets"] = s.daemonSets.List()
-	snapshotMap["gateways"] = s.gateways.List()
-	snapshotMap["virtualServices"] = s.virtualServices.List()
-	snapshotMap["routeTables"] = s.routeTables.List()
-	snapshotMap["upstreams"] = s.upstreams.List()
-	snapshotMap["upstreamGroups"] = s.upstreamGroups.List()
-	snapshotMap["settings"] = s.settings.List()
-	snapshotMap["proxies"] = s.proxies.List()
-	snapshotMap["authConfigs"] = s.authConfigs.List()
-	snapshotMap["rateLimitConfigs"] = s.rateLimitConfigs.List()
+	serviceSet := v1_sets.NewServiceSet()
+	for _, obj := range s.services.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		serviceSet.Insert(obj.(*v1_types.Service))
+	}
+	snapshotMap["services"] = serviceSet.List()
+	podSet := v1_sets.NewPodSet()
+	for _, obj := range s.pods.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		podSet.Insert(obj.(*v1_types.Pod))
+	}
+	snapshotMap["pods"] = podSet.List()
+
+	deploymentSet := apps_v1_sets.NewDeploymentSet()
+	for _, obj := range s.deployments.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		deploymentSet.Insert(obj.(*apps_v1_types.Deployment))
+	}
+	snapshotMap["deployments"] = deploymentSet.List()
+	daemonSetSet := apps_v1_sets.NewDaemonSetSet()
+	for _, obj := range s.daemonSets.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		daemonSetSet.Insert(obj.(*apps_v1_types.DaemonSet))
+	}
+	snapshotMap["daemonSets"] = daemonSetSet.List()
+
+	gatewaySet := gateway_solo_io_v1_sets.NewGatewaySet()
+	for _, obj := range s.gateways.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		gatewaySet.Insert(obj.(*gateway_solo_io_v1_types.Gateway))
+	}
+	snapshotMap["gateways"] = gatewaySet.List()
+	virtualServiceSet := gateway_solo_io_v1_sets.NewVirtualServiceSet()
+	for _, obj := range s.virtualServices.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		virtualServiceSet.Insert(obj.(*gateway_solo_io_v1_types.VirtualService))
+	}
+	snapshotMap["virtualServices"] = virtualServiceSet.List()
+	routeTableSet := gateway_solo_io_v1_sets.NewRouteTableSet()
+	for _, obj := range s.routeTables.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		routeTableSet.Insert(obj.(*gateway_solo_io_v1_types.RouteTable))
+	}
+	snapshotMap["routeTables"] = routeTableSet.List()
+
+	upstreamSet := gloo_solo_io_v1_sets.NewUpstreamSet()
+	for _, obj := range s.upstreams.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		upstreamSet.Insert(obj.(*gloo_solo_io_v1_types.Upstream))
+	}
+	snapshotMap["upstreams"] = upstreamSet.List()
+	upstreamGroupSet := gloo_solo_io_v1_sets.NewUpstreamGroupSet()
+	for _, obj := range s.upstreamGroups.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		upstreamGroupSet.Insert(obj.(*gloo_solo_io_v1_types.UpstreamGroup))
+	}
+	snapshotMap["upstreamGroups"] = upstreamGroupSet.List()
+	settingsSet := gloo_solo_io_v1_sets.NewSettingsSet()
+	for _, obj := range s.settings.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		settingsSet.Insert(obj.(*gloo_solo_io_v1_types.Settings))
+	}
+	snapshotMap["settings"] = settingsSet.List()
+	proxySet := gloo_solo_io_v1_sets.NewProxySet()
+	for _, obj := range s.proxies.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		proxySet.Insert(obj.(*gloo_solo_io_v1_types.Proxy))
+	}
+	snapshotMap["proxies"] = proxySet.List()
+
+	authConfigSet := enterprise_gloo_solo_io_v1_sets.NewAuthConfigSet()
+	for _, obj := range s.authConfigs.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		authConfigSet.Insert(obj.(*enterprise_gloo_solo_io_v1_types.AuthConfig))
+	}
+	snapshotMap["authConfigs"] = authConfigSet.List()
+
+	rateLimitConfigSet := ratelimit_api_solo_io_v1alpha1_sets.NewRateLimitConfigSet()
+	for _, obj := range s.rateLimitConfigs.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		rateLimitConfigSet.Insert(obj.(*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig))
+	}
+	snapshotMap["rateLimitConfigs"] = rateLimitConfigSet.List()
 	return json.Marshal(snapshotMap)
+}
+
+func (s *snapshot) Clone() Snapshot {
+	return &snapshot{
+		name: s.name,
+
+		services:         s.services.Clone(),
+		pods:             s.pods.Clone(),
+		deployments:      s.deployments.Clone(),
+		daemonSets:       s.daemonSets.Clone(),
+		gateways:         s.gateways.Clone(),
+		virtualServices:  s.virtualServices.Clone(),
+		routeTables:      s.routeTables.Clone(),
+		upstreams:        s.upstreams.Clone(),
+		upstreamGroups:   s.upstreamGroups.Clone(),
+		settings:         s.settings.Clone(),
+		proxies:          s.proxies.Clone(),
+		authConfigs:      s.authConfigs.Clone(),
+		rateLimitConfigs: s.rateLimitConfigs.Clone(),
+	}
+}
+
+func (s *snapshot) Generic() resource.ClusterSnapshot {
+	clusterSnapshots := resource.ClusterSnapshot{}
+	s.ForEachObject(func(cluster string, gvk schema.GroupVersionKind, obj resource.TypedObject) {
+		clusterSnapshots.Insert(cluster, gvk, obj)
+	})
+
+	return clusterSnapshots
+}
+
+// convert this snapshot to its generic form
+func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.GroupVersionKind, obj resource.TypedObject)) {
+
+	for _, obj := range s.services.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "",
+			Version: "v1",
+			Kind:    "Service",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+	for _, obj := range s.pods.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "",
+			Version: "v1",
+			Kind:    "Pod",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+
+	for _, obj := range s.deployments.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "apps",
+			Version: "v1",
+			Kind:    "Deployment",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+	for _, obj := range s.daemonSets.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "apps",
+			Version: "v1",
+			Kind:    "DaemonSet",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+
+	for _, obj := range s.gateways.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "Gateway",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+	for _, obj := range s.virtualServices.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "VirtualService",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+	for _, obj := range s.routeTables.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "RouteTable",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+
+	for _, obj := range s.upstreams.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "Upstream",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+	for _, obj := range s.upstreamGroups.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "UpstreamGroup",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+	for _, obj := range s.settings.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "Settings",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+	for _, obj := range s.proxies.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "gloo.solo.io",
+			Version: "v1",
+			Kind:    "Proxy",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+
+	for _, obj := range s.authConfigs.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "enterprise.gloo.solo.io",
+			Version: "v1",
+			Kind:    "AuthConfig",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+
+	for _, obj := range s.rateLimitConfigs.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "ratelimit.api.solo.io",
+			Version: "v1alpha1",
+			Kind:    "RateLimitConfig",
+		}
+		handleObject(cluster, gvk, obj)
+	}
 }
 
 // builds the input snapshot from API Clients.

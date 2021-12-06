@@ -38,6 +38,20 @@ func (m *MockFederatedAuthConfigSet) EXPECT() *MockFederatedAuthConfigSetMockRec
 	return m.recorder
 }
 
+// Clone mocks base method.
+func (m *MockFederatedAuthConfigSet) Clone() v1sets.FederatedAuthConfigSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(v1sets.FederatedAuthConfigSet)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockFederatedAuthConfigSetMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockFederatedAuthConfigSet)(nil).Clone))
+}
+
 // Delete mocks base method.
 func (m *MockFederatedAuthConfigSet) Delete(federatedAuthConfig ezkube.ResourceId) {
 	m.ctrl.T.Helper()

@@ -6,16 +6,27 @@ package types
 
 import (
 	proto "github.com/golang/protobuf/proto"
+	"github.com/solo-io/protoc-gen-ext/pkg/clone"
 )
 
 // DeepCopyInto for the FederatedAuthConfig.Spec
 func (in *FederatedAuthConfigSpec) DeepCopyInto(out *FederatedAuthConfigSpec) {
-	p := proto.Clone(in).(*FederatedAuthConfigSpec)
+	var p *FederatedAuthConfigSpec
+	if h, ok := interface{}(in).(clone.Cloner); ok {
+		p = h.Clone().(*FederatedAuthConfigSpec)
+	} else {
+		p = proto.Clone(in).(*FederatedAuthConfigSpec)
+	}
 	*out = *p
 }
 
 // DeepCopyInto for the FederatedAuthConfig.Status
 func (in *FederatedAuthConfigStatus) DeepCopyInto(out *FederatedAuthConfigStatus) {
-	p := proto.Clone(in).(*FederatedAuthConfigStatus)
+	var p *FederatedAuthConfigStatus
+	if h, ok := interface{}(in).(clone.Cloner); ok {
+		p = h.Clone().(*FederatedAuthConfigStatus)
+	} else {
+		p = proto.Clone(in).(*FederatedAuthConfigStatus)
+	}
 	*out = *p
 }

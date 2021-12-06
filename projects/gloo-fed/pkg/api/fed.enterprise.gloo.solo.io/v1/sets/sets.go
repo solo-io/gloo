@@ -44,6 +44,8 @@ type FederatedAuthConfigSet interface {
 	Generic() sksets.ResourceSet
 	// returns the delta between this and and another FederatedAuthConfigSet
 	Delta(newSet FederatedAuthConfigSet) sksets.ResourceDelta
+	// Create a deep copy of the current FederatedAuthConfigSet
+	Clone() FederatedAuthConfigSet
 }
 
 func makeGenericFederatedAuthConfigSet(federatedAuthConfigList []*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig) sksets.ResourceSet {
@@ -221,4 +223,11 @@ func (s *federatedAuthConfigSet) Delta(newSet FederatedAuthConfigSet) sksets.Res
 		}
 	}
 	return s.Generic().Delta(newSet.Generic())
+}
+
+func (s *federatedAuthConfigSet) Clone() FederatedAuthConfigSet {
+	if s == nil {
+		return nil
+	}
+	return &federatedAuthConfigSet{set: sksets.NewResourceSet(s.Generic().Clone().List()...)}
 }

@@ -44,6 +44,8 @@ type FederatedGatewaySet interface {
 	Generic() sksets.ResourceSet
 	// returns the delta between this and and another FederatedGatewaySet
 	Delta(newSet FederatedGatewaySet) sksets.ResourceDelta
+	// Create a deep copy of the current FederatedGatewaySet
+	Clone() FederatedGatewaySet
 }
 
 func makeGenericFederatedGatewaySet(federatedGatewayList []*fed_gateway_solo_io_v1.FederatedGateway) sksets.ResourceSet {
@@ -223,6 +225,13 @@ func (s *federatedGatewaySet) Delta(newSet FederatedGatewaySet) sksets.ResourceD
 	return s.Generic().Delta(newSet.Generic())
 }
 
+func (s *federatedGatewaySet) Clone() FederatedGatewaySet {
+	if s == nil {
+		return nil
+	}
+	return &federatedGatewaySet{set: sksets.NewResourceSet(s.Generic().Clone().List()...)}
+}
+
 type FederatedVirtualServiceSet interface {
 	// Get the set stored keys
 	Keys() sets.String
@@ -254,6 +263,8 @@ type FederatedVirtualServiceSet interface {
 	Generic() sksets.ResourceSet
 	// returns the delta between this and and another FederatedVirtualServiceSet
 	Delta(newSet FederatedVirtualServiceSet) sksets.ResourceDelta
+	// Create a deep copy of the current FederatedVirtualServiceSet
+	Clone() FederatedVirtualServiceSet
 }
 
 func makeGenericFederatedVirtualServiceSet(federatedVirtualServiceList []*fed_gateway_solo_io_v1.FederatedVirtualService) sksets.ResourceSet {
@@ -433,6 +444,13 @@ func (s *federatedVirtualServiceSet) Delta(newSet FederatedVirtualServiceSet) sk
 	return s.Generic().Delta(newSet.Generic())
 }
 
+func (s *federatedVirtualServiceSet) Clone() FederatedVirtualServiceSet {
+	if s == nil {
+		return nil
+	}
+	return &federatedVirtualServiceSet{set: sksets.NewResourceSet(s.Generic().Clone().List()...)}
+}
+
 type FederatedRouteTableSet interface {
 	// Get the set stored keys
 	Keys() sets.String
@@ -464,6 +482,8 @@ type FederatedRouteTableSet interface {
 	Generic() sksets.ResourceSet
 	// returns the delta between this and and another FederatedRouteTableSet
 	Delta(newSet FederatedRouteTableSet) sksets.ResourceDelta
+	// Create a deep copy of the current FederatedRouteTableSet
+	Clone() FederatedRouteTableSet
 }
 
 func makeGenericFederatedRouteTableSet(federatedRouteTableList []*fed_gateway_solo_io_v1.FederatedRouteTable) sksets.ResourceSet {
@@ -641,4 +661,11 @@ func (s *federatedRouteTableSet) Delta(newSet FederatedRouteTableSet) sksets.Res
 		}
 	}
 	return s.Generic().Delta(newSet.Generic())
+}
+
+func (s *federatedRouteTableSet) Clone() FederatedRouteTableSet {
+	if s == nil {
+		return nil
+	}
+	return &federatedRouteTableSet{set: sksets.NewResourceSet(s.Generic().Clone().List()...)}
 }

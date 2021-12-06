@@ -4526,7 +4526,8 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.toObject = function(inclu
     options: (f = msg.getOptions()) && proto.enterprise.gloo.solo.io.RedisOptions.toObject(includeInstance, f),
     keyPrefix: jspb.Message.getFieldWithDefault(msg, 2, ""),
     cookieName: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    allowRefreshing: (f = msg.getAllowRefreshing()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    allowRefreshing: (f = msg.getAllowRefreshing()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    preExpiryBuffer: (f = msg.getPreExpiryBuffer()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -4580,6 +4581,11 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.deserializeBinaryFromRead
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setAllowRefreshing(value);
+      break;
+    case 5:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setPreExpiryBuffer(value);
       break;
     default:
       reader.skipField();
@@ -4638,6 +4644,14 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.serializeBinaryToWriter =
       4,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getPreExpiryBuffer();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -4730,6 +4744,36 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.clearAllowRefre
  */
 proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.hasAllowRefreshing = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration pre_expiry_buffer = 5;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.getPreExpiryBuffer = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 5));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.setPreExpiryBuffer = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.clearPreExpiryBuffer = function() {
+  this.setPreExpiryBuffer(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.hasPreExpiryBuffer = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

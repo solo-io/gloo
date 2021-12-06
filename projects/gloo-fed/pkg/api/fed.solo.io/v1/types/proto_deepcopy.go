@@ -6,28 +6,49 @@ package types
 
 import (
 	proto "github.com/golang/protobuf/proto"
+	"github.com/solo-io/protoc-gen-ext/pkg/clone"
 )
 
 // DeepCopyInto for the GlooInstance.Spec
 func (in *GlooInstanceSpec) DeepCopyInto(out *GlooInstanceSpec) {
-	p := proto.Clone(in).(*GlooInstanceSpec)
+	var p *GlooInstanceSpec
+	if h, ok := interface{}(in).(clone.Cloner); ok {
+		p = h.Clone().(*GlooInstanceSpec)
+	} else {
+		p = proto.Clone(in).(*GlooInstanceSpec)
+	}
 	*out = *p
 }
 
 // DeepCopyInto for the GlooInstance.Status
 func (in *GlooInstanceStatus) DeepCopyInto(out *GlooInstanceStatus) {
-	p := proto.Clone(in).(*GlooInstanceStatus)
+	var p *GlooInstanceStatus
+	if h, ok := interface{}(in).(clone.Cloner); ok {
+		p = h.Clone().(*GlooInstanceStatus)
+	} else {
+		p = proto.Clone(in).(*GlooInstanceStatus)
+	}
 	*out = *p
 }
 
 // DeepCopyInto for the FailoverScheme.Spec
 func (in *FailoverSchemeSpec) DeepCopyInto(out *FailoverSchemeSpec) {
-	p := proto.Clone(in).(*FailoverSchemeSpec)
+	var p *FailoverSchemeSpec
+	if h, ok := interface{}(in).(clone.Cloner); ok {
+		p = h.Clone().(*FailoverSchemeSpec)
+	} else {
+		p = proto.Clone(in).(*FailoverSchemeSpec)
+	}
 	*out = *p
 }
 
 // DeepCopyInto for the FailoverScheme.Status
 func (in *FailoverSchemeStatus) DeepCopyInto(out *FailoverSchemeStatus) {
-	p := proto.Clone(in).(*FailoverSchemeStatus)
+	var p *FailoverSchemeStatus
+	if h, ok := interface{}(in).(clone.Cloner); ok {
+		p = h.Clone().(*FailoverSchemeStatus)
+	} else {
+		p = proto.Clone(in).(*FailoverSchemeStatus)
+	}
 	*out = *p
 }

@@ -263,7 +263,7 @@
 |gloo.gloo.splitLogOutput|bool||Set to true to send debug/info/warning logs to stdout, error/fatal/panic to stderr. Set to false to send all logs to stdout|
 |gloo.gloo.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gloo.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
-|gloo.discovery.deployment.image.tag|string|1.10.0-beta7|tag for the container|
+|gloo.discovery.deployment.image.tag|string|1.10.0-beta9|tag for the container|
 |gloo.discovery.deployment.image.repository|string||image name (repository) for the container.|
 |gloo.discovery.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.discovery.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -313,6 +313,7 @@
 |gloo.discovery.deployment.resources.requests.cpu|string||amount of CPUs|
 |gloo.discovery.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.discovery.fdsMode|string||mode for function discovery (blacklist or whitelist). See more info in the settings docs|
+|gloo.discovery.udsOptions.enabled|bool||Enable upstream discovery service. Defaults to true.|
 |gloo.discovery.enabled|bool||enable Discovery features|
 |gloo.discovery.serviceAccount.extraAnnotations.NAME|string||extra annotations to add to the service account|
 |gloo.discovery.serviceAccount.disableAutomount|bool||disable automunting the service account to the gateway proxy. not mounting the token hardens the proxy container, but may interfere with service mesh integrations|
@@ -331,7 +332,7 @@
 |gloo.gateway.validation.webhook.extraAnnotations.NAME|string||extra annotations to add to the webhook|
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
-|gloo.gateway.deployment.image.tag|string|1.10.0-beta7|tag for the container|
+|gloo.gateway.deployment.image.tag|string|1.10.0-beta9|tag for the container|
 |gloo.gateway.deployment.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -378,7 +379,7 @@
 |gloo.gateway.deployment.resources.requests.memory|string||amount of memory|
 |gloo.gateway.deployment.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.certGenJob.image.tag|string|1.10.0-beta7|tag for the container|
+|gloo.gateway.certGenJob.image.tag|string|1.10.0-beta9|tag for the container|
 |gloo.gateway.certGenJob.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.certGenJob.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -499,6 +500,7 @@
 |gloo.gatewayProxies.NAME.podTemplate.customReadinessProbe.periodSeconds|int32|||
 |gloo.gatewayProxies.NAME.podTemplate.customReadinessProbe.successThreshold|int32|||
 |gloo.gatewayProxies.NAME.podTemplate.customReadinessProbe.failureThreshold|int32|||
+|gloo.gatewayProxies.NAME.podTemplate.customReadinessProbe.terminationGracePeriodSeconds|int64|||
 |gloo.gatewayProxies.NAME.podTemplate.extraGatewayProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge gateway-proxy deployment.|
 |gloo.gatewayProxies.NAME.podTemplate.enablePodSecurityContext|bool||Whether or not to render the pod security context. Default is true|
 |gloo.gatewayProxies.NAME.configMap.data.NAME|string|||
@@ -669,6 +671,7 @@
 |gloo.gatewayProxies.gatewayProxy.podTemplate.customReadinessProbe.periodSeconds|int32|||
 |gloo.gatewayProxies.gatewayProxy.podTemplate.customReadinessProbe.successThreshold|int32|||
 |gloo.gatewayProxies.gatewayProxy.podTemplate.customReadinessProbe.failureThreshold|int32|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customReadinessProbe.terminationGracePeriodSeconds|int64|||
 |gloo.gatewayProxies.gatewayProxy.podTemplate.extraGatewayProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge gateway-proxy deployment.|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.enablePodSecurityContext|bool||Whether or not to render the pod security context. Default is true|
 |gloo.gatewayProxies.gatewayProxy.configMap.data.NAME|string|||
@@ -1129,7 +1132,7 @@
 |global.glooStats.enabled|bool|true|Controls whether or not envoy stats are enabled|
 |global.glooStats.routePrefixRewrite|string|/stats/prometheus|The envoy stats endpoint to which the metrics are written|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.10.0-beta7|tag for the container|
+|global.glooMtls.sds.image.tag|string|1.10.0-beta9|tag for the container|
 |global.glooMtls.sds.image.repository|string||image name (repository) for the container.|
 |global.glooMtls.sds.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |global.glooMtls.sds.image.pullPolicy|string||image pull policy for the container|

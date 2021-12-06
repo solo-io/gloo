@@ -38,6 +38,20 @@ func (m *MockFederatedGatewaySet) EXPECT() *MockFederatedGatewaySetMockRecorder 
 	return m.recorder
 }
 
+// Clone mocks base method.
+func (m *MockFederatedGatewaySet) Clone() v1sets.FederatedGatewaySet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(v1sets.FederatedGatewaySet)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockFederatedGatewaySetMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockFederatedGatewaySet)(nil).Clone))
+}
+
 // Delete mocks base method.
 func (m *MockFederatedGatewaySet) Delete(federatedGateway ezkube.ResourceId) {
 	m.ctrl.T.Helper()
@@ -280,6 +294,20 @@ func (m *MockFederatedVirtualServiceSet) EXPECT() *MockFederatedVirtualServiceSe
 	return m.recorder
 }
 
+// Clone mocks base method.
+func (m *MockFederatedVirtualServiceSet) Clone() v1sets.FederatedVirtualServiceSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(v1sets.FederatedVirtualServiceSet)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockFederatedVirtualServiceSetMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockFederatedVirtualServiceSet)(nil).Clone))
+}
+
 // Delete mocks base method.
 func (m *MockFederatedVirtualServiceSet) Delete(federatedVirtualService ezkube.ResourceId) {
 	m.ctrl.T.Helper()
@@ -520,6 +548,20 @@ func NewMockFederatedRouteTableSet(ctrl *gomock.Controller) *MockFederatedRouteT
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFederatedRouteTableSet) EXPECT() *MockFederatedRouteTableSetMockRecorder {
 	return m.recorder
+}
+
+// Clone mocks base method.
+func (m *MockFederatedRouteTableSet) Clone() v1sets.FederatedRouteTableSet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(v1sets.FederatedRouteTableSet)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockFederatedRouteTableSetMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockFederatedRouteTableSet)(nil).Clone))
 }
 
 // Delete mocks base method.

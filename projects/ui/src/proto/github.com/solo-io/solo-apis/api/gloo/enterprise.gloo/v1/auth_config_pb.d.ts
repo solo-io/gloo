@@ -669,6 +669,11 @@ export namespace UserSession {
     getAllowRefreshing(): google_protobuf_wrappers_pb.BoolValue | undefined;
     setAllowRefreshing(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+    hasPreExpiryBuffer(): boolean;
+    clearPreExpiryBuffer(): void;
+    getPreExpiryBuffer(): google_protobuf_duration_pb.Duration | undefined;
+    setPreExpiryBuffer(value?: google_protobuf_duration_pb.Duration): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): RedisSession.AsObject;
     static toObject(includeInstance: boolean, msg: RedisSession): RedisSession.AsObject;
@@ -685,6 +690,7 @@ export namespace UserSession {
       keyPrefix: string,
       cookieName: string,
       allowRefreshing?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      preExpiryBuffer?: google_protobuf_duration_pb.Duration.AsObject,
     }
   }
 

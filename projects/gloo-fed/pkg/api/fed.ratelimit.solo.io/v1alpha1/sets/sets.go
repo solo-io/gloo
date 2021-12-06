@@ -44,6 +44,8 @@ type FederatedRateLimitConfigSet interface {
 	Generic() sksets.ResourceSet
 	// returns the delta between this and and another FederatedRateLimitConfigSet
 	Delta(newSet FederatedRateLimitConfigSet) sksets.ResourceDelta
+	// Create a deep copy of the current FederatedRateLimitConfigSet
+	Clone() FederatedRateLimitConfigSet
 }
 
 func makeGenericFederatedRateLimitConfigSet(federatedRateLimitConfigList []*fed_ratelimit_solo_io_v1alpha1.FederatedRateLimitConfig) sksets.ResourceSet {
@@ -221,4 +223,11 @@ func (s *federatedRateLimitConfigSet) Delta(newSet FederatedRateLimitConfigSet) 
 		}
 	}
 	return s.Generic().Delta(newSet.Generic())
+}
+
+func (s *federatedRateLimitConfigSet) Clone() FederatedRateLimitConfigSet {
+	if s == nil {
+		return nil
+	}
+	return &federatedRateLimitConfigSet{set: sksets.NewResourceSet(s.Generic().Clone().List()...)}
 }

@@ -44,6 +44,8 @@ type GlooInstanceSet interface {
 	Generic() sksets.ResourceSet
 	// returns the delta between this and and another GlooInstanceSet
 	Delta(newSet GlooInstanceSet) sksets.ResourceDelta
+	// Create a deep copy of the current GlooInstanceSet
+	Clone() GlooInstanceSet
 }
 
 func makeGenericGlooInstanceSet(glooInstanceList []*fed_solo_io_v1.GlooInstance) sksets.ResourceSet {
@@ -223,6 +225,13 @@ func (s *glooInstanceSet) Delta(newSet GlooInstanceSet) sksets.ResourceDelta {
 	return s.Generic().Delta(newSet.Generic())
 }
 
+func (s *glooInstanceSet) Clone() GlooInstanceSet {
+	if s == nil {
+		return nil
+	}
+	return &glooInstanceSet{set: sksets.NewResourceSet(s.Generic().Clone().List()...)}
+}
+
 type FailoverSchemeSet interface {
 	// Get the set stored keys
 	Keys() sets.String
@@ -254,6 +263,8 @@ type FailoverSchemeSet interface {
 	Generic() sksets.ResourceSet
 	// returns the delta between this and and another FailoverSchemeSet
 	Delta(newSet FailoverSchemeSet) sksets.ResourceDelta
+	// Create a deep copy of the current FailoverSchemeSet
+	Clone() FailoverSchemeSet
 }
 
 func makeGenericFailoverSchemeSet(failoverSchemeList []*fed_solo_io_v1.FailoverScheme) sksets.ResourceSet {
@@ -431,4 +442,11 @@ func (s *failoverSchemeSet) Delta(newSet FailoverSchemeSet) sksets.ResourceDelta
 		}
 	}
 	return s.Generic().Delta(newSet.Generic())
+}
+
+func (s *failoverSchemeSet) Clone() FailoverSchemeSet {
+	if s == nil {
+		return nil
+	}
+	return &failoverSchemeSet{set: sksets.NewResourceSet(s.Generic().Clone().List()...)}
 }

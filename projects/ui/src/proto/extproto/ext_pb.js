@@ -13,6 +13,7 @@ var goog = jspb;
 var global = Function('return this')();
 
 var google_protobuf_descriptor_pb = require('google-protobuf/google/protobuf/descriptor_pb.js');
+goog.exportSymbol('proto.extproto.cloneAll', null, global);
 goog.exportSymbol('proto.extproto.equalAll', null, global);
 goog.exportSymbol('proto.extproto.hashAll', null, global);
 goog.exportSymbol('proto.extproto.mergeAll', null, global);
@@ -94,6 +95,31 @@ google_protobuf_descriptor_pb.FileOptions.extensionsBinary[10073] = new jspb.Ext
 // This registers the extension field with the extended class, so that
 // toObject() will function correctly.
 google_protobuf_descriptor_pb.FileOptions.extensions[10073] = proto.extproto.mergeAll;
+
+
+/**
+ * A tuple of {field number, class constructor} for the extension
+ * field named `cloneAll`.
+ * @type {!jspb.ExtensionFieldInfo<boolean>}
+ */
+proto.extproto.cloneAll = new jspb.ExtensionFieldInfo(
+    10074,
+    {cloneAll: 0},
+    null,
+     /** @type {?function((boolean|undefined),!jspb.Message=): !Object} */ (
+         null),
+    0);
+
+google_protobuf_descriptor_pb.FileOptions.extensionsBinary[10074] = new jspb.ExtensionFieldBinaryInfo(
+    proto.extproto.cloneAll,
+    jspb.BinaryReader.prototype.readBool,
+    jspb.BinaryWriter.prototype.writeBool,
+    undefined,
+    undefined,
+    false);
+// This registers the extension field with the extended class, so that
+// toObject() will function correctly.
+google_protobuf_descriptor_pb.FileOptions.extensions[10074] = proto.extproto.cloneAll;
 
 
 /**

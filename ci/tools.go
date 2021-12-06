@@ -23,5 +23,6 @@ import (
 	_ "github.com/solo-io/protoc-gen-ext"
 	_ "github.com/solo-io/solo-apis"
 	_ "golang.org/x/tools/cmd/goimports"
+	_ "istio.io/pkg/version"
 	_ "k8s.io/code-generator"
 )

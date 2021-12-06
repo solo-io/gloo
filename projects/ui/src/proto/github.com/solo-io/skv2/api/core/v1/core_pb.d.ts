@@ -31,6 +31,28 @@ export namespace ObjectRef {
   }
 }
 
+export class ObjectRefList extends jspb.Message {
+  clearRefsList(): void;
+  getRefsList(): Array<ObjectRef>;
+  setRefsList(value: Array<ObjectRef>): void;
+  addRefs(value?: ObjectRef, index?: number): ObjectRef;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ObjectRefList.AsObject;
+  static toObject(includeInstance: boolean, msg: ObjectRefList): ObjectRefList.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ObjectRefList, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ObjectRefList;
+  static deserializeBinaryFromReader(message: ObjectRefList, reader: jspb.BinaryReader): ObjectRefList;
+}
+
+export namespace ObjectRefList {
+  export type AsObject = {
+    refsList: Array<ObjectRef.AsObject>,
+  }
+}
+
 export class ClusterObjectRef extends jspb.Message {
   getName(): string;
   setName(value: string): void;
@@ -183,4 +205,79 @@ export namespace Status {
   }
 
   export const State: StateMap;
+}
+
+export class ObjectSelector extends jspb.Message {
+  clearNamespacesList(): void;
+  getNamespacesList(): Array<string>;
+  setNamespacesList(value: Array<string>): void;
+  addNamespaces(value: string, index?: number): string;
+
+  getLabelsMap(): jspb.Map<string, string>;
+  clearLabelsMap(): void;
+  clearExpressionsList(): void;
+  getExpressionsList(): Array<ObjectSelector.Expression>;
+  setExpressionsList(value: Array<ObjectSelector.Expression>): void;
+  addExpressions(value?: ObjectSelector.Expression, index?: number): ObjectSelector.Expression;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ObjectSelector.AsObject;
+  static toObject(includeInstance: boolean, msg: ObjectSelector): ObjectSelector.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ObjectSelector, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ObjectSelector;
+  static deserializeBinaryFromReader(message: ObjectSelector, reader: jspb.BinaryReader): ObjectSelector;
+}
+
+export namespace ObjectSelector {
+  export type AsObject = {
+    namespacesList: Array<string>,
+    labelsMap: Array<[string, string]>,
+    expressionsList: Array<ObjectSelector.Expression.AsObject>,
+  }
+
+  export class Expression extends jspb.Message {
+    getKey(): string;
+    setKey(value: string): void;
+
+    getOperator(): ObjectSelector.Expression.OperatorMap[keyof ObjectSelector.Expression.OperatorMap];
+    setOperator(value: ObjectSelector.Expression.OperatorMap[keyof ObjectSelector.Expression.OperatorMap]): void;
+
+    clearValuesList(): void;
+    getValuesList(): Array<string>;
+    setValuesList(value: Array<string>): void;
+    addValues(value: string, index?: number): string;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Expression.AsObject;
+    static toObject(includeInstance: boolean, msg: Expression): Expression.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Expression, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Expression;
+    static deserializeBinaryFromReader(message: Expression, reader: jspb.BinaryReader): Expression;
+  }
+
+  export namespace Expression {
+    export type AsObject = {
+      key: string,
+      operator: ObjectSelector.Expression.OperatorMap[keyof ObjectSelector.Expression.OperatorMap],
+      valuesList: Array<string>,
+    }
+
+    export interface OperatorMap {
+      EQUALS: 0;
+      DOUBLEEQUALS: 1;
+      NOTEQUALS: 2;
+      IN: 3;
+      NOTIN: 4;
+      EXISTS: 5;
+      DOESNOTEXIST: 6;
+      GREATERTHAN: 7;
+      LESSTHAN: 8;
+    }
+
+    export const Operator: OperatorMap;
+  }
 }

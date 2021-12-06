@@ -12,11 +12,13 @@ import (
 	v1sets "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1/sets"
 	v1sets0 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
 	multicluster "github.com/solo-io/skv2/pkg/multicluster"
+	resource "github.com/solo-io/skv2/pkg/resource"
 	v1sets1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1/sets"
 	v1sets2 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1/sets"
 	v1sets3 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/sets"
 	v1alpha1sets "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1/sets"
 	input "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/input"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -57,6 +59,20 @@ func (mr *MockSnapshotMockRecorder) AuthConfigs() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthConfigs", reflect.TypeOf((*MockSnapshot)(nil).AuthConfigs))
 }
 
+// Clone mocks base method.
+func (m *MockSnapshot) Clone() input.Snapshot {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone")
+	ret0, _ := ret[0].(input.Snapshot)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockSnapshotMockRecorder) Clone() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockSnapshot)(nil).Clone))
+}
+
 // DaemonSets mocks base method.
 func (m *MockSnapshot) DaemonSets() v1sets.DaemonSetSet {
 	m.ctrl.T.Helper()
@@ -85,6 +101,18 @@ func (mr *MockSnapshotMockRecorder) Deployments() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Deployments", reflect.TypeOf((*MockSnapshot)(nil).Deployments))
 }
 
+// ForEachObject mocks base method.
+func (m *MockSnapshot) ForEachObject(handleObject func(string, schema.GroupVersionKind, resource.TypedObject)) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "ForEachObject", handleObject)
+}
+
+// ForEachObject indicates an expected call of ForEachObject.
+func (mr *MockSnapshotMockRecorder) ForEachObject(handleObject interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForEachObject", reflect.TypeOf((*MockSnapshot)(nil).ForEachObject), handleObject)
+}
+
 // Gateways mocks base method.
 func (m *MockSnapshot) Gateways() v1sets2.GatewaySet {
 	m.ctrl.T.Helper()
@@ -97,6 +125,20 @@ func (m *MockSnapshot) Gateways() v1sets2.GatewaySet {
 func (mr *MockSnapshotMockRecorder) Gateways() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Gateways", reflect.TypeOf((*MockSnapshot)(nil).Gateways))
+}
+
+// Generic mocks base method.
+func (m *MockSnapshot) Generic() resource.ClusterSnapshot {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generic")
+	ret0, _ := ret[0].(resource.ClusterSnapshot)
+	return ret0
+}
+
+// Generic indicates an expected call of Generic.
+func (mr *MockSnapshotMockRecorder) Generic() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generic", reflect.TypeOf((*MockSnapshot)(nil).Generic))
 }
 
 // MarshalJSON mocks base method.

@@ -139,6 +139,7 @@ steps:
     - "CLOUD_BUILD=1"
     - "GCLOUD_BUILD_ID=$BUILD_ID"
     - "HELM_HOME=/root/.helm"
+    - "GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn"
   waitFor:
     [
       "prepare-workspace",
@@ -184,6 +185,7 @@ steps:
     - "TAGGED_VERSION=$TAG_NAME"
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
     - "HELM_HOME=/root/.helm" # tell helm where to find data
+    - "GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn"
   dir: *dir
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
   id: "release"

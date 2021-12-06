@@ -44,6 +44,8 @@ type FederatedUpstreamSet interface {
 	Generic() sksets.ResourceSet
 	// returns the delta between this and and another FederatedUpstreamSet
 	Delta(newSet FederatedUpstreamSet) sksets.ResourceDelta
+	// Create a deep copy of the current FederatedUpstreamSet
+	Clone() FederatedUpstreamSet
 }
 
 func makeGenericFederatedUpstreamSet(federatedUpstreamList []*fed_gloo_solo_io_v1.FederatedUpstream) sksets.ResourceSet {
@@ -223,6 +225,13 @@ func (s *federatedUpstreamSet) Delta(newSet FederatedUpstreamSet) sksets.Resourc
 	return s.Generic().Delta(newSet.Generic())
 }
 
+func (s *federatedUpstreamSet) Clone() FederatedUpstreamSet {
+	if s == nil {
+		return nil
+	}
+	return &federatedUpstreamSet{set: sksets.NewResourceSet(s.Generic().Clone().List()...)}
+}
+
 type FederatedUpstreamGroupSet interface {
 	// Get the set stored keys
 	Keys() sets.String
@@ -254,6 +263,8 @@ type FederatedUpstreamGroupSet interface {
 	Generic() sksets.ResourceSet
 	// returns the delta between this and and another FederatedUpstreamGroupSet
 	Delta(newSet FederatedUpstreamGroupSet) sksets.ResourceDelta
+	// Create a deep copy of the current FederatedUpstreamGroupSet
+	Clone() FederatedUpstreamGroupSet
 }
 
 func makeGenericFederatedUpstreamGroupSet(federatedUpstreamGroupList []*fed_gloo_solo_io_v1.FederatedUpstreamGroup) sksets.ResourceSet {
@@ -433,6 +444,13 @@ func (s *federatedUpstreamGroupSet) Delta(newSet FederatedUpstreamGroupSet) skse
 	return s.Generic().Delta(newSet.Generic())
 }
 
+func (s *federatedUpstreamGroupSet) Clone() FederatedUpstreamGroupSet {
+	if s == nil {
+		return nil
+	}
+	return &federatedUpstreamGroupSet{set: sksets.NewResourceSet(s.Generic().Clone().List()...)}
+}
+
 type FederatedSettingsSet interface {
 	// Get the set stored keys
 	Keys() sets.String
@@ -464,6 +482,8 @@ type FederatedSettingsSet interface {
 	Generic() sksets.ResourceSet
 	// returns the delta between this and and another FederatedSettingsSet
 	Delta(newSet FederatedSettingsSet) sksets.ResourceDelta
+	// Create a deep copy of the current FederatedSettingsSet
+	Clone() FederatedSettingsSet
 }
 
 func makeGenericFederatedSettingsSet(federatedSettingsList []*fed_gloo_solo_io_v1.FederatedSettings) sksets.ResourceSet {
@@ -641,4 +661,11 @@ func (s *federatedSettingsSet) Delta(newSet FederatedSettingsSet) sksets.Resourc
 		}
 	}
 	return s.Generic().Delta(newSet.Generic())
+}
+
+func (s *federatedSettingsSet) Clone() FederatedSettingsSet {
+	if s == nil {
+		return nil
+	}
+	return &federatedSettingsSet{set: sksets.NewResourceSet(s.Generic().Clone().List()...)}
 }

@@ -11,6 +11,8 @@ import * as google_protobuf_descriptor_pb from "google-protobuf/google/protobuf/
 
   export const mergeAll: jspb.ExtensionFieldInfo<boolean>;
 
+  export const cloneAll: jspb.ExtensionFieldInfo<boolean>;
+
   export const skipHashing: jspb.ExtensionFieldInfo<boolean>;
 
   export const skipMerging: jspb.ExtensionFieldInfo<boolean>;

@@ -3,6 +3,8 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    crd.solo.io/specHash: ad9e1dd2ecf8891d
   labels:
     app: skv2
     app.kubernetes.io/name: skv2
@@ -32,12 +34,12 @@ spec:
               providerInfo:
                 description: Metadata for clusters provisioned from cloud providers.
                 oneOf:
-                  - not:
-                      anyOf:
-                        - required:
-                            - eks
-                  - required:
+                - not:
+                    anyOf:
+                    - required:
                       - eks
+                - required:
+                  - eks
                 properties:
                   eks:
                     description: Provider info for an AWS EKS provisioned cluster.
@@ -57,19 +59,19 @@ spec:
                     type: object
                 type: object
               secretName:
-                description: name of the secret which contains the kubeconfig with information
-                  to connect to the remote cluster.
+                description: name of the secret which contains the kubeconfig with
+                  information to connect to the remote cluster.
                 type: string
             type: object
           status:
             properties:
               namespace:
-                description: The namespace in which cluster registration resources were
-                  created.
+                description: The namespace in which cluster registration resources
+                  were created.
                 type: string
               policyRules:
-                description: The set of PolicyRules attached to ClusterRoles when this
-                  cluster was registered.
+                description: The set of PolicyRules attached to ClusterRoles when
+                  this cluster was registered.
                 items:
                   properties:
                     apiGroups:
@@ -104,9 +106,9 @@ spec:
                         type: string
                       type: array
                     verbs:
-                      description: Verbs is a list of Verbs that apply to ALL the ResourceKinds
-                        and AttributeRestrictions contained in this rule.  VerbAll represents
-                        all kinds.
+                      description: Verbs is a list of Verbs that apply to ALL the
+                        ResourceKinds and AttributeRestrictions contained in this
+                        rule.  VerbAll represents all kinds.
                       items:
                         type: string
                       type: array
@@ -141,11 +143,11 @@ spec:
                     state:
                       description: The current state of the resource
                       enum:
-                        - PENDING
-                        - PROCESSING
-                        - INVALID
-                        - FAILED
-                        - ACCEPTED
+                      - PENDING
+                      - PROCESSING
+                      - INVALID
+                      - FAILED
+                      - ACCEPTED
                       type: string
                   type: object
                 type: array
