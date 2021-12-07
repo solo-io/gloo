@@ -872,6 +872,29 @@ gloo-fips-ee-docker-dev: $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64 $(GLOO_FIPS_OUT_D
 	docker build -t $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) $(GLOO_FIPS_OUT_DIR) --no-cache
 	touch $@
 #----------------------------------------------------------------------------------
+# discovery (enterprise)
+#----------------------------------------------------------------------------------
+
+DISCOVERY_DIR=projects/discovery
+DISCOVERY_SOURCES=$(shell find $(DISCOVERY_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+DISCOVERY_OUTPUT_DIR=$(OUTPUT_DIR)/$(DISCOVERY_DIR)
+
+$(DISCOVERY_OUTPUT_DIR)/discovery-ee-linux-amd64: $(DISCOVERY_SOURCES)
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(DISCOVERY_DIR)/cmd/main.go
+
+.PHONY: discovery-ee
+discovery: $(DISCOVERY_OUTPUT_DIR)/discovery-ee-linux-amd64
+
+$(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery: $(DISCOVERY_DIR)/cmd/Dockerfile
+	cp $< $@
+
+.PHONY: discovery-ee-docker
+discovery-ee-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-ee-linux-amd64 $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery
+	docker build $(DISCOVERY_OUTPUT_DIR) -f $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery \
+		--build-arg GOARCH=amd64 \
+		-t $(IMAGE_REPO)/discovery-ee:$(VERSION) $(QUAY_EXPIRATION_LABEL)
+
+#----------------------------------------------------------------------------------
 # glooctl
 #----------------------------------------------------------------------------------
 

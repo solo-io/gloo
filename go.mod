@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	cloud.google.com/go/datastore v1.3.0 // indirect
+	github.com/Masterminds/goutils v1.1.1
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.42.15
 	github.com/bshuster-repo/logrus-logstash-hook v1.0.2 // indirect
@@ -13,15 +14,21 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.6.1
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
+	github.com/gertd/go-pluralize v0.1.1
+	github.com/getkin/kin-openapi v0.80.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
+	github.com/gin-gonic/gin v1.7.7
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.4.0
+	github.com/go-openapi/inflect v0.19.0
+	github.com/go-openapi/swag v0.19.15
 	github.com/go-redis/redis/v8 v8.2.3
 	github.com/go-test/deep v1.0.7
 	github.com/gobuffalo/packr v1.30.1
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/wire v0.4.0
+	github.com/graphql-go/graphql v0.8.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/iancoleman/strcase v0.1.3

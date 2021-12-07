@@ -1,5 +1,6 @@
 Name|Version|License
 ---|---|---
+[Masterminds/goutils](https://github.com/Masterminds/goutils)|v1.1.1|Apache License 2.0
 [avast/retry-go](https://github.com/avast/retry-go)|v2.4.3+incompatible|MIT License
 [aws/aws-sdk-go](https://github.com/aws/aws-sdk-go)|v1.42.15|Apache License 2.0
 [deislabs/oras](https://github.com/deislabs/oras)|v0.11.1|MIT License
@@ -8,14 +9,20 @@ Name|Version|License
 [envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v0.6.1|Apache License 2.0
 [fgrosse/zaptest](https://github.com/fgrosse/zaptest)|v1.1.0|MIT License
 [form3tech-oss/jwt-go](https://github.com/form3tech-oss/jwt-go)|v3.2.3+incompatible|MIT License
+[gertd/go-pluralize](https://github.com/gertd/go-pluralize)|v0.1.1|MIT License
+[getkin/kin-openapi](https://github.com/getkin/kin-openapi)|v0.80.0|MIT License
 [ghodss/yaml](https://github.com/ghodss/yaml)|v1.0.1-0.20190212211648-25d852aebe32|MIT License
+[gin-gonic/gin](https://github.com/gin-gonic/gin)|v1.7.7|MIT License
 [go-logr/logr](https://github.com/go-logr/logr)|v0.4.0|Apache License 2.0
 [go-logr/zapr](https://github.com/go-logr/zapr)|v0.4.0|Apache License 2.0
+[go-openapi/inflect](https://github.com/go-openapi/inflect)|v0.19.0|MIT License
+[go-openapi/swag](https://github.com/go-openapi/swag)|v0.19.15|Apache License 2.0
 [redis/v8](https://github.com/go-redis/redis)|v8.2.3|BSD 2-clause "Simplified" License
 [go-test/deep](https://github.com/go-test/deep)|v1.0.7|MIT License
 [gobuffalo/packr](https://github.com/gobuffalo/packr)|v1.30.1|MIT License
 [golang/protobuf](https://github.com/golang/protobuf)|v1.5.2|BSD 3-clause "New" or "Revised" License
 [google/wire](https://github.com/google/wire)|v0.4.0|Apache License 2.0
+[graphql-go/graphql](https://github.com/graphql-go/graphql)|v0.8.0|MIT License
 [grpc-ecosystem/go-grpc-middleware](https://github.com/grpc-ecosystem/go-grpc-middleware)|v1.3.0|Apache License 2.0
 [iancoleman/strcase](https://github.com/iancoleman/strcase)|v0.1.3|MIT License
 [kelseyhightower/envconfig](https://github.com/kelseyhightower/envconfig)|v1.4.0|MIT License

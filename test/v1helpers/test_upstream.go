@@ -35,6 +35,11 @@ func NewTestHttpUpstream(ctx context.Context, addr string) *TestUpstream {
 	return NewTestHttpUpstreamWithHandler(ctx, addr, nil)
 }
 
+//func NewTestHttpUpstreamWithHandler(ctx context.Context, addr string, httpHandler http.Handler) *TestUpstream {
+//	backendport, responses := RunTestServer(ctx, &HttpServer{}, handlerFunc)
+//	return newTestUpstream(addr, backendport, responses)
+//}
+
 func NewTestHttpUpstreamWithHandler(ctx context.Context, addr string, handlerFunc ExtraHandlerFunc) *TestUpstream {
 	backendport, responses := RunTestServer(ctx, &HttpServer{}, handlerFunc)
 	return newTestUpstream(addr, backendport, responses)
@@ -101,7 +106,7 @@ func newTestUpstream(addr string, port uint32, responses <-chan *ReceivedRequest
 }
 
 // Handler func, if returns false, the test upstream will `not` echo the request body in the response
-type ExtraHandlerFunc func(rw http.ResponseWriter, r *http.Request) bool
+type ExtraHandlerFunc func(w http.ResponseWriter, req *http.Request) bool
 
 func RunTestServer(ctx context.Context, server Server, extraHandler ExtraHandlerFunc) (uint32, <-chan *ReceivedRequest) {
 	bodychan := make(chan *ReceivedRequest, 100)

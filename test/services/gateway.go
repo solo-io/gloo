@@ -4,6 +4,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/syncer"
+
 	v1alpha12 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
@@ -163,7 +165,7 @@ func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResour
 	apiEmitterChan := make(chan struct{})
 	go syncer_setup.RunGlooWithExtensions(glooOpts, setup.GetGlooEeExtensions(ctx, apiEmitterChan), apiEmitterChan)
 	if !what.DisableFds {
-		go fds_syncer.RunFDS(glooOpts)
+		go fds_syncer.RunFDSWithExtensions(glooOpts, syncer.GetFDSEnterpriseExtensions())
 	}
 	if !what.DisableUds {
 		go uds_syncer.RunUDS(glooOpts)

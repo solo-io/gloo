@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/5646
+    description: Adds discovery of OpenApiSpec schemas and translates them to GraphqlSchema CRDs.

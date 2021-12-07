@@ -73,7 +73,11 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 
 	gql, err := params.Snapshot.GraphqlSchemas.Find(gqlRef.GetNamespace(), gqlRef.GetName())
 	if err != nil {
-		return eris.Wrapf(err, "unable to find graphql schema custom resource `%s` in namespace `%s`", gqlRef.GetName(), gqlRef.GetNamespace())
+		ret := ""
+		for _, schema := range params.Snapshot.GraphqlSchemas {
+			ret += " " + schema.Metadata.Name
+		}
+		return eris.Wrapf(err, "unable to find graphql schema custom resource `%s` in namespace `%s`, list of all graphqlschemas found: %s", gqlRef.GetName(), gqlRef.GetNamespace(), ret)
 	}
 
 	routeConf, err := translateGraphQlSchemaToRouteConf(params, gql)
@@ -189,23 +193,11 @@ func translateRequestTransform(transform *v1alpha1.RequestTemplate) (*v2.Request
 		OutgoingBody: nil, // filled in later
 	}
 
-	switch ob := transform.OutgoingBody.GetJsonVal().(type) {
-	case *v1alpha1.JsonValue_Node:
-		jn, err := translateJsonNode(ob.Node)
-		if err != nil {
-			return nil, err
-		}
-		converted := &v2.JsonValue_Node{
-			Node: jn,
-		}
-		rt.OutgoingBody = &v2.JsonValue{
-			JsonVal: converted,
-		}
-	default:
-		if ob != nil {
-			return nil, errors.Errorf("unimplemented outgoing body type: %T", ob)
-		}
+	jv, err := translateJsonValue(transform.OutgoingBody)
+	if err != nil {
+		return nil, err
 	}
+	rt.OutgoingBody = jv
 	return rt, nil
 }
 
@@ -223,7 +215,7 @@ func translateJsonNode(jn *v1alpha1.JsonNode) (*v2.JsonNode, error) {
 		newkv := &v2.JsonKeyValue{
 			Key: kv.Key,
 			Value: &v2.JsonValue{
-				JsonVal: newVal.GetJsonVal(),
+				JsonVal: newVal.JsonVal,
 			},
 		}
 		convertedKvs = append(convertedKvs, newkv)
@@ -232,11 +224,14 @@ func translateJsonNode(jn *v1alpha1.JsonNode) (*v2.JsonNode, error) {
 }
 
 func translateJsonValue(kv *v1alpha1.JsonValue) (*v2.JsonValue, error) {
+	if kv == nil || kv.JsonVal == nil {
+		return nil, nil
+	}
 	newkv := &v2.JsonValue{
 		JsonVal: nil, // filled in later
 	}
 
-	switch jv := kv.JsonVal.(type) {
+	switch jv := kv.GetJsonVal().(type) {
 	case *v1alpha1.JsonValue_Node:
 		recurseNode, err := translateJsonNode(jv.Node)
 		if err != nil {
@@ -295,7 +290,9 @@ func translateValueProvider(vp *v1alpha1.ValueProvider) (*v2.ValueProvider, erro
 		return nil, nil
 	}
 
-	converted := &v2.ValueProvider{}
+	converted := &v2.ValueProvider{
+		ProviderTemplate: vp.GetProviderTemplate(),
+	}
 	switch p := vp.Provider.(type) {
 	case *v1alpha1.ValueProvider_GraphqlArg:
 		ps, err := translatePath(p.GraphqlArg.Path)
@@ -304,8 +301,9 @@ func translateValueProvider(vp *v1alpha1.ValueProvider) (*v2.ValueProvider, erro
 		}
 		graphqlArg := &v2.ValueProvider_GraphqlArg{
 			GraphqlArg: &v2.ValueProvider_GraphQLArgExtraction{
-				ArgName: p.GraphqlArg.ArgName,
-				Path:    ps,
+				ArgName:  p.GraphqlArg.ArgName,
+				Path:     ps,
+				Required: p.GraphqlArg.Required,
 			},
 		}
 		converted.Provider = graphqlArg
@@ -383,6 +381,11 @@ func translatePath(path []*v1alpha1.PathSegment) ([]*v2.PathSegment, error) {
 				Index: p.Index,
 			}
 			ps.Segment = index
+		case *v1alpha1.PathSegment_All:
+			all := &v2.PathSegment_All{
+				All: p.All,
+			}
+			ps.Segment = all
 		default:
 			return nil, errors.Errorf("unimplemented path segment type: %T", p)
 		}

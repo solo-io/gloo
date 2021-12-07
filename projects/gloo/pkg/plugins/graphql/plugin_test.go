@@ -1,11 +1,19 @@
 package graphql_test
 
 import (
+	"fmt"
+
+	openapi "github.com/getkin/kin-openapi/openapi3"
+	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/ptypes"
+	gographql "github.com/graphql-go/graphql"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
+	"github.com/solo-io/solo-kit/test/matchers"
+	graphql2 "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/graphqlschematranslation"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/printer"
+	schemas "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	. "github.com/onsi/ginkgo"
@@ -17,14 +25,14 @@ import (
 
 var _ = Describe("Graphql plugin", func() {
 	var (
-		plugin        *graphql.Plugin
+		plugin        *schemas.Plugin
 		params        plugins.Params
 		vhostParams   plugins.VirtualHostParams
 		virtualHost   *v1.VirtualHost
 		route         *v1.Route
 		routeAction   *v1.Route_GraphqlSchemaRef
 		httpListener  *v1.HttpListener
-		gqlSchemaSpec *v1alpha1.GraphQLSchema
+		gqlSchemaSpec *GraphQLSchema
 	)
 
 	BeforeEach(func() {
@@ -38,7 +46,7 @@ var _ = Describe("Graphql plugin", func() {
 			Action: routeAction,
 		}
 
-		gqlSchemaSpec = &v1alpha1.GraphQLSchema{
+		gqlSchemaSpec = &GraphQLSchema{
 			Metadata: &core.Metadata{
 				Name:      "gql",
 				Namespace: "gloo-system",
@@ -74,7 +82,7 @@ var _ = Describe("Graphql plugin", func() {
 
 		params.Snapshot = &v1.ApiSnapshot{
 			Proxies: v1.ProxyList{proxy},
-			GraphqlSchemas: v1alpha1.GraphQLSchemaList{
+			GraphqlSchemas: GraphQLSchemaList{
 				gqlSchemaSpec,
 			},
 			Upstreams: v1.UpstreamList{
@@ -100,7 +108,7 @@ var _ = Describe("Graphql plugin", func() {
 		)
 
 		var translateRoute = func() *v2.GraphQLRouteConfig {
-			goTpfc := outRoute.TypedPerFilterConfig[graphql.FilterName]
+			goTpfc := outRoute.TypedPerFilterConfig[schemas.FilterName]
 			Expect(goTpfc).NotTo(BeNil())
 			var perRouteGql v2.GraphQLRouteConfig
 			err := ptypes.UnmarshalAny(goTpfc, &perRouteGql)
@@ -122,7 +130,7 @@ var _ = Describe("Graphql plugin", func() {
 		})
 
 		BeforeEach(func() {
-			plugin = graphql.NewPlugin()
+			plugin = schemas.NewPlugin()
 			err := plugin.Init(plugins.InitParams{})
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -131,7 +139,7 @@ var _ = Describe("Graphql plugin", func() {
 			It("can create the proper filters", func() {
 				Expect(outFilters).To(HaveLen(1))
 				gqlFilter := outFilters[0]
-				Expect(gqlFilter.HttpFilter.Name).To(Equal(graphql.FilterName))
+				Expect(gqlFilter.HttpFilter.Name).To(Equal(schemas.FilterName))
 				Expect(gqlFilter.Stage).To(Equal(plugins.BeforeStage(plugins.RouteStage)))
 				st := gqlFilter.HttpFilter.GetTypedConfig()
 				// graphql is always added to HCM, only routes with graphql route config will use the empty config
@@ -149,7 +157,7 @@ var _ = Describe("Graphql plugin", func() {
 				})
 
 				It("is disabled on routes by default", func() {
-					pfc := outRoute.TypedPerFilterConfig[graphql.FilterName]
+					pfc := outRoute.TypedPerFilterConfig[schemas.FilterName]
 					Expect(pfc).To(BeNil())
 				})
 			})
@@ -167,63 +175,63 @@ var _ = Describe("Graphql plugin", func() {
 				Context("translate resolutions", func() {
 
 					BeforeEach(func() {
-						gqlSchemaSpec.Resolutions = []*v1alpha1.Resolution{
+						gqlSchemaSpec.Resolutions = []*Resolution{
 							{
-								Matcher: &v1alpha1.QueryMatcher{
-									Match: &v1alpha1.QueryMatcher_FieldMatcher_{
-										FieldMatcher: &v1alpha1.QueryMatcher_FieldMatcher{
+								Matcher: &QueryMatcher{
+									Match: &QueryMatcher_FieldMatcher_{
+										FieldMatcher: &QueryMatcher_FieldMatcher{
 											Type:  "type",
 											Field: "field",
 										},
 									},
 								},
-								Resolver: &v1alpha1.Resolution_RestResolver{
-									RestResolver: &v1alpha1.RESTResolver{
+								Resolver: &Resolution_RestResolver{
+									RestResolver: &RESTResolver{
 										UpstreamRef: &core.ResourceRef{
 											Name:      "us",
 											Namespace: "gloo-system",
 										},
-										RequestTransform: &v1alpha1.RequestTemplate{
-											Headers: map[string]*v1alpha1.ValueProvider{
+										RequestTransform: &RequestTemplate{
+											Headers: map[string]*ValueProvider{
 												"header": {
-													Provider: &v1alpha1.ValueProvider_TypedProvider{
-														TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
-															ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{Value: "7.89"},
-															Type:        v1alpha1.ValueProvider_TypedValueProvider_FLOAT,
+													Provider: &ValueProvider_TypedProvider{
+														TypedProvider: &ValueProvider_TypedValueProvider{
+															ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "7.89"},
+															Type:        ValueProvider_TypedValueProvider_FLOAT,
 														},
 													},
 												},
 											},
-											QueryParams: map[string]*v1alpha1.ValueProvider{
+											QueryParams: map[string]*ValueProvider{
 												"qp": {
-													Provider: &v1alpha1.ValueProvider_TypedProvider{
-														TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
-															ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{Value: "true"},
-															Type:        v1alpha1.ValueProvider_TypedValueProvider_BOOLEAN,
+													Provider: &ValueProvider_TypedProvider{
+														TypedProvider: &ValueProvider_TypedValueProvider{
+															ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "true"},
+															Type:        ValueProvider_TypedValueProvider_BOOLEAN,
 														},
 													},
 												},
 											},
-											OutgoingBody: &v1alpha1.JsonValue{
+											OutgoingBody: &JsonValue{
 												// let's test the recursive translation
-												JsonVal: &v1alpha1.JsonValue_Node{
-													Node: &v1alpha1.JsonNode{
-														KeyValues: []*v1alpha1.JsonKeyValue{
+												JsonVal: &JsonValue_Node{
+													Node: &JsonNode{
+														KeyValues: []*JsonKeyValue{
 															{
 																Key: "k1",
-																Value: &v1alpha1.JsonValue{
-																	JsonVal: &v1alpha1.JsonValue_Node{
-																		Node: &v1alpha1.JsonNode{
-																			KeyValues: []*v1alpha1.JsonKeyValue{
+																Value: &JsonValue{
+																	JsonVal: &JsonValue_Node{
+																		Node: &JsonNode{
+																			KeyValues: []*JsonKeyValue{
 																				{
 																					Key: "k2",
-																					Value: &v1alpha1.JsonValue{
-																						JsonVal: &v1alpha1.JsonValue_ValueProvider{
-																							ValueProvider: &v1alpha1.ValueProvider{
-																								Provider: &v1alpha1.ValueProvider_TypedProvider{
-																									TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
-																										Type:        v1alpha1.ValueProvider_TypedValueProvider_STRING,
-																										ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{Value: "val"},
+																					Value: &JsonValue{
+																						JsonVal: &JsonValue_ValueProvider{
+																							ValueProvider: &ValueProvider{
+																								Provider: &ValueProvider_TypedProvider{
+																									TypedProvider: &ValueProvider_TypedValueProvider{
+																										Type:        ValueProvider_TypedValueProvider_STRING,
+																										ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "val"},
 																									},
 																								},
 																							},
@@ -275,5 +283,146 @@ var _ = Describe("Graphql plugin", func() {
 			})
 
 		})
+		Context("graphql translation", func() {
+
+			var (
+				graphqlSchema *gographql.Schema
+				resolutions   []*Resolution
+			)
+			AfterEach(func() {
+				graphqlSchema = nil
+				resolutions = nil
+			})
+			translateToSchema := func(openapiSchema string) {
+				t := graphql2.NewOasToGqlTranslator(&v1.Upstream{
+					Metadata: &core.Metadata{
+						Name:      "hi",
+						Namespace: "default",
+					},
+				})
+				l := openapi.NewLoader()
+				l.IsExternalRefsAllowed = true
+				spec, err := l.LoadFromData([]byte(openapiSchema))
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+				oass := []*openapi.T{spec}
+				graphqlSchema, resolutions = t.CreateGraphqlSchema(oass)
+				fmt.Println(printer.PrintFilteredSchema(graphqlSchema))
+				crd := &GraphQLSchema{
+					Schema:      printer.PrintFilteredSchema(graphqlSchema),
+					Resolutions: resolutions,
+				}
+				b, err := yaml.Marshal(crd)
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+				fmt.Println(string(b))
+			}
+
+			It("Handles links", func() {
+				schemaToTranslate := schemas.GetSimpleLinkSchema()
+				translateToSchema(schemaToTranslate)
+
+				fields := graphqlSchema.QueryType().Fields()
+				// Expect getEmployeeById query field to be created
+				Expect(fields).To(HaveKey("getEmployeeById"))
+				employeeByIdQueryField := fields["getEmployeeById"]
+				Expect(employeeByIdQueryField.Args).To(HaveLen(1))
+				Expect(employeeByIdQueryField.Args[0].Type).To(Equal(gographql.NewNonNull(gographql.String)))
+				Expect(employeeByIdQueryField.Type.String()).To(Equal("Employee"))
+
+				// Employee type should have fields, and userManager link should be resolved.
+				employeeType := graphqlSchema.Type("Employee").(*gographql.Object)
+				Expect(employeeType).To(Not(BeNil()))
+				Expect(employeeType.Fields()).To(HaveLen(4))
+				Expect(employeeType.Fields()).To(HaveKey("userManager"))
+				userManagerField := employeeType.Fields()["userManager"]
+				Expect(userManagerField.Type.String()).To(Equal("Employee"))
+
+				// Resolvers should exist for Query.getEmployeeById and Employee.userManager
+				Expect(resolutions).To(HaveLen(2))
+				Expect(resolutions).To(ContainElement(matchers.MatchProto(&Resolution{
+					Matcher: &QueryMatcher{
+						Match: &QueryMatcher_FieldMatcher_{
+							FieldMatcher: &QueryMatcher_FieldMatcher{
+								Type:  "Query",
+								Field: "getEmployeeById",
+							},
+						},
+					},
+					Resolver: &Resolution_RestResolver{
+						RestResolver: &RESTResolver{
+							UpstreamRef: &core.ResourceRef{
+								Name:      "hi",
+								Namespace: "default",
+							},
+							RequestTransform: &RequestTemplate{
+								Headers: map[string]*ValueProvider{
+									":method": {
+										Provider: &ValueProvider_TypedProvider{
+											TypedProvider: &ValueProvider_TypedValueProvider{
+												ValProvider: &ValueProvider_TypedValueProvider_Value{
+													Value: "GET",
+												},
+											},
+										},
+									},
+									":path": {
+										Provider: &ValueProvider_GraphqlArg{
+											GraphqlArg: &ValueProvider_GraphQLArgExtraction{
+												ArgName: "id",
+											},
+										},
+										ProviderTemplate: "/employees/{}",
+									},
+								},
+							},
+						},
+					},
+				})))
+				Expect(resolutions).To(ContainElement(matchers.MatchProto(&Resolution{
+					Matcher: &QueryMatcher{
+						Match: &QueryMatcher_FieldMatcher_{
+							FieldMatcher: &QueryMatcher_FieldMatcher{
+								Type:  "Employee",
+								Field: "userManager",
+							},
+						},
+					},
+					Resolver: &Resolution_RestResolver{
+						RestResolver: &RESTResolver{
+							UpstreamRef: &core.ResourceRef{
+								Name:      "hi",
+								Namespace: "default",
+							},
+							RequestTransform: &RequestTemplate{
+								Headers: map[string]*ValueProvider{
+									":method": {
+										Provider: &ValueProvider_TypedProvider{
+											TypedProvider: &ValueProvider_TypedValueProvider{
+												ValProvider: &ValueProvider_TypedValueProvider_Value{
+													Value: "GET",
+												},
+											},
+										},
+									},
+									":path": {
+										Provider: &ValueProvider_GraphqlParent{
+											GraphqlParent: &ValueProvider_GraphQLParentExtraction{
+												Path: []*PathSegment{{
+													Segment: &PathSegment_Key{
+														Key: "managerId",
+													},
+												}},
+											},
+										},
+										ProviderTemplate: "/employees/{}",
+									},
+								},
+							},
+						},
+					},
+				})))
+			})
+
+		})
+
 	})
 })
