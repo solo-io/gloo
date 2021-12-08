@@ -1809,7 +1809,6 @@ github.com/safchain/ethtool v0.0.0-20210803160452-9aa261dae9b1/go.mod h1:Z0q5wiB
 github.com/sahilm/fuzzy v0.1.0 h1:FzWGaw2Opqyu+794ZQ9SYifWv2EIXpwP4q8dY1kDAwI=
 github.com/sahilm/fuzzy v0.1.0/go.mod h1:VFvziUEIMCrT6A6tw2RFIXPXXmzXbOsSHF0DOI8ZK9Y=
 github.com/saiskee/gettercheck v0.0.0-20210820204958-38443d06ebe0/go.mod h1:sa2CuStAMG5wPJQV6wdN8WFZ0A4Kj9on3oyoxGRbCAs=
-github.com/sam-heilbron/protoc-gen-openapi v0.0.0-20210521134209-c323189e7a9a/go.mod h1:jpsXtLtq68rtcNB9EH+B698trM+D6fvRpjcUVSaxSvc=
 github.com/sam-heilbron/protoc-gen-openapi v0.0.0-20210826234431-905e0eb8fa8e/go.mod h1:jpsXtLtq68rtcNB9EH+B698trM+D6fvRpjcUVSaxSvc=
 github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da/go.mod h1:gi+0XIa01GRL2eRQVjQkKGqKF3SF9vZR/HnPullcV2E=
 github.com/sanposhiho/wastedassign v1.0.0/go.mod h1:LGpq5Hsv74QaqM47WtIsRSF/ik9kqk07kchgv66tLVE=
@@ -1889,8 +1888,8 @@ github.com/solo-io/envoy-operator v0.1.4 h1:haffsWSfiDtQrOHVaAuTL48LUVBvSYsv9nqJ
 github.com/solo-io/envoy-operator v0.1.4/go.mod h1:RX7+5zmyZs0SM4K9q9bkaqPMx4XzoQJVi/zBl3NNsG0=
 github.com/solo-io/ext-auth-plugins v0.2.1 h1:8ZkQx9DnTUE3z4vK029l1F2GHbDjNphkewR4opYwvFc=
 github.com/solo-io/ext-auth-plugins v0.2.1/go.mod h1:bVOJ1BvrBQC6CyYa+DtGU+vJ0asUu3Xa0CSSp9l97fA=
-github.com/solo-io/ext-auth-service v0.19.10 h1:YpdFqBCldas0jp9z6Ci4WvVryhOaR3tHvOsAM/oVde4=
-github.com/solo-io/ext-auth-service v0.19.10/go.mod h1:2wIPYWij0Ijy4tW80cBlF9a4CoJUCFBLSne9v/RQX70=
+github.com/solo-io/ext-auth-service v0.19.11 h1:zekKR9JHiPgUCMussSwwXOH4aKVIv+0ibERN8g5mfcY=
+github.com/solo-io/ext-auth-service v0.19.11/go.mod h1:xfV/QQ0EJhoVICm14EoFfW+9V9m0JhsM5oBF/9xMLvk=
 github.com/solo-io/external-apis v0.1.4/go.mod h1:3vyADtIZj8hCD5cBUwGuA60hd8O5faQKvfUl400brLY=
 github.com/solo-io/external-apis v0.1.7/go.mod h1:rzyuYEanRLvRfKK9GG/Mb/H//0A8DNvhxrEP+iTToTY=
 github.com/solo-io/external-apis v0.1.11 h1:7ow9GPXDRIwP9UV2JUkLDPOgp1rV7hjn82o7RI65lLs=
@@ -1939,14 +1938,13 @@ github.com/solo-io/skv2 v0.21.6/go.mod h1:8jNcMWuAkBxdGhlRFMSgsK94q/jZGPEas8VHTr
 github.com/solo-io/skv2-enterprise v0.2.8 h1:WdqUIauXXC2qYrC912obJ7zskiBPqlvO96bpnFhtWdw=
 github.com/solo-io/skv2-enterprise v0.2.8/go.mod h1:xjPmB/iLhqz0Dip3YMvjyHCccHxHv8+7d+qRPAxJJ88=
 github.com/solo-io/solo-apis v0.0.0-20210119160956-e52ac14025d3/go.mod h1:9tB/zzr7cGk308Y7tqwWRkccG8N4rSslS6s8mlKXd5s=
-github.com/solo-io/solo-apis v0.0.0-20210811132703-28c4b006b9df/go.mod h1:QHjjUgfJZrW1jBlQh+cxAqpMKTzJUHWqq3DZGGqHgKg=
 github.com/solo-io/solo-apis v0.0.0-20210922150112-505473b2e66c/go.mod h1:4HQsQO4Cy/4V7ZZxWncvnMvIq7pYnb66jAT5hvDJBgQ=
+github.com/solo-io/solo-apis v0.0.0-20211123222304-edf1a4a29f44/go.mod h1:LNnG7CKbdBQaWE7ZxYHdo6uyJDEjWZjaKOIoSX1MNqM=
 github.com/solo-io/solo-apis v0.0.0-20211201230854-b101ce4bb42a h1:2407/cMdUtC3eB49beMH2DSZUk/InM+p5PcOtI7z0Nc=
 github.com/solo-io/solo-apis v0.0.0-20211201230854-b101ce4bb42a/go.mod h1:GAQmAtj0eGBfDUKKlLm9wIrwq0UOVZaW4TOtFeS8xaM=
 github.com/solo-io/solo-kit v0.6.3/go.mod h1:oBaQ6tOwuO97u7w+s3TeI08YLHcbiWemInx0XkDfKFw=
 github.com/solo-io/solo-kit v0.16.0/go.mod h1:zf+vof9HAavbFKRgL80jJ24SeE9PvoB8ooQ7DACtK8I=
 github.com/solo-io/solo-kit v0.17.1/go.mod h1:3p9X8edqLS4KokXBZ+4txX+cxGJqtZlBqFEdDD/x1HQ=
-github.com/solo-io/solo-kit v0.21.0/go.mod h1:OPetRcesvIyh1mboxqqAXH+YXRUwQBzZ5vPQ39y/GyU=
 github.com/solo-io/solo-kit v0.23.0/go.mod h1:uCOi8RQ3MetHXsRFvVKPzafYySUvFuPxB+gvo7ScRR8=
 github.com/solo-io/solo-kit v0.24.0/go.mod h1:uCOi8RQ3MetHXsRFvVKPzafYySUvFuPxB+gvo7ScRR8=
 github.com/solo-io/solo-kit v0.24.2 h1:oR7aq/flPCc6S8dUdgMVMFtcodUV8Hj1TDWCxONYrx0=

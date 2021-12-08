@@ -144,7 +144,7 @@ var _ = Describe("External auth", func() {
 					// Note(yuval-k): Disable debug logs as they are noisy. If you are writing new
 					// tests, uncomment this while developing to increase verbosity. I couldn't find
 					// a good way to wire this to GinkgoWriter
-					//DebugMode:  "1",
+					// DebugMode:  "1",
 					LoggerName: "extauth-service-test",
 				},
 			},
@@ -318,7 +318,7 @@ var _ = Describe("External auth", func() {
 					}
 
 					proxy = getProxyExtAuthOIDC(envoyPort, testUpstream.Upstream.Metadata.Ref())
-					//get id token
+					// get id token
 					token = discoveryServer.token
 				})
 
@@ -421,6 +421,7 @@ var _ = Describe("External auth", func() {
 									KeyPrefix:       "key",
 									CookieName:      cookieName,
 									AllowRefreshing: &wrappers.BoolValue{Value: true},
+									PreExpiryBuffer: &duration.Duration{Seconds: 2, Nanos: 0},
 								},
 							},
 						}
