@@ -222,4 +222,9 @@ var (
 		Use:   "istio",
 		Short: "Commands for interacting with Istio in Gloo",
 	}
+
+	BUG_REPORT_COMMAND = cobra.Command{
+		Use:   "bug-report",
+		Short: "Cluster information and log capture support tool.",
+	}
 )

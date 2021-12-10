@@ -19,6 +19,7 @@ require (
 	github.com/elazarl/goproxy v0.0.0-20210110162100-a92cc753f88e // indirect
 	github.com/envoyproxy/go-control-plane v0.10.1
 	github.com/envoyproxy/protoc-gen-validate v0.6.1
+	github.com/evanphx/json-patch/v5 v5.5.0 // indirect
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
@@ -35,6 +36,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-github/v32 v32.0.0
+	github.com/google/martian v2.1.0+incompatible
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
@@ -91,11 +93,13 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	go.opencensus.io v0.23.0
+	go.uber.org/atomic v1.8.0
 	go.uber.org/multierr v1.6.0
 	go.uber.org/zap v1.18.1
 	golang.org/x/mod v0.4.2
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1 // indirect
+	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 	golang.org/x/tools v0.1.5
 	google.golang.org/genproto v0.0.0-20210416161957-9910b6c460de
 	google.golang.org/grpc v1.40.0
@@ -107,6 +111,7 @@ require (
 	k8s.io/api v0.20.9
 	k8s.io/apiextensions-apiserver v0.20.9
 	k8s.io/apimachinery v0.20.9
+	k8s.io/cli-runtime v0.20.9
 	k8s.io/client-go v0.20.9
 	k8s.io/code-generator v0.20.9
 	k8s.io/kubectl v0.20.9

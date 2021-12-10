@@ -48,7 +48,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return printVersion(NewKube(opts.Metadata.GetNamespace()), os.Stdout, opts)
+			return PrintVersion(NewKube(opts.Metadata.GetNamespace()), os.Stdout, opts)
 		},
 	}
 
@@ -77,7 +77,7 @@ func getClientVersion() *version.ClientVersion {
 	}
 }
 
-func printVersion(sv ServerVersion, w io.Writer, opts *options.Options) error {
+func PrintVersion(sv ServerVersion, w io.Writer, opts *options.Options) error {
 	vrs, _ := GetClientServerVersions(opts.Top.Ctx, sv)
 	// ignoring error so we still print client version even if we can't get server versions (e.g., not deployed, no rbac)
 	switch opts.Top.Output {

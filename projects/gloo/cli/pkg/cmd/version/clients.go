@@ -45,8 +45,11 @@ func (k *kube) Get(ctx context.Context) ([]*version.ServerVersion, error) {
 	if err != nil {
 		return nil, err
 	}
+	return GetVersions(ctx, client, k.namespace)
+}
 
-	deployments, err := client.AppsV1().Deployments(k.namespace).List(ctx, metav1.ListOptions{
+func GetVersions(ctx context.Context, client *kubernetes.Clientset, namespace string) ([]*version.ServerVersion, error) {
+	deployments, err := client.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{
 		// search only for gloo deployments based on labels
 		LabelSelector: "app=gloo",
 	})
@@ -94,11 +97,12 @@ func (k *kube) Get(ctx context.Context) ([]*version.ServerVersion, error) {
 		VersionType: &version.ServerVersion_Kubernetes{
 			Kubernetes: &version.Kubernetes{
 				Containers: kubeContainerList,
-				Namespace:  k.namespace,
+				Namespace:  namespace,
 			},
 		},
 	}
 	return []*version.ServerVersion{serverVersion}, nil
+
 }
 
 func parseContainerString(container kubev1.Container) *generate.Image {
