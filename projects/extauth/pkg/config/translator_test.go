@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/onsi/ginkgo/extensions/table"
 	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
 
@@ -472,6 +473,24 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(params.Store).To(BeAssignableToTypeOf(&redis.RedisSession{}))
+		})
+		It("should default PreExpiryBuffer to 2s", func() {
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{
+				Session: &extauthv1.UserSession_Redis{
+					Redis: &extauthv1.UserSession_RedisSession{},
+				}})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params.PreExpiryBuffer).To(Equal(time.Second * 2))
+		})
+		It("should translate PreExpiryBuffer", func() {
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{
+				Session: &extauthv1.UserSession_Redis{
+					Redis: &extauthv1.UserSession_RedisSession{
+						PreExpiryBuffer: &duration.Duration{Seconds: 5, Nanos: 0},
+					},
+				}})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params.PreExpiryBuffer).To(Equal(time.Second * 5))
 		})
 	})
 

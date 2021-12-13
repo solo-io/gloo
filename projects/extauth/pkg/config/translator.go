@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
@@ -450,18 +451,18 @@ func convertAprUsers(users map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassw
 	return ret
 }
 
-func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, error) {
+func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, time.Duration, error) {
 	if us == nil {
-		return nil, false, nil
+		return nil, false, 0, nil
 	}
 	usersession := us.Session
 	if usersession == nil {
-		return nil, false, nil
+		return nil, false, 0, nil
 	}
 
 	switch s := usersession.(type) {
 	case *extauthv1.UserSession_Cookie:
-		return nil, false, nil
+		return nil, false, 0, nil
 	case *extauthv1.UserSession_Redis:
 		options := s.Redis.GetOptions()
 		opts := &redis.UniversalOptions{
@@ -479,9 +480,14 @@ func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, erro
 			allowRefreshing = allowRefreshSetting.Value
 		}
 
-		return rs, allowRefreshing, nil
+		preExpiryBuffer := &duration.Duration{Seconds: 2, Nanos: 0}
+		if preExpiryBufferSetting := s.Redis.PreExpiryBuffer; preExpiryBufferSetting != nil {
+			preExpiryBuffer = preExpiryBufferSetting
+		}
+
+		return rs, allowRefreshing, preExpiryBuffer.AsDuration(), nil
 	}
-	return nil, false, fmt.Errorf("no matching session config")
+	return nil, false, 0, fmt.Errorf("no matching session config")
 }
 
 func cookieConfigToSessionOptions(cookieOptions *extauthv1.UserSession_CookieOptions) *session.Options {
@@ -540,7 +546,7 @@ func ToDiscoveryDataOverride(discoveryOverride *extauthv1.DiscoveryOverride) *oi
 
 func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParameters, error) {
 	sessionOptions := cookieConfigToSessionOptions(userSession.GetCookieOptions())
-	sessionStore, refreshIfExpired, err := sessionToStore(userSession)
+	sessionStore, refreshIfExpired, preExpiryBuffer, err := sessionToStore(userSession)
 	if err != nil {
 		return oidc.SessionParameters{}, err
 	}
@@ -549,6 +555,7 @@ func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParame
 		Store:             sessionStore,
 		Options:           sessionOptions,
 		RefreshIfExpired:  refreshIfExpired,
+		PreExpiryBuffer:   preExpiryBuffer,
 	}, nil
 }
 

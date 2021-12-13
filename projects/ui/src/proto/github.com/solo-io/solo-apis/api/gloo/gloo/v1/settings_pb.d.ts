@@ -374,6 +374,11 @@ export namespace SettingsSpec {
     getFdsMode(): SettingsSpec.DiscoveryOptions.FdsModeMap[keyof SettingsSpec.DiscoveryOptions.FdsModeMap];
     setFdsMode(value: SettingsSpec.DiscoveryOptions.FdsModeMap[keyof SettingsSpec.DiscoveryOptions.FdsModeMap]): void;
 
+    hasUdsOptions(): boolean;
+    clearUdsOptions(): void;
+    getUdsOptions(): SettingsSpec.DiscoveryOptions.UdsOptions | undefined;
+    setUdsOptions(value?: SettingsSpec.DiscoveryOptions.UdsOptions): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): DiscoveryOptions.AsObject;
     static toObject(includeInstance: boolean, msg: DiscoveryOptions): DiscoveryOptions.AsObject;
@@ -387,6 +392,29 @@ export namespace SettingsSpec {
   export namespace DiscoveryOptions {
     export type AsObject = {
       fdsMode: SettingsSpec.DiscoveryOptions.FdsModeMap[keyof SettingsSpec.DiscoveryOptions.FdsModeMap],
+      udsOptions?: SettingsSpec.DiscoveryOptions.UdsOptions.AsObject,
+    }
+
+    export class UdsOptions extends jspb.Message {
+      hasEnabled(): boolean;
+      clearEnabled(): void;
+      getEnabled(): google_protobuf_wrappers_pb.BoolValue | undefined;
+      setEnabled(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): UdsOptions.AsObject;
+      static toObject(includeInstance: boolean, msg: UdsOptions): UdsOptions.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: UdsOptions, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): UdsOptions;
+      static deserializeBinaryFromReader(message: UdsOptions, reader: jspb.BinaryReader): UdsOptions;
+    }
+
+    export namespace UdsOptions {
+      export type AsObject = {
+        enabled?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      }
     }
 
     export interface FdsModeMap {

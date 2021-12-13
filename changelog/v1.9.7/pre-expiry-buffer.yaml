@@ -1,0 +1,16 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.19.11
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.9.6
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: v0.0.0-20211213154301-690fbd2f44f8
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/4447
+    description: Add pre_expiry_buffer to extauth API to allow for refreshing id-tokens moments before they're going to expire.
