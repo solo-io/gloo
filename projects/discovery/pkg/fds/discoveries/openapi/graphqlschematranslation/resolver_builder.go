@@ -159,15 +159,16 @@ func TraverseGraphqlSchema(operation *types.Operation, inputTypeName string, sch
 				Value: &JsonValue{
 					JsonVal: &JsonValue_ValueProvider{
 						ValueProvider: &ValueProvider{
-							Provider: &ValueProvider_GraphqlArg{
-								GraphqlArg: &ValueProvider_GraphQLArgExtraction{
-									ArgName:  inputSaneName,
-									Required: cliutils.Contains(schema.Required, propName),
-									Path: []*PathSegment{
-										{
-											Segment: &PathSegment_Key{
-												Key: saneMap[p],
-											}}}}}}}}})
+							Providers: map[string]*ValueProvider_Provider{"namedProvider": {
+								Provider: &ValueProvider_Provider_GraphqlArg{
+									GraphqlArg: &ValueProvider_GraphQLArgExtraction{
+										ArgName:  inputSaneName,
+										Required: cliutils.Contains(schema.Required, propName),
+										Path: []*PathSegment{
+											{
+												Segment: &PathSegment_Key{
+													Key: saneMap[p],
+												}}}}}}}}}}})
 		}
 		return &JsonValue{
 			JsonVal: &JsonValue_Node{
@@ -178,14 +179,15 @@ func TraverseGraphqlSchema(operation *types.Operation, inputTypeName string, sch
 		return &JsonValue{
 			JsonVal: &JsonValue_ValueProvider{
 				ValueProvider: &ValueProvider{
-					Provider: &ValueProvider_GraphqlArg{
-						GraphqlArg: &ValueProvider_GraphQLArgExtraction{
-							ArgName:  inputSaneName,
-							Required: operation.PayloadRequired,
-							Path: []*PathSegment{{
-								Segment: &PathSegment_All{
-									All: true,
-								}}}}}}},
+					Providers: map[string]*ValueProvider_Provider{"namedProvider": {
+						Provider: &ValueProvider_Provider_GraphqlArg{
+							GraphqlArg: &ValueProvider_GraphQLArgExtraction{
+								ArgName:  inputSaneName,
+								Required: operation.PayloadRequired,
+								Path: []*PathSegment{{
+									Segment: &PathSegment_All{
+										All: true,
+									}}}}}}}}},
 		}
 	} else {
 		return nil
@@ -197,19 +199,27 @@ func ExtractRequestDataFromArgs(path string, operation *types.Operation, paramet
 	requestTemplate := &RequestTemplate{
 		Headers: map[string]*ValueProvider{
 			":path": {
-				Provider: &ValueProvider_TypedProvider{
-					TypedProvider: &ValueProvider_TypedValueProvider{
-						ValProvider: &ValueProvider_TypedValueProvider_Value{
-							Value: path,
+				Providers: map[string]*ValueProvider_Provider{
+					"namedProvider": {
+						Provider: &ValueProvider_Provider_TypedProvider{
+							TypedProvider: &ValueProvider_TypedValueProvider{
+								ValProvider: &ValueProvider_TypedValueProvider_Value{
+									Value: path,
+								},
+							},
 						},
 					},
 				},
 			},
 			":method": {
-				Provider: &ValueProvider_TypedProvider{
-					TypedProvider: &ValueProvider_TypedValueProvider{
-						ValProvider: &ValueProvider_TypedValueProvider_Value{
-							Value: method,
+				Providers: map[string]*ValueProvider_Provider{
+					"namedProvider": {
+						Provider: &ValueProvider_Provider_TypedProvider{
+							TypedProvider: &ValueProvider_TypedValueProvider{
+								ValProvider: &ValueProvider_TypedValueProvider_Value{
+									Value: method,
+								},
+							},
 						},
 					},
 				},
@@ -240,10 +250,14 @@ func ExtractRequestDataFromArgs(path string, operation *types.Operation, paramet
 		}
 		if provider == nil {
 			provider = &ValueProvider{
-				Provider: &ValueProvider_GraphqlArg{
-					GraphqlArg: &ValueProvider_GraphQLArgExtraction{
-						ArgName:  sanitizedParamName,
-						Required: required,
+				Providers: map[string]*ValueProvider_Provider{
+					"namedProvider": {
+						Provider: &ValueProvider_Provider_GraphqlArg{
+							GraphqlArg: &ValueProvider_GraphQLArgExtraction{
+								ArgName:  sanitizedParamName,
+								Required: required,
+							},
+						},
 					},
 				},
 			}
@@ -255,23 +269,23 @@ func ExtractRequestDataFromArgs(path string, operation *types.Operation, paramet
 			// todo - support multiple name parameters here.
 			pString := "{" + p.Name + "}"
 			requestTemplate.Headers[":path"] = &ValueProvider{
-				ProviderTemplate: strings.ReplaceAll(path, pString, "{}"),
-				Provider:         provider.Provider,
+				ProviderTemplate: strings.ReplaceAll(path, pString, "{namedProvider}"), // TODO(sai) fixme
+				Providers:        provider.Providers,
 			}
 		case "query":
 			if requestTemplate.QueryParams == nil {
 				requestTemplate.QueryParams = map[string]*ValueProvider{}
 			}
 			requestTemplate.QueryParams[p.Name] = &ValueProvider{
-				Provider: provider.Provider,
+				Providers: provider.Providers,
 			}
 		case "header":
 			requestTemplate.Headers[p.Name] = &ValueProvider{
-				Provider: provider.Provider,
+				Providers: provider.Providers,
 			}
 		case "cookie":
 			requestTemplate.Headers["cookie"] = &ValueProvider{
-				Provider: provider.Provider,
+				Providers: provider.Providers,
 			}
 		}
 	}

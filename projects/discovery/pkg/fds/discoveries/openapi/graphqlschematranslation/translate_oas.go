@@ -609,11 +609,15 @@ func (t *OasToGqlTranslator) ResolveLinkParameter(param string) *v1alpha1.ValueP
 	// CASE: parameter is parent body
 	if param == "$response.body" {
 		return &v1alpha1.ValueProvider{
-			Provider: &v1alpha1.ValueProvider_GraphqlParent{
-				GraphqlParent: &v1alpha1.ValueProvider_GraphQLParentExtraction{
-					Path: []*v1alpha1.PathSegment{
-						{
-							Segment: &v1alpha1.PathSegment_All{All: true},
+			Providers: map[string]*v1alpha1.ValueProvider_Provider{
+				"namedProvider": {
+					Provider: &v1alpha1.ValueProvider_Provider_GraphqlParent{
+						GraphqlParent: &v1alpha1.ValueProvider_GraphQLParentExtraction{
+							Path: []*v1alpha1.PathSegment{
+								{
+									Segment: &v1alpha1.PathSegment_All{All: true},
+								},
+							},
 						},
 					},
 				},
@@ -634,9 +638,13 @@ func (t *OasToGqlTranslator) ResolveLinkParameter(param string) *v1alpha1.ValueP
 			pathSegment = append(pathSegment, &v1alpha1.PathSegment{Segment: &v1alpha1.PathSegment_Key{Key: segment}})
 		}
 		return &v1alpha1.ValueProvider{
-			Provider: &v1alpha1.ValueProvider_GraphqlParent{
-				GraphqlParent: &v1alpha1.ValueProvider_GraphQLParentExtraction{
-					Path: pathSegment,
+			Providers: map[string]*v1alpha1.ValueProvider_Provider{
+				"namedProvider": {
+					Provider: &v1alpha1.ValueProvider_Provider_GraphqlParent{
+						GraphqlParent: &v1alpha1.ValueProvider_GraphQLParentExtraction{
+							Path: pathSegment,
+						},
+					},
 				},
 			},
 		}

@@ -64,8 +64,8 @@ var _ = Describe("GraphQl Discovery Test", func() {
 Equivalent to OpenApiSpec 'Some title' GET /cat`))
 			ExpectWithOffset(1, resolution).To(HaveLen(1))
 			headers := resolution[0].GetRestResolver().GetRequestTransform().GetHeaders()
-			ExpectWithOffset(1, headers[":method"].GetTypedProvider().GetValue()).To(Equal("GET"))
-			ExpectWithOffset(1, headers[":path"].GetTypedProvider().GetValue()).To(Equal(expectedPath))
+			ExpectWithOffset(1, headers[":method"].GetProviders()["namedProvider"].GetTypedProvider().GetValue()).To(Equal("GET"))
+			ExpectWithOffset(1, headers[":path"].GetProviders()["namedProvider"].GetTypedProvider().GetValue()).To(Equal(expectedPath))
 		}
 
 		It("Path is / when no servers are provided", func() {

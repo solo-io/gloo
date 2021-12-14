@@ -255,11 +255,15 @@ var _ = Describe("graphql", func() {
 										Value: &v1alpha1.JsonValue{
 											JsonVal: &v1alpha1.JsonValue_ValueProvider{
 												ValueProvider: &v1alpha1.ValueProvider{
-													Provider: &v1alpha1.ValueProvider_TypedProvider{
-														TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
-															Type: v1alpha1.ValueProvider_TypedValueProvider_STRING,
-															ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{
-																Value: "value1",
+													Providers: map[string]*v1alpha1.ValueProvider_Provider{
+														"namedProvider": {
+															Provider: &v1alpha1.ValueProvider_Provider_TypedProvider{
+																TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
+																	Type: v1alpha1.ValueProvider_TypedValueProvider_STRING,
+																	ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{
+																		Value: "value1",
+																	},
+																},
 															},
 														},
 													},
@@ -289,11 +293,15 @@ var _ = Describe("graphql", func() {
 				BeforeEach(func() {
 					graphQlSchema.Resolutions[0].GetRestResolver().RequestTransform.QueryParams = map[string]*v1alpha1.ValueProvider{
 						"queryparam": {
-							Provider: &v1alpha1.ValueProvider_TypedProvider{
-								TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
-									Type: v1alpha1.ValueProvider_TypedValueProvider_STRING,
-									ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{
-										Value: "queryparamval",
+							Providers: map[string]*v1alpha1.ValueProvider_Provider{
+								"namedProvider": {
+									Provider: &v1alpha1.ValueProvider_Provider_TypedProvider{
+										TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
+											Type: v1alpha1.ValueProvider_TypedValueProvider_STRING,
+											ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{
+												Value: "queryparamval",
+											},
+										},
 									},
 								},
 							},
@@ -317,11 +325,15 @@ var _ = Describe("graphql", func() {
 				BeforeEach(func() {
 					graphQlSchema.Resolutions[0].GetRestResolver().RequestTransform.Headers = map[string]*v1alpha1.ValueProvider{
 						"header": {
-							Provider: &v1alpha1.ValueProvider_TypedProvider{
-								TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
-									Type: v1alpha1.ValueProvider_TypedValueProvider_STRING,
-									ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{
-										Value: "headerval",
+							Providers: map[string]*v1alpha1.ValueProvider_Provider{
+								"namedProvider": {
+									Provider: &v1alpha1.ValueProvider_Provider_TypedProvider{
+										TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
+											Type: v1alpha1.ValueProvider_TypedValueProvider_STRING,
+											ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{
+												Value: "headerval",
+											},
+										},
 									},
 								},
 							},

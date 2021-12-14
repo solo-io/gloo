@@ -293,35 +293,41 @@ func translateValueProvider(vp *v1alpha1.ValueProvider) (*v2.ValueProvider, erro
 	converted := &v2.ValueProvider{
 		ProviderTemplate: vp.GetProviderTemplate(),
 	}
-	switch p := vp.Provider.(type) {
-	case *v1alpha1.ValueProvider_GraphqlArg:
+
+	// TODO(sai) implement value provider map
+	valProvider := vp.GetProviders()["namedProvider"]
+
+	switch p := valProvider.Provider.(type) {
+	case *v1alpha1.ValueProvider_Provider_GraphqlArg:
 		ps, err := translatePath(p.GraphqlArg.Path)
 		if err != nil {
 			return nil, err
 		}
-		graphqlArg := &v2.ValueProvider_GraphqlArg{
+		graphqlArg := &v2.ValueProvider_Provider_GraphqlArg{
 			GraphqlArg: &v2.ValueProvider_GraphQLArgExtraction{
 				ArgName:  p.GraphqlArg.ArgName,
 				Path:     ps,
 				Required: p.GraphqlArg.Required,
 			},
 		}
-		converted.Provider = graphqlArg
-	case *v1alpha1.ValueProvider_GraphqlParent:
+		// TODO(sai) implement value provider map
+		converted.Providers = map[string]*v2.ValueProvider_Provider{"namedProvider": {Provider: graphqlArg}}
+	case *v1alpha1.ValueProvider_Provider_GraphqlParent:
 		ps, err := translatePath(p.GraphqlParent.Path)
 		if err != nil {
 			return nil, err
 		}
-		graphqlParent := &v2.ValueProvider_GraphqlParent{
+		graphqlParent := &v2.ValueProvider_Provider_GraphqlParent{
 			GraphqlParent: &v2.ValueProvider_GraphQLParentExtraction{Path: ps},
 		}
-		converted.Provider = graphqlParent
-	case *v1alpha1.ValueProvider_TypedProvider:
+		// TODO(sai) implement value provider map
+		converted.Providers = map[string]*v2.ValueProvider_Provider{"namedProvider": {Provider: graphqlParent}}
+	case *v1alpha1.ValueProvider_Provider_TypedProvider:
 		t, err := translateType(p.TypedProvider.Type)
 		if err != nil {
 			return nil, err
 		}
-		tp := &v2.ValueProvider_TypedProvider{
+		tp := &v2.ValueProvider_Provider_TypedProvider{
 			TypedProvider: &v2.ValueProvider_TypedValueProvider{
 				Type:        t,
 				ValProvider: nil, // filled in later
@@ -341,7 +347,8 @@ func translateValueProvider(vp *v1alpha1.ValueProvider) (*v2.ValueProvider, erro
 		default:
 			return nil, errors.Errorf("unimplemented val provider type: %T", vp)
 		}
-		converted.Provider = tp
+		// TODO(sai) implement value provider map
+		converted.Providers = map[string]*v2.ValueProvider_Provider{"namedProvider": {Provider: tp}}
 	default:
 		return nil, errors.Errorf("unimplemented value provider type: %T", p)
 	}

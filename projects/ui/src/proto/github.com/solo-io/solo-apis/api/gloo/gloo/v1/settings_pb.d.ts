@@ -401,6 +401,8 @@ export namespace SettingsSpec {
       getEnabled(): google_protobuf_wrappers_pb.BoolValue | undefined;
       setEnabled(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+      getWatchLabelsMap(): jspb.Map<string, string>;
+      clearWatchLabelsMap(): void;
       serializeBinary(): Uint8Array;
       toObject(includeInstance?: boolean): UdsOptions.AsObject;
       static toObject(includeInstance: boolean, msg: UdsOptions): UdsOptions.AsObject;
@@ -414,6 +416,7 @@ export namespace SettingsSpec {
     export namespace UdsOptions {
       export type AsObject = {
         enabled?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+        watchLabelsMap: Array<[string, string]>,
       }
     }
 

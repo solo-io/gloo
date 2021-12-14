@@ -2031,7 +2031,8 @@ proto.gloo.solo.io.SettingsSpec.DiscoveryOptions.UdsOptions.prototype.toObject =
  */
 proto.gloo.solo.io.SettingsSpec.DiscoveryOptions.UdsOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
-    enabled: (f = msg.getEnabled()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    enabled: (f = msg.getEnabled()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    watchLabelsMap: (f = msg.getWatchLabelsMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -2073,6 +2074,12 @@ proto.gloo.solo.io.SettingsSpec.DiscoveryOptions.UdsOptions.deserializeBinaryFro
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setEnabled(value);
       break;
+    case 2:
+      var value = msg.getWatchLabelsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
     default:
       reader.skipField();
       break;
@@ -2110,6 +2117,10 @@ proto.gloo.solo.io.SettingsSpec.DiscoveryOptions.UdsOptions.serializeBinaryToWri
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
+  f = message.getWatchLabelsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
 };
 
 
@@ -2140,6 +2151,24 @@ proto.gloo.solo.io.SettingsSpec.DiscoveryOptions.UdsOptions.prototype.clearEnabl
  */
 proto.gloo.solo.io.SettingsSpec.DiscoveryOptions.UdsOptions.prototype.hasEnabled = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * map<string, string> watch_labels = 2;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.gloo.solo.io.SettingsSpec.DiscoveryOptions.UdsOptions.prototype.getWatchLabelsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
+      null));
+};
+
+
+proto.gloo.solo.io.SettingsSpec.DiscoveryOptions.UdsOptions.prototype.clearWatchLabelsMap = function() {
+  this.getWatchLabelsMap().clear();
 };
 
 

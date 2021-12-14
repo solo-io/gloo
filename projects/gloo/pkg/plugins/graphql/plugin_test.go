@@ -194,20 +194,28 @@ var _ = Describe("Graphql plugin", func() {
 										RequestTransform: &RequestTemplate{
 											Headers: map[string]*ValueProvider{
 												"header": {
-													Provider: &ValueProvider_TypedProvider{
-														TypedProvider: &ValueProvider_TypedValueProvider{
-															ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "7.89"},
-															Type:        ValueProvider_TypedValueProvider_FLOAT,
+													Providers: map[string]*ValueProvider_Provider{
+														"namedProvider": {
+															Provider: &ValueProvider_Provider_TypedProvider{
+																TypedProvider: &ValueProvider_TypedValueProvider{
+																	ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "7.89"},
+																	Type:        ValueProvider_TypedValueProvider_FLOAT,
+																},
+															},
 														},
 													},
 												},
 											},
 											QueryParams: map[string]*ValueProvider{
 												"qp": {
-													Provider: &ValueProvider_TypedProvider{
-														TypedProvider: &ValueProvider_TypedValueProvider{
-															ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "true"},
-															Type:        ValueProvider_TypedValueProvider_BOOLEAN,
+													Providers: map[string]*ValueProvider_Provider{
+														"namedProvider": {
+															Provider: &ValueProvider_Provider_TypedProvider{
+																TypedProvider: &ValueProvider_TypedValueProvider{
+																	ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "true"},
+																	Type:        ValueProvider_TypedValueProvider_BOOLEAN,
+																},
+															},
 														},
 													},
 												},
@@ -228,10 +236,13 @@ var _ = Describe("Graphql plugin", func() {
 																					Value: &JsonValue{
 																						JsonVal: &JsonValue_ValueProvider{
 																							ValueProvider: &ValueProvider{
-																								Provider: &ValueProvider_TypedProvider{
-																									TypedProvider: &ValueProvider_TypedValueProvider{
-																										Type:        ValueProvider_TypedValueProvider_STRING,
-																										ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "val"},
+																								Providers: map[string]*ValueProvider_Provider{
+																									"namedProvider": {
+																										Provider: &ValueProvider_Provider_TypedProvider{TypedProvider: &ValueProvider_TypedValueProvider{
+																											Type:        ValueProvider_TypedValueProvider_STRING,
+																											ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "val"},
+																										},
+																										},
 																									},
 																								},
 																							},
@@ -267,15 +278,15 @@ var _ = Describe("Graphql plugin", func() {
 						restResolver := msg.(*v2.RESTResolver)
 
 						Expect(restResolver.GetSpanName()).To(Equal("span"))
-						Expect(restResolver.GetRequestTransform().GetHeaders()["header"].GetTypedProvider().GetType()).To(Equal(v2.ValueProvider_TypedValueProvider_FLOAT))
-						Expect(restResolver.GetRequestTransform().GetHeaders()["header"].GetTypedProvider().GetValue()).To(Equal("7.89"))
-						Expect(restResolver.GetRequestTransform().GetQueryParams()["qp"].GetTypedProvider().GetType()).To(Equal(v2.ValueProvider_TypedValueProvider_BOOLEAN))
-						Expect(restResolver.GetRequestTransform().GetQueryParams()["qp"].GetTypedProvider().GetValue()).To(Equal("true"))
+						Expect(restResolver.GetRequestTransform().GetHeaders()["header"].GetProviders()["namedProvider"].GetTypedProvider().GetType()).To(Equal(v2.ValueProvider_TypedValueProvider_FLOAT))
+						Expect(restResolver.GetRequestTransform().GetHeaders()["header"].GetProviders()["namedProvider"].GetTypedProvider().GetValue()).To(Equal("7.89"))
+						Expect(restResolver.GetRequestTransform().GetQueryParams()["qp"].GetProviders()["namedProvider"].GetTypedProvider().GetType()).To(Equal(v2.ValueProvider_TypedValueProvider_BOOLEAN))
+						Expect(restResolver.GetRequestTransform().GetQueryParams()["qp"].GetProviders()["namedProvider"].GetTypedProvider().GetValue()).To(Equal("true"))
 
 						// testing the recursive translation
 						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k1"))
 						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k2"))
-						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetValue().GetValueProvider().GetTypedProvider().GetValue()).To(Equal("val"))
+						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetValue().GetValueProvider().GetProviders()["namedProvider"].GetTypedProvider().GetValue()).To(Equal("val"))
 					})
 
 				})
@@ -356,21 +367,29 @@ var _ = Describe("Graphql plugin", func() {
 							RequestTransform: &RequestTemplate{
 								Headers: map[string]*ValueProvider{
 									":method": {
-										Provider: &ValueProvider_TypedProvider{
-											TypedProvider: &ValueProvider_TypedValueProvider{
-												ValProvider: &ValueProvider_TypedValueProvider_Value{
-													Value: "GET",
+										Providers: map[string]*ValueProvider_Provider{
+											"namedProvider": {
+												Provider: &ValueProvider_Provider_TypedProvider{
+													TypedProvider: &ValueProvider_TypedValueProvider{
+														ValProvider: &ValueProvider_TypedValueProvider_Value{
+															Value: "GET",
+														},
+													},
 												},
 											},
 										},
 									},
 									":path": {
-										Provider: &ValueProvider_GraphqlArg{
-											GraphqlArg: &ValueProvider_GraphQLArgExtraction{
-												ArgName: "id",
+										Providers: map[string]*ValueProvider_Provider{
+											"namedProvider": {
+												Provider: &ValueProvider_Provider_GraphqlArg{
+													GraphqlArg: &ValueProvider_GraphQLArgExtraction{
+														ArgName: "id",
+													},
+												},
 											},
 										},
-										ProviderTemplate: "/employees/{}",
+										ProviderTemplate: "/employees/{namedProvider}",
 									},
 								},
 							},
@@ -395,25 +414,33 @@ var _ = Describe("Graphql plugin", func() {
 							RequestTransform: &RequestTemplate{
 								Headers: map[string]*ValueProvider{
 									":method": {
-										Provider: &ValueProvider_TypedProvider{
-											TypedProvider: &ValueProvider_TypedValueProvider{
-												ValProvider: &ValueProvider_TypedValueProvider_Value{
-													Value: "GET",
+										Providers: map[string]*ValueProvider_Provider{
+											"namedProvider": {
+												Provider: &ValueProvider_Provider_TypedProvider{
+													TypedProvider: &ValueProvider_TypedValueProvider{
+														ValProvider: &ValueProvider_TypedValueProvider_Value{
+															Value: "GET",
+														},
+													},
 												},
 											},
 										},
 									},
 									":path": {
-										Provider: &ValueProvider_GraphqlParent{
-											GraphqlParent: &ValueProvider_GraphQLParentExtraction{
-												Path: []*PathSegment{{
-													Segment: &PathSegment_Key{
-														Key: "managerId",
+										Providers: map[string]*ValueProvider_Provider{
+											"namedProvider": {
+												Provider: &ValueProvider_Provider_GraphqlParent{
+													GraphqlParent: &ValueProvider_GraphQLParentExtraction{
+														Path: []*PathSegment{{
+															Segment: &PathSegment_Key{
+																Key: "managerId",
+															},
+														}},
 													},
-												}},
+												},
 											},
 										},
-										ProviderTemplate: "/employees/{}",
+										ProviderTemplate: "/employees/{namedProvider}",
 									},
 								},
 							},

@@ -3,6 +3,7 @@
 // file: github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/graphql/graphql.proto
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as validate_validate_pb from "../../../../../../../../../../validate/validate_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/http_uri_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/extension_pb";
@@ -50,26 +51,34 @@ export namespace PathSegment {
   }
 }
 
+export class Path extends jspb.Message {
+  clearSegmentsList(): void;
+  getSegmentsList(): Array<PathSegment>;
+  setSegmentsList(value: Array<PathSegment>): void;
+  addSegments(value?: PathSegment, index?: number): PathSegment;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Path.AsObject;
+  static toObject(includeInstance: boolean, msg: Path): Path.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Path, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Path;
+  static deserializeBinaryFromReader(message: Path, reader: jspb.BinaryReader): Path;
+}
+
+export namespace Path {
+  export type AsObject = {
+    segmentsList: Array<PathSegment.AsObject>,
+  }
+}
+
 export class ValueProvider extends jspb.Message {
-  hasGraphqlArg(): boolean;
-  clearGraphqlArg(): void;
-  getGraphqlArg(): ValueProvider.GraphQLArgExtraction | undefined;
-  setGraphqlArg(value?: ValueProvider.GraphQLArgExtraction): void;
-
-  hasTypedProvider(): boolean;
-  clearTypedProvider(): void;
-  getTypedProvider(): ValueProvider.TypedValueProvider | undefined;
-  setTypedProvider(value?: ValueProvider.TypedValueProvider): void;
-
-  hasGraphqlParent(): boolean;
-  clearGraphqlParent(): void;
-  getGraphqlParent(): ValueProvider.GraphQLParentExtraction | undefined;
-  setGraphqlParent(value?: ValueProvider.GraphQLParentExtraction): void;
-
+  getProvidersMap(): jspb.Map<string, ValueProvider.Provider>;
+  clearProvidersMap(): void;
   getProviderTemplate(): string;
   setProviderTemplate(value: string): void;
 
-  getProviderCase(): ValueProvider.ProviderCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ValueProvider.AsObject;
   static toObject(includeInstance: boolean, msg: ValueProvider): ValueProvider.AsObject;
@@ -82,9 +91,7 @@ export class ValueProvider extends jspb.Message {
 
 export namespace ValueProvider {
   export type AsObject = {
-    graphqlArg?: ValueProvider.GraphQLArgExtraction.AsObject,
-    typedProvider?: ValueProvider.TypedValueProvider.AsObject,
-    graphqlParent?: ValueProvider.GraphQLParentExtraction.AsObject,
+    providersMap: Array<[string, ValueProvider.Provider.AsObject]>,
     providerTemplate: string,
   }
 
@@ -188,11 +195,46 @@ export namespace ValueProvider {
     }
   }
 
-  export enum ProviderCase {
-    PROVIDER_NOT_SET = 0,
-    GRAPHQL_ARG = 1,
-    TYPED_PROVIDER = 2,
-    GRAPHQL_PARENT = 3,
+  export class Provider extends jspb.Message {
+    hasGraphqlArg(): boolean;
+    clearGraphqlArg(): void;
+    getGraphqlArg(): ValueProvider.GraphQLArgExtraction | undefined;
+    setGraphqlArg(value?: ValueProvider.GraphQLArgExtraction): void;
+
+    hasTypedProvider(): boolean;
+    clearTypedProvider(): void;
+    getTypedProvider(): ValueProvider.TypedValueProvider | undefined;
+    setTypedProvider(value?: ValueProvider.TypedValueProvider): void;
+
+    hasGraphqlParent(): boolean;
+    clearGraphqlParent(): void;
+    getGraphqlParent(): ValueProvider.GraphQLParentExtraction | undefined;
+    setGraphqlParent(value?: ValueProvider.GraphQLParentExtraction): void;
+
+    getProviderCase(): Provider.ProviderCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Provider.AsObject;
+    static toObject(includeInstance: boolean, msg: Provider): Provider.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Provider, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Provider;
+    static deserializeBinaryFromReader(message: Provider, reader: jspb.BinaryReader): Provider;
+  }
+
+  export namespace Provider {
+    export type AsObject = {
+      graphqlArg?: ValueProvider.GraphQLArgExtraction.AsObject,
+      typedProvider?: ValueProvider.TypedValueProvider.AsObject,
+      graphqlParent?: ValueProvider.GraphQLParentExtraction.AsObject,
+    }
+
+    export enum ProviderCase {
+      PROVIDER_NOT_SET = 0,
+      GRAPHQL_ARG = 1,
+      TYPED_PROVIDER = 2,
+      GRAPHQL_PARENT = 3,
+    }
   }
 }
 
@@ -337,6 +379,13 @@ export namespace RequestTemplate {
 }
 
 export class ResponseTemplate extends jspb.Message {
+  clearResultRootList(): void;
+  getResultRootList(): Array<PathSegment>;
+  setResultRootList(value: Array<PathSegment>): void;
+  addResultRoot(value?: PathSegment, index?: number): PathSegment;
+
+  getSettersMap(): jspb.Map<string, Path>;
+  clearSettersMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ResponseTemplate.AsObject;
   static toObject(includeInstance: boolean, msg: ResponseTemplate): ResponseTemplate.AsObject;
@@ -349,6 +398,8 @@ export class ResponseTemplate extends jspb.Message {
 
 export namespace ResponseTemplate {
   export type AsObject = {
+    resultRootList: Array<PathSegment.AsObject>,
+    settersMap: Array<[string, Path.AsObject]>,
   }
 }
 
@@ -362,6 +413,11 @@ export class RESTResolver extends jspb.Message {
   clearRequestTransform(): void;
   getRequestTransform(): RequestTemplate | undefined;
   setRequestTransform(value?: RequestTemplate): void;
+
+  hasPreExecutionTransform(): boolean;
+  clearPreExecutionTransform(): void;
+  getPreExecutionTransform(): ResponseTemplate | undefined;
+  setPreExecutionTransform(value?: ResponseTemplate): void;
 
   getSpanName(): string;
   setSpanName(value: string): void;
@@ -380,6 +436,94 @@ export namespace RESTResolver {
   export type AsObject = {
     serverUri?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.AsObject,
     requestTransform?: RequestTemplate.AsObject,
+    preExecutionTransform?: ResponseTemplate.AsObject,
+    spanName: string,
+  }
+}
+
+export class GrpcRequestTemplate extends jspb.Message {
+  hasOutgoingMessageJson(): boolean;
+  clearOutgoingMessageJson(): void;
+  getOutgoingMessageJson(): JsonValue | undefined;
+  setOutgoingMessageJson(value?: JsonValue): void;
+
+  getServiceName(): string;
+  setServiceName(value: string): void;
+
+  getMethodName(): string;
+  setMethodName(value: string): void;
+
+  getRequestMetadataMap(): jspb.Map<string, string>;
+  clearRequestMetadataMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GrpcRequestTemplate.AsObject;
+  static toObject(includeInstance: boolean, msg: GrpcRequestTemplate): GrpcRequestTemplate.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GrpcRequestTemplate, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GrpcRequestTemplate;
+  static deserializeBinaryFromReader(message: GrpcRequestTemplate, reader: jspb.BinaryReader): GrpcRequestTemplate;
+}
+
+export namespace GrpcRequestTemplate {
+  export type AsObject = {
+    outgoingMessageJson?: JsonValue.AsObject,
+    serviceName: string,
+    methodName: string,
+    requestMetadataMap: Array<[string, string]>,
+  }
+}
+
+export class GrpcDescriptorRegistry extends jspb.Message {
+  hasProtoDescriptors(): boolean;
+  clearProtoDescriptors(): void;
+  getProtoDescriptors(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource | undefined;
+  setProtoDescriptors(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GrpcDescriptorRegistry.AsObject;
+  static toObject(includeInstance: boolean, msg: GrpcDescriptorRegistry): GrpcDescriptorRegistry.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GrpcDescriptorRegistry, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GrpcDescriptorRegistry;
+  static deserializeBinaryFromReader(message: GrpcDescriptorRegistry, reader: jspb.BinaryReader): GrpcDescriptorRegistry;
+}
+
+export namespace GrpcDescriptorRegistry {
+  export type AsObject = {
+    protoDescriptors?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.AsObject,
+  }
+}
+
+export class GrpcResolver extends jspb.Message {
+  hasServerUri(): boolean;
+  clearServerUri(): void;
+  getServerUri(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri | undefined;
+  setServerUri(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri): void;
+
+  hasRequestTransform(): boolean;
+  clearRequestTransform(): void;
+  getRequestTransform(): GrpcRequestTemplate | undefined;
+  setRequestTransform(value?: GrpcRequestTemplate): void;
+
+  getSpanName(): string;
+  setSpanName(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GrpcResolver.AsObject;
+  static toObject(includeInstance: boolean, msg: GrpcResolver): GrpcResolver.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GrpcResolver, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GrpcResolver;
+  static deserializeBinaryFromReader(message: GrpcResolver, reader: jspb.BinaryReader): GrpcResolver;
+}
+
+export namespace GrpcResolver {
+  export type AsObject = {
+    serverUri?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.AsObject,
+    requestTransform?: GrpcRequestTemplate.AsObject,
     spanName: string,
   }
 }
@@ -532,6 +676,11 @@ export class GraphQLRouteConfig extends jspb.Message {
   setResolutionsList(value: Array<Resolution>): void;
   addResolutions(value?: Resolution, index?: number): Resolution;
 
+  hasExecutableSchema(): boolean;
+  clearExecutableSchema(): void;
+  getExecutableSchema(): ExecutableSchema | undefined;
+  setExecutableSchema(value?: ExecutableSchema): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GraphQLRouteConfig.AsObject;
   static toObject(includeInstance: boolean, msg: GraphQLRouteConfig): GraphQLRouteConfig.AsObject;
@@ -547,5 +696,118 @@ export namespace GraphQLRouteConfig {
     schema?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.AsObject,
     enableIntrospection: boolean,
     resolutionsList: Array<Resolution.AsObject>,
+    executableSchema?: ExecutableSchema.AsObject,
+  }
+}
+
+export class ExecutableSchema extends jspb.Message {
+  hasSchemaDefinition(): boolean;
+  clearSchemaDefinition(): void;
+  getSchemaDefinition(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource | undefined;
+  setSchemaDefinition(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource): void;
+
+  hasExecutor(): boolean;
+  clearExecutor(): void;
+  getExecutor(): Executor | undefined;
+  setExecutor(value?: Executor): void;
+
+  getExtensionsMap(): jspb.Map<string, google_protobuf_any_pb.Any>;
+  clearExtensionsMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ExecutableSchema.AsObject;
+  static toObject(includeInstance: boolean, msg: ExecutableSchema): ExecutableSchema.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ExecutableSchema, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ExecutableSchema;
+  static deserializeBinaryFromReader(message: ExecutableSchema, reader: jspb.BinaryReader): ExecutableSchema;
+}
+
+export namespace ExecutableSchema {
+  export type AsObject = {
+    schemaDefinition?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.AsObject,
+    executor?: Executor.AsObject,
+    extensionsMap: Array<[string, google_protobuf_any_pb.Any.AsObject]>,
+  }
+}
+
+export class Executor extends jspb.Message {
+  hasLocal(): boolean;
+  clearLocal(): void;
+  getLocal(): Executor.Local | undefined;
+  setLocal(value?: Executor.Local): void;
+
+  hasRemote(): boolean;
+  clearRemote(): void;
+  getRemote(): Executor.Remote | undefined;
+  setRemote(value?: Executor.Remote): void;
+
+  getExecutorCase(): Executor.ExecutorCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Executor.AsObject;
+  static toObject(includeInstance: boolean, msg: Executor): Executor.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Executor, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Executor;
+  static deserializeBinaryFromReader(message: Executor, reader: jspb.BinaryReader): Executor;
+}
+
+export namespace Executor {
+  export type AsObject = {
+    local?: Executor.Local.AsObject,
+    remote?: Executor.Remote.AsObject,
+  }
+
+  export class Local extends jspb.Message {
+    clearResolutionsList(): void;
+    getResolutionsList(): Array<Resolution>;
+    setResolutionsList(value: Array<Resolution>): void;
+    addResolutions(value?: Resolution, index?: number): Resolution;
+
+    getEnableIntrospection(): boolean;
+    setEnableIntrospection(value: boolean): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Local.AsObject;
+    static toObject(includeInstance: boolean, msg: Local): Local.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Local, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Local;
+    static deserializeBinaryFromReader(message: Local, reader: jspb.BinaryReader): Local;
+  }
+
+  export namespace Local {
+    export type AsObject = {
+      resolutionsList: Array<Resolution.AsObject>,
+      enableIntrospection: boolean,
+    }
+  }
+
+  export class Remote extends jspb.Message {
+    getCluster(): string;
+    setCluster(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Remote.AsObject;
+    static toObject(includeInstance: boolean, msg: Remote): Remote.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Remote, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Remote;
+    static deserializeBinaryFromReader(message: Remote, reader: jspb.BinaryReader): Remote;
+  }
+
+  export namespace Remote {
+    export type AsObject = {
+      cluster: string,
+    }
+  }
+
+  export enum ExecutorCase {
+    EXECUTOR_NOT_SET = 0,
+    LOCAL = 1,
+    REMOTE = 2,
   }
 }

@@ -12,17 +12,26 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var validate_validate_pb = require('../../../../../../../../../../validate/validate_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/http_uri_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/extension_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/base_pb.js');
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.AbstractTypeResolver', null, global);
+goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.ExecutableSchema', null, global);
+goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.Executor', null, global);
+goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.Executor.Local', null, global);
+goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.Executor.Remote', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.GraphQLConfig', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig', null, global);
+goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry', null, global);
+goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate', null, global);
+goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.GrpcResolver', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.JsonKeyValue', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.JsonNode', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.JsonValue', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.JsonValueList', null, global);
+goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.Path', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.PathSegment', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.Query', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.QueryMatcher', null, global);
@@ -34,6 +43,7 @@ goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.ResponseTemplate', 
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.ValueProvider', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction', null, global);
+goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.Type', null, global);
 
@@ -314,40 +324,181 @@ proto.envoy.config.filter.http.graphql.v2.PathSegment.prototype.hasAll = functio
  * @extends {jspb.Message}
  * @constructor
  */
+proto.envoy.config.filter.http.graphql.v2.Path = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.envoy.config.filter.http.graphql.v2.Path.repeatedFields_, null);
+};
+goog.inherits(proto.envoy.config.filter.http.graphql.v2.Path, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.envoy.config.filter.http.graphql.v2.Path.displayName = 'proto.envoy.config.filter.http.graphql.v2.Path';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.envoy.config.filter.http.graphql.v2.Path.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.envoy.config.filter.http.graphql.v2.Path.prototype.toObject = function(opt_includeInstance) {
+  return proto.envoy.config.filter.http.graphql.v2.Path.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Path} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.Path.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    segmentsList: jspb.Message.toObjectList(msg.getSegmentsList(),
+    proto.envoy.config.filter.http.graphql.v2.PathSegment.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.Path}
+ */
+proto.envoy.config.filter.http.graphql.v2.Path.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.envoy.config.filter.http.graphql.v2.Path;
+  return proto.envoy.config.filter.http.graphql.v2.Path.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Path} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.Path}
+ */
+proto.envoy.config.filter.http.graphql.v2.Path.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.envoy.config.filter.http.graphql.v2.PathSegment;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.PathSegment.deserializeBinaryFromReader);
+      msg.addSegments(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.envoy.config.filter.http.graphql.v2.Path.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.envoy.config.filter.http.graphql.v2.Path.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Path} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.Path.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSegmentsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.PathSegment.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated PathSegment segments = 1;
+ * @return {!Array<!proto.envoy.config.filter.http.graphql.v2.PathSegment>}
+ */
+proto.envoy.config.filter.http.graphql.v2.Path.prototype.getSegmentsList = function() {
+  return /** @type{!Array<!proto.envoy.config.filter.http.graphql.v2.PathSegment>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.envoy.config.filter.http.graphql.v2.PathSegment, 1));
+};
+
+
+/** @param {!Array<!proto.envoy.config.filter.http.graphql.v2.PathSegment>} value */
+proto.envoy.config.filter.http.graphql.v2.Path.prototype.setSegmentsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.envoy.config.filter.http.graphql.v2.PathSegment=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.envoy.config.filter.http.graphql.v2.PathSegment}
+ */
+proto.envoy.config.filter.http.graphql.v2.Path.prototype.addSegments = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.envoy.config.filter.http.graphql.v2.PathSegment, opt_index);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.Path.prototype.clearSegmentsList = function() {
+  this.setSegmentsList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.envoy.config.filter.http.graphql.v2.ValueProvider = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.envoy.config.filter.http.graphql.v2.ValueProvider.oneofGroups_);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
 goog.inherits(proto.envoy.config.filter.http.graphql.v2.ValueProvider, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.envoy.config.filter.http.graphql.v2.ValueProvider.displayName = 'proto.envoy.config.filter.http.graphql.v2.ValueProvider';
 }
-/**
- * Oneof group definitions for this message. Each group defines the field
- * numbers belonging to that group. When of these fields' value is set, all
- * other fields in the group are cleared. During deserialization, if multiple
- * fields are encountered for a group, only the last value seen will be kept.
- * @private {!Array<!Array<number>>}
- * @const
- */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.oneofGroups_ = [[1,2,3]];
-
-/**
- * @enum {number}
- */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.ProviderCase = {
-  PROVIDER_NOT_SET: 0,
-  GRAPHQL_ARG: 1,
-  TYPED_PROVIDER: 2,
-  GRAPHQL_PARENT: 3
-};
-
-/**
- * @return {proto.envoy.config.filter.http.graphql.v2.ValueProvider.ProviderCase}
- */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.getProviderCase = function() {
-  return /** @type {proto.envoy.config.filter.http.graphql.v2.ValueProvider.ProviderCase} */(jspb.Message.computeOneofCase(this, proto.envoy.config.filter.http.graphql.v2.ValueProvider.oneofGroups_[0]));
-};
-
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -377,9 +528,7 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.toObject = fun
  */
 proto.envoy.config.filter.http.graphql.v2.ValueProvider.toObject = function(includeInstance, msg) {
   var f, obj = {
-    graphqlArg: (f = msg.getGraphqlArg()) && proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.toObject(includeInstance, f),
-    typedProvider: (f = msg.getTypedProvider()) && proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.toObject(includeInstance, f),
-    graphqlParent: (f = msg.getGraphqlParent()) && proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction.toObject(includeInstance, f),
+    providersMap: (f = msg.getProvidersMap()) ? f.toObject(includeInstance, proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.toObject) : [],
     providerTemplate: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
@@ -417,20 +566,11 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.deserializeBinaryFromRea
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = new proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction;
-      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.deserializeBinaryFromReader);
-      msg.setGraphqlArg(value);
-      break;
-    case 2:
-      var value = new proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider;
-      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.deserializeBinaryFromReader);
-      msg.setTypedProvider(value);
-      break;
     case 3:
-      var value = new proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction;
-      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction.deserializeBinaryFromReader);
-      msg.setGraphqlParent(value);
+      var value = msg.getProvidersMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.deserializeBinaryFromReader, "");
+         });
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
@@ -465,29 +605,9 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.serializeBinar
  */
 proto.envoy.config.filter.http.graphql.v2.ValueProvider.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGraphqlArg();
-  if (f != null) {
-    writer.writeMessage(
-      1,
-      f,
-      proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.serializeBinaryToWriter
-    );
-  }
-  f = message.getTypedProvider();
-  if (f != null) {
-    writer.writeMessage(
-      2,
-      f,
-      proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.serializeBinaryToWriter
-    );
-  }
-  f = message.getGraphqlParent();
-  if (f != null) {
-    writer.writeMessage(
-      3,
-      f,
-      proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction.serializeBinaryToWriter
-    );
+  f = message.getProvidersMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(3, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.serializeBinaryToWriter);
   }
   f = message.getProviderTemplate();
   if (f.length > 0) {
@@ -1151,23 +1271,207 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.proto
 };
 
 
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.oneofGroups_);
+};
+goog.inherits(proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.displayName = 'proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.oneofGroups_ = [[1,2,3]];
+
+/**
+ * @enum {number}
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.ProviderCase = {
+  PROVIDER_NOT_SET: 0,
+  GRAPHQL_ARG: 1,
+  TYPED_PROVIDER: 2,
+  GRAPHQL_PARENT: 3
+};
+
+/**
+ * @return {proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.ProviderCase}
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.getProviderCase = function() {
+  return /** @type {proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.ProviderCase} */(jspb.Message.computeOneofCase(this, proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.toObject = function(opt_includeInstance) {
+  return proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    graphqlArg: (f = msg.getGraphqlArg()) && proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.toObject(includeInstance, f),
+    typedProvider: (f = msg.getTypedProvider()) && proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.toObject(includeInstance, f),
+    graphqlParent: (f = msg.getGraphqlParent()) && proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider}
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider;
+  return proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider}
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.deserializeBinaryFromReader);
+      msg.setGraphqlArg(value);
+      break;
+    case 2:
+      var value = new proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.deserializeBinaryFromReader);
+      msg.setTypedProvider(value);
+      break;
+    case 3:
+      var value = new proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction.deserializeBinaryFromReader);
+      msg.setGraphqlParent(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getGraphqlArg();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.serializeBinaryToWriter
+    );
+  }
+  f = message.getTypedProvider();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider.serializeBinaryToWriter
+    );
+  }
+  f = message.getGraphqlParent();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction.serializeBinaryToWriter
+    );
+  }
+};
+
+
 /**
  * optional GraphQLArgExtraction graphql_arg = 1;
  * @return {?proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction}
  */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.getGraphqlArg = function() {
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.getGraphqlArg = function() {
   return /** @type{?proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction} */ (
     jspb.Message.getWrapperField(this, proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction, 1));
 };
 
 
 /** @param {?proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction|undefined} value */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.setGraphqlArg = function(value) {
-  jspb.Message.setOneofWrapperField(this, 1, proto.envoy.config.filter.http.graphql.v2.ValueProvider.oneofGroups_[0], value);
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.setGraphqlArg = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.oneofGroups_[0], value);
 };
 
 
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.clearGraphqlArg = function() {
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.clearGraphqlArg = function() {
   this.setGraphqlArg(undefined);
 };
 
@@ -1176,7 +1480,7 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.clearGraphqlAr
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.hasGraphqlArg = function() {
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.hasGraphqlArg = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -1185,19 +1489,19 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.hasGraphqlArg 
  * optional TypedValueProvider typed_provider = 2;
  * @return {?proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider}
  */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.getTypedProvider = function() {
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.getTypedProvider = function() {
   return /** @type{?proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider} */ (
     jspb.Message.getWrapperField(this, proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider, 2));
 };
 
 
 /** @param {?proto.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider|undefined} value */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.setTypedProvider = function(value) {
-  jspb.Message.setOneofWrapperField(this, 2, proto.envoy.config.filter.http.graphql.v2.ValueProvider.oneofGroups_[0], value);
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.setTypedProvider = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.oneofGroups_[0], value);
 };
 
 
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.clearTypedProvider = function() {
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.clearTypedProvider = function() {
   this.setTypedProvider(undefined);
 };
 
@@ -1206,7 +1510,7 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.clearTypedProv
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.hasTypedProvider = function() {
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.hasTypedProvider = function() {
   return jspb.Message.getField(this, 2) != null;
 };
 
@@ -1215,19 +1519,19 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.hasTypedProvid
  * optional GraphQLParentExtraction graphql_parent = 3;
  * @return {?proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction}
  */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.getGraphqlParent = function() {
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.getGraphqlParent = function() {
   return /** @type{?proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction} */ (
     jspb.Message.getWrapperField(this, proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction, 3));
 };
 
 
 /** @param {?proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction|undefined} value */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.setGraphqlParent = function(value) {
-  jspb.Message.setOneofWrapperField(this, 3, proto.envoy.config.filter.http.graphql.v2.ValueProvider.oneofGroups_[0], value);
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.setGraphqlParent = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.oneofGroups_[0], value);
 };
 
 
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.clearGraphqlParent = function() {
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.clearGraphqlParent = function() {
   this.setGraphqlParent(undefined);
 };
 
@@ -1236,8 +1540,26 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.clearGraphqlPa
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.hasGraphqlParent = function() {
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider.prototype.hasGraphqlParent = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * map<string, Provider> providers = 3;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider>}
+ */
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.getProvidersMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider>} */ (
+      jspb.Message.getMapField(this, 3, opt_noLazyCreate,
+      proto.envoy.config.filter.http.graphql.v2.ValueProvider.Provider));
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.ValueProvider.prototype.clearProvidersMap = function() {
+  this.getProvidersMap().clear();
 };
 
 
@@ -2281,12 +2603,19 @@ proto.envoy.config.filter.http.graphql.v2.RequestTemplate.prototype.hasOutgoingB
  * @constructor
  */
 proto.envoy.config.filter.http.graphql.v2.ResponseTemplate = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.repeatedFields_, null);
 };
 goog.inherits(proto.envoy.config.filter.http.graphql.v2.ResponseTemplate, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.displayName = 'proto.envoy.config.filter.http.graphql.v2.ResponseTemplate';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.repeatedFields_ = [1];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -2316,7 +2645,9 @@ proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.prototype.toObject = 
  */
 proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    resultRootList: jspb.Message.toObjectList(msg.getResultRootList(),
+    proto.envoy.config.filter.http.graphql.v2.PathSegment.toObject, includeInstance),
+    settersMap: (f = msg.getSettersMap()) ? f.toObject(includeInstance, proto.envoy.config.filter.http.graphql.v2.Path.toObject) : []
   };
 
   if (includeInstance) {
@@ -2353,6 +2684,17 @@ proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.deserializeBinaryFrom
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = new proto.envoy.config.filter.http.graphql.v2.PathSegment;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.PathSegment.deserializeBinaryFromReader);
+      msg.addResultRoot(value);
+      break;
+    case 2:
+      var value = msg.getSettersMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.envoy.config.filter.http.graphql.v2.Path.deserializeBinaryFromReader, "");
+         });
+      break;
     default:
       reader.skipField();
       break;
@@ -2382,6 +2724,67 @@ proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.prototype.serializeBi
  */
 proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getResultRootList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.PathSegment.serializeBinaryToWriter
+    );
+  }
+  f = message.getSettersMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.envoy.config.filter.http.graphql.v2.Path.serializeBinaryToWriter);
+  }
+};
+
+
+/**
+ * repeated PathSegment result_root = 1;
+ * @return {!Array<!proto.envoy.config.filter.http.graphql.v2.PathSegment>}
+ */
+proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.prototype.getResultRootList = function() {
+  return /** @type{!Array<!proto.envoy.config.filter.http.graphql.v2.PathSegment>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.envoy.config.filter.http.graphql.v2.PathSegment, 1));
+};
+
+
+/** @param {!Array<!proto.envoy.config.filter.http.graphql.v2.PathSegment>} value */
+proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.prototype.setResultRootList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.envoy.config.filter.http.graphql.v2.PathSegment=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.envoy.config.filter.http.graphql.v2.PathSegment}
+ */
+proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.prototype.addResultRoot = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.envoy.config.filter.http.graphql.v2.PathSegment, opt_index);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.prototype.clearResultRootList = function() {
+  this.setResultRootList([]);
+};
+
+
+/**
+ * map<string, Path> setters = 2;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.envoy.config.filter.http.graphql.v2.Path>}
+ */
+proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.prototype.getSettersMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.envoy.config.filter.http.graphql.v2.Path>} */ (
+      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
+      proto.envoy.config.filter.http.graphql.v2.Path));
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.prototype.clearSettersMap = function() {
+  this.getSettersMap().clear();
 };
 
 
@@ -2434,6 +2837,7 @@ proto.envoy.config.filter.http.graphql.v2.RESTResolver.toObject = function(inclu
   var f, obj = {
     serverUri: (f = msg.getServerUri()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.toObject(includeInstance, f),
     requestTransform: (f = msg.getRequestTransform()) && proto.envoy.config.filter.http.graphql.v2.RequestTemplate.toObject(includeInstance, f),
+    preExecutionTransform: (f = msg.getPreExecutionTransform()) && proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.toObject(includeInstance, f),
     spanName: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
@@ -2480,6 +2884,11 @@ proto.envoy.config.filter.http.graphql.v2.RESTResolver.deserializeBinaryFromRead
       var value = new proto.envoy.config.filter.http.graphql.v2.RequestTemplate;
       reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.RequestTemplate.deserializeBinaryFromReader);
       msg.setRequestTransform(value);
+      break;
+    case 3:
+      var value = new proto.envoy.config.filter.http.graphql.v2.ResponseTemplate;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.deserializeBinaryFromReader);
+      msg.setPreExecutionTransform(value);
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
@@ -2528,6 +2937,14 @@ proto.envoy.config.filter.http.graphql.v2.RESTResolver.serializeBinaryToWriter =
       2,
       f,
       proto.envoy.config.filter.http.graphql.v2.RequestTemplate.serializeBinaryToWriter
+    );
+  }
+  f = message.getPreExecutionTransform();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.ResponseTemplate.serializeBinaryToWriter
     );
   }
   f = message.getSpanName();
@@ -2601,6 +3018,36 @@ proto.envoy.config.filter.http.graphql.v2.RESTResolver.prototype.hasRequestTrans
 
 
 /**
+ * optional ResponseTemplate pre_execution_transform = 3;
+ * @return {?proto.envoy.config.filter.http.graphql.v2.ResponseTemplate}
+ */
+proto.envoy.config.filter.http.graphql.v2.RESTResolver.prototype.getPreExecutionTransform = function() {
+  return /** @type{?proto.envoy.config.filter.http.graphql.v2.ResponseTemplate} */ (
+    jspb.Message.getWrapperField(this, proto.envoy.config.filter.http.graphql.v2.ResponseTemplate, 3));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.graphql.v2.ResponseTemplate|undefined} value */
+proto.envoy.config.filter.http.graphql.v2.RESTResolver.prototype.setPreExecutionTransform = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.RESTResolver.prototype.clearPreExecutionTransform = function() {
+  this.setPreExecutionTransform(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.RESTResolver.prototype.hasPreExecutionTransform = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
  * optional string span_name = 4;
  * @return {string}
  */
@@ -2611,6 +3058,637 @@ proto.envoy.config.filter.http.graphql.v2.RESTResolver.prototype.getSpanName = f
 
 /** @param {string} value */
 proto.envoy.config.filter.http.graphql.v2.RESTResolver.prototype.setSpanName = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.displayName = 'proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.toObject = function(opt_includeInstance) {
+  return proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    outgoingMessageJson: (f = msg.getOutgoingMessageJson()) && proto.envoy.config.filter.http.graphql.v2.JsonValue.toObject(includeInstance, f),
+    serviceName: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    methodName: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    requestMetadataMap: (f = msg.getRequestMetadataMap()) ? f.toObject(includeInstance, undefined) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate;
+  return proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.envoy.config.filter.http.graphql.v2.JsonValue;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.JsonValue.deserializeBinaryFromReader);
+      msg.setOutgoingMessageJson(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setServiceName(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMethodName(value);
+      break;
+    case 4:
+      var value = msg.getRequestMetadataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getOutgoingMessageJson();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.JsonValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getServiceName();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getMethodName();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getRequestMetadataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+};
+
+
+/**
+ * optional JsonValue outgoing_message_json = 1;
+ * @return {?proto.envoy.config.filter.http.graphql.v2.JsonValue}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.getOutgoingMessageJson = function() {
+  return /** @type{?proto.envoy.config.filter.http.graphql.v2.JsonValue} */ (
+    jspb.Message.getWrapperField(this, proto.envoy.config.filter.http.graphql.v2.JsonValue, 1));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.graphql.v2.JsonValue|undefined} value */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.setOutgoingMessageJson = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.clearOutgoingMessageJson = function() {
+  this.setOutgoingMessageJson(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.hasOutgoingMessageJson = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string service_name = 2;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.getServiceName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.setServiceName = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string method_name = 3;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.getMethodName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.setMethodName = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * map<string, string> request_metadata = 4;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.getRequestMetadataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 4, opt_noLazyCreate,
+      null));
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.prototype.clearRequestMetadataMap = function() {
+  this.getRequestMetadataMap().clear();
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.displayName = 'proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.prototype.toObject = function(opt_includeInstance) {
+  return proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    protoDescriptors: (f = msg.getProtoDescriptors()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry;
+  return proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.deserializeBinaryFromReader);
+      msg.setProtoDescriptors(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getProtoDescriptors();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional solo.io.envoy.config.core.v3.DataSource proto_descriptors = 1;
+ * @return {?proto.solo.io.envoy.config.core.v3.DataSource}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.prototype.getProtoDescriptors = function() {
+  return /** @type{?proto.solo.io.envoy.config.core.v3.DataSource} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource, 1));
+};
+
+
+/** @param {?proto.solo.io.envoy.config.core.v3.DataSource|undefined} value */
+proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.prototype.setProtoDescriptors = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.prototype.clearProtoDescriptors = function() {
+  this.setProtoDescriptors(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcDescriptorRegistry.prototype.hasProtoDescriptors = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.envoy.config.filter.http.graphql.v2.GrpcResolver, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.envoy.config.filter.http.graphql.v2.GrpcResolver.displayName = 'proto.envoy.config.filter.http.graphql.v2.GrpcResolver';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.toObject = function(opt_includeInstance) {
+  return proto.envoy.config.filter.http.graphql.v2.GrpcResolver.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.envoy.config.filter.http.graphql.v2.GrpcResolver} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    serverUri: (f = msg.getServerUri()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.toObject(includeInstance, f),
+    requestTransform: (f = msg.getRequestTransform()) && proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.toObject(includeInstance, f),
+    spanName: jspb.Message.getFieldWithDefault(msg, 4, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.GrpcResolver}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.envoy.config.filter.http.graphql.v2.GrpcResolver;
+  return proto.envoy.config.filter.http.graphql.v2.GrpcResolver.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.GrpcResolver} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.GrpcResolver}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.deserializeBinaryFromReader);
+      msg.setServerUri(value);
+      break;
+    case 2:
+      var value = new proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.deserializeBinaryFromReader);
+      msg.setRequestTransform(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSpanName(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.envoy.config.filter.http.graphql.v2.GrpcResolver.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.GrpcResolver} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getServerUri();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.serializeBinaryToWriter
+    );
+  }
+  f = message.getRequestTransform();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate.serializeBinaryToWriter
+    );
+  }
+  f = message.getSpanName();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional solo.io.envoy.config.core.v3.HttpUri server_uri = 1;
+ * @return {?proto.solo.io.envoy.config.core.v3.HttpUri}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.getServerUri = function() {
+  return /** @type{?proto.solo.io.envoy.config.core.v3.HttpUri} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri, 1));
+};
+
+
+/** @param {?proto.solo.io.envoy.config.core.v3.HttpUri|undefined} value */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.setServerUri = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.clearServerUri = function() {
+  this.setServerUri(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.hasServerUri = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional GrpcRequestTemplate request_transform = 2;
+ * @return {?proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.getRequestTransform = function() {
+  return /** @type{?proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate} */ (
+    jspb.Message.getWrapperField(this, proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate, 2));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate|undefined} value */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.setRequestTransform = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.clearRequestTransform = function() {
+  this.setRequestTransform(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.hasRequestTransform = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string span_name = 4;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.getSpanName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.graphql.v2.GrpcResolver.prototype.setSpanName = function(value) {
   jspb.Message.setProto3StringField(this, 4, value);
 };
 
@@ -3619,7 +4697,8 @@ proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.toObject = function
     schema: (f = msg.getSchema()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.toObject(includeInstance, f),
     enableIntrospection: jspb.Message.getFieldWithDefault(msg, 2, false),
     resolutionsList: jspb.Message.toObjectList(msg.getResolutionsList(),
-    proto.envoy.config.filter.http.graphql.v2.Resolution.toObject, includeInstance)
+    proto.envoy.config.filter.http.graphql.v2.Resolution.toObject, includeInstance),
+    executableSchema: (f = msg.getExecutableSchema()) && proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3669,6 +4748,11 @@ proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.deserializeBinaryFr
       var value = new proto.envoy.config.filter.http.graphql.v2.Resolution;
       reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.Resolution.deserializeBinaryFromReader);
       msg.addResolutions(value);
+      break;
+    case 4:
+      var value = new proto.envoy.config.filter.http.graphql.v2.ExecutableSchema;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.deserializeBinaryFromReader);
+      msg.setExecutableSchema(value);
       break;
     default:
       reader.skipField();
@@ -3720,6 +4804,14 @@ proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.serializeBinaryToWr
       3,
       f,
       proto.envoy.config.filter.http.graphql.v2.Resolution.serializeBinaryToWriter
+    );
+  }
+  f = message.getExecutableSchema();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.serializeBinaryToWriter
     );
   }
 };
@@ -3800,6 +4892,836 @@ proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.prototype.addResolu
 
 proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.prototype.clearResolutionsList = function() {
   this.setResolutionsList([]);
+};
+
+
+/**
+ * optional ExecutableSchema executable_schema = 4;
+ * @return {?proto.envoy.config.filter.http.graphql.v2.ExecutableSchema}
+ */
+proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.prototype.getExecutableSchema = function() {
+  return /** @type{?proto.envoy.config.filter.http.graphql.v2.ExecutableSchema} */ (
+    jspb.Message.getWrapperField(this, proto.envoy.config.filter.http.graphql.v2.ExecutableSchema, 4));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.graphql.v2.ExecutableSchema|undefined} value */
+proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.prototype.setExecutableSchema = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.prototype.clearExecutableSchema = function() {
+  this.setExecutableSchema(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.prototype.hasExecutableSchema = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.envoy.config.filter.http.graphql.v2.ExecutableSchema, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.displayName = 'proto.envoy.config.filter.http.graphql.v2.ExecutableSchema';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.toObject = function(opt_includeInstance) {
+  return proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.envoy.config.filter.http.graphql.v2.ExecutableSchema} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    schemaDefinition: (f = msg.getSchemaDefinition()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.toObject(includeInstance, f),
+    executor: (f = msg.getExecutor()) && proto.envoy.config.filter.http.graphql.v2.Executor.toObject(includeInstance, f),
+    extensionsMap: (f = msg.getExtensionsMap()) ? f.toObject(includeInstance, proto.google.protobuf.Any.toObject) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.ExecutableSchema}
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.envoy.config.filter.http.graphql.v2.ExecutableSchema;
+  return proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.ExecutableSchema} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.ExecutableSchema}
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.deserializeBinaryFromReader);
+      msg.setSchemaDefinition(value);
+      break;
+    case 2:
+      var value = new proto.envoy.config.filter.http.graphql.v2.Executor;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.Executor.deserializeBinaryFromReader);
+      msg.setExecutor(value);
+      break;
+    case 3:
+      var value = msg.getExtensionsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.google.protobuf.Any.deserializeBinaryFromReader, "");
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.ExecutableSchema} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSchemaDefinition();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.serializeBinaryToWriter
+    );
+  }
+  f = message.getExecutor();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.Executor.serializeBinaryToWriter
+    );
+  }
+  f = message.getExtensionsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(3, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.google.protobuf.Any.serializeBinaryToWriter);
+  }
+};
+
+
+/**
+ * optional solo.io.envoy.config.core.v3.DataSource schema_definition = 1;
+ * @return {?proto.solo.io.envoy.config.core.v3.DataSource}
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.getSchemaDefinition = function() {
+  return /** @type{?proto.solo.io.envoy.config.core.v3.DataSource} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource, 1));
+};
+
+
+/** @param {?proto.solo.io.envoy.config.core.v3.DataSource|undefined} value */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.setSchemaDefinition = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.clearSchemaDefinition = function() {
+  this.setSchemaDefinition(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.hasSchemaDefinition = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional Executor executor = 2;
+ * @return {?proto.envoy.config.filter.http.graphql.v2.Executor}
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.getExecutor = function() {
+  return /** @type{?proto.envoy.config.filter.http.graphql.v2.Executor} */ (
+    jspb.Message.getWrapperField(this, proto.envoy.config.filter.http.graphql.v2.Executor, 2));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.graphql.v2.Executor|undefined} value */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.setExecutor = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.clearExecutor = function() {
+  this.setExecutor(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.hasExecutor = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * map<string, google.protobuf.Any> extensions = 3;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.google.protobuf.Any>}
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.getExtensionsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.google.protobuf.Any>} */ (
+      jspb.Message.getMapField(this, 3, opt_noLazyCreate,
+      proto.google.protobuf.Any));
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.clearExtensionsMap = function() {
+  this.getExtensionsMap().clear();
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.envoy.config.filter.http.graphql.v2.Executor.oneofGroups_);
+};
+goog.inherits(proto.envoy.config.filter.http.graphql.v2.Executor, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.envoy.config.filter.http.graphql.v2.Executor.displayName = 'proto.envoy.config.filter.http.graphql.v2.Executor';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.oneofGroups_ = [[1,2]];
+
+/**
+ * @enum {number}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.ExecutorCase = {
+  EXECUTOR_NOT_SET: 0,
+  LOCAL: 1,
+  REMOTE: 2
+};
+
+/**
+ * @return {proto.envoy.config.filter.http.graphql.v2.Executor.ExecutorCase}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.prototype.getExecutorCase = function() {
+  return /** @type {proto.envoy.config.filter.http.graphql.v2.Executor.ExecutorCase} */(jspb.Message.computeOneofCase(this, proto.envoy.config.filter.http.graphql.v2.Executor.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.prototype.toObject = function(opt_includeInstance) {
+  return proto.envoy.config.filter.http.graphql.v2.Executor.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Executor} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    local: (f = msg.getLocal()) && proto.envoy.config.filter.http.graphql.v2.Executor.Local.toObject(includeInstance, f),
+    remote: (f = msg.getRemote()) && proto.envoy.config.filter.http.graphql.v2.Executor.Remote.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.Executor}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.envoy.config.filter.http.graphql.v2.Executor;
+  return proto.envoy.config.filter.http.graphql.v2.Executor.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Executor} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.Executor}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.envoy.config.filter.http.graphql.v2.Executor.Local;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.Executor.Local.deserializeBinaryFromReader);
+      msg.setLocal(value);
+      break;
+    case 2:
+      var value = new proto.envoy.config.filter.http.graphql.v2.Executor.Remote;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.Executor.Remote.deserializeBinaryFromReader);
+      msg.setRemote(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.envoy.config.filter.http.graphql.v2.Executor.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Executor} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getLocal();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.Executor.Local.serializeBinaryToWriter
+    );
+  }
+  f = message.getRemote();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.Executor.Remote.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.envoy.config.filter.http.graphql.v2.Executor.Local.repeatedFields_, null);
+};
+goog.inherits(proto.envoy.config.filter.http.graphql.v2.Executor.Local, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.envoy.config.filter.http.graphql.v2.Executor.Local.displayName = 'proto.envoy.config.filter.http.graphql.v2.Executor.Local';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.toObject = function(opt_includeInstance) {
+  return proto.envoy.config.filter.http.graphql.v2.Executor.Local.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Executor.Local} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    resolutionsList: jspb.Message.toObjectList(msg.getResolutionsList(),
+    proto.envoy.config.filter.http.graphql.v2.Resolution.toObject, includeInstance),
+    enableIntrospection: jspb.Message.getFieldWithDefault(msg, 2, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.Executor.Local}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.envoy.config.filter.http.graphql.v2.Executor.Local;
+  return proto.envoy.config.filter.http.graphql.v2.Executor.Local.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Executor.Local} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.Executor.Local}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.envoy.config.filter.http.graphql.v2.Resolution;
+      reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.Resolution.deserializeBinaryFromReader);
+      msg.addResolutions(value);
+      break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setEnableIntrospection(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.envoy.config.filter.http.graphql.v2.Executor.Local.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Executor.Local} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getResolutionsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.envoy.config.filter.http.graphql.v2.Resolution.serializeBinaryToWriter
+    );
+  }
+  f = message.getEnableIntrospection();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated Resolution resolutions = 1;
+ * @return {!Array<!proto.envoy.config.filter.http.graphql.v2.Resolution>}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.getResolutionsList = function() {
+  return /** @type{!Array<!proto.envoy.config.filter.http.graphql.v2.Resolution>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.envoy.config.filter.http.graphql.v2.Resolution, 1));
+};
+
+
+/** @param {!Array<!proto.envoy.config.filter.http.graphql.v2.Resolution>} value */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.setResolutionsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Resolution=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.envoy.config.filter.http.graphql.v2.Resolution}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.addResolutions = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.envoy.config.filter.http.graphql.v2.Resolution, opt_index);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.clearResolutionsList = function() {
+  this.setResolutionsList([]);
+};
+
+
+/**
+ * optional bool enable_introspection = 2;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.getEnableIntrospection = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 2, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.setEnableIntrospection = function(value) {
+  jspb.Message.setProto3BooleanField(this, 2, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Remote = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.envoy.config.filter.http.graphql.v2.Executor.Remote, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.envoy.config.filter.http.graphql.v2.Executor.Remote.displayName = 'proto.envoy.config.filter.http.graphql.v2.Executor.Remote';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Remote.prototype.toObject = function(opt_includeInstance) {
+  return proto.envoy.config.filter.http.graphql.v2.Executor.Remote.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Executor.Remote} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Remote.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    cluster: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.Executor.Remote}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Remote.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.envoy.config.filter.http.graphql.v2.Executor.Remote;
+  return proto.envoy.config.filter.http.graphql.v2.Executor.Remote.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Executor.Remote} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.envoy.config.filter.http.graphql.v2.Executor.Remote}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Remote.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCluster(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Remote.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.envoy.config.filter.http.graphql.v2.Executor.Remote.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.envoy.config.filter.http.graphql.v2.Executor.Remote} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Remote.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getCluster();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string cluster = 1;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Remote.prototype.getCluster = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.graphql.v2.Executor.Remote.prototype.setCluster = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional Local local = 1;
+ * @return {?proto.envoy.config.filter.http.graphql.v2.Executor.Local}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.prototype.getLocal = function() {
+  return /** @type{?proto.envoy.config.filter.http.graphql.v2.Executor.Local} */ (
+    jspb.Message.getWrapperField(this, proto.envoy.config.filter.http.graphql.v2.Executor.Local, 1));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.graphql.v2.Executor.Local|undefined} value */
+proto.envoy.config.filter.http.graphql.v2.Executor.prototype.setLocal = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.envoy.config.filter.http.graphql.v2.Executor.oneofGroups_[0], value);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.Executor.prototype.clearLocal = function() {
+  this.setLocal(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.prototype.hasLocal = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional Remote remote = 2;
+ * @return {?proto.envoy.config.filter.http.graphql.v2.Executor.Remote}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.prototype.getRemote = function() {
+  return /** @type{?proto.envoy.config.filter.http.graphql.v2.Executor.Remote} */ (
+    jspb.Message.getWrapperField(this, proto.envoy.config.filter.http.graphql.v2.Executor.Remote, 2));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.graphql.v2.Executor.Remote|undefined} value */
+proto.envoy.config.filter.http.graphql.v2.Executor.prototype.setRemote = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.envoy.config.filter.http.graphql.v2.Executor.oneofGroups_[0], value);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.Executor.prototype.clearRemote = function() {
+  this.setRemote(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.prototype.hasRemote = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
