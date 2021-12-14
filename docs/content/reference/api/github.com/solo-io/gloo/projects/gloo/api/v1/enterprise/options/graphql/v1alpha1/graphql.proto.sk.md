@@ -11,7 +11,6 @@ weight: 5
 #### Types:
 
 
-- [PathSegment](#pathsegment)
 - [ValueProvider](#valueprovider)
 - [GraphQLArgExtraction](#graphqlargextraction)
 - [GraphQLParentExtraction](#graphqlparentextraction)
@@ -22,6 +21,7 @@ weight: 5
 - [JsonKeyValue](#jsonkeyvalue)
 - [JsonNode](#jsonnode)
 - [RequestTemplate](#requesttemplate)
+- [ResponseTemplate](#responsetemplate)
 - [RESTResolver](#restresolver)
 - [QueryMatcher](#querymatcher)
 - [FieldMatcher](#fieldmatcher)
@@ -33,28 +33,6 @@ weight: 5
 
 ##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/enterprise/options/graphql/v1alpha1/graphql.proto](https://github.com/solo-io/gloo/blob/master/projects/gloo/api/v1/enterprise/options/graphql/v1alpha1/graphql.proto)
 
-
-
-
-
----
-### PathSegment
-
- 
-used to reference into json structures by key(s).
-
-```yaml
-"key": string
-"index": int
-"all": bool
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `key` | `string` | Key is used to extract named values from a map. Only one of `key`, `index`, or `all` can be set. |
-| `index` | `int` | Index is used to extract an element at a certain index from a list. Only one of `index`, `key`, or `all` can be set. |
-| `all` | `bool` | all selects all from the current element at in the path. This is useful for extracting list arguments / object arguments. Only one of `all`, `key`, or `index` can be set. |
 
 
 
@@ -90,7 +68,6 @@ In the future we may add support for regex and subgroups
 
 ```yaml
 "argName": string
-"path": []graphql.gloo.solo.io.PathSegment
 "required": bool
 
 ```
@@ -98,8 +75,7 @@ In the future we may add support for regex and subgroups
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `argName` | `string` | The argument name to fetch. The argument value fetched will have a type from the schema that we validate in envoy. If the name is invalid, returns the zero-value primitive or null. |
-| `path` | [[]graphql.gloo.solo.io.PathSegment](../graphql.proto.sk/#pathsegment) | Optional: fetches the value in the argument selected at this key. If the key is invalid, returns the zero-value primitive or null. |
-| `required` | `bool` | If this is set to true, then a schema error will be returned to user when the graphql arg is not found. Defaults to false, so schema error will not be returned to user when the graphql arg is not found. |
+| `required` | `bool` | Optional: fetches the value in the argument selected at this key. If the key is invalid, returns the zero-value primitive or null. repeated PathSegment path = 2; If this is set to true, then a schema error will be returned to user when the graphql arg is not found. Defaults to false, so schema error will not be returned to user when the graphql arg is not found. |
 
 
 
@@ -113,13 +89,11 @@ expected primitive type we throw an error.
 In the future we may add support for type coercion.
 
 ```yaml
-"path": []graphql.gloo.solo.io.PathSegment
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `path` | [[]graphql.gloo.solo.io.PathSegment](../graphql.proto.sk/#pathsegment) | Fetches the value in the graphql parent at this key. The value will always be accepted since the parent object is not strongly-typed. If the key is invalid, returns null. |
 
 
 
@@ -245,17 +219,36 @@ Represents a typed JSON structure
 Defines a configuration for generating outgoing requests for a resolver.
 
 ```yaml
-"headers": map<string, .graphql.gloo.solo.io.ValueProvider>
-"queryParams": map<string, .graphql.gloo.solo.io.ValueProvider>
-"outgoingBody": .graphql.gloo.solo.io.JsonValue
+"headers": map<string, string>
+"queryParams": map<string, string>
+"body": .google.protobuf.Value
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `headers` | `map<string, .graphql.gloo.solo.io.ValueProvider>` | Use this attribute to set request headers to your REST service. It consists of a map of strings to value providers. The string key determines the name of the resulting header, the value provided will be the value. at least need ":method" and ":path". |
-| `queryParams` | `map<string, .graphql.gloo.solo.io.ValueProvider>` | Use this attribute to set query parameters to your REST service. It consists of a map of strings to value providers. The string key determines the name of the query param, the provided value will be the value. This value is appended to any value set to the :path header in `headers`. Interpolation is done in envoy rather than the control plane to prevent escaped character issues. Additionally, we may be providing values not known until the request is being executed (e.g., graphql parent info). |
-| `outgoingBody` | [.graphql.gloo.solo.io.JsonValue](../graphql.proto.sk/#jsonvalue) | Used to construct the outgoing body to the upstream from the graphql value providers. |
+| `headers` | `map<string, string>` | Use this attribute to set request headers to your REST service. It consists of a map of strings to value providers. The string key determines the name of the resulting header, the value provided will be the value. at least need ":method" and ":path". |
+| `queryParams` | `map<string, string>` | Use this attribute to set query parameters to your REST service. It consists of a map of strings to value providers. The string key determines the name of the query param, the provided value will be the value. This value is appended to any value set to the :path header in `headers`. Interpolation is done in envoy rather than the control plane to prevent escaped character issues. Additionally, we may be providing values not known until the request is being executed (e.g., graphql parent info). |
+| `body` | [.google.protobuf.Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/value) | Used to construct the outgoing body to the upstream from the graphql value providers. |
+
+
+
+
+---
+### ResponseTemplate
+
+
+
+```yaml
+"resultRoot": string
+"setters": map<string, string>
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `resultRoot` | `string` |  |
+| `setters` | `map<string, string>` |  |
 
 
 
@@ -268,7 +261,8 @@ control-plane API
 
 ```yaml
 "upstreamRef": .core.solo.io.ResourceRef
-"requestTransform": .graphql.gloo.solo.io.RequestTemplate
+"request": .graphql.gloo.solo.io.RequestTemplate
+"response": .graphql.gloo.solo.io.ResponseTemplate
 "spanName": string
 
 ```
@@ -276,7 +270,8 @@ control-plane API
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `upstreamRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) |  |
-| `requestTransform` | [.graphql.gloo.solo.io.RequestTemplate](../graphql.proto.sk/#requesttemplate) | configuration used to compose the outgoing request to a REST API. |
+| `request` | [.graphql.gloo.solo.io.RequestTemplate](../graphql.proto.sk/#requesttemplate) | configuration used to compose the outgoing request to a REST API. |
+| `response` | [.graphql.gloo.solo.io.ResponseTemplate](../graphql.proto.sk/#responsetemplate) |  |
 | `spanName` | `string` |  |
 
 

@@ -12,11 +12,13 @@ weight: 5
 
 
 - [PathSegment](#pathsegment)
+- [Path](#path)
 - [ValueProvider](#valueprovider)
 - [GraphQLArgExtraction](#graphqlargextraction)
 - [GraphQLParentExtraction](#graphqlparentextraction)
 - [TypedValueProvider](#typedvalueprovider)
 - [Type](#type)
+- [Provider](#provider)
 - [JsonValueList](#jsonvaluelist)
 - [JsonValue](#jsonvalue)
 - [JsonKeyValue](#jsonkeyvalue)
@@ -28,9 +30,13 @@ weight: 5
 - [Query](#query)
 - [QueryMatcher](#querymatcher)
 - [FieldMatcher](#fieldmatcher)
-- [Resolution](#resolution)
 - [GraphQLConfig](#graphqlconfig)
+- [Resolution](#resolution)
 - [GraphQLRouteConfig](#graphqlrouteconfig)
+- [ExecutableSchema](#executableschema)
+- [Executor](#executor)
+- [Local](#local)
+- [Remote](#remote)
   
 
 
@@ -56,9 +62,26 @@ used to reference into json structures by key(s)
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `key` | `string` | Key is used to extract named values from a map. Only one of `key`, `index`, or `all` can be set. |
-| `index` | `int` | Index is used to extract an element at a certain index from a list. Only one of `index`, `key`, or `all` can be set. |
-| `all` | `bool` | all selects all from the current element at in the path. This is useful for extracting list arguments / object arguments. Only one of `all`, `key`, or `index` can be set. |
+| `key` | `string` | This will extract a key from a Map value. Only one of `key`, `index`, or `all` can be set. |
+| `index` | `int` | Extract element at list. Only one of `index`, `key`, or `all` can be set. |
+| `all` | `bool` | Extracts all elements from a map or a list. Only one of `all`, `key`, or `index` can be set. |
+
+
+
+
+---
+### Path
+
+
+
+```yaml
+"segments": []envoy.config.filter.http.graphql.v2.PathSegment
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `segments` | [[]envoy.config.filter.http.graphql.v2.PathSegment](../graphql.proto.sk/#pathsegment) |  |
 
 
 
@@ -70,19 +93,15 @@ used to reference into json structures by key(s)
 In the future we may add support for regex and subgroups
 
 ```yaml
-"graphqlArg": .envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction
-"typedProvider": .envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider
-"graphqlParent": .envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction
+"providers": map<string, .envoy.config.filter.http.graphql.v2.ValueProvider.Provider>
 "providerTemplate": string
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `graphqlArg` | [.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction](../graphql.proto.sk/#graphqlargextraction) | type inferred from schema, no need to provide it. Only one of `graphqlArg`, `typedProvider`, or `graphqlParent` can be set. |
-| `typedProvider` | [.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider](../graphql.proto.sk/#typedvalueprovider) |  Only one of `typedProvider`, `graphqlArg`, or `graphqlParent` can be set. |
-| `graphqlParent` | [.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction](../graphql.proto.sk/#graphqlparentextraction) | Fetch value from the graphql_parent of the current field. Only one of `graphqlParent`, `graphqlArg`, or `typedProvider` can be set. |
-| `providerTemplate` | `string` | If non-empty, the template to interpolate the extracted value into. For example, if the string is /api/pets/{}/name and the extracted value 123 is the pet ID will then the extracted value is /api/pets/123/name Use {} as the interpolation character (even repeated) regardless of the type of the provided value. |
+| `providers` | `map<string, .envoy.config.filter.http.graphql.v2.ValueProvider.Provider>` | Map of provider name to provider definition. The name will be used to insert the provider value in the provider_template. |
+| `providerTemplate` | `string` | If non-empty, Inserts named providers into a template string. For example, if the provider_template is '/api/{apiVersionProvider}/pet/{petIdProvider}' and we have to named providers defined in `providers`, apiVersionProvider and petIdProvider, with extracted values 'v2' and '123' respectively, the final resulting value will be '/api/v2/pet/123' Use {PROVIDER_NAME} as the interpolation notation (even repeated) regardless of the type of the provided value. If an undefined PROVIDER_NAME is used in the provider_template, this will nack during configuration. If this is empty, only the value of the first provider will be used as the resulting value. |
 
 
 
@@ -153,9 +172,7 @@ In the future we may add support for type coercion.
 ### Type
 
  
-Type that the value will be coerced into.
-For example if the extracted value is "9", and type is INT,
-this value will be cast to an int type.
+if empty, defaults to string. similar to typeUrl in other envoy config
 
 | Name | Description |
 | ----- | ----------- | 
@@ -163,6 +180,27 @@ this value will be cast to an int type.
 | `INT` |  |
 | `FLOAT` |  |
 | `BOOLEAN` |  |
+
+
+
+
+---
+### Provider
+
+
+
+```yaml
+"graphqlArg": .envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction
+"typedProvider": .envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider
+"graphqlParent": .envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `graphqlArg` | [.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction](../graphql.proto.sk/#graphqlargextraction) | type inferred from schema, no need to provide it. Only one of `graphqlArg`, `typedProvider`, or `graphqlParent` can be set. |
+| `typedProvider` | [.envoy.config.filter.http.graphql.v2.ValueProvider.TypedValueProvider](../graphql.proto.sk/#typedvalueprovider) |  Only one of `typedProvider`, `graphqlArg`, or `graphqlParent` can be set. |
+| `graphqlParent` | [.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLParentExtraction](../graphql.proto.sk/#graphqlparentextraction) | Fetch value from the graphql_parent of the current field. Only one of `graphqlParent`, `graphqlArg`, or `typedProvider` can be set. |
 
 
 
@@ -259,7 +297,7 @@ Defines a configuration for generating outgoing requests for a resolver.
 | ----- | ---- | ----------- | 
 | `headers` | `map<string, .envoy.config.filter.http.graphql.v2.ValueProvider>` | Use this attribute to set request headers to your REST service. It consists of a map of strings to value providers. The string key determines the name of the resulting header, the value provided will be the value. at least need ":method" and ":path". |
 | `queryParams` | `map<string, .envoy.config.filter.http.graphql.v2.ValueProvider>` | Use this attribute to set query parameters to your REST service. It consists of a map of strings to value providers. The string key determines the name of the query param, the provided value will be the value. This value is appended to any value set to the :path header in `headers`. Interpolation is done in envoy rather than the control plane to prevent escaped character issues. Additionally, we may be providing values not known until the request is being executed (e.g., graphql parent info). |
-| `outgoingBody` | [.envoy.config.filter.http.graphql.v2.JsonValue](../graphql.proto.sk/#jsonvalue) | Used to construct the outgoing body to the upstream from the graphql value providers. |
+| `outgoingBody` | [.envoy.config.filter.http.graphql.v2.JsonValue](../graphql.proto.sk/#jsonvalue) | implementation specific, gRPC will want gRPC message and struct to instantiate. |
 
 
 
@@ -268,15 +306,19 @@ Defines a configuration for generating outgoing requests for a resolver.
 ### ResponseTemplate
 
  
-NOT IMPLEMENTED
 Defines a response transformation template.
+modify JSON response from upstream before it is processed by execution engine.
 
 ```yaml
+"resultRoot": .envoy.config.filter.http.graphql.v2.Path
+"setters": map<string, .envoy.config.filter.http.graphql.v2.Path>
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
+| `resultRoot` | [.envoy.config.filter.http.graphql.v2.Path](../graphql.proto.sk/#path) | In cases where the data to populate the graphql type is not in the root object of the result, use result root to specify the path of the response we should use as the root. If {"a": {"b": [1,2,3]}} is the response from the api, setting resultroot as `a.b` will pass on [1,2,3] to the execution engine rather than the whole api response. |
+| `setters` | `map<string, .envoy.config.filter.http.graphql.v2.Path>` | Example: ``` type Query { getSimple: Simple } type Simple { name String address String }``` if we do `getsimple` and the response we get back from the upstream is ``` {"data": { "people": { "name": "John Doe", "details": { "address": "123 Turnip Rd" } } } } ``` the following response transform would let the graphql execution engine correctly marshal the upstream resposne into the expected graphql response: ` responseTransform: result_root: segments: - key: data - key: people setters: address: segments: - key: details - key: address `yaml. |
 
 
 
@@ -289,6 +331,7 @@ Defines a response transformation template.
 ```yaml
 "serverUri": .solo.io.envoy.config.core.v3.HttpUri
 "requestTransform": .envoy.config.filter.http.graphql.v2.RequestTemplate
+"responseTransform": .envoy.config.filter.http.graphql.v2.ResponseTemplate
 "spanName": string
 
 ```
@@ -297,7 +340,8 @@ Defines a response transformation template.
 | ----- | ---- | ----------- | 
 | `serverUri` | [.solo.io.envoy.config.core.v3.HttpUri](../../../config/core/v3/http_uri.proto.sk/#httpuri) |  |
 | `requestTransform` | [.envoy.config.filter.http.graphql.v2.RequestTemplate](../graphql.proto.sk/#requesttemplate) | configuration used to compose the outgoing request to a REST API. |
-| `spanName` | `string` | pre-execution engine transformations Request flow: GraphQL request -> request_transform (instantiate REST request) -> REST API resp -> pre_execution_transform -> execution engine -> complete GraphQL field response ResponseTemplate pre_execution_transform = 3;. |
+| `responseTransform` | [.envoy.config.filter.http.graphql.v2.ResponseTemplate](../graphql.proto.sk/#responsetemplate) | pre-execution engine transformations Request flow: GraphQL request -> request_transform (instantiate REST request) -> REST API resp -> pre_execution_transform -> execution engine -> complete GraphQL field response. |
+| `spanName` | `string` |  |
 
 
 
@@ -325,7 +369,8 @@ When implemented, this message will be a field in the Resolution message.
 
  
 NOT IMPLEMENTED
-When we'll support prepared queries, this will be the type containing the query.
+When we'll support prepared queries, this will be the type containing the
+query.
 
 ```yaml
 "query": .solo.io.envoy.config.core.v3.DataSource
@@ -376,15 +421,30 @@ When we'll support prepared queries, this will be the type containing the query.
 
 
 ---
+### GraphQLConfig
+
+
+
+```yaml
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+
+
+
+
+---
 ### Resolution
 
  
 This is the resolver map for the schema.
 For each Type.Field, we can define a resolver.
 if a field does not have resolver, the default resolver will be used.
-the default resolver takes the field with the same name from the parent, and uses that value
-to resolve the field.
-if a field with the same name does not exist in the parent, null will be used.
+the default resolver takes the field with the same name from the parent, and
+uses that value to resolve the field. if a field with the same name does not
+exist in the parent, null will be used.
 
 ```yaml
 "matcher": .envoy.config.filter.http.graphql.v2.QueryMatcher
@@ -401,27 +461,12 @@ if a field with the same name does not exist in the parent, null will be used.
 
 
 ---
-### GraphQLConfig
-
- 
-Filter Listener config. Empty as the filter must be configured on the route level.
-
-```yaml
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-
-
-
-
----
 ### GraphQLRouteConfig
 
  
-Filter Route config. Routes that have this config will execute graphql queries, and will not
-make it to the router filter. i.e. this filter will terminate the request for these routes.
+Filter Route config. Routes that have this config will execute graphql
+queries, and will not make it to the router filter. i.e. this filter will
+terminate the request for these routes.
 
 ```yaml
 "schema": .solo.io.envoy.config.core.v3.DataSource
@@ -434,7 +479,86 @@ make it to the router filter. i.e. this filter will terminate the request for th
 | ----- | ---- | ----------- | 
 | `schema` | [.solo.io.envoy.config.core.v3.DataSource](../../../config/core/v3/base.proto.sk/#datasource) | Schema to use in string format. |
 | `enableIntrospection` | `bool` | Do we enable introspection for the schema? general recommendation is to disable this for production and hence it defaults to false. |
+| `resolutions` | [[]envoy.config.filter.http.graphql.v2.Resolution](../graphql.proto.sk/#resolution) | Deprecated. will be removed when gloo 1.10 is released. |
+
+
+
+
+---
+### ExecutableSchema
+
+
+
+```yaml
+"schemaDefinition": .solo.io.envoy.config.core.v3.DataSource
+"executor": .envoy.config.filter.http.graphql.v2.Executor
+"extensions": map<string, .google.protobuf.Any>
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `schemaDefinition` | [.solo.io.envoy.config.core.v3.DataSource](../../../config/core/v3/base.proto.sk/#datasource) | Schema to use in string format. |
+| `executor` | [.envoy.config.filter.http.graphql.v2.Executor](../graphql.proto.sk/#executor) | how to execute the schema. |
+| `extensions` | `map<string, .google.protobuf.Any>` | Schema extensions. |
+
+
+
+
+---
+### Executor
+
+
+
+```yaml
+"local": .envoy.config.filter.http.graphql.v2.Executor.Local
+"remote": .envoy.config.filter.http.graphql.v2.Executor.Remote
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `local` | [.envoy.config.filter.http.graphql.v2.Executor.Local](../graphql.proto.sk/#local) |  Only one of `local` or `remote` can be set. |
+| `remote` | [.envoy.config.filter.http.graphql.v2.Executor.Remote](../graphql.proto.sk/#remote) |  Only one of `remote` or `local` can be set. |
+
+
+
+
+---
+### Local
+
+ 
+Execute schema using resolvers.
+
+```yaml
+"resolutions": []envoy.config.filter.http.graphql.v2.Resolution
+"enableIntrospection": bool
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
 | `resolutions` | [[]envoy.config.filter.http.graphql.v2.Resolution](../graphql.proto.sk/#resolution) | The resolver map to use to resolve the schema. |
+| `enableIntrospection` | `bool` | Do we enable introspection for the schema? general recommendation is to disable this for production and hence it defaults to false. |
+
+
+
+
+---
+### Remote
+
+ 
+NOT IMPLEMENTED YET!
+Execute schema by querying a graphql upstream.
+
+```yaml
+"cluster": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `cluster` | `string` | Executes a query remotly, as a graphql client. |
 
 
 

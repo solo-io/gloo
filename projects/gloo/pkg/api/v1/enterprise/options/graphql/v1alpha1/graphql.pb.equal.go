@@ -26,66 +26,6 @@ var (
 )
 
 // Equal function
-func (m *PathSegment) Equal(that interface{}) bool {
-	if that == nil {
-		return m == nil
-	}
-
-	target, ok := that.(*PathSegment)
-	if !ok {
-		that2, ok := that.(PathSegment)
-		if ok {
-			target = &that2
-		} else {
-			return false
-		}
-	}
-	if target == nil {
-		return m == nil
-	} else if m == nil {
-		return false
-	}
-
-	switch m.Segment.(type) {
-
-	case *PathSegment_Key:
-		if _, ok := target.Segment.(*PathSegment_Key); !ok {
-			return false
-		}
-
-		if strings.Compare(m.GetKey(), target.GetKey()) != 0 {
-			return false
-		}
-
-	case *PathSegment_Index:
-		if _, ok := target.Segment.(*PathSegment_Index); !ok {
-			return false
-		}
-
-		if m.GetIndex() != target.GetIndex() {
-			return false
-		}
-
-	case *PathSegment_All:
-		if _, ok := target.Segment.(*PathSegment_All); !ok {
-			return false
-		}
-
-		if m.GetAll() != target.GetAll() {
-			return false
-		}
-
-	default:
-		// m is nil but target is not nil
-		if m.Segment != target.Segment {
-			return false
-		}
-	}
-
-	return true
-}
-
-// Equal function
 func (m *ValueProvider) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -391,14 +331,8 @@ func (m *RequestTemplate) Equal(that interface{}) bool {
 	}
 	for k, v := range m.GetHeaders() {
 
-		if h, ok := interface{}(v).(equality.Equalizer); ok {
-			if !h.Equal(target.GetHeaders()[k]) {
-				return false
-			}
-		} else {
-			if !proto.Equal(v, target.GetHeaders()[k]) {
-				return false
-			}
+		if strings.Compare(v, target.GetHeaders()[k]) != 0 {
+			return false
 		}
 
 	}
@@ -408,26 +342,59 @@ func (m *RequestTemplate) Equal(that interface{}) bool {
 	}
 	for k, v := range m.GetQueryParams() {
 
-		if h, ok := interface{}(v).(equality.Equalizer); ok {
-			if !h.Equal(target.GetQueryParams()[k]) {
-				return false
-			}
-		} else {
-			if !proto.Equal(v, target.GetQueryParams()[k]) {
-				return false
-			}
+		if strings.Compare(v, target.GetQueryParams()[k]) != 0 {
+			return false
 		}
 
 	}
 
-	if h, ok := interface{}(m.GetOutgoingBody()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetOutgoingBody()) {
+	if h, ok := interface{}(m.GetBody()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetBody()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetOutgoingBody(), target.GetOutgoingBody()) {
+		if !proto.Equal(m.GetBody(), target.GetBody()) {
 			return false
 		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ResponseTemplate) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ResponseTemplate)
+	if !ok {
+		that2, ok := that.(ResponseTemplate)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetResultRoot(), target.GetResultRoot()) != 0 {
+		return false
+	}
+
+	if len(m.GetSetters()) != len(target.GetSetters()) {
+		return false
+	}
+	for k, v := range m.GetSetters() {
+
+		if strings.Compare(v, target.GetSetters()[k]) != 0 {
+			return false
+		}
+
 	}
 
 	return true
@@ -464,12 +431,22 @@ func (m *RESTResolver) Equal(that interface{}) bool {
 		}
 	}
 
-	if h, ok := interface{}(m.GetRequestTransform()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetRequestTransform()) {
+	if h, ok := interface{}(m.GetRequest()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetRequest()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetRequestTransform(), target.GetRequestTransform()) {
+		if !proto.Equal(m.GetRequest(), target.GetRequest()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetResponse()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetResponse()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetResponse(), target.GetResponse()) {
 			return false
 		}
 	}
@@ -681,23 +658,6 @@ func (m *ValueProvider_GraphQLArgExtraction) Equal(that interface{}) bool {
 		return false
 	}
 
-	if len(m.GetPath()) != len(target.GetPath()) {
-		return false
-	}
-	for idx, v := range m.GetPath() {
-
-		if h, ok := interface{}(v).(equality.Equalizer); ok {
-			if !h.Equal(target.GetPath()[idx]) {
-				return false
-			}
-		} else {
-			if !proto.Equal(v, target.GetPath()[idx]) {
-				return false
-			}
-		}
-
-	}
-
 	if m.GetRequired() != target.GetRequired() {
 		return false
 	}
@@ -724,23 +684,6 @@ func (m *ValueProvider_GraphQLParentExtraction) Equal(that interface{}) bool {
 		return m == nil
 	} else if m == nil {
 		return false
-	}
-
-	if len(m.GetPath()) != len(target.GetPath()) {
-		return false
-	}
-	for idx, v := range m.GetPath() {
-
-		if h, ok := interface{}(v).(equality.Equalizer); ok {
-			if !h.Equal(target.GetPath()[idx]) {
-				return false
-			}
-		} else {
-			if !proto.Equal(v, target.GetPath()[idx]) {
-				return false
-			}
-		}
-
 	}
 
 	return true

@@ -13,6 +13,8 @@ import (
 	"github.com/solo-io/protoc-gen-ext/pkg/clone"
 	"google.golang.org/protobuf/proto"
 
+	github_com_golang_protobuf_ptypes_struct "github.com/golang/protobuf/ptypes/struct"
+
 	github_com_solo_io_solo_kit_pkg_api_v1_resources_core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -26,39 +28,6 @@ var (
 	_ = clone.Cloner(nil)
 	_ = proto.Message(nil)
 )
-
-// Clone function
-func (m *PathSegment) Clone() proto.Message {
-	var target *PathSegment
-	if m == nil {
-		return target
-	}
-	target = &PathSegment{}
-
-	switch m.Segment.(type) {
-
-	case *PathSegment_Key:
-
-		target.Segment = &PathSegment_Key{
-			Key: m.GetKey(),
-		}
-
-	case *PathSegment_Index:
-
-		target.Segment = &PathSegment_Index{
-			Index: m.GetIndex(),
-		}
-
-	case *PathSegment_All:
-
-		target.Segment = &PathSegment_All{
-			All: m.GetAll(),
-		}
-
-	}
-
-	return target
-}
 
 // Clone function
 func (m *ValueProvider) Clone() proto.Message {
@@ -240,35 +209,49 @@ func (m *RequestTemplate) Clone() proto.Message {
 	target = &RequestTemplate{}
 
 	if m.GetHeaders() != nil {
-		target.Headers = make(map[string]*ValueProvider, len(m.GetHeaders()))
+		target.Headers = make(map[string]string, len(m.GetHeaders()))
 		for k, v := range m.GetHeaders() {
 
-			if h, ok := interface{}(v).(clone.Cloner); ok {
-				target.Headers[k] = h.Clone().(*ValueProvider)
-			} else {
-				target.Headers[k] = proto.Clone(v).(*ValueProvider)
-			}
+			target.Headers[k] = v
 
 		}
 	}
 
 	if m.GetQueryParams() != nil {
-		target.QueryParams = make(map[string]*ValueProvider, len(m.GetQueryParams()))
+		target.QueryParams = make(map[string]string, len(m.GetQueryParams()))
 		for k, v := range m.GetQueryParams() {
 
-			if h, ok := interface{}(v).(clone.Cloner); ok {
-				target.QueryParams[k] = h.Clone().(*ValueProvider)
-			} else {
-				target.QueryParams[k] = proto.Clone(v).(*ValueProvider)
-			}
+			target.QueryParams[k] = v
 
 		}
 	}
 
-	if h, ok := interface{}(m.GetOutgoingBody()).(clone.Cloner); ok {
-		target.OutgoingBody = h.Clone().(*JsonValue)
+	if h, ok := interface{}(m.GetBody()).(clone.Cloner); ok {
+		target.Body = h.Clone().(*github_com_golang_protobuf_ptypes_struct.Value)
 	} else {
-		target.OutgoingBody = proto.Clone(m.GetOutgoingBody()).(*JsonValue)
+		target.Body = proto.Clone(m.GetBody()).(*github_com_golang_protobuf_ptypes_struct.Value)
+	}
+
+	return target
+}
+
+// Clone function
+func (m *ResponseTemplate) Clone() proto.Message {
+	var target *ResponseTemplate
+	if m == nil {
+		return target
+	}
+	target = &ResponseTemplate{}
+
+	target.ResultRoot = m.GetResultRoot()
+
+	if m.GetSetters() != nil {
+		target.Setters = make(map[string]string, len(m.GetSetters()))
+		for k, v := range m.GetSetters() {
+
+			target.Setters[k] = v
+
+		}
 	}
 
 	return target
@@ -288,10 +271,16 @@ func (m *RESTResolver) Clone() proto.Message {
 		target.UpstreamRef = proto.Clone(m.GetUpstreamRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef)
 	}
 
-	if h, ok := interface{}(m.GetRequestTransform()).(clone.Cloner); ok {
-		target.RequestTransform = h.Clone().(*RequestTemplate)
+	if h, ok := interface{}(m.GetRequest()).(clone.Cloner); ok {
+		target.Request = h.Clone().(*RequestTemplate)
 	} else {
-		target.RequestTransform = proto.Clone(m.GetRequestTransform()).(*RequestTemplate)
+		target.Request = proto.Clone(m.GetRequest()).(*RequestTemplate)
+	}
+
+	if h, ok := interface{}(m.GetResponse()).(clone.Cloner); ok {
+		target.Response = h.Clone().(*ResponseTemplate)
+	} else {
+		target.Response = proto.Clone(m.GetResponse()).(*ResponseTemplate)
 	}
 
 	target.SpanName = m.GetSpanName()
@@ -409,19 +398,6 @@ func (m *ValueProvider_GraphQLArgExtraction) Clone() proto.Message {
 
 	target.ArgName = m.GetArgName()
 
-	if m.GetPath() != nil {
-		target.Path = make([]*PathSegment, len(m.GetPath()))
-		for idx, v := range m.GetPath() {
-
-			if h, ok := interface{}(v).(clone.Cloner); ok {
-				target.Path[idx] = h.Clone().(*PathSegment)
-			} else {
-				target.Path[idx] = proto.Clone(v).(*PathSegment)
-			}
-
-		}
-	}
-
 	target.Required = m.GetRequired()
 
 	return target
@@ -434,19 +410,6 @@ func (m *ValueProvider_GraphQLParentExtraction) Clone() proto.Message {
 		return target
 	}
 	target = &ValueProvider_GraphQLParentExtraction{}
-
-	if m.GetPath() != nil {
-		target.Path = make([]*PathSegment, len(m.GetPath()))
-		for idx, v := range m.GetPath() {
-
-			if h, ok := interface{}(v).(clone.Cloner); ok {
-				target.Path[idx] = h.Clone().(*PathSegment)
-			} else {
-				target.Path[idx] = proto.Clone(v).(*PathSegment)
-			}
-
-		}
-	}
 
 	return target
 }
