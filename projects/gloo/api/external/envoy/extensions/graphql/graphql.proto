@@ -8,12 +8,12 @@ option java_package = "io.envoyproxy.envoy.config.filter.http.graphql.v2";
 option java_outer_classname = "GraphQLFilterProto";
 option java_multiple_files = true;
 
+import "google/protobuf/any.proto";
 import "validate/validate.proto";
 
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/http_uri.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/extension.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/external/envoy/config/core/v3/base.proto";
-import "google/protobuf/any.proto";
 
 
 // used to reference into json structures by key(s)
@@ -24,7 +24,7 @@ message PathSegment {
     string key = 1 [(validate.rules).string = {min_len: 1}];
     // Extract element at list
     uint32 index = 2;
-    // Extracts all elements from a map or a list
+    // Extracts all elements from a list
     bool all = 3;
   }
 }
@@ -163,7 +163,6 @@ message RequestTemplate {
 
   // implementation specific, gRPC will want gRPC message and struct to instantiate
   JsonValue outgoing_body = 3;
-
 }
 
 // Defines a response transformation template.
@@ -233,7 +232,7 @@ message RESTResolver {
   // REST API resp -> pre_execution_transform -> execution engine ->
   // complete GraphQL field response
   //
-  ResponseTemplate response_transform = 3;
+  ResponseTemplate pre_execution_transform = 3;
   string span_name = 4;
 }
 
@@ -310,8 +309,6 @@ message QueryMatcher {
   oneof match { FieldMatcher field_matcher = 1; }
 }
 
-message GraphQLConfig {}
-
 // This is the resolver map for the schema.
 // For each Type.Field, we can define a resolver.
 // if a field does not have resolver, the default resolver will be used.
@@ -324,23 +321,28 @@ message Resolution {
   // The resolver to use.
   .solo.io.envoy.config.core.v3.TypedExtensionConfig resolver = 2;
 }
+// Filter Listener config. Empty as the filter must be configured on the route
+// level.
+message GraphQLConfig {}
 
 // Filter Route config. Routes that have this config will execute graphql
 // queries, and will not make it to the router filter. i.e. this filter will
 // terminate the request for these routes.
 message GraphQLRouteConfig {
-  // Schema to use in string format.
+  // Deprecated. will be removed when gloo 1.10 is released
   .solo.io.envoy.config.core.v3.DataSource schema = 1;
-  // Do we enable introspection for the schema? general recommendation is to disable this for production
-  // and hence it defaults to false.
+  // Deprecated. will be removed when gloo 1.10 is released
   bool enable_introspection = 2;
   // Deprecated. will be removed when gloo 1.10 is released
   repeated Resolution resolutions = 3;
-  // In the future, we will support persistent queries, this will be a map of query id to query.
-  //    map<string, Query> persistent_queries = 3;
-  // when we support persistent queries, we may want to use them exclusively, for predictable
-  // operations. (i.e. no surprise mega query from a client).
-  // bool only_persistent_queries = 4;
+
+  ExecutableSchema executable_schema = 4;
+  // In the future, we will support persistent queries, this will be a map of
+  // query id to query.
+  //    map<string, Query> presistent_queries = 3;
+  // when we support persistent queries, we may want to use them exclusivly, for
+  // predictable operations. (i.e. no surprise mega query from a client). bool
+  // only_persistent_queries = 4;
 
   // key is either:
   // Type

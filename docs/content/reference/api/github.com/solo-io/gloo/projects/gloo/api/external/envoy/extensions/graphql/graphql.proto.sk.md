@@ -33,8 +33,8 @@ weight: 5
 - [Query](#query)
 - [QueryMatcher](#querymatcher)
 - [FieldMatcher](#fieldmatcher)
-- [GraphQLConfig](#graphqlconfig)
 - [Resolution](#resolution)
+- [GraphQLConfig](#graphqlconfig)
 - [GraphQLRouteConfig](#graphqlrouteconfig)
 - [ExecutableSchema](#executableschema)
 - [Executor](#executor)
@@ -67,7 +67,7 @@ used to reference into json structures by key(s)
 | ----- | ---- | ----------- | 
 | `key` | `string` | This will extract a key from a Map value. Only one of `key`, `index`, or `all` can be set. |
 | `index` | `int` | Extract element at list. Only one of `index`, `key`, or `all` can be set. |
-| `all` | `bool` | Extracts all elements from a map or a list. Only one of `all`, `key`, or `index` can be set. |
+| `all` | `bool` | Extracts all elements from a list. Only one of `all`, `key`, or `index` can be set. |
 
 
 
@@ -334,7 +334,7 @@ modify JSON response from upstream before it is processed by execution engine.
 ```yaml
 "serverUri": .solo.io.envoy.config.core.v3.HttpUri
 "requestTransform": .envoy.config.filter.http.graphql.v2.RequestTemplate
-"responseTransform": .envoy.config.filter.http.graphql.v2.ResponseTemplate
+"preExecutionTransform": .envoy.config.filter.http.graphql.v2.ResponseTemplate
 "spanName": string
 
 ```
@@ -343,7 +343,7 @@ modify JSON response from upstream before it is processed by execution engine.
 | ----- | ---- | ----------- | 
 | `serverUri` | [.solo.io.envoy.config.core.v3.HttpUri](../../../config/core/v3/http_uri.proto.sk/#httpuri) |  |
 | `requestTransform` | [.envoy.config.filter.http.graphql.v2.RequestTemplate](../graphql.proto.sk/#requesttemplate) | configuration used to compose the outgoing request to a REST API. |
-| `responseTransform` | [.envoy.config.filter.http.graphql.v2.ResponseTemplate](../graphql.proto.sk/#responsetemplate) | pre-execution engine transformations Request flow: GraphQL request -> request_transform (instantiate REST request) -> REST API resp -> pre_execution_transform -> execution engine -> complete GraphQL field response. |
+| `preExecutionTransform` | [.envoy.config.filter.http.graphql.v2.ResponseTemplate](../graphql.proto.sk/#responsetemplate) | pre-execution engine transformations Request flow: GraphQL request -> request_transform (instantiate REST request) -> REST API resp -> pre_execution_transform -> execution engine -> complete GraphQL field response. |
 | `spanName` | `string` |  |
 
 
@@ -488,21 +488,6 @@ query.
 
 
 ---
-### GraphQLConfig
-
-
-
-```yaml
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-
-
-
-
----
 ### Resolution
 
  
@@ -528,6 +513,23 @@ exist in the parent, null will be used.
 
 
 ---
+### GraphQLConfig
+
+ 
+Filter Listener config. Empty as the filter must be configured on the route
+level.
+
+```yaml
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+
+
+
+
+---
 ### GraphQLRouteConfig
 
  
@@ -539,14 +541,16 @@ terminate the request for these routes.
 "schema": .solo.io.envoy.config.core.v3.DataSource
 "enableIntrospection": bool
 "resolutions": []envoy.config.filter.http.graphql.v2.Resolution
+"executableSchema": .envoy.config.filter.http.graphql.v2.ExecutableSchema
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `schema` | [.solo.io.envoy.config.core.v3.DataSource](../../../config/core/v3/base.proto.sk/#datasource) | Schema to use in string format. |
-| `enableIntrospection` | `bool` | Do we enable introspection for the schema? general recommendation is to disable this for production and hence it defaults to false. |
+| `schema` | [.solo.io.envoy.config.core.v3.DataSource](../../../config/core/v3/base.proto.sk/#datasource) | Deprecated. will be removed when gloo 1.10 is released. |
+| `enableIntrospection` | `bool` | Deprecated. will be removed when gloo 1.10 is released. |
 | `resolutions` | [[]envoy.config.filter.http.graphql.v2.Resolution](../graphql.proto.sk/#resolution) | Deprecated. will be removed when gloo 1.10 is released. |
+| `executableSchema` | [.envoy.config.filter.http.graphql.v2.ExecutableSchema](../graphql.proto.sk/#executableschema) |  |
 
 
 
