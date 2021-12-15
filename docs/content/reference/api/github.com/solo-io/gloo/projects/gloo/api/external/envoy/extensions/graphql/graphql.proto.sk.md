@@ -26,6 +26,9 @@ weight: 5
 - [RequestTemplate](#requesttemplate)
 - [ResponseTemplate](#responsetemplate)
 - [RESTResolver](#restresolver)
+- [GrpcRequestTemplate](#grpcrequesttemplate)
+- [GrpcDescriptorRegistry](#grpcdescriptorregistry)
+- [GrpcResolver](#grpcresolver)
 - [AbstractTypeResolver](#abstracttyperesolver)
 - [Query](#query)
 - [QueryMatcher](#querymatcher)
@@ -310,14 +313,14 @@ Defines a response transformation template.
 modify JSON response from upstream before it is processed by execution engine.
 
 ```yaml
-"resultRoot": .envoy.config.filter.http.graphql.v2.Path
+"resultRoot": []envoy.config.filter.http.graphql.v2.PathSegment
 "setters": map<string, .envoy.config.filter.http.graphql.v2.Path>
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `resultRoot` | [.envoy.config.filter.http.graphql.v2.Path](../graphql.proto.sk/#path) | In cases where the data to populate the graphql type is not in the root object of the result, use result root to specify the path of the response we should use as the root. If {"a": {"b": [1,2,3]}} is the response from the api, setting resultroot as `a.b` will pass on [1,2,3] to the execution engine rather than the whole api response. |
+| `resultRoot` | [[]envoy.config.filter.http.graphql.v2.PathSegment](../graphql.proto.sk/#pathsegment) | In cases where the data to populate the graphql type is not in the root object of the result, use result root to specify the path of the response we should use as the root. If {"a": {"b": [1,2,3]}} is the response from the api, setting resultroot as `a.b` will pass on [1,2,3] to the execution engine rather than the whole api response. |
 | `setters` | `map<string, .envoy.config.filter.http.graphql.v2.Path>` | Example: ``` type Query { getSimple: Simple } type Simple { name String address String }``` if we do `getsimple` and the response we get back from the upstream is ``` {"data": { "people": { "name": "John Doe", "details": { "address": "123 Turnip Rd" } } } } ``` the following response transform would let the graphql execution engine correctly marshal the upstream resposne into the expected graphql response: ` responseTransform: result_root: segments: - key: data - key: people setters: address: segments: - key: details - key: address `yaml. |
 
 
@@ -342,6 +345,70 @@ modify JSON response from upstream before it is processed by execution engine.
 | `requestTransform` | [.envoy.config.filter.http.graphql.v2.RequestTemplate](../graphql.proto.sk/#requesttemplate) | configuration used to compose the outgoing request to a REST API. |
 | `responseTransform` | [.envoy.config.filter.http.graphql.v2.ResponseTemplate](../graphql.proto.sk/#responsetemplate) | pre-execution engine transformations Request flow: GraphQL request -> request_transform (instantiate REST request) -> REST API resp -> pre_execution_transform -> execution engine -> complete GraphQL field response. |
 | `spanName` | `string` |  |
+
+
+
+
+---
+### GrpcRequestTemplate
+
+ 
+Defines a configuration for generating outgoing requests for a resolver.
+
+```yaml
+"outgoingMessageJson": .envoy.config.filter.http.graphql.v2.JsonValue
+"serviceName": string
+"methodName": string
+"requestMetadata": map<string, string>
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `outgoingMessageJson` | [.envoy.config.filter.http.graphql.v2.JsonValue](../graphql.proto.sk/#jsonvalue) | json representation of outgoing gRPC message to be sent to gRPC service. |
+| `serviceName` | `string` | request has shape matching service with name registered in registry is the full_name(), e.g. main.Bookstore. |
+| `methodName` | `string` | make request to method with this name on the grpc service defined above is just the name(), e.g. GetBook. |
+| `requestMetadata` | `map<string, string>` | in the future, we may want to make this a map<string, ValueProvider> once we know better what the use cases are. |
+
+
+
+
+---
+### GrpcDescriptorRegistry
+
+ 
+Defines a configuration for serializing and deserializing requests for a gRPC resolver.
+Is a Schema Extension
+
+```yaml
+"protoDescriptors": .solo.io.envoy.config.core.v3.DataSource
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `protoDescriptors` | [.solo.io.envoy.config.core.v3.DataSource](../../../config/core/v3/base.proto.sk/#datasource) |  |
+
+
+
+
+---
+### GrpcResolver
+
+
+
+```yaml
+"serverUri": .solo.io.envoy.config.core.v3.HttpUri
+"requestTransform": .envoy.config.filter.http.graphql.v2.GrpcRequestTemplate
+"spanName": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `serverUri` | [.solo.io.envoy.config.core.v3.HttpUri](../../../config/core/v3/http_uri.proto.sk/#httpuri) |  |
+| `requestTransform` | [.envoy.config.filter.http.graphql.v2.GrpcRequestTemplate](../graphql.proto.sk/#grpcrequesttemplate) | configuration used to compose the outgoing request to a gRPC endpoint. |
+| `spanName` | `string` | pre-execution engine transformations Request flow: GraphQL request -> request_transform (instantiate gRPC request) -> gRPC API resp -> pre_execution_transform -> execution engine -> complete GraphQL field response ResponseTemplate pre_execution_transform = 3;. |
 
 
 
