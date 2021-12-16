@@ -110,8 +110,39 @@ type ResponseTemplate struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ResultRoot string            `protobuf:"bytes,1,opt,name=result_root,json=resultRoot,proto3" json:"result_root,omitempty"`
-	Setters    map[string]string `protobuf:"bytes,2,rep,name=setters,proto3" json:"setters,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	//
+	//Sets the "root" of the upstream response to be turned into a graphql type by the graphql server.
+	//For example, if the graphql type is:
+	//
+	//type Simple {
+	//name String
+	//}
+	//
+	//and the upstream response is `{"data": {"simple": {"name": "simple name"}}}`,
+	//the graphql server will not be able to marshal the upstream response into the Simple graphql type
+	//because it doesn't know where the relevant data is. If we set result_root to "data.simple", we can give the
+	//graphql server a hint of where to look in the upstream response for the relevant data that graphql type wants.
+	ResultRoot string `protobuf:"bytes,1,opt,name=result_root,json=resultRoot,proto3" json:"result_root,omitempty"`
+	//
+	//Field-specific mapping for a graphql field to a JSON path in the upstream response.
+	//For example, if the graphql type is
+	//
+	//type Simple {
+	//name String
+	//number String
+	//}
+	//
+	//and the upstream response is `{"name": "simple name", "details": {"num": "1234567890"}}`,
+	//the graphql server will not be able to marshal the upstream response into the Simple graphql type because of the
+	//nested `number` field. We can use a simple setter here:
+	//
+	//setters:
+	//number: "details.num"
+	//
+	//and the graphql server will be able to extract data for a field given the path to the relevant data
+	//in the upstream JSON response. We don't need to have a setter for the `name` field because the JSON
+	//response has that field in a position the graphql server can understand automatically.
+	Setters map[string]string `protobuf:"bytes,2,rep,name=setters,proto3" json:"setters,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *ResponseTemplate) Reset() {
@@ -247,7 +278,9 @@ type RESTResolver struct {
 
 	UpstreamRef *core.ResourceRef `protobuf:"bytes,1,opt,name=upstream_ref,json=upstreamRef,proto3" json:"upstream_ref,omitempty"`
 	// configuration used to compose the outgoing request to a REST API
-	Request  *RequestTemplate  `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
+	Request *RequestTemplate `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
+	// configuration used to modify the response from the REST API
+	// before being handled by the graphql server.
 	Response *ResponseTemplate `protobuf:"bytes,3,opt,name=response,proto3" json:"response,omitempty"`
 	SpanName string            `protobuf:"bytes,4,opt,name=span_name,json=spanName,proto3" json:"span_name,omitempty"`
 }

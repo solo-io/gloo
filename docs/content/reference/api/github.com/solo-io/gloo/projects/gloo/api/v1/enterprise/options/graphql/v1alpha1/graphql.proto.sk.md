@@ -69,8 +69,8 @@ Defines a configuration for generating outgoing requests for a resolver.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `resultRoot` | `string` |  |
-| `setters` | `map<string, string>` |  |
+| `resultRoot` | `string` | Sets the "root" of the upstream response to be turned into a graphql type by the graphql server. For example, if the graphql type is: type Simple { name String } and the upstream response is `{"data": {"simple": {"name": "simple name"}}}`, the graphql server will not be able to marshal the upstream response into the Simple graphql type because it doesn't know where the relevant data is. If we set result_root to "data.simple", we can give the graphql server a hint of where to look in the upstream response for the relevant data that graphql type wants. |
+| `setters` | `map<string, string>` | Field-specific mapping for a graphql field to a JSON path in the upstream response. For example, if the graphql type is type Simple { name String number String } and the upstream response is `{"name": "simple name", "details": {"num": "1234567890"}}`, the graphql server will not be able to marshal the upstream response into the Simple graphql type because of the nested `number` field. We can use a simple setter here: setters: number: "details.num" and the graphql server will be able to extract data for a field given the path to the relevant data in the upstream JSON response. We don't need to have a setter for the `name` field because the JSON response has that field in a position the graphql server can understand automatically. |
 
 
 
@@ -117,7 +117,7 @@ control-plane API
 | ----- | ---- | ----------- | 
 | `upstreamRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) |  |
 | `request` | [.graphql.gloo.solo.io.RequestTemplate](../graphql.proto.sk/#requesttemplate) | configuration used to compose the outgoing request to a REST API. |
-| `response` | [.graphql.gloo.solo.io.ResponseTemplate](../graphql.proto.sk/#responsetemplate) |  |
+| `response` | [.graphql.gloo.solo.io.ResponseTemplate](../graphql.proto.sk/#responsetemplate) | configuration used to modify the response from the REST API before being handled by the graphql server. |
 | `spanName` | `string` |  |
 
 
