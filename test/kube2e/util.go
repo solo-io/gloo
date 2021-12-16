@@ -2,7 +2,6 @@ package kube2e
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -47,8 +46,7 @@ func GlooctlCheckEventuallyHealthy(offset int, testHelper *helper.SoloTestHelper
 		}
 		err := check.CheckResources(opts)
 		if err != nil {
-			fmt.Println(err.Error())
-			return errors.New("glooctl check detected a problem with the installation")
+			return errors.Wrap(err, "glooctl check detected a problem with the installation")
 		}
 		return nil
 	}, timeoutInterval, "5s").Should(BeNil())

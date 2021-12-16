@@ -36,7 +36,7 @@ type RequestTemplate struct {
 	// map of strings to value providers. The string key determines the name of the
 	// resulting header, the value provided will be the value.
 	//
-	// at least need ":method" and ":path"
+	// The least needed here is the ":method" and ":path" headers.
 	Headers map[string]string `protobuf:"bytes,1,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// Use this attribute to set query parameters to your REST service. It consists of a
 	// map of strings to value providers. The string key determines the name of the

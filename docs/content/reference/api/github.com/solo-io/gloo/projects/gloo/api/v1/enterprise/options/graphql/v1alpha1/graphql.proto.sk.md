@@ -49,7 +49,7 @@ Defines a configuration for generating outgoing requests for a resolver.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `headers` | `map<string, string>` | Use this attribute to set request headers to your REST service. It consists of a map of strings to value providers. The string key determines the name of the resulting header, the value provided will be the value. at least need ":method" and ":path". |
+| `headers` | `map<string, string>` | Use this attribute to set request headers to your REST service. It consists of a map of strings to value providers. The string key determines the name of the resulting header, the value provided will be the value. The least needed here is the ":method" and ":path" headers. |
 | `queryParams` | `map<string, string>` | Use this attribute to set query parameters to your REST service. It consists of a map of strings to value providers. The string key determines the name of the query param, the provided value will be the value. This value is appended to any value set to the :path header in `headers`. Interpolation is done in envoy rather than the control plane to prevent escaped character issues. Additionally, we may be providing values not known until the request is being executed (e.g., graphql parent info). |
 | `body` | [.google.protobuf.Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/value) | Used to construct the outgoing body to the upstream from the graphql value providers. |
 
