@@ -130,19 +130,6 @@ message GrpcResolver {
   string span_name = 4;
 }
 
-message QueryMatcher {
-  message FieldMatcher {
-    // Object type. For example, Query.
-    string type = 1;
-    // Field with in the object.
-    string field = 2;
-  }
-
-  oneof match {
-    FieldMatcher field_matcher = 1;
-  }
-}
-
 // This is the resolver map for the schema.
 // For each Type.Field, we can define a resolver.
 // if a field does not have resolver, the default resolver will be used.
@@ -150,8 +137,8 @@ message QueryMatcher {
 // to resolve the field.
 // if a field with the same name does not exist in the parent, null will be used.
 message Resolution {
-  // Match an object type and field
-  QueryMatcher matcher = 1;
+  // Name for this resolver
+  string name = 1;
   // The resolver to use.
   oneof resolver {
     RESTResolver rest_resolver = 3;
