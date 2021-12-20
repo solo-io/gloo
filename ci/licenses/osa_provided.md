@@ -28,7 +28,7 @@ Name|Version|License
 [kelseyhightower/envconfig](https://github.com/kelseyhightower/envconfig)|v1.4.0|MIT License
 [mitchellh/hashstructure](https://github.com/mitchellh/hashstructure)|v1.0.0|MIT License
 [olekukonko/tablewriter](https://github.com/olekukonko/tablewriter)|v0.0.5|MIT License
-[onsi/ginkgo](https://github.com/onsi/ginkgo)|v1.16.4|MIT License
+[onsi/ginkgo](https://github.com/onsi/ginkgo)|v1.16.5|MIT License
 [onsi/gomega](https://github.com/onsi/gomega)|v1.17.0|MIT License
 [opencontainers/go-digest](https://github.com/opencontainers/go-digest)|v1.0.0-rc1|Apache License 2.0
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
@@ -40,8 +40,8 @@ Name|Version|License
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.5|BSD 3-clause "New" or "Revised" License
 [go.opencensus.io](https://go.opencensus.io)|v0.23.0|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.19.1|MIT License
-[x/mod](https://golang.org/x/mod)|v0.4.2|BSD 3-clause "New" or "Revised" License
-[x/net](https://golang.org/x/net)|v0.0.0-20211123203042-d83791d6bcd9|BSD 3-clause "New" or "Revised" License
+[x/mod](https://golang.org/x/mod)|v0.5.1|BSD 3-clause "New" or "Revised" License
+[x/net](https://golang.org/x/net)|v0.0.0-20211205041911-012df41ee64c|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.0.0-20210220032951-036812b2e83c|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.42.0|Apache License 2.0

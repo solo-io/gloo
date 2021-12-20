@@ -38,10 +38,10 @@ gloo:
     deployment:
       image:
         repository: gloo-ee-envoy-wrapper
-discovery:
-  deployment:
-    image:
-      repository: discovery-ee
+  discovery:
+    deployment:
+      image:
+        repository: discovery-ee
 redis:
   aclPrefix: 'user default +@all allkeys on >'
   deployment:

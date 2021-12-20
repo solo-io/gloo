@@ -206,7 +206,7 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 	if config.Gloo.Discovery.Deployment == nil {
 		config.Gloo.Discovery.Deployment = &generate.DiscoveryDeployment{}
 	}
-	config.Gloo.Discovery.Deployment.Image.Tag = tag
+	config.Gloo.Discovery.Deployment.Image.Tag = version
 
 	if config.Gloo.Gateway == nil {
 		config.Gloo.Gateway = &generate.Gateway{}

@@ -1,0 +1,10 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/5646
+    description: >
+      `glooctl install enterprise` and helm install on the gloo enterprise helm chart now installs discovery-ee
+      instead of OSS discovery.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.10.0-beta12

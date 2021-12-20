@@ -1123,7 +1123,7 @@ ifeq ($(RELEASE),"true")
 endif
 
 .PHONY: docker docker-push
- docker: rate-limit-ee-docker rate-limit-ee-fips-docker extauth-ee-docker \
+ docker: rate-limit-ee-docker rate-limit-ee-fips-docker extauth-ee-docker discovery-ee-docker\
        extauth-ee-fips-docker gloo-ee-docker gloo-fips-ee-docker gloo-ee-envoy-wrapper-docker \
        gloo-ee-envoy-wrapper-fips-docker observability-ee-docker ext-auth-plugins-docker ext-auth-plugins-fips-docker \
        gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker gloo-federation-console-docker gloo-fed-rbac-validating-webhook-docker
@@ -1245,6 +1245,7 @@ build-and-load-kind-images-non-fips: rate-limit-ee-docker kind-load-rate-limit-e
 build-and-load-kind-images-non-fips: extauth-ee-docker kind-load-extauth-ee # ext auth
 build-and-load-kind-images-non-fips: ext-auth-plugins-docker kind-load-ext-auth-plugins # ext auth plugins
 build-and-load-kind-images-non-fips: observability-ee-docker kind-load-observability-ee # observability
+build-and-load-kind-images-non-fips: discovery-ee-docker kind-load-discovery-ee #discovery
 
 # Build and load images for a fips compliant (data plane) installation of Gloo Edge
 # Used in CI during regression tests
@@ -1255,6 +1256,7 @@ build-and-load-kind-images-fips: rate-limit-ee-fips-docker kind-load-rate-limit-
 build-and-load-kind-images-fips: extauth-ee-fips-docker kind-load-extauth-ee-fips # ext auth
 build-and-load-kind-images-fips: ext-auth-plugins-fips-docker kind-load-ext-auth-plugins-fips # ext auth plugins
 build-and-load-kind-images-fips: observability-ee-docker kind-load-observability-ee # observability
+build-and-load-kind-images-fips: discovery-ee-docker kind-load-discovery-ee # discovery
 
 .PHONY: build-kind-assets
 build-kind-assets: push-kind-images build-test-chart
