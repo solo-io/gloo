@@ -17,8 +17,6 @@ weight: 5
 - [RESTResolver](#restresolver)
 - [GrpcDescriptorRegistry](#grpcdescriptorregistry)
 - [GrpcResolver](#grpcresolver)
-- [QueryMatcher](#querymatcher)
-- [FieldMatcher](#fieldmatcher)
 - [Resolution](#resolution)
 - [GraphQLSchema](#graphqlschema) **Top-Level Resource**
 - [ExecutableSchema](#executableschema)
@@ -165,42 +163,6 @@ control-plane API
 
 
 ---
-### QueryMatcher
-
-
-
-```yaml
-"fieldMatcher": .graphql.gloo.solo.io.QueryMatcher.FieldMatcher
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `fieldMatcher` | [.graphql.gloo.solo.io.QueryMatcher.FieldMatcher](../graphql.proto.sk/#fieldmatcher) |  |
-
-
-
-
----
-### FieldMatcher
-
-
-
-```yaml
-"type": string
-"field": string
-
-```
-
-| Field | Type | Description |
-| ----- | ---- | ----------- | 
-| `type` | `string` | Object type. For example, Query. |
-| `field` | `string` | Field with in the object. |
-
-
-
-
----
 ### Resolution
 
  
@@ -212,7 +174,6 @@ to resolve the field.
 if a field with the same name does not exist in the parent, null will be used.
 
 ```yaml
-"matcher": .graphql.gloo.solo.io.QueryMatcher
 "restResolver": .graphql.gloo.solo.io.RESTResolver
 "grpcResolver": .graphql.gloo.solo.io.GrpcResolver
 
@@ -220,7 +181,6 @@ if a field with the same name does not exist in the parent, null will be used.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `matcher` | [.graphql.gloo.solo.io.QueryMatcher](../graphql.proto.sk/#querymatcher) | Match an object type and field. |
 | `restResolver` | [.graphql.gloo.solo.io.RESTResolver](../graphql.proto.sk/#restresolver) |  Only one of `restResolver` or `grpcResolver` can be set. |
 | `grpcResolver` | [.graphql.gloo.solo.io.GrpcResolver](../graphql.proto.sk/#grpcresolver) |  Only one of `grpcResolver` or `restResolver` can be set. |
 
@@ -244,7 +204,7 @@ configure the routes to point to these schema CRs.
 "metadata": .core.solo.io.Metadata
 "schema": string
 "enableIntrospection": bool
-"resolutions": []graphql.gloo.solo.io.Resolution
+"resolutions": map<string, .graphql.gloo.solo.io.Resolution>
 "executableSchema": .graphql.gloo.solo.io.ExecutableSchema
 
 ```
@@ -255,7 +215,7 @@ configure the routes to point to these schema CRs.
 | `metadata` | [.core.solo.io.Metadata](../../../../../../../../../../solo-kit/api/v1/metadata.proto.sk/#metadata) | Metadata contains the object metadata for this resource. |
 | `schema` | `string` | Schema to use in string format. |
 | `enableIntrospection` | `bool` | Do we enable introspection for the schema? general recommendation is to disable this for production and hence it defaults to false. |
-| `resolutions` | [[]graphql.gloo.solo.io.Resolution](../graphql.proto.sk/#resolution) | The resolver map to use to resolve the schema. Omitted fields will use the default resolver, which looks for a field with that name in the parent's object, and errors if the field cannot be found. |
+| `resolutions` | `map<string, .graphql.gloo.solo.io.Resolution>` | The resolver map to use to resolve the schema. Omitted fields will use the default resolver, which looks for a field with that name in the parent's object, and errors if the field cannot be found. |
 | `executableSchema` | [.graphql.gloo.solo.io.ExecutableSchema](../graphql.proto.sk/#executableschema) |  |
 
 
@@ -306,14 +266,14 @@ configure the routes to point to these schema CRs.
 Execute schema using resolvers.
 
 ```yaml
-"resolutions": []graphql.gloo.solo.io.Resolution
+"resolutions": map<string, .graphql.gloo.solo.io.Resolution>
 "enableIntrospection": bool
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `resolutions` | [[]graphql.gloo.solo.io.Resolution](../graphql.proto.sk/#resolution) | The resolver map to use to resolve the schema. |
+| `resolutions` | `map<string, .graphql.gloo.solo.io.Resolution>` | The resolver map to use to resolve the schema. |
 | `enableIntrospection` | `bool` | Do we enable introspection for the schema? general recommendation is to disable this for production and hence it defaults to false. |
 
 

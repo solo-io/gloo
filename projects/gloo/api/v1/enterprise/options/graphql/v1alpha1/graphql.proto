@@ -137,12 +137,10 @@ message GrpcResolver {
 // to resolve the field.
 // if a field with the same name does not exist in the parent, null will be used.
 message Resolution {
-  // Name for this resolver
-  string name = 1;
   // The resolver to use.
   oneof resolver {
-    RESTResolver rest_resolver = 3;
-    GrpcResolver grpc_resolver = 4;
+    RESTResolver rest_resolver = 1;
+    GrpcResolver grpc_resolver = 2;
   }
 }
 
@@ -173,7 +171,7 @@ message GraphQLSchema {
   // The resolver map to use to resolve the schema.
   // Omitted fields will use the default resolver, which looks for a field with that name in the parent's object,
   // and errors if the field cannot be found.
-  repeated Resolution resolutions = 5 [deprecated=true];
+  map<string, Resolution> resolutions = 5 [deprecated=true];
 
   ExecutableSchema executable_schema = 6;
 }
@@ -193,7 +191,7 @@ message Executor {
   // Execute schema using resolvers.
   message Local {
     // The resolver map to use to resolve the schema.
-    repeated Resolution resolutions = 1;
+    map<string, Resolution> resolutions = 1;
     // Do we enable introspection for the schema? general recommendation is to
     // disable this for production and hence it defaults to false.
     bool enable_introspection = 2;
