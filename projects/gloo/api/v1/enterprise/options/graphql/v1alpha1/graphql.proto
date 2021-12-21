@@ -23,27 +23,56 @@ import "validate/validate.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 
+/**
+  Using `string` value templates
+
+  When defining resolutions, many instances allow you to use "templated strings", which are strings
+  with extra templating capabilities. The following rules must be followed when using a templated strings:
+  - templated values will be interpolated into the strings they are in
+    * e.g. if `$parent.token` is `ABDEFG`, "Bearer_{$parent.token}" may become "Bearer_ABCDEFG"
+  - templated values must start with `{$`, immediately preceded by
+    - `parent` for extracting a value from the parent object
+    - `args` for extracting a value from the graphql field arguments
+    - `headers` for extracting a value from the request headers.
+  - `headers` extractions can only have one value in the path to represent the header being extracted
+  - for other extractions, e.g. `parent` and `args`, a more complicated path can be used for extracting nested values
+    using the following rules:
+      - use `a.b` to extract key "b" from object "a"
+      - use `a[0]` to extract the 1st element in array "a"
+      - use `a[*].b` to extract key "b" from all objects in array "a"
+      - use `a[*]` to create a list of key-value pairs from object "a"
+      - use `a[*][0]` to create a list of all keys from object "a"
+      - use `a[*][1]` to create a list of all values from object "a"
+
+ */
+
 // Defines a configuration for generating outgoing requests for a resolver.
 message RequestTemplate {
   // Use this attribute to set request headers to your REST service. It consists of a
-  // map of strings to value providers. The string key determines the name of the
+  // map of strings to templated value strings. The string key determines the name of the
   // resulting header, the value provided will be the value.
   //
   // The least needed here is the ":method" and ":path" headers.
+  // for example, if a header is an authorization token, taken from the graphql args,
+  // we can use the following configuration:
+  // headers:
+  //   Authorization: "Bearer {$args.token}"
   map<string, string> headers = 1;
 
   // Use this attribute to set query parameters to your REST service. It consists of a
-  // map of strings to value providers. The string key determines the name of the
+  // map of strings to templated value strings. The string key determines the name of the
   // query param, the provided value will be the value. This value is appended to any
   // value set to the :path header in `headers`.
   //
-  // Interpolation is done in envoy rather than the control plane to prevent escaped
-  // character issues. Additionally, we may be providing values not known until
-  // the request is being executed (e.g., graphql parent info).
+  // for example, if a query parameter is an id, taken from the graphql parent object,
+  // we can use the following configuration:
+  // queryParams:
+  //   id: "{$parent.id}"
   map<string, string> query_params = 2;
 
   // Used to construct the outgoing body to the upstream from the
   // graphql value providers.
+  // All string values can be templated strings.
   google.protobuf.Value body = 3;
 }
 
@@ -118,8 +147,20 @@ message RESTResolver {
 // Defines a configuration for serializing and deserializing requests for a gRPC resolver.
 // Is a Schema Extension
 message GrpcDescriptorRegistry {
-  // base64 encoded proto descriptor bin
-  string proto_descriptors_bin = 1;
+  oneof descriptor_set {
+    option (validate.required) = true;
+
+    // Supplies the filename of
+    // :ref:`the proto descriptor set <config_grpc_json_generate_proto_descriptor_set>` for the gRPC
+    // services.
+    string proto_descriptor = 1;
+
+    // Supplies the binary content of
+    // :ref:`the proto descriptor set <config_grpc_json_generate_proto_descriptor_set>` for the gRPC
+    // services.
+    // Note: in yaml, this must be provided as a base64 standard encoded string; yaml can't handle binary bytes
+    bytes proto_descriptor_bin = 2;
+  }
 }
 
 // control-plane API
@@ -130,12 +171,11 @@ message GrpcResolver {
   string span_name = 4;
 }
 
-// This is the resolver map for the schema.
-// For each Type.Field, we can define a resolver.
+// Define a named resolver which can be then matched to a field using the `resolve` directive.
 // if a field does not have resolver, the default resolver will be used.
 // the default resolver takes the field with the same name from the parent, and uses that value
 // to resolve the field.
-// if a field with the same name does not exist in the parent, null will be used.
+// If a field with the same name does not exist in the parent, null will be used.
 message Resolution {
   // The resolver to use.
   oneof resolver {
@@ -163,16 +203,6 @@ message GraphQLSchema {
   // Metadata contains the object metadata for this resource
   core.solo.io.Metadata metadata = 2;
 
-  // Schema to use in string format.
-  string schema = 3 [deprecated=true];
-  // Do we enable introspection for the schema? general recommendation is to disable this for production
-  // and hence it defaults to false.
-  bool enable_introspection = 4 [deprecated=true];
-  // The resolver map to use to resolve the schema.
-  // Omitted fields will use the default resolver, which looks for a field with that name in the parent's object,
-  // and errors if the field cannot be found.
-  map<string, Resolution> resolutions = 5 [deprecated=true];
-
   ExecutableSchema executable_schema = 6;
 }
 
@@ -190,7 +220,25 @@ message ExecutableSchema {
 message Executor {
   // Execute schema using resolvers.
   message Local {
-    // The resolver map to use to resolve the schema.
+    /* Mapping of resolver name to resolver definition.
+     The names are used to reference the resolver in the graphql schema.
+     For example, a resolver with name "authorResolver" can be defined as
+     ```yaml
+     authorResolver:
+       restResolver:
+         upstreamRef: ...
+         request:
+           ...
+         response:
+           ...
+      ```
+      and referenced in the graphql schema as
+      ```gql
+      type Query {
+        author: String @resolve(name: "authorResolver")
+      }
+      ```
+    */
     map<string, Resolution> resolutions = 1;
     // Do we enable introspection for the schema? general recommendation is to
     // disable this for production and hence it defaults to false.

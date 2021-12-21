@@ -261,6 +261,7 @@ Describes the transport protocol version to use when connecting to the ext auth 
 ```yaml
 "allowedUpstreamHeaders": []string
 "allowedClientHeaders": []string
+"allowedUpstreamHeadersToAppend": []string
 
 ```
 
@@ -268,6 +269,7 @@ Describes the transport protocol version to use when connecting to the ext auth 
 | ----- | ---- | ----------- | 
 | `allowedUpstreamHeaders` | `[]string` | When this is set, authorization response headers that have a header in this list will be added to the original client request and sent to the upstream. Note that coexistent headers will be overridden. |
 | `allowedClientHeaders` | `[]string` | When this is set, authorization response headers in this list will be added to the client's response when the auth request is denied. Note that when this list is *not* set, all the authorization response headers, except *Authority (Host)* will be in the response to the client. When a header is included in this list, *Path*, *Status*, *Content-Length*, *WWW-Authenticate* and *Location* are automatically added. |
+| `allowedUpstreamHeadersToAppend` | `[]string` | When this is set, authorization response headers that have a correspondent match will be added to the client's response. Note that coexistent headers will be appended. |
 
 
 
@@ -534,6 +536,7 @@ Deprecated: Prefer OAuth2
 ```yaml
 "maxAge": .google.protobuf.UInt32Value
 "notSecure": bool
+"httpOnly": .google.protobuf.BoolValue
 "path": .google.protobuf.StringValue
 "domain": string
 
@@ -543,6 +546,7 @@ Deprecated: Prefer OAuth2
 | ----- | ---- | ----------- | 
 | `maxAge` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | Max age for the cookie. Leave unset for a default of 30 days (2592000 seconds). To disable cookie expiry, set explicitly to 0. |
 | `notSecure` | `bool` | Use a non-secure cookie. Note - this should only be used for testing and in trusted environments. |
+| `httpOnly` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set the cookie to be HttpOnly. defaults to true. Set explicity to false to disable. |
 | `path` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | Path of the cookie. If unset, defaults to "/". Set it explicitly to "" to avoid setting a path. |
 | `domain` | `string` | Cookie domain. |
 
@@ -1205,6 +1209,7 @@ Deprecated, prefer OAuth2Config
 "discoveryPollInterval": .google.protobuf.Duration
 "jwksCacheRefreshPolicy": .enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy
 "sessionIdHeaderName": string
+"parseCallbackPathAsRegex": bool
 
 ```
 
@@ -1226,6 +1231,7 @@ Deprecated, prefer OAuth2Config
 | `discoveryPollInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | The interval at which OIDC configuration is discovered at <issuerUrl>/.well-known/openid-configuration If not specified, the default value is 30 minutes. |
 | `jwksCacheRefreshPolicy` | [.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy](../extauth.proto.sk/#jwksondemandcacherefreshpolicy) | If a user executes a request with a key that is not found in the JWKS, it could be that the keys have rotated on the remote source, and not yet in the local cache. This policy lets you define the behavior for how to refresh the local cache during a request where an invalid key is provided. |
 | `sessionIdHeaderName` | `string` | If set, the randomly generated session id will be sent to the token endpoint as part of the code exchange The session id is used as the key for sessions in Redis. |
+| `parseCallbackPathAsRegex` | `bool` | If set, CallbackPath will be evaluated as a regular expression. |
 
 
 

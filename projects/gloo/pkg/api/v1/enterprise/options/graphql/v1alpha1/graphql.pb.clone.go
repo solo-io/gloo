@@ -155,7 +155,29 @@ func (m *GrpcDescriptorRegistry) Clone() proto.Message {
 	}
 	target = &GrpcDescriptorRegistry{}
 
-	target.ProtoDescriptorsBin = m.GetProtoDescriptorsBin()
+	switch m.DescriptorSet.(type) {
+
+	case *GrpcDescriptorRegistry_ProtoDescriptor:
+
+		target.DescriptorSet = &GrpcDescriptorRegistry_ProtoDescriptor{
+			ProtoDescriptor: m.GetProtoDescriptor(),
+		}
+
+	case *GrpcDescriptorRegistry_ProtoDescriptorBin:
+
+		if m.GetProtoDescriptorBin() != nil {
+			newArr := make([]byte, len(m.GetProtoDescriptorBin()))
+			copy(newArr, m.GetProtoDescriptorBin())
+			target.DescriptorSet = &GrpcDescriptorRegistry_ProtoDescriptorBin{
+				ProtoDescriptorBin: newArr,
+			}
+		} else {
+			target.DescriptorSet = &GrpcDescriptorRegistry_ProtoDescriptorBin{
+				ProtoDescriptorBin: nil,
+			}
+		}
+
+	}
 
 	return target
 }
@@ -242,23 +264,6 @@ func (m *GraphQLSchema) Clone() proto.Message {
 		target.Metadata = h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.Metadata)
 	} else {
 		target.Metadata = proto.Clone(m.GetMetadata()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.Metadata)
-	}
-
-	target.Schema = m.GetSchema()
-
-	target.EnableIntrospection = m.GetEnableIntrospection()
-
-	if m.GetResolutions() != nil {
-		target.Resolutions = make(map[string]*Resolution, len(m.GetResolutions()))
-		for k, v := range m.GetResolutions() {
-
-			if h, ok := interface{}(v).(clone.Cloner); ok {
-				target.Resolutions[k] = h.Clone().(*Resolution)
-			} else {
-				target.Resolutions[k] = proto.Clone(v).(*Resolution)
-			}
-
-		}
 	}
 
 	if h, ok := interface{}(m.GetExecutableSchema()).(clone.Cloner); ok {
