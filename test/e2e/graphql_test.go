@@ -20,12 +20,14 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/v1helpers"
+	glootest "github.com/solo-io/gloo/test/v1helpers/test_grpc_service/glootest/protos"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/test/services"
+	glootestpb "github.com/solo-io/solo-projects/test/v1helpers/test_grpc_service"
 )
 
 var _ = Describe("graphql", func() {
@@ -36,7 +38,7 @@ var _ = Describe("graphql", func() {
 		testClients services.TestClients
 	)
 
-	var getGraphQLSchema = func(us1Ref *core.ResourceRef) *v1alpha1.GraphQLSchema {
+	var getGraphQLSchema = func(restUsRef, grpcUsRef *core.ResourceRef) *v1alpha1.GraphQLSchema {
 		schema := `
 		      schema { query: Query }
 		      input Map {
@@ -44,10 +46,14 @@ var _ = Describe("graphql", func() {
 		      }
 		      type Query {
 		        field1(intArg: Int!, boolArg: Boolean!, floatArg: Float!, stringArg: String!, mapArg: Map!, listArg: [Int!]!): SimpleType
+		        field2: TestResponse
 		      }
 		      type SimpleType {
 		        simple: String
 		        child: String
+		      }
+		      type TestResponse {
+		        str: String
 		      }
 `
 
@@ -63,13 +69,41 @@ var _ = Describe("graphql", func() {
 				},
 				Resolver: &v1alpha1.Resolution_RestResolver{
 					RestResolver: &v1alpha1.RESTResolver{
-						UpstreamRef: us1Ref,
+						UpstreamRef: restUsRef,
 						Request: &v1alpha1.RequestTemplate{
 							Headers:     nil, // configured and tested later on
 							QueryParams: nil, // configured and tested later on
 							Body:        nil, // configured and tested later on
 						},
 						SpanName: "",
+					},
+				},
+			},
+			{
+				Matcher: &v1alpha1.QueryMatcher{
+					Match: &v1alpha1.QueryMatcher_FieldMatcher_{
+						FieldMatcher: &v1alpha1.QueryMatcher_FieldMatcher{
+							Type:  "Query",
+							Field: "field2",
+						},
+					},
+				},
+				Resolver: &v1alpha1.Resolution_GrpcResolver{
+					GrpcResolver: &v1alpha1.GrpcResolver{
+						UpstreamRef: grpcUsRef,
+						RequestTransform: &v1alpha1.GrpcRequestTemplate{
+							OutgoingMessageJson: &structpb.Value{
+								Kind: &structpb.Value_StructValue{
+									StructValue: &structpb.Struct{
+										Fields: map[string]*structpb.Value{
+											"str": {Kind: &structpb.Value_StringValue{StringValue: "foo"}},
+										},
+									},
+								},
+							},
+							ServiceName: "glootest.TestService",
+							MethodName:  "TestMethod",
+						},
 					},
 				},
 			},
@@ -81,6 +115,7 @@ var _ = Describe("graphql", func() {
 				Namespace: "gloo-system",
 			},
 			ExecutableSchema: &v1alpha1.ExecutableSchema{
+				SchemaDefinition: schema,
 				Executor: &v1alpha1.Executor{
 					Executor: &v1alpha1.Executor_Local_{
 						Local: &v1alpha1.Executor_Local{
@@ -89,7 +124,11 @@ var _ = Describe("graphql", func() {
 						},
 					},
 				},
-				SchemaDefinition: schema,
+				GrpcDescriptorRegistry: &v1alpha1.GrpcDescriptorRegistry{
+					DescriptorSet: &v1alpha1.GrpcDescriptorRegistry_ProtoDescriptorBin{
+						ProtoDescriptorBin: glootestpb.ProtoBytes,
+					},
+				},
 			},
 		}
 	}
@@ -165,9 +204,10 @@ var _ = Describe("graphql", func() {
 	})
 	Context("With envoy", func() {
 		var (
-			envoyInstance *services.EnvoyInstance
-			testUpstream1 *v1helpers.TestUpstream
-			envoyPort     = uint32(8080)
+			envoyInstance              *services.EnvoyInstance
+			restUpstream, grpcUpstream *v1helpers.TestUpstream
+			envoyPort                  = uint32(8080)
+			query                      string
 
 			proxy         *gloov1.Proxy
 			graphQlSchema *v1alpha1.GraphQLSchema
@@ -176,11 +216,6 @@ var _ = Describe("graphql", func() {
 		var testRequest = func(result string) {
 			var resp *http.Response
 			Eventually(func() (int, error) {
-				query := `
-{
-  "query":"{f:field1(intArg: 2, boolArg: true, floatArg: 9.99993, stringArg: \"this is a string arg\", mapArg: {a: 9}, listArg: [21,22,23]){simple}}"
-}
-`
 				client := http.DefaultClient
 				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/testroute", "localhost", envoyPort))
 				Expect(err).NotTo(HaveOccurred())
@@ -217,16 +252,27 @@ var _ = Describe("graphql", func() {
 			err = envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
-			testUpstream1 = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "{\"simple\":\"foo\"}")
-
-			_, err = testClients.UpstreamClient.Write(testUpstream1.Upstream, clients.WriteOpts{})
+			query = `
+{
+  "query":"{f:field1(intArg: 2, boolArg: true, floatArg: 9.99993, stringArg: \"this is a string arg\", mapArg: {a: 9}, listArg: [21,22,23]){simple}}"
+}`
+			restUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "{\"simple\":\"foo\"}")
+			_, err = testClients.UpstreamClient.Write(restUpstream.Upstream, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
-
 			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
-				return testClients.UpstreamClient.Read(testUpstream1.Upstream.Metadata.Namespace,
-					testUpstream1.Upstream.Metadata.Name, clients.ReadOpts{})
+				return testClients.UpstreamClient.Read(restUpstream.Upstream.Metadata.Namespace,
+					restUpstream.Upstream.Metadata.Name, clients.ReadOpts{})
 			})
-			graphQlSchema = getGraphQLSchema(testUpstream1.Upstream.Metadata.Ref())
+
+			grpcUpstream = v1helpers.NewTestGRPCUpstream(ctx, envoyInstance.LocalAddr(), 1)
+			_, err = testClients.UpstreamClient.Write(grpcUpstream.Upstream, clients.WriteOpts{})
+			Expect(err).NotTo(HaveOccurred())
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				return testClients.UpstreamClient.Read(grpcUpstream.Upstream.Metadata.Namespace,
+					grpcUpstream.Upstream.Metadata.Name, clients.ReadOpts{})
+			})
+
+			graphQlSchema = getGraphQLSchema(restUpstream.Upstream.Metadata.Ref(), grpcUpstream.Upstream.Metadata.Ref())
 		})
 		JustBeforeEach(func() {
 			_, err := testClients.GraphQLSchemaClient.Write(graphQlSchema, clients.WriteOpts{})
@@ -246,11 +292,27 @@ var _ = Describe("graphql", func() {
 
 			It("resolves graphql queries to REST upstreams", func() {
 				testRequest("{\"data\":{\"f\":{\"simple\":\"foo\"}}}")
-				Eventually(testUpstream1.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+				Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 					"URL": PointTo(Equal(url.URL{
 						Path: "/",
 					})),
 				}))))
+			})
+
+			Context("grpc resolver", func() {
+				BeforeEach(func() {
+					query = `
+{
+  "query":"{f:field2{str}}"
+}`
+				})
+
+				It("resolves graphql queries to REST upstreams", func() {
+					testRequest("{\"data\":{\"f\":{\"str\":\"foo\"}}}")
+					Eventually(grpcUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+						"GRPCRequest": PointTo(Equal(glootest.TestRequest{Str: "foo"})),
+					}))))
+				})
 			})
 
 			Context("with body to upstream", func() {
@@ -270,7 +332,7 @@ var _ = Describe("graphql", func() {
 
 				It("resolves graphql queries to REST upstreams with body", func() {
 					testRequest("{\"data\":{\"f\":{\"simple\":\"foo\"}}}")
-					Eventually(testUpstream1.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+					Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 						"Body": Equal([]byte("{\"key1\":\"value1\"}")),
 						"URL": PointTo(Equal(url.URL{
 							Path: "/",
@@ -289,7 +351,7 @@ var _ = Describe("graphql", func() {
 
 				It("resolves graphql queries to REST upstreams with query params", func() {
 					testRequest("{\"data\":{\"f\":{\"simple\":\"foo\"}}}")
-					Eventually(testUpstream1.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+					Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 						"URL": PointTo(Equal(url.URL{
 							Path:     "/",
 							RawQuery: "queryparam=queryparamval",
@@ -308,7 +370,7 @@ var _ = Describe("graphql", func() {
 
 				It("resolves graphql queries to REST upstreams with headers", func() {
 					testRequest("{\"data\":{\"f\":{\"simple\":\"foo\"}}}")
-					Eventually(testUpstream1.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+					Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 						"URL": PointTo(Equal(url.URL{
 							Path: "/",
 						})),

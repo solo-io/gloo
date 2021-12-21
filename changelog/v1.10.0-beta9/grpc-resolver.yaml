@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Implement initial API for grpc resolver as part of Gloo's graphql envoy filter.
+    issueLink: https://github.com/solo-io/gloo-mesh-enterprise/issues/1350
+    resolvesIssue: false

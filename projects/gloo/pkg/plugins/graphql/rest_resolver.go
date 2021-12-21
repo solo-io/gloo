@@ -18,14 +18,17 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
-const ARBITRARY_PROVIDER_NAME = "ARBITRARY_PROVIDER_NAME"
+const (
+	ARBITRARY_PROVIDER_NAME              = "ARBITRARY_PROVIDER_NAME"
+	restResolverTypedExtensionConfigName = "io.solo.graphql.resolver.rest"
+)
 
 func translateRestResolver(params plugins.RouteParams, r *RESTResolver) (*v3.TypedExtensionConfig, error) {
-	request_transform, err := translateRequestTransform(r.Request)
+	requestTransform, err := translateRequestTransform(r.Request)
 	if err != nil {
 		return nil, err
 	}
-	response_transform, err := translateResponseTransform(r.Response)
+	responseTransform, err := translateResponseTransform(r.Response)
 	if err != nil {
 		return nil, err
 	}
@@ -41,12 +44,12 @@ func translateRestResolver(params plugins.RouteParams, r *RESTResolver) (*v3.Typ
 			},
 			Timeout: durationpb.New(1 * time.Second),
 		},
-		RequestTransform:      request_transform,
-		PreExecutionTransform: response_transform,
+		RequestTransform:      requestTransform,
+		PreExecutionTransform: responseTransform,
 		SpanName:              r.SpanName,
 	}
 	return &v3.TypedExtensionConfig{
-		Name:        "io.solo.graphql.resolver.rest",
+		Name:        restResolverTypedExtensionConfigName,
 		TypedConfig: utils.MustMessageToAny(restResolver),
 	}, nil
 }

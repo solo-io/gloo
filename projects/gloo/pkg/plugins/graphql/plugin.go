@@ -1,9 +1,9 @@
 package graphql
 
 import (
-	"github.com/pkg/errors"
-
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/pkg/errors"
 	"github.com/rotisserie/eris"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
 const (
@@ -87,6 +88,10 @@ func translateGraphQlSchemaToRouteConf(params plugins.RouteParams, schema *v1alp
 	if err != nil {
 		return nil, err
 	}
+	extensions, err := translateExtensions(schema)
+	if err != nil {
+		return nil, err
+	}
 	return &v2.GraphQLRouteConfig{
 		ExecutableSchema: &v2.ExecutableSchema{
 			Executor: &v2.Executor{
@@ -100,8 +105,41 @@ func translateGraphQlSchemaToRouteConf(params plugins.RouteParams, schema *v1alp
 			SchemaDefinition: &v3.DataSource{
 				Specifier: &v3.DataSource_InlineString{InlineString: schema.GetExecutableSchema().GetSchemaDefinition()},
 			},
+			Extensions: extensions,
 		},
 	}, nil
+}
+
+func translateExtensions(schema *v1alpha1.GraphQLSchema) (map[string]*any.Any, error) {
+	extensions := map[string]*any.Any{}
+
+	if reg := schema.GetExecutableSchema().GetGrpcDescriptorRegistry(); reg != nil {
+
+		grpcDescRegistry := &v2.GrpcDescriptorRegistry{
+			ProtoDescriptors: &v3.DataSource{
+				Specifier: nil, // filled in later
+			},
+		}
+
+		switch regType := reg.DescriptorSet.(type) {
+		case *v1alpha1.GrpcDescriptorRegistry_ProtoDescriptor:
+			grpcDescRegistry.ProtoDescriptors.Specifier = &v3.DataSource_Filename{
+				Filename: reg.GetProtoDescriptor(),
+			}
+		case *v1alpha1.GrpcDescriptorRegistry_ProtoDescriptorBin:
+			grpcDescRegistry.ProtoDescriptors.Specifier = &v3.DataSource_InlineBytes{
+				InlineBytes: reg.GetProtoDescriptorBin(),
+			}
+		default:
+			return nil, eris.Errorf("unimplemented type %T for grpc resolver proto descriptor translation", regType)
+		}
+		extensions[grpcRegistryExtensionName] = utils.MustMessageToAny(grpcDescRegistry)
+	}
+
+	if len(extensions) == 0 {
+		return nil, nil
+	}
+	return extensions, nil
 }
 
 func translateResolutions(params plugins.RouteParams, resolvers []*v1alpha1.Resolution) ([]*v2.Resolution, error) {
@@ -146,12 +184,12 @@ func translateQueryMatcher(matcher *v1alpha1.QueryMatcher) (*v2.QueryMatcher, er
 }
 
 func translateResolver(params plugins.RouteParams, resolver *v1alpha1.Resolution) (*v3.TypedExtensionConfig, error) {
-	typedExtensionConf := &v3.TypedExtensionConfig{}
 	switch r := resolver.Resolver.(type) {
 	case *v1alpha1.Resolution_RestResolver:
 		return translateRestResolver(params, r.RestResolver)
+	case *v1alpha1.Resolution_GrpcResolver:
+		return translateGrpcResolver(params, r.GrpcResolver)
 	default:
 		return nil, errors.Errorf("unimplemented resolver type: %T", r)
 	}
-	return typedExtensionConf, nil
 }
