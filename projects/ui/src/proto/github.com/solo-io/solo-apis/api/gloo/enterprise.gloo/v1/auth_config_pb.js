@@ -4826,6 +4826,7 @@ proto.enterprise.gloo.solo.io.UserSession.CookieOptions.toObject = function(incl
   var f, obj = {
     maxAge: (f = msg.getMaxAge()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     notSecure: jspb.Message.getFieldWithDefault(msg, 2, false),
+    httpOnly: (f = msg.getHttpOnly()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     path: (f = msg.getPath()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
     domain: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
@@ -4872,6 +4873,11 @@ proto.enterprise.gloo.solo.io.UserSession.CookieOptions.deserializeBinaryFromRea
     case 2:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setNotSecure(value);
+      break;
+    case 5:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setHttpOnly(value);
       break;
     case 3:
       var value = new google_protobuf_wrappers_pb.StringValue;
@@ -4924,6 +4930,14 @@ proto.enterprise.gloo.solo.io.UserSession.CookieOptions.serializeBinaryToWriter 
     writer.writeBool(
       2,
       f
+    );
+  }
+  f = message.getHttpOnly();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getPath();
@@ -4988,6 +5002,36 @@ proto.enterprise.gloo.solo.io.UserSession.CookieOptions.prototype.getNotSecure =
 /** @param {boolean} value */
 proto.enterprise.gloo.solo.io.UserSession.CookieOptions.prototype.setNotSecure = function(value) {
   jspb.Message.setProto3BooleanField(this, 2, value);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue http_only = 5;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.enterprise.gloo.solo.io.UserSession.CookieOptions.prototype.getHttpOnly = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 5));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.enterprise.gloo.solo.io.UserSession.CookieOptions.prototype.setHttpOnly = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.enterprise.gloo.solo.io.UserSession.CookieOptions.prototype.clearHttpOnly = function() {
+  this.setHttpOnly(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.UserSession.CookieOptions.prototype.hasHttpOnly = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

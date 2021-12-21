@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/5678
+    description: |
+      Add support to disable the http only setting in the auth cookie. Use with care, as disabling this has security implications.

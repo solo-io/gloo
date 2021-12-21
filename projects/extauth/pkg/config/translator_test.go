@@ -458,6 +458,24 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				Secure:   false,
 			}}))
 		})
+		It("should translate CookieOptions - not http only", func() {
+			path := "/foo"
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{CookieOptions: &extauthv1.UserSession_CookieOptions{
+				MaxAge:    &wrappers.UInt32Value{Value: 1},
+				Domain:    "foo.com",
+				NotSecure: true,
+				HttpOnly:  &wrappers.BoolValue{Value: false},
+				Path:      &wrappers.StringValue{Value: path},
+			}})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{
+				Path:     &path,
+				Domain:   "foo.com",
+				HttpOnly: false,
+				MaxAge:   1,
+				Secure:   false,
+			}}))
+		})
 		It("should translate CookieSessionStore", func() {
 			params, err := config.ToSessionParameters(&extauthv1.UserSession{
 				Session: &extauthv1.UserSession_Cookie{},

@@ -703,6 +703,11 @@ export namespace UserSession {
     getNotSecure(): boolean;
     setNotSecure(value: boolean): void;
 
+    hasHttpOnly(): boolean;
+    clearHttpOnly(): void;
+    getHttpOnly(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setHttpOnly(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
     hasPath(): boolean;
     clearPath(): void;
     getPath(): google_protobuf_wrappers_pb.StringValue | undefined;
@@ -725,6 +730,7 @@ export namespace UserSession {
     export type AsObject = {
       maxAge?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
       notSecure: boolean,
+      httpOnly?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       path?: google_protobuf_wrappers_pb.StringValue.AsObject,
       domain: string,
     }

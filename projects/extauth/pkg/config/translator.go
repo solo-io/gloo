@@ -502,11 +502,15 @@ func cookieConfigToSessionOptions(cookieOptions *extauthv1.UserSession_CookieOpt
 		if maxAgeConfig := cookieOptions.MaxAge; maxAgeConfig != nil {
 			maxAge = int(maxAgeConfig.Value)
 		}
+		httpOnly := true
+		if cookieOptions.GetHttpOnly() != nil {
+			httpOnly = cookieOptions.GetHttpOnly().Value
+		}
 
 		sessionOptions = &session.Options{
 			Path:     path,
 			Domain:   cookieOptions.GetDomain(),
-			HttpOnly: true,
+			HttpOnly: httpOnly,
 			Secure:   !cookieOptions.GetNotSecure(),
 			MaxAge:   maxAge,
 		}
