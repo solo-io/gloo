@@ -1,21 +1,15 @@
 package openApi_test
 
 import (
-	"fmt"
-
 	openapi "github.com/getkin/kin-openapi/openapi3"
-	"github.com/ghodss/yaml"
 	"github.com/graphql-go/graphql"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
-	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	openApi "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi"
 	translate_graphql "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/graphqlschematranslation"
-	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/printer"
-
-	. "github.com/onsi/ginkgo"
 )
 
 var _ = Describe("GraphQl Discovery Test", func() {
@@ -44,13 +38,16 @@ var _ = Describe("GraphQl Discovery Test", func() {
 			},
 		})
 		schema, resolution = t.CreateGraphqlSchema(oass)
-		schemaString := printer.PrintFilteredSchema(schema)
+
+		// Uncomment the following block to print out the graphql schema and resolvers for debugging
+		/*schemaString := printer.PrintFilteredSchema(schema)
 		fmt.Println(schemaString)
 		b, err := yaml.Marshal(resolution)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
 		fmt.Printf("\n%s\n", b)
+		*/
 	}
 
 	Context("Resolver path header", func() {
@@ -63,9 +60,9 @@ var _ = Describe("GraphQl Discovery Test", func() {
 
 Equivalent to OpenApiSpec 'Some title' GET /cat`))
 			ExpectWithOffset(1, resolution).To(HaveLen(1))
-			headers := resolution[0].GetRestResolver().GetRequestTransform().GetHeaders()
-			ExpectWithOffset(1, headers[":method"].GetProviders()["namedProvider"].GetTypedProvider().GetValue()).To(Equal("GET"))
-			ExpectWithOffset(1, headers[":path"].GetProviders()["namedProvider"].GetTypedProvider().GetValue()).To(Equal(expectedPath))
+			headers := resolution[0].GetRestResolver().GetRequest().GetHeaders()
+			ExpectWithOffset(1, headers[":method"]).To(Equal("GET"))
+			ExpectWithOffset(1, headers[":path"]).To(Equal(expectedPath))
 		}
 
 		It("Path is / when no servers are provided", func() {

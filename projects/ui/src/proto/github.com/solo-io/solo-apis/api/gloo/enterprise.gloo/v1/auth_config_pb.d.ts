@@ -316,6 +316,11 @@ export namespace HttpService {
     setAllowedClientHeadersList(value: Array<string>): void;
     addAllowedClientHeaders(value: string, index?: number): string;
 
+    clearAllowedUpstreamHeadersToAppendList(): void;
+    getAllowedUpstreamHeadersToAppendList(): Array<string>;
+    setAllowedUpstreamHeadersToAppendList(value: Array<string>): void;
+    addAllowedUpstreamHeadersToAppend(value: string, index?: number): string;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Response.AsObject;
     static toObject(includeInstance: boolean, msg: Response): Response.AsObject;
@@ -330,6 +335,7 @@ export namespace HttpService {
     export type AsObject = {
       allowedUpstreamHeadersList: Array<string>,
       allowedClientHeadersList: Array<string>,
+      allowedUpstreamHeadersToAppendList: Array<string>,
     }
   }
 }

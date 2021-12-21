@@ -603,56 +603,32 @@ func (t *OasToGqlTranslator) LinkOpRefToOpId(links map[string]*openapi.Link, lin
 	return "", false
 }
 
-func (t *OasToGqlTranslator) ResolveLinkParameter(param string) *v1alpha1.ValueProvider {
+func (t *OasToGqlTranslator) ResolveLinkParameter(param string) string {
 	// The only link parameter type we support currently is from the parent request's body
 
 	// CASE: parameter is parent body
 	if param == "$response.body" {
-		return &v1alpha1.ValueProvider{
-			Providers: map[string]*v1alpha1.ValueProvider_Provider{
-				"namedProvider": {
-					Provider: &v1alpha1.ValueProvider_Provider_GraphqlParent{
-						GraphqlParent: &v1alpha1.ValueProvider_GraphQLParentExtraction{
-							Path: []*v1alpha1.PathSegment{
-								{
-									Segment: &v1alpha1.PathSegment_All{All: true},
-								},
-							},
-						},
-					},
-				},
-			},
-		}
+		return "{$parent}"
 	} else if strings.HasPrefix(param, "$response.body#") {
 		// CASE: parameter in parent body
 
 		// e.g. param = $response.body#/Components/Pets
-		// extract out the path (/Components/Pets)
+		// extract out the path (/Components/Pets), so we remove $response.body# here
 		newVal := param[15:]
-		var pathSegment []*v1alpha1.PathSegment
+		var segments []string
 		pathArr := strings.Split(newVal, "/")
 		for _, segment := range pathArr {
 			if segment == "" {
 				continue
 			}
-			pathSegment = append(pathSegment, &v1alpha1.PathSegment{Segment: &v1alpha1.PathSegment_Key{Key: segment}})
+			segments = append(segments, segment)
 		}
-		return &v1alpha1.ValueProvider{
-			Providers: map[string]*v1alpha1.ValueProvider_Provider{
-				"namedProvider": {
-					Provider: &v1alpha1.ValueProvider_Provider_GraphqlParent{
-						GraphqlParent: &v1alpha1.ValueProvider_GraphQLParentExtraction{
-							Path: pathSegment,
-						},
-					},
-				},
-			},
-		}
+		return fmt.Sprintf("{$parent.%s}", strings.Join(segments, "."))
 	}
-	return nil
+	return ""
 }
 
-func (t *OasToGqlTranslator) ExtractRequestDataFromParent(baseUrl string, operation *Operation, linkParam string, vp *v1alpha1.ValueProvider) *v1alpha1.RESTResolver {
+func (t *OasToGqlTranslator) ExtractRequestDataFromParent(baseUrl string, operation *Operation, linkParam string, providerString string) *v1alpha1.RESTResolver {
 	var targetParam openapi.Parameters
 	for _, param := range operation.Parameters {
 		if linkParam == param.Value.Name {
@@ -662,13 +638,13 @@ func (t *OasToGqlTranslator) ExtractRequestDataFromParent(baseUrl string, operat
 	}
 
 	extendedUrl := path.Join(baseUrl, operation.Path)
-	requestTemplate := ExtractRequestDataFromArgs(extendedUrl, operation, targetParam, vp, nil)
+	requestTemplate := ExtractRequestDataFrom(extendedUrl, operation, targetParam, providerString, nil)
 	resolver := &v1alpha1.RESTResolver{
 		UpstreamRef: &core.ResourceRef{
 			Name:      t.Upstream.GetMetadata().GetName(),
 			Namespace: t.Upstream.GetMetadata().GetNamespace(),
 		},
-		RequestTransform: requestTemplate,
+		Request: requestTemplate,
 	}
 	return resolver
 }

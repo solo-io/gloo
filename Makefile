@@ -1123,8 +1123,8 @@ ifeq ($(RELEASE),"true")
 endif
 
 .PHONY: docker docker-push
- docker: rate-limit-ee-docker rate-limit-ee-fips-docker extauth-ee-docker discovery-ee-docker\
-       extauth-ee-fips-docker gloo-ee-docker gloo-fips-ee-docker gloo-ee-envoy-wrapper-docker \
+ docker: rate-limit-ee-docker rate-limit-ee-fips-docker extauth-ee-docker \
+       extauth-ee-fips-docker gloo-ee-docker gloo-fips-ee-docker gloo-ee-envoy-wrapper-docker discovery-ee-docker\
        gloo-ee-envoy-wrapper-fips-docker observability-ee-docker ext-auth-plugins-docker ext-auth-plugins-fips-docker \
        gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker gloo-federation-console-docker gloo-fed-rbac-validating-webhook-docker
 
@@ -1143,6 +1143,7 @@ ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee-fips:$(VERSION) && \
+	docker push $(IMAGE_REPO)/discovery-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) && \
 	docker push $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-fed:$(VERSION) && \
@@ -1171,6 +1172,7 @@ ifeq ($(RELEASE),"true")
 	docker tag $(RETAG_IMAGE_REGISTRY)/observability-ee:$(VERSION) $(IMAGE_REPO)/observability-ee:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/extauth-ee:$(VERSION) $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/extauth-ee-fips:$(VERSION) $(IMAGE_REPO)/extauth-ee-fips:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REGISTRY)/discovery-ee:$(VERSION) $(IMAGE_REPO)/discovery-ee:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/ext-auth-plugins:$(VERSION) $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/ext-auth-plugins-fips:$(VERSION) $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed:$(VERSION) $(IMAGE_REPO)/gloo-fed:$(VERSION) && \
@@ -1201,6 +1203,7 @@ ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/discovery-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee-fips:$(VERSION) && \
 	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) && \
 	docker push $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION) && \
@@ -1245,7 +1248,7 @@ build-and-load-kind-images-non-fips: rate-limit-ee-docker kind-load-rate-limit-e
 build-and-load-kind-images-non-fips: extauth-ee-docker kind-load-extauth-ee # ext auth
 build-and-load-kind-images-non-fips: ext-auth-plugins-docker kind-load-ext-auth-plugins # ext auth plugins
 build-and-load-kind-images-non-fips: observability-ee-docker kind-load-observability-ee # observability
-build-and-load-kind-images-non-fips: discovery-ee-docker kind-load-discovery-ee #discovery
+build-and-load-kind-images-non-fips: discovery-ee-docker kind-load-discovery-ee # discovery
 
 # Build and load images for a fips compliant (data plane) installation of Gloo Edge
 # Used in CI during regression tests

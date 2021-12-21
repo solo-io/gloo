@@ -3,6 +3,8 @@ package graphql_test
 import (
 	"fmt"
 
+	"google.golang.org/protobuf/types/known/structpb"
+
 	openapi "github.com/getkin/kin-openapi/openapi3"
 	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/ptypes"
@@ -51,9 +53,13 @@ var _ = Describe("Graphql plugin", func() {
 				Name:      "gql",
 				Namespace: "gloo-system",
 			},
-			Schema:              "",    // customized later
-			EnableIntrospection: false, // customized later
-			Resolutions:         nil,   // customized later
+			ExecutableSchema: &ExecutableSchema{
+				Executor: &Executor{
+					Executor: &Executor_Local_{
+						Local: &Executor_Local{},
+					},
+				},
+			},
 		}
 	})
 
@@ -164,18 +170,22 @@ var _ = Describe("Graphql plugin", func() {
 
 			Context("translate route config", func() {
 				BeforeEach(func() {
-					gqlSchemaSpec.EnableIntrospection = true
+					gqlSchemaSpec.ExecutableSchema.Executor.GetLocal().EnableIntrospection = true
 				})
 
 				It("sets enable introspection", func() {
 					perRouteGql := translateRoute()
-					Expect(perRouteGql.EnableIntrospection).To(BeTrue())
+					Expect(perRouteGql.GetExecutableSchema().GetExecutor().GetLocal().GetEnableIntrospection()).To(BeTrue())
 				})
 
 				Context("translate resolutions", func() {
 
 					BeforeEach(func() {
-						gqlSchemaSpec.Resolutions = []*Resolution{
+						body := `{"k1": {"k2": "val"}}`
+						bodyStruct := &structpb.Value{}
+						err := yaml.Unmarshal([]byte(body), bodyStruct)
+						Expect(err).NotTo(HaveOccurred())
+						gqlSchemaSpec.ExecutableSchema.Executor.GetLocal().Resolutions = []*Resolution{
 							{
 								Matcher: &QueryMatcher{
 									Match: &QueryMatcher_FieldMatcher_{
@@ -191,73 +201,14 @@ var _ = Describe("Graphql plugin", func() {
 											Name:      "us",
 											Namespace: "gloo-system",
 										},
-										RequestTransform: &RequestTemplate{
-											Headers: map[string]*ValueProvider{
-												"header": {
-													Providers: map[string]*ValueProvider_Provider{
-														"namedProvider": {
-															Provider: &ValueProvider_Provider_TypedProvider{
-																TypedProvider: &ValueProvider_TypedValueProvider{
-																	ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "7.89"},
-																	Type:        ValueProvider_TypedValueProvider_FLOAT,
-																},
-															},
-														},
-													},
-												},
+										Request: &RequestTemplate{
+											Headers: map[string]string{
+												"header": "7.89",
 											},
-											QueryParams: map[string]*ValueProvider{
-												"qp": {
-													Providers: map[string]*ValueProvider_Provider{
-														"namedProvider": {
-															Provider: &ValueProvider_Provider_TypedProvider{
-																TypedProvider: &ValueProvider_TypedValueProvider{
-																	ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "true"},
-																	Type:        ValueProvider_TypedValueProvider_BOOLEAN,
-																},
-															},
-														},
-													},
-												},
+											QueryParams: map[string]string{
+												"qp": "true",
 											},
-											OutgoingBody: &JsonValue{
-												// let's test the recursive translation
-												JsonVal: &JsonValue_Node{
-													Node: &JsonNode{
-														KeyValues: []*JsonKeyValue{
-															{
-																Key: "k1",
-																Value: &JsonValue{
-																	JsonVal: &JsonValue_Node{
-																		Node: &JsonNode{
-																			KeyValues: []*JsonKeyValue{
-																				{
-																					Key: "k2",
-																					Value: &JsonValue{
-																						JsonVal: &JsonValue_ValueProvider{
-																							ValueProvider: &ValueProvider{
-																								Providers: map[string]*ValueProvider_Provider{
-																									"namedProvider": {
-																										Provider: &ValueProvider_Provider_TypedProvider{TypedProvider: &ValueProvider_TypedValueProvider{
-																											Type:        ValueProvider_TypedValueProvider_STRING,
-																											ValProvider: &ValueProvider_TypedValueProvider_Value{Value: "val"},
-																										},
-																										},
-																									},
-																								},
-																							},
-																						},
-																					},
-																				},
-																			},
-																		},
-																	},
-																},
-															},
-														},
-													},
-												},
-											},
+											Body: bodyStruct,
 										},
 										SpanName: "span",
 									},
@@ -268,25 +219,24 @@ var _ = Describe("Graphql plugin", func() {
 
 					It("sets resolvers", func() {
 						perRouteGql := translateRoute()
-						Expect(perRouteGql.Resolutions[0].Matcher.GetFieldMatcher().GetType()).To(Equal("type"))
-						Expect(perRouteGql.Resolutions[0].Matcher.GetFieldMatcher().GetField()).To(Equal("field"))
+						resolutions := perRouteGql.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()
+						Expect(resolutions[0].Matcher.GetFieldMatcher().GetType()).To(Equal("type"))
+						Expect(resolutions[0].Matcher.GetFieldMatcher().GetField()).To(Equal("field"))
 
-						any := perRouteGql.GetResolutions()[0].GetResolver()
+						any := resolutions[0].GetResolver()
 						Expect(any).NotTo(BeNil())
 						msg, err := utils.AnyToMessage(any.TypedConfig)
 						Expect(err).NotTo(HaveOccurred())
 						restResolver := msg.(*v2.RESTResolver)
 
 						Expect(restResolver.GetSpanName()).To(Equal("span"))
-						Expect(restResolver.GetRequestTransform().GetHeaders()["header"].GetProviders()["namedProvider"].GetTypedProvider().GetType()).To(Equal(v2.ValueProvider_TypedValueProvider_FLOAT))
-						Expect(restResolver.GetRequestTransform().GetHeaders()["header"].GetProviders()["namedProvider"].GetTypedProvider().GetValue()).To(Equal("7.89"))
-						Expect(restResolver.GetRequestTransform().GetQueryParams()["qp"].GetProviders()["namedProvider"].GetTypedProvider().GetType()).To(Equal(v2.ValueProvider_TypedValueProvider_BOOLEAN))
-						Expect(restResolver.GetRequestTransform().GetQueryParams()["qp"].GetProviders()["namedProvider"].GetTypedProvider().GetValue()).To(Equal("true"))
+						Expect(restResolver.GetRequestTransform().GetHeaders()["header"].GetProviders()["ARBITRARY_PROVIDER_NAME"].GetTypedProvider().GetValue()).To(Equal("7.89"))
+						Expect(restResolver.GetRequestTransform().GetQueryParams()["qp"].GetProviders()["ARBITRARY_PROVIDER_NAME"].GetTypedProvider().GetValue()).To(Equal("true"))
 
 						// testing the recursive translation
 						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k1"))
 						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k2"))
-						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetValue().GetValueProvider().GetProviders()["namedProvider"].GetTypedProvider().GetValue()).To(Equal("val"))
+						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetValue().GetValueProvider().GetProviders()["ARBITRARY_PROVIDER_NAME"].GetTypedProvider().GetValue()).To(Equal("val"))
 					})
 
 				})
@@ -319,8 +269,16 @@ var _ = Describe("Graphql plugin", func() {
 				graphqlSchema, resolutions = t.CreateGraphqlSchema(oass)
 				fmt.Println(printer.PrintFilteredSchema(graphqlSchema))
 				crd := &GraphQLSchema{
-					Schema:      printer.PrintFilteredSchema(graphqlSchema),
-					Resolutions: resolutions,
+					ExecutableSchema: &ExecutableSchema{
+						Executor: &Executor{
+							Executor: &Executor_Local_{
+								Local: &Executor_Local{
+									Resolutions: resolutions,
+								},
+							},
+						},
+						SchemaDefinition: printer.PrintFilteredSchema(graphqlSchema),
+					},
 				}
 				b, err := yaml.Marshal(crd)
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
@@ -364,33 +322,10 @@ var _ = Describe("Graphql plugin", func() {
 								Name:      "hi",
 								Namespace: "default",
 							},
-							RequestTransform: &RequestTemplate{
-								Headers: map[string]*ValueProvider{
-									":method": {
-										Providers: map[string]*ValueProvider_Provider{
-											"namedProvider": {
-												Provider: &ValueProvider_Provider_TypedProvider{
-													TypedProvider: &ValueProvider_TypedValueProvider{
-														ValProvider: &ValueProvider_TypedValueProvider_Value{
-															Value: "GET",
-														},
-													},
-												},
-											},
-										},
-									},
-									":path": {
-										Providers: map[string]*ValueProvider_Provider{
-											"namedProvider": {
-												Provider: &ValueProvider_Provider_GraphqlArg{
-													GraphqlArg: &ValueProvider_GraphQLArgExtraction{
-														ArgName: "id",
-													},
-												},
-											},
-										},
-										ProviderTemplate: "/employees/{namedProvider}",
-									},
+							Request: &RequestTemplate{
+								Headers: map[string]string{
+									":method": "GET",
+									":path":   "/employees/{$args.id}",
 								},
 							},
 						},
@@ -411,37 +346,10 @@ var _ = Describe("Graphql plugin", func() {
 								Name:      "hi",
 								Namespace: "default",
 							},
-							RequestTransform: &RequestTemplate{
-								Headers: map[string]*ValueProvider{
-									":method": {
-										Providers: map[string]*ValueProvider_Provider{
-											"namedProvider": {
-												Provider: &ValueProvider_Provider_TypedProvider{
-													TypedProvider: &ValueProvider_TypedValueProvider{
-														ValProvider: &ValueProvider_TypedValueProvider_Value{
-															Value: "GET",
-														},
-													},
-												},
-											},
-										},
-									},
-									":path": {
-										Providers: map[string]*ValueProvider_Provider{
-											"namedProvider": {
-												Provider: &ValueProvider_Provider_GraphqlParent{
-													GraphqlParent: &ValueProvider_GraphQLParentExtraction{
-														Path: []*PathSegment{{
-															Segment: &PathSegment_Key{
-																Key: "managerId",
-															},
-														}},
-													},
-												},
-											},
-										},
-										ProviderTemplate: "/employees/{namedProvider}",
-									},
+							Request: &RequestTemplate{
+								Headers: map[string]string{
+									":method": "GET",
+									":path":   "/employees/{$parent.managerId}",
 								},
 							},
 						},

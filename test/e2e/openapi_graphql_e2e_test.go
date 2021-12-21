@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
@@ -212,8 +211,8 @@ var _ = Describe("Graphql E2E test", func() {
 								return nil, err
 							}
 
-							resolutions, _ := yaml.Marshal(a.GetResolutions())
-							fmt.Printf("schema:\n %s\n resolvers:\n %s\n", a.GetSchema(), resolutions)
+							//resolutions, _ := yaml.Marshal(a.GetResolutions())
+							//fmt.Printf("schema:\n %s\n resolvers:\n %s\n", a.GetSchema(), resolutions)
 
 							return a, err
 

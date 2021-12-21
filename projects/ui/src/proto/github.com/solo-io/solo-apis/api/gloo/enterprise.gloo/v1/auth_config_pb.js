@@ -2030,7 +2030,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.enterprise.gloo.solo.io.HttpService.Response.repeatedFields_ = [1,2];
+proto.enterprise.gloo.solo.io.HttpService.Response.repeatedFields_ = [1,2,3];
 
 
 
@@ -2062,7 +2062,8 @@ proto.enterprise.gloo.solo.io.HttpService.Response.prototype.toObject = function
 proto.enterprise.gloo.solo.io.HttpService.Response.toObject = function(includeInstance, msg) {
   var f, obj = {
     allowedUpstreamHeadersList: jspb.Message.getRepeatedField(msg, 1),
-    allowedClientHeadersList: jspb.Message.getRepeatedField(msg, 2)
+    allowedClientHeadersList: jspb.Message.getRepeatedField(msg, 2),
+    allowedUpstreamHeadersToAppendList: jspb.Message.getRepeatedField(msg, 3)
   };
 
   if (includeInstance) {
@@ -2107,6 +2108,10 @@ proto.enterprise.gloo.solo.io.HttpService.Response.deserializeBinaryFromReader =
       var value = /** @type {string} */ (reader.readString());
       msg.addAllowedClientHeaders(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addAllowedUpstreamHeadersToAppend(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2147,6 +2152,13 @@ proto.enterprise.gloo.solo.io.HttpService.Response.serializeBinaryToWriter = fun
   if (f.length > 0) {
     writer.writeRepeatedString(
       2,
+      f
+    );
+  }
+  f = message.getAllowedUpstreamHeadersToAppendList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      3,
       f
     );
   }
@@ -2208,6 +2220,35 @@ proto.enterprise.gloo.solo.io.HttpService.Response.prototype.addAllowedClientHea
 
 proto.enterprise.gloo.solo.io.HttpService.Response.prototype.clearAllowedClientHeadersList = function() {
   this.setAllowedClientHeadersList([]);
+};
+
+
+/**
+ * repeated string allowed_upstream_headers_to_append = 3;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.HttpService.Response.prototype.getAllowedUpstreamHeadersToAppendList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.HttpService.Response.prototype.setAllowedUpstreamHeadersToAppendList = function(value) {
+  jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.HttpService.Response.prototype.addAllowedUpstreamHeadersToAppend = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.HttpService.Response.prototype.clearAllowedUpstreamHeadersToAppendList = function() {
+  this.setAllowedUpstreamHeadersToAppendList([]);
 };
 
 

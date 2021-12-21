@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"strings"
 
+	structpb "github.com/golang/protobuf/ptypes/struct"
+
 	"github.com/fgrosse/zaptest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -62,10 +64,10 @@ var _ = Describe("graphql", func() {
 				Resolver: &v1alpha1.Resolution_RestResolver{
 					RestResolver: &v1alpha1.RESTResolver{
 						UpstreamRef: us1Ref,
-						RequestTransform: &v1alpha1.RequestTemplate{
-							Headers:      nil, // configured and tested later on
-							QueryParams:  nil, // configured and tested later on
-							OutgoingBody: nil, // configured and tested later on
+						Request: &v1alpha1.RequestTemplate{
+							Headers:     nil, // configured and tested later on
+							QueryParams: nil, // configured and tested later on
+							Body:        nil, // configured and tested later on
 						},
 						SpanName: "",
 					},
@@ -78,9 +80,17 @@ var _ = Describe("graphql", func() {
 				Name:      "gql",
 				Namespace: "gloo-system",
 			},
-			Schema:              schema,
-			EnableIntrospection: false,
-			Resolutions:         resolutions,
+			ExecutableSchema: &v1alpha1.ExecutableSchema{
+				Executor: &v1alpha1.Executor{
+					Executor: &v1alpha1.Executor_Local_{
+						Local: &v1alpha1.Executor_Local{
+							Resolutions:         resolutions,
+							EnableIntrospection: false,
+						},
+					},
+				},
+				SchemaDefinition: schema,
+			},
 		}
 	}
 
@@ -246,35 +256,16 @@ var _ = Describe("graphql", func() {
 			Context("with body to upstream", func() {
 
 				BeforeEach(func() {
-					graphQlSchema.Resolutions[0].GetRestResolver().RequestTransform.OutgoingBody = &v1alpha1.JsonValue{
-						JsonVal: &v1alpha1.JsonValue_Node{
-							Node: &v1alpha1.JsonNode{
-								KeyValues: []*v1alpha1.JsonKeyValue{
-									{
-										Key: "key1",
-										Value: &v1alpha1.JsonValue{
-											JsonVal: &v1alpha1.JsonValue_ValueProvider{
-												ValueProvider: &v1alpha1.ValueProvider{
-													Providers: map[string]*v1alpha1.ValueProvider_Provider{
-														"namedProvider": {
-															Provider: &v1alpha1.ValueProvider_Provider_TypedProvider{
-																TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
-																	Type: v1alpha1.ValueProvider_TypedValueProvider_STRING,
-																	ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{
-																		Value: "value1",
-																	},
-																},
-															},
-														},
-													},
-												},
-											},
-										},
-									},
+					body := &structpb.Value{
+						Kind: &structpb.Value_StructValue{
+							StructValue: &structpb.Struct{
+								Fields: map[string]*structpb.Value{
+									"key1": {Kind: &structpb.Value_StringValue{StringValue: "value1"}},
 								},
 							},
 						},
 					}
+					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()[0].GetRestResolver().Request.Body = body
 				})
 
 				It("resolves graphql queries to REST upstreams with body", func() {
@@ -291,21 +282,8 @@ var _ = Describe("graphql", func() {
 			Context("with query params", func() {
 
 				BeforeEach(func() {
-					graphQlSchema.Resolutions[0].GetRestResolver().RequestTransform.QueryParams = map[string]*v1alpha1.ValueProvider{
-						"queryparam": {
-							Providers: map[string]*v1alpha1.ValueProvider_Provider{
-								"namedProvider": {
-									Provider: &v1alpha1.ValueProvider_Provider_TypedProvider{
-										TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
-											Type: v1alpha1.ValueProvider_TypedValueProvider_STRING,
-											ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{
-												Value: "queryparamval",
-											},
-										},
-									},
-								},
-							},
-						},
+					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()[0].GetRestResolver().Request.QueryParams = map[string]string{
+						"queryparam": "queryparamval",
 					}
 				})
 
@@ -323,21 +301,8 @@ var _ = Describe("graphql", func() {
 			Context("with headers", func() {
 
 				BeforeEach(func() {
-					graphQlSchema.Resolutions[0].GetRestResolver().RequestTransform.Headers = map[string]*v1alpha1.ValueProvider{
-						"header": {
-							Providers: map[string]*v1alpha1.ValueProvider_Provider{
-								"namedProvider": {
-									Provider: &v1alpha1.ValueProvider_Provider_TypedProvider{
-										TypedProvider: &v1alpha1.ValueProvider_TypedValueProvider{
-											Type: v1alpha1.ValueProvider_TypedValueProvider_STRING,
-											ValProvider: &v1alpha1.ValueProvider_TypedValueProvider_Value{
-												Value: "headerval",
-											},
-										},
-									},
-								},
-							},
-						},
+					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()[0].GetRestResolver().Request.Headers = map[string]string{
+						"header": "headerval",
 					}
 				})
 

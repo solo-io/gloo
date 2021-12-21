@@ -6,10 +6,12 @@ import (
 	"regexp"
 	"strings"
 
+	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+
+	structpb "github.com/golang/protobuf/ptypes/struct"
+
 	openapi "github.com/getkin/kin-openapi/openapi3"
 	"github.com/graphql-go/graphql"
-	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
-	"github.com/solo-io/go-utils/cliutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/graphqlschematranslation/types"
 )
@@ -103,7 +105,7 @@ func (t *OasToGqlTranslator) GetResolver(params GetResolverParams) []*RESTResolv
 			 * it could be:
 			 * abc_{$response.body#/employerId}
 			 */
-			var valueProvider *ValueProvider
+			var valueProvider string
 			if matches := regexp.MustCompile(`{([^}]*)}`).FindAllStringSubmatch(valueStr, 1); len(matches) > 0 {
 				t.handleWarningf(LINK_PARAM_TEMPLATE_PRESENT, "", Location{Operation: operation},
 					"Templating values with link parameters is not currently supported. Using only the first extraction and ignoring all else.")
@@ -112,7 +114,7 @@ func (t *OasToGqlTranslator) GetResolver(params GetResolverParams) []*RESTResolv
 				valueStr = matches[0][1]
 			}
 			valueProvider = t.ResolveLinkParameter(valueStr)
-			if valueProvider == nil {
+			if valueProvider == "" {
 				t.handleWarningf(LINK_UNSUPPORTED_EXTRACTION, "", Location{Operation: operation}, "Link %s uses an unsupported extraction %s. only $response.body extractions are currently supported",
 					paramName, valueStr)
 				continue
@@ -123,21 +125,21 @@ func (t *OasToGqlTranslator) GetResolver(params GetResolverParams) []*RESTResolv
 
 		// Swallowing error here as it will never happen. URLJoin only returns error when baseUrl is invalid, which we confirmed to be valid in GetBaseUrlPath.
 		extendedUrl := path.Join(baseUrl, operation.Path)
-		resolverForArgs := ExtractRequestDataFromArgs(extendedUrl, operation, operation.Parameters, nil, params.ArgsFromLink)
+		resolverForArgs := ExtractRequestDataFrom(extendedUrl, operation, operation.Parameters, "", params.ArgsFromLink)
 		if resolverForArgs == nil {
 			return resolvers
 		}
-		resolver.RequestTransform = resolverForArgs
+		resolver.Request = resolverForArgs
 
 		/**
 		  Determine the possible payload type
 		*/
 		if params.Operation.PayloadDefinition != nil {
 			if jsonVal := TraverseGraphqlSchema(params.Operation, params.Operation.PayloadDefinition.GraphQLInputObjectTypeName, params.Operation.PayloadDefinition.Schema, params.Data.SaneMap); jsonVal != nil {
-				if resolver.RequestTransform == nil {
-					resolver.RequestTransform = &RequestTemplate{}
+				if resolver.Request == nil {
+					resolver.Request = &RequestTemplate{}
 				}
-				resolver.RequestTransform.OutgoingBody = jsonVal
+				resolver.Request.Body = jsonVal
 			}
 		}
 	}
@@ -145,85 +147,39 @@ func (t *OasToGqlTranslator) GetResolver(params GetResolverParams) []*RESTResolv
 	return resolvers
 }
 
-func TraverseGraphqlSchema(operation *types.Operation, inputTypeName string, schema *openapi.Schema, saneMap map[string]string) *JsonValue {
+func TraverseGraphqlSchema(operation *types.Operation, inputTypeName string, schema *openapi.Schema, saneMap map[string]string) *structpb.Value {
 
 	inputSaneName := sanitizeString(inputTypeName, CaseStyle_camelCase)
 	if schema.Type == "object" {
-		ret := &JsonNode{
-			KeyValues: []*JsonKeyValue{},
+		ret := &structpb.Struct{
+			Fields: map[string]*structpb.Value{},
 		}
 		for propName, _ := range schema.Properties {
 			p := sanitizeString(propName, CaseStyle_camelCase)
-			ret.KeyValues = append(ret.KeyValues, &JsonKeyValue{
-				Key: p,
-				Value: &JsonValue{
-					JsonVal: &JsonValue_ValueProvider{
-						ValueProvider: &ValueProvider{
-							Providers: map[string]*ValueProvider_Provider{"namedProvider": {
-								Provider: &ValueProvider_Provider_GraphqlArg{
-									GraphqlArg: &ValueProvider_GraphQLArgExtraction{
-										ArgName:  inputSaneName,
-										Required: cliutils.Contains(schema.Required, propName),
-										Path: []*PathSegment{
-											{
-												Segment: &PathSegment_Key{
-													Key: saneMap[p],
-												}}}}}}}}}}})
+			ret.Fields[p] = &structpb.Value{
+				Kind: &structpb.Value_StringValue{
+					StringValue: fmt.Sprintf("{$args.%s.%s}", inputSaneName, saneMap[p]),
+				},
+			}
 		}
-		return &JsonValue{
-			JsonVal: &JsonValue_Node{
-				Node: ret,
+		return &structpb.Value{
+			Kind: &structpb.Value_StructValue{
+				StructValue: ret,
 			},
 		}
 	} else if schema.Type == "array" {
-		return &JsonValue{
-			JsonVal: &JsonValue_ValueProvider{
-				ValueProvider: &ValueProvider{
-					Providers: map[string]*ValueProvider_Provider{"namedProvider": {
-						Provider: &ValueProvider_Provider_GraphqlArg{
-							GraphqlArg: &ValueProvider_GraphQLArgExtraction{
-								ArgName:  inputSaneName,
-								Required: operation.PayloadRequired,
-								Path: []*PathSegment{{
-									Segment: &PathSegment_All{
-										All: true,
-									}}}}}}}}},
-		}
+		return &structpb.Value{Kind: &structpb.Value_StringValue{StringValue: fmt.Sprintf("{$args.%s}", inputSaneName)}}
 	} else {
 		return nil
 	}
 }
 
-func ExtractRequestDataFromArgs(path string, operation *types.Operation, parameters openapi.Parameters, provider *ValueProvider, argsFromLink map[string]interface{}) *RequestTemplate {
+func ExtractRequestDataFrom(path string, operation *types.Operation, parameters openapi.Parameters, providerString string, argsFromLink map[string]interface{}) *RequestTemplate {
 	method := operation.Method
 	requestTemplate := &RequestTemplate{
-		Headers: map[string]*ValueProvider{
-			":path": {
-				Providers: map[string]*ValueProvider_Provider{
-					"namedProvider": {
-						Provider: &ValueProvider_Provider_TypedProvider{
-							TypedProvider: &ValueProvider_TypedValueProvider{
-								ValProvider: &ValueProvider_TypedValueProvider_Value{
-									Value: path,
-								},
-							},
-						},
-					},
-				},
-			},
-			":method": {
-				Providers: map[string]*ValueProvider_Provider{
-					"namedProvider": {
-						Provider: &ValueProvider_Provider_TypedProvider{
-							TypedProvider: &ValueProvider_TypedValueProvider{
-								ValProvider: &ValueProvider_TypedValueProvider_Value{
-									Value: method,
-								},
-							},
-						},
-					},
-				},
-			},
+		Headers: map[string]string{
+			":path":   path,
+			":method": method,
 		},
 	}
 	if len(parameters) == 0 {
@@ -244,49 +200,26 @@ func ExtractRequestDataFromArgs(path string, operation *types.Operation, paramet
 
 		p := param.Value
 		sanitizedParamName := sanitizeString(p.Name, CaseStyle_camelCase)
-		required := false
-		if operation.PayloadDefinition != nil {
-			required = cliutils.Contains(operation.PayloadDefinition.Required, sanitizedParamName)
-		}
-		if provider == nil {
-			provider = &ValueProvider{
-				Providers: map[string]*ValueProvider_Provider{
-					"namedProvider": {
-						Provider: &ValueProvider_Provider_GraphqlArg{
-							GraphqlArg: &ValueProvider_GraphQLArgExtraction{
-								ArgName:  sanitizedParamName,
-								Required: required,
-							},
-						},
-					},
-				},
-			}
+		if providerString == "" {
+			providerString = fmt.Sprintf("{$args.%s}", sanitizedParamName)
 		}
 		switch p.In {
 		case "path":
-			// replace /pet/{petid} from openapispec to /pet/{} template string
+			// replace /pet/{petid} from openapispec to /pet/{$args.ARG_NAME} template string
 			// for extraction
 			// todo - support multiple name parameters here.
 			pString := "{" + p.Name + "}"
-			requestTemplate.Headers[":path"] = &ValueProvider{
-				ProviderTemplate: strings.ReplaceAll(path, pString, "{namedProvider}"), // TODO(sai) fixme
-				Providers:        provider.Providers,
-			}
+			requestTemplate.Headers[":path"] = strings.ReplaceAll(path, pString, providerString)
+
 		case "query":
 			if requestTemplate.QueryParams == nil {
-				requestTemplate.QueryParams = map[string]*ValueProvider{}
+				requestTemplate.QueryParams = map[string]string{}
 			}
-			requestTemplate.QueryParams[p.Name] = &ValueProvider{
-				Providers: provider.Providers,
-			}
+			requestTemplate.QueryParams[p.Name] = providerString
 		case "header":
-			requestTemplate.Headers[p.Name] = &ValueProvider{
-				Providers: provider.Providers,
-			}
+			requestTemplate.Headers[p.Name] = providerString
 		case "cookie":
-			requestTemplate.Headers["cookie"] = &ValueProvider{
-				Providers: provider.Providers,
-			}
+			requestTemplate.Headers["cookie"] = providerString
 		}
 	}
 	return requestTemplate

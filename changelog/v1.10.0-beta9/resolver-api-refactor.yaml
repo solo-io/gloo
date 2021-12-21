@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Allows for more succinct graphql resolver definitions using inline templates.
+      Now, value provider extractions can be templated like `Bearer_{$args.token}` rather than using the verbose value provider API.
+    issueLink: https://github.com/solo-io/gloo/issues/5718
+    resolvesIssue: false
