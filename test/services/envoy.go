@@ -340,7 +340,7 @@ func (ei *EnvoyInstance) Clean() error {
 
 	if ei.useDocker {
 		if err := KillAndRemoveContainer(containerName); err != nil {
-			return err
+			fmt.Fprintf(ginkgo.GinkgoWriter, "Error removing container (%s). continuing anyway.", err)
 		}
 	}
 
@@ -373,17 +373,23 @@ func (ei *EnvoyInstance) runContainer() error {
 	}
 
 	image := "quay.io/solo-io/gloo-ee-envoy-wrapper:" + envoyImageTag
-	args := []string{"run", "-d", "--rm", "--name", containerName,
-		"-p", "8080:8080",
-		"-p", "8083:8083",
-		"-p", "8443:8443",
-		"-p", fmt.Sprintf("%v:%v", ei.AdminPort, ei.AdminPort),
+	args := []string{"run", "-d", "--rm", "--name", containerName}
+	if runtime.GOOS == "linux" {
+		args = append(args, "--net=host")
+	} else {
+		args = append(args,
+			"-p", "8080:8080",
+			"-p", "8083:8083",
+			"-p", "8443:8443",
+			"-p", fmt.Sprintf("%v:%v", ei.AdminPort, ei.AdminPort))
+	}
+	args = append(args,
 		"--entrypoint=envoy",
 		image,
 		"--disable-hot-restart", "--log-level", "debug",
 		"--bootstrap-version", "3",
 		"--config-yaml", ei.envoycfg,
-	}
+	)
 
 	_, _ = fmt.Fprintln(ginkgo.GinkgoWriter, args)
 	cmd := exec.Command("docker", args...)

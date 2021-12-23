@@ -280,6 +280,7 @@ var _ = Describe("External auth", func() {
 				)
 
 				BeforeEach(func() {
+					cookies = nil
 					handlerStats = make(map[string]int)
 					discoveryServer = fakeDiscoveryServer{
 						handlerStats: handlerStats,
@@ -357,8 +358,9 @@ var _ = Describe("External auth", func() {
 					var finalurl *url.URL
 					jar, err := cookiejar.New(nil)
 					Expect(err).NotTo(HaveOccurred())
+					cookieJar := &unsecureCookieJar{CookieJar: jar}
 					client := &http.Client{
-						Jar: &unsecureCookieJar{CookieJar: jar},
+						Jar: cookieJar,
 						CheckRedirect: func(req *http.Request, via []*http.Request) error {
 							finalurl = req.URL
 							if len(via) > 10 {
@@ -380,8 +382,14 @@ var _ = Describe("External auth", func() {
 					Expect(finalurl.RawQuery).To(Equal("foo=bar"))
 
 					// check the cookie jar
-					cookies = jar.Cookies(appPage)
-					Expect(cookies).NotTo(BeEmpty())
+					tmpCookies := jar.Cookies(appPage)
+					Expect(tmpCookies).NotTo(BeEmpty())
+
+					// grab the original cookies for these cookies, as jar.Cookies doesn't return
+					// all the properties of the cookies
+					for _, c := range tmpCookies {
+						cookies = append(cookies, cookieJar.OriginalCookies[c.Name])
+					}
 
 					// make sure login is successful
 					loginSuccessExpectation()
@@ -800,6 +808,30 @@ var _ = Describe("External auth", func() {
 							var cookienames []string
 							for _, c := range cookies {
 								cookienames = append(cookienames, c.Name)
+								Expect(c.HttpOnly).To(BeTrue())
+							}
+							Expect(cookienames).To(ConsistOf("id_token", "access_token"))
+						})
+					})
+				})
+
+				Context("happy path with default settings and http only set to false", func() {
+					BeforeEach(func() {
+						oauth2.OidcAuthorizationCode.Session = &extauth.UserSession{
+							Session: &extauth.UserSession_Cookie{Cookie: &extauth.UserSession_InternalSession{}},
+							CookieOptions: &extauth.UserSession_CookieOptions{
+								HttpOnly: &wrappers.BoolValue{Value: false},
+							},
+						}
+					})
+
+					It("should work", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {
+							Expect(cookies).ToNot(BeEmpty())
+							var cookienames []string
+							for _, c := range cookies {
+								cookienames = append(cookienames, c.Name)
+								Expect(c.HttpOnly).To(BeFalse())
 							}
 							Expect(cookienames).To(ConsistOf("id_token", "access_token"))
 						})
@@ -3224,12 +3256,20 @@ func getProxyExtAuth(envoyPort uint32, upstream *core.ResourceRef, extauthCfg *e
 
 type unsecureCookieJar struct {
 	http.CookieJar
+	OriginalCookies map[string]*http.Cookie
 }
 
 func (j *unsecureCookieJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
+	if j.OriginalCookies == nil {
+		j.OriginalCookies = make(map[string]*http.Cookie)
+	}
 	for _, c := range cookies {
 		// hack to work around go client impl that doesn't consider localhost secure.
 		c.Secure = false
+		// the Cookies() method from the cookie jar removes the properties of the original cookie.
+		j.OriginalCookies[c.Name] = c
 	}
+
 	j.CookieJar.SetCookies(u, cookies)
+
 }
