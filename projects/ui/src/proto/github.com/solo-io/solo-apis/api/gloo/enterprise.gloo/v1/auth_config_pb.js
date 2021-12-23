@@ -11671,7 +11671,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.toObject
     discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f),
     discoveryPollInterval: (f = msg.getDiscoveryPollInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     jwksCacheRefreshPolicy: (f = msg.getJwksCacheRefreshPolicy()) && proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject(includeInstance, f),
-    sessionIdHeaderName: jspb.Message.getFieldWithDefault(msg, 16, "")
+    sessionIdHeaderName: jspb.Message.getFieldWithDefault(msg, 16, ""),
+    parseCallbackPathAsRegex: jspb.Message.getFieldWithDefault(msg, 17, false)
   };
 
   if (includeInstance) {
@@ -11780,6 +11781,10 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.deserial
     case 16:
       var value = /** @type {string} */ (reader.readString());
       msg.setSessionIdHeaderName(value);
+      break;
+    case 17:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setParseCallbackPathAsRegex(value);
       break;
     default:
       reader.skipField();
@@ -11918,6 +11923,13 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.serializ
   if (f.length > 0) {
     writer.writeString(
       16,
+      f
+    );
+  }
+  f = message.getParseCallbackPathAsRegex();
+  if (f) {
+    writer.writeBool(
+      17,
       f
     );
   }
@@ -12256,6 +12268,23 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototyp
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.setSessionIdHeaderName = function(value) {
   jspb.Message.setProto3StringField(this, 16, value);
+};
+
+
+/**
+ * optional bool parse_callback_path_as_regex = 17;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.getParseCallbackPathAsRegex = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 17, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.setParseCallbackPathAsRegex = function(value) {
+  jspb.Message.setProto3BooleanField(this, 17, value);
 };
 
 

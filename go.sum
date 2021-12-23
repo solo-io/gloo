@@ -1923,8 +1923,8 @@ github.com/solo-io/external-apis v0.1.4/go.mod h1:3vyADtIZj8hCD5cBUwGuA60hd8O5fa
 github.com/solo-io/external-apis v0.1.7/go.mod h1:rzyuYEanRLvRfKK9GG/Mb/H//0A8DNvhxrEP+iTToTY=
 github.com/solo-io/external-apis v0.1.11 h1:7ow9GPXDRIwP9UV2JUkLDPOgp1rV7hjn82o7RI65lLs=
 github.com/solo-io/external-apis v0.1.11/go.mod h1:hGvyrVXsGfS46lY9YEvHO2dlrv9PHChWum27GDqz8wY=
-github.com/solo-io/gloo v1.10.0-rc1 h1:usTKP8MRNy+hdzCOFdEjTnXP6pr+YeTA8pM7anznL6M=
-github.com/solo-io/gloo v1.10.0-rc1/go.mod h1:u/mtlx409tFMTcFVQnQrjsxoSLdLJrp/u67j0v5Vinc=
+github.com/solo-io/gloo v1.10.0-rc3 h1:wM915E3oJ6cTfFXt94jzO3CfhA8o8TAzKRlWJvcc57s=
+github.com/solo-io/gloo v1.10.0-rc3/go.mod h1:u/mtlx409tFMTcFVQnQrjsxoSLdLJrp/u67j0v5Vinc=
 github.com/solo-io/go-list-licenses v0.0.4/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-list-licenses v0.1.0/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-list-licenses v0.1.3 h1:jMbYURUSu5G47p7ijcQFkx+xLYlmd0RKqHmi+nlUywg=
@@ -1953,8 +1953,8 @@ github.com/solo-io/protoc-gen-ext v0.0.16 h1:PHPzkmK6FVtMlDe95WSOcSXKSdnfUxuwJMf
 github.com/solo-io/protoc-gen-ext v0.0.16/go.mod h1:j5wvKW5B7oes0hf46IxPDEkDK0pNNQ1Nbfrr1P+xBQo=
 github.com/solo-io/protoc-gen-openapi v0.0.1 h1:/VMAtc010Qcpo2Zm/RsRke3Fu27z3eraF9Tmgoe4QHA=
 github.com/solo-io/protoc-gen-openapi v0.0.1/go.mod h1:IzxGB6GN8LfmR7K4d0jZeD4734wjNXE6QJVB41MYAVw=
-github.com/solo-io/rate-limiter v0.5.2 h1:8ey4+yQ9/sXe5iOEOs5H7qtH07UZ1PF4rw1OWVk9dFc=
-github.com/solo-io/rate-limiter v0.5.2/go.mod h1:03UmFFR9FzOc41aMqtcdoI+h4sbv9GSKfWu/VdxDh6w=
+github.com/solo-io/rate-limiter v0.5.6 h1:1GVOrvaL9Bx4vgO0/s/nHjjIs/MgVx00tedQMPo9QjU=
+github.com/solo-io/rate-limiter v0.5.6/go.mod h1:SkOJvQEHG5/gaodDznawD6m11Io8OEA4MkzhSG9rPQU=
 github.com/solo-io/reporting-client v0.2.0 h1:v4NheU8EQL9G7kC3qrsKvC/sJzydrJyVr/sW4QN/owk=
 github.com/solo-io/reporting-client v0.2.0/go.mod h1:FmBDzwc1zEwayCCrlP+1w7NcpM0FIuvU+NSePj4wJq8=
 github.com/solo-io/skv2 v0.16.2/go.mod h1:VHaqcbvRTzPD/m5lCV+zBOQppbtEB5PTmkZkCmrJBL0=
@@ -1962,6 +1962,7 @@ github.com/solo-io/skv2 v0.17.0/go.mod h1:52/0ETq6fkr/abuoUYd3qgV8DEFBI72Sd5frl2
 github.com/solo-io/skv2 v0.17.17/go.mod h1:nYjANLlL1SLPV/7Gr2mKgfxO3Jta/yNAxKnAHKhSamM=
 github.com/solo-io/skv2 v0.18.3/go.mod h1:yTLh572dJGj9gQJ0GpzGEIHntdINzq8rD79jrKeBz2g=
 github.com/solo-io/skv2 v0.19.9/go.mod h1:wQHak4YITvTUBobRnlCZTnqRQEQWPQL6csDfu2KNyhM=
+github.com/solo-io/skv2 v0.21.3/go.mod h1:P8TYJ0Hdbxq9lm34y3szgvgD2TBr+glB79VXtn05d78=
 github.com/solo-io/skv2 v0.21.6 h1:LyJMbttLkzEIkyxg7ZQs81adNpwYCflniWOJRZ1MRns=
 github.com/solo-io/skv2 v0.21.6/go.mod h1:8jNcMWuAkBxdGhlRFMSgsK94q/jZGPEas8VHTr/al/Y=
 github.com/solo-io/skv2-enterprise v0.2.8 h1:WdqUIauXXC2qYrC912obJ7zskiBPqlvO96bpnFhtWdw=
@@ -1969,8 +1970,8 @@ github.com/solo-io/skv2-enterprise v0.2.8/go.mod h1:xjPmB/iLhqz0Dip3YMvjyHCccHxH
 github.com/solo-io/solo-apis v0.0.0-20210119160956-e52ac14025d3/go.mod h1:9tB/zzr7cGk308Y7tqwWRkccG8N4rSslS6s8mlKXd5s=
 github.com/solo-io/solo-apis v0.0.0-20210922150112-505473b2e66c/go.mod h1:4HQsQO4Cy/4V7ZZxWncvnMvIq7pYnb66jAT5hvDJBgQ=
 github.com/solo-io/solo-apis v0.0.0-20211123222304-edf1a4a29f44/go.mod h1:LNnG7CKbdBQaWE7ZxYHdo6uyJDEjWZjaKOIoSX1MNqM=
-github.com/solo-io/solo-apis v0.0.0-20211221150922-733849eed6b9 h1:sf0mBralBJsfyu8lfKLMzGye9iVS6WaGoZ/4pTDpV9I=
-github.com/solo-io/solo-apis v0.0.0-20211221150922-733849eed6b9/go.mod h1:GAQmAtj0eGBfDUKKlLm9wIrwq0UOVZaW4TOtFeS8xaM=
+github.com/solo-io/solo-apis v0.0.0-20211221232320-f3d952609118 h1:OsGJy3hyiZyv1OQrUNigtQg/PrKDv6DUA33at3ySB8w=
+github.com/solo-io/solo-apis v0.0.0-20211221232320-f3d952609118/go.mod h1:GAQmAtj0eGBfDUKKlLm9wIrwq0UOVZaW4TOtFeS8xaM=
 github.com/solo-io/solo-kit v0.6.3/go.mod h1:oBaQ6tOwuO97u7w+s3TeI08YLHcbiWemInx0XkDfKFw=
 github.com/solo-io/solo-kit v0.16.0/go.mod h1:zf+vof9HAavbFKRgL80jJ24SeE9PvoB8ooQ7DACtK8I=
 github.com/solo-io/solo-kit v0.17.1/go.mod h1:3p9X8edqLS4KokXBZ+4txX+cxGJqtZlBqFEdDD/x1HQ=

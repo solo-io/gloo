@@ -613,7 +613,9 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.prototype.toObject 
 proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
     useDefaultCredentials: (f = msg.getUseDefaultCredentials()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    serviceAccountCredentials: (f = msg.getServiceAccountCredentials()) && proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCredentials.toObject(includeInstance, f)
+    serviceAccountCredentials: (f = msg.getServiceAccountCredentials()) && proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCredentials.toObject(includeInstance, f),
+    propagateOriginalRouting: jspb.Message.getFieldWithDefault(msg, 3, false),
+    credentialRefreshDelay: (f = msg.getCredentialRefreshDelay()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -660,6 +662,15 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.deserializeBinaryFr
       reader.readMessage(value,proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCredentials.deserializeBinaryFromReader);
       msg.setServiceAccountCredentials(value);
       break;
+    case 3:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setPropagateOriginalRouting(value);
+      break;
+    case 4:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setCredentialRefreshDelay(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -703,6 +714,21 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.serializeBinaryToWr
       2,
       f,
       proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.ServiceAccountCredentials.serializeBinaryToWriter
+    );
+  }
+  f = message.getPropagateOriginalRouting();
+  if (f) {
+    writer.writeBool(
+      3,
+      f
+    );
+  }
+  f = message.getCredentialRefreshDelay();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -978,6 +1004,53 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.prototype.clearServ
  */
 proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.prototype.hasServiceAccountCredentials = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional bool propagate_original_routing = 3;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.prototype.getPropagateOriginalRouting = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 3, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.prototype.setPropagateOriginalRouting = function(value) {
+  jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration credential_refresh_delay = 4;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.prototype.getCredentialRefreshDelay = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 4));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.prototype.setCredentialRefreshDelay = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.prototype.clearCredentialRefreshDelay = function() {
+  this.setCredentialRefreshDelay(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaConfig.prototype.hasCredentialRefreshDelay = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 

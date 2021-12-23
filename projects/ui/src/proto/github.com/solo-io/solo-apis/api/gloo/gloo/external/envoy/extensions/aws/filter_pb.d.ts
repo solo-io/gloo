@@ -93,6 +93,14 @@ export class AWSLambdaConfig extends jspb.Message {
   getServiceAccountCredentials(): AWSLambdaConfig.ServiceAccountCredentials | undefined;
   setServiceAccountCredentials(value?: AWSLambdaConfig.ServiceAccountCredentials): void;
 
+  getPropagateOriginalRouting(): boolean;
+  setPropagateOriginalRouting(value: boolean): void;
+
+  hasCredentialRefreshDelay(): boolean;
+  clearCredentialRefreshDelay(): void;
+  getCredentialRefreshDelay(): google_protobuf_duration_pb.Duration | undefined;
+  setCredentialRefreshDelay(value?: google_protobuf_duration_pb.Duration): void;
+
   getCredentialsFetcherCase(): AWSLambdaConfig.CredentialsFetcherCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AWSLambdaConfig.AsObject;
@@ -108,6 +116,8 @@ export namespace AWSLambdaConfig {
   export type AsObject = {
     useDefaultCredentials?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     serviceAccountCredentials?: AWSLambdaConfig.ServiceAccountCredentials.AsObject,
+    propagateOriginalRouting: boolean,
+    credentialRefreshDelay?: google_protobuf_duration_pb.Duration.AsObject,
   }
 
   export class ServiceAccountCredentials extends jspb.Message {

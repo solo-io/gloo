@@ -1714,6 +1714,9 @@ export namespace ExtAuthConfig {
     getSessionIdHeaderName(): string;
     setSessionIdHeaderName(value: string): void;
 
+    getParseCallbackPathAsRegex(): boolean;
+    setParseCallbackPathAsRegex(value: boolean): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
@@ -1742,6 +1745,7 @@ export namespace ExtAuthConfig {
       discoveryPollInterval?: google_protobuf_duration_pb.Duration.AsObject,
       jwksCacheRefreshPolicy?: JwksOnDemandCacheRefreshPolicy.AsObject,
       sessionIdHeaderName: string,
+      parseCallbackPathAsRegex: boolean,
     }
   }
 

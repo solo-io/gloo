@@ -1,7 +1,9 @@
 package services
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -11,9 +13,6 @@ import (
 	"runtime"
 	"text/template"
 	"time"
-
-	"bytes"
-	"io"
 
 	"github.com/onsi/ginkgo"
 	"github.com/pkg/errors"
@@ -285,7 +284,6 @@ func (ei *EnvoyInstance) runWithPort(port uint32) error {
 		"--log-level", "debug",
 		"--concurrency", "1",
 		"--file-flush-interval-msec", "10",
-		"--bootstrap-version", "3",
 	}
 
 	// run directly
@@ -387,7 +385,6 @@ func (ei *EnvoyInstance) runContainer() error {
 		"--entrypoint=envoy",
 		image,
 		"--disable-hot-restart", "--log-level", "debug",
-		"--bootstrap-version", "3",
 		"--config-yaml", ei.envoycfg,
 	)
 

@@ -30,8 +30,8 @@ endif
 
 VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 
-ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.19.0-patch19
-ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.19.0-patch19
+ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.20.0-patch1
+ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.20.0-patch1
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
@@ -138,7 +138,7 @@ clean-fed: clean-artifacts clean-generated-protos
 .PHONY: run-ci-regression-tests
 run-ci-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
-	$(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/$(KUBE2E_TESTS)/...
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/$(KUBE2E_TESTS)/...
 
 .PHONE: run-ci-gloo-fed-regression-tests
 run-ci-gloo-fed-regression-tests: install-go-tools

@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/solo-io/solo-projects/test/services"
+
 	"github.com/solo-io/gloo/test/helpers"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
@@ -444,6 +446,14 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 						},
 					},
 				)
+
+				// bounce envoy, get a clean state (draining listener can break this test). see https://github.com/solo-io/solo-projects/issues/2921 for more.
+				out, err := services.KubectlOut(strings.Split("rollout restart -n "+testHelper.InstallNamespace+" deploy/gateway-proxy", " ")...)
+				fmt.Println(out)
+				Expect(err).ToNot(HaveOccurred())
+				out, err = services.KubectlOut(strings.Split("rollout status -n "+testHelper.InstallNamespace+" deploy/gateway-proxy", " ")...)
+				fmt.Println(out)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			AfterEach(func() {
@@ -985,7 +995,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					}
 
 					if len(keys) != 1 || keys[0] != response200 {
-						return false, errors.New(fmt.Sprintf("received non-200 response %v", pollingResponseFrequency))
+						return false, errors.New(fmt.Sprintf("received non-200 response: %v", strings.Join(keys, ",")))
 					}
 					return true, nil
 				}
