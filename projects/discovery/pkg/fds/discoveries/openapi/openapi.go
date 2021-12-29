@@ -6,15 +6,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/go-openapi/swag"
+	"github.com/graphql-go/graphql/language/ast"
+	"github.com/graphql-go/graphql/language/printer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	graphql "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/graphqlschematranslation"
-	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/printer"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/hashicorp/go-multierror"
@@ -126,17 +126,10 @@ func (f *OpenApiFunctionDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 	default:
 		return nil, fmt.Errorf("unsupported baseurl for openApi discovery %v", baseUrl)
 	}
-	log := strings.Contains(baseUrl.String(), "petstore")
 	for _, uri := range f.openApiUrisToTry {
 		Url := baseUrl.ResolveReference(&url.URL{Path: uri}).String()
-		if log {
-			fmt.Println("logging petstore for uri", Url)
-		}
 		req, err := http.NewRequest("GET", Url, nil)
 		if err != nil {
-			if log {
-				fmt.Println("invalid request!!!")
-			}
 			return nil, errors.Wrap(err, "invalid url for request")
 		}
 		req.Header.Set("X-Gloo-Discovery", "OpenApi-Discovery")
@@ -144,9 +137,6 @@ func (f *OpenApiFunctionDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 		req = req.WithContext(ctx)
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
-			//if log {
-			fmt.Println("there was an error!", err.Error())
-			//}
 			if ctx.Err() != nil {
 				return nil, ctx.Err()
 			}
@@ -155,9 +145,6 @@ func (f *OpenApiFunctionDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 		}
 		// might have found a openApi service
 		if res.StatusCode == http.StatusOK {
-			if log {
-				fmt.Println("SUCCESS OK for petstore")
-			}
 			b, err := ioutil.ReadAll(res.Body)
 			if err != nil {
 				return nil, errors.Wrapf(err, "unable to read response body")
@@ -181,7 +168,6 @@ func (f *OpenApiFunctionDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 			return svcInfo, nil
 		}
 		errs = multierror.Append(errs, errors.Errorf("path: %v response code: %v headers: %v", uri, res.Status, res.Header))
-		fmt.Println("here is error: ", errs.Error())
 	}
 	// not a openApi upstream
 	return nil, errors.Wrapf(errs, "service at %s does not implement the openApi spec at a known endpoint, "+
@@ -254,7 +240,12 @@ func (f *OpenApiFunctionDiscovery) detectFunctionsFromInline(ctx context.Context
 
 func (f *OpenApiFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, openApiSpec *openapi3.T) error {
 	translator := graphql.NewOasToGqlTranslator(f.upstream)
-	schema, resolutions := translator.CreateGraphqlSchema([]*openapi3.T{openApiSpec})
+	schemaAst, _, resolutions, err := translator.CreateGraphqlSchema([]*openapi3.T{openApiSpec})
+	if err != nil {
+		return err
+	}
+	schema := ast.Node(schemaAst)
+	printedSchema := printer.Print(schema).(string)
 	schemaCrd := &v1alpha1.GraphQLSchema{
 		Metadata: &core.Metadata{
 			Name:      f.upstream.GetMetadata().GetName(),
@@ -269,10 +260,10 @@ func (f *OpenApiFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, 
 					},
 				},
 			},
-			SchemaDefinition: printer.PrintFilteredSchema(schema),
+			SchemaDefinition: printedSchema,
 		},
 	}
-	_, err := f.graphqlClient.Write(schemaCrd, clients.WriteOpts{})
+	_, err = f.graphqlClient.Write(schemaCrd, clients.WriteOpts{})
 	if err != nil {
 		return errors.Wrapf(err, "unable to write schema %+v", schemaCrd)
 	}

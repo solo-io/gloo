@@ -185,16 +185,12 @@ var _ = Describe("Graphql plugin", func() {
 						bodyStruct := &structpb.Value{}
 						err := yaml.Unmarshal([]byte(body), bodyStruct)
 						Expect(err).NotTo(HaveOccurred())
-						gqlSchemaSpec.ExecutableSchema.Executor.GetLocal().Resolutions = []*Resolution{
-							{
-								Matcher: &QueryMatcher{
-									Match: &QueryMatcher_FieldMatcher_{
-										FieldMatcher: &QueryMatcher_FieldMatcher{
-											Type:  "type",
-											Field: "field",
-										},
-									},
-								},
+						// Only resolvers referenced in the schema are translated.
+						gqlSchemaSpec.ExecutableSchema.SchemaDefinition = `type Query {
+	field1: String @resolve(name: "resolver1")
+}`
+						gqlSchemaSpec.ExecutableSchema.Executor.GetLocal().Resolutions = map[string]*Resolution{
+							"resolver1": {
 								Resolver: &Resolution_RestResolver{
 									RestResolver: &RESTResolver{
 										UpstreamRef: &core.ResourceRef{
@@ -220,8 +216,8 @@ var _ = Describe("Graphql plugin", func() {
 					It("sets resolvers", func() {
 						perRouteGql := translateRoute()
 						resolutions := perRouteGql.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()
-						Expect(resolutions[0].Matcher.GetFieldMatcher().GetType()).To(Equal("type"))
-						Expect(resolutions[0].Matcher.GetFieldMatcher().GetField()).To(Equal("field"))
+						Expect(resolutions[0].Matcher.GetFieldMatcher().GetType()).To(Equal("Query"))
+						Expect(resolutions[0].Matcher.GetFieldMatcher().GetField()).To(Equal("field1"))
 
 						any := resolutions[0].GetResolver()
 						Expect(any).NotTo(BeNil())
@@ -248,7 +244,7 @@ var _ = Describe("Graphql plugin", func() {
 
 			var (
 				graphqlSchema *gographql.Schema
-				resolutions   []*Resolution
+				resolutions   map[string]*Resolution
 			)
 			AfterEach(func() {
 				graphqlSchema = nil
@@ -266,7 +262,8 @@ var _ = Describe("Graphql plugin", func() {
 				spec, err := l.LoadFromData([]byte(openapiSchema))
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 				oass := []*openapi.T{spec}
-				graphqlSchema, resolutions = t.CreateGraphqlSchema(oass)
+				_, graphqlSchema, resolutions, err = t.CreateGraphqlSchema(oass)
+				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 				fmt.Println(printer.PrintFilteredSchema(graphqlSchema))
 				crd := &GraphQLSchema{
 					ExecutableSchema: &ExecutableSchema{
@@ -308,14 +305,6 @@ var _ = Describe("Graphql plugin", func() {
 				// Resolvers should exist for Query.getEmployeeById and Employee.userManager
 				Expect(resolutions).To(HaveLen(2))
 				Expect(resolutions).To(ContainElement(matchers.MatchProto(&Resolution{
-					Matcher: &QueryMatcher{
-						Match: &QueryMatcher_FieldMatcher_{
-							FieldMatcher: &QueryMatcher_FieldMatcher{
-								Type:  "Query",
-								Field: "getEmployeeById",
-							},
-						},
-					},
 					Resolver: &Resolution_RestResolver{
 						RestResolver: &RESTResolver{
 							UpstreamRef: &core.ResourceRef{
@@ -332,14 +321,6 @@ var _ = Describe("Graphql plugin", func() {
 					},
 				})))
 				Expect(resolutions).To(ContainElement(matchers.MatchProto(&Resolution{
-					Matcher: &QueryMatcher{
-						Match: &QueryMatcher_FieldMatcher_{
-							FieldMatcher: &QueryMatcher_FieldMatcher{
-								Type:  "Employee",
-								Field: "userManager",
-							},
-						},
-					},
 					Resolver: &Resolution_RestResolver{
 						RestResolver: &RESTResolver{
 							UpstreamRef: &core.ResourceRef{

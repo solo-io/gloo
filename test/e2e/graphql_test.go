@@ -46,7 +46,9 @@ var _ = Describe("graphql", func() {
 		      }
 		      type Query {
 		        field1(intArg: Int!, boolArg: Boolean!, floatArg: Float!, stringArg: String!, mapArg: Map!, listArg: [Int!]!): SimpleType
-		        field2: TestResponse
+							@resolve(name: "field1_resolver")
+
+		        field2: TestResponse @resolve(name: "field2_resolver")
 		      }
 		      type SimpleType {
 		        simple: String
@@ -57,16 +59,8 @@ var _ = Describe("graphql", func() {
 		      }
 `
 
-		resolutions := []*v1alpha1.Resolution{
-			{
-				Matcher: &v1alpha1.QueryMatcher{
-					Match: &v1alpha1.QueryMatcher_FieldMatcher_{
-						FieldMatcher: &v1alpha1.QueryMatcher_FieldMatcher{
-							Type:  "Query",
-							Field: "field1",
-						},
-					},
-				},
+		resolutions := map[string]*v1alpha1.Resolution{
+			"field1_resolver": {
 				Resolver: &v1alpha1.Resolution_RestResolver{
 					RestResolver: &v1alpha1.RESTResolver{
 						UpstreamRef: restUsRef,
@@ -79,15 +73,7 @@ var _ = Describe("graphql", func() {
 					},
 				},
 			},
-			{
-				Matcher: &v1alpha1.QueryMatcher{
-					Match: &v1alpha1.QueryMatcher_FieldMatcher_{
-						FieldMatcher: &v1alpha1.QueryMatcher_FieldMatcher{
-							Type:  "Query",
-							Field: "field2",
-						},
-					},
-				},
+			"field2_resolver": {
 				Resolver: &v1alpha1.Resolution_GrpcResolver{
 					GrpcResolver: &v1alpha1.GrpcResolver{
 						UpstreamRef: grpcUsRef,
@@ -307,7 +293,7 @@ var _ = Describe("graphql", func() {
 }`
 				})
 
-				It("resolves graphql queries to REST upstreams", func() {
+				It("resolves graphql queries to GRPC upstreams", func() {
 					testRequest("{\"data\":{\"f\":{\"str\":\"foo\"}}}")
 					Eventually(grpcUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 						"GRPCRequest": PointTo(Equal(glootest.TestRequest{Str: "foo"})),
@@ -327,7 +313,7 @@ var _ = Describe("graphql", func() {
 							},
 						},
 					}
-					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()[0].GetRestResolver().Request.Body = body
+					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["field1_resolver"].GetRestResolver().Request.Body = body
 				})
 
 				It("resolves graphql queries to REST upstreams with body", func() {
@@ -344,7 +330,7 @@ var _ = Describe("graphql", func() {
 			Context("with query params", func() {
 
 				BeforeEach(func() {
-					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()[0].GetRestResolver().Request.QueryParams = map[string]string{
+					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["field1_resolver"].GetRestResolver().Request.QueryParams = map[string]string{
 						"queryparam": "queryparamval",
 					}
 				})
@@ -363,7 +349,7 @@ var _ = Describe("graphql", func() {
 			Context("with headers", func() {
 
 				BeforeEach(func() {
-					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()[0].GetRestResolver().Request.Headers = map[string]string{
+					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["field1_resolver"].GetRestResolver().Request.Headers = map[string]string{
 						"header": "headerval",
 					}
 				})

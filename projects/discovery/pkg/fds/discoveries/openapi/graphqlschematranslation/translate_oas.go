@@ -8,11 +8,16 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/rotisserie/eris"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/printer"
+
 	"github.com/Masterminds/goutils"
 	"github.com/gertd/go-pluralize"
 	openapi "github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-openapi/inflect"
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/graphql/language/ast"
+	"github.com/graphql-go/graphql/language/parser"
 	"github.com/iancoleman/strcase"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
@@ -121,11 +126,11 @@ func NewOasToGqlTranslator(upstream *v1.Upstream) *OasToGqlTranslator {
 	}
 }
 
-func (t *OasToGqlTranslator) CreateGraphqlSchema(oass []*openapi.T) (*graphql.Schema, []*v1alpha1.Resolution) {
+func (t *OasToGqlTranslator) CreateGraphqlSchema(oass []*openapi.T) (*ast.Document, *graphql.Schema, map[string]*v1alpha1.Resolution, error) {
 	return t.TranslateOpenApiToGraphQL(oass, SchemaOptions{})
 }
 
-func (t *OasToGqlTranslator) TranslateOpenApiToGraphQL(oass []*openapi.T, options SchemaOptions) (*graphql.Schema, []*v1alpha1.Resolution) {
+func (t *OasToGqlTranslator) TranslateOpenApiToGraphQL(oass []*openapi.T, options SchemaOptions) (*ast.Document, *graphql.Schema, map[string]*v1alpha1.Resolution, error) {
 	data := t.PreprocessOas(oass, options)
 
 	queryFields := map[string]*graphql.Field{}
@@ -156,7 +161,7 @@ func (t *OasToGqlTranslator) TranslateOpenApiToGraphQL(oass []*openapi.T, option
 
 	schemaConfig := graphql.SchemaConfig{
 		Query: graphql.NewObject(graphql.ObjectConfig{
-			Name: "Query",
+			Name: GraphQlOperationType_Query.String(),
 			Fields: graphql.Fields(map[string]*graphql.Field{
 				"DoNotUse": {
 					Name:              "DoNotUse",
@@ -171,36 +176,62 @@ func (t *OasToGqlTranslator) TranslateOpenApiToGraphQL(oass []*openapi.T, option
 	}
 	if len(queryFields) > 0 {
 		schemaConfig.Query = graphql.NewObject(graphql.ObjectConfig{
-			Name:   "Query",
+			Name:   GraphQlOperationType_Query.String(),
 			Fields: graphql.Fields(queryFields),
 		})
 	}
 	if len(mutationFields) > 0 {
 		schemaConfig.Mutation = graphql.NewObject(graphql.ObjectConfig{
-			Name:   "Mutation",
+			Name:   GraphQlOperationType_Mutation.String(),
 			Fields: graphql.Fields(mutationFields),
 		})
 	}
+	/*
+		The graphql schema object we get from this call of graphql.NewSchema does not have information on the fields about directives for those fields
+		Which is why we have to also get the graphql schema AST and use that to create the resolve direct on the fields.
+
+		issue: https://github.com/graphql-go/graphql/issues/315 - graphql-go does not currently support custom directives.
+	*/
 	schema, err := graphql.NewSchema(schemaConfig)
 	if err != nil {
-		t.createErrorf(GRAPHQL_SCHEMA_CREATION_ERR, "", Location{Oas: oass[0]}, "Unable to create schema with schema config: %+v", schemaConfig)
-		return nil, nil
+		return nil, nil, nil, t.createErrorf(GRAPHQL_SCHEMA_CREATION_ERR, "", Location{Oas: oass[0]}, "Unable to create schema with schema config: %+v", schemaConfig)
 	}
 
-	resolvers := t.CreateResolversForSchema(schema)
-	return &schema, resolvers
+	schemaAst, err := GraphqlGoSchematoGraphqlGoAst(schema)
+	if err != nil {
+		return nil, nil, nil, eris.Wrap(err, "unable to translate graphql schema to ast")
+	}
+	resolutions, err := t.CreateResolversForSchema(schema, schemaAst)
+	if err != nil {
+		return nil, nil, nil, eris.Wrap(err, "unable to create resolver for schema")
+	}
+	return ast.NewDocument(schemaAst), &schema, resolutions, nil
 }
 
-func (t *OasToGqlTranslator) CreateResolversForSchema(schema graphql.Schema) []*v1alpha1.Resolution {
-	resolutions := map[string]*v1alpha1.Resolution{}
-	t.CreateResolverForField("Query", schema.QueryType(), resolutions)
-	t.CreateResolverForField("Mutation", schema.MutationType(), resolutions)
+func GraphqlGoSchematoGraphqlGoAst(schema graphql.Schema) (*ast.Document, error) {
+	schemaStr := printer.PrintFilteredSchema(&schema)
+	return parser.Parse(parser.ParseParams{Source: schemaStr})
+}
 
-	var r []*v1alpha1.Resolution
-	for _, resol := range resolutions {
-		r = append(r, resol)
+func (t *OasToGqlTranslator) CreateResolversForSchema(schema graphql.Schema, astSchema *ast.Document) (map[string]*v1alpha1.Resolution, error) {
+	resolutions := map[string]*v1alpha1.Resolution{}
+	typeDefs := map[string]*ast.ObjectDefinition{}
+	for i, def := range astSchema.Definitions {
+		if gqlType, ok := def.(*ast.ObjectDefinition); ok {
+			t := ast.NewObjectDefinition(gqlType)
+			astSchema.Definitions[i] = t
+			typeDefs[gqlType.Name.Value] = t
+		}
 	}
-	return r
+	if queryType, ok := typeDefs[GraphQlOperationType_Query.String()]; ok {
+		t.CreateResolverForField(GraphQlOperationType_Query.String(), schema.QueryType(), queryType, resolutions, typeDefs)
+	}
+	if mutationType, ok := typeDefs[GraphQlOperationType_Mutation.String()]; ok {
+		t.CreateResolverForField(GraphQlOperationType_Mutation.String(), schema.MutationType(), mutationType, resolutions, typeDefs)
+	}
+	//todo  - include subscription resolvers here when we support subscriptions
+
+	return resolutions, nil
 }
 
 func (o *OasToGqlTranslator) GetFieldForOperation(operation *Operation, data *PreprocessingData) *graphql.Field {

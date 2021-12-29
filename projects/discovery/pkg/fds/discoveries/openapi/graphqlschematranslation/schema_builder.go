@@ -436,12 +436,11 @@ func (t *OasToGqlTranslator) CreateFields(params CreateFieldsParams) graphql.Fie
 						Description: description,
 						Resolve: graphql.FieldResolveFn(func(resolveParams graphql.ResolveParams) (interface{}, error) {
 							return GetResolverParams{
-								Operation:      linkedOp,
-								ArgsFromLink:   argsFromLink,
-								PayloadName:    params.Def.GraphQLTypeName,
-								ResponseName:   saneLinkKey,
-								Data:           params.Data,
-								RequestOptions: nil,
+								Operation:    linkedOp,
+								ArgsFromLink: argsFromLink,
+								PayloadName:  params.Def.GraphQLTypeName,
+								ResponseName: saneLinkKey,
+								Data:         params.Data,
 							}, nil
 						}),
 					}

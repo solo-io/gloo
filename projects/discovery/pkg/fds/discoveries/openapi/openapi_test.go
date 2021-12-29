@@ -1,8 +1,15 @@
 package openApi_test
 
 import (
+	"fmt"
+	"log"
+	"os"
+
 	openapi "github.com/getkin/kin-openapi/openapi3"
+	"github.com/ghodss/yaml"
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/graphql/language/ast"
+	"github.com/graphql-go/graphql/language/printer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -15,12 +22,15 @@ import (
 var _ = Describe("GraphQl Discovery Test", func() {
 
 	var (
+		astDoc     *ast.Document
 		schema     *graphql.Schema
-		resolution []*Resolution
+		resolution map[string]*Resolution
 		spec       *openapi.T
+		DEBUG      = os.Getenv("DEBUG") == "1"
 	)
 
 	AfterEach(func() {
+		astDoc = nil
 		spec = nil
 		schema = nil
 		resolution = nil
@@ -37,17 +47,18 @@ var _ = Describe("GraphQl Discovery Test", func() {
 				Namespace: "upstream-namespace",
 			},
 		})
-		schema, resolution = t.CreateGraphqlSchema(oass)
+		astDoc, schema, resolution, err = t.CreateGraphqlSchema(oass)
 
-		// Uncomment the following block to print out the graphql schema and resolvers for debugging
-		/*schemaString := printer.PrintFilteredSchema(schema)
-		fmt.Println(schemaString)
-		b, err := yaml.Marshal(resolution)
-		if err != nil {
-			log.Fatalf(err.Error())
+		// Set env var "DEBUG" to "1" to print out debug logs for this test.
+		if DEBUG {
+			schemaString := printer.Print(ast.Node(astDoc))
+			fmt.Println(schemaString.(string))
+			b, err := yaml.Marshal(resolution)
+			if err != nil {
+				log.Fatalf(err.Error())
+			}
+			fmt.Printf("\n%s\n", b)
 		}
-		fmt.Printf("\n%s\n", b)
-		*/
 	}
 
 	Context("Resolver path header", func() {
@@ -60,7 +71,7 @@ var _ = Describe("GraphQl Discovery Test", func() {
 
 Equivalent to OpenApiSpec 'Some title' GET /cat`))
 			ExpectWithOffset(1, resolution).To(HaveLen(1))
-			headers := resolution[0].GetRestResolver().GetRequest().GetHeaders()
+			headers := resolution["upstream-name_upstream-namespace|Query|getCat"].GetRestResolver().GetRequest().GetHeaders()
 			ExpectWithOffset(1, headers[":method"]).To(Equal("GET"))
 			ExpectWithOffset(1, headers[":path"]).To(Equal(expectedPath))
 		}

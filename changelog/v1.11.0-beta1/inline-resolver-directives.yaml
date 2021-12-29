@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/5718
+    resolvesIssue: false
+    description: >
+      Resolvers are now named and can be attached to a field directly in a graphql schema using the `@resolve(name: "INSERT RESOLVER NAME")` directive.

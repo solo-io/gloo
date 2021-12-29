@@ -14,7 +14,7 @@ func (t *OasToGqlTranslator) PreprocessOas(oass []*openapi.T, options SchemaOpti
 	var data = &PreprocessingData{
 		Operations:         map[string]*Operation{},
 		CallbackOperations: map[string]Operation{},
-		UsedTypeNames:      []string{"Query", "Mutation", "Subscription"},
+		UsedTypeNames:      []string{GraphQlOperationType_Query.String(), GraphQlOperationType_Mutation.String(), GraphQlOperationType_Subscription.String()},
 		Defs:               []*DataDefinition{},
 		Security:           map[string]ProcessedSecurityScheme{},
 		SaneMap:            map[string]string{},
