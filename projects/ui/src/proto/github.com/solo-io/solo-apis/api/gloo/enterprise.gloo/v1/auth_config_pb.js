@@ -57,6 +57,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuthConfig', nul
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.OpaAuthConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthExtension', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.GrpcService', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HeaderConfiguration', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HttpService', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HttpService.Request', null, global);
@@ -1167,12 +1168,38 @@ proto.enterprise.gloo.solo.io.ExtAuthExtension.prototype.hasCustomAuth = functio
  * @constructor
  */
 proto.enterprise.gloo.solo.io.Settings = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.Settings.oneofGroups_);
 };
 goog.inherits(proto.enterprise.gloo.solo.io.Settings, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.enterprise.gloo.solo.io.Settings.displayName = 'proto.enterprise.gloo.solo.io.Settings';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.Settings.oneofGroups_ = [[2,11]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.Settings.ServiceTypeCase = {
+  SERVICE_TYPE_NOT_SET: 0,
+  HTTP_SERVICE: 2,
+  GRPC_SERVICE: 11
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.Settings.ServiceTypeCase}
+ */
+proto.enterprise.gloo.solo.io.Settings.prototype.getServiceTypeCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.Settings.ServiceTypeCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.Settings.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -1204,6 +1231,7 @@ proto.enterprise.gloo.solo.io.Settings.toObject = function(includeInstance, msg)
   var f, obj = {
     extauthzServerRef: (f = msg.getExtauthzServerRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     httpService: (f = msg.getHttpService()) && proto.enterprise.gloo.solo.io.HttpService.toObject(includeInstance, f),
+    grpcService: (f = msg.getGrpcService()) && proto.enterprise.gloo.solo.io.GrpcService.toObject(includeInstance, f),
     userIdHeader: jspb.Message.getFieldWithDefault(msg, 3, ""),
     requestTimeout: (f = msg.getRequestTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     failureModeAllow: jspb.Message.getFieldWithDefault(msg, 5, false),
@@ -1257,6 +1285,11 @@ proto.enterprise.gloo.solo.io.Settings.deserializeBinaryFromReader = function(ms
       var value = new proto.enterprise.gloo.solo.io.HttpService;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.HttpService.deserializeBinaryFromReader);
       msg.setHttpService(value);
+      break;
+    case 11:
+      var value = new proto.enterprise.gloo.solo.io.GrpcService;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.GrpcService.deserializeBinaryFromReader);
+      msg.setGrpcService(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
@@ -1335,6 +1368,14 @@ proto.enterprise.gloo.solo.io.Settings.serializeBinaryToWriter = function(messag
       2,
       f,
       proto.enterprise.gloo.solo.io.HttpService.serializeBinaryToWriter
+    );
+  }
+  f = message.getGrpcService();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      proto.enterprise.gloo.solo.io.GrpcService.serializeBinaryToWriter
     );
   }
   f = message.getUserIdHeader();
@@ -1447,7 +1488,7 @@ proto.enterprise.gloo.solo.io.Settings.prototype.getHttpService = function() {
 
 /** @param {?proto.enterprise.gloo.solo.io.HttpService|undefined} value */
 proto.enterprise.gloo.solo.io.Settings.prototype.setHttpService = function(value) {
-  jspb.Message.setWrapperField(this, 2, value);
+  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.Settings.oneofGroups_[0], value);
 };
 
 
@@ -1462,6 +1503,36 @@ proto.enterprise.gloo.solo.io.Settings.prototype.clearHttpService = function() {
  */
 proto.enterprise.gloo.solo.io.Settings.prototype.hasHttpService = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional GrpcService grpc_service = 11;
+ * @return {?proto.enterprise.gloo.solo.io.GrpcService}
+ */
+proto.enterprise.gloo.solo.io.Settings.prototype.getGrpcService = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.GrpcService} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.GrpcService, 11));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.GrpcService|undefined} value */
+proto.enterprise.gloo.solo.io.Settings.prototype.setGrpcService = function(value) {
+  jspb.Message.setOneofWrapperField(this, 11, proto.enterprise.gloo.solo.io.Settings.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.Settings.prototype.clearGrpcService = function() {
+  this.setGrpcService(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.Settings.prototype.hasGrpcService = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 
@@ -1616,6 +1687,148 @@ proto.enterprise.gloo.solo.io.Settings.prototype.getStatPrefix = function() {
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.Settings.prototype.setStatPrefix = function(value) {
   jspb.Message.setProto3StringField(this, 10, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.GrpcService = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.GrpcService, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.GrpcService.displayName = 'proto.enterprise.gloo.solo.io.GrpcService';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.GrpcService.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.GrpcService.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.GrpcService} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.GrpcService.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    authority: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.GrpcService}
+ */
+proto.enterprise.gloo.solo.io.GrpcService.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.GrpcService;
+  return proto.enterprise.gloo.solo.io.GrpcService.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.GrpcService} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.GrpcService}
+ */
+proto.enterprise.gloo.solo.io.GrpcService.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAuthority(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.GrpcService.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.GrpcService.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.GrpcService} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.GrpcService.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getAuthority();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string authority = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.GrpcService.prototype.getAuthority = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.GrpcService.prototype.setAuthority = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
@@ -6186,7 +6399,8 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.toObject = function(includeI
     discoveryOverride: (f = msg.getDiscoveryOverride()) && proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject(includeInstance, f),
     discoveryPollInterval: (f = msg.getDiscoveryPollInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     jwksCacheRefreshPolicy: (f = msg.getJwksCacheRefreshPolicy()) && proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject(includeInstance, f),
-    sessionIdHeaderName: jspb.Message.getFieldWithDefault(msg, 16, "")
+    sessionIdHeaderName: jspb.Message.getFieldWithDefault(msg, 16, ""),
+    parseCallbackPathAsRegex: jspb.Message.getFieldWithDefault(msg, 17, false)
   };
 
   if (includeInstance) {
@@ -6296,6 +6510,10 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.deserializeBinaryFromReader 
     case 16:
       var value = /** @type {string} */ (reader.readString());
       msg.setSessionIdHeaderName(value);
+      break;
+    case 17:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setParseCallbackPathAsRegex(value);
       break;
     default:
       reader.skipField();
@@ -6435,6 +6653,13 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.serializeBinaryToWriter = fu
   if (f.length > 0) {
     writer.writeString(
       16,
+      f
+    );
+  }
+  f = message.getParseCallbackPathAsRegex();
+  if (f) {
+    writer.writeBool(
+      17,
       f
     );
   }
@@ -6788,6 +7013,23 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getSessionIdHeader
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setSessionIdHeaderName = function(value) {
   jspb.Message.setProto3StringField(this, 16, value);
+};
+
+
+/**
+ * optional bool parse_callback_path_as_regex = 17;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getParseCallbackPathAsRegex = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 17, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setParseCallbackPathAsRegex = function(value) {
+  jspb.Message.setProto3BooleanField(this, 17, value);
 };
 
 

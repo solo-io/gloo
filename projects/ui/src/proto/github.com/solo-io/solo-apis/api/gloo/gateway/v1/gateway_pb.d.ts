@@ -10,6 +10,8 @@ import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../..
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_proxy_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb";
 
 export class GatewaySpec extends jspb.Message {
   getSsl(): boolean;
@@ -41,6 +43,11 @@ export class GatewaySpec extends jspb.Message {
   getTcpGateway(): TcpGateway | undefined;
   setTcpGateway(value?: TcpGateway): void;
 
+  hasHybridGateway(): boolean;
+  clearHybridGateway(): void;
+  getHybridGateway(): HybridGateway | undefined;
+  setHybridGateway(value?: HybridGateway): void;
+
   clearProxyNamesList(): void;
   getProxyNamesList(): Array<string>;
   setProxyNamesList(value: Array<string>): void;
@@ -71,6 +78,7 @@ export namespace GatewaySpec {
     useProxyProto?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     httpGateway?: HttpGateway.AsObject,
     tcpGateway?: TcpGateway.AsObject,
+    hybridGateway?: HybridGateway.AsObject,
     proxyNamesList: Array<string>,
     routeOptions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.AsObject,
   }
@@ -79,6 +87,7 @@ export namespace GatewaySpec {
     GATEWAYTYPE_NOT_SET = 0,
     HTTP_GATEWAY = 9,
     TCP_GATEWAY = 10,
+    HYBRID_GATEWAY = 11,
   }
 }
 
@@ -150,6 +159,97 @@ export namespace TcpGateway {
   export type AsObject = {
     tcpHostsList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_proxy_pb.TcpHost.AsObject>,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.TcpListenerOptions.AsObject,
+  }
+}
+
+export class HybridGateway extends jspb.Message {
+  clearMatchedGatewaysList(): void;
+  getMatchedGatewaysList(): Array<MatchedGateway>;
+  setMatchedGatewaysList(value: Array<MatchedGateway>): void;
+  addMatchedGateways(value?: MatchedGateway, index?: number): MatchedGateway;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HybridGateway.AsObject;
+  static toObject(includeInstance: boolean, msg: HybridGateway): HybridGateway.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HybridGateway, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HybridGateway;
+  static deserializeBinaryFromReader(message: HybridGateway, reader: jspb.BinaryReader): HybridGateway;
+}
+
+export namespace HybridGateway {
+  export type AsObject = {
+    matchedGatewaysList: Array<MatchedGateway.AsObject>,
+  }
+}
+
+export class MatchedGateway extends jspb.Message {
+  hasMatcher(): boolean;
+  clearMatcher(): void;
+  getMatcher(): Matcher | undefined;
+  setMatcher(value?: Matcher): void;
+
+  hasHttpGateway(): boolean;
+  clearHttpGateway(): void;
+  getHttpGateway(): HttpGateway | undefined;
+  setHttpGateway(value?: HttpGateway): void;
+
+  hasTcpGateway(): boolean;
+  clearTcpGateway(): void;
+  getTcpGateway(): TcpGateway | undefined;
+  setTcpGateway(value?: TcpGateway): void;
+
+  getGatewaytypeCase(): MatchedGateway.GatewaytypeCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MatchedGateway.AsObject;
+  static toObject(includeInstance: boolean, msg: MatchedGateway): MatchedGateway.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MatchedGateway, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MatchedGateway;
+  static deserializeBinaryFromReader(message: MatchedGateway, reader: jspb.BinaryReader): MatchedGateway;
+}
+
+export namespace MatchedGateway {
+  export type AsObject = {
+    matcher?: Matcher.AsObject,
+    httpGateway?: HttpGateway.AsObject,
+    tcpGateway?: TcpGateway.AsObject,
+  }
+
+  export enum GatewaytypeCase {
+    GATEWAYTYPE_NOT_SET = 0,
+    HTTP_GATEWAY = 2,
+    TCP_GATEWAY = 3,
+  }
+}
+
+export class Matcher extends jspb.Message {
+  hasSslConfig(): boolean;
+  clearSslConfig(): void;
+  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig | undefined;
+  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig): void;
+
+  clearSourcePrefixRangesList(): void;
+  getSourcePrefixRangesList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange>;
+  setSourcePrefixRangesList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange>): void;
+  addSourcePrefixRanges(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange, index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Matcher.AsObject;
+  static toObject(includeInstance: boolean, msg: Matcher): Matcher.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Matcher, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Matcher;
+  static deserializeBinaryFromReader(message: Matcher, reader: jspb.BinaryReader): Matcher;
+}
+
+export namespace Matcher {
+  export type AsObject = {
+    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject,
+    sourcePrefixRangesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.AsObject>,
   }
 }
 

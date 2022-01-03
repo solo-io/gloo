@@ -104,9 +104,6 @@ export namespace ValueProvider {
     setPathList(value: Array<PathSegment>): void;
     addPath(value?: PathSegment, index?: number): PathSegment;
 
-    getRequired(): boolean;
-    setRequired(value: boolean): void;
-
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GraphQLArgExtraction.AsObject;
     static toObject(includeInstance: boolean, msg: GraphQLArgExtraction): GraphQLArgExtraction.AsObject;
@@ -121,7 +118,6 @@ export namespace ValueProvider {
     export type AsObject = {
       argName: string,
       pathList: Array<PathSegment.AsObject>,
-      required: boolean,
     }
   }
 

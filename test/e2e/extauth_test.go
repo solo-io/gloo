@@ -838,6 +838,46 @@ var _ = Describe("External auth", func() {
 					})
 				})
 
+				Context("Oidc callbackPath test", func() {
+					BeforeEach(func() {
+						oauth2 := getOidcAuthCodeConfig(envoyPort, secret.Metadata.Ref())
+						oauth2.OidcAuthorizationCode.ParseCallbackPathAsRegex = true
+						oauth2.OidcAuthorizationCode.CallbackPath = "/callback\\d"
+						authConfig.Configs = []*extauth.AuthConfig_Config{{
+							AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+								Oauth2: &extauth.OAuth2{
+									OauthType: oauth2,
+								},
+							},
+						}}
+					})
+
+					It("should exchange token with regex callbackPath", func() {
+						finalpage := fmt.Sprintf("http://%s:%d/success", "localhost", envoyPort)
+						client := &http.Client{
+							CheckRedirect: func(req *http.Request, via []*http.Request) error {
+								return http.ErrUseLastResponse
+							},
+						}
+
+						st := oidc.NewStateSigner([]byte(settings.ExtAuthSettings.SigningKey))
+						signedState, err := st.Sign(finalpage)
+						Expect(err).NotTo(HaveOccurred())
+						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/callback1?code=1234&state="+string(signedState), "localhost", envoyPort), nil)
+						Expect(err).NotTo(HaveOccurred())
+
+						Eventually(func() (http.Response, error) {
+							r, err := client.Do(req)
+							if err != nil {
+								return http.Response{}, err
+							}
+							return *r, err
+						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
+							"StatusCode": Equal(http.StatusFound),
+							"Header":     HaveKeyWithValue("Location", []string{finalpage}),
+						}))
+					})
+				})
 				Context("Oidc tests that don't forward to upstream", func() {
 					It("should redirect to auth page", func() {
 						client := &http.Client{

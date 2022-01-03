@@ -19,11 +19,16 @@ var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../gi
 var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_proxy_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb.js');
 goog.exportSymbol('proto.gateway.solo.io.GatewayNamespacedStatuses', null, global);
 goog.exportSymbol('proto.gateway.solo.io.GatewaySpec', null, global);
 goog.exportSymbol('proto.gateway.solo.io.GatewayStatus', null, global);
 goog.exportSymbol('proto.gateway.solo.io.GatewayStatus.State', null, global);
 goog.exportSymbol('proto.gateway.solo.io.HttpGateway', null, global);
+goog.exportSymbol('proto.gateway.solo.io.HybridGateway', null, global);
+goog.exportSymbol('proto.gateway.solo.io.MatchedGateway', null, global);
+goog.exportSymbol('proto.gateway.solo.io.Matcher', null, global);
 goog.exportSymbol('proto.gateway.solo.io.TcpGateway', null, global);
 goog.exportSymbol('proto.gateway.solo.io.VirtualServiceSelectorExpressions', null, global);
 goog.exportSymbol('proto.gateway.solo.io.VirtualServiceSelectorExpressions.Expression', null, global);
@@ -61,7 +66,7 @@ proto.gateway.solo.io.GatewaySpec.repeatedFields_ = [12];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gateway.solo.io.GatewaySpec.oneofGroups_ = [[9,10]];
+proto.gateway.solo.io.GatewaySpec.oneofGroups_ = [[9,10,11]];
 
 /**
  * @enum {number}
@@ -69,7 +74,8 @@ proto.gateway.solo.io.GatewaySpec.oneofGroups_ = [[9,10]];
 proto.gateway.solo.io.GatewaySpec.GatewaytypeCase = {
   GATEWAYTYPE_NOT_SET: 0,
   HTTP_GATEWAY: 9,
-  TCP_GATEWAY: 10
+  TCP_GATEWAY: 10,
+  HYBRID_GATEWAY: 11
 };
 
 /**
@@ -115,6 +121,7 @@ proto.gateway.solo.io.GatewaySpec.toObject = function(includeInstance, msg) {
     useProxyProto: (f = msg.getUseProxyProto()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     httpGateway: (f = msg.getHttpGateway()) && proto.gateway.solo.io.HttpGateway.toObject(includeInstance, f),
     tcpGateway: (f = msg.getTcpGateway()) && proto.gateway.solo.io.TcpGateway.toObject(includeInstance, f),
+    hybridGateway: (f = msg.getHybridGateway()) && proto.gateway.solo.io.HybridGateway.toObject(includeInstance, f),
     proxyNamesList: jspb.Message.getRepeatedField(msg, 12),
     routeOptions: (f = msg.getRouteOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.toObject(includeInstance, f)
   };
@@ -184,6 +191,11 @@ proto.gateway.solo.io.GatewaySpec.deserializeBinaryFromReader = function(msg, re
       var value = new proto.gateway.solo.io.TcpGateway;
       reader.readMessage(value,proto.gateway.solo.io.TcpGateway.deserializeBinaryFromReader);
       msg.setTcpGateway(value);
+      break;
+    case 11:
+      var value = new proto.gateway.solo.io.HybridGateway;
+      reader.readMessage(value,proto.gateway.solo.io.HybridGateway.deserializeBinaryFromReader);
+      msg.setHybridGateway(value);
       break;
     case 12:
       var value = /** @type {string} */ (reader.readString());
@@ -274,6 +286,14 @@ proto.gateway.solo.io.GatewaySpec.serializeBinaryToWriter = function(message, wr
       10,
       f,
       proto.gateway.solo.io.TcpGateway.serializeBinaryToWriter
+    );
+  }
+  f = message.getHybridGateway();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      proto.gateway.solo.io.HybridGateway.serializeBinaryToWriter
     );
   }
   f = message.getProxyNamesList();
@@ -458,6 +478,36 @@ proto.gateway.solo.io.GatewaySpec.prototype.clearTcpGateway = function() {
  */
 proto.gateway.solo.io.GatewaySpec.prototype.hasTcpGateway = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional HybridGateway hybrid_gateway = 11;
+ * @return {?proto.gateway.solo.io.HybridGateway}
+ */
+proto.gateway.solo.io.GatewaySpec.prototype.getHybridGateway = function() {
+  return /** @type{?proto.gateway.solo.io.HybridGateway} */ (
+    jspb.Message.getWrapperField(this, proto.gateway.solo.io.HybridGateway, 11));
+};
+
+
+/** @param {?proto.gateway.solo.io.HybridGateway|undefined} value */
+proto.gateway.solo.io.GatewaySpec.prototype.setHybridGateway = function(value) {
+  jspb.Message.setOneofWrapperField(this, 11, proto.gateway.solo.io.GatewaySpec.oneofGroups_[0], value);
+};
+
+
+proto.gateway.solo.io.GatewaySpec.prototype.clearHybridGateway = function() {
+  this.setHybridGateway(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.GatewaySpec.prototype.hasHybridGateway = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 
@@ -1055,6 +1105,659 @@ proto.gateway.solo.io.TcpGateway.prototype.clearOptions = function() {
  */
 proto.gateway.solo.io.TcpGateway.prototype.hasOptions = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gateway.solo.io.HybridGateway = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gateway.solo.io.HybridGateway.repeatedFields_, null);
+};
+goog.inherits(proto.gateway.solo.io.HybridGateway, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gateway.solo.io.HybridGateway.displayName = 'proto.gateway.solo.io.HybridGateway';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gateway.solo.io.HybridGateway.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gateway.solo.io.HybridGateway.prototype.toObject = function(opt_includeInstance) {
+  return proto.gateway.solo.io.HybridGateway.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gateway.solo.io.HybridGateway} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gateway.solo.io.HybridGateway.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    matchedGatewaysList: jspb.Message.toObjectList(msg.getMatchedGatewaysList(),
+    proto.gateway.solo.io.MatchedGateway.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gateway.solo.io.HybridGateway}
+ */
+proto.gateway.solo.io.HybridGateway.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gateway.solo.io.HybridGateway;
+  return proto.gateway.solo.io.HybridGateway.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gateway.solo.io.HybridGateway} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gateway.solo.io.HybridGateway}
+ */
+proto.gateway.solo.io.HybridGateway.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.gateway.solo.io.MatchedGateway;
+      reader.readMessage(value,proto.gateway.solo.io.MatchedGateway.deserializeBinaryFromReader);
+      msg.addMatchedGateways(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gateway.solo.io.HybridGateway.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gateway.solo.io.HybridGateway.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gateway.solo.io.HybridGateway} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gateway.solo.io.HybridGateway.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getMatchedGatewaysList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.gateway.solo.io.MatchedGateway.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated MatchedGateway matched_gateways = 1;
+ * @return {!Array<!proto.gateway.solo.io.MatchedGateway>}
+ */
+proto.gateway.solo.io.HybridGateway.prototype.getMatchedGatewaysList = function() {
+  return /** @type{!Array<!proto.gateway.solo.io.MatchedGateway>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.gateway.solo.io.MatchedGateway, 1));
+};
+
+
+/** @param {!Array<!proto.gateway.solo.io.MatchedGateway>} value */
+proto.gateway.solo.io.HybridGateway.prototype.setMatchedGatewaysList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.gateway.solo.io.MatchedGateway=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.gateway.solo.io.MatchedGateway}
+ */
+proto.gateway.solo.io.HybridGateway.prototype.addMatchedGateways = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gateway.solo.io.MatchedGateway, opt_index);
+};
+
+
+proto.gateway.solo.io.HybridGateway.prototype.clearMatchedGatewaysList = function() {
+  this.setMatchedGatewaysList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gateway.solo.io.MatchedGateway = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gateway.solo.io.MatchedGateway.oneofGroups_);
+};
+goog.inherits(proto.gateway.solo.io.MatchedGateway, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gateway.solo.io.MatchedGateway.displayName = 'proto.gateway.solo.io.MatchedGateway';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.gateway.solo.io.MatchedGateway.oneofGroups_ = [[2,3]];
+
+/**
+ * @enum {number}
+ */
+proto.gateway.solo.io.MatchedGateway.GatewaytypeCase = {
+  GATEWAYTYPE_NOT_SET: 0,
+  HTTP_GATEWAY: 2,
+  TCP_GATEWAY: 3
+};
+
+/**
+ * @return {proto.gateway.solo.io.MatchedGateway.GatewaytypeCase}
+ */
+proto.gateway.solo.io.MatchedGateway.prototype.getGatewaytypeCase = function() {
+  return /** @type {proto.gateway.solo.io.MatchedGateway.GatewaytypeCase} */(jspb.Message.computeOneofCase(this, proto.gateway.solo.io.MatchedGateway.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gateway.solo.io.MatchedGateway.prototype.toObject = function(opt_includeInstance) {
+  return proto.gateway.solo.io.MatchedGateway.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gateway.solo.io.MatchedGateway} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gateway.solo.io.MatchedGateway.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    matcher: (f = msg.getMatcher()) && proto.gateway.solo.io.Matcher.toObject(includeInstance, f),
+    httpGateway: (f = msg.getHttpGateway()) && proto.gateway.solo.io.HttpGateway.toObject(includeInstance, f),
+    tcpGateway: (f = msg.getTcpGateway()) && proto.gateway.solo.io.TcpGateway.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gateway.solo.io.MatchedGateway}
+ */
+proto.gateway.solo.io.MatchedGateway.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gateway.solo.io.MatchedGateway;
+  return proto.gateway.solo.io.MatchedGateway.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gateway.solo.io.MatchedGateway} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gateway.solo.io.MatchedGateway}
+ */
+proto.gateway.solo.io.MatchedGateway.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.gateway.solo.io.Matcher;
+      reader.readMessage(value,proto.gateway.solo.io.Matcher.deserializeBinaryFromReader);
+      msg.setMatcher(value);
+      break;
+    case 2:
+      var value = new proto.gateway.solo.io.HttpGateway;
+      reader.readMessage(value,proto.gateway.solo.io.HttpGateway.deserializeBinaryFromReader);
+      msg.setHttpGateway(value);
+      break;
+    case 3:
+      var value = new proto.gateway.solo.io.TcpGateway;
+      reader.readMessage(value,proto.gateway.solo.io.TcpGateway.deserializeBinaryFromReader);
+      msg.setTcpGateway(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gateway.solo.io.MatchedGateway.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gateway.solo.io.MatchedGateway.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gateway.solo.io.MatchedGateway} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gateway.solo.io.MatchedGateway.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getMatcher();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.gateway.solo.io.Matcher.serializeBinaryToWriter
+    );
+  }
+  f = message.getHttpGateway();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.gateway.solo.io.HttpGateway.serializeBinaryToWriter
+    );
+  }
+  f = message.getTcpGateway();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.gateway.solo.io.TcpGateway.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional Matcher matcher = 1;
+ * @return {?proto.gateway.solo.io.Matcher}
+ */
+proto.gateway.solo.io.MatchedGateway.prototype.getMatcher = function() {
+  return /** @type{?proto.gateway.solo.io.Matcher} */ (
+    jspb.Message.getWrapperField(this, proto.gateway.solo.io.Matcher, 1));
+};
+
+
+/** @param {?proto.gateway.solo.io.Matcher|undefined} value */
+proto.gateway.solo.io.MatchedGateway.prototype.setMatcher = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.gateway.solo.io.MatchedGateway.prototype.clearMatcher = function() {
+  this.setMatcher(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.MatchedGateway.prototype.hasMatcher = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional HttpGateway http_gateway = 2;
+ * @return {?proto.gateway.solo.io.HttpGateway}
+ */
+proto.gateway.solo.io.MatchedGateway.prototype.getHttpGateway = function() {
+  return /** @type{?proto.gateway.solo.io.HttpGateway} */ (
+    jspb.Message.getWrapperField(this, proto.gateway.solo.io.HttpGateway, 2));
+};
+
+
+/** @param {?proto.gateway.solo.io.HttpGateway|undefined} value */
+proto.gateway.solo.io.MatchedGateway.prototype.setHttpGateway = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.gateway.solo.io.MatchedGateway.oneofGroups_[0], value);
+};
+
+
+proto.gateway.solo.io.MatchedGateway.prototype.clearHttpGateway = function() {
+  this.setHttpGateway(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.MatchedGateway.prototype.hasHttpGateway = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional TcpGateway tcp_gateway = 3;
+ * @return {?proto.gateway.solo.io.TcpGateway}
+ */
+proto.gateway.solo.io.MatchedGateway.prototype.getTcpGateway = function() {
+  return /** @type{?proto.gateway.solo.io.TcpGateway} */ (
+    jspb.Message.getWrapperField(this, proto.gateway.solo.io.TcpGateway, 3));
+};
+
+
+/** @param {?proto.gateway.solo.io.TcpGateway|undefined} value */
+proto.gateway.solo.io.MatchedGateway.prototype.setTcpGateway = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.gateway.solo.io.MatchedGateway.oneofGroups_[0], value);
+};
+
+
+proto.gateway.solo.io.MatchedGateway.prototype.clearTcpGateway = function() {
+  this.setTcpGateway(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.MatchedGateway.prototype.hasTcpGateway = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gateway.solo.io.Matcher = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gateway.solo.io.Matcher.repeatedFields_, null);
+};
+goog.inherits(proto.gateway.solo.io.Matcher, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gateway.solo.io.Matcher.displayName = 'proto.gateway.solo.io.Matcher';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gateway.solo.io.Matcher.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gateway.solo.io.Matcher.prototype.toObject = function(opt_includeInstance) {
+  return proto.gateway.solo.io.Matcher.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gateway.solo.io.Matcher} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gateway.solo.io.Matcher.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.toObject(includeInstance, f),
+    sourcePrefixRangesList: jspb.Message.toObjectList(msg.getSourcePrefixRangesList(),
+    github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gateway.solo.io.Matcher}
+ */
+proto.gateway.solo.io.Matcher.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gateway.solo.io.Matcher;
+  return proto.gateway.solo.io.Matcher.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gateway.solo.io.Matcher} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gateway.solo.io.Matcher}
+ */
+proto.gateway.solo.io.Matcher.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.deserializeBinaryFromReader);
+      msg.setSslConfig(value);
+      break;
+    case 2:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.deserializeBinaryFromReader);
+      msg.addSourcePrefixRanges(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gateway.solo.io.Matcher.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gateway.solo.io.Matcher.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gateway.solo.io.Matcher} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gateway.solo.io.Matcher.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSslConfig();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getSourcePrefixRangesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional gloo.solo.io.SslConfig ssl_config = 1;
+ * @return {?proto.gloo.solo.io.SslConfig}
+ */
+proto.gateway.solo.io.Matcher.prototype.getSslConfig = function() {
+  return /** @type{?proto.gloo.solo.io.SslConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig, 1));
+};
+
+
+/** @param {?proto.gloo.solo.io.SslConfig|undefined} value */
+proto.gateway.solo.io.Matcher.prototype.setSslConfig = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.gateway.solo.io.Matcher.prototype.clearSslConfig = function() {
+  this.setSslConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.Matcher.prototype.hasSslConfig = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * repeated solo.io.envoy.config.core.v3.CidrRange source_prefix_ranges = 2;
+ * @return {!Array<!proto.solo.io.envoy.config.core.v3.CidrRange>}
+ */
+proto.gateway.solo.io.Matcher.prototype.getSourcePrefixRangesList = function() {
+  return /** @type{!Array<!proto.solo.io.envoy.config.core.v3.CidrRange>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange, 2));
+};
+
+
+/** @param {!Array<!proto.solo.io.envoy.config.core.v3.CidrRange>} value */
+proto.gateway.solo.io.Matcher.prototype.setSourcePrefixRangesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.solo.io.envoy.config.core.v3.CidrRange=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.solo.io.envoy.config.core.v3.CidrRange}
+ */
+proto.gateway.solo.io.Matcher.prototype.addSourcePrefixRanges = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.solo.io.envoy.config.core.v3.CidrRange, opt_index);
+};
+
+
+proto.gateway.solo.io.Matcher.prototype.clearSourcePrefixRangesList = function() {
+  this.setSourcePrefixRangesList([]);
 };
 
 

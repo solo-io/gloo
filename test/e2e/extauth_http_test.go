@@ -132,7 +132,9 @@ var _ = Describe("External http", func() {
 		ref := extauthServer.Metadata.Ref()
 		extauthSettings = &extauth.Settings{
 			ExtauthzServerRef: ref,
-			HttpService:       &extauth.HttpService{},
+			ServiceType: &extauth.Settings_HttpService{
+				HttpService: &extauth.HttpService{},
+			},
 		}
 	})
 
@@ -195,11 +197,13 @@ var _ = Describe("External http", func() {
 				ref := extauthServer.Metadata.Ref()
 				extauthSettings = &extauth.Settings{
 					ExtauthzServerRef: ref,
-					HttpService: &extauth.HttpService{
-						// test that exact match allowed header works correctly
-						Request: &extauth.HttpService_Request{
-							AllowedHeaders:      []string{"allowed"},
-							AllowedHeadersRegex: []string{"pa[ter]+n"},
+					ServiceType: &extauth.Settings_HttpService{
+						HttpService: &extauth.HttpService{
+							// test that exact match allowed header works correctly
+							Request: &extauth.HttpService_Request{
+								AllowedHeaders:      []string{"allowed"},
+								AllowedHeadersRegex: []string{"pa[ter]+n"},
+							},
 						},
 					},
 				}
@@ -251,9 +255,10 @@ var _ = Describe("External http", func() {
 				ref := extauthServer.Metadata.Ref()
 				extauthSettings = &extauth.Settings{
 					ExtauthzServerRef: ref,
-					HttpService: &extauth.HttpService{
-						// test that prefix with trailing slash is handled correctly
-						PathPrefix: "/prefix/",
+					ServiceType: &extauth.Settings_HttpService{
+						HttpService: &extauth.HttpService{
+							PathPrefix: "/prefix/",
+						},
 					},
 				}
 			})

@@ -27,6 +27,7 @@ import (
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/redis_proxy/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/onsi/gomega/format"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
@@ -73,6 +74,8 @@ var _ = Describe("Helm Test", func() {
 		)
 
 		BeforeEach(func() {
+			// Disables truncation during error output so we can see the full error message
+			format.MaxLength = 0
 			version = os.Getenv("TAGGED_VERSION")
 			if version == "" {
 				version = os.Getenv("VERSION")

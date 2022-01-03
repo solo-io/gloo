@@ -184,6 +184,11 @@ export class Settings extends jspb.Message {
   getHttpService(): HttpService | undefined;
   setHttpService(value?: HttpService): void;
 
+  hasGrpcService(): boolean;
+  clearGrpcService(): void;
+  getGrpcService(): GrpcService | undefined;
+  setGrpcService(value?: GrpcService): void;
+
   getUserIdHeader(): string;
   setUserIdHeader(value: string): void;
 
@@ -212,6 +217,7 @@ export class Settings extends jspb.Message {
   getStatPrefix(): string;
   setStatPrefix(value: string): void;
 
+  getServiceTypeCase(): Settings.ServiceTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
   static toObject(includeInstance: boolean, msg: Settings): Settings.AsObject;
@@ -226,6 +232,7 @@ export namespace Settings {
   export type AsObject = {
     extauthzServerRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     httpService?: HttpService.AsObject,
+    grpcService?: GrpcService.AsObject,
     userIdHeader: string,
     requestTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     failureModeAllow: boolean,
@@ -241,6 +248,32 @@ export namespace Settings {
   }
 
   export const ApiVersion: ApiVersionMap;
+
+  export enum ServiceTypeCase {
+    SERVICE_TYPE_NOT_SET = 0,
+    HTTP_SERVICE = 2,
+    GRPC_SERVICE = 11,
+  }
+}
+
+export class GrpcService extends jspb.Message {
+  getAuthority(): string;
+  setAuthority(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GrpcService.AsObject;
+  static toObject(includeInstance: boolean, msg: GrpcService): GrpcService.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GrpcService, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GrpcService;
+  static deserializeBinaryFromReader(message: GrpcService, reader: jspb.BinaryReader): GrpcService;
+}
+
+export namespace GrpcService {
+  export type AsObject = {
+    authority: string,
+  }
 }
 
 export class HttpService extends jspb.Message {
@@ -940,6 +973,9 @@ export class OidcAuthorizationCode extends jspb.Message {
   getSessionIdHeaderName(): string;
   setSessionIdHeaderName(value: string): void;
 
+  getParseCallbackPathAsRegex(): boolean;
+  setParseCallbackPathAsRegex(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -968,6 +1004,7 @@ export namespace OidcAuthorizationCode {
     discoveryPollInterval?: google_protobuf_duration_pb.Duration.AsObject,
     jwksCacheRefreshPolicy?: JwksOnDemandCacheRefreshPolicy.AsObject,
     sessionIdHeaderName: string,
+    parseCallbackPathAsRegex: boolean,
   }
 }
 

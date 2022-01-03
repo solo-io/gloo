@@ -216,6 +216,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				&oidc.DiscoveryData{},
 				config.DefaultOIDCDiscoveryPollInterval,
 				jwks.NewNilKeySourceFactory(),
+				false,
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, authCfg)
@@ -624,6 +625,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				&oidc.DiscoveryData{},
 				config.DefaultOIDCDiscoveryPollInterval,
 				jwks.NewNilKeySourceFactory(),
+				false,
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, oAuthConfig)
@@ -653,6 +655,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				&oidc.DiscoveryData{},
 				oneMinute.AsDuration(),
 				jwks.NewNilKeySourceFactory(),
+				false,
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, oAuthConfig)
@@ -708,6 +711,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 					&oidc.DiscoveryData{},
 					config.DefaultOIDCDiscoveryPollInterval,
 					expectedCacheRefreshPolicy,
+					false,
 				).Return(authServiceMock, nil)
 
 				authService, err := translator.Translate(ctx, oAuthConfig)

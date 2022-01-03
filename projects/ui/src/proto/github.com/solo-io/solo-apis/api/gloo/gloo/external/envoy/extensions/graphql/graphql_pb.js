@@ -675,8 +675,7 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.toO
   var f, obj = {
     argName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     pathList: jspb.Message.toObjectList(msg.getPathList(),
-    proto.envoy.config.filter.http.graphql.v2.PathSegment.toObject, includeInstance),
-    required: jspb.Message.getFieldWithDefault(msg, 3, false)
+    proto.envoy.config.filter.http.graphql.v2.PathSegment.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -722,10 +721,6 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.des
       reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.PathSegment.deserializeBinaryFromReader);
       msg.addPath(value);
       break;
-    case 3:
-      var value = /** @type {boolean} */ (reader.readBool());
-      msg.setRequired(value);
-      break;
     default:
       reader.skipField();
       break;
@@ -768,13 +763,6 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.ser
       2,
       f,
       proto.envoy.config.filter.http.graphql.v2.PathSegment.serializeBinaryToWriter
-    );
-  }
-  f = message.getRequired();
-  if (f) {
-    writer.writeBool(
-      3,
-      f
     );
   }
 };
@@ -823,23 +811,6 @@ proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.pro
 
 proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.prototype.clearPathList = function() {
   this.setPathList([]);
-};
-
-
-/**
- * optional bool required = 3;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
- */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.prototype.getRequired = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 3, false));
-};
-
-
-/** @param {boolean} value */
-proto.envoy.config.filter.http.graphql.v2.ValueProvider.GraphQLArgExtraction.prototype.setRequired = function(value) {
-  jspb.Message.setProto3BooleanField(this, 3, value);
 };
 
 

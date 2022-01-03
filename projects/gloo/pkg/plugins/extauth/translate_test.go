@@ -176,7 +176,6 @@ var _ = Describe("Translate", func() {
 		// This should happen very rarely, and should be used as an indication that the `translateOidcAuthorizationCode` function
 		// most likely needs to change.
 
-		// https://github.com/solo-io/gloo/issues/5059 will implement the newest field
 		Expect(reflect.TypeOf(extauth.ExtAuthConfig_OidcAuthorizationCodeConfig{}).NumField()).To(
 			Equal(20),
 			"wrong number of fields found",

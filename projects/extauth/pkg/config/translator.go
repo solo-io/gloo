@@ -147,7 +147,9 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			&oidc.HeaderConfig{},
 			&oidc.DiscoveryData{},
 			DefaultOIDCDiscoveryPollInterval,
-			jwks.NewNilKeySourceFactory())
+			jwks.NewNilKeySourceFactory(),
+			false,
+		)
 
 		if err != nil {
 			return nil, config.GetName().GetValue(), err
@@ -206,7 +208,9 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				headersConfig,
 				discoveryDataOverride,
 				discoveryPollInterval.AsDuration(),
-				jwksOnDemandCacheRefreshPolicy)
+				jwksOnDemandCacheRefreshPolicy,
+				oidcCfg.GetParseCallbackPathAsRegex(),
+			)
 
 			if err != nil {
 				return nil, config.GetName().GetValue(), err

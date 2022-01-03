@@ -13,6 +13,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_subset_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/subset_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_matchers_matchers_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb";
 
 export class ProxySpec extends jspb.Message {
   getCompressedspec(): string;
@@ -60,6 +61,11 @@ export class Listener extends jspb.Message {
   getTcpListener(): TcpListener | undefined;
   setTcpListener(value?: TcpListener): void;
 
+  hasHybridListener(): boolean;
+  clearHybridListener(): void;
+  getHybridListener(): HybridListener | undefined;
+  setHybridListener(value?: HybridListener): void;
+
   clearSslConfigurationsList(): void;
   getSslConfigurationsList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig>;
   setSslConfigurationsList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig>): void;
@@ -103,6 +109,7 @@ export namespace Listener {
     bindPort: number,
     httpListener?: HttpListener.AsObject,
     tcpListener?: TcpListener.AsObject,
+    hybridListener?: HybridListener.AsObject,
     sslConfigurationsList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject>,
     useProxyProto?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.ListenerOptions.AsObject,
@@ -114,6 +121,7 @@ export namespace Listener {
     LISTENERTYPE_NOT_SET = 0,
     HTTP_LISTENER = 4,
     TCP_LISTENER = 5,
+    HYBRID_LISTENER = 11,
   }
 }
 
@@ -259,6 +267,97 @@ export namespace HttpListener {
     virtualHostsList: Array<VirtualHost.AsObject>,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.HttpListenerOptions.AsObject,
     statPrefix: string,
+  }
+}
+
+export class HybridListener extends jspb.Message {
+  clearMatchedListenersList(): void;
+  getMatchedListenersList(): Array<MatchedListener>;
+  setMatchedListenersList(value: Array<MatchedListener>): void;
+  addMatchedListeners(value?: MatchedListener, index?: number): MatchedListener;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HybridListener.AsObject;
+  static toObject(includeInstance: boolean, msg: HybridListener): HybridListener.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HybridListener, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HybridListener;
+  static deserializeBinaryFromReader(message: HybridListener, reader: jspb.BinaryReader): HybridListener;
+}
+
+export namespace HybridListener {
+  export type AsObject = {
+    matchedListenersList: Array<MatchedListener.AsObject>,
+  }
+}
+
+export class MatchedListener extends jspb.Message {
+  hasMatcher(): boolean;
+  clearMatcher(): void;
+  getMatcher(): Matcher | undefined;
+  setMatcher(value?: Matcher): void;
+
+  hasHttpListener(): boolean;
+  clearHttpListener(): void;
+  getHttpListener(): HttpListener | undefined;
+  setHttpListener(value?: HttpListener): void;
+
+  hasTcpListener(): boolean;
+  clearTcpListener(): void;
+  getTcpListener(): TcpListener | undefined;
+  setTcpListener(value?: TcpListener): void;
+
+  getListenertypeCase(): MatchedListener.ListenertypeCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MatchedListener.AsObject;
+  static toObject(includeInstance: boolean, msg: MatchedListener): MatchedListener.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MatchedListener, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MatchedListener;
+  static deserializeBinaryFromReader(message: MatchedListener, reader: jspb.BinaryReader): MatchedListener;
+}
+
+export namespace MatchedListener {
+  export type AsObject = {
+    matcher?: Matcher.AsObject,
+    httpListener?: HttpListener.AsObject,
+    tcpListener?: TcpListener.AsObject,
+  }
+
+  export enum ListenertypeCase {
+    LISTENERTYPE_NOT_SET = 0,
+    HTTP_LISTENER = 2,
+    TCP_LISTENER = 3,
+  }
+}
+
+export class Matcher extends jspb.Message {
+  hasSslConfig(): boolean;
+  clearSslConfig(): void;
+  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig | undefined;
+  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig): void;
+
+  clearSourcePrefixRangesList(): void;
+  getSourcePrefixRangesList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange>;
+  setSourcePrefixRangesList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange>): void;
+  addSourcePrefixRanges(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange, index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Matcher.AsObject;
+  static toObject(includeInstance: boolean, msg: Matcher): Matcher.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Matcher, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Matcher;
+  static deserializeBinaryFromReader(message: Matcher, reader: jspb.BinaryReader): Matcher;
+}
+
+export namespace Matcher {
+  export type AsObject = {
+    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject,
+    sourcePrefixRangesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.AsObject>,
   }
 }
 
