@@ -163,7 +163,7 @@ var _ = Describe("JWT + RBAC", func() {
 			DisableFds:     true,
 		}
 
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, nil, settings)
+		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: settings})
 
 		err = envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())

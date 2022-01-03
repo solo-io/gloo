@@ -106,7 +106,7 @@
 |settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |license_key|string|||
 |create_license_secret|bool|true||
-|license_secret_name|string|license||
+|gloo.license_secret_name|string|license||
 |gloo.namespace.create|bool||create the installation namespace|
 |gloo.settings.watchNamespaces[]|string||whitelist of namespaces for Gloo Edge to watch for services and CRDs. Empty list means all namespaces|
 |gloo.settings.writeNamespace|string||namespace where intermediary CRDs will be written to, e.g. Upstreams written by Gloo Edge Discovery.|

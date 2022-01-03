@@ -60,13 +60,13 @@ var _ = Describe("XSLT Transformer E2E", func() {
 			DisableUds:     true,
 		}
 
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, "gloo-system", nil, nil, &gloov1.Settings{
+		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: "gloo-system", Settings: &gloov1.Settings{
 			Gateway: &gloov1.GatewayOptions{
 				Validation: &gloov1.GatewayOptions_ValidationOptions{
 					DisableTransformationValidation: &wrappers.BoolValue{Value: true},
 				},
 			},
-		})
+		}})
 	})
 
 	setupProxy := func() {

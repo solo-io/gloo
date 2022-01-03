@@ -156,7 +156,7 @@ var _ = Describe("External auth", func() {
 			DisableUds:     true,
 			DisableFds:     true,
 		}
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, nil, glooSettings)
+		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: glooSettings})
 		go func(testCtx context.Context) {
 			defer GinkgoRecover()
 			os.Setenv("DEBUG_MODE", "1")

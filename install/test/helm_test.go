@@ -285,7 +285,7 @@ var _ = Describe("Helm Test", func() {
 
 				It("correctly sets the GLOO_LICENSE_KEY env", func() {
 					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-						valuesArgs: []string{"license_secret_name=custom-license-secret"},
+						valuesArgs: []string{"gloo.license_secret_name=custom-license-secret"},
 					})
 					Expect(err).NotTo(HaveOccurred())
 

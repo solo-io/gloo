@@ -4,6 +4,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/solo-io/licensing/pkg/model"
+
 	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/syncer"
 
 	v1alpha12 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
@@ -80,7 +82,14 @@ func RunGatewayWithKubeClientAndSettings(ctx context.Context, justgloo bool, ns 
 	cache := memory.NewInMemoryResourceCache()
 
 	testclients := GetTestClients(ctx, cache)
-	testclients.GlooPort = RunGlooGatewayUdsFds(ctx, cache, What{DisableGateway: justgloo}, ns, kubeclient, extensions)
+	testclients.GlooPort = RunGlooGatewayUdsFds(RunGlooGatewayOpts{
+		Ctx:        ctx,
+		Cache:      cache,
+		What:       What{DisableGateway: justgloo},
+		Namespace:  ns,
+		KubeClient: kubeclient,
+		Extensions: extensions,
+	})
 	return testclients
 }
 
@@ -129,9 +138,10 @@ type What struct {
 	DisableFds     bool
 }
 
-func RunGlooGatewayUdsFds(ctx context.Context, cache memory.InMemoryResourceCache, what What, ns string, kubeclient kubernetes.Interface, extensions *v1.Extensions) int {
+func RunGlooGatewayUdsFds(opts RunGlooGatewayOpts) int {
 	port := AllocateGlooPort()
-	RunGlooGatewayUdsFdsOnPort(ctx, cache, port, what, ns, kubeclient, extensions, nil)
+	opts.LocalGlooPort = port
+	RunGlooGatewayUdsFdsOnPort(opts)
 	return int(port)
 }
 
@@ -140,9 +150,20 @@ func AllocateGlooPort() int32 {
 
 }
 
-func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResourceCache, localglooPort int32, what What,
-	ns string, kubeclient kubernetes.Interface, extensions *v1.Extensions, s *gloov1.Settings) {
+type RunGlooGatewayOpts struct {
+	Ctx           context.Context
+	Cache         memory.InMemoryResourceCache
+	LocalGlooPort int32
+	What          What
+	Namespace     string
+	KubeClient    kubernetes.Interface
+	Extensions    *v1.Extensions
+	Settings      *gloov1.Settings
+	License       *model.License
+}
 
+func RunGlooGatewayUdsFdsOnPort(runOpts RunGlooGatewayOpts) {
+	ctx, cache, ns, what, s, extensions, kubeclient, localglooPort, license := runOpts.Ctx, runOpts.Cache, runOpts.Namespace, runOpts.What, runOpts.Settings, runOpts.Extensions, runOpts.KubeClient, runOpts.LocalGlooPort, runOpts.License
 	// no gateway for now
 	opts := DefaultTestConstructOpts(ctx, cache, ns)
 	if !what.DisableGateway {
@@ -163,7 +184,7 @@ func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResour
 	glooOpts.Settings = &settings
 	glooOpts.ControlPlane.StartGrpcServer = true
 	apiEmitterChan := make(chan struct{})
-	go syncer_setup.RunGlooWithExtensions(glooOpts, setup.GetGlooEeExtensions(ctx, apiEmitterChan), apiEmitterChan)
+	go syncer_setup.RunGlooWithExtensions(glooOpts, setup.GetGlooEeExtensions(ctx, apiEmitterChan, license), apiEmitterChan)
 	if !what.DisableFds {
 		go fds_syncer.RunFDSWithExtensions(glooOpts, syncer.GetFDSEnterpriseExtensions())
 	}

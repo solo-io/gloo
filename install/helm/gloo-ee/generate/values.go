@@ -9,12 +9,17 @@ type HelmConfig struct {
 	Config
 	Global *glooGen.Global `json:"global,omitempty"`
 }
+
+type GlooConfig struct {
+	LicenseSecretName string `json:"license_secret_name"`
+	*glooGen.Config
+}
+
 type Config struct {
 	Settings            *glooGen.Settings `json:"settings,omitempty"`
 	LicenseKey          string            `json:"license_key,omitempty"`
 	CreateLicenseSecret bool              `json:"create_license_secret"`
-	LicenseSecretName   string            `json:"license_secret_name"`
-	Gloo                *glooGen.Config   `json:"gloo,omitempty"`
+	Gloo                *GlooConfig       `json:"gloo,omitempty"`
 	Redis               *Redis            `json:"redis,omitempty"`
 	RateLimit           *RateLimit        `json:"rateLimit,omitempty"`
 	Observability       *Observability    `json:"observability,omitempty"`

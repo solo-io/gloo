@@ -997,7 +997,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 			DisableFds:     true,
 		}
 
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, nil, glooSettings)
+		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: glooSettings})
 	}
 
 	Context("Redis-backed rate limiting", func() {

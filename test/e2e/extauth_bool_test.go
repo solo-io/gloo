@@ -131,7 +131,7 @@ var _ = Describe("Staged JWT + extauth ", func() {
 		Expect(err).NotTo(HaveOccurred())
 		jwtksServerRef = jwksServer.Metadata.Ref()
 
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, nil, glooSettings)
+		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: glooSettings})
 
 		extauthRunnerSettings := extauthrunner.Settings{
 			GlooAddress: fmt.Sprintf("localhost:%d", testClients.GlooPort),

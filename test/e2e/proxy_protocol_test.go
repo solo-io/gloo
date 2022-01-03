@@ -64,7 +64,7 @@ var _ = Describe("Proxy Protocol", func() {
 
 		testClients = services.GetTestClients(ctx, cache)
 		testClients.GlooPort = int(services.AllocateGlooPort())
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, nil, nil)
+		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem})
 
 		// run envoy
 		envoyInstance, err = envoyFactory.NewEnvoyInstance()

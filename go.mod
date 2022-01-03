@@ -56,7 +56,7 @@ require (
 	github.com/solo-io/go-list-licenses v0.1.3
 	github.com/solo-io/go-utils v0.21.24
 	github.com/solo-io/k8s-utils v0.0.11
-	github.com/solo-io/licensing v0.1.20
+	github.com/solo-io/licensing v0.2.0
 	github.com/solo-io/protoc-gen-ext v0.0.16
 	github.com/solo-io/protoc-gen-openapi v0.0.1
 	github.com/solo-io/rate-limiter v0.5.6

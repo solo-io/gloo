@@ -136,7 +136,7 @@ var _ = Describe("Graphql plugin", func() {
 		})
 
 		BeforeEach(func() {
-			plugin = schemas.NewPlugin()
+			plugin = schemas.NewPlugin(false)
 			err := plugin.Init(plugins.InitParams{})
 			Expect(err).NotTo(HaveOccurred())
 		})

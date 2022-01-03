@@ -6,8 +6,9 @@
 
 license_key: ""
 create_license_secret: true
-license_secret_name: license
+
 gloo:
+  license_secret_name: license
   settings:
     integrations:
       knative:

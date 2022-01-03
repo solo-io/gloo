@@ -4,6 +4,11 @@ import (
 	"context"
 	"os"
 
+	"github.com/solo-io/go-utils/log"
+
+	"github.com/solo-io/licensing/pkg/validate"
+
+	"github.com/solo-io/licensing/pkg/model"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxyprotocol"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
@@ -37,6 +42,8 @@ import (
 
 const (
 	licenseKey = "license"
+
+	licenseKeyEnv = "GLOO_LICENSE_KEY"
 )
 
 func Main() error {
@@ -44,9 +51,20 @@ func Main() error {
 	cancellableCtx, _ := context.WithCancel(context.Background())
 	apiEmitterChan := make(chan struct{})
 
+	// Get Gloo Edge license key
+	licenseString := os.Getenv(licenseKeyEnv)
+	license, warn, err := validate.ValidateLicenseKey(cancellableCtx, licenseString, model.Product_Gloo, model.AddOns{})
+	if warn != nil {
+		license = nil
+		log.Warnf("Invalid License: %s", err)
+	} else if err != nil {
+		log.Warnf("Invalid License: %s", err)
+		license = nil
+	}
+
 	return setuputils.Main(setuputils.SetupOpts{
 		SetupFunc: NewSetupFuncWithRestControlPlaneAndExtensions(
-			GetGlooEeExtensions(cancellableCtx, apiEmitterChan),
+			GetGlooEeExtensions(cancellableCtx, apiEmitterChan, license),
 			apiEmitterChan,
 		),
 		ExitOnError: true,
@@ -63,7 +81,7 @@ func NewSetupFuncWithRestControlPlaneAndExtensions(extensions setup.Extensions, 
 	return setup.NewSetupFuncWithRunAndExtensions(runWithExtensions, &extensions)
 }
 
-func GetGlooEeExtensions(ctx context.Context, apiEmitterChan chan struct{}) setup.Extensions {
+func GetGlooEeExtensions(ctx context.Context, apiEmitterChan chan struct{}, license *model.License) setup.Extensions {
 	return setup.Extensions{
 		XdsCallbacks: nackdetector.NewNackDetector(ctx, nackdetector.NewStatsGen()),
 		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
@@ -92,7 +110,10 @@ func GetGlooEeExtensions(ctx context.Context, apiEmitterChan chan struct{}) setu
 			func() plugins.Plugin { return wasm.NewPlugin() },
 			func() plugins.Plugin { return leftmost_xff_address.NewPlugin() },
 			func() plugins.Plugin { return transformer.NewPlugin() },
-			func() plugins.Plugin { return graphql.NewPlugin() },
+			func() plugins.Plugin {
+				graphqlDisabled := license == nil || !license.AddOns.GraphQL
+				return graphql.NewPlugin(graphqlDisabled)
+			},
 			func() plugins.Plugin { return proxyprotocol.NewPlugin() },
 		},
 	}
@@ -110,7 +131,7 @@ func (e *enterpriseUsageReader) GetPayload(ctx context.Context) (map[string]stri
 
 	enterprisePayload := map[string]string{}
 
-	defaultPayload[licenseKey] = os.Getenv("GLOO_LICENSE_KEY")
+	defaultPayload[licenseKey] = os.Getenv(licenseKeyEnv)
 
 	return enterprisePayload, nil
 }

@@ -148,20 +148,18 @@ var _ = Describe("xDS Runnable Module", func() {
 
 		// Unfortunately we have to run the whole Gloo controller,
 		// as there currently is no way of mocking out the xDS server.
-		services.RunGlooGatewayUdsFdsOnPort(
-			ctx,
-			cache,
-			int32(testClients.GlooPort),
-			services.What{
+		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{
+			Ctx:           ctx,
+			Cache:         cache,
+			LocalGlooPort: int32(testClients.GlooPort),
+			What: services.What{
 				DisableGateway: true,
 				DisableUds:     true,
 				DisableFds:     true,
 			},
-			testNamespace,
-			nil,
-			nil,
-			&gloov1.Settings{},
-		)
+			Namespace: testNamespace,
+			Settings:  &gloov1.Settings{},
+		})
 
 		go func() {
 			defer GinkgoRecover()

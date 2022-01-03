@@ -1,0 +1,3 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Graphql plugin now requires a valid gloo edge license with the graphql addon included.

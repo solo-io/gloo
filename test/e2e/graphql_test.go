@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
+
+	"github.com/solo-io/licensing/pkg/model"
 
 	structpb "github.com/golang/protobuf/ptypes/struct"
 
@@ -182,7 +185,7 @@ var _ = Describe("graphql", func() {
 			DisableFds:     true,
 		}
 
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, nil, nil)
+		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, License: GetValidGraphqlLicense()})
 	})
 
 	AfterEach(func() {
@@ -368,3 +371,15 @@ var _ = Describe("graphql", func() {
 		})
 	})
 })
+
+func GetValidGraphqlLicense() *model.License {
+	return &model.License{
+		IssuedAt:    time.Now(),
+		ExpiresAt:   time.Now().Add(time.Minute * 100),
+		LicenseType: model.LicenseType_Trial,
+		Product:     model.Product_Gloo,
+		AddOns: model.AddOns{
+			GraphQL: true,
+		},
+	}
+}

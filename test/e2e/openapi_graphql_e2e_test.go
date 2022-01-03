@@ -54,10 +54,12 @@ var _ = Describe("Graphql E2E test", func() {
 			DisableFds:     false,
 		}
 
-		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, "gloo-system", nil, nil, &gloov1.Settings{
+		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: "gloo-system", Settings: &gloov1.Settings{
 			Discovery: &gloov1.Settings_DiscoveryOptions{
 				FdsMode: gloov1.Settings_DiscoveryOptions_BLACKLIST,
 			},
+		},
+			License: GetValidGraphqlLicense(),
 		})
 	})
 
