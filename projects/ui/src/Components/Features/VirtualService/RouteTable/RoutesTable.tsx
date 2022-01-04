@@ -166,7 +166,7 @@ const DestinationHolder = styled.div<DestinationHolderProps>`
   }
   `}
 
-  span {
+  span:not(.ant-checkbox-inner) {
     margin-right: 5px;
   }
 `;

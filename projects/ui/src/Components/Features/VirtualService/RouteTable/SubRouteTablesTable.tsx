@@ -123,6 +123,9 @@ const ToggleHolder = styled.div<ToggleHolderProps>`
 type DestinationHolderProps = {
   depth: number;
 };
+
+// FIXME: We duplicate some styles between the RoutesTable.tsx and SubRouteTablesTable.tsx
+
 const DestinationHolder = styled.div<DestinationHolderProps>`
   position: relative;
   display: flex;
@@ -159,7 +162,7 @@ const DestinationHolder = styled.div<DestinationHolderProps>`
   }
   `}
 
-  span {
+  span:not(.ant-checkbox-inner) {
     margin-right: 5px;
   }
 

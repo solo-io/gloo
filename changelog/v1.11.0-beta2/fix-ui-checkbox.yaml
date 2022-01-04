@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: The UI has checkboxes that overflow on their box on hover while checked.
+    issueLink: https://github.com/solo-io/solo-projects/issues/2819
+    resolvesIssue: true
