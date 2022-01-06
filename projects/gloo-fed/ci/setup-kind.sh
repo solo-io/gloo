@@ -8,7 +8,7 @@ GIT_SEMVER_SCRIPT="$CI_DIR/../../../git-semver.sh"
 
 set -ex
 
-kindClusterImage=kindest/node:v1.17.17@sha256:66f1d0d91a88b8a001811e2f1054af60eef3b669a9a74f9b6db871f2f1eeed00
+kindClusterImage=kindest/node:v1.22.4
 
 if [ "$1" == "" ] || [ "$2" == "" ]; then
   echo "please provide a name for both the master and remote clusters"

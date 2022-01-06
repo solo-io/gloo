@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/solo-io/solo-projects/test/regressions"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
@@ -124,7 +126,7 @@ var _ = Describe("Kube2e: wasm", func() {
 			}
 
 			// Should still have a successful response
-			testHelper.CurlEventuallyShouldRespond(co, helper.SimpleHttpResponse, 1, 60*time.Second, 1*time.Second)
+			testHelper.CurlEventuallyShouldRespond(co, regressions.SimpleTestRunnerHttpResponse, 1, 60*time.Second, 1*time.Second)
 
 			// Check for the header added by the wasm filter
 			testHelper.CurlEventuallyShouldOutput(co, wasmHeader, 1, 60*time.Second, 1*time.Second)

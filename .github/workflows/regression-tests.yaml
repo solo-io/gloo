@@ -59,7 +59,7 @@ jobs:
             ${{ runner.os }}-go
       - uses: azure/setup-kubectl@v1
         with:
-          version: 'v1.18.8'
+          version: 'v1.22.4'
       - uses: engineerd/setup-kind@v0.5.0
         with:
           # We rely on the `projects/gloo-fed/ci/setup-kind` script to create a kind cluster
@@ -150,10 +150,10 @@ jobs:
       - uses: azure/setup-kubectl@v1
         id: kubectl
         with:
-          version: 'v1.18.0'
+          version: 'v1.22.4'
       - uses: azure/setup-helm@v1
         with:
-          version: v3.2.0
+          version: v3.6.0
       - name: Configure git for private modules
         env:
           # matches the GITHUB_ACTION secret used in the cloudbuild, but named CI_ADMIN_GITHUB_TOKEN here
@@ -166,7 +166,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
           USE_FIPS: ${{ matrix.use-fips }}
           CLUSTER_NAME: 'kind'
-          CLUSTER_NODE_VERSION: 'v1.17.17@sha256:66f1d0d91a88b8a001811e2f1054af60eef3b669a9a74f9b6db871f2f1eeed00'
+          CLUSTER_NODE_VERSION: 'v1.22.4@sha256:ca3587e6e545a96c07bf82e2c46503d9ef86fc704f44c17577fca7bcabf5f978'
         run: |
           VERSION=$(./git-semver.sh) ./ci/setup-kind.sh
       - name: Testing - kube e2e regression tests

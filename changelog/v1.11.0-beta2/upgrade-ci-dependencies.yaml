@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: |
+      Update kind node version used in CI to 1.22.4, to match our client libraries.
+      Update helm version used in CI to 3.6.0, to match our client library.

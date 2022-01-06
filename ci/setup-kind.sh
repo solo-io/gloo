@@ -4,11 +4,17 @@
 # The name of the kind cluster to deploy to
 CLUSTER_NAME="${CLUSTER_NAME:-kind}"
 # The version of the Node Docker image to use for booting the cluster
-CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.17.17@sha256:66f1d0d91a88b8a001811e2f1054af60eef3b669a9a74f9b6db871f2f1eeed00}"
+CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.22.4}"
 # The version used to tag images
 VERSION="${VERSION:-0.0.0-kind}"
 # Whether or not to use fips compliant data plane images
 USE_FIPS="${USE_FIPS:-false}"
+# Automatically (lazily) determine OS type
+if [[ $OSTYPE == 'darwin'* ]]; then
+  OS='darwin'
+else
+  OS='linux'
+fi
 
 # 1. Create a kind cluster (or skip creation if a cluster with name=CLUSTER_NAME already exists)
 # This config is roughly based on: https://kind.sigs.k8s.io/docs/user/ingress/
@@ -61,4 +67,4 @@ VERSION=$VERSION CLUSTER_NAME=$CLUSTER_NAME USE_FIPS=$USE_FIPS make push-kind-im
 VERSION=$VERSION make build-test-chart
 
 # 4. Build the gloo command line tool, ensuring we have one in the `_output` folder
-make glooctl-linux-amd64
+make glooctl-$OS-amd64
