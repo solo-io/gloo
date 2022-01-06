@@ -136,7 +136,7 @@ export const GlooInstancesDetails = () => {
     return <DataError error={instancesError} />;
   } else if (!glooInstances) {
     return (
-      <Loading message={`Retrievng information on instance: ${name}...`} />
+      <Loading message={`Retrieving information on instance: ${name}...`} />
     );
   }
 

@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: >
+      The UI notification box is difficult to read when the 
+      errors and warnings are too long.
+    issueLink: https://github.com/solo-io/solo-projects/issues/2816
+    resolvesIssue: true

@@ -57,8 +57,22 @@ const IssueDetailsContainer = styled.div`
   max-height: 150px;
   overflow-y: auto;
 `;
+const IssueDetailsContainerListItem = styled.li`
+  margin-bottom: 10px;
+`;
 const IssueContainer = styled.div`
   display: flex;
+  justify-content: space-between;
+`;
+
+const IssueMessage = styled.div<{ hasLink?: boolean; }>`
+  flex-basis: ${props => props.hasLink ? '75%' : '100%'};
+`;
+
+const IssueLinkContainer = styled.div`
+  display: flex;
+  flex-basis: 20%;
+  flex-direction: row;
 `;
 
 // helpers
@@ -178,21 +192,21 @@ export const NotificationBox = ({
           <IssueDetailsContainer>
             <ul>
               {issues.map((issue, idx) => (
-                <li key={`issue-${idx}`}>
+                <IssueDetailsContainerListItem key={`issue-${idx}`}>
                   <IssueContainer>
-                    {issue.message}
+                    <IssueMessage hasLink={Boolean(issue.detailsLink)}>{issue.message}</IssueMessage>
                     {issue.detailsLink ? (
-                      <>
+                      <IssueLinkContainer>
                         <VerticalRule color={colors.color} />
                         <SoloLink
                           displayElement={issue.linkTitle ?? 'View Now'}
                           link={issue.detailsLink}
                           stylingOverrides={`font-weight: bold; color: ${colors.color};`}
                         />
-                      </>
+                      </IssueLinkContainer>
                     ) : null}
                   </IssueContainer>
-                </li>
+                </IssueDetailsContainerListItem>
               ))}
             </ul>
           </IssueDetailsContainer>

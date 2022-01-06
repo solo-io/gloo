@@ -79,7 +79,7 @@ const CodeBox = styled(CalmerMessageBox)`
 `;
 
 interface ErrorProps {
-  error: any /* TODO ServiceError; */;
+  error: Partial<ServiceError> & Pick<ServiceError, 'message'>;
   center?: boolean;
 }
 
