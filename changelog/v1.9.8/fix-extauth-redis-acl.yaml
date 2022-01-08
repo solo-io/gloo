@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    description: >
+      OIDC redis ACL fix.
+    issueLink: https://github.com/solo-io/gloo/issues/5563
+    resolvesIssue: false

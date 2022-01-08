@@ -469,6 +469,7 @@ func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, time
 			Addrs:    []string{options.GetHost()},
 			DB:       int(options.GetDb()),
 			PoolSize: int(options.GetPoolSize()),
+			Password: os.Getenv("REDIS_PASSWORD"),
 		}
 
 		client := redis.NewUniversalClient(opts)
