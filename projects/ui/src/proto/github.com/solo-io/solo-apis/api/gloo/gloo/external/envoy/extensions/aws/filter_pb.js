@@ -70,7 +70,8 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.toObject = functi
     name: jspb.Message.getFieldWithDefault(msg, 1, ""),
     qualifier: jspb.Message.getFieldWithDefault(msg, 2, ""),
     async: jspb.Message.getFieldWithDefault(msg, 3, false),
-    emptyBodyOverride: (f = msg.getEmptyBodyOverride()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
+    emptyBodyOverride: (f = msg.getEmptyBodyOverride()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    unwrapAsAlb: jspb.Message.getFieldWithDefault(msg, 5, false)
   };
 
   if (includeInstance) {
@@ -123,6 +124,10 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.deserializeBinary
       var value = new google_protobuf_wrappers_pb.StringValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setEmptyBodyOverride(value);
+      break;
+    case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setUnwrapAsAlb(value);
       break;
     default:
       reader.skipField();
@@ -180,6 +185,13 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.serializeBinaryTo
       4,
       f,
       google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getUnwrapAsAlb();
+  if (f) {
+    writer.writeBool(
+      5,
+      f
     );
   }
 };
@@ -259,6 +271,23 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.prototype.clearEm
  */
 proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.prototype.hasEmptyBodyOverride = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional bool unwrap_as_alb = 5;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.prototype.getUnwrapAsAlb = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.prototype.setUnwrapAsAlb = function(value) {
+  jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 

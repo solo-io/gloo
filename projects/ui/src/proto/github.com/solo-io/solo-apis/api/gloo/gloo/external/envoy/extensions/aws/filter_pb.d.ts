@@ -23,6 +23,9 @@ export class AWSLambdaPerRoute extends jspb.Message {
   getEmptyBodyOverride(): google_protobuf_wrappers_pb.StringValue | undefined;
   setEmptyBodyOverride(value?: google_protobuf_wrappers_pb.StringValue): void;
 
+  getUnwrapAsAlb(): boolean;
+  setUnwrapAsAlb(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AWSLambdaPerRoute.AsObject;
   static toObject(includeInstance: boolean, msg: AWSLambdaPerRoute): AWSLambdaPerRoute.AsObject;
@@ -39,6 +42,7 @@ export namespace AWSLambdaPerRoute {
     qualifier: string,
     async: boolean,
     emptyBodyOverride?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    unwrapAsAlb: boolean,
   }
 }
 

@@ -530,7 +530,8 @@ proto.aws.options.gloo.solo.io.DestinationSpec.toObject = function(includeInstan
     logicalName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     invocationStyle: jspb.Message.getFieldWithDefault(msg, 2, 0),
     requestTransformation: jspb.Message.getFieldWithDefault(msg, 6, false),
-    responseTransformation: jspb.Message.getFieldWithDefault(msg, 5, false)
+    responseTransformation: jspb.Message.getFieldWithDefault(msg, 5, false),
+    unwrapAsAlb: jspb.Message.getFieldWithDefault(msg, 7, false)
   };
 
   if (includeInstance) {
@@ -582,6 +583,10 @@ proto.aws.options.gloo.solo.io.DestinationSpec.deserializeBinaryFromReader = fun
     case 5:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setResponseTransformation(value);
+      break;
+    case 7:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setUnwrapAsAlb(value);
       break;
     default:
       reader.skipField();
@@ -637,6 +642,13 @@ proto.aws.options.gloo.solo.io.DestinationSpec.serializeBinaryToWriter = functio
   if (f) {
     writer.writeBool(
       5,
+      f
+    );
+  }
+  f = message.getUnwrapAsAlb();
+  if (f) {
+    writer.writeBool(
+      7,
       f
     );
   }
@@ -712,6 +724,23 @@ proto.aws.options.gloo.solo.io.DestinationSpec.prototype.getResponseTransformati
 /** @param {boolean} value */
 proto.aws.options.gloo.solo.io.DestinationSpec.prototype.setResponseTransformation = function(value) {
   jspb.Message.setProto3BooleanField(this, 5, value);
+};
+
+
+/**
+ * optional bool unwrap_as_alb = 7;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.aws.options.gloo.solo.io.DestinationSpec.prototype.getUnwrapAsAlb = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 7, false));
+};
+
+
+/** @param {boolean} value */
+proto.aws.options.gloo.solo.io.DestinationSpec.prototype.setUnwrapAsAlb = function(value) {
+  jspb.Message.setProto3BooleanField(this, 7, value);
 };
 
 
