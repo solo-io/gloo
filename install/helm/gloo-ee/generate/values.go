@@ -55,6 +55,8 @@ type RateLimit struct {
 	Upstream        *glooGen.KubeResourceOverride `json:"upstream,omitempty"`
 	CustomRateLimit interface{}                   `json:"customRateLimit,omitempty"`
 	BeforeAuth      bool                          `json:"beforeAuth,omitempty" desc:"If true, rate limiting checks occur before auth (default false)."`
+	Affinity        []map[string]interface{}      `json:"affinity,omitempty" desc:"Affinity rules to be applied"`
+	AntiAffinity    []map[string]interface{}      `json:"antiAffinity,omitempty" desc:"Anti-affinity rules to be applied"`
 }
 
 type DynamoDb struct {
@@ -66,16 +68,17 @@ type DynamoDb struct {
 }
 
 type RateLimitDeployment struct {
-	Name                 string            `json:"name"`
-	GlooAddress          string            `json:"glooAddress"`
-	GlooPort             uint              `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
-	DynamoDb             DynamoDb          `json:"dynamodb"`
-	Image                *glooGen.Image    `json:"image,omitempty"`
-	Stats                *glooGen.Stats    `json:"stats"`
-	RunAsUser            float64           `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
-	FloatingUserId       bool              `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
-	ExtraRateLimitLabels map[string]string `json:"extraRateLimitLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment."`
-	LogLevel             *string           `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info"`
+	Name                 string               `json:"name"`
+	GlooAddress          string               `json:"glooAddress"`
+	GlooPort             uint                 `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
+	DynamoDb             DynamoDb             `json:"dynamodb"`
+	Image                *glooGen.Image       `json:"image,omitempty"`
+	Stats                *glooGen.Stats       `json:"stats"`
+	RunAsUser            float64              `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
+	FloatingUserId       bool                 `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
+	ExtraRateLimitLabels map[string]string    `json:"extraRateLimitLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment."`
+	LogLevel             *string              `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info"`
+	PodDisruptionBudget  *PodDisruptionBudget `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the rate-limit pods"`
 	*glooGen.KubeResourceOverride
 	*glooGen.DeploymentSpec
 }
@@ -175,21 +178,24 @@ type ExtAuth struct {
 	Secret               *glooGen.KubeResourceOverride `json:"secret,omitempty"`
 	Upstream             *glooGen.KubeResourceOverride `json:"upstream,omitempty"`
 	RequestBody          *BufferSettings               `json:"requestBody,omitempty" desc:"Set in order to send the body of the request, and not just the headers"`
+	Affinity             []map[string]interface{}      `json:"affinity,omitempty" desc:"Affinity rules to be applied. If unset, require extAuth pods to be scheduled on nodes with already-running gateway-proxy pods"`
+	AntiAffinity         []map[string]interface{}      `json:"antiAffinity,omitempty" desc:"Anti-affinity rules to be applied"`
 }
 
 type ExtAuthDeployment struct {
-	Name               string            `json:"name"`
-	GlooAddress        string            `json:"glooAddress,omitempty"`
-	GlooPort           uint              `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
-	Port               uint              `json:"port"`
-	Image              *glooGen.Image    `json:"image,omitempty"`
-	Stats              *glooGen.Stats    `json:"stats"`
-	RunAsUser          float64           `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
-	FsGroup            float64           `json:"fsGroup" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
-	FloatingUserId     bool              `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
-	ExtraExtAuthLabels map[string]string `json:"extraExtAuthLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ExtAuth deployment."`
-	ExtraVolume        []v1.Volume       `json:"extraVolume,omitempty" desc:"custom defined yaml for allowing extra volume on the extauth container"`
-	ExtraVolumeMount   []v1.VolumeMount  `json:"extraVolumeMount,omitempty" desc:"custom defined yaml for allowing extra volume mounts on the extauth container"`
+	Name                string               `json:"name"`
+	GlooAddress         string               `json:"glooAddress,omitempty"`
+	GlooPort            uint                 `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
+	Port                uint                 `json:"port"`
+	Image               *glooGen.Image       `json:"image,omitempty"`
+	Stats               *glooGen.Stats       `json:"stats"`
+	RunAsUser           float64              `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
+	FsGroup             float64              `json:"fsGroup" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
+	FloatingUserId      bool                 `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
+	ExtraExtAuthLabels  map[string]string    `json:"extraExtAuthLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ExtAuth deployment."`
+	ExtraVolume         []v1.Volume          `json:"extraVolume,omitempty" desc:"custom defined yaml for allowing extra volume on the extauth container"`
+	ExtraVolumeMount    []v1.VolumeMount     `json:"extraVolumeMount,omitempty" desc:"custom defined yaml for allowing extra volume mounts on the extauth container"`
+	PodDisruptionBudget *PodDisruptionBudget `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the ExtAuth pods"`
 	*glooGen.DeploymentSpec
 	*glooGen.KubeResourceOverride
 }
@@ -218,4 +224,9 @@ type BufferSettings struct {
 type OAuth struct {
 	Server string `json:"server"`
 	Client string `json:"client"`
+}
+
+type PodDisruptionBudget struct {
+	minAvailable   int32 `json:"minAvailable,omitempty" desc:"An eviction is allowed if at least \"minAvailable\" pods selected by \"selector\" will still be available after the eviction, i.e. even in the absence of the evicted pod. So for example you can prevent all voluntary evictions by specifying \"100%\"."`
+	maxUnavailable int32 `json:"maxUnavailable,omitempty" desc:"An eviction is allowed if at most \"maxUnavailable\" pods selected by \"selector\" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with \"minAvailable\"."`
 }

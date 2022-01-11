@@ -1242,6 +1242,154 @@ global:
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
+			Describe("affinity and antiAffinity", func() {
+				It("set default affinity rules appropriately", func() {
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
+					Expect(err).NotTo(HaveOccurred())
+
+					actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "extauth"
+					})
+
+					expectedDeployment.Spec.Template.Spec.Affinity = &v1.Affinity{
+						PodAffinity: &v1.PodAffinity{
+							PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+								{
+									Weight: 100,
+									PodAffinityTerm: v1.PodAffinityTerm{
+										LabelSelector: &k8s.LabelSelector{
+											MatchLabels: map[string]string{
+												"gloo": "gateway-proxy",
+											},
+										},
+										TopologyKey: "kubernetes.io/hostname",
+									},
+								},
+							},
+						},
+					}
+					actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+				})
+				It("affinity rules can be set", func() {
+
+					helmOverrideFileContents := `
+global:
+  extensions:
+    extAuth:
+      affinity:
+        podAffinity: 
+          preferredDuringSchedulingIgnoredDuringExecution: 
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  gloo: test-label
+              topologyKey: kubernetes.io/hostname
+`
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.Write([]byte(helmOverrideFileContents))
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "extauth"
+					})
+
+					expectedDeployment.Spec.Template.Spec.Affinity = &v1.Affinity{
+						PodAffinity: &v1.PodAffinity{
+							PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+								{
+									Weight: 100,
+									PodAffinityTerm: v1.PodAffinityTerm{
+										LabelSelector: &k8s.LabelSelector{
+											MatchLabels: map[string]string{
+												"gloo": "test-label",
+											},
+										},
+										TopologyKey: "kubernetes.io/hostname",
+									},
+								},
+							},
+						},
+					}
+					actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+				})
+				It("antiAffinity rules can be set", func() {
+
+					helmOverrideFileContents := `
+global:
+  extensions:
+    extAuth:
+      antiAffinity:
+        podAntiAffinity: 
+          preferredDuringSchedulingIgnoredDuringExecution: 
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  gloo: gateway-proxy
+              topologyKey: kubernetes.io/hostname
+`
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.Write([]byte(helmOverrideFileContents))
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "extauth"
+					})
+
+					expectedDeployment.Spec.Template.Spec.Affinity = &v1.Affinity{
+						// default affinity settings
+						PodAffinity: &v1.PodAffinity{
+							PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+								{
+									Weight: 100,
+									PodAffinityTerm: v1.PodAffinityTerm{
+										LabelSelector: &k8s.LabelSelector{
+											MatchLabels: map[string]string{
+												"gloo": "gateway-proxy",
+											},
+										},
+										TopologyKey: "kubernetes.io/hostname",
+									},
+								},
+							},
+						},
+						PodAntiAffinity: &v1.PodAntiAffinity{
+							PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+								{
+									Weight: 100,
+									PodAffinityTerm: v1.PodAffinityTerm{
+										LabelSelector: &k8s.LabelSelector{
+											MatchLabels: map[string]string{
+												"gloo": "gateway-proxy",
+											},
+										},
+										TopologyKey: "kubernetes.io/hostname",
+									},
+								},
+							},
+						},
+					}
+					actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+				})
+			})
+
 			Context("pass image pull secrets", func() {
 
 				pullSecretName := "test-pull-secret"
@@ -1284,6 +1432,59 @@ global:
 
 			})
 
+			It("gwp pdb disabled by default", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
+				Expect(err).To(BeNil())
+				testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, "ext-auth-pdb").To(BeNil())
+			})
+
+			It("can create gwp pdb with minAvailable", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.deployment.podDisruptionBudget.minAvailable=2",
+					},
+				})
+				Expect(err).To(BeNil())
+
+				pdb := makeUnstructured(`
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: ext-auth-pdb
+  namespace: gloo-system
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      gloo: ext-auth
+`)
+
+				testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, "ext-auth-pdb").To(BeEquivalentTo(pdb))
+			})
+
+			It("can create gwp pdb with maxUnavailable", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.deployment.podDisruptionBudget.maxUnavailable=2",
+					},
+				})
+				Expect(err).To(BeNil())
+
+				pdb := makeUnstructured(`
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: ext-auth-pdb
+  namespace: gloo-system
+spec:
+  maxUnavailable: 2
+  selector:
+    matchLabels:
+      gloo: ext-auth
+`)
+
+				testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, "ext-auth-pdb").To(BeEquivalentTo(pdb))
+			})
 		})
 
 		Context("gateway-proxy deployment", func() {
@@ -2942,6 +3143,164 @@ spec:
   discoveryNamespace: ` + namespace + `
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+			Describe("affinity and antiAffinity", func() {
+				It("affinity rules can be set", func() {
+					helmOverrideFileContents := `
+global:
+  extensions:
+    rateLimit:
+      antiAffinity:
+        podAffinity: 
+          preferredDuringSchedulingIgnoredDuringExecution: 
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  gloo: gateway-proxy
+              topologyKey: kubernetes.io/hostname
+`
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.Write([]byte(helmOverrideFileContents))
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "rate-limit"
+					})
+
+					expectedDeployment.Spec.Template.Spec.Affinity = nil
+					expectedDeployment.Spec.Template.Spec.Affinity = &v1.Affinity{
+						PodAffinity: &v1.PodAffinity{
+							PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+								{
+									Weight: 100,
+									PodAffinityTerm: v1.PodAffinityTerm{
+										LabelSelector: &k8s.LabelSelector{
+											MatchLabels: map[string]string{
+												"gloo": "gateway-proxy",
+											},
+										},
+										TopologyKey: "kubernetes.io/hostname",
+									},
+								},
+							},
+						},
+					}
+					actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+				})
+				It("antiAffinity rules can be set", func() {
+					helmOverrideFileContents := `
+global:
+  extensions:
+    rateLimit:
+      antiAffinity:
+        podAntiAffinity: 
+          preferredDuringSchedulingIgnoredDuringExecution: 
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  gloo: gateway-proxy
+              topologyKey: kubernetes.io/hostname
+`
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.Write([]byte(helmOverrideFileContents))
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "rate-limit"
+					})
+
+					expectedDeployment.Spec.Template.Spec.Affinity = nil
+					expectedDeployment.Spec.Template.Spec.Affinity = &v1.Affinity{
+						PodAntiAffinity: &v1.PodAntiAffinity{
+							PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+								{
+									Weight: 100,
+									PodAffinityTerm: v1.PodAffinityTerm{
+										LabelSelector: &k8s.LabelSelector{
+											MatchLabels: map[string]string{
+												"gloo": "gateway-proxy",
+											},
+										},
+										TopologyKey: "kubernetes.io/hostname",
+									},
+								},
+							},
+						},
+					}
+					actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+				})
+			})
+
+			It("gwp pdb disabled by default", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
+				Expect(err).To(BeNil())
+				testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, "rate-limit-pdb").To(BeNil())
+			})
+
+			It("can create gwp pdb with minAvailable", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.rateLimit.deployment.podDisruptionBudget.minAvailable=2",
+					},
+				})
+				Expect(err).To(BeNil())
+
+				pdb := makeUnstructured(`
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: rate-limit-pdb
+  namespace: gloo-system
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      gloo: rate-limit
+`)
+
+				testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, "rate-limit-pdb").To(BeEquivalentTo(pdb))
+			})
+
+			It("can create gwp pdb with maxUnavailable", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.rateLimit.deployment.podDisruptionBudget.maxUnavailable=2",
+					},
+				})
+				Expect(err).To(BeNil())
+
+				pdb := makeUnstructured(`
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: rate-limit-pdb
+  namespace: gloo-system
+spec:
+  maxUnavailable: 2
+  selector:
+    matchLabels:
+      gloo: rate-limit
+`)
+
+				testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, "rate-limit-pdb").To(BeEquivalentTo(pdb))
 			})
 		})
 

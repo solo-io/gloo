@@ -1015,6 +1015,8 @@
 |rateLimit.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
 |rateLimit.deployment.extraRateLimitLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment.|
 |rateLimit.deployment.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
+|rateLimit.deployment.podDisruptionBudget.minAvailable|int32||An eviction is allowed if at least "minAvailable" pods selected by "selector" will still be available after the eviction, i.e. even in the absence of the evicted pod. So for example you can prevent all voluntary evictions by specifying "100%".|
+|rateLimit.deployment.podDisruptionBudget.maxUnavailable|int32||An eviction is allowed if at most "maxUnavailable" pods selected by "selector" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with "minAvailable".|
 |rateLimit.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |rateLimit.deployment.replicas|int||number of instances to deploy|
 |rateLimit.deployment.customEnv[].name|string|||
@@ -1057,6 +1059,8 @@
 |rateLimit.upstream.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |rateLimit.customRateLimit|interface|||
 |rateLimit.beforeAuth|bool||If true, rate limiting checks occur before auth (default false).|
+|rateLimit.affinity[].NAME|interface||Affinity rules to be applied|
+|rateLimit.antiAffinity[].NAME|interface||Anti-affinity rules to be applied|
 |observability.enabled|bool|true|if true, deploy observability service (default true)|
 |observability.deployment.image.tag|string|Version number, ex. 1.8.0|tag for the container|
 |observability.deployment.image.repository|string|observability-ee|image name (repository) for the container.|

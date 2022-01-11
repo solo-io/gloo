@@ -117,6 +117,9 @@ spec:
         fsGroup: {{ printf "%.0f" (float64 $extAuth.deployment.fsGroup) }}
         {{- end }}
       affinity:
+      {{- if ($extAuth.affinity)}}
+        {{ toYaml $extAuth.affinity | nindent 8 }}
+      {{- else}}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -125,6 +128,10 @@ spec:
                   matchLabels:
                     gloo: gateway-proxy
                 topologyKey: kubernetes.io/hostname
+      {{- end}}
+      {{- if $extAuth.antiAffinity }}
+        {{ toYaml $extAuth.antiAffinity | nindent 8 }}
+      {{- end }}
   {{- include "gloo.podSpecStandardFields" $extAuth.deployment | nindent 6 }}
   {{- include "gloo.pullSecret" $image | nindent 6 }}
 ---

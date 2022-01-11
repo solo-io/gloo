@@ -183,6 +183,15 @@ spec:
         {{- if not .Values.global.extensions.rateLimit.deployment.floatingUserId }}
         runAsUser: {{ printf "%.0f" (float64 .Values.global.extensions.rateLimit.deployment.runAsUser) -}}
         {{- end }}
+      {{ if or (.Values.global.extensions.rateLimit.antiAffinity) (.Values.global.extensions.rateLimit.affinity) }}
+      affinity:
+      {{- end}}
+      {{- if .Values.global.extensions.rateLimit.affinity }}
+        {{ toYaml .Values.global.extensions.rateLimit.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.global.extensions.rateLimit.antiAffinity }}
+        {{ toYaml .Values.global.extensions.rateLimit.antiAffinity | nindent 8 }}
+      {{- end }}
       {{- if or .Values.global.glooMtls.enabled .Values.redis.clientSideShardingEnabled }}
       volumes:
         {{- if .Values.global.glooMtls.enabled }}
