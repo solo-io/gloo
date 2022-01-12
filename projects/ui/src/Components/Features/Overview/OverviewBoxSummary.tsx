@@ -237,7 +237,7 @@ const SmallStatusBox = styled.div`
   margin-bottom: 22px;
 `;
 
-const OverviewSmallBoxSummary = ({
+export const OverviewSmallBoxSummary = ({
   title,
   logo,
   description,

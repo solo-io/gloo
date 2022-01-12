@@ -2,6 +2,7 @@ import React from 'react';
 import { colors } from 'Styles/colors';
 import styled from '@emotion/styled';
 import { NestedLink } from 'Components/Common/NestedLink';
+import { EnableGraphqlFeature } from 'Components/Features/Graphql/EnableGraphqlFeature';
 import { ReactComponent as GlooFedIcon } from 'assets/GlooFed-Specific/gloo-edge-logo-white-text.svg';
 import { ReactComponent as GearIcon } from 'assets/gear-icon.svg';
 import { ReactComponent as AdminGearHover } from 'assets/admin-settings-hover.svg';
@@ -96,6 +97,11 @@ export const MainMenu = () => {
           <NestedLink to='/wasm-filters/' exact>
             Wasm
           </NestedLink>
+          <EnableGraphqlFeature>
+            <NestedLink to={'/graphql/'} exact>
+              GraphQL
+            </NestedLink>
+          </EnableGraphqlFeature>
         </Flexor>
         <Flexor style={{ height: '100%' }}>
           {/*<HelpHolder>

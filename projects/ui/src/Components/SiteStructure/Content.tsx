@@ -21,6 +21,8 @@ import { RouteTableDetails } from 'Components/Features/VirtualService/RouteTable
 import { useIsGlooFedEnabled } from 'API/hooks';
 import { DataError } from 'Components/Common/DataError';
 import { Loading } from 'Components/Common/Loading';
+import { GraphqlOverview } from 'Components/Features/Graphql/GraphqlOverview';
+import { EnableGraphqlFeature } from 'Components/Features/Graphql/EnableGraphqlFeature';
 
 const ScrollContainer = styled.div`
   max-height: 100%;
@@ -225,6 +227,17 @@ export const Content = () => {
               </ErrorBoundary>
             }
           />
+          <EnableGraphqlFeature reroute>
+            <Route
+              path='/graphql'
+              element={
+                <ErrorBoundary
+                  fallback={<div>Unable to pull graphQL information.</div>}>
+                  <GraphqlOverview />
+                </ErrorBoundary>
+              }
+            />
+          </EnableGraphqlFeature>
 
           {/* These routes are used for Gloo Fed only */}
           {isGlooFedEnabled && (
