@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    description: >
+      When there are no matching apikey secrets for the provided label selector, log an error
+      allowing configuration to still be processed.
+    issueLink: https://github.com/solo-io/gloo/issues/5167
+    resolvesIssue: false
+
+

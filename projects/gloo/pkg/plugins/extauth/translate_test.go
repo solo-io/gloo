@@ -410,26 +410,28 @@ var _ = Describe("Translate", func() {
 				}))
 			})
 
-			It("should translate api keys config for extauth server - mismatched labels", func() {
-				secret.Metadata.Labels = map[string]string{"missingLabel": "missingValue"}
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(NoMatchesForGroupError(map[string]string{"team": "infrastructure"}).Error()))
+			Context("should translate apikeys config for extauth server", func() {
+
+				It("should not error - mismatched labels", func() {
+					secret.Metadata.Labels = map[string]string{"missingLabel": "missingValue"}
+					_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("should not error - empty labels", func() {
+					secret.Metadata.Labels = map[string]string{}
+					_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("should not error - nil labels", func() {
+					secret.Metadata.Labels = nil
+					_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
 			})
 
-			It("should translate api keys config for extauth server - mismatched labels", func() {
-				secret.Metadata.Labels = map[string]string{}
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(NoMatchesForGroupError(map[string]string{"team": "infrastructure"}).Error()))
-			})
-
-			It("should translate api keys config for extauth server - mismatched labels", func() {
-				secret.Metadata.Labels = nil
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(NoMatchesForGroupError(map[string]string{"team": "infrastructure"}).Error()))
-			})
 		})
 	})
 

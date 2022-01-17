@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/solo-io/go-utils/contextutils"
+
 	"github.com/hashicorp/go-multierror"
 
 	errors "github.com/rotisserie/eris"
@@ -111,7 +113,7 @@ func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, cfg *extauth.Aut
 			}
 		}
 	case *extauth.AuthConfig_Config_ApiKeyAuth:
-		apiKeyConfig, err := translateApiKey(snap, config.ApiKeyAuth)
+		apiKeyConfig, err := translateApiKey(ctx, snap, config.ApiKeyAuth)
 		if err != nil {
 			return nil, err
 		}
@@ -199,7 +201,7 @@ func translateOpaConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extau
 	}, err
 }
 
-func translateApiKey(snap *v1.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth.ExtAuthConfig_ApiKeyAuthConfig, error) {
+func translateApiKey(ctx context.Context, snap *v1.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth.ExtAuthConfig_ApiKeyAuthConfig, error) {
 	var (
 		matchingSecrets []*v1.Secret
 		searchErrs      = &multierror.Error{}
@@ -227,7 +229,14 @@ func translateApiKey(snap *v1.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth
 			}
 		}
 		if !foundAny {
-			searchErrs = multierror.Append(searchErrs, NoMatchesForGroupError(config.LabelSelector))
+			// A label may be applied before the underlying secret has been persisted.
+			// In this case, we should accept the configuration and just warn the user.
+			// Otherwise, this situation blocks configuration from being processed.
+			//
+			// We do not yet support warnings on AuthConfig CRs, so we log a warning instead
+			// Technical Debt: https://github.com/solo-io/solo-projects/issues/2950
+			err := NoMatchesForGroupError(config.LabelSelector)
+			contextutils.LoggerFrom(ctx).Warnf("%v, continuing processing", err)
 		}
 	}
 
