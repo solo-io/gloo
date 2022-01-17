@@ -8,7 +8,6 @@ type Props = {
 
 export const EnableGraphqlFeature: React.FC<Props> = props => {
   let query = new URLSearchParams(useLocation().search);
-  // @ts-ignore
   const graphqlIntegrationEnabled =
     query.get('graphql') === 'enabled' ||
     query.get('graphql') === 'on' ||

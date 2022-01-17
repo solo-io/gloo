@@ -70,6 +70,10 @@ export interface CheckboxProps {
   withWrapper?: boolean;
   label?: boolean;
 }
+export interface CheckboxFilterProps {
+  label: string;
+  checked: boolean;
+}
 
 export const SoloCheckbox: React.FC<CheckboxProps> = props => {
   const { title, checked, onChange, withWrapper, label, disabled } = props;

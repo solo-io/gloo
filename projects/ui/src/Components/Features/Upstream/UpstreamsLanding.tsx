@@ -6,7 +6,7 @@ import { colors } from 'Styles/colors';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
-import { SoloCheckbox } from 'Components/Common/SoloCheckbox';
+import { CheckboxFilterProps, SoloCheckbox } from 'Components/Common/SoloCheckbox';
 import { TYPE_AWS, TYPE_AWS_EC2, TYPE_AZURE, TYPE_CONSUL, TYPE_KUBE, TYPE_STATIC } from 'utils/upstream-helpers';
 
 const UpstreamLandingContainer = styled.div`
@@ -50,11 +50,6 @@ const UpstreamGroupToggleWrapper = styled.div`
 const CHECKBOX_DEFAULT_FILTERS:CheckboxFilterProps[] = [
   TYPE_AWS, TYPE_AZURE, TYPE_CONSUL, TYPE_KUBE, TYPE_AWS_EC2, TYPE_STATIC,
 ].map(s=>({ label:s, checked:false }));
-
-export interface CheckboxFilterProps {
-  label: string;
-  checked: boolean;
-}
 
 export const UpstreamsLanding = () => {
   const [nameFilter, setNameFilter] = useState('');

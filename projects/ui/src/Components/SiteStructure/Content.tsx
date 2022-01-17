@@ -23,6 +23,7 @@ import { DataError } from 'Components/Common/DataError';
 import { Loading } from 'Components/Common/Loading';
 import { GraphqlOverview } from 'Components/Features/Graphql/GraphqlOverview';
 import { EnableGraphqlFeature } from 'Components/Features/Graphql/EnableGraphqlFeature';
+import { GraphqlLanding } from 'Components/Features/Graphql/GraphqlLanding';
 
 const ScrollContainer = styled.div`
   max-height: 100%;
@@ -233,7 +234,7 @@ export const Content = () => {
               element={
                 <ErrorBoundary
                   fallback={<div>Unable to pull graphQL information.</div>}>
-                  <GraphqlOverview />
+                  <GraphqlLanding />
                 </ErrorBoundary>
               }
             />

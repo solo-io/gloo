@@ -28,8 +28,8 @@ import { glooResourceApi } from 'API/gloo-resource';
 import { doDownload } from 'download-helper';
 import { IconHolder } from 'Styles/StyledComponents/icons';
 import { DataError } from 'Components/Common/DataError';
-import { CheckboxFilterProps } from './UpstreamsLanding';
 import { getUpstreamType } from 'utils/upstream-helpers';
+import { CheckboxFilterProps } from 'Components/Common/SoloCheckbox';
 
 const UpstreamIconHolder = styled.div`
   display: flex;
