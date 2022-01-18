@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: Adds missing redis.disabled field to https://docs.solo.io/gloo-edge/latest/reference/helm_chart_values/enterprise_helm_chart_values/
+    issueLink: https://github.com/solo-io/solo-projects/issues/2953
+    resolvesIssue: true
