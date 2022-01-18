@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Bump gloo version to 1.9.8 to resolve build vulnerabilities
+    issueLink: https://github.com/solo-io/solo-projects/issues/2956
