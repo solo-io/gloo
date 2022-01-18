@@ -621,6 +621,8 @@ export namespace SettingsSpec {
     getGrafanaintegration(): SettingsSpec.ObservabilityOptions.GrafanaIntegration | undefined;
     setGrafanaintegration(value?: SettingsSpec.ObservabilityOptions.GrafanaIntegration): void;
 
+    getConfigstatusmetriclabelsMap(): jspb.Map<string, SettingsSpec.ObservabilityOptions.MetricLabels>;
+    clearConfigstatusmetriclabelsMap(): void;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ObservabilityOptions.AsObject;
     static toObject(includeInstance: boolean, msg: ObservabilityOptions): ObservabilityOptions.AsObject;
@@ -634,6 +636,7 @@ export namespace SettingsSpec {
   export namespace ObservabilityOptions {
     export type AsObject = {
       grafanaintegration?: SettingsSpec.ObservabilityOptions.GrafanaIntegration.AsObject,
+      configstatusmetriclabelsMap: Array<[string, SettingsSpec.ObservabilityOptions.MetricLabels.AsObject]>,
     }
 
     export class GrafanaIntegration extends jspb.Message {
@@ -655,6 +658,25 @@ export namespace SettingsSpec {
     export namespace GrafanaIntegration {
       export type AsObject = {
         defaultDashboardFolderId?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+      }
+    }
+
+    export class MetricLabels extends jspb.Message {
+      getLabeltopathMap(): jspb.Map<string, string>;
+      clearLabeltopathMap(): void;
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): MetricLabels.AsObject;
+      static toObject(includeInstance: boolean, msg: MetricLabels): MetricLabels.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: MetricLabels, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): MetricLabels;
+      static deserializeBinaryFromReader(message: MetricLabels, reader: jspb.BinaryReader): MetricLabels;
+    }
+
+    export namespace MetricLabels {
+      export type AsObject = {
+        labeltopathMap: Array<[string, string]>,
       }
     }
   }
