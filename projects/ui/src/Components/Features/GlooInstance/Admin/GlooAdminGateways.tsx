@@ -56,7 +56,7 @@ const Actionables = styled.div`
 `;
 
 export const GlooAdminGateways = () => {
-  const { name, namespace } = useParams();
+  const { name = '', namespace = '' } = useParams();
 
   const { data: gateways, error: gError } = useListGateways({
     name,
@@ -173,7 +173,8 @@ export const GlooAdminGateways = () => {
               state: gateway.status?.state ?? GatewayStatus.State.PENDING,
               title: 'Gateway Status',
               reason: gateway.status?.reason,
-            }}>
+            }}
+          >
             <HealthNotificationBox
               state={gateway?.status?.state}
               reason={gateway?.status?.reason}
@@ -200,7 +201,8 @@ export const GlooAdminGateways = () => {
                       visit our{' '}
                       <a
                         href='https://docs.solo.io/gloo/latest/reference/api/github.com/solo-io/gloo/projects/gateway/api/v1/gateway.proto.sk/'
-                        target='_blank'>
+                        target='_blank'
+                      >
                         hcm plugin documentation
                       </a>
                     </div>

@@ -1,12 +1,14 @@
 import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
+import { Time } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
 import { format } from 'timeago.js';
 
-export const formatTimestamp = (seconds: number | undefined) => {
-  if (seconds === undefined) {
+export const formatTimestamp = (timestamp: Time.AsObject) => {
+  const { nanos, seconds } = timestamp;
+  if (!timestamp) {
     return '';
   }
 
-  let dateObj = new Date(seconds * 1000);
+  let dateObj = new Date(nanos + seconds * 1000);
   return format(dateObj, 'en_US');
 };
 

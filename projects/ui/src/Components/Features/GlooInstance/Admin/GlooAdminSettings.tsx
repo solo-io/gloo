@@ -40,7 +40,7 @@ const Actionables = styled.div`
 `;
 
 export const GlooAdminSettings = () => {
-  const { name, namespace } = useParams();
+  const { name = '', namespace = '' } = useParams();
 
   const { data: settings, error: sError } = useListSettings({
     name,
@@ -146,12 +146,14 @@ export const GlooAdminSettings = () => {
             logoIcon={
               <IconHolder
                 width={20}
-                applyColor={{ strokeNotFill: true, color: colors.seaBlue }}>
+                applyColor={{ strokeNotFill: true, color: colors.seaBlue }}
+              >
                 <GearIcon />
               </IconHolder>
             }
             cardName={setting.metadata!.name}
-            headerSecondaryInformation={secondaryHeaderInfo}>
+            headerSecondaryInformation={secondaryHeaderInfo}
+          >
             <TitleRow>
               <div>Settings (Read Only)</div>
               <Actionables>

@@ -332,25 +332,23 @@ type Props = {
 // This is almost a dupe of VSTable, but as we are in early stages keeping it decoupled for now.
 export const SubRouteTablesTable = (props: Props) => {
   const {
-    virtualservicename,
-    virtualservicenamespace,
-    virtualserviceclustername,
+    virtualservicename = '',
+    virtualservicenamespace = '',
+    virtualserviceclustername = '',
   } = useParams();
 
   const [tableData, setTableData] = React.useState<RouteTableFields[]>([]);
 
-  const {
-    data: routeTables,
-    error: rtError,
-  } = useGetSubroutesForVirtualService(
-    !!virtualservicenamespace && !!virtualservicename
-      ? {
-          clusterName: virtualserviceclustername,
-          name: virtualservicename,
-          namespace: virtualservicenamespace,
-        }
-      : undefined
-  );
+  const { data: routeTables, error: rtError } =
+    useGetSubroutesForVirtualService(
+      !!virtualservicenamespace && !!virtualservicename
+        ? {
+            clusterName: virtualserviceclustername,
+            name: virtualservicename,
+            namespace: virtualservicenamespace,
+          }
+        : undefined
+    );
 
   useEffect(() => {
     if (routeTables) {
@@ -453,7 +451,8 @@ export const SubRouteTablesTable = (props: Props) => {
               <RouteIcon />
             </RouteIconHolder>
           }
-          noPadding={true}>
+          noPadding={true}
+        >
           <SoloTable
             columns={columns}
             dataSource={tableData}
@@ -470,7 +469,8 @@ export const SubRouteTablesTable = (props: Props) => {
               expandIcon: ({ expanded, onExpand, record }) => (
                 <ToggleHolder
                   open={expanded}
-                  onClick={e => onExpand(record, e)}>
+                  onClick={e => onExpand(record, e)}
+                >
                   {!!record.subrouteRows.length ? (
                     <ArrowToggle className='toggle' />
                   ) : null}

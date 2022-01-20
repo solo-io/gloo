@@ -44,7 +44,7 @@ type TableProps = {
 };
 
 export const GlooAdminSecrets = () => {
-  const { name, namespace } = useParams();
+  const { name = '', namespace = '' } = useParams();
 
   const { data: settings, error: sError } = useListSettings({
     name,
@@ -60,6 +60,7 @@ export const GlooAdminSecrets = () => {
           <SecretsIcon />
         </IconHolder>
       }
-      cardName={'Secrets'}></SectionCard>
+      cardName={'Secrets'}
+    ></SectionCard>
   );
 };

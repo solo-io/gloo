@@ -10,6 +10,7 @@ const colorsList = {
   novaGold: 'hsl(39, 78%, 44%)', //#C68A19
 
   groveGreen: 'hsl(161, 100%, 96%)', //	#ebfff9
+  standGreen: '#39f0b8',
   forestGreen: 'hsl(161, 88%, 42%)', //#0dc98e
 
   dropBlue: 'hsl(202, 100%, 98%)', //#F7FCFF

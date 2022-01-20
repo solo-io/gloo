@@ -38,10 +38,8 @@ const Container = styled.div`
 `;
 
 export const Content = () => {
-  const {
-    data: glooFedCheckResponse,
-    error: glooFedCheckError,
-  } = useIsGlooFedEnabled();
+  const { data: glooFedCheckResponse, error: glooFedCheckError } =
+    useIsGlooFedEnabled();
   if (!!glooFedCheckError) {
     return <DataError error={glooFedCheckError} />;
   } else if (!glooFedCheckResponse) {
@@ -59,9 +57,8 @@ export const Content = () => {
             path='/'
             element={
               <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information to get started.</div>
-                }>
+                fallback={<div>Unable to pull information to get started.</div>}
+              >
                 <OverviewLanding />
               </ErrorBoundary>
             }
@@ -73,7 +70,8 @@ export const Content = () => {
               <ErrorBoundary
                 fallback={
                   <div>Unable to pull information on Gloo Instances.</div>
-                }>
+                }
+              >
                 <GlooAdminInnerPagesWrapper />
               </ErrorBoundary>
             }
@@ -84,7 +82,8 @@ export const Content = () => {
               <ErrorBoundary
                 fallback={
                   <div>Unable to pull information on Gloo Instances.</div>
-                }>
+                }
+              >
                 <GlooInstanceAdministration />
               </ErrorBoundary>
             }
@@ -102,7 +101,8 @@ export const Content = () => {
                   <div>
                     Unable to pull information on Virtual Service Details.
                   </div>
-                }>
+                }
+              >
                 <VirtualServiceDetails />
               </ErrorBoundary>
             }
@@ -118,7 +118,8 @@ export const Content = () => {
               <ErrorBoundary
                 fallback={
                   <div>Unable to pull information on Route Table Details.</div>
-                }>
+                }
+              >
                 <RouteTableDetails />
               </ErrorBoundary>
             }
@@ -134,7 +135,8 @@ export const Content = () => {
               <ErrorBoundary
                 fallback={
                   <div>Unable to pull information on Upstream Details.</div>
-                }>
+                }
+              >
                 <UpstreamDetails />
               </ErrorBoundary>
             }
@@ -151,7 +153,8 @@ export const Content = () => {
                   <div>
                     Unable to pull information on Upstream Group Details.
                   </div>
-                }>
+                }
+              >
                 <UpstreamGroupDetails />
               </ErrorBoundary>
             }
@@ -162,7 +165,8 @@ export const Content = () => {
               <ErrorBoundary
                 fallback={
                   <div>Unable to pull information on Gloo Instances.</div>
-                }>
+                }
+              >
                 <GlooInstancesDetails />
               </ErrorBoundary>
             }
@@ -173,7 +177,8 @@ export const Content = () => {
               <ErrorBoundary
                 fallback={
                   <div>Unable to pull information on Gloo Instances.</div>
-                }>
+                }
+              >
                 <GlooInstancesLanding />
               </ErrorBoundary>
             }
@@ -185,7 +190,8 @@ export const Content = () => {
               <ErrorBoundary
                 fallback={
                   <div>Unable to pull information on Virtual Services.</div>
-                }>
+                }
+              >
                 <VirtualServicesLanding />
               </ErrorBoundary>
             }
@@ -200,7 +206,8 @@ export const Content = () => {
             path='/upstreams/'
             element={
               <ErrorBoundary
-                fallback={<div>Unable to pull information on Upstreams.</div>}>
+                fallback={<div>Unable to pull information on Upstreams.</div>}
+              >
                 <UpstreamsLanding />
               </ErrorBoundary>
             }
@@ -212,7 +219,8 @@ export const Content = () => {
               <ErrorBoundary
                 fallback={
                   <div>Unable to pull information on Wasm Filters.</div>
-                }>
+                }
+              >
                 <WasmLanding />
               </ErrorBoundary>
             }
@@ -223,22 +231,24 @@ export const Content = () => {
               <ErrorBoundary
                 fallback={
                   <div>Unable to pull information on Wasm Filters.</div>
-                }>
+                }
+              >
                 <WasmLanding />
               </ErrorBoundary>
             }
           />
-          <EnableGraphqlFeature reroute>
-            <Route
-              path='/graphql'
-              element={
+          <Route
+            path='/apis'
+            element={
+              <EnableGraphqlFeature reroute>
                 <ErrorBoundary
-                  fallback={<div>Unable to pull graphQL information.</div>}>
+                  fallback={<div>Unable to pull graphQL information.</div>}
+                >
                   <GraphqlLanding />
                 </ErrorBoundary>
-              }
-            />
-          </EnableGraphqlFeature>
+              </EnableGraphqlFeature>
+            }
+          />
 
           {/* These routes are used for Gloo Fed only */}
           {isGlooFedEnabled && (
@@ -249,7 +259,8 @@ export const Content = () => {
                   <ErrorBoundary
                     fallback={
                       <div>Unable to pull administrative information.</div>
-                    }>
+                    }
+                  >
                     <Clusters />
                   </ErrorBoundary>
                 }
@@ -260,7 +271,8 @@ export const Content = () => {
                   <ErrorBoundary
                     fallback={
                       <div>Unable to pull administrative information.</div>
-                    }>
+                    }
+                  >
                     <AdminInnerPagesWrapper />
                   </ErrorBoundary>
                 }
@@ -271,7 +283,8 @@ export const Content = () => {
                   <ErrorBoundary
                     fallback={
                       <div>Unable to pull administrative information.</div>
-                    }>
+                    }
+                  >
                     <AdminInnerPagesWrapper />
                   </ErrorBoundary>
                 }
@@ -282,7 +295,8 @@ export const Content = () => {
                   <ErrorBoundary
                     fallback={
                       <div>Unable to pull administrative information.</div>
-                    }>
+                    }
+                  >
                     <AdminLanding />
                   </ErrorBoundary>
                 }

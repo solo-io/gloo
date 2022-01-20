@@ -83,6 +83,7 @@ const breadcrumbNameMap: { [key: string]: string } = {
   proxy: 'Proxy',
   'watched-namespaces': 'Watched Namespaces',
   'wasm-filters': 'Wasm Filters',
+  apis: 'APIs',
 };
 
 const skippableNames: { [key: string]: boolean } = {

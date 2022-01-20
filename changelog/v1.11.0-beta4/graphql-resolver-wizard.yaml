@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Resolver configuration wizard, currently behind a feature flag.
+    issueLink: https://github.com/solo-io/solo-projects/issues/2967

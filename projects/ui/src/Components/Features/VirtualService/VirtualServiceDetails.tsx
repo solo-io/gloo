@@ -45,22 +45,16 @@ const ConfigurationArea = styled.div`
 `;
 
 export const VirtualServiceDetails = () => {
-  const {
-    name,
-    namespace,
-    virtualservicename,
-    virtualservicenamespace,
-  } = useParams();
+  const { name, namespace, virtualservicename, virtualservicenamespace } =
+    useParams();
 
   const { data: allVirtualServices, error: vsError } = useListVirtualServices({
-    name,
-    namespace,
+    name: name!,
+    namespace: namespace!,
   });
 
-  const [
-    virtualService,
-    setVirtualService,
-  ] = useState<VirtualService.AsObject>();
+  const [virtualService, setVirtualService] =
+    useState<VirtualService.AsObject>();
 
   useEffect(() => {
     if (!!allVirtualServices) {
@@ -84,7 +78,7 @@ export const VirtualServiceDetails = () => {
 
   return (
     <SectionCard
-      cardName={virtualservicename}
+      cardName={virtualservicename!}
       logoIcon={
         <GlooIconHolder>
           <GlooIcon />
@@ -99,7 +93,8 @@ export const VirtualServiceDetails = () => {
       health={{
         state: virtualService?.status?.state ?? 0,
         reason: virtualService?.status?.reason,
-      }}>
+      }}
+    >
       {!!vsError ? (
         <DataError error={vsError} />
       ) : !virtualService ? (

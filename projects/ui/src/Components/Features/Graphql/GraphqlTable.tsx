@@ -19,6 +19,7 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { colors } from 'Styles/colors';
 import { IconHolder } from 'Styles/StyledComponents/icons';
+import { APIType } from './GraphqlLanding';
 
 const GraphqlIconHolder = styled.div`
   display: flex;
@@ -44,13 +45,7 @@ const TableHolder = styled.div<TableHolderProps>`
 `;
 
 type Props = {
-  statusFilter?: 0 | 1 | 2 | 3;
-  nameFilter?: string;
   typeFilters?: CheckboxFilterProps[];
-  glooInstanceFilter?: {
-    name: string;
-    namespace: string;
-  };
 };
 
 type TableDataType = {
@@ -69,8 +64,7 @@ let testData: TableDataType[] = [
     key: 'd65e0c8a-5e7b-4788-adef-259b677d7982',
     name: {
       displayElement: 'default-details-9080',
-      link:
-        '/gloo-instances/gloo-system/local-gloo-system/upstreams/local/gloo-system/default-details-9080',
+      link: '/gloo-instances/gloo-system/local-gloo-system/upstreams/local/gloo-system/default-details-9080',
     },
     namespace: 'gloo-system',
     glooInstance: {
@@ -127,8 +121,7 @@ let testData: TableDataType[] = [
     key: 'd20e5111-bc6c-4363-b1d9-0f92008ed8ed',
     name: {
       displayElement: 'default-kubernetes-443',
-      link:
-        '/gloo-instances/gloo-system/local-gloo-system/upstreams/local/gloo-system/default-kubernetes-443',
+      link: '/gloo-instances/gloo-system/local-gloo-system/upstreams/local/gloo-system/default-kubernetes-443',
     },
     namespace: 'gloo-system',
     glooInstance: {
@@ -179,8 +172,7 @@ let testData: TableDataType[] = [
     key: '479e99b2-3ba6-4197-a45b-ed2f075a9fac',
     name: {
       displayElement: 'default-kubernetes-443',
-      link:
-        '/gloo-instances/gloo-system/remote-gloo-system/upstreams/remote/gloo-system/default-kubernetes-443',
+      link: '/gloo-instances/gloo-system/remote-gloo-system/upstreams/remote/gloo-system/default-kubernetes-443',
     },
     namespace: 'gloo-system',
     glooInstance: {
@@ -232,26 +224,23 @@ let testData: TableDataType[] = [
 export const GraphqlTable = (props: Props & TableHolderProps) => {
   const { name, namespace } = useParams();
   const navigate = useNavigate();
-
   const [tableData, setTableData] = React.useState<TableDataType[]>(testData);
-
   const multipleClustersOrInstances = false;
 
   const renderGlooInstanceList = (glooInstance: {
     name: string;
     namespace: string;
-  }) => {
-    return (
-      <div
-        onClick={() =>
-          navigate(
-            `/gloo-instances/${glooInstance.namespace}/${glooInstance.name}/`
-          )
-        }>
-        {glooInstance.name}
-      </div>
-    );
-  };
+  }) => (
+    <div
+      onClick={() =>
+        navigate(
+          `/gloo-instances/${glooInstance.namespace}/${glooInstance.name}/`
+        )
+      }
+    >
+      {glooInstance.name}
+    </div>
+  );
 
   const renderFailover = (failoverExists: boolean) => {
     return failoverExists ? (
@@ -327,38 +316,38 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
 };
 
 export const GraphqlPageTable = (props: Props) => {
+  const { typeFilters } = props;
+  function getIcon(filter: CheckboxFilterProps) {
+    switch (filter.label) {
+      case APIType.GRAPHQL:
+        return <GraphQLIcon />;
+      case APIType.REST:
+        return <RESTIcon />;
+      case APIType.GRPC:
+        return <GrpcIcon />;
+      default:
+        break;
+    }
+  }
   return (
     <>
-      <SectionCard
-        cardName={'GraphQL'}
-        logoIcon={
-          <GraphqlIconHolder>
-            <GraphQLIcon />
-          </GraphqlIconHolder>
-        }
-        noPadding={true}>
-        <GraphqlTable {...props} wholePage={true} />
-      </SectionCard>
-      <SectionCard
-        cardName={'REST'}
-        logoIcon={
-          <GraphqlIconHolder>
-            <RESTIcon />
-          </GraphqlIconHolder>
-        }
-        noPadding={true}>
-        <GraphqlTable {...props} wholePage={true} />
-      </SectionCard>
-      <SectionCard
-        cardName={'gRPC'}
-        logoIcon={
-          <GraphqlIconHolder>
-            <GrpcIcon />
-          </GraphqlIconHolder>
-        }
-        noPadding={true}>
-        <GraphqlTable {...props} wholePage={true} />
-      </SectionCard>
+      {typeFilters
+        ?.filter(filter => {
+          if (typeFilters?.some(f => f.checked)) {
+            return filter.checked;
+          }
+          return true;
+        })
+        ?.map(filter => (
+          <SectionCard
+            key={filter.label}
+            cardName={filter.label}
+            logoIcon={<GraphqlIconHolder>{getIcon(filter)}</GraphqlIconHolder>}
+            noPadding={true}
+          >
+            <GraphqlTable {...props} wholePage={true} />
+          </SectionCard>
+        ))}
     </>
   );
 };

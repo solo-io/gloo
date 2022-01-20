@@ -21,11 +21,11 @@ const ConfigArea = styled.div`
 
 export const UpstreamDetails = () => {
   const {
-    name,
-    namespace,
-    upstreamName,
-    upstreamNamespace,
-    upstreamClusterName,
+    name = '',
+    namespace = '',
+    upstreamName = '',
+    upstreamNamespace = '',
+    upstreamClusterName = '',
   } = useParams();
 
   const { data: upstream, error: upstreamError } = useGetUpstreamDetails(
@@ -37,10 +37,8 @@ export const UpstreamDetails = () => {
     }
   );
 
-  const {
-    data: glooFedCheckResponse,
-    error: glooFedCheckError,
-  } = useIsGlooFedEnabled();
+  const { data: glooFedCheckResponse, error: glooFedCheckError } =
+    useIsGlooFedEnabled();
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
   if (!!upstreamError) {
@@ -84,7 +82,8 @@ export const UpstreamDetails = () => {
         <IconHolder>
           <UpstreamIcon />
         </IconHolder>
-      }>
+      }
+    >
       <>
         <HealthNotificationBox
           state={upstream?.status?.state}

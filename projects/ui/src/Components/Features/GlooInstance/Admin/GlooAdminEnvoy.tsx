@@ -43,8 +43,8 @@ export const GlooAdminEnvoy = () => {
   const { name, namespace } = useParams();
 
   const { data: configsList, error: configsListError } = useGetConfigDumps({
-    name,
-    namespace,
+    name: name!,
+    namespace: namespace!,
   });
 
   const onDownloadConfig = (configDump: ConfigDump.AsObject) => {
@@ -77,7 +77,8 @@ export const GlooAdminEnvoy = () => {
                   ? UpstreamStatus.State.REJECTED
                   : UpstreamStatus.State.ACCEPTED,
               title: 'Config Status',
-            }}>
+            }}
+          >
             {configDump.error.length > 0 ? (
               <DataError error={{ message: configDump.error }} />
             ) : (

@@ -98,8 +98,8 @@ export const MainMenu = () => {
             Wasm
           </NestedLink>
           <EnableGraphqlFeature>
-            <NestedLink to={'/graphql/'} exact>
-              GraphQL
+            <NestedLink to={'/apis'} exact>
+              APIs
             </NestedLink>
           </EnableGraphqlFeature>
         </Flexor>

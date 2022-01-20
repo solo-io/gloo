@@ -5,6 +5,7 @@ import { Label } from './SoloInput';
 import { colors } from 'Styles/colors';
 import { valueType } from 'antd/lib/statistic/utils';
 import { SelectValue } from 'antd/lib/select';
+import { soloConstants } from 'Styles/StyledComponents/button';
 
 // COMMON CHOICES
 export const StatusDropdownChoices: OptionType[] = [
@@ -28,43 +29,95 @@ export const SoloDropdownBlock = styled(Select)`
   width: inherit;
   line-height: 16px;
 
-  .ant-select-selector {
-    padding: 7px 15px 7px 11px;
-    border-radius: 8px;
+  &.ant-select {
+    .ant-select-multiple .ant-select-show-search {
+      border: transparent;
+      font-size: 14px;
+    }
+
+    .ant-select-selector {
+      min-height: 35px;
+
+      border-radius: 8px;
+      border: 1px solid ${colors.aprilGrey};
+      line-height: 16px;
+      outline: none;
+      height: auto;
+      cursor: pointer;
+
+      .ant-select-selection-search,
+      .ant-select-selection-search input {
+        width: 0;
+        padding: 0;
+        border: none;
+      }
+      .ant-select-selection-placeholder {
+        color: ${colors.mayGrey};
+        font-size: 16px;
+        margin: auto;
+      }
+
+      .ant-select-selection__rendered {
+        line-height: 25px !important;
+        margin: 0;
+
+        .ant-select-selection-selected-value {
+          color: ${colors.septemberGrey};
+        }
+      }
+
+      &:disabled {
+        background: ${colors.aprilGrey};
+      }
+
+      transition: none;
+      &:focus {
+        outline: none;
+      }
+      .ant-select-selection-item {
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+
+        .ant-select-selection-item-remove {
+          display: flex;
+          align-items: center;
+        }
+      }
+    }
+  }
+
+  .ant-select-dropdown {
+    .ant-select-dropdown-menu-item {
+      display: flex;
+      align-items: center;
+    }
+  }
+  .ant-select-selection {
+    width: 100%;
+    padding: 5px;
     border: 1px solid ${colors.aprilGrey};
-    line-height: 16px;
-    outline: none;
+    border-radius: ${soloConstants.smallRadius}px;
     height: auto;
-    cursor: pointer;
-
-    .ant-select-selection-search,
-    .ant-select-selection-search input {
-      width: 0;
-      padding: 0;
-      border: none;
-    }
-    .ant-select-selection-placeholder {
-      color: ${colors.juneGrey};
-    }
-
+    outline: none;
     .ant-select-selection__rendered {
-      line-height: inherit;
+      line-height: 0;
       margin: 0;
-
       .ant-select-selection-selected-value {
         color: ${colors.septemberGrey};
+      }
+      .ant-select-selection__choice {
+        .ant-select-selection__choice__remove {
+          i {
+            vertical-align: 0;
+          }
+        }
       }
     }
 
     &:disabled {
       background: ${colors.aprilGrey};
     }
-  }
-
-  .ant-select-arrow {
-    position: absolute;
-    right: 10px;
-    top: 10px;
   }
 `;
 
@@ -77,7 +130,7 @@ export interface OptionType {
 }
 export interface DropdownProps {
   value: string | number | undefined;
-  options: OptionType[];
+  options?: OptionType[];
   onChange?: (newValue: SelectValue) => any;
   title?: string;
   placeholder?: string;
@@ -114,6 +167,7 @@ export const SoloDropdown = (props: DropdownProps) => {
   return (
     <div style={{ width: '100%' }}>
       {title && <Label>{title}</Label>}
+
       <SoloDropdownBlock
         data-testid={testId}
         dropdownClassName={testId}
@@ -124,12 +178,14 @@ export const SoloDropdown = (props: DropdownProps) => {
         onBlur={onBlur}
         disabled={disabled}
         placeholder={placeholder}
-        {...rest}>
-        {options.map((opt: OptionType) => (
+        {...rest}
+      >
+        {options?.map((opt: OptionType) => (
           <Select.Option
             key={opt.key}
             value={opt.value}
-            disabled={opt.disabled}>
+            disabled={opt.disabled}
+          >
             {opt.icon} {opt.displayValue || opt.value}
           </Select.Option>
         ))}

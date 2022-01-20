@@ -19,11 +19,11 @@ const ConfigArea = styled.div`
 
 export const UpstreamGroupDetails = () => {
   const {
-    name,
-    namespace,
-    upstreamGroupName,
-    upstreamGroupNamespace,
-    upstreamGroupClusterName,
+    name = '',
+    namespace = '',
+    upstreamGroupName = '',
+    upstreamGroupNamespace = '',
+    upstreamGroupClusterName = '',
   } = useParams();
 
   const { data: upstreamGroup, error: ugError } = useGetUpstreamGroupDetails(
@@ -72,7 +72,8 @@ export const UpstreamGroupDetails = () => {
         <IconHolder>
           <UpstreamGroupIcon />
         </IconHolder>
-      }>
+      }
+    >
       {!!ugError ? (
         <DataError error={ugError} />
       ) : !upstreamGroup ? (

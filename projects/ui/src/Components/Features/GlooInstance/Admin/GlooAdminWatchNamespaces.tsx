@@ -47,7 +47,7 @@ export const GlooAdminWatchedNamespaces = ({
 }: {
   glooInstance: GlooInstance.AsObject;
 }) => {
-  const { name, namespace } = useParams();
+  const { name = '', namespace = '' } = useParams();
 
   const { data: settings, error: sError } = useListSettings({
     name,
@@ -70,7 +70,8 @@ export const GlooAdminWatchedNamespaces = ({
         </IconHolder>
       }
       cardName={'Watched Namespaces'}
-      headerSecondaryInformation={secondaryHeaderInfo}>
+      headerSecondaryInformation={secondaryHeaderInfo}
+    >
       <Description>
         {
           'The namespaces that Gloo Edge controllers take into consideration when watching for resources. In a usual production scenario, RBAC policies will limit the namespaces that Gloo Edge has access to.'

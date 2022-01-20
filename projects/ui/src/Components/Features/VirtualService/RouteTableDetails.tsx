@@ -24,8 +24,8 @@ export const RouteTableDetails = () => {
   const { name, namespace, routeTableName, routeTableNamespace } = useParams();
 
   const { data: allRouteTables, error: rtError } = useListRouteTables({
-    name,
-    namespace,
+    name: name!,
+    namespace: namespace!,
   });
   const [routeTable, setRouteTable] = useState<RouteTable.AsObject>();
 
@@ -51,7 +51,7 @@ export const RouteTableDetails = () => {
 
   return (
     <SectionCard
-      cardName={routeTableName}
+      cardName={routeTableName!}
       logoIcon={
         <GlooIconHolder>
           <RouteTableIcon />
@@ -66,7 +66,8 @@ export const RouteTableDetails = () => {
       health={{
         state: routeTable?.status?.state ?? 0,
         reason: routeTable?.status?.reason,
-      }}>
+      }}
+    >
       <>
         <HealthNotificationBox
           state={routeTable?.status?.state}

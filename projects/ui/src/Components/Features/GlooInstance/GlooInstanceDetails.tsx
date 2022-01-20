@@ -11,7 +11,6 @@ import { ReactComponent as ClusterIcon } from 'assets/cluster-icon.svg';
 import { ReactComponent as NamespaceIcon } from 'assets/namespace-icon.svg';
 import { ReactComponent as VersionsIcon } from 'assets/versions-icon.svg';
 import { ReactComponent as GearIcon } from 'assets/gear-icon.svg';
-import { format } from 'util';
 import {
   FolderTab,
   FolderTabList,
@@ -28,6 +27,7 @@ import { useListGlooInstances } from 'API/hooks';
 import { GlooInstanceIssues } from './GlooInstanceIssues';
 import { DataError } from 'Components/Common/DataError';
 import { GlooInstanceRouteTables } from './GlooInstanceRouteTables';
+import { formatTimestamp } from 'utils';
 
 const GlooIconHolder = styled.div`
   display: flex;
@@ -153,19 +153,20 @@ export const GlooInstancesDetails = () => {
   if (glooInstance?.metadata?.creationTimestamp) {
     secondaryHeaderInfo.unshift({
       title: 'Last Updated',
-      value: format(glooInstance?.metadata?.creationTimestamp),
+      value: formatTimestamp(glooInstance?.metadata?.creationTimestamp),
     });
   }
 
   return (
     <SectionCard
-      cardName={name}
+      cardName={name!}
       logoIcon={
         <GlooIconHolder>
           <GlooIcon />
         </GlooIconHolder>
       }
-      headerSecondaryInformation={secondaryHeaderInfo}>
+      headerSecondaryInformation={secondaryHeaderInfo}
+    >
       {!!instancesError ? (
         <DataError error={instancesError} />
       ) : !glooInstance ? (

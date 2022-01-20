@@ -42,7 +42,7 @@ const Actionables = styled.div`
 `;
 
 export const GlooAdminProxy = () => {
-  const { name, namespace } = useParams();
+  const { name = '', namespace = '' } = useParams();
 
   const { data: proxies, error: pError } = useListProxies({ name, namespace });
 
@@ -150,7 +150,8 @@ export const GlooAdminProxy = () => {
               state: proxy.status?.state ?? ProxyStatus.State.PENDING,
               title: 'Proxy Status',
               reason: proxy.status?.reason,
-            }}>
+            }}
+          >
             <HealthNotificationBox
               state={proxy?.status?.state}
               reason={proxy?.status?.reason}

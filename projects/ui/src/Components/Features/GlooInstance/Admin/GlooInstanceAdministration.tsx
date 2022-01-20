@@ -55,7 +55,7 @@ const BottomRow = styled(Row)`
 `;
 
 export const GlooInstanceAdministration = () => {
-  const { name, namespace } = useParams();
+  const { name = '', namespace = '' } = useParams();
 
   const { data: glooInstances, error: instancesError } = useListGlooInstances();
   const { data: gateways, error: gatewaysError } = useListGateways({

@@ -10,7 +10,10 @@ import {
   GetFailoverSchemeYamlRequest,
   FailoverScheme,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/failover_scheme_pb';
-import { ObjectRef, ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
+import {
+  ObjectRef,
+  ClusterObjectRef,
+} from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 const failoverSchemeApiClient = new FailoverSchemeApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -36,7 +39,7 @@ function getFailoverScheme(
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject().failoverScheme);
+        resolve(data!.toObject().failoverScheme!);
       }
     });
   });
