@@ -61,7 +61,7 @@ steps:
 
 # e2e-go-mod-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-go-mod-ginkgo
 # Must set the GOPATH to tell the container the workspace has already been set up (by the prepare-workspace step above)
-- name: node:12.13.1
+- name: node:14
   env:
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
   secretEnv: ["NPM_TOKEN"]

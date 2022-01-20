@@ -52,9 +52,10 @@ jobs:
           TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
         run: git config --global url."https://soloio_bot:${TOKEN}@github.com".insteadOf "https://github.com"
       - name: Yarn Install
-        uses: borales/actions-yarn@v2.0.0
+        uses: actions/setup-node@v2
         with:
-          cmd: --cwd projects/ui install
+          node-version: '14'
+      - run: yarn --cwd projects/ui install
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Generate Code
