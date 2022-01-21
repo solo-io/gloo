@@ -26,6 +26,8 @@ import { IconHolder } from 'Styles/StyledComponents/icons';
 import { APIType } from './GraphqlLanding';
 import bookInfoSchema from './data/book-info.json';
 import petstoreSchema from './data/petstore.json';
+import { NewApiModal } from './NewApiModal';
+import { ApiProvider } from './state/ApiProvider.state';
 
 export const GraphqlIconHolder = styled.div`
   display: flex;
@@ -35,6 +37,23 @@ export const GraphqlIconHolder = styled.div`
   svg {
     width: 35px;
     max-width: none;
+  }
+`;
+
+const PositionHolder = styled.div`
+  position: relative;
+`;
+
+const SecondaryComponent = styled.div`
+  position: absolute;
+  right: 20px;
+`;
+
+const Button = styled.button`
+  color: ${colors.oceanBlue};
+  &:hover {
+    cursor: pointer;
+    color: ${colors.seaBlue};
   }
 `;
 
@@ -152,6 +171,7 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
 
 export const GraphqlPageTable = (props: Props) => {
   const { typeFilters } = props;
+  const [showGraphqlModal, setShowGraphqlModal] = React.useState(false);
   function getIcon(filter: CheckboxFilterProps) {
     switch (filter.label) {
       case APIType.GRAPHQL:
@@ -164,6 +184,20 @@ export const GraphqlPageTable = (props: Props) => {
         break;
     }
   }
+  const toggleGraphqlModal = () => {
+    setShowGraphqlModal(!showGraphqlModal);
+  }
+
+  function getLink(filter: CheckboxFilterProps) {
+    return filter.label === APIType.GRAPHQL ? (
+    <SecondaryComponent>
+      <Button type="button" onClick={toggleGraphqlModal} className=''>
+         Create Graphql API
+      </Button>
+
+    </SecondaryComponent>) : null;
+  }
+
   return (
     <>
       {typeFilters
@@ -179,10 +213,14 @@ export const GraphqlPageTable = (props: Props) => {
             cardName={filter.label}
             logoIcon={<GraphqlIconHolder>{getIcon(filter)}</GraphqlIconHolder>}
             noPadding={true}
+            secondaryComponent={getLink(filter)}
           >
             <GraphqlTable {...props} wholePage={true} />
           </SectionCard>
         ))}
+        <ApiProvider>
+          <NewApiModal showNewModal={showGraphqlModal} toggleNewModal={toggleGraphqlModal} />
+        </ApiProvider>
     </>
   );
 };

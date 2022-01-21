@@ -204,6 +204,7 @@
                   "namespace": "gloo-system"
                 }
               }
+           
             },
             "author": {
               "restResolver": {
@@ -297,7 +298,7 @@
           }
         }
       },
-      "schema_definition": "type Query {\n  productsForHome: [Product] @resolve(name: \"Query|productsForHome\")\n}\n\ntype Product {\n  id: String\n  title: String\n  descriptionHtml: String\n  author: String @resolve(name: \"author\")\n  pages: Int @resolve(name: \"pages\")\n  year: Int @resolve(name: \"year\")\n  reviews : [Review] @resolve(name: \"reviews\")\n  ratings : [Rating] @resolve(name: \"ratings\")\n}\n\ntype Review {\n  reviewer: String\n  text: String\n}\n\ntype Rating {\n  reviewer : String\n  numStars : Int\n}\n"
+        "schema_definition": "type Query {\n  productsForHome: [Product] \n}\n\ntype Product {\n  id: String\n  title: String\n  descriptionHtml: String\n  author: String \n  year: Int \n  reviews : [Review] \n  ratings : [Rating] \n}\n\ntype Review {\n  reviewer: String\n  text: String\n}\n\ntype Rating {\n  reviewer : String\n  numStars : Int\n}\n"
     }
   }
 }

@@ -11,8 +11,10 @@ import { colors } from 'Styles/colors';
 import YAML from 'yaml';
 import { bookInfoYsml } from './data/book-info-yaml';
 import graphQLSchema from './data/book-info.json';
+import { GraphqlApiExplorer } from './GraphqlApiExplorer';
 import { GraphqlIconHolder } from './GraphqlTable';
 import { ResolverWizard } from './ResolverWizard';
+import { ApiProvider } from './state/ApiProvider.state';
 
 export const OperationDescription = styled('div')`
   grid-column: span 3 / span 3;
@@ -345,7 +347,9 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
           ]}
         >
           {showSchemaExplorer ? (
-            <div>Schema Explorer</div>
+            <ApiProvider>
+              <GraphqlApiExplorer graphQLSchema={graphQLSchema} />
+            </ApiProvider>
           ) : (
             <>
               {' '}

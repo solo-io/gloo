@@ -124,13 +124,7 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
         <HeaderTitleSection>
           <HeaderTitleName>{cardName}</HeaderTitleName>
         </HeaderTitleSection>
-        {!!secondaryComponent && (
-          <SecondaryInformation>
-            <SecondaryInformationSection>
-              {secondaryComponent}
-            </SecondaryInformationSection>
-          </SecondaryInformation>
-        )}
+        {secondaryComponent}
         {!!headerSecondaryInformation && (
           <SecondaryInformation>
             {headerSecondaryInformation.map(info => {

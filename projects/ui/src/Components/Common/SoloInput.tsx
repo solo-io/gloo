@@ -53,6 +53,7 @@ interface InputProps {
   borderless?: boolean;
   error?: boolean;
   password?: boolean;
+  file?: boolean;
 }
 
 export const SoloInput = (props: InputProps) => {
@@ -68,13 +69,22 @@ export const SoloInput = (props: InputProps) => {
     borderless,
     onKeyPress,
     password,
+    file,
   } = props;
+
+  let type = 'text';
+  if (!!password) {
+    type = 'password';
+  }
+  if (!!file) {
+    type = 'file';
+  }
 
   return (
     <div>
       {title && <Label>{title}</Label>}
       <Input
-        type={!!password ? 'password' : 'text'}
+        type={type}
         borderless={borderless}
         name={name}
         placeholder={placeholder}
