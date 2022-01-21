@@ -12,6 +12,7 @@ import (
 	"github.com/mitchellh/hashstructure"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
@@ -73,7 +74,7 @@ func NewTranslatorSyncerExtension(params syncer.TranslatorSyncerExtensionParams)
 
 func (s *TranslatorSyncerExtension) Sync(
 	ctx context.Context,
-	snap *gloov1.ApiSnapshot,
+	snap *gloov1snap.ApiSnapshot,
 	settings *gloov1.Settings,
 	xdsCache envoycache.SnapshotCache,
 	reports reporter.ResourceReports,
@@ -102,7 +103,7 @@ type SnapshotSetter interface {
 
 func (s *TranslatorSyncerExtension) SyncAndSet(
 	ctx context.Context,
-	snap *gloov1.ApiSnapshot,
+	snap *gloov1snap.ApiSnapshot,
 	settings *gloov1.Settings,
 	xdsCache SnapshotSetter,
 	reports reporter.ResourceReports,
@@ -202,7 +203,7 @@ func newHelper() *helper {
 	}
 }
 
-func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnapshot, settings *gloov1.Settings, config *extauth.ExtAuthExtension,
+func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1snap.ApiSnapshot, settings *gloov1.Settings, config *extauth.ExtAuthExtension,
 	reports reporter.ResourceReports, parentProxy resources.InputResource) error {
 	if config.GetConfigRef() != nil {
 		return h.processAuthExtensionConfigRef(ctx, snap, config.GetConfigRef(), reports, parentProxy)
@@ -216,7 +217,7 @@ func (h *helper) processAuthExtension(ctx context.Context, snap *gloov1.ApiSnaps
 	return nil
 }
 
-func (h *helper) processAuthExtensionConfigRef(ctx context.Context, snap *gloov1.ApiSnapshot, configRef *core.ResourceRef,
+func (h *helper) processAuthExtensionConfigRef(ctx context.Context, snap *gloov1snap.ApiSnapshot, configRef *core.ResourceRef,
 	reports reporter.ResourceReports, parentProxy resources.InputResource) error {
 
 	if configRef == nil {

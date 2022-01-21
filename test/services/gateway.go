@@ -256,6 +256,11 @@ func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 		AuthConfigs:             f,
 		RateLimitConfigs:        f,
 		GraphQLSchemas:          f,
+		VirtualServices:         f,
+		Gateways:                f,
+		RouteTables:             f,
+		RouteOptions:            f,
+		VirtualHostOptions:      f,
 		WatchNamespaces:         []string{"default", ns},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,

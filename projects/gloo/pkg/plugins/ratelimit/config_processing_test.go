@@ -11,6 +11,7 @@ import (
 	gloo_rl_api "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	rl_api "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	solo_apis_rl "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
@@ -136,7 +137,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 				ObjectMeta: metav1.ObjectMeta{Name: "bar", Namespace: "default"},
 			}
 
-			snapshot := &gloov1.ApiSnapshot{
+			snapshot := &gloov1snap.ApiSnapshot{
 				Ratelimitconfigs: []*gloo_rl_api.RateLimitConfig{
 					{
 						RateLimitConfig: ratelimit.RateLimitConfig(rlConfig1),

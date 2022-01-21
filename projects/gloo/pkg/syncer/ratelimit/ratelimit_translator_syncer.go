@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
 	"github.com/mitchellh/hashstructure"
@@ -110,7 +112,7 @@ func NewTranslatorSyncer(
 
 func (s *translatorSyncerExtension) Sync(
 	ctx context.Context,
-	snap *gloov1.ApiSnapshot,
+	snap *gloov1snap.ApiSnapshot,
 	settings *gloov1.Settings,
 	xdsCache envoycache.SnapshotCache,
 	reports reporter.ResourceReports,
@@ -226,7 +228,7 @@ type configCollectorSet struct {
 
 func newCollectorSet(
 	collectorFactory collectors.ConfigCollectorFactory,
-	snapshot *gloov1.ApiSnapshot,
+	snapshot *gloov1snap.ApiSnapshot,
 	reports reporter.ResourceReports,
 	logger *zap.SugaredLogger,
 ) (configCollectorSet, error) {

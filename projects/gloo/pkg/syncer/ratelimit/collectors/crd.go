@@ -4,6 +4,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	solo_api_rl_types "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -14,14 +15,14 @@ import (
 )
 
 type crdConfigCollector struct {
-	snapshot   *gloov1.ApiSnapshot
+	snapshot   *gloov1snap.ApiSnapshot
 	translator rate_limiter_shims.RateLimitConfigTranslator
 
 	resources map[string]*solo_api_rl_types.RateLimitConfigSpec_Raw
 }
 
 func NewCrdConfigCollector(
-	snapshot *gloov1.ApiSnapshot,
+	snapshot *gloov1snap.ApiSnapshot,
 	translator rate_limiter_shims.RateLimitConfigTranslator,
 ) ConfigCollector {
 	return &crdConfigCollector{

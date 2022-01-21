@@ -30,6 +30,7 @@ import (
 	rlsyncer "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 )
 
 // copied from rate-limiter: pkg/config/translation/crd_translator.go
@@ -44,7 +45,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 		ctrl               *gomock.Controller
 
 		proxy       *gloov1.Proxy
-		apiSnapshot *gloov1.ApiSnapshot
+		apiSnapshot *gloov1snap.ApiSnapshot
 		settings    *gloov1.Settings
 
 		collectorFactory   *mock_collectors.MockConfigCollectorFactory
@@ -73,7 +74,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 		syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator)
 
-		apiSnapshot = &gloov1.ApiSnapshot{
+		apiSnapshot = &gloov1snap.ApiSnapshot{
 			Proxies: []*gloov1.Proxy{proxy},
 		}
 		settings = &gloov1.Settings{}
@@ -476,7 +477,7 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 
 			Expect(reports).To(HaveLen(0))
 
-			role, err := syncer.Sync(ctx, &gloov1.ApiSnapshot{}, &gloov1.Settings{}, cache, make(skreporter.ResourceReports))
+			role, err := syncer.Sync(ctx, &gloov1snap.ApiSnapshot{}, &gloov1.Settings{}, cache, make(skreporter.ResourceReports))
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(IllegalDescriptorsErr.Error())))
 			Expect(role).To(Equal(rlsyncer.RateLimitServerRole))

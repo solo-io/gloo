@@ -2,8 +2,8 @@ package collectors
 
 import (
 	"github.com/rotisserie/eris"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/translation"
 	"go.uber.org/zap"
@@ -34,7 +34,7 @@ func NewCollectorFactory(
 	}
 }
 
-func (f collectorFactory) MakeInstance(typ CollectorType, snapshot *gloov1.ApiSnapshot, logger *zap.SugaredLogger) (ConfigCollector, error) {
+func (f collectorFactory) MakeInstance(typ CollectorType, snapshot *gloov1snap.ApiSnapshot, logger *zap.SugaredLogger) (ConfigCollector, error) {
 	switch typ {
 	case Global:
 		return NewGlobalConfigCollector(f.settings, logger, f.globalTranslator), nil

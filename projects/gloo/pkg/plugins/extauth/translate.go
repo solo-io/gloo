@@ -17,6 +17,7 @@ import (
 
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 )
 
 var (
@@ -38,7 +39,7 @@ var (
 )
 
 // Returns {nil, nil} if the input config is empty or if it contains only custom auth entries
-func TranslateExtAuthConfig(ctx context.Context, snapshot *v1.ApiSnapshot, authConfigRef *core.ResourceRef) (*extauth.ExtAuthConfig, error) {
+func TranslateExtAuthConfig(ctx context.Context, snapshot *v1snap.ApiSnapshot, authConfigRef *core.ResourceRef) (*extauth.ExtAuthConfig, error) {
 	configResource, err := snapshot.AuthConfigs.Find(authConfigRef.Strings())
 	if err != nil {
 		return nil, errors.Errorf("could not find auth config [%s] in snapshot", authConfigRef.Key())
@@ -67,7 +68,7 @@ func TranslateExtAuthConfig(ctx context.Context, snapshot *v1.ApiSnapshot, authC
 	}, nil
 }
 
-func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, cfg *extauth.AuthConfig_Config) (*extauth.ExtAuthConfig_Config, error) {
+func translateConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth.AuthConfig_Config) (*extauth.ExtAuthConfig_Config, error) {
 	extAuthConfig := &extauth.ExtAuthConfig_Config{
 		Name: cfg.Name,
 	}
@@ -165,7 +166,7 @@ func translateConfig(ctx context.Context, snap *v1.ApiSnapshot, cfg *extauth.Aut
 	return extAuthConfig, nil
 }
 
-func translateOpaConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extauth.OpaAuth) (*extauth.ExtAuthConfig_OpaAuthConfig, error) {
+func translateOpaConfig(ctx context.Context, snap *v1snap.ApiSnapshot, config *extauth.OpaAuth) (*extauth.ExtAuthConfig_OpaAuthConfig, error) {
 
 	modules := map[string]string{}
 	for _, refs := range config.Modules {
@@ -201,7 +202,7 @@ func translateOpaConfig(ctx context.Context, snap *v1.ApiSnapshot, config *extau
 	}, err
 }
 
-func translateApiKey(ctx context.Context, snap *v1.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth.ExtAuthConfig_ApiKeyAuthConfig, error) {
+func translateApiKey(ctx context.Context, snap *v1snap.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth.ExtAuthConfig_ApiKeyAuthConfig, error) {
 	var (
 		matchingSecrets []*v1.Secret
 		searchErrs      = &multierror.Error{}
@@ -305,7 +306,7 @@ func translateApiKey(ctx context.Context, snap *v1.ApiSnapshot, config *extauth.
 }
 
 // translate deprecated config
-func translateOauth(snap *v1.ApiSnapshot, config *extauth.OAuth) (*extauth.ExtAuthConfig_OAuthConfig, error) {
+func translateOauth(snap *v1snap.ApiSnapshot, config *extauth.OAuth) (*extauth.ExtAuthConfig_OAuthConfig, error) {
 
 	secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
 	if err != nil {
@@ -323,7 +324,7 @@ func translateOauth(snap *v1.ApiSnapshot, config *extauth.OAuth) (*extauth.ExtAu
 	}, nil
 }
 
-func translateOidcAuthorizationCode(snap *v1.ApiSnapshot, config *extauth.OidcAuthorizationCode) (*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, error) {
+func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.OidcAuthorizationCode) (*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, error) {
 
 	secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
 	if err != nil {
@@ -351,7 +352,7 @@ func translateOidcAuthorizationCode(snap *v1.ApiSnapshot, config *extauth.OidcAu
 	}, nil
 }
 
-func translateAccessTokenValidationConfig(snap *v1.ApiSnapshot, config *extauth.AccessTokenValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig, error) {
+func translateAccessTokenValidationConfig(snap *v1snap.ApiSnapshot, config *extauth.AccessTokenValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig, error) {
 	accessTokenValidationConfig := &extauth.ExtAuthConfig_AccessTokenValidationConfig{
 		UserinfoUrl:  config.GetUserinfoUrl(),
 		CacheTimeout: config.GetCacheTimeout(),
@@ -394,7 +395,7 @@ func translateAccessTokenValidationConfig(snap *v1.ApiSnapshot, config *extauth.
 	return accessTokenValidationConfig, nil
 }
 
-func translateAccessTokenValidationIntrospection(snap *v1.ApiSnapshot, config *extauth.AccessTokenValidation_IntrospectionValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionValidation, error) {
+func translateAccessTokenValidationIntrospection(snap *v1snap.ApiSnapshot, config *extauth.AccessTokenValidation_IntrospectionValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionValidation, error) {
 	var clientSecret string
 	if config.GetClientSecretRef() != nil {
 		secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())

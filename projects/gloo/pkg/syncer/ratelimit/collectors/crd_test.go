@@ -12,6 +12,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	solo_api_rl_types "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -59,7 +60,7 @@ var _ = Describe("CRD Config Collector", func() {
 			Domain: rlIngressPlugin.ConfigCrdDomain,
 		}
 
-		snap := &v1.ApiSnapshot{Ratelimitconfigs: []*gloo_rl_api.RateLimitConfig{rl1, rl2, rl3}}
+		snap := &v1snap.ApiSnapshot{Ratelimitconfigs: []*gloo_rl_api.RateLimitConfig{rl1, rl2, rl3}}
 
 		collector = collectors.NewCrdConfigCollector(snap, translator)
 	})

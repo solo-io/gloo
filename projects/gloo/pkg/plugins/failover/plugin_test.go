@@ -19,6 +19,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/cluster"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul/mocks"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/static"
@@ -329,7 +330,7 @@ var _ = Describe("Failover", func() {
 		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
 		params := plugins.Params{
 			Ctx: ctx,
-			Snapshot: &gloov1.ApiSnapshot{
+			Snapshot: &gloov1snap.ApiSnapshot{
 				Secrets: secretList,
 			},
 		}
@@ -471,7 +472,7 @@ var _ = Describe("Failover", func() {
 		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
 		params := plugins.Params{
 			Ctx: ctx,
-			Snapshot: &gloov1.ApiSnapshot{
+			Snapshot: &gloov1snap.ApiSnapshot{
 				Secrets: secretList,
 			},
 		}
@@ -511,7 +512,7 @@ var _ = Describe("Failover", func() {
 		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
 		params := plugins.Params{
 			Ctx: ctx,
-			Snapshot: &gloov1.ApiSnapshot{
+			Snapshot: &gloov1snap.ApiSnapshot{
 				Secrets: secretList,
 			},
 		}
@@ -564,7 +565,7 @@ var _ = Describe("Failover", func() {
 		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
 		params := plugins.Params{
 			Ctx: ctx,
-			Snapshot: &gloov1.ApiSnapshot{
+			Snapshot: &gloov1snap.ApiSnapshot{
 				Secrets: secretList,
 			},
 		}
@@ -711,7 +712,7 @@ var _ = Describe("Failover", func() {
 		plugin := failover.NewFailoverPlugin(sslTranslator, dnsResolver, apiEmitNotificationChan)
 		params := plugins.Params{
 			Ctx: ctx,
-			Snapshot: &gloov1.ApiSnapshot{
+			Snapshot: &gloov1snap.ApiSnapshot{
 				Secrets: secretList,
 			},
 		}

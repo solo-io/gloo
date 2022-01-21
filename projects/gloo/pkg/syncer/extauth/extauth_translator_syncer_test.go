@@ -15,6 +15,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -36,7 +37,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		translator       *TranslatorSyncerExtension
 		secret           *gloov1.Secret
 		oauthAuthConfig  *extauth.AuthConfig
-		apiSnapshot      *gloov1.ApiSnapshot
+		apiSnapshot      *gloov1snap.ApiSnapshot
 		snapCache        *mockSetSnapshot
 		authConfigClient clients.ResourceClient
 		proxyClient      clients.ResourceClient
@@ -70,7 +71,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 				Oauth: oidcSecret(),
 			},
 		}
-		apiSnapshot = &gloov1.ApiSnapshot{
+		apiSnapshot = &gloov1snap.ApiSnapshot{
 			Proxies:     []*gloov1.Proxy{proxy},
 			Secrets:     []*gloov1.Secret{secret},
 			AuthConfigs: extauth.AuthConfigList{oauthAuthConfig},

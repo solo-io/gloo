@@ -10,6 +10,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	enterprise "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
+	gloosnapshot "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	reporter "github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	collectors "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit/collectors"
 	zap "go.uber.org/zap"
@@ -101,7 +102,7 @@ func (m *MockConfigCollectorFactory) EXPECT() *MockConfigCollectorFactoryMockRec
 }
 
 // MakeInstance mocks base method.
-func (m *MockConfigCollectorFactory) MakeInstance(typ collectors.CollectorType, snapshot *v1.ApiSnapshot, logger *zap.SugaredLogger) (collectors.ConfigCollector, error) {
+func (m *MockConfigCollectorFactory) MakeInstance(typ collectors.CollectorType, snapshot *gloosnapshot.ApiSnapshot, logger *zap.SugaredLogger) (collectors.ConfigCollector, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MakeInstance", typ, snapshot, logger)
 	ret0, _ := ret[0].(collectors.ConfigCollector)

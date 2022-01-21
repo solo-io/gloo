@@ -1,0 +1,11 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.11.0-beta5
+    description: Bump the version of gloo to get the change to snapshots.
+
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/2939
+    description: Update package to import gloo snapshots from v1 to v1/gloosnapshot.
+

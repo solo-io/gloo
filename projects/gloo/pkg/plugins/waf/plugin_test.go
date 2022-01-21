@@ -9,6 +9,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
@@ -280,7 +281,7 @@ var _ = Describe("waf plugin", func() {
 			}},
 		}
 
-		params.Snapshot = &v1.ApiSnapshot{
+		params.Snapshot = &v1snap.ApiSnapshot{
 			Proxies: v1.ProxyList{proxy},
 		}
 		vhostParams = plugins.VirtualHostParams{

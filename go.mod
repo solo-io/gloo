@@ -52,7 +52,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.12
 	github.com/solo-io/external-apis v0.1.11
-	github.com/solo-io/gloo v1.11.0-beta4
+	github.com/solo-io/gloo v1.11.0-beta5
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.21.24
 	github.com/solo-io/k8s-utils v0.0.12
@@ -63,7 +63,7 @@ require (
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.21.6
 	github.com/solo-io/skv2-enterprise v0.2.8
-	github.com/solo-io/solo-apis v0.0.0-20220118142959-7fc390cd11c1
+	github.com/solo-io/solo-apis v0.0.0-20220120204454-d4cfce4e8085
 	github.com/solo-io/solo-kit v0.24.2
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -71,6 +71,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	github.com/yvasiyarov/newrelic_platform_go v0.0.0-20160601141957-9c099fbc30e9 // indirect
+	go.mongodb.org/mongo-driver v1.8.2 // indirect
 	go.opencensus.io v0.23.0
 	go.uber.org/zap v1.19.1
 	golang.org/x/mod v0.5.1

@@ -12,6 +12,7 @@ import (
 	"github.com/rotisserie/eris"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	rlplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	solo_api_rl_types "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
@@ -228,7 +229,7 @@ func (p *Plugin) getSetRateLimits(ctx context.Context, soloApiActions []*solo_ap
 	return ret, nil
 }
 
-func (p *Plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap *v1.ApiSnapshot) ([]*envoy_config_route_v3.RateLimit, error) {
+func (p *Plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap *v1snap.ApiSnapshot) ([]*envoy_config_route_v3.RateLimit, error) {
 	var (
 		result []*envoy_config_route_v3.RateLimit
 		errs   = &multierror.Error{}

@@ -11,6 +11,7 @@ import (
 	core2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	envoy_advanced_http "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/advanced_http"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	gloo_advanced_http "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/advanced_http"
 	v1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -87,7 +88,7 @@ var _ = Describe("Plugin", func() {
 			},
 			HealthChecks: []*core2.HealthCheck{check},
 		}
-		params = plugins.Params{Snapshot: &v1.ApiSnapshot{}}
+		params = plugins.Params{Snapshot: &v1snap.ApiSnapshot{}}
 	})
 
 	It("should create a custom health check when static upstream has a path", func() {

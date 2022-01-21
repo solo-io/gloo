@@ -3,6 +3,7 @@ package collectors
 import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"go.uber.org/zap"
 )
@@ -29,5 +30,5 @@ type ConfigCollector interface {
 }
 
 type ConfigCollectorFactory interface {
-	MakeInstance(typ CollectorType, snapshot *v1.ApiSnapshot, logger *zap.SugaredLogger) (ConfigCollector, error)
+	MakeInstance(typ CollectorType, snapshot *v1snap.ApiSnapshot, logger *zap.SugaredLogger) (ConfigCollector, error)
 }
