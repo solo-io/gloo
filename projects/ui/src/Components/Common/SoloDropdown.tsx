@@ -174,6 +174,7 @@ export const SoloDropdown = (props: DropdownProps) => {
         value={value}
         dropdownMatchSelectWidth={false}
         defaultValue={getDefaultValue()}
+        //@ts-ignore
         onChange={onChange}
         onBlur={onBlur}
         disabled={disabled}

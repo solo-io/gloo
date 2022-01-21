@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: API Details page for GraphQLSchemas
+    issueLink: https://github.com/solo-io/solo-projects/issues/2966

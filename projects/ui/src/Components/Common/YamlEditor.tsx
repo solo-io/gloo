@@ -27,7 +27,7 @@ export interface SoloFormYamlEditorProps extends IAceEditorProps {
 }
 
 const YamlEditor = (props: SoloFormYamlEditorProps) => {
-  const { name, title, ...rest } = props;
+  const { name, title, value, ...rest } = props;
 
   return (
     <div>
@@ -36,7 +36,7 @@ const YamlEditor = (props: SoloFormYamlEditorProps) => {
       <AceEditor
         mode='yaml'
         theme='chrome'
-        name='gatewayConfiguration'
+        name={title}
         style={{
           maxWidth: '40vw',
           maxHeight: '25vh',
@@ -49,7 +49,7 @@ const YamlEditor = (props: SoloFormYamlEditorProps) => {
         showPrintMargin={false}
         showGutter={true}
         highlightActiveLine={true}
-        value={rest.value}
+        value={value}
         readOnly={false}
         setOptions={{
           highlightGutterLine: true,

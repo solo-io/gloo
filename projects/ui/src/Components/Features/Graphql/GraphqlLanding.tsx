@@ -109,7 +109,7 @@ export const GraphqlLanding = () => {
           className='absolute right-0 flex items-center text-green-400 cursor-pointer -top-8 hover:text-green-300'
         >
           <GreenPlus className='w-6 mr-1 fill-current' />
-          <span className='text-gray-700'> Configure Resolver</span>
+          <span className='text-gray-700'> Create API</span>
         </span>
         <div>
           <SoloInput

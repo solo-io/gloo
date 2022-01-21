@@ -1,24 +1,17 @@
-import React from 'react';
 import styled from '@emotion/styled/macro';
-import {
-  Formik,
-  FormikErrors,
-  FormikState,
-  FormikTouched,
-  useFormikContext,
-} from 'formik';
-import { Tab, TabList, TabPanel, TabPanels, Tabs, TabProps } from '@reach/tabs';
-import { ReactComponent as Checkmark } from 'assets/success-checkmark.svg';
-import { colors } from 'Styles/colors';
-import * as yup from 'yup';
-import {
-  SoloButtonStyledComponent,
-  SoloCancelButton,
-} from 'Styles/StyledComponents/button';
-import { StyledModalTab, StyledModalTabs } from 'Components/Common/SoloModal';
-import { SoloFormDropdown } from 'Components/Common/SoloFormComponents';
+import { TabList, TabPanel, TabPanels } from '@reach/tabs';
+import { useListUpstreams } from 'API/hooks';
 import { OptionType } from 'Components/Common/SoloDropdown';
+import { SoloFormDropdown } from 'Components/Common/SoloFormComponents';
+import { StyledModalTab, StyledModalTabs } from 'Components/Common/SoloModal';
+import YamlDisplayer from 'Components/Common/YamlDisplayer';
 import YamlEditor from 'Components/Common/YamlEditor';
+import { Formik, FormikState, useFormikContext } from 'formik';
+import React from 'react';
+import { colors } from 'Styles/colors';
+import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
+import * as yup from 'yup';
+import YAML from 'yaml';
 
 export const IconButton = styled.button`
   display: inline-flex;
@@ -148,30 +141,9 @@ const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
 
 type UpstreamSectionProps = { isEdit: boolean };
 
-const upstreamsList: OptionType[] = [
-  {
-    key: 'details',
-    value: 'details',
-    displayValue: 'details',
-  },
-  {
-    key: 'reviews',
-    value: 'reviews',
-    displayValue: 'reviews',
-  },
-  {
-    key: 'ratings',
-    value: 'ratings',
-    displayValue: 'ratings',
-  },
-  {
-    key: 'product',
-    value: 'product',
-    displayValue: 'product',
-  },
-];
 const UpstreamSection = ({ isEdit }: UpstreamSectionProps) => {
   const formik = useFormikContext<ResolverWizardProps>();
+  const { data: upstreams, error: upstreamsError } = useListUpstreams();
 
   return (
     <div className='w-full h-full p-6 pb-0'>
@@ -186,15 +158,24 @@ const UpstreamSection = ({ isEdit }: UpstreamSectionProps) => {
           <div className='mt-2'>
             <SoloFormDropdown
               name='upstream'
+              value={formik.values.upstream}
               defaultValue={formik.values.upstream}
-              options={upstreamsList.sort((upstream1, upstream2) =>
-                upstream1.displayValue === upstream2.displayValue
-                  ? 0
-                  : (upstream1?.displayValue ?? upstream1.value) >
-                    (upstream2?.displayValue ?? upstream2.value)
-                  ? 1
-                  : -1
-              )}
+              options={upstreams
+                ?.map(upstream => {
+                  return {
+                    key: upstream.metadata?.uid!,
+                    value: upstream.metadata?.name!,
+                    displayValue: upstream.metadata?.name!,
+                  };
+                })
+                .sort((upstream1, upstream2) =>
+                  upstream1.displayValue === upstream2.displayValue
+                    ? 0
+                    : (upstream1?.displayValue ?? upstream1.value) >
+                      (upstream2?.displayValue ?? upstream2.value)
+                    ? 1
+                    : -1
+                )}
             />
           </div>
         </div>
@@ -203,10 +184,23 @@ const UpstreamSection = ({ isEdit }: UpstreamSectionProps) => {
   );
 };
 
-type ResolverConfigSectionProps = { isEdit: boolean };
+type ResolverConfigSectionProps = {
+  isEdit: boolean;
+  resolverConfig: string;
+};
 
-const ResolverConfigSection = ({ isEdit }: ResolverConfigSectionProps) => {
+const ResolverConfigSection = ({
+  isEdit,
+  resolverConfig,
+}: ResolverConfigSectionProps) => {
   const formik = useFormikContext<ResolverWizardProps>();
+  const [isValid, setIsValid] = React.useState(false);
+
+  React.useEffect(() => {
+    setTimeout(() => {
+      formik.setFieldValue('resolverConfig', resolverConfig);
+    }, 300);
+  }, []);
 
   return (
     <div className='w-full h-full p-6 pb-0'>
@@ -221,8 +215,12 @@ const ResolverConfigSection = ({ isEdit }: ResolverConfigSectionProps) => {
             <YamlEditor
               name='resolverConfig'
               title='Resolver Configuration'
+              defaultValue={resolverConfig}
               onChange={e => {
                 formik.setFieldValue('resolverConfig', e);
+              }}
+              onInput={() => {
+                setIsValid(false);
               }}
               value={formik.values.resolverConfig ?? ''}
             />
@@ -233,8 +231,27 @@ const ResolverConfigSection = ({ isEdit }: ResolverConfigSectionProps) => {
   );
 };
 
+let res = {
+  name: 'author',
+  restResolver: {
+    request: {
+      headers: {
+        ':method': 'GET',
+        ':path': '/details/{$parent.id}',
+      },
+    },
+    response: {
+      resultRoot: 'author',
+    },
+    upstreamRef: {
+      name: 'default-details-9080',
+      namespace: 'gloo-system',
+    },
+  },
+};
 type ResolverWizardFormProps = {
   onClose: () => void;
+  resolver?: typeof res;
 };
 
 export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
@@ -242,11 +259,9 @@ export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
-  const initialValues: ResolverWizardProps = {
-    resolverType: 'REST',
-    upstream: '',
-    resolverConfig: '',
-  };
+  const [isValid, setIsValid] = React.useState(false);
+
+  const [isEdit, setIsEdit] = React.useState(Boolean(props.resolver));
 
   const submitResolverConfig = async (values: ResolverWizardProps) => {
     // TODO
@@ -269,10 +284,25 @@ export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
     upstreamIsValid(formik) &&
     resolverConfigIsValid(formik);
 
+  React.useEffect(() => {
+    setIsEdit(Boolean(props.resolver?.name));
+  }, [!!props.resolver?.name]);
+
+  const getInitialResolverConfig = (resolver?: typeof props.resolver) => {
+    if (resolver?.restResolver) {
+      return YAML.stringify(resolver);
+    }
+    return '';
+  };
   return (
     <div className='h-[650px]'>
       <Formik<ResolverWizardProps>
-        initialValues={initialValues}
+        initialValues={{
+          resolverType: 'REST',
+          upstream: props.resolver?.restResolver?.upstreamRef?.name! ?? '',
+          resolverConfig: getInitialResolverConfig(props?.resolver),
+        }}
+        enableReinitialize
         validationSchema={validationSchema}
         onSubmit={submitResolverConfig}
       >
@@ -331,7 +361,25 @@ export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
                   </div>
                 </TabPanel>
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
-                  <ResolverConfigSection isEdit={false} />
+                  <div className='w-full h-full p-6 pb-0'>
+                    <div
+                      className={
+                        'flex items-center mb-6 text-lg font-medium text-gray-800'
+                      }
+                    >
+                      Resolver{' '}
+                    </div>
+                    <div className=''>
+                      <div className='mb-2 '>
+                        <div>
+                          <YamlDisplayer
+                            contentString={formik.values.resolverConfig}
+                            copyable={false}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
                   <div className='flex items-center justify-between px-6 '>
                     <IconButton onClick={() => props.onClose()}>
