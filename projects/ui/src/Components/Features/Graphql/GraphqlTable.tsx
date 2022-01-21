@@ -6,6 +6,7 @@ import { ReactComponent as GrpcIcon } from 'assets/grpc-icon.svg';
 import { ReactComponent as RESTIcon } from 'assets/openapi-icon.svg';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { CheckboxFilterProps } from 'Components/Common/SoloCheckbox';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { RenderSimpleLink, SimpleLinkProps } from 'Components/Common/SoloLink';
 import {
   RenderCluster,
@@ -81,7 +82,6 @@ type TableDataType = {
   cluster: string;
   failover: boolean;
   status: number;
-  // TODO: replace this with mock graphql data
   actions: typeof bookInfoSchema.spec;
 };
 
@@ -133,9 +133,9 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
       dataIndex: 'namespace',
     },
     {
-      title: 'Failover',
+      title: 'Resolvers',
       dataIndex: 'failover',
-      render: renderFailover,
+      render: () => <div>6</div>,
     },
     {
       title: 'Status',
@@ -155,7 +155,6 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
       ),
     },
   ];
-
   return (
     <TableHolder wholePage={props.wholePage}>
       <SoloTable
@@ -214,9 +213,9 @@ export const GraphqlPageTable = (props: Props) => {
             logoIcon={<GraphqlIconHolder>{getIcon(filter)}</GraphqlIconHolder>}
             noPadding={true}
             secondaryComponent={getLink(filter)}
-          >
-            <GraphqlTable {...props} wholePage={true} />
-          </SectionCard>
+            >
+              <GraphqlTable {...props} wholePage={true} />
+            </SectionCard>
         ))}
         <ApiProvider>
           <NewApiModal showNewModal={showGraphqlModal} toggleNewModal={toggleGraphqlModal} />

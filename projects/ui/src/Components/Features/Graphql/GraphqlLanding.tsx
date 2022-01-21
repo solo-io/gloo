@@ -5,6 +5,7 @@ import {
 } from 'Components/Common/SoloCheckbox';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloModal } from 'Components/Common/SoloModal';
+// import { NewApiModal } from './NewApiModal';
 import React, { useState } from 'react';
 import { colors } from 'Styles/colors';
 import { GraphqlPageTable } from './GraphqlTable';
@@ -12,6 +13,8 @@ import { ResolverWizard } from './ResolverWizard';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
+import { ApiProvider } from './state/ApiProvider.state';
+import { NewApiModal } from './NewApiModal';
 
 export enum APIType {
   REST = 'REST',
@@ -24,14 +27,16 @@ const GraphqlLandingContainer = styled.div`
   grid-gap: 28px;
 `;
 
-const GraphQLIconHolder = styled.div`
-  display: flex;
-  align-items: center;
-  justify-items: center;
+const SecondaryComponent = styled.div`
+  position: absolute;
+  right: 20px;
+`;
 
-  svg {
-    width: 35px;
-    max-width: none;
+const Button = styled.button`
+  color: ${colors.oceanBlue};
+  &:hover {
+    cursor: pointer;
+    color: ${colors.seaBlue};
   }
 `;
 
@@ -81,12 +86,18 @@ const API_TYPES: CheckboxFilterProps[] = [
 export const GraphqlLanding = () => {
   const [nameFilter, setNameFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const openModal = () => setModalOpen(true);
-  const closeModal = () => setModalOpen(false);
+  const [showGraphqlModal, setShowGraphqlModal] = React.useState(false);
+
+  const openModal = () => setShowGraphqlModal(true);
+  const closeModal = () => setShowGraphqlModal(false);
   const [typeFilters, setTypeFilters] =
     useState<CheckboxFilterProps[]>(API_TYPES);
   const changeNameFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNameFilter(e.target.value);
+  };
+
+  const toggleGraphqlModal = () => {
+    setShowGraphqlModal(!showGraphqlModal);
   };
 
   const changeTypeFilter = (filter: CheckboxFilterProps, checked: boolean) => {
@@ -141,6 +152,12 @@ export const GraphqlLanding = () => {
       <SoloModal visible={modalOpen} width={750} onClose={closeModal}>
         <ResolverWizard onClose={closeModal} />
       </SoloModal>
+      <ApiProvider>
+        <NewApiModal
+          showNewModal={showGraphqlModal}
+          toggleNewModal={toggleGraphqlModal}
+        />
+      </ApiProvider>
     </>
   );
 };

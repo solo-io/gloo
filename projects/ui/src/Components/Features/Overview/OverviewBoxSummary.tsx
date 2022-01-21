@@ -19,7 +19,7 @@ import { CountBox } from 'Components/Common/CountBox';
 import { SoloLink } from 'Components/Common/SoloLink';
 import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 import { DataError } from 'Components/Common/DataError';
-
+import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 type BoxProps = {
   title: string;
   logo: React.ReactNode;
@@ -374,6 +374,35 @@ export const OverviewClustersBox = () => {
       count={clusterDetailsList?.length ?? 0}
       countDescription={'clusters are being managed within your environment'}
       link='/admin/clusters/'
+    />
+  );
+};
+export const OverviewGraphQLBox = () => {
+  const { data: upstreams, error: uError } = useListUpstreams();
+
+  if (!!uError) {
+    return <DataError error={uError} />;
+  } else if (!upstreams) {
+    return <Loading message={'Retrieving upstreams...'} />;
+  }
+
+  const servicesStatus = upstreams.some(
+    upstream => upstream.status?.state !== VirtualServiceStatus.State.ACCEPTED
+  )
+    ? UpstreamStatus.State.WARNING
+    : UpstreamStatus.State.ACCEPTED;
+
+  return (
+    <OverviewSmallBoxSummary
+      title={'APIs'}
+      logo={<GraphQLIcon />}
+      description='Generate graphql schema from other sources (e.g. openapi schema, grpc protos, etc.) and make those API available behind graphql'
+      status={servicesStatus}
+      count={1}
+      countDescription={
+        'APIs currently running across all of your Gloo instances'
+      }
+      link='/apis/'
     />
   );
 };

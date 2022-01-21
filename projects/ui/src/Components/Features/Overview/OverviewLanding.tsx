@@ -13,6 +13,7 @@ import {
   OverviewUpstreamsBox,
   OverviewGlooInstancesBox,
   OverviewClustersBox,
+  OverviewGraphQLBox,
 } from './OverviewBoxSummary';
 import { useListClusterDetails, useListGlooInstances } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
@@ -23,7 +24,10 @@ import {
   getGlooInstanceStatus,
 } from 'utils/gloo-instance-helpers';
 import { DataError } from 'Components/Common/DataError';
-
+import { colors } from 'Styles/colors';
+import { ReactComponent as GearIcon } from 'assets/gear-icon.svg';
+import { SoloLink } from 'Components/Common/SoloLink';
+import { EnableGraphqlFeature } from '../Graphql/EnableGraphqlFeature';
 const OverviewCard = styled(Card)`
   margin-top: 20px;
 `;
@@ -129,7 +133,8 @@ export const OverviewLanding = () => {
         </CardSubsectionContent>
       </CardSubsectionWrapper>
       <BottomRow
-        threeSlots={clusterDetailsList.length > 1 || glooInstances?.length > 1}>
+        threeSlots={clusterDetailsList.length > 1 || glooInstances?.length > 1}
+      >
         {(clusterDetailsList.length > 1 || glooInstances?.length > 1) && (
           <CardSubsectionWrapper>
             <CardSubsectionContent>
@@ -147,6 +152,13 @@ export const OverviewLanding = () => {
             <OverviewUpstreamsBox />
           </CardSubsectionContent>
         </CardSubsectionWrapper>
+        <EnableGraphqlFeature>
+          <CardSubsectionWrapper>
+            <CardSubsectionContent>
+              <OverviewGraphQLBox />
+            </CardSubsectionContent>
+          </CardSubsectionWrapper>
+        </EnableGraphqlFeature>
       </BottomRow>
     </OverviewCard>
   );
