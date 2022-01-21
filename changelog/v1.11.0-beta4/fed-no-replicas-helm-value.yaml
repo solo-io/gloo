@@ -1,0 +1,5 @@
+changelog:
+  - type: HELM
+    description: Expose replicas field for gloo fed deployment as helm value
+    issueLink: https://github.com/solo-io/gloo/issues/5782
+    resolvesIssue: true
