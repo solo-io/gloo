@@ -1070,8 +1070,8 @@ $(DEPS_DIR)/go.sum: $(DEPS_DIR) go.sum
 	cp go.sum $(DEPS_DIR)
 
 $(DEPS_DIR)/build_env: $(DEPS_DIR)
-	echo "GO_BUILD_IMAGE=$(EXTAUTH_GO_BUILD_IMAGE)" > $@
-	echo "FIPS_GO_BUILD_IMAGE=$(EXTAUTH_FIPS_GO_BUILD_IMAGE)" >> $@
+	echo "GO_BUILD_IMAGE=$(GOLANG_VERSION)" > $@
+	echo "FIPS_GO_BUILD_IMAGE=$(GOBORING_VERSION)" >> $@
 	echo "GC_FLAGS=$(GCFLAGS)" >> $@
 
 $(DEPS_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(DEPS_DIR)

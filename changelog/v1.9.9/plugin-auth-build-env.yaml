@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Populate build_env with values used to build auth plugins
+    issueLink: https://github.com/solo-io/gloo/issues/5818
