@@ -11,36 +11,34 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
-// The enterprise transformer plugin is an extension of the open source transformation plugin.
-// Supports building "transformers" such as the XSLT transformer using the same user-facing trasnformation api
-// as the open source HeaderBody or TransformationTemplate transform.
-type Plugin struct {
-	plugin *osTransformation.Plugin
-}
+var (
+	_ plugins.Plugin                    = new(plugin)
+	_ plugins.VirtualHostPlugin         = new(plugin)
+	_ plugins.WeightedDestinationPlugin = new(plugin)
+	_ plugins.RoutePlugin               = new(plugin)
+	_ plugins.HttpFilterPlugin          = new(plugin)
+)
 
 const (
 	XsltTransformerFactoryName = "XsltTransformerFactory"
 )
 
-func (p *Plugin) PluginName() string {
-	return osTransformation.PluginName
+// The enterprise transformer plugin is an extension of the open source transformation plugin.
+// Supports building "transformers" such as the XSLT transformer using the same user-facing trasnformation api
+// as the open source HeaderBody or TransformationTemplate transform.
+type plugin struct {
+	plugin *osTransformation.Plugin
 }
 
-func (p *Plugin) IsUpgrade() bool {
-	return true
+func NewPlugin() *plugin {
+	return &plugin{}
 }
 
-var _ plugins.Plugin = new(Plugin)
-var _ plugins.VirtualHostPlugin = new(Plugin)
-var _ plugins.WeightedDestinationPlugin = new(Plugin)
-var _ plugins.RoutePlugin = new(Plugin)
-var _ plugins.HttpFilterPlugin = new(Plugin)
-
-func NewPlugin() *Plugin {
-	return &Plugin{}
+func (p *plugin) Name() string {
+	return osTransformation.ExtensionName
 }
 
-func (p *Plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Init(params plugins.InitParams) error {
 	if p.plugin == nil {
 		p.plugin = osTransformation.NewPlugin()
 	}
@@ -52,7 +50,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) ProcessVirtualHost(
+func (p *plugin) ProcessVirtualHost(
 	params plugins.VirtualHostParams,
 	in *v1.VirtualHost,
 	out *envoy_config_route_v3.VirtualHost,
@@ -60,11 +58,11 @@ func (p *Plugin) ProcessVirtualHost(
 	return p.plugin.ProcessVirtualHost(params, in, out)
 }
 
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
+func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	return p.plugin.ProcessRoute(params, in, out)
 }
 
-func (p *Plugin) ProcessWeightedDestination(
+func (p *plugin) ProcessWeightedDestination(
 	params plugins.RouteParams,
 	in *v1.WeightedDestination,
 	out *envoy_config_route_v3.WeightedCluster_ClusterWeight,
@@ -72,7 +70,7 @@ func (p *Plugin) ProcessWeightedDestination(
 	return p.plugin.ProcessWeightedDestination(params, in, out)
 }
 
-func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	return p.plugin.HttpFilters(params, listener)
 }
 

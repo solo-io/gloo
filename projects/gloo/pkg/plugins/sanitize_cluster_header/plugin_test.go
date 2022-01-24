@@ -13,8 +13,12 @@ import (
 
 var _ = Describe("Plugin", func() {
 	var (
-		plugin *Plugin
+		plugin plugins.HttpFilterPlugin
 	)
+
+	BeforeEach(func() {
+		plugin = NewPlugin()
+	})
 
 	Context("with cluster header sanitation enabled", func() {
 

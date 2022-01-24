@@ -4,69 +4,25 @@ import (
 	"context"
 	"os"
 
-	"github.com/solo-io/go-utils/log"
+	"github.com/solo-io/go-utils/contextutils"
 
-	"github.com/solo-io/licensing/pkg/validate"
-
-	"github.com/solo-io/licensing/pkg/model"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxyprotocol"
-
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
-
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/transformer"
+	"github.com/solo-io/solo-projects/pkg/license"
 
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
-	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
-	"github.com/solo-io/reporting-client/pkg/client"
 	"github.com/solo-io/solo-projects/pkg/version"
 	nackdetector "github.com/solo-io/solo-projects/projects/gloo/pkg/nack_detector"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/advanced_http"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/leftmost_xff_address"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/proxylatency"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/sanitize_cluster_header"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/waf"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/wasm"
 	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	ratelimitExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
 )
 
-const (
-	licenseKey = "license"
-
-	licenseKeyEnv = "GLOO_LICENSE_KEY"
-)
-
 func Main() error {
-
 	cancellableCtx, _ := context.WithCancel(context.Background())
-	apiEmitterChan := make(chan struct{})
-
-	// Get Gloo Edge license key
-	licenseString := os.Getenv(licenseKeyEnv)
-	license, warn, err := validate.ValidateLicenseKey(cancellableCtx, licenseString, model.Product_Gloo, model.AddOns{})
-	if warn != nil {
-		license = nil
-		log.Warnf("Invalid License: %s", err)
-	} else if err != nil {
-		log.Warnf("Invalid License: %s", err)
-		license = nil
-	}
 
 	return setuputils.Main(setuputils.SetupOpts{
-		SetupFunc: NewSetupFuncWithRestControlPlaneAndExtensions(
-			GetGlooEeExtensions(cancellableCtx, apiEmitterChan, license),
-			apiEmitterChan,
-		),
+		SetupFunc:   NewSetupFuncWithRestControlPlaneAndExtensions(cancellableCtx),
 		ExitOnError: true,
 		LoggerName:  "gloo-ee",
 		Version:     version.Version,
@@ -74,66 +30,58 @@ func Main() error {
 	})
 }
 
-func NewSetupFuncWithRestControlPlaneAndExtensions(extensions setup.Extensions, apiEmitterChan chan struct{}) setuputils.SetupFunc {
+func NewSetupFuncWithRestControlPlaneAndExtensions(cancellableCtx context.Context) setuputils.SetupFunc {
+	var extensions setup.Extensions
+	apiEmitterChan := make(chan struct{})
+
 	runWithExtensions := func(opts bootstrap.Opts) error {
+		// 1. Load Enterprise License
+		licensedFeatureProvider := license.NewLicensedFeatureProvider()
+		licensedFeatureProvider.ValidateAndSetLicense(os.Getenv(license.EnvName))
+
+		// 2. Prepare Enterprise extensions based on the state of the license
+		extensions = GetGlooEExtensions(cancellableCtx, opts, apiEmitterChan, licensedFeatureProvider)
+
+		// 3. Run Gloo with Enterprise extensions
 		return setup.RunGlooWithExtensions(opts, extensions, apiEmitterChan)
 	}
+
 	return setup.NewSetupFuncWithRunAndExtensions(runWithExtensions, &extensions)
 }
 
-func GetGlooEeExtensions(ctx context.Context, apiEmitterChan chan struct{}, license *model.License) setup.Extensions {
+func GetGlooEExtensions(
+	ctx context.Context,
+	opts bootstrap.Opts,
+	apiEmitterChan chan struct{},
+	licensedFeatureProvider *license.LicensedFeatureProvider,
+) setup.Extensions {
+	// We include this log line purely for UX reasons
+	// An expired license will allow Gloo Edge to operate normally
+	// but we want to notify the user that their license is expired
+	enterpriseFeature := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
+	if enterpriseFeature.Reason != "" {
+		contextutils.LoggerFrom(ctx).Warnf("LICENSE WARNING: %s", enterpriseFeature.Reason)
+	}
+
+	pluginRegistryFactory := GetPluginRegistryFactory(opts, apiEmitterChan, licensedFeatureProvider)
+
+	// If the Enterprise feature is not enabled, do not configure any enterprise extensions
+	if !enterpriseFeature.Enabled {
+		return setup.Extensions{
+			XdsCallbacks:          nil,
+			SyncerExtensions:      []syncer.TranslatorSyncerExtensionFactory{},
+			PluginRegistryFactory: pluginRegistryFactory,
+		}
+	}
+
 	return setup.Extensions{
 		XdsCallbacks: nackdetector.NewNackDetector(ctx, nackdetector.NewStatsGen()),
 		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
 			ratelimitExt.NewTranslatorSyncerExtension,
-			func(ctx context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
-				return extauthExt.NewTranslatorSyncerExtension(params), nil
+			func(ctx context.Context, _ syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
+				return extauthExt.NewTranslatorSyncerExtension(), nil
 			},
 		},
-		PluginExtensionsFuncs: []func() plugins.Plugin{
-			func() plugins.Plugin { return ratelimit.NewPlugin() },
-			func() plugins.Plugin { return extauth.NewPlugin() },
-			func() plugins.Plugin { return sanitize_cluster_header.NewPlugin() },
-			func() plugins.Plugin { return rbac.NewPlugin() },
-			func() plugins.Plugin { return jwt.NewPlugin() },
-			func() plugins.Plugin { return waf.NewPlugin() },
-			func() plugins.Plugin { return dlp.NewPlugin() },
-			func() plugins.Plugin { return proxylatency.NewPlugin() },
-			func() plugins.Plugin {
-				return failover.NewFailoverPlugin(
-					utils.NewSslConfigTranslator(),
-					failover.NewDnsResolver(),
-					apiEmitterChan,
-				)
-			},
-			func() plugins.Plugin { return advanced_http.NewPlugin() },
-			func() plugins.Plugin { return wasm.NewPlugin() },
-			func() plugins.Plugin { return leftmost_xff_address.NewPlugin() },
-			func() plugins.Plugin { return transformer.NewPlugin() },
-			func() plugins.Plugin {
-				graphqlDisabled := license == nil || !license.AddOns.GraphQL
-				return graphql.NewPlugin(graphqlDisabled)
-			},
-			func() plugins.Plugin { return proxyprotocol.NewPlugin() },
-		},
+		PluginRegistryFactory: pluginRegistryFactory,
 	}
 }
-
-type enterpriseUsageReader struct {
-	defaultPayloadReader client.UsagePayloadReader
-}
-
-func (e *enterpriseUsageReader) GetPayload(ctx context.Context) (map[string]string, error) {
-	defaultPayload, err := e.defaultPayloadReader.GetPayload(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	enterprisePayload := map[string]string{}
-
-	defaultPayload[licenseKey] = os.Getenv(licenseKeyEnv)
-
-	return enterprisePayload, nil
-}
-
-var _ client.UsagePayloadReader = &enterpriseUsageReader{}

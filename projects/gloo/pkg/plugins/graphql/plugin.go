@@ -3,8 +3,6 @@ package graphql
 import (
 	"fmt"
 
-	"github.com/solo-io/go-utils/log"
-
 	"github.com/graphql-go/graphql/language/kinds"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -23,51 +21,39 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
+var (
+	_ plugins.Plugin           = new(plugin)
+	_ plugins.RoutePlugin      = new(plugin)
+	_ plugins.HttpFilterPlugin = new(plugin)
+)
+
 const (
 	FilterName    = "io.solo.filters.http.graphql"
 	ExtensionName = "graphql"
 )
 
 var (
-	_ plugins.Plugin           = new(Plugin)
-	_ plugins.RoutePlugin      = new(Plugin)
-	_ plugins.HttpFilterPlugin = new(Plugin)
-	_ plugins.Upgradable       = new(Plugin)
-
 	// This filter must be last as it is used to replace the router filter
 	FilterStage = plugins.BeforeStage(plugins.RouteStage)
 )
 
-type Plugin struct {
-	Disabled bool
+type plugin struct{}
+
+func NewPlugin() *plugin {
+	return &plugin{}
 }
 
-var _ plugins.Plugin = new(Plugin)
-
-func NewPlugin(disabled bool) *Plugin {
-	return &Plugin{
-		Disabled: disabled,
-	}
-}
-
-func (p *Plugin) Init(params plugins.InitParams) error {
-	return nil
-}
-
-func (p *Plugin) PluginName() string {
+func (p *plugin) Name() string {
 	return ExtensionName
 }
 
-func (p *Plugin) IsUpgrade() bool {
-	return true
+func (p *plugin) Init(params plugins.InitParams) error {
+	return nil
 }
 
-func (p *Plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
-	if p.Disabled {
-		log.Warnf("gloo edge license is not valid or does not have graphql addon, not translating graphql configuration.")
-		return nil, nil
-	}
+
 	emptyConf := &v2.GraphQLConfig{}
 	stagedFilter, err := plugins.NewStagedFilterWithConfig(FilterName, emptyConf, FilterStage)
 	if err != nil {
@@ -77,10 +63,7 @@ func (p *Plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.St
 	return filters, nil
 }
 
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
-	if p.Disabled {
-		return nil
-	}
+func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	gqlRef := in.GetGraphqlSchemaRef()
 	if gqlRef == nil {
 		return nil

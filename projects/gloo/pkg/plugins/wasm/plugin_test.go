@@ -3,6 +3,8 @@ package wasm
 import (
 	"fmt"
 
+	mock_cache "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/wasm/mocks"
+
 	envoy_extensions_filters_http_wasm_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/wasm/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/ptypes"
@@ -15,13 +17,12 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/wasm"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	mock_cache "github.com/solo-io/gloo/projects/gloo/pkg/plugins/wasm/mocks"
 	"github.com/solo-io/solo-kit/test/matchers"
 )
 
 var _ = Describe("wasm plugin", func() {
 	var (
-		p         *Plugin
+		p         plugins.HttpFilterPlugin
 		ctrl      *gomock.Controller
 		mockCache *mock_cache.MockCache
 	)

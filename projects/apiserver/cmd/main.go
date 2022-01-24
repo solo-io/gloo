@@ -53,8 +53,12 @@ func main() {
 	rootCtx := bootstrap.CreateRootContext(context.Background(), "gloo-fed-apiserver")
 	apiserverSettings := settings.New()
 
-	if err := license.IsLicenseValid(rootCtx, apiserverSettings.LicenseKey); err != nil {
-		contextutils.LoggerFrom(rootCtx).Fatalw("License is invalid", zap.String("error", err.Error()))
+	licensedFeatureProvider := license.NewLicensedFeatureProvider()
+	licensedFeatureProvider.ValidateAndSetLicense(apiserverSettings.LicenseKey)
+
+	apiServerFeatureState := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
+	if !apiServerFeatureState.Enabled {
+		contextutils.LoggerFrom(rootCtx).Fatalw("ApiServer is disabled", zap.String("reason", apiServerFeatureState.Reason))
 	}
 
 	cfg, err := config.GetConfig()

@@ -68,7 +68,7 @@ func init() {
 type TranslatorSyncerExtension struct {
 }
 
-func NewTranslatorSyncerExtension(params syncer.TranslatorSyncerExtensionParams) *TranslatorSyncerExtension {
+func NewTranslatorSyncerExtension() *TranslatorSyncerExtension {
 	return &TranslatorSyncerExtension{}
 }
 

@@ -30,7 +30,7 @@ import (
 var _ = Describe("JWT Plugin", func() {
 
 	var (
-		plugin      *Plugin
+		plugin      plugins.Plugin
 		params      plugins.Params
 		vhostParams plugins.VirtualHostParams
 		routeParams plugins.RouteParams
@@ -176,11 +176,11 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				outRoute = envoy_config_route_v3.Route{}
 
 				// run it like the translator:
-				err := plugin.ProcessRoute(routeParams, route, &outRoute)
+				err := plugin.(plugins.RoutePlugin).ProcessRoute(routeParams, route, &outRoute)
 				Expect(err).NotTo(HaveOccurred())
-				err = plugin.ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
+				err = plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
 				Expect(err).NotTo(HaveOccurred())
-				outFilters, err = plugin.HttpFilters(params, nil)
+				outFilters, err = plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(outFilters).To(HaveLen(1))
@@ -202,18 +202,18 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 						BeforeExtAuth: jwtVhost,
 					},
 				}
-				err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
+				err := plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
 				Expect(err).NotTo(HaveOccurred())
-				outFilters, err := plugin.HttpFilters(params, nil)
+				outFilters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(outFilters).To(HaveLen(2))
 				// re-initialize plugin
 				virtualHost.Options.JwtConfig = oldConfig
 				plugin.Init(plugins.InitParams{})
-				err = plugin.ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
+				err = plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
 				Expect(err).NotTo(HaveOccurred())
-				outFilters, err = plugin.HttpFilters(params, nil)
+				outFilters, err = plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(outFilters).To(HaveLen(1))
@@ -743,11 +743,11 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				outRoute = envoy_config_route_v3.Route{}
 
 				// run it like the translator:
-				err := plugin.ProcessRoute(routeParams, route, &outRoute)
+				err := plugin.(plugins.RoutePlugin).ProcessRoute(routeParams, route, &outRoute)
 				Expect(err).NotTo(HaveOccurred())
-				err = plugin.ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
+				err = plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
 				Expect(err).NotTo(HaveOccurred())
-				outFilters, err = plugin.HttpFilters(params, nil)
+				outFilters, err = plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(outFilters).To(HaveLen(2))
 				beforeCfg = &JwtWithStage{}

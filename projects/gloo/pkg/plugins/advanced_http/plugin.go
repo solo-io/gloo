@@ -12,37 +12,31 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloo_advanced_http "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/advanced_http"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/advanced_http"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
+var (
+	_ plugins.Plugin         = new(plugin)
+	_ plugins.UpstreamPlugin = new(plugin)
+)
+
 const (
+	ExtensionName     = "advanced_http"
 	HealthCheckerName = "io.solo.health_checkers.advanced_http"
 )
 
-var (
-	_ plugins.Plugin         = new(Plugin)
-	_ plugins.UpstreamPlugin = new(Plugin)
-	_ plugins.Upgradable     = new(Plugin)
-)
+type plugin struct{}
 
-func NewPlugin() *Plugin {
-	return &Plugin{}
+func NewPlugin() *plugin {
+	return &plugin{}
 }
 
-type Plugin struct {
-}
-
-func (f *Plugin) Init(_ plugins.InitParams) error {
+func (p *plugin) Init(_ plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) PluginName() string {
-	return advanced_http.ExtensionName
-}
-
-func (p *Plugin) IsUpgrade() bool {
-	return true
+func (p *plugin) Name() string {
+	return ExtensionName
 }
 
 func shouldProcess(in *gloov1.Upstream) bool {
@@ -81,7 +75,7 @@ func shouldProcess(in *gloov1.Upstream) bool {
 	return false
 }
 
-func (p *Plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out *envoy_config_cluster_v3.Cluster) error {
+func (p *plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out *envoy_config_cluster_v3.Cluster) error {
 
 	// only do this for static upstreams with custom health path defined.
 	// so that we only use new logic when we have to. this is done to minimize potential error impact.

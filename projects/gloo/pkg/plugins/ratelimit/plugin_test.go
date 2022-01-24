@@ -38,12 +38,20 @@ const setDescriptorValue = "solo.setDescriptor.uniqueValue"
 
 var IllegalActionsErr = eris.Errorf("rate limit actions cannot include special purpose generic_key %s", setDescriptorValue)
 
+// test utility type
+type rLPlugin interface {
+	plugins.Plugin
+	plugins.HttpFilterPlugin
+	plugins.VirtualHostPlugin
+	plugins.RoutePlugin
+}
+
 var _ = Describe("RateLimit Plugin", func() {
 	var (
 		rlSettings *ratelimitpb.Settings
 		initParams plugins.InitParams
 		params     plugins.Params
-		rlPlugin   *Plugin
+		rlPlugin   rLPlugin
 		ref        *core.ResourceRef
 	)
 
@@ -218,7 +226,7 @@ var _ = Describe("RateLimit Plugin", func() {
 
 			rateLimitFilter := filters[0]
 
-			extAuthPlugin := extauth.NewCustomAuthPlugin()
+			extAuthPlugin := extauth.NewPlugin()
 			err = extAuthPlugin.Init(initParams)
 			Expect(err).NotTo(HaveOccurred(), "Should be able to initialize the ext auth plugin")
 			extAuthFilters, err := extAuthPlugin.HttpFilters(params, nil)

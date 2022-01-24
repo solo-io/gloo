@@ -11,56 +11,53 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	dlp_gloo "github.com/solo-io/gloo/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/go-utils/contextutils"
 	"go.uber.org/zap"
 )
 
-const (
-	FilterName = "io.solo.filters.http.transformation_ee"
+var (
+	_ plugins.Plugin            = new(plugin)
+	_ plugins.VirtualHostPlugin = new(plugin)
+	_ plugins.RoutePlugin       = new(plugin)
+	_ plugins.HttpFilterPlugin  = new(plugin)
 )
 
-type Plugin struct {
-	listenerEnabled map[*v1.HttpListener]bool
-}
+const (
+	ExtensionName = "dlp"
+	FilterName    = "io.solo.filters.http.transformation_ee"
+)
 
 var (
-	_ plugins.Plugin            = new(Plugin)
-	_ plugins.VirtualHostPlugin = new(Plugin)
-	_ plugins.RoutePlugin       = new(Plugin)
-	_ plugins.HttpFilterPlugin  = new(Plugin)
-	_ plugins.Upgradable        = new(Plugin)
-
 	// Dlp should happen before any code is run.
 	// And before waf to sanitize for logs.
 	filterStage = plugins.BeforeStage(plugins.WafStage)
 )
 
-func NewPlugin() *Plugin {
-	return &Plugin{
+type plugin struct {
+	listenerEnabled map[*v1.HttpListener]bool
+}
+
+func NewPlugin() *plugin {
+	return &plugin{
 		listenerEnabled: make(map[*v1.HttpListener]bool),
 	}
 }
 
-func (p *Plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Name() string {
+	return ExtensionName
+}
+
+func (p *plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) PluginName() string {
-	return dlp_gloo.ExtensionName
-}
-
-func (p *Plugin) IsUpgrade() bool {
-	return true
-}
-
-func (p *Plugin) addListener(listener *v1.HttpListener) {
+func (p *plugin) addListener(listener *v1.HttpListener) {
 	p.listenerEnabled[listener] = true
 }
 
-func (p *Plugin) listenerPresent(listener *v1.HttpListener) bool {
+func (p *plugin) listenerPresent(listener *v1.HttpListener) bool {
 	found, ok := p.listenerEnabled[listener]
 	if !ok {
 		return false
@@ -69,7 +66,7 @@ func (p *Plugin) listenerPresent(listener *v1.HttpListener) bool {
 }
 
 // Process virtual host plugin
-func (p *Plugin) ProcessVirtualHost(
+func (p *plugin) ProcessVirtualHost(
 	params plugins.VirtualHostParams,
 	in *v1.VirtualHost,
 	out *envoy_config_route_v3.VirtualHost,
@@ -96,7 +93,7 @@ func (p *Plugin) ProcessVirtualHost(
 }
 
 // Process route plugin
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
+func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	dlpSettings := in.GetOptions().GetDlp()
 
 	actions := getRelevantActions(params.Ctx, dlpSettings.GetActions())
@@ -116,7 +113,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 }
 
 // Http Filter to return the dlp filter
-func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
 	// If the list does not already have the listener then it is necessary to check for nil
 	if !p.listenerPresent(listener) {

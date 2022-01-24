@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"os"
+
+	"go.uber.org/zap"
 
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/stats"
@@ -19,9 +22,12 @@ func main() {
 
 	logger := contextutils.LoggerFrom(ctx)
 
-	err := license.LicenseStatus(ctx)
-	if err != nil {
-		logger.Fatalf("License is invalid or expired, crashing - " + err.Error())
+	licensedFeatureProvider := license.NewLicensedFeatureProvider()
+	licensedFeatureProvider.ValidateAndSetLicense(os.Getenv(license.EnvName))
+
+	observabilityFeatureState := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
+	if !observabilityFeatureState.Enabled {
+		logger.Fatalw("Observability is disabled", zap.String("reason", observabilityFeatureState.Reason))
 	}
 
 	if err := syncer.Main(); err != nil {

@@ -18,46 +18,44 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/rbac"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
-	gloo_rbac "github.com/solo-io/gloo/projects/gloo/pkg/plugins/rbac"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 )
 
+var (
+	_ plugins.Plugin            = new(plugin)
+	_ plugins.RoutePlugin       = new(plugin)
+	_ plugins.VirtualHostPlugin = new(plugin)
+	_ plugins.HttpFilterPlugin  = new(plugin)
+)
+
 const (
-	FilterName = "envoy.filters.http.rbac"
+	ExtensionName = "rbac"
+	FilterName    = "envoy.filters.http.rbac"
 )
 
 var (
-	_           plugins.Plugin            = new(Plugin)
-	_           plugins.RoutePlugin       = new(Plugin)
-	_           plugins.VirtualHostPlugin = new(Plugin)
-	_           plugins.HttpFilterPlugin  = new(Plugin)
-	_           plugins.Upgradable        = new(Plugin)
-	filterStage                           = plugins.DuringStage(plugins.AuthZStage)
+	filterStage = plugins.DuringStage(plugins.AuthZStage)
 )
 
-type Plugin struct {
+type plugin struct {
 	settings *rbac.Settings
 }
 
-func NewPlugin() *Plugin {
-	return &Plugin{}
+func NewPlugin() *plugin {
+	return &plugin{}
 }
 
-func (p *Plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Name() string {
+	return ExtensionName
+}
+
+func (p *plugin) Init(params plugins.InitParams) error {
 	p.settings = params.Settings.GetRbac()
 	return nil
 }
 
-func (p *Plugin) PluginName() string {
-	return gloo_rbac.ExtensionName
-}
-
-func (p *Plugin) IsUpgrade() bool {
-	return true
-}
-
-func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {
+func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {
 	rbacConf := in.Options.GetRbac()
 	if rbacConf == nil {
 		// no config found, nothing to do here
@@ -79,7 +77,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	return nil
 }
 
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
+func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	rbacConfig := in.GetOptions().GetRbac()
 	if rbacConfig == nil {
 		// no config found, nothing to do here
@@ -103,7 +101,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	return nil
 }
 
-func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	strict := p.settings.GetRequireRbac()
 
 	var cfg proto.Message

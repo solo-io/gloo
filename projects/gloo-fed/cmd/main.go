@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/solo-io/go-utils/contextutils"
 	client "github.com/solo-io/skv2/pkg/multicluster"
@@ -38,8 +39,12 @@ func main() {
 
 	cfg := settings.New()
 
-	if err := license.IsLicenseValid(rootCtx, cfg.LicenseKey); err != nil {
-		logger.Fatalw("License is invalid", zap.String("error", err.Error()))
+	licensedFeatureProvider := license.NewLicensedFeatureProvider()
+	licensedFeatureProvider.ValidateAndSetLicense(os.Getenv(license.EnvName))
+
+	federationFeatureState := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
+	if !federationFeatureState.Enabled {
+		contextutils.LoggerFrom(rootCtx).Fatalw("Federation is disabled", zap.String("reason", federationFeatureState.Reason))
 	}
 
 	mgr := fed_bootstrap.MustLocalManager(rootCtx)

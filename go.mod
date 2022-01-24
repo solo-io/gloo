@@ -52,7 +52,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.12
 	github.com/solo-io/external-apis v0.1.11
-	github.com/solo-io/gloo v1.11.0-beta5
+	github.com/solo-io/gloo v1.11.0-beta6
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.21.24
 	github.com/solo-io/k8s-utils v0.0.12
@@ -60,10 +60,9 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.16
 	github.com/solo-io/protoc-gen-openapi v0.0.2
 	github.com/solo-io/rate-limiter v0.5.6
-	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.21.6
 	github.com/solo-io/skv2-enterprise v0.2.8
-	github.com/solo-io/solo-apis v0.0.0-20220120204454-d4cfce4e8085
+	github.com/solo-io/solo-apis v0.0.0-20220124191344-8527b34e92f9
 	github.com/solo-io/solo-kit v0.24.2
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -123,12 +122,6 @@ replace (
 	// Pinning helm v3.6.0 because helm 3.7+ depends on containerd/containerd v1.5+, which introduces a breaking change
 	// that breaks our other dependencies.
 	helm.sh/helm/v3 => helm.sh/helm/v3 v3.6.0
-
-	// https://developers.google.com/protocol-buffers/docs/reference/go/faq#namespace-conflict
-	// protobuf namespace conflicts panic in v1.26.0 and later. we need to resolve
-	// these conflicts before we can upgrade
-	// https://github.com/solo-io/solo-projects/issues/2673
-	// google.golang.org/protobuf => google.golang.org/protobuf v1.25.0
 
 	k8s.io/api => k8s.io/api v0.22.4
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.22.4

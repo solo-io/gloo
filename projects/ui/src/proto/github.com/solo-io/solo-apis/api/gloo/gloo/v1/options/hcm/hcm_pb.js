@@ -35,7 +35,7 @@ goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.
  * @constructor
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.repeatedFields_, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_);
 };
 goog.inherits(proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -47,6 +47,32 @@ if (goog.DEBUG && !COMPILED) {
  * @const
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.repeatedFields_ = [21];
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_ = [[22,31]];
+
+/**
+ * @enum {number}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.HeaderFormatCase = {
+  HEADER_FORMAT_NOT_SET: 0,
+  PROPER_CASE_HEADER_KEY_FORMAT: 22,
+  PRESERVE_CASE_HEADER_KEY_FORMAT: 31
+};
+
+/**
+ * @return {proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.HeaderFormatCase}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getHeaderFormatCase = function() {
+  return /** @type {proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.HeaderFormatCase} */(jspb.Message.computeOneofCase(this, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_[0]));
+};
 
 
 
@@ -93,6 +119,7 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     acceptHttp10: jspb.Message.getFieldWithDefault(msg, 15, false),
     defaultHostForHttp10: jspb.Message.getFieldWithDefault(msg, 16, ""),
     properCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 22, false),
+    preserveCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 31, false),
     tracing: (f = msg.getTracing()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tracing_tracing_pb.ListenerTracingSettings.toObject(includeInstance, f),
     forwardClientCertDetails: jspb.Message.getFieldWithDefault(msg, 18, 0),
     setCurrentClientCertDetails: (f = msg.getSetCurrentClientCertDetails()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.toObject(includeInstance, f),
@@ -214,6 +241,10 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
     case 22:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setProperCaseHeaderKeyFormat(value);
+      break;
+    case 31:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setPreserveCaseHeaderKeyFormat(value);
       break;
     case 17:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tracing_tracing_pb.ListenerTracingSettings;
@@ -416,10 +447,17 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
       f
     );
   }
-  f = message.getProperCaseHeaderKeyFormat();
-  if (f) {
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 22));
+  if (f != null) {
     writer.writeBool(
       22,
+      f
+    );
+  }
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 31));
+  if (f != null) {
+    writer.writeBool(
+      31,
       f
     );
   }
@@ -1203,7 +1241,52 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getProper
 
 /** @param {boolean} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setProperCaseHeaderKeyFormat = function(value) {
-  jspb.Message.setProto3BooleanField(this, 22, value);
+  jspb.Message.setOneofField(this, 22, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_[0], value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearProperCaseHeaderKeyFormat = function() {
+  jspb.Message.setOneofField(this, 22, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasProperCaseHeaderKeyFormat = function() {
+  return jspb.Message.getField(this, 22) != null;
+};
+
+
+/**
+ * optional bool preserve_case_header_key_format = 31;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getPreserveCaseHeaderKeyFormat = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 31, false));
+};
+
+
+/** @param {boolean} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setPreserveCaseHeaderKeyFormat = function(value) {
+  jspb.Message.setOneofField(this, 31, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_[0], value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearPreserveCaseHeaderKeyFormat = function() {
+  jspb.Message.setOneofField(this, 31, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasPreserveCaseHeaderKeyFormat = function() {
+  return jspb.Message.getField(this, 31) != null;
 };
 
 

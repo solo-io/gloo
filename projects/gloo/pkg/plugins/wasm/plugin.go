@@ -21,13 +21,18 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
+var (
+	_ plugins.Plugin           = new(plugin)
+	_ plugins.HttpFilterPlugin = new(plugin)
+)
+
 const (
 	FilterName       = "envoy.filters.http.wasm"
 	V8Runtime        = "envoy.wasm.runtime.v8"
 	WavmRuntime      = "envoy.wasm.runtime.wavm"
 	VmId             = "gloo-vm-id"
 	WasmCacheCluster = "wasm-cache"
-	pluginName       = "wasm"
+	ExtensionName    = "wasm"
 )
 
 var (
@@ -38,23 +43,16 @@ var (
 	defaultPluginStage     = plugins.BeforeStage(defaultPluginPredicate)
 )
 
-// Compile-time assertion
-var (
-	_ plugins.Plugin           = &Plugin{}
-	_ plugins.HttpFilterPlugin = &Plugin{}
-	_ plugins.Upgradable       = &Plugin{}
-)
+type plugin struct{}
 
-type Plugin struct{}
-
-func NewPlugin() *Plugin {
+func NewPlugin() *plugin {
 	once.Do(func() {
 		// TODO(EItanya): move this into a setup loop, rather than living in the filter
 		// It makes sense that it should only start under certain circumstances, but starting
 		// a web server from a plugin feels like an anti-pattern
 		go http.ListenAndServe(":9979", imageCache)
 	})
-	return &Plugin{}
+	return &plugin{}
 }
 
 // TODO:not a string..
@@ -65,19 +63,15 @@ type CachedPlugin struct {
 	Sha256 string
 }
 
-func (p *Plugin) PluginName() string {
-	return pluginName
+func (p *plugin) Name() string {
+	return ExtensionName
 }
 
-func (p *Plugin) IsUpgrade() bool {
-	return true
-}
-
-func (p *Plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) ensureFilter(ctx context.Context, wasmFilter *wasm.WasmFilter) (*plugins.StagedHttpFilter, error) {
+func (p *plugin) ensureFilter(ctx context.Context, wasmFilter *wasm.WasmFilter) (*plugins.StagedHttpFilter, error) {
 	var err error
 	isLocal := false
 
@@ -170,7 +164,7 @@ func (p *Plugin) ensureFilter(ctx context.Context, wasmFilter *wasm.WasmFilter) 
 	return &stagedFilter, nil
 }
 
-func (p *Plugin) ensurePluginInCache(ctx context.Context, filter *wasm.WasmFilter) (*CachedPlugin, error) {
+func (p *plugin) ensurePluginInCache(ctx context.Context, filter *wasm.WasmFilter) (*CachedPlugin, error) {
 
 	digest, err := imageCache.Add(ctx, filter.GetImage())
 	if err != nil {
@@ -181,12 +175,12 @@ func (p *Plugin) ensurePluginInCache(ctx context.Context, filter *wasm.WasmFilte
 	}, nil
 }
 
-func (p *Plugin) verifyConfiguration(schema Schema, config *any.Any) error {
+func (p *plugin) verifyConfiguration(schema Schema, config *any.Any) error {
 	// everything goes now-a-days
 	return nil
 }
 
-func (p *Plugin) HttpFilters(params plugins.Params, l *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *plugin) HttpFilters(params plugins.Params, l *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	wasm := l.GetOptions().GetWasm()
 	if wasm != nil {
 		var result []plugins.StagedHttpFilter

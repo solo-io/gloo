@@ -11,30 +11,27 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
-func NewPlugin() *plugin {
-	return &plugin{}
-}
-
-// Compile-time assertion
 var (
 	_ plugins.Plugin         = new(plugin)
 	_ plugins.ListenerPlugin = new(plugin)
 )
 
-const FilterName = "io.solo.envoy.filters.listener.proxy_protocol"
+const (
+	FilterName = "io.solo.envoy.filters.listener.proxy_protocol"
+)
 
 type plugin struct{}
 
-func (p *plugin) Init(params plugins.InitParams) error {
-	return nil
+func NewPlugin() *plugin {
+	return &plugin{}
 }
 
-func (p *plugin) PluginName() string {
+func (p *plugin) Name() string {
 	return proxyprotocol.ExtensionName
 }
 
-func (p *plugin) IsUpgrade() bool {
-	return true
+func (p *plugin) Init(params plugins.InitParams) error {
+	return nil
 }
 
 func (p *plugin) ProcessListener(params plugins.Params, in *v1.Listener, out *envoy_config_listener_v3.Listener) error {

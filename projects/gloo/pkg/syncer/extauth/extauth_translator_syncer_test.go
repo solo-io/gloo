@@ -17,7 +17,6 @@ import (
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -33,7 +32,6 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		ctx              context.Context
 		cancel           context.CancelFunc
 		proxy            *gloov1.Proxy
-		params           syncer.TranslatorSyncerExtensionParams
 		translator       *TranslatorSyncerExtension
 		secret           *gloov1.Secret
 		oauthAuthConfig  *extauth.AuthConfig
@@ -60,7 +58,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		reports = make(reporter.ResourceReports)
-		translator = NewTranslatorSyncerExtension(params)
+		translator = NewTranslatorSyncerExtension()
 		secret = &gloov1.Secret{
 			Metadata: &skcore.Metadata{
 				Name:      "secret",

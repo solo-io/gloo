@@ -2,6 +2,7 @@ package ratelimit
 
 import (
 	"context"
+	"fmt"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ratelimit/v3"
@@ -23,11 +24,19 @@ import (
 )
 
 var (
-	_ plugins.Plugin            = new(Plugin)
-	_ plugins.VirtualHostPlugin = new(Plugin)
-	_ plugins.RoutePlugin       = new(Plugin)
-	_ plugins.HttpFilterPlugin  = new(Plugin)
+	_ plugins.VirtualHostPlugin = new(plugin)
+	_ plugins.RoutePlugin       = new(plugin)
+	_ plugins.HttpFilterPlugin  = new(plugin)
+)
 
+const (
+	IngressDomain         = "ingress"
+	ConfigCrdDomain       = "crd"
+	IngressRateLimitStage = uint32(0)
+	CrdStage              = uint32(2)
+)
+
+var (
 	RouteTypeMismatchErr = eris.Errorf("internal error: input route has route action but output route has not")
 	ConfigNotFoundErr    = func(ns, name string) error {
 		return eris.Errorf("could not find RateLimitConfig resource with name [%s] in namespace [%s]", name, ns)
@@ -41,14 +50,7 @@ var (
 	}
 )
 
-const (
-	IngressDomain         = "ingress"
-	ConfigCrdDomain       = "crd"
-	IngressRateLimitStage = uint32(0)
-	CrdStage              = uint32(2)
-)
-
-type Plugin struct {
+type plugin struct {
 	upstreamRef         *core.ResourceRef
 	timeout             *duration.Duration
 	denyOnFail          bool
@@ -64,7 +66,7 @@ type Plugin struct {
 	basicRatelimitDescriptorNames map[string]struct{}
 }
 
-func NewPlugin() *Plugin {
+func NewPlugin() *plugin {
 	return NewPluginWithTranslators(
 		translation.NewBasicRateLimitTranslator(),
 		shims.NewGlobalRateLimitTranslator(),
@@ -76,15 +78,19 @@ func NewPluginWithTranslators(
 	basic translation.BasicRateLimitTranslator,
 	global shims.GlobalRateLimitTranslator,
 	crd shims.RateLimitConfigTranslator,
-) *Plugin {
-	return &Plugin{
+) *plugin {
+	return &plugin{
 		basicConfigTranslator:  basic,
 		globalConfigTranslator: global,
 		crdConfigTranslator:    crd,
 	}
 }
 
-func (p *Plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Name() string {
+	return fmt.Sprintf("%s_ee", rlplugin.ExtensionName)
+}
+
+func (p *plugin) Init(params plugins.InitParams) error {
 	authSettings := params.Settings.GetExtauth()
 	p.authUserIdHeader = extauth.GetAuthHeader(authSettings)
 
@@ -100,7 +106,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {
+func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {
 	var (
 		limits []*envoy_config_route_v3.RateLimit
 		errs   = &multierror.Error{}
@@ -131,7 +137,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	return errs.ErrorOrNil()
 }
 
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
+func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	routeAction := in.GetRouteAction()
 	if routeAction == nil {
 		// Only route actions can have rate limits
@@ -174,7 +180,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	return errs.ErrorOrNil()
 }
 
-func (p *Plugin) getBasicRateLimits(rateLimit *ratelimit.IngressRateLimit, name string, params plugins.VirtualHostParams) ([]*envoy_config_route_v3.RateLimit, error) {
+func (p *plugin) getBasicRateLimits(rateLimit *ratelimit.IngressRateLimit, name string, params plugins.VirtualHostParams) ([]*envoy_config_route_v3.RateLimit, error) {
 	if rateLimit == nil {
 		// no rate limit virtual host config found, nothing to do here
 		return nil, nil
@@ -205,7 +211,7 @@ type rateLimitOpts interface {
 	GetRateLimitConfigs() *ratelimit.RateLimitConfigRefs
 }
 
-func (p *Plugin) getSetRateLimits(ctx context.Context, soloApiActions []*solo_api_rl_types.RateLimitActions) ([]*envoy_config_route_v3.RateLimit, error) {
+func (p *plugin) getSetRateLimits(ctx context.Context, soloApiActions []*solo_api_rl_types.RateLimitActions) ([]*envoy_config_route_v3.RateLimit, error) {
 	if len(soloApiActions) == 0 {
 		return nil, nil
 	}
@@ -229,7 +235,7 @@ func (p *Plugin) getSetRateLimits(ctx context.Context, soloApiActions []*solo_ap
 	return ret, nil
 }
 
-func (p *Plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap *v1snap.ApiSnapshot) ([]*envoy_config_route_v3.RateLimit, error) {
+func (p *plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap *v1snap.ApiSnapshot) ([]*envoy_config_route_v3.RateLimit, error) {
 	var (
 		result []*envoy_config_route_v3.RateLimit
 		errs   = &multierror.Error{}
@@ -281,7 +287,7 @@ func (p *Plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap 
 // - one filter handles rate limit requests for the `ingress` configuration type;
 // - the other filter handles requests for configuration that comes from `RateLimitConfig` resources.
 // We use two separate filters to guarantee isolation between the two configuration types.
-func (p *Plugin) HttpFilters(_ plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *plugin) HttpFilters(_ plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var upstreamRef *core.ResourceRef
 	var timeout *duration.Duration
 	var denyOnFail bool

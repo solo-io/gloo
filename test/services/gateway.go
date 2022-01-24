@@ -4,6 +4,8 @@ import (
 	"net"
 	"time"
 
+	license2 "github.com/solo-io/solo-projects/pkg/license"
+
 	"github.com/solo-io/licensing/pkg/model"
 
 	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/syncer"
@@ -163,7 +165,7 @@ type RunGlooGatewayOpts struct {
 }
 
 func RunGlooGatewayUdsFdsOnPort(runOpts RunGlooGatewayOpts) {
-	ctx, cache, ns, what, s, extensions, kubeclient, localglooPort, license := runOpts.Ctx, runOpts.Cache, runOpts.Namespace, runOpts.What, runOpts.Settings, runOpts.Extensions, runOpts.KubeClient, runOpts.LocalGlooPort, runOpts.License
+	ctx, cache, ns, what, s, extensions, kubeclient, localglooPort, licenseState := runOpts.Ctx, runOpts.Cache, runOpts.Namespace, runOpts.What, runOpts.Settings, runOpts.Extensions, runOpts.KubeClient, runOpts.LocalGlooPort, runOpts.License
 	// no gateway for now
 	opts := DefaultTestConstructOpts(ctx, cache, ns)
 	if !what.DisableGateway {
@@ -184,7 +186,11 @@ func RunGlooGatewayUdsFdsOnPort(runOpts RunGlooGatewayOpts) {
 	glooOpts.Settings = &settings
 	glooOpts.ControlPlane.StartGrpcServer = true
 	apiEmitterChan := make(chan struct{})
-	go syncer_setup.RunGlooWithExtensions(glooOpts, setup.GetGlooEeExtensions(ctx, apiEmitterChan, license), apiEmitterChan)
+
+	// For testing purposes, load the LicensedFeatureProvider with the injected license
+	licensedFeatureProvider := setupLicensedFeatureProvider(licenseState)
+
+	go syncer_setup.RunGlooWithExtensions(glooOpts, setup.GetGlooEExtensions(ctx, glooOpts, apiEmitterChan, licensedFeatureProvider), apiEmitterChan)
 	if !what.DisableFds {
 		go fds_syncer.RunFDSWithExtensions(glooOpts, syncer.GetFDSEnterpriseExtensions())
 	}
@@ -192,6 +198,31 @@ func RunGlooGatewayUdsFdsOnPort(runOpts RunGlooGatewayOpts) {
 		go uds_syncer.RunUDS(glooOpts)
 	}
 
+}
+
+func setupLicensedFeatureProvider(licenseState *model.License) *license2.LicensedFeatureProvider {
+	licensedFeatureProvider := license2.NewLicensedFeatureProvider()
+
+	if licenseState == nil {
+		// Default to a valid, enterprise license
+		licenseState = &model.License{
+			IssuedAt:      time.Now(),
+			ExpiresAt:     time.Now(),
+			RandomPayload: "",
+			LicenseType:   model.LicenseType_Enterprise,
+			Product:       model.Product_Gloo,
+			AddOns: model.AddOns{
+				GraphQL: false,
+			},
+		}
+	}
+
+	licensedFeatureProvider.SetValidatedLicense(&license2.ValidatedLicense{
+		License: licenseState,
+		Warn:    nil,
+		Err:     nil,
+	})
+	return licensedFeatureProvider
 }
 
 func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns string) translator.Opts {

@@ -8,13 +8,18 @@ import (
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/xff_offset"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/leftmost_xff_address"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/leftmost_xff_address"
 )
 
 var _ = Describe("Plugin", func() {
+
 	var (
-		plugin *Plugin
+		plugin plugins.HttpFilterPlugin
 	)
+
+	BeforeEach(func() {
+		plugin = leftmost_xff_address.NewPlugin()
+	})
 
 	Context("with use leftmost xff header", func() {
 

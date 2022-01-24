@@ -20,13 +20,20 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	gloo_jwt "github.com/solo-io/gloo/projects/gloo/pkg/plugins/jwt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"gopkg.in/square/go-jose.v2"
 )
 
+var (
+	_ plugins.Plugin            = new(plugin)
+	_ plugins.VirtualHostPlugin = new(plugin)
+	_ plugins.RoutePlugin       = new(plugin)
+	_ plugins.HttpFilterPlugin  = new(plugin)
+)
+
 const (
+	ExtensionName     = "jwt"
 	DisableName       = "-any:cf7a7de2-83ff-45ce-b697-f57d6a4775b5-"
 	StateName         = "filterState"
 	PayloadInMetadata = "principal"
@@ -39,11 +46,6 @@ const (
 )
 
 var (
-	_ plugins.Plugin            = new(Plugin)
-	_ plugins.VirtualHostPlugin = new(Plugin)
-	_ plugins.RoutePlugin       = new(Plugin)
-	_ plugins.HttpFilterPlugin  = new(Plugin)
-
 	beforeExtauthFilterStage = plugins.BeforeStage(plugins.AuthNStage)
 	afterExtauthFilterStage  = plugins.DuringStage(plugins.AuthNStage)
 )
@@ -56,26 +58,22 @@ var (
 // convert config to per filter config
 // thats it!
 
-type Plugin struct {
+type plugin struct {
 	requireJwtBeforeExtauthFilter bool
 	uniqProviders                 map[uint32]map[string]*v3.JwtProvider
 	perVhostProviders             map[uint32]map[*v1.VirtualHost][]string
 	perRouteJwtRequirements       map[uint32]map[string]*v3.JwtRequirement
 }
 
-var (
-	_ plugins.Plugin            = new(Plugin)
-	_ plugins.VirtualHostPlugin = new(Plugin)
-	_ plugins.RoutePlugin       = new(Plugin)
-	_ plugins.HttpFilterPlugin  = new(Plugin)
-	_ plugins.Upgradable        = new(Plugin)
-)
-
-func NewPlugin() *Plugin {
-	return &Plugin{}
+func NewPlugin() *plugin {
+	return &plugin{}
 }
 
-func (p *Plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Name() string {
+	return ExtensionName
+}
+
+func (p *plugin) Init(params plugins.InitParams) error {
 	p.perVhostProviders = map[uint32]map[*v1.VirtualHost][]string{
 		BeforeExtAuthStage: make(map[*v1.VirtualHost][]string),
 		AfterExtAuthStage:  make(map[*v1.VirtualHost][]string),
@@ -92,15 +90,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) PluginName() string {
-	return gloo_jwt.ExtensionName
-}
-
-func (p *Plugin) IsUpgrade() bool {
-	return true
-}
-
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
+func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	jwtRoute := p.convertRouteJwtConfig(in.GetOptions())
 	// If no config for jwt exists on route, do not create any routePerFilter config
 	if jwtRoute == nil || (jwtRoute.BeforeExtAuth == nil && jwtRoute.AfterExtAuth == nil) {
@@ -125,7 +115,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	return pluginutils.SetRoutePerFilterConfig(out, SoloJwtFilterName, stagedCfg)
 }
 
-func (p *Plugin) ProcessVirtualHost(
+func (p *plugin) ProcessVirtualHost(
 	params plugins.VirtualHostParams,
 	in *v1.VirtualHost,
 	out *envoy_config_route_v3.VirtualHost,
@@ -159,7 +149,7 @@ func (p *Plugin) ProcessVirtualHost(
 	return pluginutils.SetVhostPerFilterConfig(out, SoloJwtFilterName, stagedCfg)
 }
 
-func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 
 	var filters []plugins.StagedHttpFilter
 	// Get filter config for after extauth (default)
@@ -179,7 +169,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	return filters, nil
 }
 
-func (p *Plugin) getFilterForStage(stage uint32, filterStage plugins.FilterStage) (*plugins.StagedHttpFilter, error) {
+func (p *plugin) getFilterForStage(stage uint32, filterStage plugins.FilterStage) (*plugins.StagedHttpFilter, error) {
 	cfg := p.getJwtAuthnCfgForStage(stage)
 	filterConfig := &JwtWithStage{
 		Stage:    stage,
@@ -192,7 +182,7 @@ func (p *Plugin) getFilterForStage(stage uint32, filterStage plugins.FilterStage
 	return &stagedFilter, nil
 }
 
-func (p *Plugin) getJwtAuthnCfgForStage(stage uint32) *v3.JwtAuthentication {
+func (p *plugin) getJwtAuthnCfgForStage(stage uint32) *v3.JwtAuthentication {
 	cfg := &v3.JwtAuthentication{
 		Providers: make(map[string]*v3.JwtProvider),
 		FilterStateRules: &v3.FilterStateRule{
@@ -220,7 +210,7 @@ func (p *Plugin) getJwtAuthnCfgForStage(stage uint32) *v3.JwtAuthentication {
 	return cfg
 }
 
-func (p *Plugin) getRequirement(vHost *v1.VirtualHost, providers []string, stage uint32) *v3.JwtRequirement {
+func (p *plugin) getRequirement(vHost *v1.VirtualHost, providers []string, stage uint32) *v3.JwtRequirement {
 	var jwtReq *v3.JwtRequirement
 	// Get requirements from virtual host providers
 	if len(providers) == 1 {
@@ -317,7 +307,7 @@ func routeJwtRequirementName(routeName string) string {
 	return fmt.Sprintf("route_%s", routeName)
 }
 
-func (p *Plugin) translateProviders(in *v1.VirtualHost, j jwt.VhostExtension, claimsToHeader map[string]*SoloJwtAuthnPerRoute_ClaimToHeaders, stage uint32) error {
+func (p *plugin) translateProviders(in *v1.VirtualHost, j jwt.VhostExtension, claimsToHeader map[string]*SoloJwtAuthnPerRoute_ClaimToHeaders, stage uint32) error {
 	for name, provider := range j.GetProviders() {
 		envoyProvider, err := translateProvider(provider)
 		if err != nil {
@@ -349,7 +339,7 @@ func translateClaimsToHeader(c2hs []*jwt.ClaimToHeader) *SoloJwtAuthnPerRoute_Cl
 	}
 }
 
-func (p *Plugin) convertVhostJwtConfig(opts *v1.VirtualHostOptions) *jwt.JwtStagedVhostExtension {
+func (p *plugin) convertVhostJwtConfig(opts *v1.VirtualHostOptions) *jwt.JwtStagedVhostExtension {
 	ret := &jwt.JwtStagedVhostExtension{}
 
 	switch opts.GetJwtConfig().(type) {
@@ -366,7 +356,7 @@ func (p *Plugin) convertVhostJwtConfig(opts *v1.VirtualHostOptions) *jwt.JwtStag
 	return ret
 }
 
-func (p *Plugin) convertRouteJwtConfig(opts *v1.RouteOptions) *jwt.JwtStagedRouteExtension {
+func (p *plugin) convertRouteJwtConfig(opts *v1.RouteOptions) *jwt.JwtStagedRouteExtension {
 	ret := &jwt.JwtStagedRouteExtension{}
 
 	switch opts.GetJwtConfig().(type) {
@@ -383,14 +373,14 @@ func (p *Plugin) convertRouteJwtConfig(opts *v1.RouteOptions) *jwt.JwtStagedRout
 	return ret
 }
 
-func (p *Plugin) getPerRouteFilterConfig(in *v1.Route, routeCfg *jwt.RouteExtension) *SoloJwtAuthnPerRoute {
+func (p *plugin) getPerRouteFilterConfig(in *v1.Route, routeCfg *jwt.RouteExtension) *SoloJwtAuthnPerRoute {
 	if routeCfg != nil && routeCfg.Disable {
 		return &SoloJwtAuthnPerRoute{Requirement: DisableName}
 	}
 	return nil
 }
 
-func (p *Plugin) getVhostFilterConfig(in *v1.VirtualHost, vhostCfg *jwt.VhostExtension, stage uint32) (*SoloJwtAuthnPerRoute, error) {
+func (p *plugin) getVhostFilterConfig(in *v1.VirtualHost, vhostCfg *jwt.VhostExtension, stage uint32) (*SoloJwtAuthnPerRoute, error) {
 	claimsToHeader := make(map[string]*SoloJwtAuthnPerRoute_ClaimToHeaders)
 	err := p.translateProviders(in, *vhostCfg, claimsToHeader, stage)
 	if err != nil {
@@ -406,7 +396,7 @@ func (p *Plugin) getVhostFilterConfig(in *v1.VirtualHost, vhostCfg *jwt.VhostExt
 	return routeCfg, nil
 }
 
-func (p *Plugin) requireEarlyJwtFilter() {
+func (p *plugin) requireEarlyJwtFilter() {
 	p.requireJwtBeforeExtauthFilter = true
 }
 

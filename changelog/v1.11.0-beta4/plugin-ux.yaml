@@ -1,0 +1,12 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5793
+    description: >
+      Users who do not configure graphql and whose license does not support the feature,
+      will not see warnings in logs
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/2928
+    description: Graphql extensions are not loaded into registry if the license does not support graphql.
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/2918
+    description: Enterprise extensions are not loaded into registry if the license is invalid.

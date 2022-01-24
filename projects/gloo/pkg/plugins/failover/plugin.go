@@ -19,7 +19,6 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/failover"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
@@ -30,7 +29,14 @@ import (
 
 //go:generate mockgen -destination mocks/mock_utils.go github.com/solo-io/gloo/projects/gloo/pkg/utils SslConfigTranslator
 
+var (
+	_ plugins.Plugin         = new(failoverPluginImpl)
+	_ plugins.UpstreamPlugin = new(failoverPluginImpl)
+	_ plugins.EndpointPlugin = new(failoverPluginImpl)
+)
+
 const (
+	ExtensionName             = "failover"
 	TransportSocketMatchKey   = "envoy.transport_socket_match"
 	DefaultDnsPollingInterval = 10 * time.Second
 )
@@ -44,11 +50,6 @@ var (
 	}
 
 	WeightedDnsError = eris.New("Weights cannot be supplied alongside a DNS host in a prioritized locality")
-
-	_ plugins.Plugin         = new(failoverPluginImpl)
-	_ plugins.UpstreamPlugin = new(failoverPluginImpl)
-	_ plugins.EndpointPlugin = new(failoverPluginImpl)
-	_ plugins.Upgradable     = new(failoverPluginImpl)
 )
 
 func NewFailoverPlugin(translator utils.SslConfigTranslator, dnsResolver consul.DnsResolver, apiEmitNotificationChan chan struct{}) plugins.Plugin {
@@ -76,6 +77,10 @@ type failoverPluginImpl struct {
 	settings                    *gloov1.Settings
 }
 
+func (f *failoverPluginImpl) Name() string {
+	return ExtensionName
+}
+
 func (f *failoverPluginImpl) Init(params plugins.InitParams) error {
 	f.settings = params.Settings
 	f.watchedAddresses = nil
@@ -91,14 +96,6 @@ func (f *failoverPluginImpl) Init(params plugins.InitParams) error {
 	go f.startDnsSyncLoop(syncLoopCtx)
 
 	return nil
-}
-
-func (p *failoverPluginImpl) PluginName() string {
-	return failover.ExtensionName
-}
-
-func (p *failoverPluginImpl) IsUpgrade() bool {
-	return true
 }
 
 func (f *failoverPluginImpl) ProcessUpstream(

@@ -23,7 +23,7 @@ import (
 var _ = Describe("Plugin", func() {
 
 	var (
-		p               *Plugin
+		p               plugins.UpstreamPlugin
 		params          plugins.Params
 		upstream        *v1.Upstream
 		upstreamSpec    *v1static.UpstreamSpec

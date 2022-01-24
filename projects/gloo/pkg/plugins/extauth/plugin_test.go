@@ -27,7 +27,7 @@ var _ = Describe("Plugin", func() {
 		params                 plugins.Params
 		vhostParams            plugins.VirtualHostParams
 		routeParams            plugins.RouteParams
-		plugin                 *Plugin
+		plugin                 plugins.Plugin
 		virtualHost            *v1.VirtualHost
 		defaultExtAuthUpstream *v1.Upstream
 		namedExtAuthUpstream   *v1.Upstream
@@ -185,7 +185,7 @@ var _ = Describe("Plugin", func() {
 
 	Context("no extauth settings", func() {
 		It("should provide sanitize filter", func() {
-			filters, err := plugin.HttpFilters(params, nil)
+			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filters).To(HaveLen(1))
 			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
@@ -224,7 +224,7 @@ var _ = Describe("Plugin", func() {
 			// The enterprise plugin is now responsible for creating the ext_authz and sanitize filter
 			// This test is just verifying the behavior of the sanitize filter
 
-			filters, err := plugin.HttpFilters(params, nil)
+			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filters).To(HaveLen(2))
 			filters = getOnlySanitizeFilters(filters)
@@ -245,7 +245,7 @@ var _ = Describe("Plugin", func() {
 				Options:      &v1.HttpListenerOptions{Extauth: extAuthSettings},
 			}
 
-			filters, err = plugin.HttpFilters(params, listener)
+			filters, err = plugin.(plugins.HttpFilterPlugin).HttpFilters(params, listener)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filters).To(HaveLen(2))
 			filters = getOnlySanitizeFilters(filters)
@@ -261,7 +261,7 @@ var _ = Describe("Plugin", func() {
 
 		It("should not error processing vhost", func() {
 			var out envoy_config_route_v3.VirtualHost
-			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
+			err := plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(IsDisabled(&out)).To(BeFalse())
 		})
@@ -270,7 +270,7 @@ var _ = Describe("Plugin", func() {
 			// remove auth extension
 			virtualHost.Options.Extauth = nil
 			var out envoy_config_route_v3.VirtualHost
-			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
+			err := plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &out)
 			Expect(err).NotTo(HaveOccurred())
 			ExpectDisabled(&out)
 		})
@@ -284,14 +284,14 @@ var _ = Describe("Plugin", func() {
 				Extauth: disabled,
 			}
 			var out envoy_config_route_v3.Route
-			err := plugin.ProcessRoute(routeParams, defaultExtAuthRoute, &out)
+			err := plugin.(plugins.RoutePlugin).ProcessRoute(routeParams, defaultExtAuthRoute, &out)
 			Expect(err).NotTo(HaveOccurred())
 			ExpectDisabled(&out)
 		})
 
 		It("should do nothing to a route that's not explicitly disabled", func() {
 			var out envoy_config_route_v3.Route
-			err := plugin.ProcessRoute(routeParams, defaultExtAuthRoute, &out)
+			err := plugin.(plugins.RoutePlugin).ProcessRoute(routeParams, defaultExtAuthRoute, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(IsDisabled(&out)).To(BeFalse())
 		})
@@ -326,7 +326,7 @@ var _ = Describe("Plugin", func() {
 		})
 
 		It("should provide sanitize filter with nil listener", func() {
-			filters, err := plugin.HttpFilters(params, nil)
+			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filters).To(HaveLen(3)) // sanitize, 2 ext_authz
 			filters = getOnlySanitizeFilters(filters)
@@ -355,7 +355,7 @@ var _ = Describe("Plugin", func() {
 				},
 			}
 
-			filters, err := plugin.HttpFilters(params, listener)
+			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, listener)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filters).To(HaveLen(2))
 			filters = getOnlySanitizeFilters(filters)
@@ -371,7 +371,7 @@ var _ = Describe("Plugin", func() {
 
 		It("should not error processing vhost", func() {
 			var out envoy_config_route_v3.VirtualHost
-			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
+			err := plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(IsDisabled(&out)).To(BeFalse())
 		})
@@ -380,7 +380,7 @@ var _ = Describe("Plugin", func() {
 			// remove auth extension
 			virtualHost.Options.Extauth = nil
 			var out envoy_config_route_v3.VirtualHost
-			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
+			err := plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &out)
 			Expect(err).NotTo(HaveOccurred())
 			ExpectDisabled(&out)
 		})
@@ -396,14 +396,14 @@ var _ = Describe("Plugin", func() {
 				Extauth: disabled,
 			}
 			var out envoy_config_route_v3.Route
-			err := plugin.ProcessRoute(routeParams, defaultExtAuthRoute, &out)
+			err := plugin.(plugins.RoutePlugin).ProcessRoute(routeParams, defaultExtAuthRoute, &out)
 			Expect(err).NotTo(HaveOccurred())
 			ExpectDisabled(&out)
 		})
 
 		It("should do nothing to a route that's not explicitly disabled", func() {
 			var out envoy_config_route_v3.Route
-			err := plugin.ProcessRoute(routeParams, defaultExtAuthRoute, &out)
+			err := plugin.(plugins.RoutePlugin).ProcessRoute(routeParams, defaultExtAuthRoute, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(IsDisabled(&out)).To(BeFalse())
 		})

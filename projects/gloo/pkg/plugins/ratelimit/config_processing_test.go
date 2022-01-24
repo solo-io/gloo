@@ -31,7 +31,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 
 		testErr error
 
-		plugin *rlPlugin.Plugin
+		plugin rLPlugin
 	)
 
 	BeforeEach(func() {

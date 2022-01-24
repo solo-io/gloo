@@ -30,7 +30,7 @@ const (
 var _ = Describe("Plugin", func() {
 
 	var (
-		plugin      *Plugin
+		plugin      plugins.Plugin
 		params      plugins.Params
 		vhostParams plugins.VirtualHostParams
 		virtualHost *v1.VirtualHost
@@ -226,11 +226,11 @@ var _ = Describe("Plugin", func() {
 				VirtualHost:       virtualHost,
 			}
 			// run it like the translator:
-			err := plugin.ProcessRoute(routesParams, route, &outRoute)
+			err := plugin.(plugins.RoutePlugin).ProcessRoute(routesParams, route, &outRoute)
 			Expect(err).NotTo(HaveOccurred())
-			err = plugin.ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
+			err = plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
 			Expect(err).NotTo(HaveOccurred())
-			outFilters, err = plugin.HttpFilters(params, nil)
+			outFilters, err = plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 		})
 

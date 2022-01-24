@@ -28,7 +28,7 @@ import (
 
 var _ = Describe("Graphql plugin", func() {
 	var (
-		plugin        *schemas.Plugin
+		plugin        plugins.Plugin
 		params        plugins.Params
 		vhostParams   plugins.VirtualHostParams
 		virtualHost   *v1.VirtualHost
@@ -130,14 +130,14 @@ var _ = Describe("Graphql plugin", func() {
 				VirtualHost:       virtualHost,
 			}
 			// run it like the translator:
-			err := plugin.ProcessRoute(routesParams, route, &outRoute)
+			err := plugin.(plugins.RoutePlugin).ProcessRoute(routesParams, route, &outRoute)
 			Expect(err).NotTo(HaveOccurred())
-			outFilters, err = plugin.HttpFilters(params, httpListener)
+			outFilters, err = plugin.(plugins.HttpFilterPlugin).HttpFilters(params, httpListener)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		BeforeEach(func() {
-			plugin = schemas.NewPlugin(false)
+			plugin = schemas.NewPlugin()
 			err := plugin.Init(plugins.InitParams{})
 			Expect(err).NotTo(HaveOccurred())
 		})

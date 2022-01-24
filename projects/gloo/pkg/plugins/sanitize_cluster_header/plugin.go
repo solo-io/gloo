@@ -4,10 +4,15 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/extauth"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/sanitize_cluster_header"
+)
+
+var (
+	_ plugins.Plugin           = new(plugin)
+	_ plugins.HttpFilterPlugin = new(plugin)
 )
 
 const (
+	ExtensionName      = "sanitize_cluster_header"
 	SanitizeFilterName = "io.solo.filters.http.sanitize"
 )
 
@@ -15,32 +20,21 @@ var (
 	sanitizeFilterStage = plugins.BeforeStage(plugins.AuthNStage)
 )
 
-type Plugin struct {
+type plugin struct{}
+
+func NewPlugin() *plugin {
+	return &plugin{}
 }
 
-var (
-	_ plugins.Plugin           = new(Plugin)
-	_ plugins.HttpFilterPlugin = new(Plugin)
-	_ plugins.Upgradable       = new(Plugin)
-)
-
-func NewPlugin() *Plugin {
-	return &Plugin{}
+func (p *plugin) Name() string {
+	return ExtensionName
 }
 
-func (p *Plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) PluginName() string {
-	return sanitize_cluster_header.ExtensionName
-}
-
-func (p *Plugin) IsUpgrade() bool {
-	return true
-}
-
-func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
 	// check if we should sanitize for cluster_header
 	if sanitizeClusterHeader := listener.GetOptions().GetSanitizeClusterHeader(); sanitizeClusterHeader.GetValue() == false {

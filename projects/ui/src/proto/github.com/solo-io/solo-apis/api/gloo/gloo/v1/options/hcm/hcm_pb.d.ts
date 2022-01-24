@@ -71,8 +71,15 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getDefaultHostForHttp10(): string;
   setDefaultHostForHttp10(value: string): void;
 
+  hasProperCaseHeaderKeyFormat(): boolean;
+  clearProperCaseHeaderKeyFormat(): void;
   getProperCaseHeaderKeyFormat(): boolean;
   setProperCaseHeaderKeyFormat(value: boolean): void;
+
+  hasPreserveCaseHeaderKeyFormat(): boolean;
+  clearPreserveCaseHeaderKeyFormat(): void;
+  getPreserveCaseHeaderKeyFormat(): boolean;
+  setPreserveCaseHeaderKeyFormat(value: boolean): void;
 
   hasTracing(): boolean;
   clearTracing(): void;
@@ -127,6 +134,7 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getNormalizePath(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setNormalizePath(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  getHeaderFormatCase(): HttpConnectionManagerSettings.HeaderFormatCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
   static toObject(includeInstance: boolean, msg: HttpConnectionManagerSettings): HttpConnectionManagerSettings.AsObject;
@@ -155,6 +163,7 @@ export namespace HttpConnectionManagerSettings {
     acceptHttp10: boolean,
     defaultHostForHttp10: string,
     properCaseHeaderKeyFormat: boolean,
+    preserveCaseHeaderKeyFormat: boolean,
     tracing?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_tracing_tracing_pb.ListenerTracingSettings.AsObject,
     forwardClientCertDetails: HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap],
     setCurrentClientCertDetails?: HttpConnectionManagerSettings.SetCurrentClientCertDetails.AsObject,
@@ -243,4 +252,10 @@ export namespace HttpConnectionManagerSettings {
   }
 
   export const CodecType: CodecTypeMap;
+
+  export enum HeaderFormatCase {
+    HEADER_FORMAT_NOT_SET = 0,
+    PROPER_CASE_HEADER_KEY_FORMAT = 22,
+    PRESERVE_CASE_HEADER_KEY_FORMAT = 31,
+  }
 }

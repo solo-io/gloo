@@ -12,6 +12,14 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 )
 
+var (
+	_ plugins.Plugin                    = new(plugin)
+	_ plugins.VirtualHostPlugin         = new(plugin)
+	_ plugins.RoutePlugin               = new(plugin)
+	_ plugins.HttpFilterPlugin          = new(plugin)
+	_ plugins.WeightedDestinationPlugin = new(plugin)
+)
+
 const (
 	DefaultAuthHeader = "x-user-id"
 
@@ -22,13 +30,6 @@ const (
 )
 
 var (
-	_ plugins.Plugin                    = new(Plugin)
-	_ plugins.VirtualHostPlugin         = new(Plugin)
-	_ plugins.RoutePlugin               = new(Plugin)
-	_ plugins.HttpFilterPlugin          = new(Plugin)
-	_ plugins.WeightedDestinationPlugin = new(Plugin)
-	_ plugins.Upgradable                = new(Plugin)
-
 	sanitizeFilterStage = plugins.BeforeStage(plugins.AuthNStage)
 
 	NoMatchesForGroupError = func(labelSelector map[string]string) error {
@@ -36,17 +37,15 @@ var (
 	}
 )
 
-type Plugin struct {
+type plugin struct {
 	userIdHeader         string
 	namedExtAuthSettings map[string]*extauthapi.Settings
 
 	extAuthzConfigGenerator extauth.ExtAuthzConfigGenerator
 }
 
-var _ plugins.Plugin = new(Plugin)
-
-func NewPlugin() *Plugin {
-	return &Plugin{}
+func NewPlugin() *plugin {
+	return &plugin{}
 }
 
 func GetAuthHeader(e *extauthapi.Settings) string {
@@ -58,15 +57,11 @@ func GetAuthHeader(e *extauthapi.Settings) string {
 	return DefaultAuthHeader
 }
 
-func (p *Plugin) PluginName() string {
+func (p *plugin) Name() string {
 	return extauth.ExtensionName
 }
 
-func (p *Plugin) IsUpgrade() bool {
-	return true
-}
-
-func (p *Plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Init(params plugins.InitParams) error {
 	p.userIdHeader = ""
 
 	settings := params.Settings.GetExtauth()
@@ -77,7 +72,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
 
 	// Configure ext_authz http filters
@@ -115,7 +110,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 // If the virtual host does not explicitly define an extauth configuration, we disable the ext_authz filter.
 // Since the ext_authz filter is always enabled on the listener, we need this to disable authentication by default on
 // a virtual host and its child resources (routes, weighted destinations). Extauth should be opt-in.
-func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {
+func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {
 
 	// Ext_authz filter is not configured, do nothing
 	if !p.isExtAuthzFilterConfigured(params.Listener.GetHttpListener(), params.Snapshot.Upstreams) {
@@ -145,7 +140,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 // - if the route defines auth configuration, set the filter correspondingly;
 // - if auth is explicitly disabled, disable the filter (will apply by default also to WeightedDestinations);
 // - if not auth config is defined, do nothing (will inherit config from parent virtual host).
-func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
+func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 
 	// Ext_authz filter is not configured, do nothing
 	if !p.isExtAuthzFilterConfigured(params.Listener.GetHttpListener(), params.Snapshot.Upstreams) {
@@ -175,7 +170,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 // - if the weightedDestination defines auth configuration, set the filter correspondingly;
 // - if auth is explicitly disabled, disable the filter;
 // - if not auth config is defined, do nothing (will inherit config from parent virtual host and/or route).
-func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.WeightedDestination, out *envoy_config_route_v3.WeightedCluster_ClusterWeight) error {
+func (p *plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.WeightedDestination, out *envoy_config_route_v3.WeightedCluster_ClusterWeight) error {
 
 	// Ext_authz filter is not configured, do nothing
 	if !p.isExtAuthzFilterConfigured(params.Listener.GetHttpListener(), params.Snapshot.Upstreams) {
@@ -201,7 +196,7 @@ func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.W
 	return pluginutils.SetWeightedClusterPerFilterConfig(out, wellknown.HTTPExternalAuthorization, extAuthPerRouteConfig)
 }
 
-func (p *Plugin) isExtAuthzFilterConfigured(listener *v1.HttpListener, upstreams v1.UpstreamList) bool {
+func (p *plugin) isExtAuthzFilterConfigured(listener *v1.HttpListener, upstreams v1.UpstreamList) bool {
 	// Call the same function called by HttpFilters to verify whether the filter was created
 	stagedFilters, err := extauth.BuildStagedHttpFilters(func() ([]*envoyauth.ExtAuthz, error) {
 		return p.extAuthzConfigGenerator.GenerateListenerExtAuthzConfig(listener, upstreams)
