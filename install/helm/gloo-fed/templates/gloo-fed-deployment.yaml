@@ -14,8 +14,8 @@ spec:
   selector:
     matchLabels:
       app: gloo-fed
-{{- if not (kindIs "invalid" $glooFed.deployment.replicas) }}
-  replicas: {{ $glooFed.deployment.replicas }}
+{{- if not (kindIs "invalid" $glooFed.replicas) }}
+  replicas: {{ $glooFed.replicas }}
 {{- end }}
   template:
     metadata:

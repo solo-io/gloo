@@ -1130,6 +1130,48 @@
 |tags.NAME|string|||
 |gloo-fed.enabled|bool|false|If true, deploy federation service (default true).|
 |gloo-fed.create_license_secret|bool|false||
+|gloo-fed.gloo_fed.replicas|int||number of instances to deploy|
+|gloo-fed.gloo_fed.customEnv[].name|string|||
+|gloo-fed.gloo_fed.customEnv[].value|string|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.fieldRef.apiVersion|string|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.fieldRef.fieldPath|string|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.containerName|string|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.resource|string|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor|int64|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor|int32|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor|bool|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor[]|uint|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor[]|int32|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.configMapKeyRef.name|string|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.configMapKeyRef.key|string|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.configMapKeyRef.optional|bool|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.secretKeyRef.name|string|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.secretKeyRef.key|string|||
+|gloo-fed.gloo_fed.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|gloo-fed.gloo_fed.restartPolicy|string||restart policy to use when the pod exits|
+|gloo-fed.gloo_fed.nodeName|string||name of node to run on|
+|gloo-fed.gloo_fed.nodeSelector.NAME|string||label selector for nodes|
+|gloo-fed.gloo_fed.tolerations[].key|string|||
+|gloo-fed.gloo_fed.tolerations[].operator|string|||
+|gloo-fed.gloo_fed.tolerations[].value|string|||
+|gloo-fed.gloo_fed.tolerations[].effect|string|||
+|gloo-fed.gloo_fed.tolerations[].tolerationSeconds|int64|||
+|gloo-fed.gloo_fed.affinity[].NAME|interface|||
+|gloo-fed.gloo_fed.hostAliases[]|interface|||
+|gloo-fed.gloo_fed.resources.limits.memory|string||amount of memory|
+|gloo-fed.gloo_fed.resources.limits.cpu|string||amount of CPUs|
+|gloo-fed.gloo_fed.resources.requests.memory|string||amount of memory|
+|gloo-fed.gloo_fed.resources.requests.cpu|string||amount of CPUs|
+|gloo-fed.gloo_fed.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|gloo-fed.gloo_fed.image.tag|string||tag for the container|
+|gloo-fed.gloo_fed.image.repository|string||image name (repository) for the container.|
+|gloo-fed.gloo_fed.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
+|gloo-fed.gloo_fed.image.pullPolicy|string||image pull policy for the container|
+|gloo-fed.gloo_fed.image.pullSecret|string||image pull policy for the container |
+|gloo-fed.gloo_fed.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
+|gloo-fed.gloo_fed.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
 |global.image.tag|string||tag for the container|
 |global.image.repository|string||image name (repository) for the container.|
 |global.image.registry|string|quay.io/solo-io|image prefix/registry e.g. (quay.io/solo-io)|

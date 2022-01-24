@@ -90,8 +90,14 @@ type RateLimitService struct {
 }
 
 type GlooFed struct {
-	Enabled             bool `json:"enabled,omitempty" desc:"If true, deploy federation service (default true)."`
-	CreateLicenseSecret bool `json:"create_license_secret"`
+	Enabled             bool          `json:"enabled,omitempty" desc:"If true, deploy federation service (default true)."`
+	CreateLicenseSecret bool          `json:"create_license_secret"`
+	GlooFed             GlooFedValues `json:"gloo_fed,omitempty"`
+}
+
+type GlooFedValues struct {
+	*glooGen.DeploymentSpec
+	Image *glooGen.Image `json:"image,omitempty"`
 }
 
 type Redis struct {

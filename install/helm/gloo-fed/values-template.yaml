@@ -1,7 +1,6 @@
 enabled: true
 glooFed:
-  deployment:
-    replicas: 1
+  replicas: 1
   image:
     pullPolicy: IfNotPresent
     repository: gloo-fed
