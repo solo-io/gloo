@@ -13,7 +13,6 @@ import { ResolverWizard } from './ResolverWizard';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
-import { ApiProvider } from './state/ApiProvider.state';
 import { NewApiModal } from './NewApiModal';
 
 export enum APIType {
@@ -152,12 +151,10 @@ export const GraphqlLanding = () => {
       <SoloModal visible={modalOpen} width={750} onClose={closeModal}>
         <ResolverWizard onClose={closeModal} />
       </SoloModal>
-      <ApiProvider>
         <NewApiModal
           showNewModal={showGraphqlModal}
           toggleNewModal={toggleGraphqlModal}
         />
-      </ApiProvider>
     </>
   );
 };

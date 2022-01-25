@@ -2,11 +2,9 @@ import 'graphiql/graphiql.css';
 import * as React from 'react';
 import { GraphiQL } from 'graphiql';
 import css from '@emotion/css';
-import { createGraphiQLFetcher } from '@graphiql/toolkit';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { GraphqlStyle } from './GraphiqlStyle';
 import styled from '@emotion/styled';
-import { useApiProvider } from './state/ApiProvider.state';
 import { colors } from 'Styles/colors';
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils';
 // @ts-ignore
@@ -65,7 +63,6 @@ interface GraphqlApiExplorerProps {
 }
 
 export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
-  const { state } = useApiProvider();
   let typeDefs: any;
   if (props?.graphQLSchema?.spec?.executableSchema?.schema_definition) {
     typeDefs = props?.graphQLSchema?.spec?.executableSchema?.schema_definition;
@@ -83,9 +80,6 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
 
   executableSchema = mockedDirectiveTransformer(executableSchema);
 
-  const fetcher = createGraphiQLFetcher({
-    url: state.url as string,
-  });
   return (
     <Wrapper>
       <StyledContainer>

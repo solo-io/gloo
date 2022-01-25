@@ -25,7 +25,6 @@ import { GraphqlOverview } from 'Components/Features/Graphql/GraphqlOverview';
 import { EnableGraphqlFeature } from 'Components/Features/Graphql/EnableGraphqlFeature';
 import { GraphqlLanding } from 'Components/Features/Graphql/GraphqlLanding';
 import { GraphQLDetails } from 'Components/Features/Graphql/GraphqlDetails';
-import { ApiProvider } from 'Components/Features/Graphql/state/ApiProvider.state';
 
 const ScrollContainer = styled.div`
   max-height: 100%;
@@ -260,10 +259,7 @@ export const Content = () => {
                   <div>Unable to pull information on Gloo Instances.</div>
                 }
               >
-                <ApiProvider>
-
                 <GraphQLDetails />
-              </ApiProvider>
               </ErrorBoundary>
 
               </EnableGraphqlFeature>

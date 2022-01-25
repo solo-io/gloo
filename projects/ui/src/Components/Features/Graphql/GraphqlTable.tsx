@@ -28,7 +28,6 @@ import { APIType } from './GraphqlLanding';
 import bookInfoSchema from './data/book-info.json';
 import petstoreSchema from './data/petstore.json';
 import { NewApiModal } from './NewApiModal';
-import { ApiProvider } from './state/ApiProvider.state';
 
 export const GraphqlIconHolder = styled.div`
   display: flex;
@@ -187,16 +186,6 @@ export const GraphqlPageTable = (props: Props) => {
     setShowGraphqlModal(!showGraphqlModal);
   }
 
-  function getLink(filter: CheckboxFilterProps) {
-    return filter.label === APIType.GRAPHQL ? (
-    <SecondaryComponent>
-      <Button type="button" onClick={toggleGraphqlModal} className=''>
-         Create Graphql API
-      </Button>
-
-    </SecondaryComponent>) : null;
-  }
-
   return (
     <>
       {typeFilters
@@ -212,14 +201,11 @@ export const GraphqlPageTable = (props: Props) => {
             cardName={filter.label}
             logoIcon={<GraphqlIconHolder>{getIcon(filter)}</GraphqlIconHolder>}
             noPadding={true}
-            secondaryComponent={getLink(filter)}
             >
               <GraphqlTable {...props} wholePage={true} />
             </SectionCard>
         ))}
-        <ApiProvider>
           <NewApiModal showNewModal={showGraphqlModal} toggleNewModal={toggleGraphqlModal} />
-        </ApiProvider>
     </>
   );
 };
