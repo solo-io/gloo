@@ -254,14 +254,13 @@ export const Content = () => {
             path='/apis/:namespace/:name/'
             element={
               <EnableGraphqlFeature reroute>
-              <ErrorBoundary
-                fallback={
-                  <div>Unable to pull information on Gloo Instances.</div>
-                }
-              >
-                <GraphQLDetails />
-              </ErrorBoundary>
-
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on Gloo Instances.</div>
+                  }
+                >
+                  <GraphQLDetails />
+                </ErrorBoundary>
               </EnableGraphqlFeature>
             }
           />

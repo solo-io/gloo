@@ -28,6 +28,7 @@ import { APIType } from './GraphqlLanding';
 import bookInfoSchema from './data/book-info.json';
 import petstoreSchema from './data/petstore.json';
 import { NewApiModal } from './NewApiModal';
+import { useListGraphqlSchemas } from 'API/hooks';
 
 export const GraphqlIconHolder = styled.div`
   display: flex;
@@ -77,11 +78,9 @@ type TableDataType = {
   key: string;
   name: SimpleLinkProps;
   namespace: string;
-  glooInstance?: { name: string; namespace: string };
   cluster: string;
-  failover: boolean;
   status: number;
-  actions: typeof bookInfoSchema.spec;
+  actions: typeof bookInfoSchema.spec | typeof petstoreSchema.spec;
 };
 
 let testData: TableDataType[] = [
@@ -92,12 +91,7 @@ let testData: TableDataType[] = [
       link: `/apis/${bookInfoSchema.metadata.namespace}/${bookInfoSchema.metadata.name}`,
     },
     namespace: bookInfoSchema.metadata.namespace,
-    glooInstance: {
-      name: 'local-gloo-system',
-      namespace: 'gloo-system',
-    },
     cluster: 'local',
-    failover: false,
     status: 1,
     actions: {
       ...bookInfoSchema.spec,
@@ -106,9 +100,31 @@ let testData: TableDataType[] = [
 ];
 
 export const GraphqlTable = (props: Props & TableHolderProps) => {
+  const { data: graphqlSchemas, error: graphqlSchemaError } =
+    useListGraphqlSchemas();
   const { name, namespace } = useParams();
   const navigate = useNavigate();
   const [tableData, setTableData] = React.useState<TableDataType[]>(testData);
+
+  React.useEffect(() => {
+    setTableData(
+      graphqlSchemas!.map(gqlSchema => {
+        return {
+          key: gqlSchema.metadata.uid,
+          name: {
+            displayElement: gqlSchema.metadata.name,
+            link: `/apis/${gqlSchema.metadata.namespace}/${gqlSchema.metadata.name}`,
+          },
+          namespace: gqlSchema.metadata.namespace,
+          cluster: 'local',
+          status: 1,
+          actions: {
+            ...gqlSchema.spec,
+          },
+        };
+      })
+    );
+  }, []);
 
   const renderFailover = (failoverExists: boolean) => {
     return failoverExists ? (
@@ -184,7 +200,7 @@ export const GraphqlPageTable = (props: Props) => {
   }
   const toggleGraphqlModal = () => {
     setShowGraphqlModal(!showGraphqlModal);
-  }
+  };
 
   return (
     <>
@@ -201,11 +217,14 @@ export const GraphqlPageTable = (props: Props) => {
             cardName={filter.label}
             logoIcon={<GraphqlIconHolder>{getIcon(filter)}</GraphqlIconHolder>}
             noPadding={true}
-            >
-              <GraphqlTable {...props} wholePage={true} />
-            </SectionCard>
+          >
+            <GraphqlTable {...props} wholePage={true} />
+          </SectionCard>
         ))}
-          <NewApiModal showNewModal={showGraphqlModal} toggleNewModal={toggleGraphqlModal} />
+      <NewApiModal
+        showNewModal={showGraphqlModal}
+        toggleNewModal={toggleGraphqlModal}
+      />
     </>
   );
 };

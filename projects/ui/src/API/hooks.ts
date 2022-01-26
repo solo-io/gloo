@@ -60,6 +60,11 @@ import { FederatedRateLimitConfig } from 'proto/github.com/solo-io/solo-projects
 import { BootstrapApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb_service';
 import { bootstrapApi } from './bootstrap';
 import { GlooFedCheckResponse } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb';
+import petstoreSchema from '../Components/Features/Graphql/data/petstore.json';
+import bookinfoSchema from '../Components/Features/Graphql/data/book-info.json';
+import { graphqlApi, GraphqlSchemaType } from './graphql';
+import { petstoreYaml } from 'Components/Features/Graphql/data/petstore-yaml';
+import { bookInfoYaml } from 'Components/Features/Graphql/data/book-info-yaml';
 
 const normalRefreshInterval = 10000;
 
@@ -344,5 +349,41 @@ export function useIsGlooFedEnabled() {
     BootstrapApi.IsGlooFedEnabled.methodName,
     () => bootstrapApi.isGlooFedEnabled(),
     { refreshInterval: normalRefreshInterval }
+  );
+}
+
+export function useListGraphqlSchemas() {
+  return useSWR<GraphqlSchemaType[]>(
+    'ListGraphqlSchemas',
+    () => graphqlApi.listGraphqlSchemas(),
+    {
+      refreshInterval: 0,
+      fallbackData: [
+        {
+          metadata: petstoreSchema.metadata,
+          spec: petstoreSchema.spec,
+          yamlConfig: petstoreYaml,
+        },
+        {
+          metadata: bookinfoSchema.metadata,
+          spec: bookinfoSchema.spec,
+          yamlConfig: bookInfoYaml,
+        },
+      ],
+    }
+  );
+}
+
+export function useGetGraphqlSchemaDetails(
+  graphqlSchemaRef: ObjectRef.AsObject
+) {
+  const key = `getGraphqlSchema/${graphqlSchemaRef.namespace}/${graphqlSchemaRef.name}`;
+
+  return useSWR<GraphqlSchemaType>(
+    key,
+    () => graphqlApi.getGraphqlSchema(graphqlSchemaRef),
+    {
+      refreshInterval: 0,
+    }
   );
 }

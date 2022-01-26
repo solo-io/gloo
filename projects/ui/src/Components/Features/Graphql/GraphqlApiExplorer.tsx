@@ -12,7 +12,7 @@ import { GraphQLSchema } from 'graphql';
 
 function mockedDirective(directiveName: string) {
   return {
-    mockedDirectiveTypeDefs: `directive @${directiveName}(name: String) on FIELD_DEFINITION | ENUM_VALUE`,
+    mockedDirectiveTypeDefs: `directive @${directiveName}(name: String) on FIELD_DEFINITION | ENUM_VALUE | INPUT_FIELD_DEFINITION | INPUT_OBJECT | OBJECT | SCALAR | ARGUMENT_DEFINITION `,
     mockedDirectiveTransformer: (schema: GraphQLSchema) =>
       mapSchema(schema, {
         [MapperKind.OBJECT_FIELD]: fieldConfig => {
@@ -41,10 +41,7 @@ function mockedDirective(directiveName: string) {
   };
 }
 const Wrapper = styled.div`
-  margin: 13px;
   background: white;
-  border-radius: 10px;
-  box-shadow: 0px 4px 9px ${colors.boxShadow};
 `;
 
 const Header = styled.h1`
@@ -83,22 +80,28 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
   return (
     <Wrapper>
       <StyledContainer>
-        <GraphiQL
-          css={css(GraphqlStyle)}
-          schema={executableSchema}
-          fetcher={async graphQLParams => {
-            const data = await fetch('http://localhost:8080/graphql', {
-              method: 'POST',
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(graphQLParams),
-              credentials: 'same-origin',
-            });
-            return data.json().catch(() => data.text());
-          }}
-        />
+        {
+          <GraphiQL
+            css={css(GraphqlStyle)}
+            schema={executableSchema}
+            fetcher={async graphQLParams => {
+              try {
+                const data = await fetch('http://localhost:8080/graphql', {
+                  method: 'POST',
+                  headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(graphQLParams),
+                  credentials: 'same-origin',
+                });
+                return data.json().catch(() => data.text());
+              } catch (error) {
+                console.log('error', error);
+              }
+            }}
+          />
+        }
       </StyledContainer>
     </Wrapper>
   );

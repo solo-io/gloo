@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Show all GraphQL field types in API Details section.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3010
+  - type: NON_USER_FACING
+    description: Style schema explorer link in API Details page.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3009

@@ -14,6 +14,7 @@ import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { NewApiModal } from './NewApiModal';
+import { useListGraphqlSchemas } from 'API/hooks';
 
 export enum APIType {
   REST = 'REST',
@@ -83,6 +84,8 @@ const API_TYPES: CheckboxFilterProps[] = [
 ];
 
 export const GraphqlLanding = () => {
+  const { data: graphqlSchemas, error: graphqlSchemaError } =
+    useListGraphqlSchemas();
   const [nameFilter, setNameFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [showGraphqlModal, setShowGraphqlModal] = React.useState(false);
@@ -151,10 +154,10 @@ export const GraphqlLanding = () => {
       <SoloModal visible={modalOpen} width={750} onClose={closeModal}>
         <ResolverWizard onClose={closeModal} />
       </SoloModal>
-        <NewApiModal
-          showNewModal={showGraphqlModal}
-          toggleNewModal={toggleGraphqlModal}
-        />
+      <NewApiModal
+        showNewModal={showGraphqlModal}
+        toggleNewModal={toggleGraphqlModal}
+      />
     </>
   );
 };
