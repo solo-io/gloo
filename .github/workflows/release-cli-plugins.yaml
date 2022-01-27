@@ -1,8 +1,15 @@
 name: Release CLI Plugins
 
+# This action is consistently failing as of v1.10.0-beta5
+# We are therefore disabling the automatic trigger until the bug(s) are resolved
+# See https://github.com/solo-io/solo-projects/issues/3018 for more information
+
 on:
-  release:
-    types: [created]
+  workflow_dispatch:
+
+# on:
+#   release:
+#     types: [created]
 
 jobs:
   release-cli-plugins:
