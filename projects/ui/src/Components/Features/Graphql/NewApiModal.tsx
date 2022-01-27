@@ -4,12 +4,28 @@ import { SoloModal } from 'Components/Common/SoloModal';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { colors } from 'Styles/colors';
+import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
 // import { SoloFi}
 
 export interface NewApiModalProps {
   showNewModal: boolean;
   toggleNewModal: () => any;
 }
+
+const ModalContent = styled.div`
+  padding: 25px 20px;
+`;
+const Title = styled.div`
+  display: flex;
+  font-size: 22px;
+  line-height: 26px;
+  font-weight: 500;
+  margin-bottom: 20px;
+
+  svg {
+    margin-left: 8px;
+  }
+`;
 
 const InputWrapper = styled.div`
   padding: 10px 0;
@@ -48,8 +64,11 @@ export const NewApiModal = (props: NewApiModalProps) => {
   };
 
   return (
-    <SoloModal visible={showNewModal} width={1000} onClose={toggleNewModal}>
-      <SectionCard cardName='Create new GraphQL API'>
+    <SoloModal visible={showNewModal} width={600} onClose={toggleNewModal}>
+      <ModalContent>
+        <Title>
+            Create new GraphQL API
+        </Title>
         <InputWrapper>
           <SoloInput title='Name' onChange={changeName} value={name} />
         </InputWrapper>
@@ -58,11 +77,11 @@ export const NewApiModal = (props: NewApiModalProps) => {
           <SoloInput title='Schema Definition' file onChange={changeSchema} />
         </InputWrapper>
         <Footer>
-          <Button type='button' onClick={toggleNewModal}>
+          <SoloButtonStyledComponent onClick={toggleNewModal}>
             Create API
-          </Button>
+          </SoloButtonStyledComponent>
         </Footer>
-      </SectionCard>
+      </ModalContent>
     </SoloModal>
   );
 };

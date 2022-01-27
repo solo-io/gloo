@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/2997
+    description: >
+      Graphql add new modal is consistent with other designs.
