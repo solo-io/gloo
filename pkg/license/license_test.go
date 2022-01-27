@@ -59,8 +59,8 @@ var _ = Describe("LicensedFeatureProvider", func() {
 			featureState := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
 			Expect(featureState.Enabled).To(Equal(expectedEnabled))
 		},
-		table.Entry("nil license", nilLicense, false),
-		table.Entry("invalid license", invalidLicense, false),
+		table.Entry("nil license", nilLicense, true),
+		table.Entry("invalid license", invalidLicense, true),
 		table.Entry("expired license", expiredLicense, true),
 		table.Entry("valid license", validLicense, true),
 	)
@@ -73,11 +73,11 @@ var _ = Describe("LicensedFeatureProvider", func() {
 			Expect(featureState.Enabled).To(Equal(expectedEnabled))
 		},
 		table.Entry("nil license", nilLicense, false),
-		table.Entry("invalid license", invalidLicense, false),
+		table.Entry("invalid license", invalidLicense, true),
 		table.Entry("valid license without add-on", validLicense, false),
 		table.Entry("valid license with add-on", getGraphQLLicense(false, false), true),
 		table.Entry("expired license with add-on", getGraphQLLicense(true, false), true),
-		table.Entry("invalid license with add-on", getGraphQLLicense(true, true), false),
+		table.Entry("invalid license with add-on", getGraphQLLicense(true, true), true),
 	)
 })
 

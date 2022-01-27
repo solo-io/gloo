@@ -72,12 +72,18 @@ func (l *LicensedFeatureProvider) setFeatureStateForEnterprise(license *Validate
 	}
 	l.stateByLicensedFeature[Enterprise] = featureState
 
-	if license == nil || license.License == nil {
+	if license == nil {
 		return
 	}
 
 	if license.Err != nil {
-		// Error on the license means we should not enable Enterprise features
+		// Error on the license means that the license is invalid
+		// There are some ongoing decisions around how to properly validate Enterprise keys and expose features
+		// To avoid crashing the proxy or control-plane.
+		// Until the decision is made, we will keep the original behavior and enable enterprise features
+		// for both expired and invalid licenses.
+		// https://github.com/solo-io/solo-projects/issues/2918
+		featureState.Enabled = true
 		featureState.Reason = license.Err.Error()
 		return
 	}
@@ -97,17 +103,23 @@ func (l *LicensedFeatureProvider) setFeatureStateForGraphql(license *ValidatedLi
 	}
 	l.stateByLicensedFeature[GraphQL] = featureState
 
-	if license == nil || license.License == nil {
+	if license == nil {
 		return
 	}
 
 	if license.Err != nil {
-		// Error on the license means we should not enable GraphQL features
+		// Error on the license means that the license is invalid
+		// There are some ongoing decisions around how to properly validate Enterprise keys and expose features
+		// To avoid crashing the proxy or control-plane.
+		// Until the decision is made, we will keep the original behavior and enable enterprise features
+		// for both expired and invalid licenses.
+		// https://github.com/solo-io/solo-projects/issues/2918
+		featureState.Enabled = true
 		featureState.Reason = license.Err.Error()
 		return
 	}
 
-	if license.License.AddOns.GraphQL == false {
+	if license.License == nil || license.License.AddOns.GraphQL == false {
 		// If GraphQL is not explicitly enabled, disable the feature
 		featureState.Reason = "License does not support GraphQL"
 		return

@@ -74,18 +74,18 @@ var _ = Describe("PluginRegistryFactory", func() {
 			Expect(isSubset(pluginRegistry.GetPlugins(), ossPlugins)).To(BeTrue())
 		})
 
-		It("does not register enterprise plugins", func() {
+		It("does register enterprise plugins", func() {
 			enterprisePlugins := []string{
 				jwt.ExtensionName,
 			}
-			Expect(isSubset(pluginRegistry.GetPlugins(), enterprisePlugins)).To(BeFalse())
+			Expect(isSubset(pluginRegistry.GetPlugins(), enterprisePlugins)).To(BeTrue())
 		})
 
-		It("does not register graphql plugins", func() {
+		It("does register graphql plugins", func() {
 			graphQlPlugins := []string{
 				graphql.ExtensionName,
 			}
-			Expect(isSubset(pluginRegistry.GetPlugins(), graphQlPlugins)).To(BeFalse())
+			Expect(isSubset(pluginRegistry.GetPlugins(), graphQlPlugins)).To(BeTrue())
 		})
 
 	})
