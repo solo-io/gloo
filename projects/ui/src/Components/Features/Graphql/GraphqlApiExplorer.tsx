@@ -61,10 +61,10 @@ interface GraphqlApiExplorerProps {
 
 export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
   let typeDefs: any;
-  if (props?.graphQLSchema?.spec?.executableSchema?.schema_definition) {
-    typeDefs = props?.graphQLSchema?.spec?.executableSchema?.schema_definition;
-  } else if (props?.graphQLSchema?.executableSchema?.schema_definition) {
-    typeDefs = props.graphQLSchema.executableSchema.schema_definition;
+  if (props?.graphQLSchema?.spec?.executableSchema?.schemaDefinition) {
+    typeDefs = props?.graphQLSchema?.spec?.executableSchema?.schemaDefinition;
+  } else if (props?.graphQLSchema?.executableSchema?.schemaDefinition) {
+    typeDefs = props.graphQLSchema.executableSchema.schemaDefinition;
   } else {
     return null;
   }
@@ -76,32 +76,29 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
   });
 
   executableSchema = mockedDirectiveTransformer(executableSchema);
-
   return (
     <Wrapper>
       <StyledContainer>
-        {
-          <GraphiQL
-            css={css(GraphqlStyle)}
-            schema={executableSchema}
-            fetcher={async graphQLParams => {
-              try {
-                const data = await fetch('http://localhost:8080/graphql', {
-                  method: 'POST',
-                  headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(graphQLParams),
-                  credentials: 'same-origin',
-                });
-                return data.json().catch(() => data.text());
-              } catch (error) {
-                console.log('error', error);
-              }
-            }}
-          />
-        }
+        <GraphiQL
+          css={css(GraphqlStyle)}
+          schema={executableSchema}
+          fetcher={async graphQLParams => {
+            try {
+              const data = await fetch('http://localhost:8080/graphql', {
+                method: 'POST',
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(graphQLParams),
+                credentials: 'same-origin',
+              });
+              return data.json().catch(() => data.text());
+            } catch (error) {
+              console.log('error', error);
+            }
+          }}
+        />
       </StyledContainer>
     </Wrapper>
   );

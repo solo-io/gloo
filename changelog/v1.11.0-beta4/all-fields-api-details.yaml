@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Show all GraphQL field types in the API details page and allow for setting resolvers.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3017
