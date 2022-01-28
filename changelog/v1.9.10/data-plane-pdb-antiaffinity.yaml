@@ -1,0 +1,11 @@
+changelog:
+  - type: HELM
+    description: Adds support for user-configured PDB and affinity/anti-affinity rules for the extauth and rate-limit deployments
+    issueLink: https://github.com/solo-io/gloo/issues/5648
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/5389
+    description: Add the rateLimitBeforeAuth setting to values.go
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/5389
+    resolvesIssue: false
+    description: Add the rateLimitBeforeAuth setting to the _helpers.tpl file.

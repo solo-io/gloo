@@ -1,0 +1,20 @@
+{{- if .Values.global.extensions.rateLimit.enabled}}
+{{- if .Values.global.extensions.rateLimit.deployment.podDisruptionBudget }}
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: rate-limit-pdb
+  namespace: {{ $.Release.Namespace }}
+spec:
+  {{- if .Values.global.extensions.rateLimit.deployment.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.global.extensions.rateLimit.deployment.podDisruptionBudget.minAvailable }}
+  {{- end }}
+  {{- if .Values.global.extensions.rateLimit.deployment.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.global.extensions.rateLimit.deployment.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      gloo: rate-limit
+{{- end }}
+{{- end }}

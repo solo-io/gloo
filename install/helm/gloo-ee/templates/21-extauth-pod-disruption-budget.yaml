@@ -1,0 +1,20 @@
+{{- if .Values.global.extensions.extAuth.enabled}}
+{{- if .Values.global.extensions.extAuth.deployment.podDisruptionBudget }}
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: ext-auth-pdb
+  namespace: {{ $.Release.Namespace }}
+spec:
+  {{- if .Values.global.extensions.extAuth.deployment.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.global.extensions.extAuth.deployment.podDisruptionBudget.minAvailable }}
+  {{- end }}
+  {{- if .Values.global.extensions.extAuth.deployment.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.global.extensions.extAuth.deployment.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      gloo: ext-auth
+{{- end }}
+{{- end }}
