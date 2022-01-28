@@ -5,7 +5,10 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { colors } from 'Styles/colors';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
-// import { SoloFi}
+import { SoloFormFileUpload } from 'Components/Common/SoloFormComponents';
+import { Formik } from 'formik';
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import gql from 'graphql-tag';
 
 export interface NewApiModalProps {
   showNewModal: boolean;
@@ -46,6 +49,10 @@ const Button = styled.button`
   }
 `;
 
+type CreateApiValues = {
+  uploadedSchema: File;
+};
+
 export const NewApiModal = (props: NewApiModalProps) => {
   const { showNewModal, toggleNewModal } = props;
   const [name, setName] = React.useState<string>('');
@@ -63,25 +70,69 @@ export const NewApiModal = (props: NewApiModalProps) => {
     }
   };
 
+  const createApi = async (values: CreateApiValues) => {};
+
   return (
     <SoloModal visible={showNewModal} width={600} onClose={toggleNewModal}>
-      <ModalContent>
-        <Title>
-            Create new GraphQL API
-        </Title>
-        <InputWrapper>
-          <SoloInput title='Name' onChange={changeName} value={name} />
-        </InputWrapper>
-        <InputWrapper>
-          {/* @ts-expect-error Setting the value here will cause an error. */}
-          <SoloInput title='Schema Definition' file onChange={changeSchema} />
-        </InputWrapper>
-        <Footer>
-          <SoloButtonStyledComponent onClick={toggleNewModal}>
-            Create API
-          </SoloButtonStyledComponent>
-        </Footer>
-      </ModalContent>
+      <Formik
+        initialValues={{
+          uploadedSchema: undefined as unknown as File,
+        }}
+        onSubmit={createApi}
+      >
+        {formik => (
+          <ModalContent>
+            <Title>Create new GraphQL API</Title>
+            <InputWrapper>
+              <SoloInput title='Name' onChange={changeName} value={name} />
+            </InputWrapper>
+            <InputWrapper>
+              <SoloFormFileUpload
+                name='uploadedSchema'
+                title='Schema'
+                buttonLabel='Upload Schema'
+                fileType='.graphql,.gql'
+                validateFile={file => {
+                  let schema = '';
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                      if (typeof e.target?.result === 'string') {
+                        schema = e.target?.result;
+                      }
+                    };
+
+                    reader.readAsText(file!);
+                    try {
+                      let query = gql`
+                        ${reader}
+                      `;
+                    } catch (error) {
+                      // TODO replace with real validation
+                      return { isValid: true, errorMessage: error as string };
+                    }
+                  }
+                  return { isValid: true, errorMessage: '' };
+                }}
+              />
+            </InputWrapper>
+            <Footer>
+              <SoloButtonStyledComponent onClick={formik.handleSubmit as any}>
+                Create API
+              </SoloButtonStyledComponent>
+            </Footer>
+          </ModalContent>
+        )}
+      </Formik>
     </SoloModal>
   );
 };
+function loadDocuments(
+  uploadedSchema: File,
+  arg1: {
+    // load from a single schema file
+    loaders: GraphQLFileLoader[];
+  }
+) {
+  throw new Error('Function not implemented.');
+}

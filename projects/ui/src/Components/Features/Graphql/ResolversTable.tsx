@@ -40,12 +40,12 @@ export const ArrowToggle = styled('div')<ArrowToggleProps>`
     right: 5px;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
-    transform: rotate(${props => (props.active ? '' : '-')}45deg);
+    transform: rotate(${props => (props.active ? '-' : '')}45deg);
   }
 
   &:after {
     right: 1px;
-    transform: rotate(${props => (props.active ? '-' : '')}45deg);
+    transform: rotate(${props => (props.active ? '' : '-')}45deg);
   }
 `;
 
@@ -153,7 +153,7 @@ export const ResolverItem: React.FC<{
           ref={listRef}
           style={{
             height: `${
-              fields!.length * 80 < 400 ? fields!.length * 80 : 400
+              fields!.length * 90 < 400 ? fields!.length * 90 : 400
             }px`,
             width: `100%`,
             overflow: 'auto',
@@ -306,7 +306,7 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
         >
           {fieldTypesMap
             ?.sort(([typeName, fields]) =>
-              typeName === 'Query' || typeName === 'Mutation' ? -1 : 1
+              typeName === 'Query' ? -1 : typeName === 'Mutation' ? 0 : 1
             )
             .map(([typeName, fields]) => {
               return (

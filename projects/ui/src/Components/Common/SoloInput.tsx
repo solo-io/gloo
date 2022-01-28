@@ -15,7 +15,7 @@ type InputStyledProps = {
   borderless?: boolean;
 };
 
-const Input = styled.input<InputStyledProps>`
+export const Input = styled.input<InputStyledProps>`
   width: 100%;
   padding: 7px 15px 7px 11px;
   border-radius: 8px;

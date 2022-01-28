@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Begin adding validation when the user uploads a Graphql schema file.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3004
+    resolvesIssue: false
