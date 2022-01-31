@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Remove placeholder text from resolver configuration modal.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3034

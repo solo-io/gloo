@@ -89,9 +89,8 @@ const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
                 </span>
                 {/* TODO: add copy explaining things */}
                 <span className='block text-sm text-blue-700gloo'>
-                  Velit reprehenderit et tempor enim minim cupidatat ex
-                  adipisicing ut. In officia sunt aliqua in. Cupidatat duis
-                  eiusmod ad voluptate elit minim ullamco.
+                  Integrate with upstream REST APIs and customize HTTP request
+                  and response mappings.
                 </span>
               </label>
             </div>
@@ -126,9 +125,7 @@ const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
                   gRPC
                 </span>
                 <span className='block text-sm text-blue-700gloo '>
-                  Velit reprehenderit et tempor enim minim cupidatat ex
-                  adipisicing ut. In officia sunt aliqua in. Cupidatat duis
-                  eiusmod ad voluptate elit minim ullamco.
+                  Integrate with upstream gRPC APIs based on a proto definition.
                 </span>
               </label>
             </div>
