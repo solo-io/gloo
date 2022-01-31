@@ -1,5 +1,7 @@
+/* @import '~@reach/tabs/styles.css'; */
+/* The reach styles conflict with the graphiql styles */
 @import '~antd/dist/antd.css';
+@import 'graphiql.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-

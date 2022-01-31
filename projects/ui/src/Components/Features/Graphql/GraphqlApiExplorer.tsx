@@ -1,9 +1,6 @@
-import 'graphiql/graphiql.css';
 import * as React from 'react';
 import { GraphiQL } from 'graphiql';
-import css from '@emotion/css';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { GraphqlStyle } from './GraphiqlStyle';
 import styled from '@emotion/styled';
 import { colors } from 'Styles/colors';
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils';
@@ -56,18 +53,12 @@ const StyledContainer = styled.div`
 `;
 
 interface GraphqlApiExplorerProps {
-  graphQLSchema: any;
+  graphQLSchema?: any;
 }
 
 export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
-  let typeDefs: any;
-  if (props?.graphQLSchema?.spec?.executableSchema?.schemaDefinition) {
-    typeDefs = props?.graphQLSchema?.spec?.executableSchema?.schemaDefinition;
-  } else if (props?.graphQLSchema?.executableSchema?.schemaDefinition) {
-    typeDefs = props.graphQLSchema.executableSchema.schemaDefinition;
-  } else {
-    return null;
-  }
+  const graphiqlRef = React.useRef<null | GraphiQL>(null);
+
   const { mockedDirectiveTypeDefs, mockedDirectiveTransformer } =
     mockedDirective('resolve');
 
@@ -76,11 +67,18 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
   });
 
   executableSchema = mockedDirectiveTransformer(executableSchema);
+
+  const handlePrettifyQuery = () => {
+    graphiqlRef?.current?.handlePrettifyQuery();
+  };
+
+  // TODO:  We can hide and show elements based on what we get back.
+
   return (
     <Wrapper>
       <StyledContainer>
         <GraphiQL
-          css={css(GraphqlStyle)}
+          ref={graphiqlRef}
           schema={executableSchema}
           fetcher={async graphQLParams => {
             try {
@@ -97,8 +95,15 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
             } catch (error) {
               console.log('error', error);
             }
-          }}
-        />
+          }}>
+          <GraphiQL.Toolbar>
+            <GraphiQL.Button
+              onClick={handlePrettifyQuery}
+              label='Prettify'
+              title='Prettify Query (Shift-Ctrl-P)'
+            />
+          </GraphiQL.Toolbar>
+        </GraphiQL>
       </StyledContainer>
     </Wrapper>
   );
