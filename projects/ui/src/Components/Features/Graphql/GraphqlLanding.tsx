@@ -70,7 +70,7 @@ const CheckboxWrapper = styled.div`
 
 const API_TYPES: CheckboxFilterProps[] = [
   {
-    checked: false,
+    checked: true,
     label: APIType.GRAPHQL,
   },
   {
@@ -137,6 +137,7 @@ export const GraphqlLanding = () => {
             {typeFilters.map((filter, ind) => {
               return (
                 <SoloCheckbox
+                  disabled={true}
                   key={filter.label}
                   title={filter.label}
                   checked={filter.checked}

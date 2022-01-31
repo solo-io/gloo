@@ -198,6 +198,19 @@ export const GraphqlPageTable = (props: Props) => {
         break;
     }
   }
+  // TODO:  Temporarily hides the Grpc and Rest boxes.  Remove when they are available.
+  function hideBox(filter: CheckboxFilterProps) {
+    switch (filter.label) {
+      case APIType.GRAPHQL:
+        return true;
+      case APIType.REST:
+        return false;
+      case APIType.GRPC:
+        return false;
+      default:
+        return false;
+    }
+  }
   const toggleGraphqlModal = () => {
     setShowGraphqlModal(!showGraphqlModal);
   };
@@ -209,7 +222,7 @@ export const GraphqlPageTable = (props: Props) => {
           if (typeFilters?.some(f => f.checked)) {
             return filter.checked;
           }
-          return true;
+          return hideBox(filter);
         })
         ?.map(filter => (
           <SectionCard
