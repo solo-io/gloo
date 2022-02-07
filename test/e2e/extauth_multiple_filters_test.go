@@ -470,6 +470,60 @@ var _ = Describe("External auth with multiple auth servers", func() {
 		})
 
 		Context("auth config is set on virtual host and route", func() {
+			When("vhost=CustomAuth(named), route=ConfigRef", func() {
+				BeforeEach(func() {
+					// create and write an AuthConfig object
+					_, err := testClients.AuthConfigClient.Write(&v1.AuthConfig{
+						Metadata: &core.Metadata{
+							Name:      GetBasicAuthExtension().GetConfigRef().Name,
+							Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
+						},
+						Configs: []*v1.AuthConfig_Config{{
+							AuthConfig: &v1.AuthConfig_Config_BasicAuth{
+								BasicAuth: getBasicAuthConfig(),
+							},
+						}},
+					}, clients.WriteOpts{})
+					ExpectWithOffset(1, err).NotTo(HaveOccurred())
+
+					authConfigToExtension := &v1.ExtAuthExtension{
+						Spec: &v1.ExtAuthExtension_ConfigRef{
+							ConfigRef: &core.ResourceRef{
+								Name:      GetBasicAuthExtension().GetConfigRef().Name,
+								Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
+							},
+						},
+					}
+
+					vhost := &gloov1.VirtualHost{
+						Name:    "virt1",
+						Domains: []string{"*"},
+						Routes: []*gloov1.Route{
+							getRouteToUpstreamWithAuth("/default", testUpstream.Upstream.Metadata.Ref(), authConfigToExtension),
+							getRouteToUpstream("/other", testUpstream.Upstream.Metadata.Ref()),
+						},
+						Options: &gloov1.VirtualHostOptions{
+							Extauth: &v1.ExtAuthExtension{
+								Spec: &v1.ExtAuthExtension_CustomAuth{
+									CustomAuth: &v1.CustomAuth{
+										Name: namedAuthServerB,
+									},
+								},
+							},
+						},
+					}
+					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+				})
+
+				It("/ route should validate token against default server", func() {
+					// ensure that when we route traffic to an AuthConfig-configured route, we reject VH-level tokens
+					expectRequestPathEventuallyReturnsResponseCode("default", namedTokenB, http.StatusUnauthorized)
+
+					// verify that route-level && VH-level traffic is functional
+					expectRequestPathEventuallyReturnsResponseCode("default", defaultToken, http.StatusOK)
+					expectRequestPathEventuallyReturnsResponseCode("other", namedTokenB, http.StatusOK)
+				})
+			})
 
 			// ensure that using a default customauth server at the virtualhost level does not override extauth config at the route level
 			When("vhost=custom (default), routeA=custom (default), routeB=custom (named)", func() {
