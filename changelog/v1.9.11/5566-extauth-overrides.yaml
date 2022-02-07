@@ -1,0 +1,8 @@
+changelog:
+  - type: FIX
+    description: Previously, when providing a more-selective route-level AuthConfig AND a less-selective VirtualHost-level Extauth, the VirtualHost-level would take traffic priority.  This change repairs intended functionality, such that route-level traffic is prioritizes.
+    issueLink: https://github.com/solo-io/gloo/issues/5566
+    resolvesIssue: false
+  - type: FIX
+    description: Prevent virtualhost-level named customauth settings from overriding route-level customauth settings
+    issueLink: https://github.com/solo-io/gloo/issues/5566

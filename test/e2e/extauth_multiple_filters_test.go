@@ -98,9 +98,11 @@ var _ = Describe("External auth with multiple auth servers", func() {
 		const (
 			invalidToken = "invalid-token"
 			defaultToken = "default-token"
-			namedToken   = "named-token"
+			namedTokenA  = "named-A-token"
+			namedTokenB  = "named-B-token"
 
-			namedAuthServer = "named"
+			namedAuthServerA = "named-A"
+			namedAuthServerB = "named-B"
 		)
 
 		var (
@@ -114,9 +116,14 @@ var _ = Describe("External auth with multiple auth servers", func() {
 			authServerDefaultUpstream *gloov1.Upstream
 
 			// A running instance of an authServer
-			authServerNamed         *test_utils.GrpcAuthServer
-			authServerNamedPort     = 5557
-			authServerNamedUpstream *gloov1.Upstream
+			authServerNamedA         *test_utils.GrpcAuthServer
+			authServerNamedAPort     = 5557
+			authServerNamedAUpstream *gloov1.Upstream
+
+			// A running instance of an authServer
+			authServerNamedB         *test_utils.GrpcAuthServer
+			authServerNamedBPort     = 5558
+			authServerNamedBUpstream *gloov1.Upstream
 		)
 
 		expectRequestEventuallyReturnsResponseCodeOffset := func(offset int, path, bearerToken string, responseCode int) {
@@ -165,9 +172,9 @@ var _ = Describe("External auth with multiple auth servers", func() {
 				},
 			}
 
-			authServerNamedUpstream = &gloov1.Upstream{
+			authServerNamedAUpstream = &gloov1.Upstream{
 				Metadata: &core.Metadata{
-					Name:      "extauth-named",
+					Name:      "extauth-named-a",
 					Namespace: "default",
 				},
 				UseHttp2: &wrappers.BoolValue{
@@ -177,7 +184,25 @@ var _ = Describe("External auth with multiple auth servers", func() {
 					Static: &gloov1static.UpstreamSpec{
 						Hosts: []*gloov1static.Host{{
 							Addr: envoyInstance.LocalAddr(),
-							Port: uint32(authServerNamedPort),
+							Port: uint32(authServerNamedAPort),
+						}},
+					},
+				},
+			}
+
+			authServerNamedBUpstream = &gloov1.Upstream{
+				Metadata: &core.Metadata{
+					Name:      "extauth-named-b",
+					Namespace: "default",
+				},
+				UseHttp2: &wrappers.BoolValue{
+					Value: true,
+				},
+				UpstreamType: &gloov1.Upstream_Static{
+					Static: &gloov1static.UpstreamSpec{
+						Hosts: []*gloov1static.Host{{
+							Addr: envoyInstance.LocalAddr(),
+							Port: uint32(authServerNamedBPort),
 						}},
 					},
 				},
@@ -188,8 +213,11 @@ var _ = Describe("External auth with multiple auth servers", func() {
 					ExtauthzServerRef: authServerDefaultUpstream.Metadata.Ref(),
 				},
 				NamedExtauth: map[string]*v1.Settings{
-					namedAuthServer: {
-						ExtauthzServerRef: authServerNamedUpstream.Metadata.Ref(),
+					namedAuthServerA: {
+						ExtauthzServerRef: authServerNamedAUpstream.Metadata.Ref(),
+					},
+					namedAuthServerB: {
+						ExtauthzServerRef: authServerNamedBUpstream.Metadata.Ref(),
 					},
 				},
 			}
@@ -197,13 +225,17 @@ var _ = Describe("External auth with multiple auth servers", func() {
 			// authServerDefault accepts tokens with the `default-` bearer token prefix
 			authServerDefault = startLocalGrpcExtAuthServer(authServerDefaultPort, "default-")
 
-			// authServerNamed accepts tokens with the `named-` bearer token prefix
-			authServerNamed = startLocalGrpcExtAuthServer(authServerNamedPort, "named-")
+			// authServerNamedA accepts tokens with the `named-A-` bearer token prefix
+			authServerNamedA = startLocalGrpcExtAuthServer(authServerNamedAPort, "named-A-")
+
+			// authServerNamedB accepts tokens with the `named-B-` bearer token prefix
+			authServerNamedB = startLocalGrpcExtAuthServer(authServerNamedBPort, "named-B-")
 		})
 
 		AfterEach(func() {
 			authServerDefault.Stop()
-			authServerNamed.Stop()
+			authServerNamedA.Stop()
+			authServerNamedB.Stop()
 		})
 
 		JustBeforeEach(func() {
@@ -212,7 +244,11 @@ var _ = Describe("External auth with multiple auth servers", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// Configure upstream for authServerNamed
-			_, err = testClients.UpstreamClient.Write(authServerNamedUpstream, clients.WriteOpts{})
+			_, err = testClients.UpstreamClient.Write(authServerNamedAUpstream, clients.WriteOpts{})
+			Expect(err).NotTo(HaveOccurred())
+
+			// Configure upstream for authServerFallback
+			_, err = testClients.UpstreamClient.Write(authServerNamedBUpstream, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
 			// configure upstream to handle all requests
@@ -296,7 +332,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 					expectRequestEventuallyReturnsResponseCode(defaultToken, http.StatusOK)
 
 					expectRequestEventuallyReturnsResponseCode(invalidToken, http.StatusUnauthorized)
-					expectRequestEventuallyReturnsResponseCode(namedToken, http.StatusUnauthorized)
+					expectRequestEventuallyReturnsResponseCode(namedTokenA, http.StatusUnauthorized)
 				})
 			})
 
@@ -313,7 +349,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 							Extauth: &v1.ExtAuthExtension{
 								Spec: &v1.ExtAuthExtension_CustomAuth{
 									CustomAuth: &v1.CustomAuth{
-										Name: namedAuthServer, // Matches the key in Settings.NamedExtauth
+										Name: namedAuthServerA, // Matches the key in Settings.NamedExtauth
 									},
 								},
 							},
@@ -323,7 +359,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 				})
 
 				It("token should be validated against named server", func() {
-					expectRequestEventuallyReturnsResponseCode(namedToken, http.StatusOK)
+					expectRequestEventuallyReturnsResponseCode(namedTokenA, http.StatusOK)
 
 					expectRequestEventuallyReturnsResponseCode(invalidToken, http.StatusUnauthorized)
 					expectRequestEventuallyReturnsResponseCode(defaultToken, http.StatusUnauthorized)
@@ -399,7 +435,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 					expectRequestEventuallyReturnsResponseCode(defaultToken, http.StatusOK)
 
 					expectRequestEventuallyReturnsResponseCode(invalidToken, http.StatusUnauthorized)
-					expectRequestEventuallyReturnsResponseCode(namedToken, http.StatusUnauthorized)
+					expectRequestEventuallyReturnsResponseCode(namedTokenA, http.StatusUnauthorized)
 				})
 			})
 
@@ -409,7 +445,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 					routeAuthConfig := &v1.ExtAuthExtension{
 						Spec: &v1.ExtAuthExtension_CustomAuth{
 							CustomAuth: &v1.CustomAuth{
-								Name: namedAuthServer,
+								Name: namedAuthServerA,
 							},
 						},
 					}
@@ -424,7 +460,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 				})
 
 				It("token should be validated against named server", func() {
-					expectRequestEventuallyReturnsResponseCode(namedToken, http.StatusOK)
+					expectRequestEventuallyReturnsResponseCode(namedTokenA, http.StatusOK)
 
 					expectRequestEventuallyReturnsResponseCode(invalidToken, http.StatusUnauthorized)
 					expectRequestEventuallyReturnsResponseCode(defaultToken, http.StatusUnauthorized)
@@ -434,7 +470,62 @@ var _ = Describe("External auth with multiple auth servers", func() {
 		})
 
 		Context("auth config is set on virtual host and route", func() {
+			When("vhost=CustomAuth(named), route=ConfigRef", func() {
+				BeforeEach(func() {
+					// create and write an AuthConfig object
+					_, err := testClients.AuthConfigClient.Write(&v1.AuthConfig{
+						Metadata: &core.Metadata{
+							Name:      GetBasicAuthExtension().GetConfigRef().Name,
+							Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
+						},
+						Configs: []*v1.AuthConfig_Config{{
+							AuthConfig: &v1.AuthConfig_Config_BasicAuth{
+								BasicAuth: getBasicAuthConfig(),
+							},
+						}},
+					}, clients.WriteOpts{})
+					ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
+					authConfigToExtension := &v1.ExtAuthExtension{
+						Spec: &v1.ExtAuthExtension_ConfigRef{
+							ConfigRef: &core.ResourceRef{
+								Name:      GetBasicAuthExtension().GetConfigRef().Name,
+								Namespace: GetBasicAuthExtension().GetConfigRef().Namespace,
+							},
+						},
+					}
+
+					vhost := &gloov1.VirtualHost{
+						Name:    "virt1",
+						Domains: []string{"*"},
+						Routes: []*gloov1.Route{
+							getRouteToUpstreamWithAuth("/default", testUpstream.Upstream.Metadata.Ref(), authConfigToExtension),
+							getRouteToUpstream("/other", testUpstream.Upstream.Metadata.Ref()),
+						},
+						Options: &gloov1.VirtualHostOptions{
+							Extauth: &v1.ExtAuthExtension{
+								Spec: &v1.ExtAuthExtension_CustomAuth{
+									CustomAuth: &v1.CustomAuth{
+										Name: namedAuthServerB,
+									},
+								},
+							},
+						},
+					}
+					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+				})
+
+				It("/ route should validate token against default server", func() {
+					// ensure that when we route traffic to an AuthConfig-configured route, we reject VH-level tokens
+					expectRequestPathEventuallyReturnsResponseCode("default", namedTokenB, http.StatusUnauthorized)
+
+					// verify that route-level && VH-level traffic is functional
+					expectRequestPathEventuallyReturnsResponseCode("default", defaultToken, http.StatusOK)
+					expectRequestPathEventuallyReturnsResponseCode("other", namedTokenB, http.StatusOK)
+				})
+			})
+
+			// ensure that using a default customauth server at the virtualhost level does not override extauth config at the route level
 			When("vhost=custom (default), routeA=custom (default), routeB=custom (named)", func() {
 
 				BeforeEach(func() {
@@ -446,7 +537,7 @@ var _ = Describe("External auth with multiple auth servers", func() {
 					namedRouteAuthConfig := &v1.ExtAuthExtension{
 						Spec: &v1.ExtAuthExtension_CustomAuth{
 							CustomAuth: &v1.CustomAuth{
-								Name: namedAuthServer,
+								Name: namedAuthServerA,
 							},
 						},
 					}
@@ -475,12 +566,12 @@ var _ = Describe("External auth with multiple auth servers", func() {
 					expectRequestPathEventuallyReturnsResponseCode(defaultRoute, defaultToken, http.StatusOK)
 
 					expectRequestPathEventuallyReturnsResponseCode(defaultRoute, invalidToken, http.StatusUnauthorized)
-					expectRequestPathEventuallyReturnsResponseCode(defaultRoute, namedToken, http.StatusUnauthorized)
+					expectRequestPathEventuallyReturnsResponseCode(defaultRoute, namedTokenA, http.StatusUnauthorized)
 				})
 
 				It("/named route should validate token against named server", func() {
 					namedRoute := "named"
-					expectRequestPathEventuallyReturnsResponseCode(namedRoute, namedToken, http.StatusOK)
+					expectRequestPathEventuallyReturnsResponseCode(namedRoute, namedTokenA, http.StatusOK)
 
 					expectRequestPathEventuallyReturnsResponseCode(namedRoute, invalidToken, http.StatusUnauthorized)
 					expectRequestPathEventuallyReturnsResponseCode(namedRoute, defaultToken, http.StatusUnauthorized)
@@ -491,7 +582,69 @@ var _ = Describe("External auth with multiple auth servers", func() {
 					expectRequestPathEventuallyReturnsResponseCode(otherRoute, defaultToken, http.StatusOK)
 
 					expectRequestPathEventuallyReturnsResponseCode(otherRoute, invalidToken, http.StatusUnauthorized)
-					expectRequestPathEventuallyReturnsResponseCode(otherRoute, namedToken, http.StatusUnauthorized)
+					expectRequestPathEventuallyReturnsResponseCode(otherRoute, namedTokenA, http.StatusUnauthorized)
+				})
+			})
+
+			// ensure that using a named customauth server at the virtualhost level does not override extauth config at the route level
+			When("vhost=custom (named), routeA=custom (default), routeB=custom (named)", func() {
+				BeforeEach(func() {
+					defaultRouteAuthConfig := &v1.ExtAuthExtension{
+						Spec: &v1.ExtAuthExtension_CustomAuth{
+							CustomAuth: &v1.CustomAuth{},
+						},
+					}
+					namedRouteAuthConfig := &v1.ExtAuthExtension{
+						Spec: &v1.ExtAuthExtension_CustomAuth{
+							CustomAuth: &v1.CustomAuth{
+								Name: namedAuthServerA,
+							},
+						},
+					}
+
+					vhost := &gloov1.VirtualHost{
+						Name:    "virt1",
+						Domains: []string{"*"},
+						Routes: []*gloov1.Route{
+							getRouteToUpstreamWithAuth("/default", testUpstream.Upstream.Metadata.Ref(), defaultRouteAuthConfig),
+							getRouteToUpstreamWithAuth("/named", testUpstream.Upstream.Metadata.Ref(), namedRouteAuthConfig),
+							getRouteToUpstream("/other", testUpstream.Upstream.Metadata.Ref()),
+						},
+						Options: &gloov1.VirtualHostOptions{
+							Extauth: &v1.ExtAuthExtension{
+								Spec: &v1.ExtAuthExtension_CustomAuth{
+									CustomAuth: &v1.CustomAuth{
+										Name: namedAuthServerB,
+									},
+								},
+							},
+						},
+					}
+					proxy = getProxyWithVirtualHost(envoyPort, vhost)
+				})
+
+				It("/default route should validate token against default server", func() {
+					defaultRoute := "default"
+					expectRequestPathEventuallyReturnsResponseCode(defaultRoute, defaultToken, http.StatusOK)
+					expectRequestPathEventuallyReturnsResponseCode(defaultRoute, namedTokenA, http.StatusUnauthorized)
+					expectRequestPathEventuallyReturnsResponseCode(defaultRoute, namedTokenB, http.StatusUnauthorized)
+					expectRequestPathEventuallyReturnsResponseCode(defaultRoute, invalidToken, http.StatusUnauthorized)
+				})
+
+				It("/named route should validate token against named server", func() {
+					namedRoute := "named"
+					expectRequestPathEventuallyReturnsResponseCode(namedRoute, namedTokenA, http.StatusOK)
+					expectRequestPathEventuallyReturnsResponseCode(namedRoute, defaultToken, http.StatusUnauthorized)
+					expectRequestPathEventuallyReturnsResponseCode(namedRoute, namedTokenB, http.StatusUnauthorized)
+					expectRequestPathEventuallyReturnsResponseCode(namedRoute, invalidToken, http.StatusUnauthorized)
+				})
+
+				It("/other route should validate token against fallback server", func() {
+					otherRoute := "other"
+					expectRequestPathEventuallyReturnsResponseCode(otherRoute, namedTokenB, http.StatusOK)
+					expectRequestPathEventuallyReturnsResponseCode(otherRoute, defaultToken, http.StatusUnauthorized)
+					expectRequestPathEventuallyReturnsResponseCode(otherRoute, namedTokenA, http.StatusUnauthorized)
+					expectRequestPathEventuallyReturnsResponseCode(otherRoute, invalidToken, http.StatusUnauthorized)
 				})
 			})
 

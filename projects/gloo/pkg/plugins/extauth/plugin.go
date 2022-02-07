@@ -124,7 +124,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 
 	// Configure the sanitize filter in the case of multiple ext_authz filters
 	if p.extAuthzConfigGenerator.IsMulti() {
-		err := setVirtualHostCustomAuth(out, in.GetOptions().GetExtauth().GetCustomAuth(), p.namedExtAuthSettings)
+		err := setVirtualHostCustomAuth(out, in.GetOptions().GetExtauth(), p.namedExtAuthSettings)
 		if err != nil {
 			return err
 		}
@@ -154,7 +154,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 
 	// Configure the sanitize filter in the case of multiple ext_authz filters
 	if p.extAuthzConfigGenerator.IsMulti() {
-		err := setRouteCustomAuth(out, in.GetOptions().GetExtauth().GetCustomAuth(), p.namedExtAuthSettings)
+		err := setRouteCustomAuth(out, in.GetOptions().GetExtauth(), p.namedExtAuthSettings)
 		if err != nil {
 			return err
 		}
@@ -184,7 +184,7 @@ func (p *Plugin) ProcessWeightedDestination(params plugins.RouteParams, in *v1.W
 
 	// Configure the sanitize filter in the case of multiple ext_authz filters
 	if p.extAuthzConfigGenerator.IsMulti() {
-		err := setWeightedClusterCustomAuth(out, in.GetOptions().GetExtauth().GetCustomAuth(), p.namedExtAuthSettings)
+		err := setWeightedClusterCustomAuth(out, in.GetOptions().GetExtauth(), p.namedExtAuthSettings)
 		if err != nil {
 			return err
 		}

@@ -24,47 +24,51 @@ func buildSanitizeFilter(userIdHeader string, includeCustomAuthServiceName bool)
 	return plugins.NewStagedFilterWithConfig(SanitizeFilterName, sanitizeConf, sanitizeFilterStage)
 }
 
-func setVirtualHostCustomAuth(out *envoy_config_route_v3.VirtualHost, customAuth *extauthapi.CustomAuth, availableCustomAuth map[string]*extauthapi.Settings) error {
-	customAuthConfig := buildSanitizePerRouteConfig(customAuth, availableCustomAuth)
+func setVirtualHostCustomAuth(out *envoy_config_route_v3.VirtualHost, extAuthExtension *extauthapi.ExtAuthExtension, availableCustomAuth map[string]*extauthapi.Settings) error {
+	customAuthConfig := buildSanitizePerRouteConfig(extAuthExtension, availableCustomAuth)
 	if customAuthConfig == nil {
 		return nil
 	}
 	return pluginutils.SetVhostPerFilterConfig(out, SanitizeFilterName, customAuthConfig)
 }
 
-func setWeightedClusterCustomAuth(out *envoy_config_route_v3.WeightedCluster_ClusterWeight, customAuth *extauthapi.CustomAuth, availableCustomAuth map[string]*extauthapi.Settings) error {
-	customAuthConfig := buildSanitizePerRouteConfig(customAuth, availableCustomAuth)
+func setWeightedClusterCustomAuth(out *envoy_config_route_v3.WeightedCluster_ClusterWeight, extAuthExtension *extauthapi.ExtAuthExtension, availableCustomAuth map[string]*extauthapi.Settings) error {
+	customAuthConfig := buildSanitizePerRouteConfig(extAuthExtension, availableCustomAuth)
 	if customAuthConfig == nil {
 		return nil
 	}
 	return pluginutils.SetWeightedClusterPerFilterConfig(out, SanitizeFilterName, customAuthConfig)
 }
 
-func setRouteCustomAuth(out *envoy_config_route_v3.Route, customAuth *extauthapi.CustomAuth, availableCustomAuth map[string]*extauthapi.Settings) error {
-	customAuthConfig := buildSanitizePerRouteConfig(customAuth, availableCustomAuth)
+func setRouteCustomAuth(out *envoy_config_route_v3.Route, extAuthExtension *extauthapi.ExtAuthExtension, availableCustomAuth map[string]*extauthapi.Settings) error {
+	customAuthConfig := buildSanitizePerRouteConfig(extAuthExtension, availableCustomAuth)
 	if customAuthConfig == nil {
 		return nil
 	}
 	return pluginutils.SetRoutePerFilterConfig(out, SanitizeFilterName, customAuthConfig)
 }
 
-func buildSanitizePerRouteConfig(customAuth *extauthapi.CustomAuth, availableCustomAuth map[string]*extauthapi.Settings) *SanitizePerRoute {
+func buildSanitizePerRouteConfig(extAuthExtension *extauthapi.ExtAuthExtension, availableCustomAuth map[string]*extauthapi.Settings) *SanitizePerRoute {
+	customAuth := extAuthExtension.GetCustomAuth()
+
+	// we have been passed an AuthConfig
+	if extAuthExtension.GetConfigRef() != nil {
+		return &SanitizePerRoute{CustomAuthServerName: DefaultAuthServiceName}
+	}
+	// we don't have a route-level customAuth.  Default to higher-order config
 	if customAuth == nil || availableCustomAuth == nil {
 		return nil
 	}
 
+	// we have a route-level customAuth...
 	customAuthServiceName := customAuth.GetName()
-
 	if customAuthServiceName == "" {
-		// if name is not provided rely on the default configuration as the per-route config
-		// this is the case when an unnamed CustomAuth ExtAuthExtension has been explicitly configured,
-		// and when a ConfigRef ExtAuthExtension has been configured
+		// ...which is unnamed.  So we name it our default value.  This is for backwards compatibility, as, originally, customAuth did not require to be named
 		customAuthServiceName = DefaultAuthServiceName
 	} else if _, ok := availableCustomAuth[customAuthServiceName]; !ok {
-		// If name doesn't match any available names default to the higher-order config
+		// ...which is not found.  Default to higher-order config
 		return nil
 	}
-
 	return &SanitizePerRoute{
 		CustomAuthServerName: customAuthServiceName,
 	}
