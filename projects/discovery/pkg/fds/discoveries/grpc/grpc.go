@@ -41,7 +41,7 @@ func getGrpcspec(u *v1.Upstream) *grpc_plugins.ServiceSpec {
 
 func NewFunctionDiscoveryFactory() fds.FunctionDiscoveryFactory {
 	return &FunctionDiscoveryFactory{
-		DetectionTimeout: time.Minute,
+		DetectionTimeout: time.Second * 15,
 		FunctionPollTime: time.Second * 15,
 	}
 }
@@ -99,25 +99,24 @@ func (f *UpstreamFunctionDiscovery) DetectType(ctx context.Context, url *url.URL
 }
 
 func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, _ func() fds.Dependencies, updatecb func(fds.UpstreamMutator) error) error {
-	for {
-		// TODO: get backoff values from config?
-		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
-			return f.DetectFunctionsOnce(ctx, url, updatecb)
-		})
+	// TODO: get backoff values from config?
+	err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
+		return f.DetectFunctionsOnce(ctx, url, updatecb)
+	})
 
-		if err != nil {
-			if ctx.Err() != nil {
-				return ctx.Err()
-			}
-			// ignore other errors as we would like to continue forever.
+	if err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
 		}
-
-		// sleep so we are not hogging
-		// TODO(yuval-k): customize time to sleep in config
-		if err := contextutils.Sleep(ctx, time.Minute); err != nil {
-			return err
-		}
+		// ignore other errors as we would like to continue forever.
 	}
+
+	// sleep so we are not hogging
+	// TODO(yuval-k): customize time to sleep in config
+	if err := contextutils.Sleep(ctx, time.Second*15); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (f *UpstreamFunctionDiscovery) DetectFunctionsOnce(ctx context.Context, url *url.URL, updatecb func(fds.UpstreamMutator) error) error {
