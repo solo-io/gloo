@@ -3,7 +3,6 @@ package registry
 import (
 	"github.com/solo-io/gloo/projects/discovery/pkg/fds"
 	"github.com/solo-io/gloo/projects/discovery/pkg/fds/discoveries/aws"
-	"github.com/solo-io/gloo/projects/discovery/pkg/fds/discoveries/grpc"
 	"github.com/solo-io/gloo/projects/discovery/pkg/fds/discoveries/swagger"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
@@ -21,7 +20,6 @@ var globalRegistry = func(opts bootstrap.Opts, pluginExtensions ...func() plugin
 	// plugins should be added here
 	reg.plugins = append(reg.plugins,
 		aws.NewFunctionDiscoveryFactory(),
-		grpc.NewFunctionDiscoveryFactory(),
 		swagger.NewFunctionDiscoveryFactory(),
 	)
 
