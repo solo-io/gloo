@@ -4340,7 +4340,8 @@ proto.envoy.config.filter.http.graphql.v2.Resolution.prototype.toObject = functi
 proto.envoy.config.filter.http.graphql.v2.Resolution.toObject = function(includeInstance, msg) {
   var f, obj = {
     matcher: (f = msg.getMatcher()) && proto.envoy.config.filter.http.graphql.v2.QueryMatcher.toObject(includeInstance, f),
-    resolver: (f = msg.getResolver()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.toObject(includeInstance, f)
+    resolver: (f = msg.getResolver()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.toObject(includeInstance, f),
+    statPrefix: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -4387,6 +4388,10 @@ proto.envoy.config.filter.http.graphql.v2.Resolution.deserializeBinaryFromReader
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.deserializeBinaryFromReader);
       msg.setResolver(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setStatPrefix(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4430,6 +4435,13 @@ proto.envoy.config.filter.http.graphql.v2.Resolution.serializeBinaryToWriter = f
       2,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getStatPrefix();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
     );
   }
 };
@@ -4492,6 +4504,21 @@ proto.envoy.config.filter.http.graphql.v2.Resolution.prototype.clearResolver = f
  */
 proto.envoy.config.filter.http.graphql.v2.Resolution.prototype.hasResolver = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string stat_prefix = 3;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.graphql.v2.Resolution.prototype.getStatPrefix = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.graphql.v2.Resolution.prototype.setStatPrefix = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
@@ -4669,7 +4696,8 @@ proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.toObject = function
     enableIntrospection: jspb.Message.getFieldWithDefault(msg, 2, false),
     resolutionsList: jspb.Message.toObjectList(msg.getResolutionsList(),
     proto.envoy.config.filter.http.graphql.v2.Resolution.toObject, includeInstance),
-    executableSchema: (f = msg.getExecutableSchema()) && proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.toObject(includeInstance, f)
+    executableSchema: (f = msg.getExecutableSchema()) && proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.toObject(includeInstance, f),
+    statPrefix: jspb.Message.getFieldWithDefault(msg, 5, "")
   };
 
   if (includeInstance) {
@@ -4724,6 +4752,10 @@ proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.deserializeBinaryFr
       var value = new proto.envoy.config.filter.http.graphql.v2.ExecutableSchema;
       reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.deserializeBinaryFromReader);
       msg.setExecutableSchema(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setStatPrefix(value);
       break;
     default:
       reader.skipField();
@@ -4783,6 +4815,13 @@ proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.serializeBinaryToWr
       4,
       f,
       proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.serializeBinaryToWriter
+    );
+  }
+  f = message.getStatPrefix();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
     );
   }
 };
@@ -4893,6 +4932,21 @@ proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.prototype.clearExec
  */
 proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.prototype.hasExecutableSchema = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional string stat_prefix = 5;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.prototype.getStatPrefix = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.graphql.v2.GraphQLRouteConfig.prototype.setStatPrefix = function(value) {
+  jspb.Message.setProto3StringField(this, 5, value);
 };
 
 

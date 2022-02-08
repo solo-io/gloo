@@ -20,6 +20,7 @@ func NewGlooFedServerRunnable(
 	failoverSchemeService rpc_fed_v1.FailoverSchemeApiServer,
 	routeTableSelectorService rpc_edge_v1.VirtualServiceRoutesApiServer,
 	wasmFilterService rpc_edge_v1.WasmFilterApiServer,
+	graphqlService rpc_edge_v1.GraphqlApiServer,
 	glooResourceService rpc_edge_v1.GlooResourceApiServer,
 	gatewayResourceService rpc_edge_v1.GatewayResourceApiServer,
 	glooEnterpriseResourceService rpc_edge_v1.EnterpriseGlooResourceApiServer,
@@ -32,7 +33,7 @@ func NewGlooFedServerRunnable(
 	return manager.RunnableFunc(func(ctx context.Context) error {
 		ctx = contextutils.WithLogger(rootCtx, "gloo-fed-apiserver")
 		apiServer := server.NewGlooFedGrpcServer(ctx, bootstrapService, glooInstanceService, failoverSchemeService, routeTableSelectorService, wasmFilterService,
-			glooResourceService, gatewayResourceService, glooEnterpriseResourceService, ratelimitResourceService, glooFedResourceService,
+			graphqlService, glooResourceService, gatewayResourceService, glooEnterpriseResourceService, ratelimitResourceService, glooFedResourceService,
 			gatewayFedResourceService, glooEnterpriseFedResourceService, ratelimitFedResourceService, health_check.NewHealthChecker())
 
 		return apiServer.Run(ctx, cfg)
@@ -46,6 +47,7 @@ func NewSingleClusterGlooServerRunnable(
 	glooInstanceService rpc_edge_v1.GlooInstanceApiServer,
 	routeTableSelectorService rpc_edge_v1.VirtualServiceRoutesApiServer,
 	wasmFilterService rpc_edge_v1.WasmFilterApiServer,
+	graphqlService rpc_edge_v1.GraphqlApiServer,
 	gatewayResourceService rpc_edge_v1.GatewayResourceApiServer,
 	glooResourceService rpc_edge_v1.GlooResourceApiServer,
 	glooEnterpriseResourceService rpc_edge_v1.EnterpriseGlooResourceApiServer,
@@ -54,7 +56,7 @@ func NewSingleClusterGlooServerRunnable(
 	return manager.RunnableFunc(func(ctx context.Context) error {
 		ctx = contextutils.WithLogger(rootCtx, "gloo-ee-apiserver")
 		apiServer := server.NewSingleClusterGlooGrpcServer(ctx, bootstrapService, glooInstanceService,
-			routeTableSelectorService, wasmFilterService,
+			routeTableSelectorService, wasmFilterService, graphqlService,
 			gatewayResourceService, glooResourceService, glooEnterpriseResourceService, ratelimitResourceService,
 			health_check.NewHealthChecker())
 

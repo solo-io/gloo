@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Apiserver endpoints for getting and listing graphqlschemas and yaml.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3006
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.11.0-beta9

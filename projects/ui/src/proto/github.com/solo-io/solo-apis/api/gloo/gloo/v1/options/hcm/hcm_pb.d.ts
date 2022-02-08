@@ -71,6 +71,9 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getDefaultHostForHttp10(): string;
   setDefaultHostForHttp10(value: string): void;
 
+  getAllowChunkedLength(): boolean;
+  setAllowChunkedLength(value: boolean): void;
+
   hasProperCaseHeaderKeyFormat(): boolean;
   clearProperCaseHeaderKeyFormat(): void;
   getProperCaseHeaderKeyFormat(): boolean;
@@ -117,6 +120,14 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getMaxHeadersCount(): google_protobuf_wrappers_pb.UInt32Value | undefined;
   setMaxHeadersCount(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
+  getHeadersWithUnderscoresAction(): HttpConnectionManagerSettings.HeadersWithUnderscoreActionMap[keyof HttpConnectionManagerSettings.HeadersWithUnderscoreActionMap];
+  setHeadersWithUnderscoresAction(value: HttpConnectionManagerSettings.HeadersWithUnderscoreActionMap[keyof HttpConnectionManagerSettings.HeadersWithUnderscoreActionMap]): void;
+
+  hasMaxRequestsPerConnection(): boolean;
+  clearMaxRequestsPerConnection(): void;
+  getMaxRequestsPerConnection(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setMaxRequestsPerConnection(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
   getServerHeaderTransformation(): HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap];
   setServerHeaderTransformation(value: HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap]): void;
 
@@ -162,6 +173,7 @@ export namespace HttpConnectionManagerSettings {
     serverName: string,
     acceptHttp10: boolean,
     defaultHostForHttp10: string,
+    allowChunkedLength: boolean,
     properCaseHeaderKeyFormat: boolean,
     preserveCaseHeaderKeyFormat: boolean,
     tracing?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_tracing_tracing_pb.ListenerTracingSettings.AsObject,
@@ -172,6 +184,8 @@ export namespace HttpConnectionManagerSettings {
     maxConnectionDuration?: google_protobuf_duration_pb.Duration.AsObject,
     maxStreamDuration?: google_protobuf_duration_pb.Duration.AsObject,
     maxHeadersCount?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    headersWithUnderscoresAction: HttpConnectionManagerSettings.HeadersWithUnderscoreActionMap[keyof HttpConnectionManagerSettings.HeadersWithUnderscoreActionMap],
+    maxRequestsPerConnection?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     serverHeaderTransformation: HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap],
     pathWithEscapedSlashesAction: HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap[keyof HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap],
     codecType: HttpConnectionManagerSettings.CodecTypeMap[keyof HttpConnectionManagerSettings.CodecTypeMap],
@@ -234,6 +248,14 @@ export namespace HttpConnectionManagerSettings {
   }
 
   export const ServerHeaderTransformation: ServerHeaderTransformationMap;
+
+  export interface HeadersWithUnderscoreActionMap {
+    ALLOW: 0;
+    REJECT_CLIENT_REQUEST: 1;
+    DROP_HEADER: 2;
+  }
+
+  export const HeadersWithUnderscoreAction: HeadersWithUnderscoreActionMap;
 
   export interface PathWithEscapedSlashesActionMap {
     IMPLEMENTATION_SPECIFIC_DEFAULT: 0;

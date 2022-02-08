@@ -495,6 +495,10 @@ generated-gloo-fed-ui-deps:
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/*.proto
 
 	$(PROTOC) -I$(APISERVER_DIR) \

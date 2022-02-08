@@ -157,7 +157,7 @@ var _ = Describe("RateLimit tests", func() {
 			}
 
 			gatewayStatus := statusClient.GetStatus(g)
-			proxyStatus, ok := gatewayStatus.GetSubresourceStatuses()["*v1.Proxy.gloo-system.gateway-proxy"]
+			proxyStatus, ok := gatewayStatus.GetSubresourceStatuses()["*v1.Proxy.gateway-proxy_gloo-system"]
 			if !ok {
 				return nil, fmt.Errorf("gateway proxy not yet ready")
 			}

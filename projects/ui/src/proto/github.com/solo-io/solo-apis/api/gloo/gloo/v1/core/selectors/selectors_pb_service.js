@@ -1,0 +1,3 @@
+// package: selectors.core.gloo.solo.io
+// file: github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/selectors/selectors.proto
+

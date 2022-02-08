@@ -625,6 +625,9 @@ export class Resolution extends jspb.Message {
   getResolver(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig | undefined;
   setResolver(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig): void;
 
+  getStatPrefix(): string;
+  setStatPrefix(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Resolution.AsObject;
   static toObject(includeInstance: boolean, msg: Resolution): Resolution.AsObject;
@@ -639,6 +642,7 @@ export namespace Resolution {
   export type AsObject = {
     matcher?: QueryMatcher.AsObject,
     resolver?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.AsObject,
+    statPrefix: string,
   }
 }
 
@@ -677,6 +681,9 @@ export class GraphQLRouteConfig extends jspb.Message {
   getExecutableSchema(): ExecutableSchema | undefined;
   setExecutableSchema(value?: ExecutableSchema): void;
 
+  getStatPrefix(): string;
+  setStatPrefix(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GraphQLRouteConfig.AsObject;
   static toObject(includeInstance: boolean, msg: GraphQLRouteConfig): GraphQLRouteConfig.AsObject;
@@ -693,6 +700,7 @@ export namespace GraphQLRouteConfig {
     enableIntrospection: boolean,
     resolutionsList: Array<Resolution.AsObject>,
     executableSchema?: ExecutableSchema.AsObject,
+    statPrefix: string,
   }
 }
 

@@ -11,6 +11,7 @@ import (
 	enterprise_gloo_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	gateway_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
 	ratelimit_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/apiserver"
@@ -28,6 +29,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/failover_scheme_handler"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler/envoy_admin"
+	"github.com/solo-io/solo-projects/projects/apiserver/server/services/graphql_handler"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/rt_selector_handler"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/single_cluster_resource_handler"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/wasmfilter_handler"
@@ -104,26 +106,28 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, apiserverSettin
 	clusterWatcher.RegisterClusterHandler(clusterSet)
 	mcClient := client.NewClient(clusterWatcher)
 	glooMCClient := gloo_v1.NewMulticlusterClientset(mcClient)
-	gatewayMClient := gateway_v1.NewMulticlusterClientset(mcClient)
+	gatewayMCClient := gateway_v1.NewMulticlusterClientset(mcClient)
+	graphqlMCClient := graphql_v1alpha1.NewMulticlusterClientset(mcClient)
 	glooEnterpriseMCClient := enterprise_gloo_v1.NewMulticlusterClientset(mcClient)
 	ratelimitMCCLient := ratelimit_v1alpha1.NewMulticlusterClientset(mcClient)
 
 	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig())
 	glooInstanceService := glooinstance_handler.NewFedGlooInstanceHandler(clusterWatcher, clusterSet, envoy_admin.NewEnvoyAdminClient(), glooInstanceClient)
 	failoverSchemeService := failover_scheme_handler.NewFailoverSchemeHandler(failoverSchemeClient)
-	routeTableSelectorService := rt_selector_handler.NewFedVirtualServiceRoutesHandler(gatewayMClient)
-	wasmFilterService := wasmfilter_handler.NewFedWasmFilterHandler(glooInstanceClient, gatewayMClient)
+	routeTableSelectorService := rt_selector_handler.NewFedVirtualServiceRoutesHandler(gatewayMCClient)
+	wasmFilterService := wasmfilter_handler.NewFedWasmFilterHandler(glooInstanceClient, gatewayMCClient)
+	graphqlService := graphql_handler.NewFedGraphqlHandler(glooInstanceClient, graphqlMCClient)
 	glooResourceService := gloo_resource_handler.NewFedGlooResourceHandler(glooInstanceClient, glooMCClient)
 	glooEnterpriseResourceService := enterprise_gloo_resource_handler.NewFedEnterpriseGlooResourceHandler(glooInstanceClient, glooEnterpriseMCClient)
 	ratelimitResourceService := ratelimit_resource_handler.NewFedRatelimitResourceHandler(glooInstanceClient, ratelimitMCCLient)
-	gatewayResourceService := gateway_resource_handler.NewFedGatewayResourceHandler(glooInstanceClient, gatewayMClient)
+	gatewayResourceService := gateway_resource_handler.NewFedGatewayResourceHandler(glooInstanceClient, gatewayMCClient)
 	glooFedResourceService := federated_gloo_resource_handler.NewFederatedGlooResourceHandler(glooFedClient)
 	gatewayFedResourceService := federated_gateway_resource_handler.NewFederatedGatewayResourceHandler(gatewayFedClient)
 	glooEnterpriseFedResourceService := federated_enterprise_gloo_resource_handler.NewFederatedEnterpriseGlooResourceHandler(glooEnterpriseFedClient)
 	ratelimitFedResourceService := federated_ratelimit_resource_handler.NewFederatedRatelimitResourceHandler(ratelimitFedClient)
 
 	if err := mgr.Add(apiserver.NewGlooFedServerRunnable(ctx, apiserverSettings, bootstrapService, glooInstanceService, failoverSchemeService, routeTableSelectorService,
-		wasmFilterService, glooResourceService, gatewayResourceService, glooEnterpriseResourceService, ratelimitResourceService,
+		wasmFilterService, graphqlService, glooResourceService, gatewayResourceService, glooEnterpriseResourceService, ratelimitResourceService,
 		glooFedResourceService, gatewayFedResourceService, glooEnterpriseFedResourceService, ratelimitFedResourceService)); err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("Unable to set up GlooFed apiserver", zap.Error(err))
 	}
@@ -138,6 +142,7 @@ func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, apise
 	appsClientset := apps_v1.NewClientset(mgr.GetClient())
 	gatewayClientset := gateway_v1.NewClientset(mgr.GetClient())
 	glooClientset := gloo_v1.NewClientset(mgr.GetClient())
+	graphqlClientset := graphql_v1alpha1.NewClientset(mgr.GetClient())
 	enterpriseGlooClientset := enterprise_gloo_v1.NewClientset(mgr.GetClient())
 	ratelimitClientset := ratelimit_v1alpha1.NewClientset(mgr.GetClient())
 
@@ -152,6 +157,7 @@ func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, apise
 
 	routeTableSelectorService := rt_selector_handler.NewSingleClusterVirtualServiceRoutesHandler()
 	wasmFilterService := wasmfilter_handler.NewSingleClusterWasmFilterHandler()
+	graphqlService := graphql_handler.NewSingleClusterGraphqlHandler(graphqlClientset, glooInstanceLister)
 
 	// generated resource handlers
 	gatewayResourceService := single_cluster_resource_handler.NewSingleClusterGatewayResourceHandler(gatewayClientset, glooInstanceLister)
@@ -160,7 +166,7 @@ func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, apise
 	ratelimitResourceService := single_cluster_resource_handler.NewSingleClusterRatelimitResourceHandler(ratelimitClientset, glooInstanceLister)
 
 	if err := mgr.Add(apiserver.NewSingleClusterGlooServerRunnable(ctx, apiserverSettings, bootstrapService, glooInstanceService,
-		routeTableSelectorService, wasmFilterService,
+		routeTableSelectorService, wasmFilterService, graphqlService,
 		gatewayResourceService, glooResourceService, glooEnterpriseResourceService, ratelimitResourceService)); err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("Unable to set up GlooEE apiserver", zap.Error(err))
 	}

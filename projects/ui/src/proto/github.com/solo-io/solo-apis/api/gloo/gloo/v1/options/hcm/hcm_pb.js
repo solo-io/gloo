@@ -20,6 +20,7 @@ var extproto_ext_pb = require('../../../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CodecType', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ForwardClientCertDetails', null, global);
+goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.HeadersWithUnderscoreAction', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlashesAction', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ServerHeaderTransformation', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails', null, global);
@@ -118,6 +119,7 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     serverName: jspb.Message.getFieldWithDefault(msg, 14, ""),
     acceptHttp10: jspb.Message.getFieldWithDefault(msg, 15, false),
     defaultHostForHttp10: jspb.Message.getFieldWithDefault(msg, 16, ""),
+    allowChunkedLength: jspb.Message.getFieldWithDefault(msg, 34, false),
     properCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 22, false),
     preserveCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 31, false),
     tracing: (f = msg.getTracing()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tracing_tracing_pb.ListenerTracingSettings.toObject(includeInstance, f),
@@ -129,6 +131,8 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     maxConnectionDuration: (f = msg.getMaxConnectionDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     maxStreamDuration: (f = msg.getMaxStreamDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     maxHeadersCount: (f = msg.getMaxHeadersCount()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    headersWithUnderscoresAction: jspb.Message.getFieldWithDefault(msg, 32, 0),
+    maxRequestsPerConnection: (f = msg.getMaxRequestsPerConnection()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     serverHeaderTransformation: jspb.Message.getFieldWithDefault(msg, 25, 0),
     pathWithEscapedSlashesAction: jspb.Message.getFieldWithDefault(msg, 26, 0),
     codecType: jspb.Message.getFieldWithDefault(msg, 28, 0),
@@ -238,6 +242,10 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       var value = /** @type {string} */ (reader.readString());
       msg.setDefaultHostForHttp10(value);
       break;
+    case 34:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setAllowChunkedLength(value);
+      break;
     case 22:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setProperCaseHeaderKeyFormat(value);
@@ -283,6 +291,15 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       var value = new google_protobuf_wrappers_pb.UInt32Value;
       reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setMaxHeadersCount(value);
+      break;
+    case 32:
+      var value = /** @type {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.HeadersWithUnderscoreAction} */ (reader.readEnum());
+      msg.setHeadersWithUnderscoresAction(value);
+      break;
+    case 33:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setMaxRequestsPerConnection(value);
       break;
     case 25:
       var value = /** @type {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ServerHeaderTransformation} */ (reader.readEnum());
@@ -447,6 +464,13 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
       f
     );
   }
+  f = message.getAllowChunkedLength();
+  if (f) {
+    writer.writeBool(
+      34,
+      f
+    );
+  }
   f = /** @type {boolean} */ (jspb.Message.getField(message, 22));
   if (f != null) {
     writer.writeBool(
@@ -523,6 +547,21 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
       google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
+  f = message.getHeadersWithUnderscoresAction();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      32,
+      f
+    );
+  }
+  f = message.getMaxRequestsPerConnection();
+  if (f != null) {
+    writer.writeMessage(
+      33,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
+    );
+  }
   f = message.getServerHeaderTransformation();
   if (f !== 0.0) {
     writer.writeEnum(
@@ -580,6 +619,15 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ServerHeaderTransfo
   OVERWRITE: 0,
   APPEND_IF_ABSENT: 1,
   PASS_THROUGH: 2
+};
+
+/**
+ * @enum {number}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.HeadersWithUnderscoreAction = {
+  ALLOW: 0,
+  REJECT_CLIENT_REQUEST: 1,
+  DROP_HEADER: 2
 };
 
 /**
@@ -1229,6 +1277,23 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setDefaul
 
 
 /**
+ * optional bool allow_chunked_length = 34;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getAllowChunkedLength = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 34, false));
+};
+
+
+/** @param {boolean} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setAllowChunkedLength = function(value) {
+  jspb.Message.setProto3BooleanField(this, 34, value);
+};
+
+
+/**
  * optional bool proper_case_header_key_format = 22;
  * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
  * You should avoid comparisons like {@code val === true/false} in those cases.
@@ -1500,6 +1565,51 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearMaxH
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasMaxHeadersCount = function() {
   return jspb.Message.getField(this, 27) != null;
+};
+
+
+/**
+ * optional HeadersWithUnderscoreAction headers_with_underscores_action = 32;
+ * @return {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.HeadersWithUnderscoreAction}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getHeadersWithUnderscoresAction = function() {
+  return /** @type {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.HeadersWithUnderscoreAction} */ (jspb.Message.getFieldWithDefault(this, 32, 0));
+};
+
+
+/** @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.HeadersWithUnderscoreAction} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setHeadersWithUnderscoresAction = function(value) {
+  jspb.Message.setProto3EnumField(this, 32, value);
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value max_requests_per_connection = 33;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getMaxRequestsPerConnection = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 33));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setMaxRequestsPerConnection = function(value) {
+  jspb.Message.setWrapperField(this, 33, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearMaxRequestsPerConnection = function() {
+  this.setMaxRequestsPerConnection(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasMaxRequestsPerConnection = function() {
+  return jspb.Message.getField(this, 33) != null;
 };
 
 

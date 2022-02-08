@@ -113,6 +113,11 @@ export class UpstreamSpec extends jspb.Message {
   getInitialConnectionWindowSize(): google_protobuf_wrappers_pb.UInt32Value | undefined;
   setInitialConnectionWindowSize(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
+  hasMaxConcurrentStreams(): boolean;
+  clearMaxConcurrentStreams(): void;
+  getMaxConcurrentStreams(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setMaxConcurrentStreams(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
   hasHttpProxyHostname(): boolean;
   clearHttpProxyHostname(): void;
   getHttpProxyHostname(): google_protobuf_wrappers_pb.StringValue | undefined;
@@ -154,6 +159,7 @@ export namespace UpstreamSpec {
     failover?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_failover_pb.Failover.AsObject,
     initialStreamWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     initialConnectionWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    maxConcurrentStreams?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     httpProxyHostname?: google_protobuf_wrappers_pb.StringValue.AsObject,
     ignoreHealthOnHostRemoval?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }

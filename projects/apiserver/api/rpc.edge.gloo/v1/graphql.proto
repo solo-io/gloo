@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package rpc.edge.gloo.solo.io;
+
+option go_package = "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1";
+
+import "extproto/ext.proto";
+option (extproto.equal_all) = true;
+option (extproto.hash_all) = true;
+
+import "github.com/solo-io/skv2/api/core/v1/core.proto";
+import "github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql.proto";
+import "github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common.proto";
+
+// GraphQLSchema CR details.
+message GraphqlSchema {
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
+    .graphql.gloo.solo.io.GraphQLSchemaStatus status = 3;
+    .core.skv2.solo.io.ObjectRef gloo_instance = 4;
+}
+
+// Gets a GraphQLSchema CR by reference.
+message GetGraphqlSchemaRequest {
+    // A reference to the GraphQLSchema. If this is a single-cluster (non-federated) Gloo Edge installation,
+    // cluster name is not used.
+    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+}
+
+message GetGraphqlSchemaResponse {
+    GraphqlSchema graphql_schema = 1;
+}
+
+// Gets a list of GraphQLSchema CRs.
+message ListGraphqlSchemasRequest {
+    // (Optional) A reference to a Gloo Edge instance. If provided, only GraphQLSchemas on this Gloo Edge instance will be
+    // returned. Otherwise, all GraphQLSchemas across all Gloo Edge instances will be returned.
+    .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+}
+
+message ListGraphqlSchemasResponse {
+    repeated GraphqlSchema graphql_schemas = 1;
+}
+
+// Gets the yaml for a GraphQLSchema CR.
+message GetGraphqlSchemaYamlRequest {
+    // A reference to the GraphQLSchema. If this is a single-cluster (non-federated) Gloo Edge installation,
+    // cluster name is not used.
+    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+}
+
+message GetGraphqlSchemaYamlResponse {
+    .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
+}
+
+service GraphqlApi {
+    rpc GetGraphqlSchema (GetGraphqlSchemaRequest) returns (GetGraphqlSchemaResponse) {}
+    rpc ListGraphqlSchemas (ListGraphqlSchemasRequest) returns (ListGraphqlSchemasResponse) {}
+    rpc GetGraphqlSchemaYaml (GetGraphqlSchemaYamlRequest) returns (GetGraphqlSchemaYamlResponse) {}
+}

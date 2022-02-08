@@ -1,0 +1,39 @@
+apiVersion: graphql.gloo.solo.io/v1alpha1
+kind: GraphQLSchema
+metadata:
+  name: petstore
+  namespace: ns
+  creationTimestamp: "2022-01-25T19:01:30Z"
+spec:
+  executableSchema:
+    executor:
+      local:
+        enableIntrospection: true
+        resolutions:
+          petstore_ns|Mutation|addPet:
+            restResolver:
+              request:
+                body:
+                  category: '{$args.petInput.category}'
+                  id: '{$args.petInput.id}'
+                  name: '{$args.petInput.name}'
+                  photoUrls: '{$args.petInput.photoUrls}'
+                  status: '{$args.petInput.status}'
+                  tags: '{$args.petInput.tags}'
+                headers:
+                  :method: POST
+                  :path: /v3/pet
+              upstreamRef:
+                name: default-petstore-8080
+                namespace: gloo-system
+          petstore_ns|Query|getPetById:
+            restResolver:
+              request:
+                headers:
+                  :method: GET
+                  :path: /v3/pet/{$args.petId}
+              upstreamRef:
+                name: upstream3
+                namespace: gloo-system
+    schemaDefinition: "this is my schemadef"
+status: {}

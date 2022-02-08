@@ -8,9 +8,11 @@ import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gateway_v1_http_gateway_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gateway/v1/http_gateway_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_proxy_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_selectors_selectors_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/selectors/selectors_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb";
 
 export class GatewaySpec extends jspb.Message {
@@ -35,8 +37,8 @@ export class GatewaySpec extends jspb.Message {
 
   hasHttpGateway(): boolean;
   clearHttpGateway(): void;
-  getHttpGateway(): HttpGateway | undefined;
-  setHttpGateway(value?: HttpGateway): void;
+  getHttpGateway(): github_com_solo_io_solo_apis_api_gloo_gateway_v1_http_gateway_pb.HttpGateway | undefined;
+  setHttpGateway(value?: github_com_solo_io_solo_apis_api_gloo_gateway_v1_http_gateway_pb.HttpGateway): void;
 
   hasTcpGateway(): boolean;
   clearTcpGateway(): void;
@@ -76,7 +78,7 @@ export namespace GatewaySpec {
     bindPort: number,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.ListenerOptions.AsObject,
     useProxyProto?: google_protobuf_wrappers_pb.BoolValue.AsObject,
-    httpGateway?: HttpGateway.AsObject,
+    httpGateway?: github_com_solo_io_solo_apis_api_gloo_gateway_v1_http_gateway_pb.HttpGateway.AsObject,
     tcpGateway?: TcpGateway.AsObject,
     hybridGateway?: HybridGateway.AsObject,
     proxyNamesList: Array<string>,
@@ -88,49 +90,6 @@ export namespace GatewaySpec {
     HTTP_GATEWAY = 9,
     TCP_GATEWAY = 10,
     HYBRID_GATEWAY = 11,
-  }
-}
-
-export class HttpGateway extends jspb.Message {
-  clearVirtualServicesList(): void;
-  getVirtualServicesList(): Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>;
-  setVirtualServicesList(value: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>): void;
-  addVirtualServices(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef, index?: number): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef;
-
-  getVirtualServiceSelectorMap(): jspb.Map<string, string>;
-  clearVirtualServiceSelectorMap(): void;
-  hasVirtualServiceExpressions(): boolean;
-  clearVirtualServiceExpressions(): void;
-  getVirtualServiceExpressions(): VirtualServiceSelectorExpressions | undefined;
-  setVirtualServiceExpressions(value?: VirtualServiceSelectorExpressions): void;
-
-  clearVirtualServiceNamespacesList(): void;
-  getVirtualServiceNamespacesList(): Array<string>;
-  setVirtualServiceNamespacesList(value: Array<string>): void;
-  addVirtualServiceNamespaces(value: string, index?: number): string;
-
-  hasOptions(): boolean;
-  clearOptions(): void;
-  getOptions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.HttpListenerOptions | undefined;
-  setOptions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.HttpListenerOptions): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): HttpGateway.AsObject;
-  static toObject(includeInstance: boolean, msg: HttpGateway): HttpGateway.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: HttpGateway, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): HttpGateway;
-  static deserializeBinaryFromReader(message: HttpGateway, reader: jspb.BinaryReader): HttpGateway;
-}
-
-export namespace HttpGateway {
-  export type AsObject = {
-    virtualServicesList: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
-    virtualServiceSelectorMap: Array<[string, string]>,
-    virtualServiceExpressions?: VirtualServiceSelectorExpressions.AsObject,
-    virtualServiceNamespacesList: Array<string>,
-    options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.HttpListenerOptions.AsObject,
   }
 }
 
@@ -168,6 +127,11 @@ export class HybridGateway extends jspb.Message {
   setMatchedGatewaysList(value: Array<MatchedGateway>): void;
   addMatchedGateways(value?: MatchedGateway, index?: number): MatchedGateway;
 
+  clearDelegatedHttpGatewaysList(): void;
+  getDelegatedHttpGatewaysList(): Array<DelegatedHttpGateway>;
+  setDelegatedHttpGatewaysList(value: Array<DelegatedHttpGateway>): void;
+  addDelegatedHttpGateways(value?: DelegatedHttpGateway, index?: number): DelegatedHttpGateway;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HybridGateway.AsObject;
   static toObject(includeInstance: boolean, msg: HybridGateway): HybridGateway.AsObject;
@@ -181,6 +145,42 @@ export class HybridGateway extends jspb.Message {
 export namespace HybridGateway {
   export type AsObject = {
     matchedGatewaysList: Array<MatchedGateway.AsObject>,
+    delegatedHttpGatewaysList: Array<DelegatedHttpGateway.AsObject>,
+  }
+}
+
+export class DelegatedHttpGateway extends jspb.Message {
+  hasRef(): boolean;
+  clearRef(): void;
+  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+  hasSelector(): boolean;
+  clearSelector(): void;
+  getSelector(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector | undefined;
+  setSelector(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector): void;
+
+  getSelectionTypeCase(): DelegatedHttpGateway.SelectionTypeCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DelegatedHttpGateway.AsObject;
+  static toObject(includeInstance: boolean, msg: DelegatedHttpGateway): DelegatedHttpGateway.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DelegatedHttpGateway, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DelegatedHttpGateway;
+  static deserializeBinaryFromReader(message: DelegatedHttpGateway, reader: jspb.BinaryReader): DelegatedHttpGateway;
+}
+
+export namespace DelegatedHttpGateway {
+  export type AsObject = {
+    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    selector?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector.AsObject,
+  }
+
+  export enum SelectionTypeCase {
+    SELECTION_TYPE_NOT_SET = 0,
+    REF = 3,
+    SELECTOR = 4,
   }
 }
 
@@ -192,8 +192,8 @@ export class MatchedGateway extends jspb.Message {
 
   hasHttpGateway(): boolean;
   clearHttpGateway(): void;
-  getHttpGateway(): HttpGateway | undefined;
-  setHttpGateway(value?: HttpGateway): void;
+  getHttpGateway(): github_com_solo_io_solo_apis_api_gloo_gateway_v1_http_gateway_pb.HttpGateway | undefined;
+  setHttpGateway(value?: github_com_solo_io_solo_apis_api_gloo_gateway_v1_http_gateway_pb.HttpGateway): void;
 
   hasTcpGateway(): boolean;
   clearTcpGateway(): void;
@@ -214,7 +214,7 @@ export class MatchedGateway extends jspb.Message {
 export namespace MatchedGateway {
   export type AsObject = {
     matcher?: Matcher.AsObject,
-    httpGateway?: HttpGateway.AsObject,
+    httpGateway?: github_com_solo_io_solo_apis_api_gloo_gateway_v1_http_gateway_pb.HttpGateway.AsObject,
     tcpGateway?: TcpGateway.AsObject,
   }
 
@@ -250,72 +250,6 @@ export namespace Matcher {
   export type AsObject = {
     sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject,
     sourcePrefixRangesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.AsObject>,
-  }
-}
-
-export class VirtualServiceSelectorExpressions extends jspb.Message {
-  clearExpressionsList(): void;
-  getExpressionsList(): Array<VirtualServiceSelectorExpressions.Expression>;
-  setExpressionsList(value: Array<VirtualServiceSelectorExpressions.Expression>): void;
-  addExpressions(value?: VirtualServiceSelectorExpressions.Expression, index?: number): VirtualServiceSelectorExpressions.Expression;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): VirtualServiceSelectorExpressions.AsObject;
-  static toObject(includeInstance: boolean, msg: VirtualServiceSelectorExpressions): VirtualServiceSelectorExpressions.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: VirtualServiceSelectorExpressions, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): VirtualServiceSelectorExpressions;
-  static deserializeBinaryFromReader(message: VirtualServiceSelectorExpressions, reader: jspb.BinaryReader): VirtualServiceSelectorExpressions;
-}
-
-export namespace VirtualServiceSelectorExpressions {
-  export type AsObject = {
-    expressionsList: Array<VirtualServiceSelectorExpressions.Expression.AsObject>,
-  }
-
-  export class Expression extends jspb.Message {
-    getKey(): string;
-    setKey(value: string): void;
-
-    getOperator(): VirtualServiceSelectorExpressions.Expression.OperatorMap[keyof VirtualServiceSelectorExpressions.Expression.OperatorMap];
-    setOperator(value: VirtualServiceSelectorExpressions.Expression.OperatorMap[keyof VirtualServiceSelectorExpressions.Expression.OperatorMap]): void;
-
-    clearValuesList(): void;
-    getValuesList(): Array<string>;
-    setValuesList(value: Array<string>): void;
-    addValues(value: string, index?: number): string;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): Expression.AsObject;
-    static toObject(includeInstance: boolean, msg: Expression): Expression.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: Expression, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): Expression;
-    static deserializeBinaryFromReader(message: Expression, reader: jspb.BinaryReader): Expression;
-  }
-
-  export namespace Expression {
-    export type AsObject = {
-      key: string,
-      operator: VirtualServiceSelectorExpressions.Expression.OperatorMap[keyof VirtualServiceSelectorExpressions.Expression.OperatorMap],
-      valuesList: Array<string>,
-    }
-
-    export interface OperatorMap {
-      EQUALS: 0;
-      DOUBLEEQUALS: 1;
-      NOTEQUALS: 2;
-      IN: 3;
-      NOTIN: 4;
-      EXISTS: 5;
-      DOESNOTEXIST: 6;
-      GREATERTHAN: 7;
-      LESSTHAN: 8;
-    }
-
-    export const Operator: OperatorMap;
   }
 }
 

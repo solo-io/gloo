@@ -8,8 +8,21 @@ import (
 var baseTemplateBox = packr.NewBox("./custom_templates/base_gloo_resource_templates")
 
 var BaseGlooResourceTemplates = func() []model.CustomTemplates {
-	// these templates generate the handlers that get information about base Gloo resources.
-	// we have a Gloo Fed version and a single-cluster version which take different input
+	// This template generates the apiserver protobuf messages and grpc service interfaces used by the UI
+	// to get and list Gloo resources.
+	apiserverProtos, err := baseTemplateBox.FindString("apiserver/apiserver_protos.gotmpl")
+	if err != nil {
+		panic(err)
+	}
+
+	// These templates generate the handlers that implement the service interfaces defined in the protos.
+	// We need a separate Gloo Fed and single-cluster implementation of each service, because clients need
+	// to be initialized differently in each case (e.g. the Fed version needs a multi-cluster clientset
+	// and a cluster name to access resources, which may be on remote clusters).
+	// Note that for some resource types (e.g. GraphQLSchemas), we manually write the protos and handlers
+	// instead of generating them from these templates, because they may have unique needs, such as being
+	// able to return a different subset of data in the List APIs, needing to aggregate data from multiple
+	// resources, or supporting create/update/delete functionality.
 	fedApiserverHandler, err := baseTemplateBox.FindString("apiserver/fed_apiserver_handler.gotmpl")
 	if err != nil {
 		panic(err)
@@ -19,10 +32,7 @@ var BaseGlooResourceTemplates = func() []model.CustomTemplates {
 		panic(err)
 	}
 
-	apiserverProtos, err := baseTemplateBox.FindString("apiserver/apiserver_protos.gotmpl")
-	if err != nil {
-		panic(err)
-	}
+	// Templates for glooctl fed cli commands
 	apiserverCliClient, err := baseTemplateBox.FindString("apiserver/apiserver_cli_client.gotmpl")
 	if err != nil {
 		panic(err)

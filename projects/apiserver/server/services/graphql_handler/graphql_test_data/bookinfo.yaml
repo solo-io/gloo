@@ -1,0 +1,80 @@
+apiVersion: graphql.gloo.solo.io/v1alpha1
+kind: GraphQLSchema
+metadata:
+  name: bookinfo
+  namespace: gloo-system
+spec:
+  executableSchema:
+    executor:
+      local:
+        enableIntrospection: true
+        resolutions:
+          Query|productsForHome:
+            restResolver:
+              request:
+                headers:
+                  :method: GET
+                  :path: /api/v1/products
+              upstreamRef:
+                name: default-productpage-9080
+                namespace: gloo-system
+          author:
+            restResolver:
+              request:
+                headers:
+                  :method: GET
+                  :path: /details/{$parent.id}
+              response:
+                resultRoot: author
+              upstreamRef:
+                name: default-details-9080
+                namespace: gloo-system
+          pages:
+            restResolver:
+              request:
+                headers:
+                  :method: GET
+                  :path: /details/{$parent.id}
+              response:
+                resultRoot: pages
+              upstreamRef:
+                name: default-details-9080
+                namespace: gloo-system
+          ratings:
+            restResolver:
+              request:
+                headers:
+                  :method: GET
+                  :path: /ratings/{$parent.id}
+              response:
+                resultRoot: ratings[*]
+                setters:
+                  numStars: '[*][1]'
+                  reviewer: '[*][0]'
+              upstreamRef:
+                name: default-ratings-9080
+                namespace: gloo-system
+          reviews:
+            restResolver:
+              request:
+                headers:
+                  :method: GET
+                  :path: /reviews/{$parent.id}
+              response:
+                resultRoot: reviews
+              upstreamRef:
+                name: default-reviews-9080
+                namespace: gloo-system
+          year:
+            restResolver:
+              request:
+                headers:
+                  :method: GET
+                  :path: /details/{$parent.id}
+              response:
+                resultRoot: year
+              upstreamRef:
+                name: default-details-9080
+                namespace: gloo-system
+    schema_definition: bookinfo schema def
+status: {}

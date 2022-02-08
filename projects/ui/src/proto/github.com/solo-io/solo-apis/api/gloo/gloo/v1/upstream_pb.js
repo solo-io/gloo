@@ -139,6 +139,7 @@ proto.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance, msg) {
     failover: (f = msg.getFailover()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_failover_pb.Failover.toObject(includeInstance, f),
     initialStreamWindowSize: (f = msg.getInitialStreamWindowSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     initialConnectionWindowSize: (f = msg.getInitialConnectionWindowSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    maxConcurrentStreams: (f = msg.getMaxConcurrentStreams()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     httpProxyHostname: (f = msg.getHttpProxyHostname()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
     ignoreHealthOnHostRemoval: (f = msg.getIgnoreHealthOnHostRemoval()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
@@ -266,6 +267,11 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       var value = new google_protobuf_wrappers_pb.UInt32Value;
       reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setInitialConnectionWindowSize(value);
+      break;
+    case 24:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setMaxConcurrentStreams(value);
       break;
     case 21:
       var value = new google_protobuf_wrappers_pb.StringValue;
@@ -446,6 +452,14 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   if (f != null) {
     writer.writeMessage(
       20,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
+    );
+  }
+  f = message.getMaxConcurrentStreams();
+  if (f != null) {
+    writer.writeMessage(
+      24,
       f,
       google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
@@ -1007,6 +1021,36 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearInitialConnectionWindowSize = fun
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasInitialConnectionWindowSize = function() {
   return jspb.Message.getField(this, 20) != null;
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value max_concurrent_streams = 24;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getMaxConcurrentStreams = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 24));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setMaxConcurrentStreams = function(value) {
+  jspb.Message.setWrapperField(this, 24, value);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearMaxConcurrentStreams = function() {
+  this.setMaxConcurrentStreams(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.hasMaxConcurrentStreams = function() {
+  return jspb.Message.getField(this, 24) != null;
 };
 
 
