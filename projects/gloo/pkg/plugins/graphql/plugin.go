@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/graphql-go/graphql/language/kinds"
 
@@ -78,14 +79,14 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return eris.Wrapf(err, "unable to find graphql schema custom resource `%s` in namespace `%s`, list of all graphqlschemas found: %s", gqlRef.GetName(), gqlRef.GetNamespace(), ret)
 	}
 
-	routeConf, err := translateGraphQlSchemaToRouteConf(params, gql)
+	routeConf, err := translateGraphQlSchemaToRouteConf(params, in, gql)
 	if err != nil {
 		return eris.Wrapf(err, "unable to translate graphql schema control plane config to data plane config")
 	}
 	return pluginutils.SetRoutePerFilterConfig(out, FilterName, routeConf)
 }
 
-func translateGraphQlSchemaToRouteConf(params plugins.RouteParams, schema *v1alpha1.GraphQLSchema) (*v2.GraphQLRouteConfig, error) {
+func translateGraphQlSchemaToRouteConf(params plugins.RouteParams, in *v1.Route, schema *v1alpha1.GraphQLSchema) (*v2.GraphQLRouteConfig, error) {
 	schemaStr := schema.GetExecutableSchema().GetSchemaDefinition()
 	_, resolutions, processedSchema, err := ProcessGraphqlSchema(params, schemaStr, schema.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions())
 	if err != nil {
@@ -95,6 +96,11 @@ func translateGraphQlSchemaToRouteConf(params plugins.RouteParams, schema *v1alp
 	if err != nil {
 		return nil, err
 	}
+	statsPrefix := in.GetGraphqlSchemaRef().Key()
+	if sp := schema.StatPrefix; sp != nil {
+		statsPrefix = sp.Value
+	}
+	statsPrefix = strings.TrimSuffix(statsPrefix, ".") + "."
 	return &v2.GraphQLRouteConfig{
 		ExecutableSchema: &v2.ExecutableSchema{
 			Executor: &v2.Executor{
@@ -110,6 +116,7 @@ func translateGraphQlSchemaToRouteConf(params plugins.RouteParams, schema *v1alp
 			},
 			Extensions: extensions,
 		},
+		StatPrefix: statsPrefix,
 	}, nil
 }
 
@@ -161,7 +168,7 @@ func ProcessGraphqlSchema(params plugins.RouteParams, schema string, resolutions
 	}
 	visitor := NewGraphqlASTVisitor()
 	var result []*v2.Resolution
-	// Adds a directive visitor to the ast visitor which looks for `@resolve` direcitves and adds them to the resolution
+	// Adds a directive visitor to the ast visitor which looks for `@resolve` directives and adds them to the resolution
 	// map
 	AddResolveDirectiveVisitor(visitor, params, resolutions, &result)
 	err = visitor.Visit(doc)
@@ -194,18 +201,18 @@ func AddResolveDirectiveVisitor(visitor *GraphqlASTVisitor, params plugins.Route
 		for _, argument := range directive.Arguments {
 			arguments[argument.Name.Value] = argument.Value
 		}
-		resolver_name, ok := arguments[RESOLVER_NAME_ARGUMENT]
+		resolverName, ok := arguments[RESOLVER_NAME_ARGUMENT]
 		if !ok {
 			return NewGraphqlSchemaError(directive, `the "resolve" directive must have a "name" argument to reference a resolver`)
 		}
-		if resolver_name.GetKind() != kinds.StringValue {
-			return NewGraphqlSchemaError(resolver_name, `"name" argument must be a string value`)
+		if resolverName.GetKind() != kinds.StringValue {
+			return NewGraphqlSchemaError(resolverName, `"name" argument must be a string value`)
 		}
-		name := resolver_name.GetValue().(string)
+		name := resolverName.GetValue().(string)
 		// check if the resolver referenced here even exists
 		resolution := resolutions[name]
 		if resolution == nil {
-			return NewGraphqlSchemaError(resolver_name, "resolver %s is not defined", name)
+			return NewGraphqlSchemaError(resolverName, "resolver %s is not defined", name)
 		}
 		queryMatch := &v2.QueryMatcher{
 			Match: &v2.QueryMatcher_FieldMatcher_{
@@ -219,9 +226,15 @@ func AddResolveDirectiveVisitor(visitor *GraphqlASTVisitor, params plugins.Route
 		if err != nil {
 			return err
 		}
+		statsPrefix := name
+		if sp := resolution.StatPrefix; sp != nil {
+			statsPrefix = sp.Value
+		}
+		statsPrefix = strings.TrimSuffix(statsPrefix, ".") + "."
 		*result = append(*result, &v2.Resolution{
-			Matcher:  queryMatch,
-			Resolver: res,
+			Matcher:    queryMatch,
+			Resolver:   res,
+			StatPrefix: statsPrefix,
 		})
 		return nil
 	})
