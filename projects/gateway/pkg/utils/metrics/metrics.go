@@ -3,6 +3,7 @@ package metrics
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 	"strings"
 
 	errors "github.com/rotisserie/eris"
@@ -102,6 +103,8 @@ func resourceToGVK(resource resources.Resource) (schema.GroupVersionKind, error)
 		return gloov1.SecretGVK, nil
 	case *gloov1.Upstream:
 		return gloov1.UpstreamGVK, nil
+	case *v1alpha1.GraphQLSchema:
+		return v1alpha1.GraphQLSchemaGVK, nil
 	default:
 		return schema.GroupVersionKind{}, errors.Errorf("config status metric reporting is not supported for resource type: %T", resource)
 	}

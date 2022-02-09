@@ -3,6 +3,8 @@ package plugins
 import (
 	"bytes"
 	"context"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"sort"
 	"strings"
 
@@ -26,8 +28,10 @@ type Plugin interface {
 }
 
 type Params struct {
-	Ctx      context.Context
-	Snapshot *v1snap.ApiSnapshot
+	Graphqlschemaclient v1alpha1.GraphQLSchemaClient
+	Ctx                 context.Context
+	Snapshot            *v1snap.ApiSnapshot
+	Reports             reporter.ResourceReports
 }
 
 type VirtualHostParams struct {

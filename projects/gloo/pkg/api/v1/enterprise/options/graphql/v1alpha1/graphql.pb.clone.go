@@ -255,6 +255,75 @@ func (m *Resolution) Clone() proto.Message {
 }
 
 // Clone function
+func (m *MergeConfig) Clone() proto.Message {
+	var target *MergeConfig
+	if m == nil {
+		return target
+	}
+	target = &MergeConfig{}
+
+	target.QueryName = m.GetQueryName()
+
+	target.Key = m.GetKey()
+
+	target.SelectionSet = m.GetSelectionSet()
+
+	return target
+}
+
+// Clone function
+func (m *SubschemaConfig) Clone() proto.Message {
+	var target *SubschemaConfig
+	if m == nil {
+		return target
+	}
+	target = &SubschemaConfig{}
+
+	target.Namespace = m.GetNamespace()
+
+	target.Name = m.GetName()
+
+	if m.GetTypeMerge() != nil {
+		target.TypeMerge = make(map[string]*MergeConfig, len(m.GetTypeMerge()))
+		for k, v := range m.GetTypeMerge() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.TypeMerge[k] = h.Clone().(*MergeConfig)
+			} else {
+				target.TypeMerge[k] = proto.Clone(v).(*MergeConfig)
+			}
+
+		}
+	}
+
+	return target
+}
+
+// Clone function
+func (m *GatewaySchema) Clone() proto.Message {
+	var target *GatewaySchema
+	if m == nil {
+		return target
+	}
+	target = &GatewaySchema{}
+
+	if m.GetSubschemas() != nil {
+		target.Subschemas = make([]*SubschemaConfig, len(m.GetSubschemas()))
+		for idx, v := range m.GetSubschemas() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.Subschemas[idx] = h.Clone().(*SubschemaConfig)
+			} else {
+				target.Subschemas[idx] = proto.Clone(v).(*SubschemaConfig)
+			}
+
+		}
+	}
+
+	return target
+}
+
+// Clone function
 func (m *GraphQLSchema) Clone() proto.Message {
 	var target *GraphQLSchema
 	if m == nil {
@@ -278,6 +347,12 @@ func (m *GraphQLSchema) Clone() proto.Message {
 		target.ExecutableSchema = h.Clone().(*ExecutableSchema)
 	} else {
 		target.ExecutableSchema = proto.Clone(m.GetExecutableSchema()).(*ExecutableSchema)
+	}
+
+	if h, ok := interface{}(m.GetGatewaySchema()).(clone.Cloner); ok {
+		target.GatewaySchema = h.Clone().(*GatewaySchema)
+	} else {
+		target.GatewaySchema = proto.Clone(m.GetGatewaySchema()).(*GatewaySchema)
 	}
 
 	if h, ok := interface{}(m.GetStatPrefix()).(clone.Cloner); ok {

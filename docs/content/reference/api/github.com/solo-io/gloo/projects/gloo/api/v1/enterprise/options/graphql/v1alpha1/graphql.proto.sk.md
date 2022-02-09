@@ -18,6 +18,9 @@ weight: 5
 - [GrpcDescriptorRegistry](#grpcdescriptorregistry)
 - [GrpcResolver](#grpcresolver)
 - [Resolution](#resolution)
+- [MergeConfig](#mergeconfig)
+- [SubschemaConfig](#subschemaconfig)
+- [GatewaySchema](#gatewayschema)
 - [GraphQLSchema](#graphqlschema) **Top-Level Resource**
 - [ExecutableSchema](#executableschema)
 - [Executor](#executor)
@@ -191,6 +194,65 @@ If a field with the same name does not exist in the parent, null will be used.
 
 
 ---
+### MergeConfig
+
+
+
+```yaml
+"queryName": string
+"key": string
+"selectionSet": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `queryName` | `string` |  |
+| `key` | `string` |  |
+| `selectionSet` | `string` |  |
+
+
+
+
+---
+### SubschemaConfig
+
+
+
+```yaml
+"namespace": string
+"name": string
+"typeMerge": map<string, .graphql.gloo.solo.io.MergeConfig>
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `namespace` | `string` |  |
+| `name` | `string` |  |
+| `typeMerge` | `map<string, .graphql.gloo.solo.io.MergeConfig>` | map of Type name to Merge config. |
+
+
+
+
+---
+### GatewaySchema
+
+
+
+```yaml
+"subschemas": []graphql.gloo.solo.io.SubschemaConfig
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `subschemas` | [[]graphql.gloo.solo.io.SubschemaConfig](../graphql.proto.sk/#subschemaconfig) |  |
+
+
+
+
+---
 ### GraphQLSchema
 
  
@@ -206,6 +268,7 @@ configure the routes to point to these schema CRs.
 "namespacedStatuses": .core.solo.io.NamespacedStatuses
 "metadata": .core.solo.io.Metadata
 "executableSchema": .graphql.gloo.solo.io.ExecutableSchema
+"gatewaySchema": .graphql.gloo.solo.io.GatewaySchema
 "statPrefix": .google.protobuf.StringValue
 
 ```
@@ -215,6 +278,7 @@ configure the routes to point to these schema CRs.
 | `namespacedStatuses` | [.core.solo.io.NamespacedStatuses](../../../../../../../../../../solo-kit/api/v1/status.proto.sk/#namespacedstatuses) | NamespacedStatuses indicates the validation status of this resource. NamespacedStatuses is read-only by clients, and set by gloo during validation. |
 | `metadata` | [.core.solo.io.Metadata](../../../../../../../../../../solo-kit/api/v1/metadata.proto.sk/#metadata) | Metadata contains the object metadata for this resource. |
 | `executableSchema` | [.graphql.gloo.solo.io.ExecutableSchema](../graphql.proto.sk/#executableschema) |  |
+| `gatewaySchema` | [.graphql.gloo.solo.io.GatewaySchema](../graphql.proto.sk/#gatewayschema) |  |
 | `statPrefix` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | The stats prefix which will be used for this route config. If empty, will generate a stats prefix ${GRAPHQLSCHEMA_REF}. |
 
 

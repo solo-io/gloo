@@ -189,6 +189,24 @@ message Resolution {
   google.protobuf.StringValue stat_prefix = 3;
 }
 
+message MergeConfig  {
+  string query_name = 1;
+  string key = 2;
+  string selection_set = 3;
+
+}
+
+message SubschemaConfig {
+  string namespace = 1;
+  string name  = 2;
+  // map of Type name to Merge config
+  map<string, MergeConfig> type_merge = 3;
+}
+
+message GatewaySchema {
+  repeated SubschemaConfig subschemas = 1;
+}
+
 // Enterprise-Only: THIS FEATURE IS IN TECH PREVIEW. APIs are versioned as alpha and subject to change.
 // User-facing CR config for resolving client requests to graphql schemas.
 // Routes that have this config will execute graphql queries, and will not make it to the router filter. i.e. this
@@ -209,6 +227,7 @@ message GraphQLSchema {
   core.solo.io.Metadata metadata = 2;
 
   ExecutableSchema executable_schema = 6;
+  GatewaySchema gateway_schema = 7;
 
   // The stats prefix which will be used for this route config.
   // If empty, will generate a stats prefix ${GRAPHQLSCHEMA_REF}

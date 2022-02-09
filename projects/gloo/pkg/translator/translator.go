@@ -2,6 +2,7 @@ package translator
 
 import (
 	"fmt"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 	"hash/fnv"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
@@ -37,8 +38,9 @@ func NewTranslator(
 	sslConfigTranslator utils.SslConfigTranslator,
 	settings *v1.Settings,
 	pluginRegistryFactory plugins.PluginRegistryFactory,
+	graphqlschemaclient v1alpha1.GraphQLSchemaClient,
 ) Translator {
-	return NewTranslatorWithHasher(sslConfigTranslator, settings, pluginRegistryFactory, EnvoyCacheResourcesListToFnvHash)
+	return NewTranslatorWithHasher(sslConfigTranslator, settings, pluginRegistryFactory, EnvoyCacheResourcesListToFnvHash, graphqlschemaclient)
 }
 
 func NewTranslatorWithHasher(
@@ -46,8 +48,10 @@ func NewTranslatorWithHasher(
 	settings *v1.Settings,
 	pluginRegistryFactory plugins.PluginRegistryFactory,
 	hasher func(resources []envoycache.Resource) uint64,
+	graphqlschemaclient v1alpha1.GraphQLSchemaClient,
 ) Translator {
 	return &translatorFactory{
+		graphqlschemaclient:   graphqlschemaclient,
 		pluginRegistryFactory: pluginRegistryFactory,
 		settings:              settings,
 		sslConfigTranslator:   sslConfigTranslator,
@@ -56,6 +60,7 @@ func NewTranslatorWithHasher(
 }
 
 type translatorFactory struct {
+	graphqlschemaclient   v1alpha1.GraphQLSchemaClient
 	pluginRegistryFactory plugins.PluginRegistryFactory
 	settings              *v1.Settings
 	sslConfigTranslator   utils.SslConfigTranslator
@@ -66,6 +71,7 @@ func (t *translatorFactory) Translate(
 	params plugins.Params,
 	proxy *v1.Proxy,
 ) (envoycache.Snapshot, reporter.ResourceReports, *validationapi.ProxyReport, error) {
+	params.Graphqlschemaclient = t.graphqlschemaclient
 	pluginRegistry := t.pluginRegistryFactory(params.Ctx)
 	listenerTranslatorFactory := NewListenerSubsystemTranslatorFactory(pluginRegistry, t.sslConfigTranslator)
 
@@ -81,6 +87,7 @@ func (t *translatorFactory) Translate(
 
 // a translator instance performs one
 type translatorInstance struct {
+	graphqlschemaclient       v1alpha1.GraphQLSchemaClient
 	pluginRegistry            plugins.PluginRegistry
 	settings                  *v1.Settings
 	sslConfigTranslator       utils.SslConfigTranslator
@@ -114,6 +121,7 @@ func (t *translatorInstance) Translate(
 	// prepare reports used to aggregate Warnings/Errors encountered during translation
 	reports := make(reporter.ResourceReports)
 	proxyReport := validation.MakeReport(proxy)
+	params.Reports = reports
 
 	// execute translation of listener and cluster subsystems
 	clusters, endpoints := t.translateClusterSubsystemComponents(params, proxy, reports)
