@@ -1,3 +1,5 @@
 projects/ui/src/proto/**    linguist-generated=true
 projects/ui/src/proto/**    linguist-vendored
-
+*.pb.*	                    linguist-generated=true
+*sk.md	                    linguist-generated=true
+*sk.go	                    linguist-generated=true
