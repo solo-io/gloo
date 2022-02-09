@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { TabPanels, Tabs } from '@reach/tabs';
-import { useGetGraphqlSchemaDetails } from 'API/hooks';
+import { useGetGraphqlSchemaDetails, useListUpstreams } from 'API/hooks';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import AreaHeader from 'Components/Common/AreaHeader';
 import { SectionCard } from 'Components/Common/SectionCard';
@@ -11,6 +11,7 @@ import {
   FolderTabList,
   StyledTabPanel,
 } from 'Components/Common/Tabs';
+import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { colors } from 'Styles/colors';
@@ -80,6 +81,38 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
   const [currentResolver, setCurrentResolver] = React.useState<any>();
   const [modalOpen, setModalOpen] = React.useState(false);
 
+  const { data: upstreams, error: upstreamsError } = useListUpstreams();
+  const [resolverUpstreams, setResolverUpstreams] = React.useState<
+    Upstream.AsObject[]
+  >([]);
+
+  React.useEffect(() => {
+    let resolverUpstreams = Object.entries(
+      graphqlSchema?.spec.executableSchema.executor.local.resolutions ?? {}
+    )
+      .filter(
+        ([rName, r], index, arr) =>
+          index ===
+          arr?.findIndex(
+            ([n, rr]) =>
+              rr?.restResolver?.upstreamRef?.name ===
+              r.restResolver.upstreamRef.name
+          )
+      )
+      .map(([resolveName, resolver]) => resolver.restResolver?.upstreamRef);
+
+    let fullUpstreams = upstreams?.filter(
+      upstream =>
+        !!resolverUpstreams.find(
+          rU =>
+            rU.name === upstream.metadata?.name &&
+            rU.namespace === upstream.metadata?.namespace
+        )
+    );
+    if (!!fullUpstreams) {
+      setResolverUpstreams(fullUpstreams);
+    }
+  }, []);
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
@@ -151,39 +184,35 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
                           <div className='mb-2 text-lg font-medium'>
                             Upstreams
                           </div>
-                          {Object.entries(
-                            graphqlSchema?.spec.executableSchema.executor.local
-                              .resolutions ?? {}
-                          )
-                            .filter(
-                              ([rName, r], index, arr) =>
-                                index ===
-                                arr?.findIndex(
-                                  ([n, rr]) =>
-                                    rr?.restResolver?.upstreamRef?.name ===
-                                    r.restResolver.upstreamRef.name
-                                )
-                            )
-                            ?.map(([resolverName, resolver]) => {
-                              return (
+                          {resolverUpstreams?.map(resolverUpstream => {
+                            const glooInstNamespace =
+                              resolverUpstream.glooInstance?.namespace;
+                            const glooInstName =
+                              resolverUpstream.glooInstance?.name;
+                            const upstreamCluster =
+                              resolverUpstream.metadata?.clusterName ?? '';
+                            const upstreamNamespace =
+                              resolverUpstream.metadata?.namespace ?? '';
+                            const upstreamName =
+                              resolverUpstream.metadata?.name ?? '';
+                            const link = !!upstreamCluster
+                              ? `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upstreamCluster}/${upstreamNamespace}/${upstreamName}`
+                              : `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upstreamNamespace}/${upstreamName}`;
+                            return (
+                              <div key={link}>
                                 <div
-                                  key={`/${resolverName}/${resolver.restResolver.upstreamRef.namespace}/${resolver.restResolver.upstreamRef.name}`}
+                                  className={
+                                    'cursor-pointer text-blue-500gloo text-base'
+                                  }
+                                  onClick={() => {
+                                    navigate(link);
+                                  }}
                                 >
-                                  <div
-                                    className={
-                                      'cursor-pointer text-blue-500gloo text-base'
-                                    }
-                                    onClick={() => {
-                                      navigate(
-                                        `/upstreams/${resolver.restResolver.upstreamRef.namespace}/${resolver.restResolver.upstreamRef.name}`
-                                      );
-                                    }}
-                                  >
-                                    {resolver.restResolver.upstreamRef.name}
-                                  </div>
+                                  {upstreamName}
                                 </div>
-                              );
-                            })}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </ConfigArea>

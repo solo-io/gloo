@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Show a warning when there is no virtual service defined for a particular GraphQL Schema.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3022
+  - type: NON_USER_FACING
+    description: Fix broken links to Upstreams associated with GraphQL Schema.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3070

@@ -31,7 +31,7 @@ type BoxProps = {
   link: string;
 };
 
-const WarningCircle = styled.div`
+export const WarningCircle = styled.div`
   display: inline-flex;
   justify-content: center;
   align-items: center;
@@ -52,7 +52,8 @@ const WarningCircle = styled.div`
 type StatusHealthProps = {
   isWarning: boolean;
 };
-const StatusHealth = styled.div<StatusHealthProps>`
+
+export const StatusHealth = styled.div<StatusHealthProps>`
   display: flex;
   margin-bottom: 20px;
   ${(props: StatusHealthProps) =>
