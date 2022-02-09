@@ -375,6 +375,7 @@ You can replace this Virtual Service with other regex expressions to see how the
 Let's consider an example where we need to match on a path containing an 8-4-4-4-12 formatted UUID. Let's say we have a requirement to match on paths that contain a UUID, like this:
 * `/api/v1/<uuid>/good-path`
 * `/api/v1/<uuid>`
+
 But we want to disallow any other paths that don't precisely match the patterns above, for example:
 * `/api/v1/<uuid>/bad-path`
 
