@@ -38,22 +38,32 @@ var (
 	FilterStage = plugins.BeforeStage(plugins.RouteStage)
 )
 
-type plugin struct{}
+type plugin struct {
+	filterNeeded bool
+}
 
+// NewPlugin creates the basic graphql plugin structure.
 func NewPlugin() *plugin {
 	return &plugin{}
 }
 
+// Name returns the ExtensionName for overwriting purposes.
 func (p *plugin) Name() string {
 	return ExtensionName
 }
 
+// Init resets the plugin and creates the maps within the structure.
 func (p *plugin) Init(params plugins.InitParams) error {
+	p.filterNeeded = !params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
 	return nil
 }
 
+// HttpFilters sets up the filters for envoy if it is needed.
 func (p *plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
+	if !p.filterNeeded {
+		return filters, nil
+	}
 
 	emptyConf := &v2.GraphQLConfig{}
 	stagedFilter, err := plugins.NewStagedFilterWithConfig(FilterName, emptyConf, FilterStage)
@@ -64,6 +74,8 @@ func (p *plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.St
 	return filters, nil
 }
 
+// ProcessRoute aplying any needed configurations related to grapql.
+// If any configs are found then mark us needing this filter in our chain.
 func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	gqlRef := in.GetGraphqlSchemaRef()
 	if gqlRef == nil {
@@ -79,10 +91,13 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return eris.Wrapf(err, "unable to find graphql schema custom resource `%s` in namespace `%s`, list of all graphqlschemas found: %s", gqlRef.GetName(), gqlRef.GetNamespace(), ret)
 	}
 
+	p.filterNeeded = true // Set here as user is at least attempting to use graphql at this point so might as well place it in the filterchain.
 	routeConf, err := translateGraphQlSchemaToRouteConf(params, in, gql)
+
 	if err != nil {
 		return eris.Wrapf(err, "unable to translate graphql schema control plane config to data plane config")
 	}
+
 	return pluginutils.SetRoutePerFilterConfig(out, FilterName, routeConf)
 }
 

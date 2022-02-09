@@ -59,20 +59,24 @@ var (
 // thats it!
 
 type plugin struct {
-	requireJwtBeforeExtauthFilter bool
+	requireJwtBeforeExtauthFilter bool // is set to indicate if a filter before extauth is needed
+	filterNeeded                  bool // is set to indicate if the base filter is needed
 	uniqProviders                 map[uint32]map[string]*v3.JwtProvider
 	perVhostProviders             map[uint32]map[*v1.VirtualHost][]string
 	perRouteJwtRequirements       map[uint32]map[string]*v3.JwtRequirement
 }
 
+// NewPlugin creates an empty instance of the jwt plugin.
 func NewPlugin() *plugin {
 	return &plugin{}
 }
 
+// Name returns the ExtensionName for overwriting purposes.
 func (p *plugin) Name() string {
 	return ExtensionName
 }
 
+// Init resets the plugin and creates the maps within the structure.
 func (p *plugin) Init(params plugins.InitParams) error {
 	p.perVhostProviders = map[uint32]map[*v1.VirtualHost][]string{
 		BeforeExtAuthStage: make(map[*v1.VirtualHost][]string),
@@ -87,9 +91,12 @@ func (p *plugin) Init(params plugins.InitParams) error {
 		AfterExtAuthStage:  make(map[string]*v3.JwtRequirement),
 	}
 	p.requireJwtBeforeExtauthFilter = false
+	p.filterNeeded = !params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
 	return nil
 }
 
+// ProcessRoute aplying any needed configurations related to jwt.
+// If any configs are found then mark us needing this filter in our chain.
 func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	jwtRoute := p.convertRouteJwtConfig(in.GetOptions())
 	// If no config for jwt exists on route, do not create any routePerFilter config
@@ -97,6 +104,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		// no config found, nothing to do here
 		return nil
 	}
+
 	stagedCfg := &StagedJwtAuthnPerRoute{
 		JwtConfigs: make(map[uint32]*SoloJwtAuthnPerRoute),
 	}
@@ -111,10 +119,14 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	if len(stagedCfg.JwtConfigs) == 0 {
 		return nil
 	}
+	p.filterNeeded = true
 
 	return pluginutils.SetRoutePerFilterConfig(out, SoloJwtFilterName, stagedCfg)
 }
 
+// ProcessVirtualHost setting the vhost level jwt options.
+// May set the requirement for setting of the filter and potentially an additional
+// pre-extauth filter in the filterchain.
 func (p *plugin) ProcessVirtualHost(
 	params plugins.VirtualHostParams,
 	in *v1.VirtualHost,
@@ -126,6 +138,7 @@ func (p *plugin) ProcessVirtualHost(
 		// no config found, nothing to do here
 		return nil
 	}
+	p.filterNeeded = true
 	if jwtExt.BeforeExtAuth != nil {
 		p.requireJwtBeforeExtauthFilter = true
 	}
@@ -152,6 +165,9 @@ func (p *plugin) ProcessVirtualHost(
 func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 
 	var filters []plugins.StagedHttpFilter
+	if !p.filterNeeded {
+		return filters, nil
+	}
 	// Get filter config for after extauth (default)
 	stagedFilter, err := p.getFilterForStage(AfterExtAuthStage, afterExtauthFilterStage)
 	if err != nil {

@@ -783,6 +783,11 @@ export class GlooOptions extends jspb.Message {
   getFailoverUpstreamDnsPollingInterval(): google_protobuf_duration_pb.Duration | undefined;
   setFailoverUpstreamDnsPollingInterval(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasRemoveUnusedFilters(): boolean;
+  clearRemoveUnusedFilters(): void;
+  getRemoveUnusedFilters(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setRemoveUnusedFilters(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -808,6 +813,7 @@ export namespace GlooOptions {
     restXdsBindAddr: string,
     enableRestEds?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     failoverUpstreamDnsPollingInterval?: google_protobuf_duration_pb.Duration.AsObject,
+    removeUnusedFilters?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export class AWSOptions extends jspb.Message {

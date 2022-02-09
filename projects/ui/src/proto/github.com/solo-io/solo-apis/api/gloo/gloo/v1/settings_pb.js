@@ -5066,7 +5066,8 @@ proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
     regexMaxProgramSize: (f = msg.getRegexMaxProgramSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     restXdsBindAddr: jspb.Message.getFieldWithDefault(msg, 11, ""),
     enableRestEds: (f = msg.getEnableRestEds()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    failoverUpstreamDnsPollingInterval: (f = msg.getFailoverUpstreamDnsPollingInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+    failoverUpstreamDnsPollingInterval: (f = msg.getFailoverUpstreamDnsPollingInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    removeUnusedFilters: (f = msg.getRemoveUnusedFilters()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5163,6 +5164,11 @@ proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reade
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setFailoverUpstreamDnsPollingInterval(value);
+      break;
+    case 14:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setRemoveUnusedFilters(value);
       break;
     default:
       reader.skipField();
@@ -5291,6 +5297,14 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
       13,
       f,
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getRemoveUnusedFilters();
+  if (f != null) {
+    writer.writeMessage(
+      14,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -6051,6 +6065,36 @@ proto.gloo.solo.io.GlooOptions.prototype.clearFailoverUpstreamDnsPollingInterval
  */
 proto.gloo.solo.io.GlooOptions.prototype.hasFailoverUpstreamDnsPollingInterval = function() {
   return jspb.Message.getField(this, 13) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue remove_unused_filters = 14;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getRemoveUnusedFilters = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 14));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GlooOptions.prototype.setRemoveUnusedFilters = function(value) {
+  jspb.Message.setWrapperField(this, 14, value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.prototype.clearRemoveUnusedFilters = function() {
+  this.setRemoveUnusedFilters(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.hasRemoveUnusedFilters = function() {
+  return jspb.Message.getField(this, 14) != null;
 };
 
 

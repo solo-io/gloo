@@ -39,7 +39,8 @@ var (
 )
 
 type plugin struct {
-	settings *rbac.Settings
+	settings     *rbac.Settings
+	filterNeeded bool // is set to indicate if the base filter is needed
 }
 
 func NewPlugin() *plugin {
@@ -50,8 +51,10 @@ func (p *plugin) Name() string {
 	return ExtensionName
 }
 
+// Init resets the plugin and creates the maps within the structure.
 func (p *plugin) Init(params plugins.InitParams) error {
 	p.settings = params.Settings.GetRbac()
+	p.filterNeeded = !params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
 	return nil
 }
 
@@ -62,7 +65,9 @@ func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		return nil
 	}
 
-	if rbacConf.Disable == true {
+	p.filterNeeded = true
+
+	if rbacConf.Disable {
 		perRouteRbac := &envoyauthz.RBACPerRoute{}
 		pluginutils.SetVhostPerFilterConfig(out, FilterName, perRouteRbac)
 		return nil
@@ -83,6 +88,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		// no config found, nothing to do here
 		return nil
 	}
+	p.filterNeeded = true
 
 	var perRouteRbac *envoyauthz.RBACPerRoute
 
@@ -105,6 +111,11 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	strict := p.settings.GetRequireRbac()
 
 	var cfg proto.Message
+
+	if !strict && !p.filterNeeded {
+		return []plugins.StagedHttpFilter{}, nil
+	}
+
 	if strict {
 		// add a default config that denies everything
 		cfg = &envoyauthz.RBAC{

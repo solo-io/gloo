@@ -7,16 +7,20 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/rotisserie/eris"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/cors"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/hcm"
 	"github.com/solo-io/licensing/pkg/model"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var _ = Describe("PluginRegistryFactory", func() {
@@ -192,4 +196,94 @@ var _ = Describe("PluginRegistryFactory", func() {
 
 	})
 
+	Context("Plugins adhere to standards", func() {
+		BeforeEach(func() {
+			validatedLicense = &license.ValidatedLicense{
+				License: &model.License{
+					IssuedAt:      time.Now(),
+					ExpiresAt:     time.Now(),
+					RandomPayload: "",
+					LicenseType:   model.LicenseType_Enterprise,
+					Product:       model.Product_Gloo,
+					AddOns: model.AddOns{
+						GraphQL: true,
+					},
+				},
+				Err:  nil,
+				Warn: nil,
+			}
+		})
+
+		It("sets only http filters that are always needed", func() {
+			ctx := context.Background()
+			virtualHost := &gloov1.VirtualHost{
+				Name:    "virt1",
+				Domains: []string{"*"},
+			}
+			proxy := &gloov1.Proxy{
+				Metadata: &core.Metadata{
+					Name:      "proxy",
+					Namespace: "default",
+				},
+				Listeners: []*gloov1.Listener{{
+					Name: "default",
+					ListenerType: &gloov1.Listener_HttpListener{
+						HttpListener: &gloov1.HttpListener{
+							VirtualHosts: []*gloov1.VirtualHost{virtualHost},
+						},
+					},
+				}},
+			}
+			params := plugins.Params{
+				Ctx: ctx,
+				Snapshot: &gloov1snap.ApiSnapshot{
+					Proxies: gloov1.ProxyList{proxy},
+				},
+			}
+
+			plugs := pluginRegistry.GetPlugins()
+
+			potentiallyNonConformingFilters := []plugins.StagedHttpFilter{}
+			for _, p := range plugs {
+				// Many plugins require safety via an init which is outside of the creation step
+				p.Init(plugins.InitParams{Ctx: ctx, Settings: &gloov1.Settings{Gloo: &gloov1.GlooOptions{RemoveUnusedFilters: &wrapperspb.BoolValue{Value: true}}}})
+
+				httpPlug, ok := p.(plugins.HttpFilterPlugin)
+				if !ok {
+					continue
+				}
+				filters, err := httpPlug.HttpFilters(params, nil)
+				Expect(err).To(BeNil())
+				if len(filters) > 0 {
+					potentiallyNonConformingFilters = append(potentiallyNonConformingFilters, filters...)
+				}
+
+			}
+
+			// This check wont be needed once we bake the expected filter count
+			// into plugin interface. The current implementation reports filters
+			// that may be ok to be non-empty.
+			// Filters should not be added to this map without due consideration
+			// In general we should strive not to add any new default filters going forwards
+			knownBaseFilters := map[string]struct{}{
+				"io.solo.filters.http.sanitize": {},
+				"envoy.filters.http.grpc_web":   {}, "envoy.filters.http.cors": {},
+			}
+			if len(potentiallyNonConformingFilters) != len(knownBaseFilters) {
+
+				// output the names of potentially bad filters in a cleaner fashion
+				hNames := []string{}
+				for _, httpF := range potentiallyNonConformingFilters {
+					if _, ok := knownBaseFilters[httpF.HttpFilter.Name]; ok {
+						continue
+					}
+					hNames = append(hNames, httpF.HttpFilter.Name)
+				}
+
+				Expect(hNames).To(BeNil())
+			}
+
+		})
+
+	})
 })

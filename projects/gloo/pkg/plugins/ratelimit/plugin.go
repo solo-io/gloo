@@ -55,6 +55,7 @@ type plugin struct {
 	timeout             *duration.Duration
 	denyOnFail          bool
 	rateLimitBeforeAuth bool
+	filterNeeded        bool // is set to indicate if the ratelimit configs exist
 
 	authUserIdHeader string
 
@@ -100,7 +101,7 @@ func (p *plugin) Init(params plugins.InitParams) error {
 		p.denyOnFail = rlServer.DenyOnFail
 		p.rateLimitBeforeAuth = rlServer.RateLimitBeforeAuth
 	}
-
+	p.filterNeeded = !params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
 	p.basicRatelimitDescriptorNames = make(map[string]struct{})
 
 	return nil
@@ -132,6 +133,7 @@ func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	limits = append(limits, crdRateLimits...)
 
 	if len(limits) > 0 {
+		p.filterNeeded = true
 		out.RateLimits = append(out.RateLimits, limits...)
 	}
 	return errs.ErrorOrNil()
@@ -174,6 +176,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	limits = append(limits, crdRateLimits...)
 
 	if len(limits) > 0 {
+		p.filterNeeded = true
 		outRouteAction.RateLimits = append(outRouteAction.RateLimits, limits...)
 	}
 
@@ -283,11 +286,12 @@ func (p *plugin) getCrdRateLimits(ctx context.Context, opts rateLimitOpts, snap 
 	return result, errs.ErrorOrNil()
 }
 
-// If rate limiting is configured, this function returns 2 rate limit filters:
-// - one filter handles rate limit requests for the `ingress` configuration type;
+// HttpFilters returns up to 2 rate limit filters if it is configured
+// - the first filter handles rate limit requests for the `ingress` configuration type;
 // - the other filter handles requests for configuration that comes from `RateLimitConfig` resources.
 // We use two separate filters to guarantee isolation between the two configuration types.
 func (p *plugin) HttpFilters(_ plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+
 	var upstreamRef *core.ResourceRef
 	var timeout *duration.Duration
 	var denyOnFail bool
@@ -305,7 +309,7 @@ func (p *plugin) HttpFilters(_ plugins.Params, listener *v1.HttpListener) ([]plu
 		rateLimitBeforeAuth = p.rateLimitBeforeAuth
 	}
 
-	if upstreamRef == nil {
+	if upstreamRef == nil || !p.filterNeeded {
 		return nil, nil
 	}
 
