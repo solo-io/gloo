@@ -108,6 +108,8 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
       <StyledContainer>
         <GraphiQL
           ref={graphiqlRef}
+          defaultQuery={''}
+          variables={'{}'}
           schema={executableSchema}
           fetcher={async graphQLParams => {
             try {

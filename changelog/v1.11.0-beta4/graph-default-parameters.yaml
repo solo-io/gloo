@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Change default parameters on Graphql
+    issueLink: https://github.com/solo-io/solo-projects/issues/3068
