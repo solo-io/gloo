@@ -31,30 +31,33 @@ func Main() error {
 }
 
 func NewSetupFuncWithRestControlPlaneAndExtensions(cancellableCtx context.Context) setuputils.SetupFunc {
-	var extensions setup.Extensions
 	apiEmitterChan := make(chan struct{})
 
-	runWithExtensions := func(opts bootstrap.Opts) error {
-		// 1. Load Enterprise License
-		licensedFeatureProvider := license.NewLicensedFeatureProvider()
-		licensedFeatureProvider.ValidateAndSetLicense(os.Getenv(license.EnvName))
+	// 1. Load Enterprise License
+	licensedFeatureProvider := license.NewLicensedFeatureProvider()
+	licensedFeatureProvider.ValidateAndSetLicense(os.Getenv(license.EnvName))
 
-		// 2. Prepare Enterprise extensions based on the state of the license
-		extensions = GetGlooEExtensions(cancellableCtx, opts, apiEmitterChan, licensedFeatureProvider)
+	// 2. Prepare Enterprise extensions based on the state of the license
+	// These are evaluated by the RunFun
+	extensions := GetGlooEExtensions(cancellableCtx, licensedFeatureProvider)
 
-		// 3. Run Gloo with Enterprise extensions
+	runFunc := func(opts bootstrap.Opts) error {
+		// 3. Reload the PluginRegistryFactory as it may change, based on the bootstrap opts
+		extensions.PluginRegistryFactory = GetPluginRegistryFactory(opts, apiEmitterChan, licensedFeatureProvider)
+
+		// 4. Run Gloo with Enterprise extensions
 		return setup.RunGlooWithExtensions(opts, extensions, apiEmitterChan)
 	}
 
-	return setup.NewSetupFuncWithRunAndExtensions(runWithExtensions, &extensions)
+	// This function accepts a RunFunc and Extensions
+	// The extensions are evaluated before the RunFunc, therefore it is critical
+	// that any extensions that are consumed by NewSetupFunWithRunAndExtensions
+	// are initialized before the RunFunc definition.
+	// In our case, this is just the extensions.XdsCallbacks
+	return setup.NewSetupFuncWithRunAndExtensions(runFunc, &extensions)
 }
 
-func GetGlooEExtensions(
-	ctx context.Context,
-	opts bootstrap.Opts,
-	apiEmitterChan chan struct{},
-	licensedFeatureProvider *license.LicensedFeatureProvider,
-) setup.Extensions {
+func GetGlooEExtensions(ctx context.Context, licensedFeatureProvider *license.LicensedFeatureProvider) setup.Extensions {
 	// We include this log line purely for UX reasons
 	// An expired license will allow Gloo Edge to operate normally
 	// but we want to notify the user that their license is expired
@@ -63,14 +66,11 @@ func GetGlooEExtensions(
 		contextutils.LoggerFrom(ctx).Warnf("LICENSE WARNING: %s", enterpriseFeature.Reason)
 	}
 
-	pluginRegistryFactory := GetPluginRegistryFactory(opts, apiEmitterChan, licensedFeatureProvider)
-
 	// If the Enterprise feature is not enabled, do not configure any enterprise extensions
 	if !enterpriseFeature.Enabled {
 		return setup.Extensions{
-			XdsCallbacks:          nil,
-			SyncerExtensions:      []syncer.TranslatorSyncerExtensionFactory{},
-			PluginRegistryFactory: pluginRegistryFactory,
+			XdsCallbacks:     nil,
+			SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{},
 		}
 	}
 
@@ -82,6 +82,5 @@ func GetGlooEExtensions(
 				return extauthExt.NewTranslatorSyncerExtension(), nil
 			},
 		},
-		PluginRegistryFactory: pluginRegistryFactory,
 	}
 }

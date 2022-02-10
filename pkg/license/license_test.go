@@ -20,11 +20,7 @@ var (
 		Product:       "",
 		AddOns:        model.AddOns{},
 	}
-	nilLicense = &license.ValidatedLicense{
-		License: nil,
-		Err:     nil,
-		Warn:    nil,
-	}
+	nilLicense     *license.ValidatedLicense
 	invalidLicense = &license.ValidatedLicense{
 		License: licenseState,
 		Err:     eris.New("License is invalid"),
@@ -59,7 +55,7 @@ var _ = Describe("LicensedFeatureProvider", func() {
 			featureState := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
 			Expect(featureState.Enabled).To(Equal(expectedEnabled))
 		},
-		table.Entry("nil license", nilLicense, true),
+		table.Entry("nil license", nilLicense, false),
 		table.Entry("invalid license", invalidLicense, true),
 		table.Entry("expired license", expiredLicense, true),
 		table.Entry("valid license", validLicense, true),

@@ -49,8 +49,14 @@ func NewLicensedFeatureProvider() *LicensedFeatureProvider {
 }
 
 func (l *LicensedFeatureProvider) ValidateAndSetLicense(licenseString string) {
-	license, warn, err := validate.ValidateLicenseKey(context.TODO(), licenseString, model.Product_Gloo, model.AddOns{})
+	if licenseString == "" {
+		// If a license is not provided, mark it as nil, which will be treated as disabling enterprise features
+		l.SetValidatedLicense(nil)
+		return
+	}
 
+	// If a license is provided, validate the key and configure features based on the license state
+	license, warn, err := validate.ValidateLicenseKey(context.TODO(), licenseString, model.Product_Gloo, model.AddOns{})
 	l.SetValidatedLicense(&ValidatedLicense{
 		License: license,
 		Warn:    warn,

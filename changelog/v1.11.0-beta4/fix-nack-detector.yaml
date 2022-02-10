@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    description: Fix a bug where the NackDetector xDS Callback was not being configured
+    issueLink: https://github.com/solo-io/gloo/issues/5910
+    resolvesIssue: false
+
