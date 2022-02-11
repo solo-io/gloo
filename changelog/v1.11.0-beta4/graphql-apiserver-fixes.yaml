@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: A couple of fixes initializing apiserver for graphql.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3006

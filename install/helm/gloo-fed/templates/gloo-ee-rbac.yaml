@@ -40,6 +40,14 @@ rules:
   - list
   - watch
 - apiGroups:
+  - graphql.gloo.solo.io
+  resources:
+  - graphqlschemas
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - ratelimit.api.solo.io
   resources:
   - ratelimitconfigs
