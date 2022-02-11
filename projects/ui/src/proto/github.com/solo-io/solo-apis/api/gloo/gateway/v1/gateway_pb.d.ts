@@ -127,10 +127,10 @@ export class HybridGateway extends jspb.Message {
   setMatchedGatewaysList(value: Array<MatchedGateway>): void;
   addMatchedGateways(value?: MatchedGateway, index?: number): MatchedGateway;
 
-  clearDelegatedHttpGatewaysList(): void;
-  getDelegatedHttpGatewaysList(): Array<DelegatedHttpGateway>;
-  setDelegatedHttpGatewaysList(value: Array<DelegatedHttpGateway>): void;
-  addDelegatedHttpGateways(value?: DelegatedHttpGateway, index?: number): DelegatedHttpGateway;
+  hasDelegatedHttpGateways(): boolean;
+  clearDelegatedHttpGateways(): void;
+  getDelegatedHttpGateways(): DelegatedHttpGateway | undefined;
+  setDelegatedHttpGateways(value?: DelegatedHttpGateway): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HybridGateway.AsObject;
@@ -145,7 +145,7 @@ export class HybridGateway extends jspb.Message {
 export namespace HybridGateway {
   export type AsObject = {
     matchedGatewaysList: Array<MatchedGateway.AsObject>,
-    delegatedHttpGatewaysList: Array<DelegatedHttpGateway.AsObject>,
+    delegatedHttpGateways?: DelegatedHttpGateway.AsObject,
   }
 }
 

@@ -804,7 +804,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.gateway.solo.io.HybridGateway.repeatedFields_ = [1,2];
+proto.gateway.solo.io.HybridGateway.repeatedFields_ = [1];
 
 
 
@@ -837,8 +837,7 @@ proto.gateway.solo.io.HybridGateway.toObject = function(includeInstance, msg) {
   var f, obj = {
     matchedGatewaysList: jspb.Message.toObjectList(msg.getMatchedGatewaysList(),
     proto.gateway.solo.io.MatchedGateway.toObject, includeInstance),
-    delegatedHttpGatewaysList: jspb.Message.toObjectList(msg.getDelegatedHttpGatewaysList(),
-    proto.gateway.solo.io.DelegatedHttpGateway.toObject, includeInstance)
+    delegatedHttpGateways: (f = msg.getDelegatedHttpGateways()) && proto.gateway.solo.io.DelegatedHttpGateway.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -883,7 +882,7 @@ proto.gateway.solo.io.HybridGateway.deserializeBinaryFromReader = function(msg, 
     case 2:
       var value = new proto.gateway.solo.io.DelegatedHttpGateway;
       reader.readMessage(value,proto.gateway.solo.io.DelegatedHttpGateway.deserializeBinaryFromReader);
-      msg.addDelegatedHttpGateways(value);
+      msg.setDelegatedHttpGateways(value);
       break;
     default:
       reader.skipField();
@@ -922,9 +921,9 @@ proto.gateway.solo.io.HybridGateway.serializeBinaryToWriter = function(message, 
       proto.gateway.solo.io.MatchedGateway.serializeBinaryToWriter
     );
   }
-  f = message.getDelegatedHttpGatewaysList();
-  if (f.length > 0) {
-    writer.writeRepeatedMessage(
+  f = message.getDelegatedHttpGateways();
+  if (f != null) {
+    writer.writeMessage(
       2,
       f,
       proto.gateway.solo.io.DelegatedHttpGateway.serializeBinaryToWriter
@@ -965,33 +964,32 @@ proto.gateway.solo.io.HybridGateway.prototype.clearMatchedGatewaysList = functio
 
 
 /**
- * repeated DelegatedHttpGateway delegated_http_gateways = 2;
- * @return {!Array<!proto.gateway.solo.io.DelegatedHttpGateway>}
+ * optional DelegatedHttpGateway delegated_http_gateways = 2;
+ * @return {?proto.gateway.solo.io.DelegatedHttpGateway}
  */
-proto.gateway.solo.io.HybridGateway.prototype.getDelegatedHttpGatewaysList = function() {
-  return /** @type{!Array<!proto.gateway.solo.io.DelegatedHttpGateway>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.gateway.solo.io.DelegatedHttpGateway, 2));
+proto.gateway.solo.io.HybridGateway.prototype.getDelegatedHttpGateways = function() {
+  return /** @type{?proto.gateway.solo.io.DelegatedHttpGateway} */ (
+    jspb.Message.getWrapperField(this, proto.gateway.solo.io.DelegatedHttpGateway, 2));
 };
 
 
-/** @param {!Array<!proto.gateway.solo.io.DelegatedHttpGateway>} value */
-proto.gateway.solo.io.HybridGateway.prototype.setDelegatedHttpGatewaysList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 2, value);
+/** @param {?proto.gateway.solo.io.DelegatedHttpGateway|undefined} value */
+proto.gateway.solo.io.HybridGateway.prototype.setDelegatedHttpGateways = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.gateway.solo.io.HybridGateway.prototype.clearDelegatedHttpGateways = function() {
+  this.setDelegatedHttpGateways(undefined);
 };
 
 
 /**
- * @param {!proto.gateway.solo.io.DelegatedHttpGateway=} opt_value
- * @param {number=} opt_index
- * @return {!proto.gateway.solo.io.DelegatedHttpGateway}
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.gateway.solo.io.HybridGateway.prototype.addDelegatedHttpGateways = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.gateway.solo.io.DelegatedHttpGateway, opt_index);
-};
-
-
-proto.gateway.solo.io.HybridGateway.prototype.clearDelegatedHttpGatewaysList = function() {
-  this.setDelegatedHttpGatewaysList([]);
+proto.gateway.solo.io.HybridGateway.prototype.hasDelegatedHttpGateways = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

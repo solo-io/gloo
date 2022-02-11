@@ -2036,12 +2036,19 @@ proto.gloo.solo.io.HybridListener.prototype.clearMatchedListenersList = function
  * @constructor
  */
 proto.gloo.solo.io.MatchedListener = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gloo.solo.io.MatchedListener.oneofGroups_);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.MatchedListener.repeatedFields_, proto.gloo.solo.io.MatchedListener.oneofGroups_);
 };
 goog.inherits(proto.gloo.solo.io.MatchedListener, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gloo.solo.io.MatchedListener.displayName = 'proto.gloo.solo.io.MatchedListener';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gloo.solo.io.MatchedListener.repeatedFields_ = [4];
+
 /**
  * Oneof group definitions for this message. Each group defines the field
  * numbers belonging to that group. When of these fields' value is set, all
@@ -2099,7 +2106,9 @@ proto.gloo.solo.io.MatchedListener.toObject = function(includeInstance, msg) {
   var f, obj = {
     matcher: (f = msg.getMatcher()) && proto.gloo.solo.io.Matcher.toObject(includeInstance, f),
     httpListener: (f = msg.getHttpListener()) && proto.gloo.solo.io.HttpListener.toObject(includeInstance, f),
-    tcpListener: (f = msg.getTcpListener()) && proto.gloo.solo.io.TcpListener.toObject(includeInstance, f)
+    tcpListener: (f = msg.getTcpListener()) && proto.gloo.solo.io.TcpListener.toObject(includeInstance, f),
+    sslConfigurationsList: jspb.Message.toObjectList(msg.getSslConfigurationsList(),
+    github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -2150,6 +2159,11 @@ proto.gloo.solo.io.MatchedListener.deserializeBinaryFromReader = function(msg, r
       var value = new proto.gloo.solo.io.TcpListener;
       reader.readMessage(value,proto.gloo.solo.io.TcpListener.deserializeBinaryFromReader);
       msg.setTcpListener(value);
+      break;
+    case 4:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.deserializeBinaryFromReader);
+      msg.addSslConfigurations(value);
       break;
     default:
       reader.skipField();
@@ -2202,6 +2216,14 @@ proto.gloo.solo.io.MatchedListener.serializeBinaryToWriter = function(message, w
       3,
       f,
       proto.gloo.solo.io.TcpListener.serializeBinaryToWriter
+    );
+  }
+  f = message.getSslConfigurationsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      4,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.serializeBinaryToWriter
     );
   }
 };
@@ -2294,6 +2316,37 @@ proto.gloo.solo.io.MatchedListener.prototype.clearTcpListener = function() {
  */
 proto.gloo.solo.io.MatchedListener.prototype.hasTcpListener = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * repeated SslConfig ssl_configurations = 4;
+ * @return {!Array<!proto.gloo.solo.io.SslConfig>}
+ */
+proto.gloo.solo.io.MatchedListener.prototype.getSslConfigurationsList = function() {
+  return /** @type{!Array<!proto.gloo.solo.io.SslConfig>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig, 4));
+};
+
+
+/** @param {!Array<!proto.gloo.solo.io.SslConfig>} value */
+proto.gloo.solo.io.MatchedListener.prototype.setSslConfigurationsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 4, value);
+};
+
+
+/**
+ * @param {!proto.gloo.solo.io.SslConfig=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.gloo.solo.io.SslConfig}
+ */
+proto.gloo.solo.io.MatchedListener.prototype.addSslConfigurations = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.gloo.solo.io.SslConfig, opt_index);
+};
+
+
+proto.gloo.solo.io.MatchedListener.prototype.clearSslConfigurationsList = function() {
+  this.setSslConfigurationsList([]);
 };
 
 

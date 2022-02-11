@@ -308,6 +308,11 @@ export class MatchedListener extends jspb.Message {
   getTcpListener(): TcpListener | undefined;
   setTcpListener(value?: TcpListener): void;
 
+  clearSslConfigurationsList(): void;
+  getSslConfigurationsList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig>;
+  setSslConfigurationsList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig>): void;
+  addSslConfigurations(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig, index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig;
+
   getListenertypeCase(): MatchedListener.ListenertypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): MatchedListener.AsObject;
@@ -324,6 +329,7 @@ export namespace MatchedListener {
     matcher?: Matcher.AsObject,
     httpListener?: HttpListener.AsObject,
     tcpListener?: TcpListener.AsObject,
+    sslConfigurationsList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject>,
   }
 
   export enum ListenertypeCase {
