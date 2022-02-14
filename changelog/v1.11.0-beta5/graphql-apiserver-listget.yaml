@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Use GraphQLSchema list and get methods from the apiserver instead of mock data.
+    issueLink: https://github.com/solo-io/solo-projects/issues/2998

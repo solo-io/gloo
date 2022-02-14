@@ -1,34 +1,28 @@
 import styled from '@emotion/styled/macro';
+import { graphqlApi } from 'API/graphql';
+import { useIsGlooFedEnabled, useListGraphqlSchemas } from 'API/hooks';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
-import { ReactComponent as FailoverIcon } from 'assets/GlooFed-Specific/failover-icon.svg';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import { ReactComponent as GrpcIcon } from 'assets/grpc-icon.svg';
 import { ReactComponent as RESTIcon } from 'assets/openapi-icon.svg';
+import { DataError } from 'Components/Common/DataError';
+import { Loading } from 'Components/Common/Loading';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { CheckboxFilterProps } from 'Components/Common/SoloCheckbox';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { RenderSimpleLink, SimpleLinkProps } from 'Components/Common/SoloLink';
 import {
-  RenderCluster,
   RenderStatus,
   SoloTable,
   TableActionCircle,
   TableActions,
 } from 'Components/Common/SoloTable';
-import {
-  ExecutableSchema,
-  GraphQLRouteConfig,
-} from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/graphql/graphql_pb';
-import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
+import { doDownload } from 'download-helper';
+import { GraphqlSchema } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { colors } from 'Styles/colors';
-import { IconHolder } from 'Styles/StyledComponents/icons';
 import { APIType } from './GraphqlLanding';
-import bookInfoSchema from './data/book-info.json';
-import petstoreSchema from './data/petstore.json';
 import { NewApiModal } from './NewApiModal';
-import { useListGraphqlSchemas } from 'API/hooks';
 
 export const GraphqlIconHolder = styled.div`
   display: flex;
@@ -80,61 +74,83 @@ type TableDataType = {
   namespace: string;
   cluster: string;
   status: number;
-  actions: typeof bookInfoSchema.spec | typeof petstoreSchema.spec;
+  resolvers: number;
+  actions: GraphqlSchema.AsObject;
 };
 
-let testData: TableDataType[] = [
-  {
-    key: bookInfoSchema.metadata.uid,
-    name: {
-      displayElement: bookInfoSchema.metadata.name,
-      link: `/apis/${bookInfoSchema.metadata.namespace}/${bookInfoSchema.metadata.name}`,
-    },
-    namespace: bookInfoSchema.metadata.namespace,
-    cluster: 'local',
-    status: 1,
-    actions: {
-      ...bookInfoSchema.spec,
-    },
-  },
-];
-
 export const GraphqlTable = (props: Props & TableHolderProps) => {
-  const { data: graphqlSchemas, error: graphqlSchemaError } =
-    useListGraphqlSchemas();
   const { name, namespace } = useParams();
+  const { data: glooFedCheckResponse, error: glooFedCheckError } =
+    useIsGlooFedEnabled();
+  const isGlooFedEnabled = glooFedCheckResponse?.enabled;
+
+  const { data: graphqlSchemas, error: graphqlSchemaError } =
+    useListGraphqlSchemas(
+      !!name && !!namespace
+        ? {
+            name,
+            namespace,
+          }
+        : undefined
+    );
   const navigate = useNavigate();
-  const [tableData, setTableData] = React.useState<TableDataType[]>(testData);
+  const [tableData, setTableData] = React.useState<TableDataType[]>([]);
 
   React.useEffect(() => {
-    setTableData(
-      graphqlSchemas!.map(gqlSchema => {
-        return {
-          key: gqlSchema.metadata.uid,
-          name: {
-            displayElement: gqlSchema.metadata.name,
-            link: `/apis/${gqlSchema.metadata.namespace}/${gqlSchema.metadata.name}`,
-          },
-          namespace: gqlSchema.metadata.namespace,
-          cluster: 'local',
-          status: 1,
-          actions: {
-            ...gqlSchema.spec,
-          },
-        };
-      })
-    );
-  }, []);
+    if (graphqlSchemas) {
+      setTableData(
+        graphqlSchemas.map(gqlSchema => {
+          return {
+            key: gqlSchema.metadata?.uid!,
+            name: {
+              displayElement: gqlSchema.metadata?.name ?? '',
+              link: gqlSchema.metadata
+                ? isGlooFedEnabled
+                  ? `/gloo-instances/${gqlSchema.glooInstance?.namespace}/${gqlSchema.glooInstance?.name}/apis/${gqlSchema.metadata.clusterName}/${gqlSchema.metadata.namespace}/${gqlSchema.metadata.name}/`
+                  : `/gloo-instances/${gqlSchema.glooInstance?.namespace}/${gqlSchema.glooInstance?.name}/apis/${gqlSchema.metadata.namespace}/${gqlSchema.metadata.name}/`
+                : '',
+            },
+            namespace: gqlSchema.metadata?.namespace ?? '',
+            cluster: gqlSchema.metadata?.clusterName ?? '',
+            status: gqlSchema.status?.state ?? 0,
+            resolvers:
+              gqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
+                ?.length ?? 0,
+            actions: {
+              ...gqlSchema,
+            },
+          };
+        })
+      );
+    } else {
+      setTableData([]);
+    }
+  }, [graphqlSchemas]);
 
-  const renderFailover = (failoverExists: boolean) => {
-    return failoverExists ? (
-      <IconHolder>
-        <FailoverIcon />
-      </IconHolder>
-    ) : (
-      <React.Fragment />
-    );
+  const onDownloadSchema = (gqlSchema: GraphqlSchema.AsObject) => {
+    if (gqlSchema.metadata) {
+      graphqlApi
+        .getGraphqlSchemaYaml({
+          name: gqlSchema.metadata.name,
+          namespace: gqlSchema.metadata.namespace,
+          clusterName: gqlSchema.metadata.clusterName,
+        })
+        .then(gqlSchemaYaml => {
+          doDownload(
+            gqlSchemaYaml,
+            gqlSchema.metadata?.namespace +
+              '--' +
+              gqlSchema.metadata?.name +
+              '.yaml'
+          );
+        });
+    }
   };
+  if (!!graphqlSchemaError) {
+    return <DataError error={graphqlSchemaError} />;
+  } else if (!graphqlSchemas) {
+    return <Loading message={'Retrieving GraphQL schemas...'} />;
+  }
 
   let columns: any = [
     {
@@ -149,8 +165,7 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
     },
     {
       title: 'Resolvers',
-      dataIndex: 'failover',
-      render: () => <div>6</div>,
+      dataIndex: 'resolvers',
     },
     {
       title: 'Status',
@@ -161,9 +176,9 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
     {
       title: 'Actions',
       dataIndex: 'actions',
-      render: (upstream: Upstream.AsObject) => (
+      render: (gqlSchema: GraphqlSchema.AsObject) => (
         <TableActions>
-          <TableActionCircle onClick={() => {}}>
+          <TableActionCircle onClick={() => onDownloadSchema(gqlSchema)}>
             <DownloadIcon />
           </TableActionCircle>
         </TableActions>

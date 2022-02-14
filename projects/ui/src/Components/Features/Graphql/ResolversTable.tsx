@@ -18,7 +18,7 @@ import {
 } from 'graphql';
 import { ResolverWizard } from './ResolverWizard';
 import { GraphqlIconHolder } from './GraphqlTable';
-import { ObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
+import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 type ArrowToggleProps = { active?: boolean };
 export const ArrowToggle = styled('div')<ArrowToggleProps>`
@@ -94,8 +94,9 @@ export const ResolverItem: React.FC<{
     resolverType === 'Query' || resolverType === 'Mutation'
   );
   const listRef = React.useRef<HTMLDivElement>(null);
-  const { name, namespace } = useParams();
-  const resolverKey = `${namespace}-${name}-${resolverType}`;
+  const { name: graphqlSchemaName, namespace: graphqlSchemaNamespace } =
+    useParams();
+  const resolverKey = `${graphqlSchemaNamespace}-${graphqlSchemaName}-${resolverType}`;
 
   const rowVirtualizer = useVirtual({
     size: fields?.length ?? 0,
@@ -127,8 +128,7 @@ export const ResolverItem: React.FC<{
               gridTemplateRows: '1fr',
               gridAutoRows: 'min-content',
               columnGap: '15px',
-            }}
-          >
+            }}>
             <span className='flex items-center justify-start ml-6 font-medium text-gray-900 '>
               Field Name
             </span>
@@ -143,8 +143,7 @@ export const ResolverItem: React.FC<{
         </div>
         <div
           className='absolute top-0 right-0 flex items-center w-10 h-10 p-4 mr-2 cursor-pointer '
-          onClick={() => setIsOpen(!isOpen)}
-        >
+          onClick={() => setIsOpen(!isOpen)}>
           <ArrowToggle active={isOpen} className='self-center m-4 ' />
         </div>
       </div>
@@ -157,15 +156,13 @@ export const ResolverItem: React.FC<{
             }px`,
             width: `100%`,
             overflow: 'auto',
-          }}
-        >
+          }}>
           <div
             style={{
               height: `${rowVirtualizer.totalSize}px`,
               width: '100%',
               position: 'relative',
-            }}
-          >
+            }}>
             {rowVirtualizer.virtualItems.map(virtualRow => {
               const op = fields[virtualRow.index] as FieldDefinitionNode;
               let hasResolver = !!op?.directives?.length;
@@ -180,8 +177,7 @@ export const ResolverItem: React.FC<{
                     width: '100%',
                     height: `${virtualRow.size}px`,
                     transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                >
+                  }}>
                   <div className='flex items-center px-4 text-sm font-medium text-gray-900 whitespace-nowrap'>
                     <CodeIcon className='w-4 h-4 ml-2 mr-3 fill-current text-blue-600gloo' />
                   </div>
@@ -199,8 +195,7 @@ export const ResolverItem: React.FC<{
                         gridAutoRows: 'min-content',
                         columnGap: '5px',
                         rowGap: '5px',
-                      }}
-                    >
+                      }}>
                       <span className='flex items-center font-medium text-gray-900 '>
                         {fields[virtualRow.index].name?.value ?? ''}
                       </span>
@@ -218,8 +213,7 @@ export const ResolverItem: React.FC<{
                             handleResolverConfigModal(
                               fields[virtualRow.index].name?.value ?? ''
                             );
-                          }}
-                        >
+                          }}>
                           {hasResolver && (
                             <RouteIcon className='w-6 h-6 mr-1 fill-current text-blue-600gloo' />
                           )}
@@ -245,7 +239,7 @@ export const ResolverItem: React.FC<{
 };
 
 type ResolversTableType = {
-  schemaRef: ObjectRef.AsObject;
+  schemaRef: ClusterObjectRef.AsObject;
 };
 const ResolversTable: React.FC<ResolversTableType> = props => {
   const { schemaRef } = props;
@@ -253,6 +247,7 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
     useGetGraphqlSchemaDetails({
       name: schemaRef.name,
       namespace: schemaRef.namespace,
+      clusterName: schemaRef.clusterName,
     });
 
   const [currentResolver, setCurrentResolver] = React.useState<any>();
@@ -269,10 +264,10 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
   React.useEffect(() => {
     if (graphqlSchema) {
       let query = gql`
-        ${graphqlSchema?.spec.executableSchema.schemaDefinition}
+        ${graphqlSchema.spec?.executableSchema?.schemaDefinition}
       `;
       if (query) {
-        let objectTypeDefs = query!.definitions.filter(
+        let objectTypeDefs = query.definitions.filter(
           (def: any) => def.kind === 'ObjectTypeDefinition'
         ) as ObjectTypeDefinitionNode[];
 
@@ -291,7 +286,8 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
   function handleResolverConfigModal(resolverName: string) {
     let [currentResolverName, currentResolver] =
       Object.entries(
-        graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutions!
+        graphqlSchema?.spec?.executableSchema?.executor?.local
+          ?.resolutionsMap ?? {}
       ).find(([rName, resolver]) => rName.includes(resolverName)) ?? [];
 
     setCurrentResolver(currentResolver);
@@ -302,8 +298,7 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
       <div className='flex flex-col w-full '>
         <div
           className='relative space-y-6 overflow-x-hidden overflow-y-scroll '
-          ref={listRef}
-        >
+          ref={listRef}>
           {fieldTypesMap
             ?.sort(([typeName, fields]) =>
               typeName === 'Query' ? -1 : typeName === 'Mutation' ? 0 : 1

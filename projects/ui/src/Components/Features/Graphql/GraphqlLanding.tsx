@@ -1,20 +1,14 @@
 import styled from '@emotion/styled/macro';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import {
   CheckboxFilterProps,
   SoloCheckbox,
 } from 'Components/Common/SoloCheckbox';
 import { SoloInput } from 'Components/Common/SoloInput';
-import { SoloModal } from 'Components/Common/SoloModal';
-// import { NewApiModal } from './NewApiModal';
 import React, { useState } from 'react';
 import { colors } from 'Styles/colors';
 import { GraphqlPageTable } from './GraphqlTable';
-import { ResolverWizard } from './ResolverWizard';
-import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
-import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { NewApiModal } from './NewApiModal';
-import { useListGraphqlSchemas } from 'API/hooks';
 
 export enum APIType {
   REST = 'REST',
@@ -84,14 +78,11 @@ const API_TYPES: CheckboxFilterProps[] = [
 ];
 
 export const GraphqlLanding = () => {
-  const { data: graphqlSchemas, error: graphqlSchemaError } =
-    useListGraphqlSchemas();
   const [nameFilter, setNameFilter] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
   const [showGraphqlModal, setShowGraphqlModal] = React.useState(false);
 
   const openModal = () => setShowGraphqlModal(true);
-  const closeModal = () => setShowGraphqlModal(false);
+
   const [typeFilters, setTypeFilters] =
     useState<CheckboxFilterProps[]>(API_TYPES);
   const changeNameFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,9 +143,7 @@ export const GraphqlLanding = () => {
           <GraphqlPageTable typeFilters={typeFilters} />
         </div>
       </GraphqlLandingContainer>
-      <SoloModal visible={modalOpen} width={750} onClose={closeModal}>
-        <ResolverWizard onClose={closeModal} />
-      </SoloModal>
+
       <NewApiModal
         showNewModal={showGraphqlModal}
         toggleNewModal={toggleGraphqlModal}

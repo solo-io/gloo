@@ -65,6 +65,8 @@ import bookinfoSchema from '../Components/Features/Graphql/data/book-info.json';
 import { graphqlApi, GraphqlSchemaType } from './graphql';
 import { petstoreYaml } from 'Components/Features/Graphql/data/petstore-yaml';
 import { bookInfoYaml } from 'Components/Features/Graphql/data/book-info-yaml';
+import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
+import { GraphqlSchema } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 
 const normalRefreshInterval = 10000;
 
@@ -352,38 +354,26 @@ export function useIsGlooFedEnabled() {
   );
 }
 
-export function useListGraphqlSchemas() {
-  return useSWR<GraphqlSchemaType[]>(
-    'ListGraphqlSchemas',
-    () => graphqlApi.listGraphqlSchemas(),
-    {
-      refreshInterval: 0,
-      fallbackData: [
-        {
-          metadata: petstoreSchema.metadata,
-          spec: petstoreSchema.spec,
-          yamlConfig: petstoreYaml,
-        },
-        {
-          metadata: bookinfoSchema.metadata,
-          spec: bookinfoSchema.spec,
-          yamlConfig: bookInfoYaml,
-        },
-      ],
-    }
+export function useListGraphqlSchemas(glooInstanceRef?: ObjectRef.AsObject) {
+  const key = !!glooInstanceRef
+    ? `${GraphqlApi.ListGraphqlSchemas.methodName}/${glooInstanceRef.namespace}/${glooInstanceRef.name}`
+    : GraphqlApi.ListGraphqlSchemas.methodName;
+
+  return useSWR<GraphqlSchema.AsObject[]>(
+    key,
+    () => graphqlApi.listGraphqlSchemas(glooInstanceRef),
+    { refreshInterval: normalRefreshInterval }
   );
 }
 
 export function useGetGraphqlSchemaDetails(
-  graphqlSchemaRef: ObjectRef.AsObject
+  graphqlSchemaRef: ClusterObjectRef.AsObject
 ) {
-  const key = `getGraphqlSchema/${graphqlSchemaRef.namespace}/${graphqlSchemaRef.name}`;
+  const key = `${GraphqlApi.GetGraphqlSchema.methodName}/${graphqlSchemaRef.namespace}/${graphqlSchemaRef.name}/${graphqlSchemaRef.clusterName}`;
 
-  return useSWR<GraphqlSchemaType>(
+  return useSWR<GraphqlSchema.AsObject>(
     key,
     () => graphqlApi.getGraphqlSchema(graphqlSchemaRef),
-    {
-      refreshInterval: 0,
-    }
+    { refreshInterval: normalRefreshInterval }
   );
 }

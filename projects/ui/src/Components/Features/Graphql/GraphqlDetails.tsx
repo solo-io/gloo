@@ -1,8 +1,10 @@
 import styled from '@emotion/styled';
 import { TabPanels, Tabs } from '@reach/tabs';
+import { graphqlApi } from 'API/graphql';
 import { useGetGraphqlSchemaDetails, useListUpstreams } from 'API/hooks';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import AreaHeader from 'Components/Common/AreaHeader';
+import { Loading } from 'Components/Common/Loading';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloModal } from 'Components/Common/SoloModal';
 import {
@@ -15,9 +17,6 @@ import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiser
 import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { colors } from 'Styles/colors';
-import YAML from 'yaml';
-import { bookInfoYaml } from './data/book-info-yaml';
-import { petstoreYaml } from './data/petstore-yaml';
 import { GraphqlApiExplorer } from './GraphqlApiExplorer';
 import { GraphqlIconHolder } from './GraphqlTable';
 import ResolversTable from './ResolversTable';
@@ -73,10 +72,19 @@ const ConfigArea = styled.div`
 export type GraphQLDetailsProps = {};
 
 export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
-  const { name, namespace } = useParams();
+  const {
+    graphqlSchemaName = '',
+    graphqlSchemaNamespace = '',
+    graphqlSchemaClusterName = '',
+  } = useParams();
+
   const navigate = useNavigate();
   const { data: graphqlSchema, error: graphqlSchemaError } =
-    useGetGraphqlSchemaDetails({ name, namespace });
+    useGetGraphqlSchemaDetails({
+      name: graphqlSchemaName,
+      namespace: graphqlSchemaNamespace,
+      clusterName: graphqlSchemaClusterName,
+    });
   const [tabIndex, setTabIndex] = React.useState(0);
   const [currentResolver, setCurrentResolver] = React.useState<any>();
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -87,26 +95,25 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
   >([]);
 
   React.useEffect(() => {
-    let resolverUpstreams = Object.entries(
-      graphqlSchema?.spec.executableSchema.executor.local.resolutions ?? {}
-    )
-      .filter(
-        ([rName, r], index, arr) =>
-          index ===
-          arr?.findIndex(
-            ([n, rr]) =>
-              rr?.restResolver?.upstreamRef?.name ===
-              r.restResolver.upstreamRef.name
-          )
-      )
-      .map(([resolveName, resolver]) => resolver.restResolver?.upstreamRef);
+    let resolverUpstreams =
+      graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
+        .filter(
+          ([rName, r], index, arr) =>
+            index ===
+            arr?.findIndex(
+              ([n, rr]) =>
+                rr?.restResolver?.upstreamRef?.name ===
+                r.restResolver?.upstreamRef?.name
+            )
+        )
+        .map(([resolveName, resolver]) => resolver.restResolver?.upstreamRef);
 
     let fullUpstreams = upstreams?.filter(
       upstream =>
-        !!resolverUpstreams.find(
+        !!resolverUpstreams?.find(
           rU =>
-            rU.name === upstream.metadata?.name &&
-            rU.namespace === upstream.metadata?.namespace
+            rU?.name === upstream.metadata?.name &&
+            rU?.namespace === upstream.metadata?.namespace
         )
     );
     if (!!fullUpstreams) {
@@ -116,17 +123,18 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
-  const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
   const loadYaml = async () => {
-    if (!name || !namespace) {
+    if (!graphqlSchemaName || !graphqlSchemaNamespace) {
       return '';
     }
 
     try {
-      const yaml = YAML.stringify(
-        name.includes('book') ? bookInfoYaml : petstoreYaml
-      );
+      const yaml = await graphqlApi.getGraphqlSchemaYaml({
+        name: graphqlSchemaName,
+        namespace: graphqlSchemaNamespace,
+        clusterName: graphqlSchemaClusterName,
+      });
       return yaml;
     } catch (error) {
       console.error(error);
@@ -134,26 +142,23 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
     return '';
   };
 
-  function handleResolverConfigModal<T>(resolverName: string, resolver: T) {
-    setCurrentResolver(resolver);
-    openModal();
-  }
+  if (!graphqlSchema) return <Loading />;
 
   return (
     <React.Fragment>
       <div className='w-full mx-auto '>
         <SectionCard
-          cardName={name!}
+          cardName={graphqlSchemaName}
           logoIcon={<GraphqlIconHolder>{<GraphQLIcon />}</GraphqlIconHolder>}
           headerSecondaryInformation={[
             {
               title: 'Namespace',
-              value: namespace,
+              value: graphqlSchemaNamespace,
             },
             {
               title: 'Introspection',
-              value: graphqlSchema?.spec.executableSchema.executor.local
-                .enableIntrospection
+              value: graphqlSchema.spec?.executableSchema?.executor?.local
+                ?.enableIntrospection
                 ? 'Enabled'
                 : 'Disabled',
             },
@@ -172,11 +177,17 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
                     <ConfigArea>
                       <AreaHeader
                         title='Configuration'
-                        contentTitle={`${namespace}--${name}.yaml`}
+                        contentTitle={`${graphqlSchemaNamespace}--${graphqlSchemaName}.yaml`}
                         onLoadContent={loadYaml}
                       />
 
-                      <ResolversTable schemaRef={{ name, namespace }} />
+                      <ResolversTable
+                        schemaRef={{
+                          name: graphqlSchemaName,
+                          namespace: graphqlSchemaNamespace,
+                          clusterName: graphqlSchemaClusterName,
+                        }}
+                      />
                     </ConfigArea>
                     <ConfigArea>
                       <div className='flex p-4 mb-5 bg-gray-100 border border-gray-300 rounded-lg'>
