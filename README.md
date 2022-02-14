@@ -90,6 +90,11 @@ CLUSTER_NAME=<CLUSTER NAME> TAGGED_VERSION=<VERSION> IMAGE_REPO=`quay.io/solo-io
 
 Where `CLUSTER_NAME` is set to the name of the Kind cluster, and `TAGGED_VERSION` and `IMAGE_REPO` are set to the values used during the prior `make docker` step.
 
+To load Gloo Fed images to kind use the `make gloofed-load-kind-images` target:
+```bash
+CLUSTER_NAME=<CLUSTER NAME> TAGGED_VERSION=<VERSION> IMAGE_REPO=`quay.io/solo-io` make gloofed-load-kind-images
+```
+
 ## Building Helm Charts
 
 You can use the following command to build helm charts for Gloo Edge Enterprise and Gloo Fed which reference the images built in the previous steps:
