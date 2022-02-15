@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/5815
+    description: >
+      Add `global.glooStats.serviceMonitorReleaseLabel` helm value, allowing users to directly set
+      the `release` label on Gloo-generated `PodMonitor` and `ServiceMonitor` resources

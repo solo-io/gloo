@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     monitoring: gloo-components
-    release: prom
+    release: {{ default "prom" .Values.global.glooStats.serviceMonitorReleaseLabel }}
 spec:
   jobLabel: gloo-control-plane-stats
   podTargetLabels: [app, gloo, gloo-fed]
