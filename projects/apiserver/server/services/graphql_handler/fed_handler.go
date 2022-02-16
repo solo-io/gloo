@@ -71,10 +71,6 @@ func (h *fedGraphqlHandler) GetGraphqlSchema(ctx context.Context, request *rpc_e
 			},
 		},
 	}, nil
-
-	return &rpc_edge_v1.GetGraphqlSchemaResponse{
-		GraphqlSchema: nil,
-	}, nil
 }
 
 // find a gloo instance that is either watching the given namespace or watching all namespaces
@@ -228,4 +224,146 @@ func (h *fedGraphqlHandler) GetGraphqlSchemaYaml(ctx context.Context, request *r
 			Yaml: string(content),
 		},
 	}, nil
+}
+
+func (h *fedGraphqlHandler) CreateGraphqlSchema(ctx context.Context, request *rpc_edge_v1.CreateGraphqlSchemaRequest) (*rpc_edge_v1.CreateGraphqlSchemaResponse, error) {
+	err := h.checkGraphqlSchemaRef(request.GetGraphqlSchemaRef())
+	if err != nil {
+		return nil, err
+	}
+	if request.GetSpec() == nil {
+		return nil, eris.Errorf("graphqlschema spec missing from request: %v", request)
+	}
+
+	clientset, err := h.graphqlMCClientset.Cluster(request.GetGraphqlSchemaRef().GetClusterName())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get graphql client set")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	graphqlSchema := &graphql_v1alpha1.GraphQLSchema{
+		ObjectMeta: apiserverutils.RefToObjectMeta(*request.GetGraphqlSchemaRef()),
+		Spec:       *request.GetSpec(),
+	}
+	err = clientset.GraphQLSchemas().CreateGraphQLSchema(ctx, graphqlSchema)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to create graphqlschema")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	// find which gloo instance this graphql schema belongs to, by finding a gloo instance that is watching
+	// the graphql schema's namespace
+	glooInstance, err := h.getGlooInstanceForNamespace(ctx, request.GetGraphqlSchemaRef().GetNamespace())
+	if err != nil {
+		return nil, err
+	}
+	return &rpc_edge_v1.CreateGraphqlSchemaResponse{
+		GraphqlSchema: &rpc_edge_v1.GraphqlSchema{
+			Metadata: apiserverutils.ToMetadata(graphqlSchema.ObjectMeta),
+			Spec:     &graphqlSchema.Spec,
+			Status:   &graphqlSchema.Status,
+			GlooInstance: &skv2_v1.ObjectRef{
+				Name:      glooInstance.GetName(),
+				Namespace: glooInstance.GetNamespace(),
+			},
+		},
+	}, nil
+}
+
+func (h *fedGraphqlHandler) UpdateGraphqlSchema(ctx context.Context, request *rpc_edge_v1.UpdateGraphqlSchemaRequest) (*rpc_edge_v1.UpdateGraphqlSchemaResponse, error) {
+	err := h.checkGraphqlSchemaRef(request.GetGraphqlSchemaRef())
+	if err != nil {
+		return nil, err
+	}
+	if request.GetSpec() == nil {
+		return nil, eris.Errorf("graphqlschema spec missing from request: %v", request)
+	}
+
+	clientset, err := h.graphqlMCClientset.Cluster(request.GetGraphqlSchemaRef().GetClusterName())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get graphql client set")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	// first get the existing graphqlschema
+	graphqlSchema, err := clientset.GraphQLSchemas().GetGraphQLSchema(ctx, client.ObjectKey{
+		Namespace: request.GetGraphqlSchemaRef().GetNamespace(),
+		Name:      request.GetGraphqlSchemaRef().GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Cannot edit a graphqlschema that does not exist")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	// apply the changes to its spec
+	graphqlSchema.Spec = *request.GetSpec()
+
+	// save the updated graphqlschema
+	err = clientset.GraphQLSchemas().UpdateGraphQLSchema(ctx, graphqlSchema)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to update graphqlschema")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	// find which gloo instance this graphql schema belongs to, by finding a gloo instance that is watching
+	// the graphql schema's namespace
+	glooInstance, err := h.getGlooInstanceForNamespace(ctx, request.GetGraphqlSchemaRef().GetNamespace())
+	if err != nil {
+		return nil, err
+	}
+	return &rpc_edge_v1.UpdateGraphqlSchemaResponse{
+		GraphqlSchema: &rpc_edge_v1.GraphqlSchema{
+			Metadata: apiserverutils.ToMetadata(graphqlSchema.ObjectMeta),
+			Spec:     &graphqlSchema.Spec,
+			Status:   &graphqlSchema.Status,
+			GlooInstance: &skv2_v1.ObjectRef{
+				Name:      glooInstance.GetName(),
+				Namespace: glooInstance.GetNamespace(),
+			},
+		},
+	}, nil
+}
+
+func (h *fedGraphqlHandler) DeleteGraphqlSchema(ctx context.Context, request *rpc_edge_v1.DeleteGraphqlSchemaRequest) (*rpc_edge_v1.DeleteGraphqlSchemaResponse, error) {
+	err := h.checkGraphqlSchemaRef(request.GetGraphqlSchemaRef())
+	if err != nil {
+		return nil, err
+	}
+
+	clientset, err := h.graphqlMCClientset.Cluster(request.GetGraphqlSchemaRef().GetClusterName())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get graphql client set")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	err = clientset.GraphQLSchemas().DeleteGraphQLSchema(ctx, client.ObjectKey{
+		Name:      request.GetGraphqlSchemaRef().GetName(),
+		Namespace: request.GetGraphqlSchemaRef().GetNamespace(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to delete graphqlschema")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
+	return &rpc_edge_v1.DeleteGraphqlSchemaResponse{
+		GraphqlSchemaRef: request.GetGraphqlSchemaRef(),
+	}, nil
+}
+
+func (h *fedGraphqlHandler) ValidateResolverYaml(ctx context.Context, request *rpc_edge_v1.ValidateResolverYamlRequest) (*rpc_edge_v1.ValidateResolverYamlResponse, error) {
+	// TODO implement
+	return &rpc_edge_v1.ValidateResolverYamlResponse{}, nil
+}
+
+func (h *fedGraphqlHandler) checkGraphqlSchemaRef(ref *skv2_v1.ClusterObjectRef) error {
+	if ref == nil || ref.GetName() == "" || ref.GetNamespace() == "" || ref.GetClusterName() == "" {
+		return eris.Errorf("request does not contain valid graphqlschema ref: %v", ref)
+	}
+	return nil
 }

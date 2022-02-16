@@ -175,4 +175,94 @@ var _ = Describe("single cluster graphql handler", func() {
 			}))
 		})
 	})
+
+	Context("CreateGraphqlSchema", func() {
+		It("can create a graphqlschema", func() {
+			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
+			Expect(err).NotTo(HaveOccurred())
+			petstoreGraphqlSchema := &graphql_v1alpha1.GraphQLSchema{}
+			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlSchema)
+			Expect(err).NotTo(HaveOccurred())
+
+			mockGraphqlSchemaClient.EXPECT().CreateGraphQLSchema(ctx, gomock.Any()).Return(nil)
+			mockGlooInstanceLister.EXPECT().ListGlooInstances(ctx).Return([]*rpc_edge_v1.GlooInstance{glooInstance}, nil)
+
+			handler := graphql_handler.NewSingleClusterGraphqlHandler(mockGraphqlClientset, mockGlooInstanceLister)
+			resp, err := handler.CreateGraphqlSchema(ctx, &rpc_edge_v1.CreateGraphqlSchemaRequest{
+				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns"},
+				Spec:             &petstoreGraphqlSchema.Spec,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp).To(Equal(&rpc_edge_v1.CreateGraphqlSchemaResponse{
+				GraphqlSchema: &rpc_edge_v1.GraphqlSchema{
+					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns"},
+					Spec:         &petstoreGraphqlSchema.Spec,
+					Status:       &petstoreGraphqlSchema.Status,
+					GlooInstance: &skv2_v1.ObjectRef{Name: "gloo", Namespace: "gloo-system"},
+				},
+			}))
+		})
+	})
+
+	Context("UpdateGraphqlSchema", func() {
+		It("can update a graphqlschema", func() {
+			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
+			Expect(err).NotTo(HaveOccurred())
+			petstoreGraphqlSchema := &graphql_v1alpha1.GraphQLSchema{}
+			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlSchema)
+			Expect(err).NotTo(HaveOccurred())
+
+			bookinfoYaml, err := ioutil.ReadFile("graphql_test_data/bookinfo.yaml")
+			Expect(err).NotTo(HaveOccurred())
+			bookinfoGraphqlSchema := &graphql_v1alpha1.GraphQLSchema{}
+			err = yaml.Unmarshal(bookinfoYaml, bookinfoGraphqlSchema)
+			Expect(err).NotTo(HaveOccurred())
+
+			mockGraphqlSchemaClient.EXPECT().GetGraphQLSchema(ctx, gomock.Any()).Return(petstoreGraphqlSchema, nil)
+			mockGraphqlSchemaClient.EXPECT().UpdateGraphQLSchema(ctx, gomock.Any()).Return(nil)
+			mockGlooInstanceLister.EXPECT().ListGlooInstances(ctx).Return([]*rpc_edge_v1.GlooInstance{glooInstance}, nil)
+
+			// change spec
+			handler := graphql_handler.NewSingleClusterGraphqlHandler(mockGraphqlClientset, mockGlooInstanceLister)
+			resp, err := handler.UpdateGraphqlSchema(ctx, &rpc_edge_v1.UpdateGraphqlSchemaRequest{
+				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns"},
+				Spec:             &bookinfoGraphqlSchema.Spec,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp).To(Equal(&rpc_edge_v1.UpdateGraphqlSchemaResponse{
+				GraphqlSchema: &rpc_edge_v1.GraphqlSchema{
+					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns"},
+					Spec:         &bookinfoGraphqlSchema.Spec,
+					Status:       &petstoreGraphqlSchema.Status,
+					GlooInstance: &skv2_v1.ObjectRef{Name: "gloo", Namespace: "gloo-system"},
+				},
+			}))
+		})
+		It("errors if ref points to a nonexistent graphqlschema", func() {
+			mockGraphqlSchemaClient.EXPECT().GetGraphQLSchema(ctx, gomock.Any()).Return(nil, eris.New("not found!"))
+
+			handler := graphql_handler.NewSingleClusterGraphqlHandler(mockGraphqlClientset, mockGlooInstanceLister)
+			_, err := handler.UpdateGraphqlSchema(ctx, &rpc_edge_v1.UpdateGraphqlSchemaRequest{
+				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns"},
+				Spec:             &graphql_v1alpha1.GraphQLSchemaSpec{},
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Cannot edit a graphqlschema that does not exist: not found!"))
+		})
+	})
+
+	Context("DeleteGraphqlSchema", func() {
+		It("can delete a graphqlschema", func() {
+			mockGraphqlSchemaClient.EXPECT().DeleteGraphQLSchema(ctx, gomock.Any()).Return(nil)
+
+			handler := graphql_handler.NewSingleClusterGraphqlHandler(mockGraphqlClientset, mockGlooInstanceLister)
+			resp, err := handler.DeleteGraphqlSchema(ctx, &rpc_edge_v1.DeleteGraphqlSchemaRequest{
+				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns"},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp).To(Equal(&rpc_edge_v1.DeleteGraphqlSchemaResponse{
+				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns"},
+			}))
+		})
+	})
 })

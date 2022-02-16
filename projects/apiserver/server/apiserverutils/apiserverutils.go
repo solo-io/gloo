@@ -17,13 +17,10 @@ func ToMetadata(objectMeta metav1.ObjectMeta) *rpc_edge_v1.ObjectMeta {
 	}
 }
 
-func ToObjectMeta(commonMeta rpc_edge_v1.ObjectMeta) metav1.ObjectMeta {
+func RefToObjectMeta(ref v1.ClusterObjectRef) metav1.ObjectMeta {
 	return metav1.ObjectMeta{
-		Name:            commonMeta.Name,
-		Namespace:       commonMeta.Namespace,
-		Labels:          commonMeta.Labels,
-		Annotations:     commonMeta.Annotations,
-		ResourceVersion: commonMeta.ResourceVersion,
+		Name:      ref.GetName(),
+		Namespace: ref.GetNamespace(),
 	}
 }
 

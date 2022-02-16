@@ -53,8 +53,74 @@ message GetGraphqlSchemaYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
+// Creates a new GraphQLSchema.
+message CreateGraphqlSchemaRequest {
+    // A reference to the GraphQLSchema to create. If this is a single-cluster (non-federated) Gloo Edge installation,
+    // cluster name is not used.
+    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+
+    // The spec for the new GraphQLSchema.
+    .graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
+}
+
+message CreateGraphqlSchemaResponse {
+    // The updated GraphQLSchema.
+    GraphqlSchema graphql_schema = 1;
+}
+
+// Updates an existing GraphQLSchema.
+message UpdateGraphqlSchemaRequest {
+    // A reference to an existing GraphQLSchema to update. If this is a single-cluster (non-federated) Gloo Edge installation,
+    // cluster name is not used.
+    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+
+    // The updated GraphQLSchema spec.
+    .graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
+}
+
+message UpdateGraphqlSchemaResponse {
+    // The updated GraphQLSchema.
+    GraphqlSchema graphql_schema = 1;
+}
+
+// Deletes a GraphQLSchema by reference.
+message DeleteGraphqlSchemaRequest {
+    // A reference to the GraphQLSchema to delete. If this is a single-cluster (non-federated) Gloo Edge installation,
+    // cluster name is not used.
+    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+}
+
+message DeleteGraphqlSchemaResponse {
+    // Reference to the deleted GraphQLSchema.
+    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+}
+
+// Validates the given resolver yaml.
+message ValidateResolverYamlRequest {
+
+    enum ResolverType {
+        RESOLVER_NOT_SET = 0;
+        REST_RESOLVER = 1;
+        GRPC_RESOLVER = 2;
+    }
+
+    // The resolver yaml to validate.
+    string yaml = 1;
+
+    // The type of resolver.
+    ResolverType resolver_type = 2;
+}
+
+// This empty response is returned if validation succeeded. Otherwise, an error is returned.
+message ValidateResolverYamlResponse {
+}
+
 service GraphqlApi {
     rpc GetGraphqlSchema (GetGraphqlSchemaRequest) returns (GetGraphqlSchemaResponse) {}
     rpc ListGraphqlSchemas (ListGraphqlSchemasRequest) returns (ListGraphqlSchemasResponse) {}
     rpc GetGraphqlSchemaYaml (GetGraphqlSchemaYamlRequest) returns (GetGraphqlSchemaYamlResponse) {}
+    rpc CreateGraphqlSchema (CreateGraphqlSchemaRequest) returns (CreateGraphqlSchemaResponse) {}
+    rpc UpdateGraphqlSchema (UpdateGraphqlSchemaRequest) returns (UpdateGraphqlSchemaResponse) {}
+    rpc DeleteGraphqlSchema (DeleteGraphqlSchemaRequest) returns (DeleteGraphqlSchemaResponse) {}
+    rpc ValidateResolverYaml (ValidateResolverYamlRequest) returns (ValidateResolverYamlResponse) {}
 }

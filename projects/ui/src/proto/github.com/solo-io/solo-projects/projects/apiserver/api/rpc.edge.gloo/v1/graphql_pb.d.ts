@@ -179,3 +179,195 @@ export namespace GetGraphqlSchemaYamlResponse {
     yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
   }
 }
+
+export class CreateGraphqlSchemaRequest extends jspb.Message {
+  hasGraphqlSchemaRef(): boolean;
+  clearGraphqlSchemaRef(): void;
+  getGraphqlSchemaRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setGraphqlSchemaRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  hasSpec(): boolean;
+  clearSpec(): void;
+  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CreateGraphqlSchemaRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateGraphqlSchemaRequest): CreateGraphqlSchemaRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CreateGraphqlSchemaRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateGraphqlSchemaRequest;
+  static deserializeBinaryFromReader(message: CreateGraphqlSchemaRequest, reader: jspb.BinaryReader): CreateGraphqlSchemaRequest;
+}
+
+export namespace CreateGraphqlSchemaRequest {
+  export type AsObject = {
+    graphqlSchemaRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.AsObject,
+  }
+}
+
+export class CreateGraphqlSchemaResponse extends jspb.Message {
+  hasGraphqlSchema(): boolean;
+  clearGraphqlSchema(): void;
+  getGraphqlSchema(): GraphqlSchema | undefined;
+  setGraphqlSchema(value?: GraphqlSchema): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CreateGraphqlSchemaResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateGraphqlSchemaResponse): CreateGraphqlSchemaResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CreateGraphqlSchemaResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateGraphqlSchemaResponse;
+  static deserializeBinaryFromReader(message: CreateGraphqlSchemaResponse, reader: jspb.BinaryReader): CreateGraphqlSchemaResponse;
+}
+
+export namespace CreateGraphqlSchemaResponse {
+  export type AsObject = {
+    graphqlSchema?: GraphqlSchema.AsObject,
+  }
+}
+
+export class UpdateGraphqlSchemaRequest extends jspb.Message {
+  hasGraphqlSchemaRef(): boolean;
+  clearGraphqlSchemaRef(): void;
+  getGraphqlSchemaRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setGraphqlSchemaRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  hasSpec(): boolean;
+  clearSpec(): void;
+  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateGraphqlSchemaRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateGraphqlSchemaRequest): UpdateGraphqlSchemaRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateGraphqlSchemaRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateGraphqlSchemaRequest;
+  static deserializeBinaryFromReader(message: UpdateGraphqlSchemaRequest, reader: jspb.BinaryReader): UpdateGraphqlSchemaRequest;
+}
+
+export namespace UpdateGraphqlSchemaRequest {
+  export type AsObject = {
+    graphqlSchemaRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.AsObject,
+  }
+}
+
+export class UpdateGraphqlSchemaResponse extends jspb.Message {
+  hasGraphqlSchema(): boolean;
+  clearGraphqlSchema(): void;
+  getGraphqlSchema(): GraphqlSchema | undefined;
+  setGraphqlSchema(value?: GraphqlSchema): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateGraphqlSchemaResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateGraphqlSchemaResponse): UpdateGraphqlSchemaResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateGraphqlSchemaResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateGraphqlSchemaResponse;
+  static deserializeBinaryFromReader(message: UpdateGraphqlSchemaResponse, reader: jspb.BinaryReader): UpdateGraphqlSchemaResponse;
+}
+
+export namespace UpdateGraphqlSchemaResponse {
+  export type AsObject = {
+    graphqlSchema?: GraphqlSchema.AsObject,
+  }
+}
+
+export class DeleteGraphqlSchemaRequest extends jspb.Message {
+  hasGraphqlSchemaRef(): boolean;
+  clearGraphqlSchemaRef(): void;
+  getGraphqlSchemaRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setGraphqlSchemaRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DeleteGraphqlSchemaRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: DeleteGraphqlSchemaRequest): DeleteGraphqlSchemaRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DeleteGraphqlSchemaRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DeleteGraphqlSchemaRequest;
+  static deserializeBinaryFromReader(message: DeleteGraphqlSchemaRequest, reader: jspb.BinaryReader): DeleteGraphqlSchemaRequest;
+}
+
+export namespace DeleteGraphqlSchemaRequest {
+  export type AsObject = {
+    graphqlSchemaRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class DeleteGraphqlSchemaResponse extends jspb.Message {
+  hasGraphqlSchemaRef(): boolean;
+  clearGraphqlSchemaRef(): void;
+  getGraphqlSchemaRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setGraphqlSchemaRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DeleteGraphqlSchemaResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: DeleteGraphqlSchemaResponse): DeleteGraphqlSchemaResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DeleteGraphqlSchemaResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DeleteGraphqlSchemaResponse;
+  static deserializeBinaryFromReader(message: DeleteGraphqlSchemaResponse, reader: jspb.BinaryReader): DeleteGraphqlSchemaResponse;
+}
+
+export namespace DeleteGraphqlSchemaResponse {
+  export type AsObject = {
+    graphqlSchemaRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class ValidateResolverYamlRequest extends jspb.Message {
+  getYaml(): string;
+  setYaml(value: string): void;
+
+  getResolverType(): ValidateResolverYamlRequest.ResolverTypeMap[keyof ValidateResolverYamlRequest.ResolverTypeMap];
+  setResolverType(value: ValidateResolverYamlRequest.ResolverTypeMap[keyof ValidateResolverYamlRequest.ResolverTypeMap]): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ValidateResolverYamlRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ValidateResolverYamlRequest): ValidateResolverYamlRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ValidateResolverYamlRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ValidateResolverYamlRequest;
+  static deserializeBinaryFromReader(message: ValidateResolverYamlRequest, reader: jspb.BinaryReader): ValidateResolverYamlRequest;
+}
+
+export namespace ValidateResolverYamlRequest {
+  export type AsObject = {
+    yaml: string,
+    resolverType: ValidateResolverYamlRequest.ResolverTypeMap[keyof ValidateResolverYamlRequest.ResolverTypeMap],
+  }
+
+  export interface ResolverTypeMap {
+    RESOLVER_NOT_SET: 0;
+    REST_RESOLVER: 1;
+    GRPC_RESOLVER: 2;
+  }
+
+  export const ResolverType: ResolverTypeMap;
+}
+
+export class ValidateResolverYamlResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ValidateResolverYamlResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ValidateResolverYamlResponse): ValidateResolverYamlResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ValidateResolverYamlResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ValidateResolverYamlResponse;
+  static deserializeBinaryFromReader(message: ValidateResolverYamlResponse, reader: jspb.BinaryReader): ValidateResolverYamlResponse;
+}
+
+export namespace ValidateResolverYamlResponse {
+  export type AsObject = {
+  }
+}

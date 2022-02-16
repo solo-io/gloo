@@ -28,6 +28,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ValidateResolverYamlRequest_ResolverType int32
+
+const (
+	ValidateResolverYamlRequest_RESOLVER_NOT_SET ValidateResolverYamlRequest_ResolverType = 0
+	ValidateResolverYamlRequest_REST_RESOLVER    ValidateResolverYamlRequest_ResolverType = 1
+	ValidateResolverYamlRequest_GRPC_RESOLVER    ValidateResolverYamlRequest_ResolverType = 2
+)
+
+// Enum value maps for ValidateResolverYamlRequest_ResolverType.
+var (
+	ValidateResolverYamlRequest_ResolverType_name = map[int32]string{
+		0: "RESOLVER_NOT_SET",
+		1: "REST_RESOLVER",
+		2: "GRPC_RESOLVER",
+	}
+	ValidateResolverYamlRequest_ResolverType_value = map[string]int32{
+		"RESOLVER_NOT_SET": 0,
+		"REST_RESOLVER":    1,
+		"GRPC_RESOLVER":    2,
+	}
+)
+
+func (x ValidateResolverYamlRequest_ResolverType) Enum() *ValidateResolverYamlRequest_ResolverType {
+	p := new(ValidateResolverYamlRequest_ResolverType)
+	*p = x
+	return p
+}
+
+func (x ValidateResolverYamlRequest_ResolverType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ValidateResolverYamlRequest_ResolverType) Descriptor() protoreflect.EnumDescriptor {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_enumTypes[0].Descriptor()
+}
+
+func (ValidateResolverYamlRequest_ResolverType) Type() protoreflect.EnumType {
+	return &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_enumTypes[0]
+}
+
+func (x ValidateResolverYamlRequest_ResolverType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ValidateResolverYamlRequest_ResolverType.Descriptor instead.
+func (ValidateResolverYamlRequest_ResolverType) EnumDescriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDescGZIP(), []int{13, 0}
+}
+
 // GraphQLSchema CR details.
 type GraphqlSchema struct {
 	state         protoimpl.MessageState
@@ -391,6 +440,415 @@ func (x *GetGraphqlSchemaYamlResponse) GetYamlData() *ResourceYaml {
 	return nil
 }
 
+// Creates a new GraphQLSchema.
+type CreateGraphqlSchemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// A reference to the GraphQLSchema to create. If this is a single-cluster (non-federated) Gloo Edge installation,
+	// cluster name is not used.
+	GraphqlSchemaRef *v1.ClusterObjectRef `protobuf:"bytes,1,opt,name=graphql_schema_ref,json=graphqlSchemaRef,proto3" json:"graphql_schema_ref,omitempty"`
+	// The spec for the new GraphQLSchema.
+	Spec *v1alpha1.GraphQLSchemaSpec `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+}
+
+func (x *CreateGraphqlSchemaRequest) Reset() {
+	*x = CreateGraphqlSchemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateGraphqlSchemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateGraphqlSchemaRequest) ProtoMessage() {}
+
+func (x *CreateGraphqlSchemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateGraphqlSchemaRequest.ProtoReflect.Descriptor instead.
+func (*CreateGraphqlSchemaRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CreateGraphqlSchemaRequest) GetGraphqlSchemaRef() *v1.ClusterObjectRef {
+	if x != nil {
+		return x.GraphqlSchemaRef
+	}
+	return nil
+}
+
+func (x *CreateGraphqlSchemaRequest) GetSpec() *v1alpha1.GraphQLSchemaSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+type CreateGraphqlSchemaResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The updated GraphQLSchema.
+	GraphqlSchema *GraphqlSchema `protobuf:"bytes,1,opt,name=graphql_schema,json=graphqlSchema,proto3" json:"graphql_schema,omitempty"`
+}
+
+func (x *CreateGraphqlSchemaResponse) Reset() {
+	*x = CreateGraphqlSchemaResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateGraphqlSchemaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateGraphqlSchemaResponse) ProtoMessage() {}
+
+func (x *CreateGraphqlSchemaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateGraphqlSchemaResponse.ProtoReflect.Descriptor instead.
+func (*CreateGraphqlSchemaResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *CreateGraphqlSchemaResponse) GetGraphqlSchema() *GraphqlSchema {
+	if x != nil {
+		return x.GraphqlSchema
+	}
+	return nil
+}
+
+// Updates an existing GraphQLSchema.
+type UpdateGraphqlSchemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// A reference to an existing GraphQLSchema to update. If this is a single-cluster (non-federated) Gloo Edge installation,
+	// cluster name is not used.
+	GraphqlSchemaRef *v1.ClusterObjectRef `protobuf:"bytes,1,opt,name=graphql_schema_ref,json=graphqlSchemaRef,proto3" json:"graphql_schema_ref,omitempty"`
+	// The updated GraphQLSchema spec.
+	Spec *v1alpha1.GraphQLSchemaSpec `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+}
+
+func (x *UpdateGraphqlSchemaRequest) Reset() {
+	*x = UpdateGraphqlSchemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateGraphqlSchemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateGraphqlSchemaRequest) ProtoMessage() {}
+
+func (x *UpdateGraphqlSchemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateGraphqlSchemaRequest.ProtoReflect.Descriptor instead.
+func (*UpdateGraphqlSchemaRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *UpdateGraphqlSchemaRequest) GetGraphqlSchemaRef() *v1.ClusterObjectRef {
+	if x != nil {
+		return x.GraphqlSchemaRef
+	}
+	return nil
+}
+
+func (x *UpdateGraphqlSchemaRequest) GetSpec() *v1alpha1.GraphQLSchemaSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+type UpdateGraphqlSchemaResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The updated GraphQLSchema.
+	GraphqlSchema *GraphqlSchema `protobuf:"bytes,1,opt,name=graphql_schema,json=graphqlSchema,proto3" json:"graphql_schema,omitempty"`
+}
+
+func (x *UpdateGraphqlSchemaResponse) Reset() {
+	*x = UpdateGraphqlSchemaResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateGraphqlSchemaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateGraphqlSchemaResponse) ProtoMessage() {}
+
+func (x *UpdateGraphqlSchemaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateGraphqlSchemaResponse.ProtoReflect.Descriptor instead.
+func (*UpdateGraphqlSchemaResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *UpdateGraphqlSchemaResponse) GetGraphqlSchema() *GraphqlSchema {
+	if x != nil {
+		return x.GraphqlSchema
+	}
+	return nil
+}
+
+// Deletes a GraphQLSchema by reference.
+type DeleteGraphqlSchemaRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// A reference to the GraphQLSchema to delete. If this is a single-cluster (non-federated) Gloo Edge installation,
+	// cluster name is not used.
+	GraphqlSchemaRef *v1.ClusterObjectRef `protobuf:"bytes,1,opt,name=graphql_schema_ref,json=graphqlSchemaRef,proto3" json:"graphql_schema_ref,omitempty"`
+}
+
+func (x *DeleteGraphqlSchemaRequest) Reset() {
+	*x = DeleteGraphqlSchemaRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteGraphqlSchemaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteGraphqlSchemaRequest) ProtoMessage() {}
+
+func (x *DeleteGraphqlSchemaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteGraphqlSchemaRequest.ProtoReflect.Descriptor instead.
+func (*DeleteGraphqlSchemaRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *DeleteGraphqlSchemaRequest) GetGraphqlSchemaRef() *v1.ClusterObjectRef {
+	if x != nil {
+		return x.GraphqlSchemaRef
+	}
+	return nil
+}
+
+type DeleteGraphqlSchemaResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Reference to the deleted GraphQLSchema.
+	GraphqlSchemaRef *v1.ClusterObjectRef `protobuf:"bytes,1,opt,name=graphql_schema_ref,json=graphqlSchemaRef,proto3" json:"graphql_schema_ref,omitempty"`
+}
+
+func (x *DeleteGraphqlSchemaResponse) Reset() {
+	*x = DeleteGraphqlSchemaResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteGraphqlSchemaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteGraphqlSchemaResponse) ProtoMessage() {}
+
+func (x *DeleteGraphqlSchemaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteGraphqlSchemaResponse.ProtoReflect.Descriptor instead.
+func (*DeleteGraphqlSchemaResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DeleteGraphqlSchemaResponse) GetGraphqlSchemaRef() *v1.ClusterObjectRef {
+	if x != nil {
+		return x.GraphqlSchemaRef
+	}
+	return nil
+}
+
+// Validates the given resolver yaml.
+type ValidateResolverYamlRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The resolver yaml to validate.
+	Yaml string `protobuf:"bytes,1,opt,name=yaml,proto3" json:"yaml,omitempty"`
+	// The type of resolver.
+	ResolverType ValidateResolverYamlRequest_ResolverType `protobuf:"varint,2,opt,name=resolver_type,json=resolverType,proto3,enum=rpc.edge.gloo.solo.io.ValidateResolverYamlRequest_ResolverType" json:"resolver_type,omitempty"`
+}
+
+func (x *ValidateResolverYamlRequest) Reset() {
+	*x = ValidateResolverYamlRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ValidateResolverYamlRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateResolverYamlRequest) ProtoMessage() {}
+
+func (x *ValidateResolverYamlRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateResolverYamlRequest.ProtoReflect.Descriptor instead.
+func (*ValidateResolverYamlRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ValidateResolverYamlRequest) GetYaml() string {
+	if x != nil {
+		return x.Yaml
+	}
+	return ""
+}
+
+func (x *ValidateResolverYamlRequest) GetResolverType() ValidateResolverYamlRequest_ResolverType {
+	if x != nil {
+		return x.ResolverType
+	}
+	return ValidateResolverYamlRequest_RESOLVER_NOT_SET
+}
+
+// This empty response is returned if validation succeeded. Otherwise, an error is returned.
+type ValidateResolverYamlResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *ValidateResolverYamlResponse) Reset() {
+	*x = ValidateResolverYamlResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ValidateResolverYamlResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateResolverYamlResponse) ProtoMessage() {}
+
+func (x *ValidateResolverYamlResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateResolverYamlResponse.ProtoReflect.Descriptor instead.
+func (*ValidateResolverYamlResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDescGZIP(), []int{14}
+}
+
 var File_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto protoreflect.FileDescriptor
 
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDesc = []byte{
@@ -472,37 +930,136 @@ var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v
 	0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x72, 0x70, 0x63, 0x2e,
 	0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69,
 	0x6f, 0x2e, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x08,
-	0x79, 0x61, 0x6d, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x32, 0x84, 0x03, 0x0a, 0x0a, 0x47, 0x72, 0x61,
-	0x70, 0x68, 0x71, 0x6c, 0x41, 0x70, 0x69, 0x12, 0x75, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x47, 0x72,
-	0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x2e, 0x2e, 0x72, 0x70,
-	0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f,
-	0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63,
-	0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x72, 0x70,
-	0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f,
-	0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63,
-	0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7b,
-	0x0a, 0x12, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68,
-	0x65, 0x6d, 0x61, 0x73, 0x12, 0x30, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e,
-	0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73,
-	0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67,
-	0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c,
-	0x69, 0x73, 0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61,
-	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x81, 0x01, 0x0a, 0x14,
+	0x79, 0x61, 0x6d, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x22, 0xac, 0x01, 0x0a, 0x1a, 0x43, 0x72, 0x65,
+	0x61, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x51, 0x0a, 0x12, 0x67, 0x72, 0x61, 0x70, 0x68,
+	0x71, 0x6c, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e,
+	0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4f,
+	0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52, 0x10, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71,
+	0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x66, 0x12, 0x3b, 0x0a, 0x04, 0x73, 0x70,
+	0x65, 0x63, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x27, 0x2e, 0x67, 0x72, 0x61, 0x70, 0x68,
+	0x71, 0x6c, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e,
+	0x47, 0x72, 0x61, 0x70, 0x68, 0x51, 0x4c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x53, 0x70, 0x65,
+	0x63, 0x52, 0x04, 0x73, 0x70, 0x65, 0x63, 0x22, 0x6a, 0x0a, 0x1b, 0x43, 0x72, 0x65, 0x61, 0x74,
+	0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x4b, 0x0a, 0x0e, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71,
+	0x6c, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x24,
+	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73,
+	0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63,
+	0x68, 0x65, 0x6d, 0x61, 0x52, 0x0d, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68,
+	0x65, 0x6d, 0x61, 0x22, 0xac, 0x01, 0x0a, 0x1a, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x47, 0x72,
+	0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x51, 0x0a, 0x12, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x5f, 0x73, 0x63,
+	0x68, 0x65, 0x6d, 0x61, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23,
+	0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e,
+	0x69, 0x6f, 0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74,
+	0x52, 0x65, 0x66, 0x52, 0x10, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65,
+	0x6d, 0x61, 0x52, 0x65, 0x66, 0x12, 0x3b, 0x0a, 0x04, 0x73, 0x70, 0x65, 0x63, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x27, 0x2e, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x2e, 0x67, 0x6c,
+	0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x72, 0x61, 0x70, 0x68,
+	0x51, 0x4c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x53, 0x70, 0x65, 0x63, 0x52, 0x04, 0x73, 0x70,
+	0x65, 0x63, 0x22, 0x6a, 0x0a, 0x1b, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70,
+	0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x4b, 0x0a, 0x0e, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x5f, 0x73, 0x63, 0x68,
+	0x65, 0x6d, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x24, 0x2e, 0x72, 0x70, 0x63, 0x2e,
+	0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69,
+	0x6f, 0x2e, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52,
+	0x0d, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x22, 0x6f,
+	0x0a, 0x1a, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53,
+	0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x51, 0x0a, 0x12,
+	0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x5f, 0x72,
+	0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e,
+	0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x43, 0x6c, 0x75,
+	0x73, 0x74, 0x65, 0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52, 0x10, 0x67,
+	0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x66, 0x22,
+	0x70, 0x0a, 0x1b, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c,
+	0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x51,
+	0x0a, 0x12, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61,
+	0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63, 0x6f, 0x72,
+	0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x43,
+	0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52,
+	0x10, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x52, 0x65,
+	0x66, 0x22, 0xe3, 0x01, 0x0a, 0x1b, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65,
+	0x73, 0x6f, 0x6c, 0x76, 0x65, 0x72, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x12, 0x0a, 0x04, 0x79, 0x61, 0x6d, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x79, 0x61, 0x6d, 0x6c, 0x12, 0x64, 0x0a, 0x0d, 0x72, 0x65, 0x73, 0x6f, 0x6c, 0x76, 0x65,
+	0x72, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x3f, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c,
+	0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73,
+	0x6f, 0x6c, 0x76, 0x65, 0x72, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x2e, 0x52, 0x65, 0x73, 0x6f, 0x6c, 0x76, 0x65, 0x72, 0x54, 0x79, 0x70, 0x65, 0x52, 0x0c, 0x72,
+	0x65, 0x73, 0x6f, 0x6c, 0x76, 0x65, 0x72, 0x54, 0x79, 0x70, 0x65, 0x22, 0x4a, 0x0a, 0x0c, 0x52,
+	0x65, 0x73, 0x6f, 0x6c, 0x76, 0x65, 0x72, 0x54, 0x79, 0x70, 0x65, 0x12, 0x14, 0x0a, 0x10, 0x52,
+	0x45, 0x53, 0x4f, 0x4c, 0x56, 0x45, 0x52, 0x5f, 0x4e, 0x4f, 0x54, 0x5f, 0x53, 0x45, 0x54, 0x10,
+	0x00, 0x12, 0x11, 0x0a, 0x0d, 0x52, 0x45, 0x53, 0x54, 0x5f, 0x52, 0x45, 0x53, 0x4f, 0x4c, 0x56,
+	0x45, 0x52, 0x10, 0x01, 0x12, 0x11, 0x0a, 0x0d, 0x47, 0x52, 0x50, 0x43, 0x5f, 0x52, 0x45, 0x53,
+	0x4f, 0x4c, 0x56, 0x45, 0x52, 0x10, 0x02, 0x22, 0x1e, 0x0a, 0x1c, 0x56, 0x61, 0x6c, 0x69, 0x64,
+	0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x6f, 0x6c, 0x76, 0x65, 0x72, 0x59, 0x61, 0x6d, 0x6c, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0x88, 0x07, 0x0a, 0x0a, 0x47, 0x72, 0x61, 0x70,
+	0x68, 0x71, 0x6c, 0x41, 0x70, 0x69, 0x12, 0x75, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x47, 0x72, 0x61,
+	0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x2e, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e,
+	0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68,
+	0x65, 0x6d, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e,
+	0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68,
+	0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7b, 0x0a,
+	0x12, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65,
+	0x6d, 0x61, 0x73, 0x12, 0x30, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67,
+	0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74,
+	0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65,
+	0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69,
+	0x73, 0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x81, 0x01, 0x0a, 0x14, 0x47,
+	0x65, 0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x59,
+	0x61, 0x6d, 0x6c, 0x12, 0x32, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67,
+	0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x47,
+	0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x59, 0x61, 0x6d, 0x6c,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64,
+	0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e,
 	0x47, 0x65, 0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61,
-	0x59, 0x61, 0x6d, 0x6c, 0x12, 0x32, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e,
-	0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74,
-	0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x59, 0x61, 0x6d,
-	0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
+	0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7e,
+	0x0a, 0x13, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53,
+	0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x31, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65,
+	0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x43, 0x72,
+	0x65, 0x61, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d,
+	0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
 	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
-	0x2e, 0x47, 0x65, 0x74, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d,
-	0x61, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42,
-	0x56, 0x5a, 0x4c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f,
-	0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x70, 0x72, 0x6f, 0x6a, 0x65,
-	0x63, 0x74, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x61, 0x70, 0x69,
-	0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x72,
-	0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x76, 0x31, 0xc0,
-	0xf5, 0x04, 0x01, 0xb8, 0xf5, 0x04, 0x01, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63,
+	0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7e,
+	0x0a, 0x13, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53,
+	0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x31, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65,
+	0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x55, 0x70,
+	0x64, 0x61, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d,
+	0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
+	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
+	0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63,
+	0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7e,
+	0x0a, 0x13, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53,
+	0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x31, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65,
+	0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63, 0x68, 0x65, 0x6d,
+	0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
+	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
+	0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x47, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x53, 0x63,
+	0x68, 0x65, 0x6d, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x81,
+	0x01, 0x0a, 0x14, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x6f, 0x6c,
+	0x76, 0x65, 0x72, 0x59, 0x61, 0x6d, 0x6c, 0x12, 0x32, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64,
+	0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e,
+	0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x6f, 0x6c, 0x76, 0x65, 0x72,
+	0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x72, 0x70,
+	0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f,
+	0x2e, 0x69, 0x6f, 0x2e, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x6f,
+	0x6c, 0x76, 0x65, 0x72, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x42, 0x56, 0x5a, 0x4c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x70, 0x72,
+	0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f,
+	0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70,
+	0x69, 0x2f, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2f,
+	0x76, 0x31, 0xc0, 0xf5, 0x04, 0x01, 0xb8, 0xf5, 0x04, 0x01, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x33,
 }
 
 var (
@@ -517,44 +1074,71 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDescData
 }
 
-var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_goTypes = []interface{}{
-	(*GraphqlSchema)(nil),                // 0: rpc.edge.gloo.solo.io.GraphqlSchema
-	(*GetGraphqlSchemaRequest)(nil),      // 1: rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest
-	(*GetGraphqlSchemaResponse)(nil),     // 2: rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse
-	(*ListGraphqlSchemasRequest)(nil),    // 3: rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest
-	(*ListGraphqlSchemasResponse)(nil),   // 4: rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse
-	(*GetGraphqlSchemaYamlRequest)(nil),  // 5: rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest
-	(*GetGraphqlSchemaYamlResponse)(nil), // 6: rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse
-	(*ObjectMeta)(nil),                   // 7: rpc.edge.gloo.solo.io.ObjectMeta
-	(*v1alpha1.GraphQLSchemaSpec)(nil),   // 8: graphql.gloo.solo.io.GraphQLSchemaSpec
-	(*v1alpha1.GraphQLSchemaStatus)(nil), // 9: graphql.gloo.solo.io.GraphQLSchemaStatus
-	(*v1.ObjectRef)(nil),                 // 10: core.skv2.solo.io.ObjectRef
-	(*v1.ClusterObjectRef)(nil),          // 11: core.skv2.solo.io.ClusterObjectRef
-	(*ResourceYaml)(nil),                 // 12: rpc.edge.gloo.solo.io.ResourceYaml
+	(ValidateResolverYamlRequest_ResolverType)(0), // 0: rpc.edge.gloo.solo.io.ValidateResolverYamlRequest.ResolverType
+	(*GraphqlSchema)(nil),                         // 1: rpc.edge.gloo.solo.io.GraphqlSchema
+	(*GetGraphqlSchemaRequest)(nil),               // 2: rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest
+	(*GetGraphqlSchemaResponse)(nil),              // 3: rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse
+	(*ListGraphqlSchemasRequest)(nil),             // 4: rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest
+	(*ListGraphqlSchemasResponse)(nil),            // 5: rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse
+	(*GetGraphqlSchemaYamlRequest)(nil),           // 6: rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest
+	(*GetGraphqlSchemaYamlResponse)(nil),          // 7: rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse
+	(*CreateGraphqlSchemaRequest)(nil),            // 8: rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest
+	(*CreateGraphqlSchemaResponse)(nil),           // 9: rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse
+	(*UpdateGraphqlSchemaRequest)(nil),            // 10: rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest
+	(*UpdateGraphqlSchemaResponse)(nil),           // 11: rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse
+	(*DeleteGraphqlSchemaRequest)(nil),            // 12: rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest
+	(*DeleteGraphqlSchemaResponse)(nil),           // 13: rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse
+	(*ValidateResolverYamlRequest)(nil),           // 14: rpc.edge.gloo.solo.io.ValidateResolverYamlRequest
+	(*ValidateResolverYamlResponse)(nil),          // 15: rpc.edge.gloo.solo.io.ValidateResolverYamlResponse
+	(*ObjectMeta)(nil),                            // 16: rpc.edge.gloo.solo.io.ObjectMeta
+	(*v1alpha1.GraphQLSchemaSpec)(nil),            // 17: graphql.gloo.solo.io.GraphQLSchemaSpec
+	(*v1alpha1.GraphQLSchemaStatus)(nil),          // 18: graphql.gloo.solo.io.GraphQLSchemaStatus
+	(*v1.ObjectRef)(nil),                          // 19: core.skv2.solo.io.ObjectRef
+	(*v1.ClusterObjectRef)(nil),                   // 20: core.skv2.solo.io.ClusterObjectRef
+	(*ResourceYaml)(nil),                          // 21: rpc.edge.gloo.solo.io.ResourceYaml
 }
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_depIdxs = []int32{
-	7,  // 0: rpc.edge.gloo.solo.io.GraphqlSchema.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
-	8,  // 1: rpc.edge.gloo.solo.io.GraphqlSchema.spec:type_name -> graphql.gloo.solo.io.GraphQLSchemaSpec
-	9,  // 2: rpc.edge.gloo.solo.io.GraphqlSchema.status:type_name -> graphql.gloo.solo.io.GraphQLSchemaStatus
-	10, // 3: rpc.edge.gloo.solo.io.GraphqlSchema.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
-	11, // 4: rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.graphql_schema_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
-	0,  // 5: rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.graphql_schema:type_name -> rpc.edge.gloo.solo.io.GraphqlSchema
-	10, // 6: rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
-	0,  // 7: rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.graphql_schemas:type_name -> rpc.edge.gloo.solo.io.GraphqlSchema
-	11, // 8: rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.graphql_schema_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
-	12, // 9: rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
-	1,  // 10: rpc.edge.gloo.solo.io.GraphqlApi.GetGraphqlSchema:input_type -> rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest
-	3,  // 11: rpc.edge.gloo.solo.io.GraphqlApi.ListGraphqlSchemas:input_type -> rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest
-	5,  // 12: rpc.edge.gloo.solo.io.GraphqlApi.GetGraphqlSchemaYaml:input_type -> rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest
-	2,  // 13: rpc.edge.gloo.solo.io.GraphqlApi.GetGraphqlSchema:output_type -> rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse
-	4,  // 14: rpc.edge.gloo.solo.io.GraphqlApi.ListGraphqlSchemas:output_type -> rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse
-	6,  // 15: rpc.edge.gloo.solo.io.GraphqlApi.GetGraphqlSchemaYaml:output_type -> rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse
-	13, // [13:16] is the sub-list for method output_type
-	10, // [10:13] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	16, // 0: rpc.edge.gloo.solo.io.GraphqlSchema.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
+	17, // 1: rpc.edge.gloo.solo.io.GraphqlSchema.spec:type_name -> graphql.gloo.solo.io.GraphQLSchemaSpec
+	18, // 2: rpc.edge.gloo.solo.io.GraphqlSchema.status:type_name -> graphql.gloo.solo.io.GraphQLSchemaStatus
+	19, // 3: rpc.edge.gloo.solo.io.GraphqlSchema.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
+	20, // 4: rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.graphql_schema_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	1,  // 5: rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.graphql_schema:type_name -> rpc.edge.gloo.solo.io.GraphqlSchema
+	19, // 6: rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
+	1,  // 7: rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.graphql_schemas:type_name -> rpc.edge.gloo.solo.io.GraphqlSchema
+	20, // 8: rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.graphql_schema_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	21, // 9: rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
+	20, // 10: rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.graphql_schema_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	17, // 11: rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.spec:type_name -> graphql.gloo.solo.io.GraphQLSchemaSpec
+	1,  // 12: rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.graphql_schema:type_name -> rpc.edge.gloo.solo.io.GraphqlSchema
+	20, // 13: rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.graphql_schema_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	17, // 14: rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.spec:type_name -> graphql.gloo.solo.io.GraphQLSchemaSpec
+	1,  // 15: rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.graphql_schema:type_name -> rpc.edge.gloo.solo.io.GraphqlSchema
+	20, // 16: rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.graphql_schema_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	20, // 17: rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.graphql_schema_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	0,  // 18: rpc.edge.gloo.solo.io.ValidateResolverYamlRequest.resolver_type:type_name -> rpc.edge.gloo.solo.io.ValidateResolverYamlRequest.ResolverType
+	2,  // 19: rpc.edge.gloo.solo.io.GraphqlApi.GetGraphqlSchema:input_type -> rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest
+	4,  // 20: rpc.edge.gloo.solo.io.GraphqlApi.ListGraphqlSchemas:input_type -> rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest
+	6,  // 21: rpc.edge.gloo.solo.io.GraphqlApi.GetGraphqlSchemaYaml:input_type -> rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest
+	8,  // 22: rpc.edge.gloo.solo.io.GraphqlApi.CreateGraphqlSchema:input_type -> rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest
+	10, // 23: rpc.edge.gloo.solo.io.GraphqlApi.UpdateGraphqlSchema:input_type -> rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest
+	12, // 24: rpc.edge.gloo.solo.io.GraphqlApi.DeleteGraphqlSchema:input_type -> rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest
+	14, // 25: rpc.edge.gloo.solo.io.GraphqlApi.ValidateResolverYaml:input_type -> rpc.edge.gloo.solo.io.ValidateResolverYamlRequest
+	3,  // 26: rpc.edge.gloo.solo.io.GraphqlApi.GetGraphqlSchema:output_type -> rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse
+	5,  // 27: rpc.edge.gloo.solo.io.GraphqlApi.ListGraphqlSchemas:output_type -> rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse
+	7,  // 28: rpc.edge.gloo.solo.io.GraphqlApi.GetGraphqlSchemaYaml:output_type -> rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse
+	9,  // 29: rpc.edge.gloo.solo.io.GraphqlApi.CreateGraphqlSchema:output_type -> rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse
+	11, // 30: rpc.edge.gloo.solo.io.GraphqlApi.UpdateGraphqlSchema:output_type -> rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse
+	13, // 31: rpc.edge.gloo.solo.io.GraphqlApi.DeleteGraphqlSchema:output_type -> rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse
+	15, // 32: rpc.edge.gloo.solo.io.GraphqlApi.ValidateResolverYaml:output_type -> rpc.edge.gloo.solo.io.ValidateResolverYamlResponse
+	26, // [26:33] is the sub-list for method output_type
+	19, // [19:26] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() {
@@ -650,19 +1234,116 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 				return nil
 			}
 		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateGraphqlSchemaRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateGraphqlSchemaResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateGraphqlSchemaRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateGraphqlSchemaResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteGraphqlSchemaRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteGraphqlSchemaResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ValidateResolverYamlRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ValidateResolverYamlResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   7,
+			NumEnums:      1,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_goTypes,
 		DependencyIndexes: file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_depIdxs,
+		EnumInfos:         file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_enumTypes,
 		MessageInfos:      file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto_msgTypes,
 	}.Build()
 	File_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_proto = out.File
@@ -686,6 +1367,10 @@ type GraphqlApiClient interface {
 	GetGraphqlSchema(ctx context.Context, in *GetGraphqlSchemaRequest, opts ...grpc.CallOption) (*GetGraphqlSchemaResponse, error)
 	ListGraphqlSchemas(ctx context.Context, in *ListGraphqlSchemasRequest, opts ...grpc.CallOption) (*ListGraphqlSchemasResponse, error)
 	GetGraphqlSchemaYaml(ctx context.Context, in *GetGraphqlSchemaYamlRequest, opts ...grpc.CallOption) (*GetGraphqlSchemaYamlResponse, error)
+	CreateGraphqlSchema(ctx context.Context, in *CreateGraphqlSchemaRequest, opts ...grpc.CallOption) (*CreateGraphqlSchemaResponse, error)
+	UpdateGraphqlSchema(ctx context.Context, in *UpdateGraphqlSchemaRequest, opts ...grpc.CallOption) (*UpdateGraphqlSchemaResponse, error)
+	DeleteGraphqlSchema(ctx context.Context, in *DeleteGraphqlSchemaRequest, opts ...grpc.CallOption) (*DeleteGraphqlSchemaResponse, error)
+	ValidateResolverYaml(ctx context.Context, in *ValidateResolverYamlRequest, opts ...grpc.CallOption) (*ValidateResolverYamlResponse, error)
 }
 
 type graphqlApiClient struct {
@@ -723,11 +1408,51 @@ func (c *graphqlApiClient) GetGraphqlSchemaYaml(ctx context.Context, in *GetGrap
 	return out, nil
 }
 
+func (c *graphqlApiClient) CreateGraphqlSchema(ctx context.Context, in *CreateGraphqlSchemaRequest, opts ...grpc.CallOption) (*CreateGraphqlSchemaResponse, error) {
+	out := new(CreateGraphqlSchemaResponse)
+	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GraphqlApi/CreateGraphqlSchema", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *graphqlApiClient) UpdateGraphqlSchema(ctx context.Context, in *UpdateGraphqlSchemaRequest, opts ...grpc.CallOption) (*UpdateGraphqlSchemaResponse, error) {
+	out := new(UpdateGraphqlSchemaResponse)
+	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GraphqlApi/UpdateGraphqlSchema", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *graphqlApiClient) DeleteGraphqlSchema(ctx context.Context, in *DeleteGraphqlSchemaRequest, opts ...grpc.CallOption) (*DeleteGraphqlSchemaResponse, error) {
+	out := new(DeleteGraphqlSchemaResponse)
+	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GraphqlApi/DeleteGraphqlSchema", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *graphqlApiClient) ValidateResolverYaml(ctx context.Context, in *ValidateResolverYamlRequest, opts ...grpc.CallOption) (*ValidateResolverYamlResponse, error) {
+	out := new(ValidateResolverYamlResponse)
+	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GraphqlApi/ValidateResolverYaml", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GraphqlApiServer is the server API for GraphqlApi service.
 type GraphqlApiServer interface {
 	GetGraphqlSchema(context.Context, *GetGraphqlSchemaRequest) (*GetGraphqlSchemaResponse, error)
 	ListGraphqlSchemas(context.Context, *ListGraphqlSchemasRequest) (*ListGraphqlSchemasResponse, error)
 	GetGraphqlSchemaYaml(context.Context, *GetGraphqlSchemaYamlRequest) (*GetGraphqlSchemaYamlResponse, error)
+	CreateGraphqlSchema(context.Context, *CreateGraphqlSchemaRequest) (*CreateGraphqlSchemaResponse, error)
+	UpdateGraphqlSchema(context.Context, *UpdateGraphqlSchemaRequest) (*UpdateGraphqlSchemaResponse, error)
+	DeleteGraphqlSchema(context.Context, *DeleteGraphqlSchemaRequest) (*DeleteGraphqlSchemaResponse, error)
+	ValidateResolverYaml(context.Context, *ValidateResolverYamlRequest) (*ValidateResolverYamlResponse, error)
 }
 
 // UnimplementedGraphqlApiServer can be embedded to have forward compatible implementations.
@@ -742,6 +1467,18 @@ func (*UnimplementedGraphqlApiServer) ListGraphqlSchemas(context.Context, *ListG
 }
 func (*UnimplementedGraphqlApiServer) GetGraphqlSchemaYaml(context.Context, *GetGraphqlSchemaYamlRequest) (*GetGraphqlSchemaYamlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGraphqlSchemaYaml not implemented")
+}
+func (*UnimplementedGraphqlApiServer) CreateGraphqlSchema(context.Context, *CreateGraphqlSchemaRequest) (*CreateGraphqlSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateGraphqlSchema not implemented")
+}
+func (*UnimplementedGraphqlApiServer) UpdateGraphqlSchema(context.Context, *UpdateGraphqlSchemaRequest) (*UpdateGraphqlSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateGraphqlSchema not implemented")
+}
+func (*UnimplementedGraphqlApiServer) DeleteGraphqlSchema(context.Context, *DeleteGraphqlSchemaRequest) (*DeleteGraphqlSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteGraphqlSchema not implemented")
+}
+func (*UnimplementedGraphqlApiServer) ValidateResolverYaml(context.Context, *ValidateResolverYamlRequest) (*ValidateResolverYamlResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateResolverYaml not implemented")
 }
 
 func RegisterGraphqlApiServer(s *grpc.Server, srv GraphqlApiServer) {
@@ -802,6 +1539,78 @@ func _GraphqlApi_GetGraphqlSchemaYaml_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GraphqlApi_CreateGraphqlSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateGraphqlSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GraphqlApiServer).CreateGraphqlSchema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.edge.gloo.solo.io.GraphqlApi/CreateGraphqlSchema",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GraphqlApiServer).CreateGraphqlSchema(ctx, req.(*CreateGraphqlSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GraphqlApi_UpdateGraphqlSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateGraphqlSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GraphqlApiServer).UpdateGraphqlSchema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.edge.gloo.solo.io.GraphqlApi/UpdateGraphqlSchema",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GraphqlApiServer).UpdateGraphqlSchema(ctx, req.(*UpdateGraphqlSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GraphqlApi_DeleteGraphqlSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteGraphqlSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GraphqlApiServer).DeleteGraphqlSchema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.edge.gloo.solo.io.GraphqlApi/DeleteGraphqlSchema",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GraphqlApiServer).DeleteGraphqlSchema(ctx, req.(*DeleteGraphqlSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GraphqlApi_ValidateResolverYaml_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateResolverYamlRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GraphqlApiServer).ValidateResolverYaml(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.edge.gloo.solo.io.GraphqlApi/ValidateResolverYaml",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GraphqlApiServer).ValidateResolverYaml(ctx, req.(*ValidateResolverYamlRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _GraphqlApi_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "rpc.edge.gloo.solo.io.GraphqlApi",
 	HandlerType: (*GraphqlApiServer)(nil),
@@ -817,6 +1626,22 @@ var _GraphqlApi_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetGraphqlSchemaYaml",
 			Handler:    _GraphqlApi_GetGraphqlSchemaYaml_Handler,
+		},
+		{
+			MethodName: "CreateGraphqlSchema",
+			Handler:    _GraphqlApi_CreateGraphqlSchema_Handler,
+		},
+		{
+			MethodName: "UpdateGraphqlSchema",
+			Handler:    _GraphqlApi_UpdateGraphqlSchema_Handler,
+		},
+		{
+			MethodName: "DeleteGraphqlSchema",
+			Handler:    _GraphqlApi_DeleteGraphqlSchema_Handler,
+		},
+		{
+			MethodName: "ValidateResolverYaml",
+			Handler:    _GraphqlApi_ValidateResolverYaml_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

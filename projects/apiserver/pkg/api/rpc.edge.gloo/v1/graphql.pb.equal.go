@@ -299,3 +299,283 @@ func (m *GetGraphqlSchemaYamlResponse) Equal(that interface{}) bool {
 
 	return true
 }
+
+// Equal function
+func (m *CreateGraphqlSchemaRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*CreateGraphqlSchemaRequest)
+	if !ok {
+		that2, ok := that.(CreateGraphqlSchemaRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlSchemaRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGraphqlSchemaRef(), target.GetGraphqlSchemaRef()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetSpec()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSpec()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSpec(), target.GetSpec()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *CreateGraphqlSchemaResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*CreateGraphqlSchemaResponse)
+	if !ok {
+		that2, ok := that.(CreateGraphqlSchemaResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetGraphqlSchema()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlSchema()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGraphqlSchema(), target.GetGraphqlSchema()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *UpdateGraphqlSchemaRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*UpdateGraphqlSchemaRequest)
+	if !ok {
+		that2, ok := that.(UpdateGraphqlSchemaRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlSchemaRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGraphqlSchemaRef(), target.GetGraphqlSchemaRef()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetSpec()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSpec()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSpec(), target.GetSpec()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *UpdateGraphqlSchemaResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*UpdateGraphqlSchemaResponse)
+	if !ok {
+		that2, ok := that.(UpdateGraphqlSchemaResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetGraphqlSchema()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlSchema()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGraphqlSchema(), target.GetGraphqlSchema()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *DeleteGraphqlSchemaRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*DeleteGraphqlSchemaRequest)
+	if !ok {
+		that2, ok := that.(DeleteGraphqlSchemaRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlSchemaRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGraphqlSchemaRef(), target.GetGraphqlSchemaRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *DeleteGraphqlSchemaResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*DeleteGraphqlSchemaResponse)
+	if !ok {
+		that2, ok := that.(DeleteGraphqlSchemaResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlSchemaRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGraphqlSchemaRef(), target.GetGraphqlSchemaRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ValidateResolverYamlRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ValidateResolverYamlRequest)
+	if !ok {
+		that2, ok := that.(ValidateResolverYamlRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetYaml(), target.GetYaml()) != 0 {
+		return false
+	}
+
+	if m.GetResolverType() != target.GetResolverType() {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ValidateResolverYamlResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ValidateResolverYamlResponse)
+	if !ok {
+		that2, ok := that.(ValidateResolverYamlResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	return true
+}

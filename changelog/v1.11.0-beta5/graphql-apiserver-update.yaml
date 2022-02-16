@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Apiserver endpoints for creating, updating, and deleting graphqlschemas.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3031
