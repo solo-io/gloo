@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Implement apiserver graphql resolver yaml validation.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3041

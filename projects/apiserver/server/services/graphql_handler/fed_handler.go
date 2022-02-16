@@ -356,8 +356,11 @@ func (h *fedGraphqlHandler) DeleteGraphqlSchema(ctx context.Context, request *rp
 	}, nil
 }
 
-func (h *fedGraphqlHandler) ValidateResolverYaml(ctx context.Context, request *rpc_edge_v1.ValidateResolverYamlRequest) (*rpc_edge_v1.ValidateResolverYamlResponse, error) {
-	// TODO implement
+func (h *fedGraphqlHandler) ValidateResolverYaml(_ context.Context, request *rpc_edge_v1.ValidateResolverYamlRequest) (*rpc_edge_v1.ValidateResolverYamlResponse, error) {
+	err := ValidateResolverYaml(request.GetYaml(), request.GetResolverType())
+	if err != nil {
+		return nil, err
+	}
 	return &rpc_edge_v1.ValidateResolverYamlResponse{}, nil
 }
 

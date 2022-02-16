@@ -313,8 +313,11 @@ func (h *singleClusterGraphqlHandler) DeleteGraphqlSchema(ctx context.Context, r
 	}, nil
 }
 
-func (h *singleClusterGraphqlHandler) ValidateResolverYaml(ctx context.Context, request *rpc_edge_v1.ValidateResolverYamlRequest) (*rpc_edge_v1.ValidateResolverYamlResponse, error) {
-	// TODO implement
+func (h *singleClusterGraphqlHandler) ValidateResolverYaml(_ context.Context, request *rpc_edge_v1.ValidateResolverYamlRequest) (*rpc_edge_v1.ValidateResolverYamlResponse, error) {
+	err := ValidateResolverYaml(request.GetYaml(), request.GetResolverType())
+	if err != nil {
+		return nil, err
+	}
 	return &rpc_edge_v1.ValidateResolverYamlResponse{}, nil
 }
 
