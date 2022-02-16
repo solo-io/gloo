@@ -191,8 +191,8 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
         columns={columns}
         dataSource={tableData}
         removePaging
+        flatTopped
         removeShadows
-        curved={props.wholePage}
       />
     </TableHolder>
   );

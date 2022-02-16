@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Inconsistent table border radius.
+    issueLink: https://github.com/solo-io/solo-projects/issues/2817

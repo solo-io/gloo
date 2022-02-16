@@ -190,7 +190,7 @@ export const RouteTablesTable = ({ routeTables, wholePage }: TableProps) => {
         dataSource={tableData}
         removePaging
         removeShadows
-        curved={true}
+        curved={false}
       />
     </RoutesTableHolder>
   );
