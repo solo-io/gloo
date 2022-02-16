@@ -213,7 +213,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "gloo",
+      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 9,
@@ -312,7 +312,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "gloo",
+      "datasource": null,
       "fill": 1,
       "gridPos": {
         "h": 9,

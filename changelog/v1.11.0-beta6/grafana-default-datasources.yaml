@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5814
+    resolvesIssue: false
+    description: >
+      Use default datasource for all Grafana dashboards, increasing likelihood that they will work out of the box for
+      custom Grafana installations

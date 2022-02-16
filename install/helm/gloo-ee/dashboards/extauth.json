@@ -23,7 +23,7 @@
   "version": 4,
   "panels": [
     {
-      "datasource": "gloo",
+      "datasource": null,
       "type": "graph",
       "title": "Authorization Check GRPC Latency Quantiles",
       "gridPos": {
@@ -118,7 +118,7 @@
       "description": "This chart shows grpc latency quantiles for extauth in measurements of P99, P95 and P50."
     },
     {
-      "datasource": "gloo",
+      "datasource": null,
       "type": "heatmap",
       "title": "Authorization Check GRPC Latency Heatmap",
       "gridPos": {
@@ -182,7 +182,7 @@
       "description": "Displays the extauth grpc latency calculated as buckets over 1 minute intervals.  The legend at the bottom left can be used as a guide to understand outliers."
     },
     {
-      "datasource": "gloo",
+      "datasource": null,
       "type": "heatmap",
       "title": "Health Check GRPC Latency Heatmap",
       "gridPos": {
@@ -246,7 +246,7 @@
       "description": "Displays the extauth grpc latency calculated as buckets over 1 minute intervals.  The legend at the bottom left can be used as a guide to understand outliers."
     },
     {
-      "datasource": "gloo",
+      "datasource": null,
       "type": "graph",
       "title": "Health Check GRPC Latency Quantiles",
       "gridPos": {

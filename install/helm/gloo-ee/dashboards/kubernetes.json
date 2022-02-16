@@ -37,7 +37,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 2,
       "editable": true,
       "error": false,
@@ -167,7 +167,7 @@
         "rgba(237, 129, 40, 0.89)",
         "rgba(245, 54, 54, 0.9)"
       ],
-      "datasource": "gloo",
+      "datasource": null,
       "editable": true,
       "error": false,
       "format": "percent",
@@ -253,7 +253,7 @@
         "rgba(237, 129, 40, 0.89)",
         "rgba(245, 54, 54, 0.9)"
       ],
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 2,
       "editable": true,
       "error": false,
@@ -339,7 +339,7 @@
         "rgba(237, 129, 40, 0.89)",
         "rgba(245, 54, 54, 0.9)"
       ],
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 2,
       "editable": true,
       "error": false,
@@ -427,7 +427,7 @@
         "rgba(237, 129, 40, 0.89)",
         "rgba(245, 54, 54, 0.9)"
       ],
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 2,
       "editable": true,
       "error": false,
@@ -513,7 +513,7 @@
         "rgba(237, 129, 40, 0.89)",
         "rgba(245, 54, 54, 0.9)"
       ],
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 2,
       "editable": true,
       "error": false,
@@ -599,7 +599,7 @@
         "rgba(237, 129, 40, 0.89)",
         "rgba(245, 54, 54, 0.9)"
       ],
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 2,
       "editable": true,
       "error": false,
@@ -685,7 +685,7 @@
         "rgba(237, 129, 40, 0.89)",
         "rgba(245, 54, 54, 0.9)"
       ],
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 2,
       "editable": true,
       "error": false,
@@ -771,7 +771,7 @@
         "rgba(237, 129, 40, 0.89)",
         "rgba(245, 54, 54, 0.9)"
       ],
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 2,
       "editable": true,
       "error": false,
@@ -857,7 +857,7 @@
         "rgba(237, 129, 40, 0.89)",
         "rgba(245, 54, 54, 0.9)"
       ],
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 2,
       "editable": true,
       "error": false,
@@ -952,7 +952,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 3,
       "editable": true,
       "error": false,
@@ -1060,7 +1060,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "gloo",
+          "datasource": null,
           "decimals": 3,
           "editable": true,
           "error": false,
@@ -1161,7 +1161,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "gloo",
+          "datasource": null,
           "decimals": 3,
           "editable": true,
           "error": false,
@@ -1284,7 +1284,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "gloo",
+          "datasource": null,
           "decimals": 3,
           "editable": true,
           "error": false,
@@ -1390,7 +1390,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 2,
       "editable": true,
       "error": false,
@@ -1497,7 +1497,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "gloo",
+          "datasource": null,
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -1597,7 +1597,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "gloo",
+          "datasource": null,
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -1715,7 +1715,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "gloo",
+          "datasource": null,
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -1820,7 +1820,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "gloo",
+      "datasource": null,
       "decimals": 2,
       "editable": true,
       "error": false,
@@ -1935,7 +1935,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "gloo",
+          "datasource": null,
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -2086,7 +2086,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "gloo",
+          "datasource": null,
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -2199,7 +2199,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": "gloo",
+        "datasource": null,
         "definition": "label_values(kubernetes_io_hostname)",
         "hide": 0,
         "includeAll": true,
@@ -2224,7 +2224,7 @@
           "text": "gloo-system",
           "value": "gloo-system"
         },
-        "datasource": "gloo",
+        "datasource": null,
         "definition": "label_values(namespace)",
         "hide": 0,
         "includeAll": false,

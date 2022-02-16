@@ -47,7 +47,7 @@
         "bars": false,
         "dashLength": 10,
         "dashes": false,
-        "datasource": "gloo",
+        "datasource": null,
         "fieldConfig": {
           "defaults": {
             "links": []
@@ -274,7 +274,7 @@
           "mode": "spectrum"
         },
         "dataFormat": "tsbuckets",
-        "datasource": "gloo",
+        "datasource": null,
         "description": "Displays the upstream request times calculated as buckets over 1 minute intervals.  The legend at the bottom left can be used as a guide to understand outliers.",
         "gridPos": {
           "h": 8,
@@ -331,7 +331,7 @@
         "bars": false,
         "dashLength": 10,
         "dashes": false,
-        "datasource": "gloo",
+        "datasource": null,
         "description": "This chart shows request time quantiles for the upstream in measurements of P99, P95 and P50.",
         "fieldConfig": {
           "defaults": {
@@ -458,7 +458,7 @@
         "bars": false,
         "dashLength": 10,
         "dashes": false,
-        "datasource": "gloo",
+        "datasource": null,
         "fieldConfig": {
           "defaults": {
             "links": []
@@ -1360,7 +1360,7 @@
         "bars": false,
         "dashLength": 10,
         "dashes": false,
-        "datasource": "gloo",
+        "datasource": null,
         "fieldConfig": {
           "defaults": {
             "links": []
