@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Use the correct name and namespace when searching for the virtual service that corresponds to the GraphqlSchema CR in the API explorer page in the UI.
+    issueLink: https://github.com/solo-io/soloprojects/issues/3093

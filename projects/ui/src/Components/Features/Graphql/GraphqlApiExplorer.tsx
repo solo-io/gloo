@@ -9,12 +9,7 @@ import { GraphQLSchema } from 'graphql';
 import { useListVirtualServices } from 'API/hooks';
 import { useParams } from 'react-router';
 import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
-import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
-import {
-  OverviewSmallBoxSummary,
-  StatusHealth,
-  WarningCircle,
-} from '../Overview/OverviewBoxSummary';
+import { StatusHealth, WarningCircle } from '../Overview/OverviewBoxSummary';
 import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
 
 function mockedDirective(directiveName: string) {
@@ -67,7 +62,7 @@ interface GraphqlApiExplorerProps {
 }
 
 export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
-  const { name, namespace } = useParams();
+  const { graphqlSchemaName, graphqlSchemaNamespace } = useParams();
   const graphiqlRef = React.useRef<null | GraphiQL>(null);
 
   const { mockedDirectiveTypeDefs, mockedDirectiveTransformer } =
@@ -81,15 +76,15 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
     let correspondingVs = virtualServices?.filter(vs =>
       vs.spec?.virtualHost?.routesList.some(
         route =>
-          route?.graphqlSchemaRef?.name === name &&
-          route?.graphqlSchemaRef?.namespace === namespace
+          route?.graphqlSchemaRef?.name === graphqlSchemaName &&
+          route?.graphqlSchemaRef?.namespace === graphqlSchemaNamespace
       )
     );
 
     if (!!correspondingVs) {
       setCorrespondingVirtualServices(correspondingVs);
     }
-  }, []);
+  }, [!!virtualServices]);
 
   let executableSchema = makeExecutableSchema({
     typeDefs: [mockedDirectiveTypeDefs],
@@ -100,7 +95,6 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
   const handlePrettifyQuery = () => {
     graphiqlRef?.current?.handlePrettifyQuery();
   };
-
   // TODO:  We can hide and show elements based on what we get back.
 
   return !!correspondingVirtualServices?.length ? (
