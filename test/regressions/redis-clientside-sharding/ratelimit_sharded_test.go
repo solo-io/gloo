@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/solo-projects/test/services"
+
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
@@ -120,6 +122,14 @@ var _ = Describe("RateLimit tests", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		statusClient = statusutils.GetStatusClientFromEnvOrDefault(namespace)
+
+		// bounce envoy, get a clean state (draining listener can break this test). see https://github.com/solo-io/solo-projects/issues/2921 for more.
+		out, err := services.KubectlOut(strings.Split("rollout restart -n "+testHelper.InstallNamespace+" deploy/gateway-proxy", " ")...)
+		fmt.Println(out)
+		Expect(err).ToNot(HaveOccurred())
+		out, err = services.KubectlOut(strings.Split("rollout status -n "+testHelper.InstallNamespace+" deploy/gateway-proxy", " ")...)
+		fmt.Println(out)
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {

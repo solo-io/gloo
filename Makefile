@@ -30,8 +30,8 @@ endif
 
 VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 
-ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.19.0-patch13
-ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.19.0-patch13
+ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.20.0-patch3
+ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.20.0-patch3
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
@@ -47,7 +47,7 @@ ifneq ($(EMPTY_IF_NOT_DEFAULT),)
     ON_DEFAULT_BRANCH = "true"
 endif
 
-LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
+LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION) -X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn"
 GCFLAGS := 'all=-N -l'
 
 GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64
@@ -101,7 +101,7 @@ install-go-tools: mod-download
 	mkdir -p $(DEPSGOBIN)
 	GOBIN=$(DEPSGOBIN) go install istio.io/tools/cmd/protoc-gen-jsonshim
 	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-ext
-	GOBIN=$(DEPSGOBIN) go install github.com/sam-heilbron/protoc-gen-openapi
+	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-openapi
 	GOBIN=$(DEPSGOBIN) go install golang.org/x/tools/cmd/goimports
 	GOBIN=$(DEPSGOBIN) go install github.com/envoyproxy/protoc-gen-validate
 	GOBIN=$(DEPSGOBIN) go install github.com/golang/protobuf/protoc-gen-go
@@ -137,7 +137,12 @@ clean-fed: clean-artifacts clean-generated-protos
 .PHONY: run-ci-regression-tests
 run-ci-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
-	$(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/$(KUBE2E_TESTS)/...
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/$(KUBE2E_TESTS)/...
+
+.PHONE: run-ci-gloo-fed-regression-tests
+run-ci-gloo-fed-regression-tests: install-go-tools
+	go env -w GOPRIVATE=github.com/solo-io
+	REMOTE_CLUSTER_CONTEXT=kind-remote LOCAL_CLUSTER_CONTEXT=kind-local $(DEPSGOBIN)/ginkgo -r ./test/gloo-fed-e2e/...
 
 # command to run e2e tests
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
@@ -582,6 +587,7 @@ $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RATELIM
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
     --build-arg USE_APK=true \
     --build-arg GITHUB_TOKEN \
 		.
@@ -624,6 +630,7 @@ $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RA
 		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
     --build-arg GITHUB_TOKEN \
 		.
 	touch $@
@@ -672,6 +679,7 @@ $(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_OUT_DI
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg USE_APK=true \
 		--build-arg GITHUB_TOKEN \
 		.
@@ -699,6 +707,7 @@ ext-auth-plugins-docker: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 	docker build -t $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(RELATIVE_EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 \
 		--build-arg GITHUB_TOKEN \
 		--build-arg USE_APK=true \
@@ -732,6 +741,7 @@ $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_F
 		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg GITHUB_TOKEN \
 		.
 	touch $@
@@ -759,6 +769,7 @@ ext-auth-plugins-fips-docker: $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64
 	docker build -t $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg VERIFY_SCRIPT=$(RELATIVE_EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 \
 		--build-arg GITHUB_TOKEN \
 		.

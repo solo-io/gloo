@@ -6,6 +6,7 @@ import * as jspb from "google-protobuf";
 import * as validate_validate_pb from "../../../../../../../../../../validate/validate_pb";
 import * as envoy_api_v2_route_route_pb from "../../../../../../../../../../envoy/api/v2/route/route_pb";
 import * as github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb from "../../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/type/percent_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/route/v3/route_components_pb";
 
 export class FilterTransformations extends jspb.Message {
   clearTransformationsList(): void;
@@ -35,6 +36,11 @@ export class TransformationRule extends jspb.Message {
   getMatch(): envoy_api_v2_route_route_pb.RouteMatch | undefined;
   setMatch(value?: envoy_api_v2_route_route_pb.RouteMatch): void;
 
+  hasMatchV3(): boolean;
+  clearMatchV3(): void;
+  getMatchV3(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb.RouteMatch | undefined;
+  setMatchV3(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb.RouteMatch): void;
+
   hasRouteTransformations(): boolean;
   clearRouteTransformations(): void;
   getRouteTransformations(): RouteTransformations | undefined;
@@ -53,6 +59,7 @@ export class TransformationRule extends jspb.Message {
 export namespace TransformationRule {
   export type AsObject = {
     match?: envoy_api_v2_route_route_pb.RouteMatch.AsObject,
+    matchV3?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb.RouteMatch.AsObject,
     routeTransformations?: RouteTransformations.AsObject,
   }
 }

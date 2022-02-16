@@ -12,6 +12,7 @@ FROM $GO_BUILD_IMAGE as build-env
 
 ARG VERSION
 ARG GCFLAGS
+ARG LDFLAGS
 ARG GITHUB_TOKEN
 ARG USE_APK
 
@@ -31,7 +32,7 @@ RUN go env -w GOPRIVATE=github.com/solo-io
 # Build ext-auth server with CGO enabled
 RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
     -gcflags="$GCFLAGS" \
-    -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION" \
+    -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION $LDFLAGS" \
     -o extauth-linux-amd64 \
     projects/extauth/cmd/main.go
 

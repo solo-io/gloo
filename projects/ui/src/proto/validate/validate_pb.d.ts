@@ -217,6 +217,11 @@ export class FloatRules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): FloatRules.AsObject;
   static toObject(includeInstance: boolean, msg: FloatRules): FloatRules.AsObject;
@@ -236,6 +241,7 @@ export namespace FloatRules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -275,6 +281,11 @@ export class DoubleRules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DoubleRules.AsObject;
   static toObject(includeInstance: boolean, msg: DoubleRules): DoubleRules.AsObject;
@@ -294,6 +305,7 @@ export namespace DoubleRules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -333,6 +345,11 @@ export class Int32Rules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Int32Rules.AsObject;
   static toObject(includeInstance: boolean, msg: Int32Rules): Int32Rules.AsObject;
@@ -352,6 +369,7 @@ export namespace Int32Rules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -391,6 +409,11 @@ export class Int64Rules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Int64Rules.AsObject;
   static toObject(includeInstance: boolean, msg: Int64Rules): Int64Rules.AsObject;
@@ -410,6 +433,7 @@ export namespace Int64Rules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -449,6 +473,11 @@ export class UInt32Rules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UInt32Rules.AsObject;
   static toObject(includeInstance: boolean, msg: UInt32Rules): UInt32Rules.AsObject;
@@ -468,6 +497,7 @@ export namespace UInt32Rules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -507,6 +537,11 @@ export class UInt64Rules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UInt64Rules.AsObject;
   static toObject(includeInstance: boolean, msg: UInt64Rules): UInt64Rules.AsObject;
@@ -526,6 +561,7 @@ export namespace UInt64Rules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -565,6 +601,11 @@ export class SInt32Rules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SInt32Rules.AsObject;
   static toObject(includeInstance: boolean, msg: SInt32Rules): SInt32Rules.AsObject;
@@ -584,6 +625,7 @@ export namespace SInt32Rules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -623,6 +665,11 @@ export class SInt64Rules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SInt64Rules.AsObject;
   static toObject(includeInstance: boolean, msg: SInt64Rules): SInt64Rules.AsObject;
@@ -642,6 +689,7 @@ export namespace SInt64Rules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -681,6 +729,11 @@ export class Fixed32Rules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Fixed32Rules.AsObject;
   static toObject(includeInstance: boolean, msg: Fixed32Rules): Fixed32Rules.AsObject;
@@ -700,6 +753,7 @@ export namespace Fixed32Rules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -739,6 +793,11 @@ export class Fixed64Rules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Fixed64Rules.AsObject;
   static toObject(includeInstance: boolean, msg: Fixed64Rules): Fixed64Rules.AsObject;
@@ -758,6 +817,7 @@ export namespace Fixed64Rules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -797,6 +857,11 @@ export class SFixed32Rules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SFixed32Rules.AsObject;
   static toObject(includeInstance: boolean, msg: SFixed32Rules): SFixed32Rules.AsObject;
@@ -816,6 +881,7 @@ export namespace SFixed32Rules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -855,6 +921,11 @@ export class SFixed64Rules extends jspb.Message {
   setNotInList(value: Array<number>): void;
   addNotIn(value: number, index?: number): number;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SFixed64Rules.AsObject;
   static toObject(includeInstance: boolean, msg: SFixed64Rules): SFixed64Rules.AsObject;
@@ -874,6 +945,7 @@ export namespace SFixed64Rules {
     gte?: number,
     inList: Array<number>,
     notInList: Array<number>,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -1025,6 +1097,11 @@ export class StringRules extends jspb.Message {
   getStrict(): boolean | undefined;
   setStrict(value: boolean): void;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   getWellKnownCase(): StringRules.WellKnownCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): StringRules.AsObject;
@@ -1063,6 +1140,7 @@ export namespace StringRules {
     uuid?: boolean,
     wellKnownRegex?: KnownRegexMap[keyof KnownRegexMap],
     strict?: boolean,
+    ignoreEmpty?: boolean,
   }
 
   export enum WellKnownCase {
@@ -1158,6 +1236,11 @@ export class BytesRules extends jspb.Message {
   getIpv6(): boolean | undefined;
   setIpv6(value: boolean): void;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   getWellKnownCase(): BytesRules.WellKnownCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): BytesRules.AsObject;
@@ -1184,6 +1267,7 @@ export namespace BytesRules {
     ip?: boolean,
     ipv4?: boolean,
     ipv6?: boolean,
+    ignoreEmpty?: boolean,
   }
 
   export enum WellKnownCase {
@@ -1283,6 +1367,11 @@ export class RepeatedRules extends jspb.Message {
   getItems(): FieldRules | undefined;
   setItems(value?: FieldRules): void;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RepeatedRules.AsObject;
   static toObject(includeInstance: boolean, msg: RepeatedRules): RepeatedRules.AsObject;
@@ -1299,6 +1388,7 @@ export namespace RepeatedRules {
     maxItems?: number,
     unique?: boolean,
     items?: FieldRules.AsObject,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -1328,6 +1418,11 @@ export class MapRules extends jspb.Message {
   getValues(): FieldRules | undefined;
   setValues(value?: FieldRules): void;
 
+  hasIgnoreEmpty(): boolean;
+  clearIgnoreEmpty(): void;
+  getIgnoreEmpty(): boolean | undefined;
+  setIgnoreEmpty(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): MapRules.AsObject;
   static toObject(includeInstance: boolean, msg: MapRules): MapRules.AsObject;
@@ -1345,6 +1440,7 @@ export namespace MapRules {
     noSparse?: boolean,
     keys?: FieldRules.AsObject,
     values?: FieldRules.AsObject,
+    ignoreEmpty?: boolean,
   }
 }
 
@@ -1517,6 +1613,8 @@ export namespace TimestampRules {
 }
 
   export const disabled: jspb.ExtensionFieldInfo<boolean>;
+
+  export const ignored: jspb.ExtensionFieldInfo<boolean>;
 
   export const required: jspb.ExtensionFieldInfo<boolean>;
 

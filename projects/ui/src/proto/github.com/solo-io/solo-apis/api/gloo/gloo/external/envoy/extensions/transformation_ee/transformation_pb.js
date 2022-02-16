@@ -15,6 +15,7 @@ var global = Function('return this')();
 var validate_validate_pb = require('../../../../../../../../../../validate/validate_pb.js');
 var envoy_api_v2_route_route_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/api/v2/route/route_pb.js');
 var github_com_solo$io_solo$kit_api_external_envoy_type_percent_pb = require('../../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/type/percent_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/route/v3/route_components_pb.js');
 goog.exportSymbol('proto.envoy.config.filter.http.transformation_ee.v2.Action', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.transformation_ee.v2.FilterTransformations', null, global);
@@ -238,6 +239,7 @@ proto.envoy.config.filter.http.transformation_ee.v2.TransformationRule.prototype
 proto.envoy.config.filter.http.transformation_ee.v2.TransformationRule.toObject = function(includeInstance, msg) {
   var f, obj = {
     match: (f = msg.getMatch()) && envoy_api_v2_route_route_pb.RouteMatch.toObject(includeInstance, f),
+    matchV3: (f = msg.getMatchV3()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb.RouteMatch.toObject(includeInstance, f),
     routeTransformations: (f = msg.getRouteTransformations()) && proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations.toObject(includeInstance, f)
   };
 
@@ -279,6 +281,11 @@ proto.envoy.config.filter.http.transformation_ee.v2.TransformationRule.deseriali
       var value = new envoy_api_v2_route_route_pb.RouteMatch;
       reader.readMessage(value,envoy_api_v2_route_route_pb.RouteMatch.deserializeBinaryFromReader);
       msg.setMatch(value);
+      break;
+    case 3:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb.RouteMatch;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb.RouteMatch.deserializeBinaryFromReader);
+      msg.setMatchV3(value);
       break;
     case 2:
       var value = new proto.envoy.config.filter.http.transformation_ee.v2.RouteTransformations;
@@ -322,6 +329,14 @@ proto.envoy.config.filter.http.transformation_ee.v2.TransformationRule.serialize
       envoy_api_v2_route_route_pb.RouteMatch.serializeBinaryToWriter
     );
   }
+  f = message.getMatchV3();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb.RouteMatch.serializeBinaryToWriter
+    );
+  }
   f = message.getRouteTransformations();
   if (f != null) {
     writer.writeMessage(
@@ -360,6 +375,36 @@ proto.envoy.config.filter.http.transformation_ee.v2.TransformationRule.prototype
  */
 proto.envoy.config.filter.http.transformation_ee.v2.TransformationRule.prototype.hasMatch = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional solo.io.envoy.config.route.v3.RouteMatch match_v3 = 3;
+ * @return {?proto.solo.io.envoy.config.route.v3.RouteMatch}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.TransformationRule.prototype.getMatchV3 = function() {
+  return /** @type{?proto.solo.io.envoy.config.route.v3.RouteMatch} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_route_v3_route_components_pb.RouteMatch, 3));
+};
+
+
+/** @param {?proto.solo.io.envoy.config.route.v3.RouteMatch|undefined} value */
+proto.envoy.config.filter.http.transformation_ee.v2.TransformationRule.prototype.setMatchV3 = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.envoy.config.filter.http.transformation_ee.v2.TransformationRule.prototype.clearMatchV3 = function() {
+  this.setMatchV3(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.transformation_ee.v2.TransformationRule.prototype.hasMatchV3 = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

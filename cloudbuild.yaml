@@ -139,6 +139,7 @@ steps:
     - "CLOUD_BUILD=1"
     - "GCLOUD_BUILD_ID=$BUILD_ID"
     - "HELM_HOME=/root/.helm"
+    - GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn
   waitFor:
     [
       "prepare-workspace",

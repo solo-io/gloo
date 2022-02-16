@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
+
+	"github.com/solo-io/solo-projects/test/services"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformers/xslt"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -78,6 +81,13 @@ var _ = Describe("dlp tests", func() {
 		err = httpEcho.Deploy(2 * time.Minute)
 		Expect(err).NotTo(HaveOccurred())
 
+		// bounce envoy, get a clean state (draining listener can break this test). see https://github.com/solo-io/solo-projects/issues/2921 for more.
+		out, err := services.KubectlOut(strings.Split("rollout restart -n "+testHelper.InstallNamespace+" deploy/gateway-proxy", " ")...)
+		fmt.Println(out)
+		Expect(err).ToNot(HaveOccurred())
+		out, err = services.KubectlOut(strings.Split("rollout status -n "+testHelper.InstallNamespace+" deploy/gateway-proxy", " ")...)
+		fmt.Println(out)
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {

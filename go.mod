@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.36.30
 	github.com/deislabs/oras v0.10.0
 	github.com/envoyproxy/go-control-plane v0.9.9-0.20210511190911-87d352569d55
-	github.com/envoyproxy/protoc-gen-validate v0.4.1
+	github.com/envoyproxy/protoc-gen-validate v0.6.1
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
 	github.com/gertd/go-pluralize v0.1.1
@@ -16,11 +16,11 @@ require (
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.2.0
 	github.com/go-redis/redis/v8 v8.2.3
-	github.com/go-test/deep v1.0.4
+	github.com/go-test/deep v1.0.7
 	github.com/gobuffalo/logger v1.0.3 // indirect
 	github.com/gobuffalo/packr v1.30.1
-	github.com/golang/mock v1.5.0
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/mock v1.6.0
+	github.com/golang/protobuf v1.5.2
 	github.com/google/wire v0.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/hashicorp/go-multierror v1.1.1
@@ -39,38 +39,38 @@ require (
 	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/rotisserie/eris v0.5.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/solo-io/anyvendor v0.0.3
+	github.com/solo-io/anyvendor v0.0.4
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.11
 	github.com/solo-io/external-apis v0.1.4
-	github.com/solo-io/gloo v1.9.6
-	github.com/solo-io/go-list-licenses v0.1.3
-	github.com/solo-io/go-utils v0.21.18
-	github.com/solo-io/k8s-utils v0.0.10
+	github.com/solo-io/gloo v1.9.8
+	github.com/solo-io/go-list-licenses v0.1.4
+	github.com/solo-io/go-utils v0.21.24
+	github.com/solo-io/k8s-utils v0.0.11
 	github.com/solo-io/licensing v0.1.20
-	github.com/solo-io/protoc-gen-ext v0.0.15
+	github.com/solo-io/protoc-gen-ext v0.0.16
 	github.com/solo-io/rate-limiter v0.4.5
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.17.19
 	github.com/solo-io/skv2-enterprise v0.0.8
 	// Corresponds to gloo-v1.9.6
-	github.com/solo-io/solo-apis v0.0.0-20211213154301-690fbd2f44f8
-	github.com/solo-io/solo-kit v0.24.0
+	github.com/solo-io/solo-apis v0.0.0-20220211143556-7fcbde2a88f2
+	github.com/solo-io/solo-kit v0.24.2
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
-	go.opencensus.io v0.22.6
+	go.opencensus.io v0.23.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/mod v0.4.2
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
+	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/tools v0.1.5
 	google.golang.org/grpc v1.36.0
-	google.golang.org/protobuf v1.25.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	helm.sh/helm/v3 v3.4.2

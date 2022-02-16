@@ -13,6 +13,7 @@ FROM $GO_BUILD_IMAGE as build-env
 ARG VERSION
 ARG GCFLAGS
 ARG GITHUB_TOKEN
+ARG LDFLAGS
 ARG USE_APK
 
 # Fail if VERSION is not set
@@ -31,7 +32,7 @@ RUN go env -w GOPRIVATE=github.com/solo-io
 # Build rate-limit server with CGO enabled
 RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
     -gcflags="$GCFLAGS" \
-    -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION" \
+    -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION $LDFLAGS" \
     -o rate-limit-linux-amd64 \
     projects/rate-limit/cmd/main.go
 
