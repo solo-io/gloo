@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
+import { useIsGraphqlEnabled } from 'API/hooks';
 
 type Props = {
   children: React.ReactElement;
@@ -7,12 +8,9 @@ type Props = {
 };
 
 export const EnableGraphqlFeature: React.FC<Props> = props => {
-  let query = new URLSearchParams(useLocation().search);
-  const graphqlIntegrationEnabled =
-    query.get('graphql') === 'enabled' ||
-    query.get('graphql') === 'on' ||
-    process.env.REACT_APP_GRAPHQL_INTEGRATION === 'true';
-  if (!graphqlIntegrationEnabled) {
+  const { data: graphqlIntegrationEnabled, error: graphqlCheckError } =
+    useIsGraphqlEnabled();
+  if (graphqlCheckError || !graphqlIntegrationEnabled) {
     return props.reroute ? <Navigate to='/' replace /> : null;
   }
   return props.children;

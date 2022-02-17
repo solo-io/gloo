@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Add apiserver endpoint that returns whether graphql is enabled.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3042

@@ -354,6 +354,14 @@ export function useIsGlooFedEnabled() {
   );
 }
 
+export function useIsGraphqlEnabled() {
+  return useSWR<boolean>(
+    BootstrapApi.IsGraphqlEnabled.methodName,
+    () => bootstrapApi.isGraphqlEnabled(),
+    { refreshInterval: normalRefreshInterval }
+  );
+}
+
 export function useListGraphqlSchemas(glooInstanceRef?: ObjectRef.AsObject) {
   const key = !!glooInstanceRef
     ? `${GraphqlApi.ListGraphqlSchemas.methodName}/${glooInstanceRef.namespace}/${glooInstanceRef.name}`

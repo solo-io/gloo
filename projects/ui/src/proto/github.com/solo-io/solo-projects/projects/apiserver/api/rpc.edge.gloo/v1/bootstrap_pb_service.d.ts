@@ -13,9 +13,19 @@ type BootstrapApiIsGlooFedEnabled = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GlooFedCheckResponse;
 };
 
+type BootstrapApiIsGraphqlEnabled = {
+  readonly methodName: string;
+  readonly service: typeof BootstrapApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GraphqlCheckRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GraphqlCheckResponse;
+};
+
 export class BootstrapApi {
   static readonly serviceName: string;
   static readonly IsGlooFedEnabled: BootstrapApiIsGlooFedEnabled;
+  static readonly IsGraphqlEnabled: BootstrapApiIsGraphqlEnabled;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -58,6 +68,15 @@ export class BootstrapApiClient {
   isGlooFedEnabled(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GlooFedCheckRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GlooFedCheckResponse|null) => void
+  ): UnaryResponse;
+  isGraphqlEnabled(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GraphqlCheckRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GraphqlCheckResponse|null) => void
+  ): UnaryResponse;
+  isGraphqlEnabled(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GraphqlCheckRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GraphqlCheckResponse|null) => void
   ): UnaryResponse;
 }
 

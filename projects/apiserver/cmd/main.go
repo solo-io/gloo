@@ -75,10 +75,10 @@ func main() {
 	var mgr manager.Manager
 	if glooFedEnabled {
 		mgr = fed_bootstrap.MustLocalManagerFromConfig(rootCtx, cfg)
-		initializeGlooFed(rootCtx, mgr, apiserverSettings)
+		initializeGlooFed(rootCtx, mgr, apiserverSettings, licensedFeatureProvider)
 	} else {
 		mgr = fed_bootstrap.MustSingleClusterManagerFromConfig(rootCtx, cfg)
-		initializeSingleClusterGloo(rootCtx, mgr, apiserverSettings)
+		initializeSingleClusterGloo(rootCtx, mgr, apiserverSettings, licensedFeatureProvider)
 	}
 
 	err = mgr.Start(rootCtx)
@@ -88,7 +88,8 @@ func main() {
 	contextutils.LoggerFrom(rootCtx).Infow("Shutting down, root context cancelled.")
 }
 
-func initializeGlooFed(ctx context.Context, mgr manager.Manager, apiserverSettings *settings.ApiServerSettings) {
+func initializeGlooFed(ctx context.Context, mgr manager.Manager, apiserverSettings *settings.ApiServerSettings,
+	licensedFeatureProvider *license.LicensedFeatureProvider) {
 	if err := fields.AddGlooInstanceIndexer(ctx, mgr); err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while adding cluster indexer to GlooInstance", zap.Error(err))
 	}
@@ -111,7 +112,7 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, apiserverSettin
 	glooEnterpriseMCClient := enterprise_gloo_v1.NewMulticlusterClientset(mcClient)
 	ratelimitMCCLient := ratelimit_v1alpha1.NewMulticlusterClientset(mcClient)
 
-	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig())
+	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig(), licensedFeatureProvider)
 	glooInstanceService := glooinstance_handler.NewFedGlooInstanceHandler(clusterWatcher, clusterSet, envoy_admin.NewEnvoyAdminClient(), glooInstanceClient)
 	failoverSchemeService := failover_scheme_handler.NewFailoverSchemeHandler(failoverSchemeClient)
 	routeTableSelectorService := rt_selector_handler.NewFedVirtualServiceRoutesHandler(gatewayMCClient)
@@ -137,7 +138,8 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, apiserverSettin
 	}
 }
 
-func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, apiserverSettings *settings.ApiServerSettings) {
+func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, apiserverSettings *settings.ApiServerSettings,
+	licensedFeatureProvider *license.LicensedFeatureProvider) {
 	coreClientset := core_v1.NewClientset(mgr.GetClient())
 	appsClientset := apps_v1.NewClientset(mgr.GetClient())
 	gatewayClientset := gateway_v1.NewClientset(mgr.GetClient())
@@ -146,7 +148,7 @@ func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, apise
 	enterpriseGlooClientset := enterprise_gloo_v1.NewClientset(mgr.GetClient())
 	ratelimitClientset := ratelimit_v1alpha1.NewClientset(mgr.GetClient())
 
-	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig())
+	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig(), licensedFeatureProvider)
 	glooInstanceLister := glooinstance_handler.NewSingleClusterGlooInstanceLister(coreClientset, appsClientset, gatewayClientset, glooClientset, enterpriseGlooClientset, ratelimitClientset)
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
 	if err != nil {

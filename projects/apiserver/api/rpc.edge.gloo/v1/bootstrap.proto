@@ -12,6 +12,15 @@ message GlooFedCheckResponse {
   bool enabled = 1;
 }
 
+message GraphqlCheckRequest {
+}
+
+message GraphqlCheckResponse {
+  // returns true if GraphQL is enabled in the provided license
+  bool enabled = 1;
+}
+
 service BootstrapApi {
   rpc IsGlooFedEnabled (GlooFedCheckRequest) returns (GlooFedCheckResponse) {}
+  rpc IsGraphqlEnabled (GraphqlCheckRequest) returns (GraphqlCheckResponse) {}
 }

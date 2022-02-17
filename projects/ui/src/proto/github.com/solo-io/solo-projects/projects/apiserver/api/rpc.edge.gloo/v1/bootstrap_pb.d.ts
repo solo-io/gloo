@@ -39,3 +39,39 @@ export namespace GlooFedCheckResponse {
     enabled: boolean,
   }
 }
+
+export class GraphqlCheckRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GraphqlCheckRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GraphqlCheckRequest): GraphqlCheckRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GraphqlCheckRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GraphqlCheckRequest;
+  static deserializeBinaryFromReader(message: GraphqlCheckRequest, reader: jspb.BinaryReader): GraphqlCheckRequest;
+}
+
+export namespace GraphqlCheckRequest {
+  export type AsObject = {
+  }
+}
+
+export class GraphqlCheckResponse extends jspb.Message {
+  getEnabled(): boolean;
+  setEnabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GraphqlCheckResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GraphqlCheckResponse): GraphqlCheckResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GraphqlCheckResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GraphqlCheckResponse;
+  static deserializeBinaryFromReader(message: GraphqlCheckResponse, reader: jspb.BinaryReader): GraphqlCheckResponse;
+}
+
+export namespace GraphqlCheckResponse {
+  export type AsObject = {
+    enabled: boolean,
+  }
+}
