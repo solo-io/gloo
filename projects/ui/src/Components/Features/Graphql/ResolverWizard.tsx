@@ -9,9 +9,20 @@ import YamlEditor from 'Components/Common/YamlEditor';
 import { Formik, FormikState, useFormikContext } from 'formik';
 import React from 'react';
 import { colors } from 'Styles/colors';
-import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
+import {
+  SoloButtonStyledComponent,
+  SoloCancelButton,
+} from 'Styles/StyledComponents/button';
 import * as yup from 'yup';
 import YAML from 'yaml';
+import { graphqlApi } from 'API/graphql';
+import { ValidateResolverYamlRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
+export const EditorContainer = styled.div<{ editMode: boolean }>`
+  .ace_cursor {
+    opacity: ${props => (props.editMode ? 1 : 0)};
+  }
+  cursor: ${props => (props.editMode ? 'text' : 'default')};
+`;
 
 export const IconButton = styled.button`
   display: inline-flex;
@@ -190,37 +201,164 @@ const ResolverConfigSection = ({
   isEdit,
   resolverConfig,
 }: ResolverConfigSectionProps) => {
-  const formik = useFormikContext<ResolverWizardProps>();
+  const { setFieldValue, values, dirty } =
+    useFormikContext<ResolverWizardProps>();
   const [isValid, setIsValid] = React.useState(false);
-
+  const [errorModal, setErrorModal] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState('');
   React.useEffect(() => {
     setTimeout(() => {
-      formik.setFieldValue('resolverConfig', resolverConfig);
+      setFieldValue('resolverConfig', resolverConfig);
     }, 300);
   }, []);
 
+  const validateResolverSchema = (resolver: string) => {
+    setIsValid(!isValid);
+    try {
+      graphqlApi
+        .validateResolverYaml({
+          yaml: resolver,
+          resolverType:
+            values.resolverType === 'REST'
+              ? ValidateResolverYamlRequest.ResolverType.REST_RESOLVER
+              : ValidateResolverYamlRequest.ResolverType.REST_RESOLVER,
+        })
+        .then(res => {
+          console.log('res', res);
+          setIsValid(true);
+          setErrorMessage('');
+        })
+        .catch(err => {
+          let [_, conversionError] = err.message?.split(
+            'failed to convert options YAML to JSON: yaml:'
+          ) as [string, string];
+          let [__, yamlError] = err.message?.split(
+            ' invalid options YAML:'
+          ) as [string, string];
+          if (conversionError) {
+            setIsValid(false);
+            setErrorMessage(`Error on ${conversionError}`);
+          } else if (yamlError) {
+            setIsValid(false);
+            setErrorMessage(
+              `Error: ${
+                yamlError?.substring(yamlError.indexOf('):') + 2) ?? ''
+              }`
+            );
+          }
+        });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
-    <div className='w-full h-full p-6 pb-0'>
+    <div className='h-full p-6 pb-0 '>
       <div
-        className={'flex items-center mb-6 text-lg font-medium text-gray-800'}
+        className={'flex items-center mb-2 text-lg font-medium text-gray-800'}
       >
         {isEdit ? 'Edit' : 'Configure'} Resolver{' '}
       </div>
       <div className=''>
         <div className='mb-2 '>
           <div>
-            <YamlEditor
-              name='resolverConfig'
-              title='Resolver Configuration'
-              defaultValue={resolverConfig}
-              onChange={e => {
-                formik.setFieldValue('resolverConfig', e);
-              }}
-              onInput={() => {
-                setIsValid(false);
-              }}
-              value={formik.values.resolverConfig ?? ''}
-            />
+            <EditorContainer editMode={true}>
+              <div className=''>
+                <div className='' style={{ height: 'min-content' }}>
+                  {isValid ? (
+                    <div
+                      className={`${
+                        isValid ? 'opacity-100' : 'opacity-0'
+                      } h-10 text-center`}
+                    >
+                      <div
+                        style={{ backgroundColor: '#f2fef2' }}
+                        className='p-2 text-green-400 border border-green-400 '
+                      >
+                        <div className='font-medium '>Valid</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className={`${
+                        errorMessage.length > 0 ? 'opacity-100' : '  opacity-0'
+                      } h-10`}
+                    >
+                      <div
+                        style={{ backgroundColor: '#FEF2F2' }}
+                        className='p-2 text-orange-400 border border-orange-400 '
+                      >
+                        <div className='font-medium '>
+                          {errorMessage?.split(',')[0]}
+                        </div>
+                        <ul className='pl-2 list-disc'>
+                          {errorMessage?.split(',')[1]}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className='mt-2'></div>
+              </div>
+              <div className='flex flex-col w-full '>
+                <>
+                  <YamlEditor
+                    mode='yaml'
+                    theme='chrome'
+                    name='resolverConfiguration'
+                    style={{
+                      width: '24vw',
+                      maxHeight: '36vh',
+                      cursor: 'text',
+                    }}
+                    onChange={e => {
+                      setFieldValue('resolverConfig', e);
+                    }}
+                    focus={true}
+                    onInput={() => {
+                      setIsValid(false);
+                    }}
+                    fontSize={14}
+                    showPrintMargin={false}
+                    showGutter={true}
+                    highlightActiveLine={true}
+                    value={values.resolverConfig ?? ''}
+                    readOnly={false}
+                    setOptions={{
+                      highlightGutterLine: true,
+                      showGutter: true,
+                      fontSize: 16,
+                      enableBasicAutocompletion: true,
+                      enableLiveAutocompletion: true,
+                      showLineNumbers: true,
+                      tabSize: 2,
+                    }}
+                  />
+                  <div className='flex gap-3 mt-2'>
+                    <SoloButtonStyledComponent
+                      data-testid='save-route-options-changes-button '
+                      disabled={!dirty || isValid}
+                      onClick={() =>
+                        validateResolverSchema(values.resolverConfig ?? '')
+                      }
+                    >
+                      Validate
+                    </SoloButtonStyledComponent>
+
+                    <SoloCancelButton
+                      disabled={!dirty}
+                      onClick={() => {
+                        setFieldValue('resolverConfig', '');
+                        setErrorMessage('');
+                      }}
+                    >
+                      Reset
+                    </SoloCancelButton>
+                  </div>
+                </>
+              </div>
+            </EditorContainer>
           </div>
         </div>
       </div>
@@ -292,7 +430,7 @@ export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
     return '';
   };
   return (
-    <div className='h-[650px]'>
+    <div className='h-[700px]'>
       <Formik<ResolverWizardProps>
         initialValues={{
           resolverType: 'REST',
@@ -358,12 +496,11 @@ export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
                   </div>
                 </TabPanel>
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
-                  <div className='w-full h-full p-6 pb-0'>
+                  {/* <div className='w-full h-full p-6 pb-0'>
                     <div
                       className={
                         'flex items-center mb-6 text-lg font-medium text-gray-800'
-                      }
-                    >
+                      }>
                       Resolver{' '}
                     </div>
                     <div className=''>
@@ -376,7 +513,11 @@ export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
+                  <ResolverConfigSection
+                    isEdit
+                    resolverConfig={formik.values.resolverConfig}
+                  />
 
                   <div className='flex items-center justify-between px-6 '>
                     <IconButton onClick={() => props.onClose()}>

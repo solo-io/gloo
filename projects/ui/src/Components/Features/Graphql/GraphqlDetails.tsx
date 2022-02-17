@@ -4,6 +4,8 @@ import { graphqlApi } from 'API/graphql';
 import { useGetGraphqlSchemaDetails, useListUpstreams } from 'API/hooks';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import AreaHeader from 'Components/Common/AreaHeader';
+import ConfirmationModal from 'Components/Common/ConfirmationModal';
+import ErrorModal from 'Components/Common/ErrorModal';
 import { Loading } from 'Components/Common/Loading';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloModal } from 'Components/Common/SoloModal';
@@ -17,6 +19,7 @@ import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiser
 import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { colors } from 'Styles/colors';
+import { SoloNegativeButton } from 'Styles/StyledComponents/button';
 import { GraphqlApiExplorer } from './GraphqlApiExplorer';
 import { GraphqlIconHolder } from './GraphqlTable';
 import ResolversTable from './ResolversTable';
@@ -88,11 +91,14 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
   const [tabIndex, setTabIndex] = React.useState(0);
   const [currentResolver, setCurrentResolver] = React.useState<any>();
   const [modalOpen, setModalOpen] = React.useState(false);
-
+  const [attemptingDelete, setAttemptingDelete] = React.useState(false);
   const { data: upstreams, error: upstreamsError } = useListUpstreams();
   const [resolverUpstreams, setResolverUpstreams] = React.useState<
     Upstream.AsObject[]
   >([]);
+  const [errorModal, setErrorModal] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState('');
+  const [errorDescription, setErrorDescription] = React.useState('');
 
   React.useEffect(() => {
     let resolverUpstreams =
@@ -144,6 +150,32 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
 
   if (!graphqlSchema) return <Loading />;
 
+  const attemptDeleteGraphqlSchema = () => {
+    setAttemptingDelete(true);
+  };
+
+  const cancelDeletion = () => {
+    setAttemptingDelete(false);
+  };
+
+  const deleteGraphqlSchema = async () => {
+    await graphqlApi
+      .deleteGraphqlSchema({
+        name: graphqlSchemaName,
+        namespace: graphqlSchemaNamespace,
+        clusterName: graphqlSchemaClusterName,
+      })
+      .then(res => {
+        setAttemptingDelete(false);
+        navigate('/apis');
+      })
+      .catch(err => {
+        setAttemptingDelete(false);
+        setErrorMessage('API deletion failed');
+        setErrorDescription(err.message ?? '');
+        setErrorModal(true);
+      });
+  };
   return (
     <React.Fragment>
       <div className='w-full mx-auto '>
@@ -227,6 +259,14 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
                         </div>
                       </div>
                     </ConfigArea>
+                    <div>
+                      <SoloNegativeButton
+                        data-testid='delete-api'
+                        onClick={attemptDeleteGraphqlSchema}
+                      >
+                        Delete API
+                      </SoloNegativeButton>
+                    </div>
                   </>
                 </FolderTabContent>
               </StyledTabPanel>
@@ -241,6 +281,25 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
           </Tabs>
         </SectionCard>
       </div>
+      <SoloModal visible={modalOpen} width={750} onClose={closeModal}>
+        <ResolverWizard resolver={currentResolver} onClose={closeModal} />
+      </SoloModal>
+      <ConfirmationModal
+        confirmTestId='confirm-delete-api'
+        visible={attemptingDelete}
+        confirmationTopic='delete this API'
+        confirmText='Delete'
+        goForIt={deleteGraphqlSchema}
+        cancel={cancelDeletion}
+        isNegative={true}
+      />
+      <ErrorModal
+        cancel={() => setErrorModal(false)}
+        visible={errorModal}
+        errorDescription={errorDescription}
+        errorMessage={errorMessage}
+        isNegative={true}
+      />
     </React.Fragment>
   );
 };

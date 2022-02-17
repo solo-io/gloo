@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Delete API functionality in the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3106

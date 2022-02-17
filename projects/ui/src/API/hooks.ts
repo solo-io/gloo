@@ -60,11 +60,7 @@ import { FederatedRateLimitConfig } from 'proto/github.com/solo-io/solo-projects
 import { BootstrapApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb_service';
 import { bootstrapApi } from './bootstrap';
 import { GlooFedCheckResponse } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb';
-import petstoreSchema from '../Components/Features/Graphql/data/petstore.json';
-import bookinfoSchema from '../Components/Features/Graphql/data/book-info.json';
-import { graphqlApi, GraphqlSchemaType } from './graphql';
-import { petstoreYaml } from 'Components/Features/Graphql/data/petstore-yaml';
-import { bookInfoYaml } from 'Components/Features/Graphql/data/book-info-yaml';
+import { graphqlApi } from './graphql';
 import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
 import { GraphqlSchema } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 
