@@ -107,7 +107,6 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
             )
         )
         .map(([resolveName, resolver]) => resolver.restResolver?.upstreamRef);
-
     let fullUpstreams = upstreams?.filter(
       upstream =>
         !!resolverUpstreams?.find(
@@ -119,7 +118,8 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
     if (!!fullUpstreams) {
       setResolverUpstreams(fullUpstreams);
     }
-  }, []);
+  }, [!!graphqlSchema, !!upstreams]);
+
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
@@ -241,9 +241,6 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
           </Tabs>
         </SectionCard>
       </div>
-      <SoloModal visible={modalOpen} width={750} onClose={closeModal}>
-        <ResolverWizard resolver={currentResolver} onClose={closeModal} />
-      </SoloModal>
     </React.Fragment>
   );
 };

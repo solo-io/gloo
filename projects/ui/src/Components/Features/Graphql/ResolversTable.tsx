@@ -128,7 +128,8 @@ export const ResolverItem: React.FC<{
               gridTemplateRows: '1fr',
               gridAutoRows: 'min-content',
               columnGap: '15px',
-            }}>
+            }}
+          >
             <span className='flex items-center justify-start ml-6 font-medium text-gray-900 '>
               Field Name
             </span>
@@ -143,7 +144,8 @@ export const ResolverItem: React.FC<{
         </div>
         <div
           className='absolute top-0 right-0 flex items-center w-10 h-10 p-4 mr-2 cursor-pointer '
-          onClick={() => setIsOpen(!isOpen)}>
+          onClick={() => setIsOpen(!isOpen)}
+        >
           <ArrowToggle active={isOpen} className='self-center m-4 ' />
         </div>
       </div>
@@ -156,13 +158,15 @@ export const ResolverItem: React.FC<{
             }px`,
             width: `100%`,
             overflow: 'auto',
-          }}>
+          }}
+        >
           <div
             style={{
               height: `${rowVirtualizer.totalSize}px`,
               width: '100%',
               position: 'relative',
-            }}>
+            }}
+          >
             {rowVirtualizer.virtualItems.map(virtualRow => {
               const op = fields[virtualRow.index] as FieldDefinitionNode;
               let hasResolver = !!op?.directives?.length;
@@ -177,7 +181,8 @@ export const ResolverItem: React.FC<{
                     width: '100%',
                     height: `${virtualRow.size}px`,
                     transform: `translateY(${virtualRow.start}px)`,
-                  }}>
+                  }}
+                >
                   <div className='flex items-center px-4 text-sm font-medium text-gray-900 whitespace-nowrap'>
                     <CodeIcon className='w-4 h-4 ml-2 mr-3 fill-current text-blue-600gloo' />
                   </div>
@@ -195,7 +200,8 @@ export const ResolverItem: React.FC<{
                         gridAutoRows: 'min-content',
                         columnGap: '5px',
                         rowGap: '5px',
-                      }}>
+                      }}
+                    >
                       <span className='flex items-center font-medium text-gray-900 '>
                         {fields[virtualRow.index].name?.value ?? ''}
                       </span>
@@ -213,7 +219,8 @@ export const ResolverItem: React.FC<{
                             handleResolverConfigModal(
                               fields[virtualRow.index].name?.value ?? ''
                             );
-                          }}>
+                          }}
+                        >
                           {hasResolver && (
                             <RouteIcon className='w-6 h-6 mr-1 fill-current text-blue-600gloo' />
                           )}
@@ -285,10 +292,9 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
 
   function handleResolverConfigModal(resolverName: string) {
     let [currentResolverName, currentResolver] =
-      Object.entries(
-        graphqlSchema?.spec?.executableSchema?.executor?.local
-          ?.resolutionsMap ?? {}
-      ).find(([rName, resolver]) => rName.includes(resolverName)) ?? [];
+      graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap.find(
+        ([rName, resolver]) => rName.includes(resolverName)
+      ) ?? [];
 
     setCurrentResolver(currentResolver);
     openModal();
@@ -298,7 +304,8 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
       <div className='flex flex-col w-full '>
         <div
           className='relative space-y-6 overflow-x-hidden overflow-y-scroll '
-          ref={listRef}>
+          ref={listRef}
+        >
           {fieldTypesMap
             ?.sort(([typeName, fields]) =>
               typeName === 'Query' ? -1 : typeName === 'Mutation' ? 0 : 1

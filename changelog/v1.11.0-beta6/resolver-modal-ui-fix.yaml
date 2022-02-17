@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Resolver upstreams were not showing up in the Resolver Wizard or the API Details page in the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3102
