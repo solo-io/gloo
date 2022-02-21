@@ -82,6 +82,7 @@ export const GlooAdminGateways = () => {
     if (gateways?.length) {
       toggleView(gateways[0]);
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [gateways]);
 
   const [swaggerContentByUid, setSwaggerContentByUid] = React.useState<{

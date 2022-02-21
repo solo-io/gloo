@@ -2,5 +2,8 @@
     "parser": "@babel/eslint-parser",
     "plugins": [
         "@babel"
+    ],
+    "extends": [
+        "plugin:react-hooks/recommended"
     ]
 }

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { GraphiQL } from 'graphiql';
+import { Fetcher, FetcherParams, GraphiQL } from 'graphiql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import styled from '@emotion/styled';
 import { colors } from 'Styles/colors';
@@ -9,8 +9,18 @@ import { GraphQLSchema } from 'graphql';
 import { useListVirtualServices } from 'API/hooks';
 import { useParams } from 'react-router';
 import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
-import { StatusHealth, WarningCircle } from '../Overview/OverviewBoxSummary';
+import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
+import {
+  OverviewSmallBoxSummary,
+  StatusHealth,
+  WarningCircle,
+} from '../Overview/OverviewBoxSummary';
 import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
+import { QuestionCircleOutlined } from '@ant-design/icons';
+import { SoloInput } from 'Components/Common/SoloInput';
+import { createGraphiQLFetcher } from '@graphiql/toolkit';
+import { Tooltip } from 'antd';
+import { copyTextToClipboard } from 'utils';
 
 function mockedDirective(directiveName: string) {
   return {
@@ -46,16 +56,53 @@ const Wrapper = styled.div`
   background: white;
 `;
 
-const Header = styled.h1`
-  background: ${colors.marchGrey};
-  padding: 20px;
-  margin-bottom: 0;
-  border-radius: 10px 10px 0 0;
-`;
-
 const StyledContainer = styled.div`
   height: 70vh;
 `;
+
+const GqlInputContainer = styled.div`
+  margin: 10px auto;
+`;
+
+const GqlInputWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+`;
+
+const LabelTextWrapper = styled.div`
+  label {
+    margin-right: 10px;
+    color: ${colors.sunGold};
+  }
+`;
+
+const StyledQuestionMark = styled(QuestionCircleOutlined)`
+  margin-top: 3px;
+  display: inline-flex;
+  &:hover {
+    cursor: pointer;
+  }
+`;
+
+const CodeWrapper = styled.div`
+  code {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+`;
+
+const GQL_STORAGE_KEY = 'gqlStorageKey';
+
+const getGqlStorage = () => {
+  return (
+    localStorage.getItem(GQL_STORAGE_KEY) || 'http://localhost:8080/graphql'
+  );
+};
+
+const setGqlStorage = (value: string) => {
+  localStorage.setItem(GQL_STORAGE_KEY, value);
+};
 
 interface GraphqlApiExplorerProps {
   graphQLSchema?: any;
@@ -63,6 +110,59 @@ interface GraphqlApiExplorerProps {
 
 export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
   const { graphqlSchemaName, graphqlSchemaNamespace } = useParams();
+  const [gqlError, setGqlError] = React.useState('');
+  const [refetch, setRefetch] = React.useState(false);
+  const [url, setUrl] = React.useState(getGqlStorage());
+  const [showTooltip, setShowTooltip] = React.useState(false);
+
+  const changeUrl = (value: string) => {
+    setGqlStorage(value);
+    setUrl(value);
+  };
+
+  const copyKubectlCommand = async () => {
+    const text =
+      'kubectl port-forward -n gloo-system deploy/gateway-proxy 8080';
+    await navigator.clipboard
+      .writeText(
+        'kubectl port-forward -n gloo-system deploy/gateway-proxy 8080'
+      )
+      .catch(() => {
+        copyTextToClipboard(text);
+      });
+  };
+
+  const copyGlooctlCommand = async () => {
+    const text = 'glooctl proxy url';
+    await navigator.clipboard.writeText('glooctl proxy url').catch(() => {
+      copyTextToClipboard(text);
+    });
+  };
+
+  // If we need the custom fetcher, we can add `schemaFetcher` to the document.
+  let gqlFetcher = createGraphiQLFetcher({
+    url,
+    schemaFetcher: async graphQLParams => {
+      try {
+        setRefetch(false);
+        setGqlError('');
+        const data = await fetch(url, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(graphQLParams),
+          credentials: 'same-origin',
+        });
+        return data.json().catch(() => data.text());
+      } catch (error: any) {
+        setGqlError(error.message);
+        console.log('error', error);
+      }
+    },
+  });
+
   const graphiqlRef = React.useRef<null | GraphiQL>(null);
 
   const { mockedDirectiveTypeDefs, mockedDirectiveTransformer } =
@@ -84,6 +184,7 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
     if (!!correspondingVs) {
       setCorrespondingVirtualServices(correspondingVs);
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [!!virtualServices]);
 
   let executableSchema = makeExecutableSchema({
@@ -95,32 +196,69 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
   const handlePrettifyQuery = () => {
     graphiqlRef?.current?.handlePrettifyQuery();
   };
-  // TODO:  We can hide and show elements based on what we get back.
+  const changeHost = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRefetch(true);
+    changeUrl(e.currentTarget.value);
+  };
 
-  return !!correspondingVirtualServices?.length ? (
+  // TODO:  We can hide and show elements based on what we get back.
+  //        The schema will only refetch if the executable schema is undefined.
+  return !!correspondingVirtualServices?.length || true ? (
     <Wrapper>
+      {gqlError && (
+        <GqlInputContainer>
+          <GqlInputWrapper>
+            <LabelTextWrapper>
+              <SoloInput
+                title='Failed to fetch Graphql service.  Update the host to attempt again.'
+                value={url}
+                onChange={changeHost}
+              />
+            </LabelTextWrapper>
+            <Tooltip
+              title={
+                <CodeWrapper>
+                  <p>
+                    Endpoint URL for the gateway proxy. The default URL can be
+                    used if you port forward with the following command:
+                  </p>
+                  <p title='copy command' onClick={copyKubectlCommand}>
+                    <code>
+                      <i>
+                        kubectl port-forward -n gloo-system deploy/gateway-proxy
+                        8080
+                      </i>
+                    </code>
+                  </p>
+                  <p>
+                    Depending on your installation, you can also use the
+                    following glooctl command:
+                  </p>
+                  <p title='copy command' onClick={copyGlooctlCommand}>
+                    <code>
+                      <i>glooctl proxy url</i>
+                    </code>
+                  </p>
+                </CodeWrapper>
+              }
+              trigger='hover'
+              visible={showTooltip}
+              onVisibleChange={() => {
+                setShowTooltip(!showTooltip);
+              }}
+            >
+              <StyledQuestionMark />
+            </Tooltip>
+          </GqlInputWrapper>
+        </GqlInputContainer>
+      )}
       <StyledContainer>
         <GraphiQL
           ref={graphiqlRef}
           defaultQuery={''}
           variables={'{}'}
-          schema={executableSchema}
-          fetcher={async graphQLParams => {
-            try {
-              const data = await fetch('http://localhost:8080/graphql', {
-                method: 'POST',
-                headers: {
-                  Accept: 'application/json',
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(graphQLParams),
-                credentials: 'same-origin',
-              });
-              return data.json().catch(() => data.text());
-            } catch (error) {
-              console.log('error', error);
-            }
-          }}
+          schema={!refetch ? executableSchema : undefined}
+          fetcher={gqlFetcher}
         >
           <GraphiQL.Toolbar>
             <GraphiQL.Button

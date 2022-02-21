@@ -64,6 +64,7 @@ export const AdminInnerPagesWrapper = () => {
     if (!adminPage?.length) {
       navigate('virtual-services/');
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [adminPage]);
 
   const goToPage = (newPage: string | number | undefined) => {

@@ -92,10 +92,8 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
   const { data: glooInstances, error: glooError } = useListGlooInstances();
   const { data: clusterDetailsList, error: cError } = useListClusterDetails();
 
-  const {
-    data: glooFedCheckResponse,
-    error: glooFedCheckError,
-  } = useIsGlooFedEnabled();
+  const { data: glooFedCheckResponse, error: glooFedCheckError } =
+    useIsGlooFedEnabled();
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
   const multipleClustersOrInstances =
@@ -166,6 +164,7 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
     } else {
       setTableData([]);
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [
     upstreams,
     props.nameFilter,
@@ -210,7 +209,8 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
           navigate(
             `/gloo-instances/${glooInstance.namespace}/${glooInstance.name}/`
           )
-        }>
+        }
+      >
         {glooInstance.name}
       </div>
     );
@@ -298,7 +298,8 @@ export const UpstreamsPageTable = (props: Props) => {
           <UpstreamIcon />
         </UpstreamIconHolder>
       }
-      noPadding={true}>
+      noPadding={true}
+    >
       <UpstreamsTable {...props} wholePage={true} />
     </SectionCard>
   );

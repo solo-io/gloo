@@ -41,6 +41,7 @@ export const RouteTableDetails = () => {
     } else {
       setRouteTable(undefined);
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [name, namespace, allRouteTables]);
 
   if (!!rtError) {

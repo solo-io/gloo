@@ -210,6 +210,7 @@ const ResolverConfigSection = ({
     setTimeout(() => {
       setFieldValue('resolverConfig', resolverConfig);
     }, 300);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, []);
 
   const validateResolverSchema = (resolver: string) => {
@@ -421,6 +422,7 @@ export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
 
   React.useEffect(() => {
     setIsEdit(Boolean(props.resolver?.name));
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [!!props.resolver?.name]);
 
   const getInitialResolverConfig = (resolver?: typeof props.resolver) => {

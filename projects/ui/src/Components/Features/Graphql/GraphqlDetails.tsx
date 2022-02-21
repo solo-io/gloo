@@ -124,6 +124,7 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
     if (!!fullUpstreams) {
       setResolverUpstreams(fullUpstreams);
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [!!graphqlSchema, !!upstreams]);
 
   const handleTabsChange = (index: number) => {

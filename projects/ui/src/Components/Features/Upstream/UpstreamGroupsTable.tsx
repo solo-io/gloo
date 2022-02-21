@@ -69,22 +69,18 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
     }[]
   >([]);
 
-  const {
-    data: upstreamGroups,
-    error: upstreamGroupsError,
-  } = useListUpstreamGroups(
-    !!name && !!namespace
-      ? {
-          name,
-          namespace,
-        }
-      : undefined
-  );
+  const { data: upstreamGroups, error: upstreamGroupsError } =
+    useListUpstreamGroups(
+      !!name && !!namespace
+        ? {
+            name,
+            namespace,
+          }
+        : undefined
+    );
 
-  const {
-    data: glooFedCheckResponse,
-    error: glooFedCheckError,
-  } = useIsGlooFedEnabled();
+  const { data: glooFedCheckResponse, error: glooFedCheckError } =
+    useIsGlooFedEnabled();
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
   useEffect(() => {
@@ -139,6 +135,7 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
     } else {
       setTableData([]);
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [
     upstreamGroups,
     props.nameFilter,
@@ -179,7 +176,8 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
           navigate(
             `/gloo-instances/${glooInstance.namespace}/${glooInstance.name}/`
           )
-        }>
+        }
+      >
         {glooInstance.name}
       </div>
     );
@@ -254,7 +252,8 @@ export const UpstreamGroupsPageTable = (props: Props) => {
           <UpstreamGroupIcon />
         </UpstreamGroupIconHolder>
       }
-      noPadding={true}>
+      noPadding={true}
+    >
       <UpstreamGroupsTable {...props} wholePage={true} />
     </SectionCard>
   );

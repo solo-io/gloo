@@ -6,7 +6,10 @@ import { colors } from 'Styles/colors';
 import { WeightPercentageBlock } from 'Styles/StyledComponents/weight-block';
 import { SoloTable, RenderCluster } from 'Components/Common/SoloTable';
 import { RenderSimpleLink } from 'Components/Common/SoloLink';
-import { ObjectRef, ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
+import {
+  ObjectRef,
+  ClusterObjectRef,
+} from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import { Loading } from 'Components/Common/Loading';
 import { DataError } from 'Components/Common/DataError';
 
@@ -205,6 +208,7 @@ const UpstreamFailoverGroupTable = ({ group, isWeighted }: Props) => {
       });
     });
     setTableData(tableData);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [group, allUpstreams]);
 
   if (!!upstreamError) {

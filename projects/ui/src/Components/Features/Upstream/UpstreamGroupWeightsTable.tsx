@@ -61,10 +61,8 @@ export const UpstreamGroupWeightsTable = ({ destinations }: Props) => {
     upstreamGroupClusterName: cluster,
   } = useParams();
 
-  const {
-    data: glooFedCheckResponse,
-    error: glooFedCheckError,
-  } = useIsGlooFedEnabled();
+  const { data: glooFedCheckResponse, error: glooFedCheckError } =
+    useIsGlooFedEnabled();
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
   useEffect(() => {
@@ -94,6 +92,7 @@ export const UpstreamGroupWeightsTable = ({ destinations }: Props) => {
     } else {
       setTableData([]);
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [destinations?.length]);
 
   if (!destinations) {

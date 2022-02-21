@@ -80,6 +80,7 @@ const renderGlooInstanceList = (glooInstance: {
   name: string;
   namespace: string;
 }) => {
+  /* eslint-disable-next-line */
   const navigate = useNavigate();
   return (
     <div
@@ -87,7 +88,8 @@ const renderGlooInstanceList = (glooInstance: {
         navigate(
           `/gloo-instances/${glooInstance.namespace}/${glooInstance.name}/`
         )
-      }>
+      }
+    >
       {glooInstance.name}
     </div>
   );
@@ -117,16 +119,15 @@ type TableProps = {
 export const RouteTablesTable = ({ routeTables, wholePage }: TableProps) => {
   const [tableData, setTableData] = React.useState<RouteTableTableFields[]>([]);
 
-  const {
-    data: glooFedCheckResponse,
-    error: glooFedCheckError,
-  } = useIsGlooFedEnabled();
+  const { data: glooFedCheckResponse, error: glooFedCheckError } =
+    useIsGlooFedEnabled();
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
   useEffect(() => {
     setTableData(
       routeTables.map(gwRoute => fillRowFields(gwRoute, isGlooFedEnabled))
     );
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [routeTables]);
 
   let columns: any = [
@@ -283,7 +284,8 @@ export const RouteTablesPageTable = (props: Props) => {
           <RouteTableIcon />
         </GlooIconHolder>
       }
-      noPadding={true}>
+      noPadding={true}
+    >
       <RouteTablesPageCardContents {...props} wholePage={true} />
     </SectionCard>
   );

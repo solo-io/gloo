@@ -68,6 +68,7 @@ export const VirtualServiceDetails = () => {
     } else {
       setVirtualService(undefined);
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [name, namespace, allVirtualServices]);
 
   if (!!vsError) {

@@ -125,6 +125,7 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
     } else {
       setTableData([]);
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [graphqlSchemas]);
 
   const onDownloadSchema = (gqlSchema: GraphqlSchema.AsObject) => {

@@ -66,6 +66,7 @@ export const GlooAdminSettings = () => {
     if (settings?.length) {
       toggleView(settings[0]);
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [settings]);
 
   const [swaggerContentByUid, setSwaggerContentByUid] = React.useState<{

@@ -80,27 +80,23 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
 
   const { data: glooInstances, error: glooError } = useListGlooInstances();
   const { data: clusterDetailsList, error: cError } = useListClusterDetails();
-  const {
-    data: glooFedCheckResponse,
-    error: glooFedCheckError,
-  } = useIsGlooFedEnabled();
+  const { data: glooFedCheckResponse, error: glooFedCheckError } =
+    useIsGlooFedEnabled();
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
   const multipleClustersOrInstances =
     (clusterDetailsList && clusterDetailsList.length > 1) ||
     (glooInstances && glooInstances.length > 1);
 
-  const {
-    data: virtualServices,
-    error: virtualServicesError,
-  } = useListVirtualServices(
-    !!name && !!namespace
-      ? {
-          name,
-          namespace,
-        }
-      : undefined
-  );
+  const { data: virtualServices, error: virtualServicesError } =
+    useListVirtualServices(
+      !!name && !!namespace
+        ? {
+            name,
+            namespace,
+          }
+        : undefined
+    );
 
   useEffect(() => {
     if (virtualServices) {
@@ -171,6 +167,7 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
     } else {
       setTableData([]);
     }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [
     virtualServices,
     props.nameFilter,
@@ -211,7 +208,8 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
           navigate(
             `/gloo-instances/${glooInstance.namespace}/${glooInstance.name}/`
           )
-        }>
+        }
+      >
         {glooInstance.name}
       </div>
     );
@@ -291,7 +289,8 @@ export const VirtualServicesPageTable = (props: Props) => {
           <GlooIcon />
         </GlooIconHolder>
       }
-      noPadding={true}>
+      noPadding={true}
+    >
       <VirtualServicesTable {...props} wholePage={true} />
     </SectionCard>
   );
