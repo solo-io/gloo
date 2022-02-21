@@ -41,7 +41,6 @@ spec:
                                         methodName:
                                           type: string
                                         outgoingMessageJson:
-                                          type: object
                                           x-kubernetes-preserve-unknown-fields: true
                                         requestMetadata:
                                           additionalProperties:
@@ -65,7 +64,6 @@ spec:
                                     request:
                                       properties:
                                         body:
-                                          type: object
                                           x-kubernetes-preserve-unknown-fields: true
                                         headers:
                                           additionalProperties:

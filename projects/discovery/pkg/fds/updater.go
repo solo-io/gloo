@@ -3,7 +3,9 @@ package fds
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -116,6 +118,8 @@ func (u *Updater) UpstreamUpdated(upstream *v1.Upstream) {
 }
 
 func (u *Updater) UpstreamAdded(upstream *v1.Upstream) {
+
+	fmt.Println("upstream added: ", upstream.GetMetadata().GetName())
 	// upstream already tracked. ignore.
 	key := translator.UpstreamToClusterName(upstream.GetMetadata().Ref())
 	if _, ok := u.activeUpstreams[key]; ok {
@@ -310,6 +314,11 @@ func (u *updaterUpdater) Run() error {
 			return nil
 		})
 	}
+	discoveries := []string{}
+	for _, d := range discoveriesForUpstream {
+		discoveries = append(discoveries, fmt.Sprintf("%T", d))
+	}
+	fmt.Printf("Upstream %s, %s \n", u.upstream.GetMetadata().GetName(), strings.Join(discoveries, ","))
 	for _, discoveryForUpstream := range discoveriesForUpstream {
 		err := discoveryForUpstream.DetectFunctions(context.Background(), resolvedUrl, u.dependencies, upstreamSave)
 		if err != nil {

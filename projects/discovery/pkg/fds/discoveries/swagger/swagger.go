@@ -208,10 +208,10 @@ func (f *SwaggerFunctionDiscovery) detectFunctionsFromUrl(ctx context.Context, u
 		// ignore other errors as we would like to continue forever.
 	}
 
-	if err := contextutils.Sleep(ctx, f.functionPollTime); err != nil {
-		return err
-	}
-
+	//if err := contextutils.Sleep(ctx, f.functionPollTime); err != nil {
+	//	return err
+	//}
+	return nil
 }
 
 func (f *SwaggerFunctionDiscovery) detectFunctionsFromInline(ctx context.Context, document string, in *v1.Upstream, updatecb func(fds.UpstreamMutator) error) error {
