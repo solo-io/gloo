@@ -7,7 +7,11 @@ import { ReactComponent as GlooFedIcon } from 'assets/GlooFed-Specific/gloo-edge
 import { ReactComponent as GearIcon } from 'assets/gear-icon.svg';
 import { ReactComponent as AdminGearHover } from 'assets/admin-settings-hover.svg';
 import { SoloLink } from 'Components/Common/SoloLink';
-import { useListClusterDetails, useListGlooInstances } from 'API/hooks';
+import {
+  useIsGlooFedEnabled,
+  useListClusterDetails,
+  useListGlooInstances,
+} from 'API/hooks';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
 
@@ -65,7 +69,10 @@ const GearIconHolder = styled.div`
 
 export const MainMenu = () => {
   const routerLocation = useLocation();
+  const { data: glooFedCheckResponse, error: glooFedCheckError } =
+    useIsGlooFedEnabled();
 
+  const isGlooFedEnabled = glooFedCheckResponse?.enabled;
   const { data: glooInstances, error: glooError } = useListGlooInstances();
   const { data: clusterDetailsList, error: cError } = useListClusterDetails();
 
@@ -86,7 +93,9 @@ export const MainMenu = () => {
             Overview
           </NestedLink>
           {multipleClustersOrInstances && (
-            <NestedLink to='/gloo-instances/'>Gloo Instances</NestedLink>
+            <NestedLink exact to='/gloo-instances/'>
+              Gloo Instances
+            </NestedLink>
           )}
           <NestedLink to='/virtual-services/' exact>
             Virtual Services
@@ -98,7 +107,19 @@ export const MainMenu = () => {
             Wasm
           </NestedLink>
           <EnableGraphqlFeature>
-            <NestedLink to={'/apis'} exact>
+            <NestedLink
+              to={
+                clusterDetailsList?.length === 1 && glooInstances?.length === 1
+                  ? `/gloo-instances/${
+                      clusterDetailsList[0]!.glooInstancesList[0].metadata
+                        ?.namespace
+                    }/${
+                      clusterDetailsList[0]!.glooInstancesList[0].metadata?.name
+                    }/apis/`
+                  : '/apis/'
+              }
+              exact
+            >
               APIs
             </NestedLink>
           </EnableGraphqlFeature>

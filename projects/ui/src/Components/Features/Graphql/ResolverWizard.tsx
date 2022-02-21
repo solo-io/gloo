@@ -2,7 +2,11 @@ import styled from '@emotion/styled/macro';
 import { TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { useListUpstreams } from 'API/hooks';
 import { OptionType } from 'Components/Common/SoloDropdown';
-import { SoloFormDropdown } from 'Components/Common/SoloFormComponents';
+import {
+  SoloFormDropdown,
+  SoloFormRadio,
+  SoloFormRadioOption,
+} from 'Components/Common/SoloFormComponents';
 import { StyledModalTab, StyledModalTabs } from 'Components/Common/SoloModal';
 import YamlDisplayer from 'Components/Common/YamlDisplayer';
 import YamlEditor from 'Components/Common/YamlEditor';
@@ -17,6 +21,9 @@ import * as yup from 'yup';
 import YAML from 'yaml';
 import { graphqlApi } from 'API/graphql';
 import { ValidateResolverYamlRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
+import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import { useParams } from 'react-router';
+
 export const EditorContainer = styled.div<{ editMode: boolean }>`
   .ace_cursor {
     opacity: ${props => (props.editMode ? 1 : 0)};
@@ -42,7 +49,7 @@ export const IconButton = styled.button`
   }
 `;
 
-export type ResolverWizardProps = {
+export type ResolverWizardFormProps = {
   resolverType: 'REST' | 'gRPC';
   upstream: string;
   resolverConfig: string;
@@ -57,9 +64,22 @@ const validationSchema = yup.object().shape({
 });
 
 type ResolverTypeSectionProps = { isEdit: boolean };
+export let apiTypeOptions = [
+  {
+    displayValue: 'REST',
+    value: 'REST',
+    subHeader:
+      'Integrate with upstream REST APIs and customize HTTP request and response mappings.',
+  },
+  {
+    displayValue: 'gRPC',
+    value: 'gRPC',
+    subHeader: 'Integrate with upstream gRPC APIs based on a proto definition.',
+  },
+] as SoloFormRadioOption[];
 
 const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
-  const formik = useFormikContext<ResolverWizardProps>();
+  const formik = useFormikContext<ResolverWizardFormProps>();
 
   return (
     <div className='w-full h-full p-6 pb-0'>
@@ -69,79 +89,13 @@ const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
         {isEdit ? 'Edit' : 'Configure'} Resolver{' '}
       </div>
       <div className='grid grid-cols-2 gap-4 '>
-        <div className='grid grid-cols-2 col-span-2 gap-2 mb-2'>
-          <label className='text-base font-medium '>Resolver Type</label>
-          <div className='col-span-2 mt-3 -space-y-px bg-white rounded-md'>
-            <div
-              onClick={() => formik.setFieldValue('resolverType', 'REST')}
-              className={`relative flex p-3 border ${
-                formik.values.resolverType === 'REST'
-                  ? ' border-blue-300gloo bg-blue-150gloo z-10 '
-                  : 'border-gray-200'
-              } rounded-tl-md rounded-tr-md`}
-            >
-              <div className='flex items-center h-5'>
-                <input
-                  type='radio'
-                  readOnly
-                  className='w-4 h-4 border-gray-300 cursor-pointer text-blue-600gloo focus:ring-blue-600gloo'
-                  checked={formik.values.resolverType === 'REST'}
-                />
-              </div>
-              <label className='flex flex-col ml-3 cursor-pointer'>
-                <span
-                  className={`block text-sm font-medium ${
-                    formik.values.resolverType === 'REST'
-                      ? ' text-blue-700gloo'
-                      : 'text-gray-900'
-                  } `}
-                >
-                  REST
-                </span>
-                {/* TODO: add copy explaining things */}
-                <span className='block text-sm text-blue-700gloo'>
-                  Integrate with upstream REST APIs and customize HTTP request
-                  and response mappings.
-                </span>
-              </label>
-            </div>
-
-            <div
-              className={`relative flex p-3 border ${
-                formik.values.resolverType === 'gRPC'
-                  ? ' border-blue-300gloo bg-blue-150gloo z-10 '
-                  : 'border-gray-200'
-              }rounded-bl-md rounded-br-md`}
-              onClick={() => formik.setFieldValue('resolverType', 'gRPC')}
-            >
-              <div className='flex items-center h-5'>
-                <input
-                  type='radio'
-                  readOnly
-                  checked={formik.values.resolverType === 'gRPC'}
-                  className='w-4 h-4 border-gray-300 cursor-pointer text-blue-600gloo focus:ring-blue-600gloo'
-                />
-              </div>
-              <label
-                htmlFor='settings-option-1'
-                className='flex flex-col ml-3 cursor-pointer'
-              >
-                <span
-                  className={`block text-sm font-medium ${
-                    formik.values.resolverType === 'gRPC'
-                      ? ' text-blue-700gloo'
-                      : 'text-gray-900'
-                  } `}
-                >
-                  gRPC
-                </span>
-                <span className='block text-sm text-blue-700gloo '>
-                  Integrate with upstream gRPC APIs based on a proto definition.
-                </span>
-              </label>
-            </div>
-          </div>
-        </div>
+        <SoloFormRadio<ResolverWizardFormProps>
+          name='resolverType'
+          isUpdate={Boolean(isEdit)}
+          title='Resolver Type'
+          options={apiTypeOptions}
+          titleAbove
+        />
       </div>
     </div>
   );
@@ -150,7 +104,7 @@ const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
 type UpstreamSectionProps = { isEdit: boolean };
 
 const UpstreamSection = ({ isEdit }: UpstreamSectionProps) => {
-  const formik = useFormikContext<ResolverWizardProps>();
+  const formik = useFormikContext<ResolverWizardFormProps>();
   const { data: upstreams, error: upstreamsError } = useListUpstreams();
 
   return (
@@ -172,7 +126,9 @@ const UpstreamSection = ({ isEdit }: UpstreamSectionProps) => {
                 ?.map(upstream => {
                   return {
                     key: upstream.metadata?.uid!,
-                    value: upstream.metadata?.name!,
+                    value: `${upstream.metadata?.name!}::${
+                      upstream.metadata?.namespace
+                    }`,
                     displayValue: upstream.metadata?.name!,
                   };
                 })
@@ -202,54 +158,75 @@ const ResolverConfigSection = ({
   resolverConfig,
 }: ResolverConfigSectionProps) => {
   const { setFieldValue, values, dirty } =
-    useFormikContext<ResolverWizardProps>();
+    useFormikContext<ResolverWizardFormProps>();
   const [isValid, setIsValid] = React.useState(false);
   const [errorModal, setErrorModal] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState('');
-  React.useEffect(() => {
-    setTimeout(() => {
-      setFieldValue('resolverConfig', resolverConfig);
-    }, 300);
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, []);
 
-  const validateResolverSchema = (resolver: string) => {
+  React.useEffect(() => {
+    let config = YAML.parse(values.resolverConfig) as Resolution.AsObject;
+    let [upstreamName = '', upstreamNamespace = ''] =
+      values.upstream.split('::');
+
+    let configToDisplay: Partial<Resolution.AsObject> = {};
+
+    // @ts-ignore
+    let resolverConfig: Partial<Resolution.AsObject> = {
+      ...config,
+      ...(values.resolverType === 'REST' && {
+        restResolver: {
+          ...config.restResolver,
+          upstreamRef: {
+            name: upstreamName!,
+            namespace: upstreamNamespace!,
+          },
+        },
+      }),
+      ...(values.resolverType === 'gRPC' && {
+        grpcResolver: {
+          ...config.grpcResolver,
+          upstreamRef: {
+            name: upstreamName!,
+            namespace: upstreamNamespace!,
+          },
+        },
+      }),
+    };
+    console.log('resolverConfig', resolverConfig);
+
+    setFieldValue('resolverConfig', YAML.stringify(resolverConfig));
+  }, [values.upstream]);
+
+  const validateResolverSchema = async (resolver: string) => {
     setIsValid(!isValid);
     try {
-      graphqlApi
-        .validateResolverYaml({
-          yaml: resolver,
-          resolverType:
-            values.resolverType === 'REST'
-              ? ValidateResolverYamlRequest.ResolverType.REST_RESOLVER
-              : ValidateResolverYamlRequest.ResolverType.REST_RESOLVER,
-        })
-        .then(res => {
-          console.log('res', res);
-          setIsValid(true);
-          setErrorMessage('');
-        })
-        .catch(err => {
-          let [_, conversionError] = err.message?.split(
-            'failed to convert options YAML to JSON: yaml:'
-          ) as [string, string];
-          let [__, yamlError] = err.message?.split(
-            ' invalid options YAML:'
-          ) as [string, string];
-          if (conversionError) {
-            setIsValid(false);
-            setErrorMessage(`Error on ${conversionError}`);
-          } else if (yamlError) {
-            setIsValid(false);
-            setErrorMessage(
-              `Error: ${
-                yamlError?.substring(yamlError.indexOf('):') + 2) ?? ''
-              }`
-            );
-          }
-        });
-    } catch (error) {
-      console.log(error);
+      let res = await graphqlApi.validateResolverYaml({
+        yaml: resolver,
+        resolverType:
+          values.resolverType === 'REST'
+            ? ValidateResolverYamlRequest.ResolverType.REST_RESOLVER
+            : ValidateResolverYamlRequest.ResolverType.REST_RESOLVER,
+      });
+      console.log('res', res);
+      setIsValid(true);
+      setErrorMessage('');
+    } catch (err: any) {
+      let [_, conversionError] = err?.message?.split(
+        'failed to convert options YAML to JSON: yaml:'
+      ) as [string, string];
+      let [__, yamlError] = err?.message?.split(' invalid options YAML:') as [
+        string,
+        string
+      ];
+      if (conversionError) {
+        setIsValid(false);
+        setErrorMessage(`Error on ${conversionError}`);
+      } else if (yamlError) {
+        setIsValid(false);
+        setErrorMessage(
+          `Error: ${yamlError?.substring(yamlError.indexOf('):') + 2) ?? ''}`
+        );
+      }
     }
   };
 
@@ -309,7 +286,7 @@ const ResolverConfigSection = ({
                     theme='chrome'
                     name='resolverConfiguration'
                     style={{
-                      width: '24vw',
+                      width: '100%',
                       maxHeight: '36vh',
                       cursor: 'text',
                     }}
@@ -324,12 +301,11 @@ const ResolverConfigSection = ({
                     showPrintMargin={false}
                     showGutter={true}
                     highlightActiveLine={true}
-                    value={values.resolverConfig ?? ''}
+                    value={values.resolverConfig}
                     readOnly={false}
                     setOptions={{
                       highlightGutterLine: true,
                       showGutter: true,
-                      fontSize: 16,
                       enableBasicAutocompletion: true,
                       enableLiveAutocompletion: true,
                       showLineNumbers: true,
@@ -350,7 +326,7 @@ const ResolverConfigSection = ({
                     <SoloCancelButton
                       disabled={!dirty}
                       onClick={() => {
-                        setFieldValue('resolverConfig', '');
+                        setFieldValue('resolverConfig', resolverConfig);
                         setErrorMessage('');
                       }}
                     >
@@ -367,63 +343,63 @@ const ResolverConfigSection = ({
   );
 };
 
-let res = {
-  name: 'author',
-  restResolver: {
-    request: {
-      headers: {
-        ':method': 'GET',
-        ':path': '/details/{$parent.id}',
-      },
-    },
-    response: {
-      resultRoot: 'author',
-    },
-    upstreamRef: {
-      name: 'default-details-9080',
-      namespace: 'gloo-system',
-    },
-  },
-};
-type ResolverWizardFormProps = {
+type ResolverWizardProps = {
   onClose: () => void;
-  resolver?: typeof res;
+  resolver?: Resolution.AsObject;
+  resolverName?: string;
 };
 
-export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
+export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
+  const {
+    graphqlSchemaName = '',
+    graphqlSchemaNamespace = '',
+    graphqlSchemaClusterName = '',
+  } = useParams();
+
   const [tabIndex, setTabIndex] = React.useState(0);
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
   const [isValid, setIsValid] = React.useState(false);
-
   const [isEdit, setIsEdit] = React.useState(Boolean(props.resolver));
 
-  const submitResolverConfig = async (values: ResolverWizardProps) => {
-    // TODO
+  const submitResolverConfig = async (values: ResolverWizardFormProps) => {
+    let { resolverConfig, resolverType, upstream } = values;
+    let resolver = YAML.parse(values.resolverConfig);
+    await graphqlApi.updateGraphqlSchemaResolver(
+      {
+        name: graphqlSchemaName,
+        namespace: graphqlSchemaNamespace,
+        clusterName: graphqlSchemaClusterName,
+      },
+      [props.resolverName!, resolver]
+    );
   };
 
-  const resolverTypeIsValid = (formik: FormikState<ResolverWizardProps>) => {
+  const resolverTypeIsValid = (
+    formik: FormikState<ResolverWizardFormProps>
+  ) => {
     return !formik.errors.resolverType;
   };
 
-  const upstreamIsValid = (formik: FormikState<ResolverWizardProps>) => {
+  const upstreamIsValid = (formik: FormikState<ResolverWizardFormProps>) => {
     return !formik.errors.upstream;
   };
 
-  const resolverConfigIsValid = (formik: FormikState<ResolverWizardProps>) => {
+  const resolverConfigIsValid = (
+    formik: FormikState<ResolverWizardFormProps>
+  ) => {
     return !formik.errors.resolverConfig;
   };
 
-  const formIsValid = (formik: FormikState<ResolverWizardProps>) =>
+  const formIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
     resolverTypeIsValid(formik) &&
     upstreamIsValid(formik) &&
     resolverConfigIsValid(formik);
 
   React.useEffect(() => {
-    setIsEdit(Boolean(props.resolver?.name));
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [!!props.resolver?.name]);
+    setIsEdit(Boolean(props.resolver));
+  }, [!!props.resolver]);
 
   const getInitialResolverConfig = (resolver?: typeof props.resolver) => {
     if (resolver?.restResolver) {
@@ -433,10 +409,14 @@ export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
   };
   return (
     <div className='h-[700px]'>
-      <Formik<ResolverWizardProps>
+      <Formik<ResolverWizardFormProps>
         initialValues={{
           resolverType: 'REST',
-          upstream: props.resolver?.restResolver?.upstreamRef?.name! ?? '',
+          upstream: props.resolver?.restResolver?.upstreamRef?.name!
+            ? `${props.resolver?.restResolver?.upstreamRef?.name!}::${props
+                .resolver?.restResolver?.upstreamRef?.namespace!}`
+            : `${props.resolver?.grpcResolver?.upstreamRef?.name!}::${props
+                .resolver?.grpcResolver?.upstreamRef?.namespace!}` ?? '',
           resolverConfig: getInitialResolverConfig(props?.resolver),
         }}
         enableReinitialize
@@ -469,7 +449,7 @@ export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
               </TabList>
               <TabPanels className='bg-white rounded-r-lg'>
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
-                  <ResolverTypeSection isEdit={false} />
+                  <ResolverTypeSection isEdit={isEdit} />
                   <div className='flex items-center justify-between px-6 '>
                     <IconButton onClick={() => props.onClose()}>
                       Cancel
@@ -484,7 +464,7 @@ export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
                 </TabPanel>
 
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
-                  <UpstreamSection isEdit={false} />
+                  <UpstreamSection isEdit={isEdit} />
                   <div className='flex items-center justify-between px-6 '>
                     <IconButton onClick={() => props.onClose()}>
                       Cancel
@@ -498,28 +478,12 @@ export const ResolverWizard: React.FC<ResolverWizardFormProps> = props => {
                   </div>
                 </TabPanel>
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
-                  {/* <div className='w-full h-full p-6 pb-0'>
-                    <div
-                      className={
-                        'flex items-center mb-6 text-lg font-medium text-gray-800'
-                      }>
-                      Resolver{' '}
-                    </div>
-                    <div className=''>
-                      <div className='mb-2 '>
-                        <div>
-                          <YamlDisplayer
-                            contentString={formik.values.resolverConfig}
-                            copyable={false}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div> */}
-                  <ResolverConfigSection
-                    isEdit
-                    resolverConfig={formik.values.resolverConfig}
-                  />
+                  {tabIndex === 2 && (
+                    <ResolverConfigSection
+                      isEdit={isEdit}
+                      resolverConfig={formik.values.resolverConfig}
+                    />
+                  )}
 
                   <div className='flex items-center justify-between px-6 '>
                     <IconButton onClick={() => props.onClose()}>

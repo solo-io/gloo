@@ -358,13 +358,13 @@ export function useIsGraphqlEnabled() {
   );
 }
 
-export function useListGraphqlSchemas(glooInstanceRef?: ObjectRef.AsObject) {
-  const key = !!glooInstanceRef
+export const LIST_GRAPQL_SCHEMAS_KEY = (glooInstanceRef?: ObjectRef.AsObject) =>
+  !!glooInstanceRef
     ? `${GraphqlApi.ListGraphqlSchemas.methodName}/${glooInstanceRef.namespace}/${glooInstanceRef.name}`
     : GraphqlApi.ListGraphqlSchemas.methodName;
-
+export function useListGraphqlSchemas(glooInstanceRef?: ObjectRef.AsObject) {
   return useSWR<GraphqlSchema.AsObject[]>(
-    key,
+    LIST_GRAPQL_SCHEMAS_KEY(glooInstanceRef),
     () => graphqlApi.listGraphqlSchemas(glooInstanceRef),
     { refreshInterval: normalRefreshInterval }
   );

@@ -19,7 +19,7 @@ import tw from 'twin.macro';
 
 import { SoloCheckbox, CheckboxProps } from './SoloCheckbox';
 import { SoloDropdown, DropdownProps } from './SoloDropdown';
-import { Input, Label } from './SoloInput';
+import { Input, InputProps, Label, SoloInput } from './SoloInput';
 import { SoloTextarea, TextareaProps } from './SoloTextarea';
 type ErrorTextProps = { errorExists?: boolean };
 
@@ -226,6 +226,147 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
           </div>
         </div>
       </div>
+    </>
+  );
+};
+
+export type SoloFormRadioOption = {
+  displayValue: string;
+  value: string;
+  subHeader?: string;
+};
+export type SoloFormRadioProps = {
+  name: string; // the name of this field in Formik
+  isUpdate?: boolean; // whether its an update or create
+  title?: string; // display name of the field
+  options: SoloFormRadioOption[];
+  horizontal?: boolean;
+  titleAbove?: boolean;
+};
+
+export const SoloFormRadio = <Values extends FormikValues>(
+  props: SoloFormRadioProps
+) => {
+  const { name, isUpdate, title, options, horizontal, titleAbove } = props;
+  const { values, setFieldValue } = useFormikContext<Values>();
+
+  return (
+    <>
+      {title && titleAbove ? (
+        <label className='mb-2 text-base font-medium'>{title}</label>
+      ) : null}
+      <div
+        className={`${
+          horizontal ? 'flex items-center' : 'grid grid-cols-2 '
+        } col-span-2 gap-2 mb-2 cursor-pointer`}
+      >
+        {title && titleAbove ? null : (
+          <label className='text-base font-medium '>{title}</label>
+        )}
+        <div
+          className={`${
+            horizontal ? 'flex items-center' : ''
+          } col-span-2  bg-white rounded-md`}
+        >
+          {options.map((option, index) => {
+            let isFirst = index === 0;
+            let isLast = index === options.length - 1;
+            return (
+              <div
+                key={option.displayValue}
+                onClick={() => {
+                  if (isUpdate) return;
+                  setFieldValue(name, option.value);
+                }}
+                className={`relative flex p-5 border ${
+                  isUpdate ? '' : hoverStyles
+                } ${focusStyles} ${
+                  isUpdate && values[name] === option.value
+                    ? 'bg-gray-400 border-gray-200'
+                    : values[name] === option.value
+                    ? ' border-blue-300gloo bg-blue-150gloo z-10 '
+                    : 'border-gray-200'
+                } ${
+                  isFirst
+                    ? horizontal
+                      ? 'rounded-tl-md rounded-bl-md'
+                      : 'rounded-tl-md rounded-tr-md'
+                    : isLast
+                    ? horizontal
+                      ? 'rounded-tr-md rounded-br-md'
+                      : 'rounded-bl-md rounded-br-md'
+                    : ''
+                } `}
+              >
+                <div className='flex items-center h-5'>
+                  <input
+                    type='radio'
+                    readOnly
+                    disabled={isUpdate}
+                    className={`'w-4 h-4 border-gray-300 ${
+                      isUpdate
+                        ? 'text-gray-600 focus:ring-gray-600 cursor-not-allowed'
+                        : 'text-blue-600gloo focus:ring-blue-600gloo cursor-pointer'
+                    } '`}
+                    checked={values[name] === option.value}
+                  />
+                </div>
+                <label
+                  htmlFor='settings-option-0'
+                  className={`flex flex-col ml-3 ${
+                    isUpdate ? 'cursor-not-allowed' : 'cursor-pointer'
+                  }`}
+                >
+                  <span
+                    className={`block text-sm font-medium ${
+                      values[name] === option.value
+                        ? ' text-blue-700gloo'
+                        : 'text-gray-900'
+                    } `}
+                  >
+                    {option.displayValue}
+                  </span>
+                  <span className='block text-sm text-blue-700gloo'>
+                    {option.subHeader ?? ''}
+                  </span>
+                </label>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
+};
+
+interface SoloFormInputProps extends Partial<InputProps> {
+  name: string;
+  title?: string;
+  hideError?: boolean;
+}
+
+export const SoloFormInput = (props: SoloFormInputProps) => {
+  const { hideError = false } = props;
+  const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
+
+  return (
+    <>
+      <SoloInput
+        className='focus:border-blue-400gloo hover:border-blue-400gloo focus:outline-none focus:ring-4 focus:ring-blue-500gloo focus:ring-opacity-10'
+        {...field}
+        {...props}
+        error={!!meta.error && meta.touched}
+        title={props.title}
+        value={field.value}
+        onChange={field.onChange}
+      />
+      {hideError ? null : (
+        <ErrorText errorExists={!!meta.error && meta.touched}>
+          {meta.error}
+        </ErrorText>
+      )}
     </>
   );
 };

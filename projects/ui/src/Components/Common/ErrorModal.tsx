@@ -52,7 +52,7 @@ const ErrorX = styled(CloseIcon)`
   }
 `;
 
-interface Props extends ModalProps {
+export interface ErrorModalProps extends ModalProps {
   errorMessage?: string;
   visible?: boolean;
   isNegative?: boolean;
@@ -60,7 +60,7 @@ interface Props extends ModalProps {
   cancel: () => void;
 }
 
-const ErrorModal = (props: Props) => {
+const ErrorModal = (props: ErrorModalProps) => {
   const { errorMessage, errorDescription } = props;
   const closeModal = (): void => {
     props.cancel();

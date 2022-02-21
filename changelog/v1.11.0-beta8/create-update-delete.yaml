@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Use apiserver endpoints for creating updating and deleting APIs.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3000
+    resolvesIssue: false

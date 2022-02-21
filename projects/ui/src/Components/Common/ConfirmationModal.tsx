@@ -57,9 +57,9 @@ const ButtonGroup = styled.div`
   }
 `;
 
-interface Props extends ModalProps {
-  confirmationTopic?: string;
-  confirmText?: string;
+export interface ConfirmationModalProps extends ModalProps {
+  confirmPrompt?: string;
+  confirmButtonText?: string;
   goForIt: () => any;
   cancel: () => any;
   visible?: boolean;
@@ -69,12 +69,12 @@ interface Props extends ModalProps {
 }
 
 // TODO: make this workflow into a reusable hook
-const ConfirmationModal = (props: Props) => {
+const ConfirmationModal = (props: ConfirmationModalProps) => {
   const closeModal = (): void => {
     props.cancel();
   };
 
-  const { confirmationTopic, confirmText, goForIt, isNegative } = props;
+  const { confirmPrompt, confirmButtonText, goForIt, isNegative } = props;
 
   return (
     <>
@@ -93,7 +93,7 @@ const ConfirmationModal = (props: Props) => {
           </WarningCircle>
           <ContentText>
             Are you sure you want to{' '}
-            {confirmationTopic ? confirmationTopic : 'remove this'}?
+            {confirmPrompt ? confirmPrompt : 'remove this'}?
           </ContentText>
 
           <ButtonGroup>
@@ -102,14 +102,14 @@ const ConfirmationModal = (props: Props) => {
                 data-testid={props.confirmTestId}
                 onClick={goForIt}
               >
-                {confirmText ? confirmText : 'Confirm'}
+                {confirmButtonText ? confirmButtonText : 'Confirm'}
               </SoloNegativeButton>
             ) : (
               <SoloButtonStyledComponent
                 data-testid={props.confirmTestId}
                 onClick={goForIt}
               >
-                {confirmText ? confirmText : 'Confirm'}
+                {confirmButtonText ? confirmButtonText : 'Confirm'}
               </SoloButtonStyledComponent>
             )}
             <SoloCancelButton

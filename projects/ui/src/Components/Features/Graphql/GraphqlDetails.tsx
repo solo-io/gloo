@@ -20,6 +20,7 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { colors } from 'Styles/colors';
 import { SoloNegativeButton } from 'Styles/StyledComponents/button';
+import { useDeleteAPI } from 'utils/hooks';
 import { GraphqlApiExplorer } from './GraphqlApiExplorer';
 import { GraphqlIconHolder } from './GraphqlTable';
 import ResolversTable from './ResolversTable';
@@ -72,9 +73,7 @@ const ConfigArea = styled.div`
   margin-bottom: 20px;
 `;
 
-export type GraphQLDetailsProps = {};
-
-export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
+export const GraphQLDetails: React.FC = () => {
   const {
     graphqlSchemaName = '',
     graphqlSchemaNamespace = '',
@@ -82,23 +81,31 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
   } = useParams();
 
   const navigate = useNavigate();
-  const { data: graphqlSchema, error: graphqlSchemaError } =
-    useGetGraphqlSchemaDetails({
-      name: graphqlSchemaName,
-      namespace: graphqlSchemaNamespace,
-      clusterName: graphqlSchemaClusterName,
-    });
+  const {
+    data: graphqlSchema,
+    error: graphqlSchemaError,
+    mutate,
+  } = useGetGraphqlSchemaDetails({
+    name: graphqlSchemaName,
+    namespace: graphqlSchemaNamespace,
+    clusterName: graphqlSchemaClusterName,
+  });
+
+  const {
+    isDeleting,
+    triggerDelete,
+    cancelDelete,
+    closeErrorModal,
+    errorModalIsOpen,
+    errorDeleteModalProps,
+    deleteFn,
+  } = useDeleteAPI({ revalidate: mutate });
+
   const [tabIndex, setTabIndex] = React.useState(0);
-  const [currentResolver, setCurrentResolver] = React.useState<any>();
-  const [modalOpen, setModalOpen] = React.useState(false);
-  const [attemptingDelete, setAttemptingDelete] = React.useState(false);
   const { data: upstreams, error: upstreamsError } = useListUpstreams();
   const [resolverUpstreams, setResolverUpstreams] = React.useState<
     Upstream.AsObject[]
   >([]);
-  const [errorModal, setErrorModal] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState('');
-  const [errorDescription, setErrorDescription] = React.useState('');
 
   React.useEffect(() => {
     let resolverUpstreams =
@@ -130,7 +137,6 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
-  const closeModal = () => setModalOpen(false);
   const loadYaml = async () => {
     if (!graphqlSchemaName || !graphqlSchemaNamespace) {
       return '';
@@ -151,32 +157,6 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
 
   if (!graphqlSchema) return <Loading />;
 
-  const attemptDeleteGraphqlSchema = () => {
-    setAttemptingDelete(true);
-  };
-
-  const cancelDeletion = () => {
-    setAttemptingDelete(false);
-  };
-
-  const deleteGraphqlSchema = async () => {
-    await graphqlApi
-      .deleteGraphqlSchema({
-        name: graphqlSchemaName,
-        namespace: graphqlSchemaNamespace,
-        clusterName: graphqlSchemaClusterName,
-      })
-      .then(res => {
-        setAttemptingDelete(false);
-        navigate('/apis');
-      })
-      .catch(err => {
-        setAttemptingDelete(false);
-        setErrorMessage('API deletion failed');
-        setErrorDescription(err.message ?? '');
-        setErrorModal(true);
-      });
-  };
   return (
     <React.Fragment>
       <div className='w-full mx-auto '>
@@ -263,7 +243,13 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
                     <div>
                       <SoloNegativeButton
                         data-testid='delete-api'
-                        onClick={attemptDeleteGraphqlSchema}
+                        onClick={() =>
+                          triggerDelete({
+                            name: graphqlSchemaName,
+                            namespace: graphqlSchemaNamespace,
+                            clusterName: graphqlSchemaClusterName,
+                          })
+                        }
                       >
                         Delete API
                       </SoloNegativeButton>
@@ -282,24 +268,19 @@ export const GraphQLDetails: React.FC<GraphQLDetailsProps> = props => {
           </Tabs>
         </SectionCard>
       </div>
-      <SoloModal visible={modalOpen} width={750} onClose={closeModal}>
-        <ResolverWizard resolver={currentResolver} onClose={closeModal} />
-      </SoloModal>
+
       <ConfirmationModal
-        confirmTestId='confirm-delete-api'
-        visible={attemptingDelete}
-        confirmationTopic='delete this API'
-        confirmText='Delete'
-        goForIt={deleteGraphqlSchema}
-        cancel={cancelDeletion}
-        isNegative={true}
+        visible={isDeleting}
+        confirmPrompt='delete this API'
+        confirmButtonText='Delete'
+        goForIt={deleteFn}
+        cancel={cancelDelete}
+        isNegative
       />
       <ErrorModal
-        cancel={() => setErrorModal(false)}
-        visible={errorModal}
-        errorDescription={errorDescription}
-        errorMessage={errorMessage}
-        isNegative={true}
+        {...errorDeleteModalProps}
+        cancel={closeErrorModal}
+        visible={errorModalIsOpen}
       />
     </React.Fragment>
   );

@@ -23,7 +23,11 @@ import {
   DeleteGraphqlSchemaResponse,
   DeleteGraphqlSchemaRequest,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
-import { GraphQLSchemaSpec } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import {
+  ExecutableSchema,
+  GraphQLSchemaSpec,
+  Resolution,
+} from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
 
 const graphqlApiClient = new GraphqlApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -38,6 +42,7 @@ export const graphqlApi = {
   validateResolverYaml,
   updateGraphqlSchema,
   deleteGraphqlSchema,
+  updateGraphqlSchemaResolver,
 };
 
 function listGraphqlSchemas(
@@ -129,9 +134,52 @@ function getGraphqlSchemaYaml(
 
 function createGraphqlSchema(
   createGraphqlSchemaRequest: CreateGraphqlSchemaRequest.AsObject
-): Promise<CreateGraphqlSchemaResponse.AsObject> {
+): Promise<GraphqlSchema.AsObject> {
   let request = new CreateGraphqlSchemaRequest();
   let { graphqlSchemaRef, spec } = createGraphqlSchemaRequest;
+  let graphqlSchemaSpec = new GraphQLSchemaSpec();
+  let executableSchema = new ExecutableSchema();
+  executableSchema.setSchemaDefinition(
+    spec?.executableSchema?.schemaDefinition ?? ''
+  );
+  graphqlSchemaSpec.setExecutableSchema(executableSchema);
+  request.setGraphqlSchemaRef(
+    getClusterRefClassFromClusterRefObj(graphqlSchemaRef!)
+  );
+
+  request.setSpec(graphqlSchemaSpec);
+
+  return new Promise((resolve, reject) => {
+    graphqlApiClient.createGraphqlSchema(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject().graphqlSchema!);
+      }
+    });
+  });
+}
+
+async function updateGraphqlSchema(
+  updateGraphqlSchemaRequest: UpdateGraphqlSchemaRequest.AsObject
+): Promise<UpdateGraphqlSchemaResponse.AsObject> {
+  let { graphqlSchemaRef, spec } = updateGraphqlSchemaRequest;
+  let resolvers = spec?.executableSchema?.executor?.local?.resolutionsMap;
+
+  let currentGraphqlSchema = await getGraphqlSchemaPb(graphqlSchemaRef!);
+
+  let currentResolverMap = currentGraphqlSchema
+    ?.getSpec()
+    ?.getExecutableSchema()
+    ?.getExecutor()
+    ?.getLocal()
+    ?.getResolutionsMap();
+
+  // currentResolverMap.forEach(([key, value]) => newMetadata.getLabelsMap().set(key, value));
+  let request = new CreateGraphqlSchemaRequest();
   let graphqlSchemaSpec = new GraphQLSchemaSpec();
 
   request.setGraphqlSchemaRef(
@@ -154,12 +202,10 @@ function createGraphqlSchema(
   });
 }
 
-async function updateGraphqlSchema(
-  updateGraphqlSchemaRequest: UpdateGraphqlSchemaRequest.AsObject
+async function updateGraphqlSchemaResolver(
+  graphqlSchemaRef: ClusterObjectRef.AsObject,
+  resolverItem: [string, Resolution.AsObject]
 ): Promise<UpdateGraphqlSchemaResponse.AsObject> {
-  let { graphqlSchemaRef, spec } = updateGraphqlSchemaRequest;
-  let resolvers = spec?.executableSchema?.executor?.local?.resolutionsMap;
-
   let currentGraphqlSchema = await getGraphqlSchemaPb(graphqlSchemaRef!);
 
   let currentResolverMap = currentGraphqlSchema

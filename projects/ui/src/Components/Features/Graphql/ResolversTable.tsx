@@ -258,6 +258,7 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
     });
 
   const [currentResolver, setCurrentResolver] = React.useState<any>();
+  const [currentResolverName, setCurrentResolverName] = React.useState('');
   const [modalOpen, setModalOpen] = React.useState(false);
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -297,6 +298,7 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
       ) ?? [];
 
     setCurrentResolver(currentResolver);
+    setCurrentResolverName(currentResolverName!);
     openModal();
   }
   return (
@@ -322,7 +324,11 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
             })}
 
           <SoloModal visible={modalOpen} width={750} onClose={closeModal}>
-            <ResolverWizard resolver={currentResolver} onClose={closeModal} />
+            <ResolverWizard
+              resolver={currentResolver}
+              resolverName={currentResolverName}
+              onClose={closeModal}
+            />
           </SoloModal>
         </div>
       </div>

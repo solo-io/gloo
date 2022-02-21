@@ -5,7 +5,10 @@ import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import { ReactComponent as GrpcIcon } from 'assets/grpc-icon.svg';
 import { ReactComponent as RESTIcon } from 'assets/openapi-icon.svg';
+import { ReactComponent as XIcon } from 'assets/x-icon.svg';
+import ConfirmationModal from 'Components/Common/ConfirmationModal';
 import { DataError } from 'Components/Common/DataError';
+import ErrorModal from 'Components/Common/ErrorModal';
 import { Loading } from 'Components/Common/Loading';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { CheckboxFilterProps } from 'Components/Common/SoloCheckbox';
@@ -21,6 +24,7 @@ import { GraphqlSchema } from 'proto/github.com/solo-io/solo-projects/projects/a
 import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { colors } from 'Styles/colors';
+import { useDeleteAPI } from 'utils/hooks';
 import { APIType } from './GraphqlLanding';
 import { NewApiModal } from './NewApiModal';
 
@@ -84,16 +88,32 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
     useIsGlooFedEnabled();
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
-  const { data: graphqlSchemas, error: graphqlSchemaError } =
-    useListGraphqlSchemas(
-      !!name && !!namespace
-        ? {
-            name,
-            namespace,
-          }
-        : undefined
-    );
-  const navigate = useNavigate();
+  const {
+    data: graphqlSchemas,
+    error: graphqlSchemaError,
+    mutate,
+  } = useListGraphqlSchemas(
+    !!name && !!namespace
+      ? {
+          name,
+          namespace,
+        }
+      : undefined
+  );
+
+  const {
+    isDeleting,
+    triggerDelete,
+    cancelDelete,
+    closeErrorModal,
+    errorModalIsOpen,
+    errorDeleteModalProps,
+    deleteFn,
+  } = useDeleteAPI({
+    revalidate: mutate,
+    optimistic: true,
+  });
+
   const [tableData, setTableData] = React.useState<TableDataType[]>([]);
 
   React.useEffect(() => {
@@ -125,8 +145,7 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
     } else {
       setTableData([]);
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [graphqlSchemas]);
+  }, [!!graphqlSchemas]);
 
   const onDownloadSchema = (gqlSchema: GraphqlSchema.AsObject) => {
     if (gqlSchema.metadata) {
@@ -178,9 +197,20 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (gqlSchema: GraphqlSchema.AsObject) => (
-        <TableActions>
+        <TableActions className='space-x-3 '>
           <TableActionCircle onClick={() => onDownloadSchema(gqlSchema)}>
             <DownloadIcon />
+          </TableActionCircle>
+          <TableActionCircle
+            onClick={() =>
+              triggerDelete({
+                name: gqlSchema.metadata?.name!,
+                namespace: gqlSchema.metadata?.namespace!,
+                clusterName: gqlSchema.metadata?.clusterName!,
+              })
+            }
+          >
+            <XIcon />
           </TableActionCircle>
         </TableActions>
       ),
@@ -194,6 +224,19 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
         removePaging
         flatTopped
         removeShadows
+      />
+      <ConfirmationModal
+        visible={isDeleting}
+        confirmPrompt='delete this API'
+        confirmButtonText='Delete'
+        goForIt={deleteFn}
+        cancel={cancelDelete}
+        isNegative
+      />
+      <ErrorModal
+        {...errorDeleteModalProps}
+        cancel={closeErrorModal}
+        visible={errorModalIsOpen}
       />
     </TableHolder>
   );

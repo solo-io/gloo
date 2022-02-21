@@ -41,7 +41,13 @@ export const Input = styled.input<InputStyledProps>`
   }
 `;
 
-interface InputProps {
+export interface InputProps
+  extends Partial<
+    React.DetailedHTMLProps<
+      React.InputHTMLAttributes<HTMLInputElement>,
+      HTMLInputElement
+    >
+  > {
   name?: string;
   title?: string;
   placeholder?: string;
