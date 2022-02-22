@@ -193,7 +193,11 @@ var _ = Describe("Helm Test", func() {
 				observabilityDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
 				observabilityDeployment.Spec.Selector.MatchLabels = selector
 				observabilityDeployment.Spec.Template.ObjectMeta.Labels = selector
-				observabilityDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
+				annotations := map[string]string{"checksum/observability-config": "de2d54c013f0f8f6524c6a4e8551fac8869585119cf5af63e3c18eb4f3b2c4b9"} // observability config checksum
+				for key, val := range normalPromAnnotations {                                                                                         // deep copy map
+					annotations[key] = val
+				}
+				observabilityDeployment.Spec.Template.ObjectMeta.Annotations = annotations
 
 				observabilityDeployment.Spec.Template.Spec.SecurityContext = nonRootSC
 				observabilityDeployment.Spec.Replicas = nil // GetDeploymentAppsv1 explicitly sets it to 1, which we don't want

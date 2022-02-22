@@ -157,12 +157,13 @@ type ObservabilityDeployment struct {
 }
 
 type CustomGrafana struct {
-	Enabled  bool   `json:"enabled,omitempty" desc:"Set to true to indicate that the observability pod should talk to a custom grafana instance"`
-	Username string `json:"username,omitempty" desc:"Set this and the 'password' field to authenticate to the custom grafana instance using basic auth"`
-	Password string `json:"password,omitempty" desc:"Set this and the 'username' field to authenticate to the custom grafana instance using basic auth"`
-	ApiKey   string `json:"apiKey,omitempty" desc:"Authenticate to the custom grafana instance using this api key"`
-	Url      string `json:"url,omitempty" desc:"The URL for the custom grafana instance"`
-	CaBundle string `jsonx:"caBundle,omitempty" desc:"The Certificate Authority used to verify the server certificates.'"`
+	Enabled    bool   `json:"enabled,omitempty" desc:"Set to true to indicate that the observability pod should talk to a custom grafana instance"`
+	Username   string `json:"username,omitempty" desc:"Set this and the 'password' field to authenticate to the custom grafana instance using basic auth"`
+	Password   string `json:"password,omitempty" desc:"Set this and the 'username' field to authenticate to the custom grafana instance using basic auth"`
+	ApiKey     string `json:"apiKey,omitempty" desc:"Authenticate to the custom grafana instance using this api key"`
+	Url        string `json:"url,omitempty" desc:"The URL for the custom grafana instance"`
+	CaBundle   string `jsonx:"caBundle,omitempty" desc:"The Certificate Authority used to verify the server certificates.'"`
+	DataSource string `json:"dataSource,omitempty" desc:"The data source for Gloo-generated dashboards to point to; defaults to null (ie Grafana's default data source)'"`
 	*glooGen.KubeResourceOverride
 }
 

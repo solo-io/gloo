@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/5814
+    resolvesIssue: true
+    description: >
+      Expose customGrafana.datasource Helm value to allow users to specify a non-default datasource for Gloo-generated
+      dashboards in external Grafana installations

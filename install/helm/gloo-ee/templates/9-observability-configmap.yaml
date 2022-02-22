@@ -16,7 +16,8 @@ data:
   {{- end }}
   DASHBOARD_JSON_TEMPLATE: |
     {{- "\n" }}
-{{- default (.Files.Get "dashboards/upstream-dashboard-template.tmpl") .Values.observability.upstreamDashboardTemplate | indent 4 }}
+{{/* load dashboard template and replace `null` data source instances with custom data source, if specified */}}
+{{- default (.Files.Get "dashboards/upstream-dashboard-template.tmpl") .Values.observability.upstreamDashboardTemplate | indent 4 | replace `"datasource": null,`  (printf `"datasource": %s,` (default "null" (quote .Values.observability.customGrafana.dataSource))) }}
 {{- end }}
 {{- end }}{{/* define "observability.configMapSpec */}}
 
