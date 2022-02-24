@@ -65,8 +65,8 @@ const IssueContainer = styled.div`
   justify-content: space-between;
 `;
 
-const IssueMessage = styled.div<{ hasLink?: boolean; }>`
-  flex-basis: ${props => props.hasLink ? '75%' : '100%'};
+const IssueMessage = styled.div<{ hasLink?: boolean }>`
+  flex-basis: ${props => (props.hasLink ? '75%' : '100%')};
 `;
 
 const IssueLinkContainer = styled.div`
@@ -194,7 +194,9 @@ export const NotificationBox = ({
               {issues.map((issue, idx) => (
                 <IssueDetailsContainerListItem key={`issue-${idx}`}>
                   <IssueContainer>
-                    <IssueMessage hasLink={Boolean(issue.detailsLink)}>{issue.message}</IssueMessage>
+                    <IssueMessage hasLink={Boolean(issue.detailsLink)}>
+                      {issue.message}
+                    </IssueMessage>
                     {issue.detailsLink ? (
                       <IssueLinkContainer>
                         <VerticalRule color={colors.color} />

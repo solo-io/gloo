@@ -72,8 +72,7 @@ export const UpstreamGroupDetails = () => {
         <IconHolder>
           <UpstreamGroupIcon />
         </IconHolder>
-      }
-    >
+      }>
       {!!ugError ? (
         <DataError error={ugError} />
       ) : !upstreamGroup ? (

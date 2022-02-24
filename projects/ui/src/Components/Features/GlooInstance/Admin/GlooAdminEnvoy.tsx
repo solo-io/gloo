@@ -77,8 +77,7 @@ export const GlooAdminEnvoy = () => {
                   ? UpstreamStatus.State.REJECTED
                   : UpstreamStatus.State.ACCEPTED,
               title: 'Config Status',
-            }}
-          >
+            }}>
             {configDump.error.length > 0 ? (
               <DataError error={{ message: configDump.error }} />
             ) : (

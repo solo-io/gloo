@@ -9,12 +9,12 @@ const NavLinkStyles = {
   fontSize: '18px',
   marginRight: '50px',
   fontWeight: 300,
-  borderBottom: `8px solid transparent`
+  borderBottom: `8px solid transparent`,
 };
 const activeStyle = {
   borderBottom: `8px solid ${colors.pondBlue}`,
   cursor: 'default',
-  fontWeight: 400
+  fontWeight: 400,
 };
 
 export const NestedLink: React.FC<

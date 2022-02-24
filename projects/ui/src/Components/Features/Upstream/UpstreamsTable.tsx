@@ -164,13 +164,14 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
     } else {
       setTableData([]);
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [
     upstreams,
     props.nameFilter,
     props.statusFilter,
     props.typeFilters,
     props.glooInstanceFilter,
+    isGlooFedEnabled,
+    props.wholePage,
   ]);
 
   if (!!upstreamsError) {
@@ -209,8 +210,7 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
           navigate(
             `/gloo-instances/${glooInstance.namespace}/${glooInstance.name}/`
           )
-        }
-      >
+        }>
         {glooInstance.name}
       </div>
     );
@@ -298,8 +298,7 @@ export const UpstreamsPageTable = (props: Props) => {
           <UpstreamIcon />
         </UpstreamIconHolder>
       }
-      noPadding={true}
-    >
+      noPadding={true}>
       <UpstreamsTable {...props} wholePage={true} />
     </SectionCard>
   );

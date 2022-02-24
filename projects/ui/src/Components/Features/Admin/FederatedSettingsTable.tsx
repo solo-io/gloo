@@ -41,18 +41,27 @@ export const FederatedSettingsTable = () => {
     if (settings) {
       setTableData(
         settings
-        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
-        .map(setting => {
-          return {
-            key: setting.metadata?.uid ?? 'An setting was provided with no UID',
-            name: setting.metadata?.name ?? '',
-            namespace: setting.metadata?.namespace ?? '',
-            clusters: setting.spec?.placement?.clustersList ?? [],
-            inNamespaces: setting.spec?.placement?.namespacesList ?? [],
-            status: setting.status?.placementStatus?.state ?? 0,
-            actions: setting,
-          };
-        })
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (gA.metadata?.namespace ?? '').localeCompare(
+                gB.metadata?.namespace ?? ''
+              )
+          )
+          .map(setting => {
+            return {
+              key:
+                setting.metadata?.uid ?? 'An setting was provided with no UID',
+              name: setting.metadata?.name ?? '',
+              namespace: setting.metadata?.namespace ?? '',
+              clusters: setting.spec?.placement?.clustersList ?? [],
+              inNamespaces: setting.spec?.placement?.namespacesList ?? [],
+              status: setting.status?.placementStatus?.state ?? 0,
+              actions: setting,
+            };
+          })
       );
     } else {
       setTableData([]);

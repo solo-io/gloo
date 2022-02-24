@@ -48,9 +48,10 @@ const RouteTableToggleWrapper = styled.div`
 
 export const VirtualServicesLanding = () => {
   const [nameFilter, setNameFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState<
-    VirtualServiceStatus.StateMap[keyof VirtualServiceStatus.StateMap]
-  >();
+  const [statusFilter, setStatusFilter] =
+    useState<
+      VirtualServiceStatus.StateMap[keyof VirtualServiceStatus.StateMap]
+    >();
   const [showRT, setShowRT] = useState(false);
 
   const changeNameFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,7 +112,12 @@ export const VirtualServicesLanding = () => {
         />
       </div>
       <div>
-        {showRT && <RouteTablesPageTable nameFilter={nameFilter} statusFilter={statusFilter} />}
+        {showRT && (
+          <RouteTablesPageTable
+            nameFilter={nameFilter}
+            statusFilter={statusFilter}
+          />
+        )}
 
         <VirtualServicesPageTable
           nameFilter={nameFilter}

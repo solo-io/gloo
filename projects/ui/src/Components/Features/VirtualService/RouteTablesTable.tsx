@@ -76,11 +76,10 @@ function fillRowFields(
   };
 }
 
-const renderGlooInstanceList = (glooInstance: {
+const RenderGlooInstanceList = (glooInstance: {
   name: string;
   namespace: string;
 }) => {
-  /* eslint-disable-next-line */
   const navigate = useNavigate();
   return (
     <div
@@ -88,8 +87,7 @@ const renderGlooInstanceList = (glooInstance: {
         navigate(
           `/gloo-instances/${glooInstance.namespace}/${glooInstance.name}/`
         )
-      }
-    >
+      }>
       {glooInstance.name}
     </div>
   );
@@ -127,8 +125,7 @@ export const RouteTablesTable = ({ routeTables, wholePage }: TableProps) => {
     setTableData(
       routeTables.map(gwRoute => fillRowFields(gwRoute, isGlooFedEnabled))
     );
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [routeTables]);
+  }, [routeTables, isGlooFedEnabled]);
 
   let columns: any = [
     {
@@ -147,7 +144,7 @@ export const RouteTablesTable = ({ routeTables, wholePage }: TableProps) => {
           {
             title: 'Gloo Instance',
             dataIndex: 'glooInstance',
-            render: renderGlooInstanceList,
+            render: RenderGlooInstanceList,
           },
           {
             title: 'Cluster',
@@ -284,8 +281,7 @@ export const RouteTablesPageTable = (props: Props) => {
           <RouteTableIcon />
         </GlooIconHolder>
       }
-      noPadding={true}
-    >
+      noPadding={true}>
       <RouteTablesPageCardContents {...props} wholePage={true} />
     </SectionCard>
   );

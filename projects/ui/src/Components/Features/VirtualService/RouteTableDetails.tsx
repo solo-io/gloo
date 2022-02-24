@@ -41,8 +41,7 @@ export const RouteTableDetails = () => {
     } else {
       setRouteTable(undefined);
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [name, namespace, allRouteTables]);
+  }, [name, namespace, allRouteTables, routeTableName, routeTableNamespace]);
 
   if (!!rtError) {
     return <DataError error={rtError} />;
@@ -67,8 +66,7 @@ export const RouteTableDetails = () => {
       health={{
         state: routeTable?.status?.state ?? 0,
         reason: routeTable?.status?.reason,
-      }}
-    >
+      }}>
       <>
         <HealthNotificationBox
           state={routeTable?.status?.state}

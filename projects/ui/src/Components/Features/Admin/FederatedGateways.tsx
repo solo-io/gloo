@@ -57,18 +57,27 @@ export const FederatedGateways = () => {
     if (gateways) {
       setTableData(
         gateways
-        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
-        .map(gateway => {
-          return {
-            key: gateway.metadata?.uid ?? 'An gateway was provided with no UID',
-            name: gateway.metadata?.name ?? '',
-            namespace: gateway.metadata?.namespace ?? '',
-            clusters: gateway.spec?.placement?.clustersList ?? [],
-            inNamespaces: gateway.spec?.placement?.namespacesList ?? [],
-            status: gateway.status?.placementStatus?.state ?? 0,
-            actions: gateway,
-          };
-        })
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (gA.metadata?.namespace ?? '').localeCompare(
+                gB.metadata?.namespace ?? ''
+              )
+          )
+          .map(gateway => {
+            return {
+              key:
+                gateway.metadata?.uid ?? 'An gateway was provided with no UID',
+              name: gateway.metadata?.name ?? '',
+              namespace: gateway.metadata?.namespace ?? '',
+              clusters: gateway.spec?.placement?.clustersList ?? [],
+              inNamespaces: gateway.spec?.placement?.namespacesList ?? [],
+              status: gateway.status?.placementStatus?.state ?? 0,
+              actions: gateway,
+            };
+          })
       );
     } else {
       setTableData([]);

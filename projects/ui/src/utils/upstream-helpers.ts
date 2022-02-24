@@ -93,12 +93,14 @@ export function getFunctionList(upstream?: Upstream.AsObject): string[] {
   }
   return [];
 }
-function serviceSpecToFunctionsList(serviceSpec?:ServiceSpec.AsObject) {
+function serviceSpecToFunctionsList(serviceSpec?: ServiceSpec.AsObject) {
   if (serviceSpec && serviceSpec.rest) {
     return serviceSpec.rest.transformationsMap.map(([func]) => func);
   }
   if (serviceSpec && serviceSpec.grpc) {
-    return serviceSpec.grpc.grpcServicesList.map(svc => svc.functionNamesList).flat();
+    return serviceSpec.grpc.grpcServicesList
+      .map(svc => svc.functionNamesList)
+      .flat();
   }
   return [];
 }

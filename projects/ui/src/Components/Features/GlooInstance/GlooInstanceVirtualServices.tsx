@@ -15,9 +15,10 @@ const InputHolderRow = styled.div`
 
 export const GlooInstanceVirtualServices = () => {
   const [nameFilter, setNameFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState<
-    VirtualServiceStatus.StateMap[keyof VirtualServiceStatus.StateMap]
-  >();
+  const [statusFilter, setStatusFilter] =
+    useState<
+      VirtualServiceStatus.StateMap[keyof VirtualServiceStatus.StateMap]
+    >();
 
   const changeNameFilter = (e: React.ChangeEvent<any>) => {
     setNameFilter(e.target.value);

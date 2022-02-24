@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Cleanup prettier and eslint sections.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3128

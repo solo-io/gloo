@@ -147,14 +147,12 @@ export const GlooAdminSettings = () => {
             logoIcon={
               <IconHolder
                 width={20}
-                applyColor={{ strokeNotFill: true, color: colors.seaBlue }}
-              >
+                applyColor={{ strokeNotFill: true, color: colors.seaBlue }}>
                 <GearIcon />
               </IconHolder>
             }
             cardName={setting.metadata!.name}
-            headerSecondaryInformation={secondaryHeaderInfo}
-          >
+            headerSecondaryInformation={secondaryHeaderInfo}>
             <TitleRow>
               <div>Settings (Read Only)</div>
               <Actionables>

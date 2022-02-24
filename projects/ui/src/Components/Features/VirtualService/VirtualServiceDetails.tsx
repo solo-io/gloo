@@ -68,8 +68,13 @@ export const VirtualServiceDetails = () => {
     } else {
       setVirtualService(undefined);
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [name, namespace, allVirtualServices]);
+  }, [
+    name,
+    namespace,
+    allVirtualServices,
+    virtualservicename,
+    virtualservicenamespace,
+  ]);
 
   if (!!vsError) {
     return <DataError error={vsError} />;
@@ -94,8 +99,7 @@ export const VirtualServiceDetails = () => {
       health={{
         state: virtualService?.status?.state ?? 0,
         reason: virtualService?.status?.reason,
-      }}
-    >
+      }}>
       {!!vsError ? (
         <DataError error={vsError} />
       ) : !virtualService ? (

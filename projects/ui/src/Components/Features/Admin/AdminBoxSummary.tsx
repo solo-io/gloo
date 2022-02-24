@@ -176,23 +176,15 @@ const LogoRecolorHolder = styled(LogoHolder)`
 `;
 
 export const AdminFederatedResourcesBox = () => {
-  const {
-    data: fedVirtualServices,
-    error: fedVsError,
-  } = useListFederatedVirtualServices();
-  const {
-    data: fedRouteTables,
-    error: fedRtError,
-  } = useListFederatedRouteTables();
+  const { data: fedVirtualServices, error: fedVsError } =
+    useListFederatedVirtualServices();
+  const { data: fedRouteTables, error: fedRtError } =
+    useListFederatedRouteTables();
   const { data: fedUpstreams, error: fedUError } = useListFederatedUpstreams();
-  const {
-    data: fedUpstreamGroups,
-    error: fedUGError,
-  } = useListFederatedUpstreamGroups();
-  const {
-    data: fedAuthConfigs,
-    error: fedACError,
-  } = useListFederatedAuthConfigs();
+  const { data: fedUpstreamGroups, error: fedUGError } =
+    useListFederatedUpstreamGroups();
+  const { data: fedAuthConfigs, error: fedACError } =
+    useListFederatedAuthConfigs();
   const { data: fedGateways, error: fedGError } = useListFederatedGateways();
   const { data: fedSettings, error: fedSError } = useListFederatedSettings();
 

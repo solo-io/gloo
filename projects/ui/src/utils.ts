@@ -12,37 +12,8 @@ export const formatTimestamp = (timestamp: Time.AsObject) => {
   return format(dateObj, 'en_US');
 };
 
-export function copyTextToClipboard(copyText: string): boolean {
-  let textArea = document.createElement('textarea');
-
-  textArea.style.position = 'fixed';
-  textArea.style.top = '-999px';
-  textArea.style.left = '-999px';
-
-  // Ensure it has a small width and height. Setting to 1px / 1em
-  // doesn't work as this gives a negative w/h on some browsers.
-  textArea.style.width = '2em';
-  textArea.style.height = '2em';
-
-  // Avoid flash of white box if rendered for any reason.
-  textArea.style.background = 'rgba(255, 255, 255, 0)';
-
-  textArea.value = copyText;
-
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
-
-  let success = false;
-  try {
-    success = document.execCommand('copy');
-  } catch (err) {
-    console.log('Oops, unable to copy.' + err);
-  }
-
-  document.body.removeChild(textArea);
-
-  return success;
+export function copyTextToClipboard(copyText: string): Promise<void> {
+  return navigator.clipboard.writeText(copyText);
 }
 
 // TODO - This is rough for now. See Issue 1207

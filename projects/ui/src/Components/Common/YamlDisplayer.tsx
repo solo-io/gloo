@@ -131,11 +131,16 @@ const YamlDisplayer = ({ contentString, description, copyable }: Props) => {
   );
 
   const attemptCopyToClipboard = () => {
-    setAttemptedCopy(copyTextToClipboard(contentString));
-
-    setTimeout(() => {
-      setAttemptedCopy('inactive');
-    }, 500);
+    copyTextToClipboard(contentString)
+      .then(() => {
+        setAttemptedCopy(true);
+        setTimeout(() => {
+          setAttemptedCopy('inactive');
+        }, 500);
+      })
+      .catch(() => {
+        setAttemptedCopy(false);
+      });
   };
 
   return (

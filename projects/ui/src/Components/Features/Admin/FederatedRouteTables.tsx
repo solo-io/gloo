@@ -49,29 +49,35 @@ type RouteTableTableFields = {
 export const FederatedRouteTables = () => {
   const [tableData, setTableData] = React.useState<RouteTableTableFields[]>([]);
 
-  const {
-    data: routeTables,
-    error: fedRTError,
-  } = useListFederatedRouteTables();
+  const { data: routeTables, error: fedRTError } =
+    useListFederatedRouteTables();
 
   useEffect(() => {
     if (routeTables) {
       setTableData(
         routeTables
-        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
-        .map(routeTable => {
-          return {
-            key:
-              routeTable.metadata?.uid ??
-              'A route table was provided with no UID',
-            name: routeTable.metadata?.name ?? '',
-            namespace: routeTable.metadata?.namespace ?? '',
-            clusters: routeTable.spec?.placement?.clustersList ?? [],
-            inNamespaces: routeTable.spec?.placement?.namespacesList ?? [],
-            status: routeTable.status?.placementStatus?.state ?? 0,
-            actions: routeTable,
-          };
-        })
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (gA.metadata?.namespace ?? '').localeCompare(
+                gB.metadata?.namespace ?? ''
+              )
+          )
+          .map(routeTable => {
+            return {
+              key:
+                routeTable.metadata?.uid ??
+                'A route table was provided with no UID',
+              name: routeTable.metadata?.name ?? '',
+              namespace: routeTable.metadata?.namespace ?? '',
+              clusters: routeTable.spec?.placement?.clustersList ?? [],
+              inNamespaces: routeTable.spec?.placement?.namespacesList ?? [],
+              status: routeTable.status?.placementStatus?.state ?? 0,
+              actions: routeTable,
+            };
+          })
       );
     } else {
       setTableData([]);

@@ -234,8 +234,7 @@ export const Clusters = () => {
     } else {
       setTableData([]);
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [clusterDetails, showingClusterRows?.length]);
+  }, [clusterDetails, showingClusterRows]);
 
   if (!!cError) {
     return <DataError error={cError} />;
@@ -264,8 +263,7 @@ export const Clusters = () => {
           }
           isOpen={
             showingClusterRows && showingClusterRows.includes(data.rowInd!)
-          }
-        >
+          }>
           <ArrowToggle className='arrow' />
           <ClusterKubernetesIcon />
           {data.naming}
@@ -324,8 +322,7 @@ export const Clusters = () => {
               <EmptyDescription>
                 <SoloLinkLooks
                   displayInline={true}
-                  onClick={() => setRegisterModalOpen(true)}
-                >
+                  onClick={() => setRegisterModalOpen(true)}>
                   Register a Cluster
                 </SoloLinkLooks>{' '}
                 amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor
@@ -345,8 +342,7 @@ export const Clusters = () => {
                 <ClustersIcon />
               </IconHolder>
             }
-            noPadding={true}
-          >
+            noPadding={true}>
             <ClusterRowColorer clusterRows={clusterRows}>
               <SoloTable
                 columns={columns}

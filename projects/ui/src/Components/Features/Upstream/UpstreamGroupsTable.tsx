@@ -135,12 +135,13 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
     } else {
       setTableData([]);
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [
     upstreamGroups,
     props.nameFilter,
     props.statusFilter,
     props.glooInstanceFilter,
+    isGlooFedEnabled,
+    props.wholePage,
   ]);
 
   if (!!upstreamGroupsError) {
@@ -176,8 +177,7 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
           navigate(
             `/gloo-instances/${glooInstance.namespace}/${glooInstance.name}/`
           )
-        }
-      >
+        }>
         {glooInstance.name}
       </div>
     );
@@ -252,8 +252,7 @@ export const UpstreamGroupsPageTable = (props: Props) => {
           <UpstreamGroupIcon />
         </UpstreamGroupIconHolder>
       }
-      noPadding={true}
-    >
+      noPadding={true}>
       <UpstreamGroupsTable {...props} wholePage={true} />
     </SectionCard>
   );

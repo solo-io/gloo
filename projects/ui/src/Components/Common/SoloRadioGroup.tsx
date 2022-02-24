@@ -109,7 +109,7 @@ export const SoloRadioGroup = (props: Props) => {
     currentSelection,
     onChange,
     withoutCheckboxes,
-    forceAChoice
+    forceAChoice,
   } = props;
 
   const attemptSelection = (selectedId: string | number) => {

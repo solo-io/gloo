@@ -111,15 +111,15 @@ export const GraphQLDetails: React.FC = () => {
     let resolverUpstreams =
       graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
         .filter(
-          ([rName, r], index, arr) =>
+          ([_rName, r], index, arr) =>
             index ===
             arr?.findIndex(
-              ([n, rr]) =>
+              ([_n, rr]) =>
                 rr?.restResolver?.upstreamRef?.name ===
                 r.restResolver?.upstreamRef?.name
             )
         )
-        .map(([resolveName, resolver]) => resolver.restResolver?.upstreamRef);
+        .map(([_resolveName, resolver]) => resolver.restResolver?.upstreamRef);
     let fullUpstreams = upstreams?.filter(
       upstream =>
         !!resolverUpstreams?.find(
@@ -131,8 +131,7 @@ export const GraphQLDetails: React.FC = () => {
     if (!!fullUpstreams) {
       setResolverUpstreams(fullUpstreams);
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [!!graphqlSchema, !!upstreams]);
+  }, [graphqlSchema, upstreams]);
 
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
@@ -175,8 +174,7 @@ export const GraphQLDetails: React.FC = () => {
                 ? 'Enabled'
                 : 'Disabled',
             },
-          ]}
-        >
+          ]}>
           <Tabs index={tabIndex} onChange={handleTabsChange}>
             <FolderTabList>
               <FolderTab>API Details</FolderTab>
@@ -230,8 +228,7 @@ export const GraphQLDetails: React.FC = () => {
                                   }
                                   onClick={() => {
                                     navigate(link);
-                                  }}
-                                >
+                                  }}>
                                   {upstreamName}
                                 </div>
                               </div>
@@ -249,8 +246,7 @@ export const GraphQLDetails: React.FC = () => {
                             namespace: graphqlSchemaNamespace,
                             clusterName: graphqlSchemaClusterName,
                           })
-                        }
-                      >
+                        }>
                         Delete API
                       </SoloNegativeButton>
                     </div>

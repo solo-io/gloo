@@ -179,14 +179,12 @@ export const SoloDropdown = (props: DropdownProps) => {
         onBlur={onBlur}
         disabled={disabled}
         placeholder={placeholder}
-        {...rest}
-      >
+        {...rest}>
         {options?.map((opt: OptionType) => (
           <Select.Option
             key={opt.key}
             value={opt.value}
-            disabled={opt.disabled}
-          >
+            disabled={opt.disabled}>
             {opt.icon} {opt.displayValue || opt.value}
           </Select.Option>
         ))}

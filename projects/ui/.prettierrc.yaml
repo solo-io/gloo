@@ -1,14 +1,12 @@
 arrowParens: avoid
 bracketSpacing: true
 endOfLine: auto
-eslintIntegration: false
 htmlWhitespaceSensitivity: css
 jsxSingleQuote: true
-parser: "typescript"
-requireConfig: false
+parser: 'typescript'
 semi: true
 singleQuote: true
 tabWidth: 2
-trailingComma: es5
+trailingComma: 'es5'
 useTabs: false
-jsxBracketSameLine: true
+bracketSameLine: true

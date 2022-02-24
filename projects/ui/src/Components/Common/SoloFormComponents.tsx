@@ -140,13 +140,11 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
       <div
         className={`${
           horizontal ? 'flex items-center' : 'grid grid-cols-2 '
-        } col-span-2 gap-2 mb-2`}
-      >
+        } col-span-2 gap-2 mb-2`}>
         <div
           className={`${
             horizontal ? 'flex items-center' : ''
-          } col-span-2 -space-y-px bg-white rounded-md`}
-        >
+          } col-span-2 -space-y-px bg-white rounded-md`}>
           {title && titleAbove ? null : <Label>{title}</Label>}
           <Input
             type='file'
@@ -187,8 +185,7 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
                       setFieldValue(name, undefined as unknown as File);
                       setHasError(false);
                       setFileError('');
-                    }}
-                  >
+                    }}>
                     {'Remove File'}
                   </RemoveFileButton>
                 )}
@@ -197,8 +194,7 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
                     values[name] !== undefined
                       ? 'border-l-0 rounded-l-none '
                       : 'rounded-l-md'
-                  } border-r-0 border-gray-300 rounded-lg rounded-r-none`}
-                >
+                  } border-r-0 border-gray-300 rounded-lg rounded-r-none`}>
                   {values[name]
                     ? values[name].name && !hasError
                       ? values[name].name
@@ -213,8 +209,7 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
                   disabled={isDisabled}
                   onClick={e => {
                     fileInput?.current?.click();
-                  }}
-                >
+                  }}>
                   {hasError
                     ? 'Upload Error'
                     : !!values[name]
@@ -258,16 +253,14 @@ export const SoloFormRadio = <Values extends FormikValues>(
       <div
         className={`${
           horizontal ? 'flex items-center' : 'grid grid-cols-2 '
-        } col-span-2 gap-2 mb-2 cursor-pointer`}
-      >
+        } col-span-2 gap-2 mb-2 cursor-pointer`}>
         {title && titleAbove ? null : (
           <label className='text-base font-medium '>{title}</label>
         )}
         <div
           className={`${
             horizontal ? 'flex items-center' : ''
-          } col-span-2  bg-white rounded-md`}
-        >
+          } col-span-2  bg-white rounded-md`}>
           {options.map((option, index) => {
             let isFirst = index === 0;
             let isLast = index === options.length - 1;
@@ -296,8 +289,7 @@ export const SoloFormRadio = <Values extends FormikValues>(
                       ? 'rounded-tr-md rounded-br-md'
                       : 'rounded-bl-md rounded-br-md'
                     : ''
-                } `}
-              >
+                } `}>
                 <div className='flex items-center h-5'>
                   <input
                     type='radio'
@@ -315,15 +307,13 @@ export const SoloFormRadio = <Values extends FormikValues>(
                   htmlFor='settings-option-0'
                   className={`flex flex-col ml-3 ${
                     isUpdate ? 'cursor-not-allowed' : 'cursor-pointer'
-                  }`}
-                >
+                  }`}>
                   <span
                     className={`block text-sm font-medium ${
                       values[name] === option.value
                         ? ' text-blue-700gloo'
                         : 'text-gray-900'
-                    } `}
-                  >
+                    } `}>
                     {option.displayValue}
                   </span>
                   <span className='block text-sm text-blue-700gloo'>

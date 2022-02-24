@@ -36,29 +36,35 @@ export const FederatedUpstreamGroups = () => {
     []
   );
 
-  const {
-    data: upstreamGroups,
-    error: fedUGError,
-  } = useListFederatedUpstreamGroups();
+  const { data: upstreamGroups, error: fedUGError } =
+    useListFederatedUpstreamGroups();
 
   useEffect(() => {
     if (upstreamGroups) {
       setTableData(
         upstreamGroups
-        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
-        .map(upstreamGroup => {
-          return {
-            key:
-              upstreamGroup.metadata?.uid ??
-              'An upstream group was provided with no UID',
-            name: upstreamGroup.metadata?.name ?? '',
-            namespace: upstreamGroup.metadata?.namespace ?? '',
-            clusters: upstreamGroup.spec?.placement?.clustersList ?? [],
-            inNamespaces: upstreamGroup.spec?.placement?.namespacesList ?? [],
-            status: upstreamGroup.status?.placementStatus?.state ?? 0,
-            actions: upstreamGroup,
-          };
-        })
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (gA.metadata?.namespace ?? '').localeCompare(
+                gB.metadata?.namespace ?? ''
+              )
+          )
+          .map(upstreamGroup => {
+            return {
+              key:
+                upstreamGroup.metadata?.uid ??
+                'An upstream group was provided with no UID',
+              name: upstreamGroup.metadata?.name ?? '',
+              namespace: upstreamGroup.metadata?.namespace ?? '',
+              clusters: upstreamGroup.spec?.placement?.clustersList ?? [],
+              inNamespaces: upstreamGroup.spec?.placement?.namespacesList ?? [],
+              status: upstreamGroup.status?.placementStatus?.state ?? 0,
+              actions: upstreamGroup,
+            };
+          })
       );
     } else {
       setTableData([]);

@@ -133,8 +133,7 @@ export const OverviewLanding = () => {
         </CardSubsectionContent>
       </CardSubsectionWrapper>
       <BottomRow
-        threeSlots={clusterDetailsList.length > 1 || glooInstances?.length > 1}
-      >
+        threeSlots={clusterDetailsList.length > 1 || glooInstances?.length > 1}>
         {(clusterDetailsList.length > 1 || glooInstances?.length > 1) && (
           <CardSubsectionWrapper>
             <CardSubsectionContent>

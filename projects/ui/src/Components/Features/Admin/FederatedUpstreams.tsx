@@ -52,20 +52,29 @@ export const FederatedUpstreams = () => {
     if (upstreams) {
       setTableData(
         upstreams
-        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
-        .map(upstream => {
-          return {
-            key:
-              upstream.metadata?.uid ?? 'An upstream was provided with no UID',
-            name: upstream.metadata?.name ?? '',
-            namespace: upstream.metadata?.namespace ?? '',
-            clusters: upstream.spec?.placement?.clustersList ?? [],
-            inNamespaces: upstream.spec?.placement?.namespacesList ?? [],
-            status: upstream.status?.placementStatus?.state ?? 0,
-            failover: !!upstream.spec?.template?.spec?.failover,
-            actions: upstream,
-          };
-        })
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (gA.metadata?.namespace ?? '').localeCompare(
+                gB.metadata?.namespace ?? ''
+              )
+          )
+          .map(upstream => {
+            return {
+              key:
+                upstream.metadata?.uid ??
+                'An upstream was provided with no UID',
+              name: upstream.metadata?.name ?? '',
+              namespace: upstream.metadata?.namespace ?? '',
+              clusters: upstream.spec?.placement?.clustersList ?? [],
+              inNamespaces: upstream.spec?.placement?.namespacesList ?? [],
+              status: upstream.status?.placementStatus?.state ?? 0,
+              failover: !!upstream.spec?.template?.spec?.failover,
+              actions: upstream,
+            };
+          })
       );
     } else {
       setTableData([]);

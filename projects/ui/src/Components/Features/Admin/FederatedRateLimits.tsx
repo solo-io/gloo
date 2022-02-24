@@ -40,20 +40,28 @@ export const FederatedRateLimits = () => {
     if (rateLimits) {
       setTableData(
         rateLimits
-        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
-        .map(rateLimit => {
-          return {
-            key:
-              rateLimit.metadata?.uid ??
-              'A rate limit was provided with no UID',
-            name: rateLimit.metadata?.name ?? '',
-            namespace: rateLimit.metadata?.namespace ?? '',
-            clusters: rateLimit.spec?.placement?.clustersList ?? [],
-            inNamespaces: rateLimit.spec?.placement?.namespacesList ?? [],
-            status: rateLimit.status?.placementStatus?.state ?? 0,
-            actions: rateLimit,
-          };
-        })
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (gA.metadata?.namespace ?? '').localeCompare(
+                gB.metadata?.namespace ?? ''
+              )
+          )
+          .map(rateLimit => {
+            return {
+              key:
+                rateLimit.metadata?.uid ??
+                'A rate limit was provided with no UID',
+              name: rateLimit.metadata?.name ?? '',
+              namespace: rateLimit.metadata?.namespace ?? '',
+              clusters: rateLimit.spec?.placement?.clustersList ?? [],
+              inNamespaces: rateLimit.spec?.placement?.namespacesList ?? [],
+              status: rateLimit.status?.placementStatus?.state ?? 0,
+              actions: rateLimit,
+            };
+          })
       );
     } else {
       setTableData([]);

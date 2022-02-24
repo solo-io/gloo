@@ -62,7 +62,9 @@ function listRouteTables(
 ): Promise<RouteTable.AsObject[]> {
   let request = new ListRouteTablesRequest();
   if (listRouteTableRequest) {
-    request.setGlooInstanceRef(getObjectRefClassFromRefObj(listRouteTableRequest));
+    request.setGlooInstanceRef(
+      getObjectRefClassFromRefObj(listRouteTableRequest)
+    );
   }
 
   return new Promise((resolve, reject) => {

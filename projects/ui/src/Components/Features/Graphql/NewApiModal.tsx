@@ -86,7 +86,7 @@ export const NewApiModal = (props: NewApiModalProps) => {
     React.useState<GlooInstance.AsObject>();
 
   React.useEffect(() => {
-    if (!!glooInstances) {
+    if (glooInstances) {
       if (glooInstances.length === 1) {
         setGlooInstance(glooInstances[0]);
       } else {
@@ -101,7 +101,7 @@ export const NewApiModal = (props: NewApiModalProps) => {
     } else {
       setGlooInstance(undefined);
     }
-  }, [name, namespace, !!glooInstances]);
+  }, [name, namespace, glooInstances]);
 
   const navigate = useNavigate();
 
@@ -159,8 +159,7 @@ export const NewApiModal = (props: NewApiModalProps) => {
           name: '',
           schemaString: '',
         }}
-        onSubmit={createApi}
-      >
+        onSubmit={createApi}>
         {formik => (
           <ModalContent>
             <Title>Create new GraphQL API</Title>

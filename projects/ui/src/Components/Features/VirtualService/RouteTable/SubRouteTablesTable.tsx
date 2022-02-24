@@ -451,8 +451,7 @@ export const SubRouteTablesTable = (props: Props) => {
               <RouteIcon />
             </RouteIconHolder>
           }
-          noPadding={true}
-        >
+          noPadding={true}>
           <SoloTable
             columns={columns}
             dataSource={tableData}
@@ -469,8 +468,7 @@ export const SubRouteTablesTable = (props: Props) => {
               expandIcon: ({ expanded, onExpand, record }) => (
                 <ToggleHolder
                   open={expanded}
-                  onClick={e => onExpand(record, e)}
-                >
+                  onClick={e => onExpand(record, e)}>
                   {!!record.subrouteRows.length ? (
                     <ArrowToggle className='toggle' />
                   ) : null}

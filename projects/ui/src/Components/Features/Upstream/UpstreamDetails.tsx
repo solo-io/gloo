@@ -82,8 +82,7 @@ export const UpstreamDetails = () => {
         <IconHolder>
           <UpstreamIcon />
         </IconHolder>
-      }
-    >
+      }>
       <>
         <HealthNotificationBox
           state={upstream?.status?.state}

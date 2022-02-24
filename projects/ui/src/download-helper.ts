@@ -1,7 +1,7 @@
 export function doDownload(downloadContent: string, filename: string) {
-  const templElement = document.createElement("a");
+  const templElement = document.createElement('a');
   const file = new Blob([downloadContent], {
-    type: "text/plain",
+    type: 'text/plain',
   });
   templElement.href = URL.createObjectURL(file);
   templElement.download = filename;

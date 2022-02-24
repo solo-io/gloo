@@ -15,9 +15,8 @@ const InputHolderRow = styled.div`
 
 export const GlooInstanceUpstreamGroups = () => {
   const [nameFilter, setNameFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState<
-    UpstreamStatus.StateMap[keyof UpstreamStatus.StateMap]
-  >();
+  const [statusFilter, setStatusFilter] =
+    useState<UpstreamStatus.StateMap[keyof UpstreamStatus.StateMap]>();
 
   const changeNameFilter = (e: React.ChangeEvent<any>) => {
     setNameFilter(e.target.value);

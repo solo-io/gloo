@@ -123,20 +123,12 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
   const copyKubectlCommand = async () => {
     const text =
       'kubectl port-forward -n gloo-system deploy/gateway-proxy 8080';
-    await navigator.clipboard
-      .writeText(
-        'kubectl port-forward -n gloo-system deploy/gateway-proxy 8080'
-      )
-      .catch(() => {
-        copyTextToClipboard(text);
-      });
+    copyTextToClipboard(text);
   };
 
   const copyGlooctlCommand = async () => {
     const text = 'glooctl proxy url';
-    await navigator.clipboard.writeText('glooctl proxy url').catch(() => {
-      copyTextToClipboard(text);
-    });
+    copyTextToClipboard(text);
   };
 
   // If we need the custom fetcher, we can add `schemaFetcher` to the document.
@@ -184,8 +176,7 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
     if (!!correspondingVs) {
       setCorrespondingVirtualServices(correspondingVs);
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [!!virtualServices]);
+  }, [virtualServices, graphqlSchemaName, graphqlSchemaNamespace]);
 
   let executableSchema = makeExecutableSchema({
     typeDefs: [mockedDirectiveTypeDefs],
@@ -245,8 +236,7 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
               visible={showTooltip}
               onVisibleChange={() => {
                 setShowTooltip(!showTooltip);
-              }}
-            >
+              }}>
               <StyledQuestionMark />
             </Tooltip>
           </GqlInputWrapper>
@@ -258,8 +248,7 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
           defaultQuery={''}
           variables={'{}'}
           schema={!refetch ? executableSchema : undefined}
-          fetcher={gqlFetcher}
-        >
+          fetcher={gqlFetcher}>
           <GraphiQL.Toolbar>
             <GraphiQL.Button
               onClick={handlePrettifyQuery}

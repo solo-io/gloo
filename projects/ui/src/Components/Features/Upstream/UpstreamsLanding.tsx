@@ -6,8 +6,18 @@ import { colors } from 'Styles/colors';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
-import { CheckboxFilterProps, SoloCheckbox } from 'Components/Common/SoloCheckbox';
-import { TYPE_AWS, TYPE_AWS_EC2, TYPE_AZURE, TYPE_CONSUL, TYPE_KUBE, TYPE_STATIC } from 'utils/upstream-helpers';
+import {
+  CheckboxFilterProps,
+  SoloCheckbox,
+} from 'Components/Common/SoloCheckbox';
+import {
+  TYPE_AWS,
+  TYPE_AWS_EC2,
+  TYPE_AZURE,
+  TYPE_CONSUL,
+  TYPE_KUBE,
+  TYPE_STATIC,
+} from 'utils/upstream-helpers';
 
 const UpstreamLandingContainer = styled.div`
   display: grid;
@@ -47,17 +57,23 @@ const UpstreamGroupToggleWrapper = styled.div`
   margin-top: 15px;
 `;
 
-const CHECKBOX_DEFAULT_FILTERS:CheckboxFilterProps[] = [
-  TYPE_AWS, TYPE_AZURE, TYPE_CONSUL, TYPE_KUBE, TYPE_AWS_EC2, TYPE_STATIC,
-].map(s=>({ label:s, checked:false }));
+const CHECKBOX_DEFAULT_FILTERS: CheckboxFilterProps[] = [
+  TYPE_AWS,
+  TYPE_AZURE,
+  TYPE_CONSUL,
+  TYPE_KUBE,
+  TYPE_AWS_EC2,
+  TYPE_STATIC,
+].map(s => ({ label: s, checked: false }));
 
 export const UpstreamsLanding = () => {
   const [nameFilter, setNameFilter] = useState('');
   const [showUG, setShowUG] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<
-    UpstreamStatus.StateMap[keyof UpstreamStatus.StateMap]
-  >();
-  const [typeFilters, setTypeFilters] = useState<CheckboxFilterProps[]>(CHECKBOX_DEFAULT_FILTERS);
+  const [statusFilter, setStatusFilter] =
+    useState<UpstreamStatus.StateMap[keyof UpstreamStatus.StateMap]>();
+  const [typeFilters, setTypeFilters] = useState<CheckboxFilterProps[]>(
+    CHECKBOX_DEFAULT_FILTERS
+  );
 
   const changeNameFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNameFilter(e.target.value);
@@ -69,7 +85,7 @@ export const UpstreamsLanding = () => {
     );
   };
 
-  const changeTypeFilter = (ind:number, checked:boolean) => {
+  const changeTypeFilter = (ind: number, checked: boolean) => {
     const newArray = [...typeFilters];
     newArray[ind].checked = checked;
     setTypeFilters(newArray);
@@ -85,7 +101,7 @@ export const UpstreamsLanding = () => {
 
         <UpstreamGroupToggleWrapper>
           <SoloCheckbox
-            title={"Show Upstream Groups"}
+            title={'Show Upstream Groups'}
             checked={showUG}
             withWrapper={true}
             onChange={evt => setShowUG(evt.target.checked)}

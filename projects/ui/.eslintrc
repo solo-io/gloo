@@ -1,12 +1,14 @@
 {
   "parser": "@babel/eslint-parser",
   "plugins": [
-    "@babel"
+    "@babel",
+    "react-hooks"
   ],
   "extends": [
     "plugin:react-hooks/recommended"
   ],
   "rules": {
-    "react-hooks/exhaustive-deps": "off"
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
   }
 }

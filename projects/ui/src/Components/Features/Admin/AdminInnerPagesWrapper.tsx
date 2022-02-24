@@ -64,8 +64,7 @@ export const AdminInnerPagesWrapper = () => {
     if (!adminPage?.length) {
       navigate('virtual-services/');
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [adminPage]);
+  }, [adminPage, navigate]);
 
   const goToPage = (newPage: string | number | undefined) => {
     navigate(`../${newPage as string}/`);
@@ -82,7 +81,7 @@ export const AdminInnerPagesWrapper = () => {
       />
       <div>
         {
-          /* We could use React Router here, but I don't think we get anything out 
+          /* We could use React Router here, but I don't think we get anything out
             of it. We could do in <Content />, but then lose the slickness for Radio above. */
           adminPage === 'virtual-services' ? (
             <FederatedVirtualServices />

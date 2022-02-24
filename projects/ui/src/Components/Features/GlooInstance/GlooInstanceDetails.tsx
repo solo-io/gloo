@@ -165,8 +165,7 @@ export const GlooInstancesDetails = () => {
           <GlooIcon />
         </GlooIconHolder>
       }
-      headerSecondaryInformation={secondaryHeaderInfo}
-    >
+      headerSecondaryInformation={secondaryHeaderInfo}>
       {!!instancesError ? (
         <DataError error={instancesError} />
       ) : !glooInstance ? (

@@ -18,9 +18,9 @@ import { IconHolder } from 'Styles/StyledComponents/icons';
 import { RenderSimpleLink } from 'Components/Common/SoloLink';
 import { useIsGlooFedEnabled } from 'API/hooks';
 
-/* 
+/*
 !!** NOTE: all of this Type stuff will likely come back, but is removed for immediate future.
-  type DestinationTypeOptions =       
+  type DestinationTypeOptions =
   | typeof TYPE_CONSUL
   | typeof TYPE_KUBE
   | typeof TYPE_STATIC
@@ -92,8 +92,7 @@ export const UpstreamGroupWeightsTable = ({ destinations }: Props) => {
     } else {
       setTableData([]);
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [destinations?.length]);
+  }, [destinations]);
 
   if (!destinations) {
     return <Loading message={'Retrieving weights...'} />;

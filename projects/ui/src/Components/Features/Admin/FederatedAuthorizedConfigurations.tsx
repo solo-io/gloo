@@ -34,29 +34,35 @@ type AuthConfigTableFields = {
 export const FederatedAuthorizedConfigurations = () => {
   const [tableData, setTableData] = React.useState<AuthConfigTableFields[]>([]);
 
-  const {
-    data: authConfigs,
-    error: fedACError,
-  } = useListFederatedAuthConfigs();
+  const { data: authConfigs, error: fedACError } =
+    useListFederatedAuthConfigs();
 
   useEffect(() => {
     if (authConfigs) {
       setTableData(
         authConfigs
-        .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
-        .map(authConfig => {
-          return {
-            key:
-              authConfig.metadata?.uid ??
-              'A authorized configuration was provided with no UID',
-            name: authConfig.metadata?.name ?? '',
-            namespace: authConfig.metadata?.namespace ?? '',
-            clusters: authConfig.spec?.placement?.clustersList ?? [],
-            inNamespaces: authConfig.spec?.placement?.namespacesList ?? [],
-            status: authConfig.status?.placementStatus?.state ?? 0,
-            actions: authConfig,
-          };
-        })
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (gA.metadata?.namespace ?? '').localeCompare(
+                gB.metadata?.namespace ?? ''
+              )
+          )
+          .map(authConfig => {
+            return {
+              key:
+                authConfig.metadata?.uid ??
+                'A authorized configuration was provided with no UID',
+              name: authConfig.metadata?.name ?? '',
+              namespace: authConfig.metadata?.namespace ?? '',
+              clusters: authConfig.spec?.placement?.clustersList ?? [],
+              inNamespaces: authConfig.spec?.placement?.namespacesList ?? [],
+              status: authConfig.status?.placementStatus?.state ?? 0,
+              actions: authConfig,
+            };
+          })
       );
     } else {
       setTableData([]);

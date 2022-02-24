@@ -30,16 +30,14 @@ export const StyledModalTab = (
     <StyledTabComponent
       {...otherProps}
       isSelected={!!isSelected}
-      className='flex justify-between p-1 pl-6 mb-2 text-left text-white focus:outline-none'
-    >
+      className='flex justify-between p-1 pl-6 mb-2 text-left text-white focus:outline-none'>
       {children}
 
       <div
         style={{ backgroundColor: colors.pondBlue }}
         className={`w-4 h-4 rounded-full text-white justify-center items-center ${
           isCompleted ? 'flex' : 'hidden'
-        }`}
-      >
+        }`}>
         <Checkmark className={'fill-current w-2 h-2'} />
       </div>
     </StyledTabComponent>
@@ -134,8 +132,7 @@ export const SoloModal = (props: ModalProps) => {
   return (
     <ModalWindow>
       <BlockHolder
-        onClick={(evt: React.SyntheticEvent) => evt.stopPropagation()}
-      >
+        onClick={(evt: React.SyntheticEvent) => evt.stopPropagation()}>
         <ModalBlock width={width}>
           {!!onClose && (
             <CloseXContainer onClick={onClose}>

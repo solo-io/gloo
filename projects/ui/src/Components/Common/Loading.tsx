@@ -39,7 +39,7 @@ export const Loading = ({ center = true, message }: LoadingProps) => {
         display: 'flex',
         height: '100%',
         justifyContent: 'center',
-        alignContent: 'center'
+        alignContent: 'center',
       }
     : {};
 
@@ -51,7 +51,7 @@ export const Loading = ({ center = true, message }: LoadingProps) => {
         alignItems: 'center',
         width: '100%',
         padding: '20px 10px 35px',
-        ...centering
+        ...centering,
       }}>
       <div>
         <Rotater degrees={degrees}>
@@ -90,7 +90,7 @@ export const Loading = ({ center = true, message }: LoadingProps) => {
           paddingTop: '16px',
           textAlign: 'center',
           fontSize: '18px',
-          fontWeight: 500
+          fontWeight: 500,
         }}>
         {message}
       </div>

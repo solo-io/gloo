@@ -158,19 +158,19 @@ const UpstreamFailoverGroupTable = ({ group, isWeighted }: Props) => {
 
   const { data: allUpstreams, error: upstreamError } = useListUpstreams();
 
-  const getGlooInstance = (
-    upstreamRef: ClusterObjectRef.AsObject
-  ): ObjectRef.AsObject | undefined => {
-    const match = allUpstreams?.find(
-      upstream =>
-        upstream.metadata?.clusterName === upstreamRef.clusterName &&
-        upstream.metadata?.name === upstreamRef.name &&
-        upstream.metadata?.namespace === upstreamRef.namespace
-    );
-    return match?.glooInstance;
-  };
-
   useEffect(() => {
+    const getGlooInstance = (
+      upstreamRef: ClusterObjectRef.AsObject
+    ): ObjectRef.AsObject | undefined => {
+      const match = allUpstreams?.find(
+        upstream =>
+          upstream.metadata?.clusterName === upstreamRef.clusterName &&
+          upstream.metadata?.name === upstreamRef.name &&
+          upstream.metadata?.namespace === upstreamRef.namespace
+      );
+      return match?.glooInstance;
+    };
+
     const tableData: RowData[] = [];
     const totalWeight = group.priorityGroupList
       ?.map(pgl => pgl.localityWeight?.value ?? 0)
@@ -208,8 +208,7 @@ const UpstreamFailoverGroupTable = ({ group, isWeighted }: Props) => {
       });
     });
     setTableData(tableData);
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [group, allUpstreams]);
+  }, [group, allUpstreams, isWeighted]);
 
   if (!!upstreamError) {
     return <DataError error={upstreamError} />;

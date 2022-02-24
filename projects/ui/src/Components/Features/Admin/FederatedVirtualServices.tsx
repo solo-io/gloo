@@ -51,17 +51,23 @@ export const FederatedVirtualServices = (props: Props) => {
     []
   );
 
-  const {
-    data: virtualServices,
-    error: fedVSError,
-  } = useListFederatedVirtualServices();
+  const { data: virtualServices, error: fedVSError } =
+    useListFederatedVirtualServices();
 
   useEffect(() => {
     if (virtualServices) {
       setTableData(
         virtualServices
           .filter(vs => vs.metadata?.name.includes(props.nameFilter ?? ''))
-          .sort((gA, gB) => (gA.metadata?.name ?? '').localeCompare(gB.metadata?.name ?? '') || (gA.metadata?.namespace ?? '').localeCompare(gB.metadata?.namespace ?? ''))
+          .sort(
+            (gA, gB) =>
+              (gA.metadata?.name ?? '').localeCompare(
+                gB.metadata?.name ?? ''
+              ) ||
+              (gA.metadata?.namespace ?? '').localeCompare(
+                gB.metadata?.namespace ?? ''
+              )
+          )
           .map(vs => {
             let dataItem: VirtualServiceTableFields = {
               key:

@@ -85,8 +85,7 @@ const ConfirmationModal = (props: ConfirmationModalProps) => {
         width={360}
         maskStyle={maskStyle}
         style={floatingStyle}
-        bodyStyle={bodyStyle}
-      >
+        bodyStyle={bodyStyle}>
         <ContentContainer>
           <WarningCircle>
             <WarningExclamation className='w-16 h-16' />
@@ -100,22 +99,19 @@ const ConfirmationModal = (props: ConfirmationModalProps) => {
             {isNegative ? (
               <SoloNegativeButton
                 data-testid={props.confirmTestId}
-                onClick={goForIt}
-              >
+                onClick={goForIt}>
                 {confirmButtonText ? confirmButtonText : 'Confirm'}
               </SoloNegativeButton>
             ) : (
               <SoloButtonStyledComponent
                 data-testid={props.confirmTestId}
-                onClick={goForIt}
-              >
+                onClick={goForIt}>
                 {confirmButtonText ? confirmButtonText : 'Confirm'}
               </SoloButtonStyledComponent>
             )}
             <SoloCancelButton
               data-testid={props.cancelTestId}
-              onClick={closeModal}
-            >
+              onClick={closeModal}>
               Cancel
             </SoloCancelButton>
           </ButtonGroup>

@@ -118,8 +118,7 @@ export const MainMenu = () => {
                     }/apis/`
                   : '/apis/'
               }
-              exact
-            >
+              exact>
               APIs
             </NestedLink>
           </EnableGraphqlFeature>

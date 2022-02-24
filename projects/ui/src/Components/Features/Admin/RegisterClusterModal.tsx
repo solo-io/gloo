@@ -131,11 +131,16 @@ export const RegisterClusterModal = ({ modalOpen, onClose }: Props) => {
   const [attemptedCopy, setAttemptedCopy] = useState<boolean | null>(null);
 
   const attemptCopyToClipboard = (copyText: string) => {
-    setAttemptedCopy(copyTextToClipboard(copyText));
-
-    setTimeout(() => {
-      setAttemptedCopy(null);
-    }, 500);
+    copyTextToClipboard(copyText)
+      .then(() => {
+        setAttemptedCopy(true);
+        setTimeout(() => {
+          setAttemptedCopy(null);
+        }, 500);
+      })
+      .catch(() => {
+        setAttemptedCopy(false);
+      });
   };
 
   const registerCommand = 'glooctl cluster register';
@@ -158,8 +163,7 @@ export const RegisterClusterModal = ({ modalOpen, onClose }: Props) => {
             <WarningCircle>
               <WarningExclamation />
             </WarningCircle>{' '}
-            Register a Cluster to Gloo Edge by running the following
-            command:
+            Register a Cluster to Gloo Edge by running the following command:
           </div>
 
           <CommandArea>

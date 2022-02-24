@@ -74,8 +74,7 @@ const ErrorModal = (props: ErrorModalProps) => {
         onCancel={closeModal}
         maskStyle={maskStyle}
         style={floatingStyle}
-        bodyStyle={bodyStyle}
-      >
+        bodyStyle={bodyStyle}>
         <ContentContainer>
           <WarningCircle>
             <ErrorX className='w-24 h-24 ' />

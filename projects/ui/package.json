@@ -60,6 +60,8 @@
     "start": "BROWSER=none react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "lint": "eslint \"./src/**/*.tsx\"",
+    "fix": "eslint --fix \"./src/**/*.tsx\" && prettier --config ./.prettierrc.yaml --write \"./src/**/*.{ts,tsx}\"",
     "eject": "react-scripts eject"
   },
   "browserslist": {

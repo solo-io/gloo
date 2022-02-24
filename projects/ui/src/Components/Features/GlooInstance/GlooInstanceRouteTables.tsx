@@ -15,9 +15,8 @@ const InputHolderRow = styled.div`
 
 export const GlooInstanceRouteTables = () => {
   const [nameFilter, setNameFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState<
-  RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]
-  >();
+  const [statusFilter, setStatusFilter] =
+    useState<RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]>();
 
   const changeNameFilter = (e: React.ChangeEvent<any>) => {
     setNameFilter(e.target.value);

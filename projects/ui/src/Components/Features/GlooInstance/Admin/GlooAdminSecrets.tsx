@@ -60,7 +60,6 @@ export const GlooAdminSecrets = () => {
           <SecretsIcon />
         </IconHolder>
       }
-      cardName={'Secrets'}
-    ></SectionCard>
+      cardName={'Secrets'}></SectionCard>
   );
 };

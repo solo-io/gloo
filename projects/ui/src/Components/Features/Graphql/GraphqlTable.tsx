@@ -145,7 +145,7 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
     } else {
       setTableData([]);
     }
-  }, [!!graphqlSchemas]);
+  }, [graphqlSchemas, isGlooFedEnabled]);
 
   const onDownloadSchema = (gqlSchema: GraphqlSchema.AsObject) => {
     if (gqlSchema.metadata) {
@@ -208,8 +208,7 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
                 namespace: gqlSchema.metadata?.namespace!,
                 clusterName: gqlSchema.metadata?.clusterName!,
               })
-            }
-          >
+            }>
             <XIcon />
           </TableActionCircle>
         </TableActions>
@@ -288,8 +287,7 @@ export const GraphqlPageTable = (props: Props) => {
             key={filter.label}
             cardName={filter.label}
             logoIcon={<GraphqlIconHolder>{getIcon(filter)}</GraphqlIconHolder>}
-            noPadding={true}
-          >
+            noPadding={true}>
             <GraphqlTable {...props} wholePage={true} />
           </SectionCard>
         ))}

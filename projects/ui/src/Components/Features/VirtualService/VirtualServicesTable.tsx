@@ -167,12 +167,13 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
     } else {
       setTableData([]);
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [
     virtualServices,
     props.nameFilter,
     props.statusFilter,
     props.glooInstanceFilter,
+    isGlooFedEnabled,
+    props.wholePage,
   ]);
 
   if (!!virtualServicesError) {
@@ -208,8 +209,7 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
           navigate(
             `/gloo-instances/${glooInstance.namespace}/${glooInstance.name}/`
           )
-        }
-      >
+        }>
         {glooInstance.name}
       </div>
     );
@@ -289,8 +289,7 @@ export const VirtualServicesPageTable = (props: Props) => {
           <GlooIcon />
         </GlooIconHolder>
       }
-      noPadding={true}
-    >
+      noPadding={true}>
       <VirtualServicesTable {...props} wholePage={true} />
     </SectionCard>
   );

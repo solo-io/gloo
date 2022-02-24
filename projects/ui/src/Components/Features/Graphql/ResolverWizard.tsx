@@ -84,8 +84,7 @@ const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
   return (
     <div className='w-full h-full p-6 pb-0'>
       <div
-        className={'flex items-center mb-6 text-lg font-medium text-gray-800'}
-      >
+        className={'flex items-center mb-6 text-lg font-medium text-gray-800'}>
         {isEdit ? 'Edit' : 'Configure'} Resolver{' '}
       </div>
       <div className='grid grid-cols-2 gap-4 '>
@@ -110,8 +109,7 @@ const UpstreamSection = ({ isEdit }: UpstreamSectionProps) => {
   return (
     <div className='w-full h-full p-6 pb-0'>
       <div
-        className={'flex items-center mb-6 text-lg font-medium text-gray-800'}
-      >
+        className={'flex items-center mb-6 text-lg font-medium text-gray-800'}>
         {isEdit ? 'Edit' : 'Configure'} Resolver{' '}
       </div>
       <div className='grid gap-4 '>
@@ -195,7 +193,12 @@ const ResolverConfigSection = ({
     console.log('resolverConfig', resolverConfig);
 
     setFieldValue('resolverConfig', YAML.stringify(resolverConfig));
-  }, [values.upstream]);
+  }, [
+    setFieldValue,
+    values.upstream,
+    values.resolverConfig,
+    values.resolverType,
+  ]);
 
   const validateResolverSchema = async (resolver: string) => {
     setIsValid(!isValid);
@@ -233,8 +236,7 @@ const ResolverConfigSection = ({
   return (
     <div className='h-full p-6 pb-0 '>
       <div
-        className={'flex items-center mb-2 text-lg font-medium text-gray-800'}
-      >
+        className={'flex items-center mb-2 text-lg font-medium text-gray-800'}>
         {isEdit ? 'Edit' : 'Configure'} Resolver{' '}
       </div>
       <div className=''>
@@ -247,12 +249,10 @@ const ResolverConfigSection = ({
                     <div
                       className={`${
                         isValid ? 'opacity-100' : 'opacity-0'
-                      } h-10 text-center`}
-                    >
+                      } h-10 text-center`}>
                       <div
                         style={{ backgroundColor: '#f2fef2' }}
-                        className='p-2 text-green-400 border border-green-400 '
-                      >
+                        className='p-2 text-green-400 border border-green-400 '>
                         <div className='font-medium '>Valid</div>
                       </div>
                     </div>
@@ -260,12 +260,10 @@ const ResolverConfigSection = ({
                     <div
                       className={`${
                         errorMessage.length > 0 ? 'opacity-100' : '  opacity-0'
-                      } h-10`}
-                    >
+                      } h-10`}>
                       <div
                         style={{ backgroundColor: '#FEF2F2' }}
-                        className='p-2 text-orange-400 border border-orange-400 '
-                      >
+                        className='p-2 text-orange-400 border border-orange-400 '>
                         <div className='font-medium '>
                           {errorMessage?.split(',')[0]}
                         </div>
@@ -318,8 +316,7 @@ const ResolverConfigSection = ({
                       disabled={!dirty || isValid}
                       onClick={() =>
                         validateResolverSchema(values.resolverConfig ?? '')
-                      }
-                    >
+                      }>
                       Validate
                     </SoloButtonStyledComponent>
 
@@ -328,8 +325,7 @@ const ResolverConfigSection = ({
                       onClick={() => {
                         setFieldValue('resolverConfig', resolverConfig);
                         setErrorMessage('');
-                      }}
-                    >
+                      }}>
                       Reset
                     </SoloCancelButton>
                   </div>
@@ -399,7 +395,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
 
   React.useEffect(() => {
     setIsEdit(Boolean(props.resolver));
-  }, [!!props.resolver]);
+  }, [props.resolver]);
 
   const getInitialResolverConfig = (resolver?: typeof props.resolver) => {
     if (resolver?.restResolver) {
@@ -421,20 +417,17 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
         }}
         enableReinitialize
         validationSchema={validationSchema}
-        onSubmit={submitResolverConfig}
-      >
+        onSubmit={submitResolverConfig}>
         {formik => (
           <>
             <StyledModalTabs
               style={{ backgroundColor: colors.oceanBlue }}
               className='grid h-full rounded-lg grid-cols-[150px_1fr]'
               index={tabIndex}
-              onChange={handleTabsChange}
-            >
+              onChange={handleTabsChange}>
               <TabList className='flex flex-col mt-6'>
                 <StyledModalTab
-                  isCompleted={!!formik.values.resolverType?.length}
-                >
+                  isCompleted={!!formik.values.resolverType?.length}>
                   Resolver Type
                 </StyledModalTab>
 
@@ -442,8 +435,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
                   Upstream
                 </StyledModalTab>
                 <StyledModalTab
-                  isCompleted={!!formik.values.resolverConfig?.length}
-                >
+                  isCompleted={!!formik.values.resolverConfig?.length}>
                   Resolver Config
                 </StyledModalTab>
               </TabList>
@@ -456,8 +448,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
                     </IconButton>
                     <SoloButtonStyledComponent
                       onClick={() => setTabIndex(tabIndex + 1)}
-                      disabled={!resolverTypeIsValid(formik)}
-                    >
+                      disabled={!resolverTypeIsValid(formik)}>
                       Next Step
                     </SoloButtonStyledComponent>
                   </div>
@@ -471,8 +462,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
                     </IconButton>
                     <SoloButtonStyledComponent
                       onClick={() => setTabIndex(tabIndex + 1)}
-                      disabled={!upstreamIsValid(formik)}
-                    >
+                      disabled={!upstreamIsValid(formik)}>
                       Next Step
                     </SoloButtonStyledComponent>
                   </div>
@@ -491,8 +481,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
                     </IconButton>
                     <SoloButtonStyledComponent
                       onClick={formik.handleSubmit as any}
-                      disabled={!formik.isValid || !formIsValid(formik)}
-                    >
+                      disabled={!formik.isValid || !formIsValid(formik)}>
                       Submit
                     </SoloButtonStyledComponent>
                   </div>

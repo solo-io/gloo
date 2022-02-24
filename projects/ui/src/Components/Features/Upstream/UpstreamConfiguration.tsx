@@ -64,7 +64,7 @@ const ListBlock = styled.div`
   margin: 8px 0 5px;
   .ant-list {
     background: white;
-    
+
     .ant-list-item {
       padding: 0 5px;
     }
