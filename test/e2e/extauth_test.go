@@ -3029,7 +3029,7 @@ func getOauthTokenIntrospectionConfig(clientId string, clientSecretRef *core.Res
 	return &extauth.OAuth2_AccessTokenValidation{
 		AccessTokenValidation: &extauth.AccessTokenValidation{
 			ValidationType: &extauth.AccessTokenValidation_Introspection{
-				Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{
+				Introspection: &extauth.IntrospectionValidation{
 					IntrospectionUrl: "http://localhost:5556/introspection",
 					ClientId:         clientId,
 					ClientSecretRef:  clientSecretRef,

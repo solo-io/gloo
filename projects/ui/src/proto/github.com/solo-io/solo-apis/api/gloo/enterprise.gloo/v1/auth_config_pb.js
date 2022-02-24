@@ -22,10 +22,6 @@ var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation', null, global);
-goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation', null, global);
-goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation', null, global);
-goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks', null, global);
-goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation.ScopeList', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyAuth', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyAuth.SecretKey', null, global);
@@ -62,7 +58,11 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.HeaderConfiguration', null, glo
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HttpService', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HttpService.Request', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HttpService.Response', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.IntrospectionValidation', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.JwtValidation', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Ldap', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Ldap.ConnectionPool', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.OAuth', null, global);
@@ -7044,6 +7044,830 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setParseCallbackPa
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.JwtValidation = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.JwtValidation.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.JwtValidation, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.JwtValidation.displayName = 'proto.enterprise.gloo.solo.io.JwtValidation';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.oneofGroups_ = [[1,2]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.JwksSourceSpecifierCase = {
+  JWKS_SOURCE_SPECIFIER_NOT_SET: 0,
+  REMOTE_JWKS: 1,
+  LOCAL_JWKS: 2
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.JwtValidation.JwksSourceSpecifierCase}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.getJwksSourceSpecifierCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.JwtValidation.JwksSourceSpecifierCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.JwtValidation.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.JwtValidation.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.JwtValidation} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    remoteJwks: (f = msg.getRemoteJwks()) && proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.toObject(includeInstance, f),
+    localJwks: (f = msg.getLocalJwks()) && proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.toObject(includeInstance, f),
+    issuer: jspb.Message.getFieldWithDefault(msg, 3, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.JwtValidation}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.JwtValidation;
+  return proto.enterprise.gloo.solo.io.JwtValidation.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.JwtValidation} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.JwtValidation}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.deserializeBinaryFromReader);
+      msg.setRemoteJwks(value);
+      break;
+    case 2:
+      var value = new proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.deserializeBinaryFromReader);
+      msg.setLocalJwks(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setIssuer(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.JwtValidation.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.JwtValidation} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRemoteJwks();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.serializeBinaryToWriter
+    );
+  }
+  f = message.getLocalJwks();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.serializeBinaryToWriter
+    );
+  }
+  f = message.getIssuer();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.displayName = 'proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    url: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    refreshInterval: (f = msg.getRefreshInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks;
+  return proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUrl(value);
+      break;
+    case 2:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setRefreshInterval(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getRefreshInterval();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string url = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.prototype.getUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.prototype.setUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional google.protobuf.Duration refresh_interval = 2;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.prototype.getRefreshInterval = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 2));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.prototype.setRefreshInterval = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.prototype.clearRefreshInterval = function() {
+  this.setRefreshInterval(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks.prototype.hasRefreshInterval = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.displayName = 'proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    inlineString: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks;
+  return proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setInlineString(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getInlineString();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string inline_string = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.prototype.getInlineString = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks.prototype.setInlineString = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional RemoteJwks remote_jwks = 1;
+ * @return {?proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.getRemoteJwks = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks, 1));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks|undefined} value */
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.setRemoteJwks = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.enterprise.gloo.solo.io.JwtValidation.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.clearRemoteJwks = function() {
+  this.setRemoteJwks(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.hasRemoteJwks = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional LocalJwks local_jwks = 2;
+ * @return {?proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.getLocalJwks = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks, 2));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks|undefined} value */
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.setLocalJwks = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.JwtValidation.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.clearLocalJwks = function() {
+  this.setLocalJwks(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.hasLocalJwks = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string issuer = 3;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.getIssuer = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.JwtValidation.prototype.setIssuer = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.IntrospectionValidation, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.IntrospectionValidation.displayName = 'proto.enterprise.gloo.solo.io.IntrospectionValidation';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.IntrospectionValidation.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.IntrospectionValidation} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    introspectionUrl: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    clientId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    clientSecretRef: (f = msg.getClientSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    userIdAttributeName: jspb.Message.getFieldWithDefault(msg, 4, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.IntrospectionValidation}
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.IntrospectionValidation;
+  return proto.enterprise.gloo.solo.io.IntrospectionValidation.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.IntrospectionValidation} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.IntrospectionValidation}
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setIntrospectionUrl(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClientId(value);
+      break;
+    case 3:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setClientSecretRef(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUserIdAttributeName(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.IntrospectionValidation.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.IntrospectionValidation} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getIntrospectionUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getClientId();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getClientSecretRef();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getUserIdAttributeName();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string introspection_url = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.getIntrospectionUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.setIntrospectionUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string client_id = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.getClientId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.setClientId = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef client_secret_ref = 3;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.getClientSecretRef = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 3));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.setClientSecretRef = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.clearClientSecretRef = function() {
+  this.setClientSecretRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.hasClientSecretRef = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional string user_id_attribute_name = 4;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.getUserIdAttributeName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.IntrospectionValidation.prototype.setUserIdAttributeName = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.AccessTokenValidation = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.AccessTokenValidation.oneofGroups_);
 };
@@ -7123,8 +7947,8 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.toObject = functio
 proto.enterprise.gloo.solo.io.AccessTokenValidation.toObject = function(includeInstance, msg) {
   var f, obj = {
     introspectionUrl: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    jwt: (f = msg.getJwt()) && proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.toObject(includeInstance, f),
-    introspection: (f = msg.getIntrospection()) && proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.toObject(includeInstance, f),
+    jwt: (f = msg.getJwt()) && proto.enterprise.gloo.solo.io.JwtValidation.toObject(includeInstance, f),
+    introspection: (f = msg.getIntrospection()) && proto.enterprise.gloo.solo.io.IntrospectionValidation.toObject(includeInstance, f),
     userinfoUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
     cacheTimeout: (f = msg.getCacheTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     requiredScopes: (f = msg.getRequiredScopes()) && proto.enterprise.gloo.solo.io.AccessTokenValidation.ScopeList.toObject(includeInstance, f)
@@ -7169,13 +7993,13 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.deserializeBinaryFromReader 
       msg.setIntrospectionUrl(value);
       break;
     case 2:
-      var value = new proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation;
-      reader.readMessage(value,proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.deserializeBinaryFromReader);
+      var value = new proto.enterprise.gloo.solo.io.JwtValidation;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.JwtValidation.deserializeBinaryFromReader);
       msg.setJwt(value);
       break;
     case 3:
-      var value = new proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation;
-      reader.readMessage(value,proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.deserializeBinaryFromReader);
+      var value = new proto.enterprise.gloo.solo.io.IntrospectionValidation;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.IntrospectionValidation.deserializeBinaryFromReader);
       msg.setIntrospection(value);
       break;
     case 4:
@@ -7233,7 +8057,7 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.serializeBinaryToWriter = fu
     writer.writeMessage(
       2,
       f,
-      proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.serializeBinaryToWriter
+      proto.enterprise.gloo.solo.io.JwtValidation.serializeBinaryToWriter
     );
   }
   f = message.getIntrospection();
@@ -7241,7 +8065,7 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.serializeBinaryToWriter = fu
     writer.writeMessage(
       3,
       f,
-      proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.serializeBinaryToWriter
+      proto.enterprise.gloo.solo.io.IntrospectionValidation.serializeBinaryToWriter
     );
   }
   f = message.getUserinfoUrl();
@@ -7267,830 +8091,6 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.serializeBinaryToWriter = fu
       proto.enterprise.gloo.solo.io.AccessTokenValidation.ScopeList.serializeBinaryToWriter
     );
   }
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.oneofGroups_);
-};
-goog.inherits(proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.displayName = 'proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation';
-}
-/**
- * Oneof group definitions for this message. Each group defines the field
- * numbers belonging to that group. When of these fields' value is set, all
- * other fields in the group are cleared. During deserialization, if multiple
- * fields are encountered for a group, only the last value seen will be kept.
- * @private {!Array<!Array<number>>}
- * @const
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.oneofGroups_ = [[1,2]];
-
-/**
- * @enum {number}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.JwksSourceSpecifierCase = {
-  JWKS_SOURCE_SPECIFIER_NOT_SET: 0,
-  REMOTE_JWKS: 1,
-  LOCAL_JWKS: 2
-};
-
-/**
- * @return {proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.JwksSourceSpecifierCase}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.getJwksSourceSpecifierCase = function() {
-  return /** @type {proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.JwksSourceSpecifierCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.oneofGroups_[0]));
-};
-
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.toObject = function(opt_includeInstance) {
-  return proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    remoteJwks: (f = msg.getRemoteJwks()) && proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.toObject(includeInstance, f),
-    localJwks: (f = msg.getLocalJwks()) && proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.toObject(includeInstance, f),
-    issuer: jspb.Message.getFieldWithDefault(msg, 3, "")
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation;
-  return proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = new proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks;
-      reader.readMessage(value,proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.deserializeBinaryFromReader);
-      msg.setRemoteJwks(value);
-      break;
-    case 2:
-      var value = new proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks;
-      reader.readMessage(value,proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.deserializeBinaryFromReader);
-      msg.setLocalJwks(value);
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setIssuer(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getRemoteJwks();
-  if (f != null) {
-    writer.writeMessage(
-      1,
-      f,
-      proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.serializeBinaryToWriter
-    );
-  }
-  f = message.getLocalJwks();
-  if (f != null) {
-    writer.writeMessage(
-      2,
-      f,
-      proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.serializeBinaryToWriter
-    );
-  }
-  f = message.getIssuer();
-  if (f.length > 0) {
-    writer.writeString(
-      3,
-      f
-    );
-  }
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
-};
-goog.inherits(proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.displayName = 'proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks';
-}
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.prototype.toObject = function(opt_includeInstance) {
-  return proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    url: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    refreshInterval: (f = msg.getRefreshInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks;
-  return proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setUrl(value);
-      break;
-    case 2:
-      var value = new google_protobuf_duration_pb.Duration;
-      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
-      msg.setRefreshInterval(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getUrl();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
-  f = message.getRefreshInterval();
-  if (f != null) {
-    writer.writeMessage(
-      2,
-      f,
-      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
-    );
-  }
-};
-
-
-/**
- * optional string url = 1;
- * @return {string}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.prototype.getUrl = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/** @param {string} value */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.prototype.setUrl = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * optional google.protobuf.Duration refresh_interval = 2;
- * @return {?proto.google.protobuf.Duration}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.prototype.getRefreshInterval = function() {
-  return /** @type{?proto.google.protobuf.Duration} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 2));
-};
-
-
-/** @param {?proto.google.protobuf.Duration|undefined} value */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.prototype.setRefreshInterval = function(value) {
-  jspb.Message.setWrapperField(this, 2, value);
-};
-
-
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.prototype.clearRefreshInterval = function() {
-  this.setRefreshInterval(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks.prototype.hasRefreshInterval = function() {
-  return jspb.Message.getField(this, 2) != null;
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
-};
-goog.inherits(proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.displayName = 'proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks';
-}
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.prototype.toObject = function(opt_includeInstance) {
-  return proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    inlineString: jspb.Message.getFieldWithDefault(msg, 1, "")
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks;
-  return proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setInlineString(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getInlineString();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
-};
-
-
-/**
- * optional string inline_string = 1;
- * @return {string}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.prototype.getInlineString = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/** @param {string} value */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks.prototype.setInlineString = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * optional RemoteJwks remote_jwks = 1;
- * @return {?proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.getRemoteJwks = function() {
-  return /** @type{?proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks} */ (
-    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks, 1));
-};
-
-
-/** @param {?proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.RemoteJwks|undefined} value */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.setRemoteJwks = function(value) {
-  jspb.Message.setOneofWrapperField(this, 1, proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.oneofGroups_[0], value);
-};
-
-
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.clearRemoteJwks = function() {
-  this.setRemoteJwks(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.hasRemoteJwks = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * optional LocalJwks local_jwks = 2;
- * @return {?proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.getLocalJwks = function() {
-  return /** @type{?proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks} */ (
-    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks, 2));
-};
-
-
-/** @param {?proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.LocalJwks|undefined} value */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.setLocalJwks = function(value) {
-  jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.oneofGroups_[0], value);
-};
-
-
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.clearLocalJwks = function() {
-  this.setLocalJwks(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.hasLocalJwks = function() {
-  return jspb.Message.getField(this, 2) != null;
-};
-
-
-/**
- * optional string issuer = 3;
- * @return {string}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.getIssuer = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
-};
-
-
-/** @param {string} value */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation.prototype.setIssuer = function(value) {
-  jspb.Message.setProto3StringField(this, 3, value);
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
-};
-goog.inherits(proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.displayName = 'proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation';
-}
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.toObject = function(opt_includeInstance) {
-  return proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    introspectionUrl: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    clientId: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    clientSecretRef: (f = msg.getClientSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    userIdAttributeName: jspb.Message.getFieldWithDefault(msg, 4, "")
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation;
-  return proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setIntrospectionUrl(value);
-      break;
-    case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setClientId(value);
-      break;
-    case 3:
-      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
-      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
-      msg.setClientSecretRef(value);
-      break;
-    case 4:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setUserIdAttributeName(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getIntrospectionUrl();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
-  f = message.getClientId();
-  if (f.length > 0) {
-    writer.writeString(
-      2,
-      f
-    );
-  }
-  f = message.getClientSecretRef();
-  if (f != null) {
-    writer.writeMessage(
-      3,
-      f,
-      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
-    );
-  }
-  f = message.getUserIdAttributeName();
-  if (f.length > 0) {
-    writer.writeString(
-      4,
-      f
-    );
-  }
-};
-
-
-/**
- * optional string introspection_url = 1;
- * @return {string}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.getIntrospectionUrl = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/** @param {string} value */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.setIntrospectionUrl = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * optional string client_id = 2;
- * @return {string}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.getClientId = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
-};
-
-
-/** @param {string} value */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.setClientId = function(value) {
-  jspb.Message.setProto3StringField(this, 2, value);
-};
-
-
-/**
- * optional core.solo.io.ResourceRef client_secret_ref = 3;
- * @return {?proto.core.solo.io.ResourceRef}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.getClientSecretRef = function() {
-  return /** @type{?proto.core.solo.io.ResourceRef} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 3));
-};
-
-
-/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.setClientSecretRef = function(value) {
-  jspb.Message.setWrapperField(this, 3, value);
-};
-
-
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.clearClientSecretRef = function() {
-  this.setClientSecretRef(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.hasClientSecretRef = function() {
-  return jspb.Message.getField(this, 3) != null;
-};
-
-
-/**
- * optional string user_id_attribute_name = 4;
- * @return {string}
- */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.getUserIdAttributeName = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
-};
-
-
-/** @param {string} value */
-proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation.prototype.setUserIdAttributeName = function(value) {
-  jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
@@ -8288,15 +8288,15 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.hasIntrospectionUr
 
 /**
  * optional JwtValidation jwt = 2;
- * @return {?proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation}
+ * @return {?proto.enterprise.gloo.solo.io.JwtValidation}
  */
 proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.getJwt = function() {
-  return /** @type{?proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation} */ (
-    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation, 2));
+  return /** @type{?proto.enterprise.gloo.solo.io.JwtValidation} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.JwtValidation, 2));
 };
 
 
-/** @param {?proto.enterprise.gloo.solo.io.AccessTokenValidation.JwtValidation|undefined} value */
+/** @param {?proto.enterprise.gloo.solo.io.JwtValidation|undefined} value */
 proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.setJwt = function(value) {
   jspb.Message.setOneofWrapperField(this, 2, proto.enterprise.gloo.solo.io.AccessTokenValidation.oneofGroups_[0], value);
 };
@@ -8318,15 +8318,15 @@ proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.hasJwt = function(
 
 /**
  * optional IntrospectionValidation introspection = 3;
- * @return {?proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation}
+ * @return {?proto.enterprise.gloo.solo.io.IntrospectionValidation}
  */
 proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.getIntrospection = function() {
-  return /** @type{?proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation} */ (
-    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation, 3));
+  return /** @type{?proto.enterprise.gloo.solo.io.IntrospectionValidation} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.IntrospectionValidation, 3));
 };
 
 
-/** @param {?proto.enterprise.gloo.solo.io.AccessTokenValidation.IntrospectionValidation|undefined} value */
+/** @param {?proto.enterprise.gloo.solo.io.IntrospectionValidation|undefined} value */
 proto.enterprise.gloo.solo.io.AccessTokenValidation.prototype.setIntrospection = function(value) {
   jspb.Message.setOneofWrapperField(this, 3, proto.enterprise.gloo.solo.io.AccessTokenValidation.oneofGroups_[0], value);
 };

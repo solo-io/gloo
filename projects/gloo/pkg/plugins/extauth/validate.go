@@ -78,11 +78,11 @@ func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports
 					}
 				case *extauth.AccessTokenValidation_Jwt:
 					switch jwksSource := validation.Jwt.JwksSourceSpecifier.(type) {
-					case *extauth.AccessTokenValidation_JwtValidation_RemoteJwks_:
+					case *extauth.JwtValidation_RemoteJwks_:
 						if jwksSource.RemoteJwks.GetUrl() == "" {
 							reports.AddError(ac, OAuth2EmtpyRemoteJwksUrlErr)
 						}
-					case *extauth.AccessTokenValidation_JwtValidation_LocalJwks_:
+					case *extauth.JwtValidation_LocalJwks_:
 						if jwksSource.LocalJwks.GetInlineString() == "" {
 							reports.AddError(ac, OAuth2EmtpyLocalJwksErr)
 						}

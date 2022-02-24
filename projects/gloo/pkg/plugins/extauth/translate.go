@@ -395,7 +395,7 @@ func translateAccessTokenValidationConfig(snap *v1snap.ApiSnapshot, config *exta
 	return accessTokenValidationConfig, nil
 }
 
-func translateAccessTokenValidationIntrospection(snap *v1snap.ApiSnapshot, config *extauth.AccessTokenValidation_IntrospectionValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionValidation, error) {
+func translateAccessTokenValidationIntrospection(snap *v1snap.ApiSnapshot, config *extauth.IntrospectionValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig_IntrospectionValidation, error) {
 	var clientSecret string
 	if config.GetClientSecretRef() != nil {
 		secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
@@ -413,20 +413,20 @@ func translateAccessTokenValidationIntrospection(snap *v1snap.ApiSnapshot, confi
 	}, nil
 }
 
-func translateAccessTokenValidationJwt(config *extauth.AccessTokenValidation_JwtValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation, error) {
+func translateAccessTokenValidationJwt(config *extauth.JwtValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation, error) {
 	jwtValidation := &extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation{
 		Issuer: config.GetIssuer(),
 	}
 
 	switch jwksSourceSpecifierConfig := config.JwksSourceSpecifier.(type) {
-	case *extauth.AccessTokenValidation_JwtValidation_LocalJwks_:
+	case *extauth.JwtValidation_LocalJwks_:
 		jwtValidation.JwksSourceSpecifier = &extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation_LocalJwks_{
 			LocalJwks: &extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation_LocalJwks{
 				InlineString: jwksSourceSpecifierConfig.LocalJwks.GetInlineString(),
 			},
 		}
 
-	case *extauth.AccessTokenValidation_JwtValidation_RemoteJwks_:
+	case *extauth.JwtValidation_RemoteJwks_:
 		jwtValidation.JwksSourceSpecifier = &extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation_RemoteJwks_{
 			RemoteJwks: &extauth.ExtAuthConfig_AccessTokenValidationConfig_JwtValidation_RemoteJwks{
 				Url:             jwksSourceSpecifierConfig.RemoteJwks.GetUrl(),

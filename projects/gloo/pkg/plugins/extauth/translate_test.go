@@ -523,7 +523,7 @@ var _ = Describe("Translate", func() {
 							OauthType: &extauth.OAuth2_AccessTokenValidation{
 								AccessTokenValidation: &extauth.AccessTokenValidation{
 									ValidationType: &extauth.AccessTokenValidation_Introspection{
-										Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{
+										Introspection: &extauth.IntrospectionValidation{
 											IntrospectionUrl:    "introspection-url",
 											ClientId:            "client-id",
 											ClientSecretRef:     secret.Metadata.Ref(),

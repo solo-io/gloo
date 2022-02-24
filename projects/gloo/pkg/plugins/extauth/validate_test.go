@@ -252,7 +252,7 @@ var _ = Describe("ValidateAuthConfig", func() {
 			OauthType: &extauth.OAuth2_AccessTokenValidation{
 				AccessTokenValidation: &extauth.AccessTokenValidation{
 					ValidationType: &extauth.AccessTokenValidation_Introspection{
-						Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{},
+						Introspection: &extauth.IntrospectionValidation{},
 					},
 				},
 			},
@@ -261,7 +261,7 @@ var _ = Describe("ValidateAuthConfig", func() {
 			OauthType: &extauth.OAuth2_AccessTokenValidation{
 				AccessTokenValidation: &extauth.AccessTokenValidation{
 					ValidationType: &extauth.AccessTokenValidation_Introspection{
-						Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{
+						Introspection: &extauth.IntrospectionValidation{
 							IntrospectionUrl: "url",
 							ClientId:         "client_id",
 						},
@@ -273,7 +273,7 @@ var _ = Describe("ValidateAuthConfig", func() {
 			OauthType: &extauth.OAuth2_AccessTokenValidation{
 				AccessTokenValidation: &extauth.AccessTokenValidation{
 					ValidationType: &extauth.AccessTokenValidation_Introspection{
-						Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{
+						Introspection: &extauth.IntrospectionValidation{
 							IntrospectionUrl: "url",
 							ClientSecretRef: &core.ResourceRef{
 								Name:      "name",
@@ -288,9 +288,9 @@ var _ = Describe("ValidateAuthConfig", func() {
 			OauthType: &extauth.OAuth2_AccessTokenValidation{
 				AccessTokenValidation: &extauth.AccessTokenValidation{
 					ValidationType: &extauth.AccessTokenValidation_Jwt{
-						Jwt: &extauth.AccessTokenValidation_JwtValidation{
-							JwksSourceSpecifier: &extauth.AccessTokenValidation_JwtValidation_RemoteJwks_{
-								RemoteJwks: &extauth.AccessTokenValidation_JwtValidation_RemoteJwks{},
+						Jwt: &extauth.JwtValidation{
+							JwksSourceSpecifier: &extauth.JwtValidation_RemoteJwks_{
+								RemoteJwks: &extauth.JwtValidation_RemoteJwks{},
 							},
 						},
 					},
@@ -301,9 +301,9 @@ var _ = Describe("ValidateAuthConfig", func() {
 			OauthType: &extauth.OAuth2_AccessTokenValidation{
 				AccessTokenValidation: &extauth.AccessTokenValidation{
 					ValidationType: &extauth.AccessTokenValidation_Jwt{
-						Jwt: &extauth.AccessTokenValidation_JwtValidation{
-							JwksSourceSpecifier: &extauth.AccessTokenValidation_JwtValidation_LocalJwks_{
-								LocalJwks: &extauth.AccessTokenValidation_JwtValidation_LocalJwks{},
+						Jwt: &extauth.JwtValidation{
+							JwksSourceSpecifier: &extauth.JwtValidation_LocalJwks_{
+								LocalJwks: &extauth.JwtValidation_LocalJwks{},
 							},
 						},
 					},

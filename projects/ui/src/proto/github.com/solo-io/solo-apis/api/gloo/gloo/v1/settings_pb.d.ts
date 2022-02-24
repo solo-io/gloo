@@ -827,6 +827,16 @@ export namespace GlooOptions {
     getServiceAccountCredentials(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials | undefined;
     setServiceAccountCredentials(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials): void;
 
+    hasPropagateOriginalRouting(): boolean;
+    clearPropagateOriginalRouting(): void;
+    getPropagateOriginalRouting(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setPropagateOriginalRouting(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+    hasCredentialRefreshDelay(): boolean;
+    clearCredentialRefreshDelay(): void;
+    getCredentialRefreshDelay(): google_protobuf_duration_pb.Duration | undefined;
+    setCredentialRefreshDelay(value?: google_protobuf_duration_pb.Duration): void;
+
     getCredentialsFetcherCase(): AWSOptions.CredentialsFetcherCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): AWSOptions.AsObject;
@@ -842,6 +852,8 @@ export namespace GlooOptions {
     export type AsObject = {
       enableCredentialsDiscovey: boolean,
       serviceAccountCredentials?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials.AsObject,
+      propagateOriginalRouting?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      credentialRefreshDelay?: google_protobuf_duration_pb.Duration.AsObject,
     }
 
     export enum CredentialsFetcherCase {
