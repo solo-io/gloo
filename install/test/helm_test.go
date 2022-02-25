@@ -140,14 +140,45 @@ var _ = Describe("Helm Test", func() {
 								LocalObjectReference: v1.LocalObjectReference{Name: "glooe-observability-config"},
 								Items: []v1.KeyToPath{
 									{
-										Key:  "DASHBOARD_JSON_TEMPLATE",
+										Key:  "UPSTREAM_DASHBOARD_JSON_TEMPLATE",
 										Path: "dashboard-template.json",
 									},
 								},
 							},
 						},
 					},
+					{
+						Name: "custom-dashboards",
+						VolumeSource: v1.VolumeSource{
+							ConfigMap: &v1.ConfigMapVolumeSource{
+								LocalObjectReference: v1.LocalObjectReference{Name: "glooe-grafana-custom-dashboards"},
+								Items: []v1.KeyToPath{
+									{
+										Key:  "envoy.json",
+										Path: "envoy.json",
+									},
+									{
+										Key:  "extauth-monitoring.json",
+										Path: "extauth-monitoring.json",
+									},
+									{
+										Key:  "gloo-overview.json",
+										Path: "gloo-overview.json",
+									},
+									{
+										Key:  "kubernetes.json",
+										Path: "kubernetes.json",
+									},
+									{
+										Key:  "upstreams.json",
+										Path: "upstreams.json",
+									},
+								},
+							},
+						},
+					},
 				}
+
 				observabilityDeployment.Spec.Template.Spec.Containers = []v1.Container{
 					{
 						Name:  "observability",
@@ -161,6 +192,11 @@ var _ = Describe("Helm Test", func() {
 								Name:      "upstream-dashboard-template",
 								ReadOnly:  true,
 								MountPath: "/observability",
+							},
+							{
+								Name:      "custom-dashboards",
+								ReadOnly:  true,
+								MountPath: "/observability/defaults",
 							},
 						},
 						Env: []v1.EnvVar{
@@ -193,8 +229,11 @@ var _ = Describe("Helm Test", func() {
 				observabilityDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
 				observabilityDeployment.Spec.Selector.MatchLabels = selector
 				observabilityDeployment.Spec.Template.ObjectMeta.Labels = selector
-				annotations := map[string]string{"checksum/observability-config": "de2d54c013f0f8f6524c6a4e8551fac8869585119cf5af63e3c18eb4f3b2c4b9"} // observability config checksum
-				for key, val := range normalPromAnnotations {                                                                                         // deep copy map
+				annotations := map[string]string{
+					"checksum/observability-config": "4b3e700416549fed9c90eb2c3bcab330f8a1f672672d5561645076f7f2720b63", // observability config checksum
+					"checksum/grafana-dashboards":   "ba63ece674a09f7509f99b91de54dc32b4c04cb36b650f7446661630d80299e2", // grafana dashboards checksum
+				}
+				for key, val := range normalPromAnnotations { // deep copy map
 					annotations[key] = val
 				}
 				observabilityDeployment.Spec.Template.ObjectMeta.Annotations = annotations

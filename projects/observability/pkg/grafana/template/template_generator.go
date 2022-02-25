@@ -6,6 +6,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana"
+
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
@@ -15,28 +17,28 @@ import (
 // Render a template based on the given upstream
 type TemplateGenerator interface {
 	GenerateSnapshot() ([]byte, error)
-	GenerateDashboard(dashboardFolderId uint) ([]byte, error)
+	GenerateDashboardPost(dashboardFolderId uint) (*grafana.DashboardPostRequest, error)
 	GenerateUid() string
 }
 
 // when the observability pod updates a dashboard, use this pre-canned message to indicate it was automated
 const DefaultCommitMessage = "__gloo-auto-gen-dashboard__"
 
-type templateGenerator struct {
+type upstreamTemplateGenerator struct {
 	upstream              *gloov1.Upstream
 	dashboardJsonTemplate string
 }
 
-var _ TemplateGenerator = &templateGenerator{}
+var _ TemplateGenerator = &upstreamTemplateGenerator{}
 
-func NewTemplateGenerator(upstream *gloov1.Upstream, dashboardJsonTemplate string) TemplateGenerator {
-	return &templateGenerator{
+func NewUpstreamTemplateGenerator(upstream *gloov1.Upstream, dashboardJsonTemplate string) TemplateGenerator {
+	return &upstreamTemplateGenerator{
 		upstream:              upstream,
 		dashboardJsonTemplate: dashboardJsonTemplate,
 	}
 }
 
-func (t *templateGenerator) GenerateUid() string {
+func (t *upstreamTemplateGenerator) GenerateUid() string {
 	// Uid has max 40 chars
 	// return trailing chars because they are more likely to be distinct
 	name := t.upstream.Metadata.Name
@@ -46,7 +48,7 @@ func (t *templateGenerator) GenerateUid() string {
 	return strings.Replace(name, "-", "_", -1)
 }
 
-func (t *templateGenerator) GenerateDashboard(dashboardFolderId uint) ([]byte, error) {
+func (t *upstreamTemplateGenerator) GenerateDashboardPost(dashboardFolderId uint) (*grafana.DashboardPostRequest, error) {
 	stats := upstreamStats{
 		Uid:              t.GenerateUid(),
 		EnvoyClusterName: t.buildEnvoyClusterName(),
@@ -54,11 +56,20 @@ func (t *templateGenerator) GenerateDashboard(dashboardFolderId uint) ([]byte, e
 		Overwrite:        true,
 	}
 
-	dashboardPayload := buildDashboardPayloadTemplate(t.dashboardJsonTemplate, dashboardFolderId)
-	return tmplExec(dashboardPayload, stats)
+	renderedDash, err := tmplExec(t.dashboardJsonTemplate, "upstream.json", stats)
+	if err != nil {
+		return nil, err
+	}
+
+	return &grafana.DashboardPostRequest{
+		Dashboard: renderedDash,
+		FolderId:  dashboardFolderId,
+		Message:   DefaultCommitMessage,
+		Overwrite: true,
+	}, nil
 }
 
-func (t *templateGenerator) GenerateSnapshot() ([]byte, error) {
+func (t *upstreamTemplateGenerator) GenerateSnapshot() ([]byte, error) {
 	stats := upstreamStats{
 		EnvoyClusterName: t.buildEnvoyClusterName(),
 		Uid:              t.GenerateUid(),
@@ -67,11 +78,39 @@ func (t *templateGenerator) GenerateSnapshot() ([]byte, error) {
 	}
 
 	snapshotPayload := buildSnapshotPayloadTemplate(t.dashboardJsonTemplate)
-	return tmplExec(snapshotPayload, stats)
+	return tmplExec(snapshotPayload, "upstream.json", stats)
 }
 
-func tmplExec(tmplStr string, us upstreamStats) ([]byte, error) {
-	tmpl, err := template.New("upstream.json").Parse(tmplStr)
+type defaultJsonGenerator struct {
+	uid, dashboardJson string
+}
+
+func NewDefaultJsonGenerator(uid, dashboardJson string) TemplateGenerator {
+	return &defaultJsonGenerator{
+		uid:           uid,
+		dashboardJson: dashboardJson,
+	}
+}
+
+func (t *defaultJsonGenerator) GenerateUid() string {
+	return t.uid
+}
+
+func (t *defaultJsonGenerator) GenerateDashboardPost(dashboardFolderId uint) (*grafana.DashboardPostRequest, error) {
+	return &grafana.DashboardPostRequest{
+		Dashboard: []byte(t.dashboardJson),
+		Message:   DefaultCommitMessage,
+		FolderId:  dashboardFolderId,
+		Overwrite: false,
+	}, nil
+}
+
+func (t *defaultJsonGenerator) GenerateSnapshot() ([]byte, error) {
+	return []byte{}, fmt.Errorf("GenerateSnapshot not implemented for defaultJsonGenerator")
+}
+
+func tmplExec(tmplStr, filename string, us upstreamStats) ([]byte, error) {
+	tmpl, err := template.New(filename).Parse(tmplStr)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +122,7 @@ func tmplExec(tmplStr string, us upstreamStats) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (t *templateGenerator) buildEnvoyClusterName() string {
+func (t *upstreamTemplateGenerator) buildEnvoyClusterName() string {
 	return translator.UpstreamToClusterName(t.upstream.Metadata.Ref())
 }
 

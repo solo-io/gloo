@@ -13,9 +13,8 @@
     ]
   },
   "editable": true,
-  "gnetId": null,
   "graphTooltip": 0,
-  "id": 2,
+  "id": null,
   "links": [],
   "panels": [
     {
@@ -724,7 +723,7 @@
   ],
   "schemaVersion": 16,
   "style": "dark",
-  "tags": ["gloo"],
+  "tags": ["gloo", "default"],
   "templating": {
     "list": []
   },
@@ -759,6 +758,5 @@
   },
   "timezone": "",
   "title": "Envoy Statistics",
-  "uid": "envoy",
-  "version": 1
+  "uid": "envoy"
 }

@@ -10,5 +10,6 @@ metadata:
     chart: glooe-grafana
     release: {{ .Release.Name }}
 data:
-{{ (.Files.Glob "dashboards/*.json").AsConfig | indent 2 }}
+{{/* load dashboard template and replace `null` data source instances with custom data source, if specified */}}
+{{ (.Files.Glob "dashboards/*.json").AsConfig | indent 2 | replace `"datasource": null,`  (printf `"datasource": %s,` (default "null" (quote .Values.observability.customGrafana.dataSource))) }}
 {{- end }}

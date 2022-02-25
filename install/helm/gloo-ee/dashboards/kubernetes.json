@@ -2188,7 +2188,8 @@
   "style": "dark",
   "tags": [
     "kubernetes",
-    "gloo"
+    "gloo",
+    "default"
   ],
   "templating": {
     "list": [
@@ -2275,7 +2276,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Kubernetes cluster monitoring (via Prometheus)",
+  "title": "Kubernetes Cluster Monitoring (via Prometheus)",
   "uid": "kubernetes",
   "version": 1
 }

@@ -35,6 +35,7 @@ spec:
       {{- if or $statsConfig.enabled .Values.global.istioIntegration.disableAutoinjection }}
       annotations:
         checksum/observability-config: {{ include (print $.Template.BasePath "/9-observability-configmap.yaml") . | sha256sum }}{{/* ensure pods are kicked when the configmap is updated */}}
+        checksum/grafana-dashboards: {{ include (print $.Template.BasePath "/10-grafana-dashboards-config-map.yaml") . | sha256sum }}{{/* ensure pods are kicked when the grafana dashboards are updated */}}
         {{- if $statsConfig.enabled}}
         prometheus.io/path: /metrics
         prometheus.io/port: "9091"
@@ -52,8 +53,22 @@ spec:
           configMap:
             name: {{ .Release.Name }}-observability-config
             items:
-            - key: DASHBOARD_JSON_TEMPLATE
+            - key: UPSTREAM_DASHBOARD_JSON_TEMPLATE
               path: dashboard-template.json
+        - name: custom-dashboards
+          configMap:
+            name: glooe-grafana-custom-dashboards
+            items:
+              - key: envoy.json
+                path: envoy.json
+              - key: extauth-monitoring.json
+                path: extauth-monitoring.json
+              - key: gloo-overview.json
+                path: gloo-overview.json
+              - key: kubernetes.json
+                path: kubernetes.json
+              - key: upstreams.json
+                path: upstreams.json
       containers:
         - image: {{template "gloo.image" $image}}
           imagePullPolicy: {{$image.pullPolicy}}
@@ -61,6 +76,9 @@ spec:
           volumeMounts:
             - name: upstream-dashboard-template
               mountPath: /observability
+              readOnly: true
+            - name: custom-dashboards
+              mountPath: /observability/defaults
               readOnly: true
           {{- if $.Values.observability.deployment.resources }}
           resources:

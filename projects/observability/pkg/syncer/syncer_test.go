@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/kubernetes"
 
 	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template"
-	templatemocks "github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template/mocks"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -28,7 +28,6 @@ var (
 	mockCtrl                *gomock.Controller
 	dashboardClient         *mocks.MockDashboardClient
 	snapshotClient          *mocks.MockSnapshotClient
-	templateGenerator       *templatemocks.MockTemplateGenerator
 	testErr                 = errors.New("test err")
 	dashboardsSnapshot      *v1.DashboardsSnapshot
 	testGrafanaState        *grafanaState
@@ -40,6 +39,7 @@ var (
 	snapshotResponse        *grafana.SnapshotListResponse
 	dashboardSearchResponse []grafana.FoundBoard
 	dashboardJsonTemplate   string
+	defaultDashboardUids    map[string]struct{}
 )
 
 var _ = Describe("Grafana Syncer", func() {
@@ -47,7 +47,7 @@ var _ = Describe("Grafana Syncer", func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		dashboardClient = mocks.NewMockDashboardClient(mockCtrl)
 		snapshotClient = mocks.NewMockSnapshotClient(mockCtrl)
-		templateGenerator = templatemocks.NewMockTemplateGenerator(mockCtrl)
+		defaultDashboardUids = make(map[string]struct{})
 		dashboardsSnapshot = &v1.DashboardsSnapshot{
 			Upstreams: []*gloov1.Upstream{
 				{
@@ -63,7 +63,7 @@ var _ = Describe("Grafana Syncer", func() {
 			snapshots: nil,
 		}
 		dashboardJsonTemplate = "{\"test-content\": \"content\"}"
-		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, generalFolderId)
+		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, generalFolderId, defaultDashboardUids)
 		logger = contextutils.LoggerFrom(context.TODO())
 		upstreamOne = &gloov1.Upstream{
 			UpstreamType: &gloov1.Upstream_Aws{
@@ -94,9 +94,9 @@ var _ = Describe("Grafana Syncer", func() {
 	})
 
 	Describe("Dashboard Syncer", func() {
-		var addIdToDashboardJson = func(dashboard []byte, id int) []byte {
+		var addIdToDashboardJson = func(bytes []byte, id int) []byte {
 			jsonDashboard := map[string]interface{}{}
-			err := json.Unmarshal(dashboard, &jsonDashboard)
+			err := json.Unmarshal(bytes, &jsonDashboard)
 			Expect(err).NotTo(HaveOccurred())
 			jsonDashboard["id"] = id
 			jsonWithId, err := json.Marshal(jsonDashboard)
@@ -107,20 +107,20 @@ var _ = Describe("Grafana Syncer", func() {
 
 		It("builds dashboards from scratch", func() {
 			for _, upstream := range upstreamList {
-				templateGenerator := template.NewTemplateGenerator(upstream, dashboardJsonTemplate)
+				templateGenerator := template.NewUpstreamTemplateGenerator(upstream, dashboardJsonTemplate)
 				uid := templateGenerator.GenerateUid()
 
 				dashboardClient.EXPECT().
 					GetRawDashboard(uid).
 					Return(nil, grafana.BoardProperties{}, grafana.DashboardNotFound(uid))
 
-				dashBytes, err := templateGenerator.GenerateDashboard(generalFolderId) // should just return "test-json"
+				dashPost, err := templateGenerator.GenerateDashboardPost(generalFolderId) // should just return "test-json"
 				Expect(err).NotTo(HaveOccurred())
 				snapshotBytes, err := templateGenerator.GenerateSnapshot() // should just return "test-json"
 				Expect(err).NotTo(HaveOccurred())
 
 				dashboardClient.EXPECT().
-					SetRawDashboard(dashBytes).
+					PostDashboard(dashPost).
 					Return(nil)
 				snapshotClient.EXPECT().
 					SetRawSnapshot(snapshotBytes).
@@ -142,14 +142,16 @@ var _ = Describe("Grafana Syncer", func() {
 
 		It("rebuilds dashboards when they exist already", func() {
 			for index, upstream := range upstreamList {
-				templateGenerator := template.NewTemplateGenerator(upstream, dashboardJsonTemplate)
-				renderedDashboard, err := templateGenerator.GenerateDashboard(generalFolderId)
+				templateGenerator := template.NewUpstreamTemplateGenerator(upstream, dashboardJsonTemplate)
+				renderedDashboardPost, err := templateGenerator.GenerateDashboardPost(generalFolderId)
 				Expect(err).NotTo(HaveOccurred())
 
 				uid := templateGenerator.GenerateUid()
 
 				// have to set the key "id" in the json that gets returned by GetRawDashboard
-				jsonWithId := addIdToDashboardJson(renderedDashboard, index)
+				bytes, err := json.Marshal(renderedDashboardPost)
+				Expect(err).NotTo(HaveOccurred())
+				jsonWithId := addIdToDashboardJson(bytes, index)
 
 				dashboardClient.EXPECT().
 					GetRawDashboard(uid).
@@ -167,7 +169,7 @@ var _ = Describe("Grafana Syncer", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				dashboardClient.EXPECT().
-					SetRawDashboard(renderedDashboard).
+					PostDashboard(renderedDashboardPost).
 					Return(nil)
 				snapshotClient.EXPECT().
 					SetRawSnapshot(snapshotBytes).
@@ -189,14 +191,16 @@ var _ = Describe("Grafana Syncer", func() {
 
 		It("does not regenerate the dashboard when it has been edited by a human", func() {
 			for index, upstream := range upstreamList {
-				templateGenerator := template.NewTemplateGenerator(upstream, dashboardJsonTemplate)
-				renderedDashboard, err := templateGenerator.GenerateDashboard(generalFolderId)
+				templateGenerator := template.NewUpstreamTemplateGenerator(upstream, dashboardJsonTemplate)
+				renderedDashboardPost, err := templateGenerator.GenerateDashboardPost(generalFolderId)
 				Expect(err).NotTo(HaveOccurred())
 
 				uid := templateGenerator.GenerateUid()
 
 				// have to set the key "id" in the json that gets returned by GetRawDashboard
-				jsonWithId := addIdToDashboardJson(renderedDashboard, index)
+				bytes, err := json.Marshal(renderedDashboardPost)
+				Expect(err).NotTo(HaveOccurred())
+				jsonWithId := addIdToDashboardJson(bytes, index)
 
 				dashboardClient.EXPECT().
 					GetRawDashboard(uid).
@@ -228,7 +232,7 @@ var _ = Describe("Grafana Syncer", func() {
 			var snapshots []grafana.SnapshotListResponse
 			var dashboards []grafana.FoundBoard
 			for _, upstream := range upstreamList {
-				generator := template.NewTemplateGenerator(upstream, dashboardJsonTemplate)
+				generator := template.NewUpstreamTemplateGenerator(upstream, dashboardJsonTemplate)
 				uid := generator.GenerateUid()
 				snapshots = append(snapshots, grafana.SnapshotListResponse{
 					Key: uid,
@@ -262,22 +266,22 @@ var _ = Describe("Grafana Syncer", func() {
 	It("Ignores invalid default folder ids to use the general id", func() {
 
 		invalidFolderId := uint(1)
-		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, invalidFolderId)
+		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, invalidFolderId, defaultDashboardUids)
 		for _, upstream := range upstreamList {
-			templateGenerator := template.NewTemplateGenerator(upstream, dashboardJsonTemplate)
+			templateGenerator := template.NewUpstreamTemplateGenerator(upstream, dashboardJsonTemplate)
 			uid := templateGenerator.GenerateUid()
 
 			dashboardClient.EXPECT().
 				GetRawDashboard(uid).
 				Return(nil, grafana.BoardProperties{}, grafana.DashboardNotFound(uid))
 
-			dashBytes, err := templateGenerator.GenerateDashboard(generalFolderId) // only 2 upstreams, and 0 and 1 are valid
+			dashPost, err := templateGenerator.GenerateDashboardPost(generalFolderId) // only 2 upstreams, and 0 and 1 are valid
 			Expect(err).NotTo(HaveOccurred())
 			snapshotBytes, err := templateGenerator.GenerateSnapshot() // should just return "test-json"
 			Expect(err).NotTo(HaveOccurred())
 
 			dashboardClient.EXPECT().
-				SetRawDashboard(dashBytes).
+				PostDashboard(dashPost).
 				Return(nil)
 			snapshotClient.EXPECT().
 				SetRawSnapshot(snapshotBytes).
@@ -309,23 +313,23 @@ var _ = Describe("Grafana Syncer", func() {
 		// by the fact that it loops twice and calls most functions twice as a result.
 		upstreamOne.Metadata.Annotations = map[string]string{upstreamFolderIdAnnotationKey: "1"}
 		upstreamTwo.Metadata.Annotations = map[string]string{upstreamFolderIdAnnotationKey: "test"}
-		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, generalFolderId)
+		dashboardSyncer = NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, generalFolderId, defaultDashboardUids)
 
 		for _, upstream := range upstreamList {
-			templateGenerator := template.NewTemplateGenerator(upstream, dashboardJsonTemplate)
+			templateGenerator := template.NewUpstreamTemplateGenerator(upstream, dashboardJsonTemplate)
 			uid := templateGenerator.GenerateUid()
 
 			dashboardClient.EXPECT().
 				GetRawDashboard(uid).
 				Return(nil, grafana.BoardProperties{}, grafana.DashboardNotFound(uid))
 
-			dashBytes, err := templateGenerator.GenerateDashboard(generalFolderId) // only 2 upstreams, and 0 and 1 are valid
+			dashPost, err := templateGenerator.GenerateDashboardPost(generalFolderId) // only 2 upstreams, and 0 and 1 are valid
 			Expect(err).NotTo(HaveOccurred())
 			snapshotBytes, err := templateGenerator.GenerateSnapshot() // should just return "test-json"
 			Expect(err).NotTo(HaveOccurred())
 
 			dashboardClient.EXPECT().
-				SetRawDashboard(dashBytes).
+				PostDashboard(dashPost).
 				Return(nil)
 			snapshotClient.EXPECT().
 				SetRawSnapshot(snapshotBytes).
@@ -388,5 +392,36 @@ var _ = Describe("Build Rest Client", func() {
 		Expect(err).NotTo(HaveOccurred())
 		_, err = buildRestClient(context.Background(), "https://test.com")
 		Expect(err).To(Equal(grafana.MissingGrafanaCredentials))
+	})
+})
+
+var _ = Describe("Load Default Dashboards", func() {
+	mockCtrl = gomock.NewController(GinkgoT())
+	dashboardClient = mocks.NewMockDashboardClient(mockCtrl)
+	templateGenerator := template.NewDefaultJsonGenerator("default", `{"foo":"bar"}`)
+	uid := templateGenerator.GenerateUid()
+
+	It("returns before generating when dashboard already exists", func() {
+		dashboardClient.EXPECT().GetRawDashboard(uid).
+			Return(nil, grafana.BoardProperties{}, nil)
+
+		loadDefaultDashboard(context.Background(), templateGenerator, generalFolderId, dashboardClient)
+	})
+
+	It("returns before generating when getting the dashboard results in an unexpected error", func() {
+		dashboardClient.EXPECT().GetRawDashboard(uid).
+			Return(nil, grafana.BoardProperties{}, fmt.Errorf("fake error"))
+
+		loadDefaultDashboard(context.Background(), templateGenerator, generalFolderId, dashboardClient)
+	})
+
+	It("returns attempts to save dashboard if it does not already exist", func() {
+		dashboardClient.EXPECT().GetRawDashboard(uid).
+			Return(nil, grafana.BoardProperties{}, grafana.DashboardNotFound(uid))
+		dashPost, err := templateGenerator.GenerateDashboardPost(generalFolderId)
+		Expect(err).NotTo(HaveOccurred())
+		dashboardClient.EXPECT().PostDashboard(dashPost).Return(nil)
+
+		loadDefaultDashboard(context.Background(), templateGenerator, generalFolderId, dashboardClient)
 	})
 })

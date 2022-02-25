@@ -8,6 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	grafana "github.com/solo-io/solo-projects/projects/observability/pkg/grafana"
 )
 
 // MockTemplateGenerator is a mock of TemplateGenerator interface.
@@ -33,19 +34,19 @@ func (m *MockTemplateGenerator) EXPECT() *MockTemplateGeneratorMockRecorder {
 	return m.recorder
 }
 
-// GenerateDashboard mocks base method.
-func (m *MockTemplateGenerator) GenerateDashboard(arg0 uint) ([]byte, error) {
+// GenerateDashboardPost mocks base method.
+func (m *MockTemplateGenerator) GenerateDashboardPost(arg0 uint) (*grafana.DashboardPostRequest, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateDashboard", arg0)
-	ret0, _ := ret[0].([]byte)
+	ret := m.ctrl.Call(m, "GenerateDashboardPost", arg0)
+	ret0, _ := ret[0].(*grafana.DashboardPostRequest)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GenerateDashboard indicates an expected call of GenerateDashboard.
-func (mr *MockTemplateGeneratorMockRecorder) GenerateDashboard(arg0 interface{}) *gomock.Call {
+// GenerateDashboardPost indicates an expected call of GenerateDashboardPost.
+func (mr *MockTemplateGeneratorMockRecorder) GenerateDashboardPost(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateDashboard", reflect.TypeOf((*MockTemplateGenerator)(nil).GenerateDashboard), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateDashboardPost", reflect.TypeOf((*MockTemplateGenerator)(nil).GenerateDashboardPost), arg0)
 }
 
 // GenerateSnapshot mocks base method.

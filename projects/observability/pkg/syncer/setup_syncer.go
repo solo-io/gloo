@@ -7,7 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template"
 
 	"github.com/golang/protobuf/ptypes"
 	errors "github.com/rotisserie/eris"
@@ -28,13 +31,16 @@ import (
 )
 
 const (
-	observability     = "observability"
-	grafanaUrl        = "GRAFANA_URL"
-	grafanaUsername   = "GRAFANA_USERNAME"
-	grafanaPassword   = "GRAFANA_PASSWORD"
-	grafanaApiKey     = "GRAFANA_API_KEY"
-	grafanaCaCrt      = "GRAFANA_CA_BUNDLE"
-	dashboardTemplate = "/observability/dashboard-template.json"
+	jsonExtention = ".json"
+
+	observability                 = "observability"
+	grafanaUrl                    = "GRAFANA_URL"
+	grafanaUsername               = "GRAFANA_USERNAME"
+	grafanaPassword               = "GRAFANA_PASSWORD"
+	grafanaApiKey                 = "GRAFANA_API_KEY"
+	grafanaCaCrt                  = "GRAFANA_CA_BUNDLE"
+	upstreamDashboardTemplatePath = "/observability/dashboard-template.json"
+	defaultDashboardDir           = "/observability/defaults"
 )
 
 func Main() error {
@@ -120,12 +126,35 @@ func RunObservability(opts Opts) error {
 	dashboardClient := grafana.NewDashboardClient(restClient)
 	snapshotClient := grafana.NewSnapshotClient(restClient)
 
-	dashboardJsonTemplate, err := getDashboardJsonTemplate(opts.WatchOpts.Ctx)
+	files, err := ioutil.ReadDir(defaultDashboardDir)
 	if err != nil {
 		return err
 	}
 
-	dashSyncer := NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, opts.DefaultDashboardFolderId)
+	defaultDashboardUids := make(map[string]struct{})
+	for _, file := range files {
+		filename := file.Name()
+		if !strings.HasSuffix(filename, jsonExtention) {
+			continue
+		}
+		defaultJsonStr, err := getDashboardJson(opts.WatchOpts.Ctx, filepath.Join(defaultDashboardDir, filename))
+		if err != nil {
+			return err
+		}
+
+		uid := strings.TrimSuffix(filename, jsonExtention)
+		templateGenerator := template.NewDefaultJsonGenerator(uid, defaultJsonStr)
+
+		loadDefaultDashboard(opts.WatchOpts.Ctx, templateGenerator, opts.DefaultDashboardFolderId, dashboardClient)
+		defaultDashboardUids[uid] = struct{}{}
+	}
+
+	dashboardJsonTemplate, err := getDashboardJson(opts.WatchOpts.Ctx, upstreamDashboardTemplatePath)
+	if err != nil {
+		return err
+	}
+
+	dashSyncer := NewGrafanaDashboardSyncer(dashboardClient, snapshotClient, dashboardJsonTemplate, opts.DefaultDashboardFolderId, defaultDashboardUids)
 
 	emitter := v1.NewDashboardsEmitter(upstreamClient)
 	eventLoop := v1.NewDashboardsEventLoop(emitter, dashSyncer)
@@ -226,11 +255,12 @@ func getGrafanaApiUrl() (string, error) {
 	return url, nil
 }
 
-func getDashboardJsonTemplate(ctx context.Context) (string, error) {
-	bytes, err := ioutil.ReadFile(dashboardTemplate)
+func getDashboardJson(ctx context.Context, filename string) (string, error) {
+	bytes, err := ioutil.ReadFile(filename)
 	if err != nil {
-		contextutils.LoggerFrom(ctx).Warnf("Error reading file %s - %s", dashboardTemplate, err.Error())
+		contextutils.LoggerFrom(ctx).Warnf("Error reading file %s - %s", filename, err.Error())
 		return "", nil
 	}
+
 	return string(bytes), nil
 }

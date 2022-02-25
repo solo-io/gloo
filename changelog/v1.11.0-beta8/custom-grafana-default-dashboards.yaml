@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/5813
+    resolvesIssue: false
+    description: >
+      Automatically load default Gloo dashboards in custom Grafana installations

@@ -20,10 +20,8 @@
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "gnetId": null,
   "graphTooltip": 0,
-  "id": 27,
-  "iteration": 1634551647409,
+  "id": null,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1519,7 +1517,7 @@
   "refresh": "5s",
   "schemaVersion": 31,
   "style": "dark",
-  "tags": [],
+  "tags": ["gloo","default"],
   "templating": {
     "list": [
       {
@@ -1557,7 +1555,6 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Gloo overview",
-  "uid": "LHAeXrDnk",
-  "version": 4
+  "title": "Gloo Overview",
+  "uid": "gloo-overview"
 }

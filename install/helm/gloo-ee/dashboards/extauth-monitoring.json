@@ -15,7 +15,7 @@
   "description": "Extauth monitoring and metrics. ",
   "editable": true,
   "graphTooltip": 0,
-  "uid": "extauth",
+  "uid": "extauth-monitoring",
   "id": null,
   "links": [],
   "timezone": "",
@@ -344,7 +344,7 @@
   "refresh": "30s",
   "schemaVersion": 16,
   "style": "dark",
-  "tags": ["gloo", "dynamic"],
+  "tags": ["gloo", "dynamic", "default"],
   "time": {
     "from": "now-15m",
     "to": "now"

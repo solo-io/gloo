@@ -95,6 +95,20 @@ func (mr *MockDashboardClientMockRecorder) GetRawDashboard(arg0 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawDashboard", reflect.TypeOf((*MockDashboardClient)(nil).GetRawDashboard), arg0)
 }
 
+// PostDashboard mocks base method.
+func (m *MockDashboardClient) PostDashboard(arg0 *grafana.DashboardPostRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PostDashboard", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PostDashboard indicates an expected call of PostDashboard.
+func (mr *MockDashboardClientMockRecorder) PostDashboard(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostDashboard", reflect.TypeOf((*MockDashboardClient)(nil).PostDashboard), arg0)
+}
+
 // SearchDashboards mocks base method.
 func (m *MockDashboardClient) SearchDashboards(arg0 string, arg1 bool, arg2 ...string) ([]grafana.FoundBoard, error) {
 	m.ctrl.T.Helper()
@@ -113,18 +127,4 @@ func (mr *MockDashboardClientMockRecorder) SearchDashboards(arg0, arg1 interface
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchDashboards", reflect.TypeOf((*MockDashboardClient)(nil).SearchDashboards), varargs...)
-}
-
-// SetRawDashboard mocks base method.
-func (m *MockDashboardClient) SetRawDashboard(arg0 []byte) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetRawDashboard", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SetRawDashboard indicates an expected call of SetRawDashboard.
-func (mr *MockDashboardClientMockRecorder) SetRawDashboard(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRawDashboard", reflect.TypeOf((*MockDashboardClient)(nil).SetRawDashboard), arg0)
 }

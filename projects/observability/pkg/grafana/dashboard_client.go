@@ -13,7 +13,7 @@ import (
 type DashboardClient interface {
 	GetRawDashboard(uid string) ([]byte, BoardProperties, error)
 	GetDashboardVersions(dashboardId float64) ([]*Version, error)
-	SetRawDashboard(raw []byte) error
+	PostDashboard(dashboardPostRequest *DashboardPostRequest) error
 	DeleteDashboard(uid string) (StatusMessage, error)
 	SearchDashboards(query string, starred bool, tags ...string) ([]FoundBoard, error)
 	GetAllFolderIds() ([]FolderProperties, error)
@@ -73,6 +73,14 @@ type FolderProperties struct {
 	UpdatedBy string    `json:"updatedBy,omitempty"`
 	CreatedBy string    `json:"createdBy,omitempty"`
 	Version   int       `json:"version,omitempty"`
+}
+
+type DashboardPostRequest struct {
+	Dashboard json.RawMessage `json:"dashboard,omitempty"`
+	FolderId  uint            `json:"folderId,omitempty"`
+	FolderUid string          `json:"folderUid,omitempty"`
+	Message   string          `json:"message,omitempty"`
+	Overwrite bool            `json:"overwrite,omitempty"`
 }
 
 func NewDashboardClient(restClient RestClient) DashboardClient {
@@ -137,24 +145,26 @@ func (d *dashboardClient) GetDashboardVersions(dashboardId float64) ([]*Version,
 	return allVersions, nil
 }
 
-// SetRawDashboard updates existing dashboard or creates a new one.
-// Contrary to SetDashboard() it accepts raw JSON instead of Board structure.
-func (d *dashboardClient) SetRawDashboard(raw []byte) error {
+// PostDashboard updates existing dashboard or creates a new one.
+func (d *dashboardClient) PostDashboard(request *DashboardPostRequest) error {
 	var (
 		rawResp []byte
 		resp    StatusMessage
 		code    int
 		err     error
 	)
-	if rawResp, code, err = d.restClient.Post("api/dashboards/db", nil, raw); err != nil {
+
+	bytes, err := json.Marshal(request)
+	if err != nil {
 		return err
 	}
-	switch code {
-	case 400:
+	if rawResp, code, err = d.restClient.Post("api/dashboards/db", nil, bytes); err != nil {
+		return err
+	}
+	switch {
+	case (code >= 400 && code < 412) || code > 412:
 		return fmt.Errorf("%d %s", code, rawResp)
-	case 401:
-		return fmt.Errorf("%d %s", code, rawResp)
-	case 412:
+	case code == 412:
 		if err = json.Unmarshal(rawResp, &resp); err != nil {
 			return err
 		}

@@ -21,10 +21,8 @@
     "description": "Global overview of Gloo Edge Upstream CRs.",
     "editable": true,
     "fiscalYearStartMonth": 0,
-    "gnetId": null,
     "graphTooltip": 0,
-    "id": 27,
-    "iteration": 1634649036320,
+    "id": null,
     "links": [],
     "liveNow": false,
     "panels": [
@@ -1471,7 +1469,8 @@
     "style": "dark",
     "tags": [
       "gloo",
-      "dynamic"
+      "dynamic",
+      "default"
     ],
     "templating": {
       "list": [
@@ -1557,6 +1556,5 @@
     },
     "timezone": "",
     "title": "All Upstreams",
-    "uid": "upstreams",
-    "version": 2
-  }
+    "uid": "upstreams"
+}

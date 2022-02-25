@@ -55,20 +55,22 @@ var (
 )
 
 type GrafanaDashboardsSyncer struct {
-	synced                   bool
-	mutex                    sync.Mutex
-	dashboardClient          grafana.DashboardClient
-	snapshotClient           grafana.SnapshotClient
-	dashboardJsonTemplate    string
-	defaultDashboardFolderId uint
+	synced                        bool
+	mutex                         sync.Mutex
+	dashboardClient               grafana.DashboardClient
+	snapshotClient                grafana.SnapshotClient
+	upstreamDashboardJsonTemplate string
+	defaultDashboardUids          map[string]struct{} // expected dashboards that do not correspond with upstreams
+	defaultDashboardFolderId      uint
 }
 
-func NewGrafanaDashboardSyncer(dashboardClient grafana.DashboardClient, snapshotClient grafana.SnapshotClient, dashboardJsonTemplate string, defaultDashboardFolderId uint) *GrafanaDashboardsSyncer {
+func NewGrafanaDashboardSyncer(dashboardClient grafana.DashboardClient, snapshotClient grafana.SnapshotClient, upstreamDashboardJsonTemplate string, defaultDashboardFolderId uint, defaultDashboardUids map[string]struct{}) *GrafanaDashboardsSyncer {
 	return &GrafanaDashboardsSyncer{
-		dashboardClient:          dashboardClient,
-		snapshotClient:           snapshotClient,
-		dashboardJsonTemplate:    dashboardJsonTemplate,
-		defaultDashboardFolderId: defaultDashboardFolderId,
+		dashboardClient:               dashboardClient,
+		snapshotClient:                snapshotClient,
+		upstreamDashboardJsonTemplate: upstreamDashboardJsonTemplate,
+		defaultDashboardFolderId:      defaultDashboardFolderId,
+		defaultDashboardUids:          defaultDashboardUids,
 	}
 }
 
@@ -118,10 +120,10 @@ func (s *GrafanaDashboardsSyncer) Sync(ctx context.Context, snap *v1.DashboardsS
 // we regenerate a dashboard if:
 // 1. it's been deleted by the user, ie if GetRawDashboard returns DashboardNotFound, OR
 // 2. it has not been manually edited by a user
-func (s *GrafanaDashboardsSyncer) shouldRegenDashboard(logger *zap.SugaredLogger, upstreamUid string) (bool, error) {
-	rawDashboard, _, err := s.dashboardClient.GetRawDashboard(upstreamUid)
-	if err != nil && err.Error() != grafana.DashboardNotFound(upstreamUid).Error() {
-		logger.Warnf("Failed to get raw dashboard for uid %s - %s", upstreamUid, err.Error())
+func (s *GrafanaDashboardsSyncer) shouldRegenDashboard(logger *zap.SugaredLogger, uid string) (bool, error) {
+	rawDashboard, _, err := s.dashboardClient.GetRawDashboard(uid)
+	if err != nil && err.Error() != grafana.DashboardNotFound(uid).Error() {
+		logger.Warnf("Failed to get raw dashboard for uid %s - %s", uid, err.Error())
 		return false, err
 	} else if err == nil {
 		isEditedByUser, err := s.isEditedByUser(rawDashboard)
@@ -130,7 +132,7 @@ func (s *GrafanaDashboardsSyncer) shouldRegenDashboard(logger *zap.SugaredLogger
 			return false, err
 		}
 		if isEditedByUser {
-			logger.Infof("Dashboard %s has been edited by a user - skipping", upstreamUid)
+			logger.Infof("Dashboard %s has been edited by a user - skipping", uid)
 			return false, nil
 		}
 	}
@@ -210,12 +212,12 @@ func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger
 			}
 		}
 
-		templateGenerator := template.NewTemplateGenerator(upstream, s.dashboardJsonTemplate)
-		upstreamUid := templateGenerator.GenerateUid()
+		templateGenerator := template.NewUpstreamTemplateGenerator(upstream, s.upstreamDashboardJsonTemplate)
+		uid := templateGenerator.GenerateUid()
 
-		shouldRegenDashboard, err := s.shouldRegenDashboard(logger, upstreamUid)
+		shouldRegenDashboard, err := s.shouldRegenDashboard(logger, uid)
 		if err != nil {
-			err := errors.Wrapf(err, "Skipping dashboard for upstream %s", upstreamUid)
+			err := errors.Wrapf(err, "Skipping dashboard for upstream %s", uid)
 			logger.Warn(err.Error())
 			errs = multierror.Append(errs, err)
 			continue
@@ -226,13 +228,13 @@ func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger
 
 		logger.Infof("generating dashboard for upstream: %s", upstreamName)
 
-		dash, err := templateGenerator.GenerateDashboard(folderIdToUse)
+		dashPost, err := templateGenerator.GenerateDashboardPost(folderIdToUse)
 
 		if err != nil {
 			logger.Warnf("failed to generate dashboard for upstream: %s. %s", upstreamName, err)
 			continue
 		}
-		err = s.dashboardClient.SetRawDashboard(dash)
+		err = s.dashboardClient.PostDashboard(dashPost)
 		if err != nil {
 			err := errors.Wrapf(err, "failed to save dashboard to grafana for upstream: %s", upstreamName)
 			logger.Warn(err.Error())
@@ -243,7 +245,7 @@ func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger
 
 		missing := true
 		for _, snapshot := range gs.snapshots {
-			if snapshot.Name == upstreamUid {
+			if snapshot.Name == uid {
 				missing = false
 			}
 		}
@@ -306,9 +308,13 @@ func (s *GrafanaDashboardsSyncer) deleteGrafanaContent(logger *zap.SugaredLogger
 	errs := &multierror.Error{}
 
 	for _, board := range gs.boards {
+		if _, ok := s.defaultDashboardUids[board.UID]; ok {
+			continue // default dashboard should not be deleted
+		}
+
 		missing := true
 		for _, upstream := range snap.Upstreams {
-			templateGenerator := template.NewTemplateGenerator(upstream, s.dashboardJsonTemplate)
+			templateGenerator := template.NewUpstreamTemplateGenerator(upstream, s.upstreamDashboardJsonTemplate)
 			upstreamUid := templateGenerator.GenerateUid()
 			if board.UID == upstreamUid {
 				missing = false
@@ -329,7 +335,7 @@ func (s *GrafanaDashboardsSyncer) deleteGrafanaContent(logger *zap.SugaredLogger
 	for _, snapshot := range gs.snapshots {
 		missing := true
 		for _, upstream := range snap.Upstreams {
-			templateGenerator := template.NewTemplateGenerator(upstream, s.dashboardJsonTemplate)
+			templateGenerator := template.NewUpstreamTemplateGenerator(upstream, s.upstreamDashboardJsonTemplate)
 			upstreamUid := templateGenerator.GenerateUid()
 			if snapshot.Name == upstreamUid {
 				missing = false
