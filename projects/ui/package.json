@@ -52,7 +52,7 @@
     "timeago.js": "^4.0.2",
     "ts-protoc-gen": "^0.12.0",
     "twin.macro": "^2.8.2",
-    "typescript": "4.0.5",
+    "typescript": "^4.5.5",
     "yaml": "^1.10.2",
     "yup": "^0.32.11"
   },

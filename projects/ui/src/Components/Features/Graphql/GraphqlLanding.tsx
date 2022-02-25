@@ -7,6 +7,7 @@ import {
 import { SoloInput } from 'Components/Common/SoloInput';
 import React, { useState } from 'react';
 import { colors } from 'Styles/colors';
+import { useSWRConfig } from 'swr';
 import { GraphqlPageTable } from './GraphqlTable';
 import { NewApiModal } from './NewApiModal';
 
@@ -78,6 +79,8 @@ const API_TYPES: CheckboxFilterProps[] = [
 ];
 
 export const GraphqlLanding = () => {
+  const { cache } = useSWRConfig();
+
   const [nameFilter, setNameFilter] = useState('');
   const [showGraphqlModal, setShowGraphqlModal] = React.useState(false);
 

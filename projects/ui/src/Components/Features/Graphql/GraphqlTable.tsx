@@ -92,14 +92,7 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
     data: graphqlSchemas,
     error: graphqlSchemaError,
     mutate,
-  } = useListGraphqlSchemas(
-    !!name && !!namespace
-      ? {
-          name,
-          namespace,
-        }
-      : undefined
-  );
+  } = useListGraphqlSchemas();
 
   const {
     isDeleting,
@@ -145,7 +138,7 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
     } else {
       setTableData([]);
     }
-  }, [graphqlSchemas, isGlooFedEnabled]);
+  }, [!!graphqlSchemas, graphqlSchemas?.length, isGlooFedEnabled]);
 
   const onDownloadSchema = (gqlSchema: GraphqlSchema.AsObject) => {
     if (gqlSchema.metadata) {

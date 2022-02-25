@@ -21,6 +21,7 @@ import { SoloCheckbox, CheckboxProps } from './SoloCheckbox';
 import { SoloDropdown, DropdownProps } from './SoloDropdown';
 import { Input, InputProps, Label, SoloInput } from './SoloInput';
 import { SoloTextarea, TextareaProps } from './SoloTextarea';
+import { SoloToggleSwitch, SoloToggleSwitchProps } from './SoloToggleSwitch';
 type ErrorTextProps = { errorExists?: boolean };
 
 // focus rings for form elements
@@ -105,6 +106,7 @@ export type SoloFormFileUploadProps = {
   isDisabled?: boolean;
   buttonLabel?: string;
   fileType?: string;
+  onRemoveFile?: () => void;
   validateFile?: (file?: File) => {
     isValid: boolean;
     errorMessage: string;
@@ -122,6 +124,7 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
     isDisabled,
     buttonLabel = 'Upload File',
     fileType = 'application/json,application/x-yaml,text/*',
+    onRemoveFile,
     validateFile = () => ({ isValid: true, errorMessage: '' }),
   } = props;
   const { values, setFieldValue, setFieldError } = useFormikContext<Values>();
@@ -162,14 +165,15 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
                 let file = event.currentTarget.files[0];
                 setFieldValue(name, event.currentTarget.files[0]);
                 setHasError(false);
-                console.log('fileType.split(', ')', fileType.split(','));
-                console.log('file.type', file);
 
                 if (!validateFile(file)?.isValid) {
                   setHasError(true);
 
                   setFieldError(name, validateFile(file)?.errorMessage);
                   setFileError('File Error');
+                }
+                if (!!onRemoveFile) {
+                  onRemoveFile();
                 }
               }
             }}
@@ -183,6 +187,7 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
                     type='button'
                     onClick={() => {
                       setFieldValue(name, undefined as unknown as File);
+                      setFieldError(name, undefined);
                       setHasError(false);
                       setFileError('');
                     }}>
@@ -351,6 +356,41 @@ export const SoloFormInput = (props: SoloFormInputProps) => {
         title={props.title}
         value={field.value}
         onChange={field.onChange}
+      />
+      {hideError ? null : (
+        <ErrorText errorExists={!!meta.error && meta.touched}>
+          {meta.error}
+        </ErrorText>
+      )}
+    </>
+  );
+};
+
+interface SoloFormToggleProps extends Partial<SoloToggleSwitchProps> {
+  name: string;
+  label?: string;
+  hideError?: boolean;
+  disabled?: boolean;
+  finishOnChange?: (val: boolean) => void;
+  testId?: string;
+}
+export const SoloFormToggle = (props: SoloFormToggleProps) => {
+  const { hideError, finishOnChange } = props;
+  const form = useFormikContext<any>();
+  const field = form.getFieldProps(props.name);
+  const meta = form.getFieldMeta(props.name);
+
+  return (
+    <>
+      {props.label && <Label>{props.label}</Label>}
+      <SoloToggleSwitch
+        {...props}
+        {...field}
+        checked={!!field.value}
+        onChange={value => {
+          form.setFieldValue(field.name, value);
+          typeof finishOnChange === 'function' && finishOnChange(value);
+        }}
       />
       {hideError ? null : (
         <ErrorText errorExists={!!meta.error && meta.touched}>

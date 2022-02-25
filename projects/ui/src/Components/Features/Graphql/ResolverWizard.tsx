@@ -1,6 +1,6 @@
 import styled from '@emotion/styled/macro';
 import { TabList, TabPanel, TabPanels } from '@reach/tabs';
-import { useListUpstreams } from 'API/hooks';
+import { useGetGraphqlSchemaDetails, useListUpstreams } from 'API/hooks';
 import { OptionType } from 'Components/Common/SoloDropdown';
 import {
   SoloFormDropdown,
@@ -16,13 +16,21 @@ import { colors } from 'Styles/colors';
 import {
   SoloButtonStyledComponent,
   SoloCancelButton,
+  SoloNegativeButton,
 } from 'Styles/StyledComponents/button';
 import * as yup from 'yup';
 import YAML from 'yaml';
 import { graphqlApi } from 'API/graphql';
 import { ValidateResolverYamlRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
-import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import {
+  GrpcResolver,
+  Resolution,
+  RESTResolver,
+} from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
 import { useParams } from 'react-router';
+import { Value } from 'google-protobuf/google/protobuf/struct_pb';
+import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
+import ConfirmationModal from 'Components/Common/ConfirmationModal';
 
 export const EditorContainer = styled.div<{ editMode: boolean }>`
   .ace_cursor {
@@ -151,48 +159,145 @@ type ResolverConfigSectionProps = {
   resolverConfig: string;
 };
 
+let demoConfig = `restResolver:
+  request:
+    headers:
+      - :method: 
+      - :path:
+    queryParams:
+    body:
+  response:
+    resultRoot:
+    setters:`;
 const ResolverConfigSection = ({
   isEdit,
   resolverConfig,
 }: ResolverConfigSectionProps) => {
-  const { setFieldValue, values, dirty } =
+  const { setFieldValue, values, dirty, errors } =
     useFormikContext<ResolverWizardFormProps>();
   const [isValid, setIsValid] = React.useState(false);
   const [errorModal, setErrorModal] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState('');
 
   React.useEffect(() => {
-    let config = YAML.parse(values.resolverConfig) as Resolution.AsObject;
-    let [upstreamName = '', upstreamNamespace = ''] =
-      values.upstream.split('::');
+    if (values.resolverConfig?.length > 3) {
+      let config = YAML.parse(values.resolverConfig) as any;
 
-    let configToDisplay: Partial<Resolution.AsObject> = {};
+      let configToDisplay: Partial<
+        GrpcResolver.AsObject | RESTResolver.AsObject
+      > = {};
 
-    // @ts-ignore
-    let resolverConfig: Partial<Resolution.AsObject> = {
-      ...config,
-      ...(values.resolverType === 'REST' && {
-        restResolver: {
-          ...config.restResolver,
-          upstreamRef: {
-            name: upstreamName!,
-            namespace: upstreamNamespace!,
-          },
-        },
-      }),
-      ...(values.resolverType === 'gRPC' && {
-        grpcResolver: {
-          ...config.grpcResolver,
-          upstreamRef: {
-            name: upstreamName!,
-            namespace: upstreamNamespace!,
-          },
-        },
-      }),
-    };
-    console.log('resolverConfig', resolverConfig);
+      if (values.resolverType === 'REST') {
+        //@ts-ignore
+        configToDisplay = {
+          //@ts-ignore
+          ...((config.restResolver?.request ?? config?.request) && {
+            request: {
+              ...((config?.restResolver?.request ?? config?.request)?.body
+                ?.stringValue && {
+                body: (config?.restResolver?.request ?? config?.request)?.body
+                  ?.stringValue,
+              }),
+              //@ts-ignore
+              ...((config.restResolver?.request ?? config?.request)?.headersMap
+                ?.length > 0 && {
+                headers: Object.fromEntries(
+                  //@ts-ignore
+                  (config.restResolver?.request ?? config?.request)?.headersMap
+                ),
+              }),
+              ...((config.restResolver?.request ?? config?.request)
+                ?.queryParamsMap?.length > 0 && {
+                queryParams: Object.fromEntries(
+                  (config.restResolver?.request ?? config?.request)
+                    ?.queryParamsMap
+                ),
+              }),
+            },
+          }),
+          //@ts-ignore
+          ...((config.restResolver?.response ?? config?.response) && {
+            response: {
+              ...((config.restResolver?.response ?? config?.response)
+                ?.resultRoot && {
+                resultRoot: '',
+              }),
+              ...((config.restResolver?.response ?? config?.response)
+                ?.settersMap?.length > 0 && {
+                setters: Object.fromEntries(
+                  (config.restResolver?.response ?? config?.response)
+                    ?.settersMap
+                ),
+              }),
+            },
+          }),
+          ...((config.restResolver?.spanName ?? config?.spanName) && {
+            spanName: config.restResolver?.spanName ?? config?.spanName,
+          }),
+        };
+      } else {
+        //@ts-ignore
+        configToDisplay = {
+          //@ts-ignore
+          ...((config?.grpcResolver?.requestTransform ??
+            config?.requestTransform) && {
+            requestTransform: {
+              ...((
+                config?.grpcResolver?.requestTransform ??
+                config?.requestTransform
+              )?.methodName && {
+                methodName: (
+                  config?.grpcResolver?.requestTransform ??
+                  config?.requestTransform
+                )?.methodName,
+              }),
+              ...((
+                config?.grpcResolver?.requestTransform ??
+                config?.requestTransform
+              )?.requestMetadataMap?.length > 0 && {
+                requestMetadata: Object.fromEntries(
+                  (
+                    config?.grpcResolver?.requestTransform ??
+                    config?.requestTransform
+                  )?.requestMetadataMap
+                ),
+              }),
+              ...((
+                config?.grpcResolver?.requestTransform ??
+                config?.requestTransform
+              )?.serviceName && {
+                serviceName: (
+                  config?.grpcResolver?.requestTransform ??
+                  config?.requestTransform
+                )?.serviceName,
+              }),
+              ...((
+                config?.grpcResolver?.requestTransform ??
+                config?.requestTransform
+              )?.outgoingMessageJson && {
+                outgoingMessageJson: (
+                  config?.grpcResolver?.requestTransform ??
+                  config?.requestTransform
+                )?.outgoingMessageJson.stringValue,
+              }),
+            },
+          }),
+          ...((config.grpcResolver?.spanName ?? config?.spanName) && {
+            spanName: config.grpcResolver?.spanName ?? config?.spanName,
+          }),
+        };
+      }
 
-    setFieldValue('resolverConfig', YAML.stringify(resolverConfig));
+      setFieldValue('resolverConfig', YAML.stringify(configToDisplay));
+      // setFieldValue('resolverConfig', 'request:');
+    } else {
+      setFieldValue('resolverConfig', demoConfig);
+    }
+
+    let res = `request:
+    headers:
+      - :method: GET
+      - :path: /api/v1/products`;
   }, [
     setFieldValue,
     values.upstream,
@@ -210,7 +315,6 @@ const ResolverConfigSection = ({
             ? ValidateResolverYamlRequest.ResolverType.REST_RESOLVER
             : ValidateResolverYamlRequest.ResolverType.REST_RESOLVER,
       });
-      console.log('res', res);
       setIsValid(true);
       setErrorMessage('');
     } catch (err: any) {
@@ -295,7 +399,7 @@ const ResolverConfigSection = ({
                     onInput={() => {
                       setIsValid(false);
                     }}
-                    fontSize={14}
+                    fontSize={16}
                     showPrintMargin={false}
                     showGutter={true}
                     highlightActiveLine={true}
@@ -304,6 +408,7 @@ const ResolverConfigSection = ({
                     setOptions={{
                       highlightGutterLine: true,
                       showGutter: true,
+                      fontFamily: 'monospace',
                       enableBasicAutocompletion: true,
                       enableLiveAutocompletion: true,
                       showLineNumbers: true,
@@ -323,7 +428,7 @@ const ResolverConfigSection = ({
                     <SoloCancelButton
                       disabled={!dirty}
                       onClick={() => {
-                        setFieldValue('resolverConfig', resolverConfig);
+                        setFieldValue('resolverConfig', demoConfig);
                         setErrorMessage('');
                       }}>
                       Reset
@@ -352,26 +457,167 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
     graphqlSchemaClusterName = '',
   } = useParams();
 
+  const { data: graphqlSchema, mutate } = useGetGraphqlSchemaDetails({
+    name: graphqlSchemaName,
+    namespace: graphqlSchemaNamespace,
+    clusterName: graphqlSchemaClusterName,
+  });
   const [tabIndex, setTabIndex] = React.useState(0);
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
   const [isValid, setIsValid] = React.useState(false);
   const [isEdit, setIsEdit] = React.useState(Boolean(props.resolver));
+  const [attemptUpdateSchema, setAttemptUpdateSchema] = React.useState(false);
 
   const submitResolverConfig = async (values: ResolverWizardFormProps) => {
     let { resolverConfig, resolverType, upstream } = values;
-    let resolver = YAML.parse(values.resolverConfig);
+
+    /*
+     `parsedResolverConfig` can be formatted in different ways: 
+     - `restResolver.[request | response | spanName | ...]`....
+     - `grpcResolver.[request | response | spanName | ...]`...
+     - `[request | response | spanName | ...]`...
+    */
+    let parsedResolverConfig = YAML.parse(resolverConfig);
+    let headersMap: [string, string][] = [];
+    let queryParamsMap: [string, string][] = [];
+    let settersMap: [string, string][] = [];
+    let requestMetadataMap: [string, string][] = [];
+    let serviceName = '';
+    let methodName = '';
+    let outgoingMessageJson;
+
+    let resultRoot = parsedResolverConfig?.response
+      ? parsedResolverConfig?.response?.resultRoot
+      : parsedResolverConfig?.grpcResolver?.resultRoot;
+    let spanName = parsedResolverConfig?.spanName
+      ? parsedResolverConfig?.grpcResolver.spanName
+      : parsedResolverConfig?.restResolver?.spanName ??
+        parsedResolverConfig?.spanName;
+    let grpcRequest = parsedResolverConfig?.requestTransform;
+    let request = parsedResolverConfig?.request
+      ? parsedResolverConfig?.request
+      : parsedResolverConfig?.restResolver?.request;
+    let response = parsedResolverConfig?.response
+      ? parsedResolverConfig?.response
+      : parsedResolverConfig?.restResolver?.response;
+
+    if (resolverType === 'REST') {
+      if (parsedResolverConfig?.restResolver) {
+        headersMap =
+          parsedResolverConfig?.restResolver?.request?.headers?.flatMap(
+            (item: any) => Object.entries(item)
+          );
+        queryParamsMap =
+          parsedResolverConfig?.restResolver?.request?.queryParams?.flatMap(
+            (item: any) => Object.entries(item)
+          );
+        settersMap =
+          parsedResolverConfig?.restResolver?.response?.settersMap?.flatMap(
+            (item: any) => Object.entries(item)
+          );
+        resultRoot = parsedResolverConfig?.restResolver?.response?.resultRoot;
+
+        spanName = parsedResolverConfig?.restResolver?.spanName;
+      } else {
+        headersMap = parsedResolverConfig?.request?.headers?.flatMap(
+          (item: any) => Object.entries(item)
+        );
+        queryParamsMap = parsedResolverConfig?.request?.queryParams?.flatMap(
+          (item: any) => Object.entries(item)
+        );
+        settersMap = parsedResolverConfig?.response?.settersMap?.flatMap(
+          (item: any) => Object.entries(item)
+        );
+        resultRoot = parsedResolverConfig?.response?.resultRoot;
+        spanName = parsedResolverConfig?.spanName;
+      }
+    } else {
+      if (parsedResolverConfig?.grpcResolver) {
+        requestMetadataMap =
+          parsedResolverConfig?.grpcResolver?.requestTransform?.requestMetadataMap?.flatMap(
+            (item: any) => Object.entries(item)
+          );
+        serviceName =
+          parsedResolverConfig?.grpcResolver?.requestTransform?.serviceName;
+        methodName =
+          parsedResolverConfig?.grpcResolver?.requestTransform?.methodName;
+        spanName = parsedResolverConfig?.grpcResolver?.spanName;
+      } else {
+        requestMetadataMap =
+          parsedResolverConfig?.requestTransform?.requestMetadataMap?.flatMap(
+            (item: any) => Object.entries(item)
+          );
+        serviceName = parsedResolverConfig?.requestTransform?.serviceName;
+        methodName = parsedResolverConfig?.requestTransform?.methodName;
+        spanName = parsedResolverConfig?.spanName;
+      }
+    }
+
+    let [upstreamName, upstreamNamespace] = upstream.split('::');
+
+    let res = `
+    request:
+      headers:
+        - :method: GET
+        - :path: /api/v1/products`;
+
     await graphqlApi.updateGraphqlSchemaResolver(
       {
         name: graphqlSchemaName,
         namespace: graphqlSchemaNamespace,
         clusterName: graphqlSchemaClusterName,
       },
-      [props.resolverName!, resolver]
+      {
+        upstreamRef: {
+          name: upstreamName!,
+          namespace: upstreamNamespace!,
+        },
+        //@ts-ignore
+        ...(request && {
+          request: {
+            headersMap,
+            queryParamsMap,
+          },
+        }),
+        resolverName: props.resolverName!,
+        //@ts-ignore
+        ...(grpcRequest && {
+          grpcRequest: {
+            methodName,
+            requestMetadataMap,
+            serviceName,
+            outgoingMessageJson: undefined,
+          },
+        }),
+        resolverType,
+        //@ts-ignore
+        ...(response && { response: { resultRoot, settersMap } }),
+        spanName,
+      }
     );
-  };
 
+    mutate();
+    props.onClose();
+  };
+  const removeResolverConfig = async () => {
+    await graphqlApi.updateGraphqlSchemaResolver(
+      {
+        name: graphqlSchemaName,
+        namespace: graphqlSchemaNamespace,
+        clusterName: graphqlSchemaClusterName,
+      },
+      {
+        resolverName: props.resolverName!,
+      },
+      true
+    );
+    setTimeout(() => {
+      mutate();
+    }, 300);
+    props.onClose();
+  };
   const resolverTypeIsValid = (
     formik: FormikState<ResolverWizardFormProps>
   ) => {
@@ -403,6 +649,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
     }
     return '';
   };
+
   return (
     <div className='h-[700px]'>
       <Formik<ResolverWizardFormProps>
@@ -411,8 +658,10 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
           upstream: props.resolver?.restResolver?.upstreamRef?.name!
             ? `${props.resolver?.restResolver?.upstreamRef?.name!}::${props
                 .resolver?.restResolver?.upstreamRef?.namespace!}`
-            : `${props.resolver?.grpcResolver?.upstreamRef?.name!}::${props
-                .resolver?.grpcResolver?.upstreamRef?.namespace!}` ?? '',
+            : props.resolver?.grpcResolver?.upstreamRef?.name!
+            ? `${props.resolver?.grpcResolver?.upstreamRef?.name!}::${props
+                .resolver?.grpcResolver?.upstreamRef?.namespace!}`
+            : '',
           resolverConfig: getInitialResolverConfig(props?.resolver),
         }}
         enableReinitialize
@@ -442,6 +691,14 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
               <TabPanels className='bg-white rounded-r-lg'>
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
                   <ResolverTypeSection isEdit={isEdit} />
+                  <div className='ml-2'>
+                    <SoloNegativeButton
+                      onClick={() => {
+                        setAttemptUpdateSchema(true);
+                      }}>
+                      Remove Configuration
+                    </SoloNegativeButton>
+                  </div>
                   <div className='flex items-center justify-between px-6 '>
                     <IconButton onClick={() => props.onClose()}>
                       Cancel
@@ -491,6 +748,16 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
           </>
         )}
       </Formik>
+      <ConfirmationModal
+        visible={attemptUpdateSchema}
+        confirmPrompt='delete this Resolver'
+        confirmButtonText='Delete'
+        goForIt={removeResolverConfig}
+        cancel={() => {
+          setAttemptUpdateSchema(false);
+        }}
+        isNegative
+      />
     </div>
   );
 };

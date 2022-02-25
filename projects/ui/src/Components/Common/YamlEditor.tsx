@@ -21,6 +21,14 @@ export const Label = styled.label`
   font-weight: 500;
 `;
 
+const StyledAceEditor = styled(AceEditor)`
+  .ace_editor span,
+  .ace_editor textarea {
+    font-size: 16px;
+    font-family: 'monospace';
+  }
+`;
+
 export interface SoloFormYamlEditorProps extends IAceEditorProps {
   name: string; // the name of this field in Formik
   title?: string; // display name of the field
@@ -33,14 +41,14 @@ const YamlEditor = (props: SoloFormYamlEditorProps) => {
     <div>
       {title && <Label>{title}</Label>}
 
-      <AceEditor
+      <StyledAceEditor
         mode='yaml'
         theme='chrome'
         name={title}
         style={{
           maxWidth: '40vw',
           maxHeight: '25vh',
-          cursor: 'text',
+          // cursor: 'text',
         }}
         onChange={rest.onChange}
         focus={true}
@@ -54,6 +62,8 @@ const YamlEditor = (props: SoloFormYamlEditorProps) => {
         setOptions={{
           highlightGutterLine: true,
           showGutter: true,
+          cursorStyle: 'wide',
+          fontFamily: 'monospace',
           enableBasicAutocompletion: true,
           enableLiveAutocompletion: true,
           showLineNumbers: true,

@@ -114,7 +114,7 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
   const [refetch, setRefetch] = React.useState(false);
   const [url, setUrl] = React.useState(getGqlStorage());
   const [showTooltip, setShowTooltip] = React.useState(false);
-
+  const [fetcher, setFetcher] = React.useState<Fetcher>();
   const changeUrl = (value: string) => {
     setGqlStorage(value);
     setUrl(value);
@@ -130,9 +130,16 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
     const text = 'glooctl proxy url';
     copyTextToClipboard(text);
   };
-
+  const graphQLFetcher: Fetcher = async graphQLParams =>
+    fetch(url, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(graphQLParams),
+    })
+      .then(response => response.json())
+      .catch(response => response.text());
   // If we need the custom fetcher, we can add `schemaFetcher` to the document.
-  let gqlFetcher = createGraphiQLFetcher({
+  let gqlFetcher: Fetcher = createGraphiQLFetcher({
     url,
     schemaFetcher: async graphQLParams => {
       try {
@@ -150,7 +157,6 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
         return data.json().catch(() => data.text());
       } catch (error: any) {
         setGqlError(error.message);
-        console.log('error', error);
       }
     },
   });
@@ -194,7 +200,7 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
 
   // TODO:  We can hide and show elements based on what we get back.
   //        The schema will only refetch if the executable schema is undefined.
-  return !!correspondingVirtualServices?.length || true ? (
+  return !!correspondingVirtualServices?.length ? (
     <Wrapper>
       {gqlError && (
         <GqlInputContainer>

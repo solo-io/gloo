@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    description: UI fixes relating to creating and updating GraphqlSchema resources.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3001
+  - type: FIX
+    description: Resolver configuration was not being saved in the Resolver Configuration modal.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3143
+  - type: FIX
+    description: Provide a helpful default template for defining a Resolve configuration.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3141

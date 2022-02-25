@@ -21,10 +21,14 @@ import { useNavigate, useParams } from 'react-router';
 import { colors } from 'Styles/colors';
 import { SoloNegativeButton } from 'Styles/StyledComponents/button';
 import { useDeleteAPI } from 'utils/hooks';
+import { StatusHealth, WarningCircle } from '../Overview/OverviewBoxSummary';
 import { GraphqlApiExplorer } from './GraphqlApiExplorer';
 import { GraphqlIconHolder } from './GraphqlTable';
 import ResolversTable from './ResolversTable';
 import { ResolverWizard } from './ResolverWizard';
+import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
+import { SoloToggleSwitch } from 'Components/Common/SoloToggleSwitch';
+import { useSWRConfig } from 'swr';
 
 export const OperationDescription = styled('div')`
   grid-column: span 3 / span 3;
@@ -100,13 +104,22 @@ export const GraphQLDetails: React.FC = () => {
     errorDeleteModalProps,
     deleteFn,
   } = useDeleteAPI({ revalidate: mutate });
-
+  const { cache } = useSWRConfig();
   const [tabIndex, setTabIndex] = React.useState(0);
   const { data: upstreams, error: upstreamsError } = useListUpstreams();
   const [resolverUpstreams, setResolverUpstreams] = React.useState<
     Upstream.AsObject[]
   >([]);
+  const [showResolverPrompt, setShowResolverPrompt] = React.useState(false);
 
+  const [attemptUpdateSchema, setAttemptUpdateSchema] = React.useState(false);
+  const [introspectionEnabled, setIntrospectionEnabled] = React.useState(
+    graphqlSchema?.spec?.executableSchema?.executor?.local
+      ?.enableIntrospection ?? false
+  );
+
+  const [errorMessage, setErrorMessage] = React.useState('');
+  const [errorModal, setErrorModal] = React.useState(false);
   React.useEffect(() => {
     let resolverUpstreams =
       graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
@@ -131,7 +144,33 @@ export const GraphQLDetails: React.FC = () => {
     if (!!fullUpstreams) {
       setResolverUpstreams(fullUpstreams);
     }
-  }, [graphqlSchema, upstreams]);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [
+    !!graphqlSchema,
+    !!upstreams,
+    graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
+      ?.length,
+  ]);
+
+  React.useEffect(() => {
+    if (
+      graphqlSchema?.spec?.executableSchema?.executor === undefined ||
+      graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
+        ?.length === 0
+    ) {
+      setShowResolverPrompt(true);
+    } else {
+      setShowResolverPrompt(false);
+    }
+    setIntrospectionEnabled(
+      graphqlSchema?.spec?.executableSchema?.executor?.local
+        ?.enableIntrospection!
+    );
+  }, [
+    !!graphqlSchema?.spec?.executableSchema?.executor,
+    graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
+      ?.length,
+  ]);
 
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
@@ -154,6 +193,34 @@ export const GraphQLDetails: React.FC = () => {
     return '';
   };
 
+  const updateSchema = async () => {
+    await graphqlApi
+      .updateGraphqlSchema({
+        graphqlSchemaRef: {
+          name: graphqlSchemaName,
+          namespace: graphqlSchemaNamespace,
+          clusterName: graphqlSchemaClusterName,
+        },
+        spec: {
+          executableSchema: {
+            executor: {
+              //@ts-ignore
+              local: {
+                enableIntrospection: introspectionEnabled,
+              },
+            },
+          },
+        },
+      })
+      .then(() => {
+        setAttemptUpdateSchema(false);
+      })
+      .catch(err => {
+        setErrorModal(true);
+        setErrorMessage(err?.message ?? '');
+      });
+  };
+
   if (!graphqlSchema) return <Loading />;
 
   return (
@@ -167,14 +234,38 @@ export const GraphQLDetails: React.FC = () => {
               title: 'Namespace',
               value: graphqlSchemaNamespace,
             },
-            {
-              title: 'Introspection',
-              value: graphqlSchema.spec?.executableSchema?.executor?.local
-                ?.enableIntrospection
-                ? 'Enabled'
-                : 'Disabled',
-            },
           ]}>
+          {showResolverPrompt ? (
+            <div className='grid w-full '>
+              <StatusHealth isWarning className=' place-content-center'>
+                <div>
+                  <WarningCircle>
+                    <WarningExclamation />
+                  </WarningCircle>
+                </div>
+                <div>
+                  <>
+                    <div className='text-xl '>No Resolvers defined</div>
+                    <div className='text-lg '>Define resolvers</div>
+                  </>
+                </div>
+              </StatusHealth>
+            </div>
+          ) : null}
+          <div className='flex items-end justify-end'>
+            <span className='text-lg font-medium text-gray-900'>
+              {`Schema Introspection`}
+            </span>
+            <div className={'ml-2'}>
+              <SoloToggleSwitch
+                checked={introspectionEnabled}
+                onChange={() => {
+                  setAttemptUpdateSchema(true);
+                  setIntrospectionEnabled(!introspectionEnabled);
+                }}
+              />
+            </div>
+          </div>
           <Tabs index={tabIndex} onChange={handleTabsChange}>
             <FolderTabList>
               <FolderTab>API Details</FolderTab>
@@ -264,6 +355,27 @@ export const GraphQLDetails: React.FC = () => {
           </Tabs>
         </SectionCard>
       </div>
+      <ConfirmationModal
+        visible={attemptUpdateSchema}
+        confirmPrompt='update this schema'
+        confirmButtonText='Update'
+        goForIt={updateSchema}
+        cancel={() => {
+          setAttemptUpdateSchema(false);
+          setIntrospectionEnabled(
+            graphqlSchema?.spec?.executableSchema?.executor?.local
+              ?.enableIntrospection ?? false
+          );
+        }}
+        isNegative
+      />
+      <ErrorModal
+        cancel={() => setErrorModal(false)}
+        visible={errorModal}
+        errorDescription={errorMessage}
+        errorMessage={'Failure updating Graphql Schema'}
+        isNegative={true}
+      />
 
       <ConfirmationModal
         visible={isDeleting}

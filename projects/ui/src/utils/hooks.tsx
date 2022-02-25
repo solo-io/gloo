@@ -44,14 +44,16 @@ export function useDeleteAPI(config: DeleteConfig) {
   const deleteAPI = async () => {
     if (schemaRefToDelete) {
       if (optimistic) {
-        revalidate(
-          graphqlSchemas?.filter(
-            gqlSchema =>
-              gqlSchema.metadata?.name !== schemaRefToDelete?.name &&
-              gqlSchema.metadata?.namespace !== schemaRefToDelete?.namespace
-          ),
-          false
-        );
+        setTimeout(() => {
+          revalidate(
+            graphqlSchemas?.filter(
+              gqlSchema =>
+                gqlSchema.metadata?.name !== schemaRefToDelete?.name &&
+                gqlSchema.metadata?.namespace !== schemaRefToDelete?.namespace
+            ),
+            false
+          );
+        }, 300);
       }
       try {
         let deletedSchemaRef = await graphqlApi.deleteGraphqlSchema({
@@ -61,7 +63,9 @@ export function useDeleteAPI(config: DeleteConfig) {
         });
         cancelDelete();
         if (optimistic) {
-          revalidate();
+          setTimeout(() => {
+            revalidate();
+          }, 300);
         }
 
         navigate(

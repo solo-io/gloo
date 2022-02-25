@@ -1,26 +1,24 @@
-import * as React from 'react';
 import styled from '@emotion/styled/macro';
-import { SoloModal } from 'Components/Common/SoloModal';
-import { SectionCard } from 'Components/Common/SectionCard';
-import { SoloInput } from 'Components/Common/SoloInput';
-import { colors } from 'Styles/colors';
-import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
-import {
-  SoloFormFileUpload,
-  SoloFormInput,
-} from 'Components/Common/SoloFormComponents';
-import { Formik } from 'formik';
-import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import gql from 'graphql-tag';
 import { graphqlApi } from 'API/graphql';
 import {
   useIsGlooFedEnabled,
   useListGlooInstances,
   useListGraphqlSchemas,
 } from 'API/hooks';
-import { GraphqlSchema } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
-import { useNavigate, useParams } from 'react-router';
+import { DataError } from 'Components/Common/DataError';
+import {
+  ErrorText,
+  SoloFormFileUpload,
+  SoloFormInput,
+} from 'Components/Common/SoloFormComponents';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { Formik, useFormikContext } from 'formik';
+import gql from 'graphql-tag';
 import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
+import * as React from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { colors } from 'Styles/colors';
+import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
 
 export interface NewApiModalProps {
   showNewModal: boolean;
@@ -69,18 +67,12 @@ type CreateApiValues = {
 
 export const NewApiModal = (props: NewApiModalProps) => {
   const { name = '', namespace = '' } = useParams();
-
+  const [errorMessage, setErrorMessage] = React.useState('');
   const { showNewModal, toggleNewModal } = props;
-  const [_schemaFile, setSchemaFile] = React.useState<File>();
-  const {
-    data: graphqlSchemas,
-    error: graphqlSchemaError,
-    mutate,
-  } = useListGraphqlSchemas();
+  const { mutate } = useListGraphqlSchemas();
   const { data: glooInstances, error: instancesError } = useListGlooInstances();
   const { data: glooFedCheckResponse, error: glooFedCheckError } =
     useIsGlooFedEnabled();
-
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
   const [glooInstance, setGlooInstance] =
     React.useState<GlooInstance.AsObject>();
@@ -150,7 +142,6 @@ export const NewApiModal = (props: NewApiModalProps) => {
         : `/gloo-instances/${createdGraphqlSchema.glooInstance?.namespace}/${createdGraphqlSchema.glooInstance?.name}/apis/${createdGraphqlSchema.metadata?.namespace}/${createdGraphqlSchema.metadata?.name}/`
     );
   };
-
   return (
     <SoloModal visible={showNewModal} width={600} onClose={toggleNewModal}>
       <Formik
@@ -172,6 +163,9 @@ export const NewApiModal = (props: NewApiModalProps) => {
                 title='Schema'
                 buttonLabel='Upload Schema'
                 fileType='.graphql,.gql'
+                onRemoveFile={() => {
+                  setErrorMessage('');
+                }}
                 validateFile={file => {
                   let schema = '';
                   if (file) {
@@ -189,15 +183,22 @@ export const NewApiModal = (props: NewApiModalProps) => {
                       let query = gql`
                         ${reader}
                       `;
-                    } catch (error) {
+                      setErrorMessage('');
+                      formik.setFieldError('uploadedSchema', '');
+                    } catch (error: any) {
+                      setErrorMessage(error);
+                      formik.setFieldError('uploadedSchema', error);
+
                       // TODO replace with real validation
                       return { isValid: true, errorMessage: error as string };
                     }
                   }
+
                   return { isValid: true, errorMessage: '' };
                 }}
               />
             </InputWrapper>
+            {!!errorMessage && <DataError error={errorMessage as any} />}
             <Footer>
               <SoloButtonStyledComponent onClick={formik.handleSubmit as any}>
                 Create API

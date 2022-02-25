@@ -25,9 +25,18 @@ import {
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import {
   ExecutableSchema,
+  Executor,
   GraphQLSchemaSpec,
+  GrpcDescriptorRegistry,
+  GrpcRequestTemplate,
+  RequestTemplate,
   Resolution,
+  ResponseTemplate,
+  RESTResolver,
 } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
+import { Value } from 'google-protobuf/google/protobuf/struct_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 
 const graphqlApiClient = new GraphqlApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -41,6 +50,7 @@ export const graphqlApi = {
   createGraphqlSchema,
   validateResolverYaml,
   updateGraphqlSchema,
+  updateGraphqlSchemaIntrospection,
   deleteGraphqlSchema,
   updateGraphqlSchemaResolver,
 };
@@ -163,33 +173,123 @@ function createGraphqlSchema(
   });
 }
 
-async function updateGraphqlSchema(
-  updateGraphqlSchemaRequest: UpdateGraphqlSchemaRequest.AsObject
-): Promise<UpdateGraphqlSchemaResponse.AsObject> {
-  let { graphqlSchemaRef, spec } = updateGraphqlSchemaRequest;
-  let resolvers = spec?.executableSchema?.executor?.local?.resolutionsMap;
+function schemaSpecFromObject(
+  schemaSpec: GraphQLSchemaSpec.AsObject,
+  schemaSpecToUpdate = new GraphQLSchemaSpec()
+): GraphQLSchemaSpec {
+  let { executableSchema, statPrefix } = schemaSpec;
+  if (statPrefix !== undefined) {
+    let { value } = statPrefix;
+    let newStatPrefix = schemaSpecToUpdate.getStatPrefix() ?? new StringValue();
+    newStatPrefix.setValue(value);
+    schemaSpecToUpdate.setStatPrefix(newStatPrefix);
+  }
 
+  if (executableSchema !== undefined) {
+    let { schemaDefinition, executor, grpcDescriptorRegistry } =
+      executableSchema;
+
+    let newExecutableSchema =
+      schemaSpecToUpdate.getExecutableSchema() ?? new ExecutableSchema();
+
+    if (!!schemaDefinition) {
+      newExecutableSchema.setSchemaDefinition(schemaDefinition);
+    }
+
+    if (executor !== undefined) {
+      let { local } = executor;
+      let newExecutor = newExecutableSchema.getExecutor() ?? new Executor();
+
+      if (local !== undefined) {
+        let { enableIntrospection, resolutionsMap } = local;
+        let newLocal = newExecutor.getLocal() ?? new Executor.Local();
+
+        if (enableIntrospection !== undefined) {
+          newLocal.setEnableIntrospection(enableIntrospection);
+        }
+
+        if (resolutionsMap !== undefined) {
+          let newResolutionsMap = newLocal.getResolutionsMap();
+          newResolutionsMap.forEach((resolution, resolutionName) => {
+            newResolutionsMap.set(resolutionName, resolution);
+          });
+        }
+
+        newExecutor.setLocal(newLocal);
+      }
+
+      newExecutableSchema.setExecutor(newExecutor);
+    }
+
+    if (grpcDescriptorRegistry !== undefined) {
+      let { protoDescriptor, protoDescriptorBin } = grpcDescriptorRegistry;
+      let newGrpcDescriptorRegistry =
+        newExecutableSchema?.getGrpcDescriptorRegistry() ??
+        new GrpcDescriptorRegistry();
+      newGrpcDescriptorRegistry.setProtoDescriptor(protoDescriptor);
+      newGrpcDescriptorRegistry.setProtoDescriptorBin(protoDescriptorBin);
+
+      newExecutableSchema.setGrpcDescriptorRegistry(newGrpcDescriptorRegistry);
+    }
+
+    schemaSpecToUpdate.setExecutableSchema(newExecutableSchema);
+  }
+  return schemaSpecToUpdate;
+}
+
+async function updateGraphqlSchema(
+  updateGraphqlSchemaRequest: Partial<UpdateGraphqlSchemaRequest.AsObject>
+): Promise<GraphqlSchema.AsObject> {
+  let { graphqlSchemaRef, spec } = updateGraphqlSchemaRequest;
   let currentGraphqlSchema = await getGraphqlSchemaPb(graphqlSchemaRef!);
 
-  let currentResolverMap = currentGraphqlSchema
-    ?.getSpec()
-    ?.getExecutableSchema()
-    ?.getExecutor()
-    ?.getLocal()
-    ?.getResolutionsMap();
-
-  // currentResolverMap.forEach(([key, value]) => newMetadata.getLabelsMap().set(key, value));
-  let request = new CreateGraphqlSchemaRequest();
-  let graphqlSchemaSpec = new GraphQLSchemaSpec();
-
+  let request = new UpdateGraphqlSchemaRequest();
   request.setGraphqlSchemaRef(
     getClusterRefClassFromClusterRefObj(graphqlSchemaRef!)
   );
 
+  let graphqlSchemaSpec = schemaSpecFromObject(
+    spec!,
+    currentGraphqlSchema?.getSpec()
+  );
   request.setSpec(graphqlSchemaSpec);
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.createGraphqlSchema(request, (error, data) => {
+    graphqlApiClient.updateGraphqlSchema(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject().graphqlSchema!);
+      }
+    });
+  });
+}
+
+async function updateGraphqlSchemaIntrospection(
+  graphqlSchemaRef: ClusterObjectRef.AsObject,
+  introspectionEnabled: boolean
+): Promise<UpdateGraphqlSchemaResponse.AsObject> {
+  let currentGraphqlSchema = await getGraphqlSchemaPb(graphqlSchemaRef!);
+
+  // currentResolverMap.forEach(([key, value]) => newMetadata.getLabelsMap().set(key, value));
+  let request = new UpdateGraphqlSchemaRequest();
+  let graphqlSchemaSpec = currentGraphqlSchema?.getSpec();
+
+  request.setGraphqlSchemaRef(
+    getClusterRefClassFromClusterRefObj(graphqlSchemaRef!)
+  );
+  graphqlSchemaSpec
+    ?.getExecutableSchema()
+    ?.getExecutor()
+    ?.getLocal()
+    ?.setEnableIntrospection(introspectionEnabled);
+  request.setSpec(graphqlSchemaSpec);
+
+  return new Promise((resolve, reject) => {
+    graphqlApiClient.updateGraphqlSchema(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
@@ -204,36 +304,112 @@ async function updateGraphqlSchema(
 
 async function updateGraphqlSchemaResolver(
   graphqlSchemaRef: ClusterObjectRef.AsObject,
-  resolverItem: [string, Resolution.AsObject]
-): Promise<UpdateGraphqlSchemaResponse.AsObject> {
+  resolverItem: {
+    resolverName: string;
+    resolverType?: 'REST' | 'gRPC';
+    request?: RequestTemplate.AsObject;
+    response?: ResponseTemplate.AsObject;
+    grpcRequest?: GrpcRequestTemplate.AsObject;
+    spanName?: string;
+    upstreamRef?: ObjectRef.AsObject;
+  },
+  isRemove?: boolean
+): Promise<GraphqlSchema.AsObject> {
   let currentGraphqlSchema = await getGraphqlSchemaPb(graphqlSchemaRef!);
 
-  let currentResolverMap = currentGraphqlSchema
-    ?.getSpec()
-    ?.getExecutableSchema()
-    ?.getExecutor()
-    ?.getLocal()
-    ?.getResolutionsMap();
+  let currentSpec = currentGraphqlSchema?.getSpec();
 
-  // currentResolverMap.forEach(([key, value]) => newMetadata.getLabelsMap().set(key, value));
-  let request = new CreateGraphqlSchemaRequest();
-  let graphqlSchemaSpec = new GraphQLSchemaSpec();
+  if (currentSpec === undefined) {
+    currentSpec = new GraphQLSchemaSpec();
+  }
+  let currentExSchema = currentSpec?.getExecutableSchema();
+  if (currentExSchema === undefined) {
+    currentExSchema = new ExecutableSchema();
+  }
+  let currExecutor = currentExSchema?.getExecutor();
+  if (currExecutor === undefined) {
+    currExecutor = new Executor();
+  }
+  let currLocal = currExecutor.getLocal();
+  if (currLocal === undefined) {
+    currLocal = new Executor.Local();
+  }
+
+  let currResolMap = currLocal?.getResolutionsMap();
+
+  let newResolution = new Resolution();
+
+  if (resolverItem.resolverType === 'REST') {
+    let newRestResolver =
+      currResolMap?.get(resolverItem.resolverName)?.getRestResolver() ??
+      new RESTResolver();
+    let usRef = new ResourceRef();
+    usRef.setName(resolverItem?.upstreamRef?.name!);
+    usRef.setNamespace(resolverItem?.upstreamRef?.namespace!);
+    newRestResolver.setUpstreamRef(usRef);
+    if (resolverItem.request !== undefined) {
+      let { headersMap, queryParamsMap, body } = resolverItem.request;
+      let newReq = newRestResolver?.getRequest() ?? new RequestTemplate();
+      if (body !== undefined) {
+        let bodyVal = new Value();
+        bodyVal.setStringValue(body.stringValue);
+        newReq.setBody(bodyVal);
+      }
+      if (headersMap?.length > 0) {
+        let newHeadersMap = newReq.getHeadersMap();
+        headersMap.forEach(([val, key]) => {
+          newHeadersMap.set(val, key);
+        });
+      }
+      if (queryParamsMap?.length > 0) {
+        let qParamsMap = newReq.getQueryParamsMap();
+        queryParamsMap.forEach(([val, key]) => {
+          qParamsMap.set(val, key);
+        });
+      }
+      newRestResolver.setRequest(newReq);
+    }
+    if (resolverItem.response !== undefined) {
+      let { resultRoot, settersMap } = resolverItem.response;
+      let newRes = newRestResolver.getResponse() ?? new ResponseTemplate();
+      if (resultRoot !== undefined && resultRoot !== '') {
+        newRes.setResultRoot(resultRoot);
+      }
+      if (settersMap?.length > 0) {
+        let newSettersMap = newRes.getSettersMap();
+        settersMap.forEach(([key, val]) => {
+          newSettersMap.set(val, key);
+        });
+      }
+      newRestResolver.setResponse(newRes);
+    }
+    newResolution.setRestResolver(newRestResolver);
+  }
+  if (isRemove) {
+    currResolMap.del(resolverItem.resolverName);
+  } else {
+    currResolMap.set(resolverItem.resolverName, newResolution);
+  }
+
+  let request = new UpdateGraphqlSchemaRequest();
 
   request.setGraphqlSchemaRef(
     getClusterRefClassFromClusterRefObj(graphqlSchemaRef!)
   );
 
-  request.setSpec(graphqlSchemaSpec);
-
+  currExecutor.setLocal(currLocal);
+  currentExSchema.setExecutor(currExecutor);
+  currentSpec.setExecutableSchema(currentExSchema);
+  request.setSpec(currentSpec);
   return new Promise((resolve, reject) => {
-    graphqlApiClient.createGraphqlSchema(request, (error, data) => {
+    graphqlApiClient.updateGraphqlSchema(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject());
+        resolve(data!.toObject().graphqlSchema!);
       }
     });
   });

@@ -94,10 +94,18 @@ export const ResolverItem: React.FC<{
     resolverType === 'Query' || resolverType === 'Mutation'
   );
   const listRef = React.useRef<HTMLDivElement>(null);
-  const { name: graphqlSchemaName, namespace: graphqlSchemaNamespace } =
-    useParams();
+  const {
+    graphqlSchemaName = '',
+    graphqlSchemaNamespace = '',
+    graphqlSchemaClusterName = '',
+  } = useParams();
   const resolverKey = `${graphqlSchemaNamespace}-${graphqlSchemaName}-${resolverType}`;
-
+  const { data: graphqlSchema, error: graphqlSchemaError } =
+    useGetGraphqlSchemaDetails({
+      name: graphqlSchemaName,
+      namespace: graphqlSchemaNamespace,
+      clusterName: graphqlSchemaClusterName,
+    });
   const rowVirtualizer = useVirtual({
     size: fields?.length ?? 0,
     parentRef: listRef,
@@ -165,7 +173,11 @@ export const ResolverItem: React.FC<{
             }}>
             {rowVirtualizer.virtualItems.map(virtualRow => {
               const op = fields[virtualRow.index] as FieldDefinitionNode;
-              let hasResolver = !!op?.directives?.length;
+              let hasResolver =
+                !!graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
+                  ([rN, r]) => rN.includes(fields[virtualRow.index].name?.value)
+                );
+
               return (
                 <div
                   key={`${resolverType}-${op.name?.value}`}
@@ -243,12 +255,15 @@ type ResolversTableType = {
 };
 const ResolversTable: React.FC<ResolversTableType> = props => {
   const { schemaRef } = props;
-  const { data: graphqlSchema, error: graphqlSchemaError } =
-    useGetGraphqlSchemaDetails({
-      name: schemaRef.name,
-      namespace: schemaRef.namespace,
-      clusterName: schemaRef.clusterName,
-    });
+  const {
+    data: graphqlSchema,
+    error: graphqlSchemaError,
+    mutate,
+  } = useGetGraphqlSchemaDetails({
+    name: schemaRef.name,
+    namespace: schemaRef.namespace,
+    clusterName: schemaRef.clusterName,
+  });
 
   const [currentResolver, setCurrentResolver] = React.useState<any>();
   const [currentResolverName, setCurrentResolverName] = React.useState('');
@@ -288,10 +303,9 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
     let [currentResolverName, currentResolver] =
       graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap.find(
         ([rName, resolver]) => rName.includes(resolverName)
-      ) ?? [];
-
+      ) ?? ['', ''];
     setCurrentResolver(currentResolver);
-    setCurrentResolverName(currentResolverName!);
+    setCurrentResolverName(resolverName);
     openModal();
   }
   return (
@@ -319,7 +333,10 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
             <ResolverWizard
               resolver={currentResolver}
               resolverName={currentResolverName}
-              onClose={closeModal}
+              onClose={() => {
+                closeModal();
+                mutate();
+              }}
             />
           </SoloModal>
         </div>

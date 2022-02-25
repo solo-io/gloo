@@ -364,7 +364,7 @@ export const LIST_GRAPQL_SCHEMAS_KEY = (glooInstanceRef?: ObjectRef.AsObject) =>
     : GraphqlApi.ListGraphqlSchemas.methodName;
 export function useListGraphqlSchemas(glooInstanceRef?: ObjectRef.AsObject) {
   return useSWR<GraphqlSchema.AsObject[]>(
-    LIST_GRAPQL_SCHEMAS_KEY(glooInstanceRef),
+    GraphqlApi.ListGraphqlSchemas.methodName,
     () => graphqlApi.listGraphqlSchemas(glooInstanceRef),
     { refreshInterval: normalRefreshInterval }
   );

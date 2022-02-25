@@ -194,4 +194,15 @@ export const globalStyles = css`
       }
     }
   }
+
+  .ace_editor span, .ace_editor textarea, .ace_line {
+  font: 16px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+}
+.ace_layer {
+
+  .ace_line, .ace_active-line {
+    height: 22px !important;
+  }
+}
+ 
 `;
