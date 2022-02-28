@@ -4,31 +4,14 @@ include Makefile.docker
 # Base
 #----------------------------------------------------------------------------------
 
-ROOTDIR := $(shell pwd)
 PACKAGE_PATH:=github.com/solo-io/solo-projects
-RELATIVE_OUTPUT_DIR ?= _output
-OUTPUT_DIR ?= $(ROOTDIR)/$(RELATIVE_OUTPUT_DIR)
 # Kind of a hack to make sure _output exists
 z := $(shell mkdir -p $(OUTPUT_DIR))
 SOURCES := $(shell find . -name "*.go" | grep -v test.go)
-RELEASE := "true"
 
 GCS_BUCKET := glooctl-plugins
 WASM_GCS_PATH := glooctl-wasm
 FED_GCS_PATH := glooctl-fed
-
-# If you just put your username, then that refers to your account at hub.docker.com
-# To use quay images, set the IMAGE_REPO to "quay.io/solo-io" (or leave unset)
-# To use dockerhub images, set the IMAGE_REPO to "soloio"
-# To use gcr images, set the IMAGE_REPO to "gcr.io/$PROJECT_NAME"
-IMAGE_REPO ?= quay.io/solo-io
-
-ifeq ($(TAGGED_VERSION),)
-	TAGGED_VERSION := "v$(shell ./git-semver.sh)"
-	RELEASE := "false"
-endif
-
-VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 
 ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.20.0-patch5
 ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.20.0-patch5
