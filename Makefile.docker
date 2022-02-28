@@ -4,19 +4,24 @@
 
 ROOTDIR := $(shell pwd)
 RELATIVE_OUTPUT_DIR ?= _output
-export OUTPUT_DIR ?= $(ROOTDIR)/$(RELATIVE_OUTPUT_DIR)
+OUTPUT_DIR ?= $(ROOTDIR)/$(RELATIVE_OUTPUT_DIR)
 
-export IMAGE_REPO ?= quay.io/solo-io
+# If you just put your username, then that refers to your account at hub.docker.com
+# To use quay images, set the IMAGE_REPO to "quay.io/solo-io" (or leave unset)
+# To use dockerhub images, set the IMAGE_REPO to "soloio"
+# To use gcr images, set the IMAGE_REPO to "gcr.io/$PROJECT_NAME"
+IMAGE_REPO ?= quay.io/solo-io
 
-export GOLANG_VERSION := golang:1.16.3-alpine
-export GOBORING_VERSION := goboring/golang:1.16.3b7
+GOLANG_VERSION := golang:1.16.3-alpine
+GOBORING_VERSION := goboring/golang:1.16.3b7
 
-RELEASE := "true"
+RELEASE := "false"
 ifeq ($(TAGGED_VERSION),)
 	TAGGED_VERSION := "v$(shell ./git-semver.sh)"
-	RELEASE := "false"
+else
+	RELEASE := "true"
 endif
-export VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
+VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 
 #----------------------------------------------------------------------------------
 # Kind Load Images
