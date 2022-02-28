@@ -8,6 +8,7 @@ import * as validate_validate_pb from "../../../../../../../../../../validate/va
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/http_uri_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/extension_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/base_pb";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
 export class PathSegment extends jspb.Message {
   hasKey(): boolean;
@@ -70,6 +71,29 @@ export class Path extends jspb.Message {
 export namespace Path {
   export type AsObject = {
     segmentsList: Array<PathSegment.AsObject>,
+  }
+}
+
+export class TemplatedPath extends jspb.Message {
+  getPathTemplate(): string;
+  setPathTemplate(value: string): void;
+
+  getNamedPathsMap(): jspb.Map<string, Path>;
+  clearNamedPathsMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TemplatedPath.AsObject;
+  static toObject(includeInstance: boolean, msg: TemplatedPath): TemplatedPath.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TemplatedPath, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TemplatedPath;
+  static deserializeBinaryFromReader(message: TemplatedPath, reader: jspb.BinaryReader): TemplatedPath;
+}
+
+export namespace TemplatedPath {
+  export type AsObject = {
+    pathTemplate: string,
+    namedPathsMap: Array<[string, Path.AsObject]>,
   }
 }
 
@@ -380,7 +404,7 @@ export class ResponseTemplate extends jspb.Message {
   setResultRootList(value: Array<PathSegment>): void;
   addResultRoot(value?: PathSegment, index?: number): PathSegment;
 
-  getSettersMap(): jspb.Map<string, Path>;
+  getSettersMap(): jspb.Map<string, TemplatedPath>;
   clearSettersMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ResponseTemplate.AsObject;
@@ -395,7 +419,7 @@ export class ResponseTemplate extends jspb.Message {
 export namespace ResponseTemplate {
   export type AsObject = {
     resultRootList: Array<PathSegment.AsObject>,
-    settersMap: Array<[string, Path.AsObject]>,
+    settersMap: Array<[string, TemplatedPath.AsObject]>,
   }
 }
 
@@ -524,6 +548,65 @@ export namespace GrpcResolver {
   }
 }
 
+export class StaticResolver extends jspb.Message {
+  hasSyncResponse(): boolean;
+  clearSyncResponse(): void;
+  getSyncResponse(): string;
+  setSyncResponse(value: string): void;
+
+  hasAsyncResponse(): boolean;
+  clearAsyncResponse(): void;
+  getAsyncResponse(): StaticResolver.AsyncResponse | undefined;
+  setAsyncResponse(value?: StaticResolver.AsyncResponse): void;
+
+  getResponseCase(): StaticResolver.ResponseCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): StaticResolver.AsObject;
+  static toObject(includeInstance: boolean, msg: StaticResolver): StaticResolver.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: StaticResolver, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): StaticResolver;
+  static deserializeBinaryFromReader(message: StaticResolver, reader: jspb.BinaryReader): StaticResolver;
+}
+
+export namespace StaticResolver {
+  export type AsObject = {
+    syncResponse: string,
+    asyncResponse?: StaticResolver.AsyncResponse.AsObject,
+  }
+
+  export class AsyncResponse extends jspb.Message {
+    getResponse(): string;
+    setResponse(value: string): void;
+
+    getDelayMs(): number;
+    setDelayMs(value: number): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): AsyncResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: AsyncResponse): AsyncResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: AsyncResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): AsyncResponse;
+    static deserializeBinaryFromReader(message: AsyncResponse, reader: jspb.BinaryReader): AsyncResponse;
+  }
+
+  export namespace AsyncResponse {
+    export type AsObject = {
+      response: string,
+      delayMs: number,
+    }
+  }
+
+  export enum ResponseCase {
+    RESPONSE_NOT_SET = 0,
+    SYNC_RESPONSE = 1,
+    ASYNC_RESPONSE = 2,
+  }
+}
+
 export class AbstractTypeResolver extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AbstractTypeResolver.AsObject;
@@ -537,28 +620,6 @@ export class AbstractTypeResolver extends jspb.Message {
 
 export namespace AbstractTypeResolver {
   export type AsObject = {
-  }
-}
-
-export class Query extends jspb.Message {
-  hasQuery(): boolean;
-  clearQuery(): void;
-  getQuery(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource | undefined;
-  setQuery(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Query.AsObject;
-  static toObject(includeInstance: boolean, msg: Query): Query.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Query, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Query;
-  static deserializeBinaryFromReader(message: Query, reader: jspb.BinaryReader): Query;
-}
-
-export namespace Query {
-  export type AsObject = {
-    query?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.AsObject,
   }
 }
 
@@ -628,6 +689,11 @@ export class Resolution extends jspb.Message {
   getStatPrefix(): string;
   setStatPrefix(value: string): void;
 
+  hasCacheControl(): boolean;
+  clearCacheControl(): void;
+  getCacheControl(): CacheControl | undefined;
+  setCacheControl(value?: CacheControl): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Resolution.AsObject;
   static toObject(includeInstance: boolean, msg: Resolution): Resolution.AsObject;
@@ -643,7 +709,46 @@ export namespace Resolution {
     matcher?: QueryMatcher.AsObject,
     resolver?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.AsObject,
     statPrefix: string,
+    cacheControl?: CacheControl.AsObject,
   }
+}
+
+export class CacheControl extends jspb.Message {
+  hasMaxAge(): boolean;
+  clearMaxAge(): void;
+  getMaxAge(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setMaxAge(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
+  getScope(): CacheControl.CacheControlScopeMap[keyof CacheControl.CacheControlScopeMap];
+  setScope(value: CacheControl.CacheControlScopeMap[keyof CacheControl.CacheControlScopeMap]): void;
+
+  getInheritMaxAge(): boolean;
+  setInheritMaxAge(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CacheControl.AsObject;
+  static toObject(includeInstance: boolean, msg: CacheControl): CacheControl.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CacheControl, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CacheControl;
+  static deserializeBinaryFromReader(message: CacheControl, reader: jspb.BinaryReader): CacheControl;
+}
+
+export namespace CacheControl {
+  export type AsObject = {
+    maxAge?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    scope: CacheControl.CacheControlScopeMap[keyof CacheControl.CacheControlScopeMap],
+    inheritMaxAge: boolean,
+  }
+
+  export interface CacheControlScopeMap {
+    UNSET: 0;
+    PUBLIC: 1;
+    PRIVATE: 2;
+  }
+
+  export const CacheControlScope: CacheControlScopeMap;
 }
 
 export class GraphQLConfig extends jspb.Message {
@@ -663,19 +768,6 @@ export namespace GraphQLConfig {
 }
 
 export class GraphQLRouteConfig extends jspb.Message {
-  hasSchema(): boolean;
-  clearSchema(): void;
-  getSchema(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource | undefined;
-  setSchema(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource): void;
-
-  getEnableIntrospection(): boolean;
-  setEnableIntrospection(value: boolean): void;
-
-  clearResolutionsList(): void;
-  getResolutionsList(): Array<Resolution>;
-  setResolutionsList(value: Array<Resolution>): void;
-  addResolutions(value?: Resolution, index?: number): Resolution;
-
   hasExecutableSchema(): boolean;
   clearExecutableSchema(): void;
   getExecutableSchema(): ExecutableSchema | undefined;
@@ -683,6 +775,16 @@ export class GraphQLRouteConfig extends jspb.Message {
 
   getStatPrefix(): string;
   setStatPrefix(value: string): void;
+
+  hasPersistedQueryCacheConfig(): boolean;
+  clearPersistedQueryCacheConfig(): void;
+  getPersistedQueryCacheConfig(): PersistedQueryCacheConfig | undefined;
+  setPersistedQueryCacheConfig(value?: PersistedQueryCacheConfig): void;
+
+  clearAllowedQueryHashesList(): void;
+  getAllowedQueryHashesList(): Array<string>;
+  setAllowedQueryHashesList(value: Array<string>): void;
+  addAllowedQueryHashes(value: string, index?: number): string;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GraphQLRouteConfig.AsObject;
@@ -696,11 +798,30 @@ export class GraphQLRouteConfig extends jspb.Message {
 
 export namespace GraphQLRouteConfig {
   export type AsObject = {
-    schema?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.AsObject,
-    enableIntrospection: boolean,
-    resolutionsList: Array<Resolution.AsObject>,
     executableSchema?: ExecutableSchema.AsObject,
     statPrefix: string,
+    persistedQueryCacheConfig?: PersistedQueryCacheConfig.AsObject,
+    allowedQueryHashesList: Array<string>,
+  }
+}
+
+export class PersistedQueryCacheConfig extends jspb.Message {
+  getCacheSize(): number;
+  setCacheSize(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PersistedQueryCacheConfig.AsObject;
+  static toObject(includeInstance: boolean, msg: PersistedQueryCacheConfig): PersistedQueryCacheConfig.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PersistedQueryCacheConfig, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PersistedQueryCacheConfig;
+  static deserializeBinaryFromReader(message: PersistedQueryCacheConfig, reader: jspb.BinaryReader): PersistedQueryCacheConfig;
+}
+
+export namespace PersistedQueryCacheConfig {
+  export type AsObject = {
+    cacheSize: number,
   }
 }
 

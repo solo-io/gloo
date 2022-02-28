@@ -127,6 +127,7 @@ export const NewApiModal = (props: NewApiModalProps) => {
         executableSchema: {
           schemaDefinition: schemaString,
         },
+        allowedQueryHashesList: [],
       },
     });
     toggleNewModal();

@@ -46,4 +46,59 @@ var _ = Describe("Rest Resolver Test", func() {
 				))
 		})
 	})
+
+	Context("Translates string setter to correct templated path", func() {
+		It("translates single response", func() {
+			templatedPath, err := graphql.TranslateSetter("{$body.details.firstname}")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(templatedPath.PathTemplate).To(Equal("{bodydetailsfirstname}"))
+			Expect(templatedPath.NamedPaths).To(HaveLen(1))
+			Expect(templatedPath.NamedPaths).To(HaveKeyWithValue("bodydetailsfirstname", &v2.Path{
+				Segments: []*v2.PathSegment{
+					{
+						Segment: &v2.PathSegment_Key{
+							Key: "details",
+						},
+					},
+					{
+						Segment: &v2.PathSegment_Key{
+							Key: "firstname",
+						},
+					},
+				}}))
+		})
+
+		It("translates templated response", func() {
+			templatedPath, err := graphql.TranslateSetter("fullname: {$body.details.firstname} {$body.details.lastname}")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(templatedPath.PathTemplate).To(Equal("fullname: {bodydetailsfirstname} {bodydetailslastname}"))
+			Expect(templatedPath.NamedPaths).To(HaveLen(2))
+			Expect(templatedPath.NamedPaths).To(HaveKeyWithValue("bodydetailsfirstname", &v2.Path{
+				Segments: []*v2.PathSegment{
+					{
+						Segment: &v2.PathSegment_Key{
+							Key: "details",
+						},
+					},
+					{
+						Segment: &v2.PathSegment_Key{
+							Key: "firstname",
+						},
+					},
+				}}))
+			Expect(templatedPath.NamedPaths).To(HaveKeyWithValue("bodydetailslastname", &v2.Path{
+				Segments: []*v2.PathSegment{
+					{
+						Segment: &v2.PathSegment_Key{
+							Key: "details",
+						},
+					},
+					{
+						Segment: &v2.PathSegment_Key{
+							Key: "lastname",
+						},
+					},
+				}}))
+		})
+	})
 })

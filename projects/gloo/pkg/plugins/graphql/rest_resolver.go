@@ -21,6 +21,9 @@ import (
 const (
 	ARBITRARY_PROVIDER_NAME              = "ARBITRARY_PROVIDER_NAME"
 	restResolverTypedExtensionConfigName = "io.solo.graphql.resolver.rest"
+
+	// allowed setter keywords; for now just $body but may add $headers in the future
+	BODY_SETTER = "body"
 )
 
 func translateRestResolver(params plugins.RouteParams, r *RESTResolver) (*v3.TypedExtensionConfig, error) {
@@ -60,15 +63,15 @@ func translateResponseTransform(transform *ResponseTemplate) (*v2.ResponseTempla
 	}
 	resultRoot, err := dot_notation.DotNotationToPathSegments(transform.ResultRoot)
 	if err != nil {
-		return nil, eris.Wrapf(err, "Error translating result root path %s", transform.ResultRoot)
+		return nil, eris.Wrapf(err, "error translating result root path %s", transform.ResultRoot)
 	}
-	setters := map[string]*v2.Path{}
+	setters := map[string]*v2.TemplatedPath{}
 	for k, path := range transform.Setters {
-		p, err := dot_notation.DotNotationToPathSegments(path)
+		templatedPath, err := TranslateSetter(path)
 		if err != nil {
-			return nil, eris.Wrapf(err, "Error with path %s", path)
+			return nil, eris.Wrapf(err, "error, unable to translate setter string to templated path")
 		}
-		setters[k] = &v2.Path{Segments: p}
+		setters[k] = templatedPath
 	}
 	result := &v2.ResponseTemplate{
 		ResultRoot: resultRoot,
@@ -224,10 +227,6 @@ var (
 )
 
 func translateValueProvider(vpString string) (*v2.ValueProvider, error) {
-	if vpString == "" {
-		return nil, nil
-	}
-
 	ret := &v2.ValueProvider{
 		Providers:        map[string]*v2.ValueProvider_Provider{},
 		ProviderTemplate: vpString,
@@ -262,8 +261,44 @@ func translateValueProvider(vpString string) (*v2.ValueProvider, error) {
 		}
 		matchSanitized := strings.ReplaceAll(match, ".", "")
 		ret.Providers[matchSanitized] = vp
-
 		ret.ProviderTemplate = strings.ReplaceAll(ret.ProviderTemplate, matches[0], "{"+matchSanitized+"}")
+	}
+	return ret, nil
+}
+
+func TranslateSetter(templatedPathString string) (*v2.TemplatedPath, error) {
+	ret := &v2.TemplatedPath{
+		PathTemplate: templatedPathString,
+		NamedPaths:   map[string]*v2.Path{},
+	}
+	subMatches := providerTemplateRe.FindAllStringSubmatch(templatedPathString, -1)
+	if len(subMatches) < 1 {
+		return nil, eris.Errorf("malformed setter %s, needs to match template string regex %s", templatedPathString, providerTemplateRe.String())
+	}
+
+	for _, matches := range subMatches {
+		match := matches[1]
+		pathSegment, err := dot_notation.DotNotationToPathSegments(match)
+		if err != nil {
+			return nil, eris.Wrapf(err, "unable to parse graphql extraction string %s", templatedPathString)
+		}
+		if len(pathSegment) <= 1 {
+			return nil, eris.New("invalid extraction string " + templatedPathString)
+		}
+
+		if pathSegment[0].GetKey() != BODY_SETTER {
+			return nil, eris.New("currently only support for grabbing from the request body with {$body.}")
+		}
+		// remove $body from path segments, this was a special keyword
+		// we didn't remove it from `match` (NamedPaths` key) so we could leave room in our api for new keywords, e.g. $headers
+		pathSegment = pathSegment[1:]
+
+		tp := &v2.Path{
+			Segments: pathSegment,
+		}
+		matchSanitized := strings.ReplaceAll(match, ".", "")
+		ret.NamedPaths[matchSanitized] = tp
+		ret.PathTemplate = strings.ReplaceAll(ret.PathTemplate, matches[0], "{"+matchSanitized+"}")
 	}
 	return ret, nil
 }
@@ -283,7 +318,7 @@ const (
 )
 
 func getExtraction(pathSegment []*v2.PathSegment, errorCb ExtractionCb) (*v2.ValueProvider_Provider, error) {
-	// here we assume that pathSegment has a length of atleast 2 elements
+	// here we assume that pathSegment has a length of at least 2 elements
 	switch pathSegment[0].GetKey() {
 	case HEADERS:
 		header := pathSegment[1].GetKey()

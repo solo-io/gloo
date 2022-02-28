@@ -254,6 +254,16 @@ export class GraphQLSchemaSpec extends jspb.Message {
   getStatPrefix(): google_protobuf_wrappers_pb.StringValue | undefined;
   setStatPrefix(value?: google_protobuf_wrappers_pb.StringValue): void;
 
+  hasPersistedQueryCacheConfig(): boolean;
+  clearPersistedQueryCacheConfig(): void;
+  getPersistedQueryCacheConfig(): PersistedQueryCacheConfig | undefined;
+  setPersistedQueryCacheConfig(value?: PersistedQueryCacheConfig): void;
+
+  clearAllowedQueryHashesList(): void;
+  getAllowedQueryHashesList(): Array<string>;
+  setAllowedQueryHashesList(value: Array<string>): void;
+  addAllowedQueryHashes(value: string, index?: number): string;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GraphQLSchemaSpec.AsObject;
   static toObject(includeInstance: boolean, msg: GraphQLSchemaSpec): GraphQLSchemaSpec.AsObject;
@@ -268,6 +278,28 @@ export namespace GraphQLSchemaSpec {
   export type AsObject = {
     executableSchema?: ExecutableSchema.AsObject,
     statPrefix?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    persistedQueryCacheConfig?: PersistedQueryCacheConfig.AsObject,
+    allowedQueryHashesList: Array<string>,
+  }
+}
+
+export class PersistedQueryCacheConfig extends jspb.Message {
+  getCacheSize(): number;
+  setCacheSize(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PersistedQueryCacheConfig.AsObject;
+  static toObject(includeInstance: boolean, msg: PersistedQueryCacheConfig): PersistedQueryCacheConfig.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PersistedQueryCacheConfig, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PersistedQueryCacheConfig;
+  static deserializeBinaryFromReader(message: PersistedQueryCacheConfig, reader: jspb.BinaryReader): PersistedQueryCacheConfig;
+}
+
+export namespace PersistedQueryCacheConfig {
+  export type AsObject = {
+    cacheSize: number,
   }
 }
 

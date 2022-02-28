@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -49,13 +50,15 @@ var _ = Describe("graphql", func() {
 		      }
 		      type Query {
 		        field1(intArg: Int!, boolArg: Boolean!, floatArg: Float!, stringArg: String!, mapArg: Map!, listArg: [Int!]!): SimpleType
-							@resolve(name: "field1_resolver")
+							@resolve(name: "simple_resolver")
 
 		        field2: TestResponse @resolve(name: "field2_resolver")
+
+		        field3: SimpleType @resolve(name: "simple_resolver") @cacheControl(maxAge: 60, scope: private)
 		      }
 		      type SimpleType {
 		        simple: String
-		        child: String
+		        setme: String
 		      }
 		      type TestResponse {
 		        str: String
@@ -63,7 +66,7 @@ var _ = Describe("graphql", func() {
 `
 
 		resolutions := map[string]*v1alpha1.Resolution{
-			"field1_resolver": {
+			"simple_resolver": {
 				Resolver: &v1alpha1.Resolution_RestResolver{
 					RestResolver: &v1alpha1.RESTResolver{
 						UpstreamRef: restUsRef,
@@ -202,7 +205,7 @@ var _ = Describe("graphql", func() {
 			graphQlSchema *v1alpha1.GraphQLSchema
 		)
 
-		var testRequest = func(result string) {
+		var testRequestWithRespAssertions = func(result string, f func(resp *http.Response)) {
 			var resp *http.Response
 			Eventually(func() (int, error) {
 				client := http.DefaultClient
@@ -212,6 +215,40 @@ var _ = Describe("graphql", func() {
 					Method: http.MethodPost,
 					URL:    reqUrl,
 					Body:   ioutil.NopCloser(strings.NewReader(query)),
+				})
+				if resp == nil {
+					return 0, nil
+				}
+				return resp.StatusCode, nil
+			}, "5s", "0.5s").Should(Equal(http.StatusOK))
+			bodyStr, err := ioutil.ReadAll(resp.Body)
+			if f != nil {
+				f(resp)
+			}
+			Expect(err).NotTo(HaveOccurred())
+			Expect(bodyStr).To(ContainSubstring(result))
+		}
+
+		var testRequest = func(result string) {
+			testRequestWithRespAssertions(result, nil)
+		}
+
+		var testGetRequest = func(result string, includeQuery bool) {
+			var resp *http.Response
+			Eventually(func() (int, error) {
+				client := http.DefaultClient
+				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/testroute", "localhost", envoyPort))
+				Expect(err).NotTo(HaveOccurred())
+				values := reqUrl.Query()
+				if includeQuery {
+					values.Add("query", query)
+				}
+				sum := sha256.Sum256([]byte(query))
+				values.Add("extensions", fmt.Sprintf(`{"persistedQuery":{"version":1,"sha256Hash":"%x"}}`, sum))
+				reqUrl.RawQuery = values.Encode()
+				resp, err = client.Do(&http.Request{
+					Method: http.MethodGet,
+					URL:    reqUrl,
 				})
 				if resp == nil {
 					return 0, nil
@@ -280,7 +317,7 @@ var _ = Describe("graphql", func() {
 		Context("route rules", func() {
 
 			It("resolves graphql queries to REST upstreams", func() {
-				testRequest("{\"data\":{\"f\":{\"simple\":\"foo\"}}}")
+				testRequest(`{"data":{"f":{"simple":"foo"}}}`)
 				Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 					"URL": PointTo(Equal(url.URL{
 						Path: "/",
@@ -297,7 +334,7 @@ var _ = Describe("graphql", func() {
 				})
 
 				It("resolves graphql queries to GRPC upstreams", func() {
-					testRequest("{\"data\":{\"f\":{\"str\":\"foo\"}}}")
+					testRequest(`{"data":{"f":{"str":"foo"}}}`)
 					Eventually(grpcUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 						"GRPCRequest": PointTo(Equal(glootest.TestRequest{Str: "foo"})),
 					}))))
@@ -316,13 +353,13 @@ var _ = Describe("graphql", func() {
 							},
 						},
 					}
-					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["field1_resolver"].GetRestResolver().Request.Body = body
+					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Body = body
 				})
 
 				It("resolves graphql queries to REST upstreams with body", func() {
-					testRequest("{\"data\":{\"f\":{\"simple\":\"foo\"}}}")
+					testRequest(`{"data":{"f":{"simple":"foo"}}}`)
 					Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
-						"Body": Equal([]byte("{\"key1\":\"value1\"}")),
+						"Body": Equal([]byte(`{"key1":"value1"}`)),
 						"URL": PointTo(Equal(url.URL{
 							Path: "/",
 						})),
@@ -333,13 +370,13 @@ var _ = Describe("graphql", func() {
 			Context("with query params", func() {
 
 				BeforeEach(func() {
-					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["field1_resolver"].GetRestResolver().Request.QueryParams = map[string]string{
+					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.QueryParams = map[string]string{
 						"queryparam": "queryparamval",
 					}
 				})
 
 				It("resolves graphql queries to REST upstreams with query params", func() {
-					testRequest("{\"data\":{\"f\":{\"simple\":\"foo\"}}}")
+					testRequest(`{"data":{"f":{"simple":"foo"}}}`)
 					Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 						"URL": PointTo(Equal(url.URL{
 							Path:     "/",
@@ -352,13 +389,13 @@ var _ = Describe("graphql", func() {
 			Context("with headers", func() {
 
 				BeforeEach(func() {
-					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["field1_resolver"].GetRestResolver().Request.Headers = map[string]string{
+					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Headers = map[string]string{
 						"header": "headerval",
 					}
 				})
 
 				It("resolves graphql queries to REST upstreams with headers", func() {
-					testRequest("{\"data\":{\"f\":{\"simple\":\"foo\"}}}")
+					testRequest(`{"data":{"f":{"simple":"foo"}}}`)
 					Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 						"URL": PointTo(Equal(url.URL{
 							Path: "/",
@@ -366,6 +403,101 @@ var _ = Describe("graphql", func() {
 						"Headers": HaveKeyWithValue("Header", []string{"headerval"}),
 					}))))
 				})
+			})
+
+			Context("allowlist", func() {
+
+				Context("allowed", func() {
+					BeforeEach(func() {
+						graphQlSchema.AllowedQueryHashes = []string{"075f4c9392a098f9b6d4e45fa87551d461edc7eedbc67b604bedc1cb9c854692"}
+					})
+
+					It("resolves allowed graphql queries", func() {
+						testRequest(`{"data":{"f":{"simple":"foo"}}}`)
+						Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+							"URL": PointTo(Equal(url.URL{
+								Path: "/",
+							})),
+						}))))
+					})
+				})
+
+				Context("disallowed", func() {
+					BeforeEach(func() {
+						graphQlSchema.AllowedQueryHashes = []string{"hashnotfound"}
+					})
+
+					It("denies disallowed query hashes", func() {
+						testRequest(`{"errors":[{"message":"hash 075f4c9392a098f9b6d4e45fa87551d461edc7eedbc67b604bedc1cb9c854692 not found in allowlist for query: '{f:field1(intArg: 2, boolArg: true, floatArg: 9.99993, stringArg: \"this is a string arg\", mapArg: {a: 9}, listArg: [21,22,23]){simple}}'"}]}`)
+					})
+				})
+			})
+
+			Context("persisted queries", func() {
+				BeforeEach(func() {
+					query = `{__typename}`
+					graphQlSchema.PersistedQueryCacheConfig = &v1alpha1.PersistedQueryCacheConfig{CacheSize: 10}
+				})
+
+				It("happy path", func() {
+					testGetRequest(`{"errors":[{"message":"persisted query not found: sha256 ecf4edb46db40b5132295c0291d62fb65d6759a9eedfa4d5d612dd5ec54a6b38"}]}`, false)
+
+					testGetRequest(`{"data":{"__typename":"Query"}}`, true)
+
+					// make same initial request, should now be cache hit in automatic persisted query cache
+					testGetRequest(`{"data":{"__typename":"Query"}}`, false)
+				})
+			})
+
+			Context("response setters and cache control", func() {
+
+				BeforeEach(func() {
+					query = `
+{
+  "query":"{f:field3{simple setme}}"
+}`
+				})
+
+				Context("cache control", func() {
+					BeforeEach(func() {
+						graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
+							Setters: map[string]string{
+								"setme": "{$body.simple}",
+							},
+						}
+					})
+
+					It("sets cache control header and simple field on response", func() {
+						testRequestWithRespAssertions(`{"data":{"f":{"simple":"foo","setme":"foo"}}}`, func(resp *http.Response) {
+							Expect(resp.Header.Get("Cache-Control")).To(Equal("private, max-age=60"))
+						})
+						Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+							"URL": PointTo(Equal(url.URL{
+								Path: "/",
+							})),
+						}))))
+					})
+				})
+
+				Context("response template", func() {
+					BeforeEach(func() {
+						graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
+							Setters: map[string]string{
+								"setme": "abc {$body.simple} 123",
+							},
+						}
+					})
+
+					It("sets fields on response", func() {
+						testRequest(`{"data":{"f":{"simple":"foo","setme":"abc foo 123"}}}`)
+						Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+							"URL": PointTo(Equal(url.URL{
+								Path: "/",
+							})),
+						}))))
+					})
+				})
+
 			})
 
 		})

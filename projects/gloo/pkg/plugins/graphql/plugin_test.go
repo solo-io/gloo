@@ -148,9 +148,9 @@ var _ = Describe("Graphql plugin", func() {
 				gqlFilter := outFilters[0]
 				Expect(gqlFilter.HttpFilter.Name).To(Equal(schemas.FilterName))
 				Expect(gqlFilter.Stage).To(Equal(plugins.BeforeStage(plugins.RouteStage)))
-				st := gqlFilter.HttpFilter.GetTypedConfig()
+				tc := gqlFilter.HttpFilter.GetTypedConfig()
 				// graphql is always added to HCM, only routes with graphql route config will use the empty config
-				Expect(st).NotTo(BeNil())
+				Expect(tc).NotTo(BeNil())
 			})
 		})
 
@@ -188,7 +188,7 @@ var _ = Describe("Graphql plugin", func() {
 						Expect(err).NotTo(HaveOccurred())
 						// Only resolvers referenced in the schema are translated.
 						gqlSchemaSpec.ExecutableSchema.SchemaDefinition = `type Query {
-	field1: String @resolve(name: "resolver1")
+	field1: String @resolve(name: "resolver1") @cacheControl(maxAge: 60, inheritMaxAge: false, scope: private)
 }`
 						gqlSchemaSpec.ExecutableSchema.Executor.GetLocal().Resolutions = map[string]*Resolution{
 							"resolver1": {
@@ -214,11 +214,86 @@ var _ = Describe("Graphql plugin", func() {
 						}
 					})
 
-					It("sets resolvers", func() {
+					Context("with type-level directive", func() {
+
+						Context("type-level directives only", func() {
+							BeforeEach(func() {
+								gqlSchemaSpec.ExecutableSchema.SchemaDefinition = `type Query @cacheControl(maxAge: 70, inheritMaxAge: false, scope: private) {
+	field1: String @resolve(name: "resolver1")
+}`
+							})
+							It("sets resolvers and cache control defaults", func() {
+								perRouteGql := translateRoute()
+								resolutions := perRouteGql.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()
+								Expect(resolutions[0].Matcher.GetFieldMatcher().GetType()).To(Equal("Query"))
+								Expect(resolutions[0].Matcher.GetFieldMatcher().GetField()).To(Equal("field1"))
+
+								Expect(resolutions[0].GetCacheControl().GetMaxAge().GetValue()).To(Equal(uint32(70)))
+								Expect(resolutions[0].GetCacheControl().GetInheritMaxAge()).To(Equal(false))
+								Expect(resolutions[0].GetCacheControl().GetScope().String()).To(Equal("PRIVATE"))
+
+								any := resolutions[0].GetResolver()
+								Expect(any).NotTo(BeNil())
+								msg, err := utils.AnyToMessage(any.TypedConfig)
+								Expect(err).NotTo(HaveOccurred())
+								restResolver := msg.(*v2.RESTResolver)
+
+								Expect(restResolver.GetSpanName()).To(Equal("span"))
+								Expect(restResolver.GetRequestTransform().GetHeaders()["header"].GetProviders()["ARBITRARY_PROVIDER_NAME"].GetTypedProvider().GetValue()).To(Equal("7.89"))
+								Expect(restResolver.GetRequestTransform().GetQueryParams()["qp"].GetProviders()["ARBITRARY_PROVIDER_NAME"].GetTypedProvider().GetValue()).To(Equal("true"))
+
+								// testing the recursive translation
+								Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k1"))
+								Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k2"))
+								Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetValue().GetValueProvider().GetProviders()["ARBITRARY_PROVIDER_NAME"].GetTypedProvider().GetValue()).To(Equal("val"))
+							})
+						})
+
+						Context("type-level and field-level directives", func() {
+
+							BeforeEach(func() {
+								gqlSchemaSpec.ExecutableSchema.SchemaDefinition = `type Query @cacheControl(maxAge: 70, inheritMaxAge: false, scope: private) {
+	field1: String @resolve(name: "resolver1") @cacheControl(maxAge: 90, inheritMaxAge: false, scope: public)
+}`
+							})
+
+							It("sets resolvers and cache control defaults -- field-level cache control overrides type-level configuration", func() {
+								perRouteGql := translateRoute()
+								resolutions := perRouteGql.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()
+								Expect(resolutions[0].Matcher.GetFieldMatcher().GetType()).To(Equal("Query"))
+								Expect(resolutions[0].Matcher.GetFieldMatcher().GetField()).To(Equal("field1"))
+
+								Expect(resolutions[0].GetCacheControl().GetMaxAge().GetValue()).To(Equal(uint32(90)))
+								Expect(resolutions[0].GetCacheControl().GetInheritMaxAge()).To(Equal(false))
+								Expect(resolutions[0].GetCacheControl().GetScope().String()).To(Equal("PUBLIC"))
+
+								any := resolutions[0].GetResolver()
+								Expect(any).NotTo(BeNil())
+								msg, err := utils.AnyToMessage(any.TypedConfig)
+								Expect(err).NotTo(HaveOccurred())
+								restResolver := msg.(*v2.RESTResolver)
+
+								Expect(restResolver.GetSpanName()).To(Equal("span"))
+								Expect(restResolver.GetRequestTransform().GetHeaders()["header"].GetProviders()["ARBITRARY_PROVIDER_NAME"].GetTypedProvider().GetValue()).To(Equal("7.89"))
+								Expect(restResolver.GetRequestTransform().GetQueryParams()["qp"].GetProviders()["ARBITRARY_PROVIDER_NAME"].GetTypedProvider().GetValue()).To(Equal("true"))
+
+								// testing the recursive translation
+								Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k1"))
+								Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k2"))
+								Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetValue().GetValueProvider().GetProviders()["ARBITRARY_PROVIDER_NAME"].GetTypedProvider().GetValue()).To(Equal("val"))
+							})
+						})
+					})
+
+					It("sets resolvers and cache control defaults", func() {
 						perRouteGql := translateRoute()
 						resolutions := perRouteGql.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()
 						Expect(resolutions[0].Matcher.GetFieldMatcher().GetType()).To(Equal("Query"))
 						Expect(resolutions[0].Matcher.GetFieldMatcher().GetField()).To(Equal("field1"))
+
+						Expect(resolutions[0].GetCacheControl().GetMaxAge().GetValue()).To(Equal(uint32(60)))
+						Expect(resolutions[0].GetCacheControl().GetInheritMaxAge()).To(Equal(false))
+						Expect(resolutions[0].GetCacheControl().GetScope().String()).To(Equal("PRIVATE"))
 
 						any := resolutions[0].GetResolver()
 						Expect(any).NotTo(BeNil())
@@ -235,7 +310,6 @@ var _ = Describe("Graphql plugin", func() {
 						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetKey()).To(Equal("k2"))
 						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetValue().GetValueProvider().GetProviders()["ARBITRARY_PROVIDER_NAME"].GetTypedProvider().GetValue()).To(Equal("val"))
 					})
-
 				})
 
 			})

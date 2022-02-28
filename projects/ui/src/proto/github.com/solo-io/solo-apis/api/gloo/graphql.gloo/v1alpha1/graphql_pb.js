@@ -29,6 +29,7 @@ goog.exportSymbol('proto.graphql.gloo.solo.io.GraphQLSchemaStatus.State', null, 
 goog.exportSymbol('proto.graphql.gloo.solo.io.GrpcDescriptorRegistry', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.GrpcRequestTemplate', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.GrpcResolver', null, global);
+goog.exportSymbol('proto.graphql.gloo.solo.io.PersistedQueryCacheConfig', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.RESTResolver', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.RequestTemplate', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.Resolution', null, global);
@@ -1699,12 +1700,19 @@ proto.graphql.gloo.solo.io.Resolution.prototype.hasStatPrefix = function() {
  * @constructor
  */
 proto.graphql.gloo.solo.io.GraphQLSchemaSpec = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.graphql.gloo.solo.io.GraphQLSchemaSpec.repeatedFields_, null);
 };
 goog.inherits(proto.graphql.gloo.solo.io.GraphQLSchemaSpec, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.graphql.gloo.solo.io.GraphQLSchemaSpec.displayName = 'proto.graphql.gloo.solo.io.GraphQLSchemaSpec';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.graphql.gloo.solo.io.GraphQLSchemaSpec.repeatedFields_ = [5];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -1735,7 +1743,9 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.toObject = function(opt_i
 proto.graphql.gloo.solo.io.GraphQLSchemaSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
     executableSchema: (f = msg.getExecutableSchema()) && proto.graphql.gloo.solo.io.ExecutableSchema.toObject(includeInstance, f),
-    statPrefix: (f = msg.getStatPrefix()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
+    statPrefix: (f = msg.getStatPrefix()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    persistedQueryCacheConfig: (f = msg.getPersistedQueryCacheConfig()) && proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.toObject(includeInstance, f),
+    allowedQueryHashesList: jspb.Message.getRepeatedField(msg, 5)
   };
 
   if (includeInstance) {
@@ -1782,6 +1792,15 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.deserializeBinaryFromReader = funct
       reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setStatPrefix(value);
       break;
+    case 4:
+      var value = new proto.graphql.gloo.solo.io.PersistedQueryCacheConfig;
+      reader.readMessage(value,proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.deserializeBinaryFromReader);
+      msg.setPersistedQueryCacheConfig(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addAllowedQueryHashes(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1825,6 +1844,21 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.serializeBinaryToWriter = function(
       3,
       f,
       google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getPersistedQueryCacheConfig();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getAllowedQueryHashesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      5,
+      f
     );
   }
 };
@@ -1887,6 +1921,207 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.clearStatPrefix = functio
  */
 proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.hasStatPrefix = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional PersistedQueryCacheConfig persisted_query_cache_config = 4;
+ * @return {?proto.graphql.gloo.solo.io.PersistedQueryCacheConfig}
+ */
+proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.getPersistedQueryCacheConfig = function() {
+  return /** @type{?proto.graphql.gloo.solo.io.PersistedQueryCacheConfig} */ (
+    jspb.Message.getWrapperField(this, proto.graphql.gloo.solo.io.PersistedQueryCacheConfig, 4));
+};
+
+
+/** @param {?proto.graphql.gloo.solo.io.PersistedQueryCacheConfig|undefined} value */
+proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.setPersistedQueryCacheConfig = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.clearPersistedQueryCacheConfig = function() {
+  this.setPersistedQueryCacheConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.hasPersistedQueryCacheConfig = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * repeated string allowed_query_hashes = 5;
+ * @return {!Array<string>}
+ */
+proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.getAllowedQueryHashesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 5));
+};
+
+
+/** @param {!Array<string>} value */
+proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.setAllowedQueryHashesList = function(value) {
+  jspb.Message.setField(this, 5, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.addAllowedQueryHashes = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 5, value, opt_index);
+};
+
+
+proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.clearAllowedQueryHashesList = function() {
+  this.setAllowedQueryHashesList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.graphql.gloo.solo.io.PersistedQueryCacheConfig = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.graphql.gloo.solo.io.PersistedQueryCacheConfig, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.displayName = 'proto.graphql.gloo.solo.io.PersistedQueryCacheConfig';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.prototype.toObject = function(opt_includeInstance) {
+  return proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.graphql.gloo.solo.io.PersistedQueryCacheConfig} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    cacheSize: jspb.Message.getFieldWithDefault(msg, 1, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.graphql.gloo.solo.io.PersistedQueryCacheConfig}
+ */
+proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.graphql.gloo.solo.io.PersistedQueryCacheConfig;
+  return proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.graphql.gloo.solo.io.PersistedQueryCacheConfig} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.graphql.gloo.solo.io.PersistedQueryCacheConfig}
+ */
+proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setCacheSize(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.graphql.gloo.solo.io.PersistedQueryCacheConfig} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getCacheSize();
+  if (f !== 0) {
+    writer.writeUint32(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional uint32 cache_size = 1;
+ * @return {number}
+ */
+proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.prototype.getCacheSize = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+};
+
+
+/** @param {number} value */
+proto.graphql.gloo.solo.io.PersistedQueryCacheConfig.prototype.setCacheSize = function(value) {
+  jspb.Message.setProto3IntField(this, 1, value);
 };
 
 
