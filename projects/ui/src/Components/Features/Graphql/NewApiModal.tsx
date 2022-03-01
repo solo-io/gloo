@@ -19,6 +19,8 @@ import * as React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { colors } from 'Styles/colors';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
+import { nameValidationSchema } from 'utils';
+import * as yup from 'yup';
 
 export interface NewApiModalProps {
   showNewModal: boolean;
@@ -58,6 +60,10 @@ const Button = styled.button`
     cursor: pointer;
   }
 `;
+
+const validationSchema = yup.object().shape({
+  name: nameValidationSchema.required('The API Environment must have a name.'),
+});
 
 type CreateApiValues = {
   name: string;
@@ -99,7 +105,6 @@ export const NewApiModal = (props: NewApiModalProps) => {
 
   const createApi = async (values: CreateApiValues) => {
     let { uploadedSchema, name = '', schemaString } = values;
-
     mutate(async graphqlSchemas => {
       if (graphqlSchemas) {
         return [
@@ -117,19 +122,27 @@ export const NewApiModal = (props: NewApiModalProps) => {
       }
     }, false);
 
-    let createdGraphqlSchema = await graphqlApi.createGraphqlSchema({
-      graphqlSchemaRef: {
-        name,
-        namespace: glooInstance?.metadata?.namespace!,
-        clusterName: glooInstance?.spec?.cluster!,
-      },
-      spec: {
-        executableSchema: {
-          schemaDefinition: schemaString,
+    let createdGraphqlSchema = await graphqlApi
+      .createGraphqlSchema({
+        graphqlSchemaRef: {
+          name,
+          namespace: glooInstance?.metadata?.namespace!,
+          clusterName: glooInstance?.spec?.cluster!,
         },
-        allowedQueryHashesList: [],
-      },
-    });
+        spec: {
+          executableSchema: {
+            schemaDefinition: schemaString,
+          },
+	      allowedQueryHashesList: [],
+        },
+      })
+      .catch(err => {
+        // Catch any errors on the backend the frontend can't catch.
+        setErrorMessage(err.message);
+      });
+    if (!createdGraphqlSchema) {
+      return;
+    }
     toggleNewModal();
     mutate();
 
@@ -146,6 +159,7 @@ export const NewApiModal = (props: NewApiModalProps) => {
   return (
     <SoloModal visible={showNewModal} width={600} onClose={toggleNewModal}>
       <Formik
+        validationSchema={validationSchema}
         initialValues={{
           uploadedSchema: undefined as unknown as File,
           name: '',

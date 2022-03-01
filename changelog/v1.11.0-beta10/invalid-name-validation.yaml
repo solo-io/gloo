@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fixes when an invalid name is used on create graphql and no error is shown.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3149
