@@ -390,6 +390,22 @@ func (m *GrpcResolver) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
+func (m *GatewaySchema) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("graphql.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1.GatewaySchema")); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
 func (m *Resolution) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil

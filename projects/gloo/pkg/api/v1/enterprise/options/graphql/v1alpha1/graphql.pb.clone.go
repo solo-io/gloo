@@ -210,6 +210,17 @@ func (m *GrpcResolver) Clone() proto.Message {
 }
 
 // Clone function
+func (m *GatewaySchema) Clone() proto.Message {
+	var target *GatewaySchema
+	if m == nil {
+		return target
+	}
+	target = &GatewaySchema{}
+
+	return target
+}
+
+// Clone function
 func (m *Resolution) Clone() proto.Message {
 	var target *Resolution
 	if m == nil {

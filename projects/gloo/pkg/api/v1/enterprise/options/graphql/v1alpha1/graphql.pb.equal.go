@@ -331,6 +331,30 @@ func (m *GrpcResolver) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *GatewaySchema) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GatewaySchema)
+	if !ok {
+		that2, ok := that.(GatewaySchema)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
 func (m *Resolution) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil

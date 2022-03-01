@@ -175,6 +175,10 @@ message GrpcResolver {
   string span_name = 4;
 }
 
+message GatewaySchema {
+  core.solo.io.ResourceRef subschemas = 1;
+}
+
 // Define a named resolver which can be then matched to a field using the `resolve` directive.
 // if a field does not have resolver, the default resolver will be used.
 // the default resolver takes the field with the same name from the parent, and uses that value

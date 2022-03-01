@@ -17,6 +17,7 @@ weight: 5
 - [RESTResolver](#restresolver)
 - [GrpcDescriptorRegistry](#grpcdescriptorregistry)
 - [GrpcResolver](#grpcresolver)
+- [GatewaySchema](#gatewayschema)
 - [Resolution](#resolution)
 - [GraphQLSchema](#graphqlschema) **Top-Level Resource**
 - [PersistedQueryCacheConfig](#persistedquerycacheconfig)
@@ -161,6 +162,21 @@ control-plane API
 | `upstreamRef` | [.core.solo.io.ResourceRef](../../../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) |  |
 | `requestTransform` | [.graphql.gloo.solo.io.GrpcRequestTemplate](../graphql.proto.sk/#grpcrequesttemplate) | configuration used to compose the outgoing request to a REST API. |
 | `spanName` | `string` |  |
+
+
+
+
+---
+### GatewaySchema
+
+
+
+```yaml
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
 
 
 
