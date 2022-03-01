@@ -108,7 +108,12 @@ func (f *AWSLambdaFunctionDiscovery) DetectFunctions(ctx context.Context, url *u
 			if ctx.Err() != nil {
 				return ctx.Err()
 			}
-			// ignore other errors as we would like to continue forever.
+			// only log other errors as we would like to continue forever.
+			contextutils.LoggerFrom(ctx).Warnf("Unable to perform aws function discovery for upstream %s in namespace %s, error: ",
+				f.upstream.GetMetadata().GetName(),
+				f.upstream.GetMetadata().GetNamespace(),
+				err.Error(),
+			)
 		}
 
 		// sleep so we are not hogging

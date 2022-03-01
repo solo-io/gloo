@@ -7,8 +7,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/rotisserie/eris"
-
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 
 	"github.com/golang/protobuf/proto"
@@ -309,12 +307,16 @@ func (u *updaterUpdater) Run() error {
 			serviceSpecUpstream.SetServiceSpec(res.spec)
 			return nil
 		})
+
 	}
+	logger := contextutils.LoggerFrom(u.ctx)
 	for _, discoveryForUpstream := range discoveriesForUpstream {
-		err := discoveryForUpstream.DetectFunctions(context.Background(), resolvedUrl, u.dependencies, upstreamSave)
-		if err != nil {
-			return eris.Wrapf(err, "Error doing discovery %T", discoveryForUpstream)
-		}
+		go func(d UpstreamFunctionDiscovery) {
+			err := d.DetectFunctions(context.Background(), resolvedUrl, u.dependencies, upstreamSave)
+			if err != nil {
+				logger.Errorf("Error doing discovery %T: %s", d, err.Error())
+			}
+		}(discoveryForUpstream)
 	}
 	return nil
 }
