@@ -312,10 +312,20 @@ func (u *updaterUpdater) Run() error {
 	logger := contextutils.LoggerFrom(u.ctx)
 	for _, discoveryForUpstream := range discoveriesForUpstream {
 		go func(d UpstreamFunctionDiscovery) {
-			err := d.DetectFunctions(context.Background(), resolvedUrl, u.dependencies, upstreamSave)
-			if err != nil {
-				logger.Errorf("Error doing discovery %T: %s", d, err.Error())
+			for {
+				select {
+				case <-u.ctx.Done():
+					return
+				default:
+					// continue to detect functions, as you were
+				}
+				err := d.DetectFunctions(context.Background(), resolvedUrl, u.dependencies, upstreamSave)
+				if err != nil {
+					logger.Errorf("Error doing discovery %T: %s", d, err.Error())
+					return
+				}
 			}
+
 		}(discoveryForUpstream)
 	}
 	return nil

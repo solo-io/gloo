@@ -187,36 +187,35 @@ func (f *SwaggerFunctionDiscovery) DetectFunctions(ctx context.Context, _ *url.U
 }
 
 func (f *SwaggerFunctionDiscovery) detectFunctionsFromUrl(ctx context.Context, url string, in *v1.Upstream, updatecb func(fds.UpstreamMutator) error) error {
-	for {
-		err := contextutils.NewExponentialBackoff(contextutils.ExponentialBackoff{
-			MaxDuration: &f.detectionTimeout,
-		}).Backoff(ctx, func(ctx context.Context) error {
+	err := contextutils.NewExponentialBackoff(contextutils.ExponentialBackoff{
+		MaxDuration: &f.detectionTimeout,
+	}).Backoff(ctx, func(ctx context.Context) error {
 
-			spec, err := RetrieveSwaggerDocFromUrl(ctx, url)
-			if err != nil {
-				return err
-			}
-			err = f.detectFunctionsFromSpec(ctx, spec, in, updatecb)
-			if err != nil {
-				return err
-			}
-			return nil
-		})
+		spec, err := RetrieveSwaggerDocFromUrl(ctx, url)
 		if err != nil {
-			if ctx.Err() != nil {
-				return ctx.Err()
-			}
-			contextutils.LoggerFrom(ctx).Warnf("Unable to perform Swagger function discovery for upstream %s in namespace %s, error: ",
-				f.upstream.GetMetadata().GetName(),
-				f.upstream.GetMetadata().GetNamespace(),
-				err.Error(),
-			)
-			// ignore other errors as we would like to continue forever.
-		}
-		if err := contextutils.Sleep(ctx, f.functionPollTime); err != nil {
 			return err
 		}
+		err = f.detectFunctionsFromSpec(ctx, spec, in, updatecb)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		contextutils.LoggerFrom(ctx).Warnf("Unable to perform Swagger function discovery for upstream %s in namespace %s, error: ",
+			f.upstream.GetMetadata().GetName(),
+			f.upstream.GetMetadata().GetNamespace(),
+			err.Error(),
+		)
+		// ignore other errors as we would like to continue forever.
 	}
+	if err := contextutils.Sleep(ctx, f.functionPollTime); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (f *SwaggerFunctionDiscovery) detectFunctionsFromInline(ctx context.Context, document string, in *v1.Upstream, updatecb func(fds.UpstreamMutator) error) error {
