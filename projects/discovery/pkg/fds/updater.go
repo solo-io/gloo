@@ -130,7 +130,6 @@ func (u *Updater) UpstreamAdded(upstream *v1.Upstream) {
 	u.activeUpstreams[key] = updater
 	go func() {
 		updater.Run()
-		cancel()
 		// TODO(yuval-k): consider removing upstream from map.
 		// need to be careful here as there might be a race if an update happens in the same time.
 	}()
