@@ -49,12 +49,22 @@ var _ = Describe("Rest Resolver Test", func() {
 
 	Context("Translates string setter to correct templated path", func() {
 		It("translates single response", func() {
-			templatedPath, err := graphql.TranslateSetter("{$body.details.firstname}")
+			templatedPath, err := graphql.TranslateSetter("{$body[0][*].details.firstname}")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(templatedPath.PathTemplate).To(Equal("{bodydetailsfirstname}"))
+			Expect(templatedPath.PathTemplate).To(Equal("{body[0][*]detailsfirstname}"))
 			Expect(templatedPath.NamedPaths).To(HaveLen(1))
-			Expect(templatedPath.NamedPaths).To(HaveKeyWithValue("bodydetailsfirstname", &v2.Path{
+			Expect(templatedPath.NamedPaths).To(HaveKeyWithValue("body[0][*]detailsfirstname", &v2.Path{
 				Segments: []*v2.PathSegment{
+					{
+						Segment: &v2.PathSegment_Index{
+							Index: 0,
+						},
+					},
+					{
+						Segment: &v2.PathSegment_All{
+							All: true,
+						},
+					},
 					{
 						Segment: &v2.PathSegment_Key{
 							Key: "details",

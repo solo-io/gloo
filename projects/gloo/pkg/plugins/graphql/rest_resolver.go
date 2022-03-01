@@ -223,7 +223,7 @@ func TranslateStringValueProviderMap(headers map[string]string) (map[string]*v2.
 }
 
 var (
-	providerTemplateRe = regexp.MustCompile(`{\$([[a-zA-Z0-9.\[\]]+)}`)
+	providerTemplateRe = regexp.MustCompile(`{\$([[a-zA-Z0-9\[\]\*\.]+)}`)
 )
 
 func translateValueProvider(vpString string) (*v2.ValueProvider, error) {
