@@ -41,6 +41,9 @@ message SoloJwtAuthnPerRoute {
   // name in the dynamic metadata. The payload will only be copied if one
   // payload is present (i.e. or match)
   string payload_in_metadata = 4;
+
+  // disable the JWT filter on this route
+  bool disable = 5;
 }
 
 message StagedJwtAuthnPerRoute {
