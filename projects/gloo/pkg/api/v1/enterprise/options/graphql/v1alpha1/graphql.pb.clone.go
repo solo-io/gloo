@@ -217,6 +217,19 @@ func (m *GatewaySchema) Clone() proto.Message {
 	}
 	target = &GatewaySchema{}
 
+	if m.GetSubschemas() != nil {
+		target.Subschemas = make([]*GatewaySchema_SubschemaConfig, len(m.GetSubschemas()))
+		for idx, v := range m.GetSubschemas() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.Subschemas[idx] = h.Clone().(*GatewaySchema_SubschemaConfig)
+			} else {
+				target.Subschemas[idx] = proto.Clone(v).(*GatewaySchema_SubschemaConfig)
+			}
+
+		}
+	}
+
 	return target
 }
 
@@ -289,6 +302,12 @@ func (m *GraphQLSchema) Clone() proto.Message {
 		target.ExecutableSchema = h.Clone().(*ExecutableSchema)
 	} else {
 		target.ExecutableSchema = proto.Clone(m.GetExecutableSchema()).(*ExecutableSchema)
+	}
+
+	if h, ok := interface{}(m.GetGatewaySchema()).(clone.Cloner); ok {
+		target.GatewaySchema = h.Clone().(*GatewaySchema)
+	} else {
+		target.GatewaySchema = proto.Clone(m.GetGatewaySchema()).(*GatewaySchema)
 	}
 
 	if h, ok := interface{}(m.GetStatPrefix()).(clone.Cloner); ok {
@@ -375,6 +394,51 @@ func (m *Executor) Clone() proto.Message {
 			}
 		}
 
+	}
+
+	return target
+}
+
+// Clone function
+func (m *GatewaySchema_SubschemaConfig) Clone() proto.Message {
+	var target *GatewaySchema_SubschemaConfig
+	if m == nil {
+		return target
+	}
+	target = &GatewaySchema_SubschemaConfig{}
+
+	target.Name = m.GetName()
+
+	target.Namespace = m.GetNamespace()
+
+	if h, ok := interface{}(m.GetTypeMerge()).(clone.Cloner); ok {
+		target.TypeMerge = h.Clone().(*GatewaySchema_SubschemaConfig_TypeMergeConfig)
+	} else {
+		target.TypeMerge = proto.Clone(m.GetTypeMerge()).(*GatewaySchema_SubschemaConfig_TypeMergeConfig)
+	}
+
+	return target
+}
+
+// Clone function
+func (m *GatewaySchema_SubschemaConfig_TypeMergeConfig) Clone() proto.Message {
+	var target *GatewaySchema_SubschemaConfig_TypeMergeConfig
+	if m == nil {
+		return target
+	}
+	target = &GatewaySchema_SubschemaConfig_TypeMergeConfig{}
+
+	target.SelectionSet = m.GetSelectionSet()
+
+	target.QueryName = m.GetQueryName()
+
+	if m.GetArgs() != nil {
+		target.Args = make(map[string]string, len(m.GetArgs()))
+		for k, v := range m.GetArgs() {
+
+			target.Args[k] = v
+
+		}
 	}
 
 	return target

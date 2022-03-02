@@ -296,6 +296,12 @@ apis:
   envoy.config.filter.http.graphql.v2.GrpcResolver:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/graphql.proto.sk/#GrpcResolver
     package: envoy.config.filter.http.graphql.v2
+  envoy.config.filter.http.graphql.v2.In:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/stitching.proto.sk/#In
+    package: envoy.config.filter.http.graphql.v2
+  envoy.config.filter.http.graphql.v2.InputMergeConfig:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/stitching.proto.sk/#InputMergeConfig
+    package: envoy.config.filter.http.graphql.v2
   envoy.config.filter.http.graphql.v2.JsonKeyValue:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/graphql.proto.sk/#JsonKeyValue
     package: envoy.config.filter.http.graphql.v2
@@ -340,6 +346,9 @@ apis:
     package: envoy.config.filter.http.graphql.v2
   envoy.config.filter.http.graphql.v2.ResponseTemplate:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/graphql.proto.sk/#ResponseTemplate
+    package: envoy.config.filter.http.graphql.v2
+  envoy.config.filter.http.graphql.v2.Schema:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/stitching.proto.sk/#Schema
     package: envoy.config.filter.http.graphql.v2
   envoy.config.filter.http.graphql.v2.Schemas:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/stitching.proto.sk/#Schemas

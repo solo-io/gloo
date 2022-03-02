@@ -11,6 +11,9 @@ weight: 5
 #### Types:
 
 
+- [In](#in)
+- [Schema](#schema)
+- [InputMergeConfig](#inputmergeconfig)
 - [FieldNode](#fieldnode)
 - [FieldNodeMap](#fieldnodemap)
 - [FieldNodes](#fieldnodes)
@@ -28,6 +31,67 @@ weight: 5
 
 ##### Source File: [github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/stitching.proto](https://github.com/solo-io/gloo/blob/master/projects/gloo/api/external/envoy/extensions/graphql/stitching.proto)
 
+
+
+
+
+---
+### In
+
+ 
+------------- IN -------------
+
+```yaml
+"subschemas": []envoy.config.filter.http.graphql.v2.Schema
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `subschemas` | [[]envoy.config.filter.http.graphql.v2.Schema](../stitching.proto.sk/#schema) |  |
+
+
+
+
+---
+### Schema
+
+
+
+```yaml
+"name": string
+"schema": string
+"typeMergeConfig": map<string, .envoy.config.filter.http.graphql.v2.InputMergeConfig>
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `name` | `string` | actual sdl schema definition. |
+| `schema` | `string` |  |
+| `typeMergeConfig` | `map<string, .envoy.config.filter.http.graphql.v2.InputMergeConfig>` |  |
+
+
+
+
+---
+### InputMergeConfig
+
+ 
+make MergeConfig proto message
+
+```yaml
+"selectionSet": string
+"fieldName": string
+"args": []string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `selectionSet` | `string` |  |
+| `fieldName` | `string` |  |
+| `args` | `[]string` |  |
 
 
 

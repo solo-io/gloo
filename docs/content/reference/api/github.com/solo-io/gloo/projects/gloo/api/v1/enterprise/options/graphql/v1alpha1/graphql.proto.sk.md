@@ -18,6 +18,8 @@ weight: 5
 - [GrpcDescriptorRegistry](#grpcdescriptorregistry)
 - [GrpcResolver](#grpcresolver)
 - [GatewaySchema](#gatewayschema)
+- [SubschemaConfig](#subschemaconfig)
+- [TypeMergeConfig](#typemergeconfig)
 - [Resolution](#resolution)
 - [GraphQLSchema](#graphqlschema) **Top-Level Resource**
 - [PersistedQueryCacheConfig](#persistedquerycacheconfig)
@@ -172,11 +174,55 @@ control-plane API
 
 
 ```yaml
+"subschemas": []graphql.gloo.solo.io.GatewaySchema.SubschemaConfig
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
+| `subschemas` | [[]graphql.gloo.solo.io.GatewaySchema.SubschemaConfig](../graphql.proto.sk/#subschemaconfig) |  |
+
+
+
+
+---
+### SubschemaConfig
+
+
+
+```yaml
+"name": string
+"namespace": string
+"typeMerge": .graphql.gloo.solo.io.GatewaySchema.SubschemaConfig.TypeMergeConfig
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `name` | `string` |  |
+| `namespace` | `string` |  |
+| `typeMerge` | [.graphql.gloo.solo.io.GatewaySchema.SubschemaConfig.TypeMergeConfig](../graphql.proto.sk/#typemergeconfig) |  |
+
+
+
+
+---
+### TypeMergeConfig
+
+
+
+```yaml
+"selectionSet": string
+"queryName": string
+"args": map<string, string>
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `selectionSet` | `string` |  |
+| `queryName` | `string` |  |
+| `args` | `map<string, string>` |  |
 
 
 
@@ -223,6 +269,7 @@ configure the routes to point to these schema CRs.
 "namespacedStatuses": .core.solo.io.NamespacedStatuses
 "metadata": .core.solo.io.Metadata
 "executableSchema": .graphql.gloo.solo.io.ExecutableSchema
+"gatewaySchema": .graphql.gloo.solo.io.GatewaySchema
 "statPrefix": .google.protobuf.StringValue
 "persistedQueryCacheConfig": .graphql.gloo.solo.io.PersistedQueryCacheConfig
 "allowedQueryHashes": []string
@@ -234,6 +281,7 @@ configure the routes to point to these schema CRs.
 | `namespacedStatuses` | [.core.solo.io.NamespacedStatuses](../../../../../../../../../../solo-kit/api/v1/status.proto.sk/#namespacedstatuses) | NamespacedStatuses indicates the validation status of this resource. NamespacedStatuses is read-only by clients, and set by gloo during validation. |
 | `metadata` | [.core.solo.io.Metadata](../../../../../../../../../../solo-kit/api/v1/metadata.proto.sk/#metadata) | Metadata contains the object metadata for this resource. |
 | `executableSchema` | [.graphql.gloo.solo.io.ExecutableSchema](../graphql.proto.sk/#executableschema) |  |
+| `gatewaySchema` | [.graphql.gloo.solo.io.GatewaySchema](../graphql.proto.sk/#gatewayschema) |  |
 | `statPrefix` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | The stats prefix which will be used for this route config. If empty, will generate a stats prefix ${GRAPHQLSCHEMA_REF}. |
 | `persistedQueryCacheConfig` | [.graphql.gloo.solo.io.PersistedQueryCacheConfig](../graphql.proto.sk/#persistedquerycacheconfig) | Configuration settings for persisted query cache. |
 | `allowedQueryHashes` | `[]string` | Safelist: only allow queries to be executed that match these sha256 hashes. The hash can be computed from the query string or provided (i.e. persisted queries). |

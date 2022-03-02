@@ -176,7 +176,18 @@ message GrpcResolver {
 }
 
 message GatewaySchema {
-  core.solo.io.ResourceRef subschemas = 1;
+
+  message SubschemaConfig {
+    message TypeMergeConfig {
+      string selection_set = 1;
+      string query_name = 2;
+      map<string, string> args = 3;
+    }
+    string name = 1;
+    string namespace = 2;
+    TypeMergeConfig type_merge = 3;
+  }
+  repeated SubschemaConfig subschemas = 1;
 }
 
 // Define a named resolver which can be then matched to a field using the `resolve` directive.
@@ -216,6 +227,7 @@ message GraphQLSchema {
   core.solo.io.Metadata metadata = 2;
 
   ExecutableSchema executable_schema = 6;
+  GatewaySchema gateway_schema = 7;
 
   // The stats prefix which will be used for this route config.
   // If empty, will generate a stats prefix ${GRAPHQLSCHEMA_REF}
