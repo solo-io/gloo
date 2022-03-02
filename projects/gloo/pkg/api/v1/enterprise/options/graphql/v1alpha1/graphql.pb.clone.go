@@ -411,10 +411,17 @@ func (m *GatewaySchema_SubschemaConfig) Clone() proto.Message {
 
 	target.Namespace = m.GetNamespace()
 
-	if h, ok := interface{}(m.GetTypeMerge()).(clone.Cloner); ok {
-		target.TypeMerge = h.Clone().(*GatewaySchema_SubschemaConfig_TypeMergeConfig)
-	} else {
-		target.TypeMerge = proto.Clone(m.GetTypeMerge()).(*GatewaySchema_SubschemaConfig_TypeMergeConfig)
+	if m.GetTypeMerge() != nil {
+		target.TypeMerge = make(map[string]*GatewaySchema_SubschemaConfig_TypeMergeConfig, len(m.GetTypeMerge()))
+		for k, v := range m.GetTypeMerge() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.TypeMerge[k] = h.Clone().(*GatewaySchema_SubschemaConfig_TypeMergeConfig)
+			} else {
+				target.TypeMerge[k] = proto.Clone(v).(*GatewaySchema_SubschemaConfig_TypeMergeConfig)
+			}
+
+		}
 	}
 
 	return target

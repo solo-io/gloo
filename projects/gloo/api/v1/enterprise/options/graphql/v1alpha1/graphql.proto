@@ -185,7 +185,7 @@ message GatewaySchema {
     }
     string name = 1;
     string namespace = 2;
-    TypeMergeConfig type_merge = 3;
+    map<string,TypeMergeConfig> type_merge = 3;
   }
   repeated SubschemaConfig subschemas = 1;
 }

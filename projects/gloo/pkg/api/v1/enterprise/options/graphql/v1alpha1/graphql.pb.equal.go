@@ -692,14 +692,21 @@ func (m *GatewaySchema_SubschemaConfig) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetTypeMerge()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetTypeMerge()) {
-			return false
+	if len(m.GetTypeMerge()) != len(target.GetTypeMerge()) {
+		return false
+	}
+	for k, v := range m.GetTypeMerge() {
+
+		if h, ok := interface{}(v).(equality.Equalizer); ok {
+			if !h.Equal(target.GetTypeMerge()[k]) {
+				return false
+			}
+		} else {
+			if !proto.Equal(v, target.GetTypeMerge()[k]) {
+				return false
+			}
 		}
-	} else {
-		if !proto.Equal(m.GetTypeMerge(), target.GetTypeMerge()) {
-			return false
-		}
+
 	}
 
 	return true

@@ -99,5 +99,12 @@ message StitchingResolver {
   // Each query field comes from a specific subschema,
   // this is the name of the subschema that the query field comes from.
   string subschema_name = 1;
+}
 
+// The message received from the js stitching info program
+message StitchingInfoOut {
+  map<string, FieldNodes> field_nodes_by_type = 1;
+  map<string, FieldNodeMap> field_nodes_by_field = 2;
+  map<string, MergedTypeConfig> merged_types = 3;
+  string stitched_schema = 5;
 }

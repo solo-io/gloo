@@ -25,6 +25,7 @@ weight: 5
 - [StitchingInfo](#stitchinginfo)
 - [SubschemaConfig](#subschemaconfig)
 - [StitchingResolver](#stitchingresolver)
+- [StitchingInfoOut](#stitchinginfoout)
   
 
 
@@ -301,6 +302,30 @@ make MergeConfig proto message
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `subschemaName` | `string` | Each query field comes from a specific subschema, this is the name of the subschema that the query field comes from. |
+
+
+
+
+---
+### StitchingInfoOut
+
+ 
+The message received from the js stitching info program
+
+```yaml
+"fieldNodesByType": map<string, .envoy.config.filter.http.graphql.v2.FieldNodes>
+"fieldNodesByField": map<string, .envoy.config.filter.http.graphql.v2.FieldNodeMap>
+"mergedTypes": map<string, .envoy.config.filter.http.graphql.v2.MergedTypeConfig>
+"stitchedSchema": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `fieldNodesByType` | `map<string, .envoy.config.filter.http.graphql.v2.FieldNodes>` |  |
+| `fieldNodesByField` | `map<string, .envoy.config.filter.http.graphql.v2.FieldNodeMap>` |  |
+| `mergedTypes` | `map<string, .envoy.config.filter.http.graphql.v2.MergedTypeConfig>` |  |
+| `stitchedSchema` | `string` |  |
 
 
 

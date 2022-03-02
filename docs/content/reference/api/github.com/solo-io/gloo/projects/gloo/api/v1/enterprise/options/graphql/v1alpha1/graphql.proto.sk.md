@@ -193,7 +193,7 @@ control-plane API
 ```yaml
 "name": string
 "namespace": string
-"typeMerge": .graphql.gloo.solo.io.GatewaySchema.SubschemaConfig.TypeMergeConfig
+"typeMerge": map<string, .graphql.gloo.solo.io.GatewaySchema.SubschemaConfig.TypeMergeConfig>
 
 ```
 
@@ -201,7 +201,7 @@ control-plane API
 | ----- | ---- | ----------- | 
 | `name` | `string` |  |
 | `namespace` | `string` |  |
-| `typeMerge` | [.graphql.gloo.solo.io.GatewaySchema.SubschemaConfig.TypeMergeConfig](../graphql.proto.sk/#typemergeconfig) |  |
+| `typeMerge` | `map<string, .graphql.gloo.solo.io.GatewaySchema.SubschemaConfig.TypeMergeConfig>` |  |
 
 
 

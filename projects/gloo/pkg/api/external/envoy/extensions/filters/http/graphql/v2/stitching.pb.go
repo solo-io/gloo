@@ -815,6 +815,78 @@ func (x *StitchingResolver) GetSubschemaName() string {
 	return ""
 }
 
+// The message received from the js stitching info program
+type StitchingInfoOut struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	FieldNodesByType  map[string]*FieldNodes       `protobuf:"bytes,1,rep,name=field_nodes_by_type,json=fieldNodesByType,proto3" json:"field_nodes_by_type,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	FieldNodesByField map[string]*FieldNodeMap     `protobuf:"bytes,2,rep,name=field_nodes_by_field,json=fieldNodesByField,proto3" json:"field_nodes_by_field,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	MergedTypes       map[string]*MergedTypeConfig `protobuf:"bytes,3,rep,name=merged_types,json=mergedTypes,proto3" json:"merged_types,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	StitchedSchema    string                       `protobuf:"bytes,5,opt,name=stitched_schema,json=stitchedSchema,proto3" json:"stitched_schema,omitempty"`
+}
+
+func (x *StitchingInfoOut) Reset() {
+	*x = StitchingInfoOut{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StitchingInfoOut) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StitchingInfoOut) ProtoMessage() {}
+
+func (x *StitchingInfoOut) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StitchingInfoOut.ProtoReflect.Descriptor instead.
+func (*StitchingInfoOut) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *StitchingInfoOut) GetFieldNodesByType() map[string]*FieldNodes {
+	if x != nil {
+		return x.FieldNodesByType
+	}
+	return nil
+}
+
+func (x *StitchingInfoOut) GetFieldNodesByField() map[string]*FieldNodeMap {
+	if x != nil {
+		return x.FieldNodesByField
+	}
+	return nil
+}
+
+func (x *StitchingInfoOut) GetMergedTypes() map[string]*MergedTypeConfig {
+	if x != nil {
+		return x.MergedTypes
+	}
+	return nil
+}
+
+func (x *StitchingInfoOut) GetStitchedSchema() string {
+	if x != nil {
+		return x.StitchedSchema
+	}
+	return ""
+}
+
 var File_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto protoreflect.FileDescriptor
 
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDesc = []byte{
@@ -1065,19 +1137,67 @@ var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_gra
 	0x61, 0x22, 0x3a, 0x0a, 0x11, 0x53, 0x74, 0x69, 0x74, 0x63, 0x68, 0x69, 0x6e, 0x67, 0x52, 0x65,
 	0x73, 0x6f, 0x6c, 0x76, 0x65, 0x72, 0x12, 0x25, 0x0a, 0x0e, 0x73, 0x75, 0x62, 0x73, 0x63, 0x68,
 	0x65, 0x6d, 0x61, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d,
-	0x73, 0x75, 0x62, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x4e, 0x61, 0x6d, 0x65, 0x42, 0xad, 0x01,
-	0x0a, 0x31, 0x69, 0x6f, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x2e,
-	0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x2e, 0x66, 0x69, 0x6c,
-	0x74, 0x65, 0x72, 0x2e, 0x68, 0x74, 0x74, 0x70, 0x2e, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c,
-	0x2e, 0x76, 0x32, 0x42, 0x15, 0x47, 0x72, 0x61, 0x70, 0x68, 0x51, 0x4c, 0x53, 0x74, 0x69, 0x74,
-	0x63, 0x68, 0x69, 0x6e, 0x67, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x5f, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f,
-	0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x67,
-	0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x65, 0x78, 0x74, 0x65,
-	0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2f, 0x65, 0x78, 0x74, 0x65, 0x6e,
-	0x73, 0x69, 0x6f, 0x6e, 0x73, 0x2f, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x73, 0x2f, 0x68, 0x74,
-	0x74, 0x70, 0x2f, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x2f, 0x76, 0x32, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x75, 0x62, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x87, 0x06,
+	0x0a, 0x10, 0x53, 0x74, 0x69, 0x74, 0x63, 0x68, 0x69, 0x6e, 0x67, 0x49, 0x6e, 0x66, 0x6f, 0x4f,
+	0x75, 0x74, 0x12, 0x7a, 0x0a, 0x13, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x5f, 0x6e, 0x6f, 0x64, 0x65,
+	0x73, 0x5f, 0x62, 0x79, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x4b, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x2e, 0x66,
+	0x69, 0x6c, 0x74, 0x65, 0x72, 0x2e, 0x68, 0x74, 0x74, 0x70, 0x2e, 0x67, 0x72, 0x61, 0x70, 0x68,
+	0x71, 0x6c, 0x2e, 0x76, 0x32, 0x2e, 0x53, 0x74, 0x69, 0x74, 0x63, 0x68, 0x69, 0x6e, 0x67, 0x49,
+	0x6e, 0x66, 0x6f, 0x4f, 0x75, 0x74, 0x2e, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x4e, 0x6f, 0x64, 0x65,
+	0x73, 0x42, 0x79, 0x54, 0x79, 0x70, 0x65, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x10, 0x66, 0x69,
+	0x65, 0x6c, 0x64, 0x4e, 0x6f, 0x64, 0x65, 0x73, 0x42, 0x79, 0x54, 0x79, 0x70, 0x65, 0x12, 0x7d,
+	0x0a, 0x14, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x5f, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x5f, 0x62, 0x79,
+	0x5f, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x4c, 0x2e, 0x65,
+	0x6e, 0x76, 0x6f, 0x79, 0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x2e, 0x66, 0x69, 0x6c, 0x74,
+	0x65, 0x72, 0x2e, 0x68, 0x74, 0x74, 0x70, 0x2e, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x2e,
+	0x76, 0x32, 0x2e, 0x53, 0x74, 0x69, 0x74, 0x63, 0x68, 0x69, 0x6e, 0x67, 0x49, 0x6e, 0x66, 0x6f,
+	0x4f, 0x75, 0x74, 0x2e, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x4e, 0x6f, 0x64, 0x65, 0x73, 0x42, 0x79,
+	0x46, 0x69, 0x65, 0x6c, 0x64, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x11, 0x66, 0x69, 0x65, 0x6c,
+	0x64, 0x4e, 0x6f, 0x64, 0x65, 0x73, 0x42, 0x79, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x12, 0x69, 0x0a,
+	0x0c, 0x6d, 0x65, 0x72, 0x67, 0x65, 0x64, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x18, 0x03, 0x20,
+	0x03, 0x28, 0x0b, 0x32, 0x46, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2e, 0x63, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x2e, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x2e, 0x68, 0x74, 0x74, 0x70, 0x2e, 0x67,
+	0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x2e, 0x76, 0x32, 0x2e, 0x53, 0x74, 0x69, 0x74, 0x63, 0x68,
+	0x69, 0x6e, 0x67, 0x49, 0x6e, 0x66, 0x6f, 0x4f, 0x75, 0x74, 0x2e, 0x4d, 0x65, 0x72, 0x67, 0x65,
+	0x64, 0x54, 0x79, 0x70, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x0b, 0x6d, 0x65, 0x72,
+	0x67, 0x65, 0x64, 0x54, 0x79, 0x70, 0x65, 0x73, 0x12, 0x27, 0x0a, 0x0f, 0x73, 0x74, 0x69, 0x74,
+	0x63, 0x68, 0x65, 0x64, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0e, 0x73, 0x74, 0x69, 0x74, 0x63, 0x68, 0x65, 0x64, 0x53, 0x63, 0x68, 0x65, 0x6d,
+	0x61, 0x1a, 0x74, 0x0a, 0x15, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x4e, 0x6f, 0x64, 0x65, 0x73, 0x42,
+	0x79, 0x54, 0x79, 0x70, 0x65, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65,
+	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x45, 0x0a, 0x05,
+	0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2f, 0x2e, 0x65, 0x6e,
+	0x76, 0x6f, 0x79, 0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x2e, 0x66, 0x69, 0x6c, 0x74, 0x65,
+	0x72, 0x2e, 0x68, 0x74, 0x74, 0x70, 0x2e, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x2e, 0x76,
+	0x32, 0x2e, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x4e, 0x6f, 0x64, 0x65, 0x73, 0x52, 0x05, 0x76, 0x61,
+	0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x1a, 0x77, 0x0a, 0x16, 0x46, 0x69, 0x65, 0x6c, 0x64,
+	0x4e, 0x6f, 0x64, 0x65, 0x73, 0x42, 0x79, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x45, 0x6e, 0x74, 0x72,
+	0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x6b, 0x65, 0x79, 0x12, 0x47, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x31, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x2e, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x2e, 0x68, 0x74, 0x74, 0x70, 0x2e, 0x67, 0x72,
+	0x61, 0x70, 0x68, 0x71, 0x6c, 0x2e, 0x76, 0x32, 0x2e, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x4e, 0x6f,
+	0x64, 0x65, 0x4d, 0x61, 0x70, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01,
+	0x1a, 0x75, 0x0a, 0x10, 0x4d, 0x65, 0x72, 0x67, 0x65, 0x64, 0x54, 0x79, 0x70, 0x65, 0x73, 0x45,
+	0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x4b, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x35, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2e, 0x63, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x2e, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x2e, 0x68, 0x74, 0x74, 0x70,
+	0x2e, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x2e, 0x76, 0x32, 0x2e, 0x4d, 0x65, 0x72, 0x67,
+	0x65, 0x64, 0x54, 0x79, 0x70, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x05, 0x76, 0x61,
+	0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x42, 0xad, 0x01, 0x0a, 0x31, 0x69, 0x6f, 0x2e, 0x65,
+	0x6e, 0x76, 0x6f, 0x79, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2e,
+	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x2e, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x2e, 0x68, 0x74,
+	0x74, 0x70, 0x2e, 0x67, 0x72, 0x61, 0x70, 0x68, 0x71, 0x6c, 0x2e, 0x76, 0x32, 0x42, 0x15, 0x47,
+	0x72, 0x61, 0x70, 0x68, 0x51, 0x4c, 0x53, 0x74, 0x69, 0x74, 0x63, 0x68, 0x69, 0x6e, 0x67, 0x50,
+	0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x5f, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f,
+	0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x70, 0x6b,
+	0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x65, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x65,
+	0x6e, 0x76, 0x6f, 0x79, 0x2f, 0x65, 0x78, 0x74, 0x65, 0x6e, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x2f,
+	0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x73, 0x2f, 0x68, 0x74, 0x74, 0x70, 0x2f, 0x67, 0x72, 0x61,
+	0x70, 0x68, 0x71, 0x6c, 0x2f, 0x76, 0x32, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1092,7 +1212,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_gr
 	return file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDescData
 }
 
-var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_goTypes = []interface{}{
 	(*In)(nil),                // 0: envoy.config.filter.http.graphql.v2.In
 	(*Schema)(nil),            // 1: envoy.config.filter.http.graphql.v2.Schema
@@ -1108,49 +1228,59 @@ var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_gra
 	(*StitchingInfo)(nil),     // 11: envoy.config.filter.http.graphql.v2.StitchingInfo
 	(*SubschemaConfig)(nil),   // 12: envoy.config.filter.http.graphql.v2.SubschemaConfig
 	(*StitchingResolver)(nil), // 13: envoy.config.filter.http.graphql.v2.StitchingResolver
-	nil,                       // 14: envoy.config.filter.http.graphql.v2.Schema.TypeMergeConfigEntry
-	nil,                       // 15: envoy.config.filter.http.graphql.v2.FieldNodeMap.NodesEntry
-	nil,                       // 16: envoy.config.filter.http.graphql.v2.MergedTypeConfig.SelectionSetsEntry
-	nil,                       // 17: envoy.config.filter.http.graphql.v2.MergedTypeConfig.UniqueFieldsToSubschemaNameEntry
-	nil,                       // 18: envoy.config.filter.http.graphql.v2.MergedTypeConfig.NonUniqueFieldsToSubschemaNamesEntry
-	nil,                       // 19: envoy.config.filter.http.graphql.v2.MergedTypeConfig.DeclarativeTargetSubschemasEntry
-	nil,                       // 20: envoy.config.filter.http.graphql.v2.MergedTypeConfig.SubschemaNameToResolverInfoEntry
-	nil,                       // 21: envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByTypeEntry
-	nil,                       // 22: envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByFieldEntry
-	nil,                       // 23: envoy.config.filter.http.graphql.v2.StitchingInfo.MergedTypesEntry
-	nil,                       // 24: envoy.config.filter.http.graphql.v2.StitchingInfo.SubschemaNamesToSubschemaConfigEntry
-	(*ExecutableSchema)(nil),  // 25: envoy.config.filter.http.graphql.v2.ExecutableSchema
+	(*StitchingInfoOut)(nil),  // 14: envoy.config.filter.http.graphql.v2.StitchingInfoOut
+	nil,                       // 15: envoy.config.filter.http.graphql.v2.Schema.TypeMergeConfigEntry
+	nil,                       // 16: envoy.config.filter.http.graphql.v2.FieldNodeMap.NodesEntry
+	nil,                       // 17: envoy.config.filter.http.graphql.v2.MergedTypeConfig.SelectionSetsEntry
+	nil,                       // 18: envoy.config.filter.http.graphql.v2.MergedTypeConfig.UniqueFieldsToSubschemaNameEntry
+	nil,                       // 19: envoy.config.filter.http.graphql.v2.MergedTypeConfig.NonUniqueFieldsToSubschemaNamesEntry
+	nil,                       // 20: envoy.config.filter.http.graphql.v2.MergedTypeConfig.DeclarativeTargetSubschemasEntry
+	nil,                       // 21: envoy.config.filter.http.graphql.v2.MergedTypeConfig.SubschemaNameToResolverInfoEntry
+	nil,                       // 22: envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByTypeEntry
+	nil,                       // 23: envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByFieldEntry
+	nil,                       // 24: envoy.config.filter.http.graphql.v2.StitchingInfo.MergedTypesEntry
+	nil,                       // 25: envoy.config.filter.http.graphql.v2.StitchingInfo.SubschemaNamesToSubschemaConfigEntry
+	nil,                       // 26: envoy.config.filter.http.graphql.v2.StitchingInfoOut.FieldNodesByTypeEntry
+	nil,                       // 27: envoy.config.filter.http.graphql.v2.StitchingInfoOut.FieldNodesByFieldEntry
+	nil,                       // 28: envoy.config.filter.http.graphql.v2.StitchingInfoOut.MergedTypesEntry
+	(*ExecutableSchema)(nil),  // 29: envoy.config.filter.http.graphql.v2.ExecutableSchema
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_depIdxs = []int32{
 	1,  // 0: envoy.config.filter.http.graphql.v2.In.subschemas:type_name -> envoy.config.filter.http.graphql.v2.Schema
-	14, // 1: envoy.config.filter.http.graphql.v2.Schema.type_merge_config:type_name -> envoy.config.filter.http.graphql.v2.Schema.TypeMergeConfigEntry
-	15, // 2: envoy.config.filter.http.graphql.v2.FieldNodeMap.nodes:type_name -> envoy.config.filter.http.graphql.v2.FieldNodeMap.NodesEntry
+	15, // 1: envoy.config.filter.http.graphql.v2.Schema.type_merge_config:type_name -> envoy.config.filter.http.graphql.v2.Schema.TypeMergeConfigEntry
+	16, // 2: envoy.config.filter.http.graphql.v2.FieldNodeMap.nodes:type_name -> envoy.config.filter.http.graphql.v2.FieldNodeMap.NodesEntry
 	3,  // 3: envoy.config.filter.http.graphql.v2.FieldNodes.field_nodes:type_name -> envoy.config.filter.http.graphql.v2.FieldNode
 	8,  // 4: envoy.config.filter.http.graphql.v2.ResolverInfo.args:type_name -> envoy.config.filter.http.graphql.v2.ArgPath
-	16, // 5: envoy.config.filter.http.graphql.v2.MergedTypeConfig.selection_sets:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig.SelectionSetsEntry
-	17, // 6: envoy.config.filter.http.graphql.v2.MergedTypeConfig.unique_fields_to_subschema_name:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig.UniqueFieldsToSubschemaNameEntry
-	18, // 7: envoy.config.filter.http.graphql.v2.MergedTypeConfig.non_unique_fields_to_subschema_names:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig.NonUniqueFieldsToSubschemaNamesEntry
-	19, // 8: envoy.config.filter.http.graphql.v2.MergedTypeConfig.declarative_target_subschemas:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig.DeclarativeTargetSubschemasEntry
-	20, // 9: envoy.config.filter.http.graphql.v2.MergedTypeConfig.subschema_name_to_resolver_info:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig.SubschemaNameToResolverInfoEntry
-	21, // 10: envoy.config.filter.http.graphql.v2.StitchingInfo.field_nodes_by_type:type_name -> envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByTypeEntry
-	22, // 11: envoy.config.filter.http.graphql.v2.StitchingInfo.field_nodes_by_field:type_name -> envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByFieldEntry
-	23, // 12: envoy.config.filter.http.graphql.v2.StitchingInfo.merged_types:type_name -> envoy.config.filter.http.graphql.v2.StitchingInfo.MergedTypesEntry
-	24, // 13: envoy.config.filter.http.graphql.v2.StitchingInfo.subschema_names_to_subschema_config:type_name -> envoy.config.filter.http.graphql.v2.StitchingInfo.SubschemaNamesToSubschemaConfigEntry
-	25, // 14: envoy.config.filter.http.graphql.v2.SubschemaConfig.executable_schema:type_name -> envoy.config.filter.http.graphql.v2.ExecutableSchema
-	2,  // 15: envoy.config.filter.http.graphql.v2.Schema.TypeMergeConfigEntry.value:type_name -> envoy.config.filter.http.graphql.v2.InputMergeConfig
-	5,  // 16: envoy.config.filter.http.graphql.v2.FieldNodeMap.NodesEntry.value:type_name -> envoy.config.filter.http.graphql.v2.FieldNodes
-	7,  // 17: envoy.config.filter.http.graphql.v2.MergedTypeConfig.NonUniqueFieldsToSubschemaNamesEntry.value:type_name -> envoy.config.filter.http.graphql.v2.Schemas
-	7,  // 18: envoy.config.filter.http.graphql.v2.MergedTypeConfig.DeclarativeTargetSubschemasEntry.value:type_name -> envoy.config.filter.http.graphql.v2.Schemas
-	9,  // 19: envoy.config.filter.http.graphql.v2.MergedTypeConfig.SubschemaNameToResolverInfoEntry.value:type_name -> envoy.config.filter.http.graphql.v2.ResolverInfo
-	5,  // 20: envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByTypeEntry.value:type_name -> envoy.config.filter.http.graphql.v2.FieldNodes
-	4,  // 21: envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByFieldEntry.value:type_name -> envoy.config.filter.http.graphql.v2.FieldNodeMap
-	10, // 22: envoy.config.filter.http.graphql.v2.StitchingInfo.MergedTypesEntry.value:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig
-	12, // 23: envoy.config.filter.http.graphql.v2.StitchingInfo.SubschemaNamesToSubschemaConfigEntry.value:type_name -> envoy.config.filter.http.graphql.v2.SubschemaConfig
-	24, // [24:24] is the sub-list for method output_type
-	24, // [24:24] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	17, // 5: envoy.config.filter.http.graphql.v2.MergedTypeConfig.selection_sets:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig.SelectionSetsEntry
+	18, // 6: envoy.config.filter.http.graphql.v2.MergedTypeConfig.unique_fields_to_subschema_name:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig.UniqueFieldsToSubschemaNameEntry
+	19, // 7: envoy.config.filter.http.graphql.v2.MergedTypeConfig.non_unique_fields_to_subschema_names:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig.NonUniqueFieldsToSubschemaNamesEntry
+	20, // 8: envoy.config.filter.http.graphql.v2.MergedTypeConfig.declarative_target_subschemas:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig.DeclarativeTargetSubschemasEntry
+	21, // 9: envoy.config.filter.http.graphql.v2.MergedTypeConfig.subschema_name_to_resolver_info:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig.SubschemaNameToResolverInfoEntry
+	22, // 10: envoy.config.filter.http.graphql.v2.StitchingInfo.field_nodes_by_type:type_name -> envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByTypeEntry
+	23, // 11: envoy.config.filter.http.graphql.v2.StitchingInfo.field_nodes_by_field:type_name -> envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByFieldEntry
+	24, // 12: envoy.config.filter.http.graphql.v2.StitchingInfo.merged_types:type_name -> envoy.config.filter.http.graphql.v2.StitchingInfo.MergedTypesEntry
+	25, // 13: envoy.config.filter.http.graphql.v2.StitchingInfo.subschema_names_to_subschema_config:type_name -> envoy.config.filter.http.graphql.v2.StitchingInfo.SubschemaNamesToSubschemaConfigEntry
+	29, // 14: envoy.config.filter.http.graphql.v2.SubschemaConfig.executable_schema:type_name -> envoy.config.filter.http.graphql.v2.ExecutableSchema
+	26, // 15: envoy.config.filter.http.graphql.v2.StitchingInfoOut.field_nodes_by_type:type_name -> envoy.config.filter.http.graphql.v2.StitchingInfoOut.FieldNodesByTypeEntry
+	27, // 16: envoy.config.filter.http.graphql.v2.StitchingInfoOut.field_nodes_by_field:type_name -> envoy.config.filter.http.graphql.v2.StitchingInfoOut.FieldNodesByFieldEntry
+	28, // 17: envoy.config.filter.http.graphql.v2.StitchingInfoOut.merged_types:type_name -> envoy.config.filter.http.graphql.v2.StitchingInfoOut.MergedTypesEntry
+	2,  // 18: envoy.config.filter.http.graphql.v2.Schema.TypeMergeConfigEntry.value:type_name -> envoy.config.filter.http.graphql.v2.InputMergeConfig
+	5,  // 19: envoy.config.filter.http.graphql.v2.FieldNodeMap.NodesEntry.value:type_name -> envoy.config.filter.http.graphql.v2.FieldNodes
+	7,  // 20: envoy.config.filter.http.graphql.v2.MergedTypeConfig.NonUniqueFieldsToSubschemaNamesEntry.value:type_name -> envoy.config.filter.http.graphql.v2.Schemas
+	7,  // 21: envoy.config.filter.http.graphql.v2.MergedTypeConfig.DeclarativeTargetSubschemasEntry.value:type_name -> envoy.config.filter.http.graphql.v2.Schemas
+	9,  // 22: envoy.config.filter.http.graphql.v2.MergedTypeConfig.SubschemaNameToResolverInfoEntry.value:type_name -> envoy.config.filter.http.graphql.v2.ResolverInfo
+	5,  // 23: envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByTypeEntry.value:type_name -> envoy.config.filter.http.graphql.v2.FieldNodes
+	4,  // 24: envoy.config.filter.http.graphql.v2.StitchingInfo.FieldNodesByFieldEntry.value:type_name -> envoy.config.filter.http.graphql.v2.FieldNodeMap
+	10, // 25: envoy.config.filter.http.graphql.v2.StitchingInfo.MergedTypesEntry.value:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig
+	12, // 26: envoy.config.filter.http.graphql.v2.StitchingInfo.SubschemaNamesToSubschemaConfigEntry.value:type_name -> envoy.config.filter.http.graphql.v2.SubschemaConfig
+	5,  // 27: envoy.config.filter.http.graphql.v2.StitchingInfoOut.FieldNodesByTypeEntry.value:type_name -> envoy.config.filter.http.graphql.v2.FieldNodes
+	4,  // 28: envoy.config.filter.http.graphql.v2.StitchingInfoOut.FieldNodesByFieldEntry.value:type_name -> envoy.config.filter.http.graphql.v2.FieldNodeMap
+	10, // 29: envoy.config.filter.http.graphql.v2.StitchingInfoOut.MergedTypesEntry.value:type_name -> envoy.config.filter.http.graphql.v2.MergedTypeConfig
+	30, // [30:30] is the sub-list for method output_type
+	30, // [30:30] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() {
@@ -1330,6 +1460,18 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_gr
 				return nil
 			}
 		}
+		file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StitchingInfoOut); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1337,7 +1479,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_gr
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_github_com_solo_io_gloo_projects_gloo_api_external_envoy_extensions_graphql_stitching_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   25,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

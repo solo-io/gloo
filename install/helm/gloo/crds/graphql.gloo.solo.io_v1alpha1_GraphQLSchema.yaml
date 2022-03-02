@@ -125,15 +125,17 @@ spec:
                         namespace:
                           type: string
                         typeMerge:
-                          properties:
-                            args:
-                              additionalProperties:
+                          additionalProperties:
+                            properties:
+                              args:
+                                additionalProperties:
+                                  type: string
+                                type: object
+                              queryName:
                                 type: string
-                              type: object
-                            queryName:
-                              type: string
-                            selectionSet:
-                              type: string
+                              selectionSet:
+                                type: string
+                            type: object
                           type: object
                       type: object
                     type: array

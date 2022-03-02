@@ -359,6 +359,9 @@ apis:
   envoy.config.filter.http.graphql.v2.StitchingInfo:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/stitching.proto.sk/#StitchingInfo
     package: envoy.config.filter.http.graphql.v2
+  envoy.config.filter.http.graphql.v2.StitchingInfoOut:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/stitching.proto.sk/#StitchingInfoOut
+    package: envoy.config.filter.http.graphql.v2
   envoy.config.filter.http.graphql.v2.StitchingResolver:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/external/envoy/extensions/graphql/stitching.proto.sk/#StitchingResolver
     package: envoy.config.filter.http.graphql.v2
