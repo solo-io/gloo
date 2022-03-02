@@ -128,11 +128,16 @@ func (u *Updater) UpstreamAdded(upstream *v1.Upstream) {
 		parent:            u,
 	}
 	u.activeUpstreams[key] = updater
-	go func() {
-		updater.Run()
-		// TODO(yuval-k): consider removing upstream from map.
-		// need to be careful here as there might be a race if an update happens in the same time.
-	}()
+	err := updater.Run()
+	if err != nil {
+		u.logger.Warnf("unable to discover upstream %s in namespace %s, err: %s",
+			upstream.GetMetadata().GetName(),
+			upstream.GetMetadata().GetNamespace(),
+			err,
+		)
+	}
+	// TODO(yuval-k): consider removing upstream from map.
+	// need to be careful here as there might be a race if an update happens in the same time.
 }
 
 func (u *Updater) UpstreamRemoved(upstream *v1.Upstream) {
@@ -207,7 +212,7 @@ func (u *updaterUpdater) detectSingle(fp UpstreamFunctionDiscovery, url url.URL,
 		}
 	}
 
-	contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(u.ctx, func(ctx context.Context) error {
+	contextutils.NewExponentialBackoff(contextutils.ExponentialBackoff{}).Backoff(u.ctx, func(ctx context.Context) error {
 		spec, err := fp.DetectType(ctx, &url)
 		if err != nil {
 			return err
@@ -223,7 +228,7 @@ func (u *updaterUpdater) detectSingle(fp UpstreamFunctionDiscovery, url url.URL,
 	})
 }
 
-func (u *updaterUpdater) detectType(url_ url.URL) (*detectResult, error) {
+func (u *updaterUpdater) detectType(url_ url.URL) ([]*detectResult, error) {
 	// TODO add global timeout?
 	ctx, cancel := context.WithCancel(u.ctx)
 	defer cancel()
@@ -243,15 +248,24 @@ func (u *updaterUpdater) detectType(url_ url.URL) (*detectResult, error) {
 		waitGroup.Wait()
 		close(result)
 	}()
-
-	select {
-	case res, ok := <-result:
-		if ok {
-			return &res, nil
+	var numResultsReceived int
+	var results []*detectResult
+	for {
+		select {
+		case res, ok := <-result:
+			numResultsReceived++
+			if ok {
+				results = append(results, &res)
+			}
+			if numResultsReceived == len(u.functionalPlugins) {
+				if len(results) == 0 {
+					return nil, errorUndetectableUpstream
+				}
+				return results, nil
+			}
+		case <-ctx.Done():
+			return nil, ctx.Err()
 		}
-		return nil, errorUndetectableUpstream
-	case <-ctx.Done():
-		return nil, ctx.Err()
 	}
 
 }
@@ -297,16 +311,17 @@ func (u *updaterUpdater) Run() error {
 			}
 			return err
 		}
-		discoveriesForUpstream = append(discoveriesForUpstream, res.fp)
-		upstreamSave(func(upstream *v1.Upstream) error {
-			serviceSpecUpstream, ok := upstream.GetUpstreamType().(v1.ServiceSpecSetter)
-			if !ok {
-				return errors.New("can't set spec")
-			}
-			serviceSpecUpstream.SetServiceSpec(res.spec)
-			return nil
-		})
-
+		for _, r := range res {
+			discoveriesForUpstream = append(discoveriesForUpstream, r.fp)
+			upstreamSave(func(upstream *v1.Upstream) error {
+				serviceSpecUpstream, ok := upstream.GetUpstreamType().(v1.ServiceSpecSetter)
+				if !ok {
+					return errors.New("can't set spec")
+				}
+				serviceSpecUpstream.SetServiceSpec(r.spec)
+				return nil
+			})
+		}
 	}
 	logger := contextutils.LoggerFrom(u.ctx)
 	for _, discoveryForUpstream := range discoveriesForUpstream {
