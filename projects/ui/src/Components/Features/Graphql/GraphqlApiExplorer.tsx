@@ -21,6 +21,7 @@ import { SoloInput } from 'Components/Common/SoloInput';
 import { createGraphiQLFetcher } from '@graphiql/toolkit';
 import { Tooltip } from 'antd';
 import { copyTextToClipboard } from 'utils';
+import { ReactComponent as CopyIcon } from 'assets/document.svg';
 
 function mockedDirective(directiveName: string) {
   return {
@@ -88,11 +89,28 @@ const CodeWrapper = styled.div`
   code {
     &:hover {
       cursor: pointer;
+      color: ${colors.aprilGrey};
+      fill: ${colors.aprilGrey};
     }
+  }
+  p {
+    padding: 10px 0;
   }
 `;
 
+const Copied = styled.span`
+  display: inline-block;
+  margin-left: 10px;
+`;
+
 const GQL_STORAGE_KEY = 'gqlStorageKey';
+
+const StyledCopyIcon = styled(CopyIcon)`
+  color: white;
+  display: inline-block;
+  margin-left: 10px;
+  fill: white;
+`;
 
 const getGqlStorage = () => {
   return (
@@ -115,20 +133,33 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
   const [url, setUrl] = React.useState(getGqlStorage());
   const [showTooltip, setShowTooltip] = React.useState(false);
   const [fetcher, setFetcher] = React.useState<Fetcher>();
+  const [copyingKubectl, setCopyingKubectl] = React.useState(false);
+  const [copyingProxy, setCopyingProxy] = React.useState(false);
+
   const changeUrl = (value: string) => {
     setGqlStorage(value);
     setUrl(value);
   };
 
   const copyKubectlCommand = async () => {
+    setCopyingKubectl(true);
     const text =
       'kubectl port-forward -n gloo-system deploy/gateway-proxy 8080';
-    copyTextToClipboard(text);
+    copyTextToClipboard(text).finally(() => {
+      setTimeout(() => {
+        setCopyingKubectl(false);
+      }, 2000);
+    });
   };
 
   const copyGlooctlCommand = async () => {
+    setCopyingProxy(true);
     const text = 'glooctl proxy url';
-    copyTextToClipboard(text);
+    copyTextToClipboard(text).finally(() => {
+      setTimeout(() => {
+        setCopyingProxy(false);
+      }, 2000);
+    });
   };
   const graphQLFetcher: Fetcher = async graphQLParams =>
     fetch(url, {
@@ -219,21 +250,23 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
                     Endpoint URL for the gateway proxy. The default URL can be
                     used if you port forward with the following command:
                   </p>
-                  <p title='copy command' onClick={copyKubectlCommand}>
+                  <p className='copy' title='copy command' onClick={copyKubectlCommand}>
                     <code>
                       <i>
                         kubectl port-forward -n gloo-system deploy/gateway-proxy
                         8080
                       </i>
+                      {copyingKubectl ? (<Copied>copied!</Copied>) : <StyledCopyIcon />}
                     </code>
                   </p>
                   <p>
                     Depending on your installation, you can also use the
                     following glooctl command:
                   </p>
-                  <p title='copy command' onClick={copyGlooctlCommand}>
+                  <p className='copy' title='copy command' onClick={copyGlooctlCommand}>
                     <code>
                       <i>glooctl proxy url</i>
+                      {copyingProxy ? (<Copied>copied!</Copied>) : <StyledCopyIcon />}
                     </code>
                   </p>
                 </CodeWrapper>

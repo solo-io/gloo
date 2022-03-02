@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Gives better visual UX confirmation of copy changes.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3134
