@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package envoy.config.filter.http.graphql.v2;
+package envoy.config.resolver.stitching.v2;
 
 option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2";
 
