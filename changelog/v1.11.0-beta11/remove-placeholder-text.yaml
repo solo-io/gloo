@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Removed placeholder text under the "Register a Cluster" button.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3178

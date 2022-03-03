@@ -324,8 +324,7 @@ export const Clusters = () => {
                   displayInline={true}
                   onClick={() => setRegisterModalOpen(true)}>
                   Register a Cluster
-                </SoloLinkLooks>{' '}
-                amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor
+                </SoloLinkLooks>
               </EmptyDescription>
             </div>
           </EmptyClustersArea>
