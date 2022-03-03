@@ -283,6 +283,7 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
         ${graphqlSchema.spec?.executableSchema?.schemaDefinition}
       `;
       if (query) {
+
         let objectTypeDefs = query.definitions.filter(
           (def: any) => def.kind === 'ObjectTypeDefinition'
         ) as ObjectTypeDefinitionNode[];
@@ -293,7 +294,6 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
             (f: any) => f?.kind === 'FieldDefinition'
           ) as FieldDefinitionNode[],
         ]) as [string, FieldDefinitionNode[]][];
-
         setFieldTypesMap(fieldDefinitions);
       }
     }
@@ -315,9 +315,20 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
           className='relative space-y-6 overflow-x-hidden overflow-y-scroll '
           ref={listRef}>
           {fieldTypesMap
-            ?.sort(([typeName, fields]) =>
-              typeName === 'Query' ? -1 : typeName === 'Mutation' ? 0 : 1
-            )
+            ?.sort(([aTypeName], [bTypeName]) => {
+              // Ordering: Query, mutation, Everything else.
+              if (aTypeName === 'Query') {
+                return -1;
+              } else if (bTypeName === 'Query') {
+                return 1;
+              }
+              if (aTypeName === 'Mutation') {
+                return -1;
+              } else if (bTypeName === 'Mutation') {
+                return 1;
+              }
+              return 0;
+            })
             .map(([typeName, fields]) => {
               return (
                 <ResolverItem

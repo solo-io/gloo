@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Updates the order of schema elements in API Details page.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3154
