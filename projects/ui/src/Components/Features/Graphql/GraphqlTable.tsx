@@ -70,6 +70,7 @@ const TableHolder = styled.div<TableHolderProps>`
 
 type Props = {
   typeFilters?: CheckboxFilterProps[];
+  nameFilter?: string;
 };
 
 type TableDataType = {
@@ -112,33 +113,42 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
   React.useEffect(() => {
     if (graphqlSchemas) {
       setTableData(
-        graphqlSchemas.map(gqlSchema => {
-          return {
-            key: gqlSchema.metadata?.uid!,
-            name: {
-              displayElement: gqlSchema.metadata?.name ?? '',
-              link: gqlSchema.metadata
-                ? isGlooFedEnabled
-                  ? `/gloo-instances/${gqlSchema.glooInstance?.namespace}/${gqlSchema.glooInstance?.name}/apis/${gqlSchema.metadata.clusterName}/${gqlSchema.metadata.namespace}/${gqlSchema.metadata.name}/`
-                  : `/gloo-instances/${gqlSchema.glooInstance?.namespace}/${gqlSchema.glooInstance?.name}/apis/${gqlSchema.metadata.namespace}/${gqlSchema.metadata.name}/`
-                : '',
-            },
-            namespace: gqlSchema.metadata?.namespace ?? '',
-            cluster: gqlSchema.metadata?.clusterName ?? '',
-            status: gqlSchema.status?.state ?? 0,
-            resolvers:
-              gqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
-                ?.length ?? 0,
-            actions: {
-              ...gqlSchema,
-            },
-          };
-        })
+        graphqlSchemas
+          .filter(gqlSchema =>
+            gqlSchema.metadata?.name.includes(props.nameFilter ?? '')
+          )
+          .map(gqlSchema => {
+            return {
+              key: gqlSchema.metadata?.uid!,
+              name: {
+                displayElement: gqlSchema.metadata?.name ?? '',
+                link: gqlSchema.metadata
+                  ? isGlooFedEnabled
+                    ? `/gloo-instances/${gqlSchema.glooInstance?.namespace}/${gqlSchema.glooInstance?.name}/apis/${gqlSchema.metadata.clusterName}/${gqlSchema.metadata.namespace}/${gqlSchema.metadata.name}/`
+                    : `/gloo-instances/${gqlSchema.glooInstance?.namespace}/${gqlSchema.glooInstance?.name}/apis/${gqlSchema.metadata.namespace}/${gqlSchema.metadata.name}/`
+                  : '',
+              },
+              namespace: gqlSchema.metadata?.namespace ?? '',
+              cluster: gqlSchema.metadata?.clusterName ?? '',
+              status: gqlSchema.status?.state ?? 0,
+              resolvers:
+                gqlSchema?.spec?.executableSchema?.executor?.local
+                  ?.resolutionsMap?.length ?? 0,
+              actions: {
+                ...gqlSchema,
+              },
+            };
+          })
       );
     } else {
       setTableData([]);
     }
-  }, [!!graphqlSchemas, graphqlSchemas?.length, isGlooFedEnabled]);
+  }, [
+    !!graphqlSchemas,
+    graphqlSchemas?.length,
+    isGlooFedEnabled,
+    props.nameFilter,
+  ]);
 
   const onDownloadSchema = (gqlSchema: GraphqlSchema.AsObject) => {
     if (gqlSchema.metadata) {

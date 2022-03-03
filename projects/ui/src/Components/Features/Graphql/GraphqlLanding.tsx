@@ -142,7 +142,7 @@ export const GraphqlLanding = () => {
           </CheckboxWrapper>
         </div>
         <div>
-          <GraphqlPageTable typeFilters={typeFilters} />
+          <GraphqlPageTable typeFilters={typeFilters} nameFilter={nameFilter} />
         </div>
       </GraphqlLandingContainer>
 
