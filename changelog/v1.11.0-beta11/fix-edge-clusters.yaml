@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Gloo Edge not updated with latest files.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3159

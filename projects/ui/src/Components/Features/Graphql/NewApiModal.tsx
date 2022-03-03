@@ -133,7 +133,7 @@ export const NewApiModal = (props: NewApiModalProps) => {
           executableSchema: {
             schemaDefinition: schemaString,
           },
-	      allowedQueryHashesList: [],
+          allowedQueryHashesList: [],
         },
       })
       .catch(err => {

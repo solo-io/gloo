@@ -5,6 +5,9 @@ import {
   useListUpstreams,
   useListVirtualServices,
   useListClusterDetails,
+  useListGlooInstances,
+  useListGraphqlSchemas,
+  useIsGlooFedEnabled,
 } from 'API/hooks';
 import { ReactComponent as VirtualServiceIcon } from 'assets/virtualservice-icon.svg';
 import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
@@ -20,6 +23,7 @@ import { SoloLink } from 'Components/Common/SoloLink';
 import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 import { DataError } from 'Components/Common/DataError';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
+import { GraphQLSchemaStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
 type BoxProps = {
   title: string;
   logo: React.ReactNode;
@@ -379,31 +383,55 @@ export const OverviewClustersBox = () => {
   );
 };
 export const OverviewGraphQLBox = () => {
-  const { data: upstreams, error: uError } = useListUpstreams();
+  const { data: glooInstances, error: instancesError } = useListGlooInstances();
+  const { data: clusterDetailsList, error: cError } = useListClusterDetails();
+  const { data: graphqlSchemas, error: graphqlSchemaError } =
+    useListGraphqlSchemas();
+  const { data: glooFedCheckResponse, error: glooFedCheckError } =
+    useIsGlooFedEnabled();
 
-  if (!!uError) {
-    return <DataError error={uError} />;
-  } else if (!upstreams) {
-    return <Loading message={'Retrieving upstreams...'} />;
+  if (!!instancesError) {
+    return <DataError error={instancesError} />;
+  } else if (Boolean(cError)) {
+    return <DataError error={cError} />;
+  } else if (Boolean(graphqlSchemaError)) {
+    return <DataError error={graphqlSchemaError} />;
+  } else if (Boolean(glooFedCheckError)) {
+    return <DataError error={glooFedCheckError} />;
+  } else if (!glooInstances || !clusterDetailsList || !graphqlSchemas) {
+    return <Loading message={'Retrieving APIs...'} />;
   }
 
-  const servicesStatus = upstreams.some(
-    upstream => upstream.status?.state !== VirtualServiceStatus.State.ACCEPTED
+  const servicesStatus = graphqlSchemas.some(
+    upstream => upstream.status?.state !== GraphQLSchemaStatus.State.ACCEPTED
   )
-    ? UpstreamStatus.State.WARNING
-    : UpstreamStatus.State.ACCEPTED;
+    ? GraphQLSchemaStatus.State.WARNING
+    : GraphQLSchemaStatus.State.ACCEPTED;
+
+  const isGlooFedEnabled = glooFedCheckResponse?.enabled;
+
+  const route =
+    isGlooFedEnabled &&
+    clusterDetailsList?.length === 1 &&
+    glooInstances?.length === 1
+      ? `/gloo-instances/${
+          clusterDetailsList[0]!.glooInstancesList[0].metadata?.namespace
+        }/${clusterDetailsList[0]!.glooInstancesList[0].metadata?.name}/apis/`
+      : '/apis/';
+
+  const totalServices = graphqlSchemas.length;
 
   return (
     <OverviewSmallBoxSummary
       title={'APIs'}
       logo={<GraphQLIcon />}
-      description='Generate graphql schema from other sources (e.g. openapi schema, grpc protos, etc.) and make those API available behind graphql'
+      description='Generate graphql schema from other sources (e.g. OpenAPI schema, grpc protos, etc.) and make those API available behind graphql.'
       status={servicesStatus}
-      count={1}
+      count={totalServices}
       countDescription={
         'APIs currently running across all of your Gloo instances'
       }
-      link='/apis/'
+      link={route}
     />
   );
 };
