@@ -11,7 +11,7 @@ import { StyledModalTab, StyledModalTabs } from 'Components/Common/SoloModal';
 import YamlDisplayer from 'Components/Common/YamlDisplayer';
 import YamlEditor from 'Components/Common/YamlEditor';
 import { Formik, FormikState, useFormikContext } from 'formik';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { colors } from 'Styles/colors';
 import {
   SoloButtonStyledComponent,
@@ -31,6 +31,8 @@ import { useParams } from 'react-router';
 import { Value } from 'google-protobuf/google/protobuf/struct_pb';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 import ConfirmationModal from 'Components/Common/ConfirmationModal';
+import { SoloInput } from 'Components/Common/SoloInput';
+import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 
 export const EditorContainer = styled.div<{ editMode: boolean }>`
   .ace_cursor {
@@ -114,6 +116,30 @@ const UpstreamSection = ({ isEdit }: UpstreamSectionProps) => {
   const formik = useFormikContext<ResolverWizardFormProps>();
   const { data: upstreams, error: upstreamsError } = useListUpstreams();
 
+  // Filters the upstreams using a copy of the array.
+  const [nameFilter, setNameFilter] = useState('');
+  const [filteredUpstreams, setFilteredUpstreams] = useState(upstreams ?? []);
+  useEffect(() => {
+    if (upstreams === undefined) return;
+    const newFilteredUpstreams = upstreams.filter(u =>
+      u.metadata?.name.includes(nameFilter)
+    );
+    setFilteredUpstreams(newFilteredUpstreams);
+    const selectionIsInFilteredList =
+      newFilteredUpstreams.find(
+        u => u.metadata?.name === formik.values.upstream
+      ) !== undefined;
+    // If the current selection is not in the filtered list, we have to update it.
+    if (!selectionIsInFilteredList) {
+      formik.setFieldValue(
+        'upstream',
+        newFilteredUpstreams.length > 0
+          ? newFilteredUpstreams[0].metadata?.name
+          : ''
+      );
+    }
+  }, [nameFilter]);
+
   return (
     <div className='w-full h-full p-6 pb-0'>
       <div
@@ -123,13 +149,20 @@ const UpstreamSection = ({ isEdit }: UpstreamSectionProps) => {
       <div className='grid gap-4 '>
         <div className='mb-2 '>
           <label className='text-base font-medium '>Upstream</label>
-          <div className='mt-2'>
+          <div className='mt-5'>
+            <div className='mb-3'>
+              <SoloInput
+                value={nameFilter}
+                onChange={e => setNameFilter(e.target.value)}
+                placeholder={'Filter by name...'}
+              />
+            </div>
             <SoloFormDropdown
               name='upstream'
               value={formik.values.upstream}
               defaultValue={formik.values.upstream}
-              options={upstreams
-                ?.map(upstream => {
+              options={filteredUpstreams
+                .map(upstream => {
                   return {
                     key: upstream.metadata?.uid!,
                     value: `${upstream.metadata?.name!}::${
