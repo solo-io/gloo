@@ -35,7 +35,7 @@ spec:
       {{- if or $statsConfig.enabled .Values.global.istioIntegration.disableAutoinjection }}
       annotations:
         checksum/observability-config: {{ include (print $.Template.BasePath "/9-observability-configmap.yaml") . | sha256sum }}{{/* ensure pods are kicked when the configmap is updated */}}
-        checksum/grafana-dashboards: {{ include (print $.Template.BasePath "/10-grafana-dashboards-config-map.yaml") . | sha256sum }}{{/* ensure pods are kicked when the grafana dashboards are updated */}}
+        checksum/grafana-dashboards: {{ include (print $.Template.BasePath "/10-grafana-dashboards-configmap-v2.yaml") . | sha256sum }}{{/* ensure pods are kicked when the grafana dashboards are updated */}}
         {{- if $statsConfig.enabled}}
         prometheus.io/path: /metrics
         prometheus.io/port: "9091"
@@ -57,7 +57,7 @@ spec:
               path: dashboard-template.json
         - name: custom-dashboards
           configMap:
-            name: glooe-grafana-custom-dashboards
+            name: glooe-grafana-custom-dashboards-v2
             items:
               - key: envoy.json
                 path: envoy.json

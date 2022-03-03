@@ -3,7 +3,7 @@ package template
 import (
 	"bytes"
 	"fmt"
-	"strings"
+	"regexp"
 	"text/template"
 
 	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana"
@@ -20,6 +20,10 @@ type TemplateGenerator interface {
 	GenerateDashboardPost(dashboardFolderId uint) (*grafana.DashboardPostRequest, error)
 	GenerateUid() string
 }
+
+// Source: https://github.com/grafana/grafana/blob/fc73bc1161c2801a027ad76a7022408d845a73df/pkg/util/shortid_generator.go#L11
+// We additionally want to replace -
+var uidInvalidCharacters = regexp.MustCompile(`[^a-zA-Z0-9\_]`)
 
 // when the observability pod updates a dashboard, use this pre-canned message to indicate it was automated
 const DefaultCommitMessage = "__gloo-auto-gen-dashboard__"
@@ -43,9 +47,9 @@ func (t *upstreamTemplateGenerator) GenerateUid() string {
 	// return trailing chars because they are more likely to be distinct
 	name := t.upstream.Metadata.Name
 	if len(name) > 40 {
-		name = name[len(name)-41 : len(name)-1]
+		name = name[len(name)-40:]
 	}
-	return strings.Replace(name, "-", "_", -1)
+	return uidInvalidCharacters.ReplaceAllLiteralString(name, "_") // replace invalid characters with _
 }
 
 func (t *upstreamTemplateGenerator) GenerateDashboardPost(dashboardFolderId uint) (*grafana.DashboardPostRequest, error) {

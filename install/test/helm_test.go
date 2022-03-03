@@ -151,7 +151,7 @@ var _ = Describe("Helm Test", func() {
 						Name: "custom-dashboards",
 						VolumeSource: v1.VolumeSource{
 							ConfigMap: &v1.ConfigMapVolumeSource{
-								LocalObjectReference: v1.LocalObjectReference{Name: "glooe-grafana-custom-dashboards"},
+								LocalObjectReference: v1.LocalObjectReference{Name: "glooe-grafana-custom-dashboards-v2"},
 								Items: []v1.KeyToPath{
 									{
 										Key:  "envoy.json",
@@ -231,7 +231,7 @@ var _ = Describe("Helm Test", func() {
 				observabilityDeployment.Spec.Template.ObjectMeta.Labels = selector
 				annotations := map[string]string{
 					"checksum/observability-config": "4b3e700416549fed9c90eb2c3bcab330f8a1f672672d5561645076f7f2720b63", // observability config checksum
-					"checksum/grafana-dashboards":   "ba63ece674a09f7509f99b91de54dc32b4c04cb36b650f7446661630d80299e2", // grafana dashboards checksum
+					"checksum/grafana-dashboards":   "1e927634c33379005380b99e746c141d0fa241bf42246305bf9eb6ea29ca6383", // grafana dashboards checksum
 				}
 				for key, val := range normalPromAnnotations { // deep copy map
 					annotations[key] = val
@@ -255,6 +255,25 @@ var _ = Describe("Helm Test", func() {
 				Expect(err).NotTo(HaveOccurred(), "Should be able to list files")
 				Expect(files).NotTo(HaveLen(0), "Should have dashboard files")
 				for _, f := range files {
+					if !strings.HasSuffix(f.Name(), ".json") {
+						continue // not a JSON file
+					}
+					bytes, err := ioutil.ReadFile(path.Join(dashboardsDir, f.Name()))
+					Expect(err).NotTo(HaveOccurred(), "Should be able to read the Envoy dashboard json file")
+					err = json.Unmarshal(bytes, &map[string]interface{}{})
+					Expect(err).NotTo(HaveOccurred(), "Should be able to successfully unmarshal the envoy dashboard json")
+				}
+			})
+
+			It("has valid v2 default dashboards", func() {
+				dashboardsDir := "../helm/gloo-ee/dashboards/v2"
+				files, err := ioutil.ReadDir(dashboardsDir)
+				Expect(err).NotTo(HaveOccurred(), "Should be able to list files")
+				Expect(files).NotTo(HaveLen(0), "Should have updated dashboard files")
+				for _, f := range files {
+					if !strings.HasSuffix(f.Name(), ".json") {
+						continue // not a JSON file
+					}
 					bytes, err := ioutil.ReadFile(path.Join(dashboardsDir, f.Name()))
 					Expect(err).NotTo(HaveOccurred(), "Should be able to read the Envoy dashboard json file")
 					err = json.Unmarshal(bytes, &map[string]interface{}{})

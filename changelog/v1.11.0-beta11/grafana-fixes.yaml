@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/dev-portal/issues/2164
+    resolvesIssue: false
+    description: >-
+      Fixes for default dashboards loaded in custom Grafana installations that allow previously broken dashboards to render.
+      Users will need to delete broken dashboards and then restart the Observability pod in order to load new dashboards.

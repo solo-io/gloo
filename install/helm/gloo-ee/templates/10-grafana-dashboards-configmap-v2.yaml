@@ -1,0 +1,15 @@
+# Config map which observability mounts to use as source for default dashboards
+{{- if or .Values.grafana.defaultInstallationEnabled .Values.observability.customGrafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: glooe-grafana-custom-dashboards-v2
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: gloo
+    chart: glooe-grafana
+    release: {{ .Release.Name }}
+data:
+{{/* load dashboard template and replace `null` data source instances with custom data source, if specified */}}
+{{ (.Files.Glob "dashboards/v2/*.json").AsConfig | indent 2 | replace `"datasource": null,`  (printf `"datasource": %s,` (default "null" (quote .Values.observability.customGrafana.dataSource))) }}
+{{- end }}
