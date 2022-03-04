@@ -4,7 +4,7 @@ import styled from '@emotion/styled/macro';
 import { ReactComponent as UpstreamGroupIcon } from 'assets/upstream-group-icon.svg';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { glooResourceApi } from 'API/gloo-resource';
-import { useGetUpstreamGroupDetails } from 'API/hooks';
+import { useGetUpstreamGroupDetails, useGetUpstreamGroupYaml } from 'API/hooks';
 import { SectionCard } from 'Components/Common/SectionCard';
 import AreaHeader from 'Components/Common/AreaHeader';
 import { HealthNotificationBox } from 'Components/Common/HealthNotificationBox';
@@ -34,6 +34,13 @@ export const UpstreamGroupDetails = () => {
       clusterName: upstreamGroupClusterName,
     }
   );
+
+  const { data: upstreamGroupYaml, error: ugYamlError } =
+    useGetUpstreamGroupYaml({
+      name: upstreamGroupName,
+      namespace: upstreamGroupNamespace,
+      clusterName: upstreamGroupClusterName,
+    });
 
   if (!!ugError) {
     return <DataError error={ugError} />;

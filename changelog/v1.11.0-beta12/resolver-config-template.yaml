@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: Resolver configuration template had incorrect syntax, which caused an error.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3156
+  - type: NEW_FEATURE
+    description: Adding a resolver configuration should also add a directive to the schema.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3142

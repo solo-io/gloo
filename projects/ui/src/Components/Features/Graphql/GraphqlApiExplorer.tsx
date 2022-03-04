@@ -250,23 +250,37 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
                     Endpoint URL for the gateway proxy. The default URL can be
                     used if you port forward with the following command:
                   </p>
-                  <p className='copy' title='copy command' onClick={copyKubectlCommand}>
+                  <p
+                    className='copy'
+                    title='copy command'
+                    onClick={copyKubectlCommand}>
                     <code>
                       <i>
                         kubectl port-forward -n gloo-system deploy/gateway-proxy
                         8080
                       </i>
-                      {copyingKubectl ? (<Copied>copied!</Copied>) : <StyledCopyIcon />}
+                      {copyingKubectl ? (
+                        <Copied>copied!</Copied>
+                      ) : (
+                        <StyledCopyIcon />
+                      )}
                     </code>
                   </p>
                   <p>
                     Depending on your installation, you can also use the
                     following glooctl command:
                   </p>
-                  <p className='copy' title='copy command' onClick={copyGlooctlCommand}>
+                  <p
+                    className='copy'
+                    title='copy command'
+                    onClick={copyGlooctlCommand}>
                     <code>
                       <i>glooctl proxy url</i>
-                      {copyingProxy ? (<Copied>copied!</Copied>) : <StyledCopyIcon />}
+                      {copyingProxy ? (
+                        <Copied>copied!</Copied>
+                      ) : (
+                        <StyledCopyIcon />
+                      )}
                     </code>
                   </p>
                 </CodeWrapper>

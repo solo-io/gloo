@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled/macro';
 import { FailoverSchemeStatus } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/failover_pb';
-import { useGetFailoverScheme } from 'API/hooks';
+import { useGetFailoverScheme, useGetFailoverSchemeYaml } from 'API/hooks';
 import { failoverSchemeApi } from 'API/failover-scheme';
 import { AreaTitle } from 'Styles/StyledComponents/headings';
 import AreaHeader from 'Components/Common/AreaHeader';
@@ -36,6 +36,12 @@ const UpstreamFailoverGroups = ({
     namespace: upstreamNamespace,
     clusterName: upstreamClusterName,
   });
+
+  const { data: failoverSchemeYaml, error: failoverYamlError } =
+    useGetFailoverSchemeYaml({
+      name: upstreamName,
+      namespace: upstreamNamespace,
+    });
 
   if (failoverError) {
     return <DataError error={failoverError} />;

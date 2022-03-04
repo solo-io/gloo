@@ -184,6 +184,40 @@ export function useGetUpstreamDetails(
   );
 }
 
+export function useGetUpstreamYaml(upstreamRef: ClusterObjectRef.AsObject) {
+  const key = `${GlooResourceApi.GetUpstreamYaml.methodName}/${upstreamRef.clusterName}/${upstreamRef.namespace}/${upstreamRef.name}`;
+
+  return useSWR<string>(
+    key,
+    () => glooResourceApi.getUpstreamYAML(upstreamRef),
+    { refreshInterval: normalRefreshInterval }
+  );
+}
+
+export function useGetUpstreamGroupYaml(
+  upstreamGroupRef: ClusterObjectRef.AsObject
+) {
+  const key = `${GlooResourceApi.GetUpstreamGroupYaml.methodName}/${upstreamGroupRef.clusterName}/${upstreamGroupRef.namespace}/${upstreamGroupRef.name}`;
+
+  return useSWR<string>(
+    key,
+    () => glooResourceApi.getUpstreamGroupYAML(upstreamGroupRef),
+    { refreshInterval: normalRefreshInterval }
+  );
+}
+
+export function useGetFailoverSchemeYaml(
+  failoverSchemeRef: ObjectRef.AsObject
+) {
+  const key = `${FailoverSchemeApi.GetFailoverSchemeYaml.methodName}/${failoverSchemeRef.namespace}/${failoverSchemeRef.name}`;
+
+  return useSWR<string>(
+    key,
+    () => failoverSchemeApi.getFailoverSchemeYAML(failoverSchemeRef),
+    { refreshInterval: normalRefreshInterval }
+  );
+}
+
 export function useGetUpstreamGroupDetails(
   glooInstRef: ObjectRef.AsObject,
   upstreamGroupRef: ClusterObjectRef.AsObject
@@ -378,6 +412,18 @@ export function useGetGraphqlSchemaDetails(
   return useSWR<GraphqlSchema.AsObject>(
     key,
     () => graphqlApi.getGraphqlSchema(graphqlSchemaRef),
+    { refreshInterval: normalRefreshInterval }
+  );
+}
+
+export function useGetGraphqlSchemaYaml(
+  graphqlSchemaRef: ClusterObjectRef.AsObject
+) {
+  const key = `${GraphqlApi.GetGraphqlSchemaYaml.methodName}/${graphqlSchemaRef.namespace}/${graphqlSchemaRef.name}/${graphqlSchemaRef.clusterName}`;
+
+  return useSWR<string>(
+    key,
+    () => graphqlApi.getGraphqlSchemaYaml(graphqlSchemaRef),
     { refreshInterval: normalRefreshInterval }
   );
 }

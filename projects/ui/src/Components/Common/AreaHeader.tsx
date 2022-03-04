@@ -42,6 +42,7 @@ const HealthTitle = styled.div`
 type Props = {
   title: string;
   contentTitle?: string;
+  yaml?: string;
   onLoadContent?: () => Promise<string>;
   health?: {
     state: number;
@@ -55,10 +56,11 @@ const AreaHeader = ({
   title,
   contentTitle = 'unnamed',
   onLoadContent,
+  yaml,
   health,
 }: Props) => {
   const [isExpanded, setExpanded] = useState(false);
-  const [contentValue, setContentValue] = useState('');
+  const [contentValue, setContentValue] = useState(yaml ?? '');
 
   const ensureContentLoaded = async () => {
     if (contentValue || !onLoadContent) {
@@ -79,6 +81,11 @@ const AreaHeader = ({
     doDownload(value, contentTitle);
   };
 
+  React.useEffect(() => {
+    if (yaml) {
+      setContentValue(yaml);
+    }
+  }, [yaml]);
   return (
     <>
       <RowContainer>

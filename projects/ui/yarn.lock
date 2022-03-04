@@ -8666,6 +8666,11 @@ path-type@^4.0.0:
   resolved "https://registry.yarnpkg.com/path-type/-/path-type-4.0.0.tgz#84ed01c0a7ba380afe09d90a8c180dcd9d03043b"
   integrity sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==
 
+pb-util@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/pb-util/-/pb-util-1.0.3.tgz#013800d6c2d1e1d1950d595f8b7d7e608ceca9e1"
+  integrity sha512-8+weUH2YEYnPf5sTpZ3q7Drq41tSEL8vDSU96/CzSvu2qrbspbjbbuKLjHocAQpmyMbICTcvovVl3cETwxwIkQ==
+
 performance-now@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"

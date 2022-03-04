@@ -1,7 +1,11 @@
 import styled from '@emotion/styled';
 import { TabPanels, Tabs } from '@reach/tabs';
 import { graphqlApi } from 'API/graphql';
-import { useGetGraphqlSchemaDetails, useListUpstreams } from 'API/hooks';
+import {
+  useGetGraphqlSchemaDetails,
+  useGetGraphqlSchemaYaml,
+  useListUpstreams,
+} from 'API/hooks';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import AreaHeader from 'Components/Common/AreaHeader';
 import ConfirmationModal from 'Components/Common/ConfirmationModal';
@@ -94,6 +98,13 @@ export const GraphQLDetails: React.FC = () => {
     namespace: graphqlSchemaNamespace,
     clusterName: graphqlSchemaClusterName,
   });
+
+  const { data: graphqlSchemaYaml, error: graphqlSchemaYamlError } =
+    useGetGraphqlSchemaYaml({
+      name: graphqlSchemaName,
+      namespace: graphqlSchemaNamespace,
+      clusterName: graphqlSchemaClusterName,
+    });
 
   const {
     isDeleting,
@@ -280,6 +291,7 @@ export const GraphQLDetails: React.FC = () => {
                       <AreaHeader
                         title='Configuration'
                         contentTitle={`${graphqlSchemaNamespace}--${graphqlSchemaName}.yaml`}
+                        yaml={graphqlSchemaYaml}
                         onLoadContent={loadYaml}
                       />
 

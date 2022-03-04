@@ -4,7 +4,11 @@ import styled from '@emotion/styled/macro';
 import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { glooResourceApi } from 'API/gloo-resource';
-import { useGetUpstreamDetails, useIsGlooFedEnabled } from 'API/hooks';
+import {
+  useGetUpstreamDetails,
+  useGetUpstreamYaml,
+  useIsGlooFedEnabled,
+} from 'API/hooks';
 import { getUpstreamType } from 'utils/upstream-helpers';
 import { SectionCard } from 'Components/Common/SectionCard';
 import AreaHeader from 'Components/Common/AreaHeader';
@@ -37,6 +41,11 @@ export const UpstreamDetails = () => {
     }
   );
 
+  const { data: upstreamYaml, error: upstreamYamlError } = useGetUpstreamYaml({
+    name: upstreamName,
+    namespace: upstreamNamespace,
+    clusterName: upstreamClusterName,
+  });
   const { data: glooFedCheckResponse, error: glooFedCheckError } =
     useIsGlooFedEnabled();
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;

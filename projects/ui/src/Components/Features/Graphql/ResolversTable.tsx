@@ -11,14 +11,19 @@ import { colors } from 'Styles/colors';
 import tw from 'twin.macro';
 import gql from 'graphql-tag';
 import {
+  buildASTSchema,
   FieldDefinitionNode,
+  GraphQLSchema,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
+  printSchema,
   //@ts-ignore
 } from 'graphql';
 import { ResolverWizard } from './ResolverWizard';
 import { GraphqlIconHolder } from './GraphqlTable';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
+import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 
 type ArrowToggleProps = { active?: boolean };
 export const ArrowToggle = styled('div')<ArrowToggleProps>`
@@ -87,7 +92,10 @@ export const EndpointCircle = styled.div<EndpointCircleProps>`
 export const ResolverItem: React.FC<{
   resolverType: string;
   fields: FieldDefinitionNode[];
-  handleResolverConfigModal: (resolverName: string) => void;
+  handleResolverConfigModal: (
+    resolverName: string,
+    resolverType: string
+  ) => void;
 }> = props => {
   const { resolverType, fields, handleResolverConfigModal } = props;
   const [isOpen, setIsOpen] = React.useState(
@@ -177,7 +185,6 @@ export const ResolverItem: React.FC<{
                 !!graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
                   ([rN, r]) => rN.includes(fields[virtualRow.index].name?.value)
                 );
-
               return (
                 <div
                   key={`${resolverType}-${op.name?.value}`}
@@ -223,7 +230,8 @@ export const ResolverItem: React.FC<{
                           }   border rounded-full shadow-sm cursor-pointer  focus:outline-none focus:ring-2 focus:ring-offset-2 `}
                           onClick={() => {
                             handleResolverConfigModal(
-                              fields[virtualRow.index].name?.value ?? ''
+                              fields[virtualRow.index].name?.value ?? '',
+                              resolverType
                             );
                           }}>
                           {hasResolver && (
@@ -250,6 +258,37 @@ export const ResolverItem: React.FC<{
   );
 };
 
+function defineResolveDirective() {
+  let directiveName = 'resolve';
+  return {
+    mockedDirectiveTypeDefs: `directive @${directiveName}(name: String) on FIELD_DEFINITION  `,
+    mockedDirectiveTransformer: (schema: GraphQLSchema) =>
+      mapSchema(schema, {
+        [MapperKind.OBJECT_FIELD]: fieldConfig => {
+          const mockedDirective = getDirective(
+            schema,
+            fieldConfig,
+            directiveName
+          )?.[0];
+          if (mockedDirective) {
+            fieldConfig.deprecationReason = mockedDirective['name'];
+            return fieldConfig;
+          }
+        },
+        [MapperKind.ENUM_VALUE]: enumValueConfig => {
+          const mockedDirective = getDirective(
+            schema,
+            enumValueConfig,
+            directiveName
+          )?.[0];
+          if (mockedDirective) {
+            enumValueConfig.deprecationReason = mockedDirective['name'];
+            return enumValueConfig;
+          }
+        },
+      }),
+  };
+}
 type ResolversTableType = {
   schemaRef: ClusterObjectRef.AsObject;
 };
@@ -267,6 +306,10 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
 
   const [currentResolver, setCurrentResolver] = React.useState<any>();
   const [currentResolverName, setCurrentResolverName] = React.useState('');
+  const [currentResolverType, setCurrentResolverType] = React.useState('');
+  const [hasDirective, setHasDirective] = React.useState(false);
+  const [fieldWithDirective, setFieldWithDirective] = React.useState('');
+  const [fieldWithoutDirective, setFieldWithoutDirective] = React.useState('');
   const [modalOpen, setModalOpen] = React.useState(false);
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -283,7 +326,6 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
         ${graphqlSchema.spec?.executableSchema?.schemaDefinition}
       `;
       if (query) {
-
         let objectTypeDefs = query.definitions.filter(
           (def: any) => def.kind === 'ObjectTypeDefinition'
         ) as ObjectTypeDefinitionNode[];
@@ -291,7 +333,7 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
         let fieldDefinitions = objectTypeDefs.map(ot => [
           ot.name.value,
           ot.fields?.filter(
-            (f: any) => f?.kind === 'FieldDefinition'
+            f => f?.kind === 'FieldDefinition'
           ) as FieldDefinitionNode[],
         ]) as [string, FieldDefinitionNode[]][];
         setFieldTypesMap(fieldDefinitions);
@@ -299,15 +341,54 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
     }
   }, [graphqlSchema]);
 
-  function handleResolverConfigModal(resolverName: string) {
+  function handleResolverConfigModal(
+    resolverName: string,
+    resolverType: string
+  ) {
     let [currentResolverName, currentResolver] =
       graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap.find(
         ([rName, resolver]) => rName.includes(resolverName)
       ) ?? ['', ''];
     setCurrentResolver(currentResolver);
     setCurrentResolverName(resolverName);
+    setCurrentResolverType(resolverType);
+
+    let isListType = Object.fromEntries(fieldTypesMap)[resolverType]?.some(
+      f => f.name.value === resolverName && f.type.kind === 'ListType'
+    );
+
+    let fieldType = isListType
+      ? fieldTypesMap
+          .find(([t, f]) => t === resolverType)?.[1]
+          //@ts-ignore
+          ?.find(f => f.name.value === resolverName)?.type?.type?.name?.value
+      : fieldTypesMap
+          .find(([t, f]) => t === resolverType)?.[1]
+          //@ts-ignore
+          ?.find(f => f.name.value === resolverName)?.type?.name?.value;
+
+    let fieldWithDirective = '';
+    let fieldWithoutDirective = '';
+    if (isListType) {
+      fieldWithoutDirective = `${resolverName}: [${fieldType}]`;
+      fieldWithDirective = `${resolverName}: [${fieldType}] @resolve(name: "${resolverName}")`;
+    } else {
+      fieldWithoutDirective = `${resolverName}: ${fieldType}`;
+
+      fieldWithDirective = `${resolverName}: ${fieldType} @resolve(name: "${resolverName}")`;
+    }
+
+    setHasDirective(
+      !!graphqlSchema?.spec?.executableSchema?.schemaDefinition.includes(
+        fieldWithDirective
+      )
+    );
+    setFieldWithDirective(fieldWithDirective);
+    setFieldWithoutDirective(fieldWithoutDirective);
+
     openModal();
   }
+
   return (
     <>
       <div className='flex flex-col w-full '>
@@ -343,6 +424,9 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
           <SoloModal visible={modalOpen} width={750} onClose={closeModal}>
             <ResolverWizard
               resolver={currentResolver}
+              hasDirective={hasDirective}
+              fieldWithDirective={fieldWithDirective}
+              fieldWithoutDirective={fieldWithoutDirective}
               resolverName={currentResolverName}
               onClose={() => {
                 closeModal();

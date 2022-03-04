@@ -132,6 +132,12 @@ export const NewApiModal = (props: NewApiModalProps) => {
         spec: {
           executableSchema: {
             schemaDefinition: schemaString,
+            executor: {
+              //@ts-ignore
+              local: {
+                enableIntrospection: true,
+              },
+            },
           },
           allowedQueryHashesList: [],
         },

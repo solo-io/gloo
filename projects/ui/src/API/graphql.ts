@@ -35,9 +35,9 @@ import {
   RESTResolver,
 } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
-import { Value } from 'google-protobuf/google/protobuf/struct_pb';
+import { Struct, Value } from 'google-protobuf/google/protobuf/struct_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-
+import { struct } from 'pb-util';
 const graphqlApiClient = new GraphqlApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true,
@@ -152,6 +152,11 @@ function createGraphqlSchema(
   executableSchema.setSchemaDefinition(
     spec?.executableSchema?.schemaDefinition ?? ''
   );
+  let local = new Executor.Local();
+  local.setEnableIntrospection(true);
+  let executor = new Executor();
+  executor.setLocal(local);
+  executableSchema.setExecutor(executor);
   graphqlSchemaSpec.setExecutableSchema(executableSchema);
   request.setGraphqlSchemaRef(
     getClusterRefClassFromClusterRefObj(graphqlSchemaRef!)
@@ -312,6 +317,9 @@ async function updateGraphqlSchemaResolver(
     grpcRequest?: GrpcRequestTemplate.AsObject;
     spanName?: string;
     upstreamRef?: ObjectRef.AsObject;
+    hasDirective?: boolean;
+    fieldWithDirective?: string;
+    fieldWithoutDirective?: string;
   },
   isRemove?: boolean
 ): Promise<GraphqlSchema.AsObject> {
@@ -343,32 +351,48 @@ async function updateGraphqlSchemaResolver(
     let newRestResolver =
       currResolMap?.get(resolverItem.resolverName)?.getRestResolver() ??
       new RESTResolver();
-    let usRef = new ResourceRef();
-    usRef.setName(resolverItem?.upstreamRef?.name!);
-    usRef.setNamespace(resolverItem?.upstreamRef?.namespace!);
+    let usRef = newRestResolver?.getUpstreamRef() ?? new ResourceRef();
+    if (!usRef?.toObject().name || !usRef?.toObject().namespace) {
+      usRef.setName(resolverItem?.upstreamRef?.name!);
+      usRef.setNamespace(resolverItem?.upstreamRef?.namespace!);
+    }
+
     newRestResolver.setUpstreamRef(usRef);
     if (resolverItem.request !== undefined) {
       let { headersMap, queryParamsMap, body } = resolverItem.request;
       let newReq = newRestResolver?.getRequest() ?? new RequestTemplate();
+
       if (body !== undefined) {
         let bodyVal = new Value();
         bodyVal.setStringValue(body.stringValue);
         newReq.setBody(bodyVal);
+      } else {
+        newReq.clearBody();
+        newReq.setBody(undefined);
       }
+
       if (headersMap?.length > 0) {
         let newHeadersMap = newReq.getHeadersMap();
         headersMap.forEach(([val, key]) => {
           newHeadersMap.set(val, key);
         });
+      } else {
+        newReq.clearHeadersMap();
       }
+
       if (queryParamsMap?.length > 0) {
         let qParamsMap = newReq.getQueryParamsMap();
         queryParamsMap.forEach(([val, key]) => {
           qParamsMap.set(val, key);
         });
+      } else {
+        newReq.clearQueryParamsMap();
       }
       newRestResolver.setRequest(newReq);
+    } else {
+      newRestResolver?.clearRequest();
     }
+
     if (resolverItem.response !== undefined) {
       let { resultRoot, settersMap } = resolverItem.response;
       let newRes = newRestResolver.getResponse() ?? new ResponseTemplate();
@@ -382,13 +406,10 @@ async function updateGraphqlSchemaResolver(
         });
       }
       newRestResolver.setResponse(newRes);
+    } else {
+      newRestResolver.clearResponse();
     }
     newResolution.setRestResolver(newRestResolver);
-  }
-  if (isRemove) {
-    currResolMap.del(resolverItem.resolverName);
-  } else {
-    currResolMap.set(resolverItem.resolverName, newResolution);
   }
 
   let request = new UpdateGraphqlSchemaRequest();
@@ -399,8 +420,33 @@ async function updateGraphqlSchemaResolver(
 
   currExecutor.setLocal(currLocal);
   currentExSchema.setExecutor(currExecutor);
+  let currentSchemaDef = currentExSchema.getSchemaDefinition();
+  // TODO: find a better way to do this
+  let { fieldWithDirective, fieldWithoutDirective } = resolverItem;
+  if (
+    !isRemove &&
+    !resolverItem.hasDirective &&
+    fieldWithDirective &&
+    fieldWithoutDirective
+  ) {
+    currentExSchema.setSchemaDefinition(
+      currentSchemaDef.replace(fieldWithoutDirective, fieldWithDirective)
+    );
+  }
+  if (isRemove) {
+    currResolMap.del(resolverItem.resolverName);
+    if (!!fieldWithDirective && fieldWithoutDirective) {
+      currentExSchema.setSchemaDefinition(
+        currentSchemaDef.replace(fieldWithDirective, fieldWithoutDirective)
+      );
+    }
+  } else {
+    currResolMap.set(resolverItem.resolverName, newResolution);
+  }
+
   currentSpec.setExecutableSchema(currentExSchema);
   request.setSpec(currentSpec);
+
   return new Promise((resolve, reject) => {
     graphqlApiClient.updateGraphqlSchema(request, (error, data) => {
       if (error !== null) {
