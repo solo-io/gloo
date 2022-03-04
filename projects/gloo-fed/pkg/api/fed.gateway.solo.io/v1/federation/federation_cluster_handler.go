@@ -93,7 +93,7 @@ func (f *clusterHandler) maybeUpdateFederatedGatewayStatusWithRetries(item *fed_
 		if err != nil && errors.IsNotFound(err) {
 			// If the resource no longer exists, there is nothing to do.
 			return nil
-		} else if err != nil && errors.IsConflict(err) {
+		} else if err != nil {
 			// On conflict, retry with the new object to pick up any changes to the resource's spec.
 			obj, err := f.clients.FederatedGateways().GetFederatedGateway(f.ctx, client.ObjectKey{Namespace: item.Namespace, Name: item.Name})
 			if err != nil {
@@ -126,7 +126,7 @@ func (f *clusterHandler) maybeUpdateFederatedVirtualServiceStatusWithRetries(ite
 		if err != nil && errors.IsNotFound(err) {
 			// If the resource no longer exists, there is nothing to do.
 			return nil
-		} else if err != nil && errors.IsConflict(err) {
+		} else if err != nil {
 			// On conflict, retry with the new object to pick up any changes to the resource's spec.
 			obj, err := f.clients.FederatedVirtualServices().GetFederatedVirtualService(f.ctx, client.ObjectKey{Namespace: item.Namespace, Name: item.Name})
 			if err != nil {
@@ -159,7 +159,7 @@ func (f *clusterHandler) maybeUpdateFederatedRouteTableStatusWithRetries(item *f
 		if err != nil && errors.IsNotFound(err) {
 			// If the resource no longer exists, there is nothing to do.
 			return nil
-		} else if err != nil && errors.IsConflict(err) {
+		} else if err != nil {
 			// On conflict, retry with the new object to pick up any changes to the resource's spec.
 			obj, err := f.clients.FederatedRouteTables().GetFederatedRouteTable(f.ctx, client.ObjectKey{Namespace: item.Namespace, Name: item.Name})
 			if err != nil {

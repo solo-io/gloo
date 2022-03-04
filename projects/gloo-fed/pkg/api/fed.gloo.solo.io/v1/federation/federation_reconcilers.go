@@ -181,6 +181,7 @@ func (f *federatedUpstreamReconciler) ensureCluster(cluster string, statusBuilde
 				Message: placement.FailedToUpsertResourceDueToConflict("upstream"),
 			})
 		} else if err != nil {
+			multiErr.Errors = append(multiErr.Errors, err)
 			contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert upstream", zap.Error(err))
 			statusBuilder.AddDestination(cluster, desiredUpstream.Namespace, mc_types.PlacementStatus_Namespace{
 				State:   mc_types.PlacementStatus_FAILED,
@@ -393,6 +394,7 @@ func (f *federatedUpstreamGroupReconciler) ensureCluster(cluster string, statusB
 				Message: placement.FailedToUpsertResourceDueToConflict("upstreamGroup"),
 			})
 		} else if err != nil {
+			multiErr.Errors = append(multiErr.Errors, err)
 			contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert upstreamGroup", zap.Error(err))
 			statusBuilder.AddDestination(cluster, desiredUpstreamGroup.Namespace, mc_types.PlacementStatus_Namespace{
 				State:   mc_types.PlacementStatus_FAILED,
@@ -605,6 +607,7 @@ func (f *federatedSettingsReconciler) ensureCluster(cluster string, statusBuilde
 				Message: placement.FailedToUpsertResourceDueToConflict("settings"),
 			})
 		} else if err != nil {
+			multiErr.Errors = append(multiErr.Errors, err)
 			contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert settings", zap.Error(err))
 			statusBuilder.AddDestination(cluster, desiredSettings.Namespace, mc_types.PlacementStatus_Namespace{
 				State:   mc_types.PlacementStatus_FAILED,

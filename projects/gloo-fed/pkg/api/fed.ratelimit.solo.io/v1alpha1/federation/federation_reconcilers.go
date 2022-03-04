@@ -181,6 +181,7 @@ func (f *federatedRateLimitConfigReconciler) ensureCluster(cluster string, statu
 				Message: placement.FailedToUpsertResourceDueToConflict("rateLimitConfig"),
 			})
 		} else if err != nil {
+			multiErr.Errors = append(multiErr.Errors, err)
 			contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert rateLimitConfig", zap.Error(err))
 			statusBuilder.AddDestination(cluster, desiredRateLimitConfig.Namespace, mc_types.PlacementStatus_Namespace{
 				State:   mc_types.PlacementStatus_FAILED,

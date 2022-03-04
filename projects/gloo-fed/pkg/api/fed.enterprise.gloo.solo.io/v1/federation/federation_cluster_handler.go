@@ -65,7 +65,7 @@ func (f *clusterHandler) maybeUpdateFederatedAuthConfigStatusWithRetries(item *f
 		if err != nil && errors.IsNotFound(err) {
 			// If the resource no longer exists, there is nothing to do.
 			return nil
-		} else if err != nil && errors.IsConflict(err) {
+		} else if err != nil {
 			// On conflict, retry with the new object to pick up any changes to the resource's spec.
 			obj, err := f.clients.FederatedAuthConfigs().GetFederatedAuthConfig(f.ctx, client.ObjectKey{Namespace: item.Namespace, Name: item.Name})
 			if err != nil {

@@ -181,6 +181,7 @@ func (f *federatedAuthConfigReconciler) ensureCluster(cluster string, statusBuil
 				Message: placement.FailedToUpsertResourceDueToConflict("authConfig"),
 			})
 		} else if err != nil {
+			multiErr.Errors = append(multiErr.Errors, err)
 			contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert authConfig", zap.Error(err))
 			statusBuilder.AddDestination(cluster, desiredAuthConfig.Namespace, mc_types.PlacementStatus_Namespace{
 				State:   mc_types.PlacementStatus_FAILED,

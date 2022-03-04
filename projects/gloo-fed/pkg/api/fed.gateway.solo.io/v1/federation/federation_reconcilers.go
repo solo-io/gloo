@@ -181,6 +181,7 @@ func (f *federatedGatewayReconciler) ensureCluster(cluster string, statusBuilder
 				Message: placement.FailedToUpsertResourceDueToConflict("gateway"),
 			})
 		} else if err != nil {
+			multiErr.Errors = append(multiErr.Errors, err)
 			contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert gateway", zap.Error(err))
 			statusBuilder.AddDestination(cluster, desiredGateway.Namespace, mc_types.PlacementStatus_Namespace{
 				State:   mc_types.PlacementStatus_FAILED,
@@ -393,6 +394,7 @@ func (f *federatedVirtualServiceReconciler) ensureCluster(cluster string, status
 				Message: placement.FailedToUpsertResourceDueToConflict("virtualService"),
 			})
 		} else if err != nil {
+			multiErr.Errors = append(multiErr.Errors, err)
 			contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert virtualService", zap.Error(err))
 			statusBuilder.AddDestination(cluster, desiredVirtualService.Namespace, mc_types.PlacementStatus_Namespace{
 				State:   mc_types.PlacementStatus_FAILED,
@@ -605,6 +607,7 @@ func (f *federatedRouteTableReconciler) ensureCluster(cluster string, statusBuil
 				Message: placement.FailedToUpsertResourceDueToConflict("routeTable"),
 			})
 		} else if err != nil {
+			multiErr.Errors = append(multiErr.Errors, err)
 			contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert routeTable", zap.Error(err))
 			statusBuilder.AddDestination(cluster, desiredRouteTable.Namespace, mc_types.PlacementStatus_Namespace{
 				State:   mc_types.PlacementStatus_FAILED,

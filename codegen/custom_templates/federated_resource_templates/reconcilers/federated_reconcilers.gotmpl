@@ -189,6 +189,7 @@ func (f *{{ $kindLowerCamel }}Reconciler) ensureCluster(cluster string, statusBu
                 Message: placement.FailedToUpsertResourceDueToConflict("{{ $baseKindLowerCamel }}"),
             })
         } else if err != nil {
+            multiErr.Errors = append(multiErr.Errors, err)
             contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert {{ $baseKindLowerCamel }}", zap.Error(err))
             statusBuilder.AddDestination(cluster, desired{{ $baseKind }}.Namespace, mc_types.PlacementStatus_Namespace{
                 State:   mc_types.PlacementStatus_FAILED,
