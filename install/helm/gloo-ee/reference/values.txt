@@ -15,7 +15,9 @@
 |settings.integrations.knative.proxy.httpsPort|int||HTTPS port for the proxy|
 |settings.integrations.knative.proxy.tracing|string||tracing configuration|
 |settings.integrations.knative.proxy.loopBackAddress|string||Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1|
+|settings.integrations.knative.proxy.stats|bool||Controls whether or not envoy stats are enabled|
 |settings.integrations.knative.proxy.extraClusterIngressProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the cluster ingress proxy deployment.|
+|settings.integrations.knative.proxy.extraClusterIngressProxyAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the cluster ingress proxy deployment.|
 |settings.integrations.knative.proxy.internal.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |settings.integrations.knative.proxy.internal.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |settings.integrations.knative.proxy.internal.configMap.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -47,7 +49,7 @@
 |settings.integrations.knative.proxy.tolerations[].value|string|||
 |settings.integrations.knative.proxy.tolerations[].effect|string|||
 |settings.integrations.knative.proxy.tolerations[].tolerationSeconds|int64|||
-|settings.integrations.knative.proxy.affinity[].NAME|interface|||
+|settings.integrations.knative.proxy.affinity.NAME|interface|||
 |settings.integrations.knative.proxy.hostAliases[]|interface|||
 |settings.integrations.knative.proxy.resources.limits.memory|string||amount of memory|
 |settings.integrations.knative.proxy.resources.limits.cpu|string||amount of CPUs|
@@ -61,9 +63,12 @@
 |settings.integrations.knative.proxy.service.httpsPort|int||HTTPS port for the knative/ingress proxy service|
 |settings.integrations.knative.proxy.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |settings.integrations.knative.proxy.configMap.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|settings.integrations.knative.proxy.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |settings.integrations.knative.requireIngressClass|bool||only serve traffic for Knative Ingress objects with the annotation 'networking.knative.dev/ingress.class: gloo.ingress.networking.knative.dev'.|
 |settings.integrations.knative.extraKnativeInternalLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the knative internal deployment.|
+|settings.integrations.knative.extraKnativeInternalAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the knative internal deployment.|
 |settings.integrations.knative.extraKnativeExternalLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the knative external deployment.|
+|settings.integrations.knative.extraKnativeExternalAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the knative external deployment.|
 |settings.integrations.consul.datacenter|string||Datacenter to use. If not provided, the default agent datacenter is used.|
 |settings.integrations.consul.username|string||Username to use for HTTP Basic Authentication.|
 |settings.integrations.consul.password|string||Password to use for HTTP Basic Authentication.|
@@ -73,18 +78,16 @@
 |settings.integrations.consul.certFile|string||CertFile is the optional path to the certificate for Consul communication. If this is set then you need to also set KeyFile.|
 |settings.integrations.consul.keyFile|string||KeyFile is the optional path to the private key for Consul communication. If this is set then you need to also set CertFile.|
 |settings.integrations.consul.insecureSkipVerify|bool||InsecureSkipVerify if set to true will disable TLS host verification.|
-|settings.integrations.consul.waitTime.seconds|int32||The value of this duration in seconds.|
-|settings.integrations.consul.waitTime.nanos|int32||The value of this duration in nanoseconds.|
+|settings.integrations.consul.waitTime|string||WaitTime limits how long a watches for Consul resources will block. If not provided, the agent default values will be used.|
 |settings.integrations.consul.serviceDiscovery.dataCenters[]|string||Use this parameter to restrict the data centers that will be considered when discovering and routing to services. If not provided, Gloo Edge will use all available data centers.|
 |settings.integrations.consul.httpAddress|string||The address of the Consul HTTP server. Used by service discovery and key-value storage (if-enabled). Defaults to the value of the standard CONSUL_HTTP_ADDR env if set, otherwise to 127.0.0.1:8500.|
 |settings.integrations.consul.dnsAddress|string||The address of the DNS server used to resolve hostnames in the Consul service address. Used by service discovery (required when Consul service instances are stored as DNS names). Defaults to 127.0.0.1:8600. (the default Consul DNS server)|
-|settings.integrations.consul.dnsPollingInterval.seconds|int32||The value of this duration in seconds.|
-|settings.integrations.consul.dnsPollingInterval.nanos|int32||The value of this duration in nanoseconds.|
-|settings.integrations.consulUpstreamDiscovery.useTlsDiscovery|bool||Allow Gloo Edge to automatically apply tls to consul services that are tagged the tlsTagName value. Requires RootCaResourceNamespace and RootCaResourceName to be set if true.|
+|settings.integrations.consul.dnsPollingInterval|string||The polling interval for the DNS server. If there is a Consul service address with a hostname instead of an IP, Gloo Edge will resolve the hostname with the configured frequency to update endpoints with any changes to DNS resolution. Defaults to 5s.|
+|settings.integrations.consulUpstreamDiscovery.useTlsTagging|bool||Allow Gloo Edge to automatically apply tls to consul services that are tagged the tlsTagName value. Requires RootCaResourceNamespace and RootCaResourceName to be set if true.|
 |settings.integrations.consulUpstreamDiscovery.tlsTagName|string||The tag Gloo Edge should use to identify consul services that ought to use TLS. If splitTlsServices is true, then this tag is also used to sort serviceInstances into the tls upstream. Defaults to 'glooUseTls'.|
 |settings.integrations.consulUpstreamDiscovery.splitTlsServices|bool||If true, then create two upstreams to be created when a consul service contains the tls tag; one with TLS and one without.|
-|settings.integrations.consulUpstreamDiscovery.discoveryRootCa.namespace|string||The namespace of this resource.|
-|settings.integrations.consulUpstreamDiscovery.discoveryRootCa.name|string||The name of this resource.|
+|settings.integrations.consulUpstreamDiscovery.rootCa.namespace|string||The namespace of this resource.|
+|settings.integrations.consulUpstreamDiscovery.rootCa.name|string||The name of this resource.|
 |settings.create|bool||create a Settings CRD which provides bootstrap configuration to Gloo Edge controllers|
 |settings.extensions|interface|||
 |settings.singleNamespace|bool||Enable to use install namespace as WatchNamespace and WriteNamespace|
@@ -123,7 +126,9 @@
 |gloo.settings.integrations.knative.proxy.httpsPort|int||HTTPS port for the proxy|
 |gloo.settings.integrations.knative.proxy.tracing|string||tracing configuration|
 |gloo.settings.integrations.knative.proxy.loopBackAddress|string||Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1|
+|gloo.settings.integrations.knative.proxy.stats|bool||Controls whether or not envoy stats are enabled|
 |gloo.settings.integrations.knative.proxy.extraClusterIngressProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the cluster ingress proxy deployment.|
+|gloo.settings.integrations.knative.proxy.extraClusterIngressProxyAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the cluster ingress proxy deployment.|
 |gloo.settings.integrations.knative.proxy.internal.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.settings.integrations.knative.proxy.internal.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.settings.integrations.knative.proxy.internal.configMap.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -155,7 +160,7 @@
 |gloo.settings.integrations.knative.proxy.tolerations[].value|string|||
 |gloo.settings.integrations.knative.proxy.tolerations[].effect|string|||
 |gloo.settings.integrations.knative.proxy.tolerations[].tolerationSeconds|int64|||
-|gloo.settings.integrations.knative.proxy.affinity[].NAME|interface|||
+|gloo.settings.integrations.knative.proxy.affinity.NAME|interface|||
 |gloo.settings.integrations.knative.proxy.hostAliases[]|interface|||
 |gloo.settings.integrations.knative.proxy.resources.limits.memory|string||amount of memory|
 |gloo.settings.integrations.knative.proxy.resources.limits.cpu|string||amount of CPUs|
@@ -169,9 +174,12 @@
 |gloo.settings.integrations.knative.proxy.service.httpsPort|int||HTTPS port for the knative/ingress proxy service|
 |gloo.settings.integrations.knative.proxy.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.settings.integrations.knative.proxy.configMap.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|gloo.settings.integrations.knative.proxy.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.settings.integrations.knative.requireIngressClass|bool||only serve traffic for Knative Ingress objects with the annotation 'networking.knative.dev/ingress.class: gloo.ingress.networking.knative.dev'.|
 |gloo.settings.integrations.knative.extraKnativeInternalLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the knative internal deployment.|
+|gloo.settings.integrations.knative.extraKnativeInternalAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the knative internal deployment.|
 |gloo.settings.integrations.knative.extraKnativeExternalLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the knative external deployment.|
+|gloo.settings.integrations.knative.extraKnativeExternalAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the knative external deployment.|
 |gloo.settings.integrations.consul.datacenter|string||Datacenter to use. If not provided, the default agent datacenter is used.|
 |gloo.settings.integrations.consul.username|string||Username to use for HTTP Basic Authentication.|
 |gloo.settings.integrations.consul.password|string||Password to use for HTTP Basic Authentication.|
@@ -181,18 +189,16 @@
 |gloo.settings.integrations.consul.certFile|string||CertFile is the optional path to the certificate for Consul communication. If this is set then you need to also set KeyFile.|
 |gloo.settings.integrations.consul.keyFile|string||KeyFile is the optional path to the private key for Consul communication. If this is set then you need to also set CertFile.|
 |gloo.settings.integrations.consul.insecureSkipVerify|bool||InsecureSkipVerify if set to true will disable TLS host verification.|
-|gloo.settings.integrations.consul.waitTime.seconds|int32||The value of this duration in seconds.|
-|gloo.settings.integrations.consul.waitTime.nanos|int32||The value of this duration in nanoseconds.|
+|gloo.settings.integrations.consul.waitTime|string||WaitTime limits how long a watches for Consul resources will block. If not provided, the agent default values will be used.|
 |gloo.settings.integrations.consul.serviceDiscovery.dataCenters[]|string||Use this parameter to restrict the data centers that will be considered when discovering and routing to services. If not provided, Gloo Edge will use all available data centers.|
 |gloo.settings.integrations.consul.httpAddress|string||The address of the Consul HTTP server. Used by service discovery and key-value storage (if-enabled). Defaults to the value of the standard CONSUL_HTTP_ADDR env if set, otherwise to 127.0.0.1:8500.|
 |gloo.settings.integrations.consul.dnsAddress|string||The address of the DNS server used to resolve hostnames in the Consul service address. Used by service discovery (required when Consul service instances are stored as DNS names). Defaults to 127.0.0.1:8600. (the default Consul DNS server)|
-|gloo.settings.integrations.consul.dnsPollingInterval.seconds|int32||The value of this duration in seconds.|
-|gloo.settings.integrations.consul.dnsPollingInterval.nanos|int32||The value of this duration in nanoseconds.|
-|gloo.settings.integrations.consulUpstreamDiscovery.useTlsDiscovery|bool||Allow Gloo Edge to automatically apply tls to consul services that are tagged the tlsTagName value. Requires RootCaResourceNamespace and RootCaResourceName to be set if true.|
+|gloo.settings.integrations.consul.dnsPollingInterval|string||The polling interval for the DNS server. If there is a Consul service address with a hostname instead of an IP, Gloo Edge will resolve the hostname with the configured frequency to update endpoints with any changes to DNS resolution. Defaults to 5s.|
+|gloo.settings.integrations.consulUpstreamDiscovery.useTlsTagging|bool||Allow Gloo Edge to automatically apply tls to consul services that are tagged the tlsTagName value. Requires RootCaResourceNamespace and RootCaResourceName to be set if true.|
 |gloo.settings.integrations.consulUpstreamDiscovery.tlsTagName|string||The tag Gloo Edge should use to identify consul services that ought to use TLS. If splitTlsServices is true, then this tag is also used to sort serviceInstances into the tls upstream. Defaults to 'glooUseTls'.|
 |gloo.settings.integrations.consulUpstreamDiscovery.splitTlsServices|bool||If true, then create two upstreams to be created when a consul service contains the tls tag; one with TLS and one without.|
-|gloo.settings.integrations.consulUpstreamDiscovery.discoveryRootCa.namespace|string||The namespace of this resource.|
-|gloo.settings.integrations.consulUpstreamDiscovery.discoveryRootCa.name|string||The name of this resource.|
+|gloo.settings.integrations.consulUpstreamDiscovery.rootCa.namespace|string||The namespace of this resource.|
+|gloo.settings.integrations.consulUpstreamDiscovery.rootCa.name|string||The name of this resource.|
 |gloo.settings.create|bool||create a Settings CRD which provides bootstrap configuration to Gloo Edge controllers|
 |gloo.settings.extensions|interface|||
 |gloo.settings.singleNamespace|bool||Enable to use install namespace as WatchNamespace and WriteNamespace|
@@ -224,10 +230,13 @@
 |gloo.gloo.deployment.validationPort|int||port where gloo serves gRPC Proxy Validation to Gateway|
 |gloo.gloo.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
 |gloo.gloo.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.gloo.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|gloo.gloo.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo.gloo.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
 |gloo.gloo.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
 |gloo.gloo.deployment.externalTrafficPolicy|string||Set the external traffic policy on the gloo service|
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
+|gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.replicas|int||number of instances to deploy|
 |gloo.gloo.deployment.customEnv[].name|string|||
 |gloo.gloo.deployment.customEnv[].value|string|||
@@ -256,7 +265,7 @@
 |gloo.gloo.deployment.tolerations[].value|string|||
 |gloo.gloo.deployment.tolerations[].effect|string|||
 |gloo.gloo.deployment.tolerations[].tolerationSeconds|int64|||
-|gloo.gloo.deployment.affinity[].NAME|interface|||
+|gloo.gloo.deployment.affinity.NAME|interface|||
 |gloo.gloo.deployment.hostAliases[]|interface|||
 |gloo.gloo.deployment.resources.limits.memory|string||amount of memory|
 |gloo.gloo.deployment.resources.limits.cpu|string||amount of CPUs|
@@ -278,10 +287,13 @@
 |gloo.discovery.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
 |gloo.discovery.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
 |gloo.discovery.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.discovery.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|gloo.discovery.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo.discovery.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
 |gloo.discovery.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
 |gloo.discovery.deployment.fsGroup|float64||Explicitly set the group ID for volume ownership. Default is 10101|
 |gloo.discovery.deployment.extraDiscoveryLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge discovery deployment.|
+|gloo.discovery.deployment.extraDiscoveryAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the gloo edge discovery deployment.|
 |gloo.discovery.deployment.enablePodSecurityContext|bool||Whether or not to render the pod security context. Default is true|
 |gloo.discovery.deployment.replicas|int||number of instances to deploy|
 |gloo.discovery.deployment.customEnv[].name|string|||
@@ -311,7 +323,7 @@
 |gloo.discovery.deployment.tolerations[].value|string|||
 |gloo.discovery.deployment.tolerations[].effect|string|||
 |gloo.discovery.deployment.tolerations[].tolerationSeconds|int64|||
-|gloo.discovery.deployment.affinity[].NAME|interface|||
+|gloo.discovery.deployment.affinity.NAME|interface|||
 |gloo.discovery.deployment.hostAliases[]|interface|||
 |gloo.discovery.deployment.resources.limits.memory|string||amount of memory|
 |gloo.discovery.deployment.resources.limits.cpu|string||amount of CPUs|
@@ -339,7 +351,7 @@
 |gloo.gateway.validation.webhook.extraAnnotations.NAME|string||extra annotations to add to the webhook|
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
-|gloo.gateway.deployment.image.tag|string|1.11.0-beta13|tag for the container|
+|gloo.gateway.deployment.image.tag|string|1.11.0-beta17|tag for the container|
 |gloo.gateway.deployment.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -348,9 +360,12 @@
 |gloo.gateway.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
 |gloo.gateway.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
 |gloo.gateway.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.gateway.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|gloo.gateway.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo.gateway.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
 |gloo.gateway.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
 |gloo.gateway.deployment.extraGatewayLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge gateway deployment.|
+|gloo.gateway.deployment.extraGatewayAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the gloo edge gateway deployment.|
 |gloo.gateway.deployment.replicas|int||number of instances to deploy|
 |gloo.gateway.deployment.customEnv[].name|string|||
 |gloo.gateway.deployment.customEnv[].value|string|||
@@ -379,14 +394,14 @@
 |gloo.gateway.deployment.tolerations[].value|string|||
 |gloo.gateway.deployment.tolerations[].effect|string|||
 |gloo.gateway.deployment.tolerations[].tolerationSeconds|int64|||
-|gloo.gateway.deployment.affinity[].NAME|interface|||
+|gloo.gateway.deployment.affinity.NAME|interface|||
 |gloo.gateway.deployment.hostAliases[]|interface|||
 |gloo.gateway.deployment.resources.limits.memory|string||amount of memory|
 |gloo.gateway.deployment.resources.limits.cpu|string||amount of CPUs|
 |gloo.gateway.deployment.resources.requests.memory|string||amount of memory|
 |gloo.gateway.deployment.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.certGenJob.image.tag|string|1.11.0-beta13|tag for the container|
+|gloo.gateway.certGenJob.image.tag|string|1.11.0-beta17|tag for the container|
 |gloo.gateway.certGenJob.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.certGenJob.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -401,7 +416,7 @@
 |gloo.gateway.certGenJob.tolerations[].value|string|||
 |gloo.gateway.certGenJob.tolerations[].effect|string|||
 |gloo.gateway.certGenJob.tolerations[].tolerationSeconds|int64|||
-|gloo.gateway.certGenJob.affinity[].NAME|interface|||
+|gloo.gateway.certGenJob.affinity.NAME|interface|||
 |gloo.gateway.certGenJob.hostAliases[]|interface|||
 |gloo.gateway.certGenJob.kubeResourceOverride.NAME|interface||override fields in the gateway-certgen job.|
 |gloo.gateway.certGenJob.mtlsKubeResourceOverride.NAME|interface||override fields in the gloo-mtls-certgen job.|
@@ -457,7 +472,7 @@
 |gloo.gatewayProxies.NAME.kind.deployment.tolerations[].value|string|||
 |gloo.gatewayProxies.NAME.kind.deployment.tolerations[].effect|string|||
 |gloo.gatewayProxies.NAME.kind.deployment.tolerations[].tolerationSeconds|int64|||
-|gloo.gatewayProxies.NAME.kind.deployment.affinity[].NAME|interface|||
+|gloo.gatewayProxies.NAME.kind.deployment.affinity.NAME|interface|||
 |gloo.gatewayProxies.NAME.kind.deployment.hostAliases[]|interface|||
 |gloo.gatewayProxies.NAME.kind.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.NAME.kind.daemonSet.hostPort|bool||whether or not to enable host networking on the pod. Only relevant when running as a DaemonSet|
@@ -536,31 +551,21 @@
 |gloo.gatewayProxies.NAME.service.configDumpService.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.NAME.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.NAME.antiAffinity|bool||configure anti affinity such that pods are preferably not co-located|
-|gloo.gatewayProxies.NAME.affinity[].NAME|interface|||
-|gloo.gatewayProxies.NAME.tracing.provider|string|||
-|gloo.gatewayProxies.NAME.tracing.cluster|string|||
+|gloo.gatewayProxies.NAME.affinity.NAME|interface|||
+|gloo.gatewayProxies.NAME.tracing.provider.NAME|interface|||
+|gloo.gatewayProxies.NAME.tracing.cluster[].NAME|interface|||
+|gloo.gatewayProxies.NAME.gatewaySettings.enabled|bool||enable/disable default gateways|
 |gloo.gatewayProxies.NAME.gatewaySettings.disableGeneratedGateways|bool||set to true to disable the gateway generation for a gateway proxy|
 |gloo.gatewayProxies.NAME.gatewaySettings.disableHttpGateway|bool||Set to true to disable http gateway generation.|
 |gloo.gatewayProxies.NAME.gatewaySettings.disableHttpsGateway|bool||Set to true to disable https gateway generation.|
 |gloo.gatewayProxies.NAME.gatewaySettings.ipv4Only|bool||set to true if your network allows ipv4 addresses only. Sets the Gateway spec's bindAddress to 0.0.0.0 instead of ::|
 |gloo.gatewayProxies.NAME.gatewaySettings.useProxyProto|bool||use proxy protocol|
-|gloo.gatewayProxies.NAME.gatewaySettings.customHttpGateway|string||custom yaml to use for http gateway settings|
-|gloo.gatewayProxies.NAME.gatewaySettings.customHttpsGateway|string||custom yaml to use for https gateway settings|
-|gloo.gatewayProxies.NAME.gatewaySettings.accessLoggingService.access_log[]|interface|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.access_logging_service.access_log[]|interface|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.extensions.configs.NAME.fields.NAME|interface|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.per_connection_buffer_limit_bytes.value|uint32|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.socket_options[].description|string|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.socket_options[].level|int64|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.socket_options[].name|int64|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.socket_options[]|interface|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.socket_options[].state|int32|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.proxy_protocol.rules[].tlv_type|uint32|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.proxy_protocol.rules[].on_tlv_present.metadata_namespace|string|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.proxy_protocol.rules[].on_tlv_present.key|string|||
-|gloo.gatewayProxies.NAME.gatewaySettings.options.proxy_protocol.allow_requests_without_proxy_protocol|bool|||
-|gloo.gatewayProxies.NAME.gatewaySettings.httpGatewayKubeOverride.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gatewayProxies.NAME.gatewaySettings.httpsGatewayKubeOverride.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|gloo.gatewayProxies.NAME.gatewaySettings.customHttpGateway.NAME|interface||custom yaml to use for http gateway settings|
+|gloo.gatewayProxies.NAME.gatewaySettings.customHttpsGateway.NAME|interface||custom yaml to use for https gateway settings|
+|gloo.gatewayProxies.NAME.gatewaySettings.accessLoggingService.NAME|interface||cust yaml to use for access logging service (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/)|
+|gloo.gatewayProxies.NAME.gatewaySettings.options.NAME|interface||custom options for http(s) gateways (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options.proto.sk/#listeneroptions)|
+|gloo.gatewayProxies.NAME.gatewaySettings.httpGatewayKubeOverride.NAME|interface|||
+|gloo.gatewayProxies.NAME.gatewaySettings.httpsGatewayKubeOverride.NAME|interface|||
 |gloo.gatewayProxies.NAME.gatewaySettings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.NAME.extraEnvoyArgs[]|string||envoy container args, (e.g. https://www.envoyproxy.io/docs/envoy/latest/operations/cli)|
 |gloo.gatewayProxies.NAME.extraContainersHelper|string|||
@@ -570,6 +575,8 @@
 |gloo.gatewayProxies.NAME.extraListenersHelper|string|||
 |gloo.gatewayProxies.NAME.stats.enabled|bool||Controls whether or not envoy stats are enabled|
 |gloo.gatewayProxies.NAME.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.gatewayProxies.NAME.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|gloo.gatewayProxies.NAME.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo.gatewayProxies.NAME.readConfig|bool||expose a read-only subset of the envoy admin api|
 |gloo.gatewayProxies.NAME.readConfigMulticluster|bool||expose a read-only subset of the envoy admin api to gloo-fed|
 |gloo.gatewayProxies.NAME.extraProxyVolumeMounts[].NAME|interface|||
@@ -628,7 +635,7 @@
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.tolerations[].value|string|||
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.tolerations[].effect|string|||
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.tolerations[].tolerationSeconds|int64|||
-|gloo.gatewayProxies.gatewayProxy.kind.deployment.affinity[].NAME|interface|||
+|gloo.gatewayProxies.gatewayProxy.kind.deployment.affinity.NAME|interface|||
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.hostAliases[]|interface|||
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.gatewayProxy.kind.daemonSet.hostPort|bool||whether or not to enable host networking on the pod. Only relevant when running as a DaemonSet|
@@ -710,31 +717,21 @@
 |gloo.gatewayProxies.gatewayProxy.service.configDumpService.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.gatewayProxy.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.gatewayProxy.antiAffinity|bool||configure anti affinity such that pods are preferably not co-located|
-|gloo.gatewayProxies.gatewayProxy.affinity[].NAME|interface|||
-|gloo.gatewayProxies.gatewayProxy.tracing.provider|string|||
-|gloo.gatewayProxies.gatewayProxy.tracing.cluster|string|||
+|gloo.gatewayProxies.gatewayProxy.affinity.NAME|interface|||
+|gloo.gatewayProxies.gatewayProxy.tracing.provider.NAME|interface|||
+|gloo.gatewayProxies.gatewayProxy.tracing.cluster[].NAME|interface|||
+|gloo.gatewayProxies.gatewayProxy.gatewaySettings.enabled|bool||enable/disable default gateways|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.disableGeneratedGateways|bool||set to true to disable the gateway generation for a gateway proxy|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.disableHttpGateway|bool||Set to true to disable http gateway generation.|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.disableHttpsGateway|bool||Set to true to disable https gateway generation.|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.ipv4Only|bool||set to true if your network allows ipv4 addresses only. Sets the Gateway spec's bindAddress to 0.0.0.0 instead of ::|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.useProxyProto|bool||use proxy protocol|
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.customHttpGateway|string||custom yaml to use for http gateway settings|
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.customHttpsGateway|string||custom yaml to use for https gateway settings|
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.accessLoggingService.access_log[]|interface|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.access_logging_service.access_log[]|interface|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.extensions.configs.NAME.fields.NAME|interface|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.per_connection_buffer_limit_bytes.value|uint32|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.socket_options[].description|string|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.socket_options[].level|int64|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.socket_options[].name|int64|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.socket_options[]|interface|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.socket_options[].state|int32|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.proxy_protocol.rules[].tlv_type|uint32|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.proxy_protocol.rules[].on_tlv_present.metadata_namespace|string|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.proxy_protocol.rules[].on_tlv_present.key|string|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.proxy_protocol.allow_requests_without_proxy_protocol|bool|||
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.httpGatewayKubeOverride.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.httpsGatewayKubeOverride.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|gloo.gatewayProxies.gatewayProxy.gatewaySettings.customHttpGateway.NAME|interface||custom yaml to use for http gateway settings|
+|gloo.gatewayProxies.gatewayProxy.gatewaySettings.customHttpsGateway.NAME|interface||custom yaml to use for https gateway settings|
+|gloo.gatewayProxies.gatewayProxy.gatewaySettings.accessLoggingService.NAME|interface||cust yaml to use for access logging service (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/)|
+|gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.NAME|interface||custom options for http(s) gateways (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options.proto.sk/#listeneroptions)|
+|gloo.gatewayProxies.gatewayProxy.gatewaySettings.httpGatewayKubeOverride.NAME|interface|||
+|gloo.gatewayProxies.gatewayProxy.gatewaySettings.httpsGatewayKubeOverride.NAME|interface|||
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.gatewayProxy.extraEnvoyArgs[]|string||envoy container args, (e.g. https://www.envoyproxy.io/docs/envoy/latest/operations/cli)|
 |gloo.gatewayProxies.gatewayProxy.extraContainersHelper|string|||
@@ -744,6 +741,8 @@
 |gloo.gatewayProxies.gatewayProxy.extraListenersHelper|string|||
 |gloo.gatewayProxies.gatewayProxy.stats.enabled|bool||Controls whether or not envoy stats are enabled|
 |gloo.gatewayProxies.gatewayProxy.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.gatewayProxies.gatewayProxy.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|gloo.gatewayProxies.gatewayProxy.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo.gatewayProxies.gatewayProxy.readConfig|bool||expose a read-only subset of the envoy admin api|
 |gloo.gatewayProxies.gatewayProxy.readConfigMulticluster|bool||expose a read-only subset of the envoy admin api to gloo-fed|
 |gloo.gatewayProxies.gatewayProxy.extraProxyVolumeMounts[].NAME|interface|||
@@ -785,6 +784,8 @@
 |gloo.ingress.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
 |gloo.ingress.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
 |gloo.ingress.deployment.extraIngressLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress deployment.|
+|gloo.ingress.deployment.extraIngressAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the ingress deployment.|
+|gloo.ingress.deployment.stats|bool||Controls whether or not envoy stats are enabled|
 |gloo.ingress.deployment.replicas|int||number of instances to deploy|
 |gloo.ingress.deployment.customEnv[].name|string|||
 |gloo.ingress.deployment.customEnv[].value|string|||
@@ -813,7 +814,7 @@
 |gloo.ingress.deployment.tolerations[].value|string|||
 |gloo.ingress.deployment.tolerations[].effect|string|||
 |gloo.ingress.deployment.tolerations[].tolerationSeconds|int64|||
-|gloo.ingress.deployment.affinity[].NAME|interface|||
+|gloo.ingress.deployment.affinity.NAME|interface|||
 |gloo.ingress.deployment.hostAliases[]|interface|||
 |gloo.ingress.deployment.resources.limits.memory|string||amount of memory|
 |gloo.ingress.deployment.resources.limits.cpu|string||amount of CPUs|
@@ -836,6 +837,7 @@
 |gloo.ingressProxy.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
 |gloo.ingressProxy.deployment.runAsUser|float64||Explicitly set the user ID for the pod to run as. Default is 10101|
 |gloo.ingressProxy.deployment.extraIngressProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress proxy deployment.|
+|gloo.ingressProxy.deployment.stats|bool||Controls whether or not envoy stats are enabled|
 |gloo.ingressProxy.deployment.replicas|int||number of instances to deploy|
 |gloo.ingressProxy.deployment.customEnv[].name|string|||
 |gloo.ingressProxy.deployment.customEnv[].value|string|||
@@ -864,7 +866,7 @@
 |gloo.ingressProxy.deployment.tolerations[].value|string|||
 |gloo.ingressProxy.deployment.tolerations[].effect|string|||
 |gloo.ingressProxy.deployment.tolerations[].tolerationSeconds|int64|||
-|gloo.ingressProxy.deployment.affinity[].NAME|interface|||
+|gloo.ingressProxy.deployment.affinity.NAME|interface|||
 |gloo.ingressProxy.deployment.hostAliases[]|interface|||
 |gloo.ingressProxy.deployment.resources.limits.memory|string||amount of memory|
 |gloo.ingressProxy.deployment.resources.limits.cpu|string||amount of CPUs|
@@ -895,10 +897,14 @@
 |gloo.accessLogger.enabled|bool|||
 |gloo.accessLogger.stats.enabled|bool||Controls whether or not envoy stats are enabled|
 |gloo.accessLogger.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.accessLogger.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|gloo.accessLogger.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo.accessLogger.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
 |gloo.accessLogger.fsGroup|float64||Explicitly set the group ID for volume ownership. Default is 10101|
 |gloo.accessLogger.extraAccessLoggerLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the access logger deployment.|
+|gloo.accessLogger.extraAccessLoggerAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the access logger deployment.|
 |gloo.accessLogger.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|gloo.accessLogger.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.accessLogger.replicas|int||number of instances to deploy|
 |gloo.accessLogger.customEnv[].name|string|||
 |gloo.accessLogger.customEnv[].value|string|||
@@ -927,7 +933,7 @@
 |gloo.accessLogger.tolerations[].value|string|||
 |gloo.accessLogger.tolerations[].effect|string|||
 |gloo.accessLogger.tolerations[].tolerationSeconds|int64|||
-|gloo.accessLogger.affinity[].NAME|interface|||
+|gloo.accessLogger.affinity.NAME|interface|||
 |gloo.accessLogger.hostAliases[]|interface|||
 |gloo.accessLogger.resources.limits.memory|string||amount of memory|
 |gloo.accessLogger.resources.limits.cpu|string||amount of CPUs|
@@ -984,7 +990,7 @@
 |redis.deployment.tolerations[].value|string|||
 |redis.deployment.tolerations[].effect|string|||
 |redis.deployment.tolerations[].tolerationSeconds|int64|||
-|redis.deployment.affinity[].NAME|interface|||
+|redis.deployment.affinity.NAME|interface|||
 |redis.deployment.hostAliases[]|interface|||
 |redis.deployment.resources.limits.memory|string||amount of memory|
 |redis.deployment.resources.limits.cpu|string||amount of CPUs|
@@ -1016,6 +1022,8 @@
 |rateLimit.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
 |rateLimit.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
 |rateLimit.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|rateLimit.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|rateLimit.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |rateLimit.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
 |rateLimit.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
 |rateLimit.deployment.extraRateLimitLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment.|
@@ -1051,7 +1059,7 @@
 |rateLimit.deployment.tolerations[].value|string|||
 |rateLimit.deployment.tolerations[].effect|string|||
 |rateLimit.deployment.tolerations[].tolerationSeconds|int64|||
-|rateLimit.deployment.affinity[].NAME|interface|||
+|rateLimit.deployment.affinity.NAME|interface|||
 |rateLimit.deployment.hostAliases[]|interface|||
 |rateLimit.deployment.resources.limits.memory|string||amount of memory|
 |rateLimit.deployment.resources.limits.cpu|string||amount of CPUs|
@@ -1076,6 +1084,8 @@
 |observability.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
 |observability.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
 |observability.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|observability.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|observability.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |observability.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
 |observability.deployment.floatingUserId|bool|false|set to true to allow the cluster to dynamically assign a user ID|
 |observability.deployment.extraObservabilityLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the Observability deployment.|
@@ -1108,7 +1118,7 @@
 |observability.deployment.tolerations[].value|string|||
 |observability.deployment.tolerations[].effect|string|||
 |observability.deployment.tolerations[].tolerationSeconds|int64|||
-|observability.deployment.affinity[].NAME|interface|||
+|observability.deployment.affinity.NAME|interface|||
 |observability.deployment.hostAliases[]|interface|||
 |observability.deployment.resources.limits.memory|string||amount of memory|
 |observability.deployment.resources.limits.cpu|string||amount of CPUs|
@@ -1163,7 +1173,7 @@
 |gloo-fed.gloo_fed.tolerations[].value|string|||
 |gloo-fed.gloo_fed.tolerations[].effect|string|||
 |gloo-fed.gloo_fed.tolerations[].tolerationSeconds|int64|||
-|gloo-fed.gloo_fed.affinity[].NAME|interface|||
+|gloo-fed.gloo_fed.affinity.NAME|interface|||
 |gloo-fed.gloo_fed.hostAliases[]|interface|||
 |gloo-fed.gloo_fed.resources.limits.memory|string||amount of memory|
 |gloo-fed.gloo_fed.resources.limits.cpu|string||amount of CPUs|
@@ -1190,8 +1200,10 @@
 |global.glooRbac.nameSuffix|string||When nameSuffix is nonempty, append '-$nameSuffix' to the names of Gloo Edge RBAC resources; e.g. when nameSuffix is 'foo', the role 'gloo-resource-reader' will become 'gloo-resource-reader-foo'|
 |global.glooStats.enabled|bool|true|Controls whether or not envoy stats are enabled|
 |global.glooStats.routePrefixRewrite|string|/stats/prometheus|The envoy stats endpoint to which the metrics are written|
+|global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.11.0-beta13|tag for the container|
+|global.glooMtls.sds.image.tag|string|1.11.0-beta17|tag for the container|
 |global.glooMtls.sds.image.repository|string||image name (repository) for the container.|
 |global.glooMtls.sds.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |global.glooMtls.sds.image.pullPolicy|string||image pull policy for the container|

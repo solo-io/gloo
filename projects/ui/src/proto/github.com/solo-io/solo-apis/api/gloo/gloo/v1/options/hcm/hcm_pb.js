@@ -120,6 +120,7 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     acceptHttp10: jspb.Message.getFieldWithDefault(msg, 15, false),
     defaultHostForHttp10: jspb.Message.getFieldWithDefault(msg, 16, ""),
     allowChunkedLength: jspb.Message.getFieldWithDefault(msg, 34, false),
+    enableTrailers: jspb.Message.getFieldWithDefault(msg, 35, false),
     properCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 22, false),
     preserveCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 31, false),
     tracing: (f = msg.getTracing()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tracing_tracing_pb.ListenerTracingSettings.toObject(includeInstance, f),
@@ -245,6 +246,10 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
     case 34:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setAllowChunkedLength(value);
+      break;
+    case 35:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setEnableTrailers(value);
       break;
     case 22:
       var value = /** @type {boolean} */ (reader.readBool());
@@ -468,6 +473,13 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
   if (f) {
     writer.writeBool(
       34,
+      f
+    );
+  }
+  f = message.getEnableTrailers();
+  if (f) {
+    writer.writeBool(
+      35,
       f
     );
   }
@@ -1290,6 +1302,23 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getAllowC
 /** @param {boolean} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setAllowChunkedLength = function(value) {
   jspb.Message.setProto3BooleanField(this, 34, value);
+};
+
+
+/**
+ * optional bool enable_trailers = 35;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getEnableTrailers = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 35, false));
+};
+
+
+/** @param {boolean} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setEnableTrailers = function(value) {
+  jspb.Message.setProto3BooleanField(this, 35, value);
 };
 
 

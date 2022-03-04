@@ -1981,7 +1981,7 @@ spec:
   kubernetesSecretSource: {}
   refreshRate: 60s
   discoveryNamespace: ` + namespace + `
-  rateLimit:
+  ratelimit:
     descriptors:
       - key: generic_key
         value: "per-second"

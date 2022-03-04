@@ -74,6 +74,9 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getAllowChunkedLength(): boolean;
   setAllowChunkedLength(value: boolean): void;
 
+  getEnableTrailers(): boolean;
+  setEnableTrailers(value: boolean): void;
+
   hasProperCaseHeaderKeyFormat(): boolean;
   clearProperCaseHeaderKeyFormat(): void;
   getProperCaseHeaderKeyFormat(): boolean;
@@ -174,6 +177,7 @@ export namespace HttpConnectionManagerSettings {
     acceptHttp10: boolean,
     defaultHostForHttp10: string,
     allowChunkedLength: boolean,
+    enableTrailers: boolean,
     properCaseHeaderKeyFormat: boolean,
     preserveCaseHeaderKeyFormat: boolean,
     tracing?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_tracing_tracing_pb.ListenerTracingSettings.AsObject,

@@ -31,6 +31,11 @@ export class ConnectionConfig extends jspb.Message {
   getCommonHttpProtocolOptions(): ConnectionConfig.HttpProtocolOptions | undefined;
   setCommonHttpProtocolOptions(value?: ConnectionConfig.HttpProtocolOptions): void;
 
+  hasHttp1ProtocolOptions(): boolean;
+  clearHttp1ProtocolOptions(): void;
+  getHttp1ProtocolOptions(): ConnectionConfig.Http1ProtocolOptions | undefined;
+  setHttp1ProtocolOptions(value?: ConnectionConfig.Http1ProtocolOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ConnectionConfig.AsObject;
   static toObject(includeInstance: boolean, msg: ConnectionConfig): ConnectionConfig.AsObject;
@@ -48,6 +53,7 @@ export namespace ConnectionConfig {
     tcpKeepalive?: ConnectionConfig.TcpKeepAlive.AsObject,
     perConnectionBufferLimitBytes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     commonHttpProtocolOptions?: ConnectionConfig.HttpProtocolOptions.AsObject,
+    http1ProtocolOptions?: ConnectionConfig.Http1ProtocolOptions.AsObject,
   }
 
   export class TcpKeepAlive extends jspb.Message {
@@ -124,5 +130,44 @@ export namespace ConnectionConfig {
     }
 
     export const HeadersWithUnderscoresAction: HeadersWithUnderscoresActionMap;
+  }
+
+  export class Http1ProtocolOptions extends jspb.Message {
+    getEnableTrailers(): boolean;
+    setEnableTrailers(value: boolean): void;
+
+    hasProperCaseHeaderKeyFormat(): boolean;
+    clearProperCaseHeaderKeyFormat(): void;
+    getProperCaseHeaderKeyFormat(): boolean;
+    setProperCaseHeaderKeyFormat(value: boolean): void;
+
+    hasPreserveCaseHeaderKeyFormat(): boolean;
+    clearPreserveCaseHeaderKeyFormat(): void;
+    getPreserveCaseHeaderKeyFormat(): boolean;
+    setPreserveCaseHeaderKeyFormat(value: boolean): void;
+
+    getHeaderFormatCase(): Http1ProtocolOptions.HeaderFormatCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Http1ProtocolOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: Http1ProtocolOptions): Http1ProtocolOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Http1ProtocolOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Http1ProtocolOptions;
+    static deserializeBinaryFromReader(message: Http1ProtocolOptions, reader: jspb.BinaryReader): Http1ProtocolOptions;
+  }
+
+  export namespace Http1ProtocolOptions {
+    export type AsObject = {
+      enableTrailers: boolean,
+      properCaseHeaderKeyFormat: boolean,
+      preserveCaseHeaderKeyFormat: boolean,
+    }
+
+    export enum HeaderFormatCase {
+      HEADER_FORMAT_NOT_SET = 0,
+      PROPER_CASE_HEADER_KEY_FORMAT = 22,
+      PRESERVE_CASE_HEADER_KEY_FORMAT = 31,
+    }
   }
 }
