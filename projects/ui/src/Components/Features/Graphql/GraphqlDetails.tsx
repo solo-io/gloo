@@ -357,11 +357,7 @@ export const GraphQLDetails: React.FC = () => {
                 </FolderTabContent>
               </StyledTabPanel>
               <StyledTabPanel>
-                <div>
-                  {tabIndex === 1 && (
-                    <GraphqlApiExplorer graphQLSchema={graphqlSchema} />
-                  )}
-                </div>
+                <div>{tabIndex === 1 && <GraphqlApiExplorer />}</div>
               </StyledTabPanel>
             </TabPanels>
           </Tabs>

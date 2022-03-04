@@ -1,20 +1,12 @@
 import * as React from 'react';
-import { Fetcher, FetcherParams, GraphiQL } from 'graphiql';
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { Fetcher, GraphiQL } from 'graphiql';
+import { buildSchema } from 'graphql';
 import styled from '@emotion/styled';
 import { colors } from 'Styles/colors';
-import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils';
-// @ts-ignore
-import { GraphQLSchema } from 'graphql';
-import { useListVirtualServices } from 'API/hooks';
+import { useGetGraphqlSchemaDetails, useListVirtualServices } from 'API/hooks';
 import { useParams } from 'react-router';
 import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
-import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
-import {
-  OverviewSmallBoxSummary,
-  StatusHealth,
-  WarningCircle,
-} from '../Overview/OverviewBoxSummary';
+import { StatusHealth, WarningCircle } from '../Overview/OverviewBoxSummary';
 import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { SoloInput } from 'Components/Common/SoloInput';
@@ -23,36 +15,6 @@ import { Tooltip } from 'antd';
 import { copyTextToClipboard } from 'utils';
 import { ReactComponent as CopyIcon } from 'assets/document.svg';
 
-function mockedDirective(directiveName: string) {
-  return {
-    mockedDirectiveTypeDefs: `directive @${directiveName}(name: String) on FIELD_DEFINITION | ENUM_VALUE | INPUT_FIELD_DEFINITION | INPUT_OBJECT | OBJECT | SCALAR | ARGUMENT_DEFINITION `,
-    mockedDirectiveTransformer: (schema: GraphQLSchema) =>
-      mapSchema(schema, {
-        [MapperKind.OBJECT_FIELD]: fieldConfig => {
-          const mockedDirective = getDirective(
-            schema,
-            fieldConfig,
-            directiveName
-          )?.[0];
-          if (mockedDirective) {
-            fieldConfig.deprecationReason = mockedDirective['name'];
-            return fieldConfig;
-          }
-        },
-        [MapperKind.ENUM_VALUE]: enumValueConfig => {
-          const mockedDirective = getDirective(
-            schema,
-            enumValueConfig,
-            directiveName
-          )?.[0];
-          if (mockedDirective) {
-            enumValueConfig.deprecationReason = mockedDirective['name'];
-            return enumValueConfig;
-          }
-        },
-      }),
-  };
-}
 const Wrapper = styled.div`
   background: white;
 `;
@@ -122,19 +84,28 @@ const setGqlStorage = (value: string) => {
   localStorage.setItem(GQL_STORAGE_KEY, value);
 };
 
-interface GraphqlApiExplorerProps {
-  graphQLSchema?: any;
-}
-
-export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
-  const { graphqlSchemaName, graphqlSchemaNamespace } = useParams();
+export const GraphqlApiExplorer = () => {
+  const {
+    graphqlSchemaName,
+    graphqlSchemaNamespace,
+    graphqlSchemaClusterName,
+  } = useParams();
   const [gqlError, setGqlError] = React.useState('');
   const [refetch, setRefetch] = React.useState(false);
   const [url, setUrl] = React.useState(getGqlStorage());
   const [showTooltip, setShowTooltip] = React.useState(false);
-  const [fetcher, setFetcher] = React.useState<Fetcher>();
   const [copyingKubectl, setCopyingKubectl] = React.useState(false);
   const [copyingProxy, setCopyingProxy] = React.useState(false);
+
+  const {
+    data: graphqlSchema,
+    error: graphqlSchemaError,
+    mutate,
+  } = useGetGraphqlSchemaDetails({
+    name: graphqlSchemaName,
+    namespace: graphqlSchemaNamespace,
+    clusterName: graphqlSchemaClusterName,
+  });
 
   const changeUrl = (value: string) => {
     setGqlStorage(value);
@@ -161,6 +132,7 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
       }, 2000);
     });
   };
+
   const graphQLFetcher: Fetcher = async graphQLParams =>
     fetch(url, {
       method: 'post',
@@ -194,8 +166,6 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
 
   const graphiqlRef = React.useRef<null | GraphiQL>(null);
 
-  const { mockedDirectiveTypeDefs, mockedDirectiveTransformer } =
-    mockedDirective('resolve');
   const { data: virtualServices, error: virtualServicesError } =
     useListVirtualServices();
   const [correspondingVirtualServices, setCorrespondingVirtualServices] =
@@ -215,11 +185,14 @@ export const GraphqlApiExplorer = (props: GraphqlApiExplorerProps) => {
     }
   }, [virtualServices, graphqlSchemaName, graphqlSchemaNamespace]);
 
-  let executableSchema = makeExecutableSchema({
-    typeDefs: [mockedDirectiveTypeDefs],
-  });
+  let executableSchema;
 
-  executableSchema = mockedDirectiveTransformer(executableSchema);
+  if (graphqlSchema?.spec?.executableSchema?.schemaDefinition) {
+    const schemaDef = graphqlSchema.spec.executableSchema.schemaDefinition;
+    executableSchema = buildSchema(schemaDef, {
+      assumeValidSDL: true,
+    });
+  }
 
   const handlePrettifyQuery = () => {
     graphiqlRef?.current?.handlePrettifyQuery();
