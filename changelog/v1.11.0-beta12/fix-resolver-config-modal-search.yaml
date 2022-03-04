@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fixed the searchable dropdown in the resolver config modal.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3195

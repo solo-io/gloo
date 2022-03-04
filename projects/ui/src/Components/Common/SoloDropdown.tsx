@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Select } from 'antd';
 import styled from '@emotion/styled';
 import { Label } from './SoloInput';
@@ -45,12 +45,6 @@ export const SoloDropdownBlock = styled(Select)`
       height: auto;
       cursor: pointer;
 
-      .ant-select-selection-search,
-      .ant-select-selection-search input {
-        width: 0;
-        padding: 0;
-        border: none;
-      }
       .ant-select-selection-placeholder {
         color: ${colors.mayGrey};
         font-size: 16px;
@@ -139,6 +133,7 @@ export interface DropdownProps {
   disabled?: boolean;
   testId?: string;
   error?: any;
+  searchable?: boolean;
 }
 
 export const SoloDropdown = (props: DropdownProps) => {
@@ -153,8 +148,11 @@ export const SoloDropdown = (props: DropdownProps) => {
     onBlur,
     testId,
     error,
+    searchable,
     ...rest
   } = props;
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const [searchValue, setSearchValue] = useState<string>('');
 
   const getDefaultValue = (): string | number => {
     if (typeof defaultValue === undefined) {
@@ -169,9 +167,16 @@ export const SoloDropdown = (props: DropdownProps) => {
       {title && <Label>{title}</Label>}
 
       <SoloDropdownBlock
+        searchValue={searchable && isDropdownOpen ? searchValue : ''}
+        onSearch={s => setSearchValue(s)}
+        showSearch={searchable}
         data-testid={testId}
         dropdownClassName={testId}
-        value={value}
+        value={searchable && isDropdownOpen ? searchValue : value}
+        onDropdownVisibleChange={isOpen => {
+          setIsDropdownOpen(isOpen);
+          setSearchValue('');
+        }}
         dropdownMatchSelectWidth={false}
         defaultValue={getDefaultValue()}
         //@ts-ignore

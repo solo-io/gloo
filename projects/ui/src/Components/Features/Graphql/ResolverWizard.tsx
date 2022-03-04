@@ -123,30 +123,6 @@ const UpstreamSection = ({
   const formik = useFormikContext<ResolverWizardFormProps>();
   const { data: upstreams, error: upstreamsError } = useListUpstreams();
 
-  // Filters the upstreams using a copy of the array.
-  const [nameFilter, setNameFilter] = useState('');
-  const [filteredUpstreams, setFilteredUpstreams] = useState(upstreams ?? []);
-  useEffect(() => {
-    if (upstreams === undefined) return;
-    const newFilteredUpstreams = upstreams.filter(u =>
-      u.metadata?.name.includes(nameFilter)
-    );
-    setFilteredUpstreams(newFilteredUpstreams);
-    const selectionIsInFilteredList =
-      newFilteredUpstreams.find(
-        u => u.metadata?.name === formik.values.upstream
-      ) !== undefined;
-    // If the current selection is not in the filtered list, we have to update it.
-    // if (!selectionIsInFilteredList) {
-    //   formik.setFieldValue(
-    //     'upstream',
-    //     newFilteredUpstreams.length > 0
-    //       ? newFilteredUpstreams[0].metadata?.name
-    //       : ''
-    //   );
-    // }
-  }, [nameFilter]);
-
   return (
     <div className='w-full h-full p-6 pb-0'>
       <div
@@ -156,18 +132,12 @@ const UpstreamSection = ({
       <div className='grid gap-4 '>
         <div className='mb-2 '>
           <label className='text-base font-medium '>Upstream</label>
-          <div className='mt-5'>
-            <div className='mb-3'>
-              <SoloInput
-                value={nameFilter}
-                onChange={e => setNameFilter(e.target.value)}
-                placeholder={'Filter by name...'}
-              />
-            </div>
+          <div className='mt-3'>
             <SoloFormDropdown
               name='upstream'
               value={formik.values.upstream}
               defaultValue={existingUpstream}
+              searchable={true}
               options={upstreams
                 ?.map(upstream => {
                   return {
@@ -737,6 +707,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
           resolverConfig: getInitialResolverConfig(props?.resolver),
         }}
         enableReinitialize
+        validateOnMount={true}
         validationSchema={validationSchema}
         onSubmit={submitResolverConfig}>
         {formik => (
