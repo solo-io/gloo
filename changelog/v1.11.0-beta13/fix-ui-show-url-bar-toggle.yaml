@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Fixes an issue where the UI would not show the url bar in some conditions.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3214

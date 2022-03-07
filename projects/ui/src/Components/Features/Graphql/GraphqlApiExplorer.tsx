@@ -32,10 +32,15 @@ const GqlInputWrapper = styled.div`
   flex-direction: row;
 `;
 
-const LabelTextWrapper = styled.div`
+const LabelTextWrapper = styled.div<{ hasError: boolean; }>`
+  width: 100%;
   label {
+    width: 100%;
     margin-right: 10px;
-    color: ${colors.sunGold};
+    color: ${props => props.hasError ? colors.sunGold : 'black'};
+  }
+  input {
+    width: 250px;
   }
 `;
 
@@ -96,6 +101,7 @@ export const GraphqlApiExplorer = () => {
   const [showTooltip, setShowTooltip] = React.useState(false);
   const [copyingKubectl, setCopyingKubectl] = React.useState(false);
   const [copyingProxy, setCopyingProxy] = React.useState(false);
+  const [showUrlBar, setShowUrlBar] = React.useState(false);
 
   const {
     data: graphqlSchema,
@@ -133,14 +139,6 @@ export const GraphqlApiExplorer = () => {
     });
   };
 
-  const graphQLFetcher: Fetcher = async graphQLParams =>
-    fetch(url, {
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(graphQLParams),
-    })
-      .then(response => response.json())
-      .catch(response => response.text());
   // If we need the custom fetcher, we can add `schemaFetcher` to the document.
   let gqlFetcher: Fetcher = createGraphiQLFetcher({
     url,
@@ -202,16 +200,20 @@ export const GraphqlApiExplorer = () => {
     changeUrl(e.currentTarget.value);
   };
 
+  const toggleUrlBar = () => {
+    setShowUrlBar(!showUrlBar);
+  }
+
   // TODO:  We can hide and show elements based on what we get back.
   //        The schema will only refetch if the executable schema is undefined.
   return !!correspondingVirtualServices?.length ? (
     <Wrapper>
-      {gqlError && (
+      {Boolean(gqlError) || showUrlBar ? (
         <GqlInputContainer>
           <GqlInputWrapper>
-            <LabelTextWrapper>
+            <LabelTextWrapper hasError={Boolean(gqlError)}>
               <SoloInput
-                title='Failed to fetch Graphql service.  Update the host to attempt again.'
+                title={`${Boolean(gqlError) ? 'Failed to fetch Graphql service.  Update the host to attempt again.' : 'Current url'}`}
                 value={url}
                 onChange={changeHost}
               />
@@ -267,7 +269,7 @@ export const GraphqlApiExplorer = () => {
             </Tooltip>
           </GqlInputWrapper>
         </GqlInputContainer>
-      )}
+      ) : null}
       <StyledContainer>
         <GraphiQL
           ref={graphiqlRef}
@@ -280,6 +282,11 @@ export const GraphqlApiExplorer = () => {
               onClick={handlePrettifyQuery}
               label='Prettify'
               title='Prettify Query (Shift-Ctrl-P)'
+            />
+            <GraphiQL.Button
+              onClick={toggleUrlBar}
+              label={showUrlBar ? 'Hide Url Bar' : 'Show Url Bar'}
+              title='Show/Hide Url Bar'
             />
           </GraphiQL.Toolbar>
         </GraphiQL>
