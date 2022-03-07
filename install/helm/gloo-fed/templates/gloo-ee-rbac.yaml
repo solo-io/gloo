@@ -47,6 +47,10 @@ rules:
   - get
   - list
   - watch
+  - create
+  - update
+  - patch
+  - delete
 - apiGroups:
   - ratelimit.api.solo.io
   resources:
