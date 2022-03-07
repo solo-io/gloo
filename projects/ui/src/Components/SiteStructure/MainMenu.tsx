@@ -107,18 +107,7 @@ export const MainMenu = () => {
             Wasm
           </NestedLink>
           <EnableGraphqlFeature>
-            <NestedLink
-              to={
-                clusterDetailsList?.length === 1 && glooInstances?.length === 1
-                  ? `/gloo-instances/${
-                      clusterDetailsList[0]!.glooInstancesList[0].metadata
-                        ?.namespace
-                    }/${
-                      clusterDetailsList[0]!.glooInstancesList[0].metadata?.name
-                    }/apis/`
-                  : '/apis/'
-              }
-              exact>
+            <NestedLink to={'/apis/'} exact>
               APIs
             </NestedLink>
           </EnableGraphqlFeature>

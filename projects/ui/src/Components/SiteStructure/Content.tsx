@@ -228,11 +228,7 @@ export const Content = () => {
             }
           />
           <Route
-            path={
-              isGlooFedEnabled
-                ? '/gloo-instances/:namespace/:name/apis'
-                : '/apis'
-            }
+            path={'/apis'}
             element={
               <EnableGraphqlFeature reroute>
                 <ErrorBoundary
