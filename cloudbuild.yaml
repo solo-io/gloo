@@ -128,8 +128,7 @@ steps:
   args:
     - "-ce"
     - |
-      go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
-      VERSION=$(./git-semver.sh) /builder/bin/ginkgo.bash -r -failFast -trace -progress -compilers=4 -failOnPending -noColor
+      make run-tests
   env:
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
     - "ENVOY_BINARY=/workspace/envoy"
