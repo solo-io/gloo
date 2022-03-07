@@ -48,11 +48,12 @@ var _ = Describe("Rest Resolver Test", func() {
 	})
 
 	Context("Translates string setter to correct templated path", func() {
-		It("translates single response", func() {
+		It("translates single response with no interpolation", func() {
 			templatedPath, err := graphql.TranslateSetter("{$body[0][*].details.firstname}")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(templatedPath.PathTemplate).To(Equal("{body[0][*]detailsfirstname}"))
-			Expect(templatedPath.NamedPaths).To(HaveLen(1))
+			// This should be empty because we don't want string interpolation, we want the actual body.details.firstname object
+			// whether it is a string, list, or object and we don't want it coerced into a string type
+			Expect(templatedPath.PathTemplate).To(Equal(""))
 			Expect(templatedPath.NamedPaths).To(HaveKeyWithValue("body[0][*]detailsfirstname", &v2.Path{
 				Segments: []*v2.PathSegment{
 					{
@@ -78,7 +79,7 @@ var _ = Describe("Rest Resolver Test", func() {
 				}}))
 		})
 
-		It("translates templated response", func() {
+		It("translates templated response with interpolation", func() {
 			templatedPath, err := graphql.TranslateSetter("fullname: {$body.details.firstname} {$body.details.lastname}")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(templatedPath.PathTemplate).To(Equal("fullname: {bodydetailsfirstname} {bodydetailslastname}"))
@@ -110,5 +111,6 @@ var _ = Describe("Rest Resolver Test", func() {
 					},
 				}}))
 		})
+
 	})
 })

@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    description: > 
+      Fixes issue where response setter transforms are always coerced into string types and thus are not compliant
+      with graphql schemas that expect lists or objects.
+    issueLink: https://github.com/solo-io/gloo/issues/6029

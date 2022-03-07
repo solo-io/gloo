@@ -298,7 +298,15 @@ func TranslateSetter(templatedPathString string) (*v2.TemplatedPath, error) {
 		}
 		matchSanitized := strings.ReplaceAll(match, ".", "")
 		ret.NamedPaths[matchSanitized] = tp
-		ret.PathTemplate = strings.ReplaceAll(ret.PathTemplate, matches[0], "{"+matchSanitized+"}")
+		newMatchTemplate := "{" + matchSanitized + "}"
+		ret.PathTemplate = strings.ReplaceAll(ret.PathTemplate, matches[0], newMatchTemplate)
+		// if the match template is the only thing that exists in the path template,
+		// then the user does not want an interpolated string, and wants the original value instead,
+		// so if we do not pass a path template, envoy will know to keep the original value rather
+		// than try and coerce it to a string for an interpolated template
+		if len(subMatches) == 1 && len(ret.PathTemplate) == len(newMatchTemplate) {
+			ret.PathTemplate = ""
+		}
 	}
 	return ret, nil
 }
