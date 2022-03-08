@@ -121,7 +121,7 @@ clean-fed: clean-artifacts clean-generated-protos
 run-tests:
 ifneq ($(RELEASE), "true")
 	PATH=$(DEPSGOBIN):$$PATH go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
-	VERSION=$(VERSION) ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor
+	TAGGED_VERSION=$(TAGGED_VERSION) VERSION=$(VERSION) ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor
 endif
 
 # command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
