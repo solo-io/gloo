@@ -14,7 +14,7 @@ import (
 	"github.com/graphql-go/graphql/language/ast"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/graphqlschematranslation/types"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/graphqlschematranslation/types"
 )
 
 type GetResolverParams struct {
@@ -44,11 +44,11 @@ func (t *OasToGqlTranslator) CreateResolverForField(
 		resolutionName := CreateBaseResolverName(t.Upstream.GetMetadata().Ref(), parentTypeName, fieldName)
 		if _, ok := resolutions[resolutionName]; ok {
 			/* This terminates the recursion where we have a type that has a field that is of the same type
-			so we are not infinitely creating resolvers for the same type. For example:
-			type Employee {
-			  userManager: Employee
-			}
-			The resolution name guarantees resolver uniqueness for a type-field pair per schema.
+			   so we are not infinitely creating resolvers for the same type. For example:
+			   type Employee {
+			     userManager: Employee
+			   }
+			   The resolution name guarantees resolver uniqueness for a type-field pair per schema.
 			*/
 			continue
 		}

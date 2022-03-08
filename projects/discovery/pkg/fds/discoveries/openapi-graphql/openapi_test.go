@@ -15,8 +15,8 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	openApi "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi"
-	translate_graphql "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/graphqlschematranslation"
+	openApi "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql"
+	translate_graphql "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/graphqlschematranslation"
 )
 
 var _ = Describe("GraphQl Discovery Test", func() {

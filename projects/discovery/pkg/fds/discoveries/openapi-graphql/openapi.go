@@ -14,7 +14,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	graphql "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/graphqlschematranslation"
+	graphql "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/graphqlschematranslation"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/hashicorp/go-multierror"
@@ -92,6 +92,7 @@ func getswagspec(u *v1.Upstream) *rest_plugins.ServiceSpec_SwaggerInfo {
 }
 
 func (f *OpenApiFunctionDiscovery) IsFunctional() bool {
+
 	a := getswagspec(f.upstream) != nil
 	return a
 }
@@ -186,48 +187,44 @@ func GetOpenApi3Doc(body []byte) (*openapi3.T, error) {
 
 func (f *OpenApiFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, _ func() fds.Dependencies, updatecb func(fds.UpstreamMutator) error) error {
 	in := f.upstream
-	fmt.Println("keerthan reached here")
 	spec := getswagspec(in)
 	if spec == nil || spec.GetSwaggerSpec() == nil {
 		return errors.New("upstream doesn't have a openApi spec")
 	}
 	switch document := spec.GetSwaggerSpec().(type) {
 	case *rest_plugins.ServiceSpec_SwaggerInfo_Url:
-		fmt.Println("keerthan detecting functions from url", document.Url)
 		return f.detectFunctionsFromUrl(ctx, document.Url, in)
 	case *rest_plugins.ServiceSpec_SwaggerInfo_Inline:
 		return f.detectFunctionsFromInline(ctx, document.Inline, in, updatecb)
 	}
-	fmt.Println("upstream doens't have an opeanpi source")
 	return errors.New("upstream doesn't have a openApi source")
 }
 
 func (f *OpenApiFunctionDiscovery) detectFunctionsFromUrl(ctx context.Context, url string, in *v1.Upstream) error {
-	for {
-		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
+	err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{
+		MaxDuration: &f.detectionTimeout,
+	}).Backoff(ctx, func(ctx context.Context) error {
 
-			spec, err := RetrieveOpenApiDocFromUrl(ctx, url)
-			if err != nil {
-				return err
-			}
-			err = f.detectFunctionsFromSpec(ctx, spec)
-			if err != nil {
-				return err
-			}
-			return nil
-		})
+		spec, err := RetrieveOpenApiDocFromUrl(ctx, url)
 		if err != nil {
-			if ctx.Err() != nil {
-				return ctx.Err()
-			}
-			// ignore other erros as we would like to continue forever.
-		}
-
-		if err := contextutils.Sleep(ctx, f.functionPollTime); err != nil {
 			return err
 		}
+		err = f.detectFunctionsFromSpec(ctx, spec)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		if ctx.Err() != nil {
+			return multierror.Append(err, ctx.Err())
+		}
+		// ignore other erros as we would like to continue forever.
 	}
-
+	if err := contextutils.Sleep(ctx, time.Second*30); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (f *OpenApiFunctionDiscovery) detectFunctionsFromInline(ctx context.Context, document string, in *v1.Upstream, updatecb func(fds.UpstreamMutator) error) error {

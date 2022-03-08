@@ -13,8 +13,8 @@ import (
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/test/matchers"
-	graphql2 "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/graphqlschematranslation"
-	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/printer"
+	graphql2 "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/graphqlschematranslation"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/printer"
 	schemas "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"

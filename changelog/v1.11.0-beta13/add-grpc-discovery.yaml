@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/3202
+    description: >
+      FDS (function discovery service) can now generate GraphQL Schemas from gRPC services
+      that support proto3-syntax reflection .

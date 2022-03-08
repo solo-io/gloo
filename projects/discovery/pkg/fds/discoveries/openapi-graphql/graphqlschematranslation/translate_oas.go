@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/printer"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/printer"
 
 	"github.com/Masterminds/goutils"
 	"github.com/gertd/go-pluralize"
@@ -22,7 +22,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	. "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/graphqlschematranslation/types"
+	. "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/graphqlschematranslation/types"
 )
 
 type SchemaOptions struct {
@@ -158,7 +158,6 @@ func (t *OasToGqlTranslator) TranslateOpenApiToGraphQL(oass []*openapi.T, option
 			}
 		}
 	}
-
 	schemaConfig := graphql.SchemaConfig{
 		Query: graphql.NewObject(graphql.ObjectConfig{
 			Name: GraphQlOperationType_Query.String(),

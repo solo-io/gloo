@@ -9,7 +9,7 @@ import (
 
 	"github.com/Masterminds/goutils"
 	openapi "github.com/getkin/kin-openapi/openapi3"
-	. "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/graphqlschematranslation/types"
+	. "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/graphqlschematranslation/types"
 )
 
 var SupportedRequestContentTypes = []string{

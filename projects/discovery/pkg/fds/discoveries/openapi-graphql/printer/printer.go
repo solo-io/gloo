@@ -7,7 +7,7 @@ import (
 	. "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/printer"
-	. "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi/printer/types"
+	. "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/printer/types"
 )
 
 func PrintFilteredSchema(schema *Schema) string {
