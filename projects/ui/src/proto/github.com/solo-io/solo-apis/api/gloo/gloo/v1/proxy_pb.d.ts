@@ -86,12 +86,18 @@ export class Listener extends jspb.Message {
   getMetadata(): google_protobuf_struct_pb.Struct | undefined;
   setMetadata(value?: google_protobuf_struct_pb.Struct): void;
 
+  hasMetadataStatic(): boolean;
+  clearMetadataStatic(): void;
+  getMetadataStatic(): SourceMetadata | undefined;
+  setMetadataStatic(value?: SourceMetadata): void;
+
   hasRouteOptions(): boolean;
   clearRouteOptions(): void;
   getRouteOptions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions | undefined;
   setRouteOptions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions): void;
 
   getListenertypeCase(): Listener.ListenertypeCase;
+  getOpaqueMetadataCase(): Listener.OpaqueMetadataCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Listener.AsObject;
   static toObject(includeInstance: boolean, msg: Listener): Listener.AsObject;
@@ -114,6 +120,7 @@ export namespace Listener {
     useProxyProto?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.ListenerOptions.AsObject,
     metadata?: google_protobuf_struct_pb.Struct.AsObject,
+    metadataStatic?: SourceMetadata.AsObject,
     routeOptions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.AsObject,
   }
 
@@ -122,6 +129,12 @@ export namespace Listener {
     HTTP_LISTENER = 4,
     TCP_LISTENER = 5,
     HYBRID_LISTENER = 11,
+  }
+
+  export enum OpaqueMetadataCase {
+    OPAQUE_METADATA_NOT_SET = 0,
+    METADATA = 9,
+    METADATA_STATIC = 12,
   }
 }
 
@@ -391,6 +404,12 @@ export class VirtualHost extends jspb.Message {
   getMetadata(): google_protobuf_struct_pb.Struct | undefined;
   setMetadata(value?: google_protobuf_struct_pb.Struct): void;
 
+  hasMetadataStatic(): boolean;
+  clearMetadataStatic(): void;
+  getMetadataStatic(): SourceMetadata | undefined;
+  setMetadataStatic(value?: SourceMetadata): void;
+
+  getOpaqueMetadataCase(): VirtualHost.OpaqueMetadataCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHost.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHost): VirtualHost.AsObject;
@@ -408,6 +427,13 @@ export namespace VirtualHost {
     routesList: Array<Route.AsObject>,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.VirtualHostOptions.AsObject,
     metadata?: google_protobuf_struct_pb.Struct.AsObject,
+    metadataStatic?: SourceMetadata.AsObject,
+  }
+
+  export enum OpaqueMetadataCase {
+    OPAQUE_METADATA_NOT_SET = 0,
+    METADATA = 6,
+    METADATA_STATIC = 7,
   }
 }
 
@@ -447,10 +473,16 @@ export class Route extends jspb.Message {
   getMetadata(): google_protobuf_struct_pb.Struct | undefined;
   setMetadata(value?: google_protobuf_struct_pb.Struct): void;
 
+  hasMetadataStatic(): boolean;
+  clearMetadataStatic(): void;
+  getMetadataStatic(): SourceMetadata | undefined;
+  setMetadataStatic(value?: SourceMetadata): void;
+
   getName(): string;
   setName(value: string): void;
 
   getActionCase(): Route.ActionCase;
+  getOpaqueMetadataCase(): Route.OpaqueMetadataCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Route.AsObject;
   static toObject(includeInstance: boolean, msg: Route): Route.AsObject;
@@ -470,6 +502,7 @@ export namespace Route {
     graphqlSchemaRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteOptions.AsObject,
     metadata?: google_protobuf_struct_pb.Struct.AsObject,
+    metadataStatic?: SourceMetadata.AsObject,
     name: string,
   }
 
@@ -479,6 +512,12 @@ export namespace Route {
     REDIRECT_ACTION = 3,
     DIRECT_RESPONSE_ACTION = 4,
     GRAPHQL_SCHEMA_REF = 8,
+  }
+
+  export enum OpaqueMetadataCase {
+    OPAQUE_METADATA_NOT_SET = 0,
+    METADATA = 6,
+    METADATA_STATIC = 9,
   }
 }
 
@@ -801,6 +840,58 @@ export namespace DirectResponseAction {
   export type AsObject = {
     status: number,
     body: string,
+  }
+}
+
+export class SourceMetadata extends jspb.Message {
+  clearSourcesList(): void;
+  getSourcesList(): Array<SourceMetadata.SourceRef>;
+  setSourcesList(value: Array<SourceMetadata.SourceRef>): void;
+  addSources(value?: SourceMetadata.SourceRef, index?: number): SourceMetadata.SourceRef;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SourceMetadata.AsObject;
+  static toObject(includeInstance: boolean, msg: SourceMetadata): SourceMetadata.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SourceMetadata, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SourceMetadata;
+  static deserializeBinaryFromReader(message: SourceMetadata, reader: jspb.BinaryReader): SourceMetadata;
+}
+
+export namespace SourceMetadata {
+  export type AsObject = {
+    sourcesList: Array<SourceMetadata.SourceRef.AsObject>,
+  }
+
+  export class SourceRef extends jspb.Message {
+    hasResourceRef(): boolean;
+    clearResourceRef(): void;
+    getResourceRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+    setResourceRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+    getResourceKind(): string;
+    setResourceKind(value: string): void;
+
+    getObservedGeneration(): number;
+    setObservedGeneration(value: number): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SourceRef.AsObject;
+    static toObject(includeInstance: boolean, msg: SourceRef): SourceRef.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SourceRef, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SourceRef;
+    static deserializeBinaryFromReader(message: SourceRef, reader: jspb.BinaryReader): SourceRef;
+  }
+
+  export namespace SourceRef {
+    export type AsObject = {
+      resourceRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+      resourceKind: string,
+      observedGeneration: number,
+    }
   }
 }
 

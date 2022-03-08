@@ -8,7 +8,6 @@ import (
 	flag "github.com/spf13/pflag"
 	v1 "k8s.io/api/core/v1"
 
-	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/k8s-utils/installutils/helmchart"
@@ -251,9 +250,7 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 	config.Observability.Deployment.Image.PullPolicy = &pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = &pullPolicy
 
-	if err = updateExtensionsImageVersionAndPullPolicy(config, pullPolicy, version); err != nil {
-		return nil, err
-	}
+	updateExtensionsImageVersionAndPullPolicy(config, pullPolicy, version)
 
 	if gc.Arguments.RepoPrefixOverride != "" {
 		config.Global.Image.Registry = &gc.Arguments.RepoPrefixOverride
@@ -282,28 +279,16 @@ func (gc *GenerationConfig) generateValueDocs() error {
 	return writeDocs(helmchart.Doc(config), gc.GenerationFiles.DocsOutput)
 }
 
-func updateExtensionsImageVersionAndPullPolicy(config HelmConfig, pullPolicy string, version *string) (err error) {
-	bytes, err := yaml.Marshal(config.Global.Extensions)
-	if err != nil {
-		return err
-	}
-	var glooEeExtensions GlooEeExtensions
-	err = yaml.Unmarshal(bytes, &glooEeExtensions)
-	if err != nil {
-		return err
-	}
+func updateExtensionsImageVersionAndPullPolicy(config HelmConfig, pullPolicy string, version *string) {
 	// Extauth and rate-limit are both referenced in Values.gloo.settings, and thus need to be retro-typed
 	// to avoid type-leakage into gloo-OS. Because helm like re-typing values defined in imported charts,
 	// we must also place these in the shared `.Values.global.` struct.
 	// The following code simply applies the version/pull policy cohesion that generateValuesYamlForGlooE() does
 	// for everything else.
 
-	glooEeExtensions.ExtAuth.Deployment.Image.Tag = version
-	glooEeExtensions.ExtAuth.Deployment.Image.PullPolicy = &pullPolicy
+	config.Global.Extensions.ExtAuth.Deployment.Image.Tag = version
+	config.Global.Extensions.ExtAuth.Deployment.Image.PullPolicy = &pullPolicy
 
-	glooEeExtensions.RateLimit.Deployment.Image.Tag = version
-	glooEeExtensions.RateLimit.Deployment.Image.PullPolicy = &pullPolicy
-
-	config.Global.Extensions = glooEeExtensions
-	return nil
+	config.Global.Extensions.RateLimit.Deployment.Image.Tag = version
+	config.Global.Extensions.RateLimit.Deployment.Image.PullPolicy = &pullPolicy
 }

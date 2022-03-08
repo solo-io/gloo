@@ -1,3 +1,4 @@
+{{- if .Values.global.glooStats.enabled }}
 {{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" ) ( .Values.global.glooStats.serviceMonitor ) }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -6,7 +7,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     monitoring: gloo-components
-    release: {{ default "prom" .Values.global.glooStats.serviceMonitorReleaseLabel }}
+    release: {{ default "prom" .Values.global.glooStats.serviceMonitor.releaseLabel }}
 spec:
   jobLabel: gloo-control-plane-stats
   targetLabels: [app, gloo, gloo-fed]
@@ -21,4 +22,5 @@ spec:
   - port: http-monitoring
     path: /metrics
     interval: 15s
-{{- end }}
+{{- end }} {{/* if .Values.global.glooStats.serviceMonitor */}}
+{{- end }} {{/* if .Values.global.glooStats.enabled */}}

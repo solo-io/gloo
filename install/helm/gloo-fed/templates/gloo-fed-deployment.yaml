@@ -2,6 +2,7 @@
 {{- if .Values.enabled }}
 {{- $glooFed := $.Values.glooFed}}
 {{- $glooFedImage := merge $glooFed.image .Values.global.image }}
+{{- $statsConfig := coalesce $glooFed.stats .Values.global.glooStats }}
 
 apiVersion: apps/v1
 kind: Deployment
@@ -21,10 +22,12 @@ spec:
     metadata:
       labels:
         app: gloo-fed
+      {{- if $statsConfig.enabled }}
       annotations:
         prometheus.io/path: /metrics
-        prometheus.io/port: "8080"
+        prometheus.io/port: "9091"
         prometheus.io/scrape: "true"
+      {{- end }}
     spec:
       serviceAccountName: gloo-fed
       containers:
@@ -45,12 +48,16 @@ spec:
             secretKeyRef:
               name: {{ .Values.license_secret_name }}
               key: license-key
+        {{- if $statsConfig.enabled }}
+        - name: START_STATS_SERVER
+          value: "true"
+        {{- end }}
         imagePullPolicy: {{ $glooFedImage.pullPolicy }}
         name: gloo-fed
-        {{- if .Values.global.glooStats.serviceMonitor }}
+        {{- if $statsConfig.podMonitorEnabled }}
         ports:
           - name: http-monitoring
-            containerPort: 8080
+            containerPort: 9091
         {{- end }}
 {{- if $glooFed.resources }}
         resources:

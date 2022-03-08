@@ -351,7 +351,7 @@
 |gloo.gateway.validation.webhook.extraAnnotations.NAME|string||extra annotations to add to the webhook|
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
-|gloo.gateway.deployment.image.tag|string|1.11.0-beta17|tag for the container|
+|gloo.gateway.deployment.image.tag|string|1.11.0-beta18|tag for the container|
 |gloo.gateway.deployment.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -401,7 +401,7 @@
 |gloo.gateway.deployment.resources.requests.memory|string||amount of memory|
 |gloo.gateway.deployment.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.certGenJob.image.tag|string|1.11.0-beta17|tag for the container|
+|gloo.gateway.certGenJob.image.tag|string|1.11.0-beta18|tag for the container|
 |gloo.gateway.certGenJob.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.certGenJob.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -1004,76 +1004,6 @@
 |redis.clientSideShardingEnabled|bool|false|If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false.|
 |redis.disabled|bool|false|If set to true, Redis service creation will be blocked. Default is false.|
 |redis.aclPrefix|string|user default +@all allkeys on >|The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password.|
-|rateLimit.enabled|bool||if true, deploy rate limit service (default true)|
-|rateLimit.deployment.name|string|||
-|rateLimit.deployment.glooAddress|string|||
-|rateLimit.deployment.glooPort|uint||Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config|
-|rateLimit.deployment.dynamodb.region|string||aws region to run DynamoDB requests in|
-|rateLimit.deployment.dynamodb.secretName|string||name of the aws secret in gloo's installation namespace that has aws creds (if provided, uses DynamoDB to back rate-limiting service instead of Redis)|
-|rateLimit.deployment.dynamodb.tableName|string||DynamoDB table name used to back rate limit service (default rate-limits)|
-|rateLimit.deployment.dynamodb.consistentReads|bool||if true, reads from DynamoDB will be strongly consistent (default false)|
-|rateLimit.deployment.dynamodb.batchSize|uint8||batch size for get requests to DynamoDB (max 100, default 100)|
-|rateLimit.deployment.image.tag|string||tag for the container|
-|rateLimit.deployment.image.repository|string||image name (repository) for the container.|
-|rateLimit.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|rateLimit.deployment.image.pullPolicy|string||image pull policy for the container|
-|rateLimit.deployment.image.pullSecret|string||image pull policy for the container |
-|rateLimit.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|rateLimit.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
-|rateLimit.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|rateLimit.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
-|rateLimit.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
-|rateLimit.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
-|rateLimit.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
-|rateLimit.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
-|rateLimit.deployment.extraRateLimitLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment.|
-|rateLimit.deployment.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
-|rateLimit.deployment.podDisruptionBudget.minAvailable|int32||An eviction is allowed if at least "minAvailable" pods selected by "selector" will still be available after the eviction, i.e. even in the absence of the evicted pod. So for example you can prevent all voluntary evictions by specifying "100%".|
-|rateLimit.deployment.podDisruptionBudget.maxUnavailable|int32||An eviction is allowed if at most "maxUnavailable" pods selected by "selector" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with "minAvailable".|
-|rateLimit.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|rateLimit.deployment.replicas|int||number of instances to deploy|
-|rateLimit.deployment.customEnv[].name|string|||
-|rateLimit.deployment.customEnv[].value|string|||
-|rateLimit.deployment.customEnv[].valueFrom.fieldRef.apiVersion|string|||
-|rateLimit.deployment.customEnv[].valueFrom.fieldRef.fieldPath|string|||
-|rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.containerName|string|||
-|rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.resource|string|||
-|rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|int64|||
-|rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|int32|||
-|rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|bool|||
-|rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|uint|||
-|rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|int32|||
-|rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
-|rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
-|rateLimit.deployment.customEnv[].valueFrom.configMapKeyRef.name|string|||
-|rateLimit.deployment.customEnv[].valueFrom.configMapKeyRef.key|string|||
-|rateLimit.deployment.customEnv[].valueFrom.configMapKeyRef.optional|bool|||
-|rateLimit.deployment.customEnv[].valueFrom.secretKeyRef.name|string|||
-|rateLimit.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
-|rateLimit.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
-|rateLimit.deployment.restartPolicy|string||restart policy to use when the pod exits|
-|rateLimit.deployment.nodeName|string||name of node to run on|
-|rateLimit.deployment.nodeSelector.NAME|string||label selector for nodes|
-|rateLimit.deployment.tolerations[].key|string|||
-|rateLimit.deployment.tolerations[].operator|string|||
-|rateLimit.deployment.tolerations[].value|string|||
-|rateLimit.deployment.tolerations[].effect|string|||
-|rateLimit.deployment.tolerations[].tolerationSeconds|int64|||
-|rateLimit.deployment.affinity.NAME|interface|||
-|rateLimit.deployment.hostAliases[]|interface|||
-|rateLimit.deployment.resources.limits.memory|string||amount of memory|
-|rateLimit.deployment.resources.limits.cpu|string||amount of CPUs|
-|rateLimit.deployment.resources.requests.memory|string||amount of memory|
-|rateLimit.deployment.resources.requests.cpu|string||amount of CPUs|
-|rateLimit.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|rateLimit.service.port|uint|||
-|rateLimit.service.name|string|||
-|rateLimit.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|rateLimit.upstream.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|rateLimit.customRateLimit|interface|||
-|rateLimit.beforeAuth|bool||If true, rate limiting checks occur before auth (default false).|
-|rateLimit.affinity[].NAME|interface||Affinity rules to be applied|
-|rateLimit.antiAffinity[].NAME|interface||Anti-affinity rules to be applied|
 |observability.enabled|bool|true|if true, deploy observability service (default true)|
 |observability.deployment.image.tag|string|Version number, ex. 1.8.0|tag for the container|
 |observability.deployment.image.repository|string|observability-ee|image name (repository) for the container.|
@@ -1143,50 +1073,85 @@
 |grafana|interface|||
 |prometheus|interface|||
 |tags.NAME|string|||
-|gloo-fed.enabled|bool|false|If true, deploy federation service (default true).|
+|gloo-fed.global|interface|||
+|gloo-fed.enabled|bool||If true, deploy federation service (default true).|
 |gloo-fed.create_license_secret|bool|false||
-|gloo-fed.gloo_fed.replicas|int||number of instances to deploy|
-|gloo-fed.gloo_fed.customEnv[].name|string|||
-|gloo-fed.gloo_fed.customEnv[].value|string|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.fieldRef.apiVersion|string|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.fieldRef.fieldPath|string|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.containerName|string|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.resource|string|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor|int64|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor|int32|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor|bool|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor[]|uint|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor[]|int32|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.configMapKeyRef.name|string|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.configMapKeyRef.key|string|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.configMapKeyRef.optional|bool|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.secretKeyRef.name|string|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.secretKeyRef.key|string|||
-|gloo-fed.gloo_fed.customEnv[].valueFrom.secretKeyRef.optional|bool|||
-|gloo-fed.gloo_fed.restartPolicy|string||restart policy to use when the pod exits|
-|gloo-fed.gloo_fed.nodeName|string||name of node to run on|
-|gloo-fed.gloo_fed.nodeSelector.NAME|string||label selector for nodes|
-|gloo-fed.gloo_fed.tolerations[].key|string|||
-|gloo-fed.gloo_fed.tolerations[].operator|string|||
-|gloo-fed.gloo_fed.tolerations[].value|string|||
-|gloo-fed.gloo_fed.tolerations[].effect|string|||
-|gloo-fed.gloo_fed.tolerations[].tolerationSeconds|int64|||
-|gloo-fed.gloo_fed.affinity.NAME|interface|||
-|gloo-fed.gloo_fed.hostAliases[]|interface|||
-|gloo-fed.gloo_fed.resources.limits.memory|string||amount of memory|
-|gloo-fed.gloo_fed.resources.limits.cpu|string||amount of CPUs|
-|gloo-fed.gloo_fed.resources.requests.memory|string||amount of memory|
-|gloo-fed.gloo_fed.resources.requests.cpu|string||amount of CPUs|
-|gloo-fed.gloo_fed.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo-fed.gloo_fed.image.tag|string||tag for the container|
-|gloo-fed.gloo_fed.image.repository|string||image name (repository) for the container.|
-|gloo-fed.gloo_fed.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo-fed.gloo_fed.image.pullPolicy|string||image pull policy for the container|
-|gloo-fed.gloo_fed.image.pullSecret|string||image pull policy for the container |
-|gloo-fed.gloo_fed.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo-fed.gloo_fed.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo-fed.license_secret_name|string|||
+|gloo-fed.license_key|string|||
+|gloo-fed.enableMultiClusterRbac|bool|||
+|gloo-fed.glooFedApiserver.enable|bool|||
+|gloo-fed.glooFedApiserver.replicas|int|||
+|gloo-fed.glooFedApiserver.image.tag|string||tag for the container|
+|gloo-fed.glooFedApiserver.image.repository|string||image name (repository) for the container.|
+|gloo-fed.glooFedApiserver.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
+|gloo-fed.glooFedApiserver.image.pullPolicy|string||image pull policy for the container|
+|gloo-fed.glooFedApiserver.image.pullSecret|string||image pull policy for the container |
+|gloo-fed.glooFedApiserver.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
+|gloo-fed.glooFedApiserver.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo-fed.glooFedApiserver.port|int|||
+|gloo-fed.glooFedApiserver.healthCheckPort|int|||
+|gloo-fed.glooFedApiserver.resources.limits.memory|string||amount of memory|
+|gloo-fed.glooFedApiserver.resources.limits.cpu|string||amount of CPUs|
+|gloo-fed.glooFedApiserver.resources.requests.memory|string||amount of memory|
+|gloo-fed.glooFedApiserver.resources.requests.cpu|string||amount of CPUs|
+|gloo-fed.glooFedApiserver.stats.enabled|bool||Controls whether or not envoy stats are enabled|
+|gloo-fed.glooFedApiserver.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo-fed.glooFedApiserver.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|gloo-fed.glooFedApiserver.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
+|gloo-fed.glooFedApiserver.floatingUserId|bool|||
+|gloo-fed.glooFedApiserver.runAsUser|float64|||
+|gloo-fed.glooFedApiserver.console.image.tag|string||tag for the container|
+|gloo-fed.glooFedApiserver.console.image.repository|string||image name (repository) for the container.|
+|gloo-fed.glooFedApiserver.console.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
+|gloo-fed.glooFedApiserver.console.image.pullPolicy|string||image pull policy for the container|
+|gloo-fed.glooFedApiserver.console.image.pullSecret|string||image pull policy for the container |
+|gloo-fed.glooFedApiserver.console.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
+|gloo-fed.glooFedApiserver.console.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo-fed.glooFedApiserver.console.port|int|||
+|gloo-fed.glooFedApiserver.console.resources.limits.memory|string||amount of memory|
+|gloo-fed.glooFedApiserver.console.resources.limits.cpu|string||amount of CPUs|
+|gloo-fed.glooFedApiserver.console.resources.requests.memory|string||amount of memory|
+|gloo-fed.glooFedApiserver.console.resources.requests.cpu|string||amount of CPUs|
+|gloo-fed.glooFedApiserver.envoy.image.tag|string||tag for the container|
+|gloo-fed.glooFedApiserver.envoy.image.repository|string||image name (repository) for the container.|
+|gloo-fed.glooFedApiserver.envoy.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
+|gloo-fed.glooFedApiserver.envoy.image.pullPolicy|string||image pull policy for the container|
+|gloo-fed.glooFedApiserver.envoy.image.pullSecret|string||image pull policy for the container |
+|gloo-fed.glooFedApiserver.envoy.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
+|gloo-fed.glooFedApiserver.envoy.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo-fed.glooFedApiserver.envoy.resources.limits.memory|string||amount of memory|
+|gloo-fed.glooFedApiserver.envoy.resources.limits.cpu|string||amount of CPUs|
+|gloo-fed.glooFedApiserver.envoy.resources.requests.memory|string||amount of memory|
+|gloo-fed.glooFedApiserver.envoy.resources.requests.cpu|string||amount of CPUs|
+|gloo-fed.glooFedApiserver.envoy.bootstrapConfig.configMapName|string|||
+|gloo-fed.glooFed.replicas|int|||
+|gloo-fed.glooFed.resources.limits.memory|string||amount of memory|
+|gloo-fed.glooFed.resources.limits.cpu|string||amount of CPUs|
+|gloo-fed.glooFed.resources.requests.memory|string||amount of memory|
+|gloo-fed.glooFed.resources.requests.cpu|string||amount of CPUs|
+|gloo-fed.glooFed.image.tag|string||tag for the container|
+|gloo-fed.glooFed.image.repository|string||image name (repository) for the container.|
+|gloo-fed.glooFed.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
+|gloo-fed.glooFed.image.pullPolicy|string||image pull policy for the container|
+|gloo-fed.glooFed.image.pullSecret|string||image pull policy for the container |
+|gloo-fed.glooFed.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
+|gloo-fed.glooFed.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo-fed.glooFed.stats.enabled|bool||Controls whether or not envoy stats are enabled|
+|gloo-fed.glooFed.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo-fed.glooFed.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|gloo-fed.glooFed.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
+|gloo-fed.rbac.create|bool|||
+|gloo-fed.rbacWebhook.image.tag|string||tag for the container|
+|gloo-fed.rbacWebhook.image.repository|string||image name (repository) for the container.|
+|gloo-fed.rbacWebhook.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
+|gloo-fed.rbacWebhook.image.pullPolicy|string||image pull policy for the container|
+|gloo-fed.rbacWebhook.image.pullSecret|string||image pull policy for the container |
+|gloo-fed.rbacWebhook.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
+|gloo-fed.rbacWebhook.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo-fed.rbacWebhook.resources.limits.memory|string||amount of memory|
+|gloo-fed.rbacWebhook.resources.limits.cpu|string||amount of CPUs|
+|gloo-fed.rbacWebhook.resources.requests.memory|string||amount of memory|
+|gloo-fed.rbacWebhook.resources.requests.cpu|string||amount of CPUs|
 |global.image.tag|string||tag for the container|
 |global.image.repository|string||image name (repository) for the container.|
 |global.image.registry|string|quay.io/solo-io|image prefix/registry e.g. (quay.io/solo-io)|
@@ -1203,7 +1168,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.11.0-beta17|tag for the container|
+|global.glooMtls.sds.image.tag|string|1.11.0-beta18|tag for the container|
 |global.glooMtls.sds.image.repository|string||image name (repository) for the container.|
 |global.glooMtls.sds.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |global.glooMtls.sds.image.pullPolicy|string||image pull policy for the container|
@@ -1232,3 +1197,171 @@
 |global.istioIntegration.disableAutoinjection|bool||Annotate all pods (excluding those whitelisted by other config values) to with an explicit 'do not inject' annotation to prevent Istio from adding sidecars to all pods. It's recommended that this be set to true if Gloo's namespace is marked for Istio discovery, as some pods do not immediately work with an Istio sidecar without extra manual configuration.|
 |global.extraSpecs|bool|true|Add additional specs to include in the settings manifest, as defined by a helm partial. Defaults to false in open source, and true in enterprise.|
 |global.extauthCustomYaml|bool|false|Inject whatever yaml exists in .Values.global.extensions.extAuth into settings.spec.extauth, instead of structured yaml (which is enterprise only). Defaults to true in open source, and false in enterprise|
+|global.stats.enabled|bool||Controls whether or not envoy stats are enabled|
+|global.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|global.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|global.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
+|global.stats.serviceMonitor.releaseLabel|string||The release label used for the Pod/Service Monitor (default prom)|
+|global.stats.podMonitor.releaseLabel|string||The release label used for the Pod/Service Monitor (default prom)|
+|global.extensions.extAuth.enabled|bool|true|if true, deploy ExtAuth service (default true)|
+|global.extensions.extAuth.userIdHeader|string|x-user-id||
+|global.extensions.extAuth.deployment.name|string|extauth||
+|global.extensions.extAuth.deployment.glooAddress|string|||
+|global.extensions.extAuth.deployment.glooPort|uint|9977|Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config|
+|global.extensions.extAuth.deployment.port|uint|8083||
+|global.extensions.extAuth.deployment.image.tag|string|Version number, ex. 1.8.0|tag for the container|
+|global.extensions.extAuth.deployment.image.repository|string|extauth-ee|image name (repository) for the container.|
+|global.extensions.extAuth.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
+|global.extensions.extAuth.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
+|global.extensions.extAuth.deployment.image.pullSecret|string||image pull policy for the container |
+|global.extensions.extAuth.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
+|global.extensions.extAuth.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|global.extensions.extAuth.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
+|global.extensions.extAuth.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|global.extensions.extAuth.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|global.extensions.extAuth.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
+|global.extensions.extAuth.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|global.extensions.extAuth.deployment.fsGroup|float64||Explicitly set the group ID for volume ownership. Default is 10101|
+|global.extensions.extAuth.deployment.floatingUserId|bool|false|set to true to allow the cluster to dynamically assign a user ID|
+|global.extensions.extAuth.deployment.extraExtAuthLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ExtAuth deployment.|
+|global.extensions.extAuth.deployment.extraVolume[].NAME|interface||custom defined yaml for allowing extra volume on the extauth container|
+|global.extensions.extAuth.deployment.extraVolumeMount[].NAME|interface||custom defined yaml for allowing extra volume mounts on the extauth container|
+|global.extensions.extAuth.deployment.podDisruptionBudget.minAvailable|int32||An eviction is allowed if at least "minAvailable" pods selected by "selector" will still be available after the eviction, i.e. even in the absence of the evicted pod. So for example you can prevent all voluntary evictions by specifying "100%".|
+|global.extensions.extAuth.deployment.podDisruptionBudget.maxUnavailable|int32||An eviction is allowed if at most "maxUnavailable" pods selected by "selector" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with "minAvailable".|
+|global.extensions.extAuth.deployment.replicas|int||number of instances to deploy|
+|global.extensions.extAuth.deployment.customEnv[].name|string|||
+|global.extensions.extAuth.deployment.customEnv[].value|string|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.fieldRef.apiVersion|string|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.fieldRef.fieldPath|string|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.resourceFieldRef.containerName|string|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.resourceFieldRef.resource|string|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|int64|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|int32|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|bool|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|uint|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|int32|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.configMapKeyRef.name|string|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.configMapKeyRef.key|string|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.configMapKeyRef.optional|bool|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.secretKeyRef.name|string|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
+|global.extensions.extAuth.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|global.extensions.extAuth.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|global.extensions.extAuth.deployment.nodeName|string||name of node to run on|
+|global.extensions.extAuth.deployment.nodeSelector.NAME|string||label selector for nodes|
+|global.extensions.extAuth.deployment.tolerations[].key|string|||
+|global.extensions.extAuth.deployment.tolerations[].operator|string|||
+|global.extensions.extAuth.deployment.tolerations[].value|string|||
+|global.extensions.extAuth.deployment.tolerations[].effect|string|||
+|global.extensions.extAuth.deployment.tolerations[].tolerationSeconds|int64|||
+|global.extensions.extAuth.deployment.affinity.NAME|interface|||
+|global.extensions.extAuth.deployment.hostAliases[]|interface|||
+|global.extensions.extAuth.deployment.resources.limits.memory|string||amount of memory|
+|global.extensions.extAuth.deployment.resources.limits.cpu|string||amount of CPUs|
+|global.extensions.extAuth.deployment.resources.requests.memory|string||amount of memory|
+|global.extensions.extAuth.deployment.resources.requests.cpu|string||amount of CPUs|
+|global.extensions.extAuth.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.extAuth.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.extAuth.service.port|uint|8083||
+|global.extensions.extAuth.service.name|string|extauth||
+|global.extensions.extAuth.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.extAuth.signingKey.name|string|extauth-signing-key||
+|global.extensions.extAuth.signingKey.signing-key|string|||
+|global.extensions.extAuth.tlsEnabled|bool|false|if true, have extauth terminate TLS itself (whereas Gloo mTLS mode runs an Envoy and SDS sidecars to do TLS termination and cert rotation)|
+|global.extensions.extAuth.secretName|string||the name of the tls secret used to secure connections to the extauth service|
+|global.extensions.extAuth.certPath|string||location of tls termination cert, if omitted defaults to /etc/envoy/ssl/tls.crt|
+|global.extensions.extAuth.keyPath|string||location of tls termination key, if omitted defaults to /etc/envoy/ssl/tls.key|
+|global.extensions.extAuth.plugins.NAME.image.tag|string||tag for the container|
+|global.extensions.extAuth.plugins.NAME.image.repository|string||image name (repository) for the container.|
+|global.extensions.extAuth.plugins.NAME.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
+|global.extensions.extAuth.plugins.NAME.image.pullPolicy|string||image pull policy for the container|
+|global.extensions.extAuth.plugins.NAME.image.pullSecret|string||image pull policy for the container |
+|global.extensions.extAuth.plugins.NAME.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
+|global.extensions.extAuth.plugins.NAME.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|global.extensions.extAuth.envoySidecar|bool|false|if true, deploy ExtAuth as a sidecar with envoy (defaults to false)|
+|global.extensions.extAuth.standaloneDeployment|bool|true|if true, create a standalone ExtAuth deployment (defaults to true)|
+|global.extensions.extAuth.transportApiVersion|string|V3|Determines the API version for the ext_authz transport protocol that will be used by Envoy to communicate with the auth server. Defaults to 'V3''|
+|global.extensions.extAuth.serviceName|string|ext-auth||
+|global.extensions.extAuth.requestTimeout|string||Timeout for the ext auth service to respond (defaults to 200ms)|
+|global.extensions.extAuth.headersToRedact|string||Space separated list of headers to redact from the logs. To avoid the default redactions, specify '-' as the value|
+|global.extensions.extAuth.secret.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.extAuth.upstream.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.extAuth.requestBody.maxRequestBytes|uint32||Sets the maximum size of a message body that the filter will hold in memory, returning 413 and *not* initiating the authorization process when reaching the maximum (defaults to 4KB)|
+|global.extensions.extAuth.requestBody.allowPartialMessage|bool||if true, Envoy will buffer the message until max_request_bytes is reached, dispatch the authorization request, and not return an error|
+|global.extensions.extAuth.requestBody.packAsBytes|bool||if true, Envoy will send the body sent to the external authorization service with raw bytes|
+|global.extensions.extAuth.affinity.NAME|interface||Affinity rules to be applied. If unset, require extAuth pods to be scheduled on nodes with already-running gateway-proxy pods|
+|global.extensions.extAuth.antiAffinity.NAME|interface||Anti-affinity rules to be applied|
+|global.extensions.rateLimit.enabled|bool|true|if true, deploy rate limit service (default true)|
+|global.extensions.rateLimit.deployment.name|string|rate-limit||
+|global.extensions.rateLimit.deployment.glooAddress|string|gloo||
+|global.extensions.rateLimit.deployment.glooPort|uint|9977|Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config|
+|global.extensions.rateLimit.deployment.dynamodb.region|string|us-east-2|aws region to run DynamoDB requests in|
+|global.extensions.rateLimit.deployment.dynamodb.secretName|string||name of the aws secret in gloo's installation namespace that has aws creds (if provided, uses DynamoDB to back rate-limiting service instead of Redis)|
+|global.extensions.rateLimit.deployment.dynamodb.tableName|string|rate-limits|DynamoDB table name used to back rate limit service (default rate-limits)|
+|global.extensions.rateLimit.deployment.dynamodb.consistentReads|bool|true|if true, reads from DynamoDB will be strongly consistent (default false)|
+|global.extensions.rateLimit.deployment.dynamodb.batchSize|uint8|100|batch size for get requests to DynamoDB (max 100, default 100)|
+|global.extensions.rateLimit.deployment.image.tag|string|Version number, ex. 1.8.0|tag for the container|
+|global.extensions.rateLimit.deployment.image.repository|string|rate-limit-ee|image name (repository) for the container.|
+|global.extensions.rateLimit.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
+|global.extensions.rateLimit.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
+|global.extensions.rateLimit.deployment.image.pullSecret|string||image pull policy for the container |
+|global.extensions.rateLimit.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
+|global.extensions.rateLimit.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|global.extensions.rateLimit.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
+|global.extensions.rateLimit.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|global.extensions.rateLimit.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|global.extensions.rateLimit.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
+|global.extensions.rateLimit.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|global.extensions.rateLimit.deployment.floatingUserId|bool|false|set to true to allow the cluster to dynamically assign a user ID|
+|global.extensions.rateLimit.deployment.extraRateLimitLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment.|
+|global.extensions.rateLimit.deployment.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
+|global.extensions.rateLimit.deployment.podDisruptionBudget.minAvailable|int32||An eviction is allowed if at least "minAvailable" pods selected by "selector" will still be available after the eviction, i.e. even in the absence of the evicted pod. So for example you can prevent all voluntary evictions by specifying "100%".|
+|global.extensions.rateLimit.deployment.podDisruptionBudget.maxUnavailable|int32||An eviction is allowed if at most "maxUnavailable" pods selected by "selector" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with "minAvailable".|
+|global.extensions.rateLimit.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.rateLimit.deployment.replicas|int||number of instances to deploy|
+|global.extensions.rateLimit.deployment.customEnv[].name|string|||
+|global.extensions.rateLimit.deployment.customEnv[].value|string|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.fieldRef.apiVersion|string|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.fieldRef.fieldPath|string|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.containerName|string|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.resource|string|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|int64|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|int32|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|bool|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|uint|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|int32|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.configMapKeyRef.name|string|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.configMapKeyRef.key|string|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.configMapKeyRef.optional|bool|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.secretKeyRef.name|string|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
+|global.extensions.rateLimit.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|global.extensions.rateLimit.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|global.extensions.rateLimit.deployment.nodeName|string||name of node to run on|
+|global.extensions.rateLimit.deployment.nodeSelector.NAME|string||label selector for nodes|
+|global.extensions.rateLimit.deployment.tolerations[].key|string|||
+|global.extensions.rateLimit.deployment.tolerations[].operator|string|||
+|global.extensions.rateLimit.deployment.tolerations[].value|string|||
+|global.extensions.rateLimit.deployment.tolerations[].effect|string|||
+|global.extensions.rateLimit.deployment.tolerations[].tolerationSeconds|int64|||
+|global.extensions.rateLimit.deployment.affinity.NAME|interface|||
+|global.extensions.rateLimit.deployment.hostAliases[]|interface|||
+|global.extensions.rateLimit.deployment.resources.limits.memory|string||amount of memory|
+|global.extensions.rateLimit.deployment.resources.limits.cpu|string||amount of CPUs|
+|global.extensions.rateLimit.deployment.resources.requests.memory|string||amount of memory|
+|global.extensions.rateLimit.deployment.resources.requests.cpu|string||amount of CPUs|
+|global.extensions.rateLimit.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.rateLimit.service.port|uint|18081||
+|global.extensions.rateLimit.service.name|string|rate-limit||
+|global.extensions.rateLimit.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.rateLimit.upstream.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.rateLimit.customRateLimit|interface|||
+|global.extensions.rateLimit.beforeAuth|bool|false|If true, rate limiting checks occur before auth (default false).|
+|global.extensions.rateLimit.affinity.NAME|interface||Affinity rules to be applied|
+|global.extensions.rateLimit.antiAffinity.NAME|interface||Anti-affinity rules to be applied|
+|global.extensions.glooRedis.enableAcl|bool|true|Whether to include the ACL policy on redis install. Defaults to true.|
+|global.extensions.dataPlanePerProxy|bool|||

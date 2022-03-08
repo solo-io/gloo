@@ -59,11 +59,6 @@ spec:
           readOnly: true
         imagePullPolicy: {{ $image.pullPolicy }}
         name: gloo-fed-rbac-validating-webhook
-        {{- if .Values.global.glooStats.serviceMonitor }}
-        ports:
-          - name: http-monitoring
-            containerPort: 8080
-        {{- end }}
 {{- if $rbacWebhook.resources }}
         resources:
 {{ toYaml $rbacWebhook.resources | indent 10}}

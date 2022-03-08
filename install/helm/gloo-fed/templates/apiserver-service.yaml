@@ -1,5 +1,6 @@
 {{- if .Values.glooFedApiserver.enable }}
-{{- $glooFedApiserver := $.Values.glooFedApiserver}}
+{{- $glooFedApiserver := $.Values.glooFedApiserver }}
+{{- $statsConfig := coalesce $glooFedApiserver.stats .Values.global.glooStats }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -21,9 +22,9 @@ spec:
     - name: healthcheck
       port: {{ $glooFedApiserver.healthCheckPort }}
       protocol: TCP
-    {{- if .Values.global.glooStats.serviceMonitor }}
+    {{- if $statsConfig.serviceMonitorEnabled }}
     - name: http-monitoring
-      port: 8080
+      port: 9091
     {{- end }}
   selector:
     app: gloo-fed

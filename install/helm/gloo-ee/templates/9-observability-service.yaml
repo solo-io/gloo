@@ -1,0 +1,17 @@
+{{- $statsConfig := coalesce .Values.observability.deployment.stats .Values.global.glooStats }}
+{{- if $statsConfig.serviceMonitorEnabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gloo
+    gloo: observability
+  name: observability
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    - name: http-monitoring
+      port: 9091
+  selector:
+    gloo: observability
+{{- end }} {{/* if $statsConfig.serviceMonitorEnabled */}}

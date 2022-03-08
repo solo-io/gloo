@@ -2,12 +2,18 @@ package generate
 
 import (
 	glooGen "github.com/solo-io/gloo/install/helm/gloo/generate"
-	v1 "k8s.io/api/core/v1"
+	glooFedGen "github.com/solo-io/solo-projects/install/helm/gloo-fed/generate"
 )
 
 type HelmConfig struct {
 	Config
-	Global *glooGen.Global `json:"global,omitempty"`
+	Global *GlobalConfig `json:"global,omitempty"`
+}
+
+type GlobalConfig struct {
+	*glooGen.Global
+	Stats      *GlooEEStats      `json:"stats,omitempty"`
+	Extensions *GlooEeExtensions `json:"extensions,omitempty"`
 }
 
 type GlooConfig struct {
@@ -16,18 +22,17 @@ type GlooConfig struct {
 }
 
 type Config struct {
-	Settings            *glooGen.Settings `json:"settings,omitempty"`
-	LicenseKey          string            `json:"license_key,omitempty"`
-	CreateLicenseSecret bool              `json:"create_license_secret"`
-	Gloo                *GlooConfig       `json:"gloo,omitempty"`
-	Redis               *Redis            `json:"redis,omitempty"`
-	RateLimit           *RateLimit        `json:"rateLimit,omitempty"`
-	Observability       *Observability    `json:"observability,omitempty"`
-	Rbac                *Rbac             `json:"rbac"`
-	Grafana             interface{}       `json:"grafana,omitempty"`
-	Prometheus          interface{}       `json:"prometheus,omitempty"`
-	Tags                map[string]string `json:"tags,omitempty"`
-	GlooFed             *GlooFed          `json:"gloo-fed,omitempty"`
+	Settings            *glooGen.Settings      `json:"settings,omitempty"`
+	LicenseKey          string                 `json:"license_key,omitempty"`
+	CreateLicenseSecret bool                   `json:"create_license_secret"`
+	Gloo                *GlooConfig            `json:"gloo,omitempty"`
+	Redis               *Redis                 `json:"redis,omitempty"`
+	Observability       *Observability         `json:"observability,omitempty"`
+	Rbac                *Rbac                  `json:"rbac"`
+	Grafana             interface{}            `json:"grafana,omitempty"`
+	Prometheus          interface{}            `json:"prometheus,omitempty"`
+	Tags                map[string]string      `json:"tags,omitempty"`
+	GlooFed             *glooFedGen.HelmConfig `json:"gloo-fed,omitempty"`
 }
 
 // Common
@@ -39,9 +44,20 @@ type Rbac struct {
 // Gloo-ee
 
 type GlooEeExtensions struct {
-	ExtAuth   *ExtAuth   `json:"extAuth,omitempty"`
-	RateLimit *RateLimit `json:"rateLimit,omitempty"`
-	GlooRedis *GlooRedis `json:"glooRedis,omitempty"`
+	ExtAuth           *ExtAuth   `json:"extAuth,omitempty"`
+	RateLimit         *RateLimit `json:"rateLimit,omitempty"`
+	GlooRedis         *GlooRedis `json:"glooRedis,omitempty"`
+	DataPlanePerProxy *bool      `json:"dataPlanePerProxy,omitempty"`
+}
+
+type GlooEEStats struct {
+	*glooGen.Stats
+	ServiceMonitor *PodServiceMonitor `json:"serviceMonitor,omitempty"`
+	PodMonitor     *PodServiceMonitor `json:"podMonitor,omitempty"`
+}
+
+type PodServiceMonitor struct {
+	ReleaseLabel *string `json:"releaseLabel,omitempty" desc:"The release label used for the Pod/Service Monitor (default prom)"`
 }
 
 type GlooRedis struct {
@@ -55,8 +71,8 @@ type RateLimit struct {
 	Upstream        *glooGen.KubeResourceOverride `json:"upstream,omitempty"`
 	CustomRateLimit interface{}                   `json:"customRateLimit,omitempty"`
 	BeforeAuth      bool                          `json:"beforeAuth,omitempty" desc:"If true, rate limiting checks occur before auth (default false)."`
-	Affinity        []map[string]interface{}      `json:"affinity,omitempty" desc:"Affinity rules to be applied"`
-	AntiAffinity    []map[string]interface{}      `json:"antiAffinity,omitempty" desc:"Anti-affinity rules to be applied"`
+	Affinity        map[string]interface{}        `json:"affinity,omitempty" desc:"Affinity rules to be applied"`
+	AntiAffinity    map[string]interface{}        `json:"antiAffinity,omitempty" desc:"Anti-affinity rules to be applied"`
 }
 
 type DynamoDb struct {
@@ -87,17 +103,6 @@ type RateLimitService struct {
 	Port uint   `json:"port"`
 	Name string `json:"name"`
 	*glooGen.KubeResourceOverride
-}
-
-type GlooFed struct {
-	Enabled             bool          `json:"enabled,omitempty" desc:"If true, deploy federation service (default true)."`
-	CreateLicenseSecret bool          `json:"create_license_secret"`
-	GlooFed             GlooFedValues `json:"gloo_fed,omitempty"`
-}
-
-type GlooFedValues struct {
-	*glooGen.DeploymentSpec
-	Image *glooGen.Image `json:"image,omitempty"`
 }
 
 type Redis struct {
@@ -174,6 +179,7 @@ type ExtAuth struct {
 	Service              *ExtAuthService               `json:"service,omitempty"`
 	SigningKey           *ExtAuthSigningKey            `json:"signingKey,omitempty"`
 	TlsEnabled           bool                          `json:"tlsEnabled" desc:"if true, have extauth terminate TLS itself (whereas Gloo mTLS mode runs an Envoy and SDS sidecars to do TLS termination and cert rotation)"`
+	SecretName           *string                       `json:"secretName" desc:"the name of the tls secret used to secure connections to the extauth service"`
 	CertPath             string                        `json:"certPath,omitempty" desc:"location of tls termination cert, if omitted defaults to /etc/envoy/ssl/tls.crt"`
 	KeyPath              string                        `json:"keyPath,omitempty" desc:"location of tls termination key, if omitted defaults to /etc/envoy/ssl/tls.key"`
 	Plugins              map[string]*ExtAuthPlugin     `json:"plugins,omitempty"`
@@ -186,24 +192,24 @@ type ExtAuth struct {
 	Secret               *glooGen.KubeResourceOverride `json:"secret,omitempty"`
 	Upstream             *glooGen.KubeResourceOverride `json:"upstream,omitempty"`
 	RequestBody          *BufferSettings               `json:"requestBody,omitempty" desc:"Set in order to send the body of the request, and not just the headers"`
-	Affinity             []map[string]interface{}      `json:"affinity,omitempty" desc:"Affinity rules to be applied. If unset, require extAuth pods to be scheduled on nodes with already-running gateway-proxy pods"`
-	AntiAffinity         []map[string]interface{}      `json:"antiAffinity,omitempty" desc:"Anti-affinity rules to be applied"`
+	Affinity             map[string]interface{}        `json:"affinity,omitempty" desc:"Affinity rules to be applied. If unset, require extAuth pods to be scheduled on nodes with already-running gateway-proxy pods"`
+	AntiAffinity         map[string]interface{}        `json:"antiAffinity,omitempty" desc:"Anti-affinity rules to be applied"`
 }
 
 type ExtAuthDeployment struct {
-	Name                string               `json:"name"`
-	GlooAddress         string               `json:"glooAddress,omitempty"`
-	GlooPort            uint                 `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
-	Port                uint                 `json:"port"`
-	Image               *glooGen.Image       `json:"image,omitempty"`
-	Stats               *glooGen.Stats       `json:"stats"`
-	RunAsUser           float64              `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
-	FsGroup             float64              `json:"fsGroup" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
-	FloatingUserId      bool                 `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
-	ExtraExtAuthLabels  map[string]string    `json:"extraExtAuthLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ExtAuth deployment."`
-	ExtraVolume         []v1.Volume          `json:"extraVolume,omitempty" desc:"custom defined yaml for allowing extra volume on the extauth container"`
-	ExtraVolumeMount    []v1.VolumeMount     `json:"extraVolumeMount,omitempty" desc:"custom defined yaml for allowing extra volume mounts on the extauth container"`
-	PodDisruptionBudget *PodDisruptionBudget `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the ExtAuth pods"`
+	Name                string                   `json:"name"`
+	GlooAddress         string                   `json:"glooAddress,omitempty"`
+	GlooPort            uint                     `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
+	Port                uint                     `json:"port"`
+	Image               *glooGen.Image           `json:"image,omitempty"`
+	Stats               *glooGen.Stats           `json:"stats"`
+	RunAsUser           float64                  `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
+	FsGroup             float64                  `json:"fsGroup" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
+	FloatingUserId      bool                     `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
+	ExtraExtAuthLabels  map[string]string        `json:"extraExtAuthLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ExtAuth deployment."`
+	ExtraVolume         []map[string]interface{} `json:"extraVolume,omitempty" desc:"custom defined yaml for allowing extra volume on the extauth container"`
+	ExtraVolumeMount    []map[string]interface{} `json:"extraVolumeMount,omitempty" desc:"custom defined yaml for allowing extra volume mounts on the extauth container"`
+	PodDisruptionBudget *PodDisruptionBudget     `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the ExtAuth pods"`
 	*glooGen.DeploymentSpec
 	*glooGen.KubeResourceOverride
 }
@@ -224,9 +230,9 @@ type ExtAuthPlugin struct {
 }
 
 type BufferSettings struct {
-	MaxRequestBytes     uint32 `json:"max_request_bytes,omitempty" desc:"Sets the maximum size of a message body that the filter will hold in memory, returning 413 and *not* initiating the authorization process when reaching the maximum (defaults to 4KB)"`
-	AllowPartialMessage bool   `json:"allow_partial_message,omitempty" desc:"if true, Envoy will buffer the message until max_request_bytes is reached, dispatch the authorization request, and not return an error"`
-	PackAsBytes         bool   `json:"pack_as_bytes,omitempty" desc:"if true, Envoy will send the body sent to the external authorization service with raw bytes"`
+	MaxRequestBytes     uint32 `json:"maxRequestBytes,omitempty" desc:"Sets the maximum size of a message body that the filter will hold in memory, returning 413 and *not* initiating the authorization process when reaching the maximum (defaults to 4KB)"`
+	AllowPartialMessage bool   `json:"allowPartialMessage,omitempty" desc:"if true, Envoy will buffer the message until max_request_bytes is reached, dispatch the authorization request, and not return an error"`
+	PackAsBytes         bool   `json:"packAsBytes,omitempty" desc:"if true, Envoy will send the body sent to the external authorization service with raw bytes"`
 }
 
 type OAuth struct {
@@ -235,6 +241,6 @@ type OAuth struct {
 }
 
 type PodDisruptionBudget struct {
-	minAvailable   int32 `json:"minAvailable,omitempty" desc:"An eviction is allowed if at least \"minAvailable\" pods selected by \"selector\" will still be available after the eviction, i.e. even in the absence of the evicted pod. So for example you can prevent all voluntary evictions by specifying \"100%\"."`
-	maxUnavailable int32 `json:"maxUnavailable,omitempty" desc:"An eviction is allowed if at most \"maxUnavailable\" pods selected by \"selector\" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with \"minAvailable\"."`
+	MinAvailable   int32 `json:"minAvailable,omitempty" desc:"An eviction is allowed if at least \"minAvailable\" pods selected by \"selector\" will still be available after the eviction, i.e. even in the absence of the evicted pod. So for example you can prevent all voluntary evictions by specifying \"100%\"."`
+	MaxUnavailable int32 `json:"maxUnavailable,omitempty" desc:"An eviction is allowed if at most \"maxUnavailable\" pods selected by \"selector\" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with \"minAvailable\"."`
 }

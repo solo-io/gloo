@@ -1,6 +1,7 @@
 {{- define "ratelimit.serviceSpec" -}}
 {{- $name := (index . 1) }}
 {{- with (first .) }}
+{{- $statsConfig := coalesce .Values.global.extensions.rateLimit.deployment.stats .Values.global.glooStats }}
 {{- $rateLimitName := .Values.global.extensions.rateLimit.service.name }}
 {{- if .Values.global.extensions.dataplanePerProxy }}
 {{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
@@ -18,7 +19,7 @@ spec:
   - name: grpc
     port: {{ .Values.global.extensions.rateLimit.service.port }}
     protocol: TCP
-{{- if .Values.global.glooStats.serviceMonitor }}
+{{- if $statsConfig.serviceMonitorEnabled }}
   - name: http-monitoring
     port: 9091
 {{- end }}

@@ -6,8 +6,7 @@
 {{- $envoyImage := merge $envoy.image .Values.global.image }}
 {{- $console := $glooFedApiserver.console }}
 {{- $consoleImage := merge $console.image .Values.global.image }}
-{{- $statsConfig := $.Values.glooFedApiserver.stats }}
-
+{{- $statsConfig := coalesce $glooFedApiserver.stats .Values.global.glooStats }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,9 +30,9 @@ spec:
         gloo-fed: console
       {{- if or $statsConfig.enabled .Values.global.istioIntegration.disableAutoinjection }}
       annotations:
-        {{- if $statsConfig.enabled}}
+        {{- if $statsConfig.enabled }}
         prometheus.io/path: /metrics
-        prometheus.io/port: "8080"
+        prometheus.io/port: "9091"
         prometheus.io/scrape: "true"
         {{- end}}
         {{- if .Values.global.istioIntegration.disableAutoinjection }}
@@ -60,6 +59,10 @@ spec:
             secretKeyRef:
               name: {{ .Values.license_secret_name }}
               key: license-key
+        {{- if $statsConfig.enabled }}
+        - name: START_STATS_SERVER
+          value: "true"
+        {{- end }}
         imagePullPolicy: {{ $glooFedApiserverImage.pullPolicy }}
         name: apiserver
         volumeMounts:
@@ -74,9 +77,9 @@ spec:
           - name: healthcheck
             containerPort: {{ $glooFedApiserver.healthCheckPort}}
             protocol: TCP
-          {{- if .Values.global.glooStats.serviceMonitor }}
+          {{- if $statsConfig.podMonitorEnabled }}
           - name: http-monitoring
-            containerPort: 8080
+            containerPort: 9091
           {{- end }}
 {{- if $glooFedApiserver.resources }}
         resources:

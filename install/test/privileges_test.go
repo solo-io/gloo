@@ -26,11 +26,11 @@ var _ = Describe("Deployment Privileges Test", func() {
 			It("is running all deployments with non root user permissions with knative, accessLogger, ingress, and mTLS enabled", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"gateway.enabled=false",
+						"gloo.gateway.enabled=false",
 						"settings.integrations.knative.enabled=true",
 						"settings.integrations.knative.version=v0.10.0",
-						"accessLogger.enabled=true",
-						"ingress.enabled=true",
+						"gloo.accessLogger.enabled=true",
+						"gloo.ingress.enabled=true",
 						"global.glooMtls.enabled=true",
 					},
 				})

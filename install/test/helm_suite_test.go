@@ -1,11 +1,16 @@
 package test
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"testing"
+
+	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
 
 	"github.com/solo-io/go-utils/testutils"
 
@@ -75,6 +80,11 @@ func BuildTestManifest(chartName string, namespace string, values helmValues) (T
 		return nil, err
 	}
 
+	err = validateHelmValues(chartName, helmValues)
+	if err != nil {
+		return nil, err
+	}
+
 	client, err := buildRenderer(namespace)
 	if err != nil {
 		return nil, err
@@ -130,6 +140,35 @@ func buildHelmValues(chartPath string, values helmValues) (map[string]interface{
 	}
 
 	return finalValues, nil
+}
+
+// validateHelmValues ensures that the unstructured helm values that are provided
+// to a chart match the Go type used to generate the Helm documentation
+// Returns nil if all the provided values are all included in the Go struct
+// Returns an error if a provided value is not included in the Go struct.
+func validateHelmValues(chartName string, unstructuredHelmValues map[string]interface{}) error {
+	if chartName != soloprojectsinstall.GlooEnterpriseChartName {
+		// We previously wrote tests against the GlooFed chart directly
+		// Now that GlooFed is a subchart of GlooEE, we write all tests against the GlooEE chart
+		return errors.New(fmt.Sprintf("unsupported chart name: %s", chartName))
+	}
+
+	// This Go type is the source of truth for the Helm docs
+	var structuredHelmValues generate.HelmConfig
+
+	unstructuredHelmValueBytes, err := json.Marshal(unstructuredHelmValues)
+	if err != nil {
+		return err
+	}
+
+	// This ensures that an error will be raised if there is an unstructured helm value
+	// defined but there is not the equivalent type defined in our Go struct
+	//
+	// When an error occurs, this means the Go type needs to be amended
+	// to include the new field (which is the source of truth for our docs)
+	return errors.Wrapf(
+		k8syamlutil.UnmarshalStrict(unstructuredHelmValueBytes, &structuredHelmValues),
+		"Helm Values: %s", unstructuredHelmValues)
 }
 
 func readValuesFile(filePath string) (map[string]interface{}, error) {

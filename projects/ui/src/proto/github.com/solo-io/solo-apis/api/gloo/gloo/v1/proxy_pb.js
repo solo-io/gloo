@@ -41,6 +41,8 @@ goog.exportSymbol('proto.gloo.solo.io.RedirectAction', null, global);
 goog.exportSymbol('proto.gloo.solo.io.RedirectAction.RedirectResponseCode', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Route', null, global);
 goog.exportSymbol('proto.gloo.solo.io.RouteAction', null, global);
+goog.exportSymbol('proto.gloo.solo.io.SourceMetadata', null, global);
+goog.exportSymbol('proto.gloo.solo.io.SourceMetadata.SourceRef', null, global);
 goog.exportSymbol('proto.gloo.solo.io.TcpHost', null, global);
 goog.exportSymbol('proto.gloo.solo.io.TcpHost.TcpAction', null, global);
 goog.exportSymbol('proto.gloo.solo.io.TcpListener', null, global);
@@ -278,7 +280,7 @@ proto.gloo.solo.io.Listener.repeatedFields_ = [6];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.Listener.oneofGroups_ = [[4,5,11]];
+proto.gloo.solo.io.Listener.oneofGroups_ = [[4,5,11],[9,12]];
 
 /**
  * @enum {number}
@@ -295,6 +297,22 @@ proto.gloo.solo.io.Listener.ListenertypeCase = {
  */
 proto.gloo.solo.io.Listener.prototype.getListenertypeCase = function() {
   return /** @type {proto.gloo.solo.io.Listener.ListenertypeCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.Listener.oneofGroups_[0]));
+};
+
+/**
+ * @enum {number}
+ */
+proto.gloo.solo.io.Listener.OpaqueMetadataCase = {
+  OPAQUE_METADATA_NOT_SET: 0,
+  METADATA: 9,
+  METADATA_STATIC: 12
+};
+
+/**
+ * @return {proto.gloo.solo.io.Listener.OpaqueMetadataCase}
+ */
+proto.gloo.solo.io.Listener.prototype.getOpaqueMetadataCase = function() {
+  return /** @type {proto.gloo.solo.io.Listener.OpaqueMetadataCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.Listener.oneofGroups_[1]));
 };
 
 
@@ -337,6 +355,7 @@ proto.gloo.solo.io.Listener.toObject = function(includeInstance, msg) {
     useProxyProto: (f = msg.getUseProxyProto()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     options: (f = msg.getOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.ListenerOptions.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
+    metadataStatic: (f = msg.getMetadataStatic()) && proto.gloo.solo.io.SourceMetadata.toObject(includeInstance, f),
     routeOptions: (f = msg.getRouteOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions.toObject(includeInstance, f)
   };
 
@@ -420,6 +439,11 @@ proto.gloo.solo.io.Listener.deserializeBinaryFromReader = function(msg, reader) 
       var value = new google_protobuf_struct_pb.Struct;
       reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
       msg.setMetadata(value);
+      break;
+    case 12:
+      var value = new proto.gloo.solo.io.SourceMetadata;
+      reader.readMessage(value,proto.gloo.solo.io.SourceMetadata.deserializeBinaryFromReader);
+      msg.setMetadataStatic(value);
       break;
     case 10:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteConfigurationOptions;
@@ -530,6 +554,14 @@ proto.gloo.solo.io.Listener.serializeBinaryToWriter = function(message, writer) 
       9,
       f,
       google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+    );
+  }
+  f = message.getMetadataStatic();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      proto.gloo.solo.io.SourceMetadata.serializeBinaryToWriter
     );
   }
   f = message.getRouteOptions();
@@ -781,7 +813,7 @@ proto.gloo.solo.io.Listener.prototype.getMetadata = function() {
 
 /** @param {?proto.google.protobuf.Struct|undefined} value */
 proto.gloo.solo.io.Listener.prototype.setMetadata = function(value) {
-  jspb.Message.setWrapperField(this, 9, value);
+  jspb.Message.setOneofWrapperField(this, 9, proto.gloo.solo.io.Listener.oneofGroups_[1], value);
 };
 
 
@@ -796,6 +828,36 @@ proto.gloo.solo.io.Listener.prototype.clearMetadata = function() {
  */
 proto.gloo.solo.io.Listener.prototype.hasMetadata = function() {
   return jspb.Message.getField(this, 9) != null;
+};
+
+
+/**
+ * optional SourceMetadata metadata_static = 12;
+ * @return {?proto.gloo.solo.io.SourceMetadata}
+ */
+proto.gloo.solo.io.Listener.prototype.getMetadataStatic = function() {
+  return /** @type{?proto.gloo.solo.io.SourceMetadata} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.SourceMetadata, 12));
+};
+
+
+/** @param {?proto.gloo.solo.io.SourceMetadata|undefined} value */
+proto.gloo.solo.io.Listener.prototype.setMetadataStatic = function(value) {
+  jspb.Message.setOneofWrapperField(this, 12, proto.gloo.solo.io.Listener.oneofGroups_[1], value);
+};
+
+
+proto.gloo.solo.io.Listener.prototype.clearMetadataStatic = function() {
+  this.setMetadataStatic(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Listener.prototype.hasMetadataStatic = function() {
+  return jspb.Message.getField(this, 12) != null;
 };
 
 
@@ -2574,7 +2636,7 @@ proto.gloo.solo.io.Matcher.prototype.clearSourcePrefixRangesList = function() {
  * @constructor
  */
 proto.gloo.solo.io.VirtualHost = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.VirtualHost.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.VirtualHost.repeatedFields_, proto.gloo.solo.io.VirtualHost.oneofGroups_);
 };
 goog.inherits(proto.gloo.solo.io.VirtualHost, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -2586,6 +2648,32 @@ if (goog.DEBUG && !COMPILED) {
  * @const
  */
 proto.gloo.solo.io.VirtualHost.repeatedFields_ = [2,3];
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.gloo.solo.io.VirtualHost.oneofGroups_ = [[6,7]];
+
+/**
+ * @enum {number}
+ */
+proto.gloo.solo.io.VirtualHost.OpaqueMetadataCase = {
+  OPAQUE_METADATA_NOT_SET: 0,
+  METADATA: 6,
+  METADATA_STATIC: 7
+};
+
+/**
+ * @return {proto.gloo.solo.io.VirtualHost.OpaqueMetadataCase}
+ */
+proto.gloo.solo.io.VirtualHost.prototype.getOpaqueMetadataCase = function() {
+  return /** @type {proto.gloo.solo.io.VirtualHost.OpaqueMetadataCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.VirtualHost.oneofGroups_[0]));
+};
 
 
 
@@ -2621,7 +2709,8 @@ proto.gloo.solo.io.VirtualHost.toObject = function(includeInstance, msg) {
     routesList: jspb.Message.toObjectList(msg.getRoutesList(),
     proto.gloo.solo.io.Route.toObject, includeInstance),
     options: (f = msg.getOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.VirtualHostOptions.toObject(includeInstance, f),
-    metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
+    metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
+    metadataStatic: (f = msg.getMetadataStatic()) && proto.gloo.solo.io.SourceMetadata.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2680,6 +2769,11 @@ proto.gloo.solo.io.VirtualHost.deserializeBinaryFromReader = function(msg, reade
       var value = new google_protobuf_struct_pb.Struct;
       reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
       msg.setMetadata(value);
+      break;
+    case 7:
+      var value = new proto.gloo.solo.io.SourceMetadata;
+      reader.readMessage(value,proto.gloo.solo.io.SourceMetadata.deserializeBinaryFromReader);
+      msg.setMetadataStatic(value);
       break;
     default:
       reader.skipField();
@@ -2746,6 +2840,14 @@ proto.gloo.solo.io.VirtualHost.serializeBinaryToWriter = function(message, write
       6,
       f,
       google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+    );
+  }
+  f = message.getMetadataStatic();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      proto.gloo.solo.io.SourceMetadata.serializeBinaryToWriter
     );
   }
 };
@@ -2868,7 +2970,7 @@ proto.gloo.solo.io.VirtualHost.prototype.getMetadata = function() {
 
 /** @param {?proto.google.protobuf.Struct|undefined} value */
 proto.gloo.solo.io.VirtualHost.prototype.setMetadata = function(value) {
-  jspb.Message.setWrapperField(this, 6, value);
+  jspb.Message.setOneofWrapperField(this, 6, proto.gloo.solo.io.VirtualHost.oneofGroups_[0], value);
 };
 
 
@@ -2883,6 +2985,36 @@ proto.gloo.solo.io.VirtualHost.prototype.clearMetadata = function() {
  */
 proto.gloo.solo.io.VirtualHost.prototype.hasMetadata = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional SourceMetadata metadata_static = 7;
+ * @return {?proto.gloo.solo.io.SourceMetadata}
+ */
+proto.gloo.solo.io.VirtualHost.prototype.getMetadataStatic = function() {
+  return /** @type{?proto.gloo.solo.io.SourceMetadata} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.SourceMetadata, 7));
+};
+
+
+/** @param {?proto.gloo.solo.io.SourceMetadata|undefined} value */
+proto.gloo.solo.io.VirtualHost.prototype.setMetadataStatic = function(value) {
+  jspb.Message.setOneofWrapperField(this, 7, proto.gloo.solo.io.VirtualHost.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.VirtualHost.prototype.clearMetadataStatic = function() {
+  this.setMetadataStatic(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHost.prototype.hasMetadataStatic = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 
@@ -2919,7 +3051,7 @@ proto.gloo.solo.io.Route.repeatedFields_ = [1];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.Route.oneofGroups_ = [[2,3,4,8]];
+proto.gloo.solo.io.Route.oneofGroups_ = [[2,3,4,8],[6,9]];
 
 /**
  * @enum {number}
@@ -2937,6 +3069,22 @@ proto.gloo.solo.io.Route.ActionCase = {
  */
 proto.gloo.solo.io.Route.prototype.getActionCase = function() {
   return /** @type {proto.gloo.solo.io.Route.ActionCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.Route.oneofGroups_[0]));
+};
+
+/**
+ * @enum {number}
+ */
+proto.gloo.solo.io.Route.OpaqueMetadataCase = {
+  OPAQUE_METADATA_NOT_SET: 0,
+  METADATA: 6,
+  METADATA_STATIC: 9
+};
+
+/**
+ * @return {proto.gloo.solo.io.Route.OpaqueMetadataCase}
+ */
+proto.gloo.solo.io.Route.prototype.getOpaqueMetadataCase = function() {
+  return /** @type {proto.gloo.solo.io.Route.OpaqueMetadataCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.Route.oneofGroups_[1]));
 };
 
 
@@ -2976,6 +3124,7 @@ proto.gloo.solo.io.Route.toObject = function(includeInstance, msg) {
     graphqlSchemaRef: (f = msg.getGraphqlSchemaRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     options: (f = msg.getOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteOptions.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
+    metadataStatic: (f = msg.getMetadataStatic()) && proto.gloo.solo.io.SourceMetadata.toObject(includeInstance, f),
     name: jspb.Message.getFieldWithDefault(msg, 7, "")
   };
 
@@ -3047,6 +3196,11 @@ proto.gloo.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) {
       var value = new google_protobuf_struct_pb.Struct;
       reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
       msg.setMetadata(value);
+      break;
+    case 9:
+      var value = new proto.gloo.solo.io.SourceMetadata;
+      reader.readMessage(value,proto.gloo.solo.io.SourceMetadata.deserializeBinaryFromReader);
+      msg.setMetadataStatic(value);
       break;
     case 7:
       var value = /** @type {string} */ (reader.readString());
@@ -3135,6 +3289,14 @@ proto.gloo.solo.io.Route.serializeBinaryToWriter = function(message, writer) {
       6,
       f,
       google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+    );
+  }
+  f = message.getMetadataStatic();
+  if (f != null) {
+    writer.writeMessage(
+      9,
+      f,
+      proto.gloo.solo.io.SourceMetadata.serializeBinaryToWriter
     );
   }
   f = message.getName();
@@ -3340,7 +3502,7 @@ proto.gloo.solo.io.Route.prototype.getMetadata = function() {
 
 /** @param {?proto.google.protobuf.Struct|undefined} value */
 proto.gloo.solo.io.Route.prototype.setMetadata = function(value) {
-  jspb.Message.setWrapperField(this, 6, value);
+  jspb.Message.setOneofWrapperField(this, 6, proto.gloo.solo.io.Route.oneofGroups_[1], value);
 };
 
 
@@ -3355,6 +3517,36 @@ proto.gloo.solo.io.Route.prototype.clearMetadata = function() {
  */
 proto.gloo.solo.io.Route.prototype.hasMetadata = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional SourceMetadata metadata_static = 9;
+ * @return {?proto.gloo.solo.io.SourceMetadata}
+ */
+proto.gloo.solo.io.Route.prototype.getMetadataStatic = function() {
+  return /** @type{?proto.gloo.solo.io.SourceMetadata} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.SourceMetadata, 9));
+};
+
+
+/** @param {?proto.gloo.solo.io.SourceMetadata|undefined} value */
+proto.gloo.solo.io.Route.prototype.setMetadataStatic = function(value) {
+  jspb.Message.setOneofWrapperField(this, 9, proto.gloo.solo.io.Route.oneofGroups_[1], value);
+};
+
+
+proto.gloo.solo.io.Route.prototype.clearMetadataStatic = function() {
+  this.setMetadataStatic(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Route.prototype.hasMetadataStatic = function() {
+  return jspb.Message.getField(this, 9) != null;
 };
 
 
@@ -5546,6 +5738,387 @@ proto.gloo.solo.io.DirectResponseAction.prototype.getBody = function() {
 /** @param {string} value */
 proto.gloo.solo.io.DirectResponseAction.prototype.setBody = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.SourceMetadata = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.SourceMetadata.repeatedFields_, null);
+};
+goog.inherits(proto.gloo.solo.io.SourceMetadata, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.SourceMetadata.displayName = 'proto.gloo.solo.io.SourceMetadata';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gloo.solo.io.SourceMetadata.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.SourceMetadata.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.SourceMetadata.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.SourceMetadata} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.SourceMetadata.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    sourcesList: jspb.Message.toObjectList(msg.getSourcesList(),
+    proto.gloo.solo.io.SourceMetadata.SourceRef.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.SourceMetadata}
+ */
+proto.gloo.solo.io.SourceMetadata.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.SourceMetadata;
+  return proto.gloo.solo.io.SourceMetadata.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.SourceMetadata} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.SourceMetadata}
+ */
+proto.gloo.solo.io.SourceMetadata.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.gloo.solo.io.SourceMetadata.SourceRef;
+      reader.readMessage(value,proto.gloo.solo.io.SourceMetadata.SourceRef.deserializeBinaryFromReader);
+      msg.addSources(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.SourceMetadata.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.SourceMetadata.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.SourceMetadata} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.SourceMetadata.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSourcesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.gloo.solo.io.SourceMetadata.SourceRef.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.SourceMetadata.SourceRef = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.SourceMetadata.SourceRef, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.SourceMetadata.SourceRef.displayName = 'proto.gloo.solo.io.SourceMetadata.SourceRef';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.SourceMetadata.SourceRef.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.SourceMetadata.SourceRef.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.SourceMetadata.SourceRef} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.SourceMetadata.SourceRef.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    resourceRef: (f = msg.getResourceRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    resourceKind: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    observedGeneration: jspb.Message.getFieldWithDefault(msg, 3, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.SourceMetadata.SourceRef}
+ */
+proto.gloo.solo.io.SourceMetadata.SourceRef.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.SourceMetadata.SourceRef;
+  return proto.gloo.solo.io.SourceMetadata.SourceRef.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.SourceMetadata.SourceRef} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.SourceMetadata.SourceRef}
+ */
+proto.gloo.solo.io.SourceMetadata.SourceRef.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setResourceRef(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setResourceKind(value);
+      break;
+    case 3:
+      var value = /** @type {number} */ (reader.readInt64());
+      msg.setObservedGeneration(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.SourceMetadata.SourceRef.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.SourceMetadata.SourceRef.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.SourceMetadata.SourceRef} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.SourceMetadata.SourceRef.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getResourceRef();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getResourceKind();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getObservedGeneration();
+  if (f !== 0) {
+    writer.writeInt64(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef resource_ref = 1;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.gloo.solo.io.SourceMetadata.SourceRef.prototype.getResourceRef = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.gloo.solo.io.SourceMetadata.SourceRef.prototype.setResourceRef = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.gloo.solo.io.SourceMetadata.SourceRef.prototype.clearResourceRef = function() {
+  this.setResourceRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SourceMetadata.SourceRef.prototype.hasResourceRef = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string resource_kind = 2;
+ * @return {string}
+ */
+proto.gloo.solo.io.SourceMetadata.SourceRef.prototype.getResourceKind = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SourceMetadata.SourceRef.prototype.setResourceKind = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional int64 observed_generation = 3;
+ * @return {number}
+ */
+proto.gloo.solo.io.SourceMetadata.SourceRef.prototype.getObservedGeneration = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/** @param {number} value */
+proto.gloo.solo.io.SourceMetadata.SourceRef.prototype.setObservedGeneration = function(value) {
+  jspb.Message.setProto3IntField(this, 3, value);
+};
+
+
+/**
+ * repeated SourceRef sources = 1;
+ * @return {!Array<!proto.gloo.solo.io.SourceMetadata.SourceRef>}
+ */
+proto.gloo.solo.io.SourceMetadata.prototype.getSourcesList = function() {
+  return /** @type{!Array<!proto.gloo.solo.io.SourceMetadata.SourceRef>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.gloo.solo.io.SourceMetadata.SourceRef, 1));
+};
+
+
+/** @param {!Array<!proto.gloo.solo.io.SourceMetadata.SourceRef>} value */
+proto.gloo.solo.io.SourceMetadata.prototype.setSourcesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.gloo.solo.io.SourceMetadata.SourceRef=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.gloo.solo.io.SourceMetadata.SourceRef}
+ */
+proto.gloo.solo.io.SourceMetadata.prototype.addSources = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gloo.solo.io.SourceMetadata.SourceRef, opt_index);
+};
+
+
+proto.gloo.solo.io.SourceMetadata.prototype.clearSourcesList = function() {
+  this.setSourcesList([]);
 };
 
 

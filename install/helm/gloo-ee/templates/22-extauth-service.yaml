@@ -2,6 +2,7 @@
 {{- $name := (index . 1) }}
 {{- with (first .) }}
 {{- $extAuth := .Values.global.extensions.extAuth }}
+{{- $statsConfig := coalesce $extAuth.deployment.stats .Values.global.glooStats }}
 {{- $extAuthName := $extAuth.service.name }}
 {{- if .Values.global.extensions.dataplanePerProxy }}
 {{- $extAuthName = printf "%s-%s" $extAuthName ($name | kebabcase) }}
@@ -19,7 +20,7 @@ spec:
   - name: grpc
     port: {{ $extAuth.service.port }}
     protocol: TCP
-{{- if .Values.global.glooStats.serviceMonitor }}
+{{- if $statsConfig.serviceMonitorEnabled }}
   - name: http-monitoring
     port: 9091
 {{- end }}

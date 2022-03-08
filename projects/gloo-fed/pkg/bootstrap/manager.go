@@ -2,6 +2,10 @@ package bootstrap
 
 import (
 	"context"
+	"fmt"
+	"os"
+
+	"github.com/solo-io/go-utils/stats"
 
 	"github.com/solo-io/go-utils/contextutils"
 	enterprisev1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
@@ -46,11 +50,7 @@ func MustSingleClusterManagerFromConfig(ctx context.Context, cfg *rest.Config) m
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting single cluster manager", zap.Error(err))
 	}
 
-	mgr, err := manager.New(cfg, manager.Options{})
-	if err != nil {
-		die(err)
-	}
-
+	mgr := MustManager(cfg, die)
 	if err := singleClusterSchemes.AddToScheme(mgr.GetScheme()); err != nil {
 		die(err)
 	}
@@ -65,11 +65,7 @@ func MustLocalManagerFromConfig(ctx context.Context, cfg *rest.Config) manager.M
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting local manager", zap.Error(err))
 	}
 
-	mgr, err := manager.New(cfg, manager.Options{})
-	if err != nil {
-		die(err)
-	}
-
+	mgr := MustManager(cfg, die)
 	if err := fedSchemes.AddToScheme(mgr.GetScheme()); err != nil {
 		die(err)
 	}
@@ -85,6 +81,25 @@ func MustLocalManager(ctx context.Context) manager.Manager {
 	}
 
 	return MustLocalManagerFromConfig(ctx, cfg)
+}
+
+func MustManager(cfg *rest.Config, onError func(err error)) manager.Manager {
+	// Replaces the stats server functionality used by other control plane components:
+	//	stats.ConditionallyStartStatsServer()
+	// We use the same env variable as other control plane components
+	metricsBindAddress := fmt.Sprintf(":%d", stats.DefaultPort)
+	if os.Getenv(stats.DefaultEnvVar) != stats.DefaultEnabledValue {
+		metricsBindAddress = "0"
+	}
+
+	mgr, err := manager.New(cfg, manager.Options{
+		MetricsBindAddress: metricsBindAddress,
+	})
+	if err != nil {
+		onError(err)
+	}
+
+	return mgr
 }
 
 // MustRemoteScheme adds remote Gloo Fed resources to a new scheme and returns the scheme.

@@ -1,0 +1,43 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5377
+    resolvesIssue: false
+    description: Ensure that ratelimit settings are configured through helm correctly.
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/2991
+    resolvesIssue: false
+    description: Ensure that enterprise helm values are available in documentation.
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/3091
+    resolvesIssue: false
+    description: Ensure that extauth and rate limit helm extensions are available in documentation.
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/3110
+    resolvesIssue: false
+    description: Add tests to ensure that helm values and docs do not drift in the future.
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5954
+    resolvesIssue: false
+    description: Ensure that rate limit helm docs are accurate in the documentation.
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5528
+    resolvesIssue: false
+    description: |
+      gloo-fed and apiserver deployments expose metrics on port 9091, similar to other
+      control plane components.
+  - type: BREAKING_CHANGE
+    issueLink: https://github.com/solo-io/gloo/issues/6051
+    resolvesIssue: false
+    description: |
+      `glooStats.serviceMonitor` used to be responsible for exposing ports on services and pods
+      as well as configure the Pod and ServiceMonitor resources. This setting has been broken down
+      into finer-grained settings:
+      `glooStats.serviceMonitorEnabled` exposes the monitoring port on the service,
+      `glooStats.serviceMonitor` controls the ServiceMonitor CR shipped with Gloo Edge Enterprise,
+      `glooStats.podMonitorEnabled` exposes the monitoring port on the pod template,
+      `glooStats.podMonitor` controls the PodMonitor CR shipped with Gloo Edge Enterprise.
+      This is a breaking change that enables users to manage their own telemetry stack with Gloo Edge.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.11.0-beta18

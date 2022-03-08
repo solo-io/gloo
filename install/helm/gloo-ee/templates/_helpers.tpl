@@ -179,7 +179,7 @@ Expand the name of the chart.
     periodSeconds: 5
     failureThreshold: 2
     successThreshold: 1
-  {{- if .Values.global.glooStats.serviceMonitor }}
+  {{- if $statsConfig.podMonitorEnabled }}
   ports:
     - name: http-monitoring
       containerPort: 9091

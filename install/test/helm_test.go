@@ -34,7 +34,6 @@ import (
 	"github.com/solo-io/k8s-utils/installutils/kuberesource"
 	"github.com/solo-io/solo-projects/pkg/install"
 	jobsv1 "k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8s "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -333,7 +332,7 @@ var _ = Describe("Helm Test", func() {
 
 				It("should support setting the log level env", func() {
 					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-						valuesArgs: []string{"observability.deployment.log_level=DEBUG"},
+						valuesArgs: []string{"observability.deployment.logLevel=DEBUG"},
 					})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -803,7 +802,7 @@ var _ = Describe("Helm Test", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
 						"global.istioIntegration.disableAutoinjection=true",
-						"gloo.rateLimit.enabled=true", // check as many as possible
+						"global.extensions.rateLimit.enabled=true", // check as many as possible
 						"global.extensions.extAuth.enabled=true",
 						"observability.enabled=true",
 					},
@@ -820,7 +819,6 @@ var _ = Describe("Helm Test", func() {
 					"glooe-prometheus-kube-state-metrics",
 					"glooe-prometheus-server",
 					"gloo-fed",
-					"gloo-fed-console",
 				}
 
 				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
@@ -845,35 +843,6 @@ var _ = Describe("Helm Test", func() {
 				})
 			})
 
-			It("should add an anti-injection annotation to all pods when disableAutoinjection is enabled", func() {
-				istioAnnotation := "sidecar.istio.io/inject"
-				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
-					valuesArgs: []string{
-						"global.istioIntegration.disableAutoinjection=true",
-						"glooFedApiserver.enable=true",
-					},
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
-					return resource.GetKind() == "Deployment"
-				}).ExpectAll(func(deployment *unstructured.Unstructured) {
-					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
-					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
-					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
-					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
-
-					deploymentName := deployment.GetName()
-					if deploymentName == "gloo-fed-console" {
-						// ensure gloo-fed-console deployment has a istio annotation set to false
-						val, ok := structuredDeployment.Spec.Template.ObjectMeta.Annotations[istioAnnotation]
-						Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %s should contain an istio injection annotation", deploymentName))
-						Expect(val).To(Equal("false"), fmt.Sprintf("Deployment %s should have an istio annotation with value of 'false'", deploymentName))
-
-					}
-				})
-			})
-
 			Context("dataplane per proxy", func() {
 
 				helmOverrideFileContents := func(dataplanePerProxy bool) string {
@@ -884,9 +853,6 @@ global:
   glooStats:
     enabled: true
 gloo:
-  global:
-    glooStats:
-      enabled: true
   discovery:
     fdsMode: BLACKLIST
   gateway:
@@ -959,9 +925,9 @@ gloo:
       readConfig: true
       configMap:
         data: 
+      antiAffinity: false
       kind:
         deployment:
-          antiAffinity: false
           replicas: 1
       podTemplate:
         disableNetBind: false
@@ -977,7 +943,7 @@ gloo:
         httpPort: 80
         httpsPort: 1443
         type: LoadBalancer
-        annotations:
+        extraAnnotations:
           prometheus.io/path: "/metrics"
           prometheus.io/port: "8081"
           prometheus.io/scrape: "true"
@@ -2422,6 +2388,103 @@ spec:
 			})
 		})
 
+		Context("stats settings", func() {
+
+			It("exposes http-monitoring port on all relevant services", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"gloo-fed.enabled=true",
+						"gloo-fed.glooFedApiserver.enable=true",
+
+						"gloo-fed.glooFedApiserver.stats.serviceMonitorEnabled=true",
+						"gloo-fed.glooFed.stats.serviceMonitorEnabled=true",
+
+						"global.glooStats.enabled=true",
+						"global.glooStats.serviceMonitorEnabled=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedServicesWithHttpMonitoring := []string{
+					"gloo-fed-console",
+					"gloo",
+					"discovery",
+					"gateway",
+					"gateway-proxy-monitoring-service",
+					"extauth",
+					"rate-limit",
+					"observability",
+				}
+				var actualServicesWithHttpMonitoring []string
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Service"
+				}).ExpectAll(func(service *unstructured.Unstructured) {
+					serviceObject, err := kuberesource.ConvertUnstructured(service)
+					ExpectWithOffset(1, err).NotTo(HaveOccurred(), fmt.Sprintf("Service %+v should be able to convert from unstructured", service))
+					structuredService, ok := serviceObject.(*v1.Service)
+					ExpectWithOffset(1, ok).To(BeTrue(), fmt.Sprintf("Service %+v should be able to cast to a structured service", service))
+
+					for _, servicePort := range structuredService.Spec.Ports {
+						if servicePort.Name == "http-monitoring" {
+							actualServicesWithHttpMonitoring = append(actualServicesWithHttpMonitoring, structuredService.GetName())
+						}
+					}
+				})
+
+				Expect(actualServicesWithHttpMonitoring).To(Equal(expectedServicesWithHttpMonitoring))
+			})
+
+			It("exposes http-monitoring port on all relevant deployments", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"gloo-fed.enabled=true",
+						"gloo-fed.glooFedApiserver.enable=true",
+
+						"gloo-fed.glooFedApiserver.stats.podMonitorEnabled=true",
+						"gloo-fed.glooFed.stats.podMonitorEnabled=true",
+
+						"global.glooStats.enabled=true",
+						"global.glooStats.podMonitorEnabled=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedDeploymentsWithHttpMonitoring := []string{
+					"gloo-fed-console",
+					"gloo-fed",
+					"gloo",
+					"discovery",
+					"gateway",
+					"gateway-proxy",
+					"rate-limit",
+					"extauth",
+					"observability",
+				}
+				var actualDeploymentsWithHttpMonitoring []string
+
+				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+					return resource.GetKind() == "Deployment"
+				}).ExpectAll(func(deployment *unstructured.Unstructured) {
+					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+					ExpectWithOffset(1, err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+					ExpectWithOffset(1, ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+
+					for _, container := range structuredDeployment.Spec.Template.Spec.Containers {
+						for _, containerPort := range container.Ports {
+							if containerPort.Name == "http-monitoring" {
+								actualDeploymentsWithHttpMonitoring = append(actualDeploymentsWithHttpMonitoring, structuredDeployment.GetName())
+							}
+						}
+					}
+				})
+
+				Expect(actualDeploymentsWithHttpMonitoring).To(Equal(expectedDeploymentsWithHttpMonitoring))
+			})
+
+		})
+
 		Context("gloo mtls settings", func() {
 			var (
 				glooMtlsSecretVolume = v1.Volume{
@@ -2641,7 +2704,10 @@ spec:
 
 			It("should allow extauth service to handle TLS itself using a kubernetes secret", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{"global.extensions.extAuth.tlsEnabled=true,global.extensions.extAuth.secretName=my-secret"},
+					valuesArgs: []string{
+						"global.extensions.extAuth.tlsEnabled=true",
+						"global.extensions.extAuth.secretName=my-secret",
+					},
 				})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -2665,80 +2731,6 @@ spec:
 							}}))
 					}
 				})
-			})
-
-			It("should allow apiserver service to handle TLS itself using a kubernetes secret", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{"apiServer.sslSecretName=ssl-secret"},
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
-					return resource.GetKind() == "Deployment"
-				}).ExpectAll(func(deployment *unstructured.Unstructured) {
-					deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
-					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
-					structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
-					Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
-
-					if structuredDeployment.GetName() == "api-server" {
-						mode := int32(420)
-						Expect(structuredDeployment.Spec.Template.Spec.Volumes[3].Name).To(Equal("apiserver-ssl-certs"))
-						Expect(structuredDeployment.Spec.Template.Spec.Volumes[3].VolumeSource.Secret).To(Equal(&corev1.SecretVolumeSource{
-							SecretName:  "ssl-secret",
-							DefaultMode: &mode,
-						}))
-						Expect(structuredDeployment.Spec.Template.Spec.Containers[2].VolumeMounts[1]).To(Equal(corev1.VolumeMount{
-							MountPath: "/etc/apiserver/ssl",
-							ReadOnly:  true,
-							Name:      "apiserver-ssl-certs",
-						}))
-						Expect(structuredDeployment.Spec.Template.Spec.Containers[2].ReadinessProbe.HTTPGet.Scheme).To(Equal(corev1.URISchemeHTTPS))
-					}
-				})
-
-				testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
-					return resource.GetKind() == "ConfigMap"
-				}).ExpectAll(func(cfgmap *unstructured.Unstructured) {
-					cmObj, err := kuberesource.ConvertUnstructured(cfgmap)
-					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("ConfigMap %+v should be able to convert from unstructured", cfgmap))
-					structuredConfigMap, ok := cmObj.(*v1.ConfigMap)
-					Expect(ok).To(BeTrue(), fmt.Sprintf("ConfigMap %+v should be able to cast to a structured config map", cfgmap))
-
-					if structuredConfigMap.GetName() == "default-apiserver-envoy-config" {
-						bootstrap := bootstrapv3.Bootstrap{}
-						Expect(structuredConfigMap.Data["config.yaml"]).NotTo(BeEmpty())
-						jsn, err := yaml.YAMLToJSON([]byte(structuredConfigMap.Data["config.yaml"]))
-						if err != nil {
-							Expect(err).NotTo(HaveOccurred())
-						}
-						err = jsonpb.Unmarshal(bytes.NewReader(jsn), &bootstrap)
-						Expect(err).NotTo(HaveOccurred())
-
-						Expect(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket).NotTo(BeNil())
-						tlsContext := tlsv3.DownstreamTlsContext{}
-						Expect(ptypes.UnmarshalAny(bootstrap.StaticResources.Listeners[0].FilterChains[0].TransportSocket.GetTypedConfig(), &tlsContext)).NotTo(HaveOccurred())
-						Expect(&tlsContext).To(MatchProto(&tlsv3.DownstreamTlsContext{
-							CommonTlsContext: &tlsv3.CommonTlsContext{
-								TlsCertificates: []*tlsv3.TlsCertificate{
-									{
-										CertificateChain: &corev3.DataSource{
-											Specifier: &corev3.DataSource_Filename{
-												Filename: "/etc/apiserver/ssl/tls.crt",
-											},
-										},
-										PrivateKey: &corev3.DataSource{
-											Specifier: &corev3.DataSource_Filename{
-												Filename: "/etc/apiserver/ssl/tls.key",
-											},
-										},
-									},
-								},
-							},
-						}))
-					}
-				})
-
 			})
 
 		})
@@ -2936,8 +2928,6 @@ spec:
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
 						"global.extensions.rateLimit.enabled=true",
-						"ratelimitServer.ratelimitServerRef.name=rate-limit",
-						"ratelimitServer.ratelimitServerRef.namespace=gloo-system",
 						"redis.clientSideShardingEnabled=true",
 						"redis.deployment.replicas=2",
 					},
@@ -3128,7 +3118,7 @@ spec:
 
 			It("should support setting the log level env", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{"global.extensions.rateLimit.deployment.log_level=DEBUG"},
+					valuesArgs: []string{"global.extensions.rateLimit.deployment.logLevel=DEBUG"},
 				})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -3446,6 +3436,7 @@ spec:
 							Value: "gloo-system",
 						},
 						licenseEnvVar,
+						statsEnvVar,
 					},
 					SecurityContext: &v1.SecurityContext{
 						Capabilities: &v1.Capabilities{
@@ -3525,21 +3516,21 @@ spec:
 				}
 				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{grpcServerContainer, uiContainer, envoyContainer}
 				expectedDeployment.Spec.Template.Spec.ServiceAccountName = "gloo-fed-console"
-				expectedDeployment.Spec.Template.ObjectMeta.Annotations = nil
+				expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
 				expectedDeployment.Spec.Template.Spec.SecurityContext = nil
 				expectedDeployment.Spec.Replicas = nil // GetDeploymentAppsv1 explicitly sets it to 1, which we don't want
 			})
 
 			It("is there by default", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{})
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
 			It("enables apiserver even if gloo-fed is disabled", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"enabled=false",
+						"gloo-fed.enabled=false",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -3547,9 +3538,9 @@ spec:
 			})
 
 			It("disables apiserver if explicitly disabled", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"glooFedApiserver.enable=false",
+						"gloo-fed.glooFedApiserver.enable=false",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -3557,7 +3548,7 @@ spec:
 			})
 
 			It("can override image registry globally", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
 						"global.image.registry=myregistry",
 					},
@@ -3571,26 +3562,26 @@ spec:
 			})
 
 			It("does render the default bootstrap config map for the envoy sidecar", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{})
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())
 				testManifest.Expect("ConfigMap", namespace, defaultBootstrapConfigMapName).NotTo(BeNil())
 			})
 
 			It("correctly sets resource limits", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"glooFedApiserver.console.resources.limits.cpu=300m",
-						"glooFedApiserver.console.resources.limits.memory=300Mi",
-						"glooFedApiserver.console.resources.requests.cpu=30m",
-						"glooFedApiserver.console.resources.requests.memory=30Mi",
-						"glooFedApiserver.envoy.resources.limits.cpu=100m",
-						"glooFedApiserver.envoy.resources.limits.memory=100Mi",
-						"glooFedApiserver.envoy.resources.requests.cpu=10m",
-						"glooFedApiserver.envoy.resources.requests.memory=10Mi",
-						"glooFedApiserver.resources.limits.cpu=200m",
-						"glooFedApiserver.resources.limits.memory=200Mi",
-						"glooFedApiserver.resources.requests.cpu=20m",
-						"glooFedApiserver.resources.requests.memory=20Mi",
+						"gloo-fed.glooFedApiserver.console.resources.limits.cpu=300m",
+						"gloo-fed.glooFedApiserver.console.resources.limits.memory=300Mi",
+						"gloo-fed.glooFedApiserver.console.resources.requests.cpu=30m",
+						"gloo-fed.glooFedApiserver.console.resources.requests.memory=30Mi",
+						"gloo-fed.glooFedApiserver.envoy.resources.limits.cpu=100m",
+						"gloo-fed.glooFedApiserver.envoy.resources.limits.memory=100Mi",
+						"gloo-fed.glooFedApiserver.envoy.resources.requests.cpu=10m",
+						"gloo-fed.glooFedApiserver.envoy.resources.requests.memory=10Mi",
+						"gloo-fed.glooFedApiserver.resources.limits.cpu=200m",
+						"gloo-fed.glooFedApiserver.resources.limits.memory=200Mi",
+						"gloo-fed.glooFedApiserver.resources.requests.cpu=20m",
+						"gloo-fed.glooFedApiserver.resources.requests.memory=20Mi",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -3635,8 +3626,8 @@ spec:
 			})
 
 			It("allows setting custom runAsUser", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
-					valuesArgs: []string{"glooFedApiserver.runAsUser=10102"},
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"gloo-fed.glooFedApiserver.runAsUser=10102"},
 				})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -3650,8 +3641,8 @@ spec:
 			})
 
 			It("allows setting a custom number of replicas", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
-					valuesArgs: []string{"glooFedApiserver.replicas=2"},
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"gloo-fed.glooFedApiserver.replicas=2"},
 				})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -3660,10 +3651,11 @@ spec:
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 
 			})
+
 			It("correctly sets the GLOO_LICENSE_KEY env", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"global.license_secret_name=custom-license-secret",
+						"gloo-fed.license_secret_name=custom-license-secret",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
@@ -3676,12 +3668,17 @@ spec:
 						Key: "license-key",
 					},
 				}
-				envs := expectedDeployment.Spec.Template.Spec.Containers[1].Env
-				for i, env := range envs {
-					if env.Name == "GLOO_LICENSE_KEY" {
-						envs[i].ValueFrom = &licenseKeyEnvVarSource
+
+				for _, container := range expectedDeployment.Spec.Template.Spec.Containers {
+					if container.Name == "apiserver" {
+						for i, env := range container.Env {
+							if env.Name == "GLOO_LICENSE_KEY" {
+								container.Env[i].ValueFrom = &licenseKeyEnvVarSource
+							}
+						}
 					}
 				}
+
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 
@@ -3691,9 +3688,9 @@ spec:
 
 				BeforeEach(func() {
 					var err error
-					actualManifest, err = BuildTestManifest(install.GlooFed, namespace, helmValues{
+					actualManifest, err = BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 						valuesArgs: []string{
-							"glooFedApiserver.envoy.bootstrapConfig.configMapName=" + customConfigMapName,
+							"gloo-fed.glooFedApiserver.envoy.bootstrapConfig.configMapName=" + customConfigMapName,
 						},
 					})
 					Expect(err).NotTo(HaveOccurred())
@@ -3719,7 +3716,7 @@ spec:
 			})
 
 			It("sits behind a service that is not exposed outside of the cluster", func() {
-				testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{})
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())
 				apiServerService := testManifest.SelectResources(func(u *unstructured.Unstructured) bool {
 					if u.GetKind() != "Service" {
@@ -3750,8 +3747,8 @@ spec:
 				}
 
 				It("via global values", func() {
-					testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
-						valuesArgs: []string{fmt.Sprintf("glooFedApiserver.image.pullSecret=%s", pullSecretName)},
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: []string{fmt.Sprintf("gloo-fed.glooFedApiserver.image.pullSecret=%s", pullSecretName)},
 					})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -3761,9 +3758,9 @@ spec:
 				})
 
 				It("via podTemplate values", func() {
-					testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 						valuesArgs: []string{
-							fmt.Sprintf("glooFedApiserver.image.pullSecret=%s", pullSecretName),
+							fmt.Sprintf("gloo-fed.glooFedApiserver.image.pullSecret=%s", pullSecretName),
 						},
 					})
 					Expect(err).NotTo(HaveOccurred())
@@ -3773,10 +3770,10 @@ spec:
 				})
 
 				It("podTemplate values win over global", func() {
-					testManifest, err := BuildTestManifest(install.GlooFed, namespace, helmValues{
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 						valuesArgs: []string{
 							"global.image.pullSecret=wrong",
-							fmt.Sprintf("glooFedApiserver.image.pullSecret=%s", pullSecretName),
+							fmt.Sprintf("gloo-fed.glooFedApiserver.image.pullSecret=%s", pullSecretName),
 						},
 					})
 					Expect(err).NotTo(HaveOccurred())
@@ -3794,9 +3791,9 @@ spec:
 						valuesArgs: append([]string{
 							value + ".nodeSelector.label=someLabel",
 							value + ".nodeName=someNodeName",
-							value + ".tolerations=someToleration",
-							value + ".hostAliases=someHostAlias",
-							value + ".affinity=someNodeAffinity",
+							value + ".tolerations[0].operator=someToleration",
+							value + ".hostAliases[0]=someHostAlias",
+							value + ".affinity.nodeAffinity=someNodeAffinity",
 							value + ".restartPolicy=someRestartPolicy",
 						}, extraArgs...),
 					})
@@ -3808,11 +3805,11 @@ spec:
 							a = getFieldFromUnstructured(u, "spec", "template", "spec", "nodeName")
 							Expect(a).To(Equal("someNodeName"))
 							a = getFieldFromUnstructured(u, "spec", "template", "spec", "tolerations")
-							Expect(a).To(Equal("someToleration"))
+							Expect(a).To(Equal([]interface{}{map[string]interface{}{"operator": "someToleration"}}))
 							a = getFieldFromUnstructured(u, "spec", "template", "spec", "hostAliases")
-							Expect(a).To(Equal("someHostAlias"))
+							Expect(a).To(Equal([]interface{}{"someHostAlias"}))
 							a = getFieldFromUnstructured(u, "spec", "template", "spec", "affinity")
-							Expect(a).To(Equal("someNodeAffinity"))
+							Expect(a).To(Equal(map[string]interface{}{"nodeAffinity": "someNodeAffinity"}))
 							a = getFieldFromUnstructured(u, "spec", "template", "spec", "restartPolicy")
 							Expect(a).To(Equal("someRestartPolicy"))
 							return true
