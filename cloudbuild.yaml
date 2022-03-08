@@ -130,6 +130,7 @@ steps:
     - |
       make run-tests
   env:
+    - "TAGGED_VERSION=$TAG_NAME"
     - "PROJECT_ROOT=github.com/solo-io/solo-projects"
     - "ENVOY_BINARY=/workspace/envoy"
     - "LIBSAXON_SHARED_OBJECT_PATH=/workspace/libsaxon-solo.so"

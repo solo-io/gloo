@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/3201
+    resolvesIssue: false
+    description: Ensure test target has TAGGED_VERSION env var to signal on releases NOT to run
