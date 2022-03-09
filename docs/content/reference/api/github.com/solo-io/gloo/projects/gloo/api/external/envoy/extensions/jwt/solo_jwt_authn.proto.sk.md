@@ -55,7 +55,7 @@ weight: 5
 "claimsToHeaders": map<string, .envoy.config.filter.http.solo_jwt_authn.v2.SoloJwtAuthnPerRoute.ClaimToHeaders>
 "clearRouteCache": bool
 "payloadInMetadata": string
-"disable": bool
+"disabled": bool
 
 ```
 
@@ -65,7 +65,7 @@ weight: 5
 | `claimsToHeaders` | `map<string, .envoy.config.filter.http.solo_jwt_authn.v2.SoloJwtAuthnPerRoute.ClaimToHeaders>` | Copy the claims from the payload field is the key. non-existant fields are ignored. |
 | `clearRouteCache` | `bool` | clear the route cache if claims were added to the header. |
 | `payloadInMetadata` | `string` | To easly integrate with other filters, this will copy the payload to this name in the dynamic metadata. The payload will only be copied if one payload is present (i.e. or match). |
-| `disable` | `bool` | disable the JWT filter on this route. |
+| `disabled` | `bool` | disable the JWT filter on this route. |
 
 
 

@@ -43,7 +43,7 @@ message SoloJwtAuthnPerRoute {
   string payload_in_metadata = 4;
 
   // disable the JWT filter on this route
-  bool disable = 5;
+  bool disabled = 5;
 }
 
 message StagedJwtAuthnPerRoute {
