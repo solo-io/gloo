@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Fixes navbar responsiveness when resizing the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3189

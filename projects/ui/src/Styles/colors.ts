@@ -1,4 +1,4 @@
-const colorsList = {
+export const colors = {
   kumquatOrange: 'hsl(22, 100%, 94%)', //#FFEADE
   tangerineOrange: 'hsl(20, 92%, 84%)', //#FCCCB3
   peachOrange: 'hsl(20, 75%, 64%)', //#E98D5E
@@ -40,10 +40,6 @@ const colorsList = {
 
   envoyPink: '#d14a9b',
 };
-type ColorProps = typeof colorsList;
-
-// this gets us autocomplete!
-export const colors = { ...colorsList } as ColorProps;
 
 export function hslToHSLA(hsl: string, alpha: number | string) {
   let hslContent = hsl.split(')')[0].split('(')[1];

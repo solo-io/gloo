@@ -12,7 +12,7 @@ type FixedFloaterProps = {
 const Container = styled.div<FixedFloaterProps>`
   display: flex;
   align-items: center;
-  padding: 40px 0 0;
+  padding: 30px 0 0;
   width: 1275px;
   max-width: 100vw;
   margin: 0 auto;

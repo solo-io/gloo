@@ -29,6 +29,7 @@ import { GraphQLDetails } from 'Components/Features/Graphql/GraphqlDetails';
 const ScrollContainer = styled.div`
   max-height: 100%;
   overflow: auto;
+  padding: 0 5px;
 `;
 
 const Container = styled.div`

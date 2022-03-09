@@ -425,7 +425,7 @@ export const OverviewGraphQLBox = () => {
     <OverviewSmallBoxSummary
       title={'APIs'}
       logo={<GraphQLIcon />}
-      description='Generate graphql schema from other sources (e.g. OpenAPI schema, grpc protos, etc.) and make those API available behind graphql.'
+      description='Generate GraphQL schema from other sources (e.g. OpenAPI schema, gRPC protos, etc.) and make those API available behind GraphQL.'
       status={servicesStatus}
       count={totalServices}
       countDescription={
