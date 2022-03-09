@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Fixes an issue where the UI does not show enums.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3155

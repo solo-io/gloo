@@ -12,6 +12,8 @@ import tw from 'twin.macro';
 import gql from 'graphql-tag';
 import {
   buildASTSchema,
+  EnumTypeDefinitionNode,
+  EnumValueDefinitionNode,
   FieldDefinitionNode,
   GraphQLSchema,
   NamedTypeNode,
@@ -23,6 +25,7 @@ import { ResolverWizard } from './ResolverWizard';
 import { GraphqlIconHolder } from './GraphqlTable';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils';
+import { EnumResolver } from './components/EnumResolver';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
 type ArrowToggleProps = { active?: boolean };
@@ -91,7 +94,7 @@ export const EndpointCircle = styled.div<EndpointCircleProps>`
 
 export const ResolverItem: React.FC<{
   resolverType: string;
-  fields: FieldDefinitionNode[];
+  fields: FieldDefinitionNode[] | EnumTypeDefinitionNode[];
   handleResolverConfigModal: (
     resolverName: string,
     resolverType: string
@@ -168,7 +171,7 @@ export const ResolverItem: React.FC<{
           ref={listRef}
           style={{
             height: `${
-              fields!.length * 90 < 400 ? fields!.length * 90 : 400
+              fields?.length * 90 < 400 ? fields!.length * 90 : 400
             }px`,
             width: `100%`,
             overflow: 'auto',
@@ -319,6 +322,9 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
   const [fieldTypesMap, setFieldTypesMap] = React.useState<
     [string, FieldDefinitionNode[]][]
   >([]);
+  const [enumTypesMap, setEnumTypesMap] = React.useState<
+    [string, EnumValueDefinitionNode[]][]
+  >([]);
 
   React.useEffect(() => {
     if (graphqlSchema) {
@@ -329,14 +335,25 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
         let objectTypeDefs = query.definitions.filter(
           (def: any) => def.kind === 'ObjectTypeDefinition'
         ) as ObjectTypeDefinitionNode[];
+        let enumTypeDefs = query.definitions.filter(
+          (def: any) => def.kind === 'EnumTypeDefinition'
+        ) as EnumTypeDefinitionNode[];
+
+        const enumFieldDefinitions = enumTypeDefs?.map(ot => [
+          `Enum ${ot.name.value}`,
+          (ot).values?.filter(
+            f => f?.kind === 'EnumValueDefinition'
+          ) as EnumValueDefinitionNode[],
+        ]) as [string, EnumValueDefinitionNode[]][];
 
         let fieldDefinitions = objectTypeDefs.map(ot => [
           ot.name.value,
-          ot.fields?.filter(
+          (ot).fields?.filter(
             f => f?.kind === 'FieldDefinition'
           ) as FieldDefinitionNode[],
         ]) as [string, FieldDefinitionNode[]][];
         setFieldTypesMap(fieldDefinitions);
+        setEnumTypesMap(enumFieldDefinitions);
       }
     }
   }, [graphqlSchema]);
@@ -420,6 +437,13 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
                 />
               );
             })}
+            {
+              enumTypesMap.map(([typeName, fields]) => {
+                return (
+                  <EnumResolver key={typeName} fields={fields} resolverType={typeName} />
+                )
+              }
+            )}
 
           <SoloModal visible={modalOpen} width={750} onClose={closeModal}>
             <ResolverWizard
