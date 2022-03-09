@@ -115,6 +115,9 @@ spec:
               value: "18080"
             - name: READY_PATH_HTTP
               value: "/ready"
+            {{- if .Values.global.extensions.rateLimit.deployment.customEnv }}
+{{ toYaml .Values.global.extensions.rateLimit.deployment.customEnv | indent 12 }}
+            {{- end }}
           readinessProbe:
             httpGet:
               port: 18080

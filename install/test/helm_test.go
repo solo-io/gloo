@@ -3132,6 +3132,7 @@ spec:
 
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
+
 			It("should support getting fips images", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{"global.image.fips=true"},
@@ -3140,6 +3141,7 @@ spec:
 				expectedDeployment.Spec.Template.Spec.Containers[0].Image = "quay.io/solo-io/rate-limit-ee-fips:" + version
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
+
 			It("should support setting beforeAuth", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{"global.extensions.rateLimit.beforeAuth=true"},
@@ -3196,7 +3198,9 @@ spec:
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
+
 			Describe("affinity and antiAffinity", func() {
+
 				It("affinity rules can be set", func() {
 					helmOverrideFileContents := `
 global:
@@ -3353,6 +3357,25 @@ spec:
 `)
 
 				testManifest.ExpectUnstructured("PodDisruptionBudget", namespace, "rate-limit-pdb").To(BeEquivalentTo(pdb))
+			})
+
+			It("can accept extra env vars", func() {
+				expectedDeployment.Spec.Template.Spec.Containers[0].Env = append(
+					expectedDeployment.Spec.Template.Spec.Containers[0].Env,
+					v1.EnvVar{
+						Name:  "TEST_EXTRA_ENV_VAR",
+						Value: "test",
+					})
+
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.rateLimit.deployment.customEnv[0].Name=TEST_EXTRA_ENV_VAR",
+						"global.extensions.rateLimit.deployment.customEnv[0].Value=test",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 		})
 
