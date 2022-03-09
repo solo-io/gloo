@@ -32,12 +32,12 @@ const GqlInputWrapper = styled.div`
   flex-direction: row;
 `;
 
-const LabelTextWrapper = styled.div<{ hasError: boolean; }>`
+const LabelTextWrapper = styled.div<{ hasError: boolean }>`
   width: 100%;
   label {
     width: 100%;
     margin-right: 10px;
-    color: ${props => props.hasError ? colors.sunGold : 'black'};
+    color: ${props => (props.hasError ? colors.sunGold : 'black')};
   }
   input {
     width: 250px;
@@ -202,7 +202,7 @@ export const GraphqlApiExplorer = () => {
 
   const toggleUrlBar = () => {
     setShowUrlBar(!showUrlBar);
-  }
+  };
 
   // TODO:  We can hide and show elements based on what we get back.
   //        The schema will only refetch if the executable schema is undefined.
@@ -213,7 +213,11 @@ export const GraphqlApiExplorer = () => {
           <GqlInputWrapper>
             <LabelTextWrapper hasError={Boolean(gqlError)}>
               <SoloInput
-                title={`${Boolean(gqlError) ? 'Failed to fetch Graphql service.  Update the host to attempt again.' : 'Current url'}`}
+                title={`${
+                  Boolean(gqlError)
+                    ? 'Failed to fetch Graphql service.  Update the host to attempt again.'
+                    : 'Current url'
+                }`}
                 value={url}
                 onChange={changeHost}
               />
@@ -273,7 +277,31 @@ export const GraphqlApiExplorer = () => {
       <StyledContainer>
         <GraphiQL
           ref={graphiqlRef}
-          defaultQuery={''}
+          defaultQuery={`# Welcome to GraphiQL, an in-browser tool for
+# writing, validating, and testing GraphQL queries.
+#
+# Type queries into this side of the screen, and you
+# will see intelligent typeaheads aware of the current
+# GraphQL type schema and live syntax and
+# validation errors highlighted within the text.
+#
+# GraphQL queries typically start with a "{" character.
+# Lines that start with a # are ignored.
+#
+# An example GraphQL query might look like:
+#     {
+#       field(arg: "value") {
+#         subField
+#       }
+#     }
+#
+# Keyboard shortcuts:
+#     Prettify Query:    Shift-Ctrl-P
+#     Merge Query:     Shift-Ctrl-M
+#     Run Query:        Ctrl-Enter
+#     Auto Complete:  Ctrl-Space
+
+`}
           variables={'{}'}
           schema={!refetch ? executableSchema : undefined}
           fetcher={gqlFetcher}>
