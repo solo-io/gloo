@@ -1122,6 +1122,7 @@ span.CodeMirror-selectedtext { background: none; }
   line-height: 14px;
   padding: 8px 8px 5px;
   position: relative;
+  min-height: 50px;
   -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
