@@ -1,19 +1,11 @@
 package graphql
 
 import (
-	"fmt"
-	"strconv"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
-
-	"github.com/golang/protobuf/ptypes/wrappers"
-
-	"github.com/graphql-go/graphql/language/kinds"
-
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/graphql-go/graphql/gqlerrors"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/parser"
 	"github.com/pkg/errors"
@@ -25,6 +17,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	directive_utils "github.com/solo-io/solo-projects/projects/gloo/utils/graphql/directives"
 )
 
 var (
@@ -178,27 +171,21 @@ func translateExtensions(schema *v1alpha1.GraphQLSchema) (map[string]*any.Any, e
 	return extensions, nil
 }
 
-type Locatable interface {
-	GetLoc() *ast.Location
-}
-
-func newGraphqlSchemaError(l Locatable, description string, args ...interface{}) error {
-	desc := fmt.Sprintf(description, args...)
-	return gqlerrors.NewSyntaxError(l.GetLoc().Source, l.GetLoc().Start, desc)
-}
-
 func processGraphqlSchema(params plugins.RouteParams, schema string, resolutions map[string]*v1alpha1.Resolution) (*ast.Document, []*v2.Resolution, string, error) {
 	doc, err := parser.Parse(parser.ParseParams{Source: schema})
 	if err != nil {
 		return nil, nil, "", eris.Wrapf(err, "unable to parse graphql schema %s", schema)
 	}
-	visitor := newGraphqlASTVisitor()
+	visitor := directive_utils.NewGraphqlASTVisitor()
 	var result []*v2.Resolution
-	// Adds a directive visitor to the ast visitor which looks for `@resolve` directives and adds them to the resolution map
+	// Adds a directive visitor to the ast visitor which looks for `@resolve` directives in the schema. For each
+	// resolve directive, it translates the resolver with the given name in the control plane resolutions map into
+	// a data plane resolver.
 	addResolveDirectiveVisitor(visitor, params, resolutions, &result)
-	// Adds a directive visitor to the ast visitor which looks for `@cacheControl` directives and adds them to the resolution map
+	// Adds a directive visitor to the ast visitor which looks for `@cacheControl` directives in the schema. For each
+	// cacheControl directive, it translates it to a data plane cache control and attaches it to the associated resolver.
 	addCacheControlDirectiveVisitor(visitor, &result)
-	err = visitor.visit(doc)
+	err = visitor.Visit(doc)
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -216,39 +203,22 @@ func translateResolver(params plugins.RouteParams, resolver *v1alpha1.Resolution
 	}
 }
 
-const (
-	RESOLVER_DIRECTIVE     = "resolve"
-	RESOLVER_NAME_ARGUMENT = "name"
+func addResolveDirectiveVisitor(visitor *directive_utils.GraphqlASTVisitor, params plugins.RouteParams, resolutions map[string]*v1alpha1.Resolution, result *[]*v2.Resolution) {
+	visitor.AddDirectiveVisitor(directive_utils.RESOLVER_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) error {
+		// validate correct usage of the resolve directive
+		resolveDirective := directive_utils.NewResolveDirective()
+		err := resolveDirective.Validate(directiveVisitorParams)
+		if err != nil {
+			return err
+		}
 
-	CACHE_CONTROL_DIRECTIVE               = "cacheControl"
-	CACHE_CONTROL_MAXAGE_ARGUMENT         = "maxAge"
-	CACHE_CONTROL_INHERIT_MAXAGE_ARGUMENT = "inheritMaxAge"
-	CACHE_CONTROL_SCOPE_ARGUMENT          = "scope"
-)
-
-func addResolveDirectiveVisitor(visitor *GraphqlASTVisitor, params plugins.RouteParams, resolutions map[string]*v1alpha1.Resolution, result *[]*v2.Resolution) {
-	visitor.addDirectiveVisitor(RESOLVER_DIRECTIVE, func(directiveVisitorParams DirectiveVisitorParams) error {
-		if directiveVisitorParams.DirectiveField == nil {
-			return eris.Errorf(`"resolve" directive must only be used on fields`)
-		}
-		arguments := map[string]ast.Value{}
-		directive := directiveVisitorParams.Directive
-		for _, argument := range directive.Arguments {
-			arguments[argument.Name.Value] = argument.Value
-		}
-		resolverName, ok := arguments[RESOLVER_NAME_ARGUMENT]
-		if !ok {
-			return newGraphqlSchemaError(directive, `the "resolve" directive must have a "name" argument to reference a resolver`)
-		}
-		if resolverName.GetKind() != kinds.StringValue {
-			return newGraphqlSchemaError(resolverName, `"name" argument must be a string value`)
-		}
-		name := resolverName.GetValue().(string)
 		// check if the resolver referenced here even exists
-		resolution := resolutions[name]
+		resolution := resolutions[resolveDirective.ResolverName]
 		if resolution == nil {
-			return newGraphqlSchemaError(resolverName, "resolver %s is not defined", name)
+			return directive_utils.NewGraphqlSchemaError(resolveDirective.ResolverNameAstValue, "resolver %s is not defined",
+				resolveDirective.ResolverName)
 		}
+
 		queryMatch := &v2.QueryMatcher{
 			Match: &v2.QueryMatcher_FieldMatcher_{
 				FieldMatcher: &v2.QueryMatcher_FieldMatcher{
@@ -261,7 +231,7 @@ func addResolveDirectiveVisitor(visitor *GraphqlASTVisitor, params plugins.Route
 		if err != nil {
 			return err
 		}
-		statsPrefix := name
+		statsPrefix := resolveDirective.ResolverName
 		if sp := resolution.StatPrefix; sp != nil {
 			statsPrefix = sp.Value
 		}
@@ -284,52 +254,16 @@ func addResolveDirectiveVisitor(visitor *GraphqlASTVisitor, params plugins.Route
 	})
 }
 
-func addCacheControlDirectiveVisitor(visitor *GraphqlASTVisitor, result *[]*v2.Resolution) {
-	visitor.addDirectiveVisitor(CACHE_CONTROL_DIRECTIVE, func(directiveVisitorParams DirectiveVisitorParams) error {
-		arguments := map[string]ast.Value{}
-		directive := directiveVisitorParams.Directive
-		for _, argument := range directive.Arguments {
-			arguments[argument.Name.Value] = argument.Value
+func addCacheControlDirectiveVisitor(visitor *directive_utils.GraphqlASTVisitor, result *[]*v2.Resolution) {
+	visitor.AddDirectiveVisitor(directive_utils.CACHE_CONTROL_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) error {
+		// validate correct usage of the cacheControl directive
+		cacheControlDirective := directive_utils.NewCacheControlDirective()
+		err := cacheControlDirective.Validate(directiveVisitorParams)
+		if err != nil {
+			return err
 		}
-		maxAge, maxAgeFound := arguments[CACHE_CONTROL_MAXAGE_ARGUMENT]
-		inheritMaxAge, inheritMaxAgeFound := arguments[CACHE_CONTROL_INHERIT_MAXAGE_ARGUMENT]
-		scope, scopeFound := arguments[CACHE_CONTROL_SCOPE_ARGUMENT]
 
-		cacheControl := &v2.CacheControl{}
-		if maxAgeFound {
-			if maxAge.GetKind() != kinds.IntValue {
-				return newGraphqlSchemaError(maxAge, fmt.Sprintf(`"%s" argument must be an integer value`, CACHE_CONTROL_MAXAGE_ARGUMENT))
-			}
-			uintMaxAge, err := strconv.ParseUint(maxAge.GetValue().(string), 10, 32)
-			if err != nil {
-				return err
-			}
-			cacheControl.MaxAge = &wrappers.UInt32Value{Value: uint32(uintMaxAge)}
-		}
-		if inheritMaxAgeFound {
-			if inheritMaxAge.GetKind() != kinds.BooleanValue {
-				return newGraphqlSchemaError(maxAge, fmt.Sprintf(`"%s" argument must be a boolean value`, CACHE_CONTROL_INHERIT_MAXAGE_ARGUMENT))
-			}
-			cacheControl.InheritMaxAge = inheritMaxAge.GetValue().(bool)
-		}
-		if scopeFound {
-			if scope.GetKind() != kinds.EnumValue {
-				return newGraphqlSchemaError(maxAge, fmt.Sprintf(`"%s" argument must be a enum value`, CACHE_CONTROL_SCOPE_ARGUMENT))
-			}
-			scopeStr := scope.GetValue().(string)
-			scope := v2.CacheControl_UNSET
-			switch scopeStr {
-			case "unset":
-				scope = v2.CacheControl_UNSET
-			case "public":
-				scope = v2.CacheControl_PUBLIC
-			case "private":
-				scope = v2.CacheControl_PRIVATE
-			default:
-				return eris.Errorf("unimplemented cacheControl scope type %s", scopeStr)
-			}
-			cacheControl.Scope = scope
-		}
+		cacheControl := cacheControlDirective.CacheControl
 
 		var queryMatchList []*v2.QueryMatcher
 		for _, df := range directiveVisitorParams.DirectiveFields {

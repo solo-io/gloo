@@ -371,3 +371,54 @@ export namespace ValidateResolverYamlResponse {
   export type AsObject = {
   }
 }
+
+export class ValidateSchemaDefinitionRequest extends jspb.Message {
+  hasSchemaDefinition(): boolean;
+  clearSchemaDefinition(): void;
+  getSchemaDefinition(): string;
+  setSchemaDefinition(value: string): void;
+
+  hasSpec(): boolean;
+  clearSpec(): void;
+  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec): void;
+
+  getInputCase(): ValidateSchemaDefinitionRequest.InputCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ValidateSchemaDefinitionRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ValidateSchemaDefinitionRequest): ValidateSchemaDefinitionRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ValidateSchemaDefinitionRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ValidateSchemaDefinitionRequest;
+  static deserializeBinaryFromReader(message: ValidateSchemaDefinitionRequest, reader: jspb.BinaryReader): ValidateSchemaDefinitionRequest;
+}
+
+export namespace ValidateSchemaDefinitionRequest {
+  export type AsObject = {
+    schemaDefinition: string,
+    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.AsObject,
+  }
+
+  export enum InputCase {
+    INPUT_NOT_SET = 0,
+    SCHEMA_DEFINITION = 1,
+    SPEC = 2,
+  }
+}
+
+export class ValidateSchemaDefinitionResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ValidateSchemaDefinitionResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ValidateSchemaDefinitionResponse): ValidateSchemaDefinitionResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ValidateSchemaDefinitionResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ValidateSchemaDefinitionResponse;
+  static deserializeBinaryFromReader(message: ValidateSchemaDefinitionResponse, reader: jspb.BinaryReader): ValidateSchemaDefinitionResponse;
+}
+
+export namespace ValidateSchemaDefinitionResponse {
+  export type AsObject = {
+  }
+}

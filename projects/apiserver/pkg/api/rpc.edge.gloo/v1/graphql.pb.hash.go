@@ -637,3 +637,67 @@ func (m *ValidateResolverYamlResponse) Hash(hasher hash.Hash64) (uint64, error) 
 
 	return hasher.Sum64(), nil
 }
+
+// Hash function
+func (m *ValidateSchemaDefinitionRequest) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.ValidateSchemaDefinitionRequest")); err != nil {
+		return 0, err
+	}
+
+	switch m.Input.(type) {
+
+	case *ValidateSchemaDefinitionRequest_SchemaDefinition:
+
+		if _, err = hasher.Write([]byte(m.GetSchemaDefinition())); err != nil {
+			return 0, err
+		}
+
+	case *ValidateSchemaDefinitionRequest_Spec:
+
+		if h, ok := interface{}(m.GetSpec()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("Spec")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetSpec(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("Spec")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *ValidateSchemaDefinitionResponse) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.ValidateSchemaDefinitionResponse")); err != nil {
+		return 0, err
+	}
+
+	return hasher.Sum64(), nil
+}

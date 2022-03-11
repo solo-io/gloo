@@ -321,6 +321,14 @@ func (h *singleClusterGraphqlHandler) ValidateResolverYaml(_ context.Context, re
 	return &rpc_edge_v1.ValidateResolverYamlResponse{}, nil
 }
 
+func (h *singleClusterGraphqlHandler) ValidateSchemaDefinition(ctx context.Context, request *rpc_edge_v1.ValidateSchemaDefinitionRequest) (*rpc_edge_v1.ValidateSchemaDefinitionResponse, error) {
+	err := ValidateSchemaDefinition(request)
+	if err != nil {
+		return nil, err
+	}
+	return &rpc_edge_v1.ValidateSchemaDefinitionResponse{}, nil
+}
+
 func (h *singleClusterGraphqlHandler) checkGraphqlSchemaRef(ref *skv2_v1.ClusterObjectRef) error {
 	if ref == nil || ref.GetName() == "" || ref.GetNamespace() == "" {
 		return eris.Errorf("request does not contain valid graphqlschema ref: %v", ref)

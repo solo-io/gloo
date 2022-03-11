@@ -115,6 +115,31 @@ message ValidateResolverYamlRequest {
 message ValidateResolverYamlResponse {
 }
 
+// Validates a schema definition.
+//
+// The input to the request can be either a schema definition string or a GraphQLSchema spec:
+// - When creating a new GraphQLSchema from scratch, the schema definition string should be passed in.
+// - When editing an existing GraphQLSchema, the full GraphQLSchema spec should be passed in.
+//
+// This endpoint will currently validate the following:
+// 1. The schema definition string can be parsed.
+// 2. All usages of supported directives are syntactically correct.
+// 3. Resolver names referenced via `@resolve` directives in the schema definition have a corresponding
+//    entry in the GraphQLSchema's resolutions map.
+message ValidateSchemaDefinitionRequest {
+    oneof input {
+        // A schema definition string.
+        string schema_definition = 1;
+
+        // A GraphQLSchema spec.
+        .graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
+    }
+}
+
+// This empty response is returned if validation succeeded. Otherwise, an error is returned.
+message ValidateSchemaDefinitionResponse {
+}
+
 service GraphqlApi {
     rpc GetGraphqlSchema (GetGraphqlSchemaRequest) returns (GetGraphqlSchemaResponse) {}
     rpc ListGraphqlSchemas (ListGraphqlSchemasRequest) returns (ListGraphqlSchemasResponse) {}
@@ -123,4 +148,5 @@ service GraphqlApi {
     rpc UpdateGraphqlSchema (UpdateGraphqlSchemaRequest) returns (UpdateGraphqlSchemaResponse) {}
     rpc DeleteGraphqlSchema (DeleteGraphqlSchemaRequest) returns (DeleteGraphqlSchemaResponse) {}
     rpc ValidateResolverYaml (ValidateResolverYamlRequest) returns (ValidateResolverYamlResponse) {}
+    rpc ValidateSchemaDefinition (ValidateSchemaDefinitionRequest) returns (ValidateSchemaDefinitionResponse) {}
 }

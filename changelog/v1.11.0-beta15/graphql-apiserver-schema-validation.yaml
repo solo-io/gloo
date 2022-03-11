@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Add apiserver endpoint to validate graphql schema definition.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3004

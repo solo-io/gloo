@@ -579,3 +579,84 @@ func (m *ValidateResolverYamlResponse) Equal(that interface{}) bool {
 
 	return true
 }
+
+// Equal function
+func (m *ValidateSchemaDefinitionRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ValidateSchemaDefinitionRequest)
+	if !ok {
+		that2, ok := that.(ValidateSchemaDefinitionRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	switch m.Input.(type) {
+
+	case *ValidateSchemaDefinitionRequest_SchemaDefinition:
+		if _, ok := target.Input.(*ValidateSchemaDefinitionRequest_SchemaDefinition); !ok {
+			return false
+		}
+
+		if strings.Compare(m.GetSchemaDefinition(), target.GetSchemaDefinition()) != 0 {
+			return false
+		}
+
+	case *ValidateSchemaDefinitionRequest_Spec:
+		if _, ok := target.Input.(*ValidateSchemaDefinitionRequest_Spec); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetSpec()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetSpec()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetSpec(), target.GetSpec()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.Input != target.Input {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ValidateSchemaDefinitionResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ValidateSchemaDefinitionResponse)
+	if !ok {
+		that2, ok := that.(ValidateSchemaDefinitionResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	return true
+}

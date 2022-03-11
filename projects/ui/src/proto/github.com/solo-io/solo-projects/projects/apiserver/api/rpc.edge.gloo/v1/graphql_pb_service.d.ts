@@ -67,6 +67,15 @@ type GraphqlApiValidateResolverYaml = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateResolverYamlResponse;
 };
 
+type GraphqlApiValidateSchemaDefinition = {
+  readonly methodName: string;
+  readonly service: typeof GraphqlApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionResponse;
+};
+
 export class GraphqlApi {
   static readonly serviceName: string;
   static readonly GetGraphqlSchema: GraphqlApiGetGraphqlSchema;
@@ -76,6 +85,7 @@ export class GraphqlApi {
   static readonly UpdateGraphqlSchema: GraphqlApiUpdateGraphqlSchema;
   static readonly DeleteGraphqlSchema: GraphqlApiDeleteGraphqlSchema;
   static readonly ValidateResolverYaml: GraphqlApiValidateResolverYaml;
+  static readonly ValidateSchemaDefinition: GraphqlApiValidateSchemaDefinition;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -172,6 +182,15 @@ export class GraphqlApiClient {
   validateResolverYaml(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateResolverYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateResolverYamlResponse|null) => void
+  ): UnaryResponse;
+  validateSchemaDefinition(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionResponse|null) => void
+  ): UnaryResponse;
+  validateSchemaDefinition(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionResponse|null) => void
   ): UnaryResponse;
 }
 

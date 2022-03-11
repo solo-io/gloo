@@ -1,10 +1,10 @@
-package graphql
+package directives
 
 import (
 	"github.com/graphql-go/graphql/language/ast"
 )
 
-func newGraphqlASTVisitor() *GraphqlASTVisitor {
+func NewGraphqlASTVisitor() *GraphqlASTVisitor {
 	return &GraphqlASTVisitor{
 		directiveVisitors: map[string]DirectiveVisitor{},
 	}
@@ -23,11 +23,11 @@ type DirectiveVisitorParams struct {
 
 type DirectiveVisitor func(params DirectiveVisitorParams) error
 
-func (g *GraphqlASTVisitor) addDirectiveVisitor(directiveName string, visitor DirectiveVisitor) {
+func (g *GraphqlASTVisitor) AddDirectiveVisitor(directiveName string, visitor DirectiveVisitor) {
 	g.directiveVisitors[directiveName] = visitor
 }
 
-func (g *GraphqlASTVisitor) visit(root *ast.Document) error {
+func (g *GraphqlASTVisitor) Visit(root *ast.Document) error {
 	if directiveVisitors := g.directiveVisitors; len(directiveVisitors) != 0 {
 		for _, def := range root.Definitions {
 			if d, ok := def.(*ast.ObjectDefinition); ok {
