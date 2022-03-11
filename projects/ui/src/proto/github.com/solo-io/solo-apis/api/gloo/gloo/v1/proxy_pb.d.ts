@@ -14,6 +14,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_subset_pb from "../../
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_matchers_matchers_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/dynamic_forward_proxy/dynamic_forward_proxy_pb";
 
 export class ProxySpec extends jspb.Message {
   getCompressedspec(): string;
@@ -542,6 +543,11 @@ export class RouteAction extends jspb.Message {
   getClusterHeader(): string;
   setClusterHeader(value: string): void;
 
+  hasDynamicForwardProxy(): boolean;
+  clearDynamicForwardProxy(): void;
+  getDynamicForwardProxy(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.PerRouteConfig | undefined;
+  setDynamicForwardProxy(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.PerRouteConfig): void;
+
   getDestinationCase(): RouteAction.DestinationCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteAction.AsObject;
@@ -559,6 +565,7 @@ export namespace RouteAction {
     multi?: MultiDestination.AsObject,
     upstreamGroup?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     clusterHeader: string,
+    dynamicForwardProxy?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.PerRouteConfig.AsObject,
   }
 
   export enum DestinationCase {
@@ -567,6 +574,7 @@ export namespace RouteAction {
     MULTI = 2,
     UPSTREAM_GROUP = 3,
     CLUSTER_HEADER = 4,
+    DYNAMIC_FORWARD_PROXY = 5,
   }
 }
 

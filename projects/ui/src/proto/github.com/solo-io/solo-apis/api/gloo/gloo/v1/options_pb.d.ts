@@ -39,6 +39,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rba
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/waf/waf_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_dlp_dlp_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/dlp/dlp_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_transformation_transformation_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/transformation/transformation_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/dynamic_forward_proxy/dynamic_forward_proxy_pb";
 import * as github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb from "../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base_pb";
 import * as github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_socket_option_pb from "../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/socket_option_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
@@ -193,6 +194,11 @@ export class HttpListenerOptions extends jspb.Message {
   getLeftmostXffAddress(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setLeftmostXffAddress(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasDynamicForwardProxy(): boolean;
+  clearDynamicForwardProxy(): void;
+  getDynamicForwardProxy(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig | undefined;
+  setDynamicForwardProxy(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: HttpListenerOptions): HttpListenerOptions.AsObject;
@@ -221,6 +227,7 @@ export namespace HttpListenerOptions {
     grpcJsonTranscoder?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.AsObject,
     sanitizeClusterHeader?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     leftmostXffAddress?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    dynamicForwardProxy?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig.AsObject,
   }
 }
 

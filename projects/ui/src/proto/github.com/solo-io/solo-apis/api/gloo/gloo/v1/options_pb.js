@@ -48,6 +48,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_p
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/waf/waf_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_dlp_dlp_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/dlp/dlp_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_transformation_transformation_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/transformation/transformation_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/dynamic_forward_proxy/dynamic_forward_proxy_pb.js');
 var github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_base_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base_pb.js');
 var github_com_solo$io_solo$kit_api_external_envoy_api_v2_core_socket_option_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/socket_option_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
@@ -625,7 +626,8 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     csrf: (f = msg.getCsrf()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_csrf_v3_csrf_pb.CsrfPolicy.toObject(includeInstance, f),
     grpcJsonTranscoder: (f = msg.getGrpcJsonTranscoder()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_grpc_json_grpc_json_pb.GrpcJsonTranscoder.toObject(includeInstance, f),
     sanitizeClusterHeader: (f = msg.getSanitizeClusterHeader()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    leftmostXffAddress: (f = msg.getLeftmostXffAddress()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    leftmostXffAddress: (f = msg.getLeftmostXffAddress()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    dynamicForwardProxy: (f = msg.getDynamicForwardProxy()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -741,6 +743,11 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setLeftmostXffAddress(value);
+      break;
+    case 28:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig.deserializeBinaryFromReader);
+      msg.setDynamicForwardProxy(value);
       break;
     default:
       reader.skipField();
@@ -897,6 +904,14 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       16,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getDynamicForwardProxy();
+  if (f != null) {
+    writer.writeMessage(
+      28,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig.serializeBinaryToWriter
     );
   }
 };
@@ -1379,6 +1394,36 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.clearLeftmostXffAddress = funct
  */
 proto.gloo.solo.io.HttpListenerOptions.prototype.hasLeftmostXffAddress = function() {
   return jspb.Message.getField(this, 16) != null;
+};
+
+
+/**
+ * optional dfp.options.gloo.solo.io.FilterConfig dynamic_forward_proxy = 28;
+ * @return {?proto.dfp.options.gloo.solo.io.FilterConfig}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getDynamicForwardProxy = function() {
+  return /** @type{?proto.dfp.options.gloo.solo.io.FilterConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig, 28));
+};
+
+
+/** @param {?proto.dfp.options.gloo.solo.io.FilterConfig|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setDynamicForwardProxy = function(value) {
+  jspb.Message.setWrapperField(this, 28, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearDynamicForwardProxy = function() {
+  this.setDynamicForwardProxy(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasDynamicForwardProxy = function() {
+  return jspb.Message.getField(this, 28) != null;
 };
 
 

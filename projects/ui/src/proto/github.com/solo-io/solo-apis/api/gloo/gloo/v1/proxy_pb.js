@@ -23,6 +23,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_subset_pb = require('../../../
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_matchers_matchers_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/dynamic_forward_proxy/dynamic_forward_proxy_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.ConsulServiceDestination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Destination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.DirectResponseAction', null, global);
@@ -3591,7 +3592,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.RouteAction.oneofGroups_ = [[1,2,3,4]];
+proto.gloo.solo.io.RouteAction.oneofGroups_ = [[1,2,3,4,5]];
 
 /**
  * @enum {number}
@@ -3601,7 +3602,8 @@ proto.gloo.solo.io.RouteAction.DestinationCase = {
   SINGLE: 1,
   MULTI: 2,
   UPSTREAM_GROUP: 3,
-  CLUSTER_HEADER: 4
+  CLUSTER_HEADER: 4,
+  DYNAMIC_FORWARD_PROXY: 5
 };
 
 /**
@@ -3643,7 +3645,8 @@ proto.gloo.solo.io.RouteAction.toObject = function(includeInstance, msg) {
     single: (f = msg.getSingle()) && proto.gloo.solo.io.Destination.toObject(includeInstance, f),
     multi: (f = msg.getMulti()) && proto.gloo.solo.io.MultiDestination.toObject(includeInstance, f),
     upstreamGroup: (f = msg.getUpstreamGroup()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    clusterHeader: jspb.Message.getFieldWithDefault(msg, 4, "")
+    clusterHeader: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    dynamicForwardProxy: (f = msg.getDynamicForwardProxy()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.PerRouteConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3698,6 +3701,11 @@ proto.gloo.solo.io.RouteAction.deserializeBinaryFromReader = function(msg, reade
     case 4:
       var value = /** @type {string} */ (reader.readString());
       msg.setClusterHeader(value);
+      break;
+    case 5:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.PerRouteConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.PerRouteConfig.deserializeBinaryFromReader);
+      msg.setDynamicForwardProxy(value);
       break;
     default:
       reader.skipField();
@@ -3757,6 +3765,14 @@ proto.gloo.solo.io.RouteAction.serializeBinaryToWriter = function(message, write
     writer.writeString(
       4,
       f
+    );
+  }
+  f = message.getDynamicForwardProxy();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.PerRouteConfig.serializeBinaryToWriter
     );
   }
 };
@@ -3878,6 +3894,36 @@ proto.gloo.solo.io.RouteAction.prototype.clearClusterHeader = function() {
  */
 proto.gloo.solo.io.RouteAction.prototype.hasClusterHeader = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional dfp.options.gloo.solo.io.PerRouteConfig dynamic_forward_proxy = 5;
+ * @return {?proto.dfp.options.gloo.solo.io.PerRouteConfig}
+ */
+proto.gloo.solo.io.RouteAction.prototype.getDynamicForwardProxy = function() {
+  return /** @type{?proto.dfp.options.gloo.solo.io.PerRouteConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.PerRouteConfig, 5));
+};
+
+
+/** @param {?proto.dfp.options.gloo.solo.io.PerRouteConfig|undefined} value */
+proto.gloo.solo.io.RouteAction.prototype.setDynamicForwardProxy = function(value) {
+  jspb.Message.setOneofWrapperField(this, 5, proto.gloo.solo.io.RouteAction.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.RouteAction.prototype.clearDynamicForwardProxy = function() {
+  this.setDynamicForwardProxy(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RouteAction.prototype.hasDynamicForwardProxy = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 
