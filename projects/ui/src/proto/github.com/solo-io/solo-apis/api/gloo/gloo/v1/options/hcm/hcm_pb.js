@@ -117,6 +117,7 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     drainTimeout: (f = msg.getDrainTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     delayedCloseTimeout: (f = msg.getDelayedCloseTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     serverName: jspb.Message.getFieldWithDefault(msg, 14, ""),
+    stripAnyHostPort: jspb.Message.getFieldWithDefault(msg, 36, false),
     acceptHttp10: jspb.Message.getFieldWithDefault(msg, 15, false),
     defaultHostForHttp10: jspb.Message.getFieldWithDefault(msg, 16, ""),
     allowChunkedLength: jspb.Message.getFieldWithDefault(msg, 34, false),
@@ -234,6 +235,10 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
     case 14:
       var value = /** @type {string} */ (reader.readString());
       msg.setServerName(value);
+      break;
+    case 36:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setStripAnyHostPort(value);
       break;
     case 15:
       var value = /** @type {boolean} */ (reader.readBool());
@@ -452,6 +457,13 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
   if (f.length > 0) {
     writer.writeString(
       14,
+      f
+    );
+  }
+  f = message.getStripAnyHostPort();
+  if (f) {
+    writer.writeBool(
+      36,
       f
     );
   }
@@ -1253,6 +1265,23 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getServer
 /** @param {string} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setServerName = function(value) {
   jspb.Message.setProto3StringField(this, 14, value);
+};
+
+
+/**
+ * optional bool strip_any_host_port = 36;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getStripAnyHostPort = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 36, false));
+};
+
+
+/** @param {boolean} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setStripAnyHostPort = function(value) {
+  jspb.Message.setProto3BooleanField(this, 36, value);
 };
 
 

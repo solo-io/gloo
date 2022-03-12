@@ -65,6 +65,9 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getServerName(): string;
   setServerName(value: string): void;
 
+  getStripAnyHostPort(): boolean;
+  setStripAnyHostPort(value: boolean): void;
+
   getAcceptHttp10(): boolean;
   setAcceptHttp10(value: boolean): void;
 
@@ -174,6 +177,7 @@ export namespace HttpConnectionManagerSettings {
     drainTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     delayedCloseTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     serverName: string,
+    stripAnyHostPort: boolean,
     acceptHttp10: boolean,
     defaultHostForHttp10: string,
     allowChunkedLength: boolean,

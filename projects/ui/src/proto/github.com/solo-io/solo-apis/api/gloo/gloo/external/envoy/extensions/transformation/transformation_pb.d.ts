@@ -574,6 +574,9 @@ export namespace MergeExtractorsToBody {
 }
 
 export class HeaderBodyTransform extends jspb.Message {
+  getAddRequestMetadata(): boolean;
+  setAddRequestMetadata(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HeaderBodyTransform.AsObject;
   static toObject(includeInstance: boolean, msg: HeaderBodyTransform): HeaderBodyTransform.AsObject;
@@ -586,5 +589,6 @@ export class HeaderBodyTransform extends jspb.Message {
 
 export namespace HeaderBodyTransform {
   export type AsObject = {
+    addRequestMetadata: boolean,
   }
 }

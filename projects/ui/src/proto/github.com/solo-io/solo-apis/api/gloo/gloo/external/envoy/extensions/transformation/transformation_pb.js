@@ -4044,7 +4044,7 @@ proto.envoy.api.v2.filter.http.HeaderBodyTransform.prototype.toObject = function
  */
 proto.envoy.api.v2.filter.http.HeaderBodyTransform.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    addRequestMetadata: jspb.Message.getFieldWithDefault(msg, 1, false)
   };
 
   if (includeInstance) {
@@ -4081,6 +4081,10 @@ proto.envoy.api.v2.filter.http.HeaderBodyTransform.deserializeBinaryFromReader =
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setAddRequestMetadata(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4110,6 +4114,30 @@ proto.envoy.api.v2.filter.http.HeaderBodyTransform.prototype.serializeBinary = f
  */
 proto.envoy.api.v2.filter.http.HeaderBodyTransform.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getAddRequestMetadata();
+  if (f) {
+    writer.writeBool(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bool add_request_metadata = 1;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.api.v2.filter.http.HeaderBodyTransform.prototype.getAddRequestMetadata = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 1, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.api.v2.filter.http.HeaderBodyTransform.prototype.setAddRequestMetadata = function(value) {
+  jspb.Message.setProto3BooleanField(this, 1, value);
 };
 
 
