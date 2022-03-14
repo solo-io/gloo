@@ -14,6 +14,8 @@ import { createGraphiQLFetcher } from '@graphiql/toolkit';
 import { Tooltip } from 'antd';
 import { copyTextToClipboard } from 'utils';
 import { ReactComponent as CopyIcon } from 'assets/document.svg';
+import graphiqlCustomStyles from 'Styles/graphiqlCustomStyles';
+import { Global } from '@emotion/core';
 
 const Wrapper = styled.div`
   background: white;
@@ -24,10 +26,13 @@ const StyledContainer = styled.div`
 `;
 
 const GqlInputContainer = styled.div`
-  margin: 10px auto;
+  padding: 15px 10px;
+  border-bottom: 1px solid ${colors.marchGrey};
+  display: flex;
 `;
 
 const GqlInputWrapper = styled.div`
+  flex-basis: min-content;
   display: flex;
   flex-direction: row;
 `;
@@ -208,6 +213,7 @@ export const GraphqlApiExplorer = () => {
   //        The schema will only refetch if the executable schema is undefined.
   return !!correspondingVirtualServices?.length ? (
     <Wrapper>
+      <Global styles={graphiqlCustomStyles} />
       {Boolean(gqlError) || showUrlBar ? (
         <GqlInputContainer>
           <GqlInputWrapper>

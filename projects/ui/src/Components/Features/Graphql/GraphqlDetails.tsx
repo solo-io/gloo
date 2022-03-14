@@ -16,6 +16,7 @@ import { SoloModal } from 'Components/Common/SoloModal';
 import {
   FolderTab,
   FolderTabContent,
+  FolderTabContentNoPadding,
   FolderTabList,
   StyledTabPanel,
 } from 'Components/Common/Tabs';
@@ -357,7 +358,9 @@ export const GraphQLDetails: React.FC = () => {
                 </FolderTabContent>
               </StyledTabPanel>
               <StyledTabPanel>
-                <div>{tabIndex === 1 && <GraphqlApiExplorer />}</div>
+                <FolderTabContentNoPadding>
+                  {tabIndex === 1 && <GraphqlApiExplorer />}
+                </FolderTabContentNoPadding>
               </StyledTabPanel>
             </TabPanels>
           </Tabs>

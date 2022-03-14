@@ -58,6 +58,12 @@ export const FolderTabContent = styled.div`
   border: 1px solid ${colors.marchGrey};
   margin-top: -1px;
 `;
+export const FolderTabContentNoPadding = styled.div`
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid ${colors.marchGrey};
+  margin-top: -1px;
+`;
 
 export const FolderTabList = styled(TabList)`
   display: flex;

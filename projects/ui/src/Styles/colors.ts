@@ -20,6 +20,7 @@ export const colors = {
   lakeBlue: 'hsl(198, 71%, 60%)', //#54B7E3
   seaBlue: 'hsl(198, 72%, 46%)', //#2196C9
   oceanBlue: 'hsl(198, 84%, 37%)', //#0F7FB1
+  darkOceanBlue: '#305781',
   neptuneBlue: 'hsl(204, 65%, 18%)', //#10344C
   planeOfWaterBlue: 'hsl(204, 59%, 13%)', //#0E2636
 
