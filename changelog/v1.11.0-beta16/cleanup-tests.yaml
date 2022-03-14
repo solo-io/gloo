@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Extract components and add tests.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3239

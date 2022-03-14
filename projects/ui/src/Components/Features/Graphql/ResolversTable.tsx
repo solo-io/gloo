@@ -341,14 +341,14 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
 
         const enumFieldDefinitions = enumTypeDefs?.map(ot => [
           `Enum ${ot.name.value}`,
-          (ot).values?.filter(
+          ot.values?.filter(
             f => f?.kind === 'EnumValueDefinition'
           ) as EnumValueDefinitionNode[],
         ]) as [string, EnumValueDefinitionNode[]][];
 
         let fieldDefinitions = objectTypeDefs.map(ot => [
           ot.name.value,
-          (ot).fields?.filter(
+          ot.fields?.filter(
             f => f?.kind === 'FieldDefinition'
           ) as FieldDefinitionNode[],
         ]) as [string, FieldDefinitionNode[]][];
@@ -437,13 +437,15 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
                 />
               );
             })}
-            {
-              enumTypesMap.map(([typeName, fields]) => {
-                return (
-                  <EnumResolver key={typeName} fields={fields} resolverType={typeName} />
-                )
-              }
-            )}
+          {enumTypesMap.map(([typeName, fields]) => {
+            return (
+              <EnumResolver
+                key={typeName}
+                fields={fields}
+                resolverType={typeName}
+              />
+            );
+          })}
 
           <SoloModal visible={modalOpen} width={750} onClose={closeModal}>
             <ResolverWizard
