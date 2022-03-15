@@ -1,0 +1,15 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyTag: v1.20.0-patch8
+    description: >-
+      Upgrade envoy-gloo-ee version to contain fixed base image.  Resolves docker-compose envoy build issues.
+    issueLink: https://github.com/solo-io/gloo/issues/5980
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.9.10
+    description: >-
+      Upgrade `gloo` to newest v1.9.x release.  Contains changes which allow envoy-proxy to successfuly spinup on docker-compose builds.
+    issueLink: https://github.com/solo-io/gloo/issues/5980
