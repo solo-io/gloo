@@ -31,6 +31,7 @@ module.exports = {
           '500gloo': '#2396C9',
           '600gloo': '#0F7FB1',
           '700gloo': '#253E58',
+          brand: '#2997ca',
         },
       },
     },

@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    description: >
+      Updated the GraphQL API details tab UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3247
+  - type: FIX
+    description: >
+      Updated UI to route to /apis after deleting an API.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3269

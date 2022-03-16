@@ -24,8 +24,10 @@ export const colors = {
   neptuneBlue: 'hsl(204, 65%, 18%)', //#10344C
   planeOfWaterBlue: 'hsl(204, 59%, 13%)', //#0E2636
 
+  lightJanuaryGrey: 'hsl(0, 0%, 99%)',
   januaryGrey: 'hsl(0, 0%, 97%)', //#F9F9F9',
   februaryGrey: 'hsl(0, 0%, 94%)', //#F2F2F2',
+  darkFebruaryGrey: 'hsl(0, 0%, 92%)',
   marchGrey: 'hsl(240, 1%, 87%)', //#DFDFE0
   aprilGrey: 'hsl(216, 13%, 85%)', //#D4D8DE
   mayGrey: 'hsl(214, 12%, 78%)', //#C2C8D0

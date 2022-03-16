@@ -67,15 +67,7 @@ export function useDeleteAPI(config: DeleteConfig) {
           }, 300);
         }
 
-        navigate(
-          clusterDetailsList?.length === 1 && glooInstances?.length === 1
-            ? `/gloo-instances/${
-                clusterDetailsList[0]!.glooInstancesList[0].metadata?.namespace
-              }/${
-                clusterDetailsList[0]!.glooInstancesList[0].metadata?.name
-              }/apis/`
-            : '/apis/'
-        );
+        navigate('/apis/');
       } catch (error: any) {
         cancelDelete();
         setErrorMessage('API deletion failed');

@@ -67,6 +67,7 @@ export const SoloToggleSwitch = (props: SoloToggleSwitchProps) => {
         onClick={onClick}
         aria-pressed='false'
         className={`
+        ${small ? 'scale-75 translate-y-1' : ''}
         ${disabled ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}
         ${
           checked ? ' bg-blue-500gloo' : 'bg-gray-200'

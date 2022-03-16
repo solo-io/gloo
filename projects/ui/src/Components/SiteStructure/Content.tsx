@@ -21,10 +21,9 @@ import { RouteTableDetails } from 'Components/Features/VirtualService/RouteTable
 import { useIsGlooFedEnabled } from 'API/hooks';
 import { DataError } from 'Components/Common/DataError';
 import { Loading } from 'Components/Common/Loading';
-import { GraphqlOverview } from 'Components/Features/Graphql/GraphqlOverview';
 import { EnableGraphqlFeature } from 'Components/Features/Graphql/EnableGraphqlFeature';
 import { GraphqlLanding } from 'Components/Features/Graphql/GraphqlLanding';
-import { GraphQLDetails } from 'Components/Features/Graphql/GraphqlDetails';
+import { GraphqlInstance } from 'Components/Features/Graphql/api-instance/GraphqlInstance';
 
 const ScrollContainer = styled.div`
   max-height: 100%;
@@ -253,7 +252,7 @@ export const Content = () => {
                   fallback={
                     <div>Unable to pull information on GraphQL API.</div>
                   }>
-                  <GraphQLDetails />
+                  <GraphqlInstance />
                 </ErrorBoundary>
               </EnableGraphqlFeature>
             }

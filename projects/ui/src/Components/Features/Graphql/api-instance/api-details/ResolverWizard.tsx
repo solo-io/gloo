@@ -15,9 +15,9 @@ import { graphqlConfigApi } from 'API/graphql';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
 import { useParams } from 'react-router';
 import ConfirmationModal from 'Components/Common/ConfirmationModal';
-import { ResolverTypeSection } from './components/ResolverTypeSection';
-import { UpstreamSection } from './components/UpstreamSection';
-import { ResolverConfigSection } from './components/ResolverConfigSection';
+import { ResolverTypeSection } from './resolver-wizard/ResolverTypeSection';
+import { UpstreamSection } from './resolver-wizard/UpstreamSection';
+import { ResolverConfigSection } from './resolver-wizard/ResolverConfigSection';
 
 export const EditorContainer = styled.div<{ editMode: boolean }>`
   .ace_cursor {

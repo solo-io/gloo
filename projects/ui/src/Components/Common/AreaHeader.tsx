@@ -110,7 +110,11 @@ const AreaHeader = ({
           />
         )}
       </RowContainer>
-      {isExpanded ? <YamlDisplayer contentString={contentValue} /> : null}
+      {isExpanded ? (
+        <div className='mb-5'>
+          <YamlDisplayer contentString={contentValue} />
+        </div>
+      ) : null}
     </>
   );
 };

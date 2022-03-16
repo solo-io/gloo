@@ -6,7 +6,10 @@ import { colors } from 'Styles/colors';
 import { useGetGraphqlApiDetails, useListVirtualServices } from 'API/hooks';
 import { useParams } from 'react-router';
 import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
-import { StatusHealth, WarningCircle } from '../Overview/OverviewBoxSummary';
+import {
+  StatusHealth,
+  WarningCircle,
+} from '../../../Overview/OverviewBoxSummary';
 import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { SoloInput } from 'Components/Common/SoloInput';
@@ -14,8 +17,8 @@ import { createGraphiQLFetcher } from '@graphiql/toolkit';
 import { Tooltip } from 'antd';
 import { copyTextToClipboard } from 'utils';
 import { ReactComponent as CopyIcon } from 'assets/document.svg';
-import graphiqlCustomStyles from 'Styles/graphiqlCustomStyles';
 import { Global } from '@emotion/core';
+import graphiqlCustomStyles from './GraphqlApiExplorer.style';
 
 const Wrapper = styled.div`
   background: white;

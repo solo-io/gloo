@@ -1,19 +1,13 @@
 import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
-import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
+import { EnumValueDefinitionNode } from 'graphql';
 import React from 'react';
 import { useVirtual } from 'react-virtual';
-import {
-  EnumValueDefinitionNode,
-  //@ts-ignore
-} from 'graphql';
-import { GraphqlIconHolder } from './../GraphqlTable';
+import { colors } from 'Styles/colors';
 
 export const EnumResolver: React.FC<{
   resolverType: string;
   fields: EnumValueDefinitionNode[];
-}> = props => {
-  const { resolverType, fields } = props;
-
+}> = ({ resolverType, fields }) => {
   const listRef = React.useRef<HTMLDivElement>(null);
 
   const rowVirtualizer = useVirtual({
@@ -25,36 +19,23 @@ export const EnumResolver: React.FC<{
 
   return (
     <div data-testid='enum-resolver' key={resolverType}>
-      <div className='relative flex flex-col w-full bg-gray-200 border h-28'>
-        <div className='flex items-center justify-between gap-5 pt-4 my-2 ml-4 h-14 '>
-          <div className='flex items-center mr-3'>
-            <GraphqlIconHolder>
-              <GraphQLIcon className='w-4 h-4 fill-current' />
-            </GraphqlIconHolder>
-            <span className='flex items-center font-medium text-gray-900 whitespace-nowrap'>
-              {resolverType}
-            </span>
-          </div>
-        </div>
-        <div className='flex items-center justify-between w-full px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap'>
-          <div
-            className='relative flex-wrap justify-between w-full h-full text-sm '
-            style={{
-              display: 'grid',
-              flexWrap: 'wrap',
-              gridTemplateColumns: '1fr 1fr  1fr',
-              gridTemplateRows: '1fr',
-              gridAutoRows: 'min-content',
-              columnGap: '15px',
-            }}>
-            <span className='flex items-center justify-start ml-6 font-medium text-gray-900 '>
-              Value
-            </span>
-            <span className='flex items-center justify-start ml-8 font-medium text-gray-900 '>
-              Description
-            </span>
-          </div>
-        </div>
+      <div
+        className='relative flex flex-col w-full py-3 border'
+        style={{
+          backgroundColor: colors.lightJanuaryGrey,
+          display: 'grid',
+          flexWrap: 'wrap',
+          gridTemplateColumns: '1fr 1fr  1fr',
+          gridTemplateRows: '1fr',
+          gridAutoRows: 'min-content',
+          columnGap: '15px',
+        }}>
+        <span className='flex items-center justify-start ml-8 font-medium text-gray-900 '>
+          Value
+        </span>
+        <span className='flex items-center justify-center ml-8 font-medium text-gray-900 '>
+          Description
+        </span>
       </div>
 
       <div
