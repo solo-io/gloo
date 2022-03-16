@@ -1,9 +1,9 @@
 import styled from '@emotion/styled';
 import { TabPanels, Tabs } from '@reach/tabs';
-import { graphqlApi } from 'API/graphql';
+import { graphqlConfigApi } from 'API/graphql';
 import {
-  useGetGraphqlSchemaDetails,
-  useGetGraphqlSchemaYaml,
+  useGetGraphqlApiDetails,
+  useGetGraphqlApiYaml,
   useListUpstreams,
 } from 'API/hooks';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
@@ -84,27 +84,27 @@ const ConfigArea = styled.div`
 
 export const GraphQLDetails: React.FC = () => {
   const {
-    graphqlSchemaName = '',
-    graphqlSchemaNamespace = '',
-    graphqlSchemaClusterName = '',
+    graphqlApiName = '',
+    graphqlApiNamespace = '',
+    graphqlApiClusterName = '',
   } = useParams();
 
   const navigate = useNavigate();
   const {
-    data: graphqlSchema,
-    error: graphqlSchemaError,
+    data: graphqlApi,
+    error: graphqlApiError,
     mutate,
-  } = useGetGraphqlSchemaDetails({
-    name: graphqlSchemaName,
-    namespace: graphqlSchemaNamespace,
-    clusterName: graphqlSchemaClusterName,
+  } = useGetGraphqlApiDetails({
+    name: graphqlApiName,
+    namespace: graphqlApiNamespace,
+    clusterName: graphqlApiClusterName,
   });
 
-  const { data: graphqlSchemaYaml, error: graphqlSchemaYamlError } =
-    useGetGraphqlSchemaYaml({
-      name: graphqlSchemaName,
-      namespace: graphqlSchemaNamespace,
-      clusterName: graphqlSchemaClusterName,
+  const { data: graphqlApiYaml, error: graphqlApiYamlError } =
+    useGetGraphqlApiYaml({
+      name: graphqlApiName,
+      namespace: graphqlApiNamespace,
+      clusterName: graphqlApiClusterName,
     });
 
   const {
@@ -124,17 +124,17 @@ export const GraphQLDetails: React.FC = () => {
   >([]);
   const [showResolverPrompt, setShowResolverPrompt] = React.useState(false);
 
-  const [attemptUpdateSchema, setAttemptUpdateSchema] = React.useState(false);
+  const [attemptUpdateApi, setAttemptUpdateApi] = React.useState(false);
   const [introspectionEnabled, setIntrospectionEnabled] = React.useState(
-    graphqlSchema?.spec?.executableSchema?.executor?.local
-      ?.enableIntrospection ?? false
+    graphqlApi?.spec?.executableSchema?.executor?.local?.enableIntrospection ??
+      false
   );
 
   const [errorMessage, setErrorMessage] = React.useState('');
   const [errorModal, setErrorModal] = React.useState(false);
   React.useEffect(() => {
     let resolverUpstreams =
-      graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
+      graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap
         .filter(
           ([_rName, r], index, arr) =>
             index ===
@@ -158,16 +158,15 @@ export const GraphQLDetails: React.FC = () => {
     }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [
-    !!graphqlSchema,
+    !!graphqlApi,
     !!upstreams,
-    graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
-      ?.length,
+    graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.length,
   ]);
 
   React.useEffect(() => {
     if (
-      graphqlSchema?.spec?.executableSchema?.executor === undefined ||
-      graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
+      graphqlApi?.spec?.executableSchema?.executor === undefined ||
+      graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap
         ?.length === 0
     ) {
       setShowResolverPrompt(true);
@@ -175,28 +174,26 @@ export const GraphQLDetails: React.FC = () => {
       setShowResolverPrompt(false);
     }
     setIntrospectionEnabled(
-      graphqlSchema?.spec?.executableSchema?.executor?.local
-        ?.enableIntrospection!
+      graphqlApi?.spec?.executableSchema?.executor?.local?.enableIntrospection!
     );
   }, [
-    !!graphqlSchema?.spec?.executableSchema?.executor,
-    graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap
-      ?.length,
+    !!graphqlApi?.spec?.executableSchema?.executor,
+    graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.length,
   ]);
 
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
   const loadYaml = async () => {
-    if (!graphqlSchemaName || !graphqlSchemaNamespace) {
+    if (!graphqlApiName || !graphqlApiNamespace) {
       return '';
     }
 
     try {
-      const yaml = await graphqlApi.getGraphqlSchemaYaml({
-        name: graphqlSchemaName,
-        namespace: graphqlSchemaNamespace,
-        clusterName: graphqlSchemaClusterName,
+      const yaml = await graphqlConfigApi.getGraphqlApiYaml({
+        name: graphqlApiName,
+        namespace: graphqlApiNamespace,
+        clusterName: graphqlApiClusterName,
       });
       return yaml;
     } catch (error) {
@@ -205,13 +202,13 @@ export const GraphQLDetails: React.FC = () => {
     return '';
   };
 
-  const updateSchema = async () => {
-    await graphqlApi
-      .updateGraphqlSchema({
-        graphqlSchemaRef: {
-          name: graphqlSchemaName,
-          namespace: graphqlSchemaNamespace,
-          clusterName: graphqlSchemaClusterName,
+  const updateApi = async () => {
+    await graphqlConfigApi
+      .updateGraphqlApi({
+        graphqlApiRef: {
+          name: graphqlApiName,
+          namespace: graphqlApiNamespace,
+          clusterName: graphqlApiClusterName,
         },
         spec: {
           executableSchema: {
@@ -225,7 +222,7 @@ export const GraphQLDetails: React.FC = () => {
         },
       })
       .then(() => {
-        setAttemptUpdateSchema(false);
+        setAttemptUpdateApi(false);
       })
       .catch(err => {
         setErrorModal(true);
@@ -233,18 +230,18 @@ export const GraphQLDetails: React.FC = () => {
       });
   };
 
-  if (!graphqlSchema) return <Loading />;
+  if (!graphqlApi) return <Loading />;
 
   return (
     <React.Fragment>
       <div className='w-full mx-auto '>
         <SectionCard
-          cardName={graphqlSchemaName}
+          cardName={graphqlApiName}
           logoIcon={<GraphqlIconHolder>{<GraphQLIcon />}</GraphqlIconHolder>}
           headerSecondaryInformation={[
             {
               title: 'Namespace',
-              value: graphqlSchemaNamespace,
+              value: graphqlApiNamespace,
             },
           ]}>
           {showResolverPrompt ? (
@@ -272,7 +269,7 @@ export const GraphQLDetails: React.FC = () => {
               <SoloToggleSwitch
                 checked={introspectionEnabled}
                 onChange={() => {
-                  setAttemptUpdateSchema(true);
+                  setAttemptUpdateApi(true);
                   setIntrospectionEnabled(!introspectionEnabled);
                 }}
               />
@@ -291,16 +288,16 @@ export const GraphQLDetails: React.FC = () => {
                     <ConfigArea>
                       <AreaHeader
                         title='Configuration'
-                        contentTitle={`${graphqlSchemaNamespace}--${graphqlSchemaName}.yaml`}
-                        yaml={graphqlSchemaYaml}
+                        contentTitle={`${graphqlApiNamespace}--${graphqlApiName}.yaml`}
+                        yaml={graphqlApiYaml}
                         onLoadContent={loadYaml}
                       />
 
                       <ResolversTable
-                        schemaRef={{
-                          name: graphqlSchemaName,
-                          namespace: graphqlSchemaNamespace,
-                          clusterName: graphqlSchemaClusterName,
+                        apiRef={{
+                          name: graphqlApiName,
+                          namespace: graphqlApiNamespace,
+                          clusterName: graphqlApiClusterName,
                         }}
                       />
                     </ConfigArea>
@@ -346,9 +343,9 @@ export const GraphQLDetails: React.FC = () => {
                         data-testid='delete-api'
                         onClick={() =>
                           triggerDelete({
-                            name: graphqlSchemaName,
-                            namespace: graphqlSchemaNamespace,
-                            clusterName: graphqlSchemaClusterName,
+                            name: graphqlApiName,
+                            namespace: graphqlApiNamespace,
+                            clusterName: graphqlApiClusterName,
                           })
                         }>
                         Delete API
@@ -367,14 +364,14 @@ export const GraphQLDetails: React.FC = () => {
         </SectionCard>
       </div>
       <ConfirmationModal
-        visible={attemptUpdateSchema}
-        confirmPrompt='update this schema'
+        visible={attemptUpdateApi}
+        confirmPrompt='update this api'
         confirmButtonText='Update'
-        goForIt={updateSchema}
+        goForIt={updateApi}
         cancel={() => {
-          setAttemptUpdateSchema(false);
+          setAttemptUpdateApi(false);
           setIntrospectionEnabled(
-            graphqlSchema?.spec?.executableSchema?.executor?.local
+            graphqlApi?.spec?.executableSchema?.executor?.local
               ?.enableIntrospection ?? false
           );
         }}
@@ -384,7 +381,7 @@ export const GraphQLDetails: React.FC = () => {
         cancel={() => setErrorModal(false)}
         visible={errorModal}
         errorDescription={errorMessage}
-        errorMessage={'Failure updating Graphql Schema'}
+        errorMessage={'Failure updating GraphQL API'}
         isNegative={true}
       />
 

@@ -19,7 +19,7 @@ var BaseGlooResourceTemplates = func() []model.CustomTemplates {
 	// We need a separate Gloo Fed and single-cluster implementation of each service, because clients need
 	// to be initialized differently in each case (e.g. the Fed version needs a multi-cluster clientset
 	// and a cluster name to access resources, which may be on remote clusters).
-	// Note that for some resource types (e.g. GraphQLSchemas), we manually write the protos and handlers
+	// Note that for some resource types (e.g. GraphQLApis), we manually write the protos and handlers
 	// instead of generating them from these templates, because they may have unique needs, such as being
 	// able to return a different subset of data in the List APIs, needing to aggregate data from multiple
 	// resources, or supporting create/update/delete functionality.

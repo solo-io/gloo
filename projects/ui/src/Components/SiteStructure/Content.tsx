@@ -234,7 +234,7 @@ export const Content = () => {
               <EnableGraphqlFeature reroute>
                 <ErrorBoundary
                   fallback={
-                    <div>Unable to pull information on GraphQL Schemas.</div>
+                    <div>Unable to pull information on GraphQL APIs.</div>
                   }>
                   <GraphqlLanding />
                 </ErrorBoundary>
@@ -244,14 +244,14 @@ export const Content = () => {
           <Route
             path={
               isGlooFedEnabled
-                ? '/gloo-instances/:namespace/:name/apis/:graphqlSchemaClusterName/:graphqlSchemaNamespace/:graphqlSchemaName'
-                : '/gloo-instances/:namespace/:name/apis/:graphqlSchemaNamespace/:graphqlSchemaName'
+                ? '/gloo-instances/:namespace/:name/apis/:graphqlApiClusterName/:graphqlApiNamespace/:graphqlApiName'
+                : '/gloo-instances/:namespace/:name/apis/:graphqlApiNamespace/:graphqlApiName'
             }
             element={
               <EnableGraphqlFeature reroute>
                 <ErrorBoundary
                   fallback={
-                    <div>Unable to pull information on GraphQL Schema.</div>
+                    <div>Unable to pull information on GraphQL API.</div>
                   }>
                   <GraphQLDetails />
                 </ErrorBoundary>

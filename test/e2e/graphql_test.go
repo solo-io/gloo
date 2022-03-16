@@ -42,7 +42,7 @@ var _ = Describe("graphql", func() {
 		testClients services.TestClients
 	)
 
-	var getGraphQLSchema = func(restUsRef, grpcUsRef *core.ResourceRef) *v1alpha1.GraphQLSchema {
+	var getGraphQLApi = func(restUsRef, grpcUsRef *core.ResourceRef) *v1alpha1.GraphQLApi {
 		schema := `
 		      schema { query: Query }
 		      input Map {
@@ -101,7 +101,7 @@ var _ = Describe("graphql", func() {
 			},
 		}
 
-		return &v1alpha1.GraphQLSchema{
+		return &v1alpha1.GraphQLApi{
 			Metadata: &core.Metadata{
 				Name:      "gql",
 				Namespace: "gloo-system",
@@ -139,8 +139,8 @@ var _ = Describe("graphql", func() {
 							Prefix: "/testroute",
 						},
 					}},
-					Action: &gloov1.Route_GraphqlSchemaRef{
-						GraphqlSchemaRef: &core.ResourceRef{
+					Action: &gloov1.Route_GraphqlApiRef{
+						GraphqlApiRef: &core.ResourceRef{
 							Name:      "gql",
 							Namespace: "gloo-system",
 						},
@@ -201,8 +201,8 @@ var _ = Describe("graphql", func() {
 			envoyPort                  = uint32(8080)
 			query                      string
 
-			proxy         *gloov1.Proxy
-			graphQlSchema *v1alpha1.GraphQLSchema
+			proxy      *gloov1.Proxy
+			graphqlApi *v1alpha1.GraphQLApi
 		)
 
 		var testRequestWithRespAssertions = func(result string, f func(resp *http.Response)) {
@@ -298,10 +298,10 @@ var _ = Describe("graphql", func() {
 					grpcUpstream.Upstream.Metadata.Name, clients.ReadOpts{})
 			})
 
-			graphQlSchema = getGraphQLSchema(restUpstream.Upstream.Metadata.Ref(), grpcUpstream.Upstream.Metadata.Ref())
+			graphqlApi = getGraphQLApi(restUpstream.Upstream.Metadata.Ref(), grpcUpstream.Upstream.Metadata.Ref())
 		})
 		JustBeforeEach(func() {
-			_, err := testClients.GraphQLSchemaClient.Write(graphQlSchema, clients.WriteOpts{})
+			_, err := testClients.GraphQLApiClient.Write(graphqlApi, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
 			proxy = getProxy(envoyPort)
@@ -353,7 +353,7 @@ var _ = Describe("graphql", func() {
 							},
 						},
 					}
-					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Body = body
+					graphqlApi.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Body = body
 				})
 
 				It("resolves graphql queries to REST upstreams with body", func() {
@@ -370,7 +370,7 @@ var _ = Describe("graphql", func() {
 			Context("with query params", func() {
 
 				BeforeEach(func() {
-					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.QueryParams = map[string]string{
+					graphqlApi.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.QueryParams = map[string]string{
 						"queryparam": "queryparamval",
 					}
 				})
@@ -389,7 +389,7 @@ var _ = Describe("graphql", func() {
 			Context("with headers", func() {
 
 				BeforeEach(func() {
-					graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Headers = map[string]string{
+					graphqlApi.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Headers = map[string]string{
 						"header": "headerval",
 					}
 				})
@@ -409,7 +409,7 @@ var _ = Describe("graphql", func() {
 
 				Context("allowed", func() {
 					BeforeEach(func() {
-						graphQlSchema.AllowedQueryHashes = []string{"075f4c9392a098f9b6d4e45fa87551d461edc7eedbc67b604bedc1cb9c854692"}
+						graphqlApi.AllowedQueryHashes = []string{"075f4c9392a098f9b6d4e45fa87551d461edc7eedbc67b604bedc1cb9c854692"}
 					})
 
 					It("resolves allowed graphql queries", func() {
@@ -424,7 +424,7 @@ var _ = Describe("graphql", func() {
 
 				Context("disallowed", func() {
 					BeforeEach(func() {
-						graphQlSchema.AllowedQueryHashes = []string{"hashnotfound"}
+						graphqlApi.AllowedQueryHashes = []string{"hashnotfound"}
 					})
 
 					It("denies disallowed query hashes", func() {
@@ -436,7 +436,7 @@ var _ = Describe("graphql", func() {
 			Context("persisted queries", func() {
 				BeforeEach(func() {
 					query = `{__typename}`
-					graphQlSchema.PersistedQueryCacheConfig = &v1alpha1.PersistedQueryCacheConfig{CacheSize: 10}
+					graphqlApi.PersistedQueryCacheConfig = &v1alpha1.PersistedQueryCacheConfig{CacheSize: 10}
 				})
 
 				It("happy path", func() {
@@ -460,7 +460,7 @@ var _ = Describe("graphql", func() {
 
 				Context("cache control", func() {
 					BeforeEach(func() {
-						graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
+						graphqlApi.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
 							Setters: map[string]string{
 								"setme": "{$body.simple}",
 							},
@@ -481,7 +481,7 @@ var _ = Describe("graphql", func() {
 
 				Context("response template", func() {
 					BeforeEach(func() {
-						graphQlSchema.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
+						graphqlApi.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
 							Setters: map[string]string{
 								"setme": "abc {$body.simple} 123",
 							},

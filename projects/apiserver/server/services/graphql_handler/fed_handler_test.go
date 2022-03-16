@@ -27,12 +27,12 @@ var _ = Describe("fed graphql handler", func() {
 		ctrl *gomock.Controller
 		ctx  context.Context
 
-		mockGlooInstanceClient   *mock_fed_v1.MockGlooInstanceClient
-		mockMCClientset          *mock_graphql_v1alpha1.MockMulticlusterClientset
-		mockGraphqlClientset1    *mock_graphql_v1alpha1.MockClientset
-		mockGraphqlClientset2    *mock_graphql_v1alpha1.MockClientset
-		mockGraphqlSchemaClient1 *mock_graphql_v1alpha1.MockGraphQLSchemaClient
-		mockGraphqlSchemaClient2 *mock_graphql_v1alpha1.MockGraphQLSchemaClient
+		mockGlooInstanceClient *mock_fed_v1.MockGlooInstanceClient
+		mockMCClientset        *mock_graphql_v1alpha1.MockMulticlusterClientset
+		mockGraphqlClientset1  *mock_graphql_v1alpha1.MockClientset
+		mockGraphqlClientset2  *mock_graphql_v1alpha1.MockClientset
+		mockGraphqlApiClient1  *mock_graphql_v1alpha1.MockGraphQLApiClient
+		mockGraphqlApiClient2  *mock_graphql_v1alpha1.MockGraphQLApiClient
 	)
 
 	BeforeEach(func() {
@@ -41,8 +41,8 @@ var _ = Describe("fed graphql handler", func() {
 		mockMCClientset = mock_graphql_v1alpha1.NewMockMulticlusterClientset(ctrl)
 		mockGraphqlClientset1 = mock_graphql_v1alpha1.NewMockClientset(ctrl)
 		mockGraphqlClientset2 = mock_graphql_v1alpha1.NewMockClientset(ctrl)
-		mockGraphqlSchemaClient1 = mock_graphql_v1alpha1.NewMockGraphQLSchemaClient(ctrl)
-		mockGraphqlSchemaClient2 = mock_graphql_v1alpha1.NewMockGraphQLSchemaClient(ctrl)
+		mockGraphqlApiClient1 = mock_graphql_v1alpha1.NewMockGraphQLApiClient(ctrl)
+		mockGraphqlApiClient2 = mock_graphql_v1alpha1.NewMockGraphQLApiClient(ctrl)
 
 		local := fed_v1.GlooInstance{
 			ObjectMeta: meta_v1.ObjectMeta{
@@ -72,105 +72,105 @@ var _ = Describe("fed graphql handler", func() {
 		}, nil).AnyTimes()
 		mockMCClientset.EXPECT().Cluster("local-cluster").Return(mockGraphqlClientset1, nil).AnyTimes()
 		mockMCClientset.EXPECT().Cluster("remote-cluster").Return(mockGraphqlClientset2, nil).AnyTimes()
-		mockGraphqlClientset1.EXPECT().GraphQLSchemas().Return(mockGraphqlSchemaClient1).AnyTimes()
-		mockGraphqlClientset2.EXPECT().GraphQLSchemas().Return(mockGraphqlSchemaClient2).AnyTimes()
+		mockGraphqlClientset1.EXPECT().GraphQLApis().Return(mockGraphqlApiClient1).AnyTimes()
+		mockGraphqlClientset2.EXPECT().GraphQLApis().Return(mockGraphqlApiClient2).AnyTimes()
 	})
 
 	AfterEach(func() {
 		ctrl.Finish()
 	})
 
-	Context("GetGraphqlSchema", func() {
-		It("can get graphql schema by ref", func() {
+	Context("GetGraphqlApi", func() {
+		It("can get graphql api by ref", func() {
 			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			petstoreGraphqlSchema := &graphql_v1alpha1.GraphQLSchema{}
-			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlSchema)
+			petstoreGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
-			mockGraphqlSchemaClient1.EXPECT().GetGraphQLSchema(ctx, client.ObjectKey{
+			mockGraphqlApiClient1.EXPECT().GetGraphQLApi(ctx, client.ObjectKey{
 				Namespace: "ns",
 				Name:      "petstore",
-			}).Return(petstoreGraphqlSchema, nil)
+			}).Return(petstoreGraphqlApi, nil)
 
 			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
-			resp, err := handler.GetGraphqlSchema(ctx, &rpc_edge_v1.GetGraphqlSchemaRequest{
-				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
+			resp, err := handler.GetGraphqlApi(ctx, &rpc_edge_v1.GetGraphqlApiRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(resp).To(Equal(&rpc_edge_v1.GetGraphqlSchemaResponse{
-				GraphqlSchema: &rpc_edge_v1.GraphqlSchema{
+			Expect(resp).To(Equal(&rpc_edge_v1.GetGraphqlApiResponse{
+				GraphqlApi: &rpc_edge_v1.GraphqlApi{
 					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns"},
-					Spec:         &petstoreGraphqlSchema.Spec,
-					Status:       &petstoreGraphqlSchema.Status,
+					Spec:         &petstoreGraphqlApi.Spec,
+					Status:       &petstoreGraphqlApi.Status,
 					GlooInstance: &skv2_v1.ObjectRef{Name: "local-test", Namespace: "gloo-system"},
 				},
 			}))
 		})
 	})
 
-	Context("GetGraphqlSchemaYaml", func() {
-		It("can get graphql schema yaml", func() {
+	Context("GetGraphqlApiYaml", func() {
+		It("can get graphql api yaml", func() {
 			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			petstoreGraphqlSchema := &graphql_v1alpha1.GraphQLSchema{}
-			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlSchema)
+			petstoreGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
-			mockGraphqlSchemaClient1.EXPECT().GetGraphQLSchema(ctx, client.ObjectKey{
+			mockGraphqlApiClient1.EXPECT().GetGraphQLApi(ctx, client.ObjectKey{
 				Namespace: "ns",
 				Name:      "petstore",
-			}).Return(petstoreGraphqlSchema, nil)
+			}).Return(petstoreGraphqlApi, nil)
 
 			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
-			resp, err := handler.GetGraphqlSchemaYaml(ctx, &rpc_edge_v1.GetGraphqlSchemaYamlRequest{
-				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
+			resp, err := handler.GetGraphqlApiYaml(ctx, &rpc_edge_v1.GetGraphqlApiYamlRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.YamlData.Yaml).To(MatchYAML(petstoreYaml))
 		})
 	})
 
-	Context("ListGraphqlSchemas", func() {
-		It("can list graphql schemas", func() {
+	Context("ListGraphqlApis", func() {
+		It("can list graphql apis", func() {
 			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			petstoreGraphqlSchema := &graphql_v1alpha1.GraphQLSchema{}
-			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlSchema)
+			petstoreGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
 			bookinfoYaml, err := ioutil.ReadFile("graphql_test_data/bookinfo.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			bookinfoGraphqlSchema := &graphql_v1alpha1.GraphQLSchema{}
-			err = yaml.Unmarshal(bookinfoYaml, bookinfoGraphqlSchema)
+			bookinfoGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			err = yaml.Unmarshal(bookinfoYaml, bookinfoGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
-			mockGraphqlSchemaClient1.EXPECT().ListGraphQLSchema(ctx).Return(&graphql_v1alpha1.GraphQLSchemaList{
-				Items: []graphql_v1alpha1.GraphQLSchema{
-					*petstoreGraphqlSchema,
+			mockGraphqlApiClient1.EXPECT().ListGraphQLApi(ctx).Return(&graphql_v1alpha1.GraphQLApiList{
+				Items: []graphql_v1alpha1.GraphQLApi{
+					*petstoreGraphqlApi,
 				},
 			}, nil)
-			mockGraphqlSchemaClient2.EXPECT().ListGraphQLSchema(ctx).Return(&graphql_v1alpha1.GraphQLSchemaList{
-				Items: []graphql_v1alpha1.GraphQLSchema{
-					*bookinfoGraphqlSchema,
+			mockGraphqlApiClient2.EXPECT().ListGraphQLApi(ctx).Return(&graphql_v1alpha1.GraphQLApiList{
+				Items: []graphql_v1alpha1.GraphQLApi{
+					*bookinfoGraphqlApi,
 				},
 			}, nil)
 
 			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
-			resp, err := handler.ListGraphqlSchemas(ctx, &rpc_edge_v1.ListGraphqlSchemasRequest{})
+			resp, err := handler.ListGraphqlApis(ctx, &rpc_edge_v1.ListGraphqlApisRequest{})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(resp).To(MatchProto(&rpc_edge_v1.ListGraphqlSchemasResponse{
-				GraphqlSchemas: []*rpc_edge_v1.GraphqlSchema{
+			Expect(resp).To(MatchProto(&rpc_edge_v1.ListGraphqlApisResponse{
+				GraphqlApis: []*rpc_edge_v1.GraphqlApi{
 					{
 						Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
-						Spec:         &petstoreGraphqlSchema.Spec,
-						Status:       &petstoreGraphqlSchema.Status,
+						Spec:         &petstoreGraphqlApi.Spec,
+						Status:       &petstoreGraphqlApi.Status,
 						GlooInstance: &skv2_v1.ObjectRef{Name: "local-test", Namespace: "gloo-system"},
 					},
 					{
 						Metadata:     &rpc_edge_v1.ObjectMeta{Name: "bookinfo", Namespace: "gloo-system", ClusterName: "remote-cluster"},
-						Spec:         &bookinfoGraphqlSchema.Spec,
-						Status:       &bookinfoGraphqlSchema.Status,
+						Spec:         &bookinfoGraphqlApi.Spec,
+						Status:       &bookinfoGraphqlApi.Status,
 						GlooInstance: &skv2_v1.ObjectRef{Name: "remote-test", Namespace: "gloo-system"},
 					},
 				},
@@ -178,90 +178,90 @@ var _ = Describe("fed graphql handler", func() {
 		})
 	})
 
-	Context("CreateGraphqlSchema", func() {
-		It("can create a graphqlschema", func() {
+	Context("CreateGraphqlApi", func() {
+		It("can create a graphqlapi", func() {
 			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			petstoreGraphqlSchema := &graphql_v1alpha1.GraphQLSchema{}
-			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlSchema)
+			petstoreGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
-			mockGraphqlSchemaClient1.EXPECT().CreateGraphQLSchema(ctx, gomock.Any()).Return(nil)
+			mockGraphqlApiClient1.EXPECT().CreateGraphQLApi(ctx, gomock.Any()).Return(nil)
 
 			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
-			resp, err := handler.CreateGraphqlSchema(ctx, &rpc_edge_v1.CreateGraphqlSchemaRequest{
-				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
-				Spec:             &petstoreGraphqlSchema.Spec,
+			resp, err := handler.CreateGraphqlApi(ctx, &rpc_edge_v1.CreateGraphqlApiRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
+				Spec:          &petstoreGraphqlApi.Spec,
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(resp).To(Equal(&rpc_edge_v1.CreateGraphqlSchemaResponse{
-				GraphqlSchema: &rpc_edge_v1.GraphqlSchema{
+			Expect(resp).To(Equal(&rpc_edge_v1.CreateGraphqlApiResponse{
+				GraphqlApi: &rpc_edge_v1.GraphqlApi{
 					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns"},
-					Spec:         &petstoreGraphqlSchema.Spec,
-					Status:       &petstoreGraphqlSchema.Status,
+					Spec:         &petstoreGraphqlApi.Spec,
+					Status:       &petstoreGraphqlApi.Status,
 					GlooInstance: &skv2_v1.ObjectRef{Name: "local-test", Namespace: "gloo-system"},
 				},
 			}))
 		})
 	})
 
-	Context("UpdateGraphqlSchema", func() {
-		It("can update a graphqlschema", func() {
+	Context("UpdateGraphqlApi", func() {
+		It("can update a graphqlapi", func() {
 			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			petstoreGraphqlSchema := &graphql_v1alpha1.GraphQLSchema{}
-			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlSchema)
+			petstoreGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
 			bookinfoYaml, err := ioutil.ReadFile("graphql_test_data/bookinfo.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			bookinfoGraphqlSchema := &graphql_v1alpha1.GraphQLSchema{}
-			err = yaml.Unmarshal(bookinfoYaml, bookinfoGraphqlSchema)
+			bookinfoGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			err = yaml.Unmarshal(bookinfoYaml, bookinfoGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
-			mockGraphqlSchemaClient1.EXPECT().GetGraphQLSchema(ctx, gomock.Any()).Return(petstoreGraphqlSchema, nil)
-			mockGraphqlSchemaClient1.EXPECT().UpdateGraphQLSchema(ctx, gomock.Any()).Return(nil)
+			mockGraphqlApiClient1.EXPECT().GetGraphQLApi(ctx, gomock.Any()).Return(petstoreGraphqlApi, nil)
+			mockGraphqlApiClient1.EXPECT().UpdateGraphQLApi(ctx, gomock.Any()).Return(nil)
 
 			// change spec
 			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
-			resp, err := handler.UpdateGraphqlSchema(ctx, &rpc_edge_v1.UpdateGraphqlSchemaRequest{
-				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
-				Spec:             &bookinfoGraphqlSchema.Spec,
+			resp, err := handler.UpdateGraphqlApi(ctx, &rpc_edge_v1.UpdateGraphqlApiRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
+				Spec:          &bookinfoGraphqlApi.Spec,
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(resp).To(Equal(&rpc_edge_v1.UpdateGraphqlSchemaResponse{
-				GraphqlSchema: &rpc_edge_v1.GraphqlSchema{
+			Expect(resp).To(Equal(&rpc_edge_v1.UpdateGraphqlApiResponse{
+				GraphqlApi: &rpc_edge_v1.GraphqlApi{
 					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns"},
-					Spec:         &bookinfoGraphqlSchema.Spec,
-					Status:       &petstoreGraphqlSchema.Status,
+					Spec:         &bookinfoGraphqlApi.Spec,
+					Status:       &petstoreGraphqlApi.Status,
 					GlooInstance: &skv2_v1.ObjectRef{Name: "local-test", Namespace: "gloo-system"},
 				},
 			}))
 		})
-		It("errors if ref points to a nonexistent graphqlschema", func() {
-			mockGraphqlSchemaClient1.EXPECT().GetGraphQLSchema(ctx, gomock.Any()).Return(nil, eris.New("not found!"))
+		It("errors if ref points to a nonexistent graphqlapi", func() {
+			mockGraphqlApiClient1.EXPECT().GetGraphQLApi(ctx, gomock.Any()).Return(nil, eris.New("not found!"))
 
 			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
-			_, err := handler.UpdateGraphqlSchema(ctx, &rpc_edge_v1.UpdateGraphqlSchemaRequest{
-				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
-				Spec:             &graphql_v1alpha1.GraphQLSchemaSpec{},
+			_, err := handler.UpdateGraphqlApi(ctx, &rpc_edge_v1.UpdateGraphqlApiRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
+				Spec:          &graphql_v1alpha1.GraphQLApiSpec{},
 			})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Cannot edit a graphqlschema that does not exist: not found!"))
+			Expect(err.Error()).To(Equal("Cannot edit a graphqlapi that does not exist: not found!"))
 		})
 	})
 
-	Context("DeleteGraphqlSchema", func() {
-		It("can delete a graphqlschema", func() {
-			mockGraphqlSchemaClient1.EXPECT().DeleteGraphQLSchema(ctx, gomock.Any()).Return(nil)
+	Context("DeleteGraphqlApi", func() {
+		It("can delete a graphqlapi", func() {
+			mockGraphqlApiClient1.EXPECT().DeleteGraphQLApi(ctx, gomock.Any()).Return(nil)
 
 			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
-			resp, err := handler.DeleteGraphqlSchema(ctx, &rpc_edge_v1.DeleteGraphqlSchemaRequest{
-				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
+			resp, err := handler.DeleteGraphqlApi(ctx, &rpc_edge_v1.DeleteGraphqlApiRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(resp).To(Equal(&rpc_edge_v1.DeleteGraphqlSchemaResponse{
-				GraphqlSchemaRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
+			Expect(resp).To(Equal(&rpc_edge_v1.DeleteGraphqlApiResponse{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 			}))
 		})
 	})

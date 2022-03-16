@@ -3,7 +3,7 @@ import { ResolverWizardFormProps } from '../ResolverWizard';
 import { useFormikContext } from 'formik';
 import YAML from 'yaml';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
-import { graphqlApi } from 'API/graphql';
+import { graphqlConfigApi } from 'API/graphql';
 import { ValidateResolverYamlRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import styled from '@emotion/styled/macro';
 import YamlEditor from 'Components/Common/YamlEditor';
@@ -203,7 +203,7 @@ export const ResolverConfigSection = ({
   const validateResolverSchema = async (resolver: string) => {
     setIsValid(!isValid);
     try {
-      let res = await graphqlApi.validateResolverYaml({
+      let res = await graphqlConfigApi.validateResolverYaml({
         yaml: resolver,
         resolverType:
           values.resolverType === 'REST'

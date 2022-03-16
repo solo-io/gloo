@@ -26,14 +26,14 @@ var (
 )
 
 // Equal function
-func (m *GraphqlSchema) Equal(that interface{}) bool {
+func (m *GraphqlApi) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*GraphqlSchema)
+	target, ok := that.(*GraphqlApi)
 	if !ok {
-		that2, ok := that.(GraphqlSchema)
+		that2, ok := that.(GraphqlApi)
 		if ok {
 			target = &that2
 		} else {
@@ -90,14 +90,14 @@ func (m *GraphqlSchema) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *GetGraphqlSchemaRequest) Equal(that interface{}) bool {
+func (m *GetGraphqlApiRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*GetGraphqlSchemaRequest)
+	target, ok := that.(*GetGraphqlApiRequest)
 	if !ok {
-		that2, ok := that.(GetGraphqlSchemaRequest)
+		that2, ok := that.(GetGraphqlApiRequest)
 		if ok {
 			target = &that2
 		} else {
@@ -110,12 +110,12 @@ func (m *GetGraphqlSchemaRequest) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetGraphqlSchemaRef()) {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlApiRef()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetGraphqlSchemaRef(), target.GetGraphqlSchemaRef()) {
+		if !proto.Equal(m.GetGraphqlApiRef(), target.GetGraphqlApiRef()) {
 			return false
 		}
 	}
@@ -124,14 +124,14 @@ func (m *GetGraphqlSchemaRequest) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *GetGraphqlSchemaResponse) Equal(that interface{}) bool {
+func (m *GetGraphqlApiResponse) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*GetGraphqlSchemaResponse)
+	target, ok := that.(*GetGraphqlApiResponse)
 	if !ok {
-		that2, ok := that.(GetGraphqlSchemaResponse)
+		that2, ok := that.(GetGraphqlApiResponse)
 		if ok {
 			target = &that2
 		} else {
@@ -144,12 +144,12 @@ func (m *GetGraphqlSchemaResponse) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchema()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetGraphqlSchema()) {
+	if h, ok := interface{}(m.GetGraphqlApi()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlApi()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetGraphqlSchema(), target.GetGraphqlSchema()) {
+		if !proto.Equal(m.GetGraphqlApi(), target.GetGraphqlApi()) {
 			return false
 		}
 	}
@@ -158,14 +158,14 @@ func (m *GetGraphqlSchemaResponse) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *ListGraphqlSchemasRequest) Equal(that interface{}) bool {
+func (m *ListGraphqlApisRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*ListGraphqlSchemasRequest)
+	target, ok := that.(*ListGraphqlApisRequest)
 	if !ok {
-		that2, ok := that.(ListGraphqlSchemasRequest)
+		that2, ok := that.(ListGraphqlApisRequest)
 		if ok {
 			target = &that2
 		} else {
@@ -192,14 +192,14 @@ func (m *ListGraphqlSchemasRequest) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *ListGraphqlSchemasResponse) Equal(that interface{}) bool {
+func (m *ListGraphqlApisResponse) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*ListGraphqlSchemasResponse)
+	target, ok := that.(*ListGraphqlApisResponse)
 	if !ok {
-		that2, ok := that.(ListGraphqlSchemasResponse)
+		that2, ok := that.(ListGraphqlApisResponse)
 		if ok {
 			target = &that2
 		} else {
@@ -212,17 +212,17 @@ func (m *ListGraphqlSchemasResponse) Equal(that interface{}) bool {
 		return false
 	}
 
-	if len(m.GetGraphqlSchemas()) != len(target.GetGraphqlSchemas()) {
+	if len(m.GetGraphqlApis()) != len(target.GetGraphqlApis()) {
 		return false
 	}
-	for idx, v := range m.GetGraphqlSchemas() {
+	for idx, v := range m.GetGraphqlApis() {
 
 		if h, ok := interface{}(v).(equality.Equalizer); ok {
-			if !h.Equal(target.GetGraphqlSchemas()[idx]) {
+			if !h.Equal(target.GetGraphqlApis()[idx]) {
 				return false
 			}
 		} else {
-			if !proto.Equal(v, target.GetGraphqlSchemas()[idx]) {
+			if !proto.Equal(v, target.GetGraphqlApis()[idx]) {
 				return false
 			}
 		}
@@ -233,14 +233,14 @@ func (m *ListGraphqlSchemasResponse) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *GetGraphqlSchemaYamlRequest) Equal(that interface{}) bool {
+func (m *GetGraphqlApiYamlRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*GetGraphqlSchemaYamlRequest)
+	target, ok := that.(*GetGraphqlApiYamlRequest)
 	if !ok {
-		that2, ok := that.(GetGraphqlSchemaYamlRequest)
+		that2, ok := that.(GetGraphqlApiYamlRequest)
 		if ok {
 			target = &that2
 		} else {
@@ -253,12 +253,12 @@ func (m *GetGraphqlSchemaYamlRequest) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetGraphqlSchemaRef()) {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlApiRef()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetGraphqlSchemaRef(), target.GetGraphqlSchemaRef()) {
+		if !proto.Equal(m.GetGraphqlApiRef(), target.GetGraphqlApiRef()) {
 			return false
 		}
 	}
@@ -267,14 +267,14 @@ func (m *GetGraphqlSchemaYamlRequest) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *GetGraphqlSchemaYamlResponse) Equal(that interface{}) bool {
+func (m *GetGraphqlApiYamlResponse) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*GetGraphqlSchemaYamlResponse)
+	target, ok := that.(*GetGraphqlApiYamlResponse)
 	if !ok {
-		that2, ok := that.(GetGraphqlSchemaYamlResponse)
+		that2, ok := that.(GetGraphqlApiYamlResponse)
 		if ok {
 			target = &that2
 		} else {
@@ -301,14 +301,14 @@ func (m *GetGraphqlSchemaYamlResponse) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *CreateGraphqlSchemaRequest) Equal(that interface{}) bool {
+func (m *CreateGraphqlApiRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*CreateGraphqlSchemaRequest)
+	target, ok := that.(*CreateGraphqlApiRequest)
 	if !ok {
-		that2, ok := that.(CreateGraphqlSchemaRequest)
+		that2, ok := that.(CreateGraphqlApiRequest)
 		if ok {
 			target = &that2
 		} else {
@@ -321,12 +321,12 @@ func (m *CreateGraphqlSchemaRequest) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetGraphqlSchemaRef()) {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlApiRef()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetGraphqlSchemaRef(), target.GetGraphqlSchemaRef()) {
+		if !proto.Equal(m.GetGraphqlApiRef(), target.GetGraphqlApiRef()) {
 			return false
 		}
 	}
@@ -345,14 +345,14 @@ func (m *CreateGraphqlSchemaRequest) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *CreateGraphqlSchemaResponse) Equal(that interface{}) bool {
+func (m *CreateGraphqlApiResponse) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*CreateGraphqlSchemaResponse)
+	target, ok := that.(*CreateGraphqlApiResponse)
 	if !ok {
-		that2, ok := that.(CreateGraphqlSchemaResponse)
+		that2, ok := that.(CreateGraphqlApiResponse)
 		if ok {
 			target = &that2
 		} else {
@@ -365,12 +365,12 @@ func (m *CreateGraphqlSchemaResponse) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchema()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetGraphqlSchema()) {
+	if h, ok := interface{}(m.GetGraphqlApi()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlApi()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetGraphqlSchema(), target.GetGraphqlSchema()) {
+		if !proto.Equal(m.GetGraphqlApi(), target.GetGraphqlApi()) {
 			return false
 		}
 	}
@@ -379,14 +379,14 @@ func (m *CreateGraphqlSchemaResponse) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *UpdateGraphqlSchemaRequest) Equal(that interface{}) bool {
+func (m *UpdateGraphqlApiRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*UpdateGraphqlSchemaRequest)
+	target, ok := that.(*UpdateGraphqlApiRequest)
 	if !ok {
-		that2, ok := that.(UpdateGraphqlSchemaRequest)
+		that2, ok := that.(UpdateGraphqlApiRequest)
 		if ok {
 			target = &that2
 		} else {
@@ -399,12 +399,12 @@ func (m *UpdateGraphqlSchemaRequest) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetGraphqlSchemaRef()) {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlApiRef()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetGraphqlSchemaRef(), target.GetGraphqlSchemaRef()) {
+		if !proto.Equal(m.GetGraphqlApiRef(), target.GetGraphqlApiRef()) {
 			return false
 		}
 	}
@@ -423,14 +423,14 @@ func (m *UpdateGraphqlSchemaRequest) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *UpdateGraphqlSchemaResponse) Equal(that interface{}) bool {
+func (m *UpdateGraphqlApiResponse) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*UpdateGraphqlSchemaResponse)
+	target, ok := that.(*UpdateGraphqlApiResponse)
 	if !ok {
-		that2, ok := that.(UpdateGraphqlSchemaResponse)
+		that2, ok := that.(UpdateGraphqlApiResponse)
 		if ok {
 			target = &that2
 		} else {
@@ -443,12 +443,12 @@ func (m *UpdateGraphqlSchemaResponse) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchema()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetGraphqlSchema()) {
+	if h, ok := interface{}(m.GetGraphqlApi()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlApi()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetGraphqlSchema(), target.GetGraphqlSchema()) {
+		if !proto.Equal(m.GetGraphqlApi(), target.GetGraphqlApi()) {
 			return false
 		}
 	}
@@ -457,14 +457,14 @@ func (m *UpdateGraphqlSchemaResponse) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *DeleteGraphqlSchemaRequest) Equal(that interface{}) bool {
+func (m *DeleteGraphqlApiRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*DeleteGraphqlSchemaRequest)
+	target, ok := that.(*DeleteGraphqlApiRequest)
 	if !ok {
-		that2, ok := that.(DeleteGraphqlSchemaRequest)
+		that2, ok := that.(DeleteGraphqlApiRequest)
 		if ok {
 			target = &that2
 		} else {
@@ -477,12 +477,12 @@ func (m *DeleteGraphqlSchemaRequest) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetGraphqlSchemaRef()) {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlApiRef()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetGraphqlSchemaRef(), target.GetGraphqlSchemaRef()) {
+		if !proto.Equal(m.GetGraphqlApiRef(), target.GetGraphqlApiRef()) {
 			return false
 		}
 	}
@@ -491,14 +491,14 @@ func (m *DeleteGraphqlSchemaRequest) Equal(that interface{}) bool {
 }
 
 // Equal function
-func (m *DeleteGraphqlSchemaResponse) Equal(that interface{}) bool {
+func (m *DeleteGraphqlApiResponse) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*DeleteGraphqlSchemaResponse)
+	target, ok := that.(*DeleteGraphqlApiResponse)
 	if !ok {
-		that2, ok := that.(DeleteGraphqlSchemaResponse)
+		that2, ok := that.(DeleteGraphqlApiResponse)
 		if ok {
 			target = &that2
 		} else {
@@ -511,12 +511,12 @@ func (m *DeleteGraphqlSchemaResponse) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetGraphqlSchemaRef()) {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGraphqlApiRef()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetGraphqlSchemaRef(), target.GetGraphqlSchemaRef()) {
+		if !proto.Equal(m.GetGraphqlApiRef(), target.GetGraphqlApiRef()) {
 			return false
 		}
 	}

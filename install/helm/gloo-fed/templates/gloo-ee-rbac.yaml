@@ -42,7 +42,7 @@ rules:
 - apiGroups:
   - graphql.gloo.solo.io
   resources:
-  - graphqlschemas
+  - graphqlapis
   verbs:
   - get
   - list

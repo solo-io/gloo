@@ -19,7 +19,7 @@ import (
 func NewSingleClusterGraphqlHandler(
 	graphqlClientset graphql_v1alpha1.Clientset,
 	glooInstanceLister glooinstance_handler.SingleClusterGlooInstanceLister,
-) rpc_edge_v1.GraphqlApiServer {
+) rpc_edge_v1.GraphqlConfigApiServer {
 	return &singleClusterGraphqlHandler{
 		graphqlClientset:   graphqlClientset,
 		glooInstanceLister: glooInstanceLister,
@@ -31,32 +31,32 @@ type singleClusterGraphqlHandler struct {
 	glooInstanceLister glooinstance_handler.SingleClusterGlooInstanceLister
 }
 
-func (h *singleClusterGraphqlHandler) GetGraphqlSchema(ctx context.Context, request *rpc_edge_v1.GetGraphqlSchemaRequest) (*rpc_edge_v1.GetGraphqlSchemaResponse, error) {
-	if request.GetGraphqlSchemaRef() == nil {
-		return nil, eris.Errorf("graphqlschema ref missing from request: %v", request)
+func (h *singleClusterGraphqlHandler) GetGraphqlApi(ctx context.Context, request *rpc_edge_v1.GetGraphqlApiRequest) (*rpc_edge_v1.GetGraphqlApiResponse, error) {
+	if request.GetGraphqlApiRef() == nil {
+		return nil, eris.Errorf("graphqlapi ref missing from request: %v", request)
 	}
 
-	graphqlSchema, err := h.graphqlClientset.GraphQLSchemas().GetGraphQLSchema(ctx, client.ObjectKey{
-		Namespace: request.GetGraphqlSchemaRef().GetNamespace(),
-		Name:      request.GetGraphqlSchemaRef().GetName(),
+	graphqlApi, err := h.graphqlClientset.GraphQLApis().GetGraphQLApi(ctx, client.ObjectKey{
+		Namespace: request.GetGraphqlApiRef().GetNamespace(),
+		Name:      request.GetGraphqlApiRef().GetName(),
 	})
 	if err != nil {
-		wrapped := eris.Wrapf(err, "Failed to get graphqlschema")
+		wrapped := eris.Wrapf(err, "Failed to get graphqlapi")
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
 
-	// find which gloo instance this graphql schema belongs to, by finding a gloo instance that is watching
-	// the graphql schema's namespace
-	glooInstance, err := h.getGlooInstanceForNamespace(ctx, request.GetGraphqlSchemaRef().GetNamespace())
+	// find which gloo instance this graphql api belongs to, by finding a gloo instance that is watching
+	// the graphql api's namespace
+	glooInstance, err := h.getGlooInstanceForNamespace(ctx, request.GetGraphqlApiRef().GetNamespace())
 	if err != nil {
 		return nil, err
 	}
-	return &rpc_edge_v1.GetGraphqlSchemaResponse{
-		GraphqlSchema: &rpc_edge_v1.GraphqlSchema{
-			Metadata: apiserverutils.ToMetadata(graphqlSchema.ObjectMeta),
-			Spec:     &graphqlSchema.Spec,
-			Status:   &graphqlSchema.Status,
+	return &rpc_edge_v1.GetGraphqlApiResponse{
+		GraphqlApi: &rpc_edge_v1.GraphqlApi{
+			Metadata: apiserverutils.ToMetadata(graphqlApi.ObjectMeta),
+			Spec:     &graphqlApi.Spec,
+			Status:   &graphqlApi.Status,
 			GlooInstance: &skv2_v1.ObjectRef{
 				Name:      glooInstance.GetMetadata().GetName(),
 				Namespace: glooInstance.GetMetadata().GetNamespace(),
@@ -86,10 +86,10 @@ func (h *singleClusterGraphqlHandler) getGlooInstanceForNamespace(ctx context.Co
 	return nil, eris.Errorf("could not find a gloo instance with watched namespace %s", namespace)
 }
 
-func (h *singleClusterGraphqlHandler) ListGraphqlSchemas(ctx context.Context, request *rpc_edge_v1.ListGraphqlSchemasRequest) (*rpc_edge_v1.ListGraphqlSchemasResponse, error) {
-	var rpcGraphqlSchemas []*rpc_edge_v1.GraphqlSchema
+func (h *singleClusterGraphqlHandler) ListGraphqlApis(ctx context.Context, request *rpc_edge_v1.ListGraphqlApisRequest) (*rpc_edge_v1.ListGraphqlApisResponse, error) {
+	var rpcGraphqlApis []*rpc_edge_v1.GraphqlApi
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
-		// List graphqlschemas across all gloo edge instances
+		// List graphqlapis across all gloo edge instances
 		instanceList, err := h.glooInstanceLister.ListGlooInstances(ctx)
 		if err != nil {
 			wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
@@ -97,143 +97,143 @@ func (h *singleClusterGraphqlHandler) ListGraphqlSchemas(ctx context.Context, re
 			return nil, wrapped
 		}
 		for _, instance := range instanceList {
-			rpcGraphqlSchemaList, err := h.listGraphqlSchemasForGlooInstance(ctx, instance)
+			rpcGraphqlApiList, err := h.listGraphqlApisForGlooInstance(ctx, instance)
 			if err != nil {
-				wrapped := eris.Wrapf(err, "Failed to list graphqlSchemas for gloo edge instance %v", instance)
+				wrapped := eris.Wrapf(err, "Failed to list graphqlApis for gloo edge instance %v", instance)
 				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 				return nil, wrapped
 			}
-			rpcGraphqlSchemas = append(rpcGraphqlSchemas, rpcGraphqlSchemaList...)
+			rpcGraphqlApis = append(rpcGraphqlApis, rpcGraphqlApiList...)
 		}
 	} else {
-		// List graphqlSchemas for a specific gloo edge instance
+		// List graphqlApis for a specific gloo edge instance
 		instance, err := h.glooInstanceLister.GetGlooInstance(ctx, request.GetGlooInstanceRef())
 		if err != nil {
 			wrapped := eris.Wrap(err, "Failed to get gloo edge instance")
 			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 			return nil, wrapped
 		}
-		rpcGraphqlSchemas, err = h.listGraphqlSchemasForGlooInstance(ctx, instance)
+		rpcGraphqlApis, err = h.listGraphqlApisForGlooInstance(ctx, instance)
 		if err != nil {
-			wrapped := eris.Wrapf(err, "Failed to list graphqlSchemas for gloo edge instance %v", instance)
+			wrapped := eris.Wrapf(err, "Failed to list graphqlApis for gloo edge instance %v", instance)
 			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 			return nil, wrapped
 		}
 	}
 
-	return &rpc_edge_v1.ListGraphqlSchemasResponse{
-		GraphqlSchemas: rpcGraphqlSchemas,
+	return &rpc_edge_v1.ListGraphqlApisResponse{
+		GraphqlApis: rpcGraphqlApis,
 	}, nil
 }
 
-func (h *singleClusterGraphqlHandler) listGraphqlSchemasForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.GraphqlSchema, error) {
-	var graphqlSchemaList []*graphql_v1alpha1.GraphQLSchema
+func (h *singleClusterGraphqlHandler) listGraphqlApisForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.GraphqlApi, error) {
+	var graphqlApiList []*graphql_v1alpha1.GraphQLApi
 	watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
 	if len(watchedNamespaces) > 0 {
 		for _, ns := range watchedNamespaces {
-			list, err := h.graphqlClientset.GraphQLSchemas().ListGraphQLSchema(ctx, client.InNamespace(ns))
+			list, err := h.graphqlClientset.GraphQLApis().ListGraphQLApi(ctx, client.InNamespace(ns))
 			if err != nil {
 				return nil, err
 			}
 			for _, item := range list.Items {
 				item := item
-				graphqlSchemaList = append(graphqlSchemaList, &item)
+				graphqlApiList = append(graphqlApiList, &item)
 			}
 		}
 	} else {
-		list, err := h.graphqlClientset.GraphQLSchemas().ListGraphQLSchema(ctx)
+		list, err := h.graphqlClientset.GraphQLApis().ListGraphQLApi(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, item := range list.Items {
 			item := item
-			graphqlSchemaList = append(graphqlSchemaList, &item)
+			graphqlApiList = append(graphqlApiList, &item)
 		}
 	}
-	sort.Slice(graphqlSchemaList, func(i, j int) bool {
-		x := graphqlSchemaList[i]
-		y := graphqlSchemaList[j]
+	sort.Slice(graphqlApiList, func(i, j int) bool {
+		x := graphqlApiList[i]
+		y := graphqlApiList[j]
 		return x.GetNamespace()+x.GetName() < y.GetNamespace()+y.GetName()
 	})
 
-	var rpcGraphqlSchemas []*rpc_edge_v1.GraphqlSchema
+	var rpcGraphqlApis []*rpc_edge_v1.GraphqlApi
 	glooInstanceRef := &skv2_v1.ObjectRef{
 		Name:      instance.GetMetadata().GetName(),
 		Namespace: instance.GetMetadata().GetNamespace(),
 	}
-	for _, graphqlSchema := range graphqlSchemaList {
-		graphqlSchema := graphqlSchema
-		rpcGraphqlSchemas = append(rpcGraphqlSchemas, &rpc_edge_v1.GraphqlSchema{
-			Metadata:     apiserverutils.ToMetadata(graphqlSchema.ObjectMeta),
+	for _, graphqlApi := range graphqlApiList {
+		graphqlApi := graphqlApi
+		rpcGraphqlApis = append(rpcGraphqlApis, &rpc_edge_v1.GraphqlApi{
+			Metadata:     apiserverutils.ToMetadata(graphqlApi.ObjectMeta),
 			GlooInstance: glooInstanceRef,
-			Spec:         &graphqlSchema.Spec,
-			Status:       &graphqlSchema.Status,
+			Spec:         &graphqlApi.Spec,
+			Status:       &graphqlApi.Status,
 		})
 	}
-	return rpcGraphqlSchemas, nil
+	return rpcGraphqlApis, nil
 }
 
-func (h *singleClusterGraphqlHandler) GetGraphqlSchemaYaml(ctx context.Context, request *rpc_edge_v1.GetGraphqlSchemaYamlRequest) (*rpc_edge_v1.GetGraphqlSchemaYamlResponse, error) {
-	if request.GetGraphqlSchemaRef() == nil {
-		return nil, eris.Errorf("graphqlschema ref missing from request: %v", request)
+func (h *singleClusterGraphqlHandler) GetGraphqlApiYaml(ctx context.Context, request *rpc_edge_v1.GetGraphqlApiYamlRequest) (*rpc_edge_v1.GetGraphqlApiYamlResponse, error) {
+	if request.GetGraphqlApiRef() == nil {
+		return nil, eris.Errorf("graphqlapi ref missing from request: %v", request)
 	}
 
-	graphqlSchema, err := h.graphqlClientset.GraphQLSchemas().GetGraphQLSchema(ctx, client.ObjectKey{
-		Namespace: request.GetGraphqlSchemaRef().GetNamespace(),
-		Name:      request.GetGraphqlSchemaRef().GetName(),
+	graphqlApi, err := h.graphqlClientset.GraphQLApis().GetGraphQLApi(ctx, client.ObjectKey{
+		Namespace: request.GetGraphqlApiRef().GetNamespace(),
+		Name:      request.GetGraphqlApiRef().GetName(),
 	})
 	if err != nil {
-		wrapped := eris.Wrapf(err, "Failed to get graphqlschema")
+		wrapped := eris.Wrapf(err, "Failed to get graphqlapi")
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
 
-	content, err := yaml.Marshal(graphqlSchema)
+	content, err := yaml.Marshal(graphqlApi)
 	if err != nil {
 		wrapped := eris.Wrapf(err, "Failed to marshal kube resource into yaml")
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
 
-	return &rpc_edge_v1.GetGraphqlSchemaYamlResponse{
+	return &rpc_edge_v1.GetGraphqlApiYamlResponse{
 		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
 	}, nil
 }
 
-func (h *singleClusterGraphqlHandler) CreateGraphqlSchema(ctx context.Context, request *rpc_edge_v1.CreateGraphqlSchemaRequest) (*rpc_edge_v1.CreateGraphqlSchemaResponse, error) {
-	err := h.checkGraphqlSchemaRef(request.GetGraphqlSchemaRef())
+func (h *singleClusterGraphqlHandler) CreateGraphqlApi(ctx context.Context, request *rpc_edge_v1.CreateGraphqlApiRequest) (*rpc_edge_v1.CreateGraphqlApiResponse, error) {
+	err := h.checkGraphqlApiRef(request.GetGraphqlApiRef())
 	if err != nil {
 		return nil, err
 	}
 	if request.GetSpec() == nil {
-		return nil, eris.Errorf("graphqlschema spec missing from request: %v", request)
+		return nil, eris.Errorf("graphqlapi spec missing from request: %v", request)
 	}
 
-	graphqlSchema := &graphql_v1alpha1.GraphQLSchema{
-		ObjectMeta: apiserverutils.RefToObjectMeta(*request.GetGraphqlSchemaRef()),
+	graphqlApi := &graphql_v1alpha1.GraphQLApi{
+		ObjectMeta: apiserverutils.RefToObjectMeta(*request.GetGraphqlApiRef()),
 		Spec:       *request.GetSpec(),
 	}
-	err = h.graphqlClientset.GraphQLSchemas().CreateGraphQLSchema(ctx, graphqlSchema)
+	err = h.graphqlClientset.GraphQLApis().CreateGraphQLApi(ctx, graphqlApi)
 	if err != nil {
-		wrapped := eris.Wrapf(err, "Failed to create graphqlschema")
+		wrapped := eris.Wrapf(err, "Failed to create graphqlapi")
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
 
-	// find which gloo instance this graphql schema belongs to, by finding a gloo instance that is watching
-	// the graphql schema's namespace
-	glooInstance, err := h.getGlooInstanceForNamespace(ctx, request.GetGraphqlSchemaRef().GetNamespace())
+	// find which gloo instance this graphql api belongs to, by finding a gloo instance that is watching
+	// the graphql api's namespace
+	glooInstance, err := h.getGlooInstanceForNamespace(ctx, request.GetGraphqlApiRef().GetNamespace())
 	if err != nil {
 		return nil, err
 	}
 
-	return &rpc_edge_v1.CreateGraphqlSchemaResponse{
-		GraphqlSchema: &rpc_edge_v1.GraphqlSchema{
-			Metadata: apiserverutils.ToMetadata(graphqlSchema.ObjectMeta),
-			Spec:     &graphqlSchema.Spec,
-			Status:   &graphqlSchema.Status,
+	return &rpc_edge_v1.CreateGraphqlApiResponse{
+		GraphqlApi: &rpc_edge_v1.GraphqlApi{
+			Metadata: apiserverutils.ToMetadata(graphqlApi.ObjectMeta),
+			Spec:     &graphqlApi.Spec,
+			Status:   &graphqlApi.Status,
 			GlooInstance: &skv2_v1.ObjectRef{
 				Name:      glooInstance.GetMetadata().GetName(),
 				Namespace: glooInstance.GetMetadata().GetNamespace(),
@@ -242,48 +242,48 @@ func (h *singleClusterGraphqlHandler) CreateGraphqlSchema(ctx context.Context, r
 	}, nil
 }
 
-func (h *singleClusterGraphqlHandler) UpdateGraphqlSchema(ctx context.Context, request *rpc_edge_v1.UpdateGraphqlSchemaRequest) (*rpc_edge_v1.UpdateGraphqlSchemaResponse, error) {
-	err := h.checkGraphqlSchemaRef(request.GetGraphqlSchemaRef())
+func (h *singleClusterGraphqlHandler) UpdateGraphqlApi(ctx context.Context, request *rpc_edge_v1.UpdateGraphqlApiRequest) (*rpc_edge_v1.UpdateGraphqlApiResponse, error) {
+	err := h.checkGraphqlApiRef(request.GetGraphqlApiRef())
 	if err != nil {
 		return nil, err
 	}
 	if request.GetSpec() == nil {
-		return nil, eris.Errorf("graphqlschema spec missing from request: %v", request)
+		return nil, eris.Errorf("graphqlapi spec missing from request: %v", request)
 	}
 
-	// first get the existing graphqlschema
-	graphqlSchema, err := h.graphqlClientset.GraphQLSchemas().GetGraphQLSchema(ctx, client.ObjectKey{
-		Namespace: request.GetGraphqlSchemaRef().GetNamespace(),
-		Name:      request.GetGraphqlSchemaRef().GetName(),
+	// first get the existing graphqlapi
+	graphqlApi, err := h.graphqlClientset.GraphQLApis().GetGraphQLApi(ctx, client.ObjectKey{
+		Namespace: request.GetGraphqlApiRef().GetNamespace(),
+		Name:      request.GetGraphqlApiRef().GetName(),
 	})
 	if err != nil {
-		wrapped := eris.Wrapf(err, "Cannot edit a graphqlschema that does not exist")
+		wrapped := eris.Wrapf(err, "Cannot edit a graphqlapi that does not exist")
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
 	// apply the changes to its spec
-	graphqlSchema.Spec = *request.GetSpec()
+	graphqlApi.Spec = *request.GetSpec()
 
-	// save the updated graphqlschema
-	err = h.graphqlClientset.GraphQLSchemas().UpdateGraphQLSchema(ctx, graphqlSchema)
+	// save the updated graphqlapi
+	err = h.graphqlClientset.GraphQLApis().UpdateGraphQLApi(ctx, graphqlApi)
 	if err != nil {
-		wrapped := eris.Wrapf(err, "Failed to update graphqlschema")
+		wrapped := eris.Wrapf(err, "Failed to update graphqlapi")
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
 
-	// find which gloo instance this graphql schema belongs to, by finding a gloo instance that is watching
-	// the graphql schema's namespace
-	glooInstance, err := h.getGlooInstanceForNamespace(ctx, request.GetGraphqlSchemaRef().GetNamespace())
+	// find which gloo instance this graphql api belongs to, by finding a gloo instance that is watching
+	// the graphql api's namespace
+	glooInstance, err := h.getGlooInstanceForNamespace(ctx, request.GetGraphqlApiRef().GetNamespace())
 	if err != nil {
 		return nil, err
 	}
 
-	return &rpc_edge_v1.UpdateGraphqlSchemaResponse{
-		GraphqlSchema: &rpc_edge_v1.GraphqlSchema{
-			Metadata: apiserverutils.ToMetadata(graphqlSchema.ObjectMeta),
-			Spec:     &graphqlSchema.Spec,
-			Status:   &graphqlSchema.Status,
+	return &rpc_edge_v1.UpdateGraphqlApiResponse{
+		GraphqlApi: &rpc_edge_v1.GraphqlApi{
+			Metadata: apiserverutils.ToMetadata(graphqlApi.ObjectMeta),
+			Spec:     &graphqlApi.Spec,
+			Status:   &graphqlApi.Status,
 			GlooInstance: &skv2_v1.ObjectRef{
 				Name:      glooInstance.GetMetadata().GetName(),
 				Namespace: glooInstance.GetMetadata().GetNamespace(),
@@ -292,24 +292,24 @@ func (h *singleClusterGraphqlHandler) UpdateGraphqlSchema(ctx context.Context, r
 	}, nil
 }
 
-func (h *singleClusterGraphqlHandler) DeleteGraphqlSchema(ctx context.Context, request *rpc_edge_v1.DeleteGraphqlSchemaRequest) (*rpc_edge_v1.DeleteGraphqlSchemaResponse, error) {
-	err := h.checkGraphqlSchemaRef(request.GetGraphqlSchemaRef())
+func (h *singleClusterGraphqlHandler) DeleteGraphqlApi(ctx context.Context, request *rpc_edge_v1.DeleteGraphqlApiRequest) (*rpc_edge_v1.DeleteGraphqlApiResponse, error) {
+	err := h.checkGraphqlApiRef(request.GetGraphqlApiRef())
 	if err != nil {
 		return nil, err
 	}
 
-	err = h.graphqlClientset.GraphQLSchemas().DeleteGraphQLSchema(ctx, client.ObjectKey{
-		Name:      request.GetGraphqlSchemaRef().GetName(),
-		Namespace: request.GetGraphqlSchemaRef().GetNamespace(),
+	err = h.graphqlClientset.GraphQLApis().DeleteGraphQLApi(ctx, client.ObjectKey{
+		Name:      request.GetGraphqlApiRef().GetName(),
+		Namespace: request.GetGraphqlApiRef().GetNamespace(),
 	})
 	if err != nil {
-		wrapped := eris.Wrapf(err, "Failed to delete graphqlschema")
+		wrapped := eris.Wrapf(err, "Failed to delete graphqlapi")
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
 
-	return &rpc_edge_v1.DeleteGraphqlSchemaResponse{
-		GraphqlSchemaRef: request.GetGraphqlSchemaRef(),
+	return &rpc_edge_v1.DeleteGraphqlApiResponse{
+		GraphqlApiRef: request.GetGraphqlApiRef(),
 	}, nil
 }
 
@@ -329,9 +329,9 @@ func (h *singleClusterGraphqlHandler) ValidateSchemaDefinition(ctx context.Conte
 	return &rpc_edge_v1.ValidateSchemaDefinitionResponse{}, nil
 }
 
-func (h *singleClusterGraphqlHandler) checkGraphqlSchemaRef(ref *skv2_v1.ClusterObjectRef) error {
+func (h *singleClusterGraphqlHandler) checkGraphqlApiRef(ref *skv2_v1.ClusterObjectRef) error {
 	if ref == nil || ref.GetName() == "" || ref.GetNamespace() == "" {
-		return eris.Errorf("request does not contain valid graphqlschema ref: %v", ref)
+		return eris.Errorf("request does not contain valid graphqlapi ref: %v", ref)
 	}
 	return nil
 }

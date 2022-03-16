@@ -75,47 +75,47 @@ func (p *plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.St
 // ProcessRoute aplying any needed configurations related to grapql.
 // If any configs are found then mark us needing this filter in our chain.
 func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
-	gqlRef := in.GetGraphqlSchemaRef()
+	gqlRef := in.GetGraphqlApiRef()
 	if gqlRef == nil {
 		return nil
 	}
 
-	gql, err := params.Snapshot.GraphqlSchemas.Find(gqlRef.GetNamespace(), gqlRef.GetName())
+	gql, err := params.Snapshot.GraphqlApis.Find(gqlRef.GetNamespace(), gqlRef.GetName())
 	if err != nil {
 		ret := ""
-		for _, schema := range params.Snapshot.GraphqlSchemas {
-			ret += " " + schema.Metadata.Name
+		for _, api := range params.Snapshot.GraphqlApis {
+			ret += " " + api.Metadata.Name
 		}
-		return eris.Wrapf(err, "unable to find graphql schema custom resource `%s` in namespace `%s`, list of all graphqlschemas found: %s", gqlRef.GetName(), gqlRef.GetNamespace(), ret)
+		return eris.Wrapf(err, "unable to find graphql api custom resource `%s` in namespace `%s`, list of all graphqlapis found: %s", gqlRef.GetName(), gqlRef.GetNamespace(), ret)
 	}
 
 	p.filterNeeded = true // Set here as user is at least attempting to use graphql at this point so might as well place it in the filterchain.
-	routeConf, err := translateGraphQlSchemaToRouteConf(params, in, gql)
+	routeConf, err := translateGraphQlApiToRouteConf(params, in, gql)
 
 	if err != nil {
-		return eris.Wrapf(err, "unable to translate graphql schema control plane config to data plane config")
+		return eris.Wrapf(err, "unable to translate graphql api control plane config to data plane config")
 	}
 
 	return pluginutils.SetRoutePerFilterConfig(out, FilterName, routeConf)
 }
 
-func translateGraphQlSchemaToRouteConf(params plugins.RouteParams, in *v1.Route, schema *v1alpha1.GraphQLSchema) (*v2.GraphQLRouteConfig, error) {
-	schemaStr := schema.GetExecutableSchema().GetSchemaDefinition()
-	_, resolutions, processedSchema, err := processGraphqlSchema(params, schemaStr, schema.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions())
+func translateGraphQlApiToRouteConf(params plugins.RouteParams, in *v1.Route, api *v1alpha1.GraphQLApi) (*v2.GraphQLRouteConfig, error) {
+	schemaStr := api.GetExecutableSchema().GetSchemaDefinition()
+	_, resolutions, processedSchema, err := processGraphqlSchema(params, schemaStr, api.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions())
 	if err != nil {
 		return nil, err
 	}
-	extensions, err := translateExtensions(schema)
+	extensions, err := translateExtensions(api)
 	if err != nil {
 		return nil, err
 	}
-	statsPrefix := in.GetGraphqlSchemaRef().Key()
-	if sp := schema.GetStatPrefix().GetValue(); sp != "" {
+	statsPrefix := in.GetGraphqlApiRef().Key()
+	if sp := api.GetStatPrefix().GetValue(); sp != "" {
 		statsPrefix = sp
 	}
 	statsPrefix = strings.TrimSuffix(statsPrefix, ".") + "."
 	cacheConf := &v2.PersistedQueryCacheConfig{}
-	if cc := schema.GetPersistedQueryCacheConfig(); cc != nil {
+	if cc := api.GetPersistedQueryCacheConfig(); cc != nil {
 		cacheConf.CacheSize = cc.CacheSize
 	}
 	return &v2.GraphQLRouteConfig{
@@ -124,7 +124,7 @@ func translateGraphQlSchemaToRouteConf(params plugins.RouteParams, in *v1.Route,
 				Executor: &v2.Executor_Local_{
 					Local: &v2.Executor_Local{
 						Resolutions:         resolutions,
-						EnableIntrospection: schema.GetExecutableSchema().GetExecutor().GetLocal().GetEnableIntrospection(),
+						EnableIntrospection: api.GetExecutableSchema().GetExecutor().GetLocal().GetEnableIntrospection(),
 					},
 				},
 			},
@@ -135,14 +135,14 @@ func translateGraphQlSchemaToRouteConf(params plugins.RouteParams, in *v1.Route,
 		},
 		StatPrefix:                statsPrefix,
 		PersistedQueryCacheConfig: cacheConf,
-		AllowedQueryHashes:        schema.GetAllowedQueryHashes(),
+		AllowedQueryHashes:        api.GetAllowedQueryHashes(),
 	}, nil
 }
 
-func translateExtensions(schema *v1alpha1.GraphQLSchema) (map[string]*any.Any, error) {
+func translateExtensions(api *v1alpha1.GraphQLApi) (map[string]*any.Any, error) {
 	extensions := map[string]*any.Any{}
 
-	if reg := schema.GetExecutableSchema().GetGrpcDescriptorRegistry(); reg != nil {
+	if reg := api.GetExecutableSchema().GetGrpcDescriptorRegistry(); reg != nil {
 
 		grpcDescRegistry := &v2.GrpcDescriptorRegistry{
 			ProtoDescriptors: &v3.DataSource{

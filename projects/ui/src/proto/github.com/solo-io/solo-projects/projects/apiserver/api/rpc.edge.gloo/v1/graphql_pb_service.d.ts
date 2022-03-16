@@ -4,88 +4,88 @@
 import * as github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb";
 import {grpc} from "@improbable-eng/grpc-web";
 
-type GraphqlApiGetGraphqlSchema = {
+type GraphqlConfigApiGetGraphqlApi = {
   readonly methodName: string;
-  readonly service: typeof GraphqlApi;
+  readonly service: typeof GraphqlConfigApi;
   readonly requestStream: false;
   readonly responseStream: false;
-  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaRequest;
-  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaResponse;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiResponse;
 };
 
-type GraphqlApiListGraphqlSchemas = {
+type GraphqlConfigApiListGraphqlApis = {
   readonly methodName: string;
-  readonly service: typeof GraphqlApi;
+  readonly service: typeof GraphqlConfigApi;
   readonly requestStream: false;
   readonly responseStream: false;
-  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlSchemasRequest;
-  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlSchemasResponse;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlApisRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlApisResponse;
 };
 
-type GraphqlApiGetGraphqlSchemaYaml = {
+type GraphqlConfigApiGetGraphqlApiYaml = {
   readonly methodName: string;
-  readonly service: typeof GraphqlApi;
+  readonly service: typeof GraphqlConfigApi;
   readonly requestStream: false;
   readonly responseStream: false;
-  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaYamlRequest;
-  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaYamlResponse;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiYamlRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiYamlResponse;
 };
 
-type GraphqlApiCreateGraphqlSchema = {
+type GraphqlConfigApiCreateGraphqlApi = {
   readonly methodName: string;
-  readonly service: typeof GraphqlApi;
+  readonly service: typeof GraphqlConfigApi;
   readonly requestStream: false;
   readonly responseStream: false;
-  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlSchemaRequest;
-  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlSchemaResponse;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlApiRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlApiResponse;
 };
 
-type GraphqlApiUpdateGraphqlSchema = {
+type GraphqlConfigApiUpdateGraphqlApi = {
   readonly methodName: string;
-  readonly service: typeof GraphqlApi;
+  readonly service: typeof GraphqlConfigApi;
   readonly requestStream: false;
   readonly responseStream: false;
-  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlSchemaRequest;
-  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlSchemaResponse;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlApiRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlApiResponse;
 };
 
-type GraphqlApiDeleteGraphqlSchema = {
+type GraphqlConfigApiDeleteGraphqlApi = {
   readonly methodName: string;
-  readonly service: typeof GraphqlApi;
+  readonly service: typeof GraphqlConfigApi;
   readonly requestStream: false;
   readonly responseStream: false;
-  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlSchemaRequest;
-  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlSchemaResponse;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlApiRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlApiResponse;
 };
 
-type GraphqlApiValidateResolverYaml = {
+type GraphqlConfigApiValidateResolverYaml = {
   readonly methodName: string;
-  readonly service: typeof GraphqlApi;
+  readonly service: typeof GraphqlConfigApi;
   readonly requestStream: false;
   readonly responseStream: false;
   readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateResolverYamlRequest;
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateResolverYamlResponse;
 };
 
-type GraphqlApiValidateSchemaDefinition = {
+type GraphqlConfigApiValidateSchemaDefinition = {
   readonly methodName: string;
-  readonly service: typeof GraphqlApi;
+  readonly service: typeof GraphqlConfigApi;
   readonly requestStream: false;
   readonly responseStream: false;
   readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionRequest;
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionResponse;
 };
 
-export class GraphqlApi {
+export class GraphqlConfigApi {
   static readonly serviceName: string;
-  static readonly GetGraphqlSchema: GraphqlApiGetGraphqlSchema;
-  static readonly ListGraphqlSchemas: GraphqlApiListGraphqlSchemas;
-  static readonly GetGraphqlSchemaYaml: GraphqlApiGetGraphqlSchemaYaml;
-  static readonly CreateGraphqlSchema: GraphqlApiCreateGraphqlSchema;
-  static readonly UpdateGraphqlSchema: GraphqlApiUpdateGraphqlSchema;
-  static readonly DeleteGraphqlSchema: GraphqlApiDeleteGraphqlSchema;
-  static readonly ValidateResolverYaml: GraphqlApiValidateResolverYaml;
-  static readonly ValidateSchemaDefinition: GraphqlApiValidateSchemaDefinition;
+  static readonly GetGraphqlApi: GraphqlConfigApiGetGraphqlApi;
+  static readonly ListGraphqlApis: GraphqlConfigApiListGraphqlApis;
+  static readonly GetGraphqlApiYaml: GraphqlConfigApiGetGraphqlApiYaml;
+  static readonly CreateGraphqlApi: GraphqlConfigApiCreateGraphqlApi;
+  static readonly UpdateGraphqlApi: GraphqlConfigApiUpdateGraphqlApi;
+  static readonly DeleteGraphqlApi: GraphqlConfigApiDeleteGraphqlApi;
+  static readonly ValidateResolverYaml: GraphqlConfigApiValidateResolverYaml;
+  static readonly ValidateSchemaDefinition: GraphqlConfigApiValidateSchemaDefinition;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -116,63 +116,63 @@ interface BidirectionalStream<ReqT, ResT> {
   on(type: 'status', handler: (status: Status) => void): BidirectionalStream<ReqT, ResT>;
 }
 
-export class GraphqlApiClient {
+export class GraphqlConfigApiClient {
   readonly serviceHost: string;
 
   constructor(serviceHost: string, options?: grpc.RpcOptions);
-  getGraphqlSchema(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaRequest,
+  getGraphqlApi(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiResponse|null) => void
   ): UnaryResponse;
-  getGraphqlSchema(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaRequest,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaResponse|null) => void
+  getGraphqlApi(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiResponse|null) => void
   ): UnaryResponse;
-  listGraphqlSchemas(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlSchemasRequest,
+  listGraphqlApis(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlApisRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlSchemasResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlApisResponse|null) => void
   ): UnaryResponse;
-  listGraphqlSchemas(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlSchemasRequest,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlSchemasResponse|null) => void
+  listGraphqlApis(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlApisRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlApisResponse|null) => void
   ): UnaryResponse;
-  getGraphqlSchemaYaml(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaYamlRequest,
+  getGraphqlApiYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiYamlRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaYamlResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiYamlResponse|null) => void
   ): UnaryResponse;
-  getGraphqlSchemaYaml(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaYamlRequest,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaYamlResponse|null) => void
+  getGraphqlApiYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiYamlRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiYamlResponse|null) => void
   ): UnaryResponse;
-  createGraphqlSchema(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlSchemaRequest,
+  createGraphqlApi(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlApiRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlSchemaResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlApiResponse|null) => void
   ): UnaryResponse;
-  createGraphqlSchema(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlSchemaRequest,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlSchemaResponse|null) => void
+  createGraphqlApi(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlApiRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlApiResponse|null) => void
   ): UnaryResponse;
-  updateGraphqlSchema(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlSchemaRequest,
+  updateGraphqlApi(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlApiRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlSchemaResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlApiResponse|null) => void
   ): UnaryResponse;
-  updateGraphqlSchema(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlSchemaRequest,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlSchemaResponse|null) => void
+  updateGraphqlApi(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlApiRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlApiResponse|null) => void
   ): UnaryResponse;
-  deleteGraphqlSchema(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlSchemaRequest,
+  deleteGraphqlApi(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlApiRequest,
     metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlSchemaResponse|null) => void
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlApiResponse|null) => void
   ): UnaryResponse;
-  deleteGraphqlSchema(
-    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlSchemaRequest,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlSchemaResponse|null) => void
+  deleteGraphqlApi(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlApiRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlApiResponse|null) => void
   ): UnaryResponse;
   validateResolverYaml(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateResolverYamlRequest,

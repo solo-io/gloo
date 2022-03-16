@@ -99,8 +99,8 @@ var _ = Describe("Graphql E2E test", func() {
 													Prefix: "/graphql",
 												},
 											}},
-											Action: &gloov1.Route_GraphqlSchemaRef{
-												GraphqlSchemaRef: &core.ResourceRef{
+											Action: &gloov1.Route_GraphqlApiRef{
+												GraphqlApiRef: &core.ResourceRef{
 													Name:      testUpstream1.Upstream.Metadata.Name,
 													Namespace: testUpstream1.Upstream.Metadata.Namespace,
 												},
@@ -205,9 +205,9 @@ var _ = Describe("Graphql E2E test", func() {
 					By("creates graphql schema from discovered openapi", func() {
 
 						m := testUpstream1.Upstream.GetMetadata()
-						Eventually(func() (*GraphQLSchema, error) {
+						Eventually(func() (*GraphQLApi, error) {
 							a, err := testClients.
-								GraphQLSchemaClient.
+								GraphQLApiClient.
 								Read(m.Namespace, m.Name, clients.ReadOpts{})
 							if err != nil {
 								return nil, err

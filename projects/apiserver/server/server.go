@@ -42,7 +42,7 @@ func NewGlooFedGrpcServer(
 	failoverSchemeService rpc_fed_v1.FailoverSchemeApiServer,
 	routeTableSelectorService rpc_edge_v1.VirtualServiceRoutesApiServer,
 	wasmFilterService rpc_edge_v1.WasmFilterApiServer,
-	graphqlService rpc_edge_v1.GraphqlApiServer,
+	graphqlService rpc_edge_v1.GraphqlConfigApiServer,
 	glooResourceService rpc_edge_v1.GlooResourceApiServer,
 	gatewayResourceService rpc_edge_v1.GatewayResourceApiServer,
 	glooEnterpriseResourceService rpc_edge_v1.EnterpriseGlooResourceApiServer,
@@ -67,7 +67,7 @@ func NewGlooFedGrpcServer(
 	rpc_fed_v1.RegisterFailoverSchemeApiServer(server, failoverSchemeService)
 	rpc_edge_v1.RegisterVirtualServiceRoutesApiServer(server, routeTableSelectorService)
 	rpc_edge_v1.RegisterWasmFilterApiServer(server, wasmFilterService)
-	rpc_edge_v1.RegisterGraphqlApiServer(server, graphqlService)
+	rpc_edge_v1.RegisterGraphqlConfigApiServer(server, graphqlService)
 	rpc_edge_v1.RegisterGlooResourceApiServer(server, glooResourceService)
 	rpc_edge_v1.RegisterGatewayResourceApiServer(server, gatewayResourceService)
 	rpc_edge_v1.RegisterEnterpriseGlooResourceApiServer(server, glooEnterpriseResourceService)
@@ -89,7 +89,7 @@ func NewSingleClusterGlooGrpcServer(
 	glooInstanceService rpc_edge_v1.GlooInstanceApiServer,
 	routeTableSelectorService rpc_edge_v1.VirtualServiceRoutesApiServer,
 	wasmFilterService rpc_edge_v1.WasmFilterApiServer,
-	graphqlService rpc_edge_v1.GraphqlApiServer,
+	graphqlService rpc_edge_v1.GraphqlConfigApiServer,
 	gatewayResourceService rpc_edge_v1.GatewayResourceApiServer,
 	glooResourceService rpc_edge_v1.GlooResourceApiServer,
 	glooEnterpriseResourceService rpc_edge_v1.EnterpriseGlooResourceApiServer,
@@ -109,7 +109,7 @@ func NewSingleClusterGlooGrpcServer(
 	rpc_edge_v1.RegisterGlooInstanceApiServer(server, glooInstanceService)
 	rpc_edge_v1.RegisterVirtualServiceRoutesApiServer(server, routeTableSelectorService)
 	rpc_edge_v1.RegisterWasmFilterApiServer(server, wasmFilterService)
-	rpc_edge_v1.RegisterGraphqlApiServer(server, graphqlService)
+	rpc_edge_v1.RegisterGraphqlConfigApiServer(server, graphqlService)
 	rpc_edge_v1.RegisterGatewayResourceApiServer(server, gatewayResourceService)
 	rpc_edge_v1.RegisterGlooResourceApiServer(server, glooResourceService)
 	rpc_edge_v1.RegisterEnterpriseGlooResourceApiServer(server, glooEnterpriseResourceService)

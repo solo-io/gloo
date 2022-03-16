@@ -28,19 +28,19 @@ import (
 
 var _ = Describe("Graphql plugin", func() {
 	var (
-		plugin        plugins.Plugin
-		params        plugins.Params
-		vhostParams   plugins.VirtualHostParams
-		virtualHost   *v1.VirtualHost
-		route         *v1.Route
-		routeAction   *v1.Route_GraphqlSchemaRef
-		httpListener  *v1.HttpListener
-		gqlSchemaSpec *GraphQLSchema
+		plugin       plugins.Plugin
+		params       plugins.Params
+		vhostParams  plugins.VirtualHostParams
+		virtualHost  *v1.VirtualHost
+		route        *v1.Route
+		routeAction  *v1.Route_GraphqlApiRef
+		httpListener *v1.HttpListener
+		gqlApiSpec   *GraphQLApi
 	)
 
 	BeforeEach(func() {
-		routeAction = &v1.Route_GraphqlSchemaRef{
-			GraphqlSchemaRef: &core.ResourceRef{
+		routeAction = &v1.Route_GraphqlApiRef{
+			GraphqlApiRef: &core.ResourceRef{
 				Name:      "gql",
 				Namespace: "gloo-system",
 			},
@@ -49,7 +49,7 @@ var _ = Describe("Graphql plugin", func() {
 			Action: routeAction,
 		}
 
-		gqlSchemaSpec = &GraphQLSchema{
+		gqlApiSpec = &GraphQLApi{
 			Metadata: &core.Metadata{
 				Name:      "gql",
 				Namespace: "gloo-system",
@@ -89,8 +89,8 @@ var _ = Describe("Graphql plugin", func() {
 
 		params.Snapshot = &v1snap.ApiSnapshot{
 			Proxies: v1.ProxyList{proxy},
-			GraphqlSchemas: GraphQLSchemaList{
-				gqlSchemaSpec,
+			GraphqlApis: GraphQLApiList{
+				gqlApiSpec,
 			},
 			Upstreams: v1.UpstreamList{
 				{
@@ -171,7 +171,7 @@ var _ = Describe("Graphql plugin", func() {
 
 			Context("translate route config", func() {
 				BeforeEach(func() {
-					gqlSchemaSpec.ExecutableSchema.Executor.GetLocal().EnableIntrospection = true
+					gqlApiSpec.ExecutableSchema.Executor.GetLocal().EnableIntrospection = true
 				})
 
 				It("sets enable introspection", func() {
@@ -187,10 +187,10 @@ var _ = Describe("Graphql plugin", func() {
 						err := yaml.Unmarshal([]byte(body), bodyStruct)
 						Expect(err).NotTo(HaveOccurred())
 						// Only resolvers referenced in the schema are translated.
-						gqlSchemaSpec.ExecutableSchema.SchemaDefinition = `type Query {
+						gqlApiSpec.ExecutableSchema.SchemaDefinition = `type Query {
 	field1: String @resolve(name: "resolver1") @cacheControl(maxAge: 60, inheritMaxAge: false, scope: private)
 }`
-						gqlSchemaSpec.ExecutableSchema.Executor.GetLocal().Resolutions = map[string]*Resolution{
+						gqlApiSpec.ExecutableSchema.Executor.GetLocal().Resolutions = map[string]*Resolution{
 							"resolver1": {
 								Resolver: &Resolution_RestResolver{
 									RestResolver: &RESTResolver{
@@ -218,7 +218,7 @@ var _ = Describe("Graphql plugin", func() {
 
 						Context("type-level directives only", func() {
 							BeforeEach(func() {
-								gqlSchemaSpec.ExecutableSchema.SchemaDefinition = `type Query @cacheControl(maxAge: 70, inheritMaxAge: false, scope: private) {
+								gqlApiSpec.ExecutableSchema.SchemaDefinition = `type Query @cacheControl(maxAge: 70, inheritMaxAge: false, scope: private) {
 	field1: String @resolve(name: "resolver1")
 }`
 							})
@@ -252,7 +252,7 @@ var _ = Describe("Graphql plugin", func() {
 						Context("type-level and field-level directives", func() {
 
 							BeforeEach(func() {
-								gqlSchemaSpec.ExecutableSchema.SchemaDefinition = `type Query @cacheControl(maxAge: 70, inheritMaxAge: false, scope: private) {
+								gqlApiSpec.ExecutableSchema.SchemaDefinition = `type Query @cacheControl(maxAge: 70, inheritMaxAge: false, scope: private) {
 	field1: String @resolve(name: "resolver1") @cacheControl(maxAge: 90, inheritMaxAge: false, scope: public)
 }`
 							})
@@ -340,7 +340,7 @@ var _ = Describe("Graphql plugin", func() {
 				_, graphqlSchema, resolutions, err = t.CreateGraphqlSchema(oass)
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
 				fmt.Println(printer.PrintFilteredSchema(graphqlSchema))
-				crd := &GraphQLSchema{
+				crd := &GraphQLApi{
 					ExecutableSchema: &ExecutableSchema{
 						Executor: &Executor{
 							Executor: &Executor_Local_{

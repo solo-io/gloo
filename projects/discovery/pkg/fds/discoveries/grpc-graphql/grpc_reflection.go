@@ -80,7 +80,7 @@ func (f *FunctionDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream, clients 
 // GraphqlSchemaDiscovery represents a function discovery for upstream
 type GraphqlSchemaDiscovery struct {
 	upstream         *v1.Upstream
-	graphqlClient    v1alpha1.GraphQLSchemaClient
+	graphqlClient    v1alpha1.GraphQLApiClient
 	detectionTimeout time.Duration
 }
 
@@ -123,7 +123,7 @@ func (f *GraphqlSchemaDiscovery) DetectFunctions(ctx context.Context, url *url.U
 	}).Backoff(ctx, func(ctx context.Context) error {
 		err := f.DetectFunctionsOnce(ctx, url, updatecb)
 		if err != nil {
-			contextutils.LoggerFrom(ctx).Warnf("Unable to create GraphQLSchemas from gRPC reflection for upstream %s in namespace %s: %s",
+			contextutils.LoggerFrom(ctx).Warnf("Unable to create GraphQLApis from gRPC reflection for upstream %s in namespace %s: %s",
 				f.upstream.GetMetadata().GetName(),
 				f.upstream.GetMetadata().GetNamespace(),
 				err)
@@ -213,7 +213,7 @@ func (f *GraphqlSchemaDiscovery) GetSchemaBuilderForProtoFileDescriptor(refClien
 	return sb, executor, nil
 }
 
-func (f *GraphqlSchemaDiscovery) BuildGraphQLSchemaFromGrpcReflection(refClient GrpcReflectionClient) (*v1alpha1.GraphQLSchema, error) {
+func (f *GraphqlSchemaDiscovery) BuildGraphQLApiFromGrpcReflection(refClient GrpcReflectionClient) (*v1alpha1.GraphQLApi, error) {
 	services, err := refClient.ListServices()
 	if err != nil {
 		return nil, errors.Wrapf(err, "listing services. are you sure upstream %s.%s implements reflection?", f.upstream.GetMetadata().GetName(), f.upstream.GetMetadata().GetNamespace())
@@ -222,7 +222,7 @@ func (f *GraphqlSchemaDiscovery) BuildGraphQLSchemaFromGrpcReflection(refClient 
 
 	schemaBuilder, executor, err := f.GetSchemaBuilderForProtoFileDescriptor(refClient, descriptors, services)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error in translating gRPC reflection for upstream %s in namespace %s to GraphQLSchema",
+		return nil, errors.Wrapf(err, "error in translating gRPC reflection for upstream %s in namespace %s to GraphQLApi",
 			f.upstream.GetMetadata().GetName(), f.upstream.GetMetadata().GetNamespace())
 	}
 
@@ -235,7 +235,7 @@ func (f *GraphqlSchemaDiscovery) BuildGraphQLSchemaFromGrpcReflection(refClient 
 	dest := make([]byte, base64.StdEncoding.EncodedLen(len(d)))
 	base64.StdEncoding.Encode(dest, d)
 
-	schema := &v1alpha1.GraphQLSchema{
+	schema := &v1alpha1.GraphQLApi{
 		Metadata: &core.Metadata{
 			Name:      f.upstream.GetMetadata().GetName(),
 			Namespace: f.upstream.GetMetadata().GetNamespace(),
@@ -264,7 +264,7 @@ func (f *GraphqlSchemaDiscovery) DetectFunctionsOnce(ctx context.Context, url *u
 	}
 	defer closeConn()
 
-	schema, err := f.BuildGraphQLSchemaFromGrpcReflection(refClient)
+	schema, err := f.BuildGraphQLApiFromGrpcReflection(refClient)
 	if err != nil {
 		return errors.Wrap(err, "error creating schema from gRPC reflection")
 	}

@@ -459,10 +459,10 @@ export class Route extends jspb.Message {
   getDirectResponseAction(): DirectResponseAction | undefined;
   setDirectResponseAction(value?: DirectResponseAction): void;
 
-  hasGraphqlSchemaRef(): boolean;
-  clearGraphqlSchemaRef(): void;
-  getGraphqlSchemaRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
-  setGraphqlSchemaRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+  hasGraphqlApiRef(): boolean;
+  clearGraphqlApiRef(): void;
+  getGraphqlApiRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setGraphqlApiRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
 
   hasOptions(): boolean;
   clearOptions(): void;
@@ -500,7 +500,7 @@ export namespace Route {
     routeAction?: RouteAction.AsObject,
     redirectAction?: RedirectAction.AsObject,
     directResponseAction?: DirectResponseAction.AsObject,
-    graphqlSchemaRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    graphqlApiRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.RouteOptions.AsObject,
     metadata?: google_protobuf_struct_pb.Struct.AsObject,
     metadataStatic?: SourceMetadata.AsObject,
@@ -512,7 +512,7 @@ export namespace Route {
     ROUTE_ACTION = 2,
     REDIRECT_ACTION = 3,
     DIRECT_RESPONSE_ACTION = 4,
-    GRAPHQL_SCHEMA_REF = 8,
+    GRAPHQL_API_REF = 8,
   }
 
   export enum OpaqueMetadataCase {

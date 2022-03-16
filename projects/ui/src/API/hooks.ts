@@ -60,9 +60,9 @@ import { FederatedRateLimitConfig } from 'proto/github.com/solo-io/solo-projects
 import { BootstrapApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb_service';
 import { bootstrapApi } from './bootstrap';
 import { GlooFedCheckResponse } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb';
-import { graphqlApi } from './graphql';
-import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
-import { GraphqlSchema } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
+import { graphqlConfigApi } from './graphql';
+import { GraphqlConfigApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
+import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 
 const normalRefreshInterval = 10000;
 
@@ -392,38 +392,36 @@ export function useIsGraphqlEnabled() {
   );
 }
 
-export const LIST_GRAPQL_SCHEMAS_KEY = (glooInstanceRef?: ObjectRef.AsObject) =>
+export const LIST_GRAPHQL_APIS_KEY = (glooInstanceRef?: ObjectRef.AsObject) =>
   !!glooInstanceRef
-    ? `${GraphqlApi.ListGraphqlSchemas.methodName}/${glooInstanceRef.namespace}/${glooInstanceRef.name}`
-    : GraphqlApi.ListGraphqlSchemas.methodName;
-export function useListGraphqlSchemas(glooInstanceRef?: ObjectRef.AsObject) {
-  return useSWR<GraphqlSchema.AsObject[]>(
-    GraphqlApi.ListGraphqlSchemas.methodName,
-    () => graphqlApi.listGraphqlSchemas(glooInstanceRef),
+    ? `${GraphqlConfigApi.ListGraphqlApis.methodName}/${glooInstanceRef.namespace}/${glooInstanceRef.name}`
+    : GraphqlConfigApi.ListGraphqlApis.methodName;
+export function useListGraphqlApis(glooInstanceRef?: ObjectRef.AsObject) {
+  return useSWR<GraphqlApi.AsObject[]>(
+    GraphqlConfigApi.ListGraphqlApis.methodName,
+    () => graphqlConfigApi.listGraphqlApis(glooInstanceRef),
     { refreshInterval: normalRefreshInterval }
   );
 }
 
-export function useGetGraphqlSchemaDetails(
-  graphqlSchemaRef: ClusterObjectRef.AsObject
+export function useGetGraphqlApiDetails(
+  graphqlApiRef: ClusterObjectRef.AsObject
 ) {
-  const key = `${GraphqlApi.GetGraphqlSchema.methodName}/${graphqlSchemaRef.namespace}/${graphqlSchemaRef.name}/${graphqlSchemaRef.clusterName}`;
+  const key = `${GraphqlConfigApi.GetGraphqlApi.methodName}/${graphqlApiRef.namespace}/${graphqlApiRef.name}/${graphqlApiRef.clusterName}`;
 
-  return useSWR<GraphqlSchema.AsObject>(
+  return useSWR<GraphqlApi.AsObject>(
     key,
-    () => graphqlApi.getGraphqlSchema(graphqlSchemaRef),
+    () => graphqlConfigApi.getGraphqlApi(graphqlApiRef),
     { refreshInterval: normalRefreshInterval }
   );
 }
 
-export function useGetGraphqlSchemaYaml(
-  graphqlSchemaRef: ClusterObjectRef.AsObject
-) {
-  const key = `${GraphqlApi.GetGraphqlSchemaYaml.methodName}/${graphqlSchemaRef.namespace}/${graphqlSchemaRef.name}/${graphqlSchemaRef.clusterName}`;
+export function useGetGraphqlApiYaml(graphqlApiRef: ClusterObjectRef.AsObject) {
+  const key = `${GraphqlConfigApi.GetGraphqlApiYaml.methodName}/${graphqlApiRef.namespace}/${graphqlApiRef.name}/${graphqlApiRef.clusterName}`;
 
   return useSWR<string>(
     key,
-    () => graphqlApi.getGraphqlSchemaYaml(graphqlSchemaRef),
+    () => graphqlConfigApi.getGraphqlApiYaml(graphqlApiRef),
     { refreshInterval: normalRefreshInterval }
   );
 }

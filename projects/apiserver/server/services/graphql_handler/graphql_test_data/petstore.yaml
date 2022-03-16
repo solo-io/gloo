@@ -1,5 +1,5 @@
 apiVersion: graphql.gloo.solo.io/v1alpha1
-kind: GraphQLSchema
+kind: GraphQLApi
 metadata:
   name: petstore
   namespace: ns

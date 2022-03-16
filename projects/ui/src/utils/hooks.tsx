@@ -1,11 +1,11 @@
-import { graphqlApi } from 'API/graphql';
+import { graphqlConfigApi } from 'API/graphql';
 import {
   useListClusterDetails,
   useListGlooInstances,
-  useListGraphqlSchemas,
+  useListGraphqlApis,
 } from 'API/hooks';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { GraphqlSchema } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
+import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React from 'react';
 import { useNavigate } from 'react-router';
 import { KeyedMutator } from 'swr';
@@ -13,8 +13,8 @@ import { KeyedMutator } from 'swr';
 interface DeleteConfig {
   optimistic?: boolean;
   revalidate:
-    | KeyedMutator<GraphqlSchema.AsObject[]>
-    | KeyedMutator<GraphqlSchema.AsObject>;
+    | KeyedMutator<GraphqlApi.AsObject[]>
+    | KeyedMutator<GraphqlApi.AsObject>;
 }
 
 // TODO: make reusable
@@ -25,41 +25,40 @@ export function useDeleteAPI(config: DeleteConfig) {
   const [errorModal, setErrorModal] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState('');
   const [errorDescription, setErrorDescription] = React.useState('');
-  const [schemaRefToDelete, setSchemaRefToDelete] =
+  const [apiRefToDelete, setApiRefToDelete] =
     React.useState<ClusterObjectRef.AsObject>();
   const navigate = useNavigate();
-  const { data: graphqlSchemas, error: graphqlSchemaError } =
-    useListGraphqlSchemas();
+  const { data: graphqlApis, error: graphqlApiError } = useListGraphqlApis();
   const { data: glooInstances, error: instancesError } = useListGlooInstances();
 
   const { data: clusterDetailsList, error: cError } = useListClusterDetails();
 
-  const triggerDelete = (schemaRef: ClusterObjectRef.AsObject) => {
-    setSchemaRefToDelete(schemaRef);
+  const triggerDelete = (apiRef: ClusterObjectRef.AsObject) => {
+    setApiRefToDelete(apiRef);
     setIsDeleting(true);
   };
   const cancelDelete = () => {
     setIsDeleting(false);
   };
   const deleteAPI = async () => {
-    if (schemaRefToDelete) {
+    if (apiRefToDelete) {
       if (optimistic) {
         setTimeout(() => {
           revalidate(
-            graphqlSchemas?.filter(
-              gqlSchema =>
-                gqlSchema.metadata?.name !== schemaRefToDelete?.name &&
-                gqlSchema.metadata?.namespace !== schemaRefToDelete?.namespace
+            graphqlApis?.filter(
+              gqlApi =>
+                gqlApi.metadata?.name !== apiRefToDelete?.name &&
+                gqlApi.metadata?.namespace !== apiRefToDelete?.namespace
             ),
             false
           );
         }, 300);
       }
       try {
-        let deletedSchemaRef = await graphqlApi.deleteGraphqlSchema({
-          name: schemaRefToDelete?.name,
-          namespace: schemaRefToDelete?.namespace,
-          clusterName: schemaRefToDelete?.clusterName,
+        let deletedApiRef = await graphqlConfigApi.deleteGraphqlApi({
+          name: apiRefToDelete?.name,
+          namespace: apiRefToDelete?.namespace,
+          clusterName: apiRefToDelete?.clusterName,
         });
         cancelDelete();
         if (optimistic) {

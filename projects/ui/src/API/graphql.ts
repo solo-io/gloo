@@ -8,25 +8,25 @@ import {
   ClusterObjectRef,
   ObjectRef,
 } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { GraphqlApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
+import { GraphqlConfigApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
 import {
-  GetGraphqlSchemaRequest,
-  GraphqlSchema,
-  ListGraphqlSchemasRequest,
-  GetGraphqlSchemaYamlRequest,
+  GetGraphqlApiRequest,
+  GraphqlApi,
+  ListGraphqlApisRequest,
+  GetGraphqlApiYamlRequest,
   ValidateResolverYamlRequest,
   ValidateResolverYamlResponse,
-  CreateGraphqlSchemaRequest,
-  CreateGraphqlSchemaResponse,
-  UpdateGraphqlSchemaRequest,
-  UpdateGraphqlSchemaResponse,
-  DeleteGraphqlSchemaResponse,
-  DeleteGraphqlSchemaRequest,
+  CreateGraphqlApiRequest,
+  CreateGraphqlApiResponse,
+  UpdateGraphqlApiRequest,
+  UpdateGraphqlApiResponse,
+  DeleteGraphqlApiResponse,
+  DeleteGraphqlApiRequest,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import {
   ExecutableSchema,
   Executor,
-  GraphQLSchemaSpec,
+  GraphQLApiSpec,
   GrpcDescriptorRegistry,
   GrpcRequestTemplate,
   RequestTemplate,
@@ -38,98 +38,92 @@ import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 import { Struct, Value } from 'google-protobuf/google/protobuf/struct_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { struct } from 'pb-util';
-const graphqlApiClient = new GraphqlApiClient(host, {
+const graphqlApiClient = new GraphqlConfigApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true,
 });
 
-export const graphqlApi = {
-  listGraphqlSchemas,
-  getGraphqlSchema,
-  getGraphqlSchemaYaml,
-  createGraphqlSchema,
+export const graphqlConfigApi = {
+  listGraphqlApis,
+  getGraphqlApi,
+  getGraphqlApiYaml,
+  createGraphqlApi,
   validateResolverYaml,
-  updateGraphqlSchema,
-  updateGraphqlSchemaIntrospection,
-  deleteGraphqlSchema,
-  updateGraphqlSchemaResolver,
+  updateGraphqlApi,
+  updateGraphqlApiIntrospection,
+  deleteGraphqlApi,
+  updateGraphqlApiResolver,
 };
 
-function listGraphqlSchemas(
+function listGraphqlApis(
   glooInstanceRef?: ObjectRef.AsObject
-): Promise<GraphqlSchema.AsObject[]> {
-  let request = new ListGraphqlSchemasRequest();
+): Promise<GraphqlApi.AsObject[]> {
+  let request = new ListGraphqlApisRequest();
   if (glooInstanceRef) {
     request.setGlooInstanceRef(getObjectRefClassFromRefObj(glooInstanceRef));
   }
   return new Promise((resolve, reject) => {
-    graphqlApiClient.listGraphqlSchemas(request, (error, data) => {
+    graphqlApiClient.listGraphqlApis(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject().graphqlSchemasList);
+        resolve(data!.toObject().graphqlApisList);
       }
     });
   });
 }
 
-function getGraphqlSchema(
-  graphqlSchemaRef: ClusterObjectRef.AsObject
-): Promise<GraphqlSchema.AsObject> {
-  let request = new GetGraphqlSchemaRequest();
-  request.setGraphqlSchemaRef(
-    getClusterRefClassFromClusterRefObj(graphqlSchemaRef)
-  );
+function getGraphqlApi(
+  graphqlApiRef: ClusterObjectRef.AsObject
+): Promise<GraphqlApi.AsObject> {
+  let request = new GetGraphqlApiRequest();
+  request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef));
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.getGraphqlSchema(request, (error, data) => {
+    graphqlApiClient.getGraphqlApi(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject()!.graphqlSchema!);
+        resolve(data!.toObject()!.graphqlApi!);
       }
     });
   });
 }
 
-function getGraphqlSchemaPb(
-  graphqlSchemaRef: ClusterObjectRef.AsObject
-): Promise<GraphqlSchema> {
-  let request = new GetGraphqlSchemaRequest();
-  request.setGraphqlSchemaRef(
-    getClusterRefClassFromClusterRefObj(graphqlSchemaRef)
-  );
+function getGraphqlApiPb(
+  graphqlApiRef: ClusterObjectRef.AsObject
+): Promise<GraphqlApi> {
+  let request = new GetGraphqlApiRequest();
+  request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef));
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.getGraphqlSchema(request, (error, data) => {
+    graphqlApiClient.getGraphqlApi(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.getGraphqlSchema()!);
+        resolve(data!.getGraphqlApi()!);
       }
     });
   });
 }
 
-function getGraphqlSchemaYaml(
-  graphqlSchemaRef: ClusterObjectRef.AsObject
+function getGraphqlApiYaml(
+  graphqlApiRef: ClusterObjectRef.AsObject
 ): Promise<string> {
-  let request = new GetGraphqlSchemaYamlRequest();
-  request.setGraphqlSchemaRef(
-    getClusterRefClassFromClusterRefObj(graphqlSchemaRef)
-  );
+  let request = new GetGraphqlApiYamlRequest();
+  request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef));
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.getGraphqlSchemaYaml(request, (error, data) => {
+    graphqlApiClient.getGraphqlApiYaml(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
@@ -142,12 +136,12 @@ function getGraphqlSchemaYaml(
   });
 }
 
-function createGraphqlSchema(
-  createGraphqlSchemaRequest: CreateGraphqlSchemaRequest.AsObject
-): Promise<GraphqlSchema.AsObject> {
-  let request = new CreateGraphqlSchemaRequest();
-  let { graphqlSchemaRef, spec } = createGraphqlSchemaRequest;
-  let graphqlSchemaSpec = new GraphQLSchemaSpec();
+function createGraphqlApi(
+  createGraphqlApiRequest: CreateGraphqlApiRequest.AsObject
+): Promise<GraphqlApi.AsObject> {
+  let request = new CreateGraphqlApiRequest();
+  let { graphqlApiRef, spec } = createGraphqlApiRequest;
+  let graphqlApiSpec = new GraphQLApiSpec();
   let executableSchema = new ExecutableSchema();
   executableSchema.setSchemaDefinition(
     spec?.executableSchema?.schemaDefinition ?? ''
@@ -157,37 +151,35 @@ function createGraphqlSchema(
   let executor = new Executor();
   executor.setLocal(local);
   executableSchema.setExecutor(executor);
-  graphqlSchemaSpec.setExecutableSchema(executableSchema);
-  request.setGraphqlSchemaRef(
-    getClusterRefClassFromClusterRefObj(graphqlSchemaRef!)
-  );
+  graphqlApiSpec.setExecutableSchema(executableSchema);
+  request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef!));
 
-  request.setSpec(graphqlSchemaSpec);
+  request.setSpec(graphqlApiSpec);
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.createGraphqlSchema(request, (error, data) => {
+    graphqlApiClient.createGraphqlApi(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject().graphqlSchema!);
+        resolve(data!.toObject().graphqlApi!);
       }
     });
   });
 }
 
-function schemaSpecFromObject(
-  schemaSpec: GraphQLSchemaSpec.AsObject,
-  schemaSpecToUpdate = new GraphQLSchemaSpec()
-): GraphQLSchemaSpec {
-  let { executableSchema, statPrefix } = schemaSpec;
+function apiSpecFromObject(
+  apiSpec: GraphQLApiSpec.AsObject,
+  apiSpecToUpdate = new GraphQLApiSpec()
+): GraphQLApiSpec {
+  let { executableSchema, statPrefix } = apiSpec;
   if (statPrefix !== undefined) {
     let { value } = statPrefix;
-    let newStatPrefix = schemaSpecToUpdate.getStatPrefix() ?? new StringValue();
+    let newStatPrefix = apiSpecToUpdate.getStatPrefix() ?? new StringValue();
     newStatPrefix.setValue(value);
-    schemaSpecToUpdate.setStatPrefix(newStatPrefix);
+    apiSpecToUpdate.setStatPrefix(newStatPrefix);
   }
 
   if (executableSchema !== undefined) {
@@ -195,7 +187,7 @@ function schemaSpecFromObject(
       executableSchema;
 
     let newExecutableSchema =
-      schemaSpecToUpdate.getExecutableSchema() ?? new ExecutableSchema();
+      apiSpecToUpdate.getExecutableSchema() ?? new ExecutableSchema();
 
     if (!!schemaDefinition) {
       newExecutableSchema.setSchemaDefinition(schemaDefinition);
@@ -237,64 +229,57 @@ function schemaSpecFromObject(
       newExecutableSchema.setGrpcDescriptorRegistry(newGrpcDescriptorRegistry);
     }
 
-    schemaSpecToUpdate.setExecutableSchema(newExecutableSchema);
+    apiSpecToUpdate.setExecutableSchema(newExecutableSchema);
   }
-  return schemaSpecToUpdate;
+  return apiSpecToUpdate;
 }
 
-async function updateGraphqlSchema(
-  updateGraphqlSchemaRequest: Partial<UpdateGraphqlSchemaRequest.AsObject>
-): Promise<GraphqlSchema.AsObject> {
-  let { graphqlSchemaRef, spec } = updateGraphqlSchemaRequest;
-  let currentGraphqlSchema = await getGraphqlSchemaPb(graphqlSchemaRef!);
+async function updateGraphqlApi(
+  updateGraphqlApiRequest: Partial<UpdateGraphqlApiRequest.AsObject>
+): Promise<GraphqlApi.AsObject> {
+  let { graphqlApiRef, spec } = updateGraphqlApiRequest;
+  let currentGraphqlApi = await getGraphqlApiPb(graphqlApiRef!);
 
-  let request = new UpdateGraphqlSchemaRequest();
-  request.setGraphqlSchemaRef(
-    getClusterRefClassFromClusterRefObj(graphqlSchemaRef!)
-  );
+  let request = new UpdateGraphqlApiRequest();
+  request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef!));
 
-  let graphqlSchemaSpec = schemaSpecFromObject(
-    spec!,
-    currentGraphqlSchema?.getSpec()
-  );
-  request.setSpec(graphqlSchemaSpec);
+  let graphqlApiSpec = apiSpecFromObject(spec!, currentGraphqlApi?.getSpec());
+  request.setSpec(graphqlApiSpec);
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.updateGraphqlSchema(request, (error, data) => {
+    graphqlApiClient.updateGraphqlApi(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject().graphqlSchema!);
+        resolve(data!.toObject().graphqlApi!);
       }
     });
   });
 }
 
-async function updateGraphqlSchemaIntrospection(
-  graphqlSchemaRef: ClusterObjectRef.AsObject,
+async function updateGraphqlApiIntrospection(
+  graphqlApiRef: ClusterObjectRef.AsObject,
   introspectionEnabled: boolean
-): Promise<UpdateGraphqlSchemaResponse.AsObject> {
-  let currentGraphqlSchema = await getGraphqlSchemaPb(graphqlSchemaRef!);
+): Promise<UpdateGraphqlApiResponse.AsObject> {
+  let currentGraphqlApi = await getGraphqlApiPb(graphqlApiRef!);
 
   // currentResolverMap.forEach(([key, value]) => newMetadata.getLabelsMap().set(key, value));
-  let request = new UpdateGraphqlSchemaRequest();
-  let graphqlSchemaSpec = currentGraphqlSchema?.getSpec();
+  let request = new UpdateGraphqlApiRequest();
+  let graphqlApiSpec = currentGraphqlApi?.getSpec();
 
-  request.setGraphqlSchemaRef(
-    getClusterRefClassFromClusterRefObj(graphqlSchemaRef!)
-  );
-  graphqlSchemaSpec
+  request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef!));
+  graphqlApiSpec
     ?.getExecutableSchema()
     ?.getExecutor()
     ?.getLocal()
     ?.setEnableIntrospection(introspectionEnabled);
-  request.setSpec(graphqlSchemaSpec);
+  request.setSpec(graphqlApiSpec);
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.updateGraphqlSchema(request, (error, data) => {
+    graphqlApiClient.updateGraphqlApi(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
@@ -307,8 +292,8 @@ async function updateGraphqlSchemaIntrospection(
   });
 }
 
-async function updateGraphqlSchemaResolver(
-  graphqlSchemaRef: ClusterObjectRef.AsObject,
+async function updateGraphqlApiResolver(
+  graphqlApiRef: ClusterObjectRef.AsObject,
   resolverItem: {
     resolverName: string;
     resolverType?: 'REST' | 'gRPC';
@@ -322,13 +307,13 @@ async function updateGraphqlSchemaResolver(
     fieldWithoutDirective?: string;
   },
   isRemove?: boolean
-): Promise<GraphqlSchema.AsObject> {
-  let currentGraphqlSchema = await getGraphqlSchemaPb(graphqlSchemaRef!);
+): Promise<GraphqlApi.AsObject> {
+  let currentGraphqlApi = await getGraphqlApiPb(graphqlApiRef!);
 
-  let currentSpec = currentGraphqlSchema?.getSpec();
+  let currentSpec = currentGraphqlApi?.getSpec();
 
   if (currentSpec === undefined) {
-    currentSpec = new GraphQLSchemaSpec();
+    currentSpec = new GraphQLApiSpec();
   }
   let currentExSchema = currentSpec?.getExecutableSchema();
   if (currentExSchema === undefined) {
@@ -412,11 +397,9 @@ async function updateGraphqlSchemaResolver(
     newResolution.setRestResolver(newRestResolver);
   }
 
-  let request = new UpdateGraphqlSchemaRequest();
+  let request = new UpdateGraphqlApiRequest();
 
-  request.setGraphqlSchemaRef(
-    getClusterRefClassFromClusterRefObj(graphqlSchemaRef!)
-  );
+  request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef!));
 
   currExecutor.setLocal(currLocal);
   currentExSchema.setExecutor(currExecutor);
@@ -448,40 +431,38 @@ async function updateGraphqlSchemaResolver(
   request.setSpec(currentSpec);
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.updateGraphqlSchema(request, (error, data) => {
+    graphqlApiClient.updateGraphqlApi(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject().graphqlSchema!);
+        resolve(data!.toObject().graphqlApi!);
       }
     });
   });
 }
 
-function deleteGraphqlSchema(
-  graphqlSchemaRef: ClusterObjectRef.AsObject
+function deleteGraphqlApi(
+  graphqlApiRef: ClusterObjectRef.AsObject
 ): Promise<ClusterObjectRef.AsObject> {
-  let request = new CreateGraphqlSchemaRequest();
-  let graphqlSchemaSpec = new GraphQLSchemaSpec();
+  let request = new CreateGraphqlApiRequest();
+  let graphqlApiSpec = new GraphQLApiSpec();
 
-  request.setGraphqlSchemaRef(
-    getClusterRefClassFromClusterRefObj(graphqlSchemaRef!)
-  );
+  request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef!));
 
-  request.setSpec(graphqlSchemaSpec);
+  request.setSpec(graphqlApiSpec);
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.deleteGraphqlSchema(request, (error, data) => {
+    graphqlApiClient.deleteGraphqlApi(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject().graphqlSchemaRef!);
+        resolve(data!.toObject().graphqlApiRef!);
       }
     });
   });

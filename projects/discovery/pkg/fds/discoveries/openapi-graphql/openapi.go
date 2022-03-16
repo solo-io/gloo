@@ -71,7 +71,7 @@ type OpenApiFunctionDiscovery struct {
 	upstream         *v1.Upstream
 	openApiUrisToTry []string
 
-	graphqlClient v1alpha1.GraphQLSchemaClient
+	graphqlClient v1alpha1.GraphQLApiClient
 }
 
 func getswagspec(u *v1.Upstream) *rest_plugins.ServiceSpec_SwaggerInfo {
@@ -243,7 +243,7 @@ func (f *OpenApiFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, 
 	}
 	schema := ast.Node(schemaAst)
 	printedSchema := printer.Print(schema).(string)
-	schemaCrd := &v1alpha1.GraphQLSchema{
+	schemaCrd := &v1alpha1.GraphQLApi{
 		Metadata: &core.Metadata{
 			Name:      f.upstream.GetMetadata().GetName(),
 			Namespace: f.upstream.GetMetadata().GetNamespace(),

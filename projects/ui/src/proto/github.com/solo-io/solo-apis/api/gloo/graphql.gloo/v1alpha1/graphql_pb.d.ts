@@ -243,7 +243,7 @@ export namespace Resolution {
   }
 }
 
-export class GraphQLSchemaSpec extends jspb.Message {
+export class GraphQLApiSpec extends jspb.Message {
   hasExecutableSchema(): boolean;
   clearExecutableSchema(): void;
   getExecutableSchema(): ExecutableSchema | undefined;
@@ -265,16 +265,16 @@ export class GraphQLSchemaSpec extends jspb.Message {
   addAllowedQueryHashes(value: string, index?: number): string;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GraphQLSchemaSpec.AsObject;
-  static toObject(includeInstance: boolean, msg: GraphQLSchemaSpec): GraphQLSchemaSpec.AsObject;
+  toObject(includeInstance?: boolean): GraphQLApiSpec.AsObject;
+  static toObject(includeInstance: boolean, msg: GraphQLApiSpec): GraphQLApiSpec.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GraphQLSchemaSpec, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GraphQLSchemaSpec;
-  static deserializeBinaryFromReader(message: GraphQLSchemaSpec, reader: jspb.BinaryReader): GraphQLSchemaSpec;
+  static serializeBinaryToWriter(message: GraphQLApiSpec, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GraphQLApiSpec;
+  static deserializeBinaryFromReader(message: GraphQLApiSpec, reader: jspb.BinaryReader): GraphQLApiSpec;
 }
 
-export namespace GraphQLSchemaSpec {
+export namespace GraphQLApiSpec {
   export type AsObject = {
     executableSchema?: ExecutableSchema.AsObject,
     statPrefix?: google_protobuf_wrappers_pb.StringValue.AsObject,
@@ -386,9 +386,9 @@ export namespace Executor {
   }
 }
 
-export class GraphQLSchemaStatus extends jspb.Message {
-  getState(): GraphQLSchemaStatus.StateMap[keyof GraphQLSchemaStatus.StateMap];
-  setState(value: GraphQLSchemaStatus.StateMap[keyof GraphQLSchemaStatus.StateMap]): void;
+export class GraphQLApiStatus extends jspb.Message {
+  getState(): GraphQLApiStatus.StateMap[keyof GraphQLApiStatus.StateMap];
+  setState(value: GraphQLApiStatus.StateMap[keyof GraphQLApiStatus.StateMap]): void;
 
   getReason(): string;
   setReason(value: string): void;
@@ -396,7 +396,7 @@ export class GraphQLSchemaStatus extends jspb.Message {
   getReportedBy(): string;
   setReportedBy(value: string): void;
 
-  getSubresourceStatusesMap(): jspb.Map<string, GraphQLSchemaStatus>;
+  getSubresourceStatusesMap(): jspb.Map<string, GraphQLApiStatus>;
   clearSubresourceStatusesMap(): void;
   hasDetails(): boolean;
   clearDetails(): void;
@@ -404,21 +404,21 @@ export class GraphQLSchemaStatus extends jspb.Message {
   setDetails(value?: google_protobuf_struct_pb.Struct): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GraphQLSchemaStatus.AsObject;
-  static toObject(includeInstance: boolean, msg: GraphQLSchemaStatus): GraphQLSchemaStatus.AsObject;
+  toObject(includeInstance?: boolean): GraphQLApiStatus.AsObject;
+  static toObject(includeInstance: boolean, msg: GraphQLApiStatus): GraphQLApiStatus.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GraphQLSchemaStatus, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GraphQLSchemaStatus;
-  static deserializeBinaryFromReader(message: GraphQLSchemaStatus, reader: jspb.BinaryReader): GraphQLSchemaStatus;
+  static serializeBinaryToWriter(message: GraphQLApiStatus, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GraphQLApiStatus;
+  static deserializeBinaryFromReader(message: GraphQLApiStatus, reader: jspb.BinaryReader): GraphQLApiStatus;
 }
 
-export namespace GraphQLSchemaStatus {
+export namespace GraphQLApiStatus {
   export type AsObject = {
-    state: GraphQLSchemaStatus.StateMap[keyof GraphQLSchemaStatus.StateMap],
+    state: GraphQLApiStatus.StateMap[keyof GraphQLApiStatus.StateMap],
     reason: string,
     reportedBy: string,
-    subresourceStatusesMap: Array<[string, GraphQLSchemaStatus.AsObject]>,
+    subresourceStatusesMap: Array<[string, GraphQLApiStatus.AsObject]>,
     details?: google_protobuf_struct_pb.Struct.AsObject,
   }
 
@@ -432,21 +432,21 @@ export namespace GraphQLSchemaStatus {
   export const State: StateMap;
 }
 
-export class GraphQLSchemaNamespacedStatuses extends jspb.Message {
-  getStatusesMap(): jspb.Map<string, GraphQLSchemaStatus>;
+export class GraphQLApiNamespacedStatuses extends jspb.Message {
+  getStatusesMap(): jspb.Map<string, GraphQLApiStatus>;
   clearStatusesMap(): void;
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GraphQLSchemaNamespacedStatuses.AsObject;
-  static toObject(includeInstance: boolean, msg: GraphQLSchemaNamespacedStatuses): GraphQLSchemaNamespacedStatuses.AsObject;
+  toObject(includeInstance?: boolean): GraphQLApiNamespacedStatuses.AsObject;
+  static toObject(includeInstance: boolean, msg: GraphQLApiNamespacedStatuses): GraphQLApiNamespacedStatuses.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GraphQLSchemaNamespacedStatuses, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GraphQLSchemaNamespacedStatuses;
-  static deserializeBinaryFromReader(message: GraphQLSchemaNamespacedStatuses, reader: jspb.BinaryReader): GraphQLSchemaNamespacedStatuses;
+  static serializeBinaryToWriter(message: GraphQLApiNamespacedStatuses, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GraphQLApiNamespacedStatuses;
+  static deserializeBinaryFromReader(message: GraphQLApiNamespacedStatuses, reader: jspb.BinaryReader): GraphQLApiNamespacedStatuses;
 }
 
-export namespace GraphQLSchemaNamespacedStatuses {
+export namespace GraphQLApiNamespacedStatuses {
   export type AsObject = {
-    statusesMap: Array<[string, GraphQLSchemaStatus.AsObject]>,
+    statusesMap: Array<[string, GraphQLApiStatus.AsObject]>,
   }
 }

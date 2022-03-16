@@ -12,87 +12,87 @@ import "github.com/solo-io/skv2/api/core/v1/core.proto";
 import "github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql.proto";
 import "github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common.proto";
 
-// GraphQLSchema CR details.
-message GraphqlSchema {
+// GraphQLApi CR details.
+message GraphqlApi {
     .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
-    .graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
-    .graphql.gloo.solo.io.GraphQLSchemaStatus status = 3;
+    .graphql.gloo.solo.io.GraphQLApiSpec spec = 2;
+    .graphql.gloo.solo.io.GraphQLApiStatus status = 3;
     .core.skv2.solo.io.ObjectRef gloo_instance = 4;
 }
 
-// Gets a GraphQLSchema CR by reference.
-message GetGraphqlSchemaRequest {
-    // A reference to the GraphQLSchema. If this is a single-cluster (non-federated) Gloo Edge installation,
+// Gets a GraphQLApi CR by reference.
+message GetGraphqlApiRequest {
+    // A reference to the GraphQLApi. If this is a single-cluster (non-federated) Gloo Edge installation,
     // cluster name is not used.
-    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+    .core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
 }
 
-message GetGraphqlSchemaResponse {
-    GraphqlSchema graphql_schema = 1;
+message GetGraphqlApiResponse {
+    GraphqlApi graphql_api = 1;
 }
 
-// Gets a list of GraphQLSchema CRs.
-message ListGraphqlSchemasRequest {
-    // (Optional) A reference to a Gloo Edge instance. If provided, only GraphQLSchemas on this Gloo Edge instance will be
-    // returned. Otherwise, all GraphQLSchemas across all Gloo Edge instances will be returned.
+// Gets a list of GraphQLApi CRs.
+message ListGraphqlApisRequest {
+    // (Optional) A reference to a Gloo Edge instance. If provided, only GraphQLApis on this Gloo Edge instance will be
+    // returned. Otherwise, all GraphQLApis across all Gloo Edge instances will be returned.
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
 }
 
-message ListGraphqlSchemasResponse {
-    repeated GraphqlSchema graphql_schemas = 1;
+message ListGraphqlApisResponse {
+    repeated GraphqlApi graphql_apis = 1;
 }
 
-// Gets the yaml for a GraphQLSchema CR.
-message GetGraphqlSchemaYamlRequest {
-    // A reference to the GraphQLSchema. If this is a single-cluster (non-federated) Gloo Edge installation,
+// Gets the yaml for a GraphQLApi CR.
+message GetGraphqlApiYamlRequest {
+    // A reference to the GraphQLApi. If this is a single-cluster (non-federated) Gloo Edge installation,
     // cluster name is not used.
-    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+    .core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
 }
 
-message GetGraphqlSchemaYamlResponse {
+message GetGraphqlApiYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
-// Creates a new GraphQLSchema.
-message CreateGraphqlSchemaRequest {
-    // A reference to the GraphQLSchema to create. If this is a single-cluster (non-federated) Gloo Edge installation,
+// Creates a new GraphQLApi.
+message CreateGraphqlApiRequest {
+    // A reference to the GraphQLApi to create. If this is a single-cluster (non-federated) Gloo Edge installation,
     // cluster name is not used.
-    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+    .core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
 
-    // The spec for the new GraphQLSchema.
-    .graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
+    // The spec for the new GraphQLApi.
+    .graphql.gloo.solo.io.GraphQLApiSpec spec = 2;
 }
 
-message CreateGraphqlSchemaResponse {
-    // The updated GraphQLSchema.
-    GraphqlSchema graphql_schema = 1;
+message CreateGraphqlApiResponse {
+    // The updated GraphQLApi.
+    GraphqlApi graphql_api = 1;
 }
 
-// Updates an existing GraphQLSchema.
-message UpdateGraphqlSchemaRequest {
-    // A reference to an existing GraphQLSchema to update. If this is a single-cluster (non-federated) Gloo Edge installation,
+// Updates an existing GraphQLApi.
+message UpdateGraphqlApiRequest {
+    // A reference to an existing GraphQLApi to update. If this is a single-cluster (non-federated) Gloo Edge installation,
     // cluster name is not used.
-    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+    .core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
 
-    // The updated GraphQLSchema spec.
-    .graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
+    // The updated GraphQLApi spec.
+    .graphql.gloo.solo.io.GraphQLApiSpec spec = 2;
 }
 
-message UpdateGraphqlSchemaResponse {
-    // The updated GraphQLSchema.
-    GraphqlSchema graphql_schema = 1;
+message UpdateGraphqlApiResponse {
+    // The updated GraphQLApi.
+    GraphqlApi graphql_api = 1;
 }
 
-// Deletes a GraphQLSchema by reference.
-message DeleteGraphqlSchemaRequest {
-    // A reference to the GraphQLSchema to delete. If this is a single-cluster (non-federated) Gloo Edge installation,
+// Deletes a GraphQLApi by reference.
+message DeleteGraphqlApiRequest {
+    // A reference to the GraphQLApi to delete. If this is a single-cluster (non-federated) Gloo Edge installation,
     // cluster name is not used.
-    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+    .core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
 }
 
-message DeleteGraphqlSchemaResponse {
-    // Reference to the deleted GraphQLSchema.
-    .core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+message DeleteGraphqlApiResponse {
+    // Reference to the deleted GraphQLApi.
+    .core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
 }
 
 // Validates the given resolver yaml.
@@ -117,22 +117,22 @@ message ValidateResolverYamlResponse {
 
 // Validates a schema definition.
 //
-// The input to the request can be either a schema definition string or a GraphQLSchema spec:
-// - When creating a new GraphQLSchema from scratch, the schema definition string should be passed in.
-// - When editing an existing GraphQLSchema, the full GraphQLSchema spec should be passed in.
+// The input to the request can be either a schema definition string or a GraphQLApi spec:
+// - When creating a new GraphQLApi from scratch, the schema definition string should be passed in.
+// - When editing an existing GraphQLApi, the full GraphQLApi spec should be passed in.
 //
 // This endpoint will currently validate the following:
 // 1. The schema definition string can be parsed.
 // 2. All usages of supported directives are syntactically correct.
 // 3. Resolver names referenced via `@resolve` directives in the schema definition have a corresponding
-//    entry in the GraphQLSchema's resolutions map.
+//    entry in the GraphQLApi's resolutions map.
 message ValidateSchemaDefinitionRequest {
     oneof input {
         // A schema definition string.
         string schema_definition = 1;
 
-        // A GraphQLSchema spec.
-        .graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
+        // A GraphQLApi spec.
+        .graphql.gloo.solo.io.GraphQLApiSpec spec = 2;
     }
 }
 
@@ -140,13 +140,13 @@ message ValidateSchemaDefinitionRequest {
 message ValidateSchemaDefinitionResponse {
 }
 
-service GraphqlApi {
-    rpc GetGraphqlSchema (GetGraphqlSchemaRequest) returns (GetGraphqlSchemaResponse) {}
-    rpc ListGraphqlSchemas (ListGraphqlSchemasRequest) returns (ListGraphqlSchemasResponse) {}
-    rpc GetGraphqlSchemaYaml (GetGraphqlSchemaYamlRequest) returns (GetGraphqlSchemaYamlResponse) {}
-    rpc CreateGraphqlSchema (CreateGraphqlSchemaRequest) returns (CreateGraphqlSchemaResponse) {}
-    rpc UpdateGraphqlSchema (UpdateGraphqlSchemaRequest) returns (UpdateGraphqlSchemaResponse) {}
-    rpc DeleteGraphqlSchema (DeleteGraphqlSchemaRequest) returns (DeleteGraphqlSchemaResponse) {}
+service GraphqlConfigApi {
+    rpc GetGraphqlApi (GetGraphqlApiRequest) returns (GetGraphqlApiResponse) {}
+    rpc ListGraphqlApis (ListGraphqlApisRequest) returns (ListGraphqlApisResponse) {}
+    rpc GetGraphqlApiYaml (GetGraphqlApiYamlRequest) returns (GetGraphqlApiYamlResponse) {}
+    rpc CreateGraphqlApi (CreateGraphqlApiRequest) returns (CreateGraphqlApiResponse) {}
+    rpc UpdateGraphqlApi (UpdateGraphqlApiRequest) returns (UpdateGraphqlApiResponse) {}
+    rpc DeleteGraphqlApi (DeleteGraphqlApiRequest) returns (DeleteGraphqlApiResponse) {}
     rpc ValidateResolverYaml (ValidateResolverYamlRequest) returns (ValidateResolverYamlResponse) {}
     rpc ValidateSchemaDefinition (ValidateSchemaDefinitionRequest) returns (ValidateSchemaDefinitionResponse) {}
 }

@@ -224,7 +224,7 @@ export const GraphqlOverview = () => {
                   </GearWrapper>
                 </BottomFooterWrapper>
                 <BottomContent>
-                  Graphql configuration including schema definitions, resolvers,
+                  GraphQL configuration including schema definitions, resolvers,
                   GraphQL APIs, and environments.
                 </BottomContent>
                 <div>

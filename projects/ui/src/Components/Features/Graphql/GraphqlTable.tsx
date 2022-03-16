@@ -1,6 +1,6 @@
 import styled from '@emotion/styled/macro';
-import { graphqlApi } from 'API/graphql';
-import { useIsGlooFedEnabled, useListGraphqlSchemas } from 'API/hooks';
+import { graphqlConfigApi } from 'API/graphql';
+import { useIsGlooFedEnabled, useListGraphqlApis } from 'API/hooks';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import { ReactComponent as GrpcIcon } from 'assets/grpc-icon.svg';
@@ -20,7 +20,7 @@ import {
   TableActions,
 } from 'Components/Common/SoloTable';
 import { doDownload } from 'download-helper';
-import { GraphqlSchema } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
+import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { colors } from 'Styles/colors';
@@ -80,7 +80,7 @@ type TableDataType = {
   cluster: string;
   status: number;
   resolvers: number;
-  actions: GraphqlSchema.AsObject;
+  actions: GraphqlApi.AsObject;
 };
 
 export const GraphqlTable = (props: Props & TableHolderProps) => {
@@ -90,10 +90,10 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
   const {
-    data: graphqlSchemas,
-    error: graphqlSchemaError,
+    data: graphqlApis,
+    error: graphqlApiError,
     mutate,
-  } = useListGraphqlSchemas();
+  } = useListGraphqlApis();
 
   const {
     isDeleting,
@@ -111,31 +111,31 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
   const [tableData, setTableData] = React.useState<TableDataType[]>([]);
 
   React.useEffect(() => {
-    if (graphqlSchemas) {
+    if (graphqlApis) {
       setTableData(
-        graphqlSchemas
-          .filter(gqlSchema =>
-            gqlSchema.metadata?.name.includes(props.nameFilter ?? '')
+        graphqlApis
+          .filter(gqlApi =>
+            gqlApi.metadata?.name.includes(props.nameFilter ?? '')
           )
-          .map(gqlSchema => {
+          .map(gqlApi => {
             return {
-              key: gqlSchema.metadata?.uid!,
+              key: gqlApi.metadata?.uid!,
               name: {
-                displayElement: gqlSchema.metadata?.name ?? '',
-                link: gqlSchema.metadata
+                displayElement: gqlApi.metadata?.name ?? '',
+                link: gqlApi.metadata
                   ? isGlooFedEnabled
-                    ? `/gloo-instances/${gqlSchema.glooInstance?.namespace}/${gqlSchema.glooInstance?.name}/apis/${gqlSchema.metadata.clusterName}/${gqlSchema.metadata.namespace}/${gqlSchema.metadata.name}/`
-                    : `/gloo-instances/${gqlSchema.glooInstance?.namespace}/${gqlSchema.glooInstance?.name}/apis/${gqlSchema.metadata.namespace}/${gqlSchema.metadata.name}/`
+                    ? `/gloo-instances/${gqlApi.glooInstance?.namespace}/${gqlApi.glooInstance?.name}/apis/${gqlApi.metadata.clusterName}/${gqlApi.metadata.namespace}/${gqlApi.metadata.name}/`
+                    : `/gloo-instances/${gqlApi.glooInstance?.namespace}/${gqlApi.glooInstance?.name}/apis/${gqlApi.metadata.namespace}/${gqlApi.metadata.name}/`
                   : '',
               },
-              namespace: gqlSchema.metadata?.namespace ?? '',
-              cluster: gqlSchema.metadata?.clusterName ?? '',
-              status: gqlSchema.status?.state ?? 0,
+              namespace: gqlApi.metadata?.namespace ?? '',
+              cluster: gqlApi.metadata?.clusterName ?? '',
+              status: gqlApi.status?.state ?? 0,
               resolvers:
-                gqlSchema?.spec?.executableSchema?.executor?.local
-                  ?.resolutionsMap?.length ?? 0,
+                gqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap
+                  ?.length ?? 0,
               actions: {
-                ...gqlSchema,
+                ...gqlApi,
               },
             };
           })
@@ -143,36 +143,28 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
     } else {
       setTableData([]);
     }
-  }, [
-    !!graphqlSchemas,
-    graphqlSchemas?.length,
-    isGlooFedEnabled,
-    props.nameFilter,
-  ]);
+  }, [!!graphqlApis, graphqlApis?.length, isGlooFedEnabled, props.nameFilter]);
 
-  const onDownloadSchema = (gqlSchema: GraphqlSchema.AsObject) => {
-    if (gqlSchema.metadata) {
-      graphqlApi
-        .getGraphqlSchemaYaml({
-          name: gqlSchema.metadata.name,
-          namespace: gqlSchema.metadata.namespace,
-          clusterName: gqlSchema.metadata.clusterName,
+  const onDownloadApi = (gqlApi: GraphqlApi.AsObject) => {
+    if (gqlApi.metadata) {
+      graphqlConfigApi
+        .getGraphqlApiYaml({
+          name: gqlApi.metadata.name,
+          namespace: gqlApi.metadata.namespace,
+          clusterName: gqlApi.metadata.clusterName,
         })
-        .then(gqlSchemaYaml => {
+        .then(gqlApiYaml => {
           doDownload(
-            gqlSchemaYaml,
-            gqlSchema.metadata?.namespace +
-              '--' +
-              gqlSchema.metadata?.name +
-              '.yaml'
+            gqlApiYaml,
+            gqlApi.metadata?.namespace + '--' + gqlApi.metadata?.name + '.yaml'
           );
         });
     }
   };
-  if (!!graphqlSchemaError) {
-    return <DataError error={graphqlSchemaError} />;
-  } else if (!graphqlSchemas) {
-    return <Loading message={'Retrieving GraphQL schemas...'} />;
+  if (!!graphqlApiError) {
+    return <DataError error={graphqlApiError} />;
+  } else if (!graphqlApis) {
+    return <Loading message={'Retrieving GraphQL APIs...'} />;
   }
 
   let columns: any = [
@@ -199,17 +191,17 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
     {
       title: 'Actions',
       dataIndex: 'actions',
-      render: (gqlSchema: GraphqlSchema.AsObject) => (
+      render: (gqlApi: GraphqlApi.AsObject) => (
         <TableActions className='space-x-3 '>
-          <TableActionCircle onClick={() => onDownloadSchema(gqlSchema)}>
+          <TableActionCircle onClick={() => onDownloadApi(gqlApi)}>
             <DownloadIcon />
           </TableActionCircle>
           <TableActionCircle
             onClick={() =>
               triggerDelete({
-                name: gqlSchema.metadata?.name!,
-                namespace: gqlSchema.metadata?.namespace!,
-                clusterName: gqlSchema.metadata?.clusterName!,
+                name: gqlApi.metadata?.name!,
+                namespace: gqlApi.metadata?.namespace!,
+                clusterName: gqlApi.metadata?.clusterName!,
               })
             }>
             <XIcon />

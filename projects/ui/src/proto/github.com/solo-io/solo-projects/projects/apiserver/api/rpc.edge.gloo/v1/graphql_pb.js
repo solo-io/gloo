@@ -16,19 +16,19 @@ var extproto_ext_pb = require('../../../../../../../../extproto/ext_pb.js');
 var github_com_solo$io_skv2_api_core_v1_core_pb = require('../../../../../../../../github.com/solo-io/skv2/api/core/v1/core_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb = require('../../../../../../../../github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb.js');
 var github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb = require('../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb.js');
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GraphqlSchema', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest', null, global);
-goog.exportSymbol('proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GraphqlApi', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.ValidateResolverYamlRequest', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.ValidateResolverYamlRequest.ResolverType', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.ValidateResolverYamlResponse', null, global);
@@ -45,12 +45,12 @@ goog.exportSymbol('proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionResponse'
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.GraphqlApi = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.GraphqlSchema, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.GraphqlApi, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.GraphqlSchema.displayName = 'proto.rpc.edge.gloo.solo.io.GraphqlSchema';
+  proto.rpc.edge.gloo.solo.io.GraphqlApi.displayName = 'proto.rpc.edge.gloo.solo.io.GraphqlApi';
 }
 
 
@@ -65,8 +65,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.GraphqlSchema.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GraphqlApi.toObject(opt_includeInstance, this);
 };
 
 
@@ -75,15 +75,15 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.toObject = function(opt_incl
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.GraphqlSchema} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.GraphqlApi} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.toObject = function(includeInstance, msg) {
   var f, obj = {
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.toObject(includeInstance, f),
-    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.toObject(includeInstance, f),
-    status: (f = msg.getStatus()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaStatus.toObject(includeInstance, f),
+    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f),
+    status: (f = msg.getStatus()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.toObject(includeInstance, f),
     glooInstance: (f = msg.getGlooInstance()) && github_com_solo$io_skv2_api_core_v1_core_pb.ObjectRef.toObject(includeInstance, f)
   };
 
@@ -98,23 +98,23 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.toObject = function(includeInstance, m
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.GraphqlSchema}
+ * @return {!proto.rpc.edge.gloo.solo.io.GraphqlApi}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.GraphqlSchema;
-  return proto.rpc.edge.gloo.solo.io.GraphqlSchema.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.GraphqlApi;
+  return proto.rpc.edge.gloo.solo.io.GraphqlApi.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.GraphqlSchema} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.GraphqlApi} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.GraphqlSchema}
+ * @return {!proto.rpc.edge.gloo.solo.io.GraphqlApi}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -127,13 +127,13 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.deserializeBinaryFromReader = function
       msg.setMetadata(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
       msg.setSpec(value);
       break;
     case 3:
-      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaStatus;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaStatus.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.deserializeBinaryFromReader);
       msg.setStatus(value);
       break;
     case 4:
@@ -154,9 +154,9 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.deserializeBinaryFromReader = function
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.GraphqlSchema.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.GraphqlApi.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -164,11 +164,11 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.serializeBinary = function()
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.GraphqlSchema} message
+ * @param {!proto.rpc.edge.gloo.solo.io.GraphqlApi} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getMetadata();
   if (f != null) {
@@ -183,7 +183,7 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.serializeBinaryToWriter = function(mes
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
     );
   }
   f = message.getStatus();
@@ -191,7 +191,7 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.serializeBinaryToWriter = function(mes
     writer.writeMessage(
       3,
       f,
-      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaStatus.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.serializeBinaryToWriter
     );
   }
   f = message.getGlooInstance();
@@ -209,19 +209,19 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.serializeBinaryToWriter = function(mes
  * optional ObjectMeta metadata = 1;
  * @return {?proto.rpc.edge.gloo.solo.io.ObjectMeta}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.getMetadata = function() {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.getMetadata = function() {
   return /** @type{?proto.rpc.edge.gloo.solo.io.ObjectMeta} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta, 1));
 };
 
 
 /** @param {?proto.rpc.edge.gloo.solo.io.ObjectMeta|undefined} value */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.setMetadata = function(value) {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.setMetadata = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.clearMetadata = function() {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.clearMetadata = function() {
   this.setMetadata(undefined);
 };
 
@@ -230,28 +230,28 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.clearMetadata = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.hasMetadata = function() {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.hasMetadata = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * optional graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
- * @return {?proto.graphql.gloo.solo.io.GraphQLSchemaSpec}
+ * optional graphql.gloo.solo.io.GraphQLApiSpec spec = 2;
+ * @return {?proto.graphql.gloo.solo.io.GraphQLApiSpec}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.getSpec = function() {
-  return /** @type{?proto.graphql.gloo.solo.io.GraphQLSchemaSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec, 2));
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.getSpec = function() {
+  return /** @type{?proto.graphql.gloo.solo.io.GraphQLApiSpec} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec, 2));
 };
 
 
-/** @param {?proto.graphql.gloo.solo.io.GraphQLSchemaSpec|undefined} value */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.setSpec = function(value) {
+/** @param {?proto.graphql.gloo.solo.io.GraphQLApiSpec|undefined} value */
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.setSpec = function(value) {
   jspb.Message.setWrapperField(this, 2, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.clearSpec = function() {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.clearSpec = function() {
   this.setSpec(undefined);
 };
 
@@ -260,28 +260,28 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.clearSpec = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.hasSpec = function() {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.hasSpec = function() {
   return jspb.Message.getField(this, 2) != null;
 };
 
 
 /**
- * optional graphql.gloo.solo.io.GraphQLSchemaStatus status = 3;
- * @return {?proto.graphql.gloo.solo.io.GraphQLSchemaStatus}
+ * optional graphql.gloo.solo.io.GraphQLApiStatus status = 3;
+ * @return {?proto.graphql.gloo.solo.io.GraphQLApiStatus}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.getStatus = function() {
-  return /** @type{?proto.graphql.gloo.solo.io.GraphQLSchemaStatus} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaStatus, 3));
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.getStatus = function() {
+  return /** @type{?proto.graphql.gloo.solo.io.GraphQLApiStatus} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus, 3));
 };
 
 
-/** @param {?proto.graphql.gloo.solo.io.GraphQLSchemaStatus|undefined} value */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.setStatus = function(value) {
+/** @param {?proto.graphql.gloo.solo.io.GraphQLApiStatus|undefined} value */
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.setStatus = function(value) {
   jspb.Message.setWrapperField(this, 3, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.clearStatus = function() {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.clearStatus = function() {
   this.setStatus(undefined);
 };
 
@@ -290,7 +290,7 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.clearStatus = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.hasStatus = function() {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.hasStatus = function() {
   return jspb.Message.getField(this, 3) != null;
 };
 
@@ -299,19 +299,19 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.hasStatus = function() {
  * optional core.skv2.solo.io.ObjectRef gloo_instance = 4;
  * @return {?proto.core.skv2.solo.io.ObjectRef}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.getGlooInstance = function() {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.getGlooInstance = function() {
   return /** @type{?proto.core.skv2.solo.io.ObjectRef} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ObjectRef, 4));
 };
 
 
 /** @param {?proto.core.skv2.solo.io.ObjectRef|undefined} value */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.setGlooInstance = function(value) {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.setGlooInstance = function(value) {
   jspb.Message.setWrapperField(this, 4, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.clearGlooInstance = function() {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.clearGlooInstance = function() {
   this.setGlooInstance(undefined);
 };
 
@@ -320,7 +320,7 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.clearGlooInstance = function
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.hasGlooInstance = function() {
+proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.hasGlooInstance = function() {
   return jspb.Message.getField(this, 4) != null;
 };
 
@@ -336,12 +336,12 @@ proto.rpc.edge.gloo.solo.io.GraphqlSchema.prototype.hasGlooInstance = function()
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.displayName = 'proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest';
+  proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.displayName = 'proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest';
 }
 
 
@@ -356,8 +356,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.toObject(opt_includeInstance, this);
 };
 
 
@@ -366,13 +366,13 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.prototype.toObject = functio
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    graphqlSchemaRef: (f = msg.getGraphqlSchemaRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
+    graphqlApiRef: (f = msg.getGraphqlApiRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -386,23 +386,23 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.toObject = function(includeI
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest;
-  return proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest;
+  return proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -412,7 +412,7 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.deserializeBinaryFromReader 
     case 1:
       var value = new github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef;
       reader.readMessage(value,github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.deserializeBinaryFromReader);
-      msg.setGraphqlSchemaRef(value);
+      msg.setGraphqlApiRef(value);
       break;
     default:
       reader.skipField();
@@ -427,9 +427,9 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.deserializeBinaryFromReader 
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -437,13 +437,13 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.prototype.serializeBinary = 
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest} message
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGraphqlSchemaRef();
+  f = message.getGraphqlApiRef();
   if (f != null) {
     writer.writeMessage(
       1,
@@ -455,23 +455,23 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.serializeBinaryToWriter = fu
 
 
 /**
- * optional core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+ * optional core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
  * @return {?proto.core.skv2.solo.io.ClusterObjectRef}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.prototype.getGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.prototype.getGraphqlApiRef = function() {
   return /** @type{?proto.core.skv2.solo.io.ClusterObjectRef} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef, 1));
 };
 
 
 /** @param {?proto.core.skv2.solo.io.ClusterObjectRef|undefined} value */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.prototype.setGraphqlSchemaRef = function(value) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.prototype.setGraphqlApiRef = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.prototype.clearGraphqlSchemaRef = function() {
-  this.setGraphqlSchemaRef(undefined);
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.prototype.clearGraphqlApiRef = function() {
+  this.setGraphqlApiRef(undefined);
 };
 
 
@@ -479,7 +479,7 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.prototype.clearGraphqlSchema
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.prototype.hasGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiRequest.prototype.hasGraphqlApiRef = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -495,12 +495,12 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaRequest.prototype.hasGraphqlSchemaRe
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.displayName = 'proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse';
+  proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.displayName = 'proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse';
 }
 
 
@@ -515,8 +515,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.toObject(opt_includeInstance, this);
 };
 
 
@@ -525,13 +525,13 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.prototype.toObject = functi
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    graphqlSchema: (f = msg.getGraphqlSchema()) && proto.rpc.edge.gloo.solo.io.GraphqlSchema.toObject(includeInstance, f)
+    graphqlApi: (f = msg.getGraphqlApi()) && proto.rpc.edge.gloo.solo.io.GraphqlApi.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -545,23 +545,23 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.toObject = function(include
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse;
-  return proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse;
+  return proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -569,9 +569,9 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.deserializeBinaryFromReader
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new proto.rpc.edge.gloo.solo.io.GraphqlSchema;
-      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GraphqlSchema.deserializeBinaryFromReader);
-      msg.setGraphqlSchema(value);
+      var value = new proto.rpc.edge.gloo.solo.io.GraphqlApi;
+      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GraphqlApi.deserializeBinaryFromReader);
+      msg.setGraphqlApi(value);
       break;
     default:
       reader.skipField();
@@ -586,9 +586,9 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.deserializeBinaryFromReader
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -596,41 +596,41 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.prototype.serializeBinary =
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse} message
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGraphqlSchema();
+  f = message.getGraphqlApi();
   if (f != null) {
     writer.writeMessage(
       1,
       f,
-      proto.rpc.edge.gloo.solo.io.GraphqlSchema.serializeBinaryToWriter
+      proto.rpc.edge.gloo.solo.io.GraphqlApi.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional GraphqlSchema graphql_schema = 1;
- * @return {?proto.rpc.edge.gloo.solo.io.GraphqlSchema}
+ * optional GraphqlApi graphql_api = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.GraphqlApi}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.prototype.getGraphqlSchema = function() {
-  return /** @type{?proto.rpc.edge.gloo.solo.io.GraphqlSchema} */ (
-    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.GraphqlSchema, 1));
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.prototype.getGraphqlApi = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.GraphqlApi} */ (
+    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.GraphqlApi, 1));
 };
 
 
-/** @param {?proto.rpc.edge.gloo.solo.io.GraphqlSchema|undefined} value */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.prototype.setGraphqlSchema = function(value) {
+/** @param {?proto.rpc.edge.gloo.solo.io.GraphqlApi|undefined} value */
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.prototype.setGraphqlApi = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.prototype.clearGraphqlSchema = function() {
-  this.setGraphqlSchema(undefined);
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.prototype.clearGraphqlApi = function() {
+  this.setGraphqlApi(undefined);
 };
 
 
@@ -638,7 +638,7 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.prototype.clearGraphqlSchem
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.prototype.hasGraphqlSchema = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiResponse.prototype.hasGraphqlApi = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -654,12 +654,12 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaResponse.prototype.hasGraphqlSchema 
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.displayName = 'proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest';
+  proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.displayName = 'proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest';
 }
 
 
@@ -674,8 +674,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.toObject(opt_includeInstance, this);
 };
 
 
@@ -684,11 +684,11 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.prototype.toObject = funct
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     glooInstanceRef: (f = msg.getGlooInstanceRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ObjectRef.toObject(includeInstance, f)
   };
@@ -704,23 +704,23 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.toObject = function(includ
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest;
-  return proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest;
+  return proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -745,9 +745,9 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.deserializeBinaryFromReade
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -755,11 +755,11 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.prototype.serializeBinary 
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest} message
+ * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getGlooInstanceRef();
   if (f != null) {
@@ -776,19 +776,19 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.serializeBinaryToWriter = 
  * optional core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
  * @return {?proto.core.skv2.solo.io.ObjectRef}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.prototype.getGlooInstanceRef = function() {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.prototype.getGlooInstanceRef = function() {
   return /** @type{?proto.core.skv2.solo.io.ObjectRef} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ObjectRef, 1));
 };
 
 
 /** @param {?proto.core.skv2.solo.io.ObjectRef|undefined} value */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.prototype.setGlooInstanceRef = function(value) {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.prototype.setGlooInstanceRef = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.prototype.clearGlooInstanceRef = function() {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.prototype.clearGlooInstanceRef = function() {
   this.setGlooInstanceRef(undefined);
 };
 
@@ -797,7 +797,7 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.prototype.clearGlooInstanc
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.prototype.hasGlooInstanceRef = function() {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisRequest.prototype.hasGlooInstanceRef = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -813,19 +813,19 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasRequest.prototype.hasGlooInstanceR
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.repeatedFields_, null);
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.repeatedFields_, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.displayName = 'proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse';
+  proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.displayName = 'proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse';
 }
 /**
  * List of repeated fields within this message type.
  * @private {!Array<number>}
  * @const
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.repeatedFields_ = [1];
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.repeatedFields_ = [1];
 
 
 
@@ -840,8 +840,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.toObject(opt_includeInstance, this);
 };
 
 
@@ -850,14 +850,14 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.prototype.toObject = func
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    graphqlSchemasList: jspb.Message.toObjectList(msg.getGraphqlSchemasList(),
-    proto.rpc.edge.gloo.solo.io.GraphqlSchema.toObject, includeInstance)
+    graphqlApisList: jspb.Message.toObjectList(msg.getGraphqlApisList(),
+    proto.rpc.edge.gloo.solo.io.GraphqlApi.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -871,23 +871,23 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.toObject = function(inclu
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse;
-  return proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse;
+  return proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -895,9 +895,9 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.deserializeBinaryFromRead
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new proto.rpc.edge.gloo.solo.io.GraphqlSchema;
-      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GraphqlSchema.deserializeBinaryFromReader);
-      msg.addGraphqlSchemas(value);
+      var value = new proto.rpc.edge.gloo.solo.io.GraphqlApi;
+      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GraphqlApi.deserializeBinaryFromReader);
+      msg.addGraphqlApis(value);
       break;
     default:
       reader.skipField();
@@ -912,9 +912,9 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.deserializeBinaryFromRead
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -922,51 +922,51 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.prototype.serializeBinary
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse} message
+ * @param {!proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGraphqlSchemasList();
+  f = message.getGraphqlApisList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
       1,
       f,
-      proto.rpc.edge.gloo.solo.io.GraphqlSchema.serializeBinaryToWriter
+      proto.rpc.edge.gloo.solo.io.GraphqlApi.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * repeated GraphqlSchema graphql_schemas = 1;
- * @return {!Array<!proto.rpc.edge.gloo.solo.io.GraphqlSchema>}
+ * repeated GraphqlApi graphql_apis = 1;
+ * @return {!Array<!proto.rpc.edge.gloo.solo.io.GraphqlApi>}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.prototype.getGraphqlSchemasList = function() {
-  return /** @type{!Array<!proto.rpc.edge.gloo.solo.io.GraphqlSchema>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.rpc.edge.gloo.solo.io.GraphqlSchema, 1));
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.prototype.getGraphqlApisList = function() {
+  return /** @type{!Array<!proto.rpc.edge.gloo.solo.io.GraphqlApi>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.rpc.edge.gloo.solo.io.GraphqlApi, 1));
 };
 
 
-/** @param {!Array<!proto.rpc.edge.gloo.solo.io.GraphqlSchema>} value */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.prototype.setGraphqlSchemasList = function(value) {
+/** @param {!Array<!proto.rpc.edge.gloo.solo.io.GraphqlApi>} value */
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.prototype.setGraphqlApisList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
 
 /**
- * @param {!proto.rpc.edge.gloo.solo.io.GraphqlSchema=} opt_value
+ * @param {!proto.rpc.edge.gloo.solo.io.GraphqlApi=} opt_value
  * @param {number=} opt_index
- * @return {!proto.rpc.edge.gloo.solo.io.GraphqlSchema}
+ * @return {!proto.rpc.edge.gloo.solo.io.GraphqlApi}
  */
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.prototype.addGraphqlSchemas = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.rpc.edge.gloo.solo.io.GraphqlSchema, opt_index);
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.prototype.addGraphqlApis = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.rpc.edge.gloo.solo.io.GraphqlApi, opt_index);
 };
 
 
-proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.prototype.clearGraphqlSchemasList = function() {
-  this.setGraphqlSchemasList([]);
+proto.rpc.edge.gloo.solo.io.ListGraphqlApisResponse.prototype.clearGraphqlApisList = function() {
+  this.setGraphqlApisList([]);
 };
 
 
@@ -981,12 +981,12 @@ proto.rpc.edge.gloo.solo.io.ListGraphqlSchemasResponse.prototype.clearGraphqlSch
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.displayName = 'proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest';
+  proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.displayName = 'proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest';
 }
 
 
@@ -1001,8 +1001,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.toObject(opt_includeInstance, this);
 };
 
 
@@ -1011,13 +1011,13 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.prototype.toObject = fun
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    graphqlSchemaRef: (f = msg.getGraphqlSchemaRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
+    graphqlApiRef: (f = msg.getGraphqlApiRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1031,23 +1031,23 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.toObject = function(incl
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest;
-  return proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest;
+  return proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -1057,7 +1057,7 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.deserializeBinaryFromRea
     case 1:
       var value = new github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef;
       reader.readMessage(value,github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.deserializeBinaryFromReader);
-      msg.setGraphqlSchemaRef(value);
+      msg.setGraphqlApiRef(value);
       break;
     default:
       reader.skipField();
@@ -1072,9 +1072,9 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.deserializeBinaryFromRea
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -1082,13 +1082,13 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.prototype.serializeBinar
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest} message
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGraphqlSchemaRef();
+  f = message.getGraphqlApiRef();
   if (f != null) {
     writer.writeMessage(
       1,
@@ -1100,23 +1100,23 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.serializeBinaryToWriter 
 
 
 /**
- * optional core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+ * optional core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
  * @return {?proto.core.skv2.solo.io.ClusterObjectRef}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.prototype.getGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.prototype.getGraphqlApiRef = function() {
   return /** @type{?proto.core.skv2.solo.io.ClusterObjectRef} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef, 1));
 };
 
 
 /** @param {?proto.core.skv2.solo.io.ClusterObjectRef|undefined} value */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.prototype.setGraphqlSchemaRef = function(value) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.prototype.setGraphqlApiRef = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.prototype.clearGraphqlSchemaRef = function() {
-  this.setGraphqlSchemaRef(undefined);
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.prototype.clearGraphqlApiRef = function() {
+  this.setGraphqlApiRef(undefined);
 };
 
 
@@ -1124,7 +1124,7 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.prototype.clearGraphqlSc
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.prototype.hasGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlRequest.prototype.hasGraphqlApiRef = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -1140,12 +1140,12 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlRequest.prototype.hasGraphqlSche
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.displayName = 'proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse';
+  proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.displayName = 'proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse';
 }
 
 
@@ -1160,8 +1160,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.toObject(opt_includeInstance, this);
 };
 
 
@@ -1170,11 +1170,11 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.prototype.toObject = fu
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
     yamlData: (f = msg.getYamlData()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.toObject(includeInstance, f)
   };
@@ -1190,23 +1190,23 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.toObject = function(inc
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse;
-  return proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse;
+  return proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -1231,9 +1231,9 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.deserializeBinaryFromRe
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -1241,11 +1241,11 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.prototype.serializeBina
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse} message
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getYamlData();
   if (f != null) {
@@ -1262,19 +1262,19 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.serializeBinaryToWriter
  * optional ResourceYaml yaml_data = 1;
  * @return {?proto.rpc.edge.gloo.solo.io.ResourceYaml}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.prototype.getYamlData = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.prototype.getYamlData = function() {
   return /** @type{?proto.rpc.edge.gloo.solo.io.ResourceYaml} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml, 1));
 };
 
 
 /** @param {?proto.rpc.edge.gloo.solo.io.ResourceYaml|undefined} value */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.prototype.setYamlData = function(value) {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.prototype.setYamlData = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.prototype.clearYamlData = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.prototype.clearYamlData = function() {
   this.setYamlData(undefined);
 };
 
@@ -1283,7 +1283,7 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.prototype.clearYamlData
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.prototype.hasYamlData = function() {
+proto.rpc.edge.gloo.solo.io.GetGraphqlApiYamlResponse.prototype.hasYamlData = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -1299,12 +1299,12 @@ proto.rpc.edge.gloo.solo.io.GetGraphqlSchemaYamlResponse.prototype.hasYamlData =
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.displayName = 'proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest';
+  proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.displayName = 'proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest';
 }
 
 
@@ -1319,8 +1319,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.toObject(opt_includeInstance, this);
 };
 
 
@@ -1329,14 +1329,14 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.toObject = func
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    graphqlSchemaRef: (f = msg.getGraphqlSchemaRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f),
-    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.toObject(includeInstance, f)
+    graphqlApiRef: (f = msg.getGraphqlApiRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f),
+    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1350,23 +1350,23 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.toObject = function(inclu
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest;
-  return proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest;
+  return proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -1376,11 +1376,11 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.deserializeBinaryFromRead
     case 1:
       var value = new github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef;
       reader.readMessage(value,github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.deserializeBinaryFromReader);
-      msg.setGraphqlSchemaRef(value);
+      msg.setGraphqlApiRef(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
       msg.setSpec(value);
       break;
     default:
@@ -1396,9 +1396,9 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.deserializeBinaryFromRead
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -1406,13 +1406,13 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.serializeBinary
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest} message
+ * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGraphqlSchemaRef();
+  f = message.getGraphqlApiRef();
   if (f != null) {
     writer.writeMessage(
       1,
@@ -1425,30 +1425,30 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.serializeBinaryToWriter =
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+ * optional core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
  * @return {?proto.core.skv2.solo.io.ClusterObjectRef}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.getGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.getGraphqlApiRef = function() {
   return /** @type{?proto.core.skv2.solo.io.ClusterObjectRef} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef, 1));
 };
 
 
 /** @param {?proto.core.skv2.solo.io.ClusterObjectRef|undefined} value */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.setGraphqlSchemaRef = function(value) {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.setGraphqlApiRef = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.clearGraphqlSchemaRef = function() {
-  this.setGraphqlSchemaRef(undefined);
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.clearGraphqlApiRef = function() {
+  this.setGraphqlApiRef(undefined);
 };
 
 
@@ -1456,28 +1456,28 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.clearGraphqlSch
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.hasGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.hasGraphqlApiRef = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * optional graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
- * @return {?proto.graphql.gloo.solo.io.GraphQLSchemaSpec}
+ * optional graphql.gloo.solo.io.GraphQLApiSpec spec = 2;
+ * @return {?proto.graphql.gloo.solo.io.GraphQLApiSpec}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.getSpec = function() {
-  return /** @type{?proto.graphql.gloo.solo.io.GraphQLSchemaSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec, 2));
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.getSpec = function() {
+  return /** @type{?proto.graphql.gloo.solo.io.GraphQLApiSpec} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec, 2));
 };
 
 
-/** @param {?proto.graphql.gloo.solo.io.GraphQLSchemaSpec|undefined} value */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.setSpec = function(value) {
+/** @param {?proto.graphql.gloo.solo.io.GraphQLApiSpec|undefined} value */
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.setSpec = function(value) {
   jspb.Message.setWrapperField(this, 2, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.clearSpec = function() {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.clearSpec = function() {
   this.setSpec(undefined);
 };
 
@@ -1486,7 +1486,7 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.clearSpec = fun
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.hasSpec = function() {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.hasSpec = function() {
   return jspb.Message.getField(this, 2) != null;
 };
 
@@ -1502,12 +1502,12 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaRequest.prototype.hasSpec = funct
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.displayName = 'proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse';
+  proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.displayName = 'proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse';
 }
 
 
@@ -1522,8 +1522,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.toObject(opt_includeInstance, this);
 };
 
 
@@ -1532,13 +1532,13 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.prototype.toObject = fun
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    graphqlSchema: (f = msg.getGraphqlSchema()) && proto.rpc.edge.gloo.solo.io.GraphqlSchema.toObject(includeInstance, f)
+    graphqlApi: (f = msg.getGraphqlApi()) && proto.rpc.edge.gloo.solo.io.GraphqlApi.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1552,23 +1552,23 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.toObject = function(incl
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse;
-  return proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse;
+  return proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -1576,9 +1576,9 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.deserializeBinaryFromRea
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new proto.rpc.edge.gloo.solo.io.GraphqlSchema;
-      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GraphqlSchema.deserializeBinaryFromReader);
-      msg.setGraphqlSchema(value);
+      var value = new proto.rpc.edge.gloo.solo.io.GraphqlApi;
+      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GraphqlApi.deserializeBinaryFromReader);
+      msg.setGraphqlApi(value);
       break;
     default:
       reader.skipField();
@@ -1593,9 +1593,9 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.deserializeBinaryFromRea
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -1603,41 +1603,41 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.prototype.serializeBinar
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse} message
+ * @param {!proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGraphqlSchema();
+  f = message.getGraphqlApi();
   if (f != null) {
     writer.writeMessage(
       1,
       f,
-      proto.rpc.edge.gloo.solo.io.GraphqlSchema.serializeBinaryToWriter
+      proto.rpc.edge.gloo.solo.io.GraphqlApi.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional GraphqlSchema graphql_schema = 1;
- * @return {?proto.rpc.edge.gloo.solo.io.GraphqlSchema}
+ * optional GraphqlApi graphql_api = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.GraphqlApi}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.prototype.getGraphqlSchema = function() {
-  return /** @type{?proto.rpc.edge.gloo.solo.io.GraphqlSchema} */ (
-    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.GraphqlSchema, 1));
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.prototype.getGraphqlApi = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.GraphqlApi} */ (
+    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.GraphqlApi, 1));
 };
 
 
-/** @param {?proto.rpc.edge.gloo.solo.io.GraphqlSchema|undefined} value */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.prototype.setGraphqlSchema = function(value) {
+/** @param {?proto.rpc.edge.gloo.solo.io.GraphqlApi|undefined} value */
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.prototype.setGraphqlApi = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.prototype.clearGraphqlSchema = function() {
-  this.setGraphqlSchema(undefined);
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.prototype.clearGraphqlApi = function() {
+  this.setGraphqlApi(undefined);
 };
 
 
@@ -1645,7 +1645,7 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.prototype.clearGraphqlSc
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.prototype.hasGraphqlSchema = function() {
+proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse.prototype.hasGraphqlApi = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -1661,12 +1661,12 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlSchemaResponse.prototype.hasGraphqlSche
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.displayName = 'proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest';
+  proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.displayName = 'proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest';
 }
 
 
@@ -1681,8 +1681,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.toObject(opt_includeInstance, this);
 };
 
 
@@ -1691,14 +1691,14 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.toObject = func
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    graphqlSchemaRef: (f = msg.getGraphqlSchemaRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f),
-    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.toObject(includeInstance, f)
+    graphqlApiRef: (f = msg.getGraphqlApiRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f),
+    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1712,23 +1712,23 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.toObject = function(inclu
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest;
-  return proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest;
+  return proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -1738,11 +1738,11 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.deserializeBinaryFromRead
     case 1:
       var value = new github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef;
       reader.readMessage(value,github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.deserializeBinaryFromReader);
-      msg.setGraphqlSchemaRef(value);
+      msg.setGraphqlApiRef(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
       msg.setSpec(value);
       break;
     default:
@@ -1758,9 +1758,9 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.deserializeBinaryFromRead
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -1768,13 +1768,13 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.serializeBinary
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest} message
+ * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGraphqlSchemaRef();
+  f = message.getGraphqlApiRef();
   if (f != null) {
     writer.writeMessage(
       1,
@@ -1787,30 +1787,30 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.serializeBinaryToWriter =
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+ * optional core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
  * @return {?proto.core.skv2.solo.io.ClusterObjectRef}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.getGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.getGraphqlApiRef = function() {
   return /** @type{?proto.core.skv2.solo.io.ClusterObjectRef} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef, 1));
 };
 
 
 /** @param {?proto.core.skv2.solo.io.ClusterObjectRef|undefined} value */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.setGraphqlSchemaRef = function(value) {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.setGraphqlApiRef = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.clearGraphqlSchemaRef = function() {
-  this.setGraphqlSchemaRef(undefined);
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.clearGraphqlApiRef = function() {
+  this.setGraphqlApiRef(undefined);
 };
 
 
@@ -1818,28 +1818,28 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.clearGraphqlSch
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.hasGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.hasGraphqlApiRef = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * optional graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
- * @return {?proto.graphql.gloo.solo.io.GraphQLSchemaSpec}
+ * optional graphql.gloo.solo.io.GraphQLApiSpec spec = 2;
+ * @return {?proto.graphql.gloo.solo.io.GraphQLApiSpec}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.getSpec = function() {
-  return /** @type{?proto.graphql.gloo.solo.io.GraphQLSchemaSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec, 2));
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.getSpec = function() {
+  return /** @type{?proto.graphql.gloo.solo.io.GraphQLApiSpec} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec, 2));
 };
 
 
-/** @param {?proto.graphql.gloo.solo.io.GraphQLSchemaSpec|undefined} value */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.setSpec = function(value) {
+/** @param {?proto.graphql.gloo.solo.io.GraphQLApiSpec|undefined} value */
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.setSpec = function(value) {
   jspb.Message.setWrapperField(this, 2, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.clearSpec = function() {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.clearSpec = function() {
   this.setSpec(undefined);
 };
 
@@ -1848,7 +1848,7 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.clearSpec = fun
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.hasSpec = function() {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.hasSpec = function() {
   return jspb.Message.getField(this, 2) != null;
 };
 
@@ -1864,12 +1864,12 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaRequest.prototype.hasSpec = funct
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.displayName = 'proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse';
+  proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.displayName = 'proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse';
 }
 
 
@@ -1884,8 +1884,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.toObject(opt_includeInstance, this);
 };
 
 
@@ -1894,13 +1894,13 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.prototype.toObject = fun
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    graphqlSchema: (f = msg.getGraphqlSchema()) && proto.rpc.edge.gloo.solo.io.GraphqlSchema.toObject(includeInstance, f)
+    graphqlApi: (f = msg.getGraphqlApi()) && proto.rpc.edge.gloo.solo.io.GraphqlApi.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1914,23 +1914,23 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.toObject = function(incl
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse;
-  return proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse;
+  return proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -1938,9 +1938,9 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.deserializeBinaryFromRea
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new proto.rpc.edge.gloo.solo.io.GraphqlSchema;
-      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GraphqlSchema.deserializeBinaryFromReader);
-      msg.setGraphqlSchema(value);
+      var value = new proto.rpc.edge.gloo.solo.io.GraphqlApi;
+      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GraphqlApi.deserializeBinaryFromReader);
+      msg.setGraphqlApi(value);
       break;
     default:
       reader.skipField();
@@ -1955,9 +1955,9 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.deserializeBinaryFromRea
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -1965,41 +1965,41 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.prototype.serializeBinar
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse} message
+ * @param {!proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGraphqlSchema();
+  f = message.getGraphqlApi();
   if (f != null) {
     writer.writeMessage(
       1,
       f,
-      proto.rpc.edge.gloo.solo.io.GraphqlSchema.serializeBinaryToWriter
+      proto.rpc.edge.gloo.solo.io.GraphqlApi.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional GraphqlSchema graphql_schema = 1;
- * @return {?proto.rpc.edge.gloo.solo.io.GraphqlSchema}
+ * optional GraphqlApi graphql_api = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.GraphqlApi}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.prototype.getGraphqlSchema = function() {
-  return /** @type{?proto.rpc.edge.gloo.solo.io.GraphqlSchema} */ (
-    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.GraphqlSchema, 1));
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.prototype.getGraphqlApi = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.GraphqlApi} */ (
+    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.GraphqlApi, 1));
 };
 
 
-/** @param {?proto.rpc.edge.gloo.solo.io.GraphqlSchema|undefined} value */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.prototype.setGraphqlSchema = function(value) {
+/** @param {?proto.rpc.edge.gloo.solo.io.GraphqlApi|undefined} value */
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.prototype.setGraphqlApi = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.prototype.clearGraphqlSchema = function() {
-  this.setGraphqlSchema(undefined);
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.prototype.clearGraphqlApi = function() {
+  this.setGraphqlApi(undefined);
 };
 
 
@@ -2007,7 +2007,7 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.prototype.clearGraphqlSc
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.prototype.hasGraphqlSchema = function() {
+proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiResponse.prototype.hasGraphqlApi = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -2023,12 +2023,12 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlSchemaResponse.prototype.hasGraphqlSche
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.displayName = 'proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest';
+  proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.displayName = 'proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest';
 }
 
 
@@ -2043,8 +2043,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.toObject(opt_includeInstance, this);
 };
 
 
@@ -2053,13 +2053,13 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.prototype.toObject = func
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    graphqlSchemaRef: (f = msg.getGraphqlSchemaRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
+    graphqlApiRef: (f = msg.getGraphqlApiRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2073,23 +2073,23 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.toObject = function(inclu
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest;
-  return proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest;
+  return proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest}
+ * @return {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -2099,7 +2099,7 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.deserializeBinaryFromRead
     case 1:
       var value = new github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef;
       reader.readMessage(value,github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.deserializeBinaryFromReader);
-      msg.setGraphqlSchemaRef(value);
+      msg.setGraphqlApiRef(value);
       break;
     default:
       reader.skipField();
@@ -2114,9 +2114,9 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.deserializeBinaryFromRead
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -2124,13 +2124,13 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.prototype.serializeBinary
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest} message
+ * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGraphqlSchemaRef();
+  f = message.getGraphqlApiRef();
   if (f != null) {
     writer.writeMessage(
       1,
@@ -2142,23 +2142,23 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.serializeBinaryToWriter =
 
 
 /**
- * optional core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+ * optional core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
  * @return {?proto.core.skv2.solo.io.ClusterObjectRef}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.prototype.getGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.prototype.getGraphqlApiRef = function() {
   return /** @type{?proto.core.skv2.solo.io.ClusterObjectRef} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef, 1));
 };
 
 
 /** @param {?proto.core.skv2.solo.io.ClusterObjectRef|undefined} value */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.prototype.setGraphqlSchemaRef = function(value) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.prototype.setGraphqlApiRef = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.prototype.clearGraphqlSchemaRef = function() {
-  this.setGraphqlSchemaRef(undefined);
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.prototype.clearGraphqlApiRef = function() {
+  this.setGraphqlApiRef(undefined);
 };
 
 
@@ -2166,7 +2166,7 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.prototype.clearGraphqlSch
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.prototype.hasGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiRequest.prototype.hasGraphqlApiRef = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -2182,12 +2182,12 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaRequest.prototype.hasGraphqlSchem
  * @extends {jspb.Message}
  * @constructor
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse = function(opt_data) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse, jspb.Message);
+goog.inherits(proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.displayName = 'proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse';
+  proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.displayName = 'proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse';
 }
 
 
@@ -2202,8 +2202,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.prototype.toObject = function(opt_includeInstance) {
-  return proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.toObject(opt_includeInstance, this);
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.toObject(opt_includeInstance, this);
 };
 
 
@@ -2212,13 +2212,13 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.prototype.toObject = fun
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse} msg The msg instance to transform.
+ * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.toObject = function(includeInstance, msg) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    graphqlSchemaRef: (f = msg.getGraphqlSchemaRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
+    graphqlApiRef: (f = msg.getGraphqlApiRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2232,23 +2232,23 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.toObject = function(incl
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.deserializeBinary = function(bytes) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse;
-  return proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse;
+  return proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse} msg The message object to deserialize into.
+ * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse}
+ * @return {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.deserializeBinaryFromReader = function(msg, reader) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -2258,7 +2258,7 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.deserializeBinaryFromRea
     case 1:
       var value = new github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef;
       reader.readMessage(value,github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.deserializeBinaryFromReader);
-      msg.setGraphqlSchemaRef(value);
+      msg.setGraphqlApiRef(value);
       break;
     default:
       reader.skipField();
@@ -2273,9 +2273,9 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.deserializeBinaryFromRea
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.prototype.serializeBinary = function() {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.serializeBinaryToWriter(this, writer);
+  proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -2283,13 +2283,13 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.prototype.serializeBinar
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse} message
+ * @param {!proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.serializeBinaryToWriter = function(message, writer) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGraphqlSchemaRef();
+  f = message.getGraphqlApiRef();
   if (f != null) {
     writer.writeMessage(
       1,
@@ -2301,23 +2301,23 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.serializeBinaryToWriter 
 
 
 /**
- * optional core.skv2.solo.io.ClusterObjectRef graphql_schema_ref = 1;
+ * optional core.skv2.solo.io.ClusterObjectRef graphql_api_ref = 1;
  * @return {?proto.core.skv2.solo.io.ClusterObjectRef}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.prototype.getGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.prototype.getGraphqlApiRef = function() {
   return /** @type{?proto.core.skv2.solo.io.ClusterObjectRef} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef, 1));
 };
 
 
 /** @param {?proto.core.skv2.solo.io.ClusterObjectRef|undefined} value */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.prototype.setGraphqlSchemaRef = function(value) {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.prototype.setGraphqlApiRef = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.prototype.clearGraphqlSchemaRef = function() {
-  this.setGraphqlSchemaRef(undefined);
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.prototype.clearGraphqlApiRef = function() {
+  this.setGraphqlApiRef(undefined);
 };
 
 
@@ -2325,7 +2325,7 @@ proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.prototype.clearGraphqlSc
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.rpc.edge.gloo.solo.io.DeleteGraphqlSchemaResponse.prototype.hasGraphqlSchemaRef = function() {
+proto.rpc.edge.gloo.solo.io.DeleteGraphqlApiResponse.prototype.hasGraphqlApiRef = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -2698,7 +2698,7 @@ proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.prototype.toObject =
 proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     schemaDefinition: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.toObject(includeInstance, f)
+    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2740,8 +2740,8 @@ proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.deserializeBinaryFro
       msg.setSchemaDefinition(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
       msg.setSpec(value);
       break;
     default:
@@ -2785,7 +2785,7 @@ proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.serializeBinaryToWri
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
     );
   }
 };
@@ -2821,16 +2821,16 @@ proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.prototype.hasSchemaD
 
 
 /**
- * optional graphql.gloo.solo.io.GraphQLSchemaSpec spec = 2;
- * @return {?proto.graphql.gloo.solo.io.GraphQLSchemaSpec}
+ * optional graphql.gloo.solo.io.GraphQLApiSpec spec = 2;
+ * @return {?proto.graphql.gloo.solo.io.GraphQLApiSpec}
  */
 proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.prototype.getSpec = function() {
-  return /** @type{?proto.graphql.gloo.solo.io.GraphQLSchemaSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec, 2));
+  return /** @type{?proto.graphql.gloo.solo.io.GraphQLApiSpec} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec, 2));
 };
 
 
-/** @param {?proto.graphql.gloo.solo.io.GraphQLSchemaSpec|undefined} value */
+/** @param {?proto.graphql.gloo.solo.io.GraphQLApiSpec|undefined} value */
 proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.prototype.setSpec = function(value) {
   jspb.Message.setOneofWrapperField(this, 2, proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.oneofGroups_[0], value);
 };

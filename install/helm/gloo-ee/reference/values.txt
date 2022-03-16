@@ -351,7 +351,7 @@
 |gloo.gateway.validation.webhook.extraAnnotations.NAME|string||extra annotations to add to the webhook|
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
-|gloo.gateway.deployment.image.tag|string|1.11.0-beta20|tag for the container|
+|gloo.gateway.deployment.image.tag|string|1.11.0-beta21|tag for the container|
 |gloo.gateway.deployment.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -401,7 +401,7 @@
 |gloo.gateway.deployment.resources.requests.memory|string||amount of memory|
 |gloo.gateway.deployment.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.certGenJob.image.tag|string|1.11.0-beta20|tag for the container|
+|gloo.gateway.certGenJob.image.tag|string|1.11.0-beta21|tag for the container|
 |gloo.gateway.certGenJob.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.certGenJob.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -560,6 +560,8 @@
 |gloo.gatewayProxies.NAME.gatewaySettings.disableHttpsGateway|bool||Set to true to disable https gateway generation.|
 |gloo.gatewayProxies.NAME.gatewaySettings.ipv4Only|bool||set to true if your network allows ipv4 addresses only. Sets the Gateway spec's bindAddress to 0.0.0.0 instead of ::|
 |gloo.gatewayProxies.NAME.gatewaySettings.useProxyProto|bool||use proxy protocol|
+|gloo.gatewayProxies.NAME.gatewaySettings.httpHybridGateway.NAME|interface||custom yaml to use for hybrid gateway settings for the http gateway|
+|gloo.gatewayProxies.NAME.gatewaySettings.httpsHybridGateway.NAME|interface||custom yaml to use for hybrid gateway settings for the https gateway|
 |gloo.gatewayProxies.NAME.gatewaySettings.customHttpGateway.NAME|interface||custom yaml to use for http gateway settings|
 |gloo.gatewayProxies.NAME.gatewaySettings.customHttpsGateway.NAME|interface||custom yaml to use for https gateway settings|
 |gloo.gatewayProxies.NAME.gatewaySettings.accessLoggingService.NAME|interface||cust yaml to use for access logging service (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/)|
@@ -726,6 +728,8 @@
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.disableHttpsGateway|bool||Set to true to disable https gateway generation.|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.ipv4Only|bool||set to true if your network allows ipv4 addresses only. Sets the Gateway spec's bindAddress to 0.0.0.0 instead of ::|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.useProxyProto|bool||use proxy protocol|
+|gloo.gatewayProxies.gatewayProxy.gatewaySettings.httpHybridGateway.NAME|interface||custom yaml to use for hybrid gateway settings for the http gateway|
+|gloo.gatewayProxies.gatewayProxy.gatewaySettings.httpsHybridGateway.NAME|interface||custom yaml to use for hybrid gateway settings for the https gateway|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.customHttpGateway.NAME|interface||custom yaml to use for http gateway settings|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.customHttpsGateway.NAME|interface||custom yaml to use for https gateway settings|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.accessLoggingService.NAME|interface||cust yaml to use for access logging service (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/)|
@@ -1168,7 +1172,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.11.0-beta20|tag for the container|
+|global.glooMtls.sds.image.tag|string|1.11.0-beta21|tag for the container|
 |global.glooMtls.sds.image.repository|string||image name (repository) for the container.|
 |global.glooMtls.sds.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |global.glooMtls.sds.image.pullPolicy|string||image pull policy for the container|

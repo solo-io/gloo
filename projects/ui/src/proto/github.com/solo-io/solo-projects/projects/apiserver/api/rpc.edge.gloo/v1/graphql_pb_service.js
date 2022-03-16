@@ -4,96 +4,96 @@
 var github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb = require("../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb");
 var grpc = require("@improbable-eng/grpc-web").grpc;
 
-var GraphqlApi = (function () {
-  function GraphqlApi() {}
-  GraphqlApi.serviceName = "rpc.edge.gloo.solo.io.GraphqlApi";
-  return GraphqlApi;
+var GraphqlConfigApi = (function () {
+  function GraphqlConfigApi() {}
+  GraphqlConfigApi.serviceName = "rpc.edge.gloo.solo.io.GraphqlConfigApi";
+  return GraphqlConfigApi;
 }());
 
-GraphqlApi.GetGraphqlSchema = {
-  methodName: "GetGraphqlSchema",
-  service: GraphqlApi,
+GraphqlConfigApi.GetGraphqlApi = {
+  methodName: "GetGraphqlApi",
+  service: GraphqlConfigApi,
   requestStream: false,
   responseStream: false,
-  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaRequest,
-  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaResponse
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiResponse
 };
 
-GraphqlApi.ListGraphqlSchemas = {
-  methodName: "ListGraphqlSchemas",
-  service: GraphqlApi,
+GraphqlConfigApi.ListGraphqlApis = {
+  methodName: "ListGraphqlApis",
+  service: GraphqlConfigApi,
   requestStream: false,
   responseStream: false,
-  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlSchemasRequest,
-  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlSchemasResponse
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlApisRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ListGraphqlApisResponse
 };
 
-GraphqlApi.GetGraphqlSchemaYaml = {
-  methodName: "GetGraphqlSchemaYaml",
-  service: GraphqlApi,
+GraphqlConfigApi.GetGraphqlApiYaml = {
+  methodName: "GetGraphqlApiYaml",
+  service: GraphqlConfigApi,
   requestStream: false,
   responseStream: false,
-  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaYamlRequest,
-  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlSchemaYamlResponse
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiYamlRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetGraphqlApiYamlResponse
 };
 
-GraphqlApi.CreateGraphqlSchema = {
-  methodName: "CreateGraphqlSchema",
-  service: GraphqlApi,
+GraphqlConfigApi.CreateGraphqlApi = {
+  methodName: "CreateGraphqlApi",
+  service: GraphqlConfigApi,
   requestStream: false,
   responseStream: false,
-  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlSchemaRequest,
-  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlSchemaResponse
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlApiRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.CreateGraphqlApiResponse
 };
 
-GraphqlApi.UpdateGraphqlSchema = {
-  methodName: "UpdateGraphqlSchema",
-  service: GraphqlApi,
+GraphqlConfigApi.UpdateGraphqlApi = {
+  methodName: "UpdateGraphqlApi",
+  service: GraphqlConfigApi,
   requestStream: false,
   responseStream: false,
-  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlSchemaRequest,
-  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlSchemaResponse
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlApiRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.UpdateGraphqlApiResponse
 };
 
-GraphqlApi.DeleteGraphqlSchema = {
-  methodName: "DeleteGraphqlSchema",
-  service: GraphqlApi,
+GraphqlConfigApi.DeleteGraphqlApi = {
+  methodName: "DeleteGraphqlApi",
+  service: GraphqlConfigApi,
   requestStream: false,
   responseStream: false,
-  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlSchemaRequest,
-  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlSchemaResponse
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlApiRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.DeleteGraphqlApiResponse
 };
 
-GraphqlApi.ValidateResolverYaml = {
+GraphqlConfigApi.ValidateResolverYaml = {
   methodName: "ValidateResolverYaml",
-  service: GraphqlApi,
+  service: GraphqlConfigApi,
   requestStream: false,
   responseStream: false,
   requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateResolverYamlRequest,
   responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateResolverYamlResponse
 };
 
-GraphqlApi.ValidateSchemaDefinition = {
+GraphqlConfigApi.ValidateSchemaDefinition = {
   methodName: "ValidateSchemaDefinition",
-  service: GraphqlApi,
+  service: GraphqlConfigApi,
   requestStream: false,
   responseStream: false,
   requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionRequest,
   responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionResponse
 };
 
-exports.GraphqlApi = GraphqlApi;
+exports.GraphqlConfigApi = GraphqlConfigApi;
 
-function GraphqlApiClient(serviceHost, options) {
+function GraphqlConfigApiClient(serviceHost, options) {
   this.serviceHost = serviceHost;
   this.options = options || {};
 }
 
-GraphqlApiClient.prototype.getGraphqlSchema = function getGraphqlSchema(requestMessage, metadata, callback) {
+GraphqlConfigApiClient.prototype.getGraphqlApi = function getGraphqlApi(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(GraphqlApi.GetGraphqlSchema, {
+  var client = grpc.unary(GraphqlConfigApi.GetGraphqlApi, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -120,11 +120,11 @@ GraphqlApiClient.prototype.getGraphqlSchema = function getGraphqlSchema(requestM
   };
 };
 
-GraphqlApiClient.prototype.listGraphqlSchemas = function listGraphqlSchemas(requestMessage, metadata, callback) {
+GraphqlConfigApiClient.prototype.listGraphqlApis = function listGraphqlApis(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(GraphqlApi.ListGraphqlSchemas, {
+  var client = grpc.unary(GraphqlConfigApi.ListGraphqlApis, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -151,11 +151,11 @@ GraphqlApiClient.prototype.listGraphqlSchemas = function listGraphqlSchemas(requ
   };
 };
 
-GraphqlApiClient.prototype.getGraphqlSchemaYaml = function getGraphqlSchemaYaml(requestMessage, metadata, callback) {
+GraphqlConfigApiClient.prototype.getGraphqlApiYaml = function getGraphqlApiYaml(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(GraphqlApi.GetGraphqlSchemaYaml, {
+  var client = grpc.unary(GraphqlConfigApi.GetGraphqlApiYaml, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -182,11 +182,11 @@ GraphqlApiClient.prototype.getGraphqlSchemaYaml = function getGraphqlSchemaYaml(
   };
 };
 
-GraphqlApiClient.prototype.createGraphqlSchema = function createGraphqlSchema(requestMessage, metadata, callback) {
+GraphqlConfigApiClient.prototype.createGraphqlApi = function createGraphqlApi(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(GraphqlApi.CreateGraphqlSchema, {
+  var client = grpc.unary(GraphqlConfigApi.CreateGraphqlApi, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -213,11 +213,11 @@ GraphqlApiClient.prototype.createGraphqlSchema = function createGraphqlSchema(re
   };
 };
 
-GraphqlApiClient.prototype.updateGraphqlSchema = function updateGraphqlSchema(requestMessage, metadata, callback) {
+GraphqlConfigApiClient.prototype.updateGraphqlApi = function updateGraphqlApi(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(GraphqlApi.UpdateGraphqlSchema, {
+  var client = grpc.unary(GraphqlConfigApi.UpdateGraphqlApi, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -244,11 +244,11 @@ GraphqlApiClient.prototype.updateGraphqlSchema = function updateGraphqlSchema(re
   };
 };
 
-GraphqlApiClient.prototype.deleteGraphqlSchema = function deleteGraphqlSchema(requestMessage, metadata, callback) {
+GraphqlConfigApiClient.prototype.deleteGraphqlApi = function deleteGraphqlApi(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(GraphqlApi.DeleteGraphqlSchema, {
+  var client = grpc.unary(GraphqlConfigApi.DeleteGraphqlApi, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -275,11 +275,11 @@ GraphqlApiClient.prototype.deleteGraphqlSchema = function deleteGraphqlSchema(re
   };
 };
 
-GraphqlApiClient.prototype.validateResolverYaml = function validateResolverYaml(requestMessage, metadata, callback) {
+GraphqlConfigApiClient.prototype.validateResolverYaml = function validateResolverYaml(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(GraphqlApi.ValidateResolverYaml, {
+  var client = grpc.unary(GraphqlConfigApi.ValidateResolverYaml, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -306,11 +306,11 @@ GraphqlApiClient.prototype.validateResolverYaml = function validateResolverYaml(
   };
 };
 
-GraphqlApiClient.prototype.validateSchemaDefinition = function validateSchemaDefinition(requestMessage, metadata, callback) {
+GraphqlConfigApiClient.prototype.validateSchemaDefinition = function validateSchemaDefinition(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
   }
-  var client = grpc.unary(GraphqlApi.ValidateSchemaDefinition, {
+  var client = grpc.unary(GraphqlConfigApi.ValidateSchemaDefinition, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -337,5 +337,5 @@ GraphqlApiClient.prototype.validateSchemaDefinition = function validateSchemaDef
   };
 };
 
-exports.GraphqlApiClient = GraphqlApiClient;
+exports.GraphqlConfigApiClient = GraphqlConfigApiClient;
 

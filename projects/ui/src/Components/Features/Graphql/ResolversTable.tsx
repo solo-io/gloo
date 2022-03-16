@@ -1,5 +1,5 @@
 import styled from '@emotion/styled/macro';
-import { useGetGraphqlSchemaDetails } from 'API/hooks';
+import { useGetGraphqlApiDetails } from 'API/hooks';
 import { ReactComponent as RouteIcon } from 'assets/route-icon.svg';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
@@ -106,17 +106,16 @@ export const ResolverItem: React.FC<{
   );
   const listRef = React.useRef<HTMLDivElement>(null);
   const {
-    graphqlSchemaName = '',
-    graphqlSchemaNamespace = '',
-    graphqlSchemaClusterName = '',
+    graphqlApiName = '',
+    graphqlApiNamespace = '',
+    graphqlApiClusterName = '',
   } = useParams();
-  const resolverKey = `${graphqlSchemaNamespace}-${graphqlSchemaName}-${resolverType}`;
-  const { data: graphqlSchema, error: graphqlSchemaError } =
-    useGetGraphqlSchemaDetails({
-      name: graphqlSchemaName,
-      namespace: graphqlSchemaNamespace,
-      clusterName: graphqlSchemaClusterName,
-    });
+  const resolverKey = `${graphqlApiNamespace}-${graphqlApiName}-${resolverType}`;
+  const { data: graphqlApi, error: graphqlApiError } = useGetGraphqlApiDetails({
+    name: graphqlApiName,
+    namespace: graphqlApiNamespace,
+    clusterName: graphqlApiClusterName,
+  });
   const rowVirtualizer = useVirtual({
     size: fields?.length ?? 0,
     parentRef: listRef,
@@ -185,7 +184,7 @@ export const ResolverItem: React.FC<{
             {rowVirtualizer.virtualItems.map(virtualRow => {
               const op = fields[virtualRow.index] as FieldDefinitionNode;
               let hasResolver =
-                !!graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
+                !!graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
                   ([rN, r]) => rN.includes(fields[virtualRow.index].name?.value)
                 );
               return (
@@ -293,18 +292,18 @@ function defineResolveDirective() {
   };
 }
 type ResolversTableType = {
-  schemaRef: ClusterObjectRef.AsObject;
+  apiRef: ClusterObjectRef.AsObject;
 };
 const ResolversTable: React.FC<ResolversTableType> = props => {
-  const { schemaRef } = props;
+  const { apiRef } = props;
   const {
-    data: graphqlSchema,
-    error: graphqlSchemaError,
+    data: graphqlApi,
+    error: graphqlApiError,
     mutate,
-  } = useGetGraphqlSchemaDetails({
-    name: schemaRef.name,
-    namespace: schemaRef.namespace,
-    clusterName: schemaRef.clusterName,
+  } = useGetGraphqlApiDetails({
+    name: apiRef.name,
+    namespace: apiRef.namespace,
+    clusterName: apiRef.clusterName,
   });
 
   const [currentResolver, setCurrentResolver] = React.useState<any>();
@@ -327,9 +326,9 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
   >([]);
 
   React.useEffect(() => {
-    if (graphqlSchema) {
+    if (graphqlApi) {
       let query = gql`
-        ${graphqlSchema.spec?.executableSchema?.schemaDefinition}
+        ${graphqlApi.spec?.executableSchema?.schemaDefinition}
       `;
       if (query) {
         let objectTypeDefs = query.definitions.filter(
@@ -356,14 +355,14 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
         setEnumTypesMap(enumFieldDefinitions);
       }
     }
-  }, [graphqlSchema]);
+  }, [graphqlApi]);
 
   function handleResolverConfigModal(
     resolverName: string,
     resolverType: string
   ) {
     let [currentResolverName, currentResolver] =
-      graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap.find(
+      graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap.find(
         ([rName, resolver]) => rName.includes(resolverName)
       ) ?? ['', ''];
     setCurrentResolver(currentResolver);
@@ -396,7 +395,7 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
     }
 
     setHasDirective(
-      !!graphqlSchema?.spec?.executableSchema?.schemaDefinition.includes(
+      !!graphqlApi?.spec?.executableSchema?.schemaDefinition.includes(
         fieldWithDirective
       )
     );
@@ -430,7 +429,7 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
             .map(([typeName, fields]) => {
               return (
                 <ResolverItem
-                  key={`${schemaRef.namespace}-${schemaRef.name}-${typeName}`}
+                  key={`${apiRef.namespace}-${apiRef.name}-${typeName}`}
                   resolverType={typeName}
                   fields={fields}
                   handleResolverConfigModal={handleResolverConfigModal}

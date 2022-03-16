@@ -1,5 +1,5 @@
 export const petstoreYaml = `apiVersion: graphql.gloo.solo.io/v1alpha1
-kind: GraphQLSchema
+kind: GraphQLApi
 metadata:
   creationTimestamp: "2022-01-25T19:01:30Z"
   generation: 1

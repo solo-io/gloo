@@ -62,7 +62,7 @@ type TestClients struct {
 	ServiceClient         skkube.ServiceClient
 	AuthConfigClient      extauthv1.AuthConfigClient
 	RateLimitConfigClient v1alpha1.RateLimitConfigClient
-	GraphQLSchemaClient   v1alpha12.GraphQLSchemaClient
+	GraphQLApiClient      v1alpha12.GraphQLApiClient
 	GlooPort              int
 }
 
@@ -118,7 +118,7 @@ func GetTestClients(ctx context.Context, cache memory.InMemoryResourceCache) Tes
 	Expect(err).NotTo(HaveOccurred())
 	rlcClient, err := v1alpha1.NewRateLimitConfigClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	gqlClient, err := v1alpha12.NewGraphQLSchemaClient(ctx, rcFactory)
+	gqlClient, err := v1alpha12.NewGraphQLApiClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
 
 	return TestClients{
@@ -130,7 +130,7 @@ func GetTestClients(ctx context.Context, cache memory.InMemoryResourceCache) Tes
 		ProxyClient:           proxyClient,
 		AuthConfigClient:      authConfigClient,
 		RateLimitConfigClient: rlcClient,
-		GraphQLSchemaClient:   gqlClient,
+		GraphQLApiClient:      gqlClient,
 	}
 }
 
@@ -291,7 +291,7 @@ func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 		Artifacts:               f,
 		AuthConfigs:             f,
 		RateLimitConfigs:        f,
-		GraphQLSchemas:          f,
+		GraphQLApis:             f,
 		VirtualServices:         f,
 		Gateways:                f,
 		MatchableHttpGateways:   f,

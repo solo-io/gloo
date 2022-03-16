@@ -8,7 +8,7 @@ import * as github_com_solo_io_skv2_api_core_v1_core_pb from "../../../../../../
 import * as github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb from "../../../../../../../../github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb";
 import * as github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb";
 
-export class GraphqlSchema extends jspb.Message {
+export class GraphqlApi extends jspb.Message {
   hasMetadata(): boolean;
   clearMetadata(): void;
   getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta | undefined;
@@ -16,13 +16,13 @@ export class GraphqlSchema extends jspb.Message {
 
   hasSpec(): boolean;
   clearSpec(): void;
-  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec | undefined;
-  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec): void;
+  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec): void;
 
   hasStatus(): boolean;
   clearStatus(): void;
-  getStatus(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaStatus | undefined;
-  setStatus(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaStatus): void;
+  getStatus(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus | undefined;
+  setStatus(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus): void;
 
   hasGlooInstance(): boolean;
   clearGlooInstance(): void;
@@ -30,297 +30,297 @@ export class GraphqlSchema extends jspb.Message {
   setGlooInstance(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GraphqlSchema.AsObject;
-  static toObject(includeInstance: boolean, msg: GraphqlSchema): GraphqlSchema.AsObject;
+  toObject(includeInstance?: boolean): GraphqlApi.AsObject;
+  static toObject(includeInstance: boolean, msg: GraphqlApi): GraphqlApi.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GraphqlSchema, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GraphqlSchema;
-  static deserializeBinaryFromReader(message: GraphqlSchema, reader: jspb.BinaryReader): GraphqlSchema;
+  static serializeBinaryToWriter(message: GraphqlApi, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GraphqlApi;
+  static deserializeBinaryFromReader(message: GraphqlApi, reader: jspb.BinaryReader): GraphqlApi;
 }
 
-export namespace GraphqlSchema {
+export namespace GraphqlApi {
   export type AsObject = {
     metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
-    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.AsObject,
-    status?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaStatus.AsObject,
+    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.AsObject,
+    status?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.AsObject,
     glooInstance?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
   }
 }
 
-export class GetGraphqlSchemaRequest extends jspb.Message {
-  hasGraphqlSchemaRef(): boolean;
-  clearGraphqlSchemaRef(): void;
-  getGraphqlSchemaRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
-  setGraphqlSchemaRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+export class GetGraphqlApiRequest extends jspb.Message {
+  hasGraphqlApiRef(): boolean;
+  clearGraphqlApiRef(): void;
+  getGraphqlApiRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setGraphqlApiRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetGraphqlSchemaRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: GetGraphqlSchemaRequest): GetGraphqlSchemaRequest.AsObject;
+  toObject(includeInstance?: boolean): GetGraphqlApiRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetGraphqlApiRequest): GetGraphqlApiRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetGraphqlSchemaRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetGraphqlSchemaRequest;
-  static deserializeBinaryFromReader(message: GetGraphqlSchemaRequest, reader: jspb.BinaryReader): GetGraphqlSchemaRequest;
+  static serializeBinaryToWriter(message: GetGraphqlApiRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetGraphqlApiRequest;
+  static deserializeBinaryFromReader(message: GetGraphqlApiRequest, reader: jspb.BinaryReader): GetGraphqlApiRequest;
 }
 
-export namespace GetGraphqlSchemaRequest {
+export namespace GetGraphqlApiRequest {
   export type AsObject = {
-    graphqlSchemaRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+    graphqlApiRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
   }
 }
 
-export class GetGraphqlSchemaResponse extends jspb.Message {
-  hasGraphqlSchema(): boolean;
-  clearGraphqlSchema(): void;
-  getGraphqlSchema(): GraphqlSchema | undefined;
-  setGraphqlSchema(value?: GraphqlSchema): void;
+export class GetGraphqlApiResponse extends jspb.Message {
+  hasGraphqlApi(): boolean;
+  clearGraphqlApi(): void;
+  getGraphqlApi(): GraphqlApi | undefined;
+  setGraphqlApi(value?: GraphqlApi): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetGraphqlSchemaResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: GetGraphqlSchemaResponse): GetGraphqlSchemaResponse.AsObject;
+  toObject(includeInstance?: boolean): GetGraphqlApiResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetGraphqlApiResponse): GetGraphqlApiResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetGraphqlSchemaResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetGraphqlSchemaResponse;
-  static deserializeBinaryFromReader(message: GetGraphqlSchemaResponse, reader: jspb.BinaryReader): GetGraphqlSchemaResponse;
+  static serializeBinaryToWriter(message: GetGraphqlApiResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetGraphqlApiResponse;
+  static deserializeBinaryFromReader(message: GetGraphqlApiResponse, reader: jspb.BinaryReader): GetGraphqlApiResponse;
 }
 
-export namespace GetGraphqlSchemaResponse {
+export namespace GetGraphqlApiResponse {
   export type AsObject = {
-    graphqlSchema?: GraphqlSchema.AsObject,
+    graphqlApi?: GraphqlApi.AsObject,
   }
 }
 
-export class ListGraphqlSchemasRequest extends jspb.Message {
+export class ListGraphqlApisRequest extends jspb.Message {
   hasGlooInstanceRef(): boolean;
   clearGlooInstanceRef(): void;
   getGlooInstanceRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef | undefined;
   setGlooInstanceRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ListGraphqlSchemasRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: ListGraphqlSchemasRequest): ListGraphqlSchemasRequest.AsObject;
+  toObject(includeInstance?: boolean): ListGraphqlApisRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ListGraphqlApisRequest): ListGraphqlApisRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ListGraphqlSchemasRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ListGraphqlSchemasRequest;
-  static deserializeBinaryFromReader(message: ListGraphqlSchemasRequest, reader: jspb.BinaryReader): ListGraphqlSchemasRequest;
+  static serializeBinaryToWriter(message: ListGraphqlApisRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListGraphqlApisRequest;
+  static deserializeBinaryFromReader(message: ListGraphqlApisRequest, reader: jspb.BinaryReader): ListGraphqlApisRequest;
 }
 
-export namespace ListGraphqlSchemasRequest {
+export namespace ListGraphqlApisRequest {
   export type AsObject = {
     glooInstanceRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
   }
 }
 
-export class ListGraphqlSchemasResponse extends jspb.Message {
-  clearGraphqlSchemasList(): void;
-  getGraphqlSchemasList(): Array<GraphqlSchema>;
-  setGraphqlSchemasList(value: Array<GraphqlSchema>): void;
-  addGraphqlSchemas(value?: GraphqlSchema, index?: number): GraphqlSchema;
+export class ListGraphqlApisResponse extends jspb.Message {
+  clearGraphqlApisList(): void;
+  getGraphqlApisList(): Array<GraphqlApi>;
+  setGraphqlApisList(value: Array<GraphqlApi>): void;
+  addGraphqlApis(value?: GraphqlApi, index?: number): GraphqlApi;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ListGraphqlSchemasResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: ListGraphqlSchemasResponse): ListGraphqlSchemasResponse.AsObject;
+  toObject(includeInstance?: boolean): ListGraphqlApisResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ListGraphqlApisResponse): ListGraphqlApisResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ListGraphqlSchemasResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ListGraphqlSchemasResponse;
-  static deserializeBinaryFromReader(message: ListGraphqlSchemasResponse, reader: jspb.BinaryReader): ListGraphqlSchemasResponse;
+  static serializeBinaryToWriter(message: ListGraphqlApisResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListGraphqlApisResponse;
+  static deserializeBinaryFromReader(message: ListGraphqlApisResponse, reader: jspb.BinaryReader): ListGraphqlApisResponse;
 }
 
-export namespace ListGraphqlSchemasResponse {
+export namespace ListGraphqlApisResponse {
   export type AsObject = {
-    graphqlSchemasList: Array<GraphqlSchema.AsObject>,
+    graphqlApisList: Array<GraphqlApi.AsObject>,
   }
 }
 
-export class GetGraphqlSchemaYamlRequest extends jspb.Message {
-  hasGraphqlSchemaRef(): boolean;
-  clearGraphqlSchemaRef(): void;
-  getGraphqlSchemaRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
-  setGraphqlSchemaRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+export class GetGraphqlApiYamlRequest extends jspb.Message {
+  hasGraphqlApiRef(): boolean;
+  clearGraphqlApiRef(): void;
+  getGraphqlApiRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setGraphqlApiRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetGraphqlSchemaYamlRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: GetGraphqlSchemaYamlRequest): GetGraphqlSchemaYamlRequest.AsObject;
+  toObject(includeInstance?: boolean): GetGraphqlApiYamlRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetGraphqlApiYamlRequest): GetGraphqlApiYamlRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetGraphqlSchemaYamlRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetGraphqlSchemaYamlRequest;
-  static deserializeBinaryFromReader(message: GetGraphqlSchemaYamlRequest, reader: jspb.BinaryReader): GetGraphqlSchemaYamlRequest;
+  static serializeBinaryToWriter(message: GetGraphqlApiYamlRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetGraphqlApiYamlRequest;
+  static deserializeBinaryFromReader(message: GetGraphqlApiYamlRequest, reader: jspb.BinaryReader): GetGraphqlApiYamlRequest;
 }
 
-export namespace GetGraphqlSchemaYamlRequest {
+export namespace GetGraphqlApiYamlRequest {
   export type AsObject = {
-    graphqlSchemaRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+    graphqlApiRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
   }
 }
 
-export class GetGraphqlSchemaYamlResponse extends jspb.Message {
+export class GetGraphqlApiYamlResponse extends jspb.Message {
   hasYamlData(): boolean;
   clearYamlData(): void;
   getYamlData(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml | undefined;
   setYamlData(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetGraphqlSchemaYamlResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: GetGraphqlSchemaYamlResponse): GetGraphqlSchemaYamlResponse.AsObject;
+  toObject(includeInstance?: boolean): GetGraphqlApiYamlResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetGraphqlApiYamlResponse): GetGraphqlApiYamlResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetGraphqlSchemaYamlResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetGraphqlSchemaYamlResponse;
-  static deserializeBinaryFromReader(message: GetGraphqlSchemaYamlResponse, reader: jspb.BinaryReader): GetGraphqlSchemaYamlResponse;
+  static serializeBinaryToWriter(message: GetGraphqlApiYamlResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetGraphqlApiYamlResponse;
+  static deserializeBinaryFromReader(message: GetGraphqlApiYamlResponse, reader: jspb.BinaryReader): GetGraphqlApiYamlResponse;
 }
 
-export namespace GetGraphqlSchemaYamlResponse {
+export namespace GetGraphqlApiYamlResponse {
   export type AsObject = {
     yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
   }
 }
 
-export class CreateGraphqlSchemaRequest extends jspb.Message {
-  hasGraphqlSchemaRef(): boolean;
-  clearGraphqlSchemaRef(): void;
-  getGraphqlSchemaRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
-  setGraphqlSchemaRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+export class CreateGraphqlApiRequest extends jspb.Message {
+  hasGraphqlApiRef(): boolean;
+  clearGraphqlApiRef(): void;
+  getGraphqlApiRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setGraphqlApiRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
 
   hasSpec(): boolean;
   clearSpec(): void;
-  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec | undefined;
-  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec): void;
+  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): CreateGraphqlSchemaRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: CreateGraphqlSchemaRequest): CreateGraphqlSchemaRequest.AsObject;
+  toObject(includeInstance?: boolean): CreateGraphqlApiRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateGraphqlApiRequest): CreateGraphqlApiRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: CreateGraphqlSchemaRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): CreateGraphqlSchemaRequest;
-  static deserializeBinaryFromReader(message: CreateGraphqlSchemaRequest, reader: jspb.BinaryReader): CreateGraphqlSchemaRequest;
+  static serializeBinaryToWriter(message: CreateGraphqlApiRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateGraphqlApiRequest;
+  static deserializeBinaryFromReader(message: CreateGraphqlApiRequest, reader: jspb.BinaryReader): CreateGraphqlApiRequest;
 }
 
-export namespace CreateGraphqlSchemaRequest {
+export namespace CreateGraphqlApiRequest {
   export type AsObject = {
-    graphqlSchemaRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
-    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.AsObject,
+    graphqlApiRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.AsObject,
   }
 }
 
-export class CreateGraphqlSchemaResponse extends jspb.Message {
-  hasGraphqlSchema(): boolean;
-  clearGraphqlSchema(): void;
-  getGraphqlSchema(): GraphqlSchema | undefined;
-  setGraphqlSchema(value?: GraphqlSchema): void;
+export class CreateGraphqlApiResponse extends jspb.Message {
+  hasGraphqlApi(): boolean;
+  clearGraphqlApi(): void;
+  getGraphqlApi(): GraphqlApi | undefined;
+  setGraphqlApi(value?: GraphqlApi): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): CreateGraphqlSchemaResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: CreateGraphqlSchemaResponse): CreateGraphqlSchemaResponse.AsObject;
+  toObject(includeInstance?: boolean): CreateGraphqlApiResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateGraphqlApiResponse): CreateGraphqlApiResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: CreateGraphqlSchemaResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): CreateGraphqlSchemaResponse;
-  static deserializeBinaryFromReader(message: CreateGraphqlSchemaResponse, reader: jspb.BinaryReader): CreateGraphqlSchemaResponse;
+  static serializeBinaryToWriter(message: CreateGraphqlApiResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateGraphqlApiResponse;
+  static deserializeBinaryFromReader(message: CreateGraphqlApiResponse, reader: jspb.BinaryReader): CreateGraphqlApiResponse;
 }
 
-export namespace CreateGraphqlSchemaResponse {
+export namespace CreateGraphqlApiResponse {
   export type AsObject = {
-    graphqlSchema?: GraphqlSchema.AsObject,
+    graphqlApi?: GraphqlApi.AsObject,
   }
 }
 
-export class UpdateGraphqlSchemaRequest extends jspb.Message {
-  hasGraphqlSchemaRef(): boolean;
-  clearGraphqlSchemaRef(): void;
-  getGraphqlSchemaRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
-  setGraphqlSchemaRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+export class UpdateGraphqlApiRequest extends jspb.Message {
+  hasGraphqlApiRef(): boolean;
+  clearGraphqlApiRef(): void;
+  getGraphqlApiRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setGraphqlApiRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
 
   hasSpec(): boolean;
   clearSpec(): void;
-  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec | undefined;
-  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec): void;
+  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): UpdateGraphqlSchemaRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: UpdateGraphqlSchemaRequest): UpdateGraphqlSchemaRequest.AsObject;
+  toObject(includeInstance?: boolean): UpdateGraphqlApiRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateGraphqlApiRequest): UpdateGraphqlApiRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: UpdateGraphqlSchemaRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): UpdateGraphqlSchemaRequest;
-  static deserializeBinaryFromReader(message: UpdateGraphqlSchemaRequest, reader: jspb.BinaryReader): UpdateGraphqlSchemaRequest;
+  static serializeBinaryToWriter(message: UpdateGraphqlApiRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateGraphqlApiRequest;
+  static deserializeBinaryFromReader(message: UpdateGraphqlApiRequest, reader: jspb.BinaryReader): UpdateGraphqlApiRequest;
 }
 
-export namespace UpdateGraphqlSchemaRequest {
+export namespace UpdateGraphqlApiRequest {
   export type AsObject = {
-    graphqlSchemaRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
-    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.AsObject,
+    graphqlApiRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.AsObject,
   }
 }
 
-export class UpdateGraphqlSchemaResponse extends jspb.Message {
-  hasGraphqlSchema(): boolean;
-  clearGraphqlSchema(): void;
-  getGraphqlSchema(): GraphqlSchema | undefined;
-  setGraphqlSchema(value?: GraphqlSchema): void;
+export class UpdateGraphqlApiResponse extends jspb.Message {
+  hasGraphqlApi(): boolean;
+  clearGraphqlApi(): void;
+  getGraphqlApi(): GraphqlApi | undefined;
+  setGraphqlApi(value?: GraphqlApi): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): UpdateGraphqlSchemaResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: UpdateGraphqlSchemaResponse): UpdateGraphqlSchemaResponse.AsObject;
+  toObject(includeInstance?: boolean): UpdateGraphqlApiResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateGraphqlApiResponse): UpdateGraphqlApiResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: UpdateGraphqlSchemaResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): UpdateGraphqlSchemaResponse;
-  static deserializeBinaryFromReader(message: UpdateGraphqlSchemaResponse, reader: jspb.BinaryReader): UpdateGraphqlSchemaResponse;
+  static serializeBinaryToWriter(message: UpdateGraphqlApiResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateGraphqlApiResponse;
+  static deserializeBinaryFromReader(message: UpdateGraphqlApiResponse, reader: jspb.BinaryReader): UpdateGraphqlApiResponse;
 }
 
-export namespace UpdateGraphqlSchemaResponse {
+export namespace UpdateGraphqlApiResponse {
   export type AsObject = {
-    graphqlSchema?: GraphqlSchema.AsObject,
+    graphqlApi?: GraphqlApi.AsObject,
   }
 }
 
-export class DeleteGraphqlSchemaRequest extends jspb.Message {
-  hasGraphqlSchemaRef(): boolean;
-  clearGraphqlSchemaRef(): void;
-  getGraphqlSchemaRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
-  setGraphqlSchemaRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+export class DeleteGraphqlApiRequest extends jspb.Message {
+  hasGraphqlApiRef(): boolean;
+  clearGraphqlApiRef(): void;
+  getGraphqlApiRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setGraphqlApiRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): DeleteGraphqlSchemaRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: DeleteGraphqlSchemaRequest): DeleteGraphqlSchemaRequest.AsObject;
+  toObject(includeInstance?: boolean): DeleteGraphqlApiRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: DeleteGraphqlApiRequest): DeleteGraphqlApiRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: DeleteGraphqlSchemaRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): DeleteGraphqlSchemaRequest;
-  static deserializeBinaryFromReader(message: DeleteGraphqlSchemaRequest, reader: jspb.BinaryReader): DeleteGraphqlSchemaRequest;
+  static serializeBinaryToWriter(message: DeleteGraphqlApiRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DeleteGraphqlApiRequest;
+  static deserializeBinaryFromReader(message: DeleteGraphqlApiRequest, reader: jspb.BinaryReader): DeleteGraphqlApiRequest;
 }
 
-export namespace DeleteGraphqlSchemaRequest {
+export namespace DeleteGraphqlApiRequest {
   export type AsObject = {
-    graphqlSchemaRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+    graphqlApiRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
   }
 }
 
-export class DeleteGraphqlSchemaResponse extends jspb.Message {
-  hasGraphqlSchemaRef(): boolean;
-  clearGraphqlSchemaRef(): void;
-  getGraphqlSchemaRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
-  setGraphqlSchemaRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+export class DeleteGraphqlApiResponse extends jspb.Message {
+  hasGraphqlApiRef(): boolean;
+  clearGraphqlApiRef(): void;
+  getGraphqlApiRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setGraphqlApiRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): DeleteGraphqlSchemaResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: DeleteGraphqlSchemaResponse): DeleteGraphqlSchemaResponse.AsObject;
+  toObject(includeInstance?: boolean): DeleteGraphqlApiResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: DeleteGraphqlApiResponse): DeleteGraphqlApiResponse.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: DeleteGraphqlSchemaResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): DeleteGraphqlSchemaResponse;
-  static deserializeBinaryFromReader(message: DeleteGraphqlSchemaResponse, reader: jspb.BinaryReader): DeleteGraphqlSchemaResponse;
+  static serializeBinaryToWriter(message: DeleteGraphqlApiResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DeleteGraphqlApiResponse;
+  static deserializeBinaryFromReader(message: DeleteGraphqlApiResponse, reader: jspb.BinaryReader): DeleteGraphqlApiResponse;
 }
 
-export namespace DeleteGraphqlSchemaResponse {
+export namespace DeleteGraphqlApiResponse {
   export type AsObject = {
-    graphqlSchemaRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+    graphqlApiRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
   }
 }
 
@@ -380,8 +380,8 @@ export class ValidateSchemaDefinitionRequest extends jspb.Message {
 
   hasSpec(): boolean;
   clearSpec(): void;
-  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec | undefined;
-  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec): void;
+  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec): void;
 
   getInputCase(): ValidateSchemaDefinitionRequest.InputCase;
   serializeBinary(): Uint8Array;
@@ -397,7 +397,7 @@ export class ValidateSchemaDefinitionRequest extends jspb.Message {
 export namespace ValidateSchemaDefinitionRequest {
   export type AsObject = {
     schemaDefinition: string,
-    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLSchemaSpec.AsObject,
+    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.AsObject,
   }
 
   export enum InputCase {

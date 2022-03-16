@@ -22,10 +22,10 @@ var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrapp
 goog.exportSymbol('proto.graphql.gloo.solo.io.ExecutableSchema', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.Executor', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.Executor.Local', null, global);
-goog.exportSymbol('proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses', null, global);
-goog.exportSymbol('proto.graphql.gloo.solo.io.GraphQLSchemaSpec', null, global);
-goog.exportSymbol('proto.graphql.gloo.solo.io.GraphQLSchemaStatus', null, global);
-goog.exportSymbol('proto.graphql.gloo.solo.io.GraphQLSchemaStatus.State', null, global);
+goog.exportSymbol('proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses', null, global);
+goog.exportSymbol('proto.graphql.gloo.solo.io.GraphQLApiSpec', null, global);
+goog.exportSymbol('proto.graphql.gloo.solo.io.GraphQLApiStatus', null, global);
+goog.exportSymbol('proto.graphql.gloo.solo.io.GraphQLApiStatus.State', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.GrpcDescriptorRegistry', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.GrpcRequestTemplate', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.GrpcResolver', null, global);
@@ -1699,19 +1699,19 @@ proto.graphql.gloo.solo.io.Resolution.prototype.hasStatPrefix = function() {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.graphql.gloo.solo.io.GraphQLSchemaSpec.repeatedFields_, null);
+proto.graphql.gloo.solo.io.GraphQLApiSpec = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.graphql.gloo.solo.io.GraphQLApiSpec.repeatedFields_, null);
 };
-goog.inherits(proto.graphql.gloo.solo.io.GraphQLSchemaSpec, jspb.Message);
+goog.inherits(proto.graphql.gloo.solo.io.GraphQLApiSpec, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.graphql.gloo.solo.io.GraphQLSchemaSpec.displayName = 'proto.graphql.gloo.solo.io.GraphQLSchemaSpec';
+  proto.graphql.gloo.solo.io.GraphQLApiSpec.displayName = 'proto.graphql.gloo.solo.io.GraphQLApiSpec';
 }
 /**
  * List of repeated fields within this message type.
  * @private {!Array<number>}
  * @const
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.repeatedFields_ = [5];
+proto.graphql.gloo.solo.io.GraphQLApiSpec.repeatedFields_ = [5];
 
 
 
@@ -1726,8 +1726,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.toObject = function(opt_includeInstance) {
-  return proto.graphql.gloo.solo.io.GraphQLSchemaSpec.toObject(opt_includeInstance, this);
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.toObject = function(opt_includeInstance) {
+  return proto.graphql.gloo.solo.io.GraphQLApiSpec.toObject(opt_includeInstance, this);
 };
 
 
@@ -1736,11 +1736,11 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.toObject = function(opt_i
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.graphql.gloo.solo.io.GraphQLSchemaSpec} msg The msg instance to transform.
+ * @param {!proto.graphql.gloo.solo.io.GraphQLApiSpec} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.toObject = function(includeInstance, msg) {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
     executableSchema: (f = msg.getExecutableSchema()) && proto.graphql.gloo.solo.io.ExecutableSchema.toObject(includeInstance, f),
     statPrefix: (f = msg.getStatPrefix()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
@@ -1759,23 +1759,23 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.toObject = function(includeInstance
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.graphql.gloo.solo.io.GraphQLSchemaSpec}
+ * @return {!proto.graphql.gloo.solo.io.GraphQLApiSpec}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.deserializeBinary = function(bytes) {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.graphql.gloo.solo.io.GraphQLSchemaSpec;
-  return proto.graphql.gloo.solo.io.GraphQLSchemaSpec.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.graphql.gloo.solo.io.GraphQLApiSpec;
+  return proto.graphql.gloo.solo.io.GraphQLApiSpec.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.graphql.gloo.solo.io.GraphQLSchemaSpec} msg The message object to deserialize into.
+ * @param {!proto.graphql.gloo.solo.io.GraphQLApiSpec} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.graphql.gloo.solo.io.GraphQLSchemaSpec}
+ * @return {!proto.graphql.gloo.solo.io.GraphQLApiSpec}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.deserializeBinaryFromReader = function(msg, reader) {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -1814,9 +1814,9 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.deserializeBinaryFromReader = funct
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.serializeBinary = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.graphql.gloo.solo.io.GraphQLSchemaSpec.serializeBinaryToWriter(this, writer);
+  proto.graphql.gloo.solo.io.GraphQLApiSpec.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -1824,11 +1824,11 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.serializeBinary = functio
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.graphql.gloo.solo.io.GraphQLSchemaSpec} message
+ * @param {!proto.graphql.gloo.solo.io.GraphQLApiSpec} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.serializeBinaryToWriter = function(message, writer) {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getExecutableSchema();
   if (f != null) {
@@ -1868,19 +1868,19 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.serializeBinaryToWriter = function(
  * optional ExecutableSchema executable_schema = 6;
  * @return {?proto.graphql.gloo.solo.io.ExecutableSchema}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.getExecutableSchema = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.getExecutableSchema = function() {
   return /** @type{?proto.graphql.gloo.solo.io.ExecutableSchema} */ (
     jspb.Message.getWrapperField(this, proto.graphql.gloo.solo.io.ExecutableSchema, 6));
 };
 
 
 /** @param {?proto.graphql.gloo.solo.io.ExecutableSchema|undefined} value */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.setExecutableSchema = function(value) {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.setExecutableSchema = function(value) {
   jspb.Message.setWrapperField(this, 6, value);
 };
 
 
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.clearExecutableSchema = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.clearExecutableSchema = function() {
   this.setExecutableSchema(undefined);
 };
 
@@ -1889,7 +1889,7 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.clearExecutableSchema = f
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.hasExecutableSchema = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.hasExecutableSchema = function() {
   return jspb.Message.getField(this, 6) != null;
 };
 
@@ -1898,19 +1898,19 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.hasExecutableSchema = fun
  * optional google.protobuf.StringValue stat_prefix = 3;
  * @return {?proto.google.protobuf.StringValue}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.getStatPrefix = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.getStatPrefix = function() {
   return /** @type{?proto.google.protobuf.StringValue} */ (
     jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 3));
 };
 
 
 /** @param {?proto.google.protobuf.StringValue|undefined} value */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.setStatPrefix = function(value) {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.setStatPrefix = function(value) {
   jspb.Message.setWrapperField(this, 3, value);
 };
 
 
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.clearStatPrefix = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.clearStatPrefix = function() {
   this.setStatPrefix(undefined);
 };
 
@@ -1919,7 +1919,7 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.clearStatPrefix = functio
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.hasStatPrefix = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.hasStatPrefix = function() {
   return jspb.Message.getField(this, 3) != null;
 };
 
@@ -1928,19 +1928,19 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.hasStatPrefix = function(
  * optional PersistedQueryCacheConfig persisted_query_cache_config = 4;
  * @return {?proto.graphql.gloo.solo.io.PersistedQueryCacheConfig}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.getPersistedQueryCacheConfig = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.getPersistedQueryCacheConfig = function() {
   return /** @type{?proto.graphql.gloo.solo.io.PersistedQueryCacheConfig} */ (
     jspb.Message.getWrapperField(this, proto.graphql.gloo.solo.io.PersistedQueryCacheConfig, 4));
 };
 
 
 /** @param {?proto.graphql.gloo.solo.io.PersistedQueryCacheConfig|undefined} value */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.setPersistedQueryCacheConfig = function(value) {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.setPersistedQueryCacheConfig = function(value) {
   jspb.Message.setWrapperField(this, 4, value);
 };
 
 
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.clearPersistedQueryCacheConfig = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.clearPersistedQueryCacheConfig = function() {
   this.setPersistedQueryCacheConfig(undefined);
 };
 
@@ -1949,7 +1949,7 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.clearPersistedQueryCacheC
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.hasPersistedQueryCacheConfig = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.hasPersistedQueryCacheConfig = function() {
   return jspb.Message.getField(this, 4) != null;
 };
 
@@ -1958,13 +1958,13 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.hasPersistedQueryCacheCon
  * repeated string allowed_query_hashes = 5;
  * @return {!Array<string>}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.getAllowedQueryHashesList = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.getAllowedQueryHashesList = function() {
   return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 5));
 };
 
 
 /** @param {!Array<string>} value */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.setAllowedQueryHashesList = function(value) {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.setAllowedQueryHashesList = function(value) {
   jspb.Message.setField(this, 5, value || []);
 };
 
@@ -1973,12 +1973,12 @@ proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.setAllowedQueryHashesList
  * @param {!string} value
  * @param {number=} opt_index
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.addAllowedQueryHashes = function(value, opt_index) {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.addAllowedQueryHashes = function(value, opt_index) {
   jspb.Message.addToRepeatedField(this, 5, value, opt_index);
 };
 
 
-proto.graphql.gloo.solo.io.GraphQLSchemaSpec.prototype.clearAllowedQueryHashesList = function() {
+proto.graphql.gloo.solo.io.GraphQLApiSpec.prototype.clearAllowedQueryHashesList = function() {
   this.setAllowedQueryHashesList([]);
 };
 
@@ -2723,12 +2723,12 @@ proto.graphql.gloo.solo.io.Executor.prototype.hasLocal = function() {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus = function(opt_data) {
+proto.graphql.gloo.solo.io.GraphQLApiStatus = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.graphql.gloo.solo.io.GraphQLSchemaStatus, jspb.Message);
+goog.inherits(proto.graphql.gloo.solo.io.GraphQLApiStatus, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.graphql.gloo.solo.io.GraphQLSchemaStatus.displayName = 'proto.graphql.gloo.solo.io.GraphQLSchemaStatus';
+  proto.graphql.gloo.solo.io.GraphQLApiStatus.displayName = 'proto.graphql.gloo.solo.io.GraphQLApiStatus';
 }
 
 
@@ -2743,8 +2743,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.toObject = function(opt_includeInstance) {
-  return proto.graphql.gloo.solo.io.GraphQLSchemaStatus.toObject(opt_includeInstance, this);
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.toObject = function(opt_includeInstance) {
+  return proto.graphql.gloo.solo.io.GraphQLApiStatus.toObject(opt_includeInstance, this);
 };
 
 
@@ -2753,16 +2753,16 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.toObject = function(opt
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.graphql.gloo.solo.io.GraphQLSchemaStatus} msg The msg instance to transform.
+ * @param {!proto.graphql.gloo.solo.io.GraphQLApiStatus} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.toObject = function(includeInstance, msg) {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
     state: jspb.Message.getFieldWithDefault(msg, 1, 0),
     reason: jspb.Message.getFieldWithDefault(msg, 2, ""),
     reportedBy: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    subresourceStatusesMap: (f = msg.getSubresourceStatusesMap()) ? f.toObject(includeInstance, proto.graphql.gloo.solo.io.GraphQLSchemaStatus.toObject) : [],
+    subresourceStatusesMap: (f = msg.getSubresourceStatusesMap()) ? f.toObject(includeInstance, proto.graphql.gloo.solo.io.GraphQLApiStatus.toObject) : [],
     details: (f = msg.getDetails()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
   };
 
@@ -2777,23 +2777,23 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.toObject = function(includeInstan
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.graphql.gloo.solo.io.GraphQLSchemaStatus}
+ * @return {!proto.graphql.gloo.solo.io.GraphQLApiStatus}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.deserializeBinary = function(bytes) {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.graphql.gloo.solo.io.GraphQLSchemaStatus;
-  return proto.graphql.gloo.solo.io.GraphQLSchemaStatus.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.graphql.gloo.solo.io.GraphQLApiStatus;
+  return proto.graphql.gloo.solo.io.GraphQLApiStatus.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.graphql.gloo.solo.io.GraphQLSchemaStatus} msg The message object to deserialize into.
+ * @param {!proto.graphql.gloo.solo.io.GraphQLApiStatus} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.graphql.gloo.solo.io.GraphQLSchemaStatus}
+ * @return {!proto.graphql.gloo.solo.io.GraphQLApiStatus}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.deserializeBinaryFromReader = function(msg, reader) {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -2801,7 +2801,7 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.deserializeBinaryFromReader = fun
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {!proto.graphql.gloo.solo.io.GraphQLSchemaStatus.State} */ (reader.readEnum());
+      var value = /** @type {!proto.graphql.gloo.solo.io.GraphQLApiStatus.State} */ (reader.readEnum());
       msg.setState(value);
       break;
     case 2:
@@ -2815,7 +2815,7 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.deserializeBinaryFromReader = fun
     case 4:
       var value = msg.getSubresourceStatusesMap();
       reader.readMessage(value, function(message, reader) {
-        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.graphql.gloo.solo.io.GraphQLSchemaStatus.deserializeBinaryFromReader, "");
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.graphql.gloo.solo.io.GraphQLApiStatus.deserializeBinaryFromReader, "");
          });
       break;
     case 5:
@@ -2836,9 +2836,9 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.deserializeBinaryFromReader = fun
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.serializeBinary = function() {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.graphql.gloo.solo.io.GraphQLSchemaStatus.serializeBinaryToWriter(this, writer);
+  proto.graphql.gloo.solo.io.GraphQLApiStatus.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -2846,11 +2846,11 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.serializeBinary = funct
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.graphql.gloo.solo.io.GraphQLSchemaStatus} message
+ * @param {!proto.graphql.gloo.solo.io.GraphQLApiStatus} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.serializeBinaryToWriter = function(message, writer) {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getState();
   if (f !== 0.0) {
@@ -2875,7 +2875,7 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.serializeBinaryToWriter = functio
   }
   f = message.getSubresourceStatusesMap(true);
   if (f && f.getLength() > 0) {
-    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.graphql.gloo.solo.io.GraphQLSchemaStatus.serializeBinaryToWriter);
+    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.graphql.gloo.solo.io.GraphQLApiStatus.serializeBinaryToWriter);
   }
   f = message.getDetails();
   if (f != null) {
@@ -2891,7 +2891,7 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.serializeBinaryToWriter = functio
 /**
  * @enum {number}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.State = {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.State = {
   PENDING: 0,
   ACCEPTED: 1,
   REJECTED: 2,
@@ -2900,15 +2900,15 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.State = {
 
 /**
  * optional State state = 1;
- * @return {!proto.graphql.gloo.solo.io.GraphQLSchemaStatus.State}
+ * @return {!proto.graphql.gloo.solo.io.GraphQLApiStatus.State}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.getState = function() {
-  return /** @type {!proto.graphql.gloo.solo.io.GraphQLSchemaStatus.State} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.getState = function() {
+  return /** @type {!proto.graphql.gloo.solo.io.GraphQLApiStatus.State} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
 
 
-/** @param {!proto.graphql.gloo.solo.io.GraphQLSchemaStatus.State} value */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.setState = function(value) {
+/** @param {!proto.graphql.gloo.solo.io.GraphQLApiStatus.State} value */
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.setState = function(value) {
   jspb.Message.setProto3EnumField(this, 1, value);
 };
 
@@ -2917,13 +2917,13 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.setState = function(val
  * optional string reason = 2;
  * @return {string}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.getReason = function() {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.getReason = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /** @param {string} value */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.setReason = function(value) {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.setReason = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
 };
 
@@ -2932,31 +2932,31 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.setReason = function(va
  * optional string reported_by = 3;
  * @return {string}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.getReportedBy = function() {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.getReportedBy = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
 
 
 /** @param {string} value */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.setReportedBy = function(value) {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.setReportedBy = function(value) {
   jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
 /**
- * map<string, GraphQLSchemaStatus> subresource_statuses = 4;
+ * map<string, GraphQLApiStatus> subresource_statuses = 4;
  * @param {boolean=} opt_noLazyCreate Do not create the map if
  * empty, instead returning `undefined`
- * @return {!jspb.Map<string,!proto.graphql.gloo.solo.io.GraphQLSchemaStatus>}
+ * @return {!jspb.Map<string,!proto.graphql.gloo.solo.io.GraphQLApiStatus>}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.getSubresourceStatusesMap = function(opt_noLazyCreate) {
-  return /** @type {!jspb.Map<string,!proto.graphql.gloo.solo.io.GraphQLSchemaStatus>} */ (
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.getSubresourceStatusesMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.graphql.gloo.solo.io.GraphQLApiStatus>} */ (
       jspb.Message.getMapField(this, 4, opt_noLazyCreate,
-      proto.graphql.gloo.solo.io.GraphQLSchemaStatus));
+      proto.graphql.gloo.solo.io.GraphQLApiStatus));
 };
 
 
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.clearSubresourceStatusesMap = function() {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.clearSubresourceStatusesMap = function() {
   this.getSubresourceStatusesMap().clear();
 };
 
@@ -2965,19 +2965,19 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.clearSubresourceStatuse
  * optional google.protobuf.Struct details = 5;
  * @return {?proto.google.protobuf.Struct}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.getDetails = function() {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.getDetails = function() {
   return /** @type{?proto.google.protobuf.Struct} */ (
     jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Struct, 5));
 };
 
 
 /** @param {?proto.google.protobuf.Struct|undefined} value */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.setDetails = function(value) {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.setDetails = function(value) {
   jspb.Message.setWrapperField(this, 5, value);
 };
 
 
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.clearDetails = function() {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.clearDetails = function() {
   this.setDetails(undefined);
 };
 
@@ -2986,7 +2986,7 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.clearDetails = function
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.hasDetails = function() {
+proto.graphql.gloo.solo.io.GraphQLApiStatus.prototype.hasDetails = function() {
   return jspb.Message.getField(this, 5) != null;
 };
 
@@ -3002,12 +3002,12 @@ proto.graphql.gloo.solo.io.GraphQLSchemaStatus.prototype.hasDetails = function()
  * @extends {jspb.Message}
  * @constructor
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses = function(opt_data) {
+proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses, jspb.Message);
+goog.inherits(proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.displayName = 'proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses';
+  proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.displayName = 'proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses';
 }
 
 
@@ -3022,8 +3022,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.prototype.toObject = function(opt_includeInstance) {
-  return proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.toObject(opt_includeInstance, this);
+proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.prototype.toObject = function(opt_includeInstance) {
+  return proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.toObject(opt_includeInstance, this);
 };
 
 
@@ -3032,13 +3032,13 @@ proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.prototype.toObject = 
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses} msg The msg instance to transform.
+ * @param {!proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.toObject = function(includeInstance, msg) {
+proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.toObject = function(includeInstance, msg) {
   var f, obj = {
-    statusesMap: (f = msg.getStatusesMap()) ? f.toObject(includeInstance, proto.graphql.gloo.solo.io.GraphQLSchemaStatus.toObject) : []
+    statusesMap: (f = msg.getStatusesMap()) ? f.toObject(includeInstance, proto.graphql.gloo.solo.io.GraphQLApiStatus.toObject) : []
   };
 
   if (includeInstance) {
@@ -3052,23 +3052,23 @@ proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.toObject = function(i
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses}
+ * @return {!proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.deserializeBinary = function(bytes) {
+proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses;
-  return proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses;
+  return proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses} msg The message object to deserialize into.
+ * @param {!proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses}
+ * @return {!proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.deserializeBinaryFromReader = function(msg, reader) {
+proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -3078,7 +3078,7 @@ proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.deserializeBinaryFrom
     case 1:
       var value = msg.getStatusesMap();
       reader.readMessage(value, function(message, reader) {
-        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.graphql.gloo.solo.io.GraphQLSchemaStatus.deserializeBinaryFromReader, "");
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.graphql.gloo.solo.io.GraphQLApiStatus.deserializeBinaryFromReader, "");
          });
       break;
     default:
@@ -3094,9 +3094,9 @@ proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.deserializeBinaryFrom
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.prototype.serializeBinary = function() {
+proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.serializeBinaryToWriter(this, writer);
+  proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -3104,33 +3104,33 @@ proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.prototype.serializeBi
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses} message
+ * @param {!proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.serializeBinaryToWriter = function(message, writer) {
+proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getStatusesMap(true);
   if (f && f.getLength() > 0) {
-    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.graphql.gloo.solo.io.GraphQLSchemaStatus.serializeBinaryToWriter);
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.graphql.gloo.solo.io.GraphQLApiStatus.serializeBinaryToWriter);
   }
 };
 
 
 /**
- * map<string, GraphQLSchemaStatus> statuses = 1;
+ * map<string, GraphQLApiStatus> statuses = 1;
  * @param {boolean=} opt_noLazyCreate Do not create the map if
  * empty, instead returning `undefined`
- * @return {!jspb.Map<string,!proto.graphql.gloo.solo.io.GraphQLSchemaStatus>}
+ * @return {!jspb.Map<string,!proto.graphql.gloo.solo.io.GraphQLApiStatus>}
  */
-proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.prototype.getStatusesMap = function(opt_noLazyCreate) {
-  return /** @type {!jspb.Map<string,!proto.graphql.gloo.solo.io.GraphQLSchemaStatus>} */ (
+proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.prototype.getStatusesMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.graphql.gloo.solo.io.GraphQLApiStatus>} */ (
       jspb.Message.getMapField(this, 1, opt_noLazyCreate,
-      proto.graphql.gloo.solo.io.GraphQLSchemaStatus));
+      proto.graphql.gloo.solo.io.GraphQLApiStatus));
 };
 
 
-proto.graphql.gloo.solo.io.GraphQLSchemaNamespacedStatuses.prototype.clearStatusesMap = function() {
+proto.graphql.gloo.solo.io.GraphQLApiNamespacedStatuses.prototype.clearStatusesMap = function() {
   this.getStatusesMap().clear();
 };
 

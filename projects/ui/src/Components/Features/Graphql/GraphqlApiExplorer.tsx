@@ -3,7 +3,7 @@ import { Fetcher, GraphiQL } from 'graphiql';
 import { buildSchema } from 'graphql';
 import styled from '@emotion/styled';
 import { colors } from 'Styles/colors';
-import { useGetGraphqlSchemaDetails, useListVirtualServices } from 'API/hooks';
+import { useGetGraphqlApiDetails, useListVirtualServices } from 'API/hooks';
 import { useParams } from 'react-router';
 import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { StatusHealth, WarningCircle } from '../Overview/OverviewBoxSummary';
@@ -96,9 +96,9 @@ const setGqlStorage = (value: string) => {
 
 export const GraphqlApiExplorer = () => {
   const {
-    graphqlSchemaName,
-    graphqlSchemaNamespace,
-    graphqlSchemaClusterName,
+    graphqlApiName,
+    graphqlApiNamespace,
+    graphqlApiClusterName,
   } = useParams();
   const [gqlError, setGqlError] = React.useState('');
   const [refetch, setRefetch] = React.useState(false);
@@ -109,13 +109,13 @@ export const GraphqlApiExplorer = () => {
   const [showUrlBar, setShowUrlBar] = React.useState(false);
 
   const {
-    data: graphqlSchema,
-    error: graphqlSchemaError,
+    data: graphqlApi,
+    error: graphqlApiError,
     mutate,
-  } = useGetGraphqlSchemaDetails({
-    name: graphqlSchemaName,
-    namespace: graphqlSchemaNamespace,
-    clusterName: graphqlSchemaClusterName,
+  } = useGetGraphqlApiDetails({
+    name: graphqlApiName,
+    namespace: graphqlApiNamespace,
+    clusterName: graphqlApiClusterName,
   });
 
   const changeUrl = (value: string) => {
@@ -178,20 +178,20 @@ export const GraphqlApiExplorer = () => {
     let correspondingVs = virtualServices?.filter(vs =>
       vs.spec?.virtualHost?.routesList.some(
         route =>
-          route?.graphqlSchemaRef?.name === graphqlSchemaName &&
-          route?.graphqlSchemaRef?.namespace === graphqlSchemaNamespace
+          route?.graphqlApiRef?.name === graphqlApiName &&
+          route?.graphqlApiRef?.namespace === graphqlApiNamespace
       )
     );
 
     if (!!correspondingVs) {
       setCorrespondingVirtualServices(correspondingVs);
     }
-  }, [virtualServices, graphqlSchemaName, graphqlSchemaNamespace]);
+  }, [virtualServices, graphqlApiName, graphqlApiNamespace]);
 
   let executableSchema;
 
-  if (graphqlSchema?.spec?.executableSchema?.schemaDefinition) {
-    const schemaDef = graphqlSchema.spec.executableSchema.schemaDefinition;
+  if (graphqlApi?.spec?.executableSchema?.schemaDefinition) {
+    const schemaDef = graphqlApi.spec.executableSchema.schemaDefinition;
     executableSchema = buildSchema(schemaDef, {
       assumeValidSDL: true,
     });

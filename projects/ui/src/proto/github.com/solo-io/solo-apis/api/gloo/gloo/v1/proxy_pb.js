@@ -3062,7 +3062,7 @@ proto.gloo.solo.io.Route.ActionCase = {
   ROUTE_ACTION: 2,
   REDIRECT_ACTION: 3,
   DIRECT_RESPONSE_ACTION: 4,
-  GRAPHQL_SCHEMA_REF: 8
+  GRAPHQL_API_REF: 8
 };
 
 /**
@@ -3122,7 +3122,7 @@ proto.gloo.solo.io.Route.toObject = function(includeInstance, msg) {
     routeAction: (f = msg.getRouteAction()) && proto.gloo.solo.io.RouteAction.toObject(includeInstance, f),
     redirectAction: (f = msg.getRedirectAction()) && proto.gloo.solo.io.RedirectAction.toObject(includeInstance, f),
     directResponseAction: (f = msg.getDirectResponseAction()) && proto.gloo.solo.io.DirectResponseAction.toObject(includeInstance, f),
-    graphqlSchemaRef: (f = msg.getGraphqlSchemaRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    graphqlApiRef: (f = msg.getGraphqlApiRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     options: (f = msg.getOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteOptions.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
     metadataStatic: (f = msg.getMetadataStatic()) && proto.gloo.solo.io.SourceMetadata.toObject(includeInstance, f),
@@ -3186,7 +3186,7 @@ proto.gloo.solo.io.Route.deserializeBinaryFromReader = function(msg, reader) {
     case 8:
       var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
       reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
-      msg.setGraphqlSchemaRef(value);
+      msg.setGraphqlApiRef(value);
       break;
     case 5:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.RouteOptions;
@@ -3268,7 +3268,7 @@ proto.gloo.solo.io.Route.serializeBinaryToWriter = function(message, writer) {
       proto.gloo.solo.io.DirectResponseAction.serializeBinaryToWriter
     );
   }
-  f = message.getGraphqlSchemaRef();
+  f = message.getGraphqlApiRef();
   if (f != null) {
     writer.writeMessage(
       8,
@@ -3432,23 +3432,23 @@ proto.gloo.solo.io.Route.prototype.hasDirectResponseAction = function() {
 
 
 /**
- * optional core.solo.io.ResourceRef graphql_schema_ref = 8;
+ * optional core.solo.io.ResourceRef graphql_api_ref = 8;
  * @return {?proto.core.solo.io.ResourceRef}
  */
-proto.gloo.solo.io.Route.prototype.getGraphqlSchemaRef = function() {
+proto.gloo.solo.io.Route.prototype.getGraphqlApiRef = function() {
   return /** @type{?proto.core.solo.io.ResourceRef} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 8));
 };
 
 
 /** @param {?proto.core.solo.io.ResourceRef|undefined} value */
-proto.gloo.solo.io.Route.prototype.setGraphqlSchemaRef = function(value) {
+proto.gloo.solo.io.Route.prototype.setGraphqlApiRef = function(value) {
   jspb.Message.setOneofWrapperField(this, 8, proto.gloo.solo.io.Route.oneofGroups_[0], value);
 };
 
 
-proto.gloo.solo.io.Route.prototype.clearGraphqlSchemaRef = function() {
-  this.setGraphqlSchemaRef(undefined);
+proto.gloo.solo.io.Route.prototype.clearGraphqlApiRef = function() {
+  this.setGraphqlApiRef(undefined);
 };
 
 
@@ -3456,7 +3456,7 @@ proto.gloo.solo.io.Route.prototype.clearGraphqlSchemaRef = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.Route.prototype.hasGraphqlSchemaRef = function() {
+proto.gloo.solo.io.Route.prototype.hasGraphqlApiRef = function() {
   return jspb.Message.getField(this, 8) != null;
 };
 

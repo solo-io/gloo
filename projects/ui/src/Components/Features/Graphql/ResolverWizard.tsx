@@ -1,6 +1,6 @@
 import styled from '@emotion/styled/macro';
 import { TabList, TabPanel, TabPanels } from '@reach/tabs';
-import { useGetGraphqlSchemaDetails, useGetGraphqlSchemaYaml } from 'API/hooks';
+import { useGetGraphqlApiDetails, useGetGraphqlApiYaml } from 'API/hooks';
 import { StyledModalTab, StyledModalTabs } from 'Components/Common/SoloModal';
 import { Formik, FormikState } from 'formik';
 import React from 'react';
@@ -11,7 +11,7 @@ import {
 } from 'Styles/StyledComponents/button';
 import * as yup from 'yup';
 import YAML from 'yaml';
-import { graphqlApi } from 'API/graphql';
+import { graphqlConfigApi } from 'API/graphql';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
 import { useParams } from 'react-router';
 import ConfirmationModal from 'Components/Common/ConfirmationModal';
@@ -70,21 +70,21 @@ type ResolverWizardProps = {
 export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
   let { hasDirective, fieldWithDirective, fieldWithoutDirective } = props;
   const {
-    graphqlSchemaName = '',
-    graphqlSchemaNamespace = '',
-    graphqlSchemaClusterName = '',
+    graphqlApiName = '',
+    graphqlApiNamespace = '',
+    graphqlApiClusterName = '',
   } = useParams();
 
-  const { data: graphqlSchema, mutate } = useGetGraphqlSchemaDetails({
-    name: graphqlSchemaName,
-    namespace: graphqlSchemaNamespace,
-    clusterName: graphqlSchemaClusterName,
+  const { data: graphqlApi, mutate } = useGetGraphqlApiDetails({
+    name: graphqlApiName,
+    namespace: graphqlApiNamespace,
+    clusterName: graphqlApiClusterName,
   });
 
-  const { mutate: mutateSchemaYaml } = useGetGraphqlSchemaYaml({
-    name: graphqlSchemaName,
-    namespace: graphqlSchemaNamespace,
-    clusterName: graphqlSchemaClusterName,
+  const { mutate: mutateSchemaYaml } = useGetGraphqlApiYaml({
+    name: graphqlApiName,
+    namespace: graphqlApiNamespace,
+    clusterName: graphqlApiClusterName,
   });
   const [tabIndex, setTabIndex] = React.useState(0);
   const handleTabsChange = (index: number) => {
@@ -159,11 +159,11 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
 
     let [upstreamName, upstreamNamespace] = upstream.split('::');
 
-    await graphqlApi.updateGraphqlSchemaResolver(
+    await graphqlConfigApi.updateGraphqlApiResolver(
       {
-        name: graphqlSchemaName,
-        namespace: graphqlSchemaNamespace,
-        clusterName: graphqlSchemaClusterName,
+        name: graphqlApiName,
+        namespace: graphqlApiNamespace,
+        clusterName: graphqlApiClusterName,
       },
       {
         upstreamRef: {
@@ -202,11 +202,11 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
     props.onClose();
   };
   const removeResolverConfig = async () => {
-    await graphqlApi.updateGraphqlSchemaResolver(
+    await graphqlConfigApi.updateGraphqlApiResolver(
       {
-        name: graphqlSchemaName,
-        namespace: graphqlSchemaNamespace,
-        clusterName: graphqlSchemaClusterName,
+        name: graphqlApiName,
+        namespace: graphqlApiNamespace,
+        clusterName: graphqlApiClusterName,
       },
       {
         resolverName: props.resolverName!,
@@ -259,22 +259,22 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
         initialValues={{
           resolverType: 'REST',
           upstream:
-            graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
+            graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
               ([rN, r]) => rN === props.resolverName
             )?.[1]?.restResolver?.upstreamRef?.name!
-              ? `${graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
+              ? `${graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
                   ([rN, r]) => rN === props.resolverName
                 )?.[1]?.restResolver?.upstreamRef
-                  ?.name!}::${graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
+                  ?.name!}::${graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
                   ([rN, r]) => rN === props.resolverName
                 )?.[1]?.restResolver?.upstreamRef?.namespace!}`
-              : graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
+              : graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
                   ([rN, r]) => rN === props.resolverName
                 )?.[1]?.grpcResolver?.upstreamRef?.name!
-              ? `${graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
+              ? `${graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
                   ([rN, r]) => rN === props.resolverName
                 )?.[1]?.grpcResolver?.upstreamRef
-                  ?.name!}::${graphqlSchema?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
+                  ?.name!}::${graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
                   ([rN, r]) => rN === props.resolverName
                 )?.[1]?.grpcResolver?.upstreamRef?.namespace!}`
               : '',

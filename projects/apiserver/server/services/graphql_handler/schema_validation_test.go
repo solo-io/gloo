@@ -90,11 +90,11 @@ var _ = Describe("schema validation", func() {
 		})
 	})
 
-	Context("with graphqlschema spec", func() {
+	Context("with graphqlapi spec", func() {
 		It("accepts empty schema", func() {
 			err := graphql_handler.ValidateSchemaDefinition(&rpc_edge_v1.ValidateSchemaDefinitionRequest{
 				Input: &rpc_edge_v1.ValidateSchemaDefinitionRequest_Spec{
-					Spec: &graphql_v1alpha1.GraphQLSchemaSpec{
+					Spec: &graphql_v1alpha1.GraphQLApiSpec{
 						ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
 							SchemaDefinition: "",
 						},
@@ -107,7 +107,7 @@ var _ = Describe("schema validation", func() {
 		It("accepts schema with resolver name that's in map", func() {
 			err := graphql_handler.ValidateSchemaDefinition(&rpc_edge_v1.ValidateSchemaDefinitionRequest{
 				Input: &rpc_edge_v1.ValidateSchemaDefinitionRequest_Spec{
-					Spec: &graphql_v1alpha1.GraphQLSchemaSpec{
+					Spec: &graphql_v1alpha1.GraphQLApiSpec{
 						ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
 							SchemaDefinition: `
 	type Query {
@@ -137,7 +137,7 @@ var _ = Describe("schema validation", func() {
 		It("rejects schema with resolver name not in map", func() {
 			err := graphql_handler.ValidateSchemaDefinition(&rpc_edge_v1.ValidateSchemaDefinitionRequest{
 				Input: &rpc_edge_v1.ValidateSchemaDefinitionRequest_Spec{
-					Spec: &graphql_v1alpha1.GraphQLSchemaSpec{
+					Spec: &graphql_v1alpha1.GraphQLApiSpec{
 						ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
 							SchemaDefinition: `
 	type Query {

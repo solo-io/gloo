@@ -26,7 +26,7 @@ var (
 )
 
 // Hash function
-func (m *GraphqlSchema) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *GraphqlApi) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -34,7 +34,7 @@ func (m *GraphqlSchema) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GraphqlSchema")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GraphqlApi")); err != nil {
 		return 0, err
 	}
 
@@ -122,7 +122,7 @@ func (m *GraphqlSchema) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *GetGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *GetGraphqlApiRequest) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -130,22 +130,22 @@ func (m *GetGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetGraphqlSchemaRequest")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetGraphqlApiRequest")); err != nil {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetGraphqlSchemaRef(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetGraphqlApiRef(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+			if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -158,7 +158,7 @@ func (m *GetGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *GetGraphqlSchemaResponse) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *GetGraphqlApiResponse) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -166,22 +166,22 @@ func (m *GetGraphqlSchemaResponse) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetGraphqlSchemaResponse")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetGraphqlApiResponse")); err != nil {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchema()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("GraphqlSchema")); err != nil {
+	if h, ok := interface{}(m.GetGraphqlApi()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("GraphqlApi")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetGraphqlSchema(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetGraphqlApi(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("GraphqlSchema")); err != nil {
+			if _, err = hasher.Write([]byte("GraphqlApi")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -194,7 +194,7 @@ func (m *GetGraphqlSchemaResponse) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *ListGraphqlSchemasRequest) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *ListGraphqlApisRequest) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -202,7 +202,7 @@ func (m *ListGraphqlSchemasRequest) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.ListGraphqlSchemasRequest")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.ListGraphqlApisRequest")); err != nil {
 		return 0, err
 	}
 
@@ -230,7 +230,7 @@ func (m *ListGraphqlSchemasRequest) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *ListGraphqlSchemasResponse) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *ListGraphqlApisResponse) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -238,11 +238,11 @@ func (m *ListGraphqlSchemasResponse) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.ListGraphqlSchemasResponse")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.ListGraphqlApisResponse")); err != nil {
 		return 0, err
 	}
 
-	for _, v := range m.GetGraphqlSchemas() {
+	for _, v := range m.GetGraphqlApis() {
 
 		if h, ok := interface{}(v).(safe_hasher.SafeHasher); ok {
 			if _, err = hasher.Write([]byte("")); err != nil {
@@ -270,7 +270,7 @@ func (m *ListGraphqlSchemasResponse) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *GetGraphqlSchemaYamlRequest) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *GetGraphqlApiYamlRequest) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -278,22 +278,22 @@ func (m *GetGraphqlSchemaYamlRequest) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetGraphqlSchemaYamlRequest")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetGraphqlApiYamlRequest")); err != nil {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetGraphqlSchemaRef(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetGraphqlApiRef(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+			if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -306,7 +306,7 @@ func (m *GetGraphqlSchemaYamlRequest) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *GetGraphqlSchemaYamlResponse) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *GetGraphqlApiYamlResponse) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -314,7 +314,7 @@ func (m *GetGraphqlSchemaYamlResponse) Hash(hasher hash.Hash64) (uint64, error) 
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetGraphqlSchemaYamlResponse")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetGraphqlApiYamlResponse")); err != nil {
 		return 0, err
 	}
 
@@ -342,7 +342,7 @@ func (m *GetGraphqlSchemaYamlResponse) Hash(hasher hash.Hash64) (uint64, error) 
 }
 
 // Hash function
-func (m *CreateGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *CreateGraphqlApiRequest) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -350,22 +350,22 @@ func (m *CreateGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.CreateGraphqlSchemaRequest")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.CreateGraphqlApiRequest")); err != nil {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetGraphqlSchemaRef(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetGraphqlApiRef(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+			if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -398,7 +398,7 @@ func (m *CreateGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *CreateGraphqlSchemaResponse) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *CreateGraphqlApiResponse) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -406,22 +406,22 @@ func (m *CreateGraphqlSchemaResponse) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.CreateGraphqlSchemaResponse")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.CreateGraphqlApiResponse")); err != nil {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchema()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("GraphqlSchema")); err != nil {
+	if h, ok := interface{}(m.GetGraphqlApi()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("GraphqlApi")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetGraphqlSchema(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetGraphqlApi(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("GraphqlSchema")); err != nil {
+			if _, err = hasher.Write([]byte("GraphqlApi")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -434,7 +434,7 @@ func (m *CreateGraphqlSchemaResponse) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *UpdateGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *UpdateGraphqlApiRequest) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -442,22 +442,22 @@ func (m *UpdateGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.UpdateGraphqlSchemaRequest")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.UpdateGraphqlApiRequest")); err != nil {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetGraphqlSchemaRef(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetGraphqlApiRef(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+			if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -490,7 +490,7 @@ func (m *UpdateGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *UpdateGraphqlSchemaResponse) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *UpdateGraphqlApiResponse) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -498,22 +498,22 @@ func (m *UpdateGraphqlSchemaResponse) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.UpdateGraphqlSchemaResponse")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.UpdateGraphqlApiResponse")); err != nil {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchema()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("GraphqlSchema")); err != nil {
+	if h, ok := interface{}(m.GetGraphqlApi()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("GraphqlApi")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetGraphqlSchema(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetGraphqlApi(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("GraphqlSchema")); err != nil {
+			if _, err = hasher.Write([]byte("GraphqlApi")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -526,7 +526,7 @@ func (m *UpdateGraphqlSchemaResponse) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *DeleteGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *DeleteGraphqlApiRequest) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -534,22 +534,22 @@ func (m *DeleteGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.DeleteGraphqlSchemaRequest")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.DeleteGraphqlApiRequest")); err != nil {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetGraphqlSchemaRef(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetGraphqlApiRef(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+			if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -562,7 +562,7 @@ func (m *DeleteGraphqlSchemaRequest) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
-func (m *DeleteGraphqlSchemaResponse) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *DeleteGraphqlApiResponse) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -570,22 +570,22 @@ func (m *DeleteGraphqlSchemaResponse) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.DeleteGraphqlSchemaResponse")); err != nil {
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.DeleteGraphqlApiResponse")); err != nil {
 		return 0, err
 	}
 
-	if h, ok := interface{}(m.GetGraphqlSchemaRef()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+	if h, ok := interface{}(m.GetGraphqlApiRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetGraphqlSchemaRef(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetGraphqlApiRef(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("GraphqlSchemaRef")); err != nil {
+			if _, err = hasher.Write([]byte("GraphqlApiRef")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {

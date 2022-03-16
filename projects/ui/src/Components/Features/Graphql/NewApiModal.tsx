@@ -1,9 +1,9 @@
 import styled from '@emotion/styled/macro';
-import { graphqlApi } from 'API/graphql';
+import { graphqlConfigApi } from 'API/graphql';
 import {
   useIsGlooFedEnabled,
   useListGlooInstances,
-  useListGraphqlSchemas,
+  useListGraphqlApis,
 } from 'API/hooks';
 import { DataError } from 'Components/Common/DataError';
 import {
@@ -75,7 +75,7 @@ export const NewApiModal = (props: NewApiModalProps) => {
   const { name = '', namespace = '' } = useParams();
   const [errorMessage, setErrorMessage] = React.useState('');
   const { showNewModal, toggleNewModal } = props;
-  const { mutate } = useListGraphqlSchemas();
+  const { mutate } = useListGraphqlApis();
   const { data: glooInstances, error: instancesError } = useListGlooInstances();
   const { data: glooFedCheckResponse, error: glooFedCheckError } =
     useIsGlooFedEnabled();
@@ -105,10 +105,10 @@ export const NewApiModal = (props: NewApiModalProps) => {
 
   const createApi = async (values: CreateApiValues) => {
     let { uploadedSchema, name = '', schemaString } = values;
-    mutate(async graphqlSchemas => {
-      if (graphqlSchemas) {
+    mutate(async graphqlApis => {
+      if (graphqlApis) {
         return [
-          ...graphqlSchemas,
+          ...graphqlApis,
           {
             status: { state: 0 },
             metadata: {
@@ -122,9 +122,9 @@ export const NewApiModal = (props: NewApiModalProps) => {
       }
     }, false);
 
-    let createdGraphqlSchema = await graphqlApi
-      .createGraphqlSchema({
-        graphqlSchemaRef: {
+    let createdGraphqlApi = await graphqlConfigApi
+      .createGraphqlApi({
+        graphqlApiRef: {
           name,
           namespace: glooInstance?.metadata?.namespace!,
           clusterName: glooInstance?.spec?.cluster!,
@@ -146,7 +146,7 @@ export const NewApiModal = (props: NewApiModalProps) => {
         // Catch any errors on the backend the frontend can't catch.
         setErrorMessage(err.message);
       });
-    if (!createdGraphqlSchema) {
+    if (!createdGraphqlApi) {
       return;
     }
     toggleNewModal();
@@ -154,12 +154,12 @@ export const NewApiModal = (props: NewApiModalProps) => {
 
     navigate(
       isGlooFedEnabled
-        ? `/gloo-instances/${createdGraphqlSchema.glooInstance?.namespace}/${
-            createdGraphqlSchema.glooInstance?.name
+        ? `/gloo-instances/${createdGraphqlApi.glooInstance?.namespace}/${
+            createdGraphqlApi.glooInstance?.name
           }/apis/${glooInstance?.spec?.cluster!}/${
-            createdGraphqlSchema.metadata?.namespace
-          }/${createdGraphqlSchema.metadata?.name}/`
-        : `/gloo-instances/${createdGraphqlSchema.glooInstance?.namespace}/${createdGraphqlSchema.glooInstance?.name}/apis/${createdGraphqlSchema.metadata?.namespace}/${createdGraphqlSchema.metadata?.name}/`
+            createdGraphqlApi.metadata?.namespace
+          }/${createdGraphqlApi.metadata?.name}/`
+        : `/gloo-instances/${createdGraphqlApi.glooInstance?.namespace}/${createdGraphqlApi.glooInstance?.name}/apis/${createdGraphqlApi.metadata?.namespace}/${createdGraphqlApi.metadata?.name}/`
     );
   };
   return (
