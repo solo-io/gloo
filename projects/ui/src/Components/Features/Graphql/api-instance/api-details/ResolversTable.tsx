@@ -3,17 +3,19 @@ import { getDirective, MapperKind, mapSchema } from '@graphql-tools/utils';
 import { Collapse } from 'antd';
 import { useGetGraphqlApiDetails } from 'API/hooks';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
+import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloModal } from 'Components/Common/SoloModal';
 import {
   EnumTypeDefinitionNode,
   EnumValueDefinitionNode,
   FieldDefinitionNode,
   GraphQLSchema,
+  Kind,
   ObjectTypeDefinitionNode,
 } from 'graphql';
 import gql from 'graphql-tag';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { EnumResolver } from './resolver-wizard/EnumResolver';
 import { ResolverItem } from './ResolverItem';
 import { resolversTableStyles } from './ResolversTable.style';
@@ -128,6 +130,32 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
         });
         setFieldTypesMap(fieldDefinitions);
         setEnumTypesMap(enumFieldDefinitions);
+        // setEnumTypesMap(
+        //   // This example can be used to test Enums
+        //   [
+        //     [
+        //       'Enum',
+        //       [
+        //         {
+        //           kind: Kind.ENUM_VALUE_DEFINITION,
+        //           description: {
+        //             kind: Kind.STRING,
+        //             value: 'test description 1',
+        //           },
+        //           name: { kind: Kind.NAME, value: 'test name 1' },
+        //         },
+        //         {
+        //           kind: Kind.ENUM_VALUE_DEFINITION,
+        //           description: {
+        //             kind: Kind.STRING,
+        //             value: 'test description 2',
+        //           },
+        //           name: { kind: Kind.NAME, value: 'test name 2' },
+        //         },
+        //       ],
+        //     ],
+        //   ]
+        // );
       }
     }
   }, [graphqlApi]);
@@ -179,20 +207,72 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
     openModal();
   }
 
+  // --- SEARCH LOGIC --- //
+  // Field + enums should probably be combined.
+  const [fieldTypesMapCopy, setFieldTypesMapCopy] = useState(fieldTypesMap);
+  const [enumTypesMapCopy, setEnumTypesMapCopy] = useState(enumTypesMap);
+  const [searchText, setSearchText] = useState('');
+  useEffect(() => {
+    const lstext = searchText.toLowerCase();
+    // field types map
+    const newFieldTypesMapCopy = [] as typeof fieldTypesMapCopy;
+    fieldTypesMap.forEach(([typename, fields]) => {
+      if (
+        typeof typename === 'string' &&
+        typename.toLowerCase().includes(lstext)
+      ) {
+        newFieldTypesMapCopy.push([typename, fields]);
+      } else {
+        const newFields = fields.filter(f =>
+          f.name.value.toLowerCase().includes(lstext)
+        );
+        if (newFields.length > 0)
+          newFieldTypesMapCopy.push([typename, newFields]);
+      }
+    });
+    setFieldTypesMapCopy(newFieldTypesMapCopy);
+    // enum types map
+    const newEnumTypesMapCopy = [] as typeof enumTypesMapCopy;
+    enumTypesMap.forEach(([typename, fields]) => {
+      if (
+        typeof typename === 'string' &&
+        typename.toLowerCase().includes(lstext)
+      ) {
+        newEnumTypesMapCopy.push([typename, fields]);
+      } else {
+        const newFields = fields.filter(f =>
+          f.name.value.toLowerCase().includes(lstext)
+        );
+        if (newFields.length > 0)
+          newEnumTypesMapCopy.push([typename, newFields]);
+      }
+    });
+    setEnumTypesMapCopy(newEnumTypesMapCopy);
+  }, [searchText, enumTypesMap, fieldTypesMap]);
+
   const defaultActivePanelKey = useMemo(() => {
-    return fieldTypesMap?.length > 0
-      ? [`${apiRef.namespace}-${apiRef.name}-${fieldTypesMap[0][0]}`]
-      : enumTypesMap?.length > 0
-      ? [enumTypesMap[0][0]]
+    return fieldTypesMapCopy?.length > 0
+      ? [`${apiRef.namespace}-${apiRef.name}-${fieldTypesMapCopy[0][0]}`]
+      : enumTypesMapCopy?.length > 0
+      ? [enumTypesMapCopy[0][0]]
       : undefined;
-  }, [fieldTypesMap, enumTypesMap]);
+  }, [fieldTypesMapCopy, enumTypesMapCopy]);
 
   return (
     <div ref={listRef} className='relative'>
       <Global styles={resolversTableStyles} />
+
+      <div className='max-w-[500px] mb-5'>
+        <SoloInput
+          placeholder='Filter by name...'
+          value={searchText}
+          onChange={s => setSearchText(s.target.value)}
+        />
+      </div>
+
       {defaultActivePanelKey !== undefined && (
         <Collapse defaultActiveKey={defaultActivePanelKey}>
-          {fieldTypesMap.map(([typeName, fields]) => {
+          {fieldTypesMapCopy.map(([typeName, fields]) => {
             return (
               <Collapse.Panel
                 key={`${apiRef.namespace}-${apiRef.name}-${typeName}`}
@@ -211,7 +291,7 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
               </Collapse.Panel>
             );
           })}
-          {enumTypesMap.map(([typeName, fields]) => {
+          {enumTypesMapCopy.map(([typeName, fields]) => {
             return (
               <Collapse.Panel
                 key={typeName}
