@@ -298,7 +298,12 @@ CONFIG_YAML=cfg.yaml
 
 .PHONY: run-apiserver
 run-apiserver:
-	GRPC_PORT=$(GRPC_PORT) POD_NAMESPACE=gloo-system $(GO_BUILD_FLAGS) go run projects/apiserver/cmd/main.go
+# Todo: This should check that /etc/hosts includes the following line: 
+# 127.0.0.1 docker.internal
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn \
+	GRPC_PORT=$(GRPC_PORT) \
+	POD_NAMESPACE=gloo-system \
+	$(GO_BUILD_FLAGS) go run projects/apiserver/cmd/main.go
 
 .PHONY: run-envoy
 run-envoy:
