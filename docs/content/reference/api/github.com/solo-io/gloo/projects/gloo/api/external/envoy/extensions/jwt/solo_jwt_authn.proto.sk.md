@@ -52,20 +52,20 @@ weight: 5
 
 ```yaml
 "requirement": string
+"disabled": bool
 "claimsToHeaders": map<string, .envoy.config.filter.http.solo_jwt_authn.v2.SoloJwtAuthnPerRoute.ClaimToHeaders>
 "clearRouteCache": bool
 "payloadInMetadata": string
-"disabled": bool
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `requirement` | `string` |  |
+| `requirement` | `string` | Use requirement to specify a JwtRequirement. This requirement MUST be specified at the :ref:`requirement_map <envoy_v3_api_field_extensions.filters.http.jwt_authn.v3.JwtAuthentication.requirement_map>` in `JwtAuthentication`. If no, the requests using this route will be rejected with 403. Only one of `requirement` or `disabled` can be set. |
+| `disabled` | `bool` | Disable Jwt Authentication for this route. Only one of `disabled` or `requirement` can be set. |
 | `claimsToHeaders` | `map<string, .envoy.config.filter.http.solo_jwt_authn.v2.SoloJwtAuthnPerRoute.ClaimToHeaders>` | Copy the claims from the payload field is the key. non-existant fields are ignored. |
 | `clearRouteCache` | `bool` | clear the route cache if claims were added to the header. |
 | `payloadInMetadata` | `string` | To easly integrate with other filters, this will copy the payload to this name in the dynamic metadata. The payload will only be copied if one payload is present (i.e. or match). |
-| `disabled` | `bool` | disable the JWT filter on this route. |
 
 
 

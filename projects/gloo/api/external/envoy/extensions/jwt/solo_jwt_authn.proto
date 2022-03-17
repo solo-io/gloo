@@ -28,7 +28,18 @@ message SoloJwtAuthnPerRoute {
   }
 
   message ClaimToHeaders { repeated ClaimToHeader claims = 1; }
-  string requirement = 1 [ (validate.rules).string.min_bytes = 1 ];
+  oneof requirement_specifier {
+    option (validate.required) = true;
+
+    // Use requirement to specify a JwtRequirement.
+    // This requirement MUST be specified at the
+    // :ref:`requirement_map <envoy_v3_api_field_extensions.filters.http.jwt_authn.v3.JwtAuthentication.requirement_map>`
+    // in `JwtAuthentication`. If no, the requests using this route will be rejected with 403.
+    string requirement = 1 [ (validate.rules).string.min_bytes = 1 ];
+
+    // Disable Jwt Authentication for this route.
+    bool disabled = 5 [(validate.rules).bool = {const: true}];
+  }
 
   // Copy the claims from the payload field is the key.
   // non-existant fields are ignored.
@@ -41,9 +52,6 @@ message SoloJwtAuthnPerRoute {
   // name in the dynamic metadata. The payload will only be copied if one
   // payload is present (i.e. or match)
   string payload_in_metadata = 4;
-
-  // disable the JWT filter on this route
-  bool disabled = 5;
 }
 
 message StagedJwtAuthnPerRoute {
