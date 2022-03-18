@@ -40,7 +40,7 @@ export const ResolverItem: React.FC<{
   });
 
   return (
-    <div key={resolverKey}>
+    <div data-testid='resolver-item' key={resolverKey}>
       <div
         className='relative flex flex-col w-full py-3 border'
         style={{

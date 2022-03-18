@@ -10,19 +10,21 @@ ace.config.set(
   'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/'
 );
 
-it('renders a Resolver Config Section', async () => {
-  render(
-    <Formik
-      initialValues={{
-        resolverConfig: 'foo',
-      }}
-      onSubmit={jest.fn()}>
-      <Form>
-        <ResolverConfigSection isEdit={false} resolverConfig='foo' />
-      </Form>
-    </Formik>
-  );
-  await waitFor(() =>
-    expect(screen.getByTestId('resolver-config-section')).toBeInTheDocument()
-  );
+describe('ResolverConfigSection', () => {
+  it('renders a Resolver Config Section', async () => {
+    render(
+      <Formik
+        initialValues={{
+          resolverConfig: 'foo',
+        }}
+        onSubmit={jest.fn()}>
+        <Form>
+          <ResolverConfigSection isEdit={false} resolverConfig='foo' />
+        </Form>
+      </Formik>
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('resolver-config-section')).toBeInTheDocument()
+    );
+  });
 });

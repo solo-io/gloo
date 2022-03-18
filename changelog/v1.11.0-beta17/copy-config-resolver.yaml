@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Allow users to copy settings from another resolver.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3243

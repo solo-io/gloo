@@ -19,19 +19,21 @@ ace.config.set(
   'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/'
 );
 
-it('renders an Upstream Section', async () => {
-  render(
-    <Formik
-      initialValues={{
-        resolverConfig: 'foo',
-      }}
-      onSubmit={jest.fn()}>
-      <Form>
-        <UpstreamSection isEdit={false} />
-      </Form>
-    </Formik>
-  );
-  await waitFor(() =>
-    expect(screen.getByTestId('upstream-section')).toBeInTheDocument()
-  );
+describe('UpstreamSection', () => {
+  it('renders an Upstream Section', async () => {
+    render(
+      <Formik
+        initialValues={{
+          resolverConfig: 'foo',
+        }}
+        onSubmit={jest.fn()}>
+        <Form>
+          <UpstreamSection isEdit={false} />
+        </Form>
+      </Formik>
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('upstream-section')).toBeInTheDocument()
+    );
+  });
 });
