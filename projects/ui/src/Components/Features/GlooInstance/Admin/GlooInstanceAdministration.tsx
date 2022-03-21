@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styled from '@emotion/styled';
-import { colors } from 'Styles/colors';
 import { Card } from 'Components/Common/Card';
 import { ReactComponent as HealthIcon } from 'assets/health-icon.svg';
 import { useParams } from 'react-router';
@@ -10,15 +9,9 @@ import {
   GlooAdminSettingsBox,
   GlooAdminEnvoyConfigurationsBox,
   GlooAdminWatchedNamespacesBox,
-  GlooAdminSecretsBox,
 } from './GlooInstanceAdminBoxSummary';
-import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { Loading } from 'Components/Common/Loading';
-import {
-  useListGlooInstances,
-  useListGateways,
-  useListSettings,
-} from 'API/hooks';
+import { useListGateways, usePageGlooInstance } from 'API/hooks';
 import { DataError } from 'Components/Common/DataError';
 
 const Heading = styled.div`
@@ -57,27 +50,12 @@ const BottomRow = styled(Row)`
 export const GlooInstanceAdministration = () => {
   const { name = '', namespace = '' } = useParams();
 
-  const { data: glooInstances, error: instancesError } = useListGlooInstances();
   const { data: gateways, error: gatewaysError } = useListGateways({
     name,
     namespace,
   });
 
-  const [glooInstance, setGlooInstance] = useState<GlooInstance.AsObject>();
-
-  useEffect(() => {
-    if (!!glooInstances) {
-      setGlooInstance(
-        glooInstances.find(
-          instance =>
-            instance.metadata?.name === name &&
-            instance.metadata?.namespace === namespace
-        )
-      );
-    } else {
-      setGlooInstance(undefined);
-    }
-  }, [name, namespace, glooInstances]);
+  const [glooInstance, glooInstances, instancesError] = usePageGlooInstance();
 
   if (!!instancesError) {
     return <DataError error={instancesError} />;

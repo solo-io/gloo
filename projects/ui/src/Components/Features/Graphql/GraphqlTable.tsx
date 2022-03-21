@@ -22,11 +22,9 @@ import {
 import { doDownload } from 'download-helper';
 import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React from 'react';
-import { useNavigate, useParams } from 'react-router';
 import { colors } from 'Styles/colors';
 import { useDeleteAPI } from 'utils/hooks';
 import { APIType } from './GraphqlLanding';
-import { NewApiModal } from './NewApiModal';
 
 export const GraphqlIconHolder = styled.div`
   display: flex;
@@ -36,23 +34,6 @@ export const GraphqlIconHolder = styled.div`
   svg {
     width: 35px;
     max-width: none;
-  }
-`;
-
-const PositionHolder = styled.div`
-  position: relative;
-`;
-
-const SecondaryComponent = styled.div`
-  position: absolute;
-  right: 20px;
-`;
-
-const Button = styled.button`
-  color: ${colors.oceanBlue};
-  &:hover {
-    cursor: pointer;
-    color: ${colors.seaBlue};
   }
 `;
 
@@ -84,7 +65,6 @@ type TableDataType = {
 };
 
 export const GraphqlTable = (props: Props & TableHolderProps) => {
-  const { name, namespace } = useParams();
   const { data: glooFedCheckResponse, error: glooFedCheckError } =
     useIsGlooFedEnabled();
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
@@ -238,7 +218,6 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
 
 export const GraphqlPageTable = (props: Props) => {
   const { typeFilters } = props;
-  const [showGraphqlModal, setShowGraphqlModal] = React.useState(false);
   function getIcon(filter: CheckboxFilterProps) {
     switch (filter.label) {
       case APIType.GRAPHQL:
@@ -264,9 +243,6 @@ export const GraphqlPageTable = (props: Props) => {
         return false;
     }
   }
-  const toggleGraphqlModal = () => {
-    setShowGraphqlModal(!showGraphqlModal);
-  };
 
   return (
     <>
@@ -286,10 +262,6 @@ export const GraphqlPageTable = (props: Props) => {
             <GraphqlTable {...props} wholePage={true} />
           </SectionCard>
         ))}
-      <NewApiModal
-        showNewModal={showGraphqlModal}
-        toggleNewModal={toggleGraphqlModal}
-      />
     </>
   );
 };

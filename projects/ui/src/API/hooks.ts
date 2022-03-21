@@ -63,6 +63,8 @@ import { GlooFedCheckResponse } from 'proto/github.com/solo-io/solo-projects/pro
 import { graphqlConfigApi } from './graphql';
 import { GraphqlConfigApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
 import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router';
 
 const normalRefreshInterval = 10000;
 
@@ -424,4 +426,34 @@ export function useGetGraphqlApiYaml(graphqlApiRef: ClusterObjectRef.AsObject) {
     () => graphqlConfigApi.getGraphqlApiYaml(graphqlApiRef),
     { refreshInterval: normalRefreshInterval }
   );
+}
+
+export function usePageGlooInstance() {
+  // URL parameters (if on /apis/ then name='', namespace='')
+  // Gets replaced by the default/initial gloo instance.
+  const { name = '', namespace = '' } = useParams();
+  const { data: glooInstances, error: instancesError } = useListGlooInstances();
+  const [glooInstance, setGlooInstance] = useState<GlooInstance.AsObject>();
+  useEffect(() => {
+    if (!!glooInstances) {
+      if (glooInstances.length === 1 && name == '' && namespace === '') {
+        setGlooInstance(glooInstances[0]);
+      } else {
+        setGlooInstance(
+          glooInstances.find(
+            instance =>
+              instance.metadata?.name === name &&
+              instance.metadata?.namespace === namespace
+          )
+        );
+      }
+    } else {
+      setGlooInstance(undefined);
+    }
+  }, [name, namespace, glooInstances]);
+  return [glooInstance, glooInstances, instancesError] as [
+    typeof glooInstance,
+    typeof glooInstances,
+    typeof instancesError
+  ];
 }

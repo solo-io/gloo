@@ -352,22 +352,20 @@ export const SoloFormInput = (props: SoloFormInputProps) => {
   const meta = form.getFieldMeta(props.name);
 
   return (
-    <>
+    <div>
       <SoloInput
         className='focus:border-blue-400gloo hover:border-blue-400gloo focus:outline-none focus:ring-4 focus:ring-blue-500gloo focus:ring-opacity-10'
         {...field}
         {...props}
-        error={!!meta.error && meta.touched}
+        error={!!meta.error}
         title={props.title}
         value={field.value}
         onChange={field.onChange}
       />
       {hideError ? null : (
-        <ErrorText errorExists={!!meta.error && meta.touched}>
-          {meta.error}
-        </ErrorText>
+        <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
       )}
-    </>
+    </div>
   );
 };
 

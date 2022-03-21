@@ -1,15 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Routes, Route } from 'react-router';
-import { colors } from 'Styles/colors';
+import React from 'react';
+import { useParams, useNavigate } from 'react-router';
 import styled from '@emotion/styled';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { GlooAdminGateways } from './GlooAdminGateways';
 import { GlooAdminProxy } from './GlooAdminProxy';
 import { GlooAdminSettings } from './GlooAdminSettings';
-import useSWR from 'swr';
-import { glooInstanceApi } from 'API/gloo-instance';
-import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
-import { useListGlooInstances } from 'API/hooks';
+import { usePageGlooInstance } from 'API/hooks';
 import { DataError } from 'Components/Common/DataError';
 import { Loading } from 'Components/Common/Loading';
 import { GlooAdminEnvoy } from './GlooAdminEnvoy';
@@ -57,26 +53,10 @@ const pageOptions: {
 ];
 
 export const GlooAdminInnerPagesWrapper = () => {
-  const { adminPage, name, namespace } = useParams();
+  const { adminPage, name } = useParams();
   const navigate = useNavigate();
 
-  const { data: glooInstances, error: instanceError } = useListGlooInstances();
-
-  const [glooInstance, setGlooInstance] = useState<GlooInstance.AsObject>();
-
-  useEffect(() => {
-    if (!!glooInstances) {
-      setGlooInstance(
-        glooInstances.find(
-          instance =>
-            instance.metadata?.name === name &&
-            instance.metadata?.namespace === namespace
-        )
-      );
-    } else {
-      setGlooInstance(undefined);
-    }
-  }, [name, namespace, glooInstances]);
+  const [glooInstance, _, instanceError] = usePageGlooInstance();
 
   if (!!instanceError) {
     return <DataError error={instanceError} />;

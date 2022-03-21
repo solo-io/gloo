@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import styled from '@emotion/styled/macro';
 import { TabPanels, Tabs } from '@reach/tabs';
 import { Loading } from 'Components/Common/Loading';
 import { useParams } from 'react-router';
-import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as GlooIcon } from 'assets/Gloo.svg';
 import { ReactComponent as MeshIcon } from 'assets/mesh-icon.svg';
@@ -23,7 +22,7 @@ import { GlooInstanceUpstreamGroups } from './GlooInstanceUpstreamGroups';
 import { CardWhiteSubsection } from 'Components/Common/Card';
 import { colors } from 'Styles/colors';
 import { SoloLink } from 'Components/Common/SoloLink';
-import { useListGlooInstances } from 'API/hooks';
+import { usePageGlooInstance } from 'API/hooks';
 import { GlooInstanceIssues } from './GlooInstanceIssues';
 import { DataError } from 'Components/Common/DataError';
 import { GlooInstanceRouteTables } from './GlooInstanceRouteTables';
@@ -113,24 +112,9 @@ const AdminLink = styled.div`
 export const GlooInstancesDetails = () => {
   const { name, namespace } = useParams();
 
-  const { data: glooInstances, error: instancesError } = useListGlooInstances();
-
-  const [glooInstance, setGlooInstance] = useState<GlooInstance.AsObject>();
   const [tabIndex, setTabIndex] = React.useState(0); // 'virtual-services'
 
-  useEffect(() => {
-    if (!!glooInstances) {
-      setGlooInstance(
-        glooInstances.find(
-          instance =>
-            instance.metadata?.name === name &&
-            instance.metadata?.namespace === namespace
-        )
-      );
-    } else {
-      setGlooInstance(undefined);
-    }
-  }, [name, namespace, glooInstances]);
+  const [glooInstance, glooInstances, instancesError] = usePageGlooInstance();
 
   if (!!instancesError) {
     return <DataError error={instancesError} />;

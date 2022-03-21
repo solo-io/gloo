@@ -2,6 +2,7 @@ import * as React from 'react';
 import styled from '@emotion/styled';
 import { Checkbox } from 'antd';
 import { colors } from 'Styles/colors';
+import { Label } from './SoloInput';
 
 type CheckboxWrapperProps = {
   checked?: boolean;
@@ -101,6 +102,8 @@ interface Props {
   onChange: (idSelected: string | number | undefined) => any;
   withoutCheckboxes?: boolean;
   forceAChoice?: boolean;
+  title?: string;
+  className?: string;
 }
 
 export const SoloRadioGroup = (props: Props) => {
@@ -110,6 +113,8 @@ export const SoloRadioGroup = (props: Props) => {
     onChange,
     withoutCheckboxes,
     forceAChoice,
+    title,
+    className,
   } = props;
 
   const attemptSelection = (selectedId: string | number) => {
@@ -122,23 +127,27 @@ export const SoloRadioGroup = (props: Props) => {
 
   return (
     <div>
-      {options.map(option => {
-        return (
-          <CheckboxWrapper
-            key={option.id}
-            checked={option.id === currentSelection}
-            onClick={() => attemptSelection(option.id)}
-            withoutCheckboxVisual={withoutCheckboxes}
-            forceAChoice={forceAChoice}>
-            {option.displayName}
-            {/** The checkbox below is only for the visual. The wrapper is the intended clickable */}
-            <Checkbox
+      {title && <Label>{title}</Label>}
+
+      <div className={className}>
+        {options.map(option => {
+          return (
+            <CheckboxWrapper
+              key={option.id}
               checked={option.id === currentSelection}
-              onChange={() => {}}
-            />
-          </CheckboxWrapper>
-        );
-      })}
+              onClick={() => attemptSelection(option.id)}
+              withoutCheckboxVisual={withoutCheckboxes}
+              forceAChoice={forceAChoice}>
+              {option.displayName}
+              {/** The checkbox below is only for the visual. The wrapper is the intended clickable */}
+              <Checkbox
+                checked={option.id === currentSelection}
+                onChange={() => {}}
+              />
+            </CheckboxWrapper>
+          );
+        })}
+      </div>
     </div>
   );
 };

@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Added GraphQL API types to the new API modal.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3280
