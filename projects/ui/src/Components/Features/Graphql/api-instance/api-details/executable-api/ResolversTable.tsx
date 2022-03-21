@@ -259,7 +259,7 @@ const ResolversTable: React.FC<ResolversTableType> = props => {
   }, [fieldTypesMapCopy, enumTypesMapCopy]);
 
   return (
-    <div ref={listRef} className='relative'>
+    <div ref={listRef} className='relative mb-5'>
       <Global styles={resolversTableStyles} />
 
       <div className='max-w-[500px] mb-5'>

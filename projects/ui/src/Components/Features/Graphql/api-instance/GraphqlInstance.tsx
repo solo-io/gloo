@@ -14,10 +14,11 @@ import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core
 import React from 'react';
 import { useParams } from 'react-router';
 import { GraphqlIconHolder } from '../GraphqlTable';
-import { GraphqlApiDetails } from './api-details/GraphqlApiDetails';
+import { ExecutableGraphqlApiDetails } from './api-details/executable-api/ExecutableGraphqlApiDetails';
 import { GraphqlApiExplorer } from './api-explorer/GraphqlApiExplorer';
 import GraphqlDefineResolversPrompt from './GraphqlDefineResolversPrompt';
 import GraphqlApiIntrospectionToggle from './GraphqlApiIntrospectionToggle';
+import { GatewayGraphqlApiDetails } from './api-details/gateway-api/GatewayGraphqlApiDetails';
 
 export const GraphqlInstance: React.FC = () => {
   // gets the graphql info from the URL
@@ -33,11 +34,7 @@ export const GraphqlInstance: React.FC = () => {
   } as ClusterObjectRef.AsObject;
 
   // gets the schema from the api
-  const {
-    data: graphqlApi,
-    error: graphqlApiError,
-    mutate,
-  } = useGetGraphqlApiDetails(apiRef);
+  const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
 
   // tab logic
   const [tabIndex, setTabIndex] = React.useState(0);
@@ -72,7 +69,11 @@ export const GraphqlInstance: React.FC = () => {
           <TabPanels>
             <StyledTabPanel>
               <FolderTabContent>
-                {tabIndex === 0 && <GraphqlApiDetails apiRef={apiRef} />}
+                {tabIndex === 0 && (
+                  // ! Check for apiType here
+                  // <GatewayGraphqlApiDetails apiRef={apiRef} />
+                  <ExecutableGraphqlApiDetails apiRef={apiRef} />
+                )}
               </FolderTabContent>
             </StyledTabPanel>
             <StyledTabPanel>

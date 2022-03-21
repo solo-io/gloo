@@ -17,17 +17,20 @@ export const globalStyles = css`
     min-height: 100vh;
     min-width: 100vw;
     background: ${colors.januaryGrey};
-    
-    * { 
+
+    * {
       box-sizing: border-box;
-      font-family: 'Proxima Nova','Open Sans','Helvetica','Arial','sans-serif';
+      font-family: 'Proxima Nova', 'Open Sans', 'Helvetica', 'Arial',
+        'sans-serif';
     }
 
     a {
-      color: #2196C9;
+      color: #2196c9;
 
-      &:hover, &:focus, &:active {
-        color: #54B7E3;
+      &:hover,
+      &:focus,
+      &:active {
+        color: #54b7e3;
       }
     }
 
@@ -135,74 +138,88 @@ export const globalStyles = css`
             background: ${colors.splashBlue};
           }
 
-        &.ant-select-tree-node-content-wrapper-normal {
-          padding-left: 20px !important;
-          color: ${colors.novemberGrey};
-          cursor: pointer;
+          &.ant-select-tree-node-content-wrapper-normal {
+            padding-left: 20px !important;
+            color: ${colors.novemberGrey};
+            cursor: pointer;
 
-          &:hover {
-            background: ${colors.splashBlue};
-          }
+            &:hover {
+              background: ${colors.splashBlue};
+            }
 
-          &.ant-select-tree-node-selected {
-            cursor: default;
-            background: ${colors.februaryGrey};
+            &.ant-select-tree-node-selected {
+              cursor: default;
+              background: ${colors.februaryGrey};
 
-            padding: 9px 15px 9px 11px;
-            border: none;
-            border-radius: 0;
-            height: auto;
-            outline: none;
+              padding: 9px 15px 9px 11px;
+              border: none;
+              border-radius: 0;
+              height: auto;
+              outline: none;
 
-            .ant-select-tree-node-selected__rendered {
-              line-height: inherit;
-              margin: 0;
+              .ant-select-tree-node-selected__rendered {
+                line-height: inherit;
+                margin: 0;
 
-              .ant-select-tree-node-selected-selected-value {
-                color: ${colors.septemberGrey};
+                .ant-select-tree-node-selected-selected-value {
+                  color: ${colors.septemberGrey};
+                }
+              }
+
+              &:disabled {
+                background: ${colors.aprilGrey};
               }
             }
+          }
+        }
+      }
 
-            &:disabled {
-              background: ${colors.aprilGrey};
-            }
+      .ant-select-dropdown {
+        background: white;
+        padding: 0 10px;
+        border: 1px solid ${colors.aprilGrey};
+        border-radius: 0 0 8px 8px;
+        width: 0;
+
+        .ant-select-item {
+          display: flex;
+          align-items: center;
+          padding: 5px 0;
+          color: ${colors.septemberGrey};
+          cursor: pointer;
+
+          svg {
+            height: 20px;
+            width: 20px;
+            min-width: 20px;
+            margin-right: 8px;
           }
         }
       }
     }
 
-    .ant-select-dropdown {
-      background: white;
-      padding: 0 10px;
-      border: 1px solid ${colors.aprilGrey};
-      border-radius: 0 0 8px 8px;
-      width: 0;
-
-      .ant-select-item  {
-        display: flex;
-        align-items: center;
-        padding: 5px 0;
-        color: ${colors.septemberGrey};
-        cursor: pointer;
-
-        svg {
-          height: 20px;
-          width: 20px;
-          min-width: 20px;
-          margin-right: 8px;
-        }
+    .ace_editor span,
+    .ace_editor textarea,
+    .ace_line {
+      font: 16px / normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas',
+        'source-code-pro', monospace;
+    }
+    .ace_layer {
+      .ace_line,
+      .ace_active-line {
+        height: 22px !important;
       }
     }
-  }
 
-  .ace_editor span, .ace_editor textarea, .ace_line {
-  font: 16px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
-}
-.ace_layer {
-
-  .ace_line, .ace_active-line {
-    height: 22px !important;
+    .ant-collapse .ant-collapse-header {
+      background-color: ${colors.januaryGrey};
+      &:hover {
+        background-color: ${colors.februaryGrey};
+      }
+      &:active {
+        background-color: ${colors.marchGrey};
+      }
+      user-select: none;
+    }
   }
-}
- 
 `;
