@@ -5,6 +5,7 @@ import { useListUpstreams } from 'API/hooks';
 import { SoloFormDropdown } from 'Components/Common/SoloFormComponents';
 import YAML from 'yaml';
 import { getDefaultConfigFromType } from './ResolverConfigSection';
+import { useParams } from 'react-router';
 
 type UpstreamSectionProps = {
   isEdit: boolean;
@@ -17,24 +18,41 @@ export const UpstreamSection = ({
 }: UpstreamSectionProps) => {
   const formik = useFormikContext<ResolverWizardFormProps>();
   const { data: upstreams } = useListUpstreams();
+  const { graphqlApiName = '', graphqlApiNamespace = '' } = useParams();
 
   const onChange = (value: any) => {
-    formik.setFieldValue('upstream', value);
     try {
-      const demoConfig = getDefaultConfigFromType(formik.values.resolverType);
+      formik.setFieldError('upstream', undefined);
+      const demoConfig = getDefaultConfigFromType(
+        graphqlApiName,
+        graphqlApiNamespace,
+        formik.values.resolverType
+      );
+
       if (!formik.values.resolverConfig) {
         formik.setFieldValue('resolverConfig', demoConfig);
       }
-      const resolverValue = YAML.parse(formik.values.resolverConfig || demoConfig);
+
+      const resolverValue = YAML.parse(
+        formik.values.resolverConfig || demoConfig
+      );
+      const [name, namespace] = value.split('::');
+
       if (resolverValue?.restResolver?.upstreamRef) {
-        const [name, namespace] = value.split('::');
         resolverValue.restResolver.upstreamRef.name = name;
         resolverValue.restResolver.upstreamRef.namespace = namespace;
-        const stringifiedResolver = YAML.stringify(resolverValue);
-        formik.setFieldValue('resolverConfig', stringifiedResolver);
       }
-    } catch (ignore) { }
-  }
+      if (resolverValue?.grpcResolver?.upstreamRef) {
+        resolverValue.grpcResolver.upstreamRef.name = name;
+        resolverValue.grpcResolver.upstreamRef.namespace = namespace;
+      }
+      YAML.scalarOptions.null.nullStr = '';
+      const stringifiedResolver = YAML.stringify(resolverValue);
+      formik.setFieldValue('resolverConfig', stringifiedResolver);
+    } catch (error) {
+      console.error({ error });
+    }
+  };
 
   return (
     <div data-testid='upstream-section' className='w-full h-full p-6 pb-0'>
@@ -48,7 +66,6 @@ export const UpstreamSection = ({
           <div className='mt-3'>
             <SoloFormDropdown
               name='upstream'
-              value={formik.values.upstream}
               defaultValue={existingUpstream}
               searchable={true}
               onChange={onChange}

@@ -12,9 +12,7 @@ ace.config.set(
 
 describe('ResolverTypeSection', () => {
   it('renders a Resolver Type Section', async () => {
-    const listOfResolvers = [
-      ['resolver', new Resolution().toObject()]
-    ];
+    const listOfResolvers = [['resolver', new Resolution().toObject()]];
     render(
       <Formik
         initialValues={{
@@ -27,9 +25,11 @@ describe('ResolverTypeSection', () => {
         </Form>
       </Formik>
     );
-    await waitFor(() =>{
+    await waitFor(() => {
       expect(screen.getByTestId('resolver-type-section')).toBeInTheDocument();
-      expect(screen.getByTestId('create-resolver-from-config')).toBeInTheDocument();
+      expect(
+        screen.getByTestId('create-resolver-from-config')
+      ).toBeInTheDocument();
     });
   });
 });

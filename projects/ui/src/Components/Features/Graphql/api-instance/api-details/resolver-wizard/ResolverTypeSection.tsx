@@ -1,4 +1,8 @@
-import { getResolverFromConfig, getUpstream, ResolverWizardFormProps } from '../ResolverWizard';
+import {
+  getResolverFromConfig,
+  getUpstream,
+  ResolverWizardFormProps,
+} from '../ResolverWizard';
 import {
   SoloFormDropdown,
   SoloFormRadio,
@@ -24,14 +28,16 @@ export let apiTypeOptions = [
   },
 ] as SoloFormRadioOption[];
 
-const getType = (resolver: Resolution.AsObject): ResolverWizardFormProps['resolverType'] => {
+const getType = (
+  resolver: Resolution.AsObject
+): ResolverWizardFormProps['resolverType'] => {
   if (resolver.grpcResolver) {
     return 'gRPC';
   } else if (resolver.restResolver) {
     return 'REST';
   }
   return 'REST';
-}
+};
 
 export const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
   const formik = useFormikContext<ResolverWizardFormProps>();
@@ -40,7 +46,7 @@ export const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
     return {
       key: rName,
       value: rName,
-    }
+    };
   });
   const onResolverCopy = (copyName: any) => {
     const { values } = formik;
@@ -57,8 +63,14 @@ export const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
       formik.setFieldValue('upstream', upstream);
       formik.setFieldValue('resolverType', resolverType);
     }
-
   };
+
+  const onTypeChange = (resolverType: string) => {
+    formik.setFieldValue('resolverType', resolverType);
+    formik.setFieldValue('resolverConfig', '');
+    formik.setFieldValue('upstream', '');
+  };
+
   return (
     <div data-testid='resolver-type-section' className='w-full h-full p-6 pb-0'>
       <div
@@ -66,7 +78,9 @@ export const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
         {isEdit ? 'Edit' : 'Configure'} Resolver{' '}
       </div>
       {formik.values.listOfResolvers.length > 0 && (
-        <div data-testid='create-resolver-from-config' className='grid grid-cols-2 gap-4 '>
+        <div
+          data-testid='create-resolver-from-config'
+          className='grid grid-cols-2 gap-4 '>
           <div>
             <SoloFormDropdown
               searchable={true}
@@ -82,9 +96,9 @@ export const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
       <div className='grid grid-cols-2 gap-4 '>
         <SoloFormRadio<ResolverWizardFormProps>
           name='resolverType'
-          isUpdate={Boolean(isEdit)}
           title='Resolver Type'
           options={apiTypeOptions}
+          onChange={onTypeChange}
           titleAbove
         />
       </div>

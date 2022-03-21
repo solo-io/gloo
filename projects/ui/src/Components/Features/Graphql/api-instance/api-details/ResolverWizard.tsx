@@ -53,20 +53,39 @@ export type ResolverWizardFormProps = {
 
 export const getUpstream = (resolver: Resolution.AsObject): string => {
   return `
-  ${resolver?.restResolver?.upstreamRef?.name!
-    ? `${resolver?.restResolver?.upstreamRef
-      ?.name!}::${resolver?.restResolver
-        ?.upstreamRef?.namespace!}`
-    : resolver?.grpcResolver?.upstreamRef?.name!
-      ? `${resolver?.grpcResolver?.upstreamRef
-        ?.name!}::${resolver?.grpcResolver
+  ${
+    resolver?.restResolver?.upstreamRef?.name!
+      ? `${resolver?.restResolver?.upstreamRef?.name!}::${resolver?.restResolver
+          ?.upstreamRef?.namespace!}`
+      : resolver?.grpcResolver?.upstreamRef?.name!
+      ? `${resolver?.grpcResolver?.upstreamRef?.name!}::${resolver?.grpcResolver
           ?.upstreamRef?.namespace!}`
       : ''
-  }`.trim()
+  }`.trim();
+};
+
+export const removeNulls = (obj: any) => {
+  const isArray = Array.isArray(obj);
+  for (const k of Object.keys(obj)) {
+    if (obj[k] === null) {
+      if (isArray) {
+        obj.splice(Number(k), 1);
+      } else {
+        delete obj[k];
+      }
+    } else if (typeof obj[k] === 'object') {
+      removeNulls(obj[k]);
+    }
+    if (isArray && obj.length === Number(k)) {
+      removeNulls(obj);
+    }
+  }
+  return obj;
 };
 
 export const getResolverFromConfig = (resolver?: Resolution.AsObject) => {
   if (resolver?.restResolver || resolver?.grpcResolver) {
+    YAML.scalarOptions.null.nullStr = '';
     return YAML.stringify(resolver);
   }
   return '';
@@ -76,15 +95,14 @@ export const getUpstreamFromMap = (
   resolutionsMap: Array<[string, Resolution.AsObject]>,
   resolverName: string
 ) => {
-    const resolutionsMapItem =
-      resolutionsMap?.find(
-        ([rN]) => rN === resolverName
-      )?.[1];
-    if (resolutionsMapItem) {
-      return getUpstream(resolutionsMapItem);
-    }
-    return '';
-}
+  const resolutionsMapItem = resolutionsMap?.find(
+    ([rN]) => rN === resolverName
+  )?.[1];
+  if (resolutionsMapItem) {
+    return getUpstream(resolutionsMapItem);
+  }
+  return '';
+};
 
 const validationSchema = yup.object().shape({
   resolverType: yup.string().required('You need to specify a resolver type.'),
@@ -123,11 +141,14 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
     clusterName: graphqlApiClusterName,
   });
 
-  const resolutionsMap = graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap ?? [];
+  const resolutionsMap =
+    graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap ?? [];
 
-  const listOfResolvers = resolutionsMap.filter(([rName]: [rName: string, rObject: Resolution.AsObject]) => {
-    return props.resolverName !== rName;
-  });
+  const listOfResolvers = resolutionsMap.filter(
+    ([rName]: [rName: string, rObject: Resolution.AsObject]) => {
+      return props.resolverName !== rName;
+    }
+  );
 
   const [tabIndex, setTabIndex] = React.useState(0);
   const handleTabsChange = (index: number) => {
@@ -144,7 +165,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
      - `grpcResolver.[request | response | spanName | ...]`...
      - `[request | response | spanName | ...]`...
     */
-    let parsedResolverConfig = YAML.parse(resolverConfig);
+    let parsedResolverConfig = removeNulls(YAML.parse(resolverConfig));
 
     let headersMap: [string, string][] = [];
     let queryParamsMap: [string, string][] = [];
@@ -244,17 +265,16 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
       fieldWithDirective,
       fieldWithoutDirective,
     };
-    await graphqlConfigApi.updateGraphqlApiResolver(
-      apiRef,
-      resolverItem
-    ).then((_res) => {
-      mutate();
-      mutateSchemaYaml();
-      props.onClose();
-    }).catch((err) => {
-      console.error({ err })
-    });
-
+    await graphqlConfigApi
+      .updateGraphqlApiResolver(apiRef, resolverItem)
+      .then(_res => {
+        mutate();
+        mutateSchemaYaml();
+        props.onClose();
+      })
+      .catch(err => {
+        console.error({ err });
+      });
   };
   const removeResolverConfig = async () => {
     await graphqlConfigApi.updateGraphqlApiResolver(
@@ -302,7 +322,10 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
       <Formik<ResolverWizardFormProps>
         initialValues={{
           resolverType: 'REST',
-          upstream: getUpstreamFromMap(resolutionsMap, props.resolverName ?? ''),
+          upstream: getUpstreamFromMap(
+            resolutionsMap,
+            props.resolverName ?? ''
+          ),
           resolverConfig: getResolverFromConfig(props.resolver),
           listOfResolvers,
         }}
@@ -358,9 +381,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
                   <UpstreamSection
                     isEdit={isEdit}
                     existingUpstream={
-                      props.resolver
-                        ? getUpstream(props.resolver)
-                        : ''
+                      props.resolver ? getUpstream(props.resolver) : ''
                     }
                   />
                   <div className='flex items-center justify-between px-6 '>
@@ -375,12 +396,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
                   </div>
                 </TabPanel>
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
-                  {tabIndex === 2 && (
-                    <ResolverConfigSection
-                      isEdit={isEdit}
-                      resolverConfig={formik.values.resolverConfig}
-                    />
-                  )}
+                  {tabIndex === 2 && <ResolverConfigSection isEdit={isEdit} />}
 
                   <div className='flex items-center justify-between px-6 '>
                     <IconButton onClick={() => props.onClose()}>

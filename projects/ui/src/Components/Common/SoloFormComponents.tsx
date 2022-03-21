@@ -86,7 +86,7 @@ export const ButtonWithErrorState = styled.button<{
                             border-color: #0DCE93;`
       : props.disabled
       ? `background-color: ${colors.mayGrey};`
-      : `background-color: ${colors.seaBlue}; 
+      : `background-color: ${colors.seaBlue};
                             border-color: ${colors.seaBlue};`}
 `;
 
@@ -242,12 +242,14 @@ export type SoloFormRadioProps = {
   options: SoloFormRadioOption[];
   horizontal?: boolean;
   titleAbove?: boolean;
+  onChange?: (result: any) => void;
 };
 
 export const SoloFormRadio = <Values extends FormikValues>(
   props: SoloFormRadioProps
 ) => {
-  const { name, isUpdate, title, options, horizontal, titleAbove } = props;
+  const { name, isUpdate, title, options, horizontal, titleAbove, onChange } =
+    props;
   const { values, setFieldValue } = useFormikContext<Values>();
 
   return (
@@ -273,6 +275,9 @@ export const SoloFormRadio = <Values extends FormikValues>(
               <div
                 key={option.displayValue}
                 onClick={() => {
+                  if (onChange) {
+                    onChange(option.value);
+                  }
                   if (isUpdate) return;
                   setFieldValue(name, option.value);
                 }}

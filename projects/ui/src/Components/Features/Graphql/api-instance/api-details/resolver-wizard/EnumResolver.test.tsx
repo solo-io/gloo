@@ -7,4 +7,4 @@ describe('EnumResolver', () => {
     render(<EnumResolver resolverType='resolver' fields={[]} />);
     expect(screen.getByTestId('enum-resolver')).toBeInTheDocument();
   });
-})
+});

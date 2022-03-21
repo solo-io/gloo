@@ -385,8 +385,7 @@ export const OverviewClustersBox = () => {
 export const OverviewGraphQLBox = () => {
   const { data: glooInstances, error: instancesError } = useListGlooInstances();
   const { data: clusterDetailsList, error: cError } = useListClusterDetails();
-  const { data: graphqlApis, error: graphqlApiError } =
-    useListGraphqlApis();
+  const { data: graphqlApis, error: graphqlApiError } = useListGraphqlApis();
   const { data: glooFedCheckResponse, error: glooFedCheckError } =
     useIsGlooFedEnabled();
 

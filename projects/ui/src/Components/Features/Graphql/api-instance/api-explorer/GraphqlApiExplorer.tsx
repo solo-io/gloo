@@ -98,11 +98,8 @@ const setGqlStorage = (value: string) => {
 };
 
 export const GraphqlApiExplorer = () => {
-  const {
-    graphqlApiName,
-    graphqlApiNamespace,
-    graphqlApiClusterName,
-  } = useParams();
+  const { graphqlApiName, graphqlApiNamespace, graphqlApiClusterName } =
+    useParams();
   const [gqlError, setGqlError] = React.useState('');
   const [refetch, setRefetch] = React.useState(false);
   const [url, setUrl] = React.useState(getGqlStorage());
