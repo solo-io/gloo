@@ -248,16 +248,18 @@ func (f *OpenApiFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, 
 			Name:      f.upstream.GetMetadata().GetName(),
 			Namespace: f.upstream.GetMetadata().GetNamespace(),
 		},
-		ExecutableSchema: &v1alpha1.ExecutableSchema{
-			Executor: &v1alpha1.Executor{
-				Executor: &v1alpha1.Executor_Local_{
-					Local: &v1alpha1.Executor_Local{
-						Resolutions:         resolutions,
-						EnableIntrospection: true,
+		Schema: &v1alpha1.GraphQLApi_ExecutableSchema{
+			ExecutableSchema: &v1alpha1.ExecutableSchema{
+				Executor: &v1alpha1.Executor{
+					Executor: &v1alpha1.Executor_Local_{
+						Local: &v1alpha1.Executor_Local{
+							Resolutions:         resolutions,
+							EnableIntrospection: true,
+						},
 					},
 				},
+				SchemaDefinition: printedSchema,
 			},
-			SchemaDefinition: printedSchema,
 		},
 	}
 	_, err = f.graphqlClient.Write(schemaCrd, clients.WriteOpts{})

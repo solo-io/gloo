@@ -95,8 +95,10 @@ var _ = Describe("schema validation", func() {
 			err := graphql_handler.ValidateSchemaDefinition(&rpc_edge_v1.ValidateSchemaDefinitionRequest{
 				Input: &rpc_edge_v1.ValidateSchemaDefinitionRequest_Spec{
 					Spec: &graphql_v1alpha1.GraphQLApiSpec{
-						ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
-							SchemaDefinition: "",
+						Schema: &graphql_v1alpha1.GraphQLApiSpec_ExecutableSchema{
+							ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
+								SchemaDefinition: "",
+							},
 						},
 					},
 				},
@@ -108,19 +110,21 @@ var _ = Describe("schema validation", func() {
 			err := graphql_handler.ValidateSchemaDefinition(&rpc_edge_v1.ValidateSchemaDefinitionRequest{
 				Input: &rpc_edge_v1.ValidateSchemaDefinitionRequest_Spec{
 					Spec: &graphql_v1alpha1.GraphQLApiSpec{
-						ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
-							SchemaDefinition: `
+						Schema: &graphql_v1alpha1.GraphQLApiSpec_ExecutableSchema{
+							ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
+								SchemaDefinition: `
 	type Query {
 		productsForHome: [Product] @resolve(name: "Query|productsForHome")
 	}
 `,
-							Executor: &graphql_v1alpha1.Executor{
-								Executor: &graphql_v1alpha1.Executor_Local_{
-									Local: &graphql_v1alpha1.Executor_Local{
-										Resolutions: map[string]*graphql_v1alpha1.Resolution{
-											"Query|productsForHome": {
-												Resolver: &graphql_v1alpha1.Resolution_RestResolver{
-													RestResolver: &graphql_v1alpha1.RESTResolver{},
+								Executor: &graphql_v1alpha1.Executor{
+									Executor: &graphql_v1alpha1.Executor_Local_{
+										Local: &graphql_v1alpha1.Executor_Local{
+											Resolutions: map[string]*graphql_v1alpha1.Resolution{
+												"Query|productsForHome": {
+													Resolver: &graphql_v1alpha1.Resolution_RestResolver{
+														RestResolver: &graphql_v1alpha1.RESTResolver{},
+													},
 												},
 											},
 										},
@@ -138,19 +142,21 @@ var _ = Describe("schema validation", func() {
 			err := graphql_handler.ValidateSchemaDefinition(&rpc_edge_v1.ValidateSchemaDefinitionRequest{
 				Input: &rpc_edge_v1.ValidateSchemaDefinitionRequest_Spec{
 					Spec: &graphql_v1alpha1.GraphQLApiSpec{
-						ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
-							SchemaDefinition: `
+						Schema: &graphql_v1alpha1.GraphQLApiSpec_ExecutableSchema{
+							ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
+								SchemaDefinition: `
 	type Query {
 		productsForHome: [Product] @resolve(name: "Query|productsForHome")
 	}
 `,
-							Executor: &graphql_v1alpha1.Executor{
-								Executor: &graphql_v1alpha1.Executor_Local_{
-									Local: &graphql_v1alpha1.Executor_Local{
-										Resolutions: map[string]*graphql_v1alpha1.Resolution{
-											"Query|productsForHome123": {
-												Resolver: &graphql_v1alpha1.Resolution_RestResolver{
-													RestResolver: &graphql_v1alpha1.RESTResolver{},
+								Executor: &graphql_v1alpha1.Executor{
+									Executor: &graphql_v1alpha1.Executor_Local_{
+										Local: &graphql_v1alpha1.Executor_Local{
+											Resolutions: map[string]*graphql_v1alpha1.Resolution{
+												"Query|productsForHome123": {
+													Resolver: &graphql_v1alpha1.Resolution_RestResolver{
+														RestResolver: &graphql_v1alpha1.RESTResolver{},
+													},
 												},
 											},
 										},

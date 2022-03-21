@@ -202,6 +202,82 @@ export namespace GrpcResolver {
   }
 }
 
+export class StitchedSchema extends jspb.Message {
+  clearSubschemasList(): void;
+  getSubschemasList(): Array<StitchedSchema.SubschemaConfig>;
+  setSubschemasList(value: Array<StitchedSchema.SubschemaConfig>): void;
+  addSubschemas(value?: StitchedSchema.SubschemaConfig, index?: number): StitchedSchema.SubschemaConfig;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): StitchedSchema.AsObject;
+  static toObject(includeInstance: boolean, msg: StitchedSchema): StitchedSchema.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: StitchedSchema, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): StitchedSchema;
+  static deserializeBinaryFromReader(message: StitchedSchema, reader: jspb.BinaryReader): StitchedSchema;
+}
+
+export namespace StitchedSchema {
+  export type AsObject = {
+    subschemasList: Array<StitchedSchema.SubschemaConfig.AsObject>,
+  }
+
+  export class SubschemaConfig extends jspb.Message {
+    getName(): string;
+    setName(value: string): void;
+
+    getNamespace(): string;
+    setNamespace(value: string): void;
+
+    getTypeMergeMap(): jspb.Map<string, StitchedSchema.SubschemaConfig.TypeMergeConfig>;
+    clearTypeMergeMap(): void;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SubschemaConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: SubschemaConfig): SubschemaConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SubschemaConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SubschemaConfig;
+    static deserializeBinaryFromReader(message: SubschemaConfig, reader: jspb.BinaryReader): SubschemaConfig;
+  }
+
+  export namespace SubschemaConfig {
+    export type AsObject = {
+      name: string,
+      namespace: string,
+      typeMergeMap: Array<[string, StitchedSchema.SubschemaConfig.TypeMergeConfig.AsObject]>,
+    }
+
+    export class TypeMergeConfig extends jspb.Message {
+      getSelectionSet(): string;
+      setSelectionSet(value: string): void;
+
+      getQueryName(): string;
+      setQueryName(value: string): void;
+
+      getArgsMap(): jspb.Map<string, string>;
+      clearArgsMap(): void;
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): TypeMergeConfig.AsObject;
+      static toObject(includeInstance: boolean, msg: TypeMergeConfig): TypeMergeConfig.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: TypeMergeConfig, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): TypeMergeConfig;
+      static deserializeBinaryFromReader(message: TypeMergeConfig, reader: jspb.BinaryReader): TypeMergeConfig;
+    }
+
+    export namespace TypeMergeConfig {
+      export type AsObject = {
+        selectionSet: string,
+        queryName: string,
+        argsMap: Array<[string, string]>,
+      }
+    }
+  }
+}
+
 export class Resolution extends jspb.Message {
   hasRestResolver(): boolean;
   clearRestResolver(): void;
@@ -249,6 +325,11 @@ export class GraphQLApiSpec extends jspb.Message {
   getExecutableSchema(): ExecutableSchema | undefined;
   setExecutableSchema(value?: ExecutableSchema): void;
 
+  hasStitchedSchema(): boolean;
+  clearStitchedSchema(): void;
+  getStitchedSchema(): StitchedSchema | undefined;
+  setStitchedSchema(value?: StitchedSchema): void;
+
   hasStatPrefix(): boolean;
   clearStatPrefix(): void;
   getStatPrefix(): google_protobuf_wrappers_pb.StringValue | undefined;
@@ -264,6 +345,7 @@ export class GraphQLApiSpec extends jspb.Message {
   setAllowedQueryHashesList(value: Array<string>): void;
   addAllowedQueryHashes(value: string, index?: number): string;
 
+  getSchemaCase(): GraphQLApiSpec.SchemaCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GraphQLApiSpec.AsObject;
   static toObject(includeInstance: boolean, msg: GraphQLApiSpec): GraphQLApiSpec.AsObject;
@@ -277,9 +359,16 @@ export class GraphQLApiSpec extends jspb.Message {
 export namespace GraphQLApiSpec {
   export type AsObject = {
     executableSchema?: ExecutableSchema.AsObject,
+    stitchedSchema?: StitchedSchema.AsObject,
     statPrefix?: google_protobuf_wrappers_pb.StringValue.AsObject,
     persistedQueryCacheConfig?: PersistedQueryCacheConfig.AsObject,
     allowedQueryHashesList: Array<string>,
+  }
+
+  export enum SchemaCase {
+    SCHEMA_NOT_SET = 0,
+    EXECUTABLE_SCHEMA = 6,
+    STITCHED_SCHEMA = 7,
   }
 }
 

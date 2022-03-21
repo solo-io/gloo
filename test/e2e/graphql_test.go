@@ -106,19 +106,21 @@ var _ = Describe("graphql", func() {
 				Name:      "gql",
 				Namespace: "gloo-system",
 			},
-			ExecutableSchema: &v1alpha1.ExecutableSchema{
-				SchemaDefinition: schema,
-				Executor: &v1alpha1.Executor{
-					Executor: &v1alpha1.Executor_Local_{
-						Local: &v1alpha1.Executor_Local{
-							Resolutions:         resolutions,
-							EnableIntrospection: false,
+			Schema: &v1alpha1.GraphQLApi_ExecutableSchema{
+				ExecutableSchema: &v1alpha1.ExecutableSchema{
+					SchemaDefinition: schema,
+					Executor: &v1alpha1.Executor{
+						Executor: &v1alpha1.Executor_Local_{
+							Local: &v1alpha1.Executor_Local{
+								Resolutions:         resolutions,
+								EnableIntrospection: false,
+							},
 						},
 					},
-				},
-				GrpcDescriptorRegistry: &v1alpha1.GrpcDescriptorRegistry{
-					DescriptorSet: &v1alpha1.GrpcDescriptorRegistry_ProtoDescriptorBin{
-						ProtoDescriptorBin: glootestpb.ProtoBytes,
+					GrpcDescriptorRegistry: &v1alpha1.GrpcDescriptorRegistry{
+						DescriptorSet: &v1alpha1.GrpcDescriptorRegistry_ProtoDescriptorBin{
+							ProtoDescriptorBin: glootestpb.ProtoBytes,
+						},
 					},
 				},
 			},
@@ -353,7 +355,7 @@ var _ = Describe("graphql", func() {
 							},
 						},
 					}
-					graphqlApi.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Body = body
+					graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Body = body
 				})
 
 				It("resolves graphql queries to REST upstreams with body", func() {
@@ -370,7 +372,7 @@ var _ = Describe("graphql", func() {
 			Context("with query params", func() {
 
 				BeforeEach(func() {
-					graphqlApi.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.QueryParams = map[string]string{
+					graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.QueryParams = map[string]string{
 						"queryparam": "queryparamval",
 					}
 				})
@@ -389,7 +391,7 @@ var _ = Describe("graphql", func() {
 			Context("with headers", func() {
 
 				BeforeEach(func() {
-					graphqlApi.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Headers = map[string]string{
+					graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Headers = map[string]string{
 						"header": "headerval",
 					}
 				})
@@ -460,7 +462,7 @@ var _ = Describe("graphql", func() {
 
 				Context("cache control", func() {
 					BeforeEach(func() {
-						graphqlApi.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
+						graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
 							Setters: map[string]string{
 								"setme": "{$body.simple}",
 							},
@@ -481,7 +483,7 @@ var _ = Describe("graphql", func() {
 
 				Context("response template", func() {
 					BeforeEach(func() {
-						graphqlApi.ExecutableSchema.GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
+						graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
 							Setters: map[string]string{
 								"setme": "abc {$body.simple} 123",
 							},

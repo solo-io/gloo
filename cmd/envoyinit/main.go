@@ -7,7 +7,7 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/solo-io/envoy-operator/pkg/downward"
+	"github.com/solo-io/gloo/projects/envoyinit/pkg/downward"
 )
 
 func getConfig() (string, error) {
@@ -20,8 +20,7 @@ func getConfig() (string, error) {
 	defer inreader.Close()
 
 	var buffer bytes.Buffer
-	transformer := downward.NewTransformer()
-	err = transformer.Transform(inreader, &buffer)
+	err = downward.Transform(inreader, &buffer)
 	if err != nil {
 		return "", err
 	}

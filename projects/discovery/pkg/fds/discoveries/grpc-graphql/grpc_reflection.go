@@ -240,16 +240,18 @@ func (f *GraphqlSchemaDiscovery) BuildGraphQLApiFromGrpcReflection(refClient Grp
 			Name:      f.upstream.GetMetadata().GetName(),
 			Namespace: f.upstream.GetMetadata().GetNamespace(),
 		},
-		ExecutableSchema: &v1alpha1.ExecutableSchema{
-			SchemaDefinition: schemaDef,
-			Executor: &v1alpha1.Executor{
-				Executor: &v1alpha1.Executor_Local_{
-					Local: executor,
+		Schema: &v1alpha1.GraphQLApi_ExecutableSchema{
+			ExecutableSchema: &v1alpha1.ExecutableSchema{
+				SchemaDefinition: schemaDef,
+				Executor: &v1alpha1.Executor{
+					Executor: &v1alpha1.Executor_Local_{
+						Local: executor,
+					},
 				},
-			},
-			GrpcDescriptorRegistry: &v1alpha1.GrpcDescriptorRegistry{
-				DescriptorSet: &v1alpha1.GrpcDescriptorRegistry_ProtoDescriptorBin{
-					ProtoDescriptorBin: d,
+				GrpcDescriptorRegistry: &v1alpha1.GrpcDescriptorRegistry{
+					DescriptorSet: &v1alpha1.GrpcDescriptorRegistry_ProtoDescriptorBin{
+						ProtoDescriptorBin: d,
+					},
 				},
 			},
 		},
