@@ -234,6 +234,45 @@ func (m *StitchedSchema) Clone() proto.Message {
 }
 
 // Clone function
+func (m *MockResolver) Clone() proto.Message {
+	var target *MockResolver
+	if m == nil {
+		return target
+	}
+	target = &MockResolver{}
+
+	switch m.Response.(type) {
+
+	case *MockResolver_SyncResponse:
+
+		target.Response = &MockResolver_SyncResponse{
+			SyncResponse: m.GetSyncResponse(),
+		}
+
+	case *MockResolver_AsyncResponse_:
+
+		if h, ok := interface{}(m.GetAsyncResponse()).(clone.Cloner); ok {
+			target.Response = &MockResolver_AsyncResponse_{
+				AsyncResponse: h.Clone().(*MockResolver_AsyncResponse),
+			}
+		} else {
+			target.Response = &MockResolver_AsyncResponse_{
+				AsyncResponse: proto.Clone(m.GetAsyncResponse()).(*MockResolver_AsyncResponse),
+			}
+		}
+
+	case *MockResolver_ErrorResponse:
+
+		target.Response = &MockResolver_ErrorResponse{
+			ErrorResponse: m.GetErrorResponse(),
+		}
+
+	}
+
+	return target
+}
+
+// Clone function
 func (m *Resolution) Clone() proto.Message {
 	var target *Resolution
 	if m == nil {
@@ -270,6 +309,18 @@ func (m *Resolution) Clone() proto.Message {
 		} else {
 			target.Resolver = &Resolution_GrpcResolver{
 				GrpcResolver: proto.Clone(m.GetGrpcResolver()).(*GrpcResolver),
+			}
+		}
+
+	case *Resolution_MockResolver:
+
+		if h, ok := interface{}(m.GetMockResolver()).(clone.Cloner); ok {
+			target.Resolver = &Resolution_MockResolver{
+				MockResolver: h.Clone().(*MockResolver),
+			}
+		} else {
+			target.Resolver = &Resolution_MockResolver{
+				MockResolver: proto.Clone(m.GetMockResolver()).(*MockResolver),
 			}
 		}
 
@@ -463,6 +514,21 @@ func (m *StitchedSchema_SubschemaConfig_TypeMergeConfig) Clone() proto.Message {
 
 		}
 	}
+
+	return target
+}
+
+// Clone function
+func (m *MockResolver_AsyncResponse) Clone() proto.Message {
+	var target *MockResolver_AsyncResponse
+	if m == nil {
+		return target
+	}
+	target = &MockResolver_AsyncResponse{}
+
+	target.Response = m.GetResponse()
+
+	target.DelayMs = m.GetDelayMs()
 
 	return target
 }

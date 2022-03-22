@@ -20,6 +20,8 @@ weight: 5
 - [StitchedSchema](#stitchedschema)
 - [SubschemaConfig](#subschemaconfig)
 - [TypeMergeConfig](#typemergeconfig)
+- [MockResolver](#mockresolver)
+- [AsyncResponse](#asyncresponse)
 - [Resolution](#resolution)
 - [GraphQLApi](#graphqlapi) **Top-Level Resource**
 - [PersistedQueryCacheConfig](#persistedquerycacheconfig)
@@ -228,6 +230,46 @@ control-plane API
 
 
 ---
+### MockResolver
+
+
+
+```yaml
+"syncResponse": string
+"asyncResponse": .graphql.gloo.solo.io.MockResolver.AsyncResponse
+"errorResponse": string
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `syncResponse` | `string` | The JSON response from the resolver that will be "responded" immediately. Only one of `syncResponse`, `asyncResponse`, or `errorResponse` can be set. |
+| `asyncResponse` | [.graphql.gloo.solo.io.MockResolver.AsyncResponse](../graphql.proto.sk/#asyncresponse) | Used to create a asynchronous JSON response from the Mock resolver. Only one of `asyncResponse`, `syncResponse`, or `errorResponse` can be set. |
+| `errorResponse` | `string` | Responds as an error with the given message. This can be any string message. Only one of `errorResponse`, `syncResponse`, or `asyncResponse` can be set. |
+
+
+
+
+---
+### AsyncResponse
+
+
+
+```yaml
+"response": string
+"delayMs": int
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `response` | `string` | The response from the resolver as a JSON. This must be a valid JSON if specified. |
+| `delayMs` | `int` | The delay in milliseconds before this response is sent back to the graphql server. |
+
+
+
+
+---
 ### Resolution
 
  
@@ -240,14 +282,16 @@ If a field with the same name does not exist in the parent, null will be used.
 ```yaml
 "restResolver": .graphql.gloo.solo.io.RESTResolver
 "grpcResolver": .graphql.gloo.solo.io.GrpcResolver
+"mockResolver": .graphql.gloo.solo.io.MockResolver
 "statPrefix": .google.protobuf.StringValue
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `restResolver` | [.graphql.gloo.solo.io.RESTResolver](../graphql.proto.sk/#restresolver) |  Only one of `restResolver` or `grpcResolver` can be set. |
-| `grpcResolver` | [.graphql.gloo.solo.io.GrpcResolver](../graphql.proto.sk/#grpcresolver) |  Only one of `grpcResolver` or `restResolver` can be set. |
+| `restResolver` | [.graphql.gloo.solo.io.RESTResolver](../graphql.proto.sk/#restresolver) |  Only one of `restResolver`, `grpcResolver`, or `mockResolver` can be set. |
+| `grpcResolver` | [.graphql.gloo.solo.io.GrpcResolver](../graphql.proto.sk/#grpcresolver) |  Only one of `grpcResolver`, `restResolver`, or `mockResolver` can be set. |
+| `mockResolver` | [.graphql.gloo.solo.io.MockResolver](../graphql.proto.sk/#mockresolver) |  Only one of `mockResolver`, `restResolver`, or `grpcResolver` can be set. |
 | `statPrefix` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | The stats prefix which will be used for this resolver. If empty, will generate a stats prefix ${RESOLVER_NAME}. |
 
 

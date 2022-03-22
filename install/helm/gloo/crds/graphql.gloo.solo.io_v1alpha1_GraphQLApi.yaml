@@ -63,6 +63,21 @@ spec:
                                           type: string
                                       type: object
                                   type: object
+                                mockResolver:
+                                  properties:
+                                    asyncResponse:
+                                      properties:
+                                        delayMs:
+                                          format: int32
+                                          type: integer
+                                        response:
+                                          type: string
+                                      type: object
+                                    errorResponse:
+                                      type: string
+                                    syncResponse:
+                                      type: string
+                                  type: object
                                 restResolver:
                                   properties:
                                     request:
