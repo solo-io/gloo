@@ -291,6 +291,7 @@ message Resolution {
   oneof resolver {
     RESTResolver rest_resolver = 1;
     GrpcResolver grpc_resolver = 2;
+    MockResolver mock_resolver = 3;
   }
 
   // The stats prefix which will be used for this resolver.
