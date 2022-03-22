@@ -235,7 +235,7 @@ control-plane API
 
 
 ```yaml
-"syncResponse": string
+"syncResponse": .google.protobuf.Value
 "asyncResponse": .graphql.gloo.solo.io.MockResolver.AsyncResponse
 "errorResponse": string
 
@@ -243,7 +243,7 @@ control-plane API
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `syncResponse` | `string` | The JSON response from the resolver that will be "responded" immediately. Only one of `syncResponse`, `asyncResponse`, or `errorResponse` can be set. |
+| `syncResponse` | [.google.protobuf.Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/value) | The JSON response from the resolver that will be "responded" immediately. Only one of `syncResponse`, `asyncResponse`, or `errorResponse` can be set. |
 | `asyncResponse` | [.graphql.gloo.solo.io.MockResolver.AsyncResponse](../graphql.proto.sk/#asyncresponse) | Used to create a asynchronous JSON response from the Mock resolver. Only one of `asyncResponse`, `syncResponse`, or `errorResponse` can be set. |
 | `errorResponse` | `string` | Responds as an error with the given message. This can be any string message. Only one of `errorResponse`, `syncResponse`, or `asyncResponse` can be set. |
 
@@ -256,15 +256,15 @@ control-plane API
 
 
 ```yaml
-"response": string
-"delayMs": int
+"response": .google.protobuf.Value
+"delay": .google.protobuf.Duration
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `response` | `string` | The response from the resolver as a JSON. This must be a valid JSON if specified. |
-| `delayMs` | `int` | The delay in milliseconds before this response is sent back to the graphql server. |
+| `response` | [.google.protobuf.Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/value) | The response from the resolver as a JSON. |
+| `delay` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | The delay time before this response is sent back to the graphql server. |
 
 
 

@@ -399,8 +399,14 @@ func (m *MockResolver) Equal(that interface{}) bool {
 			return false
 		}
 
-		if strings.Compare(m.GetSyncResponse(), target.GetSyncResponse()) != 0 {
-			return false
+		if h, ok := interface{}(m.GetSyncResponse()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetSyncResponse()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetSyncResponse(), target.GetSyncResponse()) {
+				return false
+			}
 		}
 
 	case *MockResolver_AsyncResponse_:
@@ -876,12 +882,24 @@ func (m *MockResolver_AsyncResponse) Equal(that interface{}) bool {
 		return false
 	}
 
-	if strings.Compare(m.GetResponse(), target.GetResponse()) != 0 {
-		return false
+	if h, ok := interface{}(m.GetResponse()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetResponse()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetResponse(), target.GetResponse()) {
+			return false
+		}
 	}
 
-	if m.GetDelayMs() != target.GetDelayMs() {
-		return false
+	if h, ok := interface{}(m.GetDelay()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetDelay()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetDelay(), target.GetDelay()) {
+			return false
+		}
 	}
 
 	return true

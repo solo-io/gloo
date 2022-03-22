@@ -20,6 +20,7 @@ import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 
 import "validate/validate.proto";
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/wrappers.proto";
@@ -264,14 +265,14 @@ message StitchedSchema {
 
 message MockResolver {
   message AsyncResponse {
-    // The response from the resolver as a JSON. This must be a valid JSON if specified.
-    string response = 1;
-    // The delay in milliseconds before this response is sent back to the graphql server
-    uint32 delay_ms = 2;
+    // The response from the resolver as a JSON.
+    google.protobuf.Value response = 1;
+    // The delay time before this response is sent back to the graphql server
+    google.protobuf.Duration delay = 2;
   }
   oneof response {
     // The JSON response from the resolver that will be "responded" immediately.
-    string sync_response = 1;
+    google.protobuf.Value sync_response = 1;
 
     // Used to create a asynchronous JSON response from the Mock resolver.
     AsyncResponse async_response = 2;

@@ -13,6 +13,8 @@ import (
 	"github.com/solo-io/protoc-gen-ext/pkg/clone"
 	"google.golang.org/protobuf/proto"
 
+	github_com_golang_protobuf_ptypes_duration "github.com/golang/protobuf/ptypes/duration"
+
 	github_com_golang_protobuf_ptypes_struct "github.com/golang/protobuf/ptypes/struct"
 
 	github_com_golang_protobuf_ptypes_wrappers "github.com/golang/protobuf/ptypes/wrappers"
@@ -245,8 +247,14 @@ func (m *MockResolver) Clone() proto.Message {
 
 	case *MockResolver_SyncResponse:
 
-		target.Response = &MockResolver_SyncResponse{
-			SyncResponse: m.GetSyncResponse(),
+		if h, ok := interface{}(m.GetSyncResponse()).(clone.Cloner); ok {
+			target.Response = &MockResolver_SyncResponse{
+				SyncResponse: h.Clone().(*github_com_golang_protobuf_ptypes_struct.Value),
+			}
+		} else {
+			target.Response = &MockResolver_SyncResponse{
+				SyncResponse: proto.Clone(m.GetSyncResponse()).(*github_com_golang_protobuf_ptypes_struct.Value),
+			}
 		}
 
 	case *MockResolver_AsyncResponse_:
@@ -526,9 +534,17 @@ func (m *MockResolver_AsyncResponse) Clone() proto.Message {
 	}
 	target = &MockResolver_AsyncResponse{}
 
-	target.Response = m.GetResponse()
+	if h, ok := interface{}(m.GetResponse()).(clone.Cloner); ok {
+		target.Response = h.Clone().(*github_com_golang_protobuf_ptypes_struct.Value)
+	} else {
+		target.Response = proto.Clone(m.GetResponse()).(*github_com_golang_protobuf_ptypes_struct.Value)
+	}
 
-	target.DelayMs = m.GetDelayMs()
+	if h, ok := interface{}(m.GetDelay()).(clone.Cloner); ok {
+		target.Delay = h.Clone().(*github_com_golang_protobuf_ptypes_duration.Duration)
+	} else {
+		target.Delay = proto.Clone(m.GetDelay()).(*github_com_golang_protobuf_ptypes_duration.Duration)
+	}
 
 	return target
 }

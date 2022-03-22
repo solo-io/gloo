@@ -67,16 +67,15 @@ spec:
                                   properties:
                                     asyncResponse:
                                       properties:
-                                        delayMs:
-                                          format: int32
-                                          type: integer
-                                        response:
+                                        delay:
                                           type: string
+                                        response:
+                                          x-kubernetes-preserve-unknown-fields: true
                                       type: object
                                     errorResponse:
                                       type: string
                                     syncResponse:
-                                      type: string
+                                      x-kubernetes-preserve-unknown-fields: true
                                   type: object
                                 restResolver:
                                   properties:

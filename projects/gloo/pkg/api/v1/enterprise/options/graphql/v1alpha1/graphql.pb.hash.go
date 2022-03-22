@@ -446,8 +446,24 @@ func (m *MockResolver) Hash(hasher hash.Hash64) (uint64, error) {
 
 	case *MockResolver_SyncResponse:
 
-		if _, err = hasher.Write([]byte(m.GetSyncResponse())); err != nil {
-			return 0, err
+		if h, ok := interface{}(m.GetSyncResponse()).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("SyncResponse")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(m.GetSyncResponse(), nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("SyncResponse")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
 		}
 
 	case *MockResolver_AsyncResponse_:
@@ -967,13 +983,44 @@ func (m *MockResolver_AsyncResponse) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
-	if _, err = hasher.Write([]byte(m.GetResponse())); err != nil {
-		return 0, err
+	if h, ok := interface{}(m.GetResponse()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Response")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetResponse(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Response")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
 	}
 
-	err = binary.Write(hasher, binary.LittleEndian, m.GetDelayMs())
-	if err != nil {
-		return 0, err
+	if h, ok := interface{}(m.GetDelay()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Delay")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetDelay(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Delay")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
 	}
 
 	return hasher.Sum64(), nil
