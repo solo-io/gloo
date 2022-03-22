@@ -262,6 +262,25 @@ message StitchedSchema {
   repeated SubschemaConfig subschemas = 1;
 }
 
+message MockResolver {
+  message AsyncResponse {
+    // The response from the resolver as a JSON. This must be a valid JSON if specified.
+    string response = 1;
+    // The delay in milliseconds before this response is sent back to the graphql server
+    uint32 delay_ms = 2;
+  }
+  oneof response {
+    // The JSON response from the resolver that will be "responded" immediately.
+    string sync_response = 1;
+
+    // Used to create a asynchronous JSON response from the Mock resolver.
+    AsyncResponse async_response = 2;
+
+    // Responds as an error with the given message. This can be any string message.
+    string error_response = 3;
+  }
+}
+
 // Define a named resolver which can be then matched to a field using the `resolve` directive.
 // if a field does not have resolver, the default resolver will be used.
 // the default resolver takes the field with the same name from the parent, and uses that value
