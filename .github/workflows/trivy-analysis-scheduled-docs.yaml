@@ -43,7 +43,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - name: Setup - gcloud / gsutil to check scan
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.GLOO_VULN_REPORTER }}
           project_id: solo-public
@@ -99,7 +99,7 @@ jobs:
       - name: Setup - gcloud / gsutil
         if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
         # required for building gloo-ee-envoy-wrapper which uses envoy image in gcr.io
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
           project_id: gloo-ee
@@ -118,7 +118,7 @@ jobs:
       - name: Setup - gcloud / gsutil for docs
         # need to switch to solo-public SA to publish scan docs
         if: ${{ steps.check-scan-exists.outputs.EXISTS == 1 }}
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.GLOO_VULN_REPORTER }}
           project_id: solo-public
@@ -158,7 +158,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - name: Setup - gcloud / gsutil to check scan
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.GLOO_VULN_REPORTER }}
           project_id: solo-public
@@ -253,7 +253,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - name: Setup - gcloud / gsutil to check scan
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.GLOO_VULN_REPORTER }}
           project_id: solo-public
