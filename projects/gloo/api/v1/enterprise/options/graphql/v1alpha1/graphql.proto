@@ -289,8 +289,16 @@ message MockResolver {
 message Resolution {
   // The resolver to use.
   oneof resolver {
+    // REST resolver used to translate and send graphql requests
+    // to a REST upstream.
     RESTResolver rest_resolver = 1;
+    // gRPC resolver used to translate and send graphql requests
+    // to a gRPC upstream.
     GrpcResolver grpc_resolver = 2;
+    // Resolver used to mock responses from an upstream.
+    // This resolver doesn't make a call out to an upstream, but can mock responses
+    // either synchronously or with a delay.
+    // Additionally, can be used to mock errors from an upstream.
     MockResolver mock_resolver = 4;
   }
 
