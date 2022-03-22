@@ -749,14 +749,22 @@ type isResolution_Resolver interface {
 }
 
 type Resolution_RestResolver struct {
+	// REST resolver used to translate and send graphql requests
+	// to a REST upstream.
 	RestResolver *RESTResolver `protobuf:"bytes,1,opt,name=rest_resolver,json=restResolver,proto3,oneof"`
 }
 
 type Resolution_GrpcResolver struct {
+	// gRPC resolver used to translate and send graphql requests
+	// to a gRPC upstream.
 	GrpcResolver *GrpcResolver `protobuf:"bytes,2,opt,name=grpc_resolver,json=grpcResolver,proto3,oneof"`
 }
 
 type Resolution_MockResolver struct {
+	// Resolver used to mock responses from an upstream.
+	// This resolver doesn't make a call out to an upstream, but can mock responses
+	// either synchronously or with a delay.
+	// Additionally, can be used to mock errors from an upstream.
 	MockResolver *MockResolver `protobuf:"bytes,4,opt,name=mock_resolver,json=mockResolver,proto3,oneof"`
 }
 
