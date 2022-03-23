@@ -97,6 +97,12 @@ export const RemoveFileButton = styled.button<{
   background-color: ${props => (props.hasError ? '#B05464' : colors.seaBlue)};
   border-color: ${props => (props.hasError ? '#B05464' : colors.seaBlue)};
 `;
+
+type FileValidator = (file?: File) => {
+  isValid: boolean;
+  errorMessage: string;
+};
+
 export type SoloFormFileUploadProps = {
   name: string; // the name of this field in Formik
   isUpdate?: boolean; // whether its an update or create
@@ -107,10 +113,12 @@ export type SoloFormFileUploadProps = {
   buttonLabel?: string;
   fileType?: string;
   onRemoveFile?: () => void;
-  validateFile?: (file?: File) => {
-    isValid: boolean;
-    errorMessage: string;
-  };
+  validateFile?: (file?: File) =>
+    | {
+        isValid: boolean;
+        errorMessage: string;
+      }
+    | Promise<{ isValid: boolean; errorMessage: string }>;
 };
 
 export const SoloFormFileUpload = <Values extends FormikValues>(
@@ -165,13 +173,21 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
                 let file = event.currentTarget.files[0];
                 setFieldValue(name, event.currentTarget.files[0]);
                 setHasError(false);
+                Promise.resolve(validateFile(file))
+                  .then(res => {
+                    if (!res.isValid) {
+                      setHasError(true);
 
-                if (!validateFile(file)?.isValid) {
-                  setHasError(true);
+                      setFieldError(name, res?.errorMessage || 'Unknown error');
+                      setFileError('File Error');
+                    }
+                  })
+                  .catch(err => {
+                    setHasError(true);
 
-                  setFieldError(name, validateFile(file)?.errorMessage);
-                  setFileError('File Error');
-                }
+                    setFieldError(name, err.message);
+                    setFileError('File Error');
+                  });
                 if (!!onRemoveFile) {
                   onRemoveFile();
                 }

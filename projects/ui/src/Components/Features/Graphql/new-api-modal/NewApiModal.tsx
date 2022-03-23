@@ -14,6 +14,7 @@ import { SoloModal } from 'Components/Common/SoloModal';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { Formik } from 'formik';
 import gql from 'graphql-tag';
+import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
@@ -34,6 +35,7 @@ export const NewApiModal: React.FC<{
 
   // State
   const [errorMessage, setErrorMessage] = useState('');
+  const [warningMessage, setWarningMessage] = useState('');
 
   const initialValues = {
     name: '',
@@ -135,7 +137,11 @@ export const NewApiModal: React.FC<{
           return (
             <styles.ModalContent>
               <styles.Title>Create new GraphQL API</styles.Title>
-
+              {Boolean(warningMessage) && (
+                <styles.StyledWarning className='p-2 text-orange-400 border border-orange-400 mb-5'>
+                  {warningMessage}
+                </styles.StyledWarning>
+              )}
               <styles.InputWrapper>
                 <SoloFormInput name='name' title='Name' />
 
@@ -195,39 +201,43 @@ export const NewApiModal: React.FC<{
                     fileType='.graphql,.gql'
                     onRemoveFile={() => {
                       setErrorMessage('');
+                      setWarningMessage('');
                     }}
                     validateFile={file => {
-                      let schema = '';
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = e => {
-                          if (typeof e.target?.result === 'string') {
-                            schema = e.target?.result;
-                            formik.setFieldValue('schemaString', schema);
-                          }
-                        };
-
-                        reader.readAsText(file!);
-
-                        try {
-                          let query = gql`
-                            ${reader}
-                          `;
-                          setErrorMessage('');
-                          formik.setFieldError('uploadedSchema', '');
-                        } catch (error: any) {
-                          setErrorMessage(error);
-                          formik.setFieldError('uploadedSchema', error);
-
-                          // TODO replace with real validation
-                          return {
-                            isValid: true,
-                            errorMessage: error as string,
+                      return new Promise((resolve, reject) => {
+                        formik.setFieldError('uploadedSchema', undefined);
+                        setErrorMessage('');
+                        setWarningMessage('');
+                        let schema = '';
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = e => {
+                            if (typeof e.target?.result === 'string') {
+                              schema = e.target?.result;
+                              formik.setFieldValue('schemaString', schema);
+                              const request =
+                                new ValidateSchemaDefinitionRequest().toObject();
+                              request.schemaDefinition = schema;
+                              graphqlConfigApi
+                                .validateSchema(request)
+                                .then(() => {
+                                  resolve({ isValid: true, errorMessage: '' });
+                                })
+                                .catch(err => {
+                                  setWarningMessage(err.message);
+                                  reject({
+                                    isValid: false,
+                                    errorMessage: err.message,
+                                  });
+                                });
+                            }
                           };
-                        }
-                      }
 
-                      return { isValid: true, errorMessage: '' };
+                          reader.readAsText(file);
+                        } else {
+                          resolve({ isValid: true, errorMessage: '' });
+                        }
+                      });
                     }}
                   />
                 )}

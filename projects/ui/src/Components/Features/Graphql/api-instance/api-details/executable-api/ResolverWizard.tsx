@@ -18,6 +18,7 @@ import ConfirmationModal from 'Components/Common/ConfirmationModal';
 import { ResolverTypeSection } from './resolver-wizard/ResolverTypeSection';
 import { UpstreamSection } from './resolver-wizard/UpstreamSection';
 import { ResolverConfigSection } from './resolver-wizard/ResolverConfigSection';
+import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 
 export const EditorContainer = styled.div<{ editMode: boolean }>`
   .ace_cursor {
@@ -53,15 +54,14 @@ export type ResolverWizardFormProps = {
 
 export const getUpstream = (resolver: Resolution.AsObject): string => {
   return `
-  ${
-    resolver?.restResolver?.upstreamRef?.name!
+  ${resolver?.restResolver?.upstreamRef?.name!
       ? `${resolver?.restResolver?.upstreamRef?.name!}::${resolver?.restResolver
-          ?.upstreamRef?.namespace!}`
+        ?.upstreamRef?.namespace!}`
       : resolver?.grpcResolver?.upstreamRef?.name!
-      ? `${resolver?.grpcResolver?.upstreamRef?.name!}::${resolver?.grpcResolver
+        ? `${resolver?.grpcResolver?.upstreamRef?.name!}::${resolver?.grpcResolver
           ?.upstreamRef?.namespace!}`
-      : ''
-  }`.trim();
+        : ''
+    }`.trim();
 };
 
 export const removeNulls = (obj: any) => {
@@ -151,6 +151,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
   );
 
   const [tabIndex, setTabIndex] = React.useState(0);
+  const [warningMessage, setWarningMessage] = React.useState('');
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
@@ -265,16 +266,32 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
       fieldWithDirective,
       fieldWithoutDirective,
     };
-    await graphqlConfigApi
+    setWarningMessage('');
+    let validationObject = new ValidateSchemaDefinitionRequest().toObject() as any;
+    const spec = (await graphqlConfigApi.getGraphqlApiWithResolver(apiRef, resolverItem)).toObject();
+    validationObject = {
+      ...validationObject,
+      spec,
+      apiRef,
+      resolverItem
+    };
+    await graphqlConfigApi.validateSchema(validationObject).then((_res) => {
+      return graphqlConfigApi
       .updateGraphqlApiResolver(apiRef, resolverItem)
       .then(_res => {
+
         mutate();
         mutateSchemaYaml();
         props.onClose();
       })
       .catch(err => {
+        setWarningMessage(err.message);
         console.error({ err });
       });
+    }).catch((err) => {
+      setWarningMessage(err.message);
+    });
+
   };
   const removeResolverConfig = async () => {
     await graphqlConfigApi.updateGraphqlApiResolver(
@@ -319,6 +336,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
 
   return (
     <div data-testid='resolver-wizard' className='h-[700px]'>
+
       <Formik<ResolverWizardFormProps>
         initialValues={{
           resolverType: 'REST',
@@ -396,8 +414,9 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
                   </div>
                 </TabPanel>
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
-                  {tabIndex === 2 && <ResolverConfigSection isEdit={isEdit} />}
-
+                  {tabIndex === 2 && (
+                    <ResolverConfigSection warningMessage={warningMessage} isEdit={isEdit} />
+                  )}
                   <div className='flex items-center justify-between px-6 '>
                     <IconButton onClick={() => props.onClose()}>
                       Cancel

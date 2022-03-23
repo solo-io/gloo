@@ -22,6 +22,8 @@ import {
   UpdateGraphqlApiResponse,
   DeleteGraphqlApiResponse,
   DeleteGraphqlApiRequest,
+  ValidateSchemaDefinitionRequest,
+  ValidateSchemaDefinitionResponse,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import {
   ExecutableSchema,
@@ -29,6 +31,8 @@ import {
   GraphQLApiSpec,
   GrpcDescriptorRegistry,
   GrpcRequestTemplate,
+  GrpcResolver,
+  PersistedQueryCacheConfig,
   RequestTemplate,
   Resolution,
   ResponseTemplate,
@@ -38,6 +42,7 @@ import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 import { Struct, Value } from 'google-protobuf/google/protobuf/struct_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { struct } from 'pb-util';
+import isEmpty from 'lodash/isEmpty';
 const graphqlApiClient = new GraphqlConfigApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true,
@@ -49,10 +54,12 @@ export const graphqlConfigApi = {
   getGraphqlApiYaml,
   createGraphqlApi,
   validateResolverYaml,
+  validateSchema,
   updateGraphqlApi,
   updateGraphqlApiIntrospection,
   deleteGraphqlApi,
   updateGraphqlApiResolver,
+  getGraphqlApiWithResolver,
 };
 
 function listGraphqlApis(
@@ -204,14 +211,13 @@ function apiSpecFromObject(
         if (enableIntrospection !== undefined) {
           newLocal.setEnableIntrospection(enableIntrospection);
         }
-
+        // TODO:  This doesn't actually update the resolutions map because that's in the apiSec
         if (resolutionsMap !== undefined) {
           let newResolutionsMap = newLocal.getResolutionsMap();
           newResolutionsMap.forEach((resolution, resolutionName) => {
             newResolutionsMap.set(resolutionName, resolution);
           });
         }
-
         newExecutor.setLocal(newLocal);
       }
 
@@ -247,7 +253,7 @@ async function updateGraphqlApi(
   request.setSpec(graphqlApiSpec);
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.updateGraphqlApi(request, (error, data) => {
+    return graphqlApiClient.updateGraphqlApi(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
@@ -279,7 +285,7 @@ async function updateGraphqlApiIntrospection(
   request.setSpec(graphqlApiSpec);
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.updateGraphqlApi(request, (error, data) => {
+    return graphqlApiClient.updateGraphqlApi(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
@@ -431,7 +437,7 @@ async function updateGraphqlApiResolver(
   request.setSpec(currentSpec);
 
   return new Promise((resolve, reject) => {
-    graphqlApiClient.updateGraphqlApi(request, (error, data) => {
+    return graphqlApiClient.updateGraphqlApi(request, (error, data) => {
       if (error !== null) {
         console.error('Error:', error.message);
         console.error('Code:', error.code);
@@ -442,6 +448,147 @@ async function updateGraphqlApiResolver(
       }
     });
   });
+}
+
+async function getGraphqlApiWithResolver(
+  graphqlApiRef: ClusterObjectRef.AsObject,
+  resolverItem: {
+    resolverName: string;
+    resolverType?: 'REST' | 'gRPC';
+    request?: RequestTemplate.AsObject;
+    response?: ResponseTemplate.AsObject;
+    grpcRequest?: GrpcRequestTemplate.AsObject;
+    spanName?: string;
+    upstreamRef?: ObjectRef.AsObject;
+    hasDirective?: boolean;
+    fieldWithDirective?: string;
+    fieldWithoutDirective?: string;
+  },
+  isRemove?: boolean
+): Promise<GraphQLApiSpec> {
+  let currentGraphqlApi = await getGraphqlApiPb(graphqlApiRef!);
+
+  let currentSpec = currentGraphqlApi?.getSpec();
+
+  if (currentSpec === undefined) {
+    currentSpec = new GraphQLApiSpec();
+  }
+  let currentExSchema = currentSpec?.getExecutableSchema();
+  if (currentExSchema === undefined) {
+    currentExSchema = new ExecutableSchema();
+  }
+  let currExecutor = currentExSchema?.getExecutor();
+  if (currExecutor === undefined) {
+    currExecutor = new Executor();
+  }
+  let currLocal = currExecutor.getLocal();
+  if (currLocal === undefined) {
+    currLocal = new Executor.Local();
+  }
+
+  let currResolMap = currLocal?.getResolutionsMap();
+
+  let newResolution = new Resolution();
+
+  if (resolverItem.resolverType === 'REST') {
+    let newRestResolver =
+      currResolMap?.get(resolverItem.resolverName)?.getRestResolver() ??
+      new RESTResolver();
+    let usRef = newRestResolver?.getUpstreamRef() ?? new ResourceRef();
+    if (!usRef?.toObject().name || !usRef?.toObject().namespace) {
+      usRef.setName(resolverItem?.upstreamRef?.name!);
+      usRef.setNamespace(resolverItem?.upstreamRef?.namespace!);
+    }
+
+    newRestResolver.setUpstreamRef(usRef);
+    if (resolverItem.request !== undefined) {
+      let { headersMap, queryParamsMap, body } = resolverItem.request;
+      let newReq = newRestResolver?.getRequest() ?? new RequestTemplate();
+
+      if (body !== undefined) {
+        let bodyVal = new Value();
+        bodyVal.setStringValue(body.stringValue);
+        newReq.setBody(bodyVal);
+      } else {
+        newReq.clearBody();
+        newReq.setBody(undefined);
+      }
+
+      if (headersMap?.length > 0) {
+        let newHeadersMap = newReq.getHeadersMap();
+        headersMap.forEach(([val, key]) => {
+          newHeadersMap.set(val, key);
+        });
+      } else {
+        newReq.clearHeadersMap();
+      }
+
+      if (queryParamsMap?.length > 0) {
+        let qParamsMap = newReq.getQueryParamsMap();
+        queryParamsMap.forEach(([val, key]) => {
+          qParamsMap.set(val, key);
+        });
+      } else {
+        newReq.clearQueryParamsMap();
+      }
+      newRestResolver.setRequest(newReq);
+    } else {
+      newRestResolver?.clearRequest();
+    }
+
+    if (resolverItem.response !== undefined) {
+      let { resultRoot, settersMap } = resolverItem.response;
+      let newRes = newRestResolver.getResponse() ?? new ResponseTemplate();
+      if (resultRoot !== undefined && resultRoot !== '') {
+        newRes.setResultRoot(resultRoot);
+      }
+      if (settersMap?.length > 0) {
+        let newSettersMap = newRes.getSettersMap();
+        settersMap.forEach(([key, val]) => {
+          newSettersMap.set(val, key);
+        });
+      }
+      newRestResolver.setResponse(newRes);
+    } else {
+      newRestResolver.clearResponse();
+    }
+    newResolution.setRestResolver(newRestResolver);
+  }
+
+  let request = new UpdateGraphqlApiRequest();
+
+  request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef!));
+
+  currExecutor.setLocal(currLocal);
+  currentExSchema.setExecutor(currExecutor);
+  let currentSchemaDef = currentExSchema.getSchemaDefinition();
+  // TODO: find a better way to do this
+  let { fieldWithDirective, fieldWithoutDirective } = resolverItem;
+  if (
+    !isRemove &&
+    !resolverItem.hasDirective &&
+    fieldWithDirective &&
+    fieldWithoutDirective
+  ) {
+    currentExSchema.setSchemaDefinition(
+      currentSchemaDef.replace(fieldWithoutDirective, fieldWithDirective)
+    );
+  }
+  if (isRemove) {
+    currResolMap.del(resolverItem.resolverName);
+    if (!!fieldWithDirective && fieldWithoutDirective) {
+      currentExSchema.setSchemaDefinition(
+        currentSchemaDef.replace(fieldWithDirective, fieldWithoutDirective)
+      );
+    }
+  } else {
+    currResolMap.set(resolverItem.resolverName, newResolution);
+  }
+
+  currentSpec.setExecutableSchema(currentExSchema);
+  request.setSpec(currentSpec);
+
+  return request.getSpec()!;
 }
 
 function deleteGraphqlApi(
@@ -463,6 +610,44 @@ function deleteGraphqlApi(
         reject(error);
       } else {
         resolve(data!.toObject().graphqlApiRef!);
+      }
+    });
+  });
+}
+
+/**
+ * When creating a new GraphQLSchema from scratch, the schema definition string should be passed in.
+ * When editing an existing GraphQLSchema, the full GraphQLSchema spec should be passed in.
+ *
+ * An empty response is returned if validation succeeded. Otherwise, an error is returned.
+ */
+async function validateSchema(
+  validationRequest: ValidateSchemaDefinitionRequest.AsObject & {
+    apiRef?: ClusterObjectRef.AsObject,
+    resolverItem?: any
+  }
+): Promise<ValidateSchemaDefinitionResponse.AsObject> {
+  let request = new ValidateSchemaDefinitionRequest();
+  const { schemaDefinition, spec, apiRef, resolverItem } = validationRequest;
+  if (schemaDefinition) {
+    request.setSchemaDefinition(schemaDefinition);
+  }
+  if (spec) {
+    const apiSpec = await getGraphqlApiWithResolver(apiRef!, resolverItem);
+    request.setSpec(apiSpec);
+  }
+
+  return new Promise((resolve, reject) => {
+    return graphqlApiClient.validateSchemaDefinition(request, (err, data) => {
+      if (err) {
+        return reject(err);
+      }
+      const dataObj = data!.toObject();
+
+      if (isEmpty(dataObj)) {
+        return resolve(dataObj);
+      } else {
+        return reject(dataObj);
       }
     });
   });

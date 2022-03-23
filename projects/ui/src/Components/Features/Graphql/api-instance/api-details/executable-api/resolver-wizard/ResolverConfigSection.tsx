@@ -31,6 +31,7 @@ const InnerValues = styled.div`
 
 type ResolverConfigSectionProps = {
   isEdit: boolean;
+  warningMessage: string;
 };
 
 export const getDefaultConfigFromType = (
@@ -69,6 +70,7 @@ export const getDefaultConfigFromType = (
 
 export const ResolverConfigSection = ({
   isEdit,
+  warningMessage,
 }: ResolverConfigSectionProps) => {
   const { setFieldValue, values, dirty, errors } =
     useFormikContext<ResolverWizardFormProps>();
@@ -77,6 +79,10 @@ export const ResolverConfigSection = ({
   const [demoConfig, setDemoConfig] = React.useState('');
 
   const { graphqlApiName = '', graphqlApiNamespace = '' } = useParams();
+
+  React.useEffect(() => {
+    setErrorMessage(warningMessage);
+  }, [warningMessage, setErrorMessage])
 
   const validateResolverSchema = async (resolver: string) => {
     const resolverObj = YAML.parse(resolver);
@@ -154,7 +160,7 @@ export const ResolverConfigSection = ({
           <EditorContainer editMode={true}>
             <div className=''>
               <div className='' style={{ height: 'min-content' }}>
-                {isValid ? (
+                {isValid && errorMessage.length === 0? (
                   <div
                     className={`${
                       isValid ? 'opacity-100' : 'opacity-0'
@@ -169,10 +175,10 @@ export const ResolverConfigSection = ({
                   <div
                     className={`${
                       errorMessage.length > 0 ? 'opacity-100' : '  opacity-0'
-                    } h-10`}>
+                    }`}>
                     <div
                       style={{ backgroundColor: '#FEF2F2' }}
-                      className='p-2 text-orange-400 border border-orange-400 '>
+                      className='p-2 text-orange-400 border border-orange-400 mb-5'>
                       <div className='font-medium '>
                         {errorMessage?.split(',')[0]}
                       </div>

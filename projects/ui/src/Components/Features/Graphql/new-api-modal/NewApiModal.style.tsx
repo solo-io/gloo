@@ -27,3 +27,7 @@ export const Footer = styled.footer`
   display: flex;
   flex-direction: row-reverse;
 `;
+
+export const StyledWarning = styled.div`
+  backgroundcolor: #fef2f2;
+`;

@@ -19,7 +19,7 @@ describe('ResolverConfigSection', () => {
         }}
         onSubmit={jest.fn()}>
         <Form>
-          <ResolverConfigSection isEdit={false} />
+          <ResolverConfigSection warningMessage='' isEdit={false} />
         </Form>
       </Formik>
     );
