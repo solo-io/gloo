@@ -39,7 +39,7 @@ jobs:
         run: |
           git config --global url."https://${TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
       - name: Setup - gcloud / gsutil
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
           project_id: gloo-ee
@@ -120,7 +120,7 @@ jobs:
           echo "After clearing disk space:"
           df -h
       - name: Setup - gcloud / gsutil
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
           project_id: gloo-ee
