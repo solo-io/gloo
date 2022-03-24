@@ -19,6 +19,7 @@ import { copyTextToClipboard } from 'utils';
 import { ReactComponent as CopyIcon } from 'assets/document.svg';
 import { Global } from '@emotion/core';
 import graphiqlCustomStyles from './GraphqlApiExplorer.style';
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 const Wrapper = styled.div`
   background: white;
@@ -100,13 +101,13 @@ const setGqlStorage = (value: string) => {
 export const GraphqlApiExplorer = () => {
   const { graphqlApiName, graphqlApiNamespace, graphqlApiClusterName } =
     useParams();
-  const [gqlError, setGqlError] = React.useState('');
-  const [refetch, setRefetch] = React.useState(false);
-  const [url, setUrl] = React.useState(getGqlStorage());
-  const [showTooltip, setShowTooltip] = React.useState(false);
-  const [copyingKubectl, setCopyingKubectl] = React.useState(false);
-  const [copyingProxy, setCopyingProxy] = React.useState(false);
-  const [showUrlBar, setShowUrlBar] = React.useState(false);
+  const [gqlError, setGqlError] = useState('');
+  const [refetch, setRefetch] = useState(false);
+  const [url, setUrl] = useState(getGqlStorage());
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [copyingKubectl, setCopyingKubectl] = useState(false);
+  const [copyingProxy, setCopyingProxy] = useState(false);
+  const [showUrlBar, setShowUrlBar] = useState(false);
 
   const {
     data: graphqlApi,
@@ -167,26 +168,22 @@ export const GraphqlApiExplorer = () => {
     },
   });
 
-  const graphiqlRef = React.useRef<null | GraphiQL>(null);
+  const graphiqlRef = useRef<null | GraphiQL>(null);
 
   const { data: virtualServices, error: virtualServicesError } =
     useListVirtualServices();
-  const [correspondingVirtualServices, setCorrespondingVirtualServices] =
-    React.useState<VirtualService.AsObject[]>([]);
 
-  React.useEffect(() => {
-    let correspondingVs = virtualServices?.filter(vs =>
-      vs.spec?.virtualHost?.routesList.some(
-        route =>
-          route?.graphqlApiRef?.name === graphqlApiName &&
-          route?.graphqlApiRef?.namespace === graphqlApiNamespace
-      )
-    );
-
-    if (!!correspondingVs) {
-      setCorrespondingVirtualServices(correspondingVs);
-    }
-  }, [virtualServices, graphqlApiName, graphqlApiNamespace]);
+  const correspondingVirtualServices = useMemo(
+    () =>
+      virtualServices?.filter(vs =>
+        vs.spec?.virtualHost?.routesList.some(
+          route =>
+            route?.graphqlApiRef?.name === graphqlApiName &&
+            route?.graphqlApiRef?.namespace === graphqlApiNamespace
+        )
+      ),
+    [virtualServices, graphqlApiName, graphqlApiNamespace]
+  );
 
   let executableSchema;
 
@@ -200,7 +197,7 @@ export const GraphqlApiExplorer = () => {
   const handlePrettifyQuery = () => {
     graphiqlRef?.current?.handlePrettifyQuery();
   };
-  const changeHost = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const changeHost = (e: ChangeEvent<HTMLInputElement>) => {
     setRefetch(true);
     changeUrl(e.currentTarget.value);
   };
@@ -211,7 +208,8 @@ export const GraphqlApiExplorer = () => {
 
   // TODO:  We can hide and show elements based on what we get back.
   //        The schema will only refetch if the executable schema is undefined.
-  return !!correspondingVirtualServices?.length ? (
+  if (correspondingVirtualServices === undefined) return null;
+  return correspondingVirtualServices.length > 0 ? (
     <Wrapper>
       <Global styles={graphiqlCustomStyles} />
       {Boolean(gqlError) || showUrlBar ? (
