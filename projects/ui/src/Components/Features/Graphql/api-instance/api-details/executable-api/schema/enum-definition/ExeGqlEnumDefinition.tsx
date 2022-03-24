@@ -4,14 +4,14 @@ import React from 'react';
 import { useVirtual } from 'react-virtual';
 import { colors } from 'Styles/colors';
 
-export const EnumResolver: React.FC<{
+export const ExeGqlEnumDefinition: React.FC<{
   resolverType: string;
-  fields: EnumValueDefinitionNode[];
-}> = ({ resolverType, fields }) => {
+  values: readonly EnumValueDefinitionNode[];
+}> = ({ resolverType, values }) => {
   const listRef = React.useRef<HTMLDivElement>(null);
 
   const rowVirtualizer = useVirtual({
-    size: fields?.length ?? 0,
+    size: values?.length ?? 0,
     parentRef: listRef,
     estimateSize: React.useCallback(() => 90, []),
     overscan: 1,
@@ -41,7 +41,7 @@ export const EnumResolver: React.FC<{
       <div
         ref={listRef}
         style={{
-          height: `${fields?.length * 90 < 400 ? fields!.length * 90 : 400}px`,
+          height: `${values?.length * 90 < 400 ? values!.length * 90 : 400}px`,
           width: `100%`,
           overflow: 'auto',
         }}>
@@ -52,7 +52,7 @@ export const EnumResolver: React.FC<{
             position: 'relative',
           }}>
           {rowVirtualizer.virtualItems.map(virtualRow => {
-            const op = fields[virtualRow.index] as EnumValueDefinitionNode;
+            const op = values[virtualRow.index] as EnumValueDefinitionNode;
             return (
               <div
                 key={`${resolverType}-${op.name?.value}`}

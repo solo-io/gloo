@@ -2,7 +2,7 @@ import {
   getResolverFromConfig,
   getUpstream,
   ResolverWizardFormProps,
-} from '../ResolverWizard';
+} from './ResolverWizard';
 import {
   SoloFormDropdown,
   SoloFormRadio,

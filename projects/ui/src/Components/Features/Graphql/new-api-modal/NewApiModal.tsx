@@ -13,7 +13,6 @@ import {
 import { SoloModal } from 'Components/Common/SoloModal';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { Formik } from 'formik';
-import gql from 'graphql-tag';
 import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';

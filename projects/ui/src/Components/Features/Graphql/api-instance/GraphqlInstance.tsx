@@ -14,11 +14,10 @@ import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core
 import React from 'react';
 import { useParams } from 'react-router';
 import { GraphqlIconHolder } from '../GraphqlTable';
-import { ExecutableGraphqlApiDetails } from './api-details/executable-api/ExecutableGraphqlApiDetails';
+import GraphqlApiDetails from './api-details/GraphqlApiDetails';
 import { GraphqlApiExplorer } from './api-explorer/GraphqlApiExplorer';
-import GraphqlDefineResolversPrompt from './GraphqlDefineResolversPrompt';
 import GraphqlApiIntrospectionToggle from './GraphqlApiIntrospectionToggle';
-import { GatewayGraphqlApiDetails } from './api-details/gateway-api/GatewayGraphqlApiDetails';
+import GraphqlDefineResolversPrompt from './GraphqlDefineResolversPrompt';
 
 export const GraphqlInstance: React.FC = () => {
   // gets the graphql info from the URL
@@ -69,11 +68,7 @@ export const GraphqlInstance: React.FC = () => {
           <TabPanels>
             <StyledTabPanel>
               <FolderTabContent>
-                {tabIndex === 0 && (
-                  // ! Check for apiType here
-                  // <GatewayGraphqlApiDetails apiRef={apiRef} />
-                  <ExecutableGraphqlApiDetails apiRef={apiRef} />
-                )}
+                {tabIndex === 0 && <GraphqlApiDetails apiRef={apiRef} />}
               </FolderTabContent>
             </StyledTabPanel>
             <StyledTabPanel>

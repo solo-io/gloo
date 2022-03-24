@@ -1,5 +1,12 @@
+import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 import tw from 'twin.macro';
+
+export const globalStyles = css`
+  .ant-collapse-content > .ant-collapse-content-box {
+    padding: 0px;
+  }
+`;
 
 export const OperationDescription = styled('div')`
   ${tw`w-full overflow-y-scroll text-sm text-gray-600 whitespace-normal`};

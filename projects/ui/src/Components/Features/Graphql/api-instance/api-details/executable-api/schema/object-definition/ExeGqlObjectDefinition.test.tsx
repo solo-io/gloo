@@ -1,14 +1,16 @@
 import * as React from 'react';
-import { ResolverItem } from './ResolverItem';
+import { ExeGqlObjectDefinition } from './ExeGqlObjectDefinition';
 import { render, screen } from '@testing-library/react';
 
-describe('ResolverItem', () => {
+describe('ExeGqlObjectDefinition', () => {
   it('Shoud be able to render', () => {
     render(
-      <ResolverItem
+      <ExeGqlObjectDefinition
+        apiRef={{ name: '', namespace: '', clusterName: '' }}
         resolverType='resolver'
+        onReturnTypeClicked={t => console.log(t)}
+        schemaDefinitions={[]}
         fields={[]}
-        handleResolverConfigModal={jest.fn()}
       />
     );
     expect(screen.getByTestId('resolver-item')).toBeInTheDocument();

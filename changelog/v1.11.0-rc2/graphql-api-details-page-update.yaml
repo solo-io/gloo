@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    description: >
+      Added custom return types to GraphQL details page, and made them links.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3282
+  - type: FIX
+    description: >
+      Added an X button to clear text inputs.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3335

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import styled from '@emotion/styled';
 import { colors } from 'Styles/colors';
+import { CloseOutlined } from '@ant-design/icons';
 
 export const Label = styled.label`
   display: block;
@@ -21,6 +22,7 @@ export const Input = styled.input<InputStyledProps>`
   border-radius: 8px;
   line-height: 16px;
   outline: none;
+  padding-right: 41px;
 
   border: 1px solid
     ${(props: InputStyledProps) =>
@@ -39,6 +41,34 @@ export const Input = styled.input<InputStyledProps>`
   &::placeholder {
     color: ${colors.juneGrey};
   }
+`;
+
+const ClearSearchButton = styled.button`
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  background-color: ${colors.dropBlue};
+  color: ${colors.mayGrey};
+  border: 1px solid ${colors.mayGrey};
+  &:hover {
+    color: ${colors.pondBlue};
+    background-color: ${colors.splashBlue};
+  }
+  &:active {
+    color: ${colors.seaBlue};
+    background-color: ${colors.puddleBlue};
+  }
+`;
+const InputContainer = styled.div`
+  position: relative;
 `;
 
 export interface InputProps
@@ -89,19 +119,34 @@ export const SoloInput = (props: InputProps) => {
   return (
     <div>
       {title && <Label>{title}</Label>}
-      <Input
-        type={type}
-        borderless={borderless}
-        name={name}
-        placeholder={placeholder}
-        title={title}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        disabled={disabled}
-        error={error}
-        onKeyPress={onKeyPress}
-      />
+      <InputContainer>
+        <Input
+          type={type}
+          borderless={borderless}
+          name={name}
+          placeholder={placeholder}
+          title={title}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          disabled={disabled}
+          error={error}
+          onKeyPress={onKeyPress}
+        />
+        {value !== '' && (
+          <ClearSearchButton
+            onClick={e => {
+              if (onChange)
+                onChange({
+                  ...e,
+                  target: { ...e.target, value: '' },
+                  currentTarget: { ...e, value: '' },
+                } as any);
+            }}>
+            <CloseOutlined />
+          </ClearSearchButton>
+        )}
+      </InputContainer>
     </div>
   );
 };

@@ -1,37 +1,37 @@
 import { useGetGraphqlApiDetails } from 'API/hooks';
 import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
 import { ReactComponent as RouteIcon } from 'assets/route-icon.svg';
+import { SoloModal } from 'Components/Common/SoloModal';
 import {
   EnumTypeDefinitionNode,
   FieldDefinitionNode,
+  Kind,
   NamedTypeNode,
+  ObjectTypeDefinitionNode,
 } from 'graphql';
+import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React from 'react';
-import { useParams } from 'react-router';
 import { useVirtual } from 'react-virtual';
 import { colors } from 'Styles/colors';
-import * as styles from './ResolverItem.style';
+import * as styles from '../ExecutableGraphqlSchemaDefinitions.style';
+import { ResolverWizard } from './resolver-wizard/ResolverWizard';
 
-export const ResolverItem: React.FC<{
+export const ExeGqlObjectDefinition: React.FC<{
+  apiRef: ClusterObjectRef.AsObject;
   resolverType: string;
-  fields: FieldDefinitionNode[] | EnumTypeDefinitionNode[];
-  handleResolverConfigModal: (
-    resolverName: string,
-    resolverType: string
-  ) => void;
-}> = ({ resolverType, fields, handleResolverConfigModal }) => {
+  onReturnTypeClicked(t: string): void;
+  schemaDefinitions: (ObjectTypeDefinitionNode | EnumTypeDefinitionNode)[];
+  fields: readonly FieldDefinitionNode[];
+}> = ({
+  apiRef,
+  resolverType,
+  onReturnTypeClicked,
+  schemaDefinitions,
+  fields,
+}) => {
   const listRef = React.useRef<HTMLDivElement>(null);
-  const {
-    graphqlApiName = '',
-    graphqlApiNamespace = '',
-    graphqlApiClusterName = '',
-  } = useParams();
-  const resolverKey = `${graphqlApiNamespace}-${graphqlApiName}-${resolverType}`;
-  const { data: graphqlApi, error: graphqlApiError } = useGetGraphqlApiDetails({
-    name: graphqlApiName,
-    namespace: graphqlApiNamespace,
-    clusterName: graphqlApiClusterName,
-  });
+  const resolverKey = `${apiRef.namespace}-${apiRef.name}-${resolverType}`;
+  const { data: graphqlApi, mutate } = useGetGraphqlApiDetails(apiRef);
   const rowVirtualizer = useVirtual({
     size: fields?.length ?? 0,
     parentRef: listRef,
@@ -39,8 +39,79 @@ export const ResolverItem: React.FC<{
     overscan: 1,
   });
 
+  // --- RESOLVER CONFIG MODAL --- //
+  const [currentResolver, setCurrentResolver] = React.useState<any>();
+  const [currentResolverName, setCurrentResolverName] = React.useState('');
+  const [hasDirective, setHasDirective] = React.useState(false);
+  const [fieldWithDirective, setFieldWithDirective] = React.useState('');
+  const [fieldWithoutDirective, setFieldWithoutDirective] = React.useState('');
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  function handleResolverConfigModal(
+    resolverName: string,
+    resolverType: string
+  ) {
+    let [_currentResolverName, currentResolver] =
+      graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap.find(
+        ([rName, _resolver]) => rName.includes(resolverName)
+      ) ?? ['', ''];
+    setCurrentResolver(currentResolver);
+    setCurrentResolverName(resolverName);
+    //
+    // Get the definition and field for the selected resolver from the schema.
+    const definition = schemaDefinitions.find(
+      d =>
+        d.kind === Kind.OBJECT_TYPE_DEFINITION && d.name.value === resolverType
+    ) as ObjectTypeDefinitionNode | undefined;
+    if (definition === undefined) return;
+    const field = definition.fields?.find(f => f.name.value === resolverName);
+    if (field === undefined) return;
+    //
+    // Find the base field type (this could be a nested list).
+    let baseField = field.type;
+    let typePrefix = '';
+    let typeSuffix = '';
+    while (baseField?.kind === Kind.LIST_TYPE) {
+      typePrefix += '[';
+      typeSuffix += ']';
+      baseField = baseField.type;
+    }
+    if (baseField?.kind !== Kind.NAMED_TYPE) return;
+    let fieldType = typePrefix + baseField?.name?.value + typeSuffix;
+    //
+    // Build the directive strings for graphql.
+    let fieldWithoutDirective = `${resolverName}: ${fieldType}]`;
+    let fieldWithDirective = `${resolverName}: ${fieldType} @resolve(name: "${resolverName}")`;
+    //
+    // Update state.
+    setHasDirective(
+      !!graphqlApi?.spec?.executableSchema?.schemaDefinition.includes(
+        fieldWithDirective
+      )
+    );
+    setFieldWithDirective(fieldWithDirective);
+    setFieldWithoutDirective(fieldWithoutDirective);
+    setIsModalOpen(true);
+  }
+
   return (
     <div data-testid='resolver-item' key={resolverKey}>
+      <SoloModal
+        visible={isModalOpen}
+        width={750}
+        onClose={() => setIsModalOpen(false)}>
+        <ResolverWizard
+          resolver={currentResolver}
+          hasDirective={hasDirective}
+          fieldWithDirective={fieldWithDirective}
+          fieldWithoutDirective={fieldWithoutDirective}
+          resolverName={currentResolverName}
+          onClose={() => {
+            setIsModalOpen(false);
+            mutate();
+          }}
+        />
+      </SoloModal>
+
       <div
         className='relative flex flex-col w-full py-3 border'
         style={{
@@ -57,7 +128,7 @@ export const ResolverItem: React.FC<{
           Field Name
         </span>
         <span className='flex items-center justify-start ml-8 font-medium text-gray-900 '>
-          Return Type
+          Type
         </span>
         <span className='flex items-center justify-center ml-8 font-medium text-gray-900 '>
           Resolver
@@ -84,6 +155,24 @@ export const ResolverItem: React.FC<{
               !!graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
                 ([rN, r]) => rN.includes(fields[virtualRow.index].name?.value)
               );
+            const getReturnType = () => {
+              let prefix = '';
+              let suffix = '';
+              let cur = op.type;
+              while (cur.kind === Kind.LIST_TYPE) {
+                cur = cur.type;
+                suffix += '[]';
+              }
+              if (cur.kind === Kind.NAMED_TYPE)
+                return [prefix, cur.name.value, suffix] as [
+                  string,
+                  string,
+                  string
+                ];
+              else return ['', '', ''] as [string, string, string];
+            };
+            const [returnTypePrefix, baseReturnType, returnTypeSuffix] =
+              getReturnType();
             return (
               <div
                 key={`${resolverType}-${op.name?.value}`}
@@ -117,8 +206,22 @@ export const ResolverItem: React.FC<{
                     <span className='flex items-center font-medium text-gray-900 '>
                       {fields[virtualRow.index].name?.value ?? ''}
                     </span>
-                    <span className='flex items-center text-sm text-gray-700 '>
-                      {(op.type as NamedTypeNode).name?.value}
+                    <span
+                      className='flex items-center text-sm text-gray-700 '
+                      style={{ fontFamily: 'monospace' }}>
+                      {returnTypePrefix}
+                      {schemaDefinitions.find(
+                        d => d.name.value === baseReturnType
+                      ) ? (
+                        <a
+                          style={{ fontFamily: 'monospace' }}
+                          onClick={() => onReturnTypeClicked(baseReturnType)}>
+                          {baseReturnType}
+                        </a>
+                      ) : (
+                        <>{baseReturnType}</>
+                      )}
+                      {returnTypeSuffix}
                     </span>
                     <span className={`flex items-center  justify-center`}>
                       <span

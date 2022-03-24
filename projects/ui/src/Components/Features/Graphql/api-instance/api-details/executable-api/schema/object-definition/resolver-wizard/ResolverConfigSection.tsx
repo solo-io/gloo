@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ResolverWizardFormProps } from '../ResolverWizard';
+import { ResolverWizardFormProps } from './ResolverWizard';
 import { useFormikContext } from 'formik';
 import YAML from 'yaml';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';

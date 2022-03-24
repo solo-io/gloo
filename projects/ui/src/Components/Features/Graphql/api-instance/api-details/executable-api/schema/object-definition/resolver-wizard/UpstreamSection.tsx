@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ResolverWizardFormProps } from '../ResolverWizard';
+import { ResolverWizardFormProps } from './ResolverWizard';
 import { useFormikContext } from 'formik';
 import { useListUpstreams } from 'API/hooks';
 import { SoloFormDropdown } from 'Components/Common/SoloFormComponents';

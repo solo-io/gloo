@@ -21,8 +21,6 @@ export const GatewayGraphqlApiDetails: React.FC<{
 
   return (
     <>
-      <GraphqlApiConfigurationHeader apiRef={apiRef} />
-
       <GatewayGraphqlSubGraphs apiRef={apiRef} />
 
       <hr className='mt-10 mb-10' />
@@ -69,8 +67,6 @@ export const GatewayGraphqlApiDetails: React.FC<{
         </Tabs>
       </div>
       {/* </Card> */}
-
-      <GraphqlDeleteApiButton apiRef={apiRef} />
     </>
   );
 };
