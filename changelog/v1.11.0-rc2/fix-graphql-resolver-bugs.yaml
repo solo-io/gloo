@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Allow user to edit graphql config.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3256

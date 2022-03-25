@@ -1,14 +1,16 @@
 import * as React from 'react';
 import styled from '@emotion/styled/macro';
 import AceEditor, { IAceEditorProps } from 'react-ace';
-/* 
+/*
   These imports are needed for syntax highlighting and snippets. DO NOT REMOVE.
 */
 import 'ace-builds/src-noconflict/ext-language_tools';
 import 'ace-builds/src-noconflict/ext-searchbox';
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/mode-html';
+import 'ace-builds/src-noconflict/mode-graphqlschema';
 import 'ace-builds/src-noconflict/snippets/yaml';
+import 'ace-builds/src-noconflict/snippets/graphqlschema';
 import 'ace-builds/src-noconflict/theme-chrome';
 import 'ace-builds/webpack-resolver';
 import { colors } from 'Styles/colors';
@@ -29,12 +31,12 @@ const StyledAceEditor = styled(AceEditor)`
   }
 `;
 
-export interface SoloFormYamlEditorProps extends IAceEditorProps {
+export interface SoloFormVisualEditorProps extends IAceEditorProps {
   name: string; // the name of this field in Formik
   title?: string; // display name of the field
 }
 
-const YamlEditor = (props: SoloFormYamlEditorProps) => {
+const VisualEditor = (props: SoloFormVisualEditorProps) => {
   const { name, title, value, ...rest } = props;
 
   return (
@@ -42,7 +44,7 @@ const YamlEditor = (props: SoloFormYamlEditorProps) => {
       {title && <Label>{title}</Label>}
 
       <StyledAceEditor
-        mode='yaml'
+        mode={rest.mode ?? 'yaml'}
         theme='chrome'
         name={title}
         style={{
@@ -75,4 +77,4 @@ const YamlEditor = (props: SoloFormYamlEditorProps) => {
   );
 };
 
-export { YamlEditor as default };
+export { VisualEditor as default };

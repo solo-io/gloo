@@ -5,10 +5,9 @@ import {
   FolderTabList,
   StyledTabPanel,
 } from 'Components/Common/Tabs';
+import styled from '@emotion/styled/macro';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useState } from 'react';
-import GraphqlApiConfigurationHeader from '../GraphqlApiConfigurationHeader';
-import GraphqlDeleteApiButton from '../GraphqlDeleteApiButton';
 import GatewayGraphqlMutationsTable from './schema/GatewayGraphqlMutationsTable';
 import GatewayGraphqlObjectsTable from './schema/GatewayGraphqlObjectsTable';
 import GatewayGraphqlQueriesTable from './schema/GatewayGraphqlQueriesTable';

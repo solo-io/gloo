@@ -103,7 +103,7 @@ function getGraphqlApi(
   });
 }
 
-function getGraphqlApiPb(
+export function getGraphqlApiPb(
   graphqlApiRef: ClusterObjectRef.AsObject
 ): Promise<GraphqlApi> {
   let request = new GetGraphqlApiRequest();
@@ -623,8 +623,8 @@ function deleteGraphqlApi(
  */
 async function validateSchema(
   validationRequest: ValidateSchemaDefinitionRequest.AsObject & {
-    apiRef?: ClusterObjectRef.AsObject,
-    resolverItem?: any
+    apiRef?: ClusterObjectRef.AsObject;
+    resolverItem?: any;
   }
 ): Promise<ValidateSchemaDefinitionResponse.AsObject> {
   let request = new ValidateSchemaDefinitionRequest();
@@ -632,9 +632,30 @@ async function validateSchema(
   if (schemaDefinition) {
     request.setSchemaDefinition(schemaDefinition);
   }
-  if (spec) {
+  if (spec && resolverItem && apiRef) {
     const apiSpec = await getGraphqlApiWithResolver(apiRef!, resolverItem);
     request.setSpec(apiSpec);
+  } else if (apiRef && spec) {
+    const currentGraphqlApi = await getGraphqlApiPb(apiRef);
+    const currentSpec = currentGraphqlApi!.getSpec()!;
+    const executable = currentSpec.getExecutableSchema()!;
+    executable.setSchemaDefinition(spec!.executableSchema!.schemaDefinition);
+    currentSpec.setExecutableSchema(executable);
+    request.setSpec(currentSpec);
+  } else if (spec) {
+    const newSpec = new GraphQLApiSpec();
+    newSpec.setAllowedQueryHashesList(spec.allowedQueryHashesList);
+    const executable = new ExecutableSchema();
+    executable.setSchemaDefinition(spec!.executableSchema!.schemaDefinition);
+    const executor = new Executor();
+    const local = new Executor.Local();
+    local.setEnableIntrospection(
+      spec.executableSchema!.executor!.local!.enableIntrospection
+    );
+    executor.setLocal(local);
+    executable.setExecutor(executor);
+    newSpec.setExecutableSchema(executable);
+    request.setSpec(newSpec);
   }
 
   return new Promise((resolve, reject) => {

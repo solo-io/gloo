@@ -3,6 +3,14 @@ import React from 'react';
 import { ExecutableGraphqlApiDetails } from './executable-api/ExecutableGraphqlApiDetails';
 import GraphqlApiConfigurationHeader from './GraphqlApiConfigurationHeader';
 import GraphqlDeleteApiButton from './GraphqlDeleteApiButton';
+import GraphqlEditApiButton from './GraphqlEditApiButton';
+import styled from '@emotion/styled/macro';
+
+const ButtonContainer = styled.div`
+  button {
+    margin-right: 10px;
+  }
+`;
 
 const GraphqlApiDetails: React.FC<{ apiRef: ClusterObjectRef.AsObject }> = ({
   apiRef,
@@ -10,13 +18,15 @@ const GraphqlApiDetails: React.FC<{ apiRef: ClusterObjectRef.AsObject }> = ({
   return (
     <>
       <GraphqlApiConfigurationHeader apiRef={apiRef} />
-      {/* 
+      {/*
       // ! Check for api type here (gateway or executable)
-      <GatewayGraphqlApiDetails apiRef={apiRef} /> 
+      <GatewayGraphqlApiDetails apiRef={apiRef} />
       */}
       <ExecutableGraphqlApiDetails apiRef={apiRef} />
-
-      <GraphqlDeleteApiButton apiRef={apiRef} />
+      <ButtonContainer>
+        <GraphqlEditApiButton apiRef={apiRef} />
+        <GraphqlDeleteApiButton apiRef={apiRef} />
+      </ButtonContainer>
     </>
   );
 };

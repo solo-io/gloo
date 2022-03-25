@@ -6,7 +6,7 @@ import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.
 import { graphqlConfigApi } from 'API/graphql';
 import { ValidateResolverYamlRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import styled from '@emotion/styled/macro';
-import YamlEditor from 'Components/Common/YamlEditor';
+import VisualEditor from 'Components/Common/VisualEditor';
 import {
   SoloButtonStyledComponent,
   SoloCancelButton,
@@ -82,7 +82,7 @@ export const ResolverConfigSection = ({
 
   React.useEffect(() => {
     setErrorMessage(warningMessage);
-  }, [warningMessage, setErrorMessage])
+  }, [warningMessage, setErrorMessage]);
 
   const validateResolverSchema = async (resolver: string) => {
     const resolverObj = YAML.parse(resolver);
@@ -160,7 +160,7 @@ export const ResolverConfigSection = ({
           <EditorContainer editMode={true}>
             <div className=''>
               <div className='' style={{ height: 'min-content' }}>
-                {isValid && errorMessage.length === 0? (
+                {isValid && errorMessage.length === 0 ? (
                   <div
                     className={`${
                       isValid ? 'opacity-100' : 'opacity-0'
@@ -210,7 +210,7 @@ export const ResolverConfigSection = ({
                     </p>
                   </InnerValues>
                 </SpacedValuesContainer>
-                <YamlEditor
+                <VisualEditor
                   mode='yaml'
                   theme='chrome'
                   name='resolverConfiguration'

@@ -206,6 +206,9 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
                       setFieldError(name, undefined);
                       setHasError(false);
                       setFileError('');
+                      if (onRemoveFile) {
+                        onRemoveFile();
+                      }
                     }}>
                     {'Remove File'}
                   </RemoveFileButton>

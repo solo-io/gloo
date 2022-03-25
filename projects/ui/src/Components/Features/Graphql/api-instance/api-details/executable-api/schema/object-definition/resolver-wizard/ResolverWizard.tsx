@@ -54,14 +54,15 @@ export type ResolverWizardFormProps = {
 
 export const getUpstream = (resolver: Resolution.AsObject): string => {
   return `
-  ${resolver?.restResolver?.upstreamRef?.name!
+  ${
+    resolver?.restResolver?.upstreamRef?.name!
       ? `${resolver?.restResolver?.upstreamRef?.name!}::${resolver?.restResolver
-        ?.upstreamRef?.namespace!}`
-      : resolver?.grpcResolver?.upstreamRef?.name!
-        ? `${resolver?.grpcResolver?.upstreamRef?.name!}::${resolver?.grpcResolver
           ?.upstreamRef?.namespace!}`
-        : ''
-    }`.trim();
+      : resolver?.grpcResolver?.upstreamRef?.name!
+      ? `${resolver?.grpcResolver?.upstreamRef?.name!}::${resolver?.grpcResolver
+          ?.upstreamRef?.namespace!}`
+      : ''
+  }`.trim();
 };
 
 export const removeNulls = (obj: any) => {
@@ -267,31 +268,35 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
       fieldWithoutDirective,
     };
     setWarningMessage('');
-    let validationObject = new ValidateSchemaDefinitionRequest().toObject() as any;
-    const spec = (await graphqlConfigApi.getGraphqlApiWithResolver(apiRef, resolverItem)).toObject();
+    let validationObject =
+      new ValidateSchemaDefinitionRequest().toObject() as any;
+    const spec = (
+      await graphqlConfigApi.getGraphqlApiWithResolver(apiRef, resolverItem)
+    ).toObject();
     validationObject = {
       ...validationObject,
       spec,
       apiRef,
-      resolverItem
+      resolverItem,
     };
-    await graphqlConfigApi.validateSchema(validationObject).then((_res) => {
-      return graphqlConfigApi
-      .updateGraphqlApiResolver(apiRef, resolverItem)
+    await graphqlConfigApi
+      .validateSchema(validationObject)
       .then(_res => {
-
-        mutate();
-        mutateSchemaYaml();
-        props.onClose();
+        return graphqlConfigApi
+          .updateGraphqlApiResolver(apiRef, resolverItem)
+          .then(_res => {
+            mutate();
+            mutateSchemaYaml();
+            props.onClose();
+          })
+          .catch(err => {
+            setWarningMessage(err.message);
+            console.error({ err });
+          });
       })
       .catch(err => {
         setWarningMessage(err.message);
-        console.error({ err });
       });
-    }).catch((err) => {
-      setWarningMessage(err.message);
-    });
-
   };
   const removeResolverConfig = async () => {
     await graphqlConfigApi.updateGraphqlApiResolver(
@@ -336,7 +341,6 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
 
   return (
     <div data-testid='resolver-wizard' className='h-[700px]'>
-
       <Formik<ResolverWizardFormProps>
         initialValues={{
           resolverType: 'REST',
@@ -415,7 +419,10 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
                 </TabPanel>
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
                   {tabIndex === 2 && (
-                    <ResolverConfigSection warningMessage={warningMessage} isEdit={isEdit} />
+                    <ResolverConfigSection
+                      warningMessage={warningMessage}
+                      isEdit={isEdit}
+                    />
                   )}
                   <div className='flex items-center justify-between px-6 '>
                     <IconButton onClick={() => props.onClose()}>

@@ -9,6 +9,7 @@ import { AreaTitle } from 'Styles/StyledComponents/headings';
 import { HealthIndicator } from './HealthIndicator';
 import { StatusType } from 'utils/health-status';
 import { VerticalRule } from 'Styles/StyledComponents/shapes';
+import EditOutlined from '@ant-design/icons/lib/icons/EditOutlined';
 
 const RowContainer = styled.div`
   display: flex;
@@ -39,10 +40,19 @@ const HealthTitle = styled.div`
   margin-right: 10px;
 `;
 
+const StyledEditIcon = styled(EditOutlined)`
+  svg {
+    fill: rgba(0, 0, 0, 0.7);
+    font-size: 22px;
+    clip-path: inset(0 0 5px 0);
+  }
+`;
+
 type Props = {
   title: string;
   contentTitle?: string;
   yaml?: string;
+  onEditConfig?: () => any;
   onLoadContent?: () => Promise<string>;
   health?: {
     state: number;
@@ -55,6 +65,7 @@ type Props = {
 const AreaHeader = ({
   title,
   contentTitle = 'unnamed',
+  onEditConfig,
   onLoadContent,
   yaml,
   health,
@@ -92,6 +103,11 @@ const AreaHeader = ({
         <AreaTitle style={{ flex: 1 }}>{title}</AreaTitle>
         {onLoadContent && (
           <Actionables>
+            {onEditConfig && (
+              <div onClick={onEditConfig}>
+                <StyledEditIcon /> Edit Config
+              </div>
+            )}
             <div onClick={onClickView}>
               <ViewIcon /> {isExpanded ? 'Hide' : 'View'} Raw Config
             </div>
