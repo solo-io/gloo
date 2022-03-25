@@ -87,7 +87,7 @@ export const removeNulls = (obj: any) => {
 export const getResolverFromConfig = (resolver?: Resolution.AsObject) => {
   if (resolver?.restResolver || resolver?.grpcResolver) {
     YAML.scalarOptions.null.nullStr = '';
-    return YAML.stringify(resolver);
+    return YAML.stringify(resolver, { simpleKeys: true });
   }
   return '';
 };
@@ -167,7 +167,14 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
      - `grpcResolver.[request | response | spanName | ...]`...
      - `[request | response | spanName | ...]`...
     */
-    let parsedResolverConfig = removeNulls(YAML.parse(resolverConfig));
+
+    let parsedResolverConfig;
+    try {
+      parsedResolverConfig = removeNulls(YAML.parse(resolverConfig));
+    } catch (err: any) {
+      setWarningMessage(err.message);
+      return;
+    }
 
     let headersMap: [string, string][] = [];
     let queryParamsMap: [string, string][] = [];

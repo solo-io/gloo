@@ -55,21 +55,25 @@ export const UpdateApiModal: React.FC<{
       .catch(err => {
         // Catch any errors on the backend the frontend can't catch.
         setErrorMessage(err.message);
-      }).finally(() => {
+      })
+      .finally(() => {
         setLoading(false);
       });
     if (!createdGraphqlApi) {
       return;
     }
-    mutate(
-      async graphqlApis => {
-        const foundIndex = graphqlApis?.findIndex((g) => {
-          return g.metadata?.name === apiRef.name && g.metadata?.namespace === apiRef.namespace;
+    mutate(async graphqlApis => {
+      const foundIndex =
+        graphqlApis?.findIndex(g => {
+          return (
+            g.metadata?.name === apiRef.name &&
+            g.metadata?.namespace === apiRef.namespace
+          );
         }) ?? -1;
-        if (foundIndex > -1) {
-          (graphqlApis as any)[foundIndex] = createdGraphqlApi;
-        }
-        return [
+      if (foundIndex > -1) {
+        (graphqlApis as any)[foundIndex] = createdGraphqlApi;
+      }
+      return [
         ...(graphqlApis ?? []),
         {
           status: { state: 0 },
@@ -78,9 +82,8 @@ export const UpdateApiModal: React.FC<{
             ...apiRef,
           },
         } as any,
-      ]},
-      false
-    );
+      ];
+    }, false);
 
     mutate();
     onClose();
@@ -90,7 +93,12 @@ export const UpdateApiModal: React.FC<{
     <SoloModal visible={show} width={600} onClose={onClose}>
       <Formik initialValues={initialValues} onSubmit={createApi}>
         {formik => {
-          const isDisabled = !formik.dirty || !formik.isValid || Boolean(warningMessage) || loading || Boolean(errorMessage);
+          const isDisabled =
+            !formik.dirty ||
+            !formik.isValid ||
+            Boolean(warningMessage) ||
+            loading ||
+            Boolean(errorMessage);
           return (
             <styles.ModalContent>
               <styles.Title>Update Schema</styles.Title>
@@ -152,7 +160,8 @@ export const UpdateApiModal: React.FC<{
                                   isValid: false,
                                   errorMessage: err.message,
                                 });
-                              }).finally(() => {
+                              })
+                              .finally(() => {
                                 setLoading(false);
                               });
                           }

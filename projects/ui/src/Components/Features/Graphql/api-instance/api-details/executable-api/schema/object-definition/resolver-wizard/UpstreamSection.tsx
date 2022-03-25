@@ -46,8 +46,12 @@ export const UpstreamSection = ({
         resolverValue.grpcResolver.upstreamRef.name = name;
         resolverValue.grpcResolver.upstreamRef.namespace = namespace;
       }
+      // nullStr makes sure that it doesn't put NULL everywhere.
+      // simpleKeys makes sure that `:method:` doesn't become `? method:`.
       YAML.scalarOptions.null.nullStr = '';
-      const stringifiedResolver = YAML.stringify(resolverValue);
+      const stringifiedResolver = YAML.stringify(resolverValue, {
+        simpleKeys: true,
+      });
       formik.setFieldValue('resolverConfig', stringifiedResolver);
     } catch (error) {
       console.error({ error });

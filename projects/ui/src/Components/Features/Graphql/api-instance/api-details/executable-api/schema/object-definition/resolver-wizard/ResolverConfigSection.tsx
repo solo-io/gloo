@@ -1,18 +1,15 @@
 import * as React from 'react';
-import { ResolverWizardFormProps } from './ResolverWizard';
+import {
+  getResolverFromConfig,
+  ResolverWizardFormProps,
+} from './ResolverWizard';
 import { useFormikContext } from 'formik';
 import YAML from 'yaml';
-import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
-import { graphqlConfigApi } from 'API/graphql';
-import { ValidateResolverYamlRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import styled from '@emotion/styled/macro';
 import VisualEditor from 'Components/Common/VisualEditor';
-import {
-  SoloButtonStyledComponent,
-  SoloCancelButton,
-} from 'Styles/StyledComponents/button';
+import { SoloFormDropdown } from 'Components/Common/SoloFormComponents';
+import { SoloCancelButton } from 'Styles/StyledComponents/button';
 import { useParams } from 'react-router';
-import isEqual from 'lodash/isEqual';
 
 export const EditorContainer = styled.div<{ editMode: boolean }>`
   .ace_cursor {
@@ -41,30 +38,22 @@ export const getDefaultConfigFromType = (
 ) => {
   return resolverType === 'REST'
     ? `
-  restResolver:
-    upstreamRef:
-      name: ${name}
-      namespace: ${namespace}
     request:
       headers:
-        :method: GET
-        :path: /api/v1/products
+        :method:
+        :path:
       queryParams:
       body:
     response:
-      resultRoot: author
+      resultRoot:
       setters:
-        numStars: '5'
-        reviewer: '1'
     `.trimEnd()
-    : `grpcResolver:
-    upstreamRef:
-      name: ${name}
-      namespace: ${namespace}
+    : `
     requestTransform:
-      serviceName: my-service
-      methodName: my-method
-    spanName: hello
+      serviceName:
+      methodName:
+      requestMetadata:
+      outgoingMessageJson:
   `.trimEnd();
 };
 
@@ -84,61 +73,42 @@ export const ResolverConfigSection = ({
     setErrorMessage(warningMessage);
   }, [warningMessage, setErrorMessage]);
 
-  const validateResolverSchema = async (resolver: string) => {
-    const resolverObj = YAML.parse(resolver);
-    if (!resolverObj) {
-      setIsValid(true);
-      return;
-    }
-    delete resolverObj?.restResolver?.request?.headersMap;
-    delete resolverObj?.restResolver?.request?.queryParamsMap;
-    delete resolverObj?.restResolver?.response?.settersMap;
-    const resolverType =
-      values.resolverType === 'REST'
-        ? ValidateResolverYamlRequest.ResolverType.REST_RESOLVER
-        : ValidateResolverYamlRequest.ResolverType.GRPC_RESOLVER;
-    let parsed = {};
-    if (
-      resolverType === ValidateResolverYamlRequest.ResolverType.REST_RESOLVER
-    ) {
-      parsed = resolverObj.restResolver;
-    } else {
-      parsed = resolverObj.grpcResolver;
-    }
-    YAML.scalarOptions.null.nullStr = '';
-    const yaml = YAML.stringify(parsed);
-    try {
-      await graphqlConfigApi
-        .validateResolverYaml({
-          yaml,
-          resolverType,
-        })
-        .then(resp => {
-          setIsValid(true);
-        })
-        .catch(err => {
-          setErrorMessage(err.message);
-          setIsValid(false);
-        });
-    } catch (err: any) {
-      let [_, conversionError] = err?.message?.split(
-        'failed to convert options YAML to JSON: yaml:'
-      ) as [string, string];
-      let [__, yamlError] = err?.message?.split(' invalid options YAML:') as [
-        string,
-        string
-      ];
-      if (conversionError) {
-        setIsValid(false);
-        setErrorMessage(`Error on ${conversionError}`);
-      } else if (yamlError) {
-        setIsValid(false);
-        setErrorMessage(
-          `Error: ${yamlError?.substring(yamlError.indexOf('):') + 2) ?? ''}`
-        );
+  const [selectedName, setSelectedName] = React.useState<string>();
+  const resolverOptions = values.listOfResolvers
+    .filter(([_rName, rObj]) => {
+      let type = '';
+      if (rObj.grpcResolver) {
+        type = 'gRPC';
+      } else if (rObj.restResolver) {
+        type = 'REST';
       }
+      return type === values.resolverType;
+    })
+    .map(([rName]) => {
+      return {
+        key: rName,
+        value: rName,
+      };
+    });
+
+  const onResolverCopy = (copyName: any) => {
+    const resolver = values.listOfResolvers.find(([rName]) => {
+      return rName === copyName;
+    });
+    if (resolver) {
+      const [_rName, newResolver] = resolver;
+      setSelectedName(_rName);
+      if (newResolver.restResolver?.upstreamRef) {
+        delete newResolver.restResolver.upstreamRef;
+      }
+      if (newResolver.grpcResolver?.upstreamRef) {
+        delete newResolver.grpcResolver.upstreamRef;
+      }
+      const stringifiedResolver = getResolverFromConfig(newResolver);
+      setFieldValue('resolverConfig', stringifiedResolver);
     }
   };
+
   React.useEffect(() => {
     const newDemo = getDefaultConfigFromType(
       graphqlApiName,
@@ -154,7 +124,6 @@ export const ResolverConfigSection = ({
         className={'flex items-center mb-2 text-lg font-medium text-gray-800'}>
         {isEdit ? 'Edit' : 'Configure'} Resolver{' '}
       </div>
-
       <div className='mb-2 '>
         <div>
           <EditorContainer editMode={true}>
@@ -195,19 +164,23 @@ export const ResolverConfigSection = ({
             <div className='flex flex-col w-full '>
               <>
                 <SpacedValuesContainer>
-                  <InnerValues className='p-2 border'>
-                    <p>
-                      <b>
-                        Editing the resolver type or upstream values in this
-                        editor will have no effect.
-                      </b>
-                    </p>
-                    <p>
-                      <b>
-                        Please go back to the appropriate step on the wizard to
-                        make a change to these values.
-                      </b>
-                    </p>
+                  <InnerValues className='p-2'>
+                    {values.listOfResolvers.length > 0 && (
+                      <div
+                        data-testid='create-resolver-from-config'
+                        className='grid grid-cols-2 gap-4 '>
+                        <div>
+                          <SoloFormDropdown
+                            searchable={true}
+                            name='resolverCopy'
+                            title='Create Resolver From Config'
+                            value={selectedName}
+                            onChange={onResolverCopy}
+                            options={resolverOptions}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </InnerValues>
                 </SpacedValuesContainer>
                 <VisualEditor
@@ -220,41 +193,6 @@ export const ResolverConfigSection = ({
                     cursor: 'text',
                   }}
                   onChange={(newValue, e) => {
-                    // TODO:  Could add in a check here for a change to those values.
-                    try {
-                      const resolverObj = YAML.parse(newValue);
-                      if (
-                        values?.resolverType === 'REST' &&
-                        !resolverObj?.restResolver
-                      ) {
-                        setErrorMessage('Cannot edit the restResolver here.');
-                        e.preventDefault();
-                        return;
-                      }
-                      if (
-                        values?.resolverType === 'gRPC' &&
-                        !resolverObj?.grpcResolver
-                      ) {
-                        setErrorMessage('Cannot edit the grpcResolver here.');
-                        e.preventDefault();
-                        return;
-                      }
-                      let joinedName = '';
-                      if (values.resolverType === 'gRPC') {
-                        joinedName = `${resolverObj?.grpcResolver?.upstreamRef?.name}::${resolverObj?.grpcResolver?.upstreamRef?.namespace}`;
-                      } else if (values.resolverType === 'REST') {
-                        joinedName = `${resolverObj?.restResolver?.upstreamRef?.name}::${resolverObj?.restResolver?.upstreamRef?.namespace}`;
-                      }
-                      if (joinedName !== values.upstream) {
-                        setErrorMessage(
-                          'Cannot edit the upstream references here.'
-                        );
-                        return;
-                      }
-                      setErrorMessage('');
-                    } catch (err: any) {
-                      console.error('error on parse change', err);
-                    }
                     setFieldValue('resolverConfig', newValue);
                   }}
                   focus={true}
@@ -279,15 +217,6 @@ export const ResolverConfigSection = ({
                   }}
                 />
                 <div className='flex gap-3 mt-2'>
-                  <SoloButtonStyledComponent
-                    data-testid='save-route-options-changes-button '
-                    disabled={!dirty || isValid}
-                    onClick={() =>
-                      validateResolverSchema(values.resolverConfig ?? '')
-                    }>
-                    Validate
-                  </SoloButtonStyledComponent>
-
                   <SoloCancelButton
                     disabled={!dirty}
                     onClick={() => {

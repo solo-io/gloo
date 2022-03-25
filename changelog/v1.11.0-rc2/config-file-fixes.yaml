@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Fixes resolver text and resolver formatting.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3352
