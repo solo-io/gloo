@@ -52,7 +52,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.12
 	github.com/solo-io/external-apis v0.1.11
-	github.com/solo-io/gloo v1.11.0-rc1
+	github.com/solo-io/gloo v1.11.0-rc2
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.21.24
 	github.com/solo-io/k8s-utils v0.0.12
@@ -62,7 +62,7 @@ require (
 	github.com/solo-io/rate-limiter v0.5.6
 	github.com/solo-io/skv2 v0.21.6
 	github.com/solo-io/skv2-enterprise v0.2.8
-	github.com/solo-io/solo-apis v0.0.0-20220322120207-4f908b5ea565
+	github.com/solo-io/solo-apis v0.0.0-20220324141522-592bba56529e
 	github.com/solo-io/solo-kit v0.24.2
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3

@@ -57,6 +57,9 @@ global:
     registry: quay.io/solo-io
   istioIntegration: {}
   istioSDS: {}
+  console:
+    readOnly: true
+    apiExplorerEnabled: true
 license_key: ""
 license_secret_name: license
 create_license_secret: true

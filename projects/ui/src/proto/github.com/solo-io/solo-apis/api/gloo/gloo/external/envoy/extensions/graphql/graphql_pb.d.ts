@@ -559,6 +559,11 @@ export class StaticResolver extends jspb.Message {
   getAsyncResponse(): StaticResolver.AsyncResponse | undefined;
   setAsyncResponse(value?: StaticResolver.AsyncResponse): void;
 
+  hasErrorResponse(): boolean;
+  clearErrorResponse(): void;
+  getErrorResponse(): string;
+  setErrorResponse(value: string): void;
+
   getResponseCase(): StaticResolver.ResponseCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): StaticResolver.AsObject;
@@ -574,6 +579,7 @@ export namespace StaticResolver {
   export type AsObject = {
     syncResponse: string,
     asyncResponse?: StaticResolver.AsyncResponse.AsObject,
+    errorResponse: string,
   }
 
   export class AsyncResponse extends jspb.Message {
@@ -604,6 +610,7 @@ export namespace StaticResolver {
     RESPONSE_NOT_SET = 0,
     SYNC_RESPONSE = 1,
     ASYNC_RESPONSE = 2,
+    ERROR_RESPONSE = 3,
   }
 }
 

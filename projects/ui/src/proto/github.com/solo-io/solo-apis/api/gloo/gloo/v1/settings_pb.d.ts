@@ -154,6 +154,11 @@ export class SettingsSpec extends jspb.Message {
   getUpstreamoptions(): UpstreamOptions | undefined;
   setUpstreamoptions(value?: UpstreamOptions): void;
 
+  hasConsoleOptions(): boolean;
+  clearConsoleOptions(): void;
+  getConsoleOptions(): ConsoleOptions | undefined;
+  setConsoleOptions(value?: ConsoleOptions): void;
+
   getConfigSourceCase(): SettingsSpec.ConfigSourceCase;
   getSecretSourceCase(): SettingsSpec.SecretSourceCase;
   getArtifactSourceCase(): SettingsSpec.ArtifactSourceCase;
@@ -198,6 +203,7 @@ export namespace SettingsSpec {
     namedExtauthMap: Array<[string, github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings.AsObject]>,
     observabilityoptions?: SettingsSpec.ObservabilityOptions.AsObject,
     upstreamoptions?: UpstreamOptions.AsObject,
+    consoleOptions?: ConsoleOptions.AsObject,
   }
 
   export class KubernetesCrds extends jspb.Message {
@@ -1017,6 +1023,34 @@ export namespace GatewayOptions {
       disableTransformationValidation?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       validationServerGrpcMaxSizeBytes?: google_protobuf_wrappers_pb.Int32Value.AsObject,
     }
+  }
+}
+
+export class ConsoleOptions extends jspb.Message {
+  hasReadOnly(): boolean;
+  clearReadOnly(): void;
+  getReadOnly(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setReadOnly(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+  hasApiExplorerEnabled(): boolean;
+  clearApiExplorerEnabled(): void;
+  getApiExplorerEnabled(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setApiExplorerEnabled(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConsoleOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: ConsoleOptions): ConsoleOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConsoleOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConsoleOptions;
+  static deserializeBinaryFromReader(message: ConsoleOptions, reader: jspb.BinaryReader): ConsoleOptions;
+}
+
+export namespace ConsoleOptions {
+  export type AsObject = {
+    readOnly?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    apiExplorerEnabled?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 

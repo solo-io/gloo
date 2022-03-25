@@ -3,7 +3,7 @@ package generate
 import glooGen "github.com/solo-io/gloo/install/helm/gloo/generate"
 
 type HelmConfig struct {
-	Global                 interface{}          `json:"global,omitempty"`
+	Global                 *GlobalConfig        `json:"global,omitempty"`
 	Enabled                *bool                `json:"enabled,omitempty" desc:"If true, deploy federation service (default true)."`
 	CreateLicenseSecret    *bool                `json:"create_license_secret,omitempty"`
 	LicenseSecretName      *string              `json:"license_secret_name,omitempty"`
@@ -13,6 +13,10 @@ type HelmConfig struct {
 	GlooFed                *GlooFedDeployment   `json:"glooFed,omitempty"`
 	Rbac                   *RbacConfiguration   `json:"rbac,omitempty"`
 	RbacWebhook            *RbacWebhook         `json:"rbacWebhook,omitempty"`
+}
+
+type GlobalConfig struct {
+	Console *ConsoleOptions `json:"console,omitempty" desc:"Configuration options for the Enterprise Console (UI)."`
 }
 
 type GlooFedDeployment struct {
@@ -59,4 +63,9 @@ type RbacWebhook struct {
 
 type RbacConfiguration struct {
 	Create *bool `json:"create,omitempty"`
+}
+
+type ConsoleOptions struct {
+	ReadOnly           *bool `json:"readOnly,omitempty" desc:"If true, then custom resources can only be viewed in read-only mode in the UI. If false, then resources can be created, updated, and deleted via the UI (default true)."`
+	ApiExplorerEnabled *bool `json:"apiExplorerEnabled,omitempty" desc:"Whether the GraphQL API Explorer is enabled (default true)."`
 }

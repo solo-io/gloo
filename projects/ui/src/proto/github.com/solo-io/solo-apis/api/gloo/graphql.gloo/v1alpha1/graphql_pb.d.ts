@@ -7,6 +7,7 @@ import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as validate_validate_pb from "../../../../../../../validate/validate_pb";
+import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
@@ -278,6 +279,76 @@ export namespace StitchedSchema {
   }
 }
 
+export class MockResolver extends jspb.Message {
+  hasSyncResponse(): boolean;
+  clearSyncResponse(): void;
+  getSyncResponse(): google_protobuf_struct_pb.Value | undefined;
+  setSyncResponse(value?: google_protobuf_struct_pb.Value): void;
+
+  hasAsyncResponse(): boolean;
+  clearAsyncResponse(): void;
+  getAsyncResponse(): MockResolver.AsyncResponse | undefined;
+  setAsyncResponse(value?: MockResolver.AsyncResponse): void;
+
+  hasErrorResponse(): boolean;
+  clearErrorResponse(): void;
+  getErrorResponse(): string;
+  setErrorResponse(value: string): void;
+
+  getResponseCase(): MockResolver.ResponseCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MockResolver.AsObject;
+  static toObject(includeInstance: boolean, msg: MockResolver): MockResolver.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: MockResolver, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MockResolver;
+  static deserializeBinaryFromReader(message: MockResolver, reader: jspb.BinaryReader): MockResolver;
+}
+
+export namespace MockResolver {
+  export type AsObject = {
+    syncResponse?: google_protobuf_struct_pb.Value.AsObject,
+    asyncResponse?: MockResolver.AsyncResponse.AsObject,
+    errorResponse: string,
+  }
+
+  export class AsyncResponse extends jspb.Message {
+    hasResponse(): boolean;
+    clearResponse(): void;
+    getResponse(): google_protobuf_struct_pb.Value | undefined;
+    setResponse(value?: google_protobuf_struct_pb.Value): void;
+
+    hasDelay(): boolean;
+    clearDelay(): void;
+    getDelay(): google_protobuf_duration_pb.Duration | undefined;
+    setDelay(value?: google_protobuf_duration_pb.Duration): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): AsyncResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: AsyncResponse): AsyncResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: AsyncResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): AsyncResponse;
+    static deserializeBinaryFromReader(message: AsyncResponse, reader: jspb.BinaryReader): AsyncResponse;
+  }
+
+  export namespace AsyncResponse {
+    export type AsObject = {
+      response?: google_protobuf_struct_pb.Value.AsObject,
+      delay?: google_protobuf_duration_pb.Duration.AsObject,
+    }
+  }
+
+  export enum ResponseCase {
+    RESPONSE_NOT_SET = 0,
+    SYNC_RESPONSE = 1,
+    ASYNC_RESPONSE = 2,
+    ERROR_RESPONSE = 3,
+  }
+}
+
 export class Resolution extends jspb.Message {
   hasRestResolver(): boolean;
   clearRestResolver(): void;
@@ -288,6 +359,11 @@ export class Resolution extends jspb.Message {
   clearGrpcResolver(): void;
   getGrpcResolver(): GrpcResolver | undefined;
   setGrpcResolver(value?: GrpcResolver): void;
+
+  hasMockResolver(): boolean;
+  clearMockResolver(): void;
+  getMockResolver(): MockResolver | undefined;
+  setMockResolver(value?: MockResolver): void;
 
   hasStatPrefix(): boolean;
   clearStatPrefix(): void;
@@ -309,6 +385,7 @@ export namespace Resolution {
   export type AsObject = {
     restResolver?: RESTResolver.AsObject,
     grpcResolver?: GrpcResolver.AsObject,
+    mockResolver?: MockResolver.AsObject,
     statPrefix?: google_protobuf_wrappers_pb.StringValue.AsObject,
   }
 
@@ -316,6 +393,7 @@ export namespace Resolution {
     RESOLVER_NOT_SET = 0,
     REST_RESOLVER = 1,
     GRPC_RESOLVER = 2,
+    MOCK_RESOLVER = 4,
   }
 }
 

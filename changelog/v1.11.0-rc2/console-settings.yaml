@@ -1,0 +1,9 @@
+changelog:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/solo-projects/issues/3116
+  description: Make Enterprise console options configurable via Helm.
+  resolvesIssue: false
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.11.0-rc2

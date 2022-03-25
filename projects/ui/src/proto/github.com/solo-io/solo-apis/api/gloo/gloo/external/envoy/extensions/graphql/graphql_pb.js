@@ -3867,7 +3867,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.envoy.config.filter.http.graphql.v2.StaticResolver.oneofGroups_ = [[1,2]];
+proto.envoy.config.filter.http.graphql.v2.StaticResolver.oneofGroups_ = [[1,2,3]];
 
 /**
  * @enum {number}
@@ -3875,7 +3875,8 @@ proto.envoy.config.filter.http.graphql.v2.StaticResolver.oneofGroups_ = [[1,2]];
 proto.envoy.config.filter.http.graphql.v2.StaticResolver.ResponseCase = {
   RESPONSE_NOT_SET: 0,
   SYNC_RESPONSE: 1,
-  ASYNC_RESPONSE: 2
+  ASYNC_RESPONSE: 2,
+  ERROR_RESPONSE: 3
 };
 
 /**
@@ -3915,7 +3916,8 @@ proto.envoy.config.filter.http.graphql.v2.StaticResolver.prototype.toObject = fu
 proto.envoy.config.filter.http.graphql.v2.StaticResolver.toObject = function(includeInstance, msg) {
   var f, obj = {
     syncResponse: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    asyncResponse: (f = msg.getAsyncResponse()) && proto.envoy.config.filter.http.graphql.v2.StaticResolver.AsyncResponse.toObject(includeInstance, f)
+    asyncResponse: (f = msg.getAsyncResponse()) && proto.envoy.config.filter.http.graphql.v2.StaticResolver.AsyncResponse.toObject(includeInstance, f),
+    errorResponse: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -3961,6 +3963,10 @@ proto.envoy.config.filter.http.graphql.v2.StaticResolver.deserializeBinaryFromRe
       reader.readMessage(value,proto.envoy.config.filter.http.graphql.v2.StaticResolver.AsyncResponse.deserializeBinaryFromReader);
       msg.setAsyncResponse(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setErrorResponse(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4003,6 +4009,13 @@ proto.envoy.config.filter.http.graphql.v2.StaticResolver.serializeBinaryToWriter
       2,
       f,
       proto.envoy.config.filter.http.graphql.v2.StaticResolver.AsyncResponse.serializeBinaryToWriter
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeString(
+      3,
+      f
     );
   }
 };
@@ -4233,6 +4246,35 @@ proto.envoy.config.filter.http.graphql.v2.StaticResolver.prototype.clearAsyncRes
  */
 proto.envoy.config.filter.http.graphql.v2.StaticResolver.prototype.hasAsyncResponse = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string error_response = 3;
+ * @return {string}
+ */
+proto.envoy.config.filter.http.graphql.v2.StaticResolver.prototype.getErrorResponse = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.envoy.config.filter.http.graphql.v2.StaticResolver.prototype.setErrorResponse = function(value) {
+  jspb.Message.setOneofField(this, 3, proto.envoy.config.filter.http.graphql.v2.StaticResolver.oneofGroups_[0], value);
+};
+
+
+proto.envoy.config.filter.http.graphql.v2.StaticResolver.prototype.clearErrorResponse = function() {
+  jspb.Message.setOneofField(this, 3, proto.envoy.config.filter.http.graphql.v2.StaticResolver.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.StaticResolver.prototype.hasErrorResponse = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

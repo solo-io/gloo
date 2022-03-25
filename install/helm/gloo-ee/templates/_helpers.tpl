@@ -264,5 +264,9 @@ Injection point for enterprise-exclusive settings into the settings manifest
     ratelimitServerRef:
       name: rate-limit
       namespace: {{ .Release.Namespace }}
-{{- end }}
-{{- end -}}
+{{- end }} {{/* if $.Values.global.extensions.rateLimit.enabled */}}
+{{- $consoleOpts := $.Values.global.console | default dict }}
+  consoleOptions:
+    readOnly: {{ hasKey $consoleOpts "readOnly" | ternary $consoleOpts.readOnly true }}
+    apiExplorerEnabled: {{ hasKey $consoleOpts "apiExplorerEnabled" | ternary $consoleOpts.apiExplorerEnabled true }}
+{{- end -}} {{/* define "gloo.extraSpecs" */}}

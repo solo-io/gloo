@@ -16,6 +16,7 @@ var extproto_ext_pb = require('../../../../../../../extproto/ext_pb.js');
 var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 var validate_validate_pb = require('../../../../../../../validate/validate_pb.js');
+var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
@@ -29,6 +30,8 @@ goog.exportSymbol('proto.graphql.gloo.solo.io.GraphQLApiStatus.State', null, glo
 goog.exportSymbol('proto.graphql.gloo.solo.io.GrpcDescriptorRegistry', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.GrpcRequestTemplate', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.GrpcResolver', null, global);
+goog.exportSymbol('proto.graphql.gloo.solo.io.MockResolver', null, global);
+goog.exportSymbol('proto.graphql.gloo.solo.io.MockResolver.AsyncResponse', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.PersistedQueryCacheConfig', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.RESTResolver', null, global);
 goog.exportSymbol('proto.graphql.gloo.solo.io.RequestTemplate', null, global);
@@ -1993,6 +1996,480 @@ proto.graphql.gloo.solo.io.StitchedSchema.prototype.clearSubschemasList = functi
  * @extends {jspb.Message}
  * @constructor
  */
+proto.graphql.gloo.solo.io.MockResolver = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.graphql.gloo.solo.io.MockResolver.oneofGroups_);
+};
+goog.inherits(proto.graphql.gloo.solo.io.MockResolver, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.graphql.gloo.solo.io.MockResolver.displayName = 'proto.graphql.gloo.solo.io.MockResolver';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.graphql.gloo.solo.io.MockResolver.oneofGroups_ = [[1,2,3]];
+
+/**
+ * @enum {number}
+ */
+proto.graphql.gloo.solo.io.MockResolver.ResponseCase = {
+  RESPONSE_NOT_SET: 0,
+  SYNC_RESPONSE: 1,
+  ASYNC_RESPONSE: 2,
+  ERROR_RESPONSE: 3
+};
+
+/**
+ * @return {proto.graphql.gloo.solo.io.MockResolver.ResponseCase}
+ */
+proto.graphql.gloo.solo.io.MockResolver.prototype.getResponseCase = function() {
+  return /** @type {proto.graphql.gloo.solo.io.MockResolver.ResponseCase} */(jspb.Message.computeOneofCase(this, proto.graphql.gloo.solo.io.MockResolver.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.graphql.gloo.solo.io.MockResolver.prototype.toObject = function(opt_includeInstance) {
+  return proto.graphql.gloo.solo.io.MockResolver.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.graphql.gloo.solo.io.MockResolver} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.graphql.gloo.solo.io.MockResolver.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    syncResponse: (f = msg.getSyncResponse()) && google_protobuf_struct_pb.Value.toObject(includeInstance, f),
+    asyncResponse: (f = msg.getAsyncResponse()) && proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.toObject(includeInstance, f),
+    errorResponse: jspb.Message.getFieldWithDefault(msg, 3, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.graphql.gloo.solo.io.MockResolver}
+ */
+proto.graphql.gloo.solo.io.MockResolver.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.graphql.gloo.solo.io.MockResolver;
+  return proto.graphql.gloo.solo.io.MockResolver.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.graphql.gloo.solo.io.MockResolver} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.graphql.gloo.solo.io.MockResolver}
+ */
+proto.graphql.gloo.solo.io.MockResolver.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new google_protobuf_struct_pb.Value;
+      reader.readMessage(value,google_protobuf_struct_pb.Value.deserializeBinaryFromReader);
+      msg.setSyncResponse(value);
+      break;
+    case 2:
+      var value = new proto.graphql.gloo.solo.io.MockResolver.AsyncResponse;
+      reader.readMessage(value,proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.deserializeBinaryFromReader);
+      msg.setAsyncResponse(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setErrorResponse(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.graphql.gloo.solo.io.MockResolver.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.graphql.gloo.solo.io.MockResolver.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.graphql.gloo.solo.io.MockResolver} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.graphql.gloo.solo.io.MockResolver.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getSyncResponse();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      google_protobuf_struct_pb.Value.serializeBinaryToWriter
+    );
+  }
+  f = message.getAsyncResponse();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.serializeBinaryToWriter
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.graphql.gloo.solo.io.MockResolver.AsyncResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.displayName = 'proto.graphql.gloo.solo.io.MockResolver.AsyncResponse';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.graphql.gloo.solo.io.MockResolver.AsyncResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    response: (f = msg.getResponse()) && google_protobuf_struct_pb.Value.toObject(includeInstance, f),
+    delay: (f = msg.getDelay()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.graphql.gloo.solo.io.MockResolver.AsyncResponse}
+ */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.graphql.gloo.solo.io.MockResolver.AsyncResponse;
+  return proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.graphql.gloo.solo.io.MockResolver.AsyncResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.graphql.gloo.solo.io.MockResolver.AsyncResponse}
+ */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new google_protobuf_struct_pb.Value;
+      reader.readMessage(value,google_protobuf_struct_pb.Value.deserializeBinaryFromReader);
+      msg.setResponse(value);
+      break;
+    case 2:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setDelay(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.graphql.gloo.solo.io.MockResolver.AsyncResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getResponse();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      google_protobuf_struct_pb.Value.serializeBinaryToWriter
+    );
+  }
+  f = message.getDelay();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional google.protobuf.Value response = 1;
+ * @return {?proto.google.protobuf.Value}
+ */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.prototype.getResponse = function() {
+  return /** @type{?proto.google.protobuf.Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Value, 1));
+};
+
+
+/** @param {?proto.google.protobuf.Value|undefined} value */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.prototype.setResponse = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.prototype.clearResponse = function() {
+  this.setResponse(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.prototype.hasResponse = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration delay = 2;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.prototype.getDelay = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 2));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.prototype.setDelay = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.prototype.clearDelay = function() {
+  this.setDelay(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.graphql.gloo.solo.io.MockResolver.AsyncResponse.prototype.hasDelay = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional google.protobuf.Value sync_response = 1;
+ * @return {?proto.google.protobuf.Value}
+ */
+proto.graphql.gloo.solo.io.MockResolver.prototype.getSyncResponse = function() {
+  return /** @type{?proto.google.protobuf.Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_struct_pb.Value, 1));
+};
+
+
+/** @param {?proto.google.protobuf.Value|undefined} value */
+proto.graphql.gloo.solo.io.MockResolver.prototype.setSyncResponse = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.graphql.gloo.solo.io.MockResolver.oneofGroups_[0], value);
+};
+
+
+proto.graphql.gloo.solo.io.MockResolver.prototype.clearSyncResponse = function() {
+  this.setSyncResponse(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.graphql.gloo.solo.io.MockResolver.prototype.hasSyncResponse = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional AsyncResponse async_response = 2;
+ * @return {?proto.graphql.gloo.solo.io.MockResolver.AsyncResponse}
+ */
+proto.graphql.gloo.solo.io.MockResolver.prototype.getAsyncResponse = function() {
+  return /** @type{?proto.graphql.gloo.solo.io.MockResolver.AsyncResponse} */ (
+    jspb.Message.getWrapperField(this, proto.graphql.gloo.solo.io.MockResolver.AsyncResponse, 2));
+};
+
+
+/** @param {?proto.graphql.gloo.solo.io.MockResolver.AsyncResponse|undefined} value */
+proto.graphql.gloo.solo.io.MockResolver.prototype.setAsyncResponse = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.graphql.gloo.solo.io.MockResolver.oneofGroups_[0], value);
+};
+
+
+proto.graphql.gloo.solo.io.MockResolver.prototype.clearAsyncResponse = function() {
+  this.setAsyncResponse(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.graphql.gloo.solo.io.MockResolver.prototype.hasAsyncResponse = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string error_response = 3;
+ * @return {string}
+ */
+proto.graphql.gloo.solo.io.MockResolver.prototype.getErrorResponse = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.graphql.gloo.solo.io.MockResolver.prototype.setErrorResponse = function(value) {
+  jspb.Message.setOneofField(this, 3, proto.graphql.gloo.solo.io.MockResolver.oneofGroups_[0], value);
+};
+
+
+proto.graphql.gloo.solo.io.MockResolver.prototype.clearErrorResponse = function() {
+  jspb.Message.setOneofField(this, 3, proto.graphql.gloo.solo.io.MockResolver.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.graphql.gloo.solo.io.MockResolver.prototype.hasErrorResponse = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.graphql.gloo.solo.io.Resolution = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, proto.graphql.gloo.solo.io.Resolution.oneofGroups_);
 };
@@ -2008,7 +2485,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.graphql.gloo.solo.io.Resolution.oneofGroups_ = [[1,2]];
+proto.graphql.gloo.solo.io.Resolution.oneofGroups_ = [[1,2,4]];
 
 /**
  * @enum {number}
@@ -2016,7 +2493,8 @@ proto.graphql.gloo.solo.io.Resolution.oneofGroups_ = [[1,2]];
 proto.graphql.gloo.solo.io.Resolution.ResolverCase = {
   RESOLVER_NOT_SET: 0,
   REST_RESOLVER: 1,
-  GRPC_RESOLVER: 2
+  GRPC_RESOLVER: 2,
+  MOCK_RESOLVER: 4
 };
 
 /**
@@ -2057,6 +2535,7 @@ proto.graphql.gloo.solo.io.Resolution.toObject = function(includeInstance, msg) 
   var f, obj = {
     restResolver: (f = msg.getRestResolver()) && proto.graphql.gloo.solo.io.RESTResolver.toObject(includeInstance, f),
     grpcResolver: (f = msg.getGrpcResolver()) && proto.graphql.gloo.solo.io.GrpcResolver.toObject(includeInstance, f),
+    mockResolver: (f = msg.getMockResolver()) && proto.graphql.gloo.solo.io.MockResolver.toObject(includeInstance, f),
     statPrefix: (f = msg.getStatPrefix()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
   };
 
@@ -2103,6 +2582,11 @@ proto.graphql.gloo.solo.io.Resolution.deserializeBinaryFromReader = function(msg
       var value = new proto.graphql.gloo.solo.io.GrpcResolver;
       reader.readMessage(value,proto.graphql.gloo.solo.io.GrpcResolver.deserializeBinaryFromReader);
       msg.setGrpcResolver(value);
+      break;
+    case 4:
+      var value = new proto.graphql.gloo.solo.io.MockResolver;
+      reader.readMessage(value,proto.graphql.gloo.solo.io.MockResolver.deserializeBinaryFromReader);
+      msg.setMockResolver(value);
       break;
     case 3:
       var value = new google_protobuf_wrappers_pb.StringValue;
@@ -2152,6 +2636,14 @@ proto.graphql.gloo.solo.io.Resolution.serializeBinaryToWriter = function(message
       2,
       f,
       proto.graphql.gloo.solo.io.GrpcResolver.serializeBinaryToWriter
+    );
+  }
+  f = message.getMockResolver();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.graphql.gloo.solo.io.MockResolver.serializeBinaryToWriter
     );
   }
   f = message.getStatPrefix();
@@ -2222,6 +2714,36 @@ proto.graphql.gloo.solo.io.Resolution.prototype.clearGrpcResolver = function() {
  */
 proto.graphql.gloo.solo.io.Resolution.prototype.hasGrpcResolver = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional MockResolver mock_resolver = 4;
+ * @return {?proto.graphql.gloo.solo.io.MockResolver}
+ */
+proto.graphql.gloo.solo.io.Resolution.prototype.getMockResolver = function() {
+  return /** @type{?proto.graphql.gloo.solo.io.MockResolver} */ (
+    jspb.Message.getWrapperField(this, proto.graphql.gloo.solo.io.MockResolver, 4));
+};
+
+
+/** @param {?proto.graphql.gloo.solo.io.MockResolver|undefined} value */
+proto.graphql.gloo.solo.io.Resolution.prototype.setMockResolver = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.graphql.gloo.solo.io.Resolution.oneofGroups_[0], value);
+};
+
+
+proto.graphql.gloo.solo.io.Resolution.prototype.clearMockResolver = function() {
+  this.setMockResolver(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.graphql.gloo.solo.io.Resolution.prototype.hasMockResolver = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
