@@ -530,6 +530,11 @@ export namespace Executor {
     getEnableIntrospection(): boolean;
     setEnableIntrospection(value: boolean): void;
 
+    hasOptions(): boolean;
+    clearOptions(): void;
+    getOptions(): Executor.Local.LocalExecutorOptions | undefined;
+    setOptions(value?: Executor.Local.LocalExecutorOptions): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Local.AsObject;
     static toObject(includeInstance: boolean, msg: Local): Local.AsObject;
@@ -544,6 +549,29 @@ export namespace Executor {
     export type AsObject = {
       resolutionsMap: Array<[string, Resolution.AsObject]>,
       enableIntrospection: boolean,
+      options?: Executor.Local.LocalExecutorOptions.AsObject,
+    }
+
+    export class LocalExecutorOptions extends jspb.Message {
+      hasMaxDepth(): boolean;
+      clearMaxDepth(): void;
+      getMaxDepth(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+      setMaxDepth(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): LocalExecutorOptions.AsObject;
+      static toObject(includeInstance: boolean, msg: LocalExecutorOptions): LocalExecutorOptions.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: LocalExecutorOptions, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): LocalExecutorOptions;
+      static deserializeBinaryFromReader(message: LocalExecutorOptions, reader: jspb.BinaryReader): LocalExecutorOptions;
+    }
+
+    export namespace LocalExecutorOptions {
+      export type AsObject = {
+        maxDepth?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+      }
     }
   }
 

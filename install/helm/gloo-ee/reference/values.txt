@@ -351,7 +351,7 @@
 |gloo.gateway.validation.webhook.extraAnnotations.NAME|string||extra annotations to add to the webhook|
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
-|gloo.gateway.deployment.image.tag|string|1.11.0-rc2|tag for the container|
+|gloo.gateway.deployment.image.tag|string|1.11.0-rc3|tag for the container|
 |gloo.gateway.deployment.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -401,7 +401,7 @@
 |gloo.gateway.deployment.resources.requests.memory|string||amount of memory|
 |gloo.gateway.deployment.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.certGenJob.image.tag|string|1.11.0-rc2|tag for the container|
+|gloo.gateway.certGenJob.image.tag|string|1.11.0-rc3|tag for the container|
 |gloo.gateway.certGenJob.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.certGenJob.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -1175,7 +1175,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.11.0-rc2|tag for the container|
+|global.glooMtls.sds.image.tag|string|1.11.0-rc3|tag for the container|
 |global.glooMtls.sds.image.repository|string||image name (repository) for the container.|
 |global.glooMtls.sds.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |global.glooMtls.sds.image.pullPolicy|string||image pull policy for the container|

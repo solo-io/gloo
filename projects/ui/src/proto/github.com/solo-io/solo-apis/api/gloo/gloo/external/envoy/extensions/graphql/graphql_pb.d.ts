@@ -900,6 +900,9 @@ export namespace Executor {
     getEnableIntrospection(): boolean;
     setEnableIntrospection(value: boolean): void;
 
+    getMaxDepth(): number;
+    setMaxDepth(value: number): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Local.AsObject;
     static toObject(includeInstance: boolean, msg: Local): Local.AsObject;
@@ -914,6 +917,7 @@ export namespace Executor {
     export type AsObject = {
       resolutionsList: Array<Resolution.AsObject>,
       enableIntrospection: boolean,
+      maxDepth: number,
     }
   }
 

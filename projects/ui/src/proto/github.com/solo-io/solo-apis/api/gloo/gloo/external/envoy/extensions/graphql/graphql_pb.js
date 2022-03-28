@@ -6238,7 +6238,8 @@ proto.envoy.config.filter.http.graphql.v2.Executor.Local.toObject = function(inc
   var f, obj = {
     resolutionsList: jspb.Message.toObjectList(msg.getResolutionsList(),
     proto.envoy.config.filter.http.graphql.v2.Resolution.toObject, includeInstance),
-    enableIntrospection: jspb.Message.getFieldWithDefault(msg, 2, false)
+    enableIntrospection: jspb.Message.getFieldWithDefault(msg, 2, false),
+    maxDepth: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -6284,6 +6285,10 @@ proto.envoy.config.filter.http.graphql.v2.Executor.Local.deserializeBinaryFromRe
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setEnableIntrospection(value);
       break;
+    case 3:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setMaxDepth(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -6325,6 +6330,13 @@ proto.envoy.config.filter.http.graphql.v2.Executor.Local.serializeBinaryToWriter
   if (f) {
     writer.writeBool(
       2,
+      f
+    );
+  }
+  f = message.getMaxDepth();
+  if (f !== 0) {
+    writer.writeUint32(
+      3,
       f
     );
   }
@@ -6376,6 +6388,21 @@ proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.getEnableIntr
 /** @param {boolean} value */
 proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.setEnableIntrospection = function(value) {
   jspb.Message.setProto3BooleanField(this, 2, value);
+};
+
+
+/**
+ * optional uint32 max_depth = 3;
+ * @return {number}
+ */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.getMaxDepth = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/** @param {number} value */
+proto.envoy.config.filter.http.graphql.v2.Executor.Local.prototype.setMaxDepth = function(value) {
+  jspb.Message.setProto3IntField(this, 3, value);
 };
 
 

@@ -1,0 +1,8 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.11.0-rc3
+    description: >
+      Bump OSS version to pick up transformation validation changes.
+      Also picks up CA bundling and rootca chandler changes.
