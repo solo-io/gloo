@@ -312,6 +312,23 @@ func (h *httpRouteConfigurationTranslator) setAction(
 				PrefixRewrite: pathRewrite.PrefixRewrite,
 			}
 		}
+
+		for _, plug := range h.pluginRegistry.GetRoutePlugins() {
+			if plug.Name() != headers.ExtensionName {
+				continue
+			}
+
+			if err := plug.ProcessRoute(params, in, out); err != nil {
+				if isWarningErr(err) {
+					continue
+				}
+				validation.AppendRouteError(routeReport,
+					validationapi.RouteReport_Error_ProcessingError,
+					fmt.Sprintf("%T: %v", plug, err.Error()),
+					out.GetName(),
+				)
+			}
+		}
 	}
 }
 
