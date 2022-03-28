@@ -3476,7 +3476,7 @@ type UserSession_CookieOptions struct {
 	// path.
 	Path *wrappers.StringValue `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
 	// Whether the cookie should be restricted to a first-party or same-site context.
-	// The default mode should be LaxMode.
+	// The default mode is LaxMode.
 	SameSite UserSession_CookieOptions_SameSite `protobuf:"varint,6,opt,name=same_site,json=sameSite,proto3,enum=enterprise.gloo.solo.io.UserSession_CookieOptions_SameSite" json:"same_site,omitempty"`
 	// Cookie domain
 	Domain string `protobuf:"bytes,4,opt,name=domain,proto3" json:"domain,omitempty"`

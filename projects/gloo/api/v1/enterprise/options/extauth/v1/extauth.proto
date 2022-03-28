@@ -361,7 +361,7 @@ message UserSession {
             NoneMode = 2;
         }
         // Whether the cookie should be restricted to a first-party or same-site context.
-        // The default mode should be LaxMode.
+        // The default mode is LaxMode.
         SameSite same_site = 6;
         // Cookie domain
         string domain = 4;

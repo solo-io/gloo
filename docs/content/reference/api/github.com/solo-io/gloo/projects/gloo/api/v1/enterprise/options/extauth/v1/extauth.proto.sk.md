@@ -570,7 +570,7 @@ Deprecated: Prefer OAuth2
 | `notSecure` | `bool` | Use a non-secure cookie. Note - this should only be used for testing and in trusted environments. |
 | `httpOnly` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Set the cookie to be HttpOnly. defaults to true. Set explicity to false to disable. |
 | `path` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | Path of the cookie. If unset, defaults to "/". Set it explicitly to "" to avoid setting a path. |
-| `sameSite` | [.enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite](../extauth.proto.sk/#samesite) | Whether the cookie should be restricted to a first-party or same-site context. The default mode should be LaxMode. |
+| `sameSite` | [.enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite](../extauth.proto.sk/#samesite) | Whether the cookie should be restricted to a first-party or same-site context. The default mode is LaxMode. |
 | `domain` | `string` | Cookie domain. |
 
 
