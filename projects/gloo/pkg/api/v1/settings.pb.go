@@ -936,7 +936,7 @@ type ConsoleOptions struct {
 	// If false, then resources can be created, updated, and deleted via the UI.
 	// Currently, create/update/delete operations are only supported for GraphQL resources.
 	// This feature requires a Gloo Edge Enterprise license with GraphQL enabled.
-	// Defaults to true.
+	// Defaults to false.
 	ReadOnly *wrappers.BoolValue `protobuf:"bytes,1,opt,name=read_only,json=readOnly,proto3" json:"read_only,omitempty"`
 	// Whether to enable the GraphQL API Explorer. This feature requires a Gloo Edge Enterprise license with GraphQL enabled.
 	// Defaults to true.
