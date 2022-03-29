@@ -1,5 +1,5 @@
 import { graphqlConfigApi } from 'API/graphql';
-import { useGetGraphqlApiDetails } from 'API/hooks';
+import { useGetGraphqlApiDetails, useGetConsoleOptions } from 'API/hooks';
 import ConfirmationModal from 'Components/Common/ConfirmationModal';
 import ErrorModal from 'Components/Common/ErrorModal';
 import { SoloToggleSwitch } from 'Components/Common/SoloToggleSwitch';
@@ -15,8 +15,10 @@ const GraphqlApiIntrospectionToggle: React.FC<{
 
   // Updates schema
   const [attemptUpdateSchema, setAttemptUpdateSchema] = React.useState(false);
+  const { readonly } = useGetConsoleOptions();
   const [introspectionEnabled, setIntrospectionEnabled] = React.useState(
-    graphqlApi?.spec?.executableSchema?.executor?.local?.enableIntrospection ??
+    (graphqlApi?.spec?.executableSchema?.executor?.local?.enableIntrospection &&
+      !readonly) ??
       false
   );
   const [errorMessage, setErrorMessage] = React.useState('');
@@ -47,12 +49,18 @@ const GraphqlApiIntrospectionToggle: React.FC<{
 
   useEffect(() => {
     setIntrospectionEnabled(
-      graphqlApi?.spec?.executableSchema?.executor?.local?.enableIntrospection!
+      graphqlApi?.spec?.executableSchema?.executor?.local
+        ?.enableIntrospection! && !readonly
     );
   }, [
     !!graphqlApi?.spec?.executableSchema?.executor,
     graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.length,
+    readonly,
   ]);
+
+  if (readonly) {
+    return null;
+  }
 
   return (
     <div className='inline-block'>
@@ -76,8 +84,10 @@ const GraphqlApiIntrospectionToggle: React.FC<{
         cancel={() => {
           setAttemptUpdateSchema(false);
           setIntrospectionEnabled(
-            graphqlApi?.spec?.executableSchema?.executor?.local
-              ?.enableIntrospection ?? false
+            (graphqlApi?.spec?.executableSchema?.executor?.local
+              ?.enableIntrospection &&
+              !readonly) ??
+              false
           );
         }}
         isNegative

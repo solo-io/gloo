@@ -1,5 +1,5 @@
 import { TabPanels, Tabs } from '@reach/tabs';
-import { useGetGraphqlApiDetails } from 'API/hooks';
+import { useGetGraphqlApiDetails, useGetConsoleOptions } from 'API/hooks';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import { Loading } from 'Components/Common/Loading';
 import { SectionCard } from 'Components/Common/SectionCard';
@@ -34,6 +34,7 @@ export const GraphqlInstance: React.FC = () => {
 
   // gets the schema from the api
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
+  const { apiExplorerEnabled } = useGetConsoleOptions();
 
   // tab logic
   const [tabIndex, setTabIndex] = React.useState(0);
@@ -62,7 +63,7 @@ export const GraphqlInstance: React.FC = () => {
         <Tabs index={tabIndex} onChange={handleTabsChange}>
           <FolderTabList>
             <FolderTab>API Details</FolderTab>
-            <FolderTab>Explore</FolderTab>
+            {apiExplorerEnabled && <FolderTab>Explore</FolderTab>}
           </FolderTabList>
 
           <TabPanels>

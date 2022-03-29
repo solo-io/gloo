@@ -2,10 +2,13 @@ import { BootstrapApiClient } from 'proto/github.com/solo-io/solo-projects/proje
 import { host } from './helpers';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
+  GetConsoleOptionsRequest,
+  GetConsoleOptionsResponse,
   GlooFedCheckRequest,
   GlooFedCheckResponse,
   GraphqlCheckRequest,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb';
+import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 
 const bootstrapApiClient = new BootstrapApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -15,6 +18,7 @@ const bootstrapApiClient = new BootstrapApiClient(host, {
 export const bootstrapApi = {
   isGlooFedEnabled,
   isGraphqlEnabled,
+  getConsoleOptions,
 };
 
 function isGlooFedEnabled(): Promise<GlooFedCheckResponse.AsObject> {
@@ -46,5 +50,25 @@ function isGraphqlEnabled(): Promise<boolean> {
         resolve(data!.toObject().enabled);
       }
     });
+  });
+}
+
+function getConsoleOptions(): Promise<GetConsoleOptionsResponse.AsObject | null> {
+  const message = new GetConsoleOptionsRequest();
+  return new Promise((resolve, reject) => {
+    return bootstrapApiClient.getConsoleOptions(
+      message,
+      (err, responseMessage) => {
+        if (err) {
+          reject(err.message);
+        } else {
+          if (responseMessage) {
+            resolve(responseMessage!.toObject());
+          } else {
+            resolve(null);
+          }
+        }
+      }
+    );
   });
 }

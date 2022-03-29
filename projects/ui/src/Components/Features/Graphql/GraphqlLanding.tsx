@@ -1,3 +1,4 @@
+import { useGetConsoleOptions } from 'API/hooks';
 import SoloAddButton from 'Components/Common/SoloAddButton';
 import {
   CheckboxFilterProps,
@@ -35,6 +36,7 @@ export const GraphqlLanding = () => {
   const [showGraphqlModal, setShowGraphqlModal] = React.useState(false);
 
   const openModal = () => setShowGraphqlModal(true);
+  const { readonly } = useGetConsoleOptions();
 
   const [typeFilters, setTypeFilters] =
     useState<CheckboxFilterProps[]>(API_TYPES);
@@ -57,9 +59,11 @@ export const GraphqlLanding = () => {
 
   return (
     <styles.GraphqlLandingContainer className='relative'>
-      <SoloAddButton onClick={openModal} className='absolute right-0 -top-8 '>
-        Create API
-      </SoloAddButton>
+      {!readonly && (
+        <SoloAddButton onClick={openModal} className='absolute right-0 -top-8 '>
+          Create API
+        </SoloAddButton>
+      )}
       <div>
         <SoloInput
           value={nameFilter}

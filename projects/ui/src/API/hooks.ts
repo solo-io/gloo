@@ -1,6 +1,11 @@
 import { GatewayResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 import useSWR from 'swr';
 import {
+  getClusterRefClassFromClusterRefObj,
+  getObjectRefClassFromRefObj,
+  host,
+} from './helpers';
+import {
   VirtualService,
   Gateway,
   RouteTable,
@@ -57,14 +62,21 @@ import { WasmFilterApi } from 'proto/github.com/solo-io/solo-projects/projects/a
 import { wasmFilterApi } from './wasm-filter';
 import { VirtualServiceRoutesApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/rt_selector_pb_service';
 import { FederatedRateLimitConfig } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_ratelimit_resources_pb';
-import { BootstrapApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb_service';
+import {
+  BootstrapApi,
+  BootstrapApiClient,
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb_service';
 import { bootstrapApi } from './bootstrap';
-import { GlooFedCheckResponse } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb';
+import {
+  GetConsoleOptionsRequest,
+  GlooFedCheckResponse,
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb';
 import { graphqlConfigApi } from './graphql';
 import { GraphqlConfigApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
 import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router';
+import { grpc } from '@improbable-eng/grpc-web';
 
 const normalRefreshInterval = 10000;
 
@@ -456,4 +468,29 @@ export function usePageGlooInstance() {
     typeof glooInstances,
     typeof instancesError
   ];
+}
+
+export function useGetConsoleOptions() {
+  const [readonly, setReadonly] = useState(true);
+  const [apiExplorerEnabled, setApiExplorerEnabled] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  useSWR<any>(
+    bootstrapApi.getConsoleOptions.name,
+    () => {
+      bootstrapApi
+        .getConsoleOptions()
+        .catch(err => {
+          setErrorMessage(err.message);
+        })
+        .then(val => {
+          if (val && val.options) {
+            setReadonly(val.options!.readOnly);
+            setApiExplorerEnabled(val.options.apiExplorerEnabled);
+          }
+        });
+    },
+    { refreshInterval: normalRefreshInterval * 10 }
+  );
+
+  return { readonly, apiExplorerEnabled, errorMessage };
 }

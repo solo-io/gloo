@@ -1,4 +1,4 @@
-import { useGetGraphqlApiDetails } from 'API/hooks';
+import { useGetConsoleOptions, useGetGraphqlApiDetails } from 'API/hooks';
 import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
 import { ReactComponent as RouteIcon } from 'assets/route-icon.svg';
 import { SoloModal } from 'Components/Common/SoloModal';
@@ -31,6 +31,7 @@ export const ExeGqlObjectDefinition: React.FC<{
 }) => {
   const listRef = React.useRef<HTMLDivElement>(null);
   const resolverKey = `${apiRef.namespace}-${apiRef.name}-${resolverType}`;
+  const { readonly } = useGetConsoleOptions();
   const { data: graphqlApi, mutate } = useGetGraphqlApiDetails(apiRef);
   const rowVirtualizer = useVirtual({
     size: fields?.length ?? 0,
@@ -224,23 +225,25 @@ export const ExeGqlObjectDefinition: React.FC<{
                       {returnTypeSuffix}
                     </span>
                     <span className={`flex items-center  justify-center`}>
-                      <span
-                        className={`inline-flex items-center min-w-max p-1 px-2 ${
-                          hasResolver
-                            ? 'focus:ring-blue-500gloo text-blue-700gloo bg-blue-200gloo  border-blue-600gloo hover:bg-blue-300gloo'
-                            : 'focus:ring-gray-500 text-gray-700 bg-gray-300  border-gray-600 hover:bg-gray-200'
-                        }   border rounded-full shadow-sm cursor-pointer  focus:outline-none focus:ring-2 focus:ring-offset-2 `}
-                        onClick={() => {
-                          handleResolverConfigModal(
-                            fields[virtualRow.index].name?.value ?? '',
-                            resolverType
-                          );
-                        }}>
-                        {hasResolver && (
-                          <RouteIcon className='w-6 h-6 mr-1 fill-current text-blue-600gloo' />
-                        )}
-                        {hasResolver ? 'Resolver' : 'Define Resolver'}
-                      </span>
+                      {(!readonly || hasResolver) && (
+                        <span
+                          className={`inline-flex items-center min-w-max p-1 px-2 ${
+                            hasResolver
+                              ? 'focus:ring-blue-500gloo text-blue-700gloo bg-blue-200gloo  border-blue-600gloo hover:bg-blue-300gloo'
+                              : 'focus:ring-gray-500 text-gray-700 bg-gray-300  border-gray-600 hover:bg-gray-200'
+                          }   border rounded-full shadow-sm cursor-pointer  focus:outline-none focus:ring-2 focus:ring-offset-2 `}
+                          onClick={() => {
+                            handleResolverConfigModal(
+                              fields[virtualRow.index].name?.value ?? '',
+                              resolverType
+                            );
+                          }}>
+                          {hasResolver && (
+                            <RouteIcon className='w-6 h-6 mr-1 fill-current text-blue-600gloo' />
+                          )}
+                          {hasResolver ? 'Resolver' : 'Define Resolver'}
+                        </span>
+                      )}
                     </span>
 
                     {op.description && (

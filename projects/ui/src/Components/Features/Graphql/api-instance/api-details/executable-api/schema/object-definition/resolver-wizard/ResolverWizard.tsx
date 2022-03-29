@@ -1,6 +1,10 @@
 import styled from '@emotion/styled/macro';
 import { TabList, TabPanel, TabPanels } from '@reach/tabs';
-import { useGetGraphqlApiDetails, useGetGraphqlApiYaml } from 'API/hooks';
+import {
+  useGetGraphqlApiDetails,
+  useGetGraphqlApiYaml,
+  useGetConsoleOptions,
+} from 'API/hooks';
 import { StyledModalTab, StyledModalTabs } from 'Components/Common/SoloModal';
 import { Formik, FormikState } from 'formik';
 import React from 'react';
@@ -143,6 +147,8 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
     namespace: graphqlApiNamespace,
     clusterName: graphqlApiClusterName,
   });
+
+  const { readonly } = useGetConsoleOptions();
 
   const { mutate: mutateSchemaYaml } = useGetGraphqlApiYaml({
     name: graphqlApiName,
@@ -394,14 +400,16 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
               <TabPanels className='bg-white rounded-r-lg'>
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
                   <ResolverTypeSection isEdit={isEdit} />
-                  <div className='ml-2'>
-                    <SoloNegativeButton
-                      onClick={() => {
-                        setAttemptUpdateSchema(true);
-                      }}>
-                      Remove Configuration
-                    </SoloNegativeButton>
-                  </div>
+                  {!readonly && (
+                    <div className='ml-2'>
+                      <SoloNegativeButton
+                        onClick={() => {
+                          setAttemptUpdateSchema(true);
+                        }}>
+                        Remove Configuration
+                      </SoloNegativeButton>
+                    </div>
+                  )}
                   <div className='flex items-center justify-between px-6 '>
                     <IconButton onClick={() => props.onClose()}>
                       Cancel
@@ -443,11 +451,13 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
                     <IconButton onClick={() => props.onClose()}>
                       Cancel
                     </IconButton>
-                    <SoloButtonStyledComponent
-                      onClick={formik.handleSubmit as any}
-                      disabled={!formik.isValid || !formIsValid(formik)}>
-                      Submit
-                    </SoloButtonStyledComponent>
+                    {!readonly && (
+                      <SoloButtonStyledComponent
+                        onClick={formik.handleSubmit as any}
+                        disabled={!formik.isValid || !formIsValid(formik)}>
+                        Submit
+                      </SoloButtonStyledComponent>
+                    )}
                   </div>
                 </TabPanel>
               </TabPanels>

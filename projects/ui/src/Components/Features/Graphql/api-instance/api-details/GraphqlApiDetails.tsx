@@ -5,6 +5,7 @@ import GraphqlApiConfigurationHeader from './GraphqlApiConfigurationHeader';
 import GraphqlDeleteApiButton from './GraphqlDeleteApiButton';
 import GraphqlEditApiButton from './GraphqlEditApiButton';
 import styled from '@emotion/styled/macro';
+import { useGetConsoleOptions } from 'API/hooks';
 
 const ButtonContainer = styled.div`
   button {
@@ -15,6 +16,8 @@ const ButtonContainer = styled.div`
 const GraphqlApiDetails: React.FC<{ apiRef: ClusterObjectRef.AsObject }> = ({
   apiRef,
 }) => {
+  const { readonly } = useGetConsoleOptions();
+
   return (
     <>
       <GraphqlApiConfigurationHeader apiRef={apiRef} />
@@ -23,10 +26,12 @@ const GraphqlApiDetails: React.FC<{ apiRef: ClusterObjectRef.AsObject }> = ({
       <GatewayGraphqlApiDetails apiRef={apiRef} />
       */}
       <ExecutableGraphqlApiDetails apiRef={apiRef} />
-      <ButtonContainer>
-        <GraphqlEditApiButton apiRef={apiRef} />
-        <GraphqlDeleteApiButton apiRef={apiRef} />
-      </ButtonContainer>
+      {!readonly && (
+        <ButtonContainer>
+          <GraphqlEditApiButton apiRef={apiRef} />
+          <GraphqlDeleteApiButton apiRef={apiRef} />
+        </ButtonContainer>
+      )}
     </>
   );
 };
