@@ -1079,7 +1079,7 @@
 |grafana|interface|||
 |prometheus|interface|||
 |tags.NAME|string|||
-|gloo-fed.global.console.readOnly|bool||If true, then custom resources can only be viewed in read-only mode in the UI. If false, then resources can be created, updated, and deleted via the UI (default true).|
+|gloo-fed.global.console.readOnly|bool||If true, then custom resources can only be viewed in read-only mode in the UI. If false, then resources can be created, updated, and deleted via the UI (default false).|
 |gloo-fed.global.console.apiExplorerEnabled|bool||Whether the GraphQL API Explorer is enabled (default true).|
 |gloo-fed.enabled|bool||If true, deploy federation service (default true).|
 |gloo-fed.create_license_secret|bool|false||

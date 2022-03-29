@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	// These are the defaults we use if the Settings resource does not have the options specified
 	readOnlyDefault           = true
 	apiExplorerEnabledDefault = true
 )

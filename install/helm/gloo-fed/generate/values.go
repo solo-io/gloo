@@ -66,6 +66,6 @@ type RbacConfiguration struct {
 }
 
 type ConsoleOptions struct {
-	ReadOnly           *bool `json:"readOnly,omitempty" desc:"If true, then custom resources can only be viewed in read-only mode in the UI. If false, then resources can be created, updated, and deleted via the UI (default true)."`
+	ReadOnly           *bool `json:"readOnly,omitempty" desc:"If true, then custom resources can only be viewed in read-only mode in the UI. If false, then resources can be created, updated, and deleted via the UI (default false)."`
 	ApiExplorerEnabled *bool `json:"apiExplorerEnabled,omitempty" desc:"Whether the GraphQL API Explorer is enabled (default true)."`
 }

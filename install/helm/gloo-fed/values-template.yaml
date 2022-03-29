@@ -58,7 +58,7 @@ global:
   istioIntegration: {}
   istioSDS: {}
   console:
-    readOnly: true
+    readOnly: false
     apiExplorerEnabled: true
 license_key: ""
 license_secret_name: license
