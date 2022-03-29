@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/3116
+  description: Add apiserver endpoint to get console settings. Enforce readonly settings in graphql creates/updates/deletes.
+  resolvesIssue: false

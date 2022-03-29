@@ -22,10 +22,20 @@ type BootstrapApiIsGraphqlEnabled = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GraphqlCheckResponse;
 };
 
+type BootstrapApiGetConsoleOptions = {
+  readonly methodName: string;
+  readonly service: typeof BootstrapApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GetConsoleOptionsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GetConsoleOptionsResponse;
+};
+
 export class BootstrapApi {
   static readonly serviceName: string;
   static readonly IsGlooFedEnabled: BootstrapApiIsGlooFedEnabled;
   static readonly IsGraphqlEnabled: BootstrapApiIsGraphqlEnabled;
+  static readonly GetConsoleOptions: BootstrapApiGetConsoleOptions;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -77,6 +87,15 @@ export class BootstrapApiClient {
   isGraphqlEnabled(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GraphqlCheckRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GraphqlCheckResponse|null) => void
+  ): UnaryResponse;
+  getConsoleOptions(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GetConsoleOptionsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GetConsoleOptionsResponse|null) => void
+  ): UnaryResponse;
+  getConsoleOptions(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GetConsoleOptionsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_bootstrap_pb.GetConsoleOptionsResponse|null) => void
   ): UnaryResponse;
 }
 

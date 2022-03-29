@@ -6,10 +6,13 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/golang/mock/gomock"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/rotisserie/eris"
 	skv2_v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	mock_gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/mocks"
 	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
 	mock_graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1/mocks"
 	. "github.com/solo-io/solo-kit/test/matchers"
@@ -28,6 +31,7 @@ var _ = Describe("fed graphql handler", func() {
 		ctx  context.Context
 
 		mockGlooInstanceClient *mock_fed_v1.MockGlooInstanceClient
+		mockSettingsClient     *mock_gloo_v1.MockSettingsClient
 		mockMCClientset        *mock_graphql_v1alpha1.MockMulticlusterClientset
 		mockGraphqlClientset1  *mock_graphql_v1alpha1.MockClientset
 		mockGraphqlClientset2  *mock_graphql_v1alpha1.MockClientset
@@ -38,6 +42,7 @@ var _ = Describe("fed graphql handler", func() {
 	BeforeEach(func() {
 		ctrl, ctx = gomock.WithContext(context.TODO(), GinkgoT())
 		mockGlooInstanceClient = mock_fed_v1.NewMockGlooInstanceClient(ctrl)
+		mockSettingsClient = mock_gloo_v1.NewMockSettingsClient(ctrl)
 		mockMCClientset = mock_graphql_v1alpha1.NewMockMulticlusterClientset(ctrl)
 		mockGraphqlClientset1 = mock_graphql_v1alpha1.NewMockClientset(ctrl)
 		mockGraphqlClientset2 = mock_graphql_v1alpha1.NewMockClientset(ctrl)
@@ -93,7 +98,7 @@ var _ = Describe("fed graphql handler", func() {
 				Name:      "petstore",
 			}).Return(petstoreGraphqlApi, nil)
 
-			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
 			resp, err := handler.GetGraphqlApi(ctx, &rpc_edge_v1.GetGraphqlApiRequest{
 				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 			})
@@ -122,7 +127,7 @@ var _ = Describe("fed graphql handler", func() {
 				Name:      "petstore",
 			}).Return(petstoreGraphqlApi, nil)
 
-			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
 			resp, err := handler.GetGraphqlApiYaml(ctx, &rpc_edge_v1.GetGraphqlApiYamlRequest{
 				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 			})
@@ -156,7 +161,7 @@ var _ = Describe("fed graphql handler", func() {
 				},
 			}, nil)
 
-			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
 			resp, err := handler.ListGraphqlApis(ctx, &rpc_edge_v1.ListGraphqlApisRequest{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp).To(MatchProto(&rpc_edge_v1.ListGraphqlApisResponse{
@@ -186,9 +191,16 @@ var _ = Describe("fed graphql handler", func() {
 			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
+			mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
+				Spec: gloo_v1.SettingsSpec{
+					ConsoleOptions: &gloo_v1.ConsoleOptions{
+						ReadOnly: &wrappers.BoolValue{Value: false},
+					},
+				},
+			}, nil)
 			mockGraphqlApiClient1.EXPECT().CreateGraphQLApi(ctx, gomock.Any()).Return(nil)
 
-			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
 			resp, err := handler.CreateGraphqlApi(ctx, &rpc_edge_v1.CreateGraphqlApiRequest{
 				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 				Spec:          &petstoreGraphqlApi.Spec,
@@ -202,6 +214,22 @@ var _ = Describe("fed graphql handler", func() {
 					GlooInstance: &skv2_v1.ObjectRef{Name: "local-test", Namespace: "gloo-system"},
 				},
 			}))
+		})
+		It("cannot create graphqlapi if readonly is true", func() {
+			mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
+				Spec: gloo_v1.SettingsSpec{
+					ConsoleOptions: &gloo_v1.ConsoleOptions{
+						ReadOnly: &wrappers.BoolValue{Value: true},
+					},
+				},
+			}, nil)
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
+			_, err := handler.CreateGraphqlApi(ctx, &rpc_edge_v1.CreateGraphqlApiRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns"},
+				Spec:          &graphql_v1alpha1.GraphQLApiSpec{},
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Cannot perform update: UI is read-only."))
 		})
 	})
 
@@ -219,11 +247,18 @@ var _ = Describe("fed graphql handler", func() {
 			err = yaml.Unmarshal(bookinfoYaml, bookinfoGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
+			mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
+				Spec: gloo_v1.SettingsSpec{
+					ConsoleOptions: &gloo_v1.ConsoleOptions{
+						ReadOnly: &wrappers.BoolValue{Value: false},
+					},
+				},
+			}, nil)
 			mockGraphqlApiClient1.EXPECT().GetGraphQLApi(ctx, gomock.Any()).Return(petstoreGraphqlApi, nil)
 			mockGraphqlApiClient1.EXPECT().UpdateGraphQLApi(ctx, gomock.Any()).Return(nil)
 
 			// change spec
-			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
 			resp, err := handler.UpdateGraphqlApi(ctx, &rpc_edge_v1.UpdateGraphqlApiRequest{
 				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 				Spec:          &bookinfoGraphqlApi.Spec,
@@ -238,10 +273,33 @@ var _ = Describe("fed graphql handler", func() {
 				},
 			}))
 		})
+		It("cannot update graphqlapi if readonly is true", func() {
+			mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
+				Spec: gloo_v1.SettingsSpec{
+					ConsoleOptions: &gloo_v1.ConsoleOptions{
+						ReadOnly: &wrappers.BoolValue{Value: true},
+					},
+				},
+			}, nil)
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
+			_, err := handler.UpdateGraphqlApi(ctx, &rpc_edge_v1.UpdateGraphqlApiRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns"},
+				Spec:          &graphql_v1alpha1.GraphQLApiSpec{},
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Cannot perform update: UI is read-only."))
+		})
 		It("errors if ref points to a nonexistent graphqlapi", func() {
 			mockGraphqlApiClient1.EXPECT().GetGraphQLApi(ctx, gomock.Any()).Return(nil, eris.New("not found!"))
+			mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
+				Spec: gloo_v1.SettingsSpec{
+					ConsoleOptions: &gloo_v1.ConsoleOptions{
+						ReadOnly: &wrappers.BoolValue{Value: false},
+					},
+				},
+			}, nil)
 
-			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
 			_, err := handler.UpdateGraphqlApi(ctx, &rpc_edge_v1.UpdateGraphqlApiRequest{
 				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 				Spec:          &graphql_v1alpha1.GraphQLApiSpec{},
@@ -254,8 +312,15 @@ var _ = Describe("fed graphql handler", func() {
 	Context("DeleteGraphqlApi", func() {
 		It("can delete a graphqlapi", func() {
 			mockGraphqlApiClient1.EXPECT().DeleteGraphQLApi(ctx, gomock.Any()).Return(nil)
+			mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
+				Spec: gloo_v1.SettingsSpec{
+					ConsoleOptions: &gloo_v1.ConsoleOptions{
+						ReadOnly: &wrappers.BoolValue{Value: false},
+					},
+				},
+			}, nil)
 
-			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockMCClientset)
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
 			resp, err := handler.DeleteGraphqlApi(ctx, &rpc_edge_v1.DeleteGraphqlApiRequest{
 				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 			})
@@ -263,6 +328,21 @@ var _ = Describe("fed graphql handler", func() {
 			Expect(resp).To(Equal(&rpc_edge_v1.DeleteGraphqlApiResponse{
 				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 			}))
+		})
+		It("cannot delete graphqlapi if readonly is true", func() {
+			mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
+				Spec: gloo_v1.SettingsSpec{
+					ConsoleOptions: &gloo_v1.ConsoleOptions{
+						ReadOnly: &wrappers.BoolValue{Value: true},
+					},
+				},
+			}, nil)
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
+			_, err := handler.DeleteGraphqlApi(ctx, &rpc_edge_v1.DeleteGraphqlApiRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns"},
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Cannot perform update: UI is read-only."))
 		})
 	})
 })

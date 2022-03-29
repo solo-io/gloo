@@ -20,7 +20,24 @@ message GraphqlCheckResponse {
   bool enabled = 1;
 }
 
+// Options for the current Gloo Edge UI.
+message ConsoleOptions {
+  // Returns true if the UI is read-only, false if UI allows creates/updates/deletes.
+  bool read_only = 1;
+
+  // Returns true if the GraphQL explorer is enabled.
+  bool api_explorer_enabled = 2;
+}
+
+message GetConsoleOptionsRequest {
+}
+
+message GetConsoleOptionsResponse {
+  ConsoleOptions options = 1;
+}
+
 service BootstrapApi {
   rpc IsGlooFedEnabled (GlooFedCheckRequest) returns (GlooFedCheckResponse) {}
   rpc IsGraphqlEnabled (GraphqlCheckRequest) returns (GraphqlCheckResponse) {}
+  rpc GetConsoleOptions (GetConsoleOptionsRequest) returns (GetConsoleOptionsResponse) {}
 }

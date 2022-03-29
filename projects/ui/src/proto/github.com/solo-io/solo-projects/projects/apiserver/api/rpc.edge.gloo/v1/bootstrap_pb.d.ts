@@ -75,3 +75,65 @@ export namespace GraphqlCheckResponse {
     enabled: boolean,
   }
 }
+
+export class ConsoleOptions extends jspb.Message {
+  getReadOnly(): boolean;
+  setReadOnly(value: boolean): void;
+
+  getApiExplorerEnabled(): boolean;
+  setApiExplorerEnabled(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConsoleOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: ConsoleOptions): ConsoleOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConsoleOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConsoleOptions;
+  static deserializeBinaryFromReader(message: ConsoleOptions, reader: jspb.BinaryReader): ConsoleOptions;
+}
+
+export namespace ConsoleOptions {
+  export type AsObject = {
+    readOnly: boolean,
+    apiExplorerEnabled: boolean,
+  }
+}
+
+export class GetConsoleOptionsRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetConsoleOptionsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetConsoleOptionsRequest): GetConsoleOptionsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetConsoleOptionsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetConsoleOptionsRequest;
+  static deserializeBinaryFromReader(message: GetConsoleOptionsRequest, reader: jspb.BinaryReader): GetConsoleOptionsRequest;
+}
+
+export namespace GetConsoleOptionsRequest {
+  export type AsObject = {
+  }
+}
+
+export class GetConsoleOptionsResponse extends jspb.Message {
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): ConsoleOptions | undefined;
+  setOptions(value?: ConsoleOptions): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetConsoleOptionsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetConsoleOptionsResponse): GetConsoleOptionsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetConsoleOptionsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetConsoleOptionsResponse;
+  static deserializeBinaryFromReader(message: GetConsoleOptionsResponse, reader: jspb.BinaryReader): GetConsoleOptionsResponse;
+}
+
+export namespace GetConsoleOptionsResponse {
+  export type AsObject = {
+    options?: ConsoleOptions.AsObject,
+  }
+}

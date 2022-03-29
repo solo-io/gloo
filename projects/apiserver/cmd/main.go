@@ -94,6 +94,7 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, apiserverSettin
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while adding cluster indexer to GlooInstance", zap.Error(err))
 	}
 
+	glooClientset := gloo_v1.NewClientset(mgr.GetClient())
 	glooInstanceClient := fedv1.NewGlooInstanceClient(mgr.GetClient())
 	failoverSchemeClient := fedv1.NewFailoverSchemeClient(mgr.GetClient())
 	glooFedClient := gloofedv1.NewClientset(mgr.GetClient())
@@ -112,12 +113,12 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, apiserverSettin
 	glooEnterpriseMCClient := enterprise_gloo_v1.NewMulticlusterClientset(mcClient)
 	ratelimitMCCLient := ratelimit_v1alpha1.NewMulticlusterClientset(mcClient)
 
-	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig(), licensedFeatureProvider)
+	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr, licensedFeatureProvider)
 	glooInstanceService := glooinstance_handler.NewFedGlooInstanceHandler(clusterWatcher, clusterSet, envoy_admin.NewEnvoyAdminClient(), glooInstanceClient)
 	failoverSchemeService := failover_scheme_handler.NewFailoverSchemeHandler(failoverSchemeClient)
 	routeTableSelectorService := rt_selector_handler.NewFedVirtualServiceRoutesHandler(gatewayMCClient)
 	wasmFilterService := wasmfilter_handler.NewFedWasmFilterHandler(glooInstanceClient, gatewayMCClient)
-	graphqlService := graphql_handler.NewFedGraphqlHandler(glooInstanceClient, graphqlMCClient)
+	graphqlService := graphql_handler.NewFedGraphqlHandler(glooInstanceClient, glooClientset.Settings(), graphqlMCClient)
 	glooResourceService := gloo_resource_handler.NewFedGlooResourceHandler(glooInstanceClient, glooMCClient)
 	glooEnterpriseResourceService := enterprise_gloo_resource_handler.NewFedEnterpriseGlooResourceHandler(glooInstanceClient, glooEnterpriseMCClient)
 	ratelimitResourceService := ratelimit_resource_handler.NewFedRatelimitResourceHandler(glooInstanceClient, ratelimitMCCLient)
@@ -148,7 +149,7 @@ func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, apise
 	enterpriseGlooClientset := enterprise_gloo_v1.NewClientset(mgr.GetClient())
 	ratelimitClientset := ratelimit_v1alpha1.NewClientset(mgr.GetClient())
 
-	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr.GetConfig(), licensedFeatureProvider)
+	bootstrapService := bootstrap_handler.NewBootstrapHandler(mgr, licensedFeatureProvider)
 	glooInstanceLister := glooinstance_handler.NewSingleClusterGlooInstanceLister(coreClientset, appsClientset, gatewayClientset, glooClientset, enterpriseGlooClientset, ratelimitClientset)
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
 	if err != nil {
@@ -159,7 +160,7 @@ func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, apise
 
 	routeTableSelectorService := rt_selector_handler.NewSingleClusterVirtualServiceRoutesHandler()
 	wasmFilterService := wasmfilter_handler.NewSingleClusterWasmFilterHandler()
-	graphqlService := graphql_handler.NewSingleClusterGraphqlHandler(graphqlClientset, glooInstanceLister)
+	graphqlService := graphql_handler.NewSingleClusterGraphqlHandler(graphqlClientset, glooInstanceLister, glooClientset.Settings())
 
 	// generated resource handlers
 	gatewayResourceService := single_cluster_resource_handler.NewSingleClusterGatewayResourceHandler(gatewayClientset, glooInstanceLister)

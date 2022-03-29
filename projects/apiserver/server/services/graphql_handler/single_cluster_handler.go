@@ -8,6 +8,7 @@ import (
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/contextutils"
 	skv2_v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
@@ -19,16 +20,19 @@ import (
 func NewSingleClusterGraphqlHandler(
 	graphqlClientset graphql_v1alpha1.Clientset,
 	glooInstanceLister glooinstance_handler.SingleClusterGlooInstanceLister,
+	settingsClient gloo_v1.SettingsClient,
 ) rpc_edge_v1.GraphqlConfigApiServer {
 	return &singleClusterGraphqlHandler{
 		graphqlClientset:   graphqlClientset,
 		glooInstanceLister: glooInstanceLister,
+		settingsClient:     settingsClient,
 	}
 }
 
 type singleClusterGraphqlHandler struct {
 	graphqlClientset   graphql_v1alpha1.Clientset
 	glooInstanceLister glooinstance_handler.SingleClusterGlooInstanceLister
+	settingsClient     gloo_v1.SettingsClient
 }
 
 func (h *singleClusterGraphqlHandler) GetGraphqlApi(ctx context.Context, request *rpc_edge_v1.GetGraphqlApiRequest) (*rpc_edge_v1.GetGraphqlApiResponse, error) {
@@ -203,7 +207,11 @@ func (h *singleClusterGraphqlHandler) GetGraphqlApiYaml(ctx context.Context, req
 }
 
 func (h *singleClusterGraphqlHandler) CreateGraphqlApi(ctx context.Context, request *rpc_edge_v1.CreateGraphqlApiRequest) (*rpc_edge_v1.CreateGraphqlApiResponse, error) {
-	err := h.checkGraphqlApiRef(request.GetGraphqlApiRef())
+	err := apiserverutils.CheckUpdatesAllowed(ctx, h.settingsClient)
+	if err != nil {
+		return nil, err
+	}
+	err = h.checkGraphqlApiRef(request.GetGraphqlApiRef())
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +251,11 @@ func (h *singleClusterGraphqlHandler) CreateGraphqlApi(ctx context.Context, requ
 }
 
 func (h *singleClusterGraphqlHandler) UpdateGraphqlApi(ctx context.Context, request *rpc_edge_v1.UpdateGraphqlApiRequest) (*rpc_edge_v1.UpdateGraphqlApiResponse, error) {
-	err := h.checkGraphqlApiRef(request.GetGraphqlApiRef())
+	err := apiserverutils.CheckUpdatesAllowed(ctx, h.settingsClient)
+	if err != nil {
+		return nil, err
+	}
+	err = h.checkGraphqlApiRef(request.GetGraphqlApiRef())
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +305,11 @@ func (h *singleClusterGraphqlHandler) UpdateGraphqlApi(ctx context.Context, requ
 }
 
 func (h *singleClusterGraphqlHandler) DeleteGraphqlApi(ctx context.Context, request *rpc_edge_v1.DeleteGraphqlApiRequest) (*rpc_edge_v1.DeleteGraphqlApiResponse, error) {
-	err := h.checkGraphqlApiRef(request.GetGraphqlApiRef())
+	err := apiserverutils.CheckUpdatesAllowed(ctx, h.settingsClient)
+	if err != nil {
+		return nil, err
+	}
+	err = h.checkGraphqlApiRef(request.GetGraphqlApiRef())
 	if err != nil {
 		return nil, err
 	}
