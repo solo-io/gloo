@@ -401,6 +401,58 @@ async function updateGraphqlApiResolver(
       newRestResolver.clearResponse();
     }
     newResolution.setRestResolver(newRestResolver);
+  } else if (resolverItem.resolverType === 'gRPC') {
+    let newGrpcResolver =
+      currResolMap?.get(resolverItem.resolverName)?.getGrpcResolver() ??
+      new GrpcResolver();
+    let usRef = newGrpcResolver?.getUpstreamRef() ?? new ResourceRef();
+    if (!usRef?.toObject().name || !usRef?.toObject().namespace) {
+      usRef.setName(resolverItem?.upstreamRef?.name!);
+      usRef.setNamespace(resolverItem?.upstreamRef?.namespace!);
+    }
+    newGrpcResolver.setUpstreamRef(usRef);
+
+    if (resolverItem.grpcRequest !== undefined) {
+      let { methodName, requestMetadataMap, serviceName, outgoingMessageJson } =
+        resolverItem.grpcRequest;
+      let newReq =
+        newGrpcResolver?.getRequestTransform() ?? new GrpcRequestTemplate();
+
+      if (methodName !== undefined && methodName !== '') {
+        newReq.setMethodName(methodName);
+      }
+
+      if (requestMetadataMap?.length > 0) {
+        let newHeadersMap = newReq.getRequestMetadataMap();
+        requestMetadataMap.forEach(([val, key]) => {
+          newHeadersMap.set(val, key);
+        });
+      } else {
+        newReq.clearRequestMetadataMap();
+      }
+
+      if (serviceName !== undefined && serviceName !== '') {
+        newReq.setServiceName(serviceName);
+      }
+
+      if (outgoingMessageJson !== undefined) {
+        let outgoingJson = new Value();
+        outgoingJson.setStringValue(outgoingMessageJson.stringValue);
+        newReq.setOutgoingMessageJson(outgoingJson);
+      } else {
+        newReq.clearOutgoingMessageJson();
+        newReq.setOutgoingMessageJson(undefined);
+      }
+
+      newGrpcResolver.setRequestTransform(newReq);
+    } else {
+      newGrpcResolver?.clearRequestTransform();
+    }
+
+    if (resolverItem.spanName !== undefined && resolverItem.spanName !== '') {
+      newGrpcResolver.setSpanName(resolverItem.spanName);
+    }
+    newResolution.setGrpcResolver(newGrpcResolver);
   }
 
   let request = new UpdateGraphqlApiRequest();

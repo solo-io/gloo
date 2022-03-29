@@ -363,10 +363,20 @@ TS_OUT=--plugin=protoc-gen-ts=$(APISERVER_UI_DIR)/node_modules/.bin/protoc-gen-t
 PROTOC=protoc $(COMMON_PROTOC_FLAGS)
 
 .PHONY: generated-gloo-fed-ui
-generated-gloo-fed-ui: update-gloo-fed-ui-deps generated-gloo-fed-ui-deps
+generated-gloo-fed-ui: update-gloo-fed-ui-deps generated-gloo-fed-ui-deps generated-graphqlschema-json-descriptor
 	mkdir -p $(APISERVER_UI_DIR)/pkg/api/fed.rpc/v1
 	mkdir -p $(APISERVER_UI_DIR)/pkg/api/rpc.edge.gloo/v1
 	./ci/fix-ui-gen.sh
+
+# Generate json descriptor used to convert between graphql protobuf messages and json
+.PHONY: generated-graphqlschema-json-descriptor
+generated-graphqlschema-json-descriptor:
+	yarn --cwd projects/ui pbjs -t json -o src/Components/Features/Graphql/data/graphql.json \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql.proto \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external/google/protobuf/struct.proto \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external/google/protobuf/wrappers.proto \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external/google/protobuf/duration.proto \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-kit/api/v1/ref.proto
 
 .PHONY: generated-gloo-fed-ui-deps
 generated-gloo-fed-ui-deps:

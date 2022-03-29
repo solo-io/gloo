@@ -1,0 +1,594 @@
+{
+  "nested": {
+    "graphql": {
+      "nested": {
+        "gloo": {
+          "nested": {
+            "solo": {
+              "nested": {
+                "io": {
+                  "options": {
+                    "go_package": "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1",
+                    "java_package": "io.envoyproxy.envoy.config.filter.http.graphql.v2",
+                    "java_outer_classname": "GraphQLFilterProto",
+                    "java_multiple_files": true,
+                    "(extproto.equal_all)": true,
+                    "(extproto.hash_all)": true,
+                    "(extproto.clone_all)": true
+                  },
+                  "nested": {
+                    "RequestTemplate": {
+                      "fields": {
+                        "headers": {
+                          "keyType": "string",
+                          "type": "string",
+                          "id": 1
+                        },
+                        "queryParams": {
+                          "keyType": "string",
+                          "type": "string",
+                          "id": 2
+                        },
+                        "body": {
+                          "type": "google.protobuf.Value",
+                          "id": 3
+                        }
+                      }
+                    },
+                    "ResponseTemplate": {
+                      "fields": {
+                        "resultRoot": {
+                          "type": "string",
+                          "id": 1
+                        },
+                        "setters": {
+                          "keyType": "string",
+                          "type": "string",
+                          "id": 2
+                        }
+                      }
+                    },
+                    "GrpcRequestTemplate": {
+                      "fields": {
+                        "outgoingMessageJson": {
+                          "type": "google.protobuf.Value",
+                          "id": 1
+                        },
+                        "serviceName": {
+                          "type": "string",
+                          "id": 2
+                        },
+                        "methodName": {
+                          "type": "string",
+                          "id": 3
+                        },
+                        "requestMetadata": {
+                          "keyType": "string",
+                          "type": "string",
+                          "id": 4
+                        }
+                      }
+                    },
+                    "RESTResolver": {
+                      "fields": {
+                        "upstreamRef": {
+                          "type": "core.solo.io.ResourceRef",
+                          "id": 1
+                        },
+                        "request": {
+                          "type": "RequestTemplate",
+                          "id": 2
+                        },
+                        "response": {
+                          "type": "ResponseTemplate",
+                          "id": 3
+                        },
+                        "spanName": {
+                          "type": "string",
+                          "id": 4
+                        }
+                      }
+                    },
+                    "GrpcDescriptorRegistry": {
+                      "oneofs": {
+                        "descriptorSet": {
+                          "options": {
+                            "(validate.required)": true
+                          },
+                          "oneof": [
+                            "protoDescriptor",
+                            "protoDescriptorBin"
+                          ]
+                        }
+                      },
+                      "fields": {
+                        "protoDescriptor": {
+                          "type": "string",
+                          "id": 1
+                        },
+                        "protoDescriptorBin": {
+                          "type": "bytes",
+                          "id": 2
+                        }
+                      }
+                    },
+                    "GrpcResolver": {
+                      "fields": {
+                        "upstreamRef": {
+                          "type": "core.solo.io.ResourceRef",
+                          "id": 1
+                        },
+                        "requestTransform": {
+                          "type": "GrpcRequestTemplate",
+                          "id": 2
+                        },
+                        "spanName": {
+                          "type": "string",
+                          "id": 4
+                        }
+                      }
+                    },
+                    "StitchedSchema": {
+                      "fields": {
+                        "subschemas": {
+                          "rule": "repeated",
+                          "type": "SubschemaConfig",
+                          "id": 1
+                        }
+                      },
+                      "nested": {
+                        "SubschemaConfig": {
+                          "fields": {
+                            "name": {
+                              "type": "string",
+                              "id": 1
+                            },
+                            "namespace": {
+                              "type": "string",
+                              "id": 2
+                            },
+                            "typeMerge": {
+                              "keyType": "string",
+                              "type": "TypeMergeConfig",
+                              "id": 3
+                            }
+                          },
+                          "nested": {
+                            "TypeMergeConfig": {
+                              "fields": {
+                                "selectionSet": {
+                                  "type": "string",
+                                  "id": 1
+                                },
+                                "queryName": {
+                                  "type": "string",
+                                  "id": 2
+                                },
+                                "args": {
+                                  "keyType": "string",
+                                  "type": "string",
+                                  "id": 3
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "MockResolver": {
+                      "oneofs": {
+                        "response": {
+                          "oneof": [
+                            "syncResponse",
+                            "asyncResponse",
+                            "errorResponse"
+                          ]
+                        }
+                      },
+                      "fields": {
+                        "syncResponse": {
+                          "type": "google.protobuf.Value",
+                          "id": 1
+                        },
+                        "asyncResponse": {
+                          "type": "AsyncResponse",
+                          "id": 2
+                        },
+                        "errorResponse": {
+                          "type": "string",
+                          "id": 3
+                        }
+                      },
+                      "nested": {
+                        "AsyncResponse": {
+                          "fields": {
+                            "response": {
+                              "type": "google.protobuf.Value",
+                              "id": 1
+                            },
+                            "delay": {
+                              "type": "google.protobuf.Duration",
+                              "id": 2
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "Resolution": {
+                      "oneofs": {
+                        "resolver": {
+                          "oneof": [
+                            "restResolver",
+                            "grpcResolver",
+                            "mockResolver"
+                          ]
+                        }
+                      },
+                      "fields": {
+                        "restResolver": {
+                          "type": "RESTResolver",
+                          "id": 1
+                        },
+                        "grpcResolver": {
+                          "type": "GrpcResolver",
+                          "id": 2
+                        },
+                        "mockResolver": {
+                          "type": "MockResolver",
+                          "id": 4
+                        },
+                        "statPrefix": {
+                          "type": "google.protobuf.StringValue",
+                          "id": 3
+                        }
+                      }
+                    },
+                    "GraphQLApiSpec": {
+                      "oneofs": {
+                        "schema": {
+                          "oneof": [
+                            "executableSchema",
+                            "stitchedSchema"
+                          ]
+                        }
+                      },
+                      "fields": {
+                        "executableSchema": {
+                          "type": "ExecutableSchema",
+                          "id": 6
+                        },
+                        "stitchedSchema": {
+                          "type": "StitchedSchema",
+                          "id": 7
+                        },
+                        "statPrefix": {
+                          "type": "google.protobuf.StringValue",
+                          "id": 3
+                        },
+                        "persistedQueryCacheConfig": {
+                          "type": "PersistedQueryCacheConfig",
+                          "id": 4
+                        },
+                        "allowedQueryHashes": {
+                          "rule": "repeated",
+                          "type": "string",
+                          "id": 5
+                        }
+                      }
+                    },
+                    "PersistedQueryCacheConfig": {
+                      "fields": {
+                        "cacheSize": {
+                          "type": "uint32",
+                          "id": 1
+                        }
+                      }
+                    },
+                    "ExecutableSchema": {
+                      "fields": {
+                        "schemaDefinition": {
+                          "type": "string",
+                          "id": 1
+                        },
+                        "executor": {
+                          "type": "Executor",
+                          "id": 2
+                        },
+                        "grpcDescriptorRegistry": {
+                          "type": "GrpcDescriptorRegistry",
+                          "id": 3
+                        }
+                      }
+                    },
+                    "Executor": {
+                      "oneofs": {
+                        "executor": {
+                          "oneof": [
+                            "local"
+                          ]
+                        }
+                      },
+                      "fields": {
+                        "local": {
+                          "type": "Local",
+                          "id": 1
+                        }
+                      },
+                      "nested": {
+                        "Local": {
+                          "fields": {
+                            "resolutions": {
+                              "keyType": "string",
+                              "type": "Resolution",
+                              "id": 1
+                            },
+                            "enableIntrospection": {
+                              "type": "bool",
+                              "id": 2
+                            },
+                            "options": {
+                              "type": "LocalExecutorOptions",
+                              "id": 3
+                            }
+                          },
+                          "nested": {
+                            "LocalExecutorOptions": {
+                              "fields": {
+                                "maxDepth": {
+                                  "type": "google.protobuf.UInt32Value",
+                                  "id": 1
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "GraphQLApiStatus": {
+                      "fields": {
+                        "state": {
+                          "type": "State",
+                          "id": 1
+                        },
+                        "reason": {
+                          "type": "string",
+                          "id": 2
+                        },
+                        "reportedBy": {
+                          "type": "string",
+                          "id": 3
+                        },
+                        "subresourceStatuses": {
+                          "keyType": "string",
+                          "type": "GraphQLApiStatus",
+                          "id": 4
+                        },
+                        "details": {
+                          "type": "google.protobuf.Struct",
+                          "id": 5
+                        }
+                      },
+                      "nested": {
+                        "State": {
+                          "values": {
+                            "Pending": 0,
+                            "Accepted": 1,
+                            "Rejected": 2,
+                            "Warning": 3
+                          }
+                        }
+                      }
+                    },
+                    "GraphQLApiNamespacedStatuses": {
+                      "fields": {
+                        "statuses": {
+                          "keyType": "string",
+                          "type": "GraphQLApiStatus",
+                          "id": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "google": {
+      "nested": {
+        "protobuf": {
+          "options": {
+            "csharp_namespace": "Google.Protobuf.WellKnownTypes",
+            "cc_enable_arenas": true,
+            "go_package": "github.com/golang/protobuf/ptypes/duration",
+            "java_package": "com.google.protobuf",
+            "java_outer_classname": "DurationProto",
+            "java_multiple_files": true,
+            "objc_class_prefix": "GPB"
+          },
+          "nested": {
+            "Struct": {
+              "fields": {
+                "fields": {
+                  "keyType": "string",
+                  "type": "Value",
+                  "id": 1
+                }
+              }
+            },
+            "Value": {
+              "oneofs": {
+                "kind": {
+                  "oneof": [
+                    "nullValue",
+                    "numberValue",
+                    "stringValue",
+                    "boolValue",
+                    "structValue",
+                    "listValue"
+                  ]
+                }
+              },
+              "fields": {
+                "nullValue": {
+                  "type": "NullValue",
+                  "id": 1
+                },
+                "numberValue": {
+                  "type": "double",
+                  "id": 2
+                },
+                "stringValue": {
+                  "type": "string",
+                  "id": 3
+                },
+                "boolValue": {
+                  "type": "bool",
+                  "id": 4
+                },
+                "structValue": {
+                  "type": "Struct",
+                  "id": 5
+                },
+                "listValue": {
+                  "type": "ListValue",
+                  "id": 6
+                }
+              }
+            },
+            "NullValue": {
+              "values": {
+                "NULL_VALUE": 0
+              }
+            },
+            "ListValue": {
+              "fields": {
+                "values": {
+                  "rule": "repeated",
+                  "type": "Value",
+                  "id": 1
+                }
+              }
+            },
+            "DoubleValue": {
+              "fields": {
+                "value": {
+                  "type": "double",
+                  "id": 1
+                }
+              }
+            },
+            "FloatValue": {
+              "fields": {
+                "value": {
+                  "type": "float",
+                  "id": 1
+                }
+              }
+            },
+            "Int64Value": {
+              "fields": {
+                "value": {
+                  "type": "int64",
+                  "id": 1
+                }
+              }
+            },
+            "UInt64Value": {
+              "fields": {
+                "value": {
+                  "type": "uint64",
+                  "id": 1
+                }
+              }
+            },
+            "Int32Value": {
+              "fields": {
+                "value": {
+                  "type": "int32",
+                  "id": 1
+                }
+              }
+            },
+            "UInt32Value": {
+              "fields": {
+                "value": {
+                  "type": "uint32",
+                  "id": 1
+                }
+              }
+            },
+            "BoolValue": {
+              "fields": {
+                "value": {
+                  "type": "bool",
+                  "id": 1
+                }
+              }
+            },
+            "StringValue": {
+              "fields": {
+                "value": {
+                  "type": "string",
+                  "id": 1
+                }
+              }
+            },
+            "BytesValue": {
+              "fields": {
+                "value": {
+                  "type": "bytes",
+                  "id": 1
+                }
+              }
+            },
+            "Duration": {
+              "fields": {
+                "seconds": {
+                  "type": "int64",
+                  "id": 1
+                },
+                "nanos": {
+                  "type": "int32",
+                  "id": 2
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "core": {
+      "nested": {
+        "solo": {
+          "nested": {
+            "io": {
+              "options": {
+                "go_package": "github.com/solo-io/solo-kit/pkg/api/v1/resources/core",
+                "(extproto.hash_all)": true,
+                "(extproto.equal_all)": true,
+                "(extproto.clone_all)": true
+              },
+              "nested": {
+                "ResourceRef": {
+                  "fields": {
+                    "name": {
+                      "type": "string",
+                      "id": 1
+                    },
+                    "namespace": {
+                      "type": "string",
+                      "id": 2
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

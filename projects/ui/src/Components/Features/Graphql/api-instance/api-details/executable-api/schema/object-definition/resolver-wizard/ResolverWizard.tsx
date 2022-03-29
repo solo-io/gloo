@@ -15,9 +15,12 @@ import { graphqlConfigApi } from 'API/graphql';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
 import { useParams } from 'react-router';
 import ConfirmationModal from 'Components/Common/ConfirmationModal';
-import { ResolverTypeSection } from './ResolverTypeSection';
+import { getType, ResolverTypeSection } from './ResolverTypeSection';
 import { UpstreamSection } from './UpstreamSection';
 import { ResolverConfigSection } from './ResolverConfigSection';
+import protobuf from 'protobufjs';
+import { toProto3JSON } from 'proto3-json-serializer';
+import GQLJsonDescriptor from 'Components/Features/Graphql/data/graphql.json';
 import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 
 export const EditorContainer = styled.div<{ editMode: boolean }>`
@@ -84,8 +87,13 @@ export const removeNulls = (obj: any) => {
   return obj;
 };
 
+const jsonRoot = protobuf.Root.fromJSON(GQLJsonDescriptor);
+const ResolutionType = jsonRoot.lookupType('graphql.gloo.solo.io.Resolution');
 export const getResolverFromConfig = (resolver?: Resolution.AsObject) => {
   if (resolver?.restResolver || resolver?.grpcResolver) {
+    // conversion: Resolution.AsObject -> protobufjs.Message -> proto3 JsonValue -> string
+    const msg = ResolutionType.fromObject(resolver);
+    const jsonVal = toProto3JSON(msg);
     YAML.scalarOptions.null.nullStr = '';
     return YAML.stringify(resolver, { simpleKeys: true });
   }
@@ -347,10 +355,10 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
     resolverConfigIsValid(formik);
 
   return (
-    <div data-testid='resolver-wizard' className='h-[700px]'>
+    <div data-testid='resolver-wizard' className=' h-[800px]'>
       <Formik<ResolverWizardFormProps>
         initialValues={{
-          resolverType: 'REST',
+          resolverType: getType(props.resolver),
           upstream: getUpstreamFromMap(
             resolutionsMap,
             props.resolverName ?? ''

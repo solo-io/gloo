@@ -23,9 +23,12 @@ export let apiTypeOptions = [
   },
 ] as SoloFormRadioOption[];
 
-const getType = (
-  resolver: Resolution.AsObject
+export const getType = (
+  resolver?: Resolution.AsObject
 ): ResolverWizardFormProps['resolverType'] => {
+  if (!resolver) {
+    return 'REST';
+  }
   if (resolver.grpcResolver) {
     return 'gRPC';
   } else if (resolver.restResolver) {

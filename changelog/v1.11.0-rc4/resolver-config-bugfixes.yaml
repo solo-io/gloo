@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: The resolver configuration modal was not handling gRPC resolver creates and updates.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3323
+  - type: FIX
+    description: The body field on Resolver configurations was not showing up correctly.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3211

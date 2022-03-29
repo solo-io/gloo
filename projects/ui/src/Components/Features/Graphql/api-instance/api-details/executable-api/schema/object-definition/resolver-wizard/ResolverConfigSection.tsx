@@ -158,14 +158,12 @@ export const ResolverConfigSection = ({
                   </div>
                 )}
               </div>
-
-              <div className='mt-2'></div>
             </div>
             <div className='flex flex-col w-full '>
               <>
                 <SpacedValuesContainer>
                   <InnerValues className='p-2'>
-                    {values.listOfResolvers.length > 0 && (
+                    {resolverOptions.length > 0 && (
                       <div
                         data-testid='create-resolver-from-config'
                         className='grid grid-cols-2 gap-4 '>
