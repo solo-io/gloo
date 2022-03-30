@@ -45,7 +45,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.11
 	github.com/solo-io/external-apis v0.1.4
-	github.com/solo-io/gloo v1.9.10
+	github.com/solo-io/gloo v1.9.11
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.21.24
 	github.com/solo-io/k8s-utils v0.0.11
@@ -56,7 +56,7 @@ require (
 	github.com/solo-io/skv2 v0.17.19
 	github.com/solo-io/skv2-enterprise v0.0.8
 	// Corresponds to gloo-v1.9.6
-	github.com/solo-io/solo-apis v0.0.0-20220315170647-74cf0ef8a28a
+	github.com/solo-io/solo-apis v0.0.0-20220330162548-566026047b13
 	github.com/solo-io/solo-kit v0.24.2
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -96,7 +96,7 @@ replace (
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v0.0.0-20210511163231-5b2d2b5f6c34
 	// used by github.com/deislabs/oras v0.10.0
 	github.com/docker/distribution => github.com/docker/distribution v2.7.0-rc.0+incompatible
-	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
+	github.com/docker/docker => github.com/moby/moby v20.10.14+incompatible
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 	// needed by gloo
 	github.com/google/go-github/v32 => github.com/google/go-github/v32 v32.0.0
