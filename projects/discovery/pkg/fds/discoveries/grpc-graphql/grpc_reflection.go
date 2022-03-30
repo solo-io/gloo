@@ -182,12 +182,12 @@ func (f *GraphqlSchemaDiscovery) GetSchemaBuilderForProtoFileDescriptor(refClien
 					_, _, err = sb.CreateInputMessageType(inputType)
 					if err != nil {
 						return nil, nil, errors.Wrapf(err, "unable to translate input type %s of method %s for service %s",
-							inputType.GetName(), method, svc.GetName(), f.upstream.GetMetadata().GetName(), f.upstream.GetMetadata().GetNamespace())
+							inputType.GetName(), method, svc.GetName())
 					}
 					_, _, err = sb.CreateOutputMessageType(outputType)
 					if err != nil {
 						return nil, nil, errors.Wrapf(err, "unable to translate type %s of method %s for service %s",
-							inputType.GetName(), method, svc.GetName(), f.upstream.GetMetadata().GetName(), f.upstream.GetMetadata().GetNamespace())
+							inputType.GetName(), method, svc.GetName())
 					}
 					sb.AddQueryField(method.GetName(), inputType, outputType, resolverName)
 					outgoingJsonBody := GenerateOutgoingJsonBodyForInputType(inputType, "{$args."+inputType.GetName())
@@ -285,7 +285,14 @@ func getClient(ctx context.Context, url *url.URL) (*grpcreflect.Client, func() e
 		return nil, nil, errors.Wrapf(err, "dialing grpc on %v", url.Host)
 	}
 	refClient := grpcreflect.NewClient(ctx, reflectpb.NewServerReflectionClient(cc))
-	return refClient, cc.Close, nil
+	closeConn := func() error {
+		if err := cc.Close(); err != nil {
+			return err
+		}
+		refClient.Reset()
+		return nil
+	}
+	return refClient, closeConn, nil
 }
 
 func getDepTree(root *desc.FileDescriptor) []*descriptor.FileDescriptorProto {

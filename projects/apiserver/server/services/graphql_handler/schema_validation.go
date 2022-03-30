@@ -33,26 +33,26 @@ func validateInternal(schema string, resolutions map[string]*graphql_v1alpha1.Re
 
 	visitor := directive_utils.NewGraphqlASTVisitor()
 	// resolve directive
-	visitor.AddDirectiveVisitor(directive_utils.RESOLVER_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) error {
+	visitor.AddDirectiveVisitor(directive_utils.RESOLVER_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) (bool, error) {
 		// validate correct usage of the resolve directive
 		resolveDirective := directive_utils.NewResolveDirective()
 		err := resolveDirective.Validate(directiveVisitorParams)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		// check if referenced resolver exists in the resolutions map
 		resolution := resolutions[resolveDirective.ResolverName]
 		if resolution == nil {
-			return directive_utils.NewGraphqlSchemaError(resolveDirective.ResolverNameAstValue,
+			return false, directive_utils.NewGraphqlSchemaError(resolveDirective.ResolverNameAstValue,
 				"resolver %s is not defined", resolveDirective.ResolverName)
 		}
 
-		return nil
+		return false, nil
 	})
 
 	// cacheControl directive
-	visitor.AddDirectiveVisitor(directive_utils.CACHE_CONTROL_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) error {
+	visitor.AddDirectiveVisitor(directive_utils.CACHE_CONTROL_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) (bool, error) {
 		// validate correct usage of the cacheControl directive
 		cacheControlDirective := directive_utils.NewCacheControlDirective()
 		return cacheControlDirective.Validate(directiveVisitorParams)

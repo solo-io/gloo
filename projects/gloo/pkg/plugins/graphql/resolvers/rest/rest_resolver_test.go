@@ -1,11 +1,12 @@
-package graphql_test
+package rest_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
 	"github.com/solo-io/solo-kit/test/matchers"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/rest"
+	resolver_utils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/utils"
 )
 
 var _ = Describe("Rest Resolver Test", func() {
@@ -15,10 +16,10 @@ var _ = Describe("Rest Resolver Test", func() {
 				"no providers": "this must not have any providers",
 				"one provider": "this must have one provider here: {$parent.id}, {$parent.id}",
 			}
-			vp, err := graphql.TranslateStringValueProviderMap(extractions)
+			vp, err := resolver_utils.TranslateStringValueProviderMap(extractions)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(vp).To(HaveLen(2))
-			Expect(vp["no providers"].GetProviders()[graphql.ARBITRARY_PROVIDER_NAME].GetTypedProvider()).To(
+			Expect(vp["no providers"].GetProviders()[resolver_utils.ARBITRARY_PROVIDER_NAME].GetTypedProvider()).To(
 				matchers.MatchProto(
 					&v2.ValueProvider_TypedValueProvider{
 						ValProvider: &v2.ValueProvider_TypedValueProvider_Value{
@@ -49,7 +50,7 @@ var _ = Describe("Rest Resolver Test", func() {
 
 	Context("Translates string setter to correct templated path", func() {
 		It("translates single response with no interpolation", func() {
-			templatedPath, err := graphql.TranslateSetter("{$body[0][*].details.firstname}")
+			templatedPath, err := rest.TranslateSetter("{$body[0][*].details.firstname}")
 			Expect(err).NotTo(HaveOccurred())
 			// This should be empty because we don't want string interpolation, we want the actual body.details.firstname object
 			// whether it is a string, list, or object and we don't want it coerced into a string type
@@ -80,7 +81,7 @@ var _ = Describe("Rest Resolver Test", func() {
 		})
 
 		It("translates templated response with interpolation", func() {
-			templatedPath, err := graphql.TranslateSetter("fullname: {$body.details.firstname} {$body.details.lastname}")
+			templatedPath, err := rest.TranslateSetter("fullname: {$body.details.firstname} {$body.details.lastname}")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(templatedPath.PathTemplate).To(Equal("fullname: {bodydetailsfirstname} {bodydetailslastname}"))
 			Expect(templatedPath.NamedPaths).To(HaveLen(2))

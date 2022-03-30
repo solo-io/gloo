@@ -1,7 +1,9 @@
-package graphql
+package grpc
 
 import (
 	"time"
+
+	resolver_utils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/utils"
 
 	"github.com/rotisserie/eris"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
@@ -15,10 +17,10 @@ import (
 
 const (
 	grpcResolverTypedExtensionConfigName = "io.solo.graphql.resolver.grpc"
-	grpcRegistryExtensionName            = "grpc_extension"
+	GrpcRegistryExtensionName            = "grpc_extension"
 )
 
-func translateGrpcResolver(params plugins.RouteParams, r *v1alpha1.GrpcResolver) (*v3.TypedExtensionConfig, error) {
+func TranslateGrpcResolver(params plugins.RouteParams, r *v1alpha1.GrpcResolver) (*v3.TypedExtensionConfig, error) {
 	requestTransform, err := translateGrpcRequestTransform(r.RequestTransform)
 	if err != nil {
 		return nil, err
@@ -54,7 +56,7 @@ func translateGrpcRequestTransform(transform *v1alpha1.GrpcRequestTemplate) (*v2
 		MethodName:          transform.MethodName,
 		RequestMetadata:     transform.RequestMetadata,
 	}
-	jv, err := TranslateJsonValue(transform.OutgoingMessageJson)
+	jv, err := resolver_utils.TranslateJsonValue(transform.OutgoingMessageJson)
 	if err != nil {
 		return nil, err
 	}

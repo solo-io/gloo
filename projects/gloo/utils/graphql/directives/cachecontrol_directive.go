@@ -27,7 +27,7 @@ func NewCacheControlDirective() *cacheControlDirective {
 
 // Validate validates that the cacheControl directive usage is syntactically correct.
 // At the end of successful validation, `CacheControl` will be populated.
-func (d *cacheControlDirective) Validate(directiveVisitorParams DirectiveVisitorParams) error {
+func (d *cacheControlDirective) Validate(directiveVisitorParams DirectiveVisitorParams) (bool, error) {
 	arguments := map[string]ast.Value{}
 	directive := directiveVisitorParams.Directive
 	for _, argument := range directive.Arguments {
@@ -40,23 +40,23 @@ func (d *cacheControlDirective) Validate(directiveVisitorParams DirectiveVisitor
 	cacheControl := &v2.CacheControl{}
 	if maxAgeFound {
 		if maxAge.GetKind() != kinds.IntValue {
-			return NewGraphqlSchemaError(maxAge, `"%s" argument must be an integer value`, CACHE_CONTROL_MAXAGE_ARGUMENT)
+			return false, NewGraphqlSchemaError(maxAge, `"%s" argument must be an integer value`, CACHE_CONTROL_MAXAGE_ARGUMENT)
 		}
 		uintMaxAge, err := strconv.ParseUint(maxAge.GetValue().(string), 10, 32)
 		if err != nil {
-			return err
+			return false, err
 		}
 		cacheControl.MaxAge = &wrappers.UInt32Value{Value: uint32(uintMaxAge)}
 	}
 	if inheritMaxAgeFound {
 		if inheritMaxAge.GetKind() != kinds.BooleanValue {
-			return NewGraphqlSchemaError(maxAge, `"%s" argument must be a boolean value`, CACHE_CONTROL_INHERIT_MAXAGE_ARGUMENT)
+			return false, NewGraphqlSchemaError(maxAge, `"%s" argument must be a boolean value`, CACHE_CONTROL_INHERIT_MAXAGE_ARGUMENT)
 		}
 		cacheControl.InheritMaxAge = inheritMaxAge.GetValue().(bool)
 	}
 	if scopeFound {
 		if scope.GetKind() != kinds.EnumValue {
-			return NewGraphqlSchemaError(maxAge, `"%s" argument must be a enum value`, CACHE_CONTROL_SCOPE_ARGUMENT)
+			return false, NewGraphqlSchemaError(maxAge, `"%s" argument must be a enum value`, CACHE_CONTROL_SCOPE_ARGUMENT)
 		}
 		scopeStr := scope.GetValue().(string)
 		scope := v2.CacheControl_UNSET
@@ -68,11 +68,11 @@ func (d *cacheControlDirective) Validate(directiveVisitorParams DirectiveVisitor
 		case "private":
 			scope = v2.CacheControl_PRIVATE
 		default:
-			return eris.Errorf("unimplemented cacheControl scope type %s", scopeStr)
+			return false, eris.Errorf("unimplemented cacheControl scope type %s", scopeStr)
 		}
 		cacheControl.Scope = scope
 	}
 
 	d.CacheControl = cacheControl
-	return nil
+	return false, nil
 }

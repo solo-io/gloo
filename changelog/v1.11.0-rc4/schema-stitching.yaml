@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/6034
+    description: >
+      Adds beta support for schema stitching and pre-beta support for type merging. This functionality is exposed in the GraphQLApi resource,
+      under the `stitchedSchema` field. This allows for a single stitched GraphQL api to delegate responses to GraphQL subschemas and stitch
+      the responses back together to a coherent response.

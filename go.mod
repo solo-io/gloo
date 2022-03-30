@@ -77,6 +77,7 @@ require (
 	golang.org/x/mod v0.5.1
 	golang.org/x/net v0.0.0-20211205041911-012df41ee64c
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sys v0.0.0-20220328115105-d36c6a25d886 // indirect
 	golang.org/x/tools v0.1.8
 	google.golang.org/grpc v1.42.0
 	google.golang.org/protobuf v1.27.1

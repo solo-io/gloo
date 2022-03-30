@@ -21,7 +21,11 @@ type DirectiveVisitorParams struct {
 	Type            *ast.ObjectDefinition
 }
 
-type DirectiveVisitor func(params DirectiveVisitorParams) error
+// DirectiveVisitor returns an error, and a bool
+// If bool is true, deletes the directive. If it is false, it leaves the directive.
+// This is useful for directives such as @resolve or @cacheControl that we use only for control plane
+// but we don't want to propogate to data plane.
+type DirectiveVisitor func(params DirectiveVisitorParams) (bool, error)
 
 func (g *GraphqlASTVisitor) AddDirectiveVisitor(directiveName string, visitor DirectiveVisitor) {
 	g.directiveVisitors[directiveName] = visitor
@@ -30,32 +34,50 @@ func (g *GraphqlASTVisitor) AddDirectiveVisitor(directiveName string, visitor Di
 func (g *GraphqlASTVisitor) Visit(root *ast.Document) error {
 	if directiveVisitors := g.directiveVisitors; len(directiveVisitors) != 0 {
 		for _, def := range root.Definitions {
-			if d, ok := def.(*ast.ObjectDefinition); ok {
+			if objDef, ok := def.(*ast.ObjectDefinition); ok {
+				var typeDirectiveIndicesToKeep []int
 				// check type directives
-				for _, directive := range def.(*ast.ObjectDefinition).Directives {
+				for i, directive := range objDef.Directives {
 					if directive.Name == nil {
 						continue
 					}
 					if visitFunc, ok := directiveVisitors[directive.Name.Value]; ok {
-						err := visitFunc(DirectiveVisitorParams{Directive: directive, DirectiveFields: d.Fields, Type: d})
+						deleteDirective, err := visitFunc(DirectiveVisitorParams{Directive: directive, DirectiveFields: objDef.Fields, Type: objDef})
 						if err != nil {
 							return err
 						}
+						if !deleteDirective {
+							typeDirectiveIndicesToKeep = append(typeDirectiveIndicesToKeep, i)
+						}
 					}
 				}
+				var newTypeDirectives []*ast.Directive
+				for _, idx := range typeDirectiveIndicesToKeep {
+					newTypeDirectives = append(newTypeDirectives, objDef.Directives[idx])
+				}
+				objDef.Directives = newTypeDirectives
 				// check field directives
+				var fieldDirectiveIndicesToKeep []int
 				for _, field := range def.(*ast.ObjectDefinition).Fields {
-					for _, directive := range field.Directives {
+					for idx, directive := range field.Directives {
 						if directive.Name == nil {
 							continue
 						}
 						if visitFunc, ok := directiveVisitors[directive.Name.Value]; ok {
-							err := visitFunc(DirectiveVisitorParams{Directive: directive, DirectiveField: field, Type: d})
+							deleteDirective, err := visitFunc(DirectiveVisitorParams{Directive: directive, DirectiveField: field, Type: objDef})
 							if err != nil {
 								return err
 							}
+							if !deleteDirective {
+								fieldDirectiveIndicesToKeep = append(fieldDirectiveIndicesToKeep, idx)
+							}
 						}
 					}
+					var newFieldDirectives []*ast.Directive
+					for _, idx := range typeDirectiveIndicesToKeep {
+						newFieldDirectives = append(newFieldDirectives, objDef.Directives[idx])
+					}
+					field.Directives = newFieldDirectives
 				}
 			}
 		}

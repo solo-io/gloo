@@ -13,8 +13,8 @@ GCS_BUCKET := glooctl-plugins
 WASM_GCS_PATH := glooctl-wasm
 FED_GCS_PATH := glooctl-fed
 
-ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.20.0-patch7
-ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.20.0-patch7
+ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.20.0-patch11
+ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.20.0-patch11
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
@@ -489,6 +489,10 @@ generated-gloo-fed-ui-deps:
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/*/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gateway/v1/*.proto
 
 	$(PROTOC) -I$(APISERVER_DIR) \
@@ -841,6 +845,8 @@ $(GLOO_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 gloo-ee-docker: $(GLOO_OUT_DIR)/.gloo-ee-docker
 
 $(GLOO_OUT_DIR)/.gloo-ee-docker: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
+	cp -r projects/gloo/pkg/plugins/graphql/js $(GLOO_OUT_DIR)/js
+	cp -r projects/ui/src/proto $(GLOO_OUT_DIR)/js
 	docker build $(call get_test_tag_option,gloo-ee) $(GLOO_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		-t $(IMAGE_REPO)/gloo-ee:$(VERSION)
@@ -873,6 +879,8 @@ $(GLOO_FIPS_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 gloo-fips-ee-docker: $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker
 
 $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker: $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64 $(GLOO_FIPS_OUT_DIR)/Dockerfile
+	cp -r projects/gloo/pkg/plugins/graphql/js $(GLOO_FIPS_OUT_DIR)/js
+	cp -r projects/ui/src/proto $(GLOO_FIPS_OUT_DIR)/js
 	docker build $(call get_test_tag_option,gloo-ee) $(GLOO_FIPS_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_FIPS_IMAGE) \
 		-t $(IMAGE_REPO)/gloo-ee-fips:$(VERSION)

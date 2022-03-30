@@ -1,13 +1,19 @@
 package graphql
 
 import (
+	"fmt"
 	"strings"
+
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/grpc"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/mock"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/rest"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/parser"
+	"github.com/graphql-go/graphql/language/printer"
 	"github.com/pkg/errors"
 	"github.com/rotisserie/eris"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
@@ -29,6 +35,8 @@ var (
 const (
 	FilterName    = "io.solo.filters.http.graphql"
 	ExtensionName = "graphql"
+
+	DefaultStitchingIndexFilePath = "/usr/local/bin/js/index.js"
 )
 
 var (
@@ -72,7 +80,7 @@ func (p *plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.St
 	return filters, nil
 }
 
-// ProcessRoute aplying any needed configurations related to grapql.
+// ProcessRoute applies any needed configurations related to graphql.
 // If any configs are found then mark us needing this filter in our chain.
 func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	gqlRef := in.GetGraphqlApiRef()
@@ -99,15 +107,55 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	return pluginutils.SetRoutePerFilterConfig(out, FilterName, routeConf)
 }
 
-func translateGraphQlApiToRouteConf(params plugins.RouteParams, in *v1.Route, api *v1alpha1.GraphQLApi) (*v2.GraphQLRouteConfig, error) {
-	schemaStr := api.GetExecutableSchema().GetSchemaDefinition()
-	_, resolutions, processedSchema, err := processGraphqlSchema(params, schemaStr, api.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions())
+func createGraphQlApi(params plugins.RouteParams, graphQLApi *v1alpha1.GraphQLApi) (*v2.ExecutableSchema, error) {
+	switch schema := graphQLApi.GetSchema().(type) {
+	case *v1alpha1.GraphQLApi_StitchedSchema:
+		{
+			return translateStitchedSchema(params, schema.StitchedSchema)
+		}
+	case *v1alpha1.GraphQLApi_ExecutableSchema:
+		{
+			return translateExecutableSchema(params, graphQLApi)
+		}
+	default:
+		{
+			return nil, eris.Errorf("unknown schema type %T", graphQLApi.GetSchema())
+		}
+	}
+
+}
+
+func translateExecutableSchema(params plugins.RouteParams, graphQLApi *v1alpha1.GraphQLApi) (*v2.ExecutableSchema, error) {
+	extensions, err := translateExtensions(graphQLApi)
 	if err != nil {
 		return nil, err
 	}
-	extensions, err := translateExtensions(api)
+	schemaStr := graphQLApi.GetExecutableSchema().GetSchemaDefinition()
+	_, resolutions, processedSchema, err := processGraphqlSchema(params, schemaStr, graphQLApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions())
 	if err != nil {
 		return nil, err
+	}
+
+	return &v2.ExecutableSchema{
+		Executor: &v2.Executor{
+			Executor: &v2.Executor_Local_{
+				Local: &v2.Executor_Local{
+					Resolutions:         resolutions,
+					EnableIntrospection: graphQLApi.GetExecutableSchema().GetExecutor().GetLocal().GetEnableIntrospection(),
+				},
+			},
+		},
+		SchemaDefinition: &v3.DataSource{
+			Specifier: &v3.DataSource_InlineString{InlineString: PrettyPrintKubeString(processedSchema)},
+		},
+		Extensions: extensions,
+	}, nil
+}
+
+func translateGraphQlApiToRouteConf(params plugins.RouteParams, in *v1.Route, api *v1alpha1.GraphQLApi) (*v2.GraphQLRouteConfig, error) {
+	execSchema, err := createGraphQlApi(params, api)
+	if err != nil {
+		return nil, eris.Wrap(err, "error creating executable schema")
 	}
 	statsPrefix := in.GetGraphqlApiRef().Key()
 	if sp := api.GetStatPrefix().GetValue(); sp != "" {
@@ -119,20 +167,7 @@ func translateGraphQlApiToRouteConf(params plugins.RouteParams, in *v1.Route, ap
 		cacheConf.CacheSize = cc.CacheSize
 	}
 	return &v2.GraphQLRouteConfig{
-		ExecutableSchema: &v2.ExecutableSchema{
-			Executor: &v2.Executor{
-				Executor: &v2.Executor_Local_{
-					Local: &v2.Executor_Local{
-						Resolutions:         resolutions,
-						EnableIntrospection: api.GetExecutableSchema().GetExecutor().GetLocal().GetEnableIntrospection(),
-					},
-				},
-			},
-			SchemaDefinition: &v3.DataSource{
-				Specifier: &v3.DataSource_InlineString{InlineString: processedSchema},
-			},
-			Extensions: extensions,
-		},
+		ExecutableSchema:          execSchema,
 		StatPrefix:                statsPrefix,
 		PersistedQueryCacheConfig: cacheConf,
 		AllowedQueryHashes:        api.GetAllowedQueryHashes(),
@@ -162,7 +197,7 @@ func translateExtensions(api *v1alpha1.GraphQLApi) (map[string]*any.Any, error) 
 		default:
 			return nil, eris.Errorf("unimplemented type %T for grpc resolver proto descriptor translation", regType)
 		}
-		extensions[grpcRegistryExtensionName] = utils.MustMessageToAny(grpcDescRegistry)
+		extensions[grpc.GrpcRegistryExtensionName] = utils.MustMessageToAny(grpcDescRegistry)
 	}
 
 	if len(extensions) == 0 {
@@ -172,9 +207,9 @@ func translateExtensions(api *v1alpha1.GraphQLApi) (map[string]*any.Any, error) 
 }
 
 func processGraphqlSchema(params plugins.RouteParams, schema string, resolutions map[string]*v1alpha1.Resolution) (*ast.Document, []*v2.Resolution, string, error) {
-	doc, err := parser.Parse(parser.ParseParams{Source: schema})
+	doc, err := parseGraphQLSchema(schema)
 	if err != nil {
-		return nil, nil, "", eris.Wrapf(err, "unable to parse graphql schema %s", schema)
+		return nil, nil, "", err
 	}
 	visitor := directive_utils.NewGraphqlASTVisitor()
 	var result []*v2.Resolution
@@ -189,33 +224,35 @@ func processGraphqlSchema(params plugins.RouteParams, schema string, resolutions
 	if err != nil {
 		return nil, nil, "", err
 	}
-	return doc, result, schema, nil
+	return doc, result, fmt.Sprintf("%s", printer.Print(doc)), nil
 }
 
 func translateResolver(params plugins.RouteParams, resolver *v1alpha1.Resolution) (*v3.TypedExtensionConfig, error) {
 	switch r := resolver.Resolver.(type) {
 	case *v1alpha1.Resolution_RestResolver:
-		return translateRestResolver(params, r.RestResolver)
+		return rest.TranslateRestResolver(params, r.RestResolver)
 	case *v1alpha1.Resolution_GrpcResolver:
-		return translateGrpcResolver(params, r.GrpcResolver)
+		return grpc.TranslateGrpcResolver(params, r.GrpcResolver)
+	case *v1alpha1.Resolution_MockResolver:
+		return mock.TranslateMockResolver(r.MockResolver)
 	default:
 		return nil, errors.Errorf("unimplemented resolver type: %T", r)
 	}
 }
 
 func addResolveDirectiveVisitor(visitor *directive_utils.GraphqlASTVisitor, params plugins.RouteParams, resolutions map[string]*v1alpha1.Resolution, result *[]*v2.Resolution) {
-	visitor.AddDirectiveVisitor(directive_utils.RESOLVER_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) error {
+	visitor.AddDirectiveVisitor(directive_utils.RESOLVER_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) (bool, error) {
 		// validate correct usage of the resolve directive
 		resolveDirective := directive_utils.NewResolveDirective()
 		err := resolveDirective.Validate(directiveVisitorParams)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		// check if the resolver referenced here even exists
 		resolution := resolutions[resolveDirective.ResolverName]
 		if resolution == nil {
-			return directive_utils.NewGraphqlSchemaError(resolveDirective.ResolverNameAstValue, "resolver %s is not defined",
+			return false, directive_utils.NewGraphqlSchemaError(resolveDirective.ResolverNameAstValue, "resolver %s is not defined",
 				resolveDirective.ResolverName)
 		}
 
@@ -229,7 +266,7 @@ func addResolveDirectiveVisitor(visitor *directive_utils.GraphqlASTVisitor, para
 		}
 		res, err := translateResolver(params, resolution)
 		if err != nil {
-			return err
+			return false, err
 		}
 		statsPrefix := resolveDirective.ResolverName
 		if sp := resolution.StatPrefix; sp != nil {
@@ -241,7 +278,7 @@ func addResolveDirectiveVisitor(visitor *directive_utils.GraphqlASTVisitor, para
 				if proto.Equal(resul.Matcher, queryMatch) {
 					(*result)[i].Resolver = res
 					(*result)[i].StatPrefix = statsPrefix
-					return nil
+					return true, nil
 				}
 			}
 		}
@@ -250,17 +287,17 @@ func addResolveDirectiveVisitor(visitor *directive_utils.GraphqlASTVisitor, para
 			Resolver:   res,
 			StatPrefix: statsPrefix,
 		})
-		return nil
+		return true, nil
 	})
 }
 
 func addCacheControlDirectiveVisitor(visitor *directive_utils.GraphqlASTVisitor, result *[]*v2.Resolution) {
-	visitor.AddDirectiveVisitor(directive_utils.CACHE_CONTROL_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) error {
+	visitor.AddDirectiveVisitor(directive_utils.CACHE_CONTROL_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) (bool, error) {
 		// validate correct usage of the cacheControl directive
 		cacheControlDirective := directive_utils.NewCacheControlDirective()
-		err := cacheControlDirective.Validate(directiveVisitorParams)
+		_, err := cacheControlDirective.Validate(directiveVisitorParams)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		cacheControl := cacheControlDirective.CacheControl
@@ -293,7 +330,7 @@ func addCacheControlDirectiveVisitor(visitor *directive_utils.GraphqlASTVisitor,
 		}
 
 		if len(queryMatchList) == 0 {
-			return eris.Errorf("logic error: no query match generated but `@cacheControl` directive was found")
+			return false, eris.Errorf("logic error: no query match generated but `@cacheControl` directive was found")
 		}
 
 		for _, queryMatch := range queryMatchList {
@@ -314,6 +351,14 @@ func addCacheControlDirectiveVisitor(visitor *directive_utils.GraphqlASTVisitor,
 				})
 			}
 		}
-		return nil
+		return true, nil
 	})
+}
+
+func parseGraphQLSchema(schema string) (*ast.Document, error) {
+	doc, err := parser.Parse(parser.ParseParams{Source: schema})
+	if err != nil {
+		return nil, eris.Wrapf(err, "unable to parse graphql schema %s", schema)
+	}
+	return doc, nil
 }
