@@ -25,6 +25,7 @@ require (
 	github.com/go-redis/redis/v8 v8.2.3
 	github.com/go-test/deep v1.0.7
 	github.com/gobuffalo/packr v1.30.1
+	github.com/gogo/googleapis v1.4.0 // indirect
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/wire v0.4.0
@@ -104,7 +105,7 @@ replace (
 	// using the pseudo version of github.com/form3tech-oss/jwt-go@v3.2.3 instead of the version directly,
 	// to avoid error about it being used for two different module paths
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v0.0.0-20210511163231-5b2d2b5f6c34
-	github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
+	github.com/docker/docker => github.com/moby/moby v20.10.14+incompatible
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.0-rc1
