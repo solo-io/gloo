@@ -125,8 +125,12 @@ func (h *singleClusterGraphqlHandler) ListGraphqlApis(ctx context.Context, reque
 		}
 	}
 
+	summaries, err := getGraphqlApiSummaries(rpcGraphqlApis)
+	if err != nil {
+		return nil, err
+	}
 	return &rpc_edge_v1.ListGraphqlApisResponse{
-		GraphqlApis: rpcGraphqlApis,
+		GraphqlApis: summaries,
 	}, nil
 }
 

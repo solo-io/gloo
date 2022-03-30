@@ -90,6 +90,99 @@ func (m *GraphqlApi) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *GraphqlApiSummary) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GraphqlApiSummary)
+	if !ok {
+		that2, ok := that.(GraphqlApiSummary)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetMetadata()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMetadata()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMetadata(), target.GetMetadata()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetStatus()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetStatus()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetStatus(), target.GetStatus()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetGlooInstance()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGlooInstance()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGlooInstance(), target.GetGlooInstance()) {
+			return false
+		}
+	}
+
+	switch m.ApiTypeSummary.(type) {
+
+	case *GraphqlApiSummary_Executable:
+		if _, ok := target.ApiTypeSummary.(*GraphqlApiSummary_Executable); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetExecutable()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetExecutable()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetExecutable(), target.GetExecutable()) {
+				return false
+			}
+		}
+
+	case *GraphqlApiSummary_Stitched:
+		if _, ok := target.ApiTypeSummary.(*GraphqlApiSummary_Stitched); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetStitched()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetStitched()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetStitched(), target.GetStitched()) {
+				return false
+			}
+		}
+
+	default:
+		// m is nil but target is not nil
+		if m.ApiTypeSummary != target.ApiTypeSummary {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *GetGraphqlApiRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -655,6 +748,62 @@ func (m *ValidateSchemaDefinitionResponse) Equal(that interface{}) bool {
 	if target == nil {
 		return m == nil
 	} else if m == nil {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GraphqlApiSummary_ExecutableSchemaSummary) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GraphqlApiSummary_ExecutableSchemaSummary)
+	if !ok {
+		that2, ok := that.(GraphqlApiSummary_ExecutableSchemaSummary)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetNumResolvers() != target.GetNumResolvers() {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GraphqlApiSummary_StitchedSchemaSummary) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GraphqlApiSummary_StitchedSchemaSummary)
+	if !ok {
+		that2, ok := that.(GraphqlApiSummary_StitchedSchemaSummary)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetNumSubschemas() != target.GetNumSubschemas() {
 		return false
 	}
 

@@ -48,6 +48,99 @@ export namespace GraphqlApi {
   }
 }
 
+export class GraphqlApiSummary extends jspb.Message {
+  hasMetadata(): boolean;
+  clearMetadata(): void;
+  getMetadata(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta | undefined;
+  setMetadata(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta): void;
+
+  hasStatus(): boolean;
+  clearStatus(): void;
+  getStatus(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus | undefined;
+  setStatus(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus): void;
+
+  hasGlooInstance(): boolean;
+  clearGlooInstance(): void;
+  getGlooInstance(): github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef | undefined;
+  setGlooInstance(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef): void;
+
+  hasExecutable(): boolean;
+  clearExecutable(): void;
+  getExecutable(): GraphqlApiSummary.ExecutableSchemaSummary | undefined;
+  setExecutable(value?: GraphqlApiSummary.ExecutableSchemaSummary): void;
+
+  hasStitched(): boolean;
+  clearStitched(): void;
+  getStitched(): GraphqlApiSummary.StitchedSchemaSummary | undefined;
+  setStitched(value?: GraphqlApiSummary.StitchedSchemaSummary): void;
+
+  getApiTypeSummaryCase(): GraphqlApiSummary.ApiTypeSummaryCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GraphqlApiSummary.AsObject;
+  static toObject(includeInstance: boolean, msg: GraphqlApiSummary): GraphqlApiSummary.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GraphqlApiSummary, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GraphqlApiSummary;
+  static deserializeBinaryFromReader(message: GraphqlApiSummary, reader: jspb.BinaryReader): GraphqlApiSummary;
+}
+
+export namespace GraphqlApiSummary {
+  export type AsObject = {
+    metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
+    status?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.AsObject,
+    glooInstance?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
+    executable?: GraphqlApiSummary.ExecutableSchemaSummary.AsObject,
+    stitched?: GraphqlApiSummary.StitchedSchemaSummary.AsObject,
+  }
+
+  export class ExecutableSchemaSummary extends jspb.Message {
+    getNumResolvers(): number;
+    setNumResolvers(value: number): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ExecutableSchemaSummary.AsObject;
+    static toObject(includeInstance: boolean, msg: ExecutableSchemaSummary): ExecutableSchemaSummary.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ExecutableSchemaSummary, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ExecutableSchemaSummary;
+    static deserializeBinaryFromReader(message: ExecutableSchemaSummary, reader: jspb.BinaryReader): ExecutableSchemaSummary;
+  }
+
+  export namespace ExecutableSchemaSummary {
+    export type AsObject = {
+      numResolvers: number,
+    }
+  }
+
+  export class StitchedSchemaSummary extends jspb.Message {
+    getNumSubschemas(): number;
+    setNumSubschemas(value: number): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): StitchedSchemaSummary.AsObject;
+    static toObject(includeInstance: boolean, msg: StitchedSchemaSummary): StitchedSchemaSummary.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: StitchedSchemaSummary, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): StitchedSchemaSummary;
+    static deserializeBinaryFromReader(message: StitchedSchemaSummary, reader: jspb.BinaryReader): StitchedSchemaSummary;
+  }
+
+  export namespace StitchedSchemaSummary {
+    export type AsObject = {
+      numSubschemas: number,
+    }
+  }
+
+  export enum ApiTypeSummaryCase {
+    API_TYPE_SUMMARY_NOT_SET = 0,
+    EXECUTABLE = 4,
+    STITCHED = 5,
+  }
+}
+
 export class GetGraphqlApiRequest extends jspb.Message {
   hasGraphqlApiRef(): boolean;
   clearGraphqlApiRef(): void;
@@ -116,9 +209,9 @@ export namespace ListGraphqlApisRequest {
 
 export class ListGraphqlApisResponse extends jspb.Message {
   clearGraphqlApisList(): void;
-  getGraphqlApisList(): Array<GraphqlApi>;
-  setGraphqlApisList(value: Array<GraphqlApi>): void;
-  addGraphqlApis(value?: GraphqlApi, index?: number): GraphqlApi;
+  getGraphqlApisList(): Array<GraphqlApiSummary>;
+  setGraphqlApisList(value: Array<GraphqlApiSummary>): void;
+  addGraphqlApis(value?: GraphqlApiSummary, index?: number): GraphqlApiSummary;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListGraphqlApisResponse.AsObject;
@@ -132,7 +225,7 @@ export class ListGraphqlApisResponse extends jspb.Message {
 
 export namespace ListGraphqlApisResponse {
   export type AsObject = {
-    graphqlApisList: Array<GraphqlApi.AsObject>,
+    graphqlApisList: Array<GraphqlApiSummary.AsObject>,
   }
 }
 

@@ -151,10 +151,17 @@ var _ = Describe("single cluster graphql handler", func() {
 			err = yaml.Unmarshal(bookinfoYaml, bookinfoGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
+			stitchedYaml, err := ioutil.ReadFile("graphql_test_data/stitched.yaml")
+			Expect(err).NotTo(HaveOccurred())
+			stitchedGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			err = yaml.Unmarshal(stitchedYaml, stitchedGraphqlApi)
+			Expect(err).NotTo(HaveOccurred())
+
 			mockGraphqlApiClient.EXPECT().ListGraphQLApi(ctx).Return(&graphql_v1alpha1.GraphQLApiList{
 				Items: []graphql_v1alpha1.GraphQLApi{
 					*petstoreGraphqlApi,
 					*bookinfoGraphqlApi,
+					*stitchedGraphqlApi,
 				},
 			}, nil)
 			mockGlooInstanceLister.EXPECT().ListGlooInstances(ctx).Return([]*rpc_edge_v1.GlooInstance{glooInstance}, nil)
@@ -162,19 +169,38 @@ var _ = Describe("single cluster graphql handler", func() {
 			handler := graphql_handler.NewSingleClusterGraphqlHandler(mockGraphqlClientset, mockGlooInstanceLister, mockSettingsClient)
 			resp, err := handler.ListGraphqlApis(ctx, &rpc_edge_v1.ListGraphqlApisRequest{})
 			Expect(err).NotTo(HaveOccurred())
+			// within each gloo instance, graphqlapis are sorted by namespace then name
 			Expect(resp).To(MatchProto(&rpc_edge_v1.ListGraphqlApisResponse{
-				GraphqlApis: []*rpc_edge_v1.GraphqlApi{
+				GraphqlApis: []*rpc_edge_v1.GraphqlApiSummary{
 					{
 						Metadata:     &rpc_edge_v1.ObjectMeta{Name: "bookinfo", Namespace: "gloo-system"},
-						Spec:         &bookinfoGraphqlApi.Spec,
 						Status:       &bookinfoGraphqlApi.Status,
 						GlooInstance: &skv2_v1.ObjectRef{Name: "gloo", Namespace: "gloo-system"},
+						ApiTypeSummary: &rpc_edge_v1.GraphqlApiSummary_Executable{
+							Executable: &rpc_edge_v1.GraphqlApiSummary_ExecutableSchemaSummary{
+								NumResolvers: 6,
+							},
+						},
+					},
+					{
+						Metadata:     &rpc_edge_v1.ObjectMeta{Name: "stitched-api", Namespace: "gloo-system"},
+						Status:       &stitchedGraphqlApi.Status,
+						GlooInstance: &skv2_v1.ObjectRef{Name: "gloo", Namespace: "gloo-system"},
+						ApiTypeSummary: &rpc_edge_v1.GraphqlApiSummary_Stitched{
+							Stitched: &rpc_edge_v1.GraphqlApiSummary_StitchedSchemaSummary{
+								NumSubschemas: 3,
+							},
+						},
 					},
 					{
 						Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns"},
-						Spec:         &petstoreGraphqlApi.Spec,
 						Status:       &petstoreGraphqlApi.Status,
 						GlooInstance: &skv2_v1.ObjectRef{Name: "gloo", Namespace: "gloo-system"},
+						ApiTypeSummary: &rpc_edge_v1.GraphqlApiSummary_Executable{
+							Executable: &rpc_edge_v1.GraphqlApiSummary_ExecutableSchemaSummary{
+								NumResolvers: 2,
+							},
+						},
 					},
 				},
 			}))

@@ -20,6 +20,24 @@ message GraphqlApi {
     .core.skv2.solo.io.ObjectRef gloo_instance = 4;
 }
 
+// Summary fields of a GraphQLApi to be shown on list/table views.
+message GraphqlApiSummary {
+    message ExecutableSchemaSummary {
+        uint32 num_resolvers = 1;
+    }
+    message StitchedSchemaSummary {
+        uint32 num_subschemas = 1;
+    }
+
+    .rpc.edge.gloo.solo.io.ObjectMeta metadata = 1;
+    .graphql.gloo.solo.io.GraphQLApiStatus status = 2;
+    .core.skv2.solo.io.ObjectRef gloo_instance = 3;
+    oneof api_type_summary {
+        ExecutableSchemaSummary executable = 4;
+        StitchedSchemaSummary stitched = 5;
+    }
+}
+
 // Gets a GraphQLApi CR by reference.
 message GetGraphqlApiRequest {
     // A reference to the GraphQLApi. If this is a single-cluster (non-federated) Gloo Edge installation,
@@ -39,7 +57,7 @@ message ListGraphqlApisRequest {
 }
 
 message ListGraphqlApisResponse {
-    repeated GraphqlApi graphql_apis = 1;
+    repeated GraphqlApiSummary graphql_apis = 1;
 }
 
 // Gets the yaml for a GraphQLApi CR.

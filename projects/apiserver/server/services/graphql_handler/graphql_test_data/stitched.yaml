@@ -1,0 +1,15 @@
+apiVersion: graphql.gloo.solo.io/v1alpha1
+kind: GraphQLApi
+metadata:
+  name: stitched-api
+  namespace: gloo-system
+spec:
+  stitchedSchema:
+    subschemas:
+    - name: bookinfo
+      namespace: gloo-system
+    - name: petstore
+      namespace: ns
+    - name: another-one
+      namespace: gloo-system
+status: {}

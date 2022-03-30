@@ -137,8 +137,12 @@ func (h *fedGraphqlHandler) ListGraphqlApis(ctx context.Context, request *rpc_ed
 		}
 	}
 
+	summaries, err := getGraphqlApiSummaries(rpcGraphqlApis)
+	if err != nil {
+		return nil, err
+	}
 	return &rpc_edge_v1.ListGraphqlApisResponse{
-		GraphqlApis: rpcGraphqlApis,
+		GraphqlApis: summaries,
 	}, nil
 }
 
