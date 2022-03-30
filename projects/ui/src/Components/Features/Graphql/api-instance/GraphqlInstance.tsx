@@ -1,5 +1,9 @@
 import { TabPanels, Tabs } from '@reach/tabs';
-import { useGetGraphqlApiDetails, useGetConsoleOptions } from 'API/hooks';
+import {
+  useGetGraphqlApiDetails,
+  usePageApiRef,
+  useGetConsoleOptions,
+} from 'API/hooks';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import { Loading } from 'Components/Common/Loading';
 import { SectionCard } from 'Components/Common/SectionCard';
@@ -10,9 +14,8 @@ import {
   FolderTabList,
   StyledTabPanel,
 } from 'Components/Common/Tabs';
-import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React from 'react';
-import { useParams } from 'react-router';
+import { isExecutableAPI } from 'utils/graphql-helpers';
 import { GraphqlIconHolder } from '../GraphqlTable';
 import GraphqlApiDetails from './api-details/GraphqlApiDetails';
 import { GraphqlApiExplorer } from './api-explorer/GraphqlApiExplorer';
@@ -20,19 +23,7 @@ import GraphqlApiIntrospectionToggle from './GraphqlApiIntrospectionToggle';
 import GraphqlDefineResolversPrompt from './GraphqlDefineResolversPrompt';
 
 export const GraphqlInstance: React.FC = () => {
-  // gets the graphql info from the URL
-  const {
-    graphqlApiName = '',
-    graphqlApiNamespace = '',
-    graphqlApiClusterName = '',
-  } = useParams();
-  const apiRef = {
-    name: graphqlApiName,
-    namespace: graphqlApiNamespace,
-    clusterName: graphqlApiClusterName,
-  } as ClusterObjectRef.AsObject;
-
-  // gets the schema from the api
+  const apiRef = usePageApiRef();
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
   const { apiExplorerEnabled } = useGetConsoleOptions();
 
@@ -46,15 +37,17 @@ export const GraphqlInstance: React.FC = () => {
   return (
     <div className='w-full mx-auto '>
       <SectionCard
-        cardName={graphqlApiName}
+        cardName={apiRef.name}
         logoIcon={<GraphqlIconHolder>{<GraphQLIcon />}</GraphqlIconHolder>}
         headerSecondaryInformation={[
           {
             title: 'Namespace',
-            value: graphqlApiNamespace,
+            value: apiRef.namespace,
           },
         ]}>
-        <GraphqlDefineResolversPrompt apiRef={apiRef} />
+        {isExecutableAPI(graphqlApi) && (
+          <GraphqlDefineResolversPrompt apiRef={apiRef} />
+        )}
 
         <div className='float-right'>
           <GraphqlApiIntrospectionToggle apiRef={apiRef} />
@@ -69,7 +62,7 @@ export const GraphqlInstance: React.FC = () => {
           <TabPanels>
             <StyledTabPanel>
               <FolderTabContent>
-                {tabIndex === 0 && <GraphqlApiDetails apiRef={apiRef} />}
+                {tabIndex === 0 && <GraphqlApiDetails />}
               </FolderTabContent>
             </StyledTabPanel>
             <StyledTabPanel>

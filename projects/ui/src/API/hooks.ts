@@ -470,8 +470,21 @@ export function usePageGlooInstance() {
   ];
 }
 
+export const usePageApiRef = () => {
+  const {
+    graphqlApiName = '',
+    graphqlApiNamespace = '',
+    graphqlApiClusterName = '',
+  } = useParams();
+  return {
+    name: graphqlApiName,
+    namespace: graphqlApiNamespace,
+    clusterName: graphqlApiClusterName,
+  } as ClusterObjectRef.AsObject;
+};
+
 export function useGetConsoleOptions() {
-  const [readonly, setReadonly] = useState(true);
+  const [readonly, setReadonly] = useState(false);
   const [apiExplorerEnabled, setApiExplorerEnabled] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   useSWR<any>(

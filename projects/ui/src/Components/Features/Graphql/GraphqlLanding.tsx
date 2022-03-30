@@ -33,9 +33,7 @@ const API_TYPES: CheckboxFilterProps[] = [
 
 export const GraphqlLanding = () => {
   const [nameFilter, setNameFilter] = useState('');
-  const [showGraphqlModal, setShowGraphqlModal] = React.useState(false);
-
-  const openModal = () => setShowGraphqlModal(true);
+  const [isNewApiModalVisible, setIsNewApiModalVisible] = React.useState(false);
   const { readonly } = useGetConsoleOptions();
 
   const [typeFilters, setTypeFilters] =
@@ -60,7 +58,9 @@ export const GraphqlLanding = () => {
   return (
     <styles.GraphqlLandingContainer className='relative'>
       {!readonly && (
-        <SoloAddButton onClick={openModal} className='absolute right-0 -top-8 '>
+        <SoloAddButton
+          onClick={() => setIsNewApiModalVisible(true)}
+          className='absolute right-0 -top-8 '>
           Create API
         </SoloAddButton>
       )}
@@ -90,8 +90,8 @@ export const GraphqlLanding = () => {
         <GraphqlPageTable typeFilters={typeFilters} nameFilter={nameFilter} />
       </div>
       <NewApiModal
-        show={showGraphqlModal}
-        onClose={() => setShowGraphqlModal(false)}
+        show={isNewApiModalVisible}
+        onClose={() => setIsNewApiModalVisible(false)}
       />
     </styles.GraphqlLandingContainer>
   );

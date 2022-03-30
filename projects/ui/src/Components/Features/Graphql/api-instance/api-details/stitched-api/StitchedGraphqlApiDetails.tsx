@@ -1,26 +1,48 @@
 import { TabPanels, Tabs } from '@reach/tabs';
+import { useGetConsoleOptions, useGetGraphqlApiDetails } from 'API/hooks';
 import {
   FolderTab,
   FolderTabContent,
   FolderTabList,
   StyledTabPanel,
 } from 'Components/Common/Tabs';
-import styled from '@emotion/styled/macro';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useState } from 'react';
-import GatewayGraphqlMutationsTable from './schema/GatewayGraphqlMutationsTable';
-import GatewayGraphqlObjectsTable from './schema/GatewayGraphqlObjectsTable';
-import GatewayGraphqlQueriesTable from './schema/GatewayGraphqlQueriesTable';
-import GatewayGraphqlSubGraphs from './sub-graphs/GatewayGraphqlSubGraphs';
+import GraphqlDeleteApiButton from '../GraphqlDeleteApiButton';
+import StitchedGraphqlMutationsTable from './schema/StitchedGqlMutationsTable';
+import StitchedGraphqlObjectsTable from './schema/StitchedGqlObjectsTable';
+import StitchedGraphqlQueriesTable from './schema/StitchedGqlQueriesTable';
+import StitchedGqlSubGraphs from './sub-graphs/StitchedGqlSubGraphs';
 
-export const GatewayGraphqlApiDetails: React.FC<{
+export const StitchedGraphqlApiDetails: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
 }> = ({ apiRef }) => {
   const [schemaTabIndex, setSchemaTabIndex] = useState(0);
+  const { readonly } = useGetConsoleOptions();
+
+  // -- SUBGRAPHS -- //
+  const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
+  const subschemasList =
+    graphqlApi?.spec?.stitchedSchema?.subschemasList ??
+    [
+      // * Uncomment this for fake data.
+      // * The bookinfo-graphql sub-graph should have a
+      // * working link to the bookinfo example.
+      // {
+      //   name: 'bookinfo-graphql',
+      //   namespace: 'gloo-system',
+      //   typeMergeMap: [],
+      // },
+      // {
+      //   name: 'test-book',
+      //   namespace: 'gloo-system',
+      //   typeMergeMap: [],
+      // },
+    ];
 
   return (
     <>
-      <GatewayGraphqlSubGraphs apiRef={apiRef} />
+      <StitchedGqlSubGraphs apiRef={apiRef} subGraphs={subschemasList} />
 
       <hr className='mt-10 mb-10' />
 
@@ -49,23 +71,25 @@ export const GatewayGraphqlApiDetails: React.FC<{
           <TabPanels>
             <StyledTabPanel>
               <FolderTabContent>
-                {schemaTabIndex === 0 && <GatewayGraphqlQueriesTable />}
+                {schemaTabIndex === 0 && <StitchedGraphqlQueriesTable />}
               </FolderTabContent>
             </StyledTabPanel>
             <StyledTabPanel>
               <FolderTabContent>
-                {schemaTabIndex === 1 && <GatewayGraphqlMutationsTable />}
+                {schemaTabIndex === 1 && <StitchedGraphqlMutationsTable />}
               </FolderTabContent>
             </StyledTabPanel>
             <StyledTabPanel>
               <FolderTabContent>
-                {schemaTabIndex === 2 && <GatewayGraphqlObjectsTable />}
+                {schemaTabIndex === 2 && <StitchedGraphqlObjectsTable />}
               </FolderTabContent>
             </StyledTabPanel>
           </TabPanels>
         </Tabs>
       </div>
       {/* </Card> */}
+
+      {!readonly && <GraphqlDeleteApiButton apiRef={apiRef} />}
     </>
   );
 };

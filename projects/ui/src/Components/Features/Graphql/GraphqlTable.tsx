@@ -23,6 +23,7 @@ import { doDownload } from 'download-helper';
 import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React from 'react';
 import { colors } from 'Styles/colors';
+import { makeGraphqlApiLink } from 'utils/graphql-helpers';
 import { useDeleteAPI } from 'utils/hooks';
 import { APIType } from './GraphqlLanding';
 
@@ -65,9 +66,7 @@ type TableDataType = {
 };
 
 export const GraphqlTable = (props: Props & TableHolderProps) => {
-  const { data: glooFedCheckResponse, error: glooFedCheckError } =
-    useIsGlooFedEnabled();
-  const isGlooFedEnabled = glooFedCheckResponse?.enabled;
+  const isGlooFedEnabled = useIsGlooFedEnabled().data?.enabled;
 
   const {
     data: graphqlApis,
@@ -102,11 +101,14 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
               key: gqlApi.metadata?.uid!,
               name: {
                 displayElement: gqlApi.metadata?.name ?? '',
-                link: gqlApi.metadata
-                  ? isGlooFedEnabled
-                    ? `/gloo-instances/${gqlApi.glooInstance?.namespace}/${gqlApi.glooInstance?.name}/apis/${gqlApi.metadata.clusterName}/${gqlApi.metadata.namespace}/${gqlApi.metadata.name}/`
-                    : `/gloo-instances/${gqlApi.glooInstance?.namespace}/${gqlApi.glooInstance?.name}/apis/${gqlApi.metadata.namespace}/${gqlApi.metadata.name}/`
-                  : '',
+                link: makeGraphqlApiLink(
+                  gqlApi.metadata?.name,
+                  gqlApi.metadata?.namespace,
+                  gqlApi.metadata?.clusterName,
+                  gqlApi.glooInstance?.name,
+                  gqlApi.glooInstance?.namespace,
+                  isGlooFedEnabled
+                ),
               },
               namespace: gqlApi.metadata?.namespace ?? '',
               cluster: gqlApi.metadata?.clusterName ?? '',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
-import Table from 'antd/lib/table';
+import Table, { TableProps } from 'antd/lib/table';
 import { colors, hslToHSLA } from 'Styles/colors';
 import { SoloLink } from 'Components/Common/SoloLink';
 import { HealthIndicator } from './HealthIndicator';
@@ -326,7 +326,7 @@ export const TableContainer = styled.div<TableContainerProps>`
   }
 `;
 
-export interface TableProps {
+export interface SoloTableProps extends TableProps<any> {
   columns: ColumnsType<any>;
   dataSource: any[];
   formComponent?: React.FC;
@@ -359,7 +359,7 @@ const EditableRow = ({ lastRowID, formComponent, isEmpty, ...props }: any) => {
   );
 };
 
-export const SoloTable = (props: TableProps) => {
+export const SoloTable = (props: SoloTableProps) => {
   const components = {
     body: {
       row: EditableRow,
@@ -374,13 +374,10 @@ export const SoloTable = (props: TableProps) => {
       withBorder={props.withBorder}
       flatTopped={props.flatTopped}>
       <Table
-        dataSource={props.dataSource}
-        columns={props.columns}
-        components={components}
         pagination={props.removePaging ? false : { position: ['bottomRight'] }}
         showHeader={!props.hideHeader}
-        rowClassName={props.rowClassName}
-        expandable={props.expandable}
+        components={components}
+        {...props}
       />
     </TableContainer>
   );

@@ -2,13 +2,13 @@ import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloTable } from 'Components/Common/SoloTable';
 import React, { useMemo, useState } from 'react';
 
-const GWGraphqlQueriesTable = () => {
+const StitchedGqlObjectsTable = () => {
   const tableData: any = [];
 
   const columns = useMemo(() => {
     return [
       {
-        title: 'Query Name',
+        title: 'Object Name',
         dataIndex: 'name',
         width: 200,
         // render: RenderSimpleLink,
@@ -52,4 +52,4 @@ const GWGraphqlQueriesTable = () => {
   );
 };
 
-export default GWGraphqlQueriesTable;
+export default StitchedGqlObjectsTable;

@@ -1,11 +1,8 @@
 import { graphqlConfigApi } from 'API/graphql';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React from 'react';
-import {
-  SoloButtonStyledComponent,
-  SoloCancelButton,
-} from 'Styles/StyledComponents/button';
-import { UpdateApiModal } from '../../update-api-modal/UpdateApiModal';
+import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
+import { UpdateApiModal } from '../../../update-api-modal/UpdateApiModal';
 
 const GraphqlEditApiButton: React.FC<{
   apiRef: ClusterObjectRef.AsObject;

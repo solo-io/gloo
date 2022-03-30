@@ -1,0 +1,13 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Added an add-subgraph modal to the stitched GraphQL UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3278
+  - type: NEW_FEATURE
+    description: >
+      Added a remove-subgraph button to the stitched GraphQL UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3359
+  - type: FIX
+    description: >
+      Return types in the Executable GraphQL UI now show nested non-null and list types correctly.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3358

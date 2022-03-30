@@ -6,7 +6,6 @@ import {
   EnumTypeDefinitionNode,
   FieldDefinitionNode,
   Kind,
-  NamedTypeNode,
   ObjectTypeDefinitionNode,
 } from 'graphql';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
@@ -15,6 +14,33 @@ import { useVirtual } from 'react-virtual';
 import { colors } from 'Styles/colors';
 import * as styles from '../ExecutableGraphqlSchemaDefinitions.style';
 import { ResolverWizard } from './resolver-wizard/ResolverWizard';
+
+/**
+ * Traverses the field definition to build the string representation.
+ * @returns [prefix, base-type, suffix]
+ */
+const getFieldTypeParts = (fieldDefinition: FieldDefinitionNode) => {
+  let typePrefix = '';
+  let typeSuffix = '';
+  let baseField = fieldDefinition.type;
+  // The fieldDefinition could be nested.
+  while (true) {
+    if (baseField?.kind === Kind.NON_NULL_TYPE) {
+      typeSuffix = '!' + typeSuffix;
+    } else if (baseField?.kind === Kind.LIST_TYPE) {
+      typePrefix = typePrefix + '[';
+      typeSuffix = ']' + typeSuffix;
+    } else break;
+    baseField = baseField.type;
+  }
+  if (baseField.kind === Kind.NAMED_TYPE)
+    return [typePrefix, baseField.name.value, typeSuffix] as [
+      string,
+      string,
+      string
+    ];
+  else return ['', '', ''] as [string, string, string];
+};
 
 export const ExeGqlObjectDefinition: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
@@ -68,16 +94,8 @@ export const ExeGqlObjectDefinition: React.FC<{
     if (field === undefined) return;
     //
     // Find the base field type (this could be a nested list).
-    let baseField = field.type;
-    let typePrefix = '';
-    let typeSuffix = '';
-    while (baseField?.kind === Kind.LIST_TYPE) {
-      typePrefix += '[';
-      typeSuffix += ']';
-      baseField = baseField.type;
-    }
-    if (baseField?.kind !== Kind.NAMED_TYPE) return;
-    let fieldType = typePrefix + baseField?.name?.value + typeSuffix;
+    const [typePrefix, baseType, typeSuffix] = getFieldTypeParts(field);
+    let fieldType = typePrefix + baseType + typeSuffix;
     //
     // Build the directive strings for graphql.
     let fieldWithoutDirective = `${resolverName}: ${fieldType}]`;
@@ -156,24 +174,8 @@ export const ExeGqlObjectDefinition: React.FC<{
               !!graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
                 ([rN, r]) => rN.includes(fields[virtualRow.index].name?.value)
               );
-            const getReturnType = () => {
-              let prefix = '';
-              let suffix = '';
-              let cur = op.type;
-              while (cur.kind === Kind.LIST_TYPE) {
-                cur = cur.type;
-                suffix += '[]';
-              }
-              if (cur.kind === Kind.NAMED_TYPE)
-                return [prefix, cur.name.value, suffix] as [
-                  string,
-                  string,
-                  string
-                ];
-              else return ['', '', ''] as [string, string, string];
-            };
             const [returnTypePrefix, baseReturnType, returnTypeSuffix] =
-              getReturnType();
+              getFieldTypeParts(op);
             return (
               <div
                 key={`${resolverType}-${op.name?.value}`}

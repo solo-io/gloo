@@ -139,8 +139,8 @@ export const SoloInput = (props: InputProps) => {
               if (onChange)
                 onChange({
                   ...e,
-                  target: { ...e.target, value: '' },
-                  currentTarget: { ...e, value: '' },
+                  target: { ...e.target, name, value: '' },
+                  currentTarget: { ...e.currentTarget, name, value: '' },
                 } as any);
             }}>
             <CloseOutlined />

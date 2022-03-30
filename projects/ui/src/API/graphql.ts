@@ -37,6 +37,7 @@ import {
   Resolution,
   ResponseTemplate,
   RESTResolver,
+  StitchedSchema,
 } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 import { Struct, Value } from 'google-protobuf/google/protobuf/struct_pb';
@@ -143,24 +144,44 @@ function getGraphqlApiYaml(
   });
 }
 
-function createGraphqlApi(
-  createGraphqlApiRequest: CreateGraphqlApiRequest.AsObject
-): Promise<GraphqlApi.AsObject> {
+function createGraphqlApi({
+  graphqlApiRef,
+  spec,
+}: CreateGraphqlApiRequest.AsObject): Promise<GraphqlApi.AsObject> {
   let request = new CreateGraphqlApiRequest();
-  let { graphqlApiRef, spec } = createGraphqlApiRequest;
   let graphqlApiSpec = new GraphQLApiSpec();
-  let executableSchema = new ExecutableSchema();
-  executableSchema.setSchemaDefinition(
-    spec?.executableSchema?.schemaDefinition ?? ''
-  );
-  let local = new Executor.Local();
-  local.setEnableIntrospection(true);
-  let executor = new Executor();
-  executor.setLocal(local);
-  executableSchema.setExecutor(executor);
-  graphqlApiSpec.setExecutableSchema(executableSchema);
-  request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef!));
 
+  // Check API type
+  const isStitchedApi = !!spec?.stitchedSchema;
+  const isExecutableApi = !!spec?.executableSchema;
+  if (!isStitchedApi && !isExecutableApi)
+    return new Promise((resolve, reject) => reject('Invalid API type!'));
+
+  if (isStitchedApi) {
+    // -- Stitched
+    let stitchedSchema = new StitchedSchema();
+    // Uncomment the following lines to test schema persistence:
+    // const mockSubschema = new StitchedSchema.SubschemaConfig();
+    // mockSubschema.setName('test-name');
+    // mockSubschema.setNamespace('test-namespace');
+    // stitchedSchema.setSubschemasList([mockSubschema]);
+    stitchedSchema.setSubschemasList([]);
+    graphqlApiSpec.setStitchedSchema(stitchedSchema);
+  } else if (isExecutableApi) {
+    // -- Executable
+    let executableSchema = new ExecutableSchema();
+    executableSchema.setSchemaDefinition(
+      spec?.executableSchema?.schemaDefinition ?? ''
+    );
+    let local = new Executor.Local();
+    local.setEnableIntrospection(true);
+    let executor = new Executor();
+    executor.setLocal(local);
+    executableSchema.setExecutor(executor);
+    graphqlApiSpec.setExecutableSchema(executableSchema);
+  }
+
+  request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef!));
   request.setSpec(graphqlApiSpec);
 
   return new Promise((resolve, reject) => {
@@ -181,7 +202,7 @@ function apiSpecFromObject(
   apiSpec: GraphQLApiSpec.AsObject,
   apiSpecToUpdate = new GraphQLApiSpec()
 ): GraphQLApiSpec {
-  let { executableSchema, statPrefix } = apiSpec;
+  let { executableSchema, stitchedSchema, statPrefix } = apiSpec;
   if (statPrefix !== undefined) {
     let { value } = statPrefix;
     let newStatPrefix = apiSpecToUpdate.getStatPrefix() ?? new StringValue();
@@ -189,6 +210,21 @@ function apiSpecFromObject(
     apiSpecToUpdate.setStatPrefix(newStatPrefix);
   }
 
+  // -- Stitched -- //
+  if (stitchedSchema !== undefined) {
+    let subschemasList = stitchedSchema.subschemasList;
+    let newSchema = apiSpecToUpdate.getStitchedSchema() ?? new StitchedSchema();
+    const newSubschemasList = subschemasList.map(subschema => {
+      const newSubschema = new StitchedSchema.SubschemaConfig();
+      newSubschema.setName(subschema.name);
+      newSubschema.setNamespace(subschema.namespace);
+      return newSubschema;
+    });
+    newSchema.setSubschemasList(newSubschemasList);
+    apiSpecToUpdate.setStitchedSchema(newSchema);
+  }
+
+  // -- Executable -- //
   if (executableSchema !== undefined) {
     let { schemaDefinition, executor, grpcDescriptorRegistry } =
       executableSchema;
@@ -237,6 +273,7 @@ function apiSpecFromObject(
 
     apiSpecToUpdate.setExecutableSchema(newExecutableSchema);
   }
+
   return apiSpecToUpdate;
 }
 
@@ -646,13 +683,8 @@ async function getGraphqlApiWithResolver(
 function deleteGraphqlApi(
   graphqlApiRef: ClusterObjectRef.AsObject
 ): Promise<ClusterObjectRef.AsObject> {
-  let request = new CreateGraphqlApiRequest();
-  let graphqlApiSpec = new GraphQLApiSpec();
-
+  let request = new DeleteGraphqlApiRequest();
   request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef!));
-
-  request.setSpec(graphqlApiSpec);
-
   return new Promise((resolve, reject) => {
     graphqlApiClient.deleteGraphqlApi(request, (error, data) => {
       if (error !== null) {

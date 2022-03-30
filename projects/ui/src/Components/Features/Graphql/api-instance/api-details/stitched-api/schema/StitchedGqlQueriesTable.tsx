@@ -2,13 +2,13 @@ import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloTable } from 'Components/Common/SoloTable';
 import React, { useMemo, useState } from 'react';
 
-const GWGraphqlMutationsTable = () => {
+const StitchedGqlQueriesTable = () => {
   const tableData: any = [];
 
   const columns = useMemo(() => {
     return [
       {
-        title: 'Mutation Name',
+        title: 'Query Name',
         dataIndex: 'name',
         width: 200,
         // render: RenderSimpleLink,
@@ -34,7 +34,7 @@ const GWGraphqlMutationsTable = () => {
           onChange={s => setSearchText(s.target.value)}
         />
       </div>
-      <SoloTable columns={columns} dataSource={tableData} removePaging />
+      <SoloTable columns={columns} dataSource={tableData} />
       {/* <ConfirmationModal
         visible={isDeleting}
         confirmPrompt='delete this API'
@@ -52,4 +52,4 @@ const GWGraphqlMutationsTable = () => {
   );
 };
 
-export default GWGraphqlMutationsTable;
+export default StitchedGqlQueriesTable;

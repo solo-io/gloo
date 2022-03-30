@@ -13,11 +13,15 @@ import {
 import { SoloModal } from 'Components/Common/SoloModal';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { Formik } from 'formik';
-import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
+import {
+  CreateGraphqlApiRequest,
+  ValidateSchemaDefinitionRequest,
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
 import { nameValidationSchema } from 'utils';
+import { makeGraphqlApiLink } from 'utils/graphql-helpers';
 import * as yup from 'yup';
 import * as styles from './NewApiModal.style';
 
@@ -38,7 +42,7 @@ export const NewApiModal: React.FC<{
 
   const initialValues = {
     name: '',
-    apiType: 'executable' as 'gateway' | 'executable',
+    apiType: 'executable' as 'stitched' | 'executable',
     schemaString: '',
     uploadedSchema: undefined as unknown as File,
   };
@@ -47,7 +51,7 @@ export const NewApiModal: React.FC<{
       name: nameValidationSchema.required(
         'The API Environment must have a name.'
       ),
-      apiType: yup.string().matches(/^(gateway)|(executable)$/),
+      apiType: yup.string().matches(/^(stitched)|(executable)$/),
       uploadedSchema: yup.string().test((item, ctx) => {
         if (ctx.parent.apiType === 'executable') return !!item && !errorMessage;
         else return true;
@@ -61,33 +65,33 @@ export const NewApiModal: React.FC<{
     apiType,
     schemaString,
   }: typeof initialValues) => {
-    // Only executable APIs have uploaded schemas.
-    if (apiType !== 'executable') schemaString = '';
-    if (apiType === 'gateway') {
-      alert('Creating Gateway GraphQL APIs is not currently supported.');
-      return;
+    const newApiSchema: CreateGraphqlApiRequest.AsObject = {
+      graphqlApiRef: {
+        name,
+        namespace: glooInstance?.metadata?.namespace!,
+        clusterName: glooInstance?.spec?.cluster!,
+      },
+      spec: {
+        allowedQueryHashesList: [],
+      },
+    };
+    if (!apiType) return;
+    else if (apiType === 'stitched') {
+      newApiSchema.spec!.stitchedSchema = { subschemasList: [] };
+    } else if (apiType === 'executable') {
+      newApiSchema.spec!.executableSchema = {
+        schemaDefinition: schemaString,
+        executor: {
+          //@ts-ignore
+          local: {
+            enableIntrospection: true,
+          },
+        },
+      };
     }
 
     let createdGraphqlApi = await graphqlConfigApi
-      .createGraphqlApi({
-        graphqlApiRef: {
-          name,
-          namespace: glooInstance?.metadata?.namespace!,
-          clusterName: glooInstance?.spec?.cluster!,
-        },
-        spec: {
-          executableSchema: {
-            schemaDefinition: schemaString,
-            executor: {
-              //@ts-ignore
-              local: {
-                enableIntrospection: true,
-              },
-            },
-          },
-          allowedQueryHashesList: [],
-        },
-      })
+      .createGraphqlApi(newApiSchema)
       .catch(err => {
         // Catch any errors on the backend the frontend can't catch.
         setErrorMessage(err.message);
@@ -96,7 +100,7 @@ export const NewApiModal: React.FC<{
       return;
     }
     mutate(
-      async graphqlApis => [
+      graphqlApis => [
         ...(graphqlApis ?? []),
         {
           status: { state: 0 },
@@ -115,13 +119,14 @@ export const NewApiModal: React.FC<{
     mutate();
 
     navigate(
-      isGlooFedEnabled
-        ? `/gloo-instances/${createdGraphqlApi.glooInstance?.namespace}/${
-            createdGraphqlApi.glooInstance?.name
-          }/apis/${glooInstance?.spec?.cluster!}/${
-            createdGraphqlApi.metadata?.namespace
-          }/${createdGraphqlApi.metadata?.name}/`
-        : `/gloo-instances/${createdGraphqlApi.glooInstance?.namespace}/${createdGraphqlApi.glooInstance?.name}/apis/${createdGraphqlApi.metadata?.namespace}/${createdGraphqlApi.metadata?.name}/`
+      makeGraphqlApiLink(
+        createdGraphqlApi.metadata?.name,
+        createdGraphqlApi.metadata?.namespace,
+        glooInstance?.spec?.cluster,
+        glooInstance?.metadata?.name,
+        glooInstance?.metadata?.namespace,
+        isGlooFedEnabled
+      )
     );
   };
 
@@ -154,8 +159,8 @@ export const NewApiModal: React.FC<{
                         displayName: 'Executable',
                       },
                       {
-                        id: 'gateway',
-                        displayName: 'Gateway',
+                        id: 'stitched',
+                        displayName: 'Stitched',
                       },
                     ]}
                     forceAChoice={true}
@@ -183,8 +188,8 @@ export const NewApiModal: React.FC<{
                           </div>
                         ) : (
                           <div>
-                            Create a gateway GraphQL API by stitching together
-                            other GraphQL APIs.
+                            Create a stitched GraphQL API by combining other
+                            GraphQL APIs.
                           </div>
                         )
                       }
