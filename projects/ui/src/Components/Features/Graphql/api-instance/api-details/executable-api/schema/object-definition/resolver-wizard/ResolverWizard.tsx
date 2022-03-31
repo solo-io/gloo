@@ -99,7 +99,7 @@ export const getResolverFromConfig = (resolver?: Resolution.AsObject) => {
     const msg = ResolutionType.fromObject(resolver);
     const jsonVal = toProto3JSON(msg);
     YAML.scalarOptions.null.nullStr = '';
-    return YAML.stringify(resolver, { simpleKeys: true });
+    return YAML.stringify(jsonVal, { simpleKeys: true });
   }
   return '';
 };
@@ -132,10 +132,11 @@ type ResolverWizardProps = {
   hasDirective?: boolean;
   fieldWithDirective?: string;
   fieldWithoutDirective?: string;
+  altFieldWithDirective?: string;
 };
 
 export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
-  let { hasDirective, fieldWithDirective, fieldWithoutDirective } = props;
+  let { hasDirective, fieldWithDirective, fieldWithoutDirective, altFieldWithDirective } = props;
   const {
     graphqlApiName = '',
     graphqlApiNamespace = '',
@@ -287,6 +288,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
       hasDirective,
       fieldWithDirective,
       fieldWithoutDirective,
+      altFieldWithDirective,
     };
     setWarningMessage('');
     let validationObject =
@@ -331,6 +333,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
         hasDirective,
         fieldWithDirective,
         fieldWithoutDirective,
+        altFieldWithDirective,
       },
       true
     );

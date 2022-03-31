@@ -37,24 +37,22 @@ export const getDefaultConfigFromType = (
   resolverType: ResolverWizardFormProps['resolverType']
 ) => {
   return resolverType === 'REST'
-    ? `
-    request:
-      headers:
-        :method:
-        :path:
-      queryParams:
-      body:
-    response:
-      resultRoot:
-      setters:
-    `.trimEnd()
-    : `
-    requestTransform:
-      serviceName:
-      methodName:
-      requestMetadata:
-      outgoingMessageJson:
-  `.trimEnd();
+    ? `request:
+         headers:
+           :method:
+           :path:
+         queryParams:
+         body:
+       response:
+         resultRoot:
+         setters:
+    `.trim()
+    : `requestTransform:
+         serviceName:
+         methodName:
+         requestMetadata:
+         outgoingMessageJson:
+  `.trim();
 };
 
 export const ResolverConfigSection = ({

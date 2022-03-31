@@ -71,6 +71,7 @@ export const ExeGqlObjectDefinition: React.FC<{
   const [currentResolverName, setCurrentResolverName] = React.useState('');
   const [hasDirective, setHasDirective] = React.useState(false);
   const [fieldWithDirective, setFieldWithDirective] = React.useState('');
+  const [altFieldWithDirective, setAltFieldWithDirective] = React.useState('');
   const [fieldWithoutDirective, setFieldWithoutDirective] = React.useState('');
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   function handleResolverConfigModal(
@@ -97,9 +98,11 @@ export const ExeGqlObjectDefinition: React.FC<{
     const [typePrefix, baseType, typeSuffix] = getFieldTypeParts(field);
     let fieldType = typePrefix + baseType + typeSuffix;
     //
+    // TODO:  Find a better way to do this, very fragile.
     // Build the directive strings for graphql.
     let fieldWithoutDirective = `${resolverName}: ${fieldType}]`;
     let fieldWithDirective = `${resolverName}: ${fieldType} @resolve(name: "${resolverName}")`;
+    let altFieldWithDirective = `${resolverName}: ${fieldType} @resolve(name: "Query|${resolverName}")`;
     //
     // Update state.
     setHasDirective(
@@ -109,6 +112,7 @@ export const ExeGqlObjectDefinition: React.FC<{
     );
     setFieldWithDirective(fieldWithDirective);
     setFieldWithoutDirective(fieldWithoutDirective);
+    setAltFieldWithDirective(altFieldWithDirective);
     setIsModalOpen(true);
   }
 
@@ -123,6 +127,7 @@ export const ExeGqlObjectDefinition: React.FC<{
           hasDirective={hasDirective}
           fieldWithDirective={fieldWithDirective}
           fieldWithoutDirective={fieldWithoutDirective}
+          altFieldWithDirective={altFieldWithDirective}
           resolverName={currentResolverName}
           onClose={() => {
             setIsModalOpen(false);

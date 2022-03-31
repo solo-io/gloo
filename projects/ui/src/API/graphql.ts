@@ -348,6 +348,7 @@ async function updateGraphqlApiResolver(
     hasDirective?: boolean;
     fieldWithDirective?: string;
     fieldWithoutDirective?: string;
+    altFieldWithDirective?: string;
   },
   isRemove?: boolean
 ): Promise<GraphqlApi.AsObject> {
@@ -499,24 +500,43 @@ async function updateGraphqlApiResolver(
   currExecutor.setLocal(currLocal);
   currentExSchema.setExecutor(currExecutor);
   let currentSchemaDef = currentExSchema.getSchemaDefinition();
-  // TODO: find a better way to do this
-  let { fieldWithDirective, fieldWithoutDirective } = resolverItem;
+  /**
+   * TODO: find a better way to do this
+   *
+   * * The problem is the generated source code is made up for the fieldWithDirective and
+   * * fieldWithoutDirective.  So we need to find the real source code being used.
+  **/
+  let { fieldWithDirective, fieldWithoutDirective, altFieldWithDirective } = resolverItem;
   if (
     !isRemove &&
     !resolverItem.hasDirective &&
     fieldWithDirective &&
     fieldWithoutDirective
   ) {
-    currentExSchema.setSchemaDefinition(
-      currentSchemaDef.replace(fieldWithoutDirective, fieldWithDirective)
-    );
+    if (currentSchemaDef.includes(fieldWithoutDirective)) {
+      currentExSchema.setSchemaDefinition(
+        currentSchemaDef.replace(fieldWithoutDirective, fieldWithDirective)
+      );
+    }
   }
   if (isRemove) {
-    currResolMap.del(resolverItem.resolverName);
+    if (currResolMap.has(resolverItem.resolverName)) {
+      currResolMap.del(resolverItem.resolverName);
+    } else if (currResolMap.has(`Query|${resolverItem.resolverName}`)) {
+      currResolMap.del(`Query|${resolverItem.resolverName}`);
+    }
+
+
     if (!!fieldWithDirective && fieldWithoutDirective) {
-      currentExSchema.setSchemaDefinition(
-        currentSchemaDef.replace(fieldWithDirective, fieldWithoutDirective)
-      );
+      if (currentSchemaDef.includes(fieldWithDirective)) {
+        currentExSchema.setSchemaDefinition(
+          currentSchemaDef.replace(fieldWithDirective, fieldWithoutDirective)
+        );
+      } else if (currentSchemaDef.includes(altFieldWithDirective!)) {
+        currentExSchema.setSchemaDefinition(
+          currentSchemaDef.replace(altFieldWithDirective!, fieldWithoutDirective)
+        );
+      }
     }
   } else {
     currResolMap.set(resolverItem.resolverName, newResolution);

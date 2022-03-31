@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/3400
+    description: >
+      Cannot remove the graphql configuration easily in certain cases.
