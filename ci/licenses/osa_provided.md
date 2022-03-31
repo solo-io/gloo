@@ -46,7 +46,7 @@ Name|Version|License
 [k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.19.6|Apache License 2.0
 [k8s.io/client-go](https://k8s.io/client-go)|v0.19.6|Apache License 2.0
 [k8s.io/code-generator](https://k8s.io/code-generator)|v0.19.6|Apache License 2.0
-[k8s.io/kubernetes](https://k8s.io/kubernetes)|v1.19.6|Apache License 2.0
+[k8s.io/kubernetes](https://k8s.io/kubernetes)|v1.19.15|Apache License 2.0
 [k8s.io/utils](https://k8s.io/utils)|v0.0.0-20200729134348-d5654de09c73|Apache License 2.0
 [sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.7.0|Apache License 2.0
 [sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.2.0|MIT License

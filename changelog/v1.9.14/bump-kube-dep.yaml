@@ -1,0 +1,8 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: kubernetes
+    dependencyTag: v1.19.15
+    description: Fix for CVE-2021-25741 (https://avd.aquasec.com/nvd/cve-2021-25741)
+    issueLink: https://github.com/solo-io/solo-projects/issues/3394
+    resolvesIssue: true
