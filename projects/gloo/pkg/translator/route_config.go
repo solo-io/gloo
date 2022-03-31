@@ -7,6 +7,7 @@ import (
 	"unicode"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/dynamic_forward_proxy"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/headers"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -21,7 +22,6 @@ import (
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	v1plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/headers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	usconversion "github.com/solo-io/gloo/projects/gloo/pkg/upstreams"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
@@ -266,7 +266,7 @@ func (h *httpRouteConfigurationTranslator) setAction(
 		// DirectResponseAction supports header manipulation, so we want to process the corresponding plugin.
 		// See here: https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/route/route.proto#route-directresponseaction
 		for _, plug := range h.pluginRegistry.GetRoutePlugins() {
-			if plug.Name() != headers.ExtensionName {
+			if plug.Name() != headers.ExtensionName && plug.Name() != "transformation" && plug.Name() != "jwt" {
 				continue
 			}
 
