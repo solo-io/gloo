@@ -270,10 +270,14 @@ func (h *httpRouteConfigurationTranslator) setAction(
 				continue
 			}
 
+			fmt.Printf("\nProcessing Plugin with name: %s\n", plug.Name())
+
 			if err := plug.ProcessRoute(params, in, out); err != nil {
 				if isWarningErr(err) {
+					fmt.Println("Warning Err")
 					continue
 				}
+				fmt.Println("Appending plugin route config")
 				validation.AppendRouteError(routeReport,
 					validationapi.RouteReport_Error_ProcessingError,
 					fmt.Sprintf("%T: %v", plug, err.Error()),
