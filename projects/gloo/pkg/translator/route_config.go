@@ -269,15 +269,14 @@ func (h *httpRouteConfigurationTranslator) setAction(
 			if plug.Name() != headers.ExtensionName && plug.Name() != "transformation" && plug.Name() != "jwt" {
 				continue
 			}
-
-			fmt.Printf("\nProcessing Plugin with name: %s\n", plug.Name())
+			fmt.Printf("\nDirect Response Action: Processing Plugin with name: %s\n", plug.Name())
 
 			if err := plug.ProcessRoute(params, in, out); err != nil {
 				if isWarningErr(err) {
 					fmt.Println("Warning Err")
 					continue
 				}
-				fmt.Println("Appending plugin route config")
+				fmt.Println("Direct Response action: Appending plugin route config")
 				validation.AppendRouteError(routeReport,
 					validationapi.RouteReport_Error_ProcessingError,
 					fmt.Sprintf("%T: %v", plug, err.Error()),
@@ -320,14 +319,18 @@ func (h *httpRouteConfigurationTranslator) setAction(
 		}
 
 		for _, plug := range h.pluginRegistry.GetRoutePlugins() {
-			if plug.Name() != headers.ExtensionName {
+			if plug.Name() != headers.ExtensionName && plug.Name() != "transformation" && plug.Name() != "jwt" {
 				continue
 			}
+
+			fmt.Printf("\nRedirect Action: Processing Plugin with name: %s\n", plug.Name())
 
 			if err := plug.ProcessRoute(params, in, out); err != nil {
 				if isWarningErr(err) {
 					continue
 				}
+
+				fmt.Println("Redirect action: Appending plugin route config")
 				validation.AppendRouteError(routeReport,
 					validationapi.RouteReport_Error_ProcessingError,
 					fmt.Sprintf("%T: %v", plug, err.Error()),
