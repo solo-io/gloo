@@ -265,14 +265,10 @@ func (h *httpRouteConfigurationTranslator) setAction(
 		// DirectResponseAction supports header manipulation, so we want to process the corresponding plugin.
 		// See here: https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/route/route.proto#route-directresponseaction
 		for _, plug := range h.pluginRegistry.GetDirectResponseRoutePlugins() {
-			fmt.Printf("\nDirect Response Action: Processing Plugin with name: %s\n", plug.Name())
-
 			if err := plug.ProcessDirectResponseRoute(params, in, out); err != nil {
 				if isWarningErr(err) {
-					fmt.Println("Warning Err")
 					continue
 				}
-				fmt.Println("Direct Response action: Appending plugin route config")
 				validation.AppendRouteError(routeReport,
 					validationapi.RouteReport_Error_ProcessingError,
 					fmt.Sprintf("%T: %v", plug, err.Error()),

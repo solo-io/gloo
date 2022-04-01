@@ -791,7 +791,6 @@ var _ = Describe("Translator", func() {
 		})
 	})
 
-	// NTS: this one
 	Context("non route_routeaction routes", func() {
 		BeforeEach(func() {
 			redirectRoute := &v1.Route{
