@@ -13,6 +13,8 @@ import (
 
 var (
 	_ plugins.RoutePlugin               = new(plugin)
+	_ plugins.DirectResponseRoutePlugin = new(plugin)
+	_ plugins.RedirectActionRoutePlugin = new(plugin)
 	_ plugins.VirtualHostPlugin         = new(plugin)
 	_ plugins.WeightedDestinationPlugin = new(plugin)
 )
@@ -105,6 +107,14 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	out.ResponseHeadersToRemove = envoyHeader.ResponseHeadersToRemove
 
 	return nil
+}
+
+func (p *plugin) ProcessDirectResponseRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
+	return p.ProcessRoute(params, in, out)
+}
+
+func (p *plugin) ProcessRedirectActionRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
+	return p.ProcessRoute(params, in, out)
 }
 
 type envoyHeaderManipulation struct {

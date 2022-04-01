@@ -55,6 +55,7 @@ import (
 	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	gloohelpers "github.com/solo-io/gloo/test/helpers"
+	envoy_core "github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	envoycore_sk "github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -346,7 +347,7 @@ var _ = Describe("Translator", func() {
 	// returns md5 Sum of current snapshot
 	translate := func() {
 		snap, errs, report, err := translator.Translate(params, proxy)
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
+		ExpectWithOffset(1, err).To(BeNil())
 		ExpectWithOffset(1, errs.Validate()).NotTo(HaveOccurred())
 		ExpectWithOffset(1, snap).NotTo(BeNil())
 		ExpectWithOffset(1, report).To(Equal(validationutils.MakeReport(proxy)))
@@ -733,6 +734,7 @@ var _ = Describe("Translator", func() {
 		})
 	})
 
+	// NTS: this one
 	Context("non route_routeaction routes", func() {
 		BeforeEach(func() {
 			redirectRoute := &v1.Route{
@@ -754,6 +756,72 @@ var _ = Describe("Translator", func() {
 
 		It("reports no errors with a redirect route or direct response route", func() {
 			translate()
+		})
+
+		It("Processes redirectAction route plugins correctly", func() {
+			// specify a basic headerManipulation config, because headerManipulation
+			// is supported on non-routeAction routes
+			routes[0].Options = &v1.RouteOptions{
+				HeaderManipulation: &headers.HeaderManipulation{
+					RequestHeadersToAdd: []*envoy_core.HeaderValueOption{
+						{
+							HeaderOption: &envoy_core.HeaderValueOption_Header{
+								Header: &envoy_core.HeaderValue{
+									Key:   "test-header-key",
+									Value: "test-header-value",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			translate()
+
+			Expect(routeConfiguration.VirtualHosts).To(HaveLen(1))
+			Expect(routeConfiguration.VirtualHosts[0].Routes).To(HaveLen(2))
+
+			directResponseRouteConfig := routeConfiguration.VirtualHosts[0].Routes[0]
+			Expect(directResponseRouteConfig.RequestHeadersToAdd).ToNot(BeNil())
+			Expect(directResponseRouteConfig.RequestHeadersToAdd).To(HaveLen(1))
+
+			headerToAdd := directResponseRouteConfig.RequestHeadersToAdd[0].GetHeader()
+			Expect(headerToAdd).ToNot(BeNil())
+			Expect(headerToAdd.GetKey()).To(BeEquivalentTo("test-header-key"))
+			Expect(headerToAdd.GetValue()).To(BeEquivalentTo("test-header-value"))
+		})
+
+		It("Processes direct response route plugins correctly", func() {
+			// specify a basic headerManipulation config, because headerManipulation
+			// is supported on non-routeAction routes
+			routes[1].Options = &v1.RouteOptions{
+				HeaderManipulation: &headers.HeaderManipulation{
+					RequestHeadersToAdd: []*envoy_core.HeaderValueOption{
+						{
+							HeaderOption: &envoy_core.HeaderValueOption_Header{
+								Header: &envoy_core.HeaderValue{
+									Key:   "test-header-key",
+									Value: "test-header-value",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			translate()
+
+			Expect(routeConfiguration.VirtualHosts).To(HaveLen(1))
+			Expect(routeConfiguration.VirtualHosts[0].Routes).To(HaveLen(2))
+
+			directResponseRouteConfig := routeConfiguration.VirtualHosts[0].Routes[1]
+			Expect(directResponseRouteConfig.RequestHeadersToAdd).ToNot(BeNil())
+			Expect(directResponseRouteConfig.RequestHeadersToAdd).To(HaveLen(1))
+
+			headerToAdd := directResponseRouteConfig.RequestHeadersToAdd[0].GetHeader()
+			Expect(headerToAdd).ToNot(BeNil())
+			Expect(headerToAdd.GetKey()).To(BeEquivalentTo("test-header-key"))
+			Expect(headerToAdd.GetValue()).To(BeEquivalentTo("test-header-value"))
 		})
 	})
 
