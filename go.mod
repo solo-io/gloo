@@ -50,7 +50,7 @@ require (
 	github.com/solo-io/anyvendor v0.0.4
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.19.12
+	github.com/solo-io/ext-auth-service v0.19.16
 	github.com/solo-io/external-apis v0.1.11
 	github.com/solo-io/gloo v1.11.0-rc6
 	github.com/solo-io/go-list-licenses v0.1.4
@@ -100,7 +100,6 @@ replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.14.0
 	// used by github.com/deislabs/oras v0.10.0
 	github.com/containerd/containerd => github.com/containerd/containerd v1.4.11
-
 	// pin to the jwt-go fork to fix CVE.
 	// using the pseudo version of github.com/form3tech-oss/jwt-go@v3.2.3 instead of the version directly,
 	// to avoid error about it being used for two different module paths
@@ -112,7 +111,6 @@ replace (
 	// skv2 uses a newer version than the imported solo-kit version which causes issues. Replaces the version with the solo-kit version
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
-
 	go.opentelemetry.io/otel => go.opentelemetry.io/otel v0.11.0
 
 	// Lock sys package to fix darwin upgrade issue

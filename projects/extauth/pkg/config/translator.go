@@ -518,6 +518,7 @@ func cookieConfigToSessionOptions(cookieOptions *extauthv1.UserSession_CookieOpt
 			HttpOnly: httpOnly,
 			Secure:   !cookieOptions.GetNotSecure(),
 			MaxAge:   maxAge,
+			SameSite: session.SameSite(cookieOptions.SameSite),
 		}
 	}
 	return sessionOptions

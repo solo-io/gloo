@@ -27,6 +27,10 @@ an error like this will appear:
 	previously from: "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	currently from:  "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 ```
+If you are having problems running locally because the above warning is a panic for you, please set the following environment variable.
+```bash
+export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn
+```
 
 A consequence of this is that no solo-kit types may be used in these binaries:
 gloo-fed, apiserver, rbac-validating-webhook, glooctl-fed.

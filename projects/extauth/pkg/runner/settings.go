@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"log"
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
@@ -30,7 +31,9 @@ func NewSettings() Settings {
 		panic(err)
 	}
 
-	s.ExtAuthSettings = server.NewSettings()
+	if s.ExtAuthSettings, err = server.NewSettings(); err != nil {
+		log.Fatalf("server stopped with unexpected error: %s", err.Error())
+	}
 
 	return s
 }

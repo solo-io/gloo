@@ -8,6 +8,7 @@ import (
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/onsi/ginkgo/extensions/table"
 	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/ptypes"
@@ -432,6 +433,18 @@ var _ = Describe("Ext Auth Config Translator", func() {
 	})
 
 	Context("OIDC session", func() {
+		path := "/foo"
+		var extAuthCookie *extauthv1.UserSession
+		BeforeEach(func() {
+			extAuthCookie = &extauthv1.UserSession{CookieOptions: &extauthv1.UserSession_CookieOptions{
+				MaxAge:    &wrappers.UInt32Value{Value: 1},
+				Domain:    "foo.com",
+				NotSecure: true,
+				Path:      &wrappers.StringValue{Value: path},
+				SameSite:  extauthv1.UserSession_CookieOptions_LaxMode,
+			}}
+		})
+
 		It("should translate nil session", func() {
 			params, err := config.ToSessionParameters(nil)
 			Expect(err).NotTo(HaveOccurred())
@@ -443,13 +456,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			Expect(params).To(Equal(oidc.SessionParameters{ErrOnSessionFetch: true}))
 		})
 		It("should translate CookieOptions", func() {
-			path := "/foo"
-			params, err := config.ToSessionParameters(&extauthv1.UserSession{CookieOptions: &extauthv1.UserSession_CookieOptions{
-				MaxAge:    &wrappers.UInt32Value{Value: 1},
-				Domain:    "foo.com",
-				NotSecure: true,
-				Path:      &wrappers.StringValue{Value: path},
-			}})
+			params, err := config.ToSessionParameters(extAuthCookie)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{
 				Path:     &path,
@@ -457,17 +464,14 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				HttpOnly: true,
 				MaxAge:   1,
 				Secure:   false,
+				SameSite: session.SameSiteLaxMode,
 			}}))
 		})
-		It("should translate CookieOptions - not http only", func() {
-			path := "/foo"
-			params, err := config.ToSessionParameters(&extauthv1.UserSession{CookieOptions: &extauthv1.UserSession_CookieOptions{
-				MaxAge:    &wrappers.UInt32Value{Value: 1},
-				Domain:    "foo.com",
-				NotSecure: true,
-				HttpOnly:  &wrappers.BoolValue{Value: false},
-				Path:      &wrappers.StringValue{Value: path},
-			}})
+		It("should translate CookieOptions - Only http and SameSite DefaultMode", func() {
+			co := extAuthCookie.CookieOptions
+			co.HttpOnly = &wrapperspb.BoolValue{Value: false}
+			co.SameSite = extauthv1.UserSession_CookieOptions_DefaultMode
+			params, err := config.ToSessionParameters(extAuthCookie)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(params).To(Equal(oidc.SessionParameters{Options: &session.Options{
 				Path:     &path,

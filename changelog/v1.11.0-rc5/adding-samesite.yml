@@ -1,0 +1,9 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/5123
+    description: Add same_site to CookieOptions.
+    resolvesIssue: true
+  - type: DEPENDENCY_BUMP
+    dependencyRepo: ext-auth-service
+    dependencyOwner: solo-io
+    dependencyTag: v0.19.16
