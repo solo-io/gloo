@@ -129,6 +129,7 @@ type pluginRegistry struct {
 	upstreamPlugins              []plugins.UpstreamPlugin
 	endpointPlugins              []plugins.EndpointPlugin
 	routePlugins                 []plugins.RoutePlugin
+	DirectResponseRoutePlugins   []plugins.DirectResponseRoutePlugin
 	routeActionPlugins           []plugins.RouteActionPlugin
 	weightedDestinationPlugins   []plugins.WeightedDestinationPlugin
 }
@@ -146,6 +147,7 @@ func NewPluginRegistry(registeredPlugins []plugins.Plugin) *pluginRegistry {
 	var upstreamPlugins []plugins.UpstreamPlugin
 	var endpointPlugins []plugins.EndpointPlugin
 	var routePlugins []plugins.RoutePlugin
+	var DirectResponseRoutePlugins []plugins.DirectResponseRoutePlugin
 	var routeActionPlugins []plugins.RouteActionPlugin
 	var weightedDestinationPlugins []plugins.WeightedDestinationPlugin
 
@@ -196,6 +198,11 @@ func NewPluginRegistry(registeredPlugins []plugins.Plugin) *pluginRegistry {
 			routePlugins = append(routePlugins, routePlugin)
 		}
 
+		DirectResponseRoutePlugin, ok := plugin.(plugins.DirectResponseRoutePlugin)
+		if ok {
+			DirectResponseRoutePlugins = append(DirectResponseRoutePlugins, DirectResponseRoutePlugin)
+		}
+
 		routeActionPlugin, ok := plugin.(plugins.RouteActionPlugin)
 		if ok {
 			routeActionPlugins = append(routeActionPlugins, routeActionPlugin)
@@ -218,6 +225,7 @@ func NewPluginRegistry(registeredPlugins []plugins.Plugin) *pluginRegistry {
 		upstreamPlugins:              upstreamPlugins,
 		endpointPlugins:              endpointPlugins,
 		routePlugins:                 routePlugins,
+		DirectResponseRoutePlugins:   DirectResponseRoutePlugins,
 		routeActionPlugins:           routeActionPlugins,
 		weightedDestinationPlugins:   weightedDestinationPlugins,
 	}
@@ -271,6 +279,11 @@ func (p *pluginRegistry) GetEndpointPlugins() []plugins.EndpointPlugin {
 // GetRoutePlugins returns the plugins that were registered which act on Route.
 func (p *pluginRegistry) GetRoutePlugins() []plugins.RoutePlugin {
 	return p.routePlugins
+}
+
+// GetDirectResponseRoutePlugins returns the plugins that were registered which act on Route.
+func (p *pluginRegistry) GetDirectResponseRoutePlugins() []plugins.DirectResponseRoutePlugin {
+	return p.DirectResponseRoutePlugins
 }
 
 // GetRouteActionPlugins returns the plugins that were registered which act on RouteAction.
