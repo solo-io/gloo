@@ -4,6 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	gloo_rl_plugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
+	"github.com/solo-io/skv2/test/matchers"
+
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	rlconfig "github.com/envoyproxy/go-control-plane/envoy/config/ratelimit/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -47,202 +51,318 @@ type rLPlugin interface {
 }
 
 var _ = Describe("RateLimit Plugin", func() {
+
 	var (
-		rlSettings *ratelimitpb.Settings
-		initParams plugins.InitParams
-		params     plugins.Params
-		rlPlugin   rLPlugin
-		ref        *core.ResourceRef
+		rlPlugin       rLPlugin
+		serverSettings *ratelimitpb.Settings
+		initParams     plugins.InitParams
+		params         plugins.Params
+		serverRef      *core.ResourceRef
 	)
 
 	BeforeEach(func() {
 		rlPlugin = NewPlugin()
-		ref = &core.ResourceRef{
-			Name:      "test",
-			Namespace: "test",
-		}
 
-		rlSettings = &ratelimitpb.Settings{
-			RatelimitServerRef:  ref,
-			RateLimitBeforeAuth: true,
+		serverUpstream := &gloov1.Upstream{
+			Metadata: &core.Metadata{
+				Name:      "ratelimit-upstream",
+				Namespace: defaults.GlooSystem,
+			},
+		}
+		serverRef = serverUpstream.GetMetadata().Ref()
+		serverSettings = &ratelimitpb.Settings{
+			RatelimitServerRef: serverRef,
 		}
 		initParams = plugins.InitParams{
-			Settings: &gloov1.Settings{},
+			Settings: &gloov1.Settings{
+				RatelimitServer: serverSettings,
+			},
 		}
-		params.Snapshot = &gloov1snap.ApiSnapshot{}
+		params.Snapshot = &gloov1snap.ApiSnapshot{
+			Upstreams: []*gloov1.Upstream{
+				serverUpstream,
+			},
+		}
 	})
 
 	JustBeforeEach(func() {
-		initParams.Settings = &gloov1.Settings{RatelimitServer: rlSettings}
+		initParams.Settings.RatelimitServer = serverSettings
 		err := rlPlugin.Init(initParams)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	It("should get rate limit server settings first from the listener, then from the global settings", func() {
-		params.Snapshot.Upstreams = []*gloov1.Upstream{
-			{
-				Metadata: &core.Metadata{
-					Name:      "extauth-upstream",
-					Namespace: "ns",
-				},
-			},
-		}
-		initParams.Settings = &gloov1.Settings{}
-		err := rlPlugin.Init(initParams)
-		Expect(err).NotTo(HaveOccurred())
-		listener := &gloov1.HttpListener{
-			Options: &gloov1.HttpListenerOptions{
-				RatelimitServer: rlSettings,
-			},
-		}
+	Context("Server Settings", func() {
 
-		filters, err := rlPlugin.HttpFilters(params, listener)
-		Expect(err).NotTo(HaveOccurred(), "Should be able to build rate limit filters")
-		Expect(filters).To(HaveLen(2), "Should have created two rate limit filters")
-		// Should set the stage to -1 before the AuthNStage because we set RateLimitBeforeAuth = true
-		for _, filter := range filters {
-			Expect(filter.Stage.Weight).To(Equal(-1))
-			Expect(filter.Stage.RelativeTo).To(Equal(plugins.AuthNStage))
-			Expect(filter.HttpFilter.Name).To(Equal(wellknown.HTTPRateLimit))
-		}
-	})
-
-	It("should have FailureModeDeny false by default", func() {
-
-		filters, err := rlPlugin.HttpFilters(params, nil)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(filters).To(HaveLen(2))
-
-		var typedConfigs []*envoyratelimit.RateLimit
-		for _, f := range filters {
-			typedConfigs = append(typedConfigs, getTypedConfig(f.HttpFilter))
-		}
-
-		hundredms := duration.Duration{Nanos: int32(time.Millisecond.Nanoseconds()) * 100}
-		expectedConfig := []*envoyratelimit.RateLimit{
-			{
-				Domain:          "ingress",
-				FailureModeDeny: false,
-				Stage:           0,
-				Timeout:         &hundredms,
-				RequestType:     "both",
-				RateLimitService: &rlconfig.RateLimitServiceConfig{
-					TransportApiVersion: envoycore.ApiVersion_V3,
-					GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-						EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-							ClusterName: translator.UpstreamToClusterName(ref),
-						},
-					}},
-				},
-			},
-			{
-				Domain:          "crd",
-				FailureModeDeny: false,
-				Stage:           2,
-				Timeout:         &hundredms,
-				RequestType:     "both",
-				RateLimitService: &rlconfig.RateLimitServiceConfig{
-					TransportApiVersion: envoycore.ApiVersion_V3,
-					GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-						EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-							ClusterName: translator.UpstreamToClusterName(ref),
-						},
-					}},
-				},
-			},
-		}
-
-		var typedMsgs []proto.Message
-		for _, v := range expectedConfig {
-			typedMsgs = append(typedMsgs, v)
-		}
-
-		Expect(typedConfigs).To(test_matchers.ConsistOfProtos(typedMsgs...))
-
-	})
-
-	It("default timeout is 100ms", func() {
-		filters, err := rlPlugin.HttpFilters(params, nil)
-		Expect(err).NotTo(HaveOccurred())
-		timeout := duration.Duration{Nanos: int32(time.Millisecond.Nanoseconds()) * 100}
-		Expect(filters).To(HaveLen(2))
-		for _, f := range filters {
-			cfg := getTypedConfig(f.HttpFilter)
-			Expect(*cfg.Timeout).To(Equal(timeout))
-		}
-	})
-
-	Context("fail mode deny: DenyOnFail = true", func() {
-
-		BeforeEach(func() {
-			rlSettings.DenyOnFail = true
-		})
-
-		It("should turn FailureModeDeny on", func() {
+		It("respects default settings", func() {
 			filters, err := rlPlugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(4))
 
-			Expect(filters).To(HaveLen(2))
+			var typedConfigs []*envoyratelimit.RateLimit
 			for _, f := range filters {
-				cfg := getTypedConfig(f.HttpFilter)
-				Expect(cfg.FailureModeDeny).To(BeTrue())
+				typedConfigs = append(typedConfigs, getTypedConfig(f.HttpFilter))
 			}
-		})
-	})
 
-	Context("rate limit ordering", func() {
-		var (
-			apiSnapshot = &gloov1snap.ApiSnapshot{
-				Upstreams: []*gloov1.Upstream{{
-					Metadata: &core.Metadata{
-						Name:      "extauth-upstream",
-						Namespace: "ns",
+			hundredMs := duration.Duration{Nanos: int32(time.Millisecond.Nanoseconds()) * 100}
+			expectedConfig := []*envoyratelimit.RateLimit{
+				{
+					Domain:          IngressDomain,
+					FailureModeDeny: false,
+					Stage:           IngressRateLimitStage,
+					Timeout:         &hundredMs,
+					RequestType:     gloo_rl_plugin.RequestType,
+					RateLimitService: &rlconfig.RateLimitServiceConfig{
+						TransportApiVersion: envoycore.ApiVersion_V3,
+						GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+								ClusterName: translator.UpstreamToClusterName(serverRef),
+							},
+						}},
 					},
-				}},
-			}
-		)
-		JustBeforeEach(func() {
-			params.Snapshot = apiSnapshot
-			rlSettings.RateLimitBeforeAuth = true
-			initParams.Settings = &gloov1.Settings{
-				RatelimitServer: rlSettings,
-				Extauth: &extauthapi.Settings{
-					ExtauthzServerRef: &core.ResourceRef{
-						Name:      "extauth-upstream",
-						Namespace: "ns",
+				},
+				{
+					Domain:          ConfigCrdDomain,
+					FailureModeDeny: false,
+					Stage:           CrdRateLimitStage,
+					Timeout:         &hundredMs,
+					RequestType:     gloo_rl_plugin.RequestType,
+					RateLimitService: &rlconfig.RateLimitServiceConfig{
+						TransportApiVersion: envoycore.ApiVersion_V3,
+						GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+								ClusterName: translator.UpstreamToClusterName(serverRef),
+							},
+						}},
 					},
-					RequestTimeout: ptypes.DurationProto(time.Second),
+				},
+				{
+					Domain:          ConfigCrdDomain,
+					FailureModeDeny: false,
+					Stage:           CrdRateLimitStageBeforeAuth,
+					Timeout:         &hundredMs,
+					RequestType:     gloo_rl_plugin.RequestType,
+					RateLimitService: &rlconfig.RateLimitServiceConfig{
+						TransportApiVersion: envoycore.ApiVersion_V3,
+						GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+								ClusterName: translator.UpstreamToClusterName(serverRef),
+							},
+						}},
+					},
+				},
+				{
+					Domain:          SetActionDomain,
+					FailureModeDeny: false,
+					Stage:           SetActionRateLimitStageBeforeAuth,
+					Timeout:         &hundredMs,
+					RequestType:     gloo_rl_plugin.RequestType,
+					RateLimitService: &rlconfig.RateLimitServiceConfig{
+						TransportApiVersion: envoycore.ApiVersion_V3,
+						GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+								ClusterName: translator.UpstreamToClusterName(serverRef),
+							},
+						}},
+					},
 				},
 			}
-			err := rlPlugin.Init(initParams)
-			Expect(err).NotTo(HaveOccurred(), "Should be able to initialize the rate limit plugin")
+
+			var typedMsgs []proto.Message
+			for _, v := range expectedConfig {
+				typedMsgs = append(typedMsgs, v)
+			}
+
+			Expect(typedConfigs).To(test_matchers.ConsistOfProtos(typedMsgs...))
 		})
 
-		It("should be ordered before ext auth", func() {
-			filters, err := rlPlugin.HttpFilters(params, nil)
-			Expect(err).NotTo(HaveOccurred(), "Should be able to build rate limit filters")
-			Expect(filters).To(HaveLen(2), "Should create two rate limit filters")
+		Context("Overrides", func() {
 
-			rateLimitFilter := filters[0]
+			BeforeEach(func() {
+				serverSettings.DenyOnFail = true
+				serverSettings.RequestTimeout = &duration.Duration{Seconds: 1}
+			})
 
-			extAuthPlugin := extauth.NewPlugin()
-			err = extAuthPlugin.Init(initParams)
-			Expect(err).NotTo(HaveOccurred(), "Should be able to initialize the ext auth plugin")
-			extAuthFilters, err := extAuthPlugin.HttpFilters(params, nil)
-			Expect(err).NotTo(HaveOccurred(), "Should be able to build the ext auth filters")
-			Expect(extAuthFilters).NotTo(BeEmpty(), "Should have actually created more than zero ext auth filters")
+			It("respects overridden settings", func() {
+				filters, err := rlPlugin.HttpFilters(params, nil)
+				Expect(err).NotTo(HaveOccurred())
 
-			for _, extAuthFilter := range extAuthFilters {
-				Expect(plugins.FilterStageComparison(extAuthFilter.Stage, rateLimitFilter.Stage)).To(Equal(1), "Ext auth filters should occur after rate limiting")
+				Expect(filters).To(HaveLen(4))
+				for _, f := range filters {
+					cfg := getTypedConfig(f.HttpFilter)
+					envoyFilterConfig := *cfg
+
+					Expect(envoyFilterConfig.Timeout).To(matchers.MatchProto(serverSettings.RequestTimeout))
+					Expect(envoyFilterConfig.FailureModeDeny).To(Equal(serverSettings.DenyOnFail))
+				}
+			})
+
+		})
+
+		Context("HttpListener Settings", func() {
+
+			BeforeEach(func() {
+				serverSettings.DenyOnFail = false
+				serverSettings.RequestTimeout = &duration.Duration{Seconds: 3}
+			})
+
+			It("overrides global settings", func() {
+				listenerSettings := &ratelimitpb.Settings{
+					RatelimitServerRef: serverRef,
+					DenyOnFail:         true,
+					RequestTimeout:     &duration.Duration{Seconds: 1},
+				}
+				listener := &gloov1.HttpListener{
+					Options: &gloov1.HttpListenerOptions{
+						RatelimitServer: listenerSettings,
+					},
+				}
+
+				filters, err := rlPlugin.HttpFilters(params, listener)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(filters).To(HaveLen(4))
+				for _, f := range filters {
+					Expect(f.HttpFilter.Name).To(Equal(wellknown.HTTPRateLimit))
+					cfg := getTypedConfig(f.HttpFilter)
+					envoyFilterConfig := *cfg
+
+					Expect(envoyFilterConfig.Timeout).To(matchers.MatchProto(listenerSettings.RequestTimeout))
+					Expect(envoyFilterConfig.FailureModeDeny).To(Equal(listenerSettings.DenyOnFail))
+				}
+
+			})
+		})
+
+	})
+
+	Context("RateLimitBeforeAuth", func() {
+
+		var (
+			extAuthPlugin    plugins.HttpFilterPlugin
+			extAuthServerRef *core.ResourceRef
+		)
+
+		BeforeEach(func() {
+			extAuthServerUpstream := &gloov1.Upstream{
+				Metadata: &core.Metadata{
+					Name:      "extauth-upstream",
+					Namespace: defaults.GlooSystem,
+				},
 			}
+			extAuthServerRef = extAuthServerUpstream.GetMetadata().Ref()
+			params.Snapshot.Upstreams = append(params.Snapshot.Upstreams, extAuthServerUpstream)
+
+			serverSettings.RateLimitBeforeAuth = true
+		})
+
+		JustBeforeEach(func() {
+			initParams.Settings.Extauth = &extauthapi.Settings{
+				ExtauthzServerRef: extAuthServerRef,
+				RequestTimeout:    &duration.Duration{Seconds: 1},
+			}
+
+			extAuthPlugin = extauth.NewPlugin()
+			err := extAuthPlugin.Init(initParams)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should create different http filters", func() {
+			// With the introduction of staged http rate limit filters, the enterprise
+			// plugin creates rate limit filters before and after extauth, which makes
+			// testing this functionality slightly more challenging.
+			// This test is identical to the earlier "It(respects default settings)" test
+			// however, the expected output is slightly different.
+			// The http filter for SetActions is a different stage, because the open source
+			// plugin created the early stage filter, respecting the RateLimitBeforeAuth setting
+
+			filters, err := rlPlugin.HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(4))
+
+			var typedConfigs []*envoyratelimit.RateLimit
+			for _, f := range filters {
+				typedConfigs = append(typedConfigs, getTypedConfig(f.HttpFilter))
+			}
+
+			hundredMs := duration.Duration{Nanos: int32(time.Millisecond.Nanoseconds()) * 100}
+			expectedConfig := []*envoyratelimit.RateLimit{
+				{
+					Domain:          IngressDomain,
+					FailureModeDeny: false,
+					Stage:           IngressRateLimitStage,
+					Timeout:         &hundredMs,
+					RequestType:     gloo_rl_plugin.RequestType,
+					RateLimitService: &rlconfig.RateLimitServiceConfig{
+						TransportApiVersion: envoycore.ApiVersion_V3,
+						GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+								ClusterName: translator.UpstreamToClusterName(serverRef),
+							},
+						}},
+					},
+				},
+				{
+					Domain:          ConfigCrdDomain,
+					FailureModeDeny: false,
+					Stage:           CrdRateLimitStage,
+					Timeout:         &hundredMs,
+					RequestType:     gloo_rl_plugin.RequestType,
+					RateLimitService: &rlconfig.RateLimitServiceConfig{
+						TransportApiVersion: envoycore.ApiVersion_V3,
+						GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+								ClusterName: translator.UpstreamToClusterName(serverRef),
+							},
+						}},
+					},
+				},
+				{
+					Domain:          ConfigCrdDomain,
+					FailureModeDeny: false,
+					Stage:           CrdRateLimitStageBeforeAuth,
+					Timeout:         &hundredMs,
+					RequestType:     gloo_rl_plugin.RequestType,
+					RateLimitService: &rlconfig.RateLimitServiceConfig{
+						TransportApiVersion: envoycore.ApiVersion_V3,
+						GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+								ClusterName: translator.UpstreamToClusterName(serverRef),
+							},
+						}},
+					},
+				},
+				{
+					Domain:          SetActionDomain,
+					FailureModeDeny: false,
+					// This is the part of the test that confirms that the open source rate limit plugin respected
+					// the RateLimitBeforeAuth server setting
+					Stage:       SetActionRateLimitStage,
+					Timeout:     &hundredMs,
+					RequestType: gloo_rl_plugin.RequestType,
+					RateLimitService: &rlconfig.RateLimitServiceConfig{
+						TransportApiVersion: envoycore.ApiVersion_V3,
+						GrpcService: &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+								ClusterName: translator.UpstreamToClusterName(serverRef),
+							},
+						}},
+					},
+				},
+			}
+
+			var typedMsgs []proto.Message
+			for _, v := range expectedConfig {
+				typedMsgs = append(typedMsgs, v)
+			}
+
+			Expect(typedConfigs).To(test_matchers.ConsistOfProtos(typedMsgs...))
 		})
 
 		It("returns an error if the user specifies both RateLimitBeforeAuth and auth-based rate limiting", func() {
 			vHostParams := plugins.VirtualHostParams{
 				Params: plugins.Params{
 					Ctx:      context.TODO(),
-					Snapshot: apiSnapshot,
+					Snapshot: params.Snapshot,
 				},
 				Proxy:    nil,
 				Listener: nil,
@@ -259,30 +379,169 @@ var _ = Describe("RateLimit Plugin", func() {
 				},
 			}, &envoy_config_route_v3.VirtualHost{})
 
-			Expect(err).To(MatchError(ContainSubstring(RateLimitAuthOrderingConflict.Error())),
+			Expect(err).To(MatchError(ContainSubstring(AuthOrderingConflict.Error())),
 				"Should not allow auth-based rate limits when rate limiting before auth")
 		})
 	})
 
-	Context("timeout", func() {
+	Context("RemoveUnusedFilters", func() {
 
 		BeforeEach(func() {
-			rlSettings.RequestTimeout = ptypes.DurationProto(time.Second)
-		})
-
-		It("should custom timeout set", func() {
-			filters, err := rlPlugin.HttpFilters(params, nil)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(filters).To(HaveLen(2))
-			for _, f := range filters {
-				cfg := getTypedConfig(f.HttpFilter)
-				Expect(*cfg.Timeout).To(Equal(duration.Duration{Seconds: 1}))
+			initParams.Settings.Gloo = &gloov1.GlooOptions{
+				RemoveUnusedFilters: &wrappers.BoolValue{
+					Value: true,
+				},
 			}
 		})
+
+		It("generates 0 filters when route/vhost config is not processed", func() {
+			filters, err := rlPlugin.HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(0))
+		})
+
+		It("generates 0 filters when vhost config does not contain rate limits", func() {
+			glooVirtualHost := &gloov1.VirtualHost{
+				Name:    "vhost-without-ratelimits",
+				Options: &gloov1.VirtualHostOptions{},
+			}
+			virtualHostParams := plugins.VirtualHostParams{
+				Params: plugins.Params{
+					Ctx:      context.TODO(),
+					Snapshot: params.Snapshot,
+				},
+				Proxy:    nil,
+				Listener: nil,
+			}
+			envoyVirtualHost := &envoy_config_route_v3.VirtualHost{}
+
+			err := rlPlugin.ProcessVirtualHost(virtualHostParams, glooVirtualHost, envoyVirtualHost)
+			Expect(err).NotTo(HaveOccurred())
+
+			filters, err := rlPlugin.HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(0))
+		})
+
+		It("generates 0 filters when route config does not contain rate limits", func() {
+			glooRoute := &gloov1.Route{
+				Name: "route-without-ratelimits",
+				Action: &gloov1.Route_RouteAction{
+					RouteAction: &gloov1.RouteAction{},
+				},
+				Options: &gloov1.RouteOptions{},
+			}
+			routeParams := plugins.RouteParams{
+				VirtualHostParams: plugins.VirtualHostParams{
+					Params: plugins.Params{
+						Ctx:      context.TODO(),
+						Snapshot: params.Snapshot,
+					},
+					Proxy:    nil,
+					Listener: nil,
+				},
+			}
+			envoyRoute := &envoy_config_route_v3.Route{
+				Action: &envoy_config_route_v3.Route_Route{
+					Route: &envoy_config_route_v3.RouteAction{},
+				},
+			}
+
+			err := rlPlugin.ProcessRoute(routeParams, glooRoute, envoyRoute)
+			Expect(err).NotTo(HaveOccurred())
+
+			filters, err := rlPlugin.HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(0))
+		})
+
+		It("generates filters only for rate limits defined on virtual host", func() {
+			glooVirtualHost := &gloov1.VirtualHost{
+				Name: "vhost-with-ratelimit-actions-before-auth",
+				Options: &gloov1.VirtualHostOptions{
+					RateLimitEarlyConfigType: &gloov1.VirtualHostOptions_RatelimitEarly{
+						RatelimitEarly: &ratelimitpb.RateLimitVhostExtension{
+							RateLimits: []*rl_api.RateLimitActions{{
+								SetActions: []*rl_api.Action{{
+									ActionSpecifier: &rl_api.Action_GenericKey_{
+										GenericKey: &rl_api.Action_GenericKey{
+											DescriptorValue: "foo",
+										},
+									},
+								}},
+							}},
+						},
+					},
+				},
+			}
+			virtualHostParams := plugins.VirtualHostParams{
+				Params: plugins.Params{
+					Ctx:      context.TODO(),
+					Snapshot: params.Snapshot,
+				},
+				Proxy:    nil,
+				Listener: nil,
+			}
+			envoyVirtualHost := &envoy_config_route_v3.VirtualHost{}
+
+			err := rlPlugin.ProcessVirtualHost(virtualHostParams, glooVirtualHost, envoyVirtualHost)
+			Expect(err).NotTo(HaveOccurred())
+
+			filters, err := rlPlugin.HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(1))
+		})
+
+		It("generates filters only for rate limits defined on route", func() {
+			glooRoute := &gloov1.Route{
+				Name: "route-with-ratelimit-actions-before-auth",
+				Action: &gloov1.Route_RouteAction{
+					RouteAction: &gloov1.RouteAction{},
+				},
+				Options: &gloov1.RouteOptions{
+					RateLimitEarlyConfigType: &gloov1.RouteOptions_RatelimitEarly{
+						RatelimitEarly: &ratelimitpb.RateLimitRouteExtension{
+							RateLimits: []*rl_api.RateLimitActions{{
+								SetActions: []*rl_api.Action{{
+									ActionSpecifier: &rl_api.Action_GenericKey_{
+										GenericKey: &rl_api.Action_GenericKey{
+											DescriptorValue: "foo",
+										},
+									},
+								}},
+							}},
+						},
+					},
+				},
+			}
+			routeParams := plugins.RouteParams{
+				VirtualHostParams: plugins.VirtualHostParams{
+					Params: plugins.Params{
+						Ctx:      context.TODO(),
+						Snapshot: params.Snapshot,
+					},
+					Proxy:    nil,
+					Listener: nil,
+				},
+			}
+			envoyRoute := &envoy_config_route_v3.Route{
+				Action: &envoy_config_route_v3.Route_Route{
+					Route: &envoy_config_route_v3.RouteAction{},
+				},
+			}
+
+			err := rlPlugin.ProcessRoute(routeParams, glooRoute, envoyRoute)
+			Expect(err).NotTo(HaveOccurred())
+
+			filters, err := rlPlugin.HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(1))
+		})
+
 	})
 
 	Context("route level rate limits", func() {
+
 		var (
 			inRoute     gloov1.Route
 			outRoute    envoy_config_route_v3.Route
@@ -299,10 +558,6 @@ var _ = Describe("RateLimit Plugin", func() {
 				},
 			}
 		)
-
-		BeforeEach(func() {
-			rlSettings.RateLimitBeforeAuth = false
-		})
 
 		JustBeforeEach(func() {
 			inRoute = gloov1.Route{
@@ -392,7 +647,6 @@ var _ = Describe("RateLimit Plugin", func() {
 		)
 
 		BeforeEach(func() {
-
 			rlConfigs := ratelimitpb.RateLimitConfigRefs{
 				Refs: []*ratelimitpb.RateLimitConfigRef{{
 					Name:      rlConfigName,
@@ -454,7 +708,6 @@ var _ = Describe("RateLimit Plugin", func() {
 		}
 
 		It("should properly set one set-style rate limit on a route", func() {
-
 			vhostParams := vhostParamsWithLimits([]*rl_api.RateLimitActions{{
 				SetActions: []*rl_api.Action{{
 					ActionSpecifier: &rl_api.Action_GenericKey_{
@@ -479,8 +732,7 @@ var _ = Describe("RateLimit Plugin", func() {
 		})
 
 		It("should properly set one set-style rate limit on a virtualservice", func() {
-
-			params := vhostParamsWithLimits([]*rl_api.RateLimitActions{{
+			virtualHostParams := vhostParamsWithLimits([]*rl_api.RateLimitActions{{
 				SetActions: []*rl_api.Action{{
 					ActionSpecifier: &rl_api.Action_GenericKey_{
 						GenericKey: &rl_api.Action_GenericKey{
@@ -490,7 +742,7 @@ var _ = Describe("RateLimit Plugin", func() {
 				}},
 			})
 
-			err := rlPlugin.ProcessVirtualHost(params, &inVHost, &outVHost)
+			err := rlPlugin.ProcessVirtualHost(virtualHostParams, &inVHost, &outVHost)
 			Expect(err).ToNot(HaveOccurred())
 			outRateLimits := outVHost.GetRateLimits()
 			Expect(outRateLimits).To(HaveLen(1))
@@ -503,8 +755,7 @@ var _ = Describe("RateLimit Plugin", func() {
 		})
 
 		It("should not allow the special setDescriptor genericKey on non-set Actions", func() {
-
-			params := vhostParamsWithLimits([]*rl_api.RateLimitActions{{
+			virtualHostParams := vhostParamsWithLimits([]*rl_api.RateLimitActions{{
 				Actions: []*rl_api.Action{{
 					ActionSpecifier: &rl_api.Action_GenericKey_{
 						GenericKey: &rl_api.Action_GenericKey{
@@ -514,14 +765,13 @@ var _ = Describe("RateLimit Plugin", func() {
 				}},
 			}})
 
-			err := rlPlugin.ProcessVirtualHost(params, &inVHost, &outVHost)
+			err := rlPlugin.ProcessVirtualHost(virtualHostParams, &inVHost, &outVHost)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(IllegalActionsErr.Error())))
 		})
 
 		It("should properly set several rate limits", func() {
-
-			params := vhostParamsWithLimits([]*rl_api.RateLimitActions{
+			virtualHostParams := vhostParamsWithLimits([]*rl_api.RateLimitActions{
 				{
 					SetActions: []*rl_api.Action{
 						{
@@ -594,7 +844,7 @@ var _ = Describe("RateLimit Plugin", func() {
 				},
 			})
 
-			err := rlPlugin.ProcessVirtualHost(params, &inVHost, &outVHost)
+			err := rlPlugin.ProcessVirtualHost(virtualHostParams, &inVHost, &outVHost)
 			Expect(err).ToNot(HaveOccurred())
 			outRateLimits := outVHost.GetRateLimits()
 			Expect(outRateLimits).To(HaveLen(4))
@@ -612,18 +862,18 @@ var _ = Describe("RateLimit Plugin", func() {
 			Expect(treeInput[1].GetGenericKey().GetDescriptorValue()).To(Equal("tree1"))
 			Expect(treeInput[2].GetGenericKey().GetDescriptorValue()).To(Equal("tree2"))
 
-			bothInput_treeOut := outRateLimits[2].GetActions()
-			Expect(bothInput_treeOut).To(HaveLen(3))
-			Expect(bothInput_treeOut[0].GetGenericKey().GetDescriptorValue()).To(Equal(crdGenericVal))
-			Expect(bothInput_treeOut[1].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree1"))
-			Expect(bothInput_treeOut[2].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree2"))
+			bothInputTreeOut := outRateLimits[2].GetActions()
+			Expect(bothInputTreeOut).To(HaveLen(3))
+			Expect(bothInputTreeOut[0].GetGenericKey().GetDescriptorValue()).To(Equal(crdGenericVal))
+			Expect(bothInputTreeOut[1].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree1"))
+			Expect(bothInputTreeOut[2].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree2"))
 
-			bothInput_setOut := outRateLimits[3].GetActions()
-			Expect(bothInput_setOut).To(HaveLen(4))
-			Expect(bothInput_setOut[0].GetGenericKey().GetDescriptorValue()).To(Equal(crdGenericVal))
-			Expect(bothInput_setOut[1].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
-			Expect(bothInput_setOut[2].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet1"))
-			Expect(bothInput_setOut[3].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet2"))
+			bothInputSetOut := outRateLimits[3].GetActions()
+			Expect(bothInputSetOut).To(HaveLen(4))
+			Expect(bothInputSetOut[0].GetGenericKey().GetDescriptorValue()).To(Equal(crdGenericVal))
+			Expect(bothInputSetOut[1].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
+			Expect(bothInputSetOut[2].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet1"))
+			Expect(bothInputSetOut[3].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet2"))
 		})
 	})
 
@@ -637,7 +887,6 @@ var _ = Describe("RateLimit Plugin", func() {
 		)
 
 		BeforeEach(func() {
-
 			inRoute = gloov1.Route{
 				Action: &gloov1.Route_RouteAction{
 					RouteAction: &gloov1.RouteAction{},
@@ -665,7 +914,6 @@ var _ = Describe("RateLimit Plugin", func() {
 		})
 
 		It("should properly set one set-style rate limit on a route", func() {
-
 			inRoute.Options.GetRatelimit().RateLimits = []*rl_api.RateLimitActions{{
 				SetActions: []*rl_api.Action{{
 					ActionSpecifier: &rl_api.Action_GenericKey_{
@@ -689,7 +937,6 @@ var _ = Describe("RateLimit Plugin", func() {
 		})
 
 		It("should properly set one set-style rate limit on a virtualservice", func() {
-
 			inVHost.Options.GetRatelimit().RateLimits = []*rl_api.RateLimitActions{{
 				SetActions: []*rl_api.Action{{
 					ActionSpecifier: &rl_api.Action_GenericKey_{
@@ -712,7 +959,6 @@ var _ = Describe("RateLimit Plugin", func() {
 		})
 
 		It("should not allow the special setDescriptor genericKey on non-set Actions", func() {
-
 			inVHost.Options.GetRatelimit().RateLimits = []*rl_api.RateLimitActions{{
 				Actions: []*rl_api.Action{
 					{
@@ -738,9 +984,8 @@ var _ = Describe("RateLimit Plugin", func() {
 		})
 
 		It("should properly set several rate limits", func() {
-
 			outRoute.GetRoute().RateLimits = []*envoy_config_route_v3.RateLimit{
-				// populate outRoute with correct ratelimits to "mock" OS plugin behavior
+				// populate outRoute with correct ratelimits to "mock" OS rlPlugin behavior
 				{
 					Stage: &wrappers.UInt32Value{Value: 1},
 					Actions: []*envoy_config_route_v3.RateLimit_Action{
@@ -864,10 +1109,10 @@ var _ = Describe("RateLimit Plugin", func() {
 			Expect(treeInput[0].GetGenericKey().GetDescriptorValue()).To(Equal("tree1"))
 			Expect(treeInput[1].GetGenericKey().GetDescriptorValue()).To(Equal("tree2"))
 
-			bothInput_treeOut := outRateLimits[1].GetActions()
-			Expect(bothInput_treeOut).To(HaveLen(2))
-			Expect(bothInput_treeOut[0].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree1"))
-			Expect(bothInput_treeOut[1].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree2"))
+			bothInputTreeOut := outRateLimits[1].GetActions()
+			Expect(bothInputTreeOut).To(HaveLen(2))
+			Expect(bothInputTreeOut[0].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree1"))
+			Expect(bothInputTreeOut[1].GetGenericKey().GetDescriptorValue()).To(Equal("bothTree2"))
 
 			setInput := outRateLimits[2].GetActions()
 			Expect(setInput).To(HaveLen(3))
@@ -875,12 +1120,13 @@ var _ = Describe("RateLimit Plugin", func() {
 			Expect(setInput[1].GetGenericKey().GetDescriptorValue()).To(Equal("set1"))
 			Expect(setInput[2].GetGenericKey().GetDescriptorValue()).To(Equal("set2"))
 
-			bothInput_setOut := outRateLimits[3].GetActions()
-			Expect(bothInput_setOut).To(HaveLen(3))
-			Expect(bothInput_setOut[0].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
-			Expect(bothInput_setOut[1].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet1"))
-			Expect(bothInput_setOut[2].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet2"))
+			bothInputSetOut := outRateLimits[3].GetActions()
+			Expect(bothInputSetOut).To(HaveLen(3))
+			Expect(bothInputSetOut[0].GetGenericKey().GetDescriptorValue()).To(Equal(setDescriptorValue))
+			Expect(bothInputSetOut[1].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet1"))
+			Expect(bothInputSetOut[2].GetGenericKey().GetDescriptorValue()).To(Equal("bothSet2"))
 		})
+
 	})
 
 })

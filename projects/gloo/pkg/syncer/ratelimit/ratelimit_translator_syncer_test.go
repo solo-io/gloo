@@ -3,6 +3,8 @@ package ratelimit_test
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/xds"
+
 	rlPluginOS "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	rlPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
@@ -284,13 +286,13 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 						SetDescriptors: config3.SetDescriptors,
 					}).Return(nil, nil)
 
-				cache.EXPECT().SetSnapshot(rlsyncer.RateLimitServerRole, gomock.Any()).Return(nil)
+				cache.EXPECT().SetSnapshot(xds.ServerRole, gomock.Any()).Return(nil)
 
 				Expect(reports).To(HaveLen(0))
 
 				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
+				Expect(role).To(Equal(xds.ServerRole))
 
 				// Check that we have added the report, and that there are no errors or warnings
 				Expect(reports).To(HaveLen(1), "should pick up the listener")
@@ -325,7 +327,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
-				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
+				Expect(role).To(Equal(xds.ServerRole))
 
 				// Check that we have added the report, and that there are no errors or warnings
 				Expect(reports).To(HaveLen(1), "should pick up the listener")
@@ -364,7 +366,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
-				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
+				Expect(role).To(Equal(xds.ServerRole))
 
 				// Check that we have added the report, and that there are no errors or warnings
 				Expect(reports).To(HaveLen(1), "should pick up the listener")
@@ -397,14 +399,14 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 						SetDescriptors: config3.SetDescriptors,
 					}).Return(nil, nil)
 
-				cache.EXPECT().SetSnapshot(rlsyncer.RateLimitServerRole, gomock.Any()).Return(testErr)
+				cache.EXPECT().SetSnapshot(xds.ServerRole, gomock.Any()).Return(testErr)
 
 				Expect(reports).To(HaveLen(0))
 
 				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
-				Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
+				Expect(role).To(Equal(xds.ServerRole))
 
 				// Check that we have added the report, and that there are no errors or warnings
 				Expect(reports).To(HaveLen(1), "should pick up the listener")
@@ -480,7 +482,7 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 			role, err := syncer.Sync(ctx, &gloov1snap.ApiSnapshot{}, &gloov1.Settings{}, cache, make(skreporter.ResourceReports))
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring(IllegalDescriptorsErr.Error())))
-			Expect(role).To(Equal(rlsyncer.RateLimitServerRole))
+			Expect(role).To(Equal(xds.ServerRole))
 
 			Expect(reports).To(HaveLen(0), "should have nothing in the APISnapshot to write a report for")
 		})

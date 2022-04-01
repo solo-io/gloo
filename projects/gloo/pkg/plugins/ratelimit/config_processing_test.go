@@ -193,7 +193,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 			}
 
 			config1RateLimit = &envoy_config_route_v3.RateLimit{
-				Stage: &wrappers.UInt32Value{Value: rlPlugin.CrdStage},
+				Stage: &wrappers.UInt32Value{Value: rlPlugin.CrdRateLimitStage},
 				Actions: []*envoy_config_route_v3.RateLimit_Action{
 					{
 						ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_RemoteAddress_{
@@ -203,7 +203,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 				},
 			}
 			config2RateLimit = &envoy_config_route_v3.RateLimit{
-				Stage: &wrappers.UInt32Value{Value: rlPlugin.CrdStage},
+				Stage: &wrappers.UInt32Value{Value: rlPlugin.CrdRateLimitStage},
 				Actions: []*envoy_config_route_v3.RateLimit_Action{
 					{
 						ActionSpecifier: &envoy_config_route_v3.RateLimit_Action_GenericKey_{

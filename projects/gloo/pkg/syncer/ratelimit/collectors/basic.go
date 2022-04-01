@@ -28,6 +28,7 @@ func (i *basicConfigCollector) ProcessVirtualHost(
 	reports reporter.ResourceReports,
 ) {
 	rateLimit := virtualHost.GetOptions().GetRatelimitBasic()
+
 	if rateLimit == nil {
 		// no rate limit virtual host config found, nothing to do here
 		return

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 
+	glooAuthSyncer "github.com/solo-io/gloo/projects/gloo/pkg/syncer/extauth"
+
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
@@ -47,15 +49,10 @@ var (
 	}
 )
 
-const (
-	Name            = "extauth"
-	emptyVersionKey = "empty"
-)
-
 var (
 	emptyTypedResources = map[string]envoycache.Resources{
 		extauth.ExtAuthConfigType: {
-			Version: emptyVersionKey,
+			Version: "empty",
 			Items:   map[string]envoycache.Resource{},
 		},
 	}
@@ -86,11 +83,12 @@ func (s *TranslatorSyncerExtension) Sync(
 		len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs))
 	defer logger.Infof("end auth sync %v", snapHash)
 
-	return runner.ExtAuthServerRole, s.SyncAndSet(ctx, snap, settings, xdsCache, reports)
+	return runner.ServerRole, s.SyncAndSet(ctx, snap, settings, xdsCache, reports)
 }
 
 func (s *TranslatorSyncerExtension) ExtensionName() string {
-	return Name
+	// The ExtensionName matches the Open Source Extension Name so that it overrides the functionality
+	return glooAuthSyncer.Name
 }
 
 func (s *TranslatorSyncerExtension) IsUpgrade() bool {
@@ -176,7 +174,7 @@ func (s *TranslatorSyncerExtension) SyncAndSet(
 		extAuthSnapshot = envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
 	}
 
-	err := xdsCache.SetSnapshot(runner.ExtAuthServerRole, extAuthSnapshot)
+	err := xdsCache.SetSnapshot(runner.ServerRole, extAuthSnapshot)
 	if err != nil {
 		return syncerError(ctx, err)
 	}

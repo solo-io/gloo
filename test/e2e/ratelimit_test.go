@@ -314,6 +314,118 @@ var _ = Describe("Rate Limit Local E2E", func() {
 
 					EventuallyRateLimited("user:password@host1", envoyPort)
 				})
+
+				Context("staged rate limiting", func() {
+
+					When("defined on a virtual host", func() {
+
+						It("should rate limit based on metadata emitted by the ext auth server (after auth)", func() {
+							// The basic auth (APR) AuthService produces UserIDs in the form <realm>;<username>, hence "gloo;user"
+							rlc := getMetadataRateLimitConfig(extAuthUserIdMetadataKey, "gloo;user")
+
+							_, err := testClients.RateLimitConfigClient.Write(rlc, clients.WriteOpts{Ctx: ctx})
+							Expect(err).NotTo(HaveOccurred())
+
+							proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+								withVirtualHost("host1", virtualHostConfig{
+									rateLimitConfig: rlc,
+									extAuth:         GetBasicAuthExtension(),
+								}).build()
+
+							_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+							Expect(err).NotTo(HaveOccurred())
+
+							Eventually(isServerHealthy, "5s").Should(BeTrue())
+
+							EventuallyRateLimited("user:password@host1", envoyPort)
+						})
+
+						It("should rate limit based on metadata emitted by the ext auth server (before auth)", func() {
+							// The basic auth (APR) AuthService produces UserIDs in the form <realm>;<username>, hence "gloo;user"
+							rlc := getMetadataRateLimitConfig(extAuthUserIdMetadataKey, "gloo;user")
+
+							_, err := testClients.RateLimitConfigClient.Write(rlc, clients.WriteOpts{Ctx: ctx})
+							Expect(err).NotTo(HaveOccurred())
+
+							rateLimitConfig := &gloov1.VirtualHostOptions_RateLimitEarlyConfigs{
+								RateLimitEarlyConfigs: &ratelimit.RateLimitConfigRefs{
+									Refs: []*ratelimit.RateLimitConfigRef{{
+										Name:      rlc.GetName(),
+										Namespace: rlc.GetNamespace(),
+									}},
+								},
+							}
+							proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+								withVirtualHost("host1", virtualHostConfig{
+									rateLimitConfig: rateLimitConfig,
+									extAuth:         GetBasicAuthExtension(),
+								}).build()
+
+							_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+							Expect(err).NotTo(HaveOccurred())
+
+							Eventually(isServerHealthy, "5s").Should(BeTrue())
+
+							// RateLimitConfig is evaluated before ExtAuth, and therefore the userID is not available
+							// in the rate limit filter. As a result we will not be rate limited.
+							ConsistentlyNotRateLimited("user:password@host1", envoyPort)
+						})
+
+					})
+
+					When("defined on a route", func() {
+
+						It("should rate limit based on metadata emitted by the ext auth server (after auth)", func() {
+							// The basic auth (APR) AuthService produces UserIDs in the form <realm>;<username>, hence "gloo;user"
+							rlc := getMetadataRateLimitConfig(extAuthUserIdMetadataKey, "gloo;user")
+
+							_, err := testClients.RateLimitConfigClient.Write(rlc, clients.WriteOpts{Ctx: ctx})
+							Expect(err).NotTo(HaveOccurred())
+
+							proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+								withVirtualHost("host1", virtualHostConfig{
+									routes: []routeConfig{{
+										extAuth:                        GetBasicAuthExtension(),
+										regularStageRateLimitConfigRef: rlc.GetMetadata().Ref(),
+									}},
+								}).build()
+
+							_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+							Expect(err).NotTo(HaveOccurred())
+
+							Eventually(isServerHealthy, "5s").Should(BeTrue())
+
+							EventuallyRateLimited("user:password@host1", envoyPort)
+						})
+
+						It("should rate limit based on metadata emitted by the ext auth server (before auth)", func() {
+							// The basic auth (APR) AuthService produces UserIDs in the form <realm>;<username>, hence "gloo;user"
+							rlc := getMetadataRateLimitConfig(extAuthUserIdMetadataKey, "gloo;user")
+
+							_, err := testClients.RateLimitConfigClient.Write(rlc, clients.WriteOpts{Ctx: ctx})
+							Expect(err).NotTo(HaveOccurred())
+
+							proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+								withVirtualHost("host1", virtualHostConfig{
+									routes: []routeConfig{{
+										extAuth:                      GetBasicAuthExtension(),
+										earlyStageRateLimitConfigRef: rlc.GetMetadata().Ref(),
+									}},
+								}).build()
+
+							_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+							Expect(err).NotTo(HaveOccurred())
+
+							Eventually(isServerHealthy, "5s").Should(BeTrue())
+
+							// RateLimitConfig is evaluated before ExtAuth, and therefore the userID is not available
+							// in the rate limit filter. As a result we will not be rate limited.
+							ConsistentlyNotRateLimited("user:password@host1", envoyPort)
+						})
+
+					})
+
+				})
 			})
 
 			Context("tree limits- reserved keyword rules (i.e., weighted and alwaysApply rules)", func() {
@@ -756,6 +868,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 			})
 
 			Context("tree and set limits", func() {
+
 				BeforeEach(func() {
 					glooSettings.Ratelimit = &ratelimit.ServiceSettings{
 						Descriptors: []*rlv1alpha1.Descriptor{
@@ -896,6 +1009,158 @@ var _ = Describe("Rate Limit Local E2E", func() {
 					// that was too generous to return a 429, but the new rule should trigger and return a 429
 					EventuallyRateLimited("host1", envoyPort)
 				})
+			})
+
+			Context("staged rate limiting", func() {
+
+				Context("set limits: basic set functionality with generic keys", func() {
+
+					BeforeEach(func() {
+						glooSettings.Ratelimit = &ratelimit.ServiceSettings{
+							SetDescriptors: []*rlv1alpha1.SetDescriptor{
+								{
+									SimpleDescriptors: []*rlv1alpha1.SimpleDescriptor{
+										{
+											Key:   "generic_key",
+											Value: "foo",
+										},
+										{
+											Key:   "generic_key",
+											Value: "bar",
+										},
+									},
+									RateLimit: &rlv1alpha1.RateLimit{
+										Unit:            rlv1alpha1.RateLimit_MINUTE,
+										RequestsPerUnit: 2,
+									},
+								},
+							},
+						}
+					})
+
+					It("should honor rate limit rules with a subset of the SetActions (before auth)", func() {
+						// add rate limit setActions such that the rule requires only a subset of the actions
+						rateLimits := []*rlv1alpha1.RateLimitActions{{
+							SetActions: []*rlv1alpha1.Action{{
+								ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "foo"},
+								}},
+								{ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "bar"},
+								}},
+								{ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "baz"},
+								}},
+							},
+						}}
+						earlyRateLimit := &gloov1.VirtualHostOptions_RatelimitEarly{
+							RatelimitEarly: &ratelimit.RateLimitVhostExtension{
+								RateLimits: rateLimits,
+							},
+						}
+
+						proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+							withVirtualHost("host1", virtualHostConfig{rateLimitConfig: earlyRateLimit}).
+							build()
+
+						_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+
+						Eventually(isServerHealthy, "5s").Should(BeTrue())
+						EventuallyRateLimited("host1", envoyPort)
+
+						err = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+
+						// replace with new rate limit setActions that do not contain all actions the rule specifies
+						rateLimits = []*rlv1alpha1.RateLimitActions{{
+							SetActions: []*rlv1alpha1.Action{{
+								ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "bar"},
+								}},
+								{ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "baz"},
+								}},
+							},
+						}}
+						earlyRateLimit = &gloov1.VirtualHostOptions_RatelimitEarly{
+							RatelimitEarly: &ratelimit.RateLimitVhostExtension{
+								RateLimits: rateLimits,
+							},
+						}
+
+						proxy = newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+							withVirtualHost("host1", virtualHostConfig{rateLimitConfig: earlyRateLimit}).
+							build()
+						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+
+						// we do not expect this to rate limit anymore
+						ConsistentlyNotRateLimited("host1", envoyPort)
+					})
+
+					It("should honor rate limit rules with a subset of the SetActions (after auth)", func() {
+						// add rate limit setActions such that the rule requires only a subset of the actions
+						rateLimits := []*rlv1alpha1.RateLimitActions{{
+							SetActions: []*rlv1alpha1.Action{{
+								ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "foo"},
+								}},
+								{ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "bar"},
+								}},
+								{ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "baz"},
+								}},
+							},
+						}}
+						regularRateLimit := &gloov1.VirtualHostOptions_Ratelimit{
+							Ratelimit: &ratelimit.RateLimitVhostExtension{
+								RateLimits: rateLimits,
+							},
+						}
+
+						proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+							withVirtualHost("host1", virtualHostConfig{rateLimitConfig: regularRateLimit}).
+							build()
+
+						_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+
+						Eventually(isServerHealthy, "5s").Should(BeTrue())
+						EventuallyRateLimited("host1", envoyPort)
+
+						err = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+
+						// replace with new rate limit setActions that do not contain all actions the rule specifies
+						rateLimits = []*rlv1alpha1.RateLimitActions{{
+							SetActions: []*rlv1alpha1.Action{{
+								ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "bar"},
+								}},
+								{ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+									GenericKey: &rlv1alpha1.Action_GenericKey{DescriptorValue: "baz"},
+								}},
+							},
+						}}
+						regularRateLimit = &gloov1.VirtualHostOptions_Ratelimit{
+							Ratelimit: &ratelimit.RateLimitVhostExtension{
+								RateLimits: rateLimits,
+							},
+						}
+
+						proxy = newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+							withVirtualHost("host1", virtualHostConfig{rateLimitConfig: regularRateLimit}).
+							build()
+						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+
+						// we do not expect this to rate limit anymore
+						ConsistentlyNotRateLimited("host1", envoyPort)
+					})
+				})
+
 			})
 
 			Context("health checker", func() {
@@ -1169,10 +1434,12 @@ type rateLimitingProxyBuilder struct {
 }
 
 type routeConfig struct {
-	prefix             string
-	extAuth            *extauthpb.ExtAuthExtension
-	ingressRateLimit   *ratelimit.IngressRateLimit
-	rateLimitConfigRef *core.ResourceRef
+	prefix                         string
+	extAuth                        *extauthpb.ExtAuthExtension
+	ingressRateLimit               *ratelimit.IngressRateLimit
+	rateLimitConfigRef             *core.ResourceRef
+	earlyStageRateLimitConfigRef   *core.ResourceRef
+	regularStageRateLimitConfigRef *core.ResourceRef
 }
 
 type virtualHostConfig struct {
@@ -1237,12 +1504,22 @@ func (b *rateLimitingProxyBuilder) build() *gloov1.Proxy {
 					},
 				},
 			}
+
 		case []*rlv1alpha1.RateLimitActions:
 			vhost.Options.RateLimitConfigType = &gloov1.VirtualHostOptions_Ratelimit{
 				Ratelimit: &ratelimit.RateLimitVhostExtension{
 					RateLimits: rateLimitConfig,
 				},
 			}
+		case *gloov1.VirtualHostOptions_Ratelimit:
+			vhost.Options.RateLimitConfigType = rateLimitConfig
+
+		case *gloov1.VirtualHostOptions_RatelimitEarly:
+			vhost.Options.RateLimitEarlyConfigType = rateLimitConfig
+
+		case *gloov1.VirtualHostOptions_RateLimitEarlyConfigs:
+			vhost.Options.RateLimitEarlyConfigType = rateLimitConfig
+
 		case *ratelimit.IngressRateLimit:
 			vhost.Options.RatelimitBasic = rateLimitConfig
 		case nil:
@@ -1265,6 +1542,30 @@ func (b *rateLimitingProxyBuilder) build() *gloov1.Proxy {
 			routeOptions := &gloov1.RouteOptions{}
 			if routeCfg.ingressRateLimit != nil {
 				routeOptions.RatelimitBasic = routeCfg.ingressRateLimit
+			}
+			if routeCfg.earlyStageRateLimitConfigRef != nil {
+				routeOptions.RateLimitEarlyConfigType = &gloov1.RouteOptions_RateLimitEarlyConfigs{
+					RateLimitEarlyConfigs: &ratelimit.RateLimitConfigRefs{
+						Refs: []*ratelimit.RateLimitConfigRef{
+							{
+								Name:      routeCfg.earlyStageRateLimitConfigRef.Name,
+								Namespace: routeCfg.earlyStageRateLimitConfigRef.Namespace,
+							},
+						},
+					},
+				}
+			}
+			if routeCfg.regularStageRateLimitConfigRef != nil {
+				routeOptions.RateLimitConfigType = &gloov1.RouteOptions_RateLimitConfigs{
+					RateLimitConfigs: &ratelimit.RateLimitConfigRefs{
+						Refs: []*ratelimit.RateLimitConfigRef{
+							{
+								Name:      routeCfg.regularStageRateLimitConfigRef.Name,
+								Namespace: routeCfg.regularStageRateLimitConfigRef.Namespace,
+							},
+						},
+					},
+				}
 			}
 			if routeCfg.rateLimitConfigRef != nil {
 				routeOptions.RateLimitConfigType = &gloov1.RouteOptions_RateLimitConfigs{

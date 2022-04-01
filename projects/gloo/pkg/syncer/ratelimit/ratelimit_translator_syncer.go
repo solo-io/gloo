@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	glooRateLimitSyncer "github.com/solo-io/gloo/projects/gloo/pkg/syncer/ratelimit"
+	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/xds"
+
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 
 	"github.com/golang/protobuf/proto"
@@ -61,7 +64,6 @@ var (
 )
 
 const (
-	Name            = "rate-limit"
 	emptyVersionKey = "empty"
 )
 
@@ -73,11 +75,6 @@ type translatorSyncerExtension struct {
 	collectorFactory collectors.ConfigCollectorFactory
 	domainGenerator  rate_limiter_shims.RateLimitDomainGenerator
 }
-
-// The rate limit server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
-// the value of the nodeInfo.Metadata.role field that the server sends along to retrieve its configuration snapshot,
-// similarly to how the regular Gloo gateway-proxies do.
-const RateLimitServerRole = "ratelimit"
 
 func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
 	var settings ratelimit.ServiceSettings
@@ -198,18 +195,19 @@ func (s *translatorSyncerExtension) Sync(
 		rateLimitSnapshot = envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), snapshotResources)
 	}
 
-	err = xdsCache.SetSnapshot(RateLimitServerRole, rateLimitSnapshot)
+	err = xdsCache.SetSnapshot(xds.ServerRole, rateLimitSnapshot)
 	if err != nil {
 		return syncerError(ctx, err)
 	}
 
 	stats.Record(ctx, rlConnectedState.M(int64(1)))
 
-	return RateLimitServerRole, nil
+	return xds.ServerRole, nil
 }
 
 func (s *translatorSyncerExtension) ExtensionName() string {
-	return Name
+	// The ExtensionName matches the Open Source Extension Name so that it overrides the functionality
+	return glooRateLimitSyncer.Name
 }
 
 func (s *translatorSyncerExtension) IsUpgrade() bool {
@@ -218,7 +216,7 @@ func (s *translatorSyncerExtension) IsUpgrade() bool {
 
 func syncerError(ctx context.Context, err error) (string, error) {
 	stats.Record(ctx, rlConnectedState.M(int64(0)))
-	return RateLimitServerRole, err
+	return xds.ServerRole, err
 }
 
 // Helper object to reduce boilerplate.

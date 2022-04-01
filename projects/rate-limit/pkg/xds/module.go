@@ -2,7 +2,10 @@ package xds
 
 import (
 	"context"
+	"fmt"
 	"os"
+
+	glooRatelimitSyncer "github.com/solo-io/gloo/projects/gloo/pkg/syncer/ratelimit"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -16,7 +19,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/rate-limiter/pkg/modules"
 	ratelimit "github.com/solo-io/rate-limiter/pkg/service"
-	core "github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
+	"github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -50,7 +53,12 @@ func init() {
 	_ = view.Register(rlConnectedStateView, rlConnectedStateCounterView)
 }
 
-const ModuleName = "xDS"
+const (
+	// The rate limit server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
+	// the value of the nodeInfo.Metadata.role field that the server sends along to retrieve its configuration snapshot,
+	// similarly to how the regular Gloo gateway-proxies do.
+	ServerRole = glooRatelimitSyncer.ServerRole
+)
 
 var ConfigGenErr = func(err error, domain string) error {
 	return eris.Wrapf(err, "failed to generate configuration for domain [%s]", domain)
@@ -70,35 +78,18 @@ func NewConfigSource(settings Settings, domainGenerator shims.RateLimitDomainGen
 }
 
 func (*configSource) Name() string {
-	return ModuleName
+	return "xDS"
 }
 
 func (x *configSource) Run(ctx context.Context, service ratelimit.RateLimitServiceServer) error {
-	var nodeinfo core.Node
-	var err error
-	nodeinfo.Id, err = os.Hostname()
-	// TODO(yuval-k): unhardcode this
-	if err != nil {
-		nodeinfo.Id = "ratelimit-unknown"
-	}
-	nodeinfo.Cluster = "ratelimit"
-	role := "ratelimit"
-	nodeinfo.Metadata = &_struct.Struct{
-		Fields: map[string]*_struct.Value{
-			"role": {
-				Kind: &_struct.Value_StringValue{
-					StringValue: role,
-				},
-			},
-		},
-	}
+	nodeInfo, err := x.getNodeInfo()
 
 	xDSClientLoopFunc := func(ctx context.Context) error {
 		stats.Record(ctx, mRlConnectedStateCounter.M(int64(1)))
 
 		logger := contextutils.LoggerFrom(ctx)
 
-		client := v1.NewRateLimitConfigClient(&nodeinfo, func(version string, resources []*v1.RateLimitConfig) error {
+		client := v1.NewRateLimitConfigClient(&nodeInfo, func(version string, resources []*v1.RateLimitConfig) error {
 			logger.Debugw("received new rate limit config", zap.Any("config", resources))
 
 			for _, cfg := range resources {
@@ -141,4 +132,26 @@ func (x *configSource) Run(ctx context.Context, service ratelimit.RateLimitServi
 		return nil
 	}
 	return err
+}
+
+func (x *configSource) getNodeInfo() (core.Node, error) {
+	var nodeInfo core.Node
+	var err error
+
+	nodeInfo.Id, err = os.Hostname()
+	// TODO(yuval-k): unhardcode this
+	if err != nil {
+		nodeInfo.Id = fmt.Sprintf("%s-unknown", ServerRole)
+	}
+	nodeInfo.Cluster = ServerRole
+	nodeInfo.Metadata = &_struct.Struct{
+		Fields: map[string]*_struct.Value{
+			"role": {
+				Kind: &_struct.Value_StringValue{
+					StringValue: ServerRole,
+				},
+			},
+		},
+	}
+	return nodeInfo, err
 }

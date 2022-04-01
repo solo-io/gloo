@@ -2,7 +2,10 @@ package runner
 
 import (
 	"context"
+	"fmt"
 	"os"
+
+	glooAuthSyncer "github.com/solo-io/gloo/projects/gloo/pkg/syncer/extauth"
 
 	extauthconfig "github.com/solo-io/ext-auth-service/pkg/config"
 	"go.opencensus.io/stats"
@@ -17,7 +20,7 @@ import (
 
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/solo-io/go-utils/contextutils"
-	core "github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
+	"github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -54,8 +57,7 @@ const (
 	// The extauth server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
 	// the value of the nodeInfo.Metadata.role field that the server sends along to retrieve its configuration snapshot,
 	// similarly to how the regular Gloo gateway-proxies do.
-	ExtAuthServerRole = "extauth"
-	ModuleName        = "xDS"
+	ServerRole = glooAuthSyncer.ServerRole
 )
 
 // This `RunnableModule` implementation uses xDS to get rate limit configuration from the GlooE control plane.
@@ -70,28 +72,11 @@ func NewConfigSource(settings Settings) server.RunnableModule {
 }
 
 func (*configSource) Name() string {
-	return ModuleName
+	return "xDS"
 }
 
 func (x *configSource) Run(ctx context.Context, service service.ExtAuthService) error {
-	var nodeInfo core.Node
-	var err error
-	nodeInfo.Id, err = os.Hostname()
-	// TODO(yuval-k): unhardcode this
-	if err != nil {
-		nodeInfo.Id = "extauth-unknown"
-	}
-	nodeInfo.Cluster = "extauth"
-	role := ExtAuthServerRole
-	nodeInfo.Metadata = &_struct.Struct{
-		Fields: map[string]*_struct.Value{
-			"role": {
-				Kind: &_struct.Value_StringValue{
-					StringValue: role,
-				},
-			},
-		},
-	}
+	nodeInfo, err := x.getNodeInfo()
 
 	settings := x.settings
 
@@ -171,4 +156,26 @@ func (x *configSource) Run(ctx context.Context, service service.ExtAuthService) 
 		return nil
 	}
 	return err
+}
+
+func (x *configSource) getNodeInfo() (core.Node, error) {
+	var nodeInfo core.Node
+	var err error
+
+	nodeInfo.Id, err = os.Hostname()
+	// TODO(yuval-k): unhardcode this
+	if err != nil {
+		nodeInfo.Id = fmt.Sprintf("%s-unknown", ServerRole)
+	}
+	nodeInfo.Cluster = ServerRole
+	nodeInfo.Metadata = &_struct.Struct{
+		Fields: map[string]*_struct.Value{
+			"role": {
+				Kind: &_struct.Value_StringValue{
+					StringValue: ServerRole,
+				},
+			},
+		},
+	}
+	return nodeInfo, err
 }

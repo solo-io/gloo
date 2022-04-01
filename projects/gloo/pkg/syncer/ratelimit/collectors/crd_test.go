@@ -147,6 +147,54 @@ var _ = Describe("CRD Config Collector", func() {
 				Expect(actual).To(Equal(expected))
 				Expect(reports).To(HaveLen(0))
 			})
+
+			It("generates the expected descriptors for staged config (early)", func() {
+				descriptor := &v1alpha1.Descriptor{Key: "foo"}
+				setDescriptor := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "bar"}}}
+				expected := &enterprise.RateLimitConfig{
+					Domain:         rlIngressPlugin.ConfigCrdDomain,
+					Descriptors:    []*v1alpha1.Descriptor{descriptor},
+					SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
+				}
+
+				translator.EXPECT().ToDescriptors(toSoloApiResource(rl1)).Return(
+					&v1alpha1.RateLimitConfigSpec_Raw{
+						Descriptors:    []*v1alpha1.Descriptor{descriptor},
+						SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
+					}, nil)
+
+				isEarlyStage := true
+				collector.ProcessVirtualHost(virtualHostWithStagedConfigs(isEarlyStage, rl1.GetMetadata().Ref()), proxy, reports)
+
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
+				Expect(actual).To(Equal(expected))
+				Expect(reports).To(HaveLen(0))
+			})
+
+			It("generates the expected descriptors for staged config (late)", func() {
+				descriptor := &v1alpha1.Descriptor{Key: "foo"}
+				setDescriptor := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "bar"}}}
+				expected := &enterprise.RateLimitConfig{
+					Domain:         rlIngressPlugin.ConfigCrdDomain,
+					Descriptors:    []*v1alpha1.Descriptor{descriptor},
+					SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
+				}
+
+				translator.EXPECT().ToDescriptors(toSoloApiResource(rl1)).Return(
+					&v1alpha1.RateLimitConfigSpec_Raw{
+						Descriptors:    []*v1alpha1.Descriptor{descriptor},
+						SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
+					}, nil)
+
+				isEarlyStage := false
+				collector.ProcessVirtualHost(virtualHostWithStagedConfigs(isEarlyStage, rl1.GetMetadata().Ref()), proxy, reports)
+
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
+				Expect(actual).To(Equal(expected))
+				Expect(reports).To(HaveLen(0))
+			})
 		})
 	})
 
@@ -222,6 +270,54 @@ var _ = Describe("CRD Config Collector", func() {
 					}, nil)
 
 				collector.ProcessRoute(routeWithConfigs(rl1.GetMetadata().Ref()), &v1.VirtualHost{}, proxy, reports)
+
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
+				Expect(actual).To(Equal(expected))
+				Expect(reports).To(HaveLen(0))
+			})
+
+			It("generates the expected descriptors for staged config (early)", func() {
+				descriptor := &v1alpha1.Descriptor{Key: "foo"}
+				setDescriptor := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "bar"}}}
+				expected := &enterprise.RateLimitConfig{
+					Domain:         rlIngressPlugin.ConfigCrdDomain,
+					Descriptors:    []*v1alpha1.Descriptor{descriptor},
+					SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
+				}
+
+				translator.EXPECT().ToDescriptors(toSoloApiResource(rl1)).Return(
+					&v1alpha1.RateLimitConfigSpec_Raw{
+						Descriptors:    []*v1alpha1.Descriptor{descriptor},
+						SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
+					}, nil)
+
+				isEarlyStage := true
+				collector.ProcessRoute(routeWithStagedConfigs(isEarlyStage, rl1.GetMetadata().Ref()), &v1.VirtualHost{}, proxy, reports)
+
+				actual, err := collector.ToXdsConfiguration()
+				Expect(err).To(BeNil())
+				Expect(actual).To(Equal(expected))
+				Expect(reports).To(HaveLen(0))
+			})
+
+			It("generates the expected descriptors for staged config (late)", func() {
+				descriptor := &v1alpha1.Descriptor{Key: "foo"}
+				setDescriptor := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "bar"}}}
+				expected := &enterprise.RateLimitConfig{
+					Domain:         rlIngressPlugin.ConfigCrdDomain,
+					Descriptors:    []*v1alpha1.Descriptor{descriptor},
+					SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
+				}
+
+				translator.EXPECT().ToDescriptors(toSoloApiResource(rl1)).Return(
+					&v1alpha1.RateLimitConfigSpec_Raw{
+						Descriptors:    []*v1alpha1.Descriptor{descriptor},
+						SetDescriptors: []*v1alpha1.SetDescriptor{setDescriptor},
+					}, nil)
+
+				isEarlyStage := false
+				collector.ProcessRoute(routeWithStagedConfigs(isEarlyStage, rl1.GetMetadata().Ref()), &v1.VirtualHost{}, proxy, reports)
 
 				actual, err := collector.ToXdsConfiguration()
 				Expect(err).To(BeNil())
@@ -314,6 +410,38 @@ func virtualHostWithConfigs(configs ...*core.ResourceRef) *v1.VirtualHost {
 	}
 }
 
+func virtualHostWithStagedConfigs(isEarlyStage bool, configs ...*core.ResourceRef) *v1.VirtualHost {
+	var refs []*ratelimit.RateLimitConfigRef
+	for _, config := range configs {
+		refs = append(refs, &ratelimit.RateLimitConfigRef{
+			Name:      config.Name,
+			Namespace: config.Namespace,
+		})
+	}
+
+	if isEarlyStage {
+		return &v1.VirtualHost{
+			Options: &v1.VirtualHostOptions{
+				RateLimitEarlyConfigType: &v1.VirtualHostOptions_RateLimitEarlyConfigs{
+					RateLimitEarlyConfigs: &ratelimit.RateLimitConfigRefs{
+						Refs: refs,
+					},
+				},
+			},
+		}
+	}
+
+	return &v1.VirtualHost{
+		Options: &v1.VirtualHostOptions{
+			RateLimitConfigType: &v1.VirtualHostOptions_RateLimitConfigs{
+				RateLimitConfigs: &ratelimit.RateLimitConfigRefs{
+					Refs: refs,
+				},
+			},
+		},
+	}
+}
+
 func routeWithConfigs(configs ...*core.ResourceRef) *v1.Route {
 	var refs []*ratelimit.RateLimitConfigRef
 	for _, config := range configs {
@@ -322,6 +450,38 @@ func routeWithConfigs(configs ...*core.ResourceRef) *v1.Route {
 			Namespace: config.Namespace,
 		})
 	}
+	return &v1.Route{
+		Options: &v1.RouteOptions{
+			RateLimitConfigType: &v1.RouteOptions_RateLimitConfigs{
+				RateLimitConfigs: &ratelimit.RateLimitConfigRefs{
+					Refs: refs,
+				},
+			},
+		},
+	}
+}
+
+func routeWithStagedConfigs(isEarlyStage bool, configs ...*core.ResourceRef) *v1.Route {
+	var refs []*ratelimit.RateLimitConfigRef
+	for _, config := range configs {
+		refs = append(refs, &ratelimit.RateLimitConfigRef{
+			Name:      config.Name,
+			Namespace: config.Namespace,
+		})
+	}
+
+	if isEarlyStage {
+		return &v1.Route{
+			Options: &v1.RouteOptions{
+				RateLimitEarlyConfigType: &v1.RouteOptions_RateLimitEarlyConfigs{
+					RateLimitEarlyConfigs: &ratelimit.RateLimitConfigRefs{
+						Refs: refs,
+					},
+				},
+			},
+		}
+	}
+
 	return &v1.Route{
 		Options: &v1.RouteOptions{
 			RateLimitConfigType: &v1.RouteOptions_RateLimitConfigs{

@@ -10,7 +10,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
-	rlIngressPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+	rlPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	rate_limiter_shims "github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 )
 
@@ -37,11 +37,21 @@ func (c *crdConfigCollector) ProcessVirtualHost(
 	proxy *gloov1.Proxy,
 	reports reporter.ResourceReports,
 ) {
-	configRef := virtualHost.GetOptions().GetRateLimitConfigs()
-	if configRef == nil {
+	configRefsSlice := []*ratelimit.RateLimitConfigRefs{
+		virtualHost.GetOptions().GetRateLimitConfigs(),
+		virtualHost.GetOptions().GetRateLimitEarlyConfigs(),
+	}
+
+	var configRefs []*ratelimit.RateLimitConfigRef
+	for _, refSlice := range configRefsSlice {
+		configRefs = append(configRefs, refSlice.GetRefs()...)
+	}
+
+	if len(configRefs) == 0 {
 		return
 	}
-	c.processConfigRef(configRef, proxy, reports)
+
+	c.processConfigRefs(configRefs, proxy, reports)
 }
 
 func (c *crdConfigCollector) ProcessRoute(
@@ -50,16 +60,26 @@ func (c *crdConfigCollector) ProcessRoute(
 	proxy *gloov1.Proxy,
 	reports reporter.ResourceReports,
 ) {
-	configRef := route.GetOptions().GetRateLimitConfigs()
-	if configRef == nil {
+	configRefsSlice := []*ratelimit.RateLimitConfigRefs{
+		route.GetOptions().GetRateLimitConfigs(),
+		route.GetOptions().GetRateLimitEarlyConfigs(),
+	}
+
+	var configRefs []*ratelimit.RateLimitConfigRef
+	for _, refSlice := range configRefsSlice {
+		configRefs = append(configRefs, refSlice.GetRefs()...)
+	}
+
+	if len(configRefs) == 0 {
 		return
 	}
-	c.processConfigRef(configRef, proxy, reports)
+
+	c.processConfigRefs(configRefs, proxy, reports)
 }
 
 func (c *crdConfigCollector) ToXdsConfiguration() (*enterprise.RateLimitConfig, error) {
 	rlCrdConfig := &enterprise.RateLimitConfig{
-		Domain: rlIngressPlugin.ConfigCrdDomain,
+		Domain: rlPlugin.ConfigCrdDomain,
 	}
 	for _, descriptor := range c.resources {
 		rlCrdConfig.Descriptors = append(rlCrdConfig.Descriptors, descriptor.Descriptors...)
@@ -68,13 +88,13 @@ func (c *crdConfigCollector) ToXdsConfiguration() (*enterprise.RateLimitConfig, 
 	return rlCrdConfig, nil
 }
 
-func (c *crdConfigCollector) processConfigRef(
-	refs *ratelimit.RateLimitConfigRefs,
+func (c *crdConfigCollector) processConfigRefs(
+	refs []*ratelimit.RateLimitConfigRef,
 	parentProxy resources.InputResource,
 	reports reporter.ResourceReports,
 ) {
-	for _, ref := range refs.GetRefs() {
-		resourceRef := &core.ResourceRef{Namespace: ref.Namespace, Name: ref.Name}
+	for _, ref := range refs {
+		resourceRef := &core.ResourceRef{Namespace: ref.GetNamespace(), Name: ref.GetName()}
 		resourceKey := translator.UpstreamToClusterName(resourceRef)
 		// Skip resources we have already processed
 		if _, exists := c.resources[resourceKey]; exists {

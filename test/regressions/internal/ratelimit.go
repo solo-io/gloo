@@ -477,7 +477,71 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 				checkRateLimited()
 			})
 
+			It("works when the resource is referenced from a virtual host (early stage)", func() {
+				virtualHostPlugins := &gloov1.VirtualHostOptions{
+					RateLimitEarlyConfigType: &gloov1.VirtualHostOptions_RateLimitEarlyConfigs{
+						RateLimitEarlyConfigs: &ratelimitpb.RateLimitConfigRefs{
+							Refs: []*ratelimitpb.RateLimitConfigRef{{
+								Namespace: configRef.Namespace,
+								Name:      configRef.Name,
+							}},
+						},
+					},
+				}
+
+				regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil)
+				checkRateLimited()
+			})
+
+			It("works when the resource is referenced from a virtual host (regular stage)", func() {
+				virtualHostPlugins := &gloov1.VirtualHostOptions{
+					RateLimitConfigType: &gloov1.VirtualHostOptions_RateLimitConfigs{
+						RateLimitConfigs: &ratelimitpb.RateLimitConfigRefs{
+							Refs: []*ratelimitpb.RateLimitConfigRef{{
+								Namespace: configRef.Namespace,
+								Name:      configRef.Name,
+							}},
+						},
+					},
+				}
+
+				regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil)
+				checkRateLimited()
+			})
+
 			It("works when the resource is referenced from a route", func() {
+				routePlugins := &gloov1.RouteOptions{
+					RateLimitConfigType: &gloov1.RouteOptions_RateLimitConfigs{
+						RateLimitConfigs: &ratelimitpb.RateLimitConfigRefs{
+							Refs: []*ratelimitpb.RateLimitConfigRef{{
+								Namespace: configRef.Namespace,
+								Name:      configRef.Name,
+							}},
+						},
+					},
+				}
+
+				regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, nil, routePlugins, nil)
+				checkRateLimited()
+			})
+
+			It("works when the resource is referenced from a route (early stage)", func() {
+				routePlugins := &gloov1.RouteOptions{
+					RateLimitEarlyConfigType: &gloov1.RouteOptions_RateLimitEarlyConfigs{
+						RateLimitEarlyConfigs: &ratelimitpb.RateLimitConfigRefs{
+							Refs: []*ratelimitpb.RateLimitConfigRef{{
+								Namespace: configRef.Namespace,
+								Name:      configRef.Name,
+							}},
+						},
+					},
+				}
+
+				regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, nil, routePlugins, nil)
+				checkRateLimited()
+			})
+
+			It("works when the resource is referenced from a route (regular stage)", func() {
 				routePlugins := &gloov1.RouteOptions{
 					RateLimitConfigType: &gloov1.RouteOptions_RateLimitConfigs{
 						RateLimitConfigs: &ratelimitpb.RateLimitConfigRefs{

@@ -5229,9 +5229,10 @@ proto.enterprise.gloo.solo.io.UserSession.CookieOptions.serializeBinaryToWriter 
  * @enum {number}
  */
 proto.enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite = {
-  LAXMODE: 0,
-  STRICTMODE: 1,
-  NONEMODE: 2
+  DEFAULTMODE: 0,
+  LAXMODE: 1,
+  STRICTMODE: 2,
+  NONEMODE: 3
 };
 
 /**

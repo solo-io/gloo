@@ -779,9 +779,10 @@ export namespace UserSession {
     }
 
     export interface SameSiteMap {
-      LAXMODE: 0;
-      STRICTMODE: 1;
-      NONEMODE: 2;
+      DEFAULTMODE: 0;
+      LAXMODE: 1;
+      STRICTMODE: 2;
+      NONEMODE: 3;
     }
 
     export const SameSite: SameSiteMap;
