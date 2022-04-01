@@ -1,3 +1,4 @@
+import { Alert } from 'antd';
 import { graphqlConfigApi } from 'API/graphql';
 import {
   useGetConsoleOptions,
@@ -10,8 +11,10 @@ import {
 import SoloAddButton from 'Components/Common/SoloAddButton';
 import { OptionType, SoloDropdown } from 'Components/Common/SoloDropdown';
 import { SoloModal } from 'Components/Common/SoloModal';
+import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
 import React, { useMemo, useState } from 'react';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
+import StitchedGqlAddSubGraphTypeMergeMapConfig from './StitchedGqlAddSubGraphTypeMergeMapConfig';
 
 interface gqlOptionType extends OptionType {
   apiIndex: number;
@@ -29,18 +32,20 @@ const StitchedGqlAddSubGraph = () => {
   const { data: graphqlApis } = useListGraphqlApis(glooInstance?.metadata);
   const { readonly } = useGetConsoleOptions();
 
+  // --- TYPE MERGE MAP --- //
+  const [typeMergeMap, setTypeMergeMap] = useState<
+    [string, StitchedSchema.SubschemaConfig.TypeMergeConfig.AsObject][]
+  >([]);
   const addSubGraph = async () => {
-    if (!graphqlApis || !selectedOption) {
+    if (!graphqlApis || !selectedOption || !apiToAdd || !isMergeMapValid) {
       console.error('Unable to add sub graph.');
       return;
     }
     // Get the selected api to add, and create a new sub graph reference to it.
-    const apiToAdd = graphqlApis[selectedOption.apiIndex];
     const newSubGraph = {
       name: apiToAdd.metadata?.name ?? '',
       namespace: apiToAdd.metadata?.namespace ?? '',
-      // typeMergeMap: Array<[string, StitchedSchema.SubschemaConfig.TypeMergeConfig.AsObject]>,
-      typeMergeMap: [],
+      typeMergeMap,
     };
     // Update the api with a new spec that includes the sub graphs.
     const existingSubGraphs =
@@ -60,6 +65,7 @@ const StitchedGqlAddSubGraph = () => {
     mutateDetails();
   };
 
+  // -- SUB GRAPH SELECTION -- //
   const [selectedOption, setSelectedOption] = useState<gqlOptionType>();
   const options = useMemo(() => {
     if (!graphqlApis || !graphqlApi) return [];
@@ -81,13 +87,36 @@ const StitchedGqlAddSubGraph = () => {
           )
       );
   }, [graphqlApis, graphqlApi]);
+  let apiToAdd = useMemo(() => {
+    if (
+      !graphqlApis ||
+      !selectedOption ||
+      selectedOption.apiIndex < 0 ||
+      selectedOption.apiIndex >= graphqlApis.length
+    )
+      return undefined;
+    return graphqlApis[selectedOption.apiIndex];
+  }, [graphqlApis, selectedOption]);
+  const subGraphRef = useMemo(
+    () => ({
+      name: apiToAdd?.metadata?.name ?? '',
+      namespace: apiToAdd?.metadata?.namespace ?? '',
+      clusterName: apiToAdd?.metadata?.clusterName ?? '',
+    }),
+    [apiToAdd]
+  );
+
+  // --- VALIDATION --- //
+  const [isMergeMapValid, setIsMergeMapValid] = useState(false);
+  const canSubmit = useMemo(
+    () => isMergeMapValid && !!selectedOption,
+    [isMergeMapValid]
+  );
 
   if (readonly) return null;
   return (
     <div>
-      <SoloAddButton
-        disabled={!graphqlApis}
-        onClick={() => setIsModalVisible(true)}>
+      <SoloAddButton onClick={() => setIsModalVisible(true)}>
         Add Sub Graph
       </SoloAddButton>
 
@@ -108,9 +137,17 @@ const StitchedGqlAddSubGraph = () => {
               searchable={true}
             />
 
-            <div className='text-right mt-5'>
+            {apiToAdd?.metadata && (
+              <StitchedGqlAddSubGraphTypeMergeMapConfig
+                onIsValidChange={isValid => setIsMergeMapValid(isValid)}
+                onTypeMergeMapChange={m => setTypeMergeMap(m)}
+                subGraphRef={subGraphRef}
+              />
+            )}
+
+            <div className='text-right mt-10'>
               <SoloButtonStyledComponent
-                disabled={!selectedOption}
+                disabled={!canSubmit}
                 onClick={addSubGraph}>
                 Add Sub Graph
               </SoloButtonStyledComponent>

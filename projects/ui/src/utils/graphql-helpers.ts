@@ -1,3 +1,12 @@
+import {
+  DefinitionNode,
+  DocumentNode,
+  EnumTypeDefinitionNode,
+  Kind,
+  ObjectTypeDefinitionNode,
+} from 'graphql';
+import gql from 'graphql-tag';
+import lodash from 'lodash';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 
@@ -36,4 +45,50 @@ export const makeGraphqlApiLink = (
     : `/gloo-instances/${glooNamespace ?? ''}/${glooName ?? ''}/apis/${
         apiNamespace ?? ''
       }/${apiName ?? ''}/`;
+};
+
+export type supportedDefinitionTypes =
+  | ObjectTypeDefinitionNode
+  | EnumTypeDefinitionNode;
+
+export const parseSchemaDefinition = (schemaDefinition?: string) => {
+  if (!schemaDefinition) return [];
+  // Try to parse the serialized GraphQL schema definition to JSON (using gql`...`).
+  let query: DocumentNode;
+  try {
+    query = gql`
+      ${schemaDefinition}
+    `;
+  } catch {
+    return [] as supportedDefinitionTypes[];
+  }
+  if (!query) return [] as supportedDefinitionTypes[];
+  // We support enum and object type definitions here.
+  const definitions = lodash.cloneDeep(
+    query.definitions.filter(
+      d =>
+        d.kind === Kind.ENUM_TYPE_DEFINITION ||
+        d.kind === Kind.OBJECT_TYPE_DEFINITION
+    )
+  ) as supportedDefinitionTypes[];
+  // ? Uncomment this push(...mockEnumDefinitions) line for testing enums:
+  // definitions.push(...mockEnumDefinitions);
+  // We can sort the definitions here, and any filtering will keep it sorted.
+  definitions.sort((a, b) => {
+    // Ordering: Query, mutation, Everything else.
+    if (a.name.value === 'Query') return -1;
+    else if (b.name.value === 'Query') return 1;
+    if (a.name.value === 'Mutation') return -1;
+    else if (b.name.value === 'Mutation') return 1;
+    else return 0;
+  });
+  return definitions;
+};
+
+export const objectToArrayMap = (map: { [key: string]: any }) =>
+  Object.keys(map).map(k => [k, map[k]] as [string, string]);
+export const arrayMapToObject = <T>(map: [keyof T, any][]) => {
+  const objMap = {} as T;
+  map.forEach(pair => (objMap[pair[0]] = pair[1]));
+  return objMap;
 };

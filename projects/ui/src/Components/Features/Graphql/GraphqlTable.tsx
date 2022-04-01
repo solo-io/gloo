@@ -1,6 +1,10 @@
 import styled from '@emotion/styled/macro';
 import { graphqlConfigApi } from 'API/graphql';
-import { useIsGlooFedEnabled, useListGraphqlApis } from 'API/hooks';
+import {
+  useGetConsoleOptions,
+  useIsGlooFedEnabled,
+  useListGraphqlApis,
+} from 'API/hooks';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import { ReactComponent as GrpcIcon } from 'assets/grpc-icon.svg';
@@ -67,6 +71,7 @@ type TableDataType = {
 
 export const GraphqlTable = (props: Props & TableHolderProps) => {
   const isGlooFedEnabled = useIsGlooFedEnabled().data?.enabled;
+  const { readonly } = useGetConsoleOptions();
 
   const {
     data: graphqlApis,
@@ -173,23 +178,27 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
     {
       title: 'Actions',
       dataIndex: 'actions',
-      render: (gqlApi: GraphqlApi.AsObject) => (
-        <TableActions className='space-x-3 '>
-          <TableActionCircle onClick={() => onDownloadApi(gqlApi)}>
-            <DownloadIcon />
-          </TableActionCircle>
-          <TableActionCircle
-            onClick={() =>
-              triggerDelete({
-                name: gqlApi.metadata?.name!,
-                namespace: gqlApi.metadata?.namespace!,
-                clusterName: gqlApi.metadata?.clusterName!,
-              })
-            }>
-            <XIcon />
-          </TableActionCircle>
-        </TableActions>
-      ),
+      render: (gqlApi: GraphqlApi.AsObject) => {
+        return (
+          <TableActions className='space-x-3 '>
+            <TableActionCircle onClick={() => onDownloadApi(gqlApi)}>
+              <DownloadIcon />
+            </TableActionCircle>
+            {!readonly && (
+              <TableActionCircle
+                onClick={() =>
+                  triggerDelete({
+                    name: gqlApi.metadata?.name!,
+                    namespace: gqlApi.metadata?.namespace!,
+                    clusterName: gqlApi.metadata?.clusterName!,
+                  })
+                }>
+                <XIcon />
+              </TableActionCircle>
+            )}
+          </TableActions>
+        );
+      },
     },
   ];
   return (

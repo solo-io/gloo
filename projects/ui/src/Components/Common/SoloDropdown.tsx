@@ -168,7 +168,7 @@ export const SoloDropdown = (props: DropdownProps) => {
 
       <SoloDropdownBlock
         searchValue={searchable && isDropdownOpen ? searchValue : ''}
-        onSearch={s => setSearchValue(s)}
+        onSearch={searchable === undefined ? undefined : s => setSearchValue(s)}
         showSearch={searchable}
         data-testid={testId}
         dropdownClassName={testId}

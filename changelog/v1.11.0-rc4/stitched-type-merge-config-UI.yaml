@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Merge configurations for field types can be added in the UI when adding sub graphs to a stitched GraphQL API.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3279

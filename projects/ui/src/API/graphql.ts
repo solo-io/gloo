@@ -216,8 +216,22 @@ function apiSpecFromObject(
     let newSchema = apiSpecToUpdate.getStitchedSchema() ?? new StitchedSchema();
     const newSubschemasList = subschemasList.map(subschema => {
       const newSubschema = new StitchedSchema.SubschemaConfig();
+      // Set name and namespace.
       newSubschema.setName(subschema.name);
       newSubschema.setNamespace(subschema.namespace);
+      // Set type merge map in place.
+      const mergeMap = newSubschema.getTypeMergeMap();
+      subschema.typeMergeMap.forEach(m => {
+        // m[0] === typeName
+        // m[1] === typeMergeConfig
+        const mergeConfig =
+          new StitchedSchema.SubschemaConfig.TypeMergeConfig();
+        const argsMap = mergeConfig.getArgsMap();
+        m[1].argsMap.forEach(arg => argsMap.set(arg[0], arg[1]));
+        mergeConfig.setSelectionSet(m[1].selectionSet);
+        mergeConfig.setQueryName(m[1].queryName);
+        mergeMap.set(m[0], mergeConfig);
+      });
       return newSubschema;
     });
     newSchema.setSubschemasList(newSubschemasList);

@@ -4,17 +4,13 @@ import { useGetGraphqlApiDetails } from 'API/hooks';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import { SoloInput } from 'Components/Common/SoloInput';
 import SoloNoMatches from 'Components/Common/SoloNoMatches';
-import {
-  DocumentNode,
-  EnumTypeDefinitionNode,
-  Kind,
-  ObjectTypeDefinitionNode,
-} from 'graphql';
-import gql from 'graphql-tag';
-import lodash from 'lodash';
+import { Kind } from 'graphql';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useEffect, useMemo, useState } from 'react';
-import { makeSchemaDefinitionId } from 'utils/graphql-helpers';
+import {
+  makeSchemaDefinitionId,
+  parseSchemaDefinition,
+} from 'utils/graphql-helpers';
 import { ExeGqlEnumDefinition } from './enum-definition/ExeGqlEnumDefinition';
 import { globalStyles } from './ExecutableGraphqlSchemaDefinitions.style';
 import { ExeGqlObjectDefinition } from './object-definition/ExeGqlObjectDefinition';
@@ -25,41 +21,13 @@ const ExecutableGraphqlSchemaDefinitions: React.FC<{
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
 
   // --- SCHEMA DEFINITIONS --- //
-  type supportedDefinitionTypes =
-    | ObjectTypeDefinitionNode
-    | EnumTypeDefinitionNode;
-  const schemaDefinitions = useMemo<supportedDefinitionTypes[]>(() => {
-    // Try to parse the serialized GraphQL schema definition to JSON (using gql`...`).
-    let query: DocumentNode;
-    try {
-      query = gql`
-        ${graphqlApi?.spec?.executableSchema?.schemaDefinition}
-      `;
-    } catch {
-      return [] as supportedDefinitionTypes[];
-    }
-    if (!query) return [] as supportedDefinitionTypes[];
-    // We support enum and object type definitions here.
-    const definitions = lodash.cloneDeep(
-      query.definitions.filter(
-        d =>
-          d.kind === Kind.ENUM_TYPE_DEFINITION ||
-          d.kind === Kind.OBJECT_TYPE_DEFINITION
-      )
-    ) as supportedDefinitionTypes[];
-    // ? Uncomment this push(...mockEnumDefinitions) line for testing enums:
-    // definitions.push(...mockEnumDefinitions);
-    // We can sort the definitions here, and filtering will keep it sorted.
-    definitions.sort((a, b) => {
-      // Ordering: Query, mutation, Everything else.
-      if (a.name.value === 'Query') return -1;
-      else if (b.name.value === 'Query') return 1;
-      if (a.name.value === 'Mutation') return -1;
-      else if (b.name.value === 'Mutation') return 1;
-      else return 0;
-    });
-    return definitions;
-  }, [graphqlApi]);
+  const schemaDefinitions = useMemo(
+    () =>
+      parseSchemaDefinition(
+        graphqlApi?.spec?.executableSchema?.schemaDefinition
+      ),
+    [graphqlApi]
+  );
 
   // --- SEARCH LOGIC --- //
   const [searchText, setSearchText] = useState('');
@@ -104,7 +72,7 @@ const ExecutableGraphqlSchemaDefinitions: React.FC<{
     if (filteredSchemaDefinitions.length > 0) {
       const idToOpen = makeSchemaDefinitionId(
         apiRef,
-        filteredSchemaDefinitions[0] as supportedDefinitionTypes
+        filteredSchemaDefinitions[0]
       );
       setOpenPanels(idToOpen);
     }
