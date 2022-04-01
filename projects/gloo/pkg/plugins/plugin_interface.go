@@ -80,6 +80,11 @@ type DirectResponseRoutePlugin interface {
 	ProcessDirectResponseRoute(params RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error
 }
 
+type RedirectActionRoutePlugin interface {
+	Plugin
+	ProcessRedirectActionRoute(params RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error
+}
+
 // note: any route action plugin can be implemented as a route plugin
 // suggestion: if your plugin requires configuration from a RoutePlugin field, implement the RoutePlugin interface
 type RouteActionPlugin interface {
@@ -289,6 +294,7 @@ type PluginRegistry interface {
 	GetEndpointPlugins() []EndpointPlugin
 	GetRoutePlugins() []RoutePlugin
 	GetDirectResponseRoutePlugins() []DirectResponseRoutePlugin
+	GetRedirectActionRoutePlugins() []RedirectActionRoutePlugin
 	GetRouteActionPlugins() []RouteActionPlugin
 	GetWeightedDestinationPlugins() []WeightedDestinationPlugin
 }

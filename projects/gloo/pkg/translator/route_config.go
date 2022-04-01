@@ -7,7 +7,6 @@ import (
 	"unicode"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/dynamic_forward_proxy"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/headers"
 
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -315,12 +314,8 @@ func (h *httpRouteConfigurationTranslator) setAction(
 			}
 		}
 
-		for _, plug := range h.pluginRegistry.GetRoutePlugins() {
-			if plug.Name() != headers.ExtensionName && plug.Name() != "transformation" && plug.Name() != "jwt" {
-				continue
-			}
-
-			if err := plug.ProcessRoute(params, in, out); err != nil {
+		for _, plug := range h.pluginRegistry.GetRedirectActionRoutePlugins() {
+			if err := plug.ProcessRedirectActionRoute(params, in, out); err != nil {
 				if isWarningErr(err) {
 					continue
 				}

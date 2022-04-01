@@ -129,7 +129,8 @@ type pluginRegistry struct {
 	upstreamPlugins              []plugins.UpstreamPlugin
 	endpointPlugins              []plugins.EndpointPlugin
 	routePlugins                 []plugins.RoutePlugin
-	DirectResponseRoutePlugins   []plugins.DirectResponseRoutePlugin
+	directResponseRoutePlugins   []plugins.DirectResponseRoutePlugin
+	redirectActionRoutePlugins   []plugins.RedirectActionRoutePlugin
 	routeActionPlugins           []plugins.RouteActionPlugin
 	weightedDestinationPlugins   []plugins.WeightedDestinationPlugin
 }
@@ -147,7 +148,8 @@ func NewPluginRegistry(registeredPlugins []plugins.Plugin) *pluginRegistry {
 	var upstreamPlugins []plugins.UpstreamPlugin
 	var endpointPlugins []plugins.EndpointPlugin
 	var routePlugins []plugins.RoutePlugin
-	var DirectResponseRoutePlugins []plugins.DirectResponseRoutePlugin
+	var directResponseRoutePlugins []plugins.DirectResponseRoutePlugin
+	var redirectActionRoutePlugins []plugins.RedirectActionRoutePlugin
 	var routeActionPlugins []plugins.RouteActionPlugin
 	var weightedDestinationPlugins []plugins.WeightedDestinationPlugin
 
@@ -198,9 +200,14 @@ func NewPluginRegistry(registeredPlugins []plugins.Plugin) *pluginRegistry {
 			routePlugins = append(routePlugins, routePlugin)
 		}
 
-		DirectResponseRoutePlugin, ok := plugin.(plugins.DirectResponseRoutePlugin)
+		directResponseRoutePlugin, ok := plugin.(plugins.DirectResponseRoutePlugin)
 		if ok {
-			DirectResponseRoutePlugins = append(DirectResponseRoutePlugins, DirectResponseRoutePlugin)
+			directResponseRoutePlugins = append(directResponseRoutePlugins, directResponseRoutePlugin)
+		}
+
+		redirectActionRoutePlugin, ok := plugin.(plugins.RedirectActionRoutePlugin)
+		if ok {
+			redirectActionRoutePlugins = append(redirectActionRoutePlugins, redirectActionRoutePlugin)
 		}
 
 		routeActionPlugin, ok := plugin.(plugins.RouteActionPlugin)
@@ -225,7 +232,8 @@ func NewPluginRegistry(registeredPlugins []plugins.Plugin) *pluginRegistry {
 		upstreamPlugins:              upstreamPlugins,
 		endpointPlugins:              endpointPlugins,
 		routePlugins:                 routePlugins,
-		DirectResponseRoutePlugins:   DirectResponseRoutePlugins,
+		directResponseRoutePlugins:   directResponseRoutePlugins,
+		redirectActionRoutePlugins:   redirectActionRoutePlugins,
 		routeActionPlugins:           routeActionPlugins,
 		weightedDestinationPlugins:   weightedDestinationPlugins,
 	}
@@ -281,9 +289,14 @@ func (p *pluginRegistry) GetRoutePlugins() []plugins.RoutePlugin {
 	return p.routePlugins
 }
 
-// GetDirectResponseRoutePlugins returns the plugins that were registered which act on Route.
+// GetDirectResponseRoutePlugins returns the plugins that were registered which act on Direct Response Routes.
 func (p *pluginRegistry) GetDirectResponseRoutePlugins() []plugins.DirectResponseRoutePlugin {
-	return p.DirectResponseRoutePlugins
+	return p.directResponseRoutePlugins
+}
+
+// GetRedirectActionRoutePlugins returns the plugins that were registered which act on RedirectAction Routes.
+func (p *pluginRegistry) GetRedirectActionRoutePlugins() []plugins.RedirectActionRoutePlugin {
+	return p.redirectActionRoutePlugins
 }
 
 // GetRouteActionPlugins returns the plugins that were registered which act on RouteAction.
