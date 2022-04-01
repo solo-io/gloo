@@ -755,6 +755,68 @@ func (m *ValidateSchemaDefinitionResponse) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *GetStitchedSchemaDefinitionRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetStitchedSchemaDefinitionRequest)
+	if !ok {
+		that2, ok := that.(GetStitchedSchemaDefinitionRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetStitchedSchemaApiRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetStitchedSchemaApiRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetStitchedSchemaApiRef(), target.GetStitchedSchemaApiRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetStitchedSchemaDefinitionResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetStitchedSchemaDefinitionResponse)
+	if !ok {
+		that2, ok := that.(GetStitchedSchemaDefinitionResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if strings.Compare(m.GetStitchedSchemaSdl(), target.GetStitchedSchemaSdl()) != 0 {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
 func (m *GraphqlApiSummary_ExecutableSchemaSummary) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil

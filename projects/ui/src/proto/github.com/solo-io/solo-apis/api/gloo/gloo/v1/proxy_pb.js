@@ -24,6 +24,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb = require('../../..
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_matchers_matchers_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/dynamic_forward_proxy/dynamic_forward_proxy_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/regex_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.ConsulServiceDestination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Destination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.DirectResponseAction', null, global);
@@ -5298,7 +5299,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.RedirectAction.oneofGroups_ = [[2,5]];
+proto.gloo.solo.io.RedirectAction.oneofGroups_ = [[2,5,32]];
 
 /**
  * @enum {number}
@@ -5306,7 +5307,8 @@ proto.gloo.solo.io.RedirectAction.oneofGroups_ = [[2,5]];
 proto.gloo.solo.io.RedirectAction.PathRewriteSpecifierCase = {
   PATH_REWRITE_SPECIFIER_NOT_SET: 0,
   PATH_REDIRECT: 2,
-  PREFIX_REWRITE: 5
+  PREFIX_REWRITE: 5,
+  REGEX_REWRITE: 32
 };
 
 /**
@@ -5348,6 +5350,7 @@ proto.gloo.solo.io.RedirectAction.toObject = function(includeInstance, msg) {
     hostRedirect: jspb.Message.getFieldWithDefault(msg, 1, ""),
     pathRedirect: jspb.Message.getFieldWithDefault(msg, 2, ""),
     prefixRewrite: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    regexRewrite: (f = msg.getRegexRewrite()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.toObject(includeInstance, f),
     responseCode: jspb.Message.getFieldWithDefault(msg, 3, 0),
     httpsRedirect: jspb.Message.getFieldWithDefault(msg, 4, false),
     stripQuery: jspb.Message.getFieldWithDefault(msg, 6, false)
@@ -5398,6 +5401,11 @@ proto.gloo.solo.io.RedirectAction.deserializeBinaryFromReader = function(msg, re
     case 5:
       var value = /** @type {string} */ (reader.readString());
       msg.setPrefixRewrite(value);
+      break;
+    case 32:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.deserializeBinaryFromReader);
+      msg.setRegexRewrite(value);
       break;
     case 3:
       var value = /** @type {!proto.gloo.solo.io.RedirectAction.RedirectResponseCode} */ (reader.readEnum());
@@ -5459,6 +5467,14 @@ proto.gloo.solo.io.RedirectAction.serializeBinaryToWriter = function(message, wr
     writer.writeString(
       5,
       f
+    );
+  }
+  f = message.getRegexRewrite();
+  if (f != null) {
+    writer.writeMessage(
+      32,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.serializeBinaryToWriter
     );
   }
   f = message.getResponseCode();
@@ -5566,6 +5582,36 @@ proto.gloo.solo.io.RedirectAction.prototype.clearPrefixRewrite = function() {
  */
 proto.gloo.solo.io.RedirectAction.prototype.hasPrefixRewrite = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional solo.io.envoy.type.matcher.v3.RegexMatchAndSubstitute regex_rewrite = 32;
+ * @return {?proto.solo.io.envoy.type.matcher.v3.RegexMatchAndSubstitute}
+ */
+proto.gloo.solo.io.RedirectAction.prototype.getRegexRewrite = function() {
+  return /** @type{?proto.solo.io.envoy.type.matcher.v3.RegexMatchAndSubstitute} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute, 32));
+};
+
+
+/** @param {?proto.solo.io.envoy.type.matcher.v3.RegexMatchAndSubstitute|undefined} value */
+proto.gloo.solo.io.RedirectAction.prototype.setRegexRewrite = function(value) {
+  jspb.Message.setOneofWrapperField(this, 32, proto.gloo.solo.io.RedirectAction.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.RedirectAction.prototype.clearRegexRewrite = function() {
+  this.setRegexRewrite(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RedirectAction.prototype.hasRegexRewrite = function() {
+  return jspb.Message.getField(this, 32) != null;
 };
 
 

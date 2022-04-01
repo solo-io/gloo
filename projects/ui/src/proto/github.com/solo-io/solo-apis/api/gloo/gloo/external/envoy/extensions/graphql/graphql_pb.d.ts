@@ -845,6 +845,9 @@ export class ExecutableSchema extends jspb.Message {
 
   getExtensionsMap(): jspb.Map<string, google_protobuf_any_pb.Any>;
   clearExtensionsMap(): void;
+  getLogRequestResponseInfo(): boolean;
+  setLogRequestResponseInfo(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ExecutableSchema.AsObject;
   static toObject(includeInstance: boolean, msg: ExecutableSchema): ExecutableSchema.AsObject;
@@ -860,6 +863,7 @@ export namespace ExecutableSchema {
     schemaDefinition?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.AsObject,
     executor?: Executor.AsObject,
     extensionsMap: Array<[string, google_protobuf_any_pb.Any.AsObject]>,
+    logRequestResponseInfo: boolean,
   }
 }
 

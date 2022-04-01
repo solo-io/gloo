@@ -5,7 +5,7 @@ import (
 	"github.com/rotisserie/eris"
 	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
-	directive_utils "github.com/solo-io/solo-projects/projects/gloo/utils/graphql/directives"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/directives"
 )
 
 func ValidateSchemaDefinition(req *rpc_edge_v1.ValidateSchemaDefinitionRequest) error {
@@ -31,11 +31,11 @@ func validateInternal(schema string, resolutions map[string]*graphql_v1alpha1.Re
 		return eris.Wrap(err, "unable to parse graphql schema")
 	}
 
-	visitor := directive_utils.NewGraphqlASTVisitor()
+	visitor := directives.NewGraphqlASTVisitor()
 	// resolve directive
-	visitor.AddDirectiveVisitor(directive_utils.RESOLVER_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) (bool, error) {
+	visitor.AddDirectiveVisitor(directives.RESOLVER_DIRECTIVE, func(directiveVisitorParams directives.DirectiveVisitorParams) (bool, error) {
 		// validate correct usage of the resolve directive
-		resolveDirective := directive_utils.NewResolveDirective()
+		resolveDirective := directives.NewResolveDirective()
 		err := resolveDirective.Validate(directiveVisitorParams)
 		if err != nil {
 			return false, err
@@ -44,7 +44,7 @@ func validateInternal(schema string, resolutions map[string]*graphql_v1alpha1.Re
 		// check if referenced resolver exists in the resolutions map
 		resolution := resolutions[resolveDirective.ResolverName]
 		if resolution == nil {
-			return false, directive_utils.NewGraphqlSchemaError(resolveDirective.ResolverNameAstValue,
+			return false, directives.NewGraphqlSchemaError(resolveDirective.ResolverNameAstValue,
 				"resolver %s is not defined", resolveDirective.ResolverName)
 		}
 
@@ -52,9 +52,9 @@ func validateInternal(schema string, resolutions map[string]*graphql_v1alpha1.Re
 	})
 
 	// cacheControl directive
-	visitor.AddDirectiveVisitor(directive_utils.CACHE_CONTROL_DIRECTIVE, func(directiveVisitorParams directive_utils.DirectiveVisitorParams) (bool, error) {
+	visitor.AddDirectiveVisitor(directives.CACHE_CONTROL_DIRECTIVE, func(directiveVisitorParams directives.DirectiveVisitorParams) (bool, error) {
 		// validate correct usage of the cacheControl directive
-		cacheControlDirective := directive_utils.NewCacheControlDirective()
+		cacheControlDirective := directives.NewCacheControlDirective()
 		return cacheControlDirective.Validate(directiveVisitorParams)
 	})
 

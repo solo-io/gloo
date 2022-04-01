@@ -5830,7 +5830,8 @@ proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.toObject = function(i
   var f, obj = {
     schemaDefinition: (f = msg.getSchemaDefinition()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.DataSource.toObject(includeInstance, f),
     executor: (f = msg.getExecutor()) && proto.envoy.config.filter.http.graphql.v2.Executor.toObject(includeInstance, f),
-    extensionsMap: (f = msg.getExtensionsMap()) ? f.toObject(includeInstance, proto.google.protobuf.Any.toObject) : []
+    extensionsMap: (f = msg.getExtensionsMap()) ? f.toObject(includeInstance, proto.google.protobuf.Any.toObject) : [],
+    logRequestResponseInfo: jspb.Message.getFieldWithDefault(msg, 4, false)
   };
 
   if (includeInstance) {
@@ -5883,6 +5884,10 @@ proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.deserializeBinaryFrom
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.google.protobuf.Any.deserializeBinaryFromReader, "");
          });
       break;
+    case 4:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setLogRequestResponseInfo(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5931,6 +5936,13 @@ proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.serializeBinaryToWrit
   f = message.getExtensionsMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(3, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.google.protobuf.Any.serializeBinaryToWriter);
+  }
+  f = message.getLogRequestResponseInfo();
+  if (f) {
+    writer.writeBool(
+      4,
+      f
+    );
   }
 };
 
@@ -6010,6 +6022,23 @@ proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.getExtensio
 
 proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.clearExtensionsMap = function() {
   this.getExtensionsMap().clear();
+};
+
+
+/**
+ * optional bool log_request_response_info = 4;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.getLogRequestResponseInfo = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 4, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.graphql.v2.ExecutableSchema.prototype.setLogRequestResponseInfo = function(value) {
+  jspb.Message.setProto3BooleanField(this, 4, value);
 };
 
 

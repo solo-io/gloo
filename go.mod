@@ -25,7 +25,6 @@ require (
 	github.com/go-redis/redis/v8 v8.2.3
 	github.com/go-test/deep v1.0.7
 	github.com/gobuffalo/packr v1.30.1
-	github.com/gogo/googleapis v1.4.0 // indirect
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/wire v0.4.0
@@ -53,7 +52,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.12
 	github.com/solo-io/external-apis v0.1.11
-	github.com/solo-io/gloo v1.11.0-rc3
+	github.com/solo-io/gloo v1.11.0-rc4
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.21.24
 	github.com/solo-io/k8s-utils v0.0.12
@@ -63,7 +62,7 @@ require (
 	github.com/solo-io/rate-limiter v0.5.6
 	github.com/solo-io/skv2 v0.21.6
 	github.com/solo-io/skv2-enterprise v0.2.8
-	github.com/solo-io/solo-apis v0.0.0-20220328192245-cceb2a81b377
+	github.com/solo-io/solo-apis v0.0.0-20220330194829-da22fa09dd0f
 	github.com/solo-io/solo-kit v0.24.2
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3

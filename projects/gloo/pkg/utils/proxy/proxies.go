@@ -4,13 +4,15 @@ import (
 	"context"
 	"sort"
 
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/locality"
+
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/images"
+
 	apps_v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1/sets"
 	core_v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
 	gateway_defaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/skv2/contrib/pkg/sets"
-	"github.com/solo-io/solo-projects/projects/gloo/utils/images"
-	"github.com/solo-io/solo-projects/projects/gloo/utils/locality"
 	"go.uber.org/zap"
 	k8s_core_types "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

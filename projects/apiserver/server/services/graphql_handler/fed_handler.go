@@ -398,3 +398,12 @@ func (h *fedGraphqlHandler) checkGraphqlApiRef(ref *skv2_v1.ClusterObjectRef) er
 	}
 	return nil
 }
+
+func (h *fedGraphqlHandler) GetStitchedSchemaDefinition(ctx context.Context, request *rpc_edge_v1.GetStitchedSchemaDefinitionRequest) (*rpc_edge_v1.GetStitchedSchemaDefinitionResponse, error) {
+	clusterName := request.GetStitchedSchemaApiRef().GetClusterName()
+	gqlClient, err := h.graphqlMCClientset.Cluster(clusterName)
+	if err != nil {
+		return nil, eris.Wrapf(err, "unable to get GraphQLApi client for cluster %s", clusterName)
+	}
+	return GetStitchedSchemaDefinition(ctx, gqlClient.GraphQLApis(), request)
+}

@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/solo-io/solo-projects/projects/gloo/utils/graphql/stitching"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
 
 	"github.com/fgrosse/zaptest"
 	structpb "github.com/golang/protobuf/ptypes/struct"
@@ -287,8 +287,8 @@ type Query {
 
 			err = envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(os.Setenv(stitching.StitchingIndexFilePathEnvVar, "../../projects/gloo/pkg/plugins/graphql/js/index.js")).NotTo(HaveOccurred())
-			err = os.Setenv(stitching.StitchingProtoDependenciesPathEnvVar, "../../projects/ui/src/proto/github.com/solo-io/solo-apis/api/gloo/gloo")
+			Expect(os.Setenv(translation.StitchingIndexFilePathEnvVar, "../../projects/gloo/pkg/plugins/graphql/js/index.js")).NotTo(HaveOccurred())
+			err = os.Setenv(translation.StitchingProtoDependenciesPathEnvVar, "../../projects/ui/src/proto/github.com/solo-io/solo-apis/api/gloo/gloo")
 			Expect(err).NotTo(HaveOccurred())
 
 			query = `
@@ -313,8 +313,8 @@ type Query {
 			if envoyInstance != nil {
 				envoyInstance.Clean()
 			}
-			Expect(os.Unsetenv(stitching.StitchingProtoDependenciesPathEnvVar)).NotTo(HaveOccurred())
-			Expect(os.Unsetenv(stitching.StitchingIndexFilePathEnvVar)).NotTo(HaveOccurred())
+			Expect(os.Unsetenv(translation.StitchingProtoDependenciesPathEnvVar)).NotTo(HaveOccurred())
+			Expect(os.Unsetenv(translation.StitchingIndexFilePathEnvVar)).NotTo(HaveOccurred())
 		})
 
 		Context("request to stitched schema", func() {

@@ -3,6 +3,11 @@ package glooinstance_handler
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/checker"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/images"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/locality"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/proxy"
+
 	"github.com/rotisserie/eris"
 	apps_v1 "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
 	apps_v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1/sets"
@@ -21,10 +26,6 @@ import (
 	gloo_resource_handler "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/gloo.solo.io/v1/handler"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
-	"github.com/solo-io/solo-projects/projects/gloo/utils/checker"
-	"github.com/solo-io/solo-projects/projects/gloo/utils/images"
-	"github.com/solo-io/solo-projects/projects/gloo/utils/locality"
-	"github.com/solo-io/solo-projects/projects/gloo/utils/proxy"
 	"go.uber.org/zap"
 	k8s_apps_types "k8s.io/api/apps/v1"
 	k8s_core_types "k8s.io/api/core/v1"

@@ -423,6 +423,11 @@ export class GraphQLApiSpec extends jspb.Message {
   setAllowedQueryHashesList(value: Array<string>): void;
   addAllowedQueryHashes(value: string, index?: number): string;
 
+  hasOptions(): boolean;
+  clearOptions(): void;
+  getOptions(): GraphQLApiSpec.GraphQLApiOptions | undefined;
+  setOptions(value?: GraphQLApiSpec.GraphQLApiOptions): void;
+
   getSchemaCase(): GraphQLApiSpec.SchemaCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GraphQLApiSpec.AsObject;
@@ -441,6 +446,27 @@ export namespace GraphQLApiSpec {
     statPrefix?: google_protobuf_wrappers_pb.StringValue.AsObject,
     persistedQueryCacheConfig?: PersistedQueryCacheConfig.AsObject,
     allowedQueryHashesList: Array<string>,
+    options?: GraphQLApiSpec.GraphQLApiOptions.AsObject,
+  }
+
+  export class GraphQLApiOptions extends jspb.Message {
+    getLogSensitiveInfo(): boolean;
+    setLogSensitiveInfo(value: boolean): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GraphQLApiOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: GraphQLApiOptions): GraphQLApiOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GraphQLApiOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GraphQLApiOptions;
+    static deserializeBinaryFromReader(message: GraphQLApiOptions, reader: jspb.BinaryReader): GraphQLApiOptions;
+  }
+
+  export namespace GraphQLApiOptions {
+    export type AsObject = {
+      logSensitiveInfo: boolean,
+    }
   }
 
   export enum SchemaCase {

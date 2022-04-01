@@ -752,6 +752,9 @@ export namespace UserSession {
     getPath(): google_protobuf_wrappers_pb.StringValue | undefined;
     setPath(value?: google_protobuf_wrappers_pb.StringValue): void;
 
+    getSameSite(): UserSession.CookieOptions.SameSiteMap[keyof UserSession.CookieOptions.SameSiteMap];
+    setSameSite(value: UserSession.CookieOptions.SameSiteMap[keyof UserSession.CookieOptions.SameSiteMap]): void;
+
     getDomain(): string;
     setDomain(value: string): void;
 
@@ -771,8 +774,17 @@ export namespace UserSession {
       notSecure: boolean,
       httpOnly?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       path?: google_protobuf_wrappers_pb.StringValue.AsObject,
+      sameSite: UserSession.CookieOptions.SameSiteMap[keyof UserSession.CookieOptions.SameSiteMap],
       domain: string,
     }
+
+    export interface SameSiteMap {
+      LAXMODE: 0;
+      STRICTMODE: 1;
+      NONEMODE: 2;
+    }
+
+    export const SameSite: SameSiteMap;
   }
 
   export enum SessionCase {

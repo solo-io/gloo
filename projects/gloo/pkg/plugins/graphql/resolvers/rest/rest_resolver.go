@@ -4,11 +4,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/types"
+
 	"github.com/rotisserie/eris"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/dot_notation"
@@ -23,7 +24,7 @@ const (
 	BODY_SETTER = "body"
 )
 
-func TranslateRestResolver(params plugins.RouteParams, r *RESTResolver) (*v3.TypedExtensionConfig, error) {
+func TranslateRestResolver(upstreams types.UpstreamList, r *RESTResolver) (*v3.TypedExtensionConfig, error) {
 	requestTransform, err := translateRequestTransform(r.Request)
 	if err != nil {
 		return nil, err
@@ -32,7 +33,7 @@ func TranslateRestResolver(params plugins.RouteParams, r *RESTResolver) (*v3.Typ
 	if err != nil {
 		return nil, err
 	}
-	us, err := params.Snapshot.Upstreams.Find(r.UpstreamRef.GetNamespace(), r.UpstreamRef.GetName())
+	us, err := upstreams.Find(r.UpstreamRef.GetNamespace(), r.UpstreamRef.GetName())
 	if err != nil {
 		return nil, eris.Wrapf(err, "unable to find upstream `%s` in namespace `%s` to resolve schema", r.UpstreamRef.GetName(), r.UpstreamRef.GetNamespace())
 	}

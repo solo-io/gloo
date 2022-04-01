@@ -5,6 +5,7 @@
 import * as jspb from "google-protobuf";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
+import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_tracing_tracing_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/tracing/tracing_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/protocol_upgrade/protocol_upgrade_pb";
 import * as extproto_ext_pb from "../../../../../../../../../extproto/ext_pb";
@@ -151,6 +152,11 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getNormalizePath(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setNormalizePath(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasUuidRequestIdConfig(): boolean;
+  clearUuidRequestIdConfig(): void;
+  getUuidRequestIdConfig(): HttpConnectionManagerSettings.UuidRequestIdConfigSettings | undefined;
+  setUuidRequestIdConfig(value?: HttpConnectionManagerSettings.UuidRequestIdConfigSettings): void;
+
   getHeaderFormatCase(): HttpConnectionManagerSettings.HeaderFormatCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
@@ -199,6 +205,7 @@ export namespace HttpConnectionManagerSettings {
     codecType: HttpConnectionManagerSettings.CodecTypeMap[keyof HttpConnectionManagerSettings.CodecTypeMap],
     mergeSlashes: boolean,
     normalizePath?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    uuidRequestIdConfig?: HttpConnectionManagerSettings.UuidRequestIdConfigSettings.AsObject,
   }
 
   export class SetCurrentClientCertDetails extends jspb.Message {
@@ -236,6 +243,34 @@ export namespace HttpConnectionManagerSettings {
       chain: boolean,
       dns: boolean,
       uri: boolean,
+    }
+  }
+
+  export class UuidRequestIdConfigSettings extends jspb.Message {
+    hasPackTraceReason(): boolean;
+    clearPackTraceReason(): void;
+    getPackTraceReason(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setPackTraceReason(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+    hasUseRequestIdForTraceSampling(): boolean;
+    clearUseRequestIdForTraceSampling(): void;
+    getUseRequestIdForTraceSampling(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setUseRequestIdForTraceSampling(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): UuidRequestIdConfigSettings.AsObject;
+    static toObject(includeInstance: boolean, msg: UuidRequestIdConfigSettings): UuidRequestIdConfigSettings.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: UuidRequestIdConfigSettings, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): UuidRequestIdConfigSettings;
+    static deserializeBinaryFromReader(message: UuidRequestIdConfigSettings, reader: jspb.BinaryReader): UuidRequestIdConfigSettings;
+  }
+
+  export namespace UuidRequestIdConfigSettings {
+    export type AsObject = {
+      packTraceReason?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      useRequestIdForTraceSampling?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     }
   }
 

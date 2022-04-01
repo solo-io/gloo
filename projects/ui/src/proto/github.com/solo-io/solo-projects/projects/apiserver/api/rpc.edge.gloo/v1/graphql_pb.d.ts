@@ -515,3 +515,45 @@ export namespace ValidateSchemaDefinitionResponse {
   export type AsObject = {
   }
 }
+
+export class GetStitchedSchemaDefinitionRequest extends jspb.Message {
+  hasStitchedSchemaApiRef(): boolean;
+  clearStitchedSchemaApiRef(): void;
+  getStitchedSchemaApiRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setStitchedSchemaApiRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetStitchedSchemaDefinitionRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetStitchedSchemaDefinitionRequest): GetStitchedSchemaDefinitionRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetStitchedSchemaDefinitionRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetStitchedSchemaDefinitionRequest;
+  static deserializeBinaryFromReader(message: GetStitchedSchemaDefinitionRequest, reader: jspb.BinaryReader): GetStitchedSchemaDefinitionRequest;
+}
+
+export namespace GetStitchedSchemaDefinitionRequest {
+  export type AsObject = {
+    stitchedSchemaApiRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class GetStitchedSchemaDefinitionResponse extends jspb.Message {
+  getStitchedSchemaSdl(): string;
+  setStitchedSchemaSdl(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetStitchedSchemaDefinitionResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetStitchedSchemaDefinitionResponse): GetStitchedSchemaDefinitionResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetStitchedSchemaDefinitionResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetStitchedSchemaDefinitionResponse;
+  static deserializeBinaryFromReader(message: GetStitchedSchemaDefinitionResponse, reader: jspb.BinaryReader): GetStitchedSchemaDefinitionResponse;
+}
+
+export namespace GetStitchedSchemaDefinitionResponse {
+  export type AsObject = {
+    stitchedSchemaSdl: string,
+  }
+}

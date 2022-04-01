@@ -273,6 +273,20 @@
                           "rule": "repeated",
                           "type": "string",
                           "id": 5
+                        },
+                        "options": {
+                          "type": "GraphQLApiOptions",
+                          "id": 8
+                        }
+                      },
+                      "nested": {
+                        "GraphQLApiOptions": {
+                          "fields": {
+                            "logSensitiveInfo": {
+                              "type": "bool",
+                              "id": 1
+                            }
+                          }
                         }
                       }
                     },

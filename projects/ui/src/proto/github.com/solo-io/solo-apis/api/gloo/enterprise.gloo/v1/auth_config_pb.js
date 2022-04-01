@@ -81,6 +81,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings.ApiVersion', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.UserSession', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.UserSession.CookieOptions', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.UserSession.InternalSession', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.UserSession.RedisSession', null, global);
 
@@ -5082,6 +5083,7 @@ proto.enterprise.gloo.solo.io.UserSession.CookieOptions.toObject = function(incl
     notSecure: jspb.Message.getFieldWithDefault(msg, 2, false),
     httpOnly: (f = msg.getHttpOnly()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     path: (f = msg.getPath()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    sameSite: jspb.Message.getFieldWithDefault(msg, 6, 0),
     domain: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
@@ -5137,6 +5139,10 @@ proto.enterprise.gloo.solo.io.UserSession.CookieOptions.deserializeBinaryFromRea
       var value = new google_protobuf_wrappers_pb.StringValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setPath(value);
+      break;
+    case 6:
+      var value = /** @type {!proto.enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite} */ (reader.readEnum());
+      msg.setSameSite(value);
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
@@ -5202,6 +5208,13 @@ proto.enterprise.gloo.solo.io.UserSession.CookieOptions.serializeBinaryToWriter 
       google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
+  f = message.getSameSite();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      6,
+      f
+    );
+  }
   f = message.getDomain();
   if (f.length > 0) {
     writer.writeString(
@@ -5211,6 +5224,15 @@ proto.enterprise.gloo.solo.io.UserSession.CookieOptions.serializeBinaryToWriter 
   }
 };
 
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite = {
+  LAXMODE: 0,
+  STRICTMODE: 1,
+  NONEMODE: 2
+};
 
 /**
  * optional google.protobuf.UInt32Value max_age = 1;
@@ -5316,6 +5338,21 @@ proto.enterprise.gloo.solo.io.UserSession.CookieOptions.prototype.clearPath = fu
  */
 proto.enterprise.gloo.solo.io.UserSession.CookieOptions.prototype.hasPath = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional SameSite same_site = 6;
+ * @return {!proto.enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite}
+ */
+proto.enterprise.gloo.solo.io.UserSession.CookieOptions.prototype.getSameSite = function() {
+  return /** @type {!proto.enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite} */ (jspb.Message.getFieldWithDefault(this, 6, 0));
+};
+
+
+/** @param {!proto.enterprise.gloo.solo.io.UserSession.CookieOptions.SameSite} value */
+proto.enterprise.gloo.solo.io.UserSession.CookieOptions.prototype.setSameSite = function(value) {
+  jspb.Message.setProto3EnumField(this, 6, value);
 };
 
 

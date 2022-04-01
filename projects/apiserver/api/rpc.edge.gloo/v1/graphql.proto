@@ -158,6 +158,17 @@ message ValidateSchemaDefinitionRequest {
 message ValidateSchemaDefinitionResponse {
 }
 
+message GetStitchedSchemaDefinitionRequest {
+    // This is the ref to the stitched schema we want the definition of
+    .core.skv2.solo.io.ClusterObjectRef stitched_schema_api_ref = 1;
+}
+
+// Returns the stitched schema SDL as a string if processing stitched schema config succeeded,
+// else an error is returned and stitched_schema_sdl is empty.
+message GetStitchedSchemaDefinitionResponse {
+    string stitched_schema_sdl = 1;
+}
+
 service GraphqlConfigApi {
     rpc GetGraphqlApi (GetGraphqlApiRequest) returns (GetGraphqlApiResponse) {}
     rpc ListGraphqlApis (ListGraphqlApisRequest) returns (ListGraphqlApisResponse) {}
@@ -167,4 +178,6 @@ service GraphqlConfigApi {
     rpc DeleteGraphqlApi (DeleteGraphqlApiRequest) returns (DeleteGraphqlApiResponse) {}
     rpc ValidateResolverYaml (ValidateResolverYamlRequest) returns (ValidateResolverYamlResponse) {}
     rpc ValidateSchemaDefinition (ValidateSchemaDefinitionRequest) returns (ValidateSchemaDefinitionResponse) {}
+
+    rpc GetStitchedSchemaDefinition (GetStitchedSchemaDefinitionRequest) returns (GetStitchedSchemaDefinitionResponse) {}
 }

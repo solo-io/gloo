@@ -76,6 +76,15 @@ type GraphqlConfigApiValidateSchemaDefinition = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionResponse;
 };
 
+type GraphqlConfigApiGetStitchedSchemaDefinition = {
+  readonly methodName: string;
+  readonly service: typeof GraphqlConfigApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetStitchedSchemaDefinitionRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetStitchedSchemaDefinitionResponse;
+};
+
 export class GraphqlConfigApi {
   static readonly serviceName: string;
   static readonly GetGraphqlApi: GraphqlConfigApiGetGraphqlApi;
@@ -86,6 +95,7 @@ export class GraphqlConfigApi {
   static readonly DeleteGraphqlApi: GraphqlConfigApiDeleteGraphqlApi;
   static readonly ValidateResolverYaml: GraphqlConfigApiValidateResolverYaml;
   static readonly ValidateSchemaDefinition: GraphqlConfigApiValidateSchemaDefinition;
+  static readonly GetStitchedSchemaDefinition: GraphqlConfigApiGetStitchedSchemaDefinition;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -191,6 +201,15 @@ export class GraphqlConfigApiClient {
   validateSchemaDefinition(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.ValidateSchemaDefinitionResponse|null) => void
+  ): UnaryResponse;
+  getStitchedSchemaDefinition(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetStitchedSchemaDefinitionRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetStitchedSchemaDefinitionResponse|null) => void
+  ): UnaryResponse;
+  getStitchedSchemaDefinition(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetStitchedSchemaDefinitionRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetStitchedSchemaDefinitionResponse|null) => void
   ): UnaryResponse;
 }
 

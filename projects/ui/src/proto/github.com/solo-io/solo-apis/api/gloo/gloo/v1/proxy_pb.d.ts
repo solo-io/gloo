@@ -15,6 +15,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb from "../..
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_matchers_matchers_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/dynamic_forward_proxy/dynamic_forward_proxy_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/regex_pb";
 
 export class ProxySpec extends jspb.Message {
   getCompressedspec(): string;
@@ -780,6 +781,11 @@ export class RedirectAction extends jspb.Message {
   getPrefixRewrite(): string;
   setPrefixRewrite(value: string): void;
 
+  hasRegexRewrite(): boolean;
+  clearRegexRewrite(): void;
+  getRegexRewrite(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute | undefined;
+  setRegexRewrite(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute): void;
+
   getResponseCode(): RedirectAction.RedirectResponseCodeMap[keyof RedirectAction.RedirectResponseCodeMap];
   setResponseCode(value: RedirectAction.RedirectResponseCodeMap[keyof RedirectAction.RedirectResponseCodeMap]): void;
 
@@ -805,6 +811,7 @@ export namespace RedirectAction {
     hostRedirect: string,
     pathRedirect: string,
     prefixRewrite: string,
+    regexRewrite?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.AsObject,
     responseCode: RedirectAction.RedirectResponseCodeMap[keyof RedirectAction.RedirectResponseCodeMap],
     httpsRedirect: boolean,
     stripQuery: boolean,
@@ -824,6 +831,7 @@ export namespace RedirectAction {
     PATH_REWRITE_SPECIFIER_NOT_SET = 0,
     PATH_REDIRECT = 2,
     PREFIX_REWRITE = 5,
+    REGEX_REWRITE = 32,
   }
 }
 

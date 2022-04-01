@@ -1,0 +1,10 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/3350
+    description: Add apiserver handler for getting stitched schema SDL for a graphql api.
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/3339
+    description: >
+      Adds `log_sensitive_info` option to GraphQL schema options, which configures if gateway-proxy debug logs will include debug
+      information pertaining to individual requests / responses. By default, no request/response information is logged,
+      but `log_sensitive_info` can be set to `true` to log relevant debug information per GraphQLApi.

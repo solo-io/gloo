@@ -3,6 +3,11 @@ package translator
 import (
 	"context"
 
+	checker2 "github.com/solo-io/solo-projects/projects/gloo/pkg/utils/checker"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/images"
+	locality2 "github.com/solo-io/solo-projects/projects/gloo/pkg/utils/locality"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/proxy"
+
 	k8s_core_v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
@@ -16,10 +21,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	gateway_check "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/gateway.solo.io/v1/check"
 	gloo_check "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/gloo.solo.io/v1/check"
-	"github.com/solo-io/solo-projects/projects/gloo/utils/checker"
-	"github.com/solo-io/solo-projects/projects/gloo/utils/images"
-	"github.com/solo-io/solo-projects/projects/gloo/utils/locality"
-	"github.com/solo-io/solo-projects/projects/gloo/utils/proxy"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -61,8 +62,8 @@ func (t *translator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) 
 			contextutils.LoggerFrom(ctx).Errorf("couldn't get client for cluster %v", cluster)
 			return nil
 		}
-		ipFinder := locality.NewExternalIpFinder(cluster, client.Pods(), client.Nodes())
-		localityFinder := locality.NewLocalityFinder(client.Nodes(), client.Pods())
+		ipFinder := locality2.NewExternalIpFinder(cluster, client.Pods(), client.Nodes())
+		localityFinder := locality2.NewLocalityFinder(client.Nodes(), client.Pods())
 		// Ignore error that may occur when listing nodes
 		region, _ := localityFinder.GetRegion(ctx)
 
@@ -95,8 +96,8 @@ func (t *translator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) 
 		instance.Spec.Admin = getAdminInfo(instance.Spec.ControlPlane.GetNamespace(), watchedNamespaces, instance.Spec.Proxies)
 
 		// Check -- workloads
-		instance.Spec.Check.Pods = convertSummary(checker.GetPodsSummary(ctx, snapshot.Pods(), instance.Spec.ControlPlane.GetNamespace(), cluster))
-		instance.Spec.Check.Deployments = convertSummary(checker.GetDeploymentsSummary(ctx, snapshot.Deployments(), instance.Spec.ControlPlane.GetNamespace(), cluster))
+		instance.Spec.Check.Pods = convertSummary(checker2.GetPodsSummary(ctx, snapshot.Pods(), instance.Spec.ControlPlane.GetNamespace(), cluster))
+		instance.Spec.Check.Deployments = convertSummary(checker2.GetDeploymentsSummary(ctx, snapshot.Deployments(), instance.Spec.ControlPlane.GetNamespace(), cluster))
 
 		// Check -- resources
 		// Gloo
@@ -235,7 +236,7 @@ func convertWorkloadControllerType(workloadControllerType proxy.WorkloadControll
 	}
 }
 
-func convertIngressEndpoints(ingressEndpoints []*locality.IngressEndpoint) []*types.GlooInstanceSpec_Proxy_IngressEndpoint {
+func convertIngressEndpoints(ingressEndpoints []*locality2.IngressEndpoint) []*types.GlooInstanceSpec_Proxy_IngressEndpoint {
 	convertedEndpoints := make([]*types.GlooInstanceSpec_Proxy_IngressEndpoint, 0, len(ingressEndpoints))
 	for _, endpoint := range ingressEndpoints {
 		convertedEndpoints = append(convertedEndpoints, &types.GlooInstanceSpec_Proxy_IngressEndpoint{
@@ -247,7 +248,7 @@ func convertIngressEndpoints(ingressEndpoints []*locality.IngressEndpoint) []*ty
 	return convertedEndpoints
 }
 
-func convertPorts(ports []*locality.Port) []*types.GlooInstanceSpec_Proxy_IngressEndpoint_Port {
+func convertPorts(ports []*locality2.Port) []*types.GlooInstanceSpec_Proxy_IngressEndpoint_Port {
 	convertedPorts := make([]*types.GlooInstanceSpec_Proxy_IngressEndpoint_Port, 0, len(ports))
 	for _, port := range ports {
 		convertedPorts = append(convertedPorts, &types.GlooInstanceSpec_Proxy_IngressEndpoint_Port{
@@ -258,7 +259,7 @@ func convertPorts(ports []*locality.Port) []*types.GlooInstanceSpec_Proxy_Ingres
 	return convertedPorts
 }
 
-func convertSummary(summary *checker.Summary) *types.GlooInstanceSpec_Check_Summary {
+func convertSummary(summary *checker2.Summary) *types.GlooInstanceSpec_Check_Summary {
 	return &types.GlooInstanceSpec_Check_Summary{
 		Total:    summary.Total,
 		Errors:   convertResourceReports(summary.Errors),
@@ -266,7 +267,7 @@ func convertSummary(summary *checker.Summary) *types.GlooInstanceSpec_Check_Summ
 	}
 }
 
-func convertResourceReports(resourceReports []*checker.ResourceReport) []*types.GlooInstanceSpec_Check_Summary_ResourceReport {
+func convertResourceReports(resourceReports []*checker2.ResourceReport) []*types.GlooInstanceSpec_Check_Summary_ResourceReport {
 	if len(resourceReports) == 0 {
 		return nil
 	}
