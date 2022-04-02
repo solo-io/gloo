@@ -267,6 +267,6 @@ Injection point for enterprise-exclusive settings into the settings manifest
 {{- end }} {{/* if $.Values.global.extensions.rateLimit.enabled */}}
 {{- $consoleOpts := $.Values.global.console | default dict }}
   consoleOptions:
-    readOnly: {{ hasKey $consoleOpts "readOnly" | ternary $consoleOpts.readOnly true }}
+    readOnly: {{ hasKey $consoleOpts "readOnly" | ternary $consoleOpts.readOnly false }}
     apiExplorerEnabled: {{ hasKey $consoleOpts "apiExplorerEnabled" | ternary $consoleOpts.apiExplorerEnabled true }}
 {{- end -}} {{/* define "gloo.extraSpecs" */}}

@@ -1702,7 +1702,7 @@ spec:
   refreshRate: 60s
   discoveryNamespace: ` + namespace + `
   consoleOptions:
-    readOnly: true
+    readOnly: false
     apiExplorerEnabled: true
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
@@ -1769,7 +1769,7 @@ spec:
   refreshRate: 60s
   discoveryNamespace: ` + namespace + `
   consoleOptions:
-    readOnly: true
+    readOnly: false
     apiExplorerEnabled: true
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
@@ -1831,7 +1831,7 @@ spec:
   refreshRate: 60s
   discoveryNamespace: ` + namespace + `
   consoleOptions:
-    readOnly: true
+    readOnly: false
     apiExplorerEnabled: true
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
@@ -1895,7 +1895,7 @@ spec:
   refreshRate: 60s
   discoveryNamespace: ` + namespace + `
   consoleOptions:
-    readOnly: true
+    readOnly: false
     apiExplorerEnabled: true
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
@@ -1967,7 +1967,7 @@ spec:
           requestsPerUnit: 2
           unit: SECOND
   consoleOptions:
-    readOnly: true
+    readOnly: false
     apiExplorerEnabled: true
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
@@ -2034,7 +2034,7 @@ spec:
   refreshRate: 60s
   discoveryNamespace: ` + namespace + `
   consoleOptions:
-    readOnly: true
+    readOnly: false
     apiExplorerEnabled: true
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
@@ -3214,7 +3214,7 @@ spec:
   refreshRate: 60s
   discoveryNamespace: ` + namespace + `
   consoleOptions:
-    readOnly: true
+    readOnly: false
     apiExplorerEnabled: true
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
@@ -3883,7 +3883,7 @@ spec:
   refreshRate: 60s
   discoveryNamespace: ` + namespace + `
   consoleOptions:
-    readOnly: true
+    readOnly: false
     apiExplorerEnabled: true
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
@@ -3891,7 +3891,7 @@ spec:
 			It("can override console options", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"global.console.readOnly=false",
+						"global.console.readOnly=true",
 						"global.console.apiExplorerEnabled=false",
 					},
 				})
@@ -3945,7 +3945,7 @@ spec:
   refreshRate: 60s
   discoveryNamespace: ` + namespace + `
   consoleOptions:
-    readOnly: false
+    readOnly: true
     apiExplorerEnabled: false
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
