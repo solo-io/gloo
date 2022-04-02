@@ -26,6 +26,7 @@ import protobuf from 'protobufjs';
 import { toProto3JSON } from 'proto3-json-serializer';
 import GQLJsonDescriptor from 'Components/Features/Graphql/data/graphql.json';
 import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
+import { createResolverItem, getResolverFromConfig } from './converters';
 
 export const EditorContainer = styled.div<{ editMode: boolean }>`
   .ace_cursor {
@@ -72,38 +73,6 @@ export const getUpstream = (resolver: Resolution.AsObject): string => {
   }`.trim();
 };
 
-export const removeNulls = (obj: any) => {
-  const isArray = Array.isArray(obj);
-  for (const k of Object.keys(obj)) {
-    if (obj[k] === null) {
-      if (isArray) {
-        obj.splice(Number(k), 1);
-      } else {
-        delete obj[k];
-      }
-    } else if (typeof obj[k] === 'object') {
-      removeNulls(obj[k]);
-    }
-    if (isArray && obj.length === Number(k)) {
-      removeNulls(obj);
-    }
-  }
-  return obj;
-};
-
-const jsonRoot = protobuf.Root.fromJSON(GQLJsonDescriptor);
-const ResolutionType = jsonRoot.lookupType('graphql.gloo.solo.io.Resolution');
-export const getResolverFromConfig = (resolver?: Resolution.AsObject) => {
-  if (resolver?.restResolver || resolver?.grpcResolver) {
-    // conversion: Resolution.AsObject -> protobufjs.Message -> proto3 JsonValue -> string
-    const msg = ResolutionType.fromObject(resolver);
-    const jsonVal = toProto3JSON(msg);
-    YAML.scalarOptions.null.nullStr = '';
-    return YAML.stringify(jsonVal, { simpleKeys: true });
-  }
-  return '';
-};
-
 export const getUpstreamFromMap = (
   resolutionsMap: Array<[string, Resolution.AsObject]>,
   resolverName: string
@@ -136,7 +105,12 @@ type ResolverWizardProps = {
 };
 
 export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
-  let { hasDirective, fieldWithDirective, fieldWithoutDirective, altFieldWithDirective } = props;
+  let {
+    hasDirective,
+    fieldWithDirective,
+    fieldWithoutDirective,
+    altFieldWithDirective,
+  } = props;
   const {
     graphqlApiName = '',
     graphqlApiNamespace = '',
@@ -183,113 +157,31 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
      - `[request | response | spanName | ...]`...
     */
 
-    let parsedResolverConfig;
-    try {
-      parsedResolverConfig = removeNulls(YAML.parse(resolverConfig));
-    } catch (err: any) {
-      setWarningMessage(err.message);
-      return;
-    }
-
-    let headersMap: [string, string][] = [];
-    let queryParamsMap: [string, string][] = [];
-    let settersMap: [string, string][] = [];
-    let requestMetadataMap: [string, string][] = [];
-    let serviceName = '';
-    let methodName = '';
-    let outgoingMessageJson;
-    let body;
-
-    let resultRoot = parsedResolverConfig?.grpcResolver?.resultRoot;
-    let spanName = parsedResolverConfig?.grpcResolver?.spanName
-      ? parsedResolverConfig?.grpcResolver?.spanName
-      : parsedResolverConfig?.restResolver?.spanName;
-    /**
-     * export namespace GrpcResolver {
-        export type AsObject = {
-          serverUri?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.AsObject,
-          requestTransform?: GrpcRequestTemplate.AsObject,
-          spanName: string,
-        }
-      }
-     */
-    let grpcRequest = parsedResolverConfig?.grpcResolver?.requestTransform;
-    let request = parsedResolverConfig?.restResolver?.request;
-    let response = parsedResolverConfig?.restResolver?.response;
-
-    if (resolverType === 'REST') {
-      if (parsedResolverConfig?.restResolver) {
-        headersMap = Object.entries(
-          parsedResolverConfig?.restResolver?.request?.headers ?? {}
-        );
-
-        queryParamsMap = Object.entries(
-          parsedResolverConfig?.restResolver?.request?.queryParams ?? {}
-        );
-
-        body = parsedResolverConfig?.restResolver?.request?.body;
-        settersMap = Object.entries(
-          parsedResolverConfig?.restResolver?.response?.settersMap ?? {}
-        );
-        resultRoot = parsedResolverConfig?.restResolver?.response?.resultRoot;
-        spanName = parsedResolverConfig?.restResolver?.spanName;
-      }
-    } else {
-      if (resolverType === 'gRPC' && parsedResolverConfig?.grpcResolver) {
-        requestMetadataMap = Object.entries(
-          parsedResolverConfig?.grpcResolver?.requestTransform
-            ?.requestMetadataMap ?? {}
-        );
-        serviceName =
-          parsedResolverConfig?.grpcResolver?.requestTransform?.serviceName;
-        methodName =
-          parsedResolverConfig?.grpcResolver?.requestTransform?.methodName;
-        spanName = parsedResolverConfig?.grpcResolver?.spanName;
-        outgoingMessageJson =
-          parsedResolverConfig?.grpcResolver?.requestTransform
-            ?.outgoingMessageJson;
-      }
-    }
-    let [upstreamName, upstreamNamespace] = upstream.split('::');
-
     const apiRef = {
       name: graphqlApiName,
       namespace: graphqlApiNamespace,
       clusterName: graphqlApiClusterName,
     };
-
-    const resolverItem = {
-      upstreamRef: {
-        name: upstreamName,
-        namespace: upstreamNamespace,
-      },
-      //@ts-ignore
-      ...(request && {
-        request: {
-          headersMap,
-          queryParamsMap,
-          body,
-        },
-      }),
-      resolverName: props.resolverName,
-      //@ts-ignore
-      ...(grpcRequest && {
-        grpcRequest: {
-          methodName,
-          requestMetadataMap,
-          serviceName,
-          outgoingMessageJson,
-        },
-      }),
-      resolverType,
-      //@ts-ignore
-      ...(response && { response: { resultRoot, settersMap } }),
-      spanName,
+    const extras = {
       hasDirective,
       fieldWithDirective,
       fieldWithoutDirective,
       altFieldWithDirective,
     };
+    let resolverItem: any;
+    try {
+      resolverItem = createResolverItem(
+        resolverConfig,
+        resolverType,
+        props.resolverName ?? '',
+        upstream,
+        extras
+      );
+    } catch (err: any) {
+      setWarningMessage(err.message);
+      return;
+    }
+
     setWarningMessage('');
     let validationObject =
       new ValidateSchemaDefinitionRequest().toObject() as any;

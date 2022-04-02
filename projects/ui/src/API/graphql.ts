@@ -49,6 +49,20 @@ const graphqlApiClient = new GraphqlConfigApiClient(host, {
   debug: true,
 });
 
+export type ResolverItem = {
+  resolverName: string;
+  resolverType?: 'REST' | 'gRPC';
+  request?: RequestTemplate.AsObject;
+  response?: ResponseTemplate.AsObject;
+  grpcRequest?: GrpcRequestTemplate.AsObject;
+  spanName?: string;
+  upstreamRef?: ObjectRef.AsObject;
+  hasDirective?: boolean;
+  fieldWithDirective?: string;
+  fieldWithoutDirective?: string;
+  altFieldWithDirective?: string;
+};
+
 export const graphqlConfigApi = {
   listGraphqlApis,
   getGraphqlApi,
@@ -351,19 +365,7 @@ async function updateGraphqlApiIntrospection(
 
 async function updateGraphqlApiResolver(
   graphqlApiRef: ClusterObjectRef.AsObject,
-  resolverItem: {
-    resolverName: string;
-    resolverType?: 'REST' | 'gRPC';
-    request?: RequestTemplate.AsObject;
-    response?: ResponseTemplate.AsObject;
-    grpcRequest?: GrpcRequestTemplate.AsObject;
-    spanName?: string;
-    upstreamRef?: ObjectRef.AsObject;
-    hasDirective?: boolean;
-    fieldWithDirective?: string;
-    fieldWithoutDirective?: string;
-    altFieldWithDirective?: string;
-  },
+  resolverItem: ResolverItem,
   isRemove?: boolean
 ): Promise<GraphqlApi.AsObject> {
   let currentGraphqlApi = await getGraphqlApiPb(graphqlApiRef!);
@@ -519,8 +521,9 @@ async function updateGraphqlApiResolver(
    *
    * * The problem is the generated source code is made up for the fieldWithDirective and
    * * fieldWithoutDirective.  So we need to find the real source code being used.
-  **/
-  let { fieldWithDirective, fieldWithoutDirective, altFieldWithDirective } = resolverItem;
+   **/
+  let { fieldWithDirective, fieldWithoutDirective, altFieldWithDirective } =
+    resolverItem;
   if (
     !isRemove &&
     !resolverItem.hasDirective &&
@@ -540,7 +543,6 @@ async function updateGraphqlApiResolver(
       currResolMap.del(`Query|${resolverItem.resolverName}`);
     }
 
-
     if (!!fieldWithDirective && fieldWithoutDirective) {
       if (currentSchemaDef.includes(fieldWithDirective)) {
         currentExSchema.setSchemaDefinition(
@@ -548,7 +550,10 @@ async function updateGraphqlApiResolver(
         );
       } else if (currentSchemaDef.includes(altFieldWithDirective!)) {
         currentExSchema.setSchemaDefinition(
-          currentSchemaDef.replace(altFieldWithDirective!, fieldWithoutDirective)
+          currentSchemaDef.replace(
+            altFieldWithDirective!,
+            fieldWithoutDirective
+          )
         );
       }
     }

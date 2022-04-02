@@ -1,8 +1,5 @@
 import * as React from 'react';
-import {
-  getResolverFromConfig,
-  ResolverWizardFormProps,
-} from './ResolverWizard';
+import { ResolverWizardFormProps } from './ResolverWizard';
 import { useFormikContext } from 'formik';
 import YAML from 'yaml';
 import styled from '@emotion/styled/macro';
@@ -10,6 +7,7 @@ import VisualEditor from 'Components/Common/VisualEditor';
 import { SoloFormDropdown } from 'Components/Common/SoloFormComponents';
 import { SoloCancelButton } from 'Styles/StyledComponents/button';
 import { useParams } from 'react-router';
+import { getResolverFromConfig } from './converters';
 
 export const EditorContainer = styled.div<{ editMode: boolean }>`
   .ace_cursor {
@@ -48,19 +46,22 @@ export const getDefaultConfigFromType = (
             body:
           response:
             resultRoot:
-            setters:`
-        )
-      ,{
-        simpleKeys: true,
-      })
-    : YAML.stringify(YAML.parse(`requestTransform:
+            setters:`),
+        {
+          simpleKeys: true,
+        }
+      )
+    : YAML.stringify(
+        YAML.parse(`requestTransform:
          serviceName:
          methodName:
          requestMetadata:
          outgoingMessageJson:
-  `), {
-    simpleKeys: true,
-  });
+  `),
+        {
+          simpleKeys: true,
+        }
+      );
 };
 
 export const ResolverConfigSection = ({
@@ -104,12 +105,6 @@ export const ResolverConfigSection = ({
     if (resolver) {
       const [_rName, newResolver] = resolver;
       setSelectedName(_rName);
-      if (newResolver.restResolver?.upstreamRef) {
-        delete newResolver.restResolver.upstreamRef;
-      }
-      if (newResolver.grpcResolver?.upstreamRef) {
-        delete newResolver.grpcResolver.upstreamRef;
-      }
       const stringifiedResolver = getResolverFromConfig(newResolver);
       setFieldValue('resolverConfig', stringifiedResolver);
     }
