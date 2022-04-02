@@ -484,26 +484,22 @@ export const usePageApiRef = () => {
 };
 
 export function useGetConsoleOptions() {
-  const [readonly, setReadonly] = useState(false);
+  const [readonly, setReadonly] = useState(true);
   const [apiExplorerEnabled, setApiExplorerEnabled] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  useSWR<any>(
+
+  const { data } = useSWR<any>(
     bootstrapApi.getConsoleOptions.name,
-    () => {
-      bootstrapApi
-        .getConsoleOptions()
-        .catch(err => {
-          setErrorMessage(err.message);
-        })
-        .then(val => {
-          if (val && val.options) {
-            setReadonly(val.options!.readOnly);
-            setApiExplorerEnabled(val.options.apiExplorerEnabled);
-          }
-        });
-    },
-    { refreshInterval: normalRefreshInterval * 10 }
+    bootstrapApi.getConsoleOptions,
+    { refreshInterval: normalRefreshInterval }
   );
+
+  useEffect(() => {
+    if (data?.options) {
+      setReadonly(data.options.readOnly);
+      setApiExplorerEnabled(data.options.apiExplorerEnabled);
+    }
+  }, [data]);
 
   return { readonly, apiExplorerEnabled, errorMessage };
 }

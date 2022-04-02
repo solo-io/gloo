@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Fixes the readonly API call from the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3434
