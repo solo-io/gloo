@@ -36,23 +36,31 @@ export const getDefaultConfigFromType = (
   namespace: string,
   resolverType: ResolverWizardFormProps['resolverType']
 ) => {
+  YAML.scalarOptions.null.nullStr = '';
   return resolverType === 'REST'
-    ? `request:
-         headers:
-           :method:
-           :path:
-         queryParams:
-         body:
-       response:
-         resultRoot:
-         setters:
-    `.trim()
-    : `requestTransform:
+    ? YAML.stringify(
+        YAML.parse(`
+          request:
+            headers:
+              :method:
+              :path:
+            queryParams:
+            body:
+          response:
+            resultRoot:
+            setters:`
+        )
+      ,{
+        simpleKeys: true,
+      })
+    : YAML.stringify(YAML.parse(`requestTransform:
          serviceName:
          methodName:
          requestMetadata:
          outgoingMessageJson:
-  `.trim();
+  `), {
+    simpleKeys: true,
+  });
 };
 
 export const ResolverConfigSection = ({
