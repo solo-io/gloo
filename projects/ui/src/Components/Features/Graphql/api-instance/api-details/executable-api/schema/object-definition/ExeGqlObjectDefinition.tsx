@@ -9,7 +9,7 @@ import {
   ObjectTypeDefinitionNode,
 } from 'graphql';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import React from 'react';
+import React, { useState } from 'react';
 import { useVirtual } from 'react-virtual';
 import { colors } from 'Styles/colors';
 import * as styles from '../ExecutableGraphqlSchemaDefinitions.style';
@@ -19,7 +19,7 @@ import { ResolverWizard } from './resolver-wizard/ResolverWizard';
  * Traverses the field definition to build the string representation.
  * @returns [prefix, base-type, suffix]
  */
-const getFieldTypeParts = (fieldDefinition: FieldDefinitionNode) => {
+export const getFieldTypeParts = (fieldDefinition: FieldDefinitionNode) => {
   let typePrefix = '';
   let typeSuffix = '';
   let baseField = fieldDefinition.type;
@@ -59,6 +59,7 @@ export const ExeGqlObjectDefinition: React.FC<{
   const resolverKey = `${apiRef.namespace}-${apiRef.name}-${resolverType}`;
   const { readonly } = useGetConsoleOptions();
   const { data: graphqlApi, mutate } = useGetGraphqlApiDetails(apiRef);
+  // const {  mutate } = useGetGraphqlApiDetails(apiRef);
   const rowVirtualizer = useVirtual({
     size: fields?.length ?? 0,
     parentRef: listRef,
@@ -67,70 +68,23 @@ export const ExeGqlObjectDefinition: React.FC<{
   });
 
   // --- RESOLVER CONFIG MODAL --- //
-  const [currentResolver, setCurrentResolver] = React.useState<any>();
-  const [currentResolverName, setCurrentResolverName] = React.useState('');
-  const [hasDirective, setHasDirective] = React.useState(false);
-  const [fieldWithDirective, setFieldWithDirective] = React.useState('');
-  const [altFieldWithDirective, setAltFieldWithDirective] = React.useState('');
-  const [fieldWithoutDirective, setFieldWithoutDirective] = React.useState('');
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  function handleResolverConfigModal(
-    resolverName: string,
-    resolverType: string
-  ) {
-    let [_currentResolverName, currentResolver] =
-      graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap.find(
-        ([rName, _resolver]) => rName.includes(resolverName)
-      ) ?? ['', ''];
-    setCurrentResolver(currentResolver);
-    setCurrentResolverName(resolverName);
-    //
-    // Get the definition and field for the selected resolver from the schema.
-    const definition = schemaDefinitions.find(
-      d =>
-        d.kind === Kind.OBJECT_TYPE_DEFINITION && d.name.value === resolverType
-    ) as ObjectTypeDefinitionNode | undefined;
-    if (definition === undefined) return;
-    const field = definition.fields?.find(f => f.name.value === resolverName);
-    if (field === undefined) return;
-    //
-    // Find the base field type (this could be a nested list).
-    const [typePrefix, baseType, typeSuffix] = getFieldTypeParts(field);
-    let fieldType = typePrefix + baseType + typeSuffix;
-    //
-    // TODO:  Find a better way to do this, very fragile.
-    // Build the directive strings for graphql.
-    let fieldWithoutDirective = `${resolverName}: ${fieldType}]`;
-    let fieldWithDirective = `${resolverName}: ${fieldType} @resolve(name: "${resolverName}")`;
-    let altFieldWithDirective = `${resolverName}: ${fieldType} @resolve(name: "Query|${resolverName}")`;
-    //
-    // Update state.
-    setHasDirective(
-      !!graphqlApi?.spec?.executableSchema?.schemaDefinition.includes(
-        fieldWithDirective
-      )
-    );
-    setFieldWithDirective(fieldWithDirective);
-    setFieldWithoutDirective(fieldWithoutDirective);
-    setAltFieldWithDirective(altFieldWithDirective);
-    setIsModalOpen(true);
-  }
+  const [selectedResolver, setSelectedResolver] = useState<{
+    name: string;
+    objectType: string;
+  } | null>(null);
 
   return (
     <div data-testid='resolver-item' key={resolverKey}>
       <SoloModal
-        visible={isModalOpen}
+        visible={selectedResolver !== null}
         width={750}
-        onClose={() => setIsModalOpen(false)}>
+        onClose={() => setSelectedResolver(null)}>
         <ResolverWizard
-          resolver={currentResolver}
-          hasDirective={hasDirective}
-          fieldWithDirective={fieldWithDirective}
-          fieldWithoutDirective={fieldWithoutDirective}
-          altFieldWithDirective={altFieldWithDirective}
-          resolverName={currentResolverName}
+          resolverName={selectedResolver?.name ?? ''}
+          objectType={selectedResolver?.objectType ?? ''}
+          schemaDefinitions={schemaDefinitions}
           onClose={() => {
-            setIsModalOpen(false);
+            setSelectedResolver(null);
             mutate();
           }}
         />
@@ -240,10 +194,10 @@ export const ExeGqlObjectDefinition: React.FC<{
                               : 'focus:ring-gray-500 text-gray-700 bg-gray-300  border-gray-600 hover:bg-gray-200'
                           }   border rounded-full shadow-sm cursor-pointer  focus:outline-none focus:ring-2 focus:ring-offset-2 `}
                           onClick={() => {
-                            handleResolverConfigModal(
-                              fields[virtualRow.index].name?.value ?? '',
-                              resolverType
-                            );
+                            setSelectedResolver({
+                              name: fields[virtualRow.index].name?.value ?? '',
+                              objectType: resolverType,
+                            });
                           }}>
                           {hasResolver && (
                             <RouteIcon className='w-6 h-6 mr-1 fill-current text-blue-600gloo' />

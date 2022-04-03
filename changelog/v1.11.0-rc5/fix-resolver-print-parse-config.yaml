@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Updates the resolver configuration modal to use the graphql library printing and parsing functions.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3439

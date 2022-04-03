@@ -1,32 +1,31 @@
 import styled from '@emotion/styled/macro';
 import { TabList, TabPanel, TabPanels } from '@reach/tabs';
+import { graphqlConfigApi } from 'API/graphql';
 import {
+  useGetConsoleOptions,
   useGetGraphqlApiDetails,
   useGetGraphqlApiYaml,
-  useGetConsoleOptions,
 } from 'API/hooks';
+import ConfirmationModal from 'Components/Common/ConfirmationModal';
 import { StyledModalTab, StyledModalTabs } from 'Components/Common/SoloModal';
 import { Formik, FormikState } from 'formik';
-import React from 'react';
+import { Kind, ObjectTypeDefinitionNode } from 'graphql';
+import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router';
 import { colors } from 'Styles/colors';
 import {
   SoloButtonStyledComponent,
   SoloNegativeButton,
 } from 'Styles/StyledComponents/button';
+import { supportedDefinitionTypes } from 'utils/graphql-helpers';
 import * as yup from 'yup';
-import YAML from 'yaml';
-import { graphqlConfigApi } from 'API/graphql';
-import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
-import { useParams } from 'react-router';
-import ConfirmationModal from 'Components/Common/ConfirmationModal';
+import { getFieldTypeParts } from '../ExeGqlObjectDefinition';
+import { createResolverItem, getResolverFromConfig } from './converters';
+import { ResolverConfigSection } from './ResolverConfigSection';
 import { getType, ResolverTypeSection } from './ResolverTypeSection';
 import { UpstreamSection } from './UpstreamSection';
-import { ResolverConfigSection } from './ResolverConfigSection';
-import protobuf from 'protobufjs';
-import { toProto3JSON } from 'proto3-json-serializer';
-import GQLJsonDescriptor from 'Components/Features/Graphql/data/graphql.json';
-import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
-import { createResolverItem, getResolverFromConfig } from './converters';
 
 export const EditorContainer = styled.div<{ editMode: boolean }>`
   .ace_cursor {
@@ -94,23 +93,13 @@ const validationSchema = yup.object().shape({
     .required('You need to specify a resolver configuration.'),
 });
 
-type ResolverWizardProps = {
+export const ResolverWizard: React.FC<{
   onClose: () => void;
-  resolver?: Resolution.AsObject;
-  resolverName?: string;
-  hasDirective?: boolean;
-  fieldWithDirective?: string;
-  fieldWithoutDirective?: string;
-  altFieldWithDirective?: string;
-};
-
-export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
-  let {
-    hasDirective,
-    fieldWithDirective,
-    fieldWithoutDirective,
-    altFieldWithDirective,
-  } = props;
+  resolverName: string;
+  objectType: string;
+  schemaDefinitions: supportedDefinitionTypes[];
+}> = props => {
+  const { resolverName, objectType, schemaDefinitions } = props;
   const {
     graphqlApiName = '',
     graphqlApiNamespace = '',
@@ -131,6 +120,35 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
     clusterName: graphqlApiClusterName,
   });
 
+  const [resolver, setResolver] = useState<Resolution.AsObject>();
+  const isNewResolver = useMemo(() => !!resolver, [resolver]);
+  const [fieldReturnType, setFieldReturnType] = useState('');
+  useEffect(() => {
+    if (!resolverName || !objectType) return;
+    //
+    // Get the current resolver from the schema.
+    let [_currentResolverName, currentResolver] =
+      graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap.find(
+        ([rName, _resolver]) => rName.includes(resolverName)
+      ) ?? ['', undefined];
+    //
+    // Find the definition and field for the selected resolver.
+    const definition = schemaDefinitions.find(
+      d => d.kind === Kind.OBJECT_TYPE_DEFINITION && d.name.value === objectType
+    ) as ObjectTypeDefinitionNode | undefined;
+    if (definition === undefined) return;
+    const field = definition.fields?.find(f => f.name.value === resolverName);
+    if (field === undefined) return;
+    //
+    // Find the base field type (this could be a nested list).
+    const [typePrefix, baseType, typeSuffix] = getFieldTypeParts(field);
+    let newFieldReturnType = typePrefix + baseType + typeSuffix;
+    //
+    // Set state.
+    setFieldReturnType(newFieldReturnType);
+    setResolver(currentResolver);
+  }, [schemaDefinitions, resolverName]);
+
   const resolutionsMap =
     graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap ?? [];
 
@@ -145,7 +163,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
   };
-  const isEdit = Boolean(props.resolver);
+  const isEdit = Boolean(resolver);
   const [attemptUpdateSchema, setAttemptUpdateSchema] = React.useState(false);
 
   const submitResolverConfig = async (values: ResolverWizardFormProps) => {
@@ -162,11 +180,11 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
       namespace: graphqlApiNamespace,
       clusterName: graphqlApiClusterName,
     };
+
     const extras = {
-      hasDirective,
-      fieldWithDirective,
-      fieldWithoutDirective,
-      altFieldWithDirective,
+      isNewResolver,
+      fieldReturnType,
+      objectType,
     };
     let resolverItem: any;
     try {
@@ -221,16 +239,16 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
         clusterName: graphqlApiClusterName,
       },
       {
-        resolverName: props.resolverName!,
-        hasDirective,
-        fieldWithDirective,
-        fieldWithoutDirective,
-        altFieldWithDirective,
+        resolverName,
+        objectType,
+        isNewResolver,
+        fieldReturnType,
       },
       true
     );
     setTimeout(() => {
       mutate();
+      mutateSchemaYaml();
     }, 300);
     props.onClose();
   };
@@ -259,12 +277,12 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
     <div data-testid='resolver-wizard' className=' h-[800px]'>
       <Formik<ResolverWizardFormProps>
         initialValues={{
-          resolverType: getType(props.resolver),
+          resolverType: getType(resolver),
           upstream: getUpstreamFromMap(
             resolutionsMap,
             props.resolverName ?? ''
           ),
-          resolverConfig: getResolverFromConfig(props.resolver),
+          resolverConfig: getResolverFromConfig(resolver),
           listOfResolvers,
         }}
         enableReinitialize
@@ -320,9 +338,7 @@ export const ResolverWizard: React.FC<ResolverWizardProps> = props => {
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
                   <UpstreamSection
                     isEdit={isEdit}
-                    existingUpstream={
-                      props.resolver ? getUpstream(props.resolver) : ''
-                    }
+                    existingUpstream={resolver ? getUpstream(resolver) : ''}
                   />
                   <div className='flex items-center justify-between px-6 '>
                     <IconButton onClick={() => props.onClose()}>

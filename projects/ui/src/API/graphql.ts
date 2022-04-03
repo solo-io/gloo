@@ -1,30 +1,19 @@
-import {
-  getClusterRefClassFromClusterRefObj,
-  getObjectRefClassFromRefObj,
-  host,
-} from './helpers';
 import { grpc } from '@improbable-eng/grpc-web';
+import { Value } from 'google-protobuf/google/protobuf/struct_pb';
+import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
+import {
+  ASTNode,
+  FieldDefinitionNode,
+  Kind,
+  ObjectTypeDefinitionNode,
+  parse,
+  print,
+} from 'graphql';
+import isEmpty from 'lodash/isEmpty';
 import {
   ClusterObjectRef,
   ObjectRef,
 } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { GraphqlConfigApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
-import {
-  GetGraphqlApiRequest,
-  GraphqlApi,
-  ListGraphqlApisRequest,
-  GetGraphqlApiYamlRequest,
-  ValidateResolverYamlRequest,
-  ValidateResolverYamlResponse,
-  CreateGraphqlApiRequest,
-  CreateGraphqlApiResponse,
-  UpdateGraphqlApiRequest,
-  UpdateGraphqlApiResponse,
-  DeleteGraphqlApiResponse,
-  DeleteGraphqlApiRequest,
-  ValidateSchemaDefinitionRequest,
-  ValidateSchemaDefinitionResponse,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import {
   ExecutableSchema,
   Executor,
@@ -32,18 +21,33 @@ import {
   GrpcDescriptorRegistry,
   GrpcRequestTemplate,
   GrpcResolver,
-  PersistedQueryCacheConfig,
   RequestTemplate,
   Resolution,
   ResponseTemplate,
   RESTResolver,
   StitchedSchema,
 } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
-import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
-import { Struct, Value } from 'google-protobuf/google/protobuf/struct_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { struct } from 'pb-util';
-import isEmpty from 'lodash/isEmpty';
+import {
+  CreateGraphqlApiRequest,
+  DeleteGraphqlApiRequest,
+  GetGraphqlApiRequest,
+  GetGraphqlApiYamlRequest,
+  GraphqlApi,
+  ListGraphqlApisRequest,
+  UpdateGraphqlApiRequest,
+  UpdateGraphqlApiResponse,
+  ValidateResolverYamlRequest,
+  ValidateResolverYamlResponse,
+  ValidateSchemaDefinitionRequest,
+  ValidateSchemaDefinitionResponse,
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
+import { GraphqlConfigApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
+import {
+  getClusterRefClassFromClusterRefObj,
+  getObjectRefClassFromRefObj,
+  host,
+} from './helpers';
 const graphqlApiClient = new GraphqlConfigApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true,
@@ -57,10 +61,9 @@ export type ResolverItem = {
   grpcRequest?: GrpcRequestTemplate.AsObject;
   spanName?: string;
   upstreamRef?: ObjectRef.AsObject;
-  hasDirective?: boolean;
-  fieldWithDirective?: string;
-  fieldWithoutDirective?: string;
-  altFieldWithDirective?: string;
+  isNewResolver: boolean;
+  fieldReturnType: string;
+  objectType: string;
 };
 
 export const graphqlConfigApi = {
@@ -516,49 +519,172 @@ async function updateGraphqlApiResolver(
   currExecutor.setLocal(currLocal);
   currentExSchema.setExecutor(currExecutor);
   let currentSchemaDef = currentExSchema.getSchemaDefinition();
-  /**
-   * TODO: find a better way to do this
-   *
-   * * The problem is the generated source code is made up for the fieldWithDirective and
-   * * fieldWithoutDirective.  So we need to find the real source code being used.
-   **/
-  let { fieldWithDirective, fieldWithoutDirective, altFieldWithDirective } =
-    resolverItem;
-  if (
-    !isRemove &&
-    !resolverItem.hasDirective &&
-    fieldWithDirective &&
-    fieldWithoutDirective
-  ) {
-    if (currentSchemaDef.includes(fieldWithoutDirective)) {
-      currentExSchema.setSchemaDefinition(
-        currentSchemaDef.replace(fieldWithoutDirective, fieldWithDirective)
-      );
-    }
-  }
-  if (isRemove) {
-    if (currResolMap.has(resolverItem.resolverName)) {
-      currResolMap.del(resolverItem.resolverName);
-    } else if (currResolMap.has(`Query|${resolverItem.resolverName}`)) {
-      currResolMap.del(`Query|${resolverItem.resolverName}`);
-    }
 
-    if (!!fieldWithDirective && fieldWithoutDirective) {
-      if (currentSchemaDef.includes(fieldWithDirective)) {
-        currentExSchema.setSchemaDefinition(
-          currentSchemaDef.replace(fieldWithDirective, fieldWithoutDirective)
-        );
-      } else if (currentSchemaDef.includes(altFieldWithDirective!)) {
-        currentExSchema.setSchemaDefinition(
-          currentSchemaDef.replace(
-            altFieldWithDirective!,
-            fieldWithoutDirective
-          )
-        );
-      }
+  // -------------------------------------------- //
+  //
+  const parsedSchema = parse(currentSchemaDef);
+  const { resolverName, objectType } = resolverItem;
+  if (!resolverName || !objectType)
+    return new Promise((_, reject) =>
+      reject('Resolver name and type must be supplied')
+    );
+  const invalidUpdate = new Promise((_, reject) =>
+    reject('Error while updating schema.')
+  ) as Promise<GraphqlApi.AsObject>;
+  //
+  // Find the definition and field for the resolver to update.
+  const definition = parsedSchema.definitions.find(
+    (d: any) =>
+      d.kind === Kind.OBJECT_TYPE_DEFINITION && d.name.value === objectType
+  ) as ObjectTypeDefinitionNode | undefined;
+  if (definition === undefined) return invalidUpdate;
+  const resolverField = definition.fields?.find(
+    f => f.name.value === resolverName
+  );
+  if (resolverField === undefined) return invalidUpdate;
+  //
+  // Try to get the '@resolve(...)' directive.
+  // This is how we can check if it existed previously.
+  const resolveDirective = resolverField.directives?.find(
+    d => d.kind === Kind.DIRECTIVE && d.name.value === 'resolve'
+  );
+  if (!!resolveDirective) {
+    //
+    // --- RESOLVE DIRECTIVE EXISTS --- //
+    //
+    //
+    // Get the resolver directives 'name' argument.
+    // '@resolve(name: "...")'
+    const resolverDirectiveArg = resolveDirective.arguments?.find(
+      a => a.name.value === 'name'
+    );
+    if (
+      !resolverDirectiveArg ||
+      resolverDirectiveArg.value.kind !== Kind.STRING
+    )
+      return invalidUpdate;
+    const resolverDirectiveName = resolverDirectiveArg.value.value;
+    //
+    // Update the resolutions map for that item.
+    if (!isRemove) {
+      // We don't have to do any updates to the schema here if only updating the resolution.
+      currResolMap.set(resolverDirectiveName, newResolution);
+    } else {
+      if (!currResolMap.has(resolverDirectiveName)) return invalidUpdate;
+      currResolMap.del(resolverDirectiveName);
+      //
+      // If deleting, we have to remove the resolve directive from the schema.
+      // First we recreate the schema without this specific resolve directive.
+      const newDirectives = [...(resolverField.directives ?? [])];
+      const directiveIdx = newDirectives.findIndex(
+        d =>
+          d.kind === Kind.DIRECTIVE &&
+          d.name.value === 'resolve' &&
+          d.arguments?.length === 1 &&
+          d.arguments[0].value.kind === Kind.STRING &&
+          d.arguments[0].value.value === resolverDirectiveName
+      );
+      newDirectives.splice(directiveIdx, 1);
+      const newField = {
+        ...resolverField,
+        directives: newDirectives,
+      } as FieldDefinitionNode;
+      // Most of these types are readonly, so we duplicate the arrays.
+      const newDefinitions = [
+        ...parsedSchema.definitions,
+      ] as ObjectTypeDefinitionNode[];
+      const defIdx = newDefinitions.findIndex(
+        d => d.name.value === definition.name.value
+      );
+      const fieldIdx = newDefinitions[defIdx].fields!.findIndex(
+        d => d.name.value === resolverField.name.value
+      );
+      const newFields = [
+        ...newDefinitions[defIdx].fields!,
+      ] as FieldDefinitionNode[];
+      newFields[fieldIdx] = newField;
+      newDefinitions[defIdx] = {
+        ...definition,
+        fields: newFields,
+      };
+      const newSchema = {
+        ...parsedSchema,
+        definitions: newDefinitions,
+      } as ASTNode;
+      //
+      // Then we serialize the newSchema that we just made, and set that as the schema definition.
+      const newSchemaString = print(newSchema);
+      currentExSchema!.setSchemaDefinition(newSchemaString);
+      currentExSchema.setSchemaDefinition(newSchemaString);
     }
   } else {
-    currResolMap.set(resolverItem.resolverName, newResolution);
+    //
+    // --- RESOLVE DIRECTIVE DOES NOT EXIST --- //
+    //
+    // We can't remove this resolver if an '@resolve(...)' directive does not exist.
+    if (isRemove) return invalidUpdate;
+    //
+    // Generate a Resolver Directive Name.
+    const newResolverDirectiveName = `${objectType}|${resolverName}`;
+    //
+    // Create the new schema.
+    const newField = {
+      ...resolverField,
+      directives: [
+        ...(resolverField.directives ?? []),
+        {
+          kind: Kind.DIRECTIVE,
+          name: {
+            kind: Kind.NAME,
+            value: 'resolve',
+          },
+          arguments: [
+            {
+              kind: Kind.ARGUMENT,
+              name: {
+                kind: Kind.NAME,
+                value: 'name',
+              },
+              value: {
+                kind: Kind.STRING,
+                value: newResolverDirectiveName,
+              },
+            },
+          ],
+        },
+      ],
+    } as FieldDefinitionNode;
+    // Most of these types are readonly, so we duplicate the arrays.
+    const newDefinitions = [
+      ...parsedSchema.definitions,
+    ] as ObjectTypeDefinitionNode[];
+    const defIdx = newDefinitions.findIndex(
+      d => d.name.value === definition.name.value
+    );
+    const fieldIdx = newDefinitions[defIdx].fields!.findIndex(
+      d => d.name.value === resolverField.name.value
+    );
+    const newFields = [
+      ...newDefinitions[defIdx].fields!,
+    ] as FieldDefinitionNode[];
+    newFields[fieldIdx] = newField;
+    newDefinitions[defIdx] = {
+      ...definition,
+      fields: newFields,
+    };
+    const newSchema = {
+      ...parsedSchema,
+      definitions: newDefinitions,
+    } as ASTNode;
+    //
+    // Serialize the newSchema that we just made, and set that as the schema definition.
+    const newSchemaString = print(newSchema);
+    currentExSchema!.setSchemaDefinition(newSchemaString);
+    //
+    // Update the resolution map with the newResolution (the config that was input).
+    currResolMap.set(newResolverDirectiveName, newResolution);
+    //
+    // -------------------------------------------- //
   }
 
   currentSpec.setExecutableSchema(currentExSchema);
@@ -690,6 +816,7 @@ async function getGraphqlApiWithResolver(
   currExecutor.setLocal(currLocal);
   currentExSchema.setExecutor(currExecutor);
   let currentSchemaDef = currentExSchema.getSchemaDefinition();
+
   // TODO: find a better way to do this
   let { fieldWithDirective, fieldWithoutDirective } = resolverItem;
   if (

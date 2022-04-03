@@ -7,10 +7,7 @@ import SoloNoMatches from 'Components/Common/SoloNoMatches';
 import { Kind } from 'graphql';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  makeSchemaDefinitionId,
-  parseSchemaDefinition,
-} from 'utils/graphql-helpers';
+import { makeSchemaDefinitionId, parseSchema } from 'utils/graphql-helpers';
 import { ExeGqlEnumDefinition } from './enum-definition/ExeGqlEnumDefinition';
 import { globalStyles } from './ExecutableGraphqlSchemaDefinitions.style';
 import { ExeGqlObjectDefinition } from './object-definition/ExeGqlObjectDefinition';
@@ -23,9 +20,8 @@ const ExecutableGraphqlSchemaDefinitions: React.FC<{
   // --- SCHEMA DEFINITIONS --- //
   const schemaDefinitions = useMemo(
     () =>
-      parseSchemaDefinition(
-        graphqlApi?.spec?.executableSchema?.schemaDefinition
-      ),
+      parseSchema(graphqlApi?.spec?.executableSchema?.schemaDefinition)
+        .definitions,
     [graphqlApi]
   );
 

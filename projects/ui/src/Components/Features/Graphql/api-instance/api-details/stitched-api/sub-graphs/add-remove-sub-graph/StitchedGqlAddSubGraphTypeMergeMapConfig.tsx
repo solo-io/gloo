@@ -12,7 +12,7 @@ import { SoloNegativeButton } from 'Styles/StyledComponents/button';
 import {
   isExecutableAPI,
   objectToArrayMap,
-  parseSchemaDefinition,
+  parseSchema,
 } from 'utils/graphql-helpers';
 import YAML from 'yaml';
 import StitchedGqlAddSubGraphTypeMergeMapConfigItem from './StitchedGqlAddSubGraphTypeMergeMapConfigItem';
@@ -120,9 +120,9 @@ const StitchedGqlAddSubGraphTypeMergeMapConfig: React.FC<{
     if (!subGraphqlApi) return [];
     if (isExecutableAPI(subGraphqlApi)) {
       setWarningMessage('');
-      return parseSchemaDefinition(
+      return parseSchema(
         subGraphqlApi?.spec?.executableSchema?.schemaDefinition
-      );
+      ).definitions;
     } else {
       // TODO: This should work for stitched subgraphs as well (once the superschema is returned)
       setWarningMessage('Cannnot parse stitched schemas yet!');

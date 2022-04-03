@@ -1,5 +1,4 @@
 import {
-  DefinitionNode,
   DocumentNode,
   EnumTypeDefinitionNode,
   Kind,
@@ -51,8 +50,12 @@ export type supportedDefinitionTypes =
   | ObjectTypeDefinitionNode
   | EnumTypeDefinitionNode;
 
-export const parseSchemaDefinition = (schemaDefinition?: string) => {
-  if (!schemaDefinition) return [];
+export const parseSchema = (schemaDefinition?: string) => {
+  const emptyDoc = {
+    kind: Kind.DOCUMENT,
+    definitions: [] as supportedDefinitionTypes[],
+  };
+  if (!schemaDefinition) return emptyDoc;
   // Try to parse the serialized GraphQL schema definition to JSON (using gql`...`).
   let query: DocumentNode;
   try {
@@ -60,9 +63,9 @@ export const parseSchemaDefinition = (schemaDefinition?: string) => {
       ${schemaDefinition}
     `;
   } catch {
-    return [] as supportedDefinitionTypes[];
+    return emptyDoc;
   }
-  if (!query) return [] as supportedDefinitionTypes[];
+  if (!query) return emptyDoc;
   // We support enum and object type definitions here.
   const definitions = lodash.cloneDeep(
     query.definitions.filter(
@@ -82,7 +85,7 @@ export const parseSchemaDefinition = (schemaDefinition?: string) => {
     else if (b.name.value === 'Mutation') return 1;
     else return 0;
   });
-  return definitions;
+  return { kind: Kind.DOCUMENT, definitions };
 };
 
 export const objectToArrayMap = (map: { [key: string]: any }) =>
