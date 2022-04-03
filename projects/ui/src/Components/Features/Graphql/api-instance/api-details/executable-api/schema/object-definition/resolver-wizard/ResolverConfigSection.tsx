@@ -30,8 +30,6 @@ type ResolverConfigSectionProps = {
 };
 
 export const getDefaultConfigFromType = (
-  name: string,
-  namespace: string,
   resolverType: ResolverWizardFormProps['resolverType']
 ) => {
   YAML.scalarOptions.null.nullStr = '';
@@ -111,11 +109,7 @@ export const ResolverConfigSection = ({
   };
 
   React.useEffect(() => {
-    const newDemo = getDefaultConfigFromType(
-      graphqlApiName,
-      graphqlApiNamespace,
-      values.resolverType
-    );
+    const newDemo = getDefaultConfigFromType(values.resolverType);
     setDemoConfig(newDemo);
   }, [graphqlApiName, graphqlApiNamespace, values.resolverType]);
 

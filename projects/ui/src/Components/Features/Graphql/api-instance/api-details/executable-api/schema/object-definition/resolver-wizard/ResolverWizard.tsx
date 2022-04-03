@@ -251,14 +251,15 @@ export const ResolverWizard: React.FC<{
             mutate();
             mutateSchemaYaml();
             props.onClose();
-          })
-          .catch(err => {
-            setWarningMessage(err.message);
-            console.error({ err });
           });
       })
       .catch(err => {
-        setWarningMessage(err.message);
+        if (typeof err === 'object') {
+          setWarningMessage(err.message);
+        } else {
+          setWarningMessage(err);
+        }
+        props.onClose();
       });
   };
   const removeResolverConfig = async () => {
@@ -275,12 +276,21 @@ export const ResolverWizard: React.FC<{
         fieldReturnType,
       },
       true
-    );
-    setTimeout(() => {
-      mutate();
-      mutateSchemaYaml();
-    }, 300);
-    props.onClose();
+    ).then(() => {
+      setTimeout(() => {
+        mutate();
+        mutateSchemaYaml();
+      }, 300);
+      props.onClose();
+    })
+    .catch((err) => {
+      if (typeof err === 'object') {
+        setWarningMessage(err.message);
+      } else {
+        setWarningMessage(err);
+      }
+      props.onClose();
+    });
   };
   const resolverTypeIsValid = (
     formik: FormikState<ResolverWizardFormProps>

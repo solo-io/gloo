@@ -2,11 +2,12 @@ import { ResolverItem } from 'API/graphql';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
 import YAML from 'yaml';
 import cloneDeep from 'lodash/cloneDeep';
+import { getDefaultConfigFromType } from './ResolverConfigSection';
 
 export const removeNulls = (obj: any) => {
   const isArray = Array.isArray(obj);
   for (const k of Object.keys(obj)) {
-    if (obj[k] === null) {
+    if (obj[k] === null || obj[k] === undefined || obj[k] === '') {
       if (isArray) {
         obj.splice(Number(k), 1);
       } else {
@@ -17,6 +18,9 @@ export const removeNulls = (obj: any) => {
     }
     if (isArray && obj.length === Number(k)) {
       removeNulls(obj);
+    }
+    if (typeof obj[k] === 'object' && Object.keys(obj[k]).length === 0) {
+      delete obj[k];
     }
   }
   return obj;
@@ -60,14 +64,14 @@ export const createResolverItem = (
   }
 
   /**
-       * export namespace GrpcResolver {
-       *   export type AsObject = {
-              serverUri?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.AsObject,
-              requestTransform?: GrpcRequestTemplate.AsObject,
-              spanName: string,
-          }
-          }
-          */
+           * export namespace GrpcResolver {
+           *   export type AsObject = {
+                  serverUri?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.AsObject,
+                  requestTransform?: GrpcRequestTemplate.AsObject,
+                  spanName: string,
+              }
+              }
+              */
 
   let requestTransform =
     resolverType === 'gRPC' &&
@@ -217,6 +221,19 @@ export const getResolverFromConfig = (resolver?: Resolution.AsObject) => {
         delete parsed.requestTransform.requestMetadata;
       }
       delete parsed.requestTransform.requestMetadataMap;
+    }
+
+    parsed = removeNulls(parsed);
+    if (!Object.keys(parsed).length) {
+      let type = '';
+      if (resolver.restResolver) {
+        type = 'REST';
+      } else if (resolver.grpcResolver) {
+        type = 'gRPC';
+      }
+      if (type) {
+        return getDefaultConfigFromType(type as any);
+      }
     }
 
     YAML.scalarOptions.null.nullStr = '';

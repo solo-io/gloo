@@ -23,11 +23,7 @@ export const UpstreamSection = ({
   const onChange = (value: any) => {
     try {
       formik.setFieldError('upstream', undefined);
-      const demoConfig = getDefaultConfigFromType(
-        graphqlApiName,
-        graphqlApiNamespace,
-        formik.values.resolverType
-      );
+      const demoConfig = getDefaultConfigFromType(formik.values.resolverType);
 
       if (!formik.values.resolverConfig) {
         formik.setFieldValue('resolverConfig', demoConfig);
