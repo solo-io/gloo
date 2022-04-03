@@ -96,7 +96,9 @@ export const createResolverItem = (
       body = request?.body;
     }
     if (response) {
-      settersMap = Object.entries(response?.settersMap ?? {});
+      settersMap = Object.entries(
+        response?.settersMap ?? response?.setters ?? {}
+      );
       resultRoot = response?.resultRoot;
     }
   } else {
