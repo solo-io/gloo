@@ -129,10 +129,49 @@ export const ExeGqlObjectDefinition: React.FC<{
           }}>
           {rowVirtualizer.virtualItems.map(virtualRow => {
             const op = fields[virtualRow.index] as FieldDefinitionNode;
-            let hasResolver =
-              !!graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
-                ([rN, r]) => rN.includes(fields[virtualRow.index].name?.value)
+            // let hasResolver =
+            //   !!graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
+            //     ([rN, r]) => rN.includes(fields[virtualRow.index].name?.value)
+            //   );
+            const hasResolver = (() => {
+              if (!op?.name?.value) return false;
+              // --------------------------------- //
+              //
+              // TODO: refactor this with the logic in the graphql.ts update function.
+              //
+              // Find the definition and field for the resolver to update.
+              const definition = schemaDefinitions.find(
+                (d: any) =>
+                  d.kind === Kind.OBJECT_TYPE_DEFINITION &&
+                  d.name.value === resolverType
+              ) as ObjectTypeDefinitionNode | undefined;
+              if (definition === undefined) return false;
+              const resolverField = definition.fields?.find(
+                f => f.name.value === op.name.value
               );
+              if (resolverField === undefined) return false;
+              //
+              // Try to get the '@resolve(...)' directive.
+              // This is how we can check if it existed previously.
+              const resolveDirective = resolverField.directives?.find(
+                d => d.kind === Kind.DIRECTIVE && d.name.value === 'resolve'
+              );
+              if (!resolveDirective) return false;
+              //
+              // Get the resolver directives 'name' argument.
+              // '@resolve(name: "...")'
+              const resolverDirectiveArg = resolveDirective.arguments?.find(
+                a => a.name.value === 'name'
+              );
+              if (
+                !resolverDirectiveArg ||
+                resolverDirectiveArg.value.kind !== Kind.STRING
+              )
+                return false;
+              return true;
+              //
+              // --------------------------------- //
+            })();
             const [returnTypePrefix, baseReturnType, returnTypeSuffix] =
               getFieldTypeParts(op);
             return (
