@@ -72,19 +72,6 @@ export const getUpstream = (resolver: Resolution.AsObject): string => {
   }`.trim();
 };
 
-export const getUpstreamFromMap = (
-  resolutionsMap: Array<[string, Resolution.AsObject]>,
-  resolverName: string
-) => {
-  const resolutionsMapItem = resolutionsMap?.find(
-    ([rN]) => rN === resolverName
-  )?.[1];
-  if (resolutionsMapItem) {
-    return getUpstream(resolutionsMapItem);
-  }
-  return '';
-};
-
 const validationSchema = yup.object().shape({
   resolverType: yup.string().required('You need to specify a resolver type.'),
   upstream: yup.string().required('You need to specify an upstream.'),
@@ -157,6 +144,49 @@ export const ResolverWizard: React.FC<{
       return props.resolverName !== rName;
     }
   );
+
+  const getUpstreamFromMap = () => {
+    // --------------------------------- //
+    //
+    // TODO: refactor this with the logic in the graphql.ts update function.
+    //
+    // Find the definition and field for the resolver to update.
+    const definition = schemaDefinitions.find(
+      (d: any) =>
+        d.kind === Kind.OBJECT_TYPE_DEFINITION && d.name.value === objectType
+    ) as ObjectTypeDefinitionNode | undefined;
+    if (definition === undefined) return '';
+    const resolverField = definition.fields?.find(
+      f => f.name.value === resolverName
+    );
+    if (resolverField === undefined) return '';
+    //
+    // Try to get the '@resolve(...)' directive.
+    // This is how we can check if it existed previously.
+    const resolveDirective = resolverField.directives?.find(
+      d => d.kind === Kind.DIRECTIVE && d.name.value === 'resolve'
+    );
+    if (!resolveDirective) return '';
+    //
+    // Get the resolver directives 'name' argument.
+    // '@resolve(name: "...")'
+    const resolverDirectiveArg = resolveDirective.arguments?.find(
+      a => a.name.value === 'name'
+    );
+    if (
+      !resolverDirectiveArg ||
+      resolverDirectiveArg.value.kind !== Kind.STRING
+    )
+      return '';
+    const resolverDirectiveName = resolverDirectiveArg.value.value;
+    //
+    // --------------------------------- //
+    const resolutionsMapItem = resolutionsMap?.find(
+      ([rN]) => rN === resolverDirectiveName
+    )?.[1];
+    if (!resolutionsMapItem) return '';
+    return getUpstream(resolutionsMapItem);
+  };
 
   const [tabIndex, setTabIndex] = React.useState(0);
   const [warningMessage, setWarningMessage] = React.useState('');
@@ -278,10 +308,7 @@ export const ResolverWizard: React.FC<{
       <Formik<ResolverWizardFormProps>
         initialValues={{
           resolverType: getType(resolver),
-          upstream: getUpstreamFromMap(
-            resolutionsMap,
-            props.resolverName ?? ''
-          ),
+          upstream: getUpstreamFromMap(),
           resolverConfig: getResolverFromConfig(resolver),
           listOfResolvers,
         }}

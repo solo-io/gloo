@@ -70,7 +70,9 @@ const ExecutableGraphqlSchemaDefinitions: React.FC<{
         apiRef,
         filteredSchemaDefinitions[0]
       );
-      setOpenPanels(idToOpen);
+      // setOpenPanels(idToOpen);
+      if (!openPanels.includes(idToOpen))
+        setOpenPanels([idToOpen, ...openPanels]);
     }
   }, [filteredSchemaDefinitions]);
 

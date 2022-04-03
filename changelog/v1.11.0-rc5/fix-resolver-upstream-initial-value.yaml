@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    description: >
+      Fixes the resolver configuration modal to show the correct initial upstream value.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3443
+  - type: FIX
+    description: >
+      Stops the api details page accordion from collapsing on-edit.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3445
