@@ -75,7 +75,7 @@ export const createResolverItem = (
 
   let requestTransform =
     resolverType === 'gRPC' &&
-    parsedResolverConfig?.grpcResolver?.requestTransform
+      parsedResolverConfig?.grpcResolver?.requestTransform
       ? parsedResolverConfig.grpcResolver.requestTransform
       : parsedResolverConfig.requestTransform;
   let request =
@@ -89,22 +89,48 @@ export const createResolverItem = (
 
   if (resolverType === 'REST') {
     if (request) {
-      headersMap = Object.entries(request?.headers ?? {});
+      const headerValues = request?.headers ?? {};
 
-      queryParamsMap = Object.entries(request?.queryParams ?? {});
+      headersMap = Object.keys(headerValues).reduce(
+        (acc: [string, string][], curr: string) => {
+          acc.push([curr, headerValues[curr]]);
+          return acc;
+        },
+        []
+      );
+
+      const queryValues = request?.queryParams ?? {};
+
+      queryParamsMap = Object.keys(queryValues).reduce(
+        (acc: [string, string][], curr: string) => {
+          acc.push([curr, queryValues[curr]]);
+          return acc;
+        },
+        []
+      );
 
       body = request?.body;
     }
     if (response) {
-      settersMap = Object.entries(
-        response?.settersMap ?? response?.setters ?? {}
+      const values = response?.settersMap ?? response?.setters ?? {};
+      settersMap = Object.keys(values).reduce(
+        (acc: [string, string][], curr: string) => {
+          acc.push([curr, values[curr]]);
+          return acc;
+        },
+        []
       );
       resultRoot = response?.resultRoot;
     }
   } else {
     if (resolverType === 'gRPC' && requestTransform) {
-      requestMetadataMap = Object.entries(
-        requestTransform?.requestMetadataMap ?? {}
+      const requestMetaValues = requestTransform?.requestMetadataMap ?? {};
+      requestMetadataMap = Object.keys(requestMetaValues).reduce(
+        (acc: [string, string][], curr: string) => {
+          acc.push([curr, requestMetaValues[curr]]);
+          return acc;
+        },
+        []
       );
       serviceName = requestTransform?.serviceName;
       methodName = requestTransform?.methodName;
