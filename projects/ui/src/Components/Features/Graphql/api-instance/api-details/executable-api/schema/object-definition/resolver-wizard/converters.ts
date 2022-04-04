@@ -63,16 +63,6 @@ export const createResolverItem = (
     spanName = parsedResolverConfig.spanName;
   }
 
-  /**
-           * export namespace GrpcResolver {
-           *   export type AsObject = {
-                  serverUri?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.AsObject,
-                  requestTransform?: GrpcRequestTemplate.AsObject,
-                  spanName: string,
-              }
-              }
-              */
-
   let requestTransform =
     resolverType === 'gRPC' &&
       parsedResolverConfig?.grpcResolver?.requestTransform

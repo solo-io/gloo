@@ -180,12 +180,13 @@ export const GraphqlTable = (props: Props & TableHolderProps) => {
       dataIndex: 'actions',
       render: (gqlApi: GraphqlApi.AsObject) => {
         return (
-          <TableActions className='space-x-3 '>
+          <TableActions data-testid='graphql-table-action-download' className='space-x-3 '>
             <TableActionCircle onClick={() => onDownloadApi(gqlApi)}>
               <DownloadIcon />
             </TableActionCircle>
             {!readonly && (
               <TableActionCircle
+                data-testid='graphql-table-action-delete'
                 onClick={() =>
                   triggerDelete({
                     name: gqlApi.metadata?.name!,

@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/3467
+    description: Several areas do weird flip conversions that creates errors, fixing it to one way.

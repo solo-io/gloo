@@ -279,6 +279,7 @@ function apiSpecFromObject(
           newLocal.setEnableIntrospection(enableIntrospection);
         }
         // TODO:  This doesn't actually update the resolutions map because that's in the apiSec
+        //        Also, this is another weird flipped conversion.
         if (resolutionsMap !== undefined) {
           let newResolutionsMap = newLocal.getResolutionsMap();
           newResolutionsMap.forEach((resolution, resolutionName) => {
@@ -421,8 +422,9 @@ async function updateGraphqlApiResolver(
 
       if (headersMap?.length > 0) {
         let newHeadersMap = newReq.getHeadersMap();
-        headersMap.forEach(([val, key]) => {
-          newHeadersMap.set(val, key);
+        newHeadersMap.clear();
+        headersMap.forEach(([key, val]) => {
+          newHeadersMap.set(key, val);
         });
       } else {
         newReq.clearHeadersMap();
@@ -430,8 +432,8 @@ async function updateGraphqlApiResolver(
 
       if (queryParamsMap?.length > 0) {
         let qParamsMap = newReq.getQueryParamsMap();
-        queryParamsMap.forEach(([val, key]) => {
-          qParamsMap.set(val, key);
+        queryParamsMap.forEach(([key, val]) => {
+          qParamsMap.set(key, val);
         });
       } else {
         newReq.clearQueryParamsMap();
@@ -449,8 +451,9 @@ async function updateGraphqlApiResolver(
       }
       if (settersMap?.length > 0) {
         let newSettersMap = newRes.getSettersMap();
+        newSettersMap.clear();
         settersMap.forEach(([key, val]) => {
-          newSettersMap.set(val, key);
+          newSettersMap.set(key, val);
         });
       }
       newRestResolver.setResponse(newRes);
@@ -481,8 +484,9 @@ async function updateGraphqlApiResolver(
 
       if (requestMetadataMap?.length > 0) {
         let newHeadersMap = newReq.getRequestMetadataMap();
-        requestMetadataMap.forEach(([val, key]) => {
-          newHeadersMap.set(val, key);
+        newHeadersMap.clear();
+        requestMetadataMap.forEach(([key, val]) => {
+          newHeadersMap.set(key, val);
         });
       } else {
         newReq.clearRequestMetadataMap();
@@ -770,8 +774,9 @@ async function getGraphqlApiWithResolver(
 
       if (headersMap?.length > 0) {
         let newHeadersMap = newReq.getHeadersMap();
-        headersMap.forEach(([val, key]) => {
-          newHeadersMap.set(val, key);
+        newHeadersMap.clear();
+        headersMap.forEach(([key, val]) => {
+          newHeadersMap.set(key, val);
         });
       } else {
         newReq.clearHeadersMap();
@@ -779,8 +784,9 @@ async function getGraphqlApiWithResolver(
 
       if (queryParamsMap?.length > 0) {
         let qParamsMap = newReq.getQueryParamsMap();
-        queryParamsMap.forEach(([val, key]) => {
-          qParamsMap.set(val, key);
+        qParamsMap.clear();
+        queryParamsMap.forEach(([key, val]) => {
+          qParamsMap.set(key, val);
         });
       } else {
         newReq.clearQueryParamsMap();
@@ -798,8 +804,9 @@ async function getGraphqlApiWithResolver(
       }
       if (settersMap?.length > 0) {
         let newSettersMap = newRes.getSettersMap();
+        newSettersMap.clear();
         settersMap.forEach(([key, val]) => {
-          newSettersMap.set(val, key);
+          newSettersMap.set(key, val);
         });
       }
       newRestResolver.setResponse(newRes);
