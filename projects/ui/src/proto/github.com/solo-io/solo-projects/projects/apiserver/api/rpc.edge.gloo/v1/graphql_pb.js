@@ -14,7 +14,7 @@ var global = Function('return this')();
 
 var extproto_ext_pb = require('../../../../../../../../extproto/ext_pb.js');
 var github_com_solo$io_skv2_api_core_v1_core_pb = require('../../../../../../../../github.com/solo-io/skv2/api/core/v1/core_pb.js');
-var github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb = require('../../../../../../../../github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb = require('../../../../../../../../github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb.js');
 var github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb = require('../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb.js');
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.CreateGraphqlApiResponse', null, global);
@@ -87,8 +87,8 @@ proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.toObject = function(opt_include
 proto.rpc.edge.gloo.solo.io.GraphqlApi.toObject = function(includeInstance, msg) {
   var f, obj = {
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.toObject(includeInstance, f),
-    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f),
-    status: (f = msg.getStatus()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.toObject(includeInstance, f),
+    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f),
+    status: (f = msg.getStatus()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus.toObject(includeInstance, f),
     glooInstance: (f = msg.getGlooInstance()) && github_com_solo$io_skv2_api_core_v1_core_pb.ObjectRef.toObject(includeInstance, f)
   };
 
@@ -132,13 +132,13 @@ proto.rpc.edge.gloo.solo.io.GraphqlApi.deserializeBinaryFromReader = function(ms
       msg.setMetadata(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
       msg.setSpec(value);
       break;
     case 3:
-      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus.deserializeBinaryFromReader);
       msg.setStatus(value);
       break;
     case 4:
@@ -188,7 +188,7 @@ proto.rpc.edge.gloo.solo.io.GraphqlApi.serializeBinaryToWriter = function(messag
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
     );
   }
   f = message.getStatus();
@@ -196,7 +196,7 @@ proto.rpc.edge.gloo.solo.io.GraphqlApi.serializeBinaryToWriter = function(messag
     writer.writeMessage(
       3,
       f,
-      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus.serializeBinaryToWriter
     );
   }
   f = message.getGlooInstance();
@@ -246,7 +246,7 @@ proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.hasMetadata = function() {
  */
 proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.getSpec = function() {
   return /** @type{?proto.graphql.gloo.solo.io.GraphQLApiSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec, 2));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec, 2));
 };
 
 
@@ -276,7 +276,7 @@ proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.hasSpec = function() {
  */
 proto.rpc.edge.gloo.solo.io.GraphqlApi.prototype.getStatus = function() {
   return /** @type{?proto.graphql.gloo.solo.io.GraphQLApiStatus} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus, 3));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus, 3));
 };
 
 
@@ -404,7 +404,7 @@ proto.rpc.edge.gloo.solo.io.GraphqlApiSummary.prototype.toObject = function(opt_
 proto.rpc.edge.gloo.solo.io.GraphqlApiSummary.toObject = function(includeInstance, msg) {
   var f, obj = {
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.toObject(includeInstance, f),
-    status: (f = msg.getStatus()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.toObject(includeInstance, f),
+    status: (f = msg.getStatus()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus.toObject(includeInstance, f),
     glooInstance: (f = msg.getGlooInstance()) && github_com_solo$io_skv2_api_core_v1_core_pb.ObjectRef.toObject(includeInstance, f),
     executable: (f = msg.getExecutable()) && proto.rpc.edge.gloo.solo.io.GraphqlApiSummary.ExecutableSchemaSummary.toObject(includeInstance, f),
     stitched: (f = msg.getStitched()) && proto.rpc.edge.gloo.solo.io.GraphqlApiSummary.StitchedSchemaSummary.toObject(includeInstance, f)
@@ -450,8 +450,8 @@ proto.rpc.edge.gloo.solo.io.GraphqlApiSummary.deserializeBinaryFromReader = func
       msg.setMetadata(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus.deserializeBinaryFromReader);
       msg.setStatus(value);
       break;
     case 3:
@@ -511,7 +511,7 @@ proto.rpc.edge.gloo.solo.io.GraphqlApiSummary.serializeBinaryToWriter = function
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus.serializeBinaryToWriter
     );
   }
   f = message.getGlooInstance();
@@ -861,7 +861,7 @@ proto.rpc.edge.gloo.solo.io.GraphqlApiSummary.prototype.hasMetadata = function()
  */
 proto.rpc.edge.gloo.solo.io.GraphqlApiSummary.prototype.getStatus = function() {
   return /** @type{?proto.graphql.gloo.solo.io.GraphQLApiStatus} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus, 2));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus, 2));
 };
 
 
@@ -1986,7 +1986,7 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.toObject = functio
 proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     graphqlApiRef: (f = msg.getGraphqlApiRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f),
-    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f)
+    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2029,8 +2029,8 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.deserializeBinaryFromReader 
       msg.setGraphqlApiRef(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
       msg.setSpec(value);
       break;
     default:
@@ -2075,7 +2075,7 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.serializeBinaryToWriter = fu
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
     );
   }
 };
@@ -2117,7 +2117,7 @@ proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.hasGraphqlApiRef =
  */
 proto.rpc.edge.gloo.solo.io.CreateGraphqlApiRequest.prototype.getSpec = function() {
   return /** @type{?proto.graphql.gloo.solo.io.GraphQLApiSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec, 2));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec, 2));
 };
 
 
@@ -2348,7 +2348,7 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.toObject = functio
 proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     graphqlApiRef: (f = msg.getGraphqlApiRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f),
-    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f)
+    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2391,8 +2391,8 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.deserializeBinaryFromReader 
       msg.setGraphqlApiRef(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
       msg.setSpec(value);
       break;
     default:
@@ -2437,7 +2437,7 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.serializeBinaryToWriter = fu
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
     );
   }
 };
@@ -2479,7 +2479,7 @@ proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.hasGraphqlApiRef =
  */
 proto.rpc.edge.gloo.solo.io.UpdateGraphqlApiRequest.prototype.getSpec = function() {
   return /** @type{?proto.graphql.gloo.solo.io.GraphQLApiSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec, 2));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec, 2));
 };
 
 
@@ -3348,7 +3348,7 @@ proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.prototype.toObject =
 proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     schemaDefinition: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f)
+    spec: (f = msg.getSpec()) && github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3390,8 +3390,8 @@ proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.deserializeBinaryFro
       msg.setSchemaDefinition(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.deserializeBinaryFromReader);
       msg.setSpec(value);
       break;
     default:
@@ -3435,7 +3435,7 @@ proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.serializeBinaryToWri
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.serializeBinaryToWriter
     );
   }
 };
@@ -3476,7 +3476,7 @@ proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.prototype.hasSchemaD
  */
 proto.rpc.edge.gloo.solo.io.ValidateSchemaDefinitionRequest.prototype.getSpec = function() {
   return /** @type{?proto.graphql.gloo.solo.io.GraphQLApiSpec} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec, 2));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec, 2));
 };
 
 

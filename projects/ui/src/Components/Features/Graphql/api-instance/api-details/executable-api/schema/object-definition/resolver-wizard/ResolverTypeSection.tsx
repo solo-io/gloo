@@ -5,7 +5,7 @@ import {
 } from 'Components/Common/SoloFormComponents';
 import React from 'react';
 import { useFormikContext } from 'formik';
-import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 
 export type ResolverTypeSectionProps = { isEdit: boolean };
 

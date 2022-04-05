@@ -1,6 +1,6 @@
 import { TableActions, TableActionCircle } from 'Components/Common/SoloTable';
 import { ReactComponent as XIcon } from 'assets/x-icon.svg';
-import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import React, { useState } from 'react';
 import { graphqlConfigApi } from 'API/graphql';
 import {

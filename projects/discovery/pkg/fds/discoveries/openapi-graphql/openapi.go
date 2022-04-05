@@ -11,7 +11,7 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/printer"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	graphql "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/graphqlschematranslation"
@@ -71,7 +71,7 @@ type OpenApiFunctionDiscovery struct {
 	upstream         *v1.Upstream
 	openApiUrisToTry []string
 
-	graphqlClient v1alpha1.GraphQLApiClient
+	graphqlClient v1beta1.GraphQLApiClient
 }
 
 func getswagspec(u *v1.Upstream) *rest_plugins.ServiceSpec_SwaggerInfo {
@@ -235,16 +235,16 @@ func (f *OpenApiFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, 
 	}
 	schema := ast.Node(schemaAst)
 	printedSchema := printer.Print(schema).(string)
-	schemaCrd := &v1alpha1.GraphQLApi{
+	schemaCrd := &v1beta1.GraphQLApi{
 		Metadata: &core.Metadata{
 			Name:      f.upstream.GetMetadata().GetName(),
 			Namespace: f.upstream.GetMetadata().GetNamespace(),
 		},
-		Schema: &v1alpha1.GraphQLApi_ExecutableSchema{
-			ExecutableSchema: &v1alpha1.ExecutableSchema{
-				Executor: &v1alpha1.Executor{
-					Executor: &v1alpha1.Executor_Local_{
-						Local: &v1alpha1.Executor_Local{
+		Schema: &v1beta1.GraphQLApi_ExecutableSchema{
+			ExecutableSchema: &v1beta1.ExecutableSchema{
+				Executor: &v1beta1.Executor{
+					Executor: &v1beta1.Executor_Local_{
+						Local: &v1beta1.Executor_Local{
 							Resolutions:         resolutions,
 							EnableIntrospection: true,
 						},

@@ -23,7 +23,7 @@ import { SoloLink } from 'Components/Common/SoloLink';
 import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 import { DataError } from 'Components/Common/DataError';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
-import { GraphQLApiStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import { GraphQLApiStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 type BoxProps = {
   title: string;
   logo: React.ReactNode;

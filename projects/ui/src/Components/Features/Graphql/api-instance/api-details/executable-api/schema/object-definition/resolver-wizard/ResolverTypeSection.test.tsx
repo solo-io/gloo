@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { ResolverTypeSection } from './ResolverTypeSection';
 import { Formik, Form } from 'formik';
 import * as ace from 'ace-builds/src-noconflict/ace';
-import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 
 ace.config.set(
   'basePath',

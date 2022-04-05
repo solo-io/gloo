@@ -20,7 +20,7 @@ import (
 	. "github.com/onsi/gomega/gstruct"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/v1helpers"
@@ -42,7 +42,7 @@ var _ = Describe("graphql", func() {
 		testClients services.TestClients
 	)
 
-	var getGraphQLApi = func(restUsRef, grpcUsRef *core.ResourceRef) *v1alpha1.GraphQLApi {
+	var getGraphQLApi = func(restUsRef, grpcUsRef *core.ResourceRef) *v1beta1.GraphQLApi {
 		schema := `
 		      schema { query: Query }
 		      input Map {
@@ -65,12 +65,12 @@ var _ = Describe("graphql", func() {
 		      }
 `
 
-		resolutions := map[string]*v1alpha1.Resolution{
+		resolutions := map[string]*v1beta1.Resolution{
 			"simple_resolver": {
-				Resolver: &v1alpha1.Resolution_RestResolver{
-					RestResolver: &v1alpha1.RESTResolver{
+				Resolver: &v1beta1.Resolution_RestResolver{
+					RestResolver: &v1beta1.RESTResolver{
 						UpstreamRef: restUsRef,
-						Request: &v1alpha1.RequestTemplate{
+						Request: &v1beta1.RequestTemplate{
 							Headers:     nil, // configured and tested later on
 							QueryParams: nil, // configured and tested later on
 							Body:        nil, // configured and tested later on
@@ -80,10 +80,10 @@ var _ = Describe("graphql", func() {
 				},
 			},
 			"field2_resolver": {
-				Resolver: &v1alpha1.Resolution_GrpcResolver{
-					GrpcResolver: &v1alpha1.GrpcResolver{
+				Resolver: &v1beta1.Resolution_GrpcResolver{
+					GrpcResolver: &v1beta1.GrpcResolver{
 						UpstreamRef: grpcUsRef,
-						RequestTransform: &v1alpha1.GrpcRequestTemplate{
+						RequestTransform: &v1beta1.GrpcRequestTemplate{
 							OutgoingMessageJson: &structpb.Value{
 								Kind: &structpb.Value_StructValue{
 									StructValue: &structpb.Struct{
@@ -101,24 +101,24 @@ var _ = Describe("graphql", func() {
 			},
 		}
 
-		return &v1alpha1.GraphQLApi{
+		return &v1beta1.GraphQLApi{
 			Metadata: &core.Metadata{
 				Name:      "gql",
 				Namespace: "gloo-system",
 			},
-			Schema: &v1alpha1.GraphQLApi_ExecutableSchema{
-				ExecutableSchema: &v1alpha1.ExecutableSchema{
+			Schema: &v1beta1.GraphQLApi_ExecutableSchema{
+				ExecutableSchema: &v1beta1.ExecutableSchema{
 					SchemaDefinition: schema,
-					Executor: &v1alpha1.Executor{
-						Executor: &v1alpha1.Executor_Local_{
-							Local: &v1alpha1.Executor_Local{
+					Executor: &v1beta1.Executor{
+						Executor: &v1beta1.Executor_Local_{
+							Local: &v1beta1.Executor_Local{
 								Resolutions:         resolutions,
 								EnableIntrospection: false,
 							},
 						},
 					},
-					GrpcDescriptorRegistry: &v1alpha1.GrpcDescriptorRegistry{
-						DescriptorSet: &v1alpha1.GrpcDescriptorRegistry_ProtoDescriptorBin{
+					GrpcDescriptorRegistry: &v1beta1.GrpcDescriptorRegistry{
+						DescriptorSet: &v1beta1.GrpcDescriptorRegistry_ProtoDescriptorBin{
 							ProtoDescriptorBin: glootestpb.ProtoBytes,
 						},
 					},
@@ -204,7 +204,7 @@ var _ = Describe("graphql", func() {
 			query                      string
 
 			proxy      *gloov1.Proxy
-			graphqlApi *v1alpha1.GraphQLApi
+			graphqlApi *v1beta1.GraphQLApi
 		)
 
 		var testRequestWithRespAssertions = func(result string, f func(resp *http.Response)) {
@@ -438,7 +438,7 @@ var _ = Describe("graphql", func() {
 			Context("persisted queries", func() {
 				BeforeEach(func() {
 					query = `{__typename}`
-					graphqlApi.PersistedQueryCacheConfig = &v1alpha1.PersistedQueryCacheConfig{CacheSize: 10}
+					graphqlApi.PersistedQueryCacheConfig = &v1beta1.PersistedQueryCacheConfig{CacheSize: 10}
 				})
 
 				It("happy path", func() {
@@ -462,7 +462,7 @@ var _ = Describe("graphql", func() {
 
 				Context("cache control", func() {
 					BeforeEach(func() {
-						graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
+						graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1beta1.ResponseTemplate{
 							Setters: map[string]string{
 								"setme": "{$body.simple}",
 							},
@@ -483,7 +483,7 @@ var _ = Describe("graphql", func() {
 
 				Context("response template", func() {
 					BeforeEach(func() {
-						graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1alpha1.ResponseTemplate{
+						graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1beta1.ResponseTemplate{
 							Setters: map[string]string{
 								"setme": "abc {$body.simple} 123",
 							},

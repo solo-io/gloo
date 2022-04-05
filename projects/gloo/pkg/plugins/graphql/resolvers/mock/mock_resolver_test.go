@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/test/matchers"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/mock"
@@ -35,8 +35,8 @@ var _ = Describe("translates mock resolver", func() {
 	Context("sync response", func() {
 		It("translates sync response", func() {
 			message := `{"response":"test"}`
-			mockResolver := &v1alpha1.MockResolver{
-				Response: &v1alpha1.MockResolver_SyncResponse{
+			mockResolver := &v1beta1.MockResolver{
+				Response: &v1beta1.MockResolver_SyncResponse{
 					SyncResponse: getStructValueFromJSON(message),
 				},
 			}
@@ -54,9 +54,9 @@ var _ = Describe("translates mock resolver", func() {
 			It("translates async response", func() {
 				message := `{"response":"test"}`
 				delayMs := uint32(100)
-				mockResolver := &v1alpha1.MockResolver{
-					Response: &v1alpha1.MockResolver_AsyncResponse_{
-						AsyncResponse: &v1alpha1.MockResolver_AsyncResponse{
+				mockResolver := &v1beta1.MockResolver{
+					Response: &v1beta1.MockResolver_AsyncResponse_{
+						AsyncResponse: &v1beta1.MockResolver_AsyncResponse{
 							Response: getStructValueFromJSON(message),
 							Delay: &duration.Duration{
 								Nanos: int32(time.Millisecond.Nanoseconds() * 100),
@@ -79,8 +79,8 @@ var _ = Describe("translates mock resolver", func() {
 
 			It("translates error response", func() {
 				message := `some error!`
-				mockResolver := &v1alpha1.MockResolver{
-					Response: &v1alpha1.MockResolver_ErrorResponse{
+				mockResolver := &v1beta1.MockResolver{
+					Response: &v1beta1.MockResolver_ErrorResponse{
 						ErrorResponse: message,
 					},
 				}

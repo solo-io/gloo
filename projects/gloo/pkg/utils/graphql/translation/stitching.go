@@ -16,7 +16,7 @@ import (
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/printer"
@@ -35,14 +35,14 @@ var (
 // The resolver info per subschema name
 type ResolverInfoPerSubschema map[string]*v2.ResolverInfo
 
-func getStitchingInfo(schema *v1alpha1.StitchedSchema, graphqlApis types.GraphQLApiList) (*v1alpha1.GraphQlToolsStitchingOutput, map[string]ResolverInfoPerSubschema, map[string]string, []*v1alpha1.GraphQLApi, error) {
-	schemas := &v1alpha1.GraphQLToolsStitchingInput{}
+func getStitchingInfo(schema *v1beta1.StitchedSchema, graphqlApis types.GraphQLApiList) (*v1beta1.GraphQlToolsStitchingOutput, map[string]ResolverInfoPerSubschema, map[string]string, []*v1beta1.GraphQLApi, error) {
+	schemas := &v1beta1.GraphQLToolsStitchingInput{}
 	// map of types -> map of subschema names -> resolver info
 	argMap := map[string]ResolverInfoPerSubschema{}
 	// Query field map holds a mapping of Query field -> subschema that the query field is from
 	queryFieldMap := map[string]string{}
 
-	var subschemaGraphqlApis []*v1alpha1.GraphQLApi
+	var subschemaGraphqlApis []*v1beta1.GraphQLApi
 	for _, subschema := range schema.GetSubschemas() {
 
 		gqlSchema, err := graphqlApis.Find(subschema.GetNamespace(), subschema.GetName())
@@ -87,15 +87,15 @@ func getStitchingInfo(schema *v1alpha1.StitchedSchema, graphqlApis types.GraphQL
 	return stitchingInfoOut, argMap, queryFieldMap, subschemaGraphqlApis, nil
 }
 
-func createStitchingScriptSubschema(subschema *v1alpha1.StitchedSchema_SubschemaConfig, subschemaName, schemaDef string, argMap map[string]ResolverInfoPerSubschema) *v1alpha1.GraphQLToolsStitchingInput_Schema {
-	stitchingScriptSchema := &v1alpha1.GraphQLToolsStitchingInput_Schema{
+func createStitchingScriptSubschema(subschema *v1beta1.StitchedSchema_SubschemaConfig, subschemaName, schemaDef string, argMap map[string]ResolverInfoPerSubschema) *v1beta1.GraphQLToolsStitchingInput_Schema {
+	stitchingScriptSchema := &v1beta1.GraphQLToolsStitchingInput_Schema{
 		Name:            subschemaName,
 		Schema:          schemaDef,
-		TypeMergeConfig: map[string]*v1alpha1.GraphQLToolsStitchingInput_Schema_TypeMergeConfig{},
+		TypeMergeConfig: map[string]*v1beta1.GraphQLToolsStitchingInput_Schema_TypeMergeConfig{},
 	}
 
 	for typeName, mergeCfg := range subschema.GetTypeMerge() {
-		stitchingScriptSchema.TypeMergeConfig[typeName] = &v1alpha1.GraphQLToolsStitchingInput_Schema_TypeMergeConfig{
+		stitchingScriptSchema.TypeMergeConfig[typeName] = &v1beta1.GraphQLToolsStitchingInput_Schema_TypeMergeConfig{
 			SelectionSet: mergeCfg.GetSelectionSet(),
 			FieldName:    mergeCfg.GetQueryName(),
 		}
@@ -117,7 +117,7 @@ func createStitchingScriptSubschema(subschema *v1alpha1.StitchedSchema_Subschema
 	return stitchingScriptSchema
 }
 
-func GetStitchedSchemaDefinition(stitchedSchema *v1alpha1.StitchedSchema, gqlApis types.GraphQLApiList) (string, error) {
+func GetStitchedSchemaDefinition(stitchedSchema *v1beta1.StitchedSchema, gqlApis types.GraphQLApiList) (string, error) {
 	stitchedSchemaOut, _, _, _, err := getStitchingInfo(stitchedSchema, gqlApis)
 	if err != nil {
 		return "", err
@@ -138,7 +138,7 @@ func (l *MockUpstreamsList) Find(namespace, name string) (*v1.Upstream, error) {
 }
 
 // Gets only the schema definition without validating upstreams, hence the use of the MockUpstreamList
-func getGraphQlApiSchemaDefinition(graphQLApi *v1alpha1.GraphQLApi, gqlApis types.GraphQLApiList) (string, error) {
+func getGraphQlApiSchemaDefinition(graphQLApi *v1beta1.GraphQLApi, gqlApis types.GraphQLApiList) (string, error) {
 	v2ApiSchema, err := CreateGraphQlApi(&MockUpstreamsList{}, gqlApis, graphQLApi)
 	if err != nil {
 		return "", eris.Wrapf(err, "error getting schema definition for GraphQLApi %s.%s", graphQLApi.GetMetadata().GetNamespace(), graphQLApi.GetMetadata().GetName())
@@ -146,7 +146,7 @@ func getGraphQlApiSchemaDefinition(graphQLApi *v1alpha1.GraphQLApi, gqlApis type
 	return v2ApiSchema.GetSchemaDefinition().GetInlineString(), nil
 }
 
-func processStitchingInfo(pathToStitchingJsFile string, schemas *v1alpha1.GraphQLToolsStitchingInput) (*v1alpha1.GraphQlToolsStitchingOutput, error) {
+func processStitchingInfo(pathToStitchingJsFile string, schemas *v1beta1.GraphQLToolsStitchingInput) (*v1beta1.GraphQlToolsStitchingOutput, error) {
 	schemasBytes, err := proto.Marshal(schemas)
 	if err != nil {
 		return nil, eris.Wrapf(err, "error marshaling to binary data")
@@ -185,7 +185,7 @@ func processStitchingInfo(pathToStitchingJsFile string, schemas *v1alpha1.GraphQ
 	if err != nil {
 		return nil, eris.Wrapf(err, "error decoding %s from base64 protobuf", stdOutBuf.String())
 	}
-	stitchingInfoOut := &v1alpha1.GraphQlToolsStitchingOutput{}
+	stitchingInfoOut := &v1beta1.GraphQlToolsStitchingOutput{}
 	err = proto.Unmarshal(decodedStdOutString, stitchingInfoOut)
 	if err != nil {
 		return nil, eris.Wrap(err, "unable to unmarshal graphql tools output to Go type")
@@ -213,7 +213,7 @@ func addSubschemaNameResolverInfo(mergeTypes map[string]*v2.MergedTypeConfig, ar
 	}
 }
 
-func translateStitchedSchema(upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, schema *v1alpha1.StitchedSchema) (*v2.ExecutableSchema, error) {
+func translateStitchedSchema(upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, schema *v1beta1.StitchedSchema) (*v2.ExecutableSchema, error) {
 	stitchingInfoOut, argMap, queryFieldMap, subschemaGqls, err := getStitchingInfo(schema, graphqlapis)
 	if err != nil {
 		return nil, err

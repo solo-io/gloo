@@ -1,6 +1,6 @@
 /* eslint-disable */
 // package: graphql.gloo.solo.io
-// file: github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/graphql/v1alpha1/stitching_info.proto
+// file: github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/graphql/v1beta1/stitching_info.proto
 
 import * as jspb from "google-protobuf";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_graphql_stitching_pb from "../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/graphql/stitching_pb";

@@ -13,8 +13,8 @@ import (
 	skv2_v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	mock_gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/mocks"
-	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
-	mock_graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1/mocks"
+	graphql_v1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1"
+	mock_graphql_v1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1/mocks"
 	. "github.com/solo-io/solo-kit/test/matchers"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/graphql_handler"
@@ -32,22 +32,22 @@ var _ = Describe("fed graphql handler", func() {
 
 		mockGlooInstanceClient *mock_fed_v1.MockGlooInstanceClient
 		mockSettingsClient     *mock_gloo_v1.MockSettingsClient
-		mockMCClientset        *mock_graphql_v1alpha1.MockMulticlusterClientset
-		mockGraphqlClientset1  *mock_graphql_v1alpha1.MockClientset
-		mockGraphqlClientset2  *mock_graphql_v1alpha1.MockClientset
-		mockGraphqlApiClient1  *mock_graphql_v1alpha1.MockGraphQLApiClient
-		mockGraphqlApiClient2  *mock_graphql_v1alpha1.MockGraphQLApiClient
+		mockMCClientset        *mock_graphql_v1beta1.MockMulticlusterClientset
+		mockGraphqlClientset1  *mock_graphql_v1beta1.MockClientset
+		mockGraphqlClientset2  *mock_graphql_v1beta1.MockClientset
+		mockGraphqlApiClient1  *mock_graphql_v1beta1.MockGraphQLApiClient
+		mockGraphqlApiClient2  *mock_graphql_v1beta1.MockGraphQLApiClient
 	)
 
 	BeforeEach(func() {
 		ctrl, ctx = gomock.WithContext(context.TODO(), GinkgoT())
 		mockGlooInstanceClient = mock_fed_v1.NewMockGlooInstanceClient(ctrl)
 		mockSettingsClient = mock_gloo_v1.NewMockSettingsClient(ctrl)
-		mockMCClientset = mock_graphql_v1alpha1.NewMockMulticlusterClientset(ctrl)
-		mockGraphqlClientset1 = mock_graphql_v1alpha1.NewMockClientset(ctrl)
-		mockGraphqlClientset2 = mock_graphql_v1alpha1.NewMockClientset(ctrl)
-		mockGraphqlApiClient1 = mock_graphql_v1alpha1.NewMockGraphQLApiClient(ctrl)
-		mockGraphqlApiClient2 = mock_graphql_v1alpha1.NewMockGraphQLApiClient(ctrl)
+		mockMCClientset = mock_graphql_v1beta1.NewMockMulticlusterClientset(ctrl)
+		mockGraphqlClientset1 = mock_graphql_v1beta1.NewMockClientset(ctrl)
+		mockGraphqlClientset2 = mock_graphql_v1beta1.NewMockClientset(ctrl)
+		mockGraphqlApiClient1 = mock_graphql_v1beta1.NewMockGraphQLApiClient(ctrl)
+		mockGraphqlApiClient2 = mock_graphql_v1beta1.NewMockGraphQLApiClient(ctrl)
 
 		local := fed_v1.GlooInstance{
 			ObjectMeta: meta_v1.ObjectMeta{
@@ -89,7 +89,7 @@ var _ = Describe("fed graphql handler", func() {
 		It("can get graphql api by ref", func() {
 			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			petstoreGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -118,7 +118,7 @@ var _ = Describe("fed graphql handler", func() {
 		It("can get graphql api yaml", func() {
 			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			petstoreGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -140,30 +140,30 @@ var _ = Describe("fed graphql handler", func() {
 		It("can list graphql apis", func() {
 			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			petstoreGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
 			bookinfoYaml, err := ioutil.ReadFile("graphql_test_data/bookinfo.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			bookinfoGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			bookinfoGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(bookinfoYaml, bookinfoGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
 			stitchedYaml, err := ioutil.ReadFile("graphql_test_data/stitched.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			stitchedGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			stitchedGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(stitchedYaml, stitchedGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
-			mockGraphqlApiClient1.EXPECT().ListGraphQLApi(ctx).Return(&graphql_v1alpha1.GraphQLApiList{
-				Items: []graphql_v1alpha1.GraphQLApi{
+			mockGraphqlApiClient1.EXPECT().ListGraphQLApi(ctx).Return(&graphql_v1beta1.GraphQLApiList{
+				Items: []graphql_v1beta1.GraphQLApi{
 					*petstoreGraphqlApi,
 					*stitchedGraphqlApi,
 				},
 			}, nil)
-			mockGraphqlApiClient2.EXPECT().ListGraphQLApi(ctx).Return(&graphql_v1alpha1.GraphQLApiList{
-				Items: []graphql_v1alpha1.GraphQLApi{
+			mockGraphqlApiClient2.EXPECT().ListGraphQLApi(ctx).Return(&graphql_v1beta1.GraphQLApiList{
+				Items: []graphql_v1beta1.GraphQLApi{
 					*bookinfoGraphqlApi,
 				},
 			}, nil)
@@ -213,7 +213,7 @@ var _ = Describe("fed graphql handler", func() {
 		It("can create a graphqlapi", func() {
 			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			petstoreGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -252,7 +252,7 @@ var _ = Describe("fed graphql handler", func() {
 			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
 			_, err := handler.CreateGraphqlApi(ctx, &rpc_edge_v1.CreateGraphqlApiRequest{
 				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns"},
-				Spec:          &graphql_v1alpha1.GraphQLApiSpec{},
+				Spec:          &graphql_v1beta1.GraphQLApiSpec{},
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Cannot perform update: UI is read-only."))
@@ -263,13 +263,13 @@ var _ = Describe("fed graphql handler", func() {
 		It("can update a graphqlapi", func() {
 			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			petstoreGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
 			bookinfoYaml, err := ioutil.ReadFile("graphql_test_data/bookinfo.yaml")
 			Expect(err).NotTo(HaveOccurred())
-			bookinfoGraphqlApi := &graphql_v1alpha1.GraphQLApi{}
+			bookinfoGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(bookinfoYaml, bookinfoGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -310,7 +310,7 @@ var _ = Describe("fed graphql handler", func() {
 			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
 			_, err := handler.UpdateGraphqlApi(ctx, &rpc_edge_v1.UpdateGraphqlApiRequest{
 				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns"},
-				Spec:          &graphql_v1alpha1.GraphQLApiSpec{},
+				Spec:          &graphql_v1beta1.GraphQLApiSpec{},
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Cannot perform update: UI is read-only."))
@@ -328,7 +328,7 @@ var _ = Describe("fed graphql handler", func() {
 			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
 			_, err := handler.UpdateGraphqlApi(ctx, &rpc_edge_v1.UpdateGraphqlApiRequest{
 				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
-				Spec:          &graphql_v1alpha1.GraphQLApiSpec{},
+				Spec:          &graphql_v1beta1.GraphQLApiSpec{},
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Cannot edit a graphqlapi that does not exist: not found!"))

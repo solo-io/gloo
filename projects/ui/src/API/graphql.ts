@@ -26,7 +26,7 @@ import {
   ResponseTemplate,
   RESTResolver,
   StitchedSchema,
-} from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+} from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
   CreateGraphqlApiRequest,

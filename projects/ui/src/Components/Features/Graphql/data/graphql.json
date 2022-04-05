@@ -8,7 +8,7 @@
               "nested": {
                 "io": {
                   "options": {
-                    "go_package": "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1",
+                    "go_package": "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1",
                     "java_package": "io.envoyproxy.envoy.config.filter.http.graphql.v2",
                     "java_outer_classname": "GraphQLFilterProto",
                     "java_multiple_files": true,

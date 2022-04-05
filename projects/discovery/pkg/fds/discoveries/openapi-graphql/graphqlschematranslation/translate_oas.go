@@ -20,7 +20,7 @@ import (
 	"github.com/graphql-go/graphql/language/parser"
 	"github.com/iancoleman/strcase"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	. "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/graphqlschematranslation/types"
 )
@@ -126,11 +126,11 @@ func NewOasToGqlTranslator(upstream *v1.Upstream) *OasToGqlTranslator {
 	}
 }
 
-func (t *OasToGqlTranslator) CreateGraphqlSchema(oass []*openapi.T) (*ast.Document, *graphql.Schema, map[string]*v1alpha1.Resolution, error) {
+func (t *OasToGqlTranslator) CreateGraphqlSchema(oass []*openapi.T) (*ast.Document, *graphql.Schema, map[string]*v1beta1.Resolution, error) {
 	return t.TranslateOpenApiToGraphQL(oass, SchemaOptions{})
 }
 
-func (t *OasToGqlTranslator) TranslateOpenApiToGraphQL(oass []*openapi.T, options SchemaOptions) (*ast.Document, *graphql.Schema, map[string]*v1alpha1.Resolution, error) {
+func (t *OasToGqlTranslator) TranslateOpenApiToGraphQL(oass []*openapi.T, options SchemaOptions) (*ast.Document, *graphql.Schema, map[string]*v1beta1.Resolution, error) {
 	data := t.PreprocessOas(oass, options)
 
 	queryFields := map[string]*graphql.Field{}
@@ -212,8 +212,8 @@ func GraphqlGoSchematoGraphqlGoAst(schema graphql.Schema) (*ast.Document, error)
 	return parser.Parse(parser.ParseParams{Source: schemaStr})
 }
 
-func (t *OasToGqlTranslator) CreateResolversForSchema(schema graphql.Schema, astSchema *ast.Document) (map[string]*v1alpha1.Resolution, error) {
-	resolutions := map[string]*v1alpha1.Resolution{}
+func (t *OasToGqlTranslator) CreateResolversForSchema(schema graphql.Schema, astSchema *ast.Document) (map[string]*v1beta1.Resolution, error) {
+	resolutions := map[string]*v1beta1.Resolution{}
 	typeDefs := map[string]*ast.ObjectDefinition{}
 	for i, def := range astSchema.Definitions {
 		if gqlType, ok := def.(*ast.ObjectDefinition); ok {
@@ -272,7 +272,7 @@ func (o *OasToGqlTranslator) GetFieldForOperation(operation *Operation, data *Pr
 }
 
 type FieldResolverWrapper struct {
-	Resolvers []*v1alpha1.RESTResolver
+	Resolvers []*v1beta1.RESTResolver
 	*graphql.Field
 }
 
@@ -658,7 +658,7 @@ func (t *OasToGqlTranslator) ResolveLinkParameter(param string) string {
 	return ""
 }
 
-func (t *OasToGqlTranslator) ExtractRequestDataFromParent(baseUrl string, operation *Operation, linkParam string, providerString string) *v1alpha1.RESTResolver {
+func (t *OasToGqlTranslator) ExtractRequestDataFromParent(baseUrl string, operation *Operation, linkParam string, providerString string) *v1beta1.RESTResolver {
 	var targetParam openapi.Parameters
 	for _, param := range operation.Parameters {
 		if linkParam == param.Value.Name {
@@ -669,7 +669,7 @@ func (t *OasToGqlTranslator) ExtractRequestDataFromParent(baseUrl string, operat
 
 	extendedUrl := path.Join(baseUrl, operation.Path)
 	requestTemplate := ExtractRequestDataFrom(extendedUrl, operation, targetParam, providerString, nil)
-	resolver := &v1alpha1.RESTResolver{
+	resolver := &v1beta1.RESTResolver{
 		UpstreamRef: &core.ResourceRef{
 			Name:      t.Upstream.GetMetadata().GetName(),
 			Namespace: t.Upstream.GetMetadata().GetNamespace(),

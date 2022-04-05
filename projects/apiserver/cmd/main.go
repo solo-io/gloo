@@ -11,7 +11,7 @@ import (
 	enterprise_gloo_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	gateway_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
+	graphql_v1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1"
 	ratelimit_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/apiserver"
@@ -109,7 +109,7 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, apiserverSettin
 	mcClient := client.NewClient(clusterWatcher)
 	glooMCClient := gloo_v1.NewMulticlusterClientset(mcClient)
 	gatewayMCClient := gateway_v1.NewMulticlusterClientset(mcClient)
-	graphqlMCClient := graphql_v1alpha1.NewMulticlusterClientset(mcClient)
+	graphqlMCClient := graphql_v1beta1.NewMulticlusterClientset(mcClient)
 	glooEnterpriseMCClient := enterprise_gloo_v1.NewMulticlusterClientset(mcClient)
 	ratelimitMCCLient := ratelimit_v1alpha1.NewMulticlusterClientset(mcClient)
 
@@ -145,7 +145,7 @@ func initializeSingleClusterGloo(ctx context.Context, mgr manager.Manager, apise
 	appsClientset := apps_v1.NewClientset(mgr.GetClient())
 	gatewayClientset := gateway_v1.NewClientset(mgr.GetClient())
 	glooClientset := gloo_v1.NewClientset(mgr.GetClient())
-	graphqlClientset := graphql_v1alpha1.NewClientset(mgr.GetClient())
+	graphqlClientset := graphql_v1beta1.NewClientset(mgr.GetClient())
 	enterpriseGlooClientset := enterprise_gloo_v1.NewClientset(mgr.GetClient())
 	ratelimitClientset := ratelimit_v1alpha1.NewClientset(mgr.GetClient())
 

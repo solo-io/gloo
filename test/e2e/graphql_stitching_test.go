@@ -18,7 +18,7 @@ import (
 	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/cors"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/helpers"
@@ -53,22 +53,22 @@ type Query {
 }
 `
 
-	productGqlApi := &v1alpha1.GraphQLApi{
+	productGqlApi := &v1beta1.GraphQLApi{
 		Metadata: &core.Metadata{
 			Name:      "product-gql",
 			Namespace: "gloo-system",
 		},
-		Schema: &v1alpha1.GraphQLApi_ExecutableSchema{
-			ExecutableSchema: &v1alpha1.ExecutableSchema{
+		Schema: &v1beta1.GraphQLApi_ExecutableSchema{
+			ExecutableSchema: &v1beta1.ExecutableSchema{
 				SchemaDefinition: productSchemaDef,
-				Executor: &v1alpha1.Executor{
-					Executor: &v1alpha1.Executor_Local_{
-						Local: &v1alpha1.Executor_Local{
-							Resolutions: map[string]*v1alpha1.Resolution{
+				Executor: &v1beta1.Executor{
+					Executor: &v1beta1.Executor_Local_{
+						Local: &v1beta1.Executor_Local{
+							Resolutions: map[string]*v1beta1.Resolution{
 								"product_resolver": {
-									Resolver: &v1alpha1.Resolution_MockResolver{
-										MockResolver: &v1alpha1.MockResolver{
-											Response: &v1alpha1.MockResolver_SyncResponse{
+									Resolver: &v1beta1.Resolution_MockResolver{
+										MockResolver: &v1beta1.MockResolver{
+											Response: &v1beta1.MockResolver_SyncResponse{
 												SyncResponse: JsonToStructPbValue(`{"id": 1, "seller": {"username": "user1"}}`),
 											},
 										},
@@ -95,22 +95,22 @@ type Query {
 }
 `
 
-	userGqlApi := &v1alpha1.GraphQLApi{
+	userGqlApi := &v1beta1.GraphQLApi{
 		Metadata: &core.Metadata{
 			Name:      "users-gql",
 			Namespace: "gloo-system",
 		},
-		Schema: &v1alpha1.GraphQLApi_ExecutableSchema{
-			ExecutableSchema: &v1alpha1.ExecutableSchema{
+		Schema: &v1beta1.GraphQLApi_ExecutableSchema{
+			ExecutableSchema: &v1beta1.ExecutableSchema{
 				SchemaDefinition: userSchemaDef,
-				Executor: &v1alpha1.Executor{
-					Executor: &v1alpha1.Executor_Local_{
-						Local: &v1alpha1.Executor_Local{
-							Resolutions: map[string]*v1alpha1.Resolution{
+				Executor: &v1beta1.Executor{
+					Executor: &v1beta1.Executor_Local_{
+						Local: &v1beta1.Executor_Local{
+							Resolutions: map[string]*v1beta1.Resolution{
 								"user_resolver": {
-									Resolver: &v1alpha1.Resolution_MockResolver{
-										MockResolver: &v1alpha1.MockResolver{
-											Response: &v1alpha1.MockResolver_SyncResponse{
+									Resolver: &v1beta1.Resolution_MockResolver{
+										MockResolver: &v1beta1.MockResolver{
+											Response: &v1beta1.MockResolver_SyncResponse{
 												SyncResponse: JsonToStructPbValue(`{"username": "user1", "firstName": "User", "lastName": "One"}`),
 											},
 										},
@@ -125,14 +125,14 @@ type Query {
 		},
 	}
 
-	stitchedGqlApi := &v1alpha1.GraphQLApi{
+	stitchedGqlApi := &v1beta1.GraphQLApi{
 		Metadata: &core.Metadata{
 			Name:      "stitched-gql",
 			Namespace: "gloo-system",
 		},
-		Schema: &v1alpha1.GraphQLApi_StitchedSchema{
-			StitchedSchema: &v1alpha1.StitchedSchema{
-				Subschemas: []*v1alpha1.StitchedSchema_SubschemaConfig{
+		Schema: &v1beta1.GraphQLApi_StitchedSchema{
+			StitchedSchema: &v1beta1.StitchedSchema{
+				Subschemas: []*v1beta1.StitchedSchema_SubschemaConfig{
 					// Stitch product api
 					{
 						Name:      "product-gql",
@@ -142,7 +142,7 @@ type Query {
 					{
 						Name:      "users-gql",
 						Namespace: "gloo-system",
-						TypeMerge: map[string]*v1alpha1.StitchedSchema_SubschemaConfig_TypeMergeConfig{
+						TypeMerge: map[string]*v1beta1.StitchedSchema_SubschemaConfig_TypeMergeConfig{
 							"User": {
 								QueryName:    "user",
 								SelectionSet: "{ username }",

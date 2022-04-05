@@ -9,7 +9,7 @@ import (
 	"github.com/rotisserie/eris"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 )
@@ -93,7 +93,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	return pluginutils.SetRoutePerFilterConfig(out, FilterName, routeConf)
 }
 
-func translateGraphQlApiToRouteConf(params plugins.RouteParams, in *v1.Route, api *v1alpha1.GraphQLApi) (*v2.GraphQLRouteConfig, error) {
+func translateGraphQlApiToRouteConf(params plugins.RouteParams, in *v1.Route, api *v1beta1.GraphQLApi) (*v2.GraphQLRouteConfig, error) {
 	execSchema, err := translation.CreateGraphQlApi(params.Snapshot.Upstreams, params.Snapshot.GraphqlApis, api)
 	if err != nil {
 		return nil, eris.Wrap(err, "error creating executable schema")

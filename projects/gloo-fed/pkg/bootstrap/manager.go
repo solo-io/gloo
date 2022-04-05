@@ -11,7 +11,7 @@ import (
 	enterprisev1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	graphqlv1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
+	graphqlv1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1"
 	ratelimitv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	fedenterprisev1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1"
 	fedgatewayv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1"
@@ -38,7 +38,7 @@ var singleClusterSchemes = runtime.SchemeBuilder{
 	gloov1.AddToScheme,
 	gatewayv1.AddToScheme,
 	enterprisev1.AddToScheme,
-	graphqlv1alpha1.AddToScheme,
+	graphqlv1beta1.AddToScheme,
 	ratelimitv1alpha1.AddToScheme,
 	scheme.AddToScheme,
 }
@@ -125,7 +125,7 @@ func MustRemoteScheme(ctx context.Context) *runtime.Scheme {
 	if err != nil {
 		die(err)
 	}
-	err = graphqlv1alpha1.AddToScheme(newScheme)
+	err = graphqlv1beta1.AddToScheme(newScheme)
 	if err != nil {
 		die(err)
 	}

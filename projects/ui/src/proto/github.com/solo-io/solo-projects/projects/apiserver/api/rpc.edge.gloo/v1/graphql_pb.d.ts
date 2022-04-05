@@ -5,7 +5,7 @@
 import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_skv2_api_core_v1_core_pb from "../../../../../../../../github.com/solo-io/skv2/api/core/v1/core_pb";
-import * as github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb from "../../../../../../../../github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb from "../../../../../../../../github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb";
 import * as github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb";
 
 export class GraphqlApi extends jspb.Message {
@@ -16,13 +16,13 @@ export class GraphqlApi extends jspb.Message {
 
   hasSpec(): boolean;
   clearSpec(): void;
-  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec | undefined;
-  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec): void;
+  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec): void;
 
   hasStatus(): boolean;
   clearStatus(): void;
-  getStatus(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus | undefined;
-  setStatus(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus): void;
+  getStatus(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus | undefined;
+  setStatus(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus): void;
 
   hasGlooInstance(): boolean;
   clearGlooInstance(): void;
@@ -42,8 +42,8 @@ export class GraphqlApi extends jspb.Message {
 export namespace GraphqlApi {
   export type AsObject = {
     metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
-    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.AsObject,
-    status?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.AsObject,
+    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.AsObject,
+    status?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus.AsObject,
     glooInstance?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
   }
 }
@@ -56,8 +56,8 @@ export class GraphqlApiSummary extends jspb.Message {
 
   hasStatus(): boolean;
   clearStatus(): void;
-  getStatus(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus | undefined;
-  setStatus(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus): void;
+  getStatus(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus | undefined;
+  setStatus(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus): void;
 
   hasGlooInstance(): boolean;
   clearGlooInstance(): void;
@@ -88,7 +88,7 @@ export class GraphqlApiSummary extends jspb.Message {
 export namespace GraphqlApiSummary {
   export type AsObject = {
     metadata?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ObjectMeta.AsObject,
-    status?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiStatus.AsObject,
+    status?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiStatus.AsObject,
     glooInstance?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
     executable?: GraphqlApiSummary.ExecutableSchemaSummary.AsObject,
     stitched?: GraphqlApiSummary.StitchedSchemaSummary.AsObject,
@@ -281,8 +281,8 @@ export class CreateGraphqlApiRequest extends jspb.Message {
 
   hasSpec(): boolean;
   clearSpec(): void;
-  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec | undefined;
-  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec): void;
+  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CreateGraphqlApiRequest.AsObject;
@@ -297,7 +297,7 @@ export class CreateGraphqlApiRequest extends jspb.Message {
 export namespace CreateGraphqlApiRequest {
   export type AsObject = {
     graphqlApiRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
-    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.AsObject,
+    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.AsObject,
   }
 }
 
@@ -331,8 +331,8 @@ export class UpdateGraphqlApiRequest extends jspb.Message {
 
   hasSpec(): boolean;
   clearSpec(): void;
-  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec | undefined;
-  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec): void;
+  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateGraphqlApiRequest.AsObject;
@@ -347,7 +347,7 @@ export class UpdateGraphqlApiRequest extends jspb.Message {
 export namespace UpdateGraphqlApiRequest {
   export type AsObject = {
     graphqlApiRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
-    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.AsObject,
+    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.AsObject,
   }
 }
 
@@ -473,8 +473,8 @@ export class ValidateSchemaDefinitionRequest extends jspb.Message {
 
   hasSpec(): boolean;
   clearSpec(): void;
-  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec | undefined;
-  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec): void;
+  getSpec(): github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec | undefined;
+  setSpec(value?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec): void;
 
   getInputCase(): ValidateSchemaDefinitionRequest.InputCase;
   serializeBinary(): Uint8Array;
@@ -490,7 +490,7 @@ export class ValidateSchemaDefinitionRequest extends jspb.Message {
 export namespace ValidateSchemaDefinitionRequest {
   export type AsObject = {
     schemaDefinition: string,
-    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1alpha1_graphql_pb.GraphQLApiSpec.AsObject,
+    spec?: github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb.GraphQLApiSpec.AsObject,
   }
 
   export enum InputCase {

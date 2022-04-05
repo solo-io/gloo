@@ -6,7 +6,7 @@ import SoloAddButton from 'Components/Common/SoloAddButton';
 import { SoloDropdown } from 'Components/Common/SoloDropdown';
 import lodash from 'lodash';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import React, { useEffect, useMemo, useState } from 'react';
 import { SoloNegativeButton } from 'Styles/StyledComponents/button';
 import {

@@ -9,7 +9,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	skv2_v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
+	graphql_v1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
 	fed_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
@@ -21,7 +21,7 @@ import (
 func NewFedGraphqlHandler(
 	glooInstanceClient fed_v1.GlooInstanceClient,
 	settingsClient gloo_v1.SettingsClient,
-	graphqlMCClientset graphql_v1alpha1.MulticlusterClientset,
+	graphqlMCClientset graphql_v1beta1.MulticlusterClientset,
 ) rpc_edge_v1.GraphqlConfigApiServer {
 	return &fedGraphqlHandler{
 		glooInstanceClient: glooInstanceClient,
@@ -33,7 +33,7 @@ func NewFedGraphqlHandler(
 type fedGraphqlHandler struct {
 	glooInstanceClient fed_v1.GlooInstanceClient
 	settingsClient     gloo_v1.SettingsClient
-	graphqlMCClientset graphql_v1alpha1.MulticlusterClientset
+	graphqlMCClientset graphql_v1beta1.MulticlusterClientset
 }
 
 func (h *fedGraphqlHandler) GetGraphqlApi(ctx context.Context, request *rpc_edge_v1.GetGraphqlApiRequest) (*rpc_edge_v1.GetGraphqlApiResponse, error) {
@@ -153,7 +153,7 @@ func (h *fedGraphqlHandler) listGraphqlApisForGlooInstance(ctx context.Context, 
 	}
 	graphqlApiClient := clientset.GraphQLApis()
 
-	var graphqlApiGraphqlApiList []*graphql_v1alpha1.GraphQLApi
+	var graphqlApiGraphqlApiList []*graphql_v1beta1.GraphQLApi
 	watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
 	if len(watchedNamespaces) != 0 {
 		for _, ns := range watchedNamespaces {
@@ -190,7 +190,7 @@ func (h *fedGraphqlHandler) listGraphqlApisForGlooInstance(ctx context.Context, 
 	return rpcGraphqlApis, nil
 }
 
-func convertGraphqlApi(graphqlApi *graphql_v1alpha1.GraphQLApi, glooInstance *skv2_v1.ObjectRef, cluster string) *rpc_edge_v1.GraphqlApi {
+func convertGraphqlApi(graphqlApi *graphql_v1beta1.GraphQLApi, glooInstance *skv2_v1.ObjectRef, cluster string) *rpc_edge_v1.GraphqlApi {
 	m := &rpc_edge_v1.GraphqlApi{
 		Metadata:     apiserverutils.ToMetadata(graphqlApi.ObjectMeta),
 		GlooInstance: glooInstance,
@@ -254,7 +254,7 @@ func (h *fedGraphqlHandler) CreateGraphqlApi(ctx context.Context, request *rpc_e
 		return nil, wrapped
 	}
 
-	graphqlApi := &graphql_v1alpha1.GraphQLApi{
+	graphqlApi := &graphql_v1beta1.GraphQLApi{
 		ObjectMeta: apiserverutils.RefToObjectMeta(*request.GetGraphqlApiRef()),
 		Spec:       *request.GetSpec(),
 	}

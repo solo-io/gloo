@@ -5,8 +5,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
-	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
+	graphql_v1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
@@ -25,14 +25,14 @@ func getGraphqlApiSummaries(graphqlApis []*rpc_edge_v1.GraphqlApi) ([]*rpc_edge_
 		}
 
 		switch graphqlApi.GetSpec().GetSchema().(type) {
-		case *graphql_v1alpha1.GraphQLApiSpec_ExecutableSchema:
+		case *graphql_v1beta1.GraphQLApiSpec_ExecutableSchema:
 			summary.ApiTypeSummary = &rpc_edge_v1.GraphqlApiSummary_Executable{
 				Executable: &rpc_edge_v1.GraphqlApiSummary_ExecutableSchemaSummary{
 					// TODO when we add other executor types (besides local), handle them here
 					NumResolvers: uint32(len(graphqlApi.GetSpec().GetExecutableSchema().GetExecutor().GetLocal().GetResolutions())),
 				},
 			}
-		case *graphql_v1alpha1.GraphQLApiSpec_StitchedSchema:
+		case *graphql_v1beta1.GraphQLApiSpec_StitchedSchema:
 			summary.ApiTypeSummary = &rpc_edge_v1.GraphqlApiSummary_Stitched{
 				Stitched: &rpc_edge_v1.GraphqlApiSummary_StitchedSchemaSummary{
 					NumSubschemas: uint32(len(graphqlApi.GetSpec().GetStitchedSchema().GetSubschemas())),
@@ -52,18 +52,18 @@ type ResourceRefGolangType struct {
 	Namespace string
 }
 
-func NewGraphqlApiList(graphqlapis *graphql_v1alpha1.GraphQLApiList, subschemas []*graphql_v1alpha1.StitchedSchema_SubschemaConfig) (RequestGraphQlApiList, error) {
-	graphqlapiMap := map[ResourceRefGolangType]*graphql_v1alpha1.StitchedSchema_SubschemaConfig{}
+func NewGraphqlApiList(graphqlapis *graphql_v1beta1.GraphQLApiList, subschemas []*graphql_v1beta1.StitchedSchema_SubschemaConfig) (RequestGraphQlApiList, error) {
+	graphqlapiMap := map[ResourceRefGolangType]*graphql_v1beta1.StitchedSchema_SubschemaConfig{}
 	for _, subschema := range subschemas {
 		graphqlapiMap[ResourceRefGolangType{
 			Name:      subschema.GetName(),
 			Namespace: subschema.GetNamespace(),
 		}] = subschema
 	}
-	var subschemaApiList map[ResourceRefGolangType]*v1alpha1.GraphQLApi
+	var subschemaApiList map[ResourceRefGolangType]*v1beta1.GraphQLApi
 	for _, api := range graphqlapis.Items {
 		if subschema, ok := graphqlapiMap[ResourceRefGolangType{Name: api.Name, Namespace: api.Namespace}]; ok {
-			ret := &v1alpha1.GraphQLApi{}
+			ret := &v1beta1.GraphQLApi{}
 			err := ConvertGoProtoTypes(&api.Spec, ret)
 			if err != nil {
 				return nil, eris.Wrapf(err, "unable to convert solo-apis GraphQLApi spec to enterprise gloo GraphQlApi type")
@@ -84,7 +84,7 @@ func NewGraphqlApiList(graphqlapis *graphql_v1alpha1.GraphQLApiList, subschemas 
 	return subschemaApiList, nil
 }
 
-func GetStitchedSchemaDefinition(ctx context.Context, gqlClient graphql_v1alpha1.GraphQLApiClient, request *rpc_edge_v1.GetStitchedSchemaDefinitionRequest) (*rpc_edge_v1.GetStitchedSchemaDefinitionResponse, error) {
+func GetStitchedSchemaDefinition(ctx context.Context, gqlClient graphql_v1beta1.GraphQLApiClient, request *rpc_edge_v1.GetStitchedSchemaDefinitionRequest) (*rpc_edge_v1.GetStitchedSchemaDefinitionResponse, error) {
 	stitchedSchema, err := gqlClient.GetGraphQLApi(ctx, client.ObjectKey{
 		Namespace: request.GetStitchedSchemaApiRef().GetNamespace(),
 		Name:      request.GetStitchedSchemaApiRef().GetName(),
@@ -102,7 +102,7 @@ func GetStitchedSchemaDefinition(ctx context.Context, gqlClient graphql_v1alpha1
 		return nil, eris.Errorf("GraphQLApi %s.%s does not have a stitched schema definition",
 			request.GetStitchedSchemaApiRef().GetNamespace(), request.GetStitchedSchemaApiRef().GetName())
 	}
-	glooStitchedSchemaConfig := &v1alpha1.StitchedSchema{}
+	glooStitchedSchemaConfig := &v1beta1.StitchedSchema{}
 	err = ConvertGoProtoTypes(stitchedSchemaCfg, glooStitchedSchemaConfig)
 	if err != nil {
 		return nil, err
@@ -132,9 +132,9 @@ func ConvertGoProtoTypes(inputMessage proto.Message, outputProtoMessage proto.Me
 	return nil
 }
 
-type RequestGraphQlApiList map[ResourceRefGolangType]*v1alpha1.GraphQLApi
+type RequestGraphQlApiList map[ResourceRefGolangType]*v1beta1.GraphQLApi
 
-func (list RequestGraphQlApiList) Find(namespace, name string) (*v1alpha1.GraphQLApi, error) {
+func (list RequestGraphQlApiList) Find(namespace, name string) (*v1beta1.GraphQLApi, error) {
 	if api, ok := list[ResourceRefGolangType{Namespace: namespace, Name: name}]; ok {
 		return api, nil
 	}
@@ -145,7 +145,7 @@ func (list RequestGraphQlApiList) AsResources() resources.ResourceList {
 	var ret resources.ResourceList
 	for resourceRef, _ := range list {
 
-		ret = append(ret, &v1alpha1.GraphQLApi{
+		ret = append(ret, &v1beta1.GraphQLApi{
 			Metadata: &core.Metadata{
 				Name:      resourceRef.Name,
 				Namespace: resourceRef.Namespace,

@@ -10,7 +10,7 @@ import (
 	"github.com/rotisserie/eris"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -21,7 +21,7 @@ const (
 	GrpcRegistryExtensionName            = "grpc_extension"
 )
 
-func TranslateGrpcResolver(upstreams types.UpstreamList, r *v1alpha1.GrpcResolver) (*v3.TypedExtensionConfig, error) {
+func TranslateGrpcResolver(upstreams types.UpstreamList, r *v1beta1.GrpcResolver) (*v3.TypedExtensionConfig, error) {
 	requestTransform, err := translateGrpcRequestTransform(r.RequestTransform)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func TranslateGrpcResolver(upstreams types.UpstreamList, r *v1alpha1.GrpcResolve
 	}, nil
 }
 
-func translateGrpcRequestTransform(transform *v1alpha1.GrpcRequestTemplate) (*v2.GrpcRequestTemplate, error) {
+func translateGrpcRequestTransform(transform *v1beta1.GrpcRequestTemplate) (*v2.GrpcRequestTemplate, error) {
 	if transform == nil {
 		return nil, nil
 	}

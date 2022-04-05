@@ -10,7 +10,7 @@ import ConfirmationModal from 'Components/Common/ConfirmationModal';
 import { StyledModalTab, StyledModalTabs } from 'Components/Common/SoloModal';
 import { Formik, FormikState } from 'formik';
 import { Kind, ObjectTypeDefinitionNode } from 'graphql';
-import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';

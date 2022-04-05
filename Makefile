@@ -372,7 +372,7 @@ generated-gloo-fed-ui: update-gloo-fed-ui-deps generated-gloo-fed-ui-deps genera
 .PHONY: generated-graphqlschema-json-descriptor
 generated-graphqlschema-json-descriptor:
 	yarn --cwd projects/ui pbjs -t json -o src/Components/Features/Graphql/data/graphql.json \
-	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql.proto \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql.proto \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external/google/protobuf/struct.proto \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external/google/protobuf/wrappers.proto \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external/google/protobuf/duration.proto \
@@ -505,7 +505,7 @@ generated-gloo-fed-ui-deps:
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
-	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/*.proto
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/*.proto
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \

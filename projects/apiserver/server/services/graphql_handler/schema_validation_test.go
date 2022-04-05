@@ -3,7 +3,7 @@ package graphql_handler_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
+	graphql_v1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/graphql_handler"
 )
@@ -94,9 +94,9 @@ var _ = Describe("schema validation", func() {
 		It("accepts empty schema", func() {
 			err := graphql_handler.ValidateSchemaDefinition(&rpc_edge_v1.ValidateSchemaDefinitionRequest{
 				Input: &rpc_edge_v1.ValidateSchemaDefinitionRequest_Spec{
-					Spec: &graphql_v1alpha1.GraphQLApiSpec{
-						Schema: &graphql_v1alpha1.GraphQLApiSpec_ExecutableSchema{
-							ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
+					Spec: &graphql_v1beta1.GraphQLApiSpec{
+						Schema: &graphql_v1beta1.GraphQLApiSpec_ExecutableSchema{
+							ExecutableSchema: &graphql_v1beta1.ExecutableSchema{
 								SchemaDefinition: "",
 							},
 						},
@@ -109,21 +109,21 @@ var _ = Describe("schema validation", func() {
 		It("accepts schema with resolver name that's in map", func() {
 			err := graphql_handler.ValidateSchemaDefinition(&rpc_edge_v1.ValidateSchemaDefinitionRequest{
 				Input: &rpc_edge_v1.ValidateSchemaDefinitionRequest_Spec{
-					Spec: &graphql_v1alpha1.GraphQLApiSpec{
-						Schema: &graphql_v1alpha1.GraphQLApiSpec_ExecutableSchema{
-							ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
+					Spec: &graphql_v1beta1.GraphQLApiSpec{
+						Schema: &graphql_v1beta1.GraphQLApiSpec_ExecutableSchema{
+							ExecutableSchema: &graphql_v1beta1.ExecutableSchema{
 								SchemaDefinition: `
 	type Query {
 		productsForHome: [Product] @resolve(name: "Query|productsForHome")
 	}
 `,
-								Executor: &graphql_v1alpha1.Executor{
-									Executor: &graphql_v1alpha1.Executor_Local_{
-										Local: &graphql_v1alpha1.Executor_Local{
-											Resolutions: map[string]*graphql_v1alpha1.Resolution{
+								Executor: &graphql_v1beta1.Executor{
+									Executor: &graphql_v1beta1.Executor_Local_{
+										Local: &graphql_v1beta1.Executor_Local{
+											Resolutions: map[string]*graphql_v1beta1.Resolution{
 												"Query|productsForHome": {
-													Resolver: &graphql_v1alpha1.Resolution_RestResolver{
-														RestResolver: &graphql_v1alpha1.RESTResolver{},
+													Resolver: &graphql_v1beta1.Resolution_RestResolver{
+														RestResolver: &graphql_v1beta1.RESTResolver{},
 													},
 												},
 											},
@@ -141,21 +141,21 @@ var _ = Describe("schema validation", func() {
 		It("rejects schema with resolver name not in map", func() {
 			err := graphql_handler.ValidateSchemaDefinition(&rpc_edge_v1.ValidateSchemaDefinitionRequest{
 				Input: &rpc_edge_v1.ValidateSchemaDefinitionRequest_Spec{
-					Spec: &graphql_v1alpha1.GraphQLApiSpec{
-						Schema: &graphql_v1alpha1.GraphQLApiSpec_ExecutableSchema{
-							ExecutableSchema: &graphql_v1alpha1.ExecutableSchema{
+					Spec: &graphql_v1beta1.GraphQLApiSpec{
+						Schema: &graphql_v1beta1.GraphQLApiSpec_ExecutableSchema{
+							ExecutableSchema: &graphql_v1beta1.ExecutableSchema{
 								SchemaDefinition: `
 	type Query {
 		productsForHome: [Product] @resolve(name: "Query|productsForHome")
 	}
 `,
-								Executor: &graphql_v1alpha1.Executor{
-									Executor: &graphql_v1alpha1.Executor_Local_{
-										Local: &graphql_v1alpha1.Executor_Local{
-											Resolutions: map[string]*graphql_v1alpha1.Resolution{
+								Executor: &graphql_v1beta1.Executor{
+									Executor: &graphql_v1beta1.Executor_Local_{
+										Local: &graphql_v1beta1.Executor_Local{
+											Resolutions: map[string]*graphql_v1beta1.Resolution{
 												"Query|productsForHome123": {
-													Resolver: &graphql_v1alpha1.Resolution_RestResolver{
-														RestResolver: &graphql_v1alpha1.RESTResolver{},
+													Resolver: &graphql_v1beta1.Resolution_RestResolver{
+														RestResolver: &graphql_v1beta1.RESTResolver{},
 													},
 												},
 											},

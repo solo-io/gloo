@@ -1,4 +1,4 @@
-apiVersion: graphql.gloo.solo.io/v1alpha1
+apiVersion: graphql.gloo.solo.io/v1beta1
 kind: GraphQLApi
 metadata:
   name: stitched-api

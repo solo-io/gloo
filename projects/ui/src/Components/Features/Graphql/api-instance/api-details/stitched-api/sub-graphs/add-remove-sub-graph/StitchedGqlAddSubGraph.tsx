@@ -11,7 +11,7 @@ import {
 import SoloAddButton from 'Components/Common/SoloAddButton';
 import { OptionType, SoloDropdown } from 'Components/Common/SoloDropdown';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import React, { useMemo, useState } from 'react';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
 import StitchedGqlAddSubGraphTypeMergeMapConfig from './StitchedGqlAddSubGraphTypeMergeMapConfig';

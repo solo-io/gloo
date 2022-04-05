@@ -6,7 +6,7 @@ import (
 	"github.com/rotisserie/eris"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 )
 
@@ -14,12 +14,12 @@ var (
 	StaticResolverTypedExtensionConfigName = "io.solo.graphql.resolver.static"
 )
 
-func TranslateMockResolver(r *v1alpha1.MockResolver) (*v3.TypedExtensionConfig, error) {
+func TranslateMockResolver(r *v1beta1.MockResolver) (*v3.TypedExtensionConfig, error) {
 	envoyConfig := &v2.StaticResolver{
 		Response: nil,
 	}
 	switch response := r.Response.(type) {
-	case *v1alpha1.MockResolver_SyncResponse:
+	case *v1beta1.MockResolver_SyncResponse:
 		{
 			out, err := json.Marshal(response.SyncResponse)
 			if err != nil {
@@ -29,7 +29,7 @@ func TranslateMockResolver(r *v1alpha1.MockResolver) (*v3.TypedExtensionConfig, 
 				SyncResponse: string(out),
 			}
 		}
-	case *v1alpha1.MockResolver_AsyncResponse_:
+	case *v1beta1.MockResolver_AsyncResponse_:
 		{
 			out, err := json.Marshal(response.AsyncResponse.GetResponse())
 			if err != nil {
@@ -42,7 +42,7 @@ func TranslateMockResolver(r *v1alpha1.MockResolver) (*v3.TypedExtensionConfig, 
 				},
 			}
 		}
-	case *v1alpha1.MockResolver_ErrorResponse:
+	case *v1beta1.MockResolver_ErrorResponse:
 		{
 			envoyConfig.Response = &v2.StaticResolver_ErrorResponse{
 				ErrorResponse: response.ErrorResponse,

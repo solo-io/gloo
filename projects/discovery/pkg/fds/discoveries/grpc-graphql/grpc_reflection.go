@@ -12,7 +12,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/graphql-go/graphql/language/printer"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
@@ -80,7 +80,7 @@ func (f *FunctionDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream, clients 
 // GraphqlSchemaDiscovery represents a function discovery for upstream
 type GraphqlSchemaDiscovery struct {
 	upstream         *v1.Upstream
-	graphqlClient    v1alpha1.GraphQLApiClient
+	graphqlClient    v1beta1.GraphQLApiClient
 	detectionTimeout time.Duration
 }
 
@@ -149,11 +149,11 @@ type GrpcReflectionClient interface {
 	FileContainingSymbol(symbol string) (*desc.FileDescriptor, error)
 }
 
-func (f *GraphqlSchemaDiscovery) GetSchemaBuilderForProtoFileDescriptor(refClient GrpcReflectionClient, descriptors *descriptor.FileDescriptorSet, services []string) (*SchemaBuilder, *v1alpha1.Executor_Local, error) {
+func (f *GraphqlSchemaDiscovery) GetSchemaBuilderForProtoFileDescriptor(refClient GrpcReflectionClient, descriptors *descriptor.FileDescriptorSet, services []string) (*SchemaBuilder, *v1beta1.Executor_Local, error) {
 	sb := NewSchemaBuilder()
-	executor := &v1alpha1.Executor_Local{
+	executor := &v1beta1.Executor_Local{
 		EnableIntrospection: true,
-		Resolutions:         map[string]*v1alpha1.Resolution{},
+		Resolutions:         map[string]*v1beta1.Resolution{},
 	}
 	for _, s := range services {
 		// ignore the reflection descriptor
@@ -191,14 +191,14 @@ func (f *GraphqlSchemaDiscovery) GetSchemaBuilderForProtoFileDescriptor(refClien
 					}
 					sb.AddQueryField(method.GetName(), inputType, outputType, resolverName)
 					outgoingJsonBody := GenerateOutgoingJsonBodyForInputType(inputType, "{$args."+inputType.GetName())
-					t := &v1alpha1.GrpcRequestTemplate{
+					t := &v1beta1.GrpcRequestTemplate{
 						OutgoingMessageJson: outgoingJsonBody,
 						ServiceName:         svc.GetFullyQualifiedName(),
 						MethodName:          method.GetName(),
 					}
-					resolution := &v1alpha1.Resolution{
-						Resolver: &v1alpha1.Resolution_GrpcResolver{
-							GrpcResolver: &v1alpha1.GrpcResolver{
+					resolution := &v1beta1.Resolution{
+						Resolver: &v1beta1.Resolution_GrpcResolver{
+							GrpcResolver: &v1beta1.GrpcResolver{
 								UpstreamRef:      f.upstream.GetMetadata().Ref(),
 								RequestTransform: t,
 							},
@@ -213,7 +213,7 @@ func (f *GraphqlSchemaDiscovery) GetSchemaBuilderForProtoFileDescriptor(refClien
 	return sb, executor, nil
 }
 
-func (f *GraphqlSchemaDiscovery) BuildGraphQLApiFromGrpcReflection(refClient GrpcReflectionClient) (*v1alpha1.GraphQLApi, error) {
+func (f *GraphqlSchemaDiscovery) BuildGraphQLApiFromGrpcReflection(refClient GrpcReflectionClient) (*v1beta1.GraphQLApi, error) {
 	services, err := refClient.ListServices()
 	if err != nil {
 		return nil, errors.Wrapf(err, "listing services. are you sure upstream %s.%s implements reflection?", f.upstream.GetMetadata().GetName(), f.upstream.GetMetadata().GetNamespace())
@@ -235,21 +235,21 @@ func (f *GraphqlSchemaDiscovery) BuildGraphQLApiFromGrpcReflection(refClient Grp
 	dest := make([]byte, base64.StdEncoding.EncodedLen(len(d)))
 	base64.StdEncoding.Encode(dest, d)
 
-	schema := &v1alpha1.GraphQLApi{
+	schema := &v1beta1.GraphQLApi{
 		Metadata: &core.Metadata{
 			Name:      f.upstream.GetMetadata().GetName(),
 			Namespace: f.upstream.GetMetadata().GetNamespace(),
 		},
-		Schema: &v1alpha1.GraphQLApi_ExecutableSchema{
-			ExecutableSchema: &v1alpha1.ExecutableSchema{
+		Schema: &v1beta1.GraphQLApi_ExecutableSchema{
+			ExecutableSchema: &v1beta1.ExecutableSchema{
 				SchemaDefinition: schemaDef,
-				Executor: &v1alpha1.Executor{
-					Executor: &v1alpha1.Executor_Local_{
+				Executor: &v1beta1.Executor{
+					Executor: &v1beta1.Executor_Local_{
 						Local: executor,
 					},
 				},
-				GrpcDescriptorRegistry: &v1alpha1.GrpcDescriptorRegistry{
-					DescriptorSet: &v1alpha1.GrpcDescriptorRegistry_ProtoDescriptorBin{
+				GrpcDescriptorRegistry: &v1beta1.GrpcDescriptorRegistry{
+					DescriptorSet: &v1beta1.GrpcDescriptorRegistry_ProtoDescriptorBin{
 						ProtoDescriptorBin: d,
 					},
 				},

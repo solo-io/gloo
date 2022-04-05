@@ -3,7 +3,7 @@ package graphql_handler
 import (
 	"github.com/ghodss/yaml"
 	"github.com/rotisserie/eris"
-	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
+	graphql_v1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -39,7 +39,7 @@ func validateRestResolver(resolverYaml string) error {
 		return err
 	}
 
-	resolver := &graphql_v1alpha1.RESTResolver{}
+	resolver := &graphql_v1beta1.RESTResolver{}
 	if err := protojson.Unmarshal(resolverJson, resolver); err != nil {
 		return InvalidResolverYamlErr(err)
 	}
@@ -52,7 +52,7 @@ func validateGrpcResolver(resolverYaml string) error {
 		return err
 	}
 
-	resolver := &graphql_v1alpha1.GrpcResolver{}
+	resolver := &graphql_v1beta1.GrpcResolver{}
 	if err := protojson.Unmarshal(resolverJson, resolver); err != nil {
 		return InvalidResolverYamlErr(err)
 	}

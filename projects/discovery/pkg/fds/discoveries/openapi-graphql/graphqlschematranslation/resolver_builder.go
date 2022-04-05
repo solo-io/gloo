@@ -12,7 +12,7 @@ import (
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
-	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	. "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/openapi-graphql/graphqlschematranslation/types"
 )

@@ -13,7 +13,7 @@ import (
 	"github.com/rotisserie/eris"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/grpc"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/mock"
@@ -23,7 +23,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/types"
 )
 
-func CreateGraphQlApi(upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, graphQLApi *v1alpha1.GraphQLApi) (*v2.ExecutableSchema, error) {
+func CreateGraphQlApi(upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
 	executableSchema, err := translateSchema(upstreams, graphqlapis, graphQLApi)
 	if err != nil {
 		return nil, err
@@ -32,13 +32,13 @@ func CreateGraphQlApi(upstreams types.UpstreamList, graphqlapis types.GraphQLApi
 	return executableSchema, nil
 }
 
-func translateSchema(upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, graphQLApi *v1alpha1.GraphQLApi) (*v2.ExecutableSchema, error) {
+func translateSchema(upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
 	switch schema := graphQLApi.GetSchema().(type) {
-	case *v1alpha1.GraphQLApi_StitchedSchema:
+	case *v1beta1.GraphQLApi_StitchedSchema:
 		{
 			return translateStitchedSchema(upstreams, graphqlapis, schema.StitchedSchema)
 		}
-	case *v1alpha1.GraphQLApi_ExecutableSchema:
+	case *v1beta1.GraphQLApi_ExecutableSchema:
 		{
 			return translateExecutableSchema(upstreams, graphQLApi)
 		}
@@ -49,7 +49,7 @@ func translateSchema(upstreams types.UpstreamList, graphqlapis types.GraphQLApiL
 	}
 }
 
-func translateExecutableSchema(upstreams types.UpstreamList, graphQLApi *v1alpha1.GraphQLApi) (*v2.ExecutableSchema, error) {
+func translateExecutableSchema(upstreams types.UpstreamList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
 	extensions, err := translateExtensions(graphQLApi)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func translateExecutableSchema(upstreams types.UpstreamList, graphQLApi *v1alpha
 	}, nil
 }
 
-func translateExtensions(api *v1alpha1.GraphQLApi) (map[string]*any.Any, error) {
+func translateExtensions(api *v1beta1.GraphQLApi) (map[string]*any.Any, error) {
 	extensions := map[string]*any.Any{}
 
 	if reg := api.GetExecutableSchema().GetGrpcDescriptorRegistry(); reg != nil {
@@ -88,11 +88,11 @@ func translateExtensions(api *v1alpha1.GraphQLApi) (map[string]*any.Any, error) 
 		}
 
 		switch regType := reg.DescriptorSet.(type) {
-		case *v1alpha1.GrpcDescriptorRegistry_ProtoDescriptor:
+		case *v1beta1.GrpcDescriptorRegistry_ProtoDescriptor:
 			grpcDescRegistry.ProtoDescriptors.Specifier = &v3.DataSource_Filename{
 				Filename: reg.GetProtoDescriptor(),
 			}
-		case *v1alpha1.GrpcDescriptorRegistry_ProtoDescriptorBin:
+		case *v1beta1.GrpcDescriptorRegistry_ProtoDescriptorBin:
 			grpcDescRegistry.ProtoDescriptors.Specifier = &v3.DataSource_InlineBytes{
 				InlineBytes: reg.GetProtoDescriptorBin(),
 			}
@@ -108,7 +108,7 @@ func translateExtensions(api *v1alpha1.GraphQLApi) (map[string]*any.Any, error) 
 	return extensions, nil
 }
 
-func processGraphqlSchema(upstreams types.UpstreamList, schema string, resolutions map[string]*v1alpha1.Resolution) (*ast.Document, []*v2.Resolution, string, error) {
+func processGraphqlSchema(upstreams types.UpstreamList, schema string, resolutions map[string]*v1beta1.Resolution) (*ast.Document, []*v2.Resolution, string, error) {
 	doc, err := ParseGraphQLSchema(schema)
 	if err != nil {
 		return nil, nil, "", err
@@ -137,20 +137,20 @@ func ParseGraphQLSchema(schema string) (*ast.Document, error) {
 	return doc, nil
 }
 
-func translateResolver(upstreams types.UpstreamList, resolver *v1alpha1.Resolution) (*v3.TypedExtensionConfig, error) {
+func translateResolver(upstreams types.UpstreamList, resolver *v1beta1.Resolution) (*v3.TypedExtensionConfig, error) {
 	switch r := resolver.Resolver.(type) {
-	case *v1alpha1.Resolution_RestResolver:
+	case *v1beta1.Resolution_RestResolver:
 		return rest.TranslateRestResolver(upstreams, r.RestResolver)
-	case *v1alpha1.Resolution_GrpcResolver:
+	case *v1beta1.Resolution_GrpcResolver:
 		return grpc.TranslateGrpcResolver(upstreams, r.GrpcResolver)
-	case *v1alpha1.Resolution_MockResolver:
+	case *v1beta1.Resolution_MockResolver:
 		return mock.TranslateMockResolver(r.MockResolver)
 	default:
 		return nil, errors.Errorf("unimplemented resolver type: %T", r)
 	}
 }
 
-func AddResolveDirectiveVisitor(visitor *directives.GraphqlASTVisitor, upstreams types.UpstreamList, resolutions map[string]*v1alpha1.Resolution, result *[]*v2.Resolution) {
+func AddResolveDirectiveVisitor(visitor *directives.GraphqlASTVisitor, upstreams types.UpstreamList, resolutions map[string]*v1beta1.Resolution, result *[]*v2.Resolution) {
 	visitor.AddDirectiveVisitor(directives.RESOLVER_DIRECTIVE, func(directiveVisitorParams directives.DirectiveVisitorParams) (bool, error) {
 		// validate correct usage of the resolve directive
 		resolveDirective := directives.NewResolveDirective()

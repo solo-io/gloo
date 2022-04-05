@@ -1,10 +1,10 @@
-export const petstoreYaml = `apiVersion: graphql.gloo.solo.io/v1alpha1
+export const petstoreYaml = `apiVersion: graphql.gloo.solo.io/v1beta1
 kind: GraphQLApi
 metadata:
   creationTimestamp: "2022-01-25T19:01:30Z"
   generation: 1
   managedFields:
-  - apiVersion: graphql.gloo.solo.io/v1alpha1
+  - apiVersion: graphql.gloo.solo.io/v1beta1
     fieldsType: FieldsV1
     fieldsV1:
       f:spec:

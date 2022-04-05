@@ -9,7 +9,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	skv2_v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
+	graphql_v1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/services/glooinstance_handler"
@@ -18,7 +18,7 @@ import (
 )
 
 func NewSingleClusterGraphqlHandler(
-	graphqlClientset graphql_v1alpha1.Clientset,
+	graphqlClientset graphql_v1beta1.Clientset,
 	glooInstanceLister glooinstance_handler.SingleClusterGlooInstanceLister,
 	settingsClient gloo_v1.SettingsClient,
 ) rpc_edge_v1.GraphqlConfigApiServer {
@@ -30,7 +30,7 @@ func NewSingleClusterGraphqlHandler(
 }
 
 type singleClusterGraphqlHandler struct {
-	graphqlClientset   graphql_v1alpha1.Clientset
+	graphqlClientset   graphql_v1beta1.Clientset
 	glooInstanceLister glooinstance_handler.SingleClusterGlooInstanceLister
 	settingsClient     gloo_v1.SettingsClient
 }
@@ -135,7 +135,7 @@ func (h *singleClusterGraphqlHandler) ListGraphqlApis(ctx context.Context, reque
 }
 
 func (h *singleClusterGraphqlHandler) listGraphqlApisForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.GraphqlApi, error) {
-	var graphqlApiList []*graphql_v1alpha1.GraphQLApi
+	var graphqlApiList []*graphql_v1beta1.GraphQLApi
 	watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
 	if len(watchedNamespaces) > 0 {
 		for _, ns := range watchedNamespaces {
@@ -223,7 +223,7 @@ func (h *singleClusterGraphqlHandler) CreateGraphqlApi(ctx context.Context, requ
 		return nil, eris.Errorf("graphqlapi spec missing from request: %v", request)
 	}
 
-	graphqlApi := &graphql_v1alpha1.GraphQLApi{
+	graphqlApi := &graphql_v1beta1.GraphQLApi{
 		ObjectMeta: apiserverutils.RefToObjectMeta(*request.GetGraphqlApiRef()),
 		Spec:       *request.GetSpec(),
 	}

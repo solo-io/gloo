@@ -10,7 +10,7 @@ import (
 
 	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/syncer"
 
-	v1alpha12 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1alpha1"
+	graphqlv1beta1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 
@@ -62,7 +62,7 @@ type TestClients struct {
 	ServiceClient         skkube.ServiceClient
 	AuthConfigClient      extauthv1.AuthConfigClient
 	RateLimitConfigClient v1alpha1.RateLimitConfigClient
-	GraphQLApiClient      v1alpha12.GraphQLApiClient
+	GraphQLApiClient      graphqlv1beta1.GraphQLApiClient
 	GlooPort              int
 }
 
@@ -118,7 +118,7 @@ func GetTestClients(ctx context.Context, cache memory.InMemoryResourceCache) Tes
 	Expect(err).NotTo(HaveOccurred())
 	rlcClient, err := v1alpha1.NewRateLimitConfigClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
-	gqlClient, err := v1alpha12.NewGraphQLApiClient(ctx, rcFactory)
+	gqlClient, err := graphqlv1beta1.NewGraphQLApiClient(ctx, rcFactory)
 	Expect(err).NotTo(HaveOccurred())
 
 	return TestClients{

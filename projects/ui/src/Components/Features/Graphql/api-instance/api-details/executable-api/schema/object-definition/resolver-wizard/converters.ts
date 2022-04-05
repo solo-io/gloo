@@ -1,5 +1,5 @@
 import { ResolverItem } from 'API/graphql';
-import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1alpha1/graphql_pb';
+import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import YAML from 'yaml';
 import cloneDeep from 'lodash/cloneDeep';
 import { getDefaultConfigFromType } from './ResolverConfigSection';
@@ -65,7 +65,7 @@ export const createResolverItem = (
 
   let requestTransform =
     resolverType === 'gRPC' &&
-      parsedResolverConfig?.grpcResolver?.requestTransform
+    parsedResolverConfig?.grpcResolver?.requestTransform
       ? parsedResolverConfig.grpcResolver.requestTransform
       : parsedResolverConfig.requestTransform;
   let request =

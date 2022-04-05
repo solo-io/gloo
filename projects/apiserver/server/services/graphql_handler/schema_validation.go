@@ -3,7 +3,7 @@ package graphql_handler
 import (
 	"github.com/graphql-go/graphql/language/parser"
 	"github.com/rotisserie/eris"
-	graphql_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1alpha1"
+	graphql_v1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/directives"
 )
@@ -11,7 +11,7 @@ import (
 func ValidateSchemaDefinition(req *rpc_edge_v1.ValidateSchemaDefinitionRequest) error {
 	switch req.GetInput().(type) {
 	case *rpc_edge_v1.ValidateSchemaDefinitionRequest_SchemaDefinition:
-		return validateInternal(req.GetSchemaDefinition(), map[string]*graphql_v1alpha1.Resolution{})
+		return validateInternal(req.GetSchemaDefinition(), map[string]*graphql_v1beta1.Resolution{})
 	case *rpc_edge_v1.ValidateSchemaDefinitionRequest_Spec:
 		return validateInternal(req.GetSpec().GetExecutableSchema().GetSchemaDefinition(),
 			req.GetSpec().GetExecutableSchema().GetExecutor().GetLocal().GetResolutions())
@@ -25,7 +25,7 @@ func ValidateSchemaDefinition(req *rpc_edge_v1.ValidateSchemaDefinitionRequest) 
 // 2. all usages of supported directives are syntactically correct
 // 3. resolver names referenced via `@resolve` directives in the schema definition have a corresponding
 //    entry in the resolutions map.
-func validateInternal(schema string, resolutions map[string]*graphql_v1alpha1.Resolution) error {
+func validateInternal(schema string, resolutions map[string]*graphql_v1beta1.Resolution) error {
 	doc, err := parser.Parse(parser.ParseParams{Source: schema})
 	if err != nil {
 		return eris.Wrap(err, "unable to parse graphql schema")
