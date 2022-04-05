@@ -99,7 +99,7 @@ replace (
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/apache/thrift => github.com/apache/thrift v0.14.0
 	// used by github.com/deislabs/oras v0.10.0
-	github.com/containerd/containerd => github.com/containerd/containerd v1.4.11
+	github.com/containerd/containerd => github.com/containerd/containerd v1.4.13
 	// pin to the jwt-go fork to fix CVE.
 	// using the pseudo version of github.com/form3tech-oss/jwt-go@v3.2.3 instead of the version directly,
 	// to avoid error about it being used for two different module paths
