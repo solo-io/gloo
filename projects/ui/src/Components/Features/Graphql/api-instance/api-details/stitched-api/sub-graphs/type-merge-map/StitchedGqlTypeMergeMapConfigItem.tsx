@@ -2,7 +2,7 @@ import VisualEditor from 'Components/Common/VisualEditor';
 import React from 'react';
 import { SupportedDefinitionNode } from 'utils/graphql-helpers';
 
-const StitchedGqlAddSubGraphTypeMergeConfigItem: React.FC<{
+const StitchedGqlTypeMergeConfigItem: React.FC<{
   schemaDefinitions: SupportedDefinitionNode[];
   typeMergeConfig: string;
   onTypeMergeConfigChange(newConfig: string): void;
@@ -36,4 +36,4 @@ const StitchedGqlAddSubGraphTypeMergeConfigItem: React.FC<{
   );
 };
 
-export default StitchedGqlAddSubGraphTypeMergeConfigItem;
+export default StitchedGqlTypeMergeConfigItem;

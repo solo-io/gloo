@@ -13,9 +13,10 @@ import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/grap
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { makeGraphqlApiLink } from 'utils/graphql-helpers';
-import StitchedGqlAddSubGraph from './add-remove-sub-graph/StitchedGqlAddSubGraph';
-import StitchedGqlRemoveSubGraph from './add-remove-sub-graph/StitchedGqlRemoveSubGraph';
+import StitchedGqlAddSubGraph from './update-sub-graph/StitchedGqlAddSubGraph';
+import StitchedGqlRemoveSubGraph from './update-sub-graph/StitchedGqlRemoveSubGraph';
 import { styles } from './StitchedGqlSubGraphs.style';
+import StitchedGqlEditTypeMergeMap from './update-sub-graph/StitchedGqlEditTypeMergeMap';
 
 const StitchedGqlSubGraphs: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
@@ -70,7 +71,18 @@ const StitchedGqlSubGraphs: React.FC<{
       {
         title: 'Actions',
         dataIndex: 'actions',
-        render: StitchedGqlRemoveSubGraph,
+        render: (
+          value: any,
+          subGraphConfig: StitchedSchema.SubschemaConfig.AsObject,
+          index: number
+        ) => {
+          return (
+            <div className='flex align-center'>
+              <StitchedGqlRemoveSubGraph subGraphConfig={subGraphConfig} />
+              <StitchedGqlEditTypeMergeMap subGraphConfig={subGraphConfig} />
+            </div>
+          );
+        },
       },
     ] as ColumnsType<any>;
   }, [graphqlApi, isGlooFedEnabled, glooInstance]);

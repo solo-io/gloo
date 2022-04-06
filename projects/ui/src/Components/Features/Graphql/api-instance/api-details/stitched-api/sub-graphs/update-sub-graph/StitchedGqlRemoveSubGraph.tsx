@@ -13,11 +13,9 @@ import {
 } from 'API/hooks';
 import ConfirmationModal from 'Components/Common/ConfirmationModal';
 
-const StitchedGqlRemoveSubGraph = (
-  value: any,
-  graphToRemove: StitchedSchema.SubschemaConfig.AsObject,
-  index: number
-) => {
+const StitchedGqlRemoveSubGraph: React.FC<{
+  subGraphConfig: StitchedSchema.SubschemaConfig.AsObject;
+}> = ({ subGraphConfig }) => {
   const apiRef = usePageApiRef();
   const { mutate: mutateYaml } = useGetGraphqlApiYaml(apiRef);
   const { data: graphqlApi, mutate: mutateDetails } =
@@ -38,8 +36,8 @@ const StitchedGqlRemoveSubGraph = (
     const newSubschemasList = existingSubGraphs.filter(
       g =>
         !(
-          g.name === graphToRemove.name &&
-          g.namespace === graphToRemove.namespace
+          g.name === subGraphConfig.name &&
+          g.namespace === subGraphConfig.namespace
         )
     );
     // Updates the api with a new spec that filters out the selected sub-graph.
@@ -59,7 +57,7 @@ const StitchedGqlRemoveSubGraph = (
 
   if (readonly) return null;
   return (
-    <TableActions className='space-x-3 '>
+    <TableActions>
       <TableActionCircle onClick={() => setIsModalVisible(true)}>
         <XIcon />
       </TableActionCircle>

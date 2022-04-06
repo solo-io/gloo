@@ -1,4 +1,3 @@
-import { Alert } from 'antd';
 import { graphqlConfigApi } from 'API/graphql';
 import {
   useGetConsoleOptions,
@@ -14,7 +13,7 @@ import { SoloModal } from 'Components/Common/SoloModal';
 import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import React, { useMemo, useState } from 'react';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
-import StitchedGqlAddSubGraphTypeMergeMapConfig from './StitchedGqlAddSubGraphTypeMergeMapConfig';
+import StitchedGqlTypeMergeMapConfig from '../type-merge-map/StitchedGqlTypeMergeMapConfig';
 
 interface gqlOptionType extends OptionType {
   apiIndex: number;
@@ -37,19 +36,26 @@ const StitchedGqlAddSubGraph = () => {
     [string, StitchedSchema.SubschemaConfig.TypeMergeConfig.AsObject][]
   >([]);
   const addSubGraph = async () => {
-    if (!graphqlApis || !selectedOption || !apiToAdd || !isMergeMapValid) {
-      console.error('Unable to add sub graph.');
+    if (
+      !selectedOption ||
+      !apiToAdd ||
+      (isShowingTypeMergeMap && !isTypeMergeMapValid) ||
+      !graphqlApi
+    ) {
+      console.error('Unable to update type merge map.');
       return;
     }
+    //
     // Get the selected api to add, and create a new sub graph reference to it.
     const newSubGraph = {
       name: apiToAdd.metadata?.name ?? '',
       namespace: apiToAdd.metadata?.namespace ?? '',
       typeMergeMap,
     };
+    //
     // Update the api with a new spec that includes the sub graphs.
     const existingSubGraphs =
-      graphqlApi?.spec?.stitchedSchema?.subschemasList ?? [];
+      graphqlApi.spec?.stitchedSchema?.subschemasList ?? [];
     await graphqlConfigApi.updateGraphqlApi({
       graphqlApiRef: apiRef,
       spec: {
@@ -97,21 +103,27 @@ const StitchedGqlAddSubGraph = () => {
       return undefined;
     return graphqlApis[selectedOption.apiIndex];
   }, [graphqlApis, selectedOption]);
-  const subGraphRef = useMemo(
-    () => ({
-      name: apiToAdd?.metadata?.name ?? '',
-      namespace: apiToAdd?.metadata?.namespace ?? '',
-      clusterName: apiToAdd?.metadata?.clusterName ?? '',
-    }),
+  const subGraphConfig = useMemo(
+    () =>
+      ({
+        name: apiToAdd?.metadata?.name ?? '',
+        namespace: apiToAdd?.metadata?.namespace ?? '',
+        typeMergeMap: [],
+      } as StitchedSchema.SubschemaConfig.AsObject),
     [apiToAdd]
   );
+  // Show the type merge map if:
+  //   - There is metadata for it.
+  //   - There is > 2 apis (one api is the one we're adding,
+  //     and the other one is this stitched one)
+  // TODO: After we check for conflicts, we can populate the initial type merge map and check if that exists here instead.
+  const isShowingTypeMergeMap =
+    apiToAdd?.metadata && graphqlApis && graphqlApis.length > 2;
 
   // --- VALIDATION --- //
-  const [isMergeMapValid, setIsMergeMapValid] = useState(false);
-  const canSubmit = useMemo(
-    () => isMergeMapValid && !!selectedOption,
-    [isMergeMapValid]
-  );
+  const [isTypeMergeMapValid, setIsTypeMergeMapValid] = useState(false);
+  const canSubmit =
+    (!isShowingTypeMergeMap || isTypeMergeMapValid) && !!selectedOption;
 
   if (readonly) return null;
   return (
@@ -137,11 +149,13 @@ const StitchedGqlAddSubGraph = () => {
               searchable={true}
             />
 
-            {apiToAdd?.metadata && (
-              <StitchedGqlAddSubGraphTypeMergeMapConfig
-                onIsValidChange={isValid => setIsMergeMapValid(isValid)}
+            {isShowingTypeMergeMap && (
+              <StitchedGqlTypeMergeMapConfig
+                onIsValidChange={isValid => setIsTypeMergeMapValid(isValid)}
+                initialTypeMergeMap={[]}
                 onTypeMergeMapChange={m => setTypeMergeMap(m)}
-                subGraphRef={subGraphRef}
+                apiRef={apiRef}
+                subGraphConfig={subGraphConfig}
               />
             )}
 

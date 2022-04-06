@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Added the ability to edit the type merge map of a stitched API sub graph.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3289

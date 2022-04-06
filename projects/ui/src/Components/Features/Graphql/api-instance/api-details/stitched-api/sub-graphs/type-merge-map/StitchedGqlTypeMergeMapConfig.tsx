@@ -10,28 +10,42 @@ import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/grap
 import React, { useEffect, useMemo, useState } from 'react';
 import { SoloNegativeButton } from 'Styles/StyledComponents/button';
 import {
+  arrayMapToObject,
   getParsedSchema,
   isExecutableAPI,
   objectToArrayMap,
 } from 'utils/graphql-helpers';
 import YAML from 'yaml';
-import StitchedGqlAddSubGraphTypeMergeMapConfigItem from './StitchedGqlAddSubGraphTypeMergeMapConfigItem';
+import StitchedGqlAddSubGraphTypeMergeMapConfigItem from './StitchedGqlTypeMergeMapConfigItem';
 
+// TODO: Fix argsmap > args naming.
 const sampleTypeMerge = `argsMap:
 queryName:
 selectionSet:`;
 
-const StitchedGqlAddSubGraphTypeMergeMapConfig: React.FC<{
+type ParsedTypeMergeMap = [
+  string,
+  StitchedSchema.SubschemaConfig.TypeMergeConfig.AsObject
+][];
+
+const StitchedGqlTypeMergeMapConfig: React.FC<{
   onIsValidChange(isValid: boolean): void;
-  onTypeMergeMapChange(
-    typeMergeMap: [
-      string,
-      StitchedSchema.SubschemaConfig.TypeMergeConfig.AsObject
-    ][]
-  ): void;
-  subGraphRef: ClusterObjectRef.AsObject;
-}> = ({ onIsValidChange, subGraphRef, onTypeMergeMapChange }) => {
-  const { data: subGraphqlApi } = useGetGraphqlApiDetails(subGraphRef);
+  initialTypeMergeMap: ParsedTypeMergeMap;
+  onTypeMergeMapChange(typeMergeMap: ParsedTypeMergeMap): void;
+  apiRef: ClusterObjectRef.AsObject;
+  subGraphConfig: StitchedSchema.SubschemaConfig.AsObject;
+}> = ({
+  onIsValidChange,
+  apiRef,
+  subGraphConfig,
+  initialTypeMergeMap,
+  onTypeMergeMapChange,
+}) => {
+  const { data: subGraphqlApi } = useGetGraphqlApiDetails({
+    name: subGraphConfig.name,
+    namespace: subGraphConfig.namespace,
+    clusterName: apiRef.clusterName,
+  });
 
   // --- TYPE MERGE MAP --- //
   const [typeMergeMap, setTypeMergeMap] = useState<
@@ -46,24 +60,49 @@ const StitchedGqlAddSubGraphTypeMergeMapConfig: React.FC<{
     onIsValidChange(warningMessage === '');
   }, [warningMessage]);
 
+  // Transforms the initial type merge map into the expected state.
+  const formattedInitialTypeMergeMap = useMemo(() => {
+    const newTMMap = [] as typeof typeMergeMap;
+    initialTypeMergeMap.forEach(mapping => {
+      const typeName = mapping[0];
+      const parsedMergeConfig = mapping[1];
+      // TODO: Fix argsmap > args naming.
+      // Convert the args array to an object.
+      if (
+        parsedMergeConfig.argsMap !== undefined &&
+        parsedMergeConfig.argsMap.length > 0
+      ) {
+        parsedMergeConfig.argsMap = arrayMapToObject<any>(
+          parsedMergeConfig.argsMap
+        );
+      }
+      // Stringify the config to show in the text editor.
+      YAML.scalarOptions.null.nullStr = '';
+      const typeMergeConfig = YAML.stringify(parsedMergeConfig);
+      newTMMap.push({ typeName, typeMergeConfig });
+    });
+    return newTMMap;
+  }, [initialTypeMergeMap]);
+  // Updates state when the initial type merge map changes.
   useEffect(() => {
-    // When types change, this resets the type merge map.
+    setTypeMergeMap(formattedInitialTypeMergeMap);
+  }, [formattedInitialTypeMergeMap]);
+
+  // Resets typeMergeMap when types change.
+  useEffect(() => {
     // TODO: There should be a confirmation modal for this if the type merge config was edited.
     if (typeMergeMap.length === 0) return;
-    setTypeMergeMap([]);
-  }, [subGraphRef]);
+    setTypeMergeMap(formattedInitialTypeMergeMap);
+  }, [subGraphConfig]);
   useEffect(() => {
-    if (typeMergeMap.length === 0) return;
     // -- Parsing
-    let parsedMap = [] as [
-      string,
-      StitchedSchema.SubschemaConfig.TypeMergeConfig.AsObject
-    ][];
+    let parsedMap = [] as ParsedTypeMergeMap;
     for (let i = 0; i < typeMergeMap.length; i++) {
       const { typeName, typeMergeConfig } = typeMergeMap[i];
       let parsedMergeConfig: any;
       try {
         parsedMergeConfig = YAML.parse(typeMergeConfig);
+        // TODO: Fix argsmap > args naming.
         if (parsedMergeConfig.argsMap)
           parsedMergeConfig.argsMap = objectToArrayMap(
             parsedMergeConfig.argsMap
@@ -79,6 +118,7 @@ const StitchedGqlAddSubGraphTypeMergeMapConfig: React.FC<{
       parsedMap.forEach(m => {
         const parsedMergeConfig = m[1];
         const configKeys = Object.keys(parsedMergeConfig);
+        // TODO: Fix argsmap > args naming.
         if (
           configKeys.length !== 3 ||
           !configKeys.includes('argsMap') ||
@@ -278,4 +318,4 @@ const StitchedGqlAddSubGraphTypeMergeMapConfig: React.FC<{
   );
 };
 
-export default StitchedGqlAddSubGraphTypeMergeMapConfig;
+export default StitchedGqlTypeMergeMapConfig;
