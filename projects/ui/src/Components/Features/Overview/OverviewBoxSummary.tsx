@@ -401,8 +401,12 @@ export const OverviewGraphQLBox = () => {
     return <Loading message={'Retrieving APIs...'} />;
   }
 
+  // TODO: Update this when pending/accepted states return correctly.
   const servicesStatus = graphqlApis.some(
-    upstream => upstream.status?.state !== GraphQLApiStatus.State.ACCEPTED
+    upstream =>
+      upstream.status?.state !== undefined &&
+      upstream.status?.state !== GraphQLApiStatus.State.PENDING &&
+      upstream.status?.state !== GraphQLApiStatus.State.ACCEPTED
   )
     ? GraphQLApiStatus.State.WARNING
     : GraphQLApiStatus.State.ACCEPTED;

@@ -30,7 +30,9 @@ export const makeSchemaDefinitionId = (
 ) => `${apiRef.namespace}-${apiRef.name}-${d.name.value.replace(/-|\s/g, '_')}`;
 
 export const isExecutableAPI = (graphqlApi: GraphqlApi.AsObject) =>
-  !!graphqlApi.spec?.executableSchema;
+  !!graphqlApi.spec?.executableSchema || !!(graphqlApi as any)?.executable;
+export const isStitchedAPI = (graphqlApi: GraphqlApi.AsObject) =>
+  !!graphqlApi.spec?.stitchedSchema || !!(graphqlApi as any)?.stitched;
 
 export const makeGraphqlApiLink = (
   apiName?: string,
@@ -51,6 +53,12 @@ export const makeGraphqlApiLink = (
 // -------------------------------------------------------------------- //
 // -------------------------------------------------------------------- //
 // -------------------------------------------------------------------- //
+
+export const makeGraphqlApiRef = (api: GraphqlApi.AsObject) => ({
+  name: api?.metadata?.name ?? '',
+  namespace: api?.metadata?.namespace ?? '',
+  clusterName: api?.metadata?.clusterName ?? '',
+});
 
 export type SupportedDefinitionNode =
   | ObjectTypeDefinitionNode

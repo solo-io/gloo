@@ -16,7 +16,7 @@ import {
 } from 'Components/Common/Tabs';
 import React from 'react';
 import { isExecutableAPI } from 'utils/graphql-helpers';
-import { GraphqlIconHolder } from '../GraphqlTable';
+import { GraphqlIconHolder } from '../GraphqlLanding.style';
 import GraphqlApiDetails from './api-details/GraphqlApiDetails';
 import { GraphqlApiExplorer } from './api-explorer/GraphqlApiExplorer';
 import GraphqlApiIntrospectionToggle from './GraphqlApiIntrospectionToggle';

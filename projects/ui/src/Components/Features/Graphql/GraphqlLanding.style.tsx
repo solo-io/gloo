@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import { colors } from 'Styles/colors';
 
 export const GraphqlLandingContainer = styled.div`
+  position: relative;
   display: grid;
   grid-template-columns: 200px 1fr;
   grid-gap: 28px;
@@ -33,4 +34,27 @@ export const CheckboxWrapper = styled.div`
     width: 190px;
     margin-bottom: 8px;
   }
+`;
+
+export const GraphqlIconHolder = styled.div`
+  display: flex;
+  align-items: center;
+  justify-items: center;
+
+  svg {
+    width: 35px;
+    max-width: none;
+  }
+`;
+
+export type TableHolderProps = { wholePage?: boolean };
+export const TableHolder = styled.div<TableHolderProps>`
+  ${(props: TableHolderProps) =>
+    props.wholePage
+      ? ''
+      : `
+    table thead.ant-table-thead tr th {
+      background: ${colors.marchGrey};
+    }
+  `};
 `;

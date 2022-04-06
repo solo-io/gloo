@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    description: >
+      The GraphQL API table now supports filtering by stitched or executable type.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3349
+  - type: FIX
+    description: >
+      Updated the status notification on the GraphQL API overview box and in the API table.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3401

@@ -27,7 +27,7 @@ import * as styles from './NewApiModal.style';
 
 export const NewApiModal: React.FC<{
   show: boolean;
-  onClose: () => any;
+  onClose(): void;
 }> = ({ show, onClose }) => {
   const navigate = useNavigate();
   const [glooInstance] = usePageGlooInstance();
@@ -225,7 +225,10 @@ export const NewApiModal: React.FC<{
                               graphqlConfigApi
                                 .validateSchema(request)
                                 .then(() => {
-                                  resolve({ isValid: true, errorMessage: '' });
+                                  resolve({
+                                    isValid: true,
+                                    errorMessage: '',
+                                  });
                                 })
                                 .catch(err => {
                                   setWarningMessage(err.message);
