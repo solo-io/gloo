@@ -10,9 +10,9 @@ import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/grap
 import React, { useEffect, useMemo, useState } from 'react';
 import { SoloNegativeButton } from 'Styles/StyledComponents/button';
 import {
+  getParsedSchema,
   isExecutableAPI,
   objectToArrayMap,
-  parseSchema,
 } from 'utils/graphql-helpers';
 import YAML from 'yaml';
 import StitchedGqlAddSubGraphTypeMergeMapConfigItem from './StitchedGqlAddSubGraphTypeMergeMapConfigItem';
@@ -120,9 +120,7 @@ const StitchedGqlAddSubGraphTypeMergeMapConfig: React.FC<{
     if (!subGraphqlApi) return [];
     if (isExecutableAPI(subGraphqlApi)) {
       setWarningMessage('');
-      return parseSchema(
-        subGraphqlApi?.spec?.executableSchema?.schemaDefinition
-      ).definitions;
+      return getParsedSchema(subGraphqlApi).definitions;
     } else {
       // TODO: This should work for stitched subgraphs as well (once the superschema is returned)
       setWarningMessage('Cannnot parse stitched schemas yet!');

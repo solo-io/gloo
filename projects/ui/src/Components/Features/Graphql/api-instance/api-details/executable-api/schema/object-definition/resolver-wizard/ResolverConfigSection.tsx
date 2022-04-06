@@ -25,7 +25,6 @@ const InnerValues = styled.div`
 `;
 
 type ResolverConfigSectionProps = {
-  isEdit: boolean;
   warningMessage: string;
 };
 
@@ -63,7 +62,6 @@ export const getDefaultConfigFromType = (
 };
 
 export const ResolverConfigSection = ({
-  isEdit,
   warningMessage,
 }: ResolverConfigSectionProps) => {
   const { setFieldValue, values, dirty, errors } =
@@ -114,11 +112,7 @@ export const ResolverConfigSection = ({
   }, [graphqlApiName, graphqlApiNamespace, values.resolverType]);
 
   return (
-    <div data-testid='resolver-config-section' className='h-full p-6 pb-0 '>
-      <div
-        className={'flex items-center mb-2 text-lg font-medium text-gray-800'}>
-        {isEdit ? 'Edit' : 'Configure'} Resolver{' '}
-      </div>
+    <div data-testid='resolver-config-section' className='px-6 pb-0 '>
       <div className='mb-2 '>
         <div>
           <EditorContainer editMode={true}>
@@ -182,7 +176,9 @@ export const ResolverConfigSection = ({
                   name='resolverConfiguration'
                   style={{
                     width: '100%',
-                    maxHeight: '36vh',
+                    height: '30vh',
+                    maxHeight: '400px',
+                    minHeight: '200px',
                     cursor: 'text',
                   }}
                   onChange={(newValue, e) => {

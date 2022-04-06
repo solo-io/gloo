@@ -1,14 +1,7 @@
 import { grpc } from '@improbable-eng/grpc-web';
 import { Value } from 'google-protobuf/google/protobuf/struct_pb';
 import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
-import {
-  ASTNode,
-  FieldDefinitionNode,
-  Kind,
-  ObjectTypeDefinitionNode,
-  parse,
-  print,
-} from 'graphql';
+import { FieldDefinitionNode } from 'graphql';
 import isEmpty from 'lodash/isEmpty';
 import {
   ClusterObjectRef,
@@ -28,6 +21,7 @@ import {
   StitchedSchema,
 } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 import {
   CreateGraphqlApiRequest,
   DeleteGraphqlApiRequest,
@@ -43,6 +37,7 @@ import {
   ValidateSchemaDefinitionResponse,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import { GraphqlConfigApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
+import { updateSchemaAndResolutionMap } from './graphql-resolutions';
 import {
   getClusterRefClassFromClusterRefObj,
   getObjectRefClassFromRefObj,
@@ -54,14 +49,14 @@ const graphqlApiClient = new GraphqlConfigApiClient(host, {
 });
 
 export type ResolverItem = {
-  resolverName: string;
+  field: FieldDefinitionNode;
   resolverType?: 'REST' | 'gRPC';
   request?: RequestTemplate.AsObject;
   response?: ResponseTemplate.AsObject;
   grpcRequest?: GrpcRequestTemplate.AsObject;
   spanName?: string;
   upstreamRef?: ObjectRef.AsObject;
-  isNewResolver: boolean;
+  isNewResolution: boolean;
   fieldReturnType: string;
   objectType: string;
 };
@@ -89,12 +84,8 @@ function listGraphqlApis(
   }
   return new Promise((resolve, reject) => {
     graphqlApiClient.listGraphqlApis(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
+      if (error !== null) rejectWithError(reject, error);
+      else {
         resolve(data!.toObject().graphqlApisList);
       }
     });
@@ -109,12 +100,8 @@ function getGraphqlApi(
 
   return new Promise((resolve, reject) => {
     graphqlApiClient.getGraphqlApi(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
+      if (error !== null) rejectWithError(reject, error);
+      else {
         resolve(data!.toObject()!.graphqlApi!);
       }
     });
@@ -129,12 +116,8 @@ export function getGraphqlApiPb(
 
   return new Promise((resolve, reject) => {
     graphqlApiClient.getGraphqlApi(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
+      if (error !== null) rejectWithError(reject, error);
+      else {
         resolve(data!.getGraphqlApi()!);
       }
     });
@@ -149,12 +132,8 @@ function getGraphqlApiYaml(
 
   return new Promise((resolve, reject) => {
     graphqlApiClient.getGraphqlApiYaml(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
+      if (error !== null) rejectWithError(reject, error);
+      else {
         resolve(data!.toObject().yamlData?.yaml ?? 'None');
       }
     });
@@ -203,12 +182,8 @@ function createGraphqlApi({
 
   return new Promise((resolve, reject) => {
     graphqlApiClient.createGraphqlApi(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
+      if (error !== null) rejectWithError(reject, error);
+      else {
         resolve(data!.toObject().graphqlApi!);
       }
     });
@@ -323,12 +298,8 @@ async function updateGraphqlApi(
 
   return new Promise((resolve, reject) => {
     return graphqlApiClient.updateGraphqlApi(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
+      if (error !== null) rejectWithError(reject, error);
+      else {
         resolve(data!.toObject().graphqlApi!);
       }
     });
@@ -355,12 +326,8 @@ async function updateGraphqlApiIntrospection(
 
   return new Promise((resolve, reject) => {
     return graphqlApiClient.updateGraphqlApi(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
+      if (error !== null) rejectWithError(reject, error);
+      else {
         resolve(data!.toObject());
       }
     });
@@ -370,8 +337,9 @@ async function updateGraphqlApiIntrospection(
 async function updateGraphqlApiResolver(
   graphqlApiRef: ClusterObjectRef.AsObject,
   resolverItem: ResolverItem,
-  isRemove?: boolean
+  shouldDelete?: boolean
 ): Promise<GraphqlApi.AsObject> {
+  const fieldName = resolverItem.field.name.value;
   let currentGraphqlApi = await getGraphqlApiPb(graphqlApiRef!);
 
   let currentSpec = currentGraphqlApi?.getSpec();
@@ -398,8 +366,7 @@ async function updateGraphqlApiResolver(
 
   if (resolverItem.resolverType === 'REST') {
     let newRestResolver =
-      currResolMap?.get(resolverItem.resolverName)?.getRestResolver() ??
-      new RESTResolver();
+      currResolMap?.get(fieldName)?.getRestResolver() ?? new RESTResolver();
     let usRef = newRestResolver?.getUpstreamRef() ?? new ResourceRef();
     if (!usRef?.toObject().name || !usRef?.toObject().namespace) {
       usRef.setName(resolverItem?.upstreamRef?.name!);
@@ -463,8 +430,7 @@ async function updateGraphqlApiResolver(
     newResolution.setRestResolver(newRestResolver);
   } else if (resolverItem.resolverType === 'gRPC') {
     let newGrpcResolver =
-      currResolMap?.get(resolverItem.resolverName)?.getGrpcResolver() ??
-      new GrpcResolver();
+      currResolMap?.get(fieldName)?.getGrpcResolver() ?? new GrpcResolver();
     let usRef = newGrpcResolver?.getUpstreamRef() ?? new ResourceRef();
     if (!usRef?.toObject().name || !usRef?.toObject().namespace) {
       usRef.setName(resolverItem?.upstreamRef?.name!);
@@ -522,186 +488,22 @@ async function updateGraphqlApiResolver(
 
   currExecutor.setLocal(currLocal);
   currentExSchema.setExecutor(currExecutor);
-  let currentSchemaDef = currentExSchema.getSchemaDefinition();
 
-  // -------------------------------------------- //
-  //
-  const parsedSchema = parse(currentSchemaDef);
-  const { resolverName, objectType } = resolverItem;
-  if (!resolverName || !objectType)
-    return new Promise((_, reject) =>
-      reject('Resolver name and type must be supplied')
-    );
-  const invalidUpdate = new Promise((_, reject) =>
-    reject('Error while updating schema.')
-  ) as Promise<GraphqlApi.AsObject>;
-  //
-  // Find the definition and field for the resolver to update.
-  const definition = parsedSchema.definitions.find(
-    (d: any) =>
-      d.kind === Kind.OBJECT_TYPE_DEFINITION && d.name.value === objectType
-  ) as ObjectTypeDefinitionNode | undefined;
-  if (definition === undefined) return invalidUpdate;
-  const resolverField = definition.fields?.find(
-    f => f.name.value === resolverName
+  updateSchemaAndResolutionMap(
+    resolverItem,
+    newResolution,
+    currentExSchema,
+    currResolMap,
+    shouldDelete
   );
-  if (resolverField === undefined) return invalidUpdate;
-  //
-  // Try to get the '@resolve(...)' directive.
-  // This is how we can check if it existed previously.
-  const resolveDirective = resolverField.directives?.find(
-    d => d.kind === Kind.DIRECTIVE && d.name.value === 'resolve'
-  );
-  if (!!resolveDirective) {
-    //
-    // --- RESOLVE DIRECTIVE EXISTS --- //
-    //
-    //
-    // Get the resolver directives 'name' argument.
-    // '@resolve(name: "...")'
-    const resolverDirectiveArg = resolveDirective.arguments?.find(
-      a => a.name.value === 'name'
-    );
-    if (
-      !resolverDirectiveArg ||
-      resolverDirectiveArg.value.kind !== Kind.STRING
-    )
-      return invalidUpdate;
-    const resolverDirectiveName = resolverDirectiveArg.value.value;
-    //
-    // Update the resolutions map for that item.
-    if (!isRemove) {
-      // We don't have to do any updates to the schema here if only updating the resolution.
-      currResolMap.set(resolverDirectiveName, newResolution);
-    } else {
-      if (!currResolMap.has(resolverDirectiveName)) return invalidUpdate;
-      currResolMap.del(resolverDirectiveName);
-      //
-      // If deleting, we have to remove the resolve directive from the schema.
-      // First we recreate the schema without this specific resolve directive.
-      const newDirectives = [...(resolverField.directives ?? [])];
-      const directiveIdx = newDirectives.findIndex(
-        d =>
-          d.kind === Kind.DIRECTIVE &&
-          d.name.value === 'resolve' &&
-          d.arguments?.length === 1 &&
-          d.arguments[0].value.kind === Kind.STRING &&
-          d.arguments[0].value.value === resolverDirectiveName
-      );
-      newDirectives.splice(directiveIdx, 1);
-      const newField = {
-        ...resolverField,
-        directives: newDirectives,
-      } as FieldDefinitionNode;
-      // Most of these types are readonly, so we duplicate the arrays.
-      const newDefinitions = [
-        ...parsedSchema.definitions,
-      ] as ObjectTypeDefinitionNode[];
-      const defIdx = newDefinitions.findIndex(
-        d => d.name.value === definition.name.value
-      );
-      const fieldIdx = newDefinitions[defIdx].fields!.findIndex(
-        d => d.name.value === resolverField.name.value
-      );
-      const newFields = [
-        ...newDefinitions[defIdx].fields!,
-      ] as FieldDefinitionNode[];
-      newFields[fieldIdx] = newField;
-      newDefinitions[defIdx] = {
-        ...definition,
-        fields: newFields,
-      };
-      const newSchema = {
-        ...parsedSchema,
-        definitions: newDefinitions,
-      } as ASTNode;
-      //
-      // Then we serialize the newSchema that we just made, and set that as the schema definition.
-      const newSchemaString = print(newSchema);
-      currentExSchema!.setSchemaDefinition(newSchemaString);
-      currentExSchema.setSchemaDefinition(newSchemaString);
-    }
-  } else {
-    //
-    // --- RESOLVE DIRECTIVE DOES NOT EXIST --- //
-    //
-    // We can't remove this resolver if an '@resolve(...)' directive does not exist.
-    if (isRemove) return invalidUpdate;
-    //
-    // Generate a Resolver Directive Name.
-    const newResolverDirectiveName = `${objectType}|${resolverName}`;
-    //
-    // Create the new schema.
-    const newField = {
-      ...resolverField,
-      directives: [
-        ...(resolverField.directives ?? []),
-        {
-          kind: Kind.DIRECTIVE,
-          name: {
-            kind: Kind.NAME,
-            value: 'resolve',
-          },
-          arguments: [
-            {
-              kind: Kind.ARGUMENT,
-              name: {
-                kind: Kind.NAME,
-                value: 'name',
-              },
-              value: {
-                kind: Kind.STRING,
-                value: newResolverDirectiveName,
-              },
-            },
-          ],
-        },
-      ],
-    } as FieldDefinitionNode;
-    // Most of these types are readonly, so we duplicate the arrays.
-    const newDefinitions = [
-      ...parsedSchema.definitions,
-    ] as ObjectTypeDefinitionNode[];
-    const defIdx = newDefinitions.findIndex(
-      d => d.name.value === definition.name.value
-    );
-    const fieldIdx = newDefinitions[defIdx].fields!.findIndex(
-      d => d.name.value === resolverField.name.value
-    );
-    const newFields = [
-      ...newDefinitions[defIdx].fields!,
-    ] as FieldDefinitionNode[];
-    newFields[fieldIdx] = newField;
-    newDefinitions[defIdx] = {
-      ...definition,
-      fields: newFields,
-    };
-    const newSchema = {
-      ...parsedSchema,
-      definitions: newDefinitions,
-    } as ASTNode;
-    //
-    // Serialize the newSchema that we just made, and set that as the schema definition.
-    const newSchemaString = print(newSchema);
-    currentExSchema!.setSchemaDefinition(newSchemaString);
-    //
-    // Update the resolution map with the newResolution (the config that was input).
-    currResolMap.set(newResolverDirectiveName, newResolution);
-    //
-    // -------------------------------------------- //
-  }
 
   currentSpec.setExecutableSchema(currentExSchema);
   request.setSpec(currentSpec);
 
   return new Promise((resolve, reject) => {
     return graphqlApiClient.updateGraphqlApi(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
+      if (error !== null) rejectWithError(reject, error);
+      else {
         resolve(data!.toObject().graphqlApi!);
       }
     });
@@ -710,20 +512,10 @@ async function updateGraphqlApiResolver(
 
 async function getGraphqlApiWithResolver(
   graphqlApiRef: ClusterObjectRef.AsObject,
-  resolverItem: {
-    resolverName: string;
-    resolverType?: 'REST' | 'gRPC';
-    request?: RequestTemplate.AsObject;
-    response?: ResponseTemplate.AsObject;
-    grpcRequest?: GrpcRequestTemplate.AsObject;
-    spanName?: string;
-    upstreamRef?: ObjectRef.AsObject;
-    hasDirective?: boolean;
-    fieldWithDirective?: string;
-    fieldWithoutDirective?: string;
-  },
-  isRemove?: boolean
+  resolverItem: ResolverItem,
+  shouldDelete?: boolean
 ): Promise<GraphQLApiSpec> {
+  const fieldName = resolverItem.field.name.value;
   let currentGraphqlApi = await getGraphqlApiPb(graphqlApiRef!);
 
   let currentSpec = currentGraphqlApi?.getSpec();
@@ -750,8 +542,7 @@ async function getGraphqlApiWithResolver(
 
   if (resolverItem.resolverType === 'REST') {
     let newRestResolver =
-      currResolMap?.get(resolverItem.resolverName)?.getRestResolver() ??
-      new RESTResolver();
+      currResolMap?.get(fieldName)?.getRestResolver() ?? new RESTResolver();
     let usRef = newRestResolver?.getUpstreamRef() ?? new ResourceRef();
     if (!usRef?.toObject().name || !usRef?.toObject().namespace) {
       usRef.setName(resolverItem?.upstreamRef?.name!);
@@ -822,30 +613,14 @@ async function getGraphqlApiWithResolver(
 
   currExecutor.setLocal(currLocal);
   currentExSchema.setExecutor(currExecutor);
-  let currentSchemaDef = currentExSchema.getSchemaDefinition();
 
-  // TODO: find a better way to do this
-  let { fieldWithDirective, fieldWithoutDirective } = resolverItem;
-  if (
-    !isRemove &&
-    !resolverItem.hasDirective &&
-    fieldWithDirective &&
-    fieldWithoutDirective
-  ) {
-    currentExSchema.setSchemaDefinition(
-      currentSchemaDef.replace(fieldWithoutDirective, fieldWithDirective)
-    );
-  }
-  if (isRemove) {
-    currResolMap.del(resolverItem.resolverName);
-    if (!!fieldWithDirective && fieldWithoutDirective) {
-      currentExSchema.setSchemaDefinition(
-        currentSchemaDef.replace(fieldWithDirective, fieldWithoutDirective)
-      );
-    }
-  } else {
-    currResolMap.set(resolverItem.resolverName, newResolution);
-  }
+  updateSchemaAndResolutionMap(
+    resolverItem,
+    newResolution,
+    currentExSchema,
+    currResolMap,
+    shouldDelete
+  );
 
   currentSpec.setExecutableSchema(currentExSchema);
   request.setSpec(currentSpec);
@@ -860,12 +635,8 @@ function deleteGraphqlApi(
   request.setGraphqlApiRef(getClusterRefClassFromClusterRefObj(graphqlApiRef!));
   return new Promise((resolve, reject) => {
     graphqlApiClient.deleteGraphqlApi(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
+      if (error !== null) rejectWithError(reject, error);
+      else {
         resolve(data!.toObject().graphqlApiRef!);
       }
     });
@@ -881,7 +652,7 @@ function deleteGraphqlApi(
 async function validateSchema(
   validationRequest: ValidateSchemaDefinitionRequest.AsObject & {
     apiRef?: ClusterObjectRef.AsObject;
-    resolverItem?: any;
+    resolverItem?: ResolverItem;
   }
 ): Promise<ValidateSchemaDefinitionResponse.AsObject> {
   let request = new ValidateSchemaDefinitionRequest();
@@ -941,14 +712,20 @@ function validateResolverYaml(
 
   return new Promise((resolve, reject) => {
     graphqlApiClient.validateResolverYaml(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
+      if (error !== null) rejectWithError(reject, error);
+      else {
         resolve(data!.toObject());
       }
     });
   });
 }
+
+const rejectWithError = (
+  reject: (reason: any) => void,
+  error: ServiceError
+) => {
+  console.error('Error:', error.message);
+  console.error('Code:', error.code);
+  console.error('Metadata:', error.metadata);
+  reject(error);
+};

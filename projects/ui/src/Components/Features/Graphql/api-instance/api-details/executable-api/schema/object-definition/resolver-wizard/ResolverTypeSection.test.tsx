@@ -21,7 +21,7 @@ describe('ResolverTypeSection', () => {
         }}
         onSubmit={jest.fn()}>
         <Form>
-          <ResolverTypeSection isEdit={false} />
+          <ResolverTypeSection />
         </Form>
       </Formik>
     );

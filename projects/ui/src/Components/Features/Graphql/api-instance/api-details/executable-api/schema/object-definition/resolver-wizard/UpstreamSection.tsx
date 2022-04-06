@@ -1,26 +1,23 @@
-import * as React from 'react';
-import { ResolverWizardFormProps } from './ResolverWizard';
-import { useFormikContext } from 'formik';
 import { useListUpstreams } from 'API/hooks';
 import { SoloFormDropdown } from 'Components/Common/SoloFormComponents';
+import { useFormikContext } from 'formik';
+import * as React from 'react';
+import { getUpstreamId, getUpstreamRefFromId } from 'utils/graphql-helpers';
 import YAML from 'yaml';
 import { getDefaultConfigFromType } from './ResolverConfigSection';
-import { useParams } from 'react-router';
+import { ResolverWizardFormProps } from './ResolverWizard';
 
 type UpstreamSectionProps = {
-  isEdit: boolean;
-  existingUpstream?: string;
+  existingUpstreamId: string;
 };
 
 export const UpstreamSection = ({
-  isEdit,
-  existingUpstream,
+  existingUpstreamId,
 }: UpstreamSectionProps) => {
   const formik = useFormikContext<ResolverWizardFormProps>();
   const { data: upstreams } = useListUpstreams();
-  const { graphqlApiName = '', graphqlApiNamespace = '' } = useParams();
 
-  const onChange = (value: any) => {
+  const onChange = (newUpstreamId: any) => {
     try {
       formik.setFieldError('upstream', undefined);
       const demoConfig = getDefaultConfigFromType(formik.values.resolverType);
@@ -32,16 +29,14 @@ export const UpstreamSection = ({
       const resolverValue = YAML.parse(
         formik.values.resolverConfig || demoConfig
       );
-      const [name, namespace] = value.split('::');
 
-      if (resolverValue?.restResolver?.upstreamRef) {
-        resolverValue.restResolver.upstreamRef.name = name;
-        resolverValue.restResolver.upstreamRef.namespace = namespace;
-      }
-      if (resolverValue?.grpcResolver?.upstreamRef) {
-        resolverValue.grpcResolver.upstreamRef.name = name;
-        resolverValue.grpcResolver.upstreamRef.namespace = namespace;
-      }
+      // Updates the upstream ref value in the YAML
+      const newUpstreamRef = getUpstreamRefFromId(newUpstreamId);
+      if (!!resolverValue?.restResolver?.upstreamRef)
+        resolverValue.restResolver.upstreamRef = newUpstreamRef;
+      if (!!resolverValue?.grpcResolver?.upstreamRef)
+        resolverValue.grpcResolver.upstreamRef = newUpstreamRef;
+
       // nullStr makes sure that it doesn't put NULL everywhere.
       // simpleKeys makes sure that `:method:` doesn't become `? method:`.
       YAML.scalarOptions.null.nullStr = '';
@@ -55,27 +50,21 @@ export const UpstreamSection = ({
   };
 
   return (
-    <div data-testid='upstream-section' className='w-full h-full p-6 pb-0'>
-      <div
-        className={'flex items-center mb-6 text-lg font-medium text-gray-800'}>
-        {isEdit ? 'Edit' : 'Configure'} Resolver{' '}
-      </div>
+    <div data-testid='upstream-section' className='w-full h-full px-6 pb-0'>
       <div className='grid gap-4 '>
         <div className='mb-2 '>
           <label className='text-base font-medium '>Upstream</label>
           <div className='mt-3'>
             <SoloFormDropdown
               name='upstream'
-              defaultValue={existingUpstream}
+              defaultValue={existingUpstreamId}
               searchable={true}
               onChange={onChange}
               options={upstreams
                 ?.map(upstream => {
                   return {
                     key: upstream.metadata?.uid!,
-                    value: `${upstream.metadata?.name!}::${
-                      upstream.metadata?.namespace
-                    }`,
+                    value: getUpstreamId(upstream.metadata),
                     displayValue: upstream.metadata?.name!,
                   };
                 })

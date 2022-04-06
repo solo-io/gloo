@@ -28,7 +28,7 @@ describe('UpstreamSection', () => {
         }}
         onSubmit={jest.fn()}>
         <Form>
-          <UpstreamSection isEdit={false} />
+          <UpstreamSection existingUpstreamId={''} />
         </Form>
       </Formik>
     );

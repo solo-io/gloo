@@ -3,6 +3,7 @@ import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.
 import YAML from 'yaml';
 import cloneDeep from 'lodash/cloneDeep';
 import { getDefaultConfigFromType } from './ResolverConfigSection';
+import { FieldDefinitionNode } from 'graphql';
 
 export const removeNulls = (obj: any) => {
   const isArray = Array.isArray(obj);
@@ -29,10 +30,16 @@ export const removeNulls = (obj: any) => {
 export const createResolverItem = (
   resolverConfig: string,
   resolverType: 'gRPC' | 'REST',
-  resolverName: string,
+  field: FieldDefinitionNode,
   upstream: string,
   extras: Record<string, any> = {}
 ): ResolverItem => {
+  /*
+     `parsedResolverConfig` can be formatted in different ways:
+     - `restResolver.[request | response | spanName | ...]`....
+     - `grpcResolver.[request | response | spanName | ...]`...
+     - `[request | response | spanName | ...]`...
+  */
   let parsedResolverConfig;
   try {
     parsedResolverConfig = removeNulls(YAML.parse(resolverConfig));
@@ -142,7 +149,7 @@ export const createResolverItem = (
         body,
       },
     }),
-    resolverName: resolverName,
+    field,
     //@ts-ignore
     ...(requestTransform && {
       grpcRequest: {
@@ -152,12 +159,12 @@ export const createResolverItem = (
         outgoingMessageJson,
       },
     }),
-    resolverType,
+    resolverType: resolverType,
     //@ts-ignore
     ...(response && { response: { resultRoot, settersMap } }),
     spanName,
     ...extras,
-  };
+  } as ResolverItem;
   return resolverItem;
 };
 

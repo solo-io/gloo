@@ -7,7 +7,7 @@ import SoloNoMatches from 'Components/Common/SoloNoMatches';
 import { Kind } from 'graphql';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useEffect, useMemo, useState } from 'react';
-import { makeSchemaDefinitionId, parseSchema } from 'utils/graphql-helpers';
+import { getParsedSchema, makeSchemaDefinitionId } from 'utils/graphql-helpers';
 import { ExeGqlEnumDefinition } from './enum-definition/ExeGqlEnumDefinition';
 import { globalStyles } from './ExecutableGraphqlSchemaDefinitions.style';
 import { ExeGqlObjectDefinition } from './object-definition/ExeGqlObjectDefinition';
@@ -15,32 +15,26 @@ import { ExeGqlObjectDefinition } from './object-definition/ExeGqlObjectDefiniti
 const ExecutableGraphqlSchemaDefinitions: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
 }> = ({ apiRef }) => {
-  const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
-
   // --- SCHEMA DEFINITIONS --- //
-  const schemaDefinitions = useMemo(
-    () =>
-      parseSchema(graphqlApi?.spec?.executableSchema?.schemaDefinition)
-        .definitions,
-    [graphqlApi]
-  );
+  const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
+  const schema = useMemo(() => getParsedSchema(graphqlApi), [graphqlApi]);
 
   // --- SEARCH LOGIC --- //
   const [searchText, setSearchText] = useState('');
   const [filteredSchemaDefinitions, setFilteredSchemaDefinitions] = useState<
-    typeof schemaDefinitions
+    typeof schema.definitions
   >([]);
   useEffect(() => {
     const lstext = searchText.toLowerCase();
-    const newSchemaDefinitions = [] as typeof schemaDefinitions;
+    const newSchemaDefinitions = [] as typeof schema.definitions;
     // Check for special search cases:
     if (/type:.*/g.test(lstext)) {
       const processedText = searchText.replaceAll('type:', '');
-      schemaDefinitions.forEach(d => {
+      schema.definitions.forEach(d => {
         if (d.name.value === processedText) newSchemaDefinitions.push(d);
       });
     } else {
-      schemaDefinitions.forEach(d => {
+      schema.definitions.forEach(d => {
         if (d.name.value.toLowerCase().includes(lstext)) {
           newSchemaDefinitions.push(d);
         } else if (d.kind === Kind.ENUM_TYPE_DEFINITION) {
@@ -60,7 +54,7 @@ const ExecutableGraphqlSchemaDefinitions: React.FC<{
       });
     }
     setFilteredSchemaDefinitions(newSchemaDefinitions);
-  }, [searchText, schemaDefinitions]);
+  }, [searchText, schema]);
 
   // --- COLLAPSE/ACCORDION PANEL LOGIC --- //
   const [openPanels, setOpenPanels] = useState<string | string[]>([]);
@@ -120,10 +114,9 @@ const ExecutableGraphqlSchemaDefinitions: React.FC<{
                 ) : (
                   <ExeGqlObjectDefinition
                     apiRef={apiRef}
-                    resolverType={d.name.value}
+                    schema={schema}
+                    objectTypeDefinition={d}
                     onReturnTypeClicked={t => setSearchText(`type:${t}`)}
-                    schemaDefinitions={schemaDefinitions}
-                    fields={d.fields ?? []}
                   />
                 )}
               </Collapse.Panel>

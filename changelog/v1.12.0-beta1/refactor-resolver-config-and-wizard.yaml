@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Refactored the resolver configuration wizard.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3453

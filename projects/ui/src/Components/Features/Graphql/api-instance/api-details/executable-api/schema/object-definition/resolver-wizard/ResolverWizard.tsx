@@ -1,56 +1,32 @@
-import styled from '@emotion/styled/macro';
 import { TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { graphqlConfigApi } from 'API/graphql';
-import {
-  useGetConsoleOptions,
-  useGetGraphqlApiDetails,
-  useGetGraphqlApiYaml,
-} from 'API/hooks';
+import { useGetConsoleOptions, useGetGraphqlApiDetails } from 'API/hooks';
 import ConfirmationModal from 'Components/Common/ConfirmationModal';
 import { StyledModalTab, StyledModalTabs } from 'Components/Common/SoloModal';
 import { Formik, FormikState } from 'formik';
-import { Kind, ObjectTypeDefinitionNode } from 'graphql';
+import { FieldDefinitionNode } from 'graphql';
+import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router';
 import { colors } from 'Styles/colors';
 import {
   SoloButtonStyledComponent,
   SoloNegativeButton,
 } from 'Styles/StyledComponents/button';
-import { supportedDefinitionTypes } from 'utils/graphql-helpers';
+import {
+  getFieldReturnType,
+  getResolution,
+  getResolveDirectiveName,
+  getUpstreamId,
+  getUpstreamRef,
+} from 'utils/graphql-helpers';
 import * as yup from 'yup';
-import { getFieldTypeParts } from '../ExeGqlObjectDefinition';
 import { createResolverItem, getResolverFromConfig } from './converters';
 import { ResolverConfigSection } from './ResolverConfigSection';
 import { getType, ResolverTypeSection } from './ResolverTypeSection';
+import * as styles from './ResolverWizard.styles';
 import { UpstreamSection } from './UpstreamSection';
-
-export const EditorContainer = styled.div<{ editMode: boolean }>`
-  .ace_cursor {
-    opacity: ${props => (props.editMode ? 1 : 0)};
-  }
-  cursor: ${props => (props.editMode ? 'text' : 'default')};
-`;
-
-export const IconButton = styled.button`
-  display: inline-flex;
-  cursor: pointer;
-  border: none;
-  outline: none !important;
-  background: transparent;
-  justify-content: center;
-  align-items: center;
-  color: ${props => colors.lakeBlue};
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.3;
-    pointer-events: none;
-    cursor: default;
-  }
-`;
 
 export type ResolverWizardFormProps = {
   resolverType: 'REST' | 'gRPC';
@@ -59,19 +35,7 @@ export type ResolverWizardFormProps = {
   listOfResolvers: [string, Resolution.AsObject][];
 };
 
-export const getUpstream = (resolver: Resolution.AsObject): string => {
-  return `
-  ${
-    resolver?.restResolver?.upstreamRef?.name!
-      ? `${resolver?.restResolver?.upstreamRef?.name!}::${resolver?.restResolver
-          ?.upstreamRef?.namespace!}`
-      : resolver?.grpcResolver?.upstreamRef?.name!
-      ? `${resolver?.grpcResolver?.upstreamRef?.name!}::${resolver?.grpcResolver
-          ?.upstreamRef?.namespace!}`
-      : ''
-  }`.trim();
-};
-
+// --- VALIDATION --- //
 const validationSchema = yup.object().shape({
   resolverType: yup.string().required('You need to specify a resolver type.'),
   upstream: yup.string().required('You need to specify an upstream.'),
@@ -79,278 +43,135 @@ const validationSchema = yup.object().shape({
     .string()
     .required('You need to specify a resolver configuration.'),
 });
+const resolverTypeIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
+  !formik.errors.resolverType;
+const upstreamIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
+  !formik.errors.upstream;
+const resolverConfigIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
+  !formik.errors.resolverConfig;
+const formIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
+  resolverTypeIsValid(formik) &&
+  upstreamIsValid(formik) &&
+  resolverConfigIsValid(formik);
 
+//
+// --- COMPONENT --- //
+//
 export const ResolverWizard: React.FC<{
-  onClose: () => void;
-  resolverName: string;
+  apiRef: ClusterObjectRef.AsObject;
+  field: FieldDefinitionNode | null;
   objectType: string;
-  schemaDefinitions: supportedDefinitionTypes[];
-}> = props => {
-  const { resolverName, objectType, schemaDefinitions } = props;
-  const {
-    graphqlApiName = '',
-    graphqlApiNamespace = '',
-    graphqlApiClusterName = '',
-  } = useParams();
-
-  const { data: graphqlApi, mutate } = useGetGraphqlApiDetails({
-    name: graphqlApiName,
-    namespace: graphqlApiNamespace,
-    clusterName: graphqlApiClusterName,
-  });
-
+  onClose: () => void;
+}> = ({ apiRef, field, objectType, onClose }) => {
+  const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
   const { readonly } = useGetConsoleOptions();
 
-  const { mutate: mutateSchemaYaml } = useGetGraphqlApiYaml({
-    name: graphqlApiName,
-    namespace: graphqlApiNamespace,
-    clusterName: graphqlApiClusterName,
-  });
-
-  const [resolver, setResolver] = useState<Resolution.AsObject>();
-  const isNewResolver = useMemo(() => !!resolver, [resolver]);
-  const [fieldReturnType, setFieldReturnType] = useState('');
-  useEffect(() => {
-    if (!resolverName || !objectType) return;
-    //
-    // --------------------------------- //
-    //
-    // TODO: refactor this with the logic in the graphql.ts update function.
-    //
-    // Find the definition and field for the resolver to update.
-    const definition = schemaDefinitions.find(
-      (d: any) =>
-        d.kind === Kind.OBJECT_TYPE_DEFINITION && d.name.value === objectType
-    ) as ObjectTypeDefinitionNode | undefined;
-    if (definition === undefined) return;
-    const resolverField = definition.fields?.find(
-      f => f.name.value === resolverName
-    );
-    if (resolverField === undefined) return;
-    //
-    // Try to get the '@resolve(...)' directive.
-    // This is how we can check if it existed previously.
-    const resolveDirective = resolverField.directives?.find(
-      d => d.kind === Kind.DIRECTIVE && d.name.value === 'resolve'
-    );
-    if (!resolveDirective) return;
-    //
-    // Get the resolver directives 'name' argument.
-    // '@resolve(name: "...")'
-    const resolverDirectiveArg = resolveDirective.arguments?.find(
-      a => a.name.value === 'name'
-    );
-    if (
-      !resolverDirectiveArg ||
-      resolverDirectiveArg.value.kind !== Kind.STRING
-    )
-      return;
-    const resolverDirectiveName = resolverDirectiveArg.value.value;
-    //
-    // --------------------------------- //
-    //
-    // Get the current resolver from the schema.
-    let [_currentResolverName, currentResolver] =
-      graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap.find(
-        ([rName, _resolver]) => rName === resolverDirectiveName
-      ) ?? ['', undefined];
-    //
-    //
-    // Find the base field type (this could be a nested list).
-    const [typePrefix, baseType, typeSuffix] = getFieldTypeParts(resolverField);
-    let newFieldReturnType = typePrefix + baseType + typeSuffix;
-    //
-    // Set state.
-    setFieldReturnType(newFieldReturnType);
-    setResolver(currentResolver);
-  }, [schemaDefinitions, resolverName]);
-
+  // --- STATE (FIELD, RESOLVER) --- //
+  const fieldName = field?.name.value ?? '';
+  const fieldReturnType = useMemo(
+    () => getFieldReturnType(field).fullType,
+    [field]
+  );
+  const resolution = useMemo(
+    () => getResolution(graphqlApi, getResolveDirectiveName(field)),
+    [field]
+  );
+  const isNewResolution = useMemo(() => !resolution, [resolution]);
   const resolutionsMap =
     graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap ?? [];
-
   const listOfResolvers = resolutionsMap.filter(
     ([rName]: [rName: string, rObject: Resolution.AsObject]) => {
-      return props.resolverName !== rName;
+      return fieldName !== rName;
     }
   );
-
-  const getUpstreamFromMap = () => {
-    // --------------------------------- //
-    //
-    // TODO: refactor this with the logic in the graphql.ts update function.
-    //
-    // Find the definition and field for the resolver to update.
-    const definition = schemaDefinitions.find(
-      (d: any) =>
-        d.kind === Kind.OBJECT_TYPE_DEFINITION && d.name.value === objectType
-    ) as ObjectTypeDefinitionNode | undefined;
-    if (definition === undefined) return '';
-    const resolverField = definition.fields?.find(
-      f => f.name.value === resolverName
-    );
-    if (resolverField === undefined) return '';
-    //
-    // Try to get the '@resolve(...)' directive.
-    // This is how we can check if it existed previously.
-    const resolveDirective = resolverField.directives?.find(
-      d => d.kind === Kind.DIRECTIVE && d.name.value === 'resolve'
-    );
-    if (!resolveDirective) return '';
-    //
-    // Get the resolver directives 'name' argument.
-    // '@resolve(name: "...")'
-    const resolverDirectiveArg = resolveDirective.arguments?.find(
-      a => a.name.value === 'name'
-    );
-    if (
-      !resolverDirectiveArg ||
-      resolverDirectiveArg.value.kind !== Kind.STRING
-    )
-      return '';
-    const resolverDirectiveName = resolverDirectiveArg.value.value;
-    //
-    // --------------------------------- //
-    const resolutionsMapItem = resolutionsMap?.find(
-      ([rN]) => rN === resolverDirectiveName
-    )?.[1];
-    if (!resolutionsMapItem) return '';
-    return getUpstream(resolutionsMapItem);
-  };
-
+  const existingUpstreamId = useMemo(
+    () => getUpstreamId(getUpstreamRef(resolution)),
+    [resolution]
+  );
+  // --- STATE (TAB, WARNING, CONFIRM) --- //
   const [tabIndex, setTabIndex] = React.useState(0);
   const [warningMessage, setWarningMessage] = React.useState('');
-  const handleTabsChange = (index: number) => {
-    setTabIndex(index);
-  };
-  const isEdit = Boolean(resolver);
-  const [attemptUpdateSchema, setAttemptUpdateSchema] = React.useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  useEffect(() => {
+    // Reset when field is unset (the wizard is hidden).
+    if (field === null) {
+      setIsConfirmingDelete(false);
+      setWarningMessage('');
+    }
+  }, [field]);
 
+  //
+  // --- ADD + UPDATE --- //
+  //
   const submitResolverConfig = async (values: ResolverWizardFormProps) => {
-    let { resolverConfig, resolverType, upstream } = values;
-    /*
-     `parsedResolverConfig` can be formatted in different ways:
-     - `restResolver.[request | response | spanName | ...]`....
-     - `grpcResolver.[request | response | spanName | ...]`...
-     - `[request | response | spanName | ...]`...
-    */
-
-    const apiRef = {
-      name: graphqlApiName,
-      namespace: graphqlApiNamespace,
-      clusterName: graphqlApiClusterName,
-    };
-
-    const extras = {
-      isNewResolver,
-      fieldReturnType,
-      objectType,
-    };
-    let resolverItem: any;
     try {
-      resolverItem = createResolverItem(
+      if (!field) throw new Error('Field does not exist.');
+      const { resolverConfig, resolverType, upstream } = values;
+      //
+      // Create ResolverItem (the parameter for validation + updates).
+      const resolverItem = createResolverItem(
         resolverConfig,
         resolverType,
-        props.resolverName ?? '',
+        field,
         upstream,
-        extras
-      );
-    } catch (err: any) {
-      setWarningMessage(err.message);
-      return;
-    }
-
-    setWarningMessage('');
-    let validationObject =
-      new ValidateSchemaDefinitionRequest().toObject() as any;
-    const spec = (
-      await graphqlConfigApi.getGraphqlApiWithResolver(apiRef, resolverItem)
-    ).toObject();
-    validationObject = {
-      ...validationObject,
-      spec,
-      apiRef,
-      resolverItem,
-    };
-    await graphqlConfigApi
-      .validateSchema(validationObject)
-      .then(_res => {
-        return graphqlConfigApi
-          .updateGraphqlApiResolver(apiRef, resolverItem)
-          .then(_res => {
-            mutate();
-            mutateSchemaYaml();
-            props.onClose();
-          });
-      })
-      .catch(err => {
-        if (typeof err === 'object') {
-          setWarningMessage(err.message);
-        } else {
-          setWarningMessage(err);
-        }
-        props.onClose();
-      });
-  };
-  const removeResolverConfig = async () => {
-    await graphqlConfigApi
-      .updateGraphqlApiResolver(
         {
-          name: graphqlApiName,
-          namespace: graphqlApiNamespace,
-          clusterName: graphqlApiClusterName,
-        },
-        {
-          resolverName,
+          isNewResolution,
+          fieldReturnType,
           objectType,
-          isNewResolver,
+        }
+      );
+      const spec = (
+        await graphqlConfigApi.getGraphqlApiWithResolver(apiRef, resolverItem)
+      ).toObject();
+      //
+      // Validate schema.
+      await graphqlConfigApi.validateSchema({
+        ...new ValidateSchemaDefinitionRequest().toObject(),
+        spec,
+        apiRef,
+        resolverItem,
+      });
+      //
+      // Make the update and close the modal.
+      await graphqlConfigApi.updateGraphqlApiResolver(apiRef, resolverItem);
+      onClose();
+    } catch (err: any) {
+      setWarningMessage(err?.message ?? err);
+    }
+  };
+
+  //
+  // --- DELETE --- //
+  //
+  const deleteResolverConfig = async () => {
+    try {
+      if (!field) throw new Error('Field does not exist.');
+      await graphqlConfigApi.updateGraphqlApiResolver(
+        apiRef,
+        {
+          field,
+          objectType,
+          isNewResolution,
           fieldReturnType,
         },
         true
-      )
-      .then(() => {
-        setTimeout(() => {
-          mutate();
-          mutateSchemaYaml();
-        }, 300);
-        props.onClose();
-      })
-      .catch(err => {
-        if (typeof err === 'object') {
-          setWarningMessage(err.message);
-        } else {
-          setWarningMessage(err);
-        }
-        props.onClose();
-      });
+      );
+      onClose();
+    } catch (err: any) {
+      setWarningMessage(err.message ?? err);
+      setIsConfirmingDelete(false);
+    }
   };
-  const resolverTypeIsValid = (
-    formik: FormikState<ResolverWizardFormProps>
-  ) => {
-    return !formik.errors.resolverType;
-  };
-
-  const upstreamIsValid = (formik: FormikState<ResolverWizardFormProps>) => {
-    return !formik.errors.upstream;
-  };
-
-  const resolverConfigIsValid = (
-    formik: FormikState<ResolverWizardFormProps>
-  ) => {
-    return !formik.errors.resolverConfig;
-  };
-
-  const formIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
-    resolverTypeIsValid(formik) &&
-    upstreamIsValid(formik) &&
-    resolverConfigIsValid(formik);
 
   return (
-    <div data-testid='resolver-wizard' className=' h-[800px]'>
+    <div
+      data-testid='resolver-wizard'
+      className='relative min-h-[600px] max-h-[800px] h-[85vh]'>
       <Formik<ResolverWizardFormProps>
         initialValues={{
-          resolverType: getType(resolver),
-          upstream: getUpstreamFromMap(),
-          resolverConfig: getResolverFromConfig(resolver),
+          resolverType: getType(resolution),
+          upstream: existingUpstreamId,
+          resolverConfig: getResolverFromConfig(resolution),
           listOfResolvers,
         }}
         enableReinitialize
@@ -361,15 +182,15 @@ export const ResolverWizard: React.FC<{
           <>
             <StyledModalTabs
               style={{ backgroundColor: colors.oceanBlue }}
-              className='grid h-full rounded-lg grid-cols-[150px_1fr]'
+              className='grid rounded-lg grid-cols-[150px_1fr] absolute top-0 left-0 w-full h-full'
               index={tabIndex}
-              onChange={handleTabsChange}>
+              onChange={setTabIndex}>
               <TabList className='flex flex-col mt-6'>
+                {/* --- SIDEBAR --- */}
                 <StyledModalTab
                   isCompleted={!!formik.values.resolverType?.length}>
                   Resolver Type
                 </StyledModalTab>
-
                 <StyledModalTab isCompleted={!!formik.values.upstream?.length}>
                   Upstream
                 </StyledModalTab>
@@ -378,23 +199,31 @@ export const ResolverWizard: React.FC<{
                   Resolver Config
                 </StyledModalTab>
               </TabList>
-              <TabPanels className='bg-white rounded-r-lg'>
+
+              <TabPanels className='bg-white rounded-r-lg flex flex-col h-full'>
+                <div
+                  className={
+                    'flex items-center mb-6 text-lg font-medium text-gray-800 px-6 pt-6'
+                  }>
+                  {isNewResolution ? 'Configuring' : 'Editing'}&nbsp;Resolver
+                  for:&nbsp;
+                  <b>{fieldName}</b>
+                </div>
+                {/* --- STEP 1: API TYPE --- */}
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
-                  <ResolverTypeSection isEdit={isEdit} />
-                  {!readonly && (
+                  <ResolverTypeSection />
+                  {!readonly && !isNewResolution && (
                     <div className='ml-2'>
                       <SoloNegativeButton
-                        onClick={() => {
-                          setAttemptUpdateSchema(true);
-                        }}>
+                        onClick={() => setIsConfirmingDelete(true)}>
                         Remove Configuration
                       </SoloNegativeButton>
                     </div>
                   )}
                   <div className='flex items-center justify-between px-6 '>
-                    <IconButton onClick={() => props.onClose()}>
+                    <styles.IconButton onClick={onClose}>
                       Cancel
-                    </IconButton>
+                    </styles.IconButton>
                     <SoloButtonStyledComponent
                       onClick={() => setTabIndex(tabIndex + 1)}
                       disabled={!resolverTypeIsValid(formik)}>
@@ -402,16 +231,13 @@ export const ResolverWizard: React.FC<{
                     </SoloButtonStyledComponent>
                   </div>
                 </TabPanel>
-
-                <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
-                  <UpstreamSection
-                    isEdit={isEdit}
-                    existingUpstream={resolver ? getUpstream(resolver) : ''}
-                  />
+                {/* --- STEP 2: UPSTREAM --- */}
+                <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
+                  <UpstreamSection existingUpstreamId={existingUpstreamId} />
                   <div className='flex items-center justify-between px-6 '>
-                    <IconButton onClick={() => props.onClose()}>
+                    <styles.IconButton onClick={onClose}>
                       Cancel
-                    </IconButton>
+                    </styles.IconButton>
                     <SoloButtonStyledComponent
                       onClick={() => setTabIndex(tabIndex + 1)}
                       disabled={!upstreamIsValid(formik)}>
@@ -419,17 +245,15 @@ export const ResolverWizard: React.FC<{
                     </SoloButtonStyledComponent>
                   </div>
                 </TabPanel>
-                <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
+                {/* --- STEP 3: CONFIG --- */}
+                <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
                   {tabIndex === 2 && (
-                    <ResolverConfigSection
-                      warningMessage={warningMessage}
-                      isEdit={isEdit}
-                    />
+                    <ResolverConfigSection warningMessage={warningMessage} />
                   )}
                   <div className='flex items-center justify-between px-6 '>
-                    <IconButton onClick={() => props.onClose()}>
+                    <styles.IconButton onClick={onClose}>
                       Cancel
-                    </IconButton>
+                    </styles.IconButton>
                     {!readonly && (
                       <SoloButtonStyledComponent
                         onClick={formik.handleSubmit as any}
@@ -445,13 +269,11 @@ export const ResolverWizard: React.FC<{
         )}
       </Formik>
       <ConfirmationModal
-        visible={attemptUpdateSchema}
+        visible={isConfirmingDelete}
         confirmPrompt='delete this Resolver'
         confirmButtonText='Delete'
-        goForIt={removeResolverConfig}
-        cancel={() => {
-          setAttemptUpdateSchema(false);
-        }}
+        goForIt={deleteResolverConfig}
+        cancel={() => setIsConfirmingDelete(false)}
         isNegative
       />
     </div>

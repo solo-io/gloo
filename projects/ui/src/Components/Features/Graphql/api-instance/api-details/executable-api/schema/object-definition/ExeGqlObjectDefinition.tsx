@@ -1,91 +1,65 @@
-import { useGetConsoleOptions, useGetGraphqlApiDetails } from 'API/hooks';
+import {
+  useGetConsoleOptions,
+  useGetGraphqlApiDetails,
+  useGetGraphqlApiYaml,
+} from 'API/hooks';
 import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
 import { ReactComponent as RouteIcon } from 'assets/route-icon.svg';
 import { SoloModal } from 'Components/Common/SoloModal';
-import {
-  EnumTypeDefinitionNode,
-  FieldDefinitionNode,
-  Kind,
-  ObjectTypeDefinitionNode,
-} from 'graphql';
+import { FieldDefinitionNode, Kind, ObjectTypeDefinitionNode } from 'graphql';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useState } from 'react';
 import { useVirtual } from 'react-virtual';
 import { colors } from 'Styles/colors';
+import {
+  getFieldReturnType,
+  hasResolutionForField,
+  SupportedDocumentNode,
+} from 'utils/graphql-helpers';
 import * as styles from '../ExecutableGraphqlSchemaDefinitions.style';
 import { ResolverWizard } from './resolver-wizard/ResolverWizard';
 
-/**
- * Traverses the field definition to build the string representation.
- * @returns [prefix, base-type, suffix]
- */
-export const getFieldTypeParts = (fieldDefinition: FieldDefinitionNode) => {
-  let typePrefix = '';
-  let typeSuffix = '';
-  let baseField = fieldDefinition.type;
-  // The fieldDefinition could be nested.
-  while (true) {
-    if (baseField?.kind === Kind.NON_NULL_TYPE) {
-      typeSuffix = '!' + typeSuffix;
-    } else if (baseField?.kind === Kind.LIST_TYPE) {
-      typePrefix = typePrefix + '[';
-      typeSuffix = ']' + typeSuffix;
-    } else break;
-    baseField = baseField.type;
-  }
-  if (baseField.kind === Kind.NAMED_TYPE)
-    return [typePrefix, baseField.name.value, typeSuffix] as [
-      string,
-      string,
-      string
-    ];
-  else return ['', '', ''] as [string, string, string];
-};
-
 export const ExeGqlObjectDefinition: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
-  resolverType: string;
+  schema: SupportedDocumentNode;
+  objectTypeDefinition: ObjectTypeDefinitionNode;
   onReturnTypeClicked(t: string): void;
-  schemaDefinitions: (ObjectTypeDefinitionNode | EnumTypeDefinitionNode)[];
-  fields: readonly FieldDefinitionNode[];
-}> = ({
-  apiRef,
-  resolverType,
-  onReturnTypeClicked,
-  schemaDefinitions,
-  fields,
-}) => {
+}> = ({ apiRef, schema, objectTypeDefinition, onReturnTypeClicked }) => {
+  const { data: graphqlApi, mutate: mutateDetails } =
+    useGetGraphqlApiDetails(apiRef);
+  const { mutate: mutateYaml } = useGetGraphqlApiYaml(apiRef);
+  const objectType = objectTypeDefinition.name.value;
+  const fields = objectTypeDefinition.fields ?? [];
   const listRef = React.useRef<HTMLDivElement>(null);
-  const resolverKey = `${apiRef.namespace}-${apiRef.name}-${resolverType}`;
   const { readonly } = useGetConsoleOptions();
-  const { data: graphqlApi, mutate } = useGetGraphqlApiDetails(apiRef);
-  // const {  mutate } = useGetGraphqlApiDetails(apiRef);
+
   const rowVirtualizer = useVirtual({
-    size: fields?.length ?? 0,
+    size: fields.length,
     parentRef: listRef,
     estimateSize: React.useCallback(() => 90, []),
     overscan: 1,
   });
 
   // --- RESOLVER CONFIG MODAL --- //
-  const [selectedResolver, setSelectedResolver] = useState<{
-    name: string;
-    objectType: string;
-  } | null>(null);
+  const [selectedField, setSelectedFieldName] =
+    useState<FieldDefinitionNode | null>(null);
 
   return (
-    <div data-testid='resolver-item' key={resolverKey}>
+    <div data-testid='resolver-item'>
       <SoloModal
-        visible={selectedResolver !== null}
+        visible={selectedField !== null}
         width={750}
-        onClose={() => setSelectedResolver(null)}>
+        onClose={() => setSelectedFieldName(null)}>
         <ResolverWizard
-          resolverName={selectedResolver?.name ?? ''}
-          objectType={selectedResolver?.objectType ?? ''}
-          schemaDefinitions={schemaDefinitions}
+          apiRef={apiRef}
+          field={selectedField}
+          objectType={objectType}
           onClose={() => {
-            setSelectedResolver(null);
-            mutate();
+            setTimeout(() => {
+              mutateDetails();
+              mutateYaml();
+            }, 300);
+            setSelectedFieldName(null);
           }}
         />
       </SoloModal>
@@ -128,55 +102,13 @@ export const ExeGqlObjectDefinition: React.FC<{
             position: 'relative',
           }}>
           {rowVirtualizer.virtualItems.map(virtualRow => {
-            const op = fields[virtualRow.index] as FieldDefinitionNode;
-            // let hasResolver =
-            //   !!graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.find(
-            //     ([rN, r]) => rN.includes(fields[virtualRow.index].name?.value)
-            //   );
-            const hasResolver = (() => {
-              if (!op?.name?.value) return false;
-              // --------------------------------- //
-              //
-              // TODO: refactor this with the logic in the graphql.ts update function.
-              //
-              // Find the definition and field for the resolver to update.
-              const definition = schemaDefinitions.find(
-                (d: any) =>
-                  d.kind === Kind.OBJECT_TYPE_DEFINITION &&
-                  d.name.value === resolverType
-              ) as ObjectTypeDefinitionNode | undefined;
-              if (definition === undefined) return false;
-              const resolverField = definition.fields?.find(
-                f => f.name.value === op.name.value
-              );
-              if (resolverField === undefined) return false;
-              //
-              // Try to get the '@resolve(...)' directive.
-              // This is how we can check if it existed previously.
-              const resolveDirective = resolverField.directives?.find(
-                d => d.kind === Kind.DIRECTIVE && d.name.value === 'resolve'
-              );
-              if (!resolveDirective) return false;
-              //
-              // Get the resolver directives 'name' argument.
-              // '@resolve(name: "...")'
-              const resolverDirectiveArg = resolveDirective.arguments?.find(
-                a => a.name.value === 'name'
-              );
-              if (
-                !resolverDirectiveArg ||
-                resolverDirectiveArg.value.kind !== Kind.STRING
-              )
-                return false;
-              return true;
-              //
-              // --------------------------------- //
-            })();
-            const [returnTypePrefix, baseReturnType, returnTypeSuffix] =
-              getFieldTypeParts(op);
+            const field = fields[virtualRow.index];
+            const fieldName = field.name.value ?? '';
+            const resolutionExists = hasResolutionForField(graphqlApi, field);
+            const returnType = getFieldReturnType(field);
             return (
               <div
-                key={`${resolverType}-${op.name?.value}`}
+                key={`${objectType}-${fieldName}`}
                 className={`flex h-20 p-2 pl-0 border `}
                 style={{
                   position: 'absolute',
@@ -197,7 +129,7 @@ export const ExeGqlObjectDefinition: React.FC<{
                       flexWrap: 'wrap',
                       gridTemplateColumns:
                         '1fr 1fr  minmax(120px, 200px) 105px',
-                      gridTemplateRows: op.description?.value
+                      gridTemplateRows: field.description?.value
                         ? ' 1fr min-content'
                         : '1fr',
                       gridAutoRows: 'min-content',
@@ -205,50 +137,47 @@ export const ExeGqlObjectDefinition: React.FC<{
                       rowGap: '5px',
                     }}>
                     <span className='flex items-center font-medium text-gray-900 '>
-                      {fields[virtualRow.index].name?.value ?? ''}
+                      {fieldName}
                     </span>
                     <span
                       className='flex items-center text-sm text-gray-700 '
                       style={{ fontFamily: 'monospace' }}>
-                      {returnTypePrefix}
-                      {schemaDefinitions.find(
-                        d => d.name.value === baseReturnType
+                      {returnType.parts.prefix}
+                      {schema.definitions.find(
+                        d => d.name.value === returnType.parts.base
                       ) ? (
                         <a
                           style={{ fontFamily: 'monospace' }}
-                          onClick={() => onReturnTypeClicked(baseReturnType)}>
-                          {baseReturnType}
+                          onClick={() =>
+                            onReturnTypeClicked(returnType.parts.base)
+                          }>
+                          {returnType.parts.base}
                         </a>
                       ) : (
-                        <>{baseReturnType}</>
+                        <>{returnType.parts.base}</>
                       )}
-                      {returnTypeSuffix}
+                      {returnType.parts.suffix}
                     </span>
                     <span className={`flex items-center  justify-center`}>
-                      {(!readonly || hasResolver) && (
+                      {(!readonly || hasResolutionForField) && (
                         <span
                           className={`inline-flex items-center min-w-max p-1 px-2 ${
-                            hasResolver
+                            resolutionExists
                               ? 'focus:ring-blue-500gloo text-blue-700gloo bg-blue-200gloo  border-blue-600gloo hover:bg-blue-300gloo'
                               : 'focus:ring-gray-500 text-gray-700 bg-gray-300  border-gray-600 hover:bg-gray-200'
                           }   border rounded-full shadow-sm cursor-pointer  focus:outline-none focus:ring-2 focus:ring-offset-2 `}
-                          onClick={() => {
-                            setSelectedResolver({
-                              name: fields[virtualRow.index].name?.value ?? '',
-                              objectType: resolverType,
-                            });
-                          }}>
-                          {hasResolver && (
+                          onClick={() => setSelectedFieldName(field)}>
+                          {resolutionExists && (
                             <RouteIcon className='w-6 h-6 mr-1 fill-current text-blue-600gloo' />
                           )}
-                          {hasResolver ? 'Resolver' : 'Define Resolver'}
+                          {resolutionExists ? 'Resolver' : 'Define Resolver'}
                         </span>
                       )}
                     </span>
 
-                    {op.description && (
+                    {field.description && (
                       <styles.OperationDescription>
-                        {op.description?.value}
+                        {field.description?.value}
                       </styles.OperationDescription>
                     )}
                   </div>

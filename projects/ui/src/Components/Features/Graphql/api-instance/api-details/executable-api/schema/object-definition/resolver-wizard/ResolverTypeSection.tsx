@@ -7,8 +7,6 @@ import React from 'react';
 import { useFormikContext } from 'formik';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 
-export type ResolverTypeSectionProps = { isEdit: boolean };
-
 export let apiTypeOptions = [
   {
     displayValue: 'REST',
@@ -37,7 +35,7 @@ export const getType = (
   return 'REST';
 };
 
-export const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
+export const ResolverTypeSection = () => {
   const formik = useFormikContext<ResolverWizardFormProps>();
 
   const onTypeChange = (resolverType: string) => {
@@ -47,12 +45,9 @@ export const ResolverTypeSection = ({ isEdit }: ResolverTypeSectionProps) => {
   };
 
   return (
-    <div data-testid='resolver-type-section' className='w-full h-full p-6 pb-0'>
-      <div
-        className={'flex items-center mb-6 text-lg font-medium text-gray-800'}>
-        {isEdit ? 'Edit' : 'Configure'} Resolver{' '}
-      </div>
-
+    <div
+      data-testid='resolver-type-section'
+      className='w-full h-full px-6 pb-0'>
       <div className='grid grid-cols-2 gap-4 '>
         <SoloFormRadio<ResolverWizardFormProps>
           name='resolverType'
