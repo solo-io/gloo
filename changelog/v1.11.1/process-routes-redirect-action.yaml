@@ -1,7 +1,0 @@
-changelog:
-  - type: NON_USER_FACING
-    description: >
-      introduces DirectResponseRoutePlugin and RedirectActionRoutePlugin plugin types.
-      Similarly to how a RoutePlugin can set route-level config for a route which defines
-      a routeAction, these new plugin types can set route-level config for routes which
-      define directResponseActions and redirectActions, respectively.
