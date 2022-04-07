@@ -7,7 +7,7 @@ import {
 } from 'graphql';
 import jspb from 'google-protobuf';
 import {
-  getParsedSchemaFromString,
+  parseSchemaString,
   getResolveDirectiveName,
   SupportedDocumentNode,
 } from 'utils/graphql-helpers';
@@ -189,7 +189,7 @@ export const updateSchemaAndResolutionMap = (
   //
   // Get the parsed values
   let currentSchemaDef = currentExSchema.getSchemaDefinition();
-  const parsedSchema = getParsedSchemaFromString(currentSchemaDef);
+  const parsedSchema = parseSchemaString(currentSchemaDef);
   //
   // Perform the action to the schema and resolution map.
   if (!shouldDelete) {

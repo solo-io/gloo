@@ -4,7 +4,7 @@ import React from 'react';
 import { useVirtual } from 'react-virtual';
 import { colors } from 'Styles/colors';
 
-export const ExeGqlEnumDefinition: React.FC<{
+export const SchemaEnumDefinition: React.FC<{
   resolverType: string;
   values: readonly EnumValueDefinitionNode[];
 }> = ({ resolverType, values }) => {

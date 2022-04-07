@@ -1,25 +1,23 @@
-import { TableActions, TableActionCircle } from 'Components/Common/SoloTable';
-import { ReactComponent as XIcon } from 'assets/x-icon.svg';
-import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
-import React, { useState } from 'react';
 import { graphqlConfigApi } from 'API/graphql';
 import {
-  usePageApiRef,
+  useGetConsoleOptions,
   useGetGraphqlApiDetails,
   useListGraphqlApis,
-  useGetGraphqlApiYaml,
+  usePageApiRef,
   usePageGlooInstance,
-  useGetConsoleOptions,
 } from 'API/hooks';
+import { ReactComponent as XIcon } from 'assets/x-icon.svg';
 import ConfirmationModal from 'Components/Common/ConfirmationModal';
+import { TableActionCircle, TableActions } from 'Components/Common/SoloTable';
+import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
+import React, { useState } from 'react';
 
 const StitchedGqlRemoveSubGraph: React.FC<{
   subGraphConfig: StitchedSchema.SubschemaConfig.AsObject;
-}> = ({ subGraphConfig }) => {
+  onAfterRemove(): void;
+}> = ({ subGraphConfig, onAfterRemove }) => {
   const apiRef = usePageApiRef();
-  const { mutate: mutateYaml } = useGetGraphqlApiYaml(apiRef);
-  const { data: graphqlApi, mutate: mutateDetails } =
-    useGetGraphqlApiDetails(apiRef);
+  const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
   const [glooInstance] = usePageGlooInstance();
   const { data: graphqlApis } = useListGraphqlApis(glooInstance?.metadata);
   const { readonly } = useGetConsoleOptions();
@@ -51,8 +49,7 @@ const StitchedGqlRemoveSubGraph: React.FC<{
       },
     });
     setIsModalVisible(false);
-    mutateYaml();
-    mutateDetails();
+    onAfterRemove();
   };
 
   if (readonly) return null;

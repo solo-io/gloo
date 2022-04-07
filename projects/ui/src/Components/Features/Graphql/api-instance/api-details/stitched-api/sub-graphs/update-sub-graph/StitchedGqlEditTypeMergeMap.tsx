@@ -1,9 +1,8 @@
-import { EditFilled, EditOutlined } from '@ant-design/icons';
+import { EditFilled } from '@ant-design/icons';
 import { graphqlConfigApi } from 'API/graphql';
 import {
   useGetConsoleOptions,
   useGetGraphqlApiDetails,
-  useGetGraphqlApiYaml,
   usePageApiRef,
 } from 'API/hooks';
 import { SoloModal } from 'Components/Common/SoloModal';
@@ -15,11 +14,10 @@ import StitchedGqlTypeMergeMapConfig from '../type-merge-map/StitchedGqlTypeMerg
 
 const StitchedGqlEditTypeMergeMap: React.FC<{
   subGraphConfig: StitchedSchema.SubschemaConfig.AsObject;
-}> = ({ subGraphConfig }) => {
+  onAfterEdit(): void;
+}> = ({ subGraphConfig, onAfterEdit }) => {
   const apiRef = usePageApiRef();
-  const { mutate: mutateYaml } = useGetGraphqlApiYaml(apiRef);
-  const { data: graphqlApi, mutate: mutateDetails } =
-    useGetGraphqlApiDetails(apiRef);
+  const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { readonly } = useGetConsoleOptions();
 
@@ -59,8 +57,7 @@ const StitchedGqlEditTypeMergeMap: React.FC<{
       },
     });
     setIsModalVisible(false);
-    mutateYaml();
-    mutateDetails();
+    onAfterEdit();
   };
 
   // --- VALIDATION --- //

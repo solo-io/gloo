@@ -72,15 +72,16 @@ export interface SupportedDocumentNode extends DocumentNode {
  * @returns The parsed schema with only the supported object definitions
  * (enum type or object type), sorted in the order: query, mutation, everything else.
  */
-export const getParsedSchema = (api: GraphqlApi.AsObject | undefined) =>
-  getParsedSchemaFromString(api?.spec?.executableSchema?.schemaDefinition);
+export const getParsedExecutableApiSchema = (
+  api: GraphqlApi.AsObject | undefined
+) => parseSchemaString(api?.spec?.executableSchema?.schemaDefinition);
 /**
  *
  * @param schemaString
  * @returns The parsed schema with only the supported object definitions
  * (enum type or object type), sorted in the order: query, mutation, everything else.
  */
-export const getParsedSchemaFromString = (schemaString: string | undefined) => {
+export const parseSchemaString = (schemaString: string | undefined) => {
   const emptySchema = {
     kind: Kind.DOCUMENT,
     definitions: [],

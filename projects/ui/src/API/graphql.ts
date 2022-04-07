@@ -27,6 +27,7 @@ import {
   DeleteGraphqlApiRequest,
   GetGraphqlApiRequest,
   GetGraphqlApiYamlRequest,
+  GetStitchedSchemaDefinitionRequest,
   GraphqlApi,
   ListGraphqlApisRequest,
   UpdateGraphqlApiRequest,
@@ -73,6 +74,7 @@ export const graphqlConfigApi = {
   deleteGraphqlApi,
   updateGraphqlApiResolver,
   getGraphqlApiWithResolver,
+  getStitchedSchemaDefinition,
 };
 
 function listGraphqlApis(
@@ -716,6 +718,21 @@ function validateResolverYaml(
       else {
         resolve(data!.toObject());
       }
+    });
+  });
+}
+
+function getStitchedSchemaDefinition(
+  graphqlApiRef: ClusterObjectRef.AsObject
+): Promise<string> {
+  let request = new GetStitchedSchemaDefinitionRequest();
+  request.setStitchedSchemaApiRef(
+    getClusterRefClassFromClusterRefObj(graphqlApiRef)
+  );
+  return new Promise((resolve, reject) => {
+    graphqlApiClient.getStitchedSchemaDefinition(request, (error, data) => {
+      if (error !== null) rejectWithError(reject, error);
+      else resolve(data!.toObject()!.stitchedSchemaSdl!);
     });
   });
 }

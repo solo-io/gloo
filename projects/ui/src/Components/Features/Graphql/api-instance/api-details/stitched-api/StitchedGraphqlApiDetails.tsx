@@ -1,23 +1,18 @@
-import { TabPanels, Tabs } from '@reach/tabs';
-import { useGetConsoleOptions, useGetGraphqlApiDetails } from 'API/hooks';
 import {
-  FolderTab,
-  FolderTabContent,
-  FolderTabList,
-  StyledTabPanel,
-} from 'Components/Common/Tabs';
+  useGetConsoleOptions,
+  useGetGraphqlApiDetails,
+  useGetStitchedSchemaDefinition,
+} from 'API/hooks';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { parseSchemaString } from 'utils/graphql-helpers';
 import GraphqlDeleteApiButton from '../GraphqlDeleteApiButton';
-import StitchedGraphqlMutationsTable from './schema/StitchedGqlMutationsTable';
-import StitchedGraphqlObjectsTable from './schema/StitchedGqlObjectsTable';
-import StitchedGraphqlQueriesTable from './schema/StitchedGqlQueriesTable';
+import SchemaDefinitions from '../schema/SchemaDefinitions';
 import StitchedGqlSubGraphs from './sub-graphs/StitchedGqlSubGraphs';
 
 export const StitchedGraphqlApiDetails: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
 }> = ({ apiRef }) => {
-  const [schemaTabIndex, setSchemaTabIndex] = useState(0);
   const { readonly } = useGetConsoleOptions();
 
   // -- SUBGRAPHS -- //
@@ -40,54 +35,28 @@ export const StitchedGraphqlApiDetails: React.FC<{
       // },
     ];
 
+  const { data: stitchedSchema } = useGetStitchedSchemaDefinition(apiRef);
+  const parsedStitchedSchema = useMemo(() => {
+    if (!stitchedSchema) return undefined;
+    return parseSchemaString(stitchedSchema);
+  }, [stitchedSchema]);
+
   return (
     <>
       <StitchedGqlSubGraphs apiRef={apiRef} subGraphs={subschemasList} />
 
       <hr className='mt-10 mb-10' />
 
-      {/* <Card className='shadow-[0_2px_5px_#8888] mb-5'> */}
-      <div className='text-lg mb-5'>Schema</div>
-      {/* <Collapse className='mb-5' defaultActiveKey={[0, 1, 2]}>
-          <Collapse.Panel key={0} header='Mutations'>
-            Mutations
-          </Collapse.Panel>
-          <Collapse.Panel key={1} header='Queries'>
-            Queries
-          </Collapse.Panel>
-          <Collapse.Panel key={2} header='Objects'>
-            Objects
-          </Collapse.Panel>
-        </Collapse> */}
-
-      <div className='mb-5'>
-        <Tabs index={schemaTabIndex} onChange={idx => setSchemaTabIndex(idx)}>
-          <FolderTabList>
-            <FolderTab>Queries</FolderTab>
-            <FolderTab>Mutations</FolderTab>
-            <FolderTab>Objects</FolderTab>
-          </FolderTabList>
-
-          <TabPanels>
-            <StyledTabPanel>
-              <FolderTabContent>
-                {schemaTabIndex === 0 && <StitchedGraphqlQueriesTable />}
-              </FolderTabContent>
-            </StyledTabPanel>
-            <StyledTabPanel>
-              <FolderTabContent>
-                {schemaTabIndex === 1 && <StitchedGraphqlMutationsTable />}
-              </FolderTabContent>
-            </StyledTabPanel>
-            <StyledTabPanel>
-              <FolderTabContent>
-                {schemaTabIndex === 2 && <StitchedGraphqlObjectsTable />}
-              </FolderTabContent>
-            </StyledTabPanel>
-          </TabPanels>
-        </Tabs>
+      <div className='mb-10'>
+        <div className='text-lg mb-5'>Stitched Schema</div>
+        {parsedStitchedSchema && (
+          <SchemaDefinitions
+            isEditable={false}
+            schema={parsedStitchedSchema}
+            apiRef={apiRef}
+          />
+        )}
       </div>
-      {/* </Card> */}
 
       {!readonly && <GraphqlDeleteApiButton apiRef={apiRef} />}
     </>

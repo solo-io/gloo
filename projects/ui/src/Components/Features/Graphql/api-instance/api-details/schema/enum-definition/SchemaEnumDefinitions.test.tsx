@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { ExeGqlEnumDefinition } from './ExeGqlEnumDefinition';
+import { SchemaEnumDefinition } from './SchemaEnumDefinition';
 
-describe('ExeGqlEnumDefinition', () => {
+describe('SchemaEnumDefinition', () => {
   it('renders an Enum Resolver', () => {
-    render(<ExeGqlEnumDefinition resolverType='resolver' values={[]} />);
+    render(<SchemaEnumDefinition resolverType='resolver' values={[]} />);
     expect(screen.getByTestId('enum-resolver')).toBeInTheDocument();
   });
 });

@@ -1,24 +1,24 @@
 import { Global } from '@emotion/core';
 import { Collapse } from 'antd';
-import { useGetGraphqlApiDetails } from 'API/hooks';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import { SoloInput } from 'Components/Common/SoloInput';
 import SoloNoMatches from 'Components/Common/SoloNoMatches';
 import { Kind } from 'graphql';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import React, { useEffect, useMemo, useState } from 'react';
-import { getParsedSchema, makeSchemaDefinitionId } from 'utils/graphql-helpers';
-import { ExeGqlEnumDefinition } from './enum-definition/ExeGqlEnumDefinition';
-import { globalStyles } from './ExecutableGraphqlSchemaDefinitions.style';
-import { ExeGqlObjectDefinition } from './object-definition/ExeGqlObjectDefinition';
+import React, { useEffect, useState } from 'react';
+import {
+  makeSchemaDefinitionId,
+  SupportedDocumentNode,
+} from 'utils/graphql-helpers';
+import { SchemaEnumDefinition } from './enum-definition/SchemaEnumDefinition';
+import { SchemaObjectDefinition } from './object-definition/SchemaObjectDefinition';
+import { globalStyles } from './SchemaDefinitions.style';
 
-const ExecutableGraphqlSchemaDefinitions: React.FC<{
+const SchemaDefinitions: React.FC<{
+  schema: SupportedDocumentNode;
   apiRef: ClusterObjectRef.AsObject;
-}> = ({ apiRef }) => {
-  // --- SCHEMA DEFINITIONS --- //
-  const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
-  const schema = useMemo(() => getParsedSchema(graphqlApi), [graphqlApi]);
-
+  isEditable: boolean;
+}> = ({ schema, apiRef, isEditable }) => {
   // --- SEARCH LOGIC --- //
   const [searchText, setSearchText] = useState('');
   const [filteredSchemaDefinitions, setFilteredSchemaDefinitions] = useState<
@@ -107,16 +107,17 @@ const ExecutableGraphqlSchemaDefinitions: React.FC<{
                   </div>
                 }>
                 {d.kind === Kind.ENUM_TYPE_DEFINITION ? (
-                  <ExeGqlEnumDefinition
+                  <SchemaEnumDefinition
                     resolverType={d.name.value}
                     values={d.values ?? []}
                   />
                 ) : (
-                  <ExeGqlObjectDefinition
+                  <SchemaObjectDefinition
                     apiRef={apiRef}
                     schema={schema}
                     objectTypeDefinition={d}
                     onReturnTypeClicked={t => setSearchText(`type:${t}`)}
+                    isEditable={isEditable}
                   />
                 )}
               </Collapse.Panel>
@@ -128,4 +129,4 @@ const ExecutableGraphqlSchemaDefinitions: React.FC<{
   );
 };
 
-export default ExecutableGraphqlSchemaDefinitions;
+export default SchemaDefinitions;

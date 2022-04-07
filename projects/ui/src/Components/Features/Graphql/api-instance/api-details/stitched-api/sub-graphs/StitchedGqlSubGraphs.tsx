@@ -3,6 +3,8 @@ import { Global } from '@emotion/core';
 import { ColumnsType } from 'antd/lib/table';
 import {
   useGetGraphqlApiDetails,
+  useGetGraphqlApiYaml,
+  useGetStitchedSchemaDefinition,
   useIsGlooFedEnabled,
   usePageGlooInstance,
 } from 'API/hooks';
@@ -24,7 +26,15 @@ const StitchedGqlSubGraphs: React.FC<{
 }> = ({ apiRef, subGraphs }) => {
   const [glooInstance] = usePageGlooInstance();
   const isGlooFedEnabled = useIsGlooFedEnabled().data?.enabled;
-  const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
+  const { data: graphqlApi, mutate: mutateDetails } =
+    useGetGraphqlApiDetails(apiRef);
+  const { mutate: mutateSchema } = useGetStitchedSchemaDefinition(apiRef);
+  const { mutate: mutateYaml } = useGetGraphqlApiYaml(apiRef);
+  const mutateAll = () => {
+    mutateDetails();
+    mutateSchema();
+    mutateYaml();
+  };
 
   // -- SEARCHING -- //
   const [searchText, setSearchText] = useState('');
@@ -78,8 +88,14 @@ const StitchedGqlSubGraphs: React.FC<{
         ) => {
           return (
             <div className='flex align-center'>
-              <StitchedGqlRemoveSubGraph subGraphConfig={subGraphConfig} />
-              <StitchedGqlEditTypeMergeMap subGraphConfig={subGraphConfig} />
+              <StitchedGqlRemoveSubGraph
+                onAfterRemove={mutateAll}
+                subGraphConfig={subGraphConfig}
+              />
+              <StitchedGqlEditTypeMergeMap
+                onAfterEdit={mutateAll}
+                subGraphConfig={subGraphConfig}
+              />
             </div>
           );
         },
@@ -101,7 +117,7 @@ const StitchedGqlSubGraphs: React.FC<{
           />
         </div>
         <div className='grow flex justify-end'>
-          <StitchedGqlAddSubGraph />
+          <StitchedGqlAddSubGraph onAfterAdd={mutateAll} />
         </div>
       </div>
 

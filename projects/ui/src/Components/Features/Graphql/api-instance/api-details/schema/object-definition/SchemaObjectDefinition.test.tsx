@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ExeGqlObjectDefinition } from './ExeGqlObjectDefinition';
+import { SchemaObjectDefinition } from './SchemaObjectDefinition';
 import { render, screen } from '@testing-library/react';
 
 // describe('ExeGqlObjectDefinition', () => {

@@ -46,12 +46,13 @@ export const GraphqlInstance: React.FC = () => {
           },
         ]}>
         {isExecutableAPI(graphqlApi) && (
-          <GraphqlDefineResolversPrompt apiRef={apiRef} />
+          <>
+            <GraphqlDefineResolversPrompt apiRef={apiRef} />
+            <div className='float-right'>
+              <GraphqlApiIntrospectionToggle apiRef={apiRef} />
+            </div>
+          </>
         )}
-
-        <div className='float-right'>
-          <GraphqlApiIntrospectionToggle apiRef={apiRef} />
-        </div>
 
         <Tabs index={tabIndex} onChange={handleTabsChange}>
           <FolderTabList>

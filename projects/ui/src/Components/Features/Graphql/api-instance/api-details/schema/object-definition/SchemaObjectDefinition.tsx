@@ -6,7 +6,7 @@ import {
 import { ReactComponent as CodeIcon } from 'assets/code-icon.svg';
 import { ReactComponent as RouteIcon } from 'assets/route-icon.svg';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { FieldDefinitionNode, Kind, ObjectTypeDefinitionNode } from 'graphql';
+import { FieldDefinitionNode, ObjectTypeDefinitionNode } from 'graphql';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useState } from 'react';
 import { useVirtual } from 'react-virtual';
@@ -16,15 +16,22 @@ import {
   hasResolutionForField,
   SupportedDocumentNode,
 } from 'utils/graphql-helpers';
-import * as styles from '../ExecutableGraphqlSchemaDefinitions.style';
+import * as styles from '../SchemaDefinitions.style';
 import { ResolverWizard } from './resolver-wizard/ResolverWizard';
 
-export const ExeGqlObjectDefinition: React.FC<{
+export const SchemaObjectDefinition: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
+  isEditable: boolean;
   schema: SupportedDocumentNode;
   objectTypeDefinition: ObjectTypeDefinitionNode;
   onReturnTypeClicked(t: string): void;
-}> = ({ apiRef, schema, objectTypeDefinition, onReturnTypeClicked }) => {
+}> = ({
+  apiRef,
+  isEditable,
+  schema,
+  objectTypeDefinition,
+  onReturnTypeClicked,
+}) => {
   const { data: graphqlApi, mutate: mutateDetails } =
     useGetGraphqlApiDetails(apiRef);
   const { mutate: mutateYaml } = useGetGraphqlApiYaml(apiRef);
@@ -83,7 +90,7 @@ export const ExeGqlObjectDefinition: React.FC<{
           Type
         </span>
         <span className='flex items-center justify-center ml-8 font-medium text-gray-900 '>
-          Resolver
+          {!readonly && isEditable && 'Resolver'}
         </span>
         <span />
       </div>
@@ -159,7 +166,7 @@ export const ExeGqlObjectDefinition: React.FC<{
                       {returnType.parts.suffix}
                     </span>
                     <span className={`flex items-center  justify-center`}>
-                      {(!readonly || hasResolutionForField) && (
+                      {!readonly && isEditable && (
                         <span
                           className={`inline-flex items-center min-w-max p-1 px-2 ${
                             resolutionExists

@@ -60,7 +60,7 @@ func NewGraphqlApiList(graphqlapis *graphql_v1beta1.GraphQLApiList, subschemas [
 			Namespace: subschema.GetNamespace(),
 		}] = subschema
 	}
-	var subschemaApiList map[ResourceRefGolangType]*v1beta1.GraphQLApi
+	subschemaApiList := map[ResourceRefGolangType]*v1beta1.GraphQLApi{}
 	for _, api := range graphqlapis.Items {
 		if subschema, ok := graphqlapiMap[ResourceRefGolangType{Name: api.Name, Namespace: api.Namespace}]; ok {
 			ret := &v1beta1.GraphQLApi{}
@@ -77,8 +77,6 @@ func NewGraphqlApiList(graphqlapis *graphql_v1beta1.GraphQLApiList, subschemas [
 				Namespace: subschema.GetNamespace(),
 			}] = ret
 			break
-		} else {
-			return nil, eris.Errorf("did not find GraphQLApi subschema %s.%s", subschema.GetNamespace(), subschema.GetName())
 		}
 	}
 	return subschemaApiList, nil

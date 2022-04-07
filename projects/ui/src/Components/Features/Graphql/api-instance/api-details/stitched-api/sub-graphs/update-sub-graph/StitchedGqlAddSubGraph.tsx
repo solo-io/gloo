@@ -2,7 +2,6 @@ import { graphqlConfigApi } from 'API/graphql';
 import {
   useGetConsoleOptions,
   useGetGraphqlApiDetails,
-  useGetGraphqlApiYaml,
   useListGraphqlApis,
   usePageApiRef,
   usePageGlooInstance,
@@ -21,11 +20,11 @@ interface gqlOptionType extends OptionType {
 const nameNamespaceKey = (api?: { name?: string; namespace?: string }) =>
   `${api?.name ?? ''} ${api?.namespace ?? ''}`;
 
-const StitchedGqlAddSubGraph = () => {
+const StitchedGqlAddSubGraph: React.FC<{ onAfterAdd(): void }> = ({
+  onAfterAdd,
+}) => {
   const apiRef = usePageApiRef();
-  const { mutate: mutateYaml } = useGetGraphqlApiYaml(apiRef);
-  const { data: graphqlApi, mutate: mutateDetails } =
-    useGetGraphqlApiDetails(apiRef);
+  const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [glooInstance] = usePageGlooInstance();
   const { data: graphqlApis } = useListGraphqlApis(glooInstance?.metadata);
@@ -67,9 +66,11 @@ const StitchedGqlAddSubGraph = () => {
     });
     setIsModalVisible(false);
     setSelectedOption(undefined);
-    mutateYaml();
-    mutateDetails();
+    onAfterAdd();
   };
+  // TODO: The StitchedGqlTypeMergeMapConfig UI is parsing the type merge map and keeping it in state - this should be cleaner.
+  // Need useMemo here to prevent max update depth error.
+  const initialTypeMergeMapForConfig = useMemo(() => [], []);
 
   // -- SUB GRAPH SELECTION -- //
   const [selectedOption, setSelectedOption] = useState<gqlOptionType>();
@@ -152,7 +153,7 @@ const StitchedGqlAddSubGraph = () => {
             {isShowingTypeMergeMap && (
               <StitchedGqlTypeMergeMapConfig
                 onIsValidChange={isValid => setIsTypeMergeMapValid(isValid)}
-                initialTypeMergeMap={[]}
+                initialTypeMergeMap={initialTypeMergeMapForConfig}
                 onTypeMergeMapChange={m => setTypeMergeMap(m)}
                 apiRef={apiRef}
                 subGraphConfig={subGraphConfig}

@@ -296,13 +296,19 @@ kind-load-gloo-fed-apiserver-envoy: gloo-fed-apiserver-envoy-docker
 GRPC_PORT=10101
 CONFIG_YAML=cfg.yaml
 
+.PHONY: install-graphql-js
+install-graphql-js:
+	yarn install -d projects/gloo/pkg/plugins/graphql/js
+
 .PHONY: run-apiserver
-run-apiserver:
+run-apiserver: install-graphql-js
 # Todo: This should check that /etc/hosts includes the following line: 
 # 127.0.0.1 docker.internal
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn \
 	GRPC_PORT=$(GRPC_PORT) \
 	POD_NAMESPACE=gloo-system \
+	STITCHING_PATH="./projects/gloo/pkg/plugins/graphql/js/index.js" \
+	STITCHING_PROTO_DIR="./projects/ui/src/proto/github.com/solo-io/solo-apis/api/gloo/gloo" \
 	$(GO_BUILD_FLAGS) go run projects/apiserver/cmd/main.go
 
 .PHONY: run-envoy

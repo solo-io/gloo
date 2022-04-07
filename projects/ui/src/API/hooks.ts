@@ -422,7 +422,6 @@ export function useGetGraphqlApiDetails(
   graphqlApiRef: ClusterObjectRef.AsObject
 ) {
   const key = `${GraphqlConfigApi.GetGraphqlApi.methodName}/${graphqlApiRef.namespace}/${graphqlApiRef.name}/${graphqlApiRef.clusterName}`;
-
   return useSWR<GraphqlApi.AsObject>(
     key,
     () => graphqlConfigApi.getGraphqlApi(graphqlApiRef),
@@ -436,6 +435,17 @@ export function useGetGraphqlApiYaml(graphqlApiRef: ClusterObjectRef.AsObject) {
   return useSWR<string>(
     key,
     () => graphqlConfigApi.getGraphqlApiYaml(graphqlApiRef),
+    { refreshInterval: normalRefreshInterval }
+  );
+}
+
+export function useGetStitchedSchemaDefinition(
+  graphqlApiRef: ClusterObjectRef.AsObject
+) {
+  const key = `${GraphqlConfigApi.GetStitchedSchemaDefinition.methodName}/${graphqlApiRef.namespace}/${graphqlApiRef.name}/${graphqlApiRef.clusterName}`;
+  return useSWR<string>(
+    key,
+    () => graphqlConfigApi.getStitchedSchemaDefinition(graphqlApiRef),
     { refreshInterval: normalRefreshInterval }
   );
 }
