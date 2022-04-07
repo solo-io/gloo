@@ -217,8 +217,10 @@ var _ = Describe("Rate Limit", func() {
 
 			hosts := map[string]*configForHost{"host1": {actionsForHost: rlService.getActionsForServer()}}
 			proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
-			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
+			Eventually(func() error {
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				return err
+			}, time.Second*3, time.Second/2).ShouldNot(HaveOccurred())
 
 			EventuallyRateLimited("host1", envoyPort)
 		})
@@ -229,8 +231,10 @@ var _ = Describe("Rate Limit", func() {
 
 			hosts := map[string]*configForHost{"host1": {actionsForHost: rlService.getActionsForServer()}}
 			proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
-			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
+			Eventually(func() error {
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				return err
+			}, time.Second*3, time.Second/2).ShouldNot(HaveOccurred())
 
 			ConsistentlyNotRateLimited("host1", envoyPort)
 		})
@@ -267,9 +271,11 @@ var _ = Describe("Rate Limit", func() {
 				},
 			}
 			proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
-			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
 
+			Eventually(func() error {
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				return err
+			}, time.Second*3, time.Second/2).ShouldNot(HaveOccurred())
 			// Host 1 should be rate limited
 			EventuallyRateLimited("host1", envoyPort)
 

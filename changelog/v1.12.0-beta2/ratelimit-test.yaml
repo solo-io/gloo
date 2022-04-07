@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: true
+    issueLink: https://github.com/solo-io/gloo/issues/6261
+    description: Wrap ProxyClient.Write in Eventually to ensure that expected upstream exists.
