@@ -359,6 +359,13 @@ const EditableRow = ({ lastRowID, formComponent, isEmpty, ...props }: any) => {
   );
 };
 
+/**
+ * Used for testing purposes.  Adds a className to do a lookup on.
+ */
+const classNameGenerator = (record: any) => {
+  return record?.name?.displayElement ?? '';
+};
+
 export const SoloTable = (props: SoloTableProps) => {
   const components = {
     body: {
@@ -374,6 +381,7 @@ export const SoloTable = (props: SoloTableProps) => {
       withBorder={props.withBorder}
       flatTopped={props.flatTopped}>
       <Table
+        rowClassName={classNameGenerator}
         pagination={props.removePaging ? false : { position: ['bottomRight'] }}
         showHeader={!props.hideHeader}
         components={components}

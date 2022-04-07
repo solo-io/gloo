@@ -46,6 +46,7 @@ export const ErrorText = React.memo(
 interface SoloFormDropdownProps extends Partial<DropdownProps> {
   name: string;
   hideError?: boolean;
+  'data-testid'?: string;
 }
 export const SoloFormDropdown = (props: SoloFormDropdownProps) => {
   const { hideError } = props;
@@ -57,6 +58,7 @@ export const SoloFormDropdown = (props: SoloFormDropdownProps) => {
       <SoloDropdown
         {...field}
         {...props}
+        data-testid={props['data-testid'] ?? 'solo-form-dropdown'}
         error={!!meta.error && meta.touched}
         onChange={(newVal: SelectValue) => {
           form.setFieldValue(field.name, newVal as string);
@@ -119,6 +121,7 @@ export type SoloFormFileUploadProps = {
         errorMessage: string;
       }
     | Promise<{ isValid: boolean; errorMessage: string }>;
+  'data-testid'?: string;
 };
 
 export const SoloFormFileUpload = <Values extends FormikValues>(
@@ -158,6 +161,7 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
           } col-span-2 -space-y-px bg-white rounded-md`}>
           {title && titleAbove ? null : <Label>{title}</Label>}
           <Input
+            data-testid={props['data-testid'] ?? 'solo-form-file-upload'}
             type='file'
             style={{ display: 'none' }}
             ref={fileInput}
@@ -227,6 +231,11 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
                 </small>
 
                 <ButtonWithErrorState
+                  data-testid={
+                    props['data-testid']
+                      ? props['data-testid'] + '-btn'
+                      : 'solo-form-file-upload-btn'
+                  }
                   hasError={hasError}
                   isFileUploaded={!!values[name]}
                   type='button'

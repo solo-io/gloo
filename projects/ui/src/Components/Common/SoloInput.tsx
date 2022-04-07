@@ -106,6 +106,7 @@ export const SoloInput = (props: InputProps) => {
     onKeyPress,
     password,
     file,
+    ...rest
   } = props;
 
   let type = 'text';
@@ -132,6 +133,7 @@ export const SoloInput = (props: InputProps) => {
           disabled={disabled}
           error={error}
           onKeyPress={onKeyPress}
+          {...rest}
         />
         {value !== '' && (
           <ClearSearchButton

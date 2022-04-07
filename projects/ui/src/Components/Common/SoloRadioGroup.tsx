@@ -48,12 +48,12 @@ const CheckboxWrapper = styled.div<CheckboxWrapperProps>`
 
         .ant-checkbox {
           .ant-checkbox-inner {
-            visibility: hidden; 
+            visibility: hidden;
           }
         }`
       : `
       .ant-checkbox {
-            
+
         input {
           display: none;
         }
@@ -104,6 +104,7 @@ interface Props {
   forceAChoice?: boolean;
   title?: string;
   className?: string;
+  'data-testid'?: string;
 }
 
 export const SoloRadioGroup = (props: Props) => {
@@ -129,7 +130,9 @@ export const SoloRadioGroup = (props: Props) => {
     <div>
       {title && <Label>{title}</Label>}
 
-      <div className={className}>
+      <div
+        data-testid={props['data-testid'] ?? 'solo-radio-group'}
+        className={className}>
         {options.map(option => {
           return (
             <CheckboxWrapper

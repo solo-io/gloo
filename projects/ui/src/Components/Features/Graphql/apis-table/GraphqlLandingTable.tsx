@@ -128,6 +128,7 @@ export const GraphqlLandingTable: React.FC<{
       render: (api: GraphqlApi.AsObject) => (
         <TableActions className='space-x-3 justify-center'>
           <TableActionCircle
+            data-testid='graphql-table-action-download'
             onClick={() => {
               if (!api.metadata) return;
               graphqlConfigApi
@@ -145,6 +146,7 @@ export const GraphqlLandingTable: React.FC<{
             <DownloadIcon />
           </TableActionCircle>
           <TableActionCircle
+            data-testid='graphql-table-action-delete'
             onClick={() => triggerDelete(makeGraphqlApiRef(api))}>
             <XIcon />
           </TableActionCircle>
@@ -174,6 +176,8 @@ export const GraphqlLandingTable: React.FC<{
         <ConfirmationModal
           visible={isDeleting}
           confirmPrompt='delete this API'
+          confirmTestId='confirm-delete-graphql-table-row'
+          cancelTestId='cancel-delete-graphql-table-row'
           confirmButtonText='Delete'
           goForIt={deleteFn}
           cancel={cancelDelete}

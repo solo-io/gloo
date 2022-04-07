@@ -171,6 +171,7 @@ export const ResolverConfigSection = ({
                   </InnerValues>
                 </SpacedValuesContainer>
                 <VisualEditor
+                  data-testid='resolve-config-editor'
                   mode='yaml'
                   theme='chrome'
                   name='resolverConfiguration'

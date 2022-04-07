@@ -56,6 +56,7 @@ export const UpstreamSection = ({
           <label className='text-base font-medium '>Upstream</label>
           <div className='mt-3'>
             <SoloFormDropdown
+              data-testid='upstream-section-dropdown'
               name='upstream'
               defaultValue={existingUpstreamId}
               searchable={true}

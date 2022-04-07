@@ -1,0 +1,40 @@
+type Query {
+    """Description of a book in HTML"""
+    productsForHome: [Product]
+}
+
+"""Each book has a product entry"""
+type Product {
+    """Unique identifier for books"""
+    id: String
+    """The book title"""
+    title: String
+    """Description of a book in HTML"""
+    descriptionHtml: String
+    """Author of the book"""
+    author: String
+    """Total number of pages in the book"""
+    pages: Int
+    """Year of original publication"""
+    year: Int
+    """List of reader reviews for this book"""
+    reviews: [Review]
+    """List of reader ratings for this book"""
+    ratings: [Rating]
+}
+
+"""A book review"""
+type Review {
+    """Name of the reviewer"""
+    reviewer: String
+    """Review details"""
+    text: String
+}
+
+"""A book rating"""
+type Rating {
+    """Name of the user peforming the rating"""
+    reviewer: String
+    """Number of stars for this rating"""
+    numStars: Int
+}

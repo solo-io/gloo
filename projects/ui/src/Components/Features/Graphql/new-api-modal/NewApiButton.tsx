@@ -8,6 +8,7 @@ export const NewApiButton: React.FC = () => {
   return (
     <>
       <SoloAddButton
+        data-testid='landing-create-api'
         onClick={() => setIsModalVisible(true)}
         className='absolute right-0 -top-8 '>
         Create API

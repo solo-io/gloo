@@ -168,6 +168,7 @@ export const SchemaObjectDefinition: React.FC<{
                     <span className={`flex items-center  justify-center`}>
                       {!readonly && isEditable && (
                         <span
+                          data-testid={`resolver-${field.name.value}`}
                           className={`inline-flex items-center min-w-max p-1 px-2 ${
                             resolutionExists
                               ? 'focus:ring-blue-500gloo text-blue-700gloo bg-blue-200gloo  border-blue-600gloo hover:bg-blue-300gloo'
@@ -175,7 +176,10 @@ export const SchemaObjectDefinition: React.FC<{
                           }   border rounded-full shadow-sm cursor-pointer  focus:outline-none focus:ring-2 focus:ring-offset-2 `}
                           onClick={() => setSelectedFieldName(field)}>
                           {resolutionExists && (
-                            <RouteIcon className='w-6 h-6 mr-1 fill-current text-blue-600gloo' />
+                            <RouteIcon
+                              data-testid={`route-${field.name.value}`}
+                              className='w-6 h-6 mr-1 fill-current text-blue-600gloo'
+                            />
                           )}
                           {resolutionExists ? 'Resolver' : 'Define Resolver'}
                         </span>

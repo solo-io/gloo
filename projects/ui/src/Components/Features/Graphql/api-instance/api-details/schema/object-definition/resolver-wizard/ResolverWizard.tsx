@@ -188,13 +188,17 @@ export const ResolverWizard: React.FC<{
               <TabList className='flex flex-col mt-6'>
                 {/* --- SIDEBAR --- */}
                 <StyledModalTab
+                  data-testid='resolver-type-tab'
                   isCompleted={!!formik.values.resolverType?.length}>
                   Resolver Type
                 </StyledModalTab>
-                <StyledModalTab isCompleted={!!formik.values.upstream?.length}>
+                <StyledModalTab
+                  data-testid='upstream-tab'
+                  isCompleted={!!formik.values.upstream?.length}>
                   Upstream
                 </StyledModalTab>
                 <StyledModalTab
+                  data-testid='resolver-config-tab'
                   isCompleted={!!formik.values.resolverConfig?.length}>
                   Resolver Config
                 </StyledModalTab>
@@ -215,6 +219,7 @@ export const ResolverWizard: React.FC<{
                   {!readonly && !isNewResolution && (
                     <div className='ml-2'>
                       <SoloNegativeButton
+                        data-testid='remove-configuration-btn'
                         onClick={() => setIsConfirmingDelete(true)}>
                         Remove Configuration
                       </SoloNegativeButton>
@@ -256,6 +261,7 @@ export const ResolverWizard: React.FC<{
                     </styles.IconButton>
                     {!readonly && (
                       <SoloButtonStyledComponent
+                        data-testid='resolver-wizard-submit'
                         onClick={formik.handleSubmit as any}
                         disabled={!formik.isValid || !formIsValid(formik)}>
                         Submit
@@ -272,6 +278,8 @@ export const ResolverWizard: React.FC<{
         visible={isConfirmingDelete}
         confirmPrompt='delete this Resolver'
         confirmButtonText='Delete'
+        confirmTestId='confirm-delete-resolver'
+        cancelTestId='cancel-delete-resolver'
         goForIt={deleteResolverConfig}
         cancel={() => setIsConfirmingDelete(false)}
         isNegative

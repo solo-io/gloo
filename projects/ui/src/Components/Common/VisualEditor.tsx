@@ -56,7 +56,7 @@ const VisualEditor = (props: SoloFormVisualEditorProps) => {
         // keyboardHandler={keyboardHandler}
         mode={rest.mode ?? 'yaml'}
         theme='chrome'
-        name={title}
+        name={name ?? title}
         style={{
           maxWidth: '40vw',
           maxHeight: '25vh',

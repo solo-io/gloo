@@ -9,7 +9,7 @@ import { ReactComponent as Checkmark } from 'assets/success-checkmark.svg';
 const StyledTabComponent = styled(Tab)<{ isSelected: boolean }>`
   ${props =>
     props.isSelected
-      ? ` background-color: ${colors.seaBlue}; 
+      ? ` background-color: ${colors.seaBlue};
           border-right-width: 8px;
           border-color: ${colors.pondBlue}`
       : ` background-color: ${colors.oceanBlue};
@@ -135,7 +135,7 @@ export const SoloModal = (props: ModalProps) => {
         onClick={(evt: React.SyntheticEvent) => evt.stopPropagation()}>
         <ModalBlock width={width}>
           {!!onClose && (
-            <CloseXContainer onClick={onClose}>
+            <CloseXContainer data-testid='solo-modal-close' onClick={onClose}>
               <CloseX />
             </CloseXContainer>
           )}

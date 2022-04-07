@@ -131,7 +131,11 @@ export const NewApiModal: React.FC<{
   };
 
   return (
-    <SoloModal visible={show} width={600} onClose={onClose}>
+    <SoloModal
+      data-testid='new-api-modal-modal'
+      visible={show}
+      width={600}
+      onClose={onClose}>
       <Formik
         validationSchema={validationSchema}
         initialValues={initialValues}
@@ -142,15 +146,22 @@ export const NewApiModal: React.FC<{
             <styles.ModalContent>
               <styles.Title>Create new GraphQL API</styles.Title>
               {Boolean(warningMessage) && (
-                <styles.StyledWarning className='p-2 text-orange-400 border border-orange-400 mb-5'>
+                <styles.StyledWarning
+                  data-testid='new-api-modal-warning-message'
+                  className='p-2 text-orange-400 border border-orange-400 mb-5'>
                   {warningMessage}
                 </styles.StyledWarning>
               )}
               <styles.InputWrapper>
-                <SoloFormInput name='name' title='Name' />
+                <SoloFormInput
+                  data-testid='new-api-modal-name'
+                  name='name'
+                  title='Name'
+                />
 
                 <div className='grid grid-cols-[min-content_auto]'>
                   <SoloRadioGroup
+                    data-testid='new-api-modal-apitype'
                     className='pb-3 pr-[3rem]'
                     title='Type'
                     options={[
@@ -199,6 +210,7 @@ export const NewApiModal: React.FC<{
 
                 {values.apiType === 'executable' && (
                   <SoloFormFileUpload
+                    data-testid='new-api-modal-file-upload'
                     name='uploadedSchema'
                     title='Schema'
                     buttonLabel='Upload Schema'
@@ -252,6 +264,7 @@ export const NewApiModal: React.FC<{
               </styles.InputWrapper>
               <styles.Footer>
                 <SoloButtonStyledComponent
+                  data-testid='new-api-modal-submit'
                   disabled={!formik.dirty || !formik.isValid}
                   onClick={formik.handleSubmit as any}>
                   Create API
