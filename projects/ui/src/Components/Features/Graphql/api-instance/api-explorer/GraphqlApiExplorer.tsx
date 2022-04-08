@@ -281,6 +281,8 @@ export const GraphqlApiExplorer = () => {
       <StyledContainer>
         <GraphiQL
           ref={graphiqlRef}
+          // TODO: style the tab buttons before pushing with this enabled.
+          // tabs={true}
           defaultQuery={`# Welcome to GraphiQL, an in-browser tool for
 # writing, validating, and testing GraphQL queries.
 #

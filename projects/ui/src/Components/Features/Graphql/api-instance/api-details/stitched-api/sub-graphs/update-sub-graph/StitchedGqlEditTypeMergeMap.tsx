@@ -82,8 +82,11 @@ const StitchedGqlEditTypeMergeMap: React.FC<{
               onIsValidChange={isValid => setIsMergeMapValid(isValid)}
               initialTypeMergeMap={existingSubGraph?.typeMergeMap ?? []}
               onTypeMergeMapChange={m => setTypeMergeMap(m)}
-              apiRef={apiRef}
-              subGraphConfig={subGraphConfig}
+              subGraphqlApiRef={{
+                name: subGraphConfig.name ?? '',
+                namespace: subGraphConfig.namespace ?? '',
+                clusterName: apiRef.clusterName ?? '',
+              }}
             />
           )}
 

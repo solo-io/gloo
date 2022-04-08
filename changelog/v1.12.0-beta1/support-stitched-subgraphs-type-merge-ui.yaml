@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    description: >
+      Type merge configurations can now be added for stitched sub graphs.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3419
+  - type: FIX
+    description: >
+      The stitched super schema SDL can now be viewed from a stitched APIs details page.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3482

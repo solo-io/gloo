@@ -1,184 +1,71 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Alert, Collapse } from 'antd';
-import { useGetGraphqlApiDetails } from 'API/hooks';
 import ConfirmationModal from 'Components/Common/ConfirmationModal';
-import SoloAddButton from 'Components/Common/SoloAddButton';
-import { SoloDropdown } from 'Components/Common/SoloDropdown';
 import lodash from 'lodash';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SoloNegativeButton } from 'Styles/StyledComponents/button';
-import {
-  arrayMapToObject,
-  getParsedExecutableApiSchema,
-  isExecutableAPI,
-  objectToArrayMap,
-} from 'utils/graphql-helpers';
-import YAML from 'yaml';
+import StitchedGqlTypeMergeFieldDropdown from './StitchedGqlTypeMergeFieldDropdown';
 import StitchedGqlAddSubGraphTypeMergeMapConfigItem from './StitchedGqlTypeMergeMapConfigItem';
+import {
+  ParsedTypeMergeMap,
+  typeMergeMapFromStringFormat,
+  TypeMergeMapStringFormat,
+  typeMergeMapToStringFormat,
+  validateTypeMergeMap,
+} from './StitchedGqlTypeMergeMapHelpers';
 
 // TODO: Fix argsmap > args naming.
 const sampleTypeMerge = `argsMap:
 queryName:
 selectionSet:`;
 
-type ParsedTypeMergeMap = [
-  string,
-  StitchedSchema.SubschemaConfig.TypeMergeConfig.AsObject
-][];
-
 const StitchedGqlTypeMergeMapConfig: React.FC<{
   onIsValidChange(isValid: boolean): void;
   initialTypeMergeMap: ParsedTypeMergeMap;
   onTypeMergeMapChange(typeMergeMap: ParsedTypeMergeMap): void;
-  apiRef: ClusterObjectRef.AsObject;
-  subGraphConfig: StitchedSchema.SubschemaConfig.AsObject;
+  subGraphqlApiRef: ClusterObjectRef.AsObject;
 }> = ({
   onIsValidChange,
-  apiRef,
-  subGraphConfig,
   initialTypeMergeMap,
   onTypeMergeMapChange,
+  subGraphqlApiRef,
 }) => {
-  const { data: subGraphqlApi } = useGetGraphqlApiDetails({
-    name: subGraphConfig.name,
-    namespace: subGraphConfig.namespace,
-    clusterName: apiRef.clusterName,
-  });
+  // --- TYPE MERGE MAP (SF = string formatted) --- //
+  const [typeMergeMapSF, setTypeMergeMapSF] =
+    useState<TypeMergeMapStringFormat>([]);
+  useEffect(() => {
+    setTypeMergeMapSF(typeMergeMapToStringFormat(initialTypeMergeMap));
+  }, []);
+  useEffect(() => {
+    try {
+      // Parse
+      const parsedMap = typeMergeMapFromStringFormat(typeMergeMapSF);
+      // Call event handlers
+      onTypeMergeMapChange(parsedMap);
+      // Validate (this can throw errors, which we handle here)
+      validateTypeMergeMap(parsedMap);
+      // Clear the warning
+      setWarningMessage('');
+    } catch (err: any) {
+      setWarningMessage(err.message);
+    }
+  }, [typeMergeMapSF]);
 
-  // --- TYPE MERGE MAP --- //
-  const [typeMergeMap, setTypeMergeMap] = useState<
-    {
-      typeName: string;
-      typeMergeConfig: string;
-    }[]
-  >([]);
+  // --- REMOVE TYPE MERGE MAPPING --- //
+  const [confirmMapIdxToRemove, setConfirmMapIdxToRemove] = useState(-1);
+  const removeFromTypeMergeMap = (index: number) => {
+    const newTypeMergeMap = [...typeMergeMapSF];
+    newTypeMergeMap.splice(index, 1);
+    setTypeMergeMapSF(newTypeMergeMap);
+  };
+
+  // --- WARNING MESSAGE --- //
   const [warningMessage, setWarningMessage] = useState('');
   useEffect(() => {
     // If there is a warning, we shouldn't be able to submit.
     onIsValidChange(warningMessage === '');
   }, [warningMessage]);
-
-  // Transforms the initial type merge map into the expected state.
-  const formattedInitialTypeMergeMap = useMemo(() => {
-    const newTMMap = [] as typeof typeMergeMap;
-    initialTypeMergeMap.forEach(mapping => {
-      const typeName = mapping[0];
-      const parsedMergeConfig = mapping[1];
-      // TODO: Fix argsmap > args naming.
-      // Convert the args array to an object.
-      if (
-        parsedMergeConfig.argsMap !== undefined &&
-        parsedMergeConfig.argsMap.length > 0
-      ) {
-        parsedMergeConfig.argsMap = arrayMapToObject<any>(
-          parsedMergeConfig.argsMap
-        );
-      }
-      // Stringify the config to show in the text editor.
-      YAML.scalarOptions.null.nullStr = '';
-      const typeMergeConfig = YAML.stringify(parsedMergeConfig);
-      newTMMap.push({ typeName, typeMergeConfig });
-    });
-    return newTMMap;
-  }, [initialTypeMergeMap]);
-  // Updates state when the initial type merge map changes.
-  useEffect(() => {
-    setTypeMergeMap(formattedInitialTypeMergeMap);
-  }, [formattedInitialTypeMergeMap]);
-
-  // Resets typeMergeMap when types change.
-  useEffect(() => {
-    // TODO: There should be a confirmation modal for this if the type merge config was edited.
-    if (typeMergeMap.length === 0) return;
-    setTypeMergeMap(formattedInitialTypeMergeMap);
-  }, [subGraphConfig]);
-  useEffect(() => {
-    // -- Parsing
-    let parsedMap = [] as ParsedTypeMergeMap;
-    for (let i = 0; i < typeMergeMap.length; i++) {
-      const { typeName, typeMergeConfig } = typeMergeMap[i];
-      let parsedMergeConfig: any;
-      try {
-        parsedMergeConfig = YAML.parse(typeMergeConfig);
-        // TODO: Fix argsmap > args naming.
-        if (parsedMergeConfig.argsMap)
-          parsedMergeConfig.argsMap = objectToArrayMap(
-            parsedMergeConfig.argsMap
-          );
-        parsedMap.push([typeName, parsedMergeConfig]);
-      } catch (err) {
-        setWarningMessage(`${typeName}: ${(err as any).message}`);
-        return;
-      }
-    }
-    // -- Validation
-    try {
-      parsedMap.forEach(m => {
-        const parsedMergeConfig = m[1];
-        const configKeys = Object.keys(parsedMergeConfig);
-        // TODO: Fix argsmap > args naming.
-        if (
-          configKeys.length !== 3 ||
-          !configKeys.includes('argsMap') ||
-          !configKeys.includes('queryName') ||
-          !configKeys.includes('selectionSet')
-        )
-          throw new Error(
-            `${m[0]}): Must include values for 'argsMap', 'queryName', and 'selectionSet' only.`
-          );
-        // - argsMap
-        if (parsedMergeConfig.argsMap === null) parsedMergeConfig.argsMap = [];
-        else if (!parsedMergeConfig.argsMap.indexOf)
-          throw new Error(`${m[0]}: Must include a valid 'argsMap'.`);
-        // - queryName
-        if (typeof parsedMergeConfig.queryName !== 'string')
-          throw new Error(`${m[0]}: Must include a valid 'queryName'.`);
-        // - selectionSet
-        if (typeof parsedMergeConfig.selectionSet !== 'string')
-          throw new Error(`${m[0]}: Must include a valid 'selectionSet'.`);
-      });
-      setWarningMessage('');
-    } catch (err: any) {
-      setWarningMessage(err.message);
-    }
-    onTypeMergeMapChange(parsedMap);
-  }, [typeMergeMap]);
-
-  // --- REMOVE TYPE MERGE MAPPING --- //
-  const [confirmMapIdxToRemove, setConfirmMapIdxToRemove] = useState(-1);
-  const removeFromTypeMergeMap = (index: number) => {
-    const newTypeMergeMap = [...typeMergeMap];
-    newTypeMergeMap.splice(index, 1);
-    setTypeMergeMap(newTypeMergeMap);
-  };
-
-  // --- ADD TYPE MERGE MAPPING --- //
-  // Gets the selected sub graph schema definition
-  const subSchemaDefinitions = useMemo(() => {
-    if (!subGraphqlApi) return [];
-    if (isExecutableAPI(subGraphqlApi)) {
-      setWarningMessage('');
-      return getParsedExecutableApiSchema(subGraphqlApi).definitions;
-    } else {
-      // TODO: This should work for stitched subgraphs as well (once the superschema is returned)
-      setWarningMessage('Cannnot parse stitched schemas yet!');
-      return [];
-    }
-  }, [subGraphqlApi]);
-  // -- Sets up dropdown state
-  const [newMergedTypeName, setNewMergedTypeName] = useState('');
-  const availableTypes = useMemo(() => {
-    // Create the type dropdown list from subschema definitions that have not been added yet.
-    return subSchemaDefinitions
-      .map(d => d.name.value)
-      .filter(d => d !== 'Query' && !typeMergeMap.find(m => m.typeName === d));
-  }, [subSchemaDefinitions, typeMergeMap]);
-  useEffect(() => {
-    if (availableTypes.length === 0) setNewMergedTypeName('');
-    else setNewMergedTypeName(availableTypes[0]);
-  }, [availableTypes]);
 
   // --- PANELS --- //
   const [openPanels, setOpenPanels] = useState<string[]>([]);
@@ -187,60 +74,36 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
     <div className='block'>
       <div className='mt-5 mb-5 font-bold'>Type Merge Configuration</div>
 
-      {availableTypes.length === 0 ? (
-        <Alert
-          type='success'
-          showIcon
-          className='mb-5'
-          message={'All types added!'}
-          description={' '}
-        />
-      ) : (
-        <div className='mt-5 mb-5 flex'>
-          <div className='flex items-center min-w-[200px]'>
-            <div className='font-bold'>Type:&nbsp;&nbsp;</div>
-            <SoloDropdown
-              value={newMergedTypeName}
-              options={availableTypes.map(t => ({
-                key: t,
-                value: t,
-              }))}
-              onChange={newValue => setNewMergedTypeName(newValue as string)}
-              searchable={true}
-            />
-          </div>
-          <div className='flex-grow flex justify-end items-center'>
-            <SoloAddButton
-              onClick={() => {
-                const newTypeMergeMap = lodash.cloneDeep(typeMergeMap);
-                newTypeMergeMap.push({
-                  typeName: newMergedTypeName,
-                  typeMergeConfig: sampleTypeMerge,
-                });
-                setOpenPanels([...openPanels, newMergedTypeName]);
-                setTypeMergeMap(newTypeMergeMap);
-              }}>
-              Add Type Merge Configuration
-            </SoloAddButton>
-          </div>
-        </div>
-      )}
+      {/* --- FIELD DROPDOWN --- */}
+      <StitchedGqlTypeMergeFieldDropdown
+        subGraphqlApiRef={subGraphqlApiRef}
+        addedTypeNames={typeMergeMapSF.map(m => m.typeName)}
+        onAddTypeMerge={(newMergedTypeName: string) => {
+          const newTypeMergeMap = lodash.cloneDeep(typeMergeMapSF);
+          newTypeMergeMap.push({
+            typeName: newMergedTypeName,
+            typeMergeConfig: sampleTypeMerge,
+          });
+          setOpenPanels([...openPanels, newMergedTypeName]);
+          setTypeMergeMapSF(newTypeMergeMap);
+        }}
+      />
 
-      {typeMergeMap.length > 0 && (
+      {/* --- TYPE MERGE CONFIGS --- */}
+      {typeMergeMapSF.length > 0 && (
         <Collapse
           className='mt-5 mb-10'
           activeKey={openPanels}
           onChange={newOpenPanels => {
             if (typeof newOpenPanels === 'string')
               newOpenPanels = [newOpenPanels];
-            // Any type in the availableTypes dropdown hasn't been added as a panel yet.
-            // So we filter those out of the list (this removes deleted type merge mappings).
+            // This removes any deleted type merge mappings.
             newOpenPanels = newOpenPanels.filter(
-              t => !availableTypes.includes(t)
+              t => typeMergeMapSF.find(m => m.typeName === t) !== undefined
             );
             setOpenPanels(newOpenPanels);
           }}>
-          {typeMergeMap.map((m, idx) => (
+          {typeMergeMapSF.map((m, idx) => (
             <Collapse.Panel
               key={m.typeName}
               header={
@@ -263,13 +126,13 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
                       onClick={e => {
                         e.stopPropagation();
                         // If the config was not changed or is empty, remove it.
-                        // Otherwise, confirm.
                         const trimmedMergeConfig = m.typeMergeConfig.trim();
                         if (
                           trimmedMergeConfig === sampleTypeMerge ||
                           trimmedMergeConfig === ''
                         )
                           removeFromTypeMergeMap(confirmMapIdxToRemove);
+                        // Otherwise, confirm removing it.
                         else setConfirmMapIdxToRemove(idx);
                       }}>
                       <CloseOutlined />
@@ -278,12 +141,11 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
                 </div>
               }>
               <StitchedGqlAddSubGraphTypeMergeMapConfigItem
-                schemaDefinitions={subSchemaDefinitions}
                 typeMergeConfig={m.typeMergeConfig}
                 onTypeMergeConfigChange={newValue => {
-                  const newTypeMergeMap = [...typeMergeMap];
+                  const newTypeMergeMap = [...typeMergeMapSF];
                   newTypeMergeMap[idx].typeMergeConfig = newValue;
-                  setTypeMergeMap(newTypeMergeMap);
+                  setTypeMergeMapSF(newTypeMergeMap);
                 }}
               />
             </Collapse.Panel>
@@ -291,18 +153,15 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
         </Collapse>
       )}
 
+      {/* --- ALERTS + CONFIRMATION --- */}
       {!!warningMessage && (
         <Alert
           showIcon
-          // type='error'
-          // message='Error'
           type='error'
           message='Error'
-          // message={warningMessage}
           description={warningMessage}
         />
       )}
-
       <ConfirmationModal
         visible={confirmMapIdxToRemove !== -1}
         confirmPrompt='remove the edited type merge'

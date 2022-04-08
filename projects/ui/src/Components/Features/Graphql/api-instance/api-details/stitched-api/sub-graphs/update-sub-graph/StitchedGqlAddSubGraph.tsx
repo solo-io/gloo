@@ -1,3 +1,4 @@
+import { Alert } from 'antd';
 import { graphqlConfigApi } from 'API/graphql';
 import {
   useGetConsoleOptions,
@@ -10,7 +11,7 @@ import SoloAddButton from 'Components/Common/SoloAddButton';
 import { OptionType, SoloDropdown } from 'Components/Common/SoloDropdown';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
 import StitchedGqlTypeMergeMapConfig from '../type-merge-map/StitchedGqlTypeMergeMapConfig';
 
@@ -38,7 +39,7 @@ const StitchedGqlAddSubGraph: React.FC<{ onAfterAdd(): void }> = ({
     if (
       !selectedOption ||
       !apiToAdd ||
-      (isShowingTypeMergeMap && !isTypeMergeMapValid) ||
+      (requiresTypeMerge && !isTypeMergeMapValid) ||
       !graphqlApi
     ) {
       console.error('Unable to update type merge map.');
@@ -68,9 +69,6 @@ const StitchedGqlAddSubGraph: React.FC<{ onAfterAdd(): void }> = ({
     setSelectedOption(undefined);
     onAfterAdd();
   };
-  // TODO: The StitchedGqlTypeMergeMapConfig UI is parsing the type merge map and keeping it in state - this should be cleaner.
-  // Need useMemo here to prevent max update depth error.
-  const initialTypeMergeMapForConfig = useMemo(() => [], []);
 
   // -- SUB GRAPH SELECTION -- //
   const [selectedOption, setSelectedOption] = useState<gqlOptionType>();
@@ -104,27 +102,21 @@ const StitchedGqlAddSubGraph: React.FC<{ onAfterAdd(): void }> = ({
       return undefined;
     return graphqlApis[selectedOption.apiIndex];
   }, [graphqlApis, selectedOption]);
-  const subGraphConfig = useMemo(
-    () =>
-      ({
-        name: apiToAdd?.metadata?.name ?? '',
-        namespace: apiToAdd?.metadata?.namespace ?? '',
-        typeMergeMap: [],
-      } as StitchedSchema.SubschemaConfig.AsObject),
-    [apiToAdd]
-  );
-  // Show the type merge map if:
-  //   - There is metadata for it.
-  //   - There is > 2 apis (one api is the one we're adding,
-  //     and the other one is this stitched one)
+  useEffect(() => {
+    if (!isModalVisible) setSelectedOption(undefined);
+  }, [isModalVisible]);
+
   // TODO: After we check for conflicts, we can populate the initial type merge map and check if that exists here instead.
-  const isShowingTypeMergeMap =
-    apiToAdd?.metadata && graphqlApis && graphqlApis.length > 2;
+  const readyForTypeMerge =
+    graphqlApi?.spec?.stitchedSchema !== undefined && !!apiToAdd?.metadata;
+  const requiresTypeMerge =
+    readyForTypeMerge &&
+    graphqlApi!.spec!.stitchedSchema!.subschemasList.length > 0;
 
   // --- VALIDATION --- //
   const [isTypeMergeMapValid, setIsTypeMergeMapValid] = useState(false);
   const canSubmit =
-    (!isShowingTypeMergeMap || isTypeMergeMapValid) && !!selectedOption;
+    (!requiresTypeMerge || isTypeMergeMapValid) && !!selectedOption;
 
   if (readonly) return null;
   return (
@@ -133,43 +125,53 @@ const StitchedGqlAddSubGraph: React.FC<{ onAfterAdd(): void }> = ({
         Add Sub Graph
       </SoloAddButton>
 
-      {!!graphqlApis && (
-        <SoloModal
-          visible={isModalVisible}
-          onClose={() => setIsModalVisible(false)}
-          title='Add Sub Graph'
-          width={600}>
-          <div className='p-5 pb-10 pt-3'>
-            <SoloDropdown
-              title='Select a GraphQL API'
-              options={options}
-              value={selectedOption?.value ?? ''}
-              onChange={value =>
-                setSelectedOption(options.find(o => o.value === value))
-              }
-              searchable={true}
-            />
+      <SoloModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        title='Add Sub Graph'
+        width={600}>
+        <div className='p-5 pb-10 pt-5'>
+          <SoloDropdown
+            title='Select a GraphQL API'
+            options={options}
+            value={selectedOption?.value ?? ''}
+            onChange={value =>
+              setSelectedOption(options.find(o => o.value === value))
+            }
+            searchable={true}
+          />
 
-            {isShowingTypeMergeMap && (
+          {readyForTypeMerge &&
+            (requiresTypeMerge ? (
               <StitchedGqlTypeMergeMapConfig
                 onIsValidChange={isValid => setIsTypeMergeMapValid(isValid)}
-                initialTypeMergeMap={initialTypeMergeMapForConfig}
+                initialTypeMergeMap={[]}
                 onTypeMergeMapChange={m => setTypeMergeMap(m)}
-                apiRef={apiRef}
-                subGraphConfig={subGraphConfig}
+                subGraphqlApiRef={{
+                  name: apiToAdd?.metadata?.name ?? '',
+                  namespace: apiToAdd?.metadata?.namespace ?? '',
+                  clusterName: apiRef.clusterName,
+                }}
               />
-            )}
+            ) : (
+              <Alert
+                type='info'
+                showIcon
+                className='mt-10'
+                message={'No type merge necessary!'}
+                description={' '}
+              />
+            ))}
 
-            <div className='text-right mt-10'>
-              <SoloButtonStyledComponent
-                disabled={!canSubmit}
-                onClick={addSubGraph}>
-                Add Sub Graph
-              </SoloButtonStyledComponent>
-            </div>
+          <div className='text-right mt-10'>
+            <SoloButtonStyledComponent
+              disabled={!canSubmit}
+              onClick={addSubGraph}>
+              Add Sub Graph
+            </SoloButtonStyledComponent>
           </div>
-        </SoloModal>
-      )}
+        </div>
+      </SoloModal>
     </div>
   );
 };

@@ -1,9 +1,7 @@
 import VisualEditor from 'Components/Common/VisualEditor';
 import React from 'react';
-import { SupportedDefinitionNode } from 'utils/graphql-helpers';
 
 const StitchedGqlTypeMergeConfigItem: React.FC<{
-  schemaDefinitions: SupportedDefinitionNode[];
   typeMergeConfig: string;
   onTypeMergeConfigChange(newConfig: string): void;
 }> = ({ typeMergeConfig, onTypeMergeConfigChange }) => {

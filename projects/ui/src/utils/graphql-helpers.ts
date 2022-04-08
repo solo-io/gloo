@@ -101,6 +101,8 @@ export const parseSchemaString = (schemaString: string | undefined) => {
     // ? Uncomment this push(...mockEnumDefinitions) line for testing enums:
     // definitions.push(...mockEnumDefinitions);
     // We can sort the definitions here, and any filtering will keep it sorted.
+    // "Query" and "Mutation" are special types:
+    // https://graphql.org/learn/schema/#the-query-and-mutation-types
     definitions.sort((a, b) => {
       // Ordering: Query, mutation, Everything else.
       if (a.name.value === 'Query') return -1;
