@@ -52,31 +52,22 @@ type ResourceRefGolangType struct {
 	Namespace string
 }
 
-func NewGraphqlApiList(graphqlapis *graphql_v1beta1.GraphQLApiList, subschemas []*graphql_v1beta1.StitchedSchema_SubschemaConfig) (RequestGraphQlApiList, error) {
-	graphqlapiMap := map[ResourceRefGolangType]*graphql_v1beta1.StitchedSchema_SubschemaConfig{}
-	for _, subschema := range subschemas {
-		graphqlapiMap[ResourceRefGolangType{
-			Name:      subschema.GetName(),
-			Namespace: subschema.GetNamespace(),
-		}] = subschema
-	}
+func NewGraphqlApiList(graphqlapis *graphql_v1beta1.GraphQLApiList) (RequestGraphQlApiList, error) {
 	subschemaApiList := map[ResourceRefGolangType]*v1beta1.GraphQLApi{}
 	for _, api := range graphqlapis.Items {
-		if subschema, ok := graphqlapiMap[ResourceRefGolangType{Name: api.Name, Namespace: api.Namespace}]; ok {
-			ret := &v1beta1.GraphQLApi{}
-			err := ConvertGoProtoTypes(&api.Spec, ret)
-			if err != nil {
-				return nil, eris.Wrapf(err, "unable to convert solo-apis GraphQLApi spec to enterprise gloo GraphQlApi type")
-			}
-			ret.SetMetadata(&core.Metadata{
-				Name:      api.GetName(),
-				Namespace: api.GetNamespace(),
-			})
-			subschemaApiList[ResourceRefGolangType{
-				Name:      subschema.GetName(),
-				Namespace: subschema.GetNamespace(),
-			}] = ret
+		ret := &v1beta1.GraphQLApi{}
+		err := ConvertGoProtoTypes(&api.Spec, ret)
+		if err != nil {
+			return nil, eris.Wrapf(err, "unable to convert solo-apis GraphQLApi spec to enterprise gloo GraphQlApi type")
 		}
+		ret.SetMetadata(&core.Metadata{
+			Name:      api.GetName(),
+			Namespace: api.GetNamespace(),
+		})
+		subschemaApiList[ResourceRefGolangType{
+			Name:      api.GetName(),
+			Namespace: api.GetNamespace(),
+		}] = ret
 	}
 	return subschemaApiList, nil
 }
@@ -104,7 +95,7 @@ func GetStitchedSchemaDefinition(ctx context.Context, gqlClient graphql_v1beta1.
 	if err != nil {
 		return nil, err
 	}
-	graphqlApiList, err := NewGraphqlApiList(gqlApiList, stitchedSchemaCfg.GetSubschemas())
+	graphqlApiList, err := NewGraphqlApiList(gqlApiList)
 	if err != nil {
 		return nil, err
 	}
