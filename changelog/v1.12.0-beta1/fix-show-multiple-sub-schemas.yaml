@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Stitched APIs with multiple (executable) sub schemas show up now.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3487

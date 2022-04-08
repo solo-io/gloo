@@ -76,7 +76,6 @@ func NewGraphqlApiList(graphqlapis *graphql_v1beta1.GraphQLApiList, subschemas [
 				Name:      subschema.GetName(),
 				Namespace: subschema.GetNamespace(),
 			}] = ret
-			break
 		}
 	}
 	return subschemaApiList, nil
