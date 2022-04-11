@@ -45,6 +45,11 @@ export namespace TcpProxySettings {
     getHostname(): string;
     setHostname(value: string): void;
 
+    clearHeadersToAddList(): void;
+    getHeadersToAddList(): Array<HeaderValueOption>;
+    setHeadersToAddList(value: Array<HeaderValueOption>): void;
+    addHeadersToAdd(value?: HeaderValueOption, index?: number): HeaderValueOption;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): TunnelingConfig.AsObject;
     static toObject(includeInstance: boolean, msg: TunnelingConfig): TunnelingConfig.AsObject;
@@ -58,6 +63,59 @@ export namespace TcpProxySettings {
   export namespace TunnelingConfig {
     export type AsObject = {
       hostname: string,
+      headersToAddList: Array<HeaderValueOption.AsObject>,
     }
+  }
+}
+
+export class HeaderValueOption extends jspb.Message {
+  hasHeader(): boolean;
+  clearHeader(): void;
+  getHeader(): HeaderValue | undefined;
+  setHeader(value?: HeaderValue): void;
+
+  hasAppend(): boolean;
+  clearAppend(): void;
+  getAppend(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setAppend(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HeaderValueOption.AsObject;
+  static toObject(includeInstance: boolean, msg: HeaderValueOption): HeaderValueOption.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HeaderValueOption, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HeaderValueOption;
+  static deserializeBinaryFromReader(message: HeaderValueOption, reader: jspb.BinaryReader): HeaderValueOption;
+}
+
+export namespace HeaderValueOption {
+  export type AsObject = {
+    header?: HeaderValue.AsObject,
+    append?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+  }
+}
+
+export class HeaderValue extends jspb.Message {
+  getKey(): string;
+  setKey(value: string): void;
+
+  getValue(): string;
+  setValue(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HeaderValue.AsObject;
+  static toObject(includeInstance: boolean, msg: HeaderValue): HeaderValue.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HeaderValue, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HeaderValue;
+  static deserializeBinaryFromReader(message: HeaderValue, reader: jspb.BinaryReader): HeaderValue;
+}
+
+export namespace HeaderValue {
+  export type AsObject = {
+    key: string,
+    value: string,
   }
 }

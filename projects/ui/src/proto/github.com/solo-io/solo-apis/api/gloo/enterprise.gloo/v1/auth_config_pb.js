@@ -9714,7 +9714,8 @@ proto.enterprise.gloo.solo.io.Ldap.toObject = function(includeInstance, msg) {
     userdntemplate: jspb.Message.getFieldWithDefault(msg, 2, ""),
     membershipattributename: jspb.Message.getFieldWithDefault(msg, 3, ""),
     allowedgroupsList: jspb.Message.getRepeatedField(msg, 4),
-    pool: (f = msg.getPool()) && proto.enterprise.gloo.solo.io.Ldap.ConnectionPool.toObject(includeInstance, f)
+    pool: (f = msg.getPool()) && proto.enterprise.gloo.solo.io.Ldap.ConnectionPool.toObject(includeInstance, f),
+    searchfilter: jspb.Message.getFieldWithDefault(msg, 6, "")
   };
 
   if (includeInstance) {
@@ -9771,6 +9772,10 @@ proto.enterprise.gloo.solo.io.Ldap.deserializeBinaryFromReader = function(msg, r
       var value = new proto.enterprise.gloo.solo.io.Ldap.ConnectionPool;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.Ldap.ConnectionPool.deserializeBinaryFromReader);
       msg.setPool(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSearchfilter(value);
       break;
     default:
       reader.skipField();
@@ -9835,6 +9840,13 @@ proto.enterprise.gloo.solo.io.Ldap.serializeBinaryToWriter = function(message, w
       5,
       f,
       proto.enterprise.gloo.solo.io.Ldap.ConnectionPool.serializeBinaryToWriter
+    );
+  }
+  f = message.getSearchfilter();
+  if (f.length > 0) {
+    writer.writeString(
+      6,
+      f
     );
   }
 };
@@ -10144,6 +10156,21 @@ proto.enterprise.gloo.solo.io.Ldap.prototype.clearPool = function() {
  */
 proto.enterprise.gloo.solo.io.Ldap.prototype.hasPool = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional string searchFilter = 6;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.Ldap.prototype.getSearchfilter = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.Ldap.prototype.setSearchfilter = function(value) {
+  jspb.Message.setProto3StringField(this, 6, value);
 };
 
 
