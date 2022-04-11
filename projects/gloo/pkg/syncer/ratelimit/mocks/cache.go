@@ -122,11 +122,9 @@ func (mr *MockSnapshotCacheMockRecorder) GetStatusKeys() *gomock.Call {
 }
 
 // SetSnapshot mocks base method.
-func (m *MockSnapshotCache) SetSnapshot(arg0 string, arg1 cache.Snapshot) error {
+func (m *MockSnapshotCache) SetSnapshot(arg0 string, arg1 cache.Snapshot) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetSnapshot", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	m.ctrl.Call(m, "SetSnapshot", arg0, arg1)
 }
 
 // SetSnapshot indicates an expected call of SetSnapshot.

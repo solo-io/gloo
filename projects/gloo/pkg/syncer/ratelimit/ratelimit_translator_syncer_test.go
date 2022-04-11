@@ -286,7 +286,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 						SetDescriptors: config3.SetDescriptors,
 					}).Return(nil, nil)
 
-				cache.EXPECT().SetSnapshot(xds.ServerRole, gomock.Any()).Return(nil)
+				cache.EXPECT().SetSnapshot(xds.ServerRole, gomock.Any())
 
 				Expect(reports).To(HaveLen(0))
 
@@ -360,46 +360,6 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 						Descriptors:    config3.Descriptors,
 						SetDescriptors: config3.SetDescriptors,
 					}).Return(nil, nil)
-
-				Expect(reports).To(HaveLen(0))
-
-				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
-				Expect(role).To(Equal(xds.ServerRole))
-
-				// Check that we have added the report, and that there are no errors or warnings
-				Expect(reports).To(HaveLen(1), "should pick up the listener")
-				for _, report := range reports {
-					Expect(report.Errors).To(BeNil(), "should have no errors")
-					Expect(report.Warnings).To(HaveLen(0), "should have no warnings")
-				}
-			})
-		})
-
-		When("there is a failure setting the snapshot to an invalid xDS config", func() {
-			It("writes reports", func() {
-				basic.EXPECT().ToXdsConfiguration().Return(config1, nil)
-				global.EXPECT().ToXdsConfiguration().Return(config2, nil)
-				crd.EXPECT().ToXdsConfiguration().Return(config3, nil)
-
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "foo", "foo",
-					&v1alpha1.RateLimitConfigSpec_Raw{
-						Descriptors:    config1.Descriptors,
-						SetDescriptors: config1.SetDescriptors,
-					}).Return(nil, nil)
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "bar", "bar",
-					&v1alpha1.RateLimitConfigSpec_Raw{
-						Descriptors:    config2.Descriptors,
-						SetDescriptors: config2.SetDescriptors,
-					}).Return(nil, nil)
-				domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, "baz", "baz",
-					&v1alpha1.RateLimitConfigSpec_Raw{
-						Descriptors:    config3.Descriptors,
-						SetDescriptors: config3.SetDescriptors,
-					}).Return(nil, nil)
-
-				cache.EXPECT().SetSnapshot(xds.ServerRole, gomock.Any()).Return(testErr)
 
 				Expect(reports).To(HaveLen(0))
 

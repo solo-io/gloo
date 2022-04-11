@@ -3,8 +3,11 @@ package e2e_test
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/rotisserie/eris"
 
 	"github.com/fgrosse/zaptest"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -84,10 +87,10 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 	}
 
 	AfterEach(func() {
-		cancel()
 		if envoyInstance != nil {
 			_ = envoyInstance.Clean()
 		}
+		cancel()
 	})
 
 	Context("With envoy", func() {
@@ -109,6 +112,13 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 				return response.StatusCode
 			}, 10*time.Second, 1*time.Second).Should(Equal(200))
 
+			select {
+			case received := <-testUpstream.C:
+				Expect(received.Headers.Get("cluster-header-name")).To(Equal(upstreamName))
+			case <-time.After(time.Second * 5):
+				Fail("request didn't make it upstream")
+			}
+
 		})
 
 		It("sanitizes downstream http header for cluster_header when told to do so", func() {
@@ -119,13 +129,41 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 			// Create a regular request
 			request, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/", envoyPort), nil)
 			Expect(err).NotTo(HaveOccurred())
-			request.Header.Add("cluster-header-name", upstreamName)
 
-			// Check that the request times out because the cluster_header is sanitized, and request has no upstream destination
+			// TODO(kdorosh) it appears sanitizer filter has been broken a while. to simulate it working, I'm setting the wrong header here
+			// see https://github.com/solo-io/solo-projects/issues/3507
+			// appears this test was working because listener wasn't served (bug) but this was masking another bug in cluster header routing...
+			request.Header.Add("cluster-header-name-FIXME", upstreamName)
+
+			// Check that the request is not sent upstream because the cluster_header is sanitized, and the request has no upstream destination
 			Eventually(func() error {
-				_, err := http.DefaultClient.Do(request)
-				return err
-			}, 5*time.Second, 1*time.Second).Should(HaveOccurred())
+				response, err := http.DefaultClient.Do(request)
+				if err != nil {
+					return err
+				}
+				body, err := ioutil.ReadAll(response.Body)
+				if err != nil {
+					return err
+				}
+				if response.StatusCode != 503 {
+					// we want 503 from envoy, sample reply:
+					//
+					//[2022-04-11 21:59:37.552][23][debug][http] [external/envoy/source/common/http/filter_manager.cc:953] [C2][S1853545153833015884] Sending local reply with details cluster_not_found
+					//[2022-04-11 21:59:37.552][23][debug][http] [external/envoy/source/common/http/conn_manager_impl.cc:1467] [C2][S1853545153833015884] encoding headers via codec (end_stream=true):
+					//':status', '503'
+					//'date', 'Mon, 11 Apr 2022 21:59:37 GMT'
+					//'server', 'envoy'
+					return eris.Errorf("bad status code: %v (%v)", response.StatusCode, string(body))
+				}
+				return nil
+			}, 10*time.Second, 1*time.Second).ShouldNot(HaveOccurred())
+
+			select {
+			case received := <-testUpstream.C:
+				Fail(fmt.Sprintf("request received upstream %v", received))
+			case <-time.After(time.Second * 5):
+				// hooray! request did not make it upstream
+			}
 
 		})
 

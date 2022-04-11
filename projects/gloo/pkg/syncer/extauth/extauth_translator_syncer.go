@@ -96,7 +96,7 @@ func (s *TranslatorSyncerExtension) IsUpgrade() bool {
 }
 
 type SnapshotSetter interface {
-	SetSnapshot(node string, snapshot envoycache.Snapshot) error
+	SetSnapshot(node string, snapshot envoycache.Snapshot)
 }
 
 func (s *TranslatorSyncerExtension) SyncAndSet(
@@ -174,10 +174,7 @@ func (s *TranslatorSyncerExtension) SyncAndSet(
 		extAuthSnapshot = envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
 	}
 
-	err := xdsCache.SetSnapshot(runner.ServerRole, extAuthSnapshot)
-	if err != nil {
-		return syncerError(ctx, err)
-	}
+	xdsCache.SetSnapshot(runner.ServerRole, extAuthSnapshot)
 
 	stats.Record(ctx, extauthConnectedState.M(int64(1)))
 

@@ -385,17 +385,21 @@ func getProxy(configFormat ConfigFormatType, authConfigRef *skcore.ResourceRef) 
 	return proxy
 }
 
+var (
+	// Compile-time assertion
+	_ SnapshotSetter = new(mockSetSnapshot)
+)
+
 type mockSetSnapshot struct {
 	Snapshots map[string]envoycache.Snapshot
 }
 
-func (m *mockSetSnapshot) SetSnapshot(node string, snapshot envoycache.Snapshot) error {
+func (m *mockSetSnapshot) SetSnapshot(node string, snapshot envoycache.Snapshot) {
 	if m.Snapshots == nil {
 		m.Snapshots = make(map[string]envoycache.Snapshot)
 	}
 
 	m.Snapshots[node] = snapshot
-	return nil
 }
 
 // enable ReplaceInvalidRoutes so we can keep adding good routes after a misconfigured route is present

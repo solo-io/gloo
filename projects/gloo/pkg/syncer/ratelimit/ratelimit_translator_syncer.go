@@ -195,10 +195,7 @@ func (s *translatorSyncerExtension) Sync(
 		rateLimitSnapshot = envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), snapshotResources)
 	}
 
-	err = xdsCache.SetSnapshot(xds.ServerRole, rateLimitSnapshot)
-	if err != nil {
-		return syncerError(ctx, err)
-	}
+	xdsCache.SetSnapshot(xds.ServerRole, rateLimitSnapshot)
 
 	stats.Record(ctx, rlConnectedState.M(int64(1)))
 
