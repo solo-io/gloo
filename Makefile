@@ -258,6 +258,9 @@ gloofed-load-kind-images: kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-
 # Gloo Fed Apiserver
 #----------------------------------------------------------------------------------
 GLOO_FED_APISERVER_DIR=$(ROOTDIR)/projects/apiserver
+
+# proto sources
+APISERVER_DIR=$(ROOTDIR)/projects/apiserver/api/
 APISERVER_SOURCES=$(shell find $(APISERVER_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/gloo-fed-apiserver-linux-amd64: $(APISERVER_SOURCES)
@@ -296,12 +299,17 @@ kind-load-gloo-fed-apiserver-envoy: gloo-fed-apiserver-envoy-docker
 GRPC_PORT=10101
 CONFIG_YAML=cfg.yaml
 
+# use this target to run the UI locally
+.PHONY: run-ui-local
+run-ui-local:
+	make -j 3 run-apiserver run-envoy run-single-cluster-ui
+
 .PHONY: install-graphql-js
 install-graphql-js:
 	yarn install -d projects/gloo/pkg/plugins/graphql/js
 
 .PHONY: run-apiserver
-run-apiserver: install-graphql-js
+run-apiserver: checkprogram-protoc install-graphql-js checkenv-GLOO_LICENSE_KEY
 # Todo: This should check that /etc/hosts includes the following line: 
 # 127.0.0.1 docker.internal
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn \
@@ -349,9 +357,6 @@ kind-load-gloo-fed-rbac-validating-webhook: gloo-fed-rbac-validating-webhook-doc
 #----------------------------------------------------------------------------------
 # ApiServer gRPC Code Generation
 #----------------------------------------------------------------------------------
-
-# proto sources
-APISERVER_DIR=$(ROOTDIR)/projects/apiserver/api
 
 COMMON_PROTOC_FLAGS=-I$(PROTOC_IMPORT_PATH)/github.com/envoyproxy/protoc-gen-validate \
 	-I$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext \
@@ -1404,8 +1409,18 @@ update-licenses:
 #----------------------------------------------------------------------------------
 
 # use `make print-MAKEFILE_VAR` to print the value of MAKEFILE_VAR
-
 print-%  : ; @echo $($*)
+
+# use `make checkprogram-PROGRAM_NAME` to check if a program exists in PATH
+checkprogram-%:
+	 @which $* > /dev/null || (echo "program '$*' not found in path. Do you need to install it?" && exit 1)
+
+# use `make checkenv-ENV_VAR` to make sure ENV_VAR is set
+checkenv-%:
+	@ if [ "${${*}}" = "" ]; then \
+		echo "Environment variable $* not set"; \
+		exit 1; \
+	fi
 
 SCAN_DIR ?= $(OUTPUT_DIR)/scans
 SCAN_BUCKET ?= solo-gloo-security-scans/glooe

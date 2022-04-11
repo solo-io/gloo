@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    fix `find -n is not a valid option` message that shows up when running makefile targets locally.
+    In addition, add utils for checking environment variables and programs in PATH.
