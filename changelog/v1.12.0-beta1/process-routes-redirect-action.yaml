@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Adds testing against the ability to disable the JWT plugin at route-level
+  - type: DEPENDENCY_BUMP
+    description: Update gloo to version v1.12.0-beta2.
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.12.0-beta2

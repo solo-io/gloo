@@ -1679,7 +1679,7 @@ spec:
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 4000000
+      validationServerGrpcMaxSizeBytes: 104857600
   gloo:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
@@ -1746,7 +1746,7 @@ spec:
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 4000000
+      validationServerGrpcMaxSizeBytes: 104857600
   gloo:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
@@ -1808,7 +1808,7 @@ spec:
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 4000000
+      validationServerGrpcMaxSizeBytes: 104857600
   gloo:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
@@ -1870,7 +1870,7 @@ spec:
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 4000000
+      validationServerGrpcMaxSizeBytes: 104857600
   gloo:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
@@ -1937,7 +1937,7 @@ spec:
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 4000000
+      validationServerGrpcMaxSizeBytes: 104857600
   gloo:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
@@ -2007,7 +2007,7 @@ spec:
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 4000000
+      validationServerGrpcMaxSizeBytes: 104857600
   gloo:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
@@ -3191,7 +3191,7 @@ spec:
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 4000000
+      validationServerGrpcMaxSizeBytes: 104857600
   gloo:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
@@ -3860,7 +3860,7 @@ spec:
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 4000000
+      validationServerGrpcMaxSizeBytes: 104857600
   gloo:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
@@ -3922,7 +3922,7 @@ spec:
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
-      validationServerGrpcMaxSizeBytes: 4000000
+      validationServerGrpcMaxSizeBytes: 104857600
   gloo:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
