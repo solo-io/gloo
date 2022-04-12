@@ -286,11 +286,8 @@ func getClient(ctx context.Context, url *url.URL) (*grpcreflect.Client, func() e
 	}
 	refClient := grpcreflect.NewClient(ctx, reflectpb.NewServerReflectionClient(cc))
 	closeConn := func() error {
-		if err := cc.Close(); err != nil {
-			return err
-		}
 		refClient.Reset()
-		return nil
+		return cc.Close()
 	}
 	return refClient, closeConn, nil
 }
