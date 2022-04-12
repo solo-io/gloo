@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Added the ability to edit the api in text and see the diff.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3526

@@ -339,6 +339,8 @@ export interface SoloTableProps extends TableProps<any> {
   rowHeight?: string;
   rowClassName?: (rowData: any, index: number) => string;
   expandable?: ExpandableConfig<any>;
+  containerClassName?: string;
+  className?: string;
 }
 
 // TODO: figure out if edit row should always be shown or always be last row
@@ -379,7 +381,8 @@ export const SoloTable = (props: SoloTableProps) => {
       removeShadows={props.removeShadows}
       curved={props.curved}
       withBorder={props.withBorder}
-      flatTopped={props.flatTopped}>
+      flatTopped={props.flatTopped}
+      className={props.containerClassName}>
       <Table
         rowClassName={classNameGenerator}
         pagination={props.removePaging ? false : { position: ['bottomRight'] }}

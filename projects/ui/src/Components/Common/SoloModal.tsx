@@ -116,11 +116,12 @@ interface ModalProps {
   width: number;
   title?: React.ReactNode;
   children: React.ReactChild;
+  className?: string;
   onClose?: () => any;
 }
 
 export const SoloModal = (props: ModalProps) => {
-  const { visible, width, title, children, onClose } = props;
+  const { visible, width, title, children, onClose, className } = props;
 
   if (!visible) {
     document.body.style.overflow = 'auto';
@@ -133,7 +134,7 @@ export const SoloModal = (props: ModalProps) => {
     <ModalWindow>
       <BlockHolder
         onClick={(evt: React.SyntheticEvent) => evt.stopPropagation()}>
-        <ModalBlock width={width}>
+        <ModalBlock className={className} width={width}>
           {!!onClose && (
             <CloseXContainer data-testid='solo-modal-close' onClick={onClose}>
               <CloseX />

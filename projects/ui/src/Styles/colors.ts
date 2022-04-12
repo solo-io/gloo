@@ -42,6 +42,7 @@ export const colors = {
   darkerBoxShadow: 'hsla(0,0%,0%, .15)',
 
   envoyPink: '#d14a9b',
+  errorRed: 'hsl(349 34% 50%)',
 };
 
 export function hslToHSLA(hsl: string, alpha: number | string) {
