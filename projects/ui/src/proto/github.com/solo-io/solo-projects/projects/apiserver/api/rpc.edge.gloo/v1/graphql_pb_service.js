@@ -91,6 +91,15 @@ GraphqlConfigApi.GetStitchedSchemaDefinition = {
   responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetStitchedSchemaDefinitionResponse
 };
 
+GraphqlConfigApi.GetSchemaDiff = {
+  methodName: "GetSchemaDiff",
+  service: GraphqlConfigApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetSchemaDiffRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetSchemaDiffResponse
+};
+
 exports.GraphqlConfigApi = GraphqlConfigApi;
 
 function GraphqlConfigApiClient(serviceHost, options) {
@@ -351,6 +360,37 @@ GraphqlConfigApiClient.prototype.getStitchedSchemaDefinition = function getStitc
     callback = arguments[1];
   }
   var client = grpc.unary(GraphqlConfigApi.GetStitchedSchemaDefinition, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+GraphqlConfigApiClient.prototype.getSchemaDiff = function getSchemaDiff(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(GraphqlConfigApi.GetSchemaDiff, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

@@ -359,3 +359,7 @@ func (h *singleClusterGraphqlHandler) checkGraphqlApiRef(ref *skv2_v1.ClusterObj
 func (h *singleClusterGraphqlHandler) GetStitchedSchemaDefinition(ctx context.Context, request *rpc_edge_v1.GetStitchedSchemaDefinitionRequest) (*rpc_edge_v1.GetStitchedSchemaDefinitionResponse, error) {
 	return GetStitchedSchemaDefinition(ctx, h.graphqlClientset.GraphQLApis(), request)
 }
+
+func (h *singleClusterGraphqlHandler) GetSchemaDiff(ctx context.Context, request *rpc_edge_v1.GetSchemaDiffRequest) (*rpc_edge_v1.GetSchemaDiffResponse, error) {
+	return GetSchemaDiff(request)
+}

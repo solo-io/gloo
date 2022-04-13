@@ -11,6 +11,7 @@ option (extproto.hash_all) = true;
 import "github.com/solo-io/skv2/api/core/v1/core.proto";
 import "github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql.proto";
 import "github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/enterprise/graphql/v1/diff.proto";
 
 // GraphQLApi CR details.
 message GraphqlApi {
@@ -169,6 +170,15 @@ message GetStitchedSchemaDefinitionResponse {
     string stitched_schema_sdl = 1;
 }
 
+// Gets a diff between two schema definitions.
+message GetSchemaDiffRequest {
+    .enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput diff_input = 1;
+}
+
+message GetSchemaDiffResponse {
+    .enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffOutput diff_output = 1;
+}
+
 service GraphqlConfigApi {
     rpc GetGraphqlApi (GetGraphqlApiRequest) returns (GetGraphqlApiResponse) {}
     rpc ListGraphqlApis (ListGraphqlApisRequest) returns (ListGraphqlApisResponse) {}
@@ -176,8 +186,11 @@ service GraphqlConfigApi {
     rpc CreateGraphqlApi (CreateGraphqlApiRequest) returns (CreateGraphqlApiResponse) {}
     rpc UpdateGraphqlApi (UpdateGraphqlApiRequest) returns (UpdateGraphqlApiResponse) {}
     rpc DeleteGraphqlApi (DeleteGraphqlApiRequest) returns (DeleteGraphqlApiResponse) {}
+
     rpc ValidateResolverYaml (ValidateResolverYamlRequest) returns (ValidateResolverYamlResponse) {}
     rpc ValidateSchemaDefinition (ValidateSchemaDefinitionRequest) returns (ValidateSchemaDefinitionResponse) {}
 
     rpc GetStitchedSchemaDefinition (GetStitchedSchemaDefinitionRequest) returns (GetStitchedSchemaDefinitionResponse) {}
+
+    rpc GetSchemaDiff (GetSchemaDiffRequest) returns (GetSchemaDiffResponse) {}
 }

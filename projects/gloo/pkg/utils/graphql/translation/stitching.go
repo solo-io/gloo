@@ -4,45 +4,36 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"os"
 	"os/exec"
-	"path"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/rotisserie/eris"
-	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
-	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
+	gloov3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
+	gloov2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloov1beta1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	v2 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/external/envoy/extensions/filters/http/graphql/v2"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	enterprisev1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/enterprise/graphql/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/printer"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/types"
 )
 
-var (
-	// Env var that has the path to the index.js file that runs the stitching code
-	StitchingIndexFilePathEnvVar = "STITCHING_PATH"
-	// Env var that has the path to the proto dependencies that the stitching index.js file requires
-	StitchingProtoDependenciesPathEnvVar = "STITCHING_PROTO_DIR"
-
-	DefaultStitchingIndexFilePath = "/usr/local/bin/js/index.js"
-)
-
 // The resolver info per subschema name
-type ResolverInfoPerSubschema map[string]*v2.ResolverInfo
+type ResolverInfoPerSubschema map[string]*gloov2.ResolverInfo
 
-func getStitchingInfo(schema *v1beta1.StitchedSchema, graphqlApis types.GraphQLApiList) (*v1beta1.GraphQlToolsStitchingOutput, map[string]ResolverInfoPerSubschema, map[string]string, []*v1beta1.GraphQLApi, error) {
-	schemas := &v1beta1.GraphQLToolsStitchingInput{}
+func getStitchingInfo(schema *gloov1beta1.StitchedSchema, graphqlApis types.GraphQLApiList) (*enterprisev1.GraphQLToolsStitchingOutput, map[string]ResolverInfoPerSubschema, map[string]string, []*gloov1beta1.GraphQLApi, error) {
+	schemas := &enterprisev1.GraphQLToolsStitchingInput{}
 	// map of types -> map of subschema names -> resolver info
 	argMap := map[string]ResolverInfoPerSubschema{}
 	// Query field map holds a mapping of Query field -> subschema that the query field is from
 	queryFieldMap := map[string]string{}
 
-	var subschemaGraphqlApis []*v1beta1.GraphQLApi
+	var subschemaGraphqlApis []*gloov1beta1.GraphQLApi
 	for _, subschema := range schema.GetSubschemas() {
 
 		gqlSchema, err := graphqlApis.Find(subschema.GetNamespace(), subschema.GetName())
@@ -80,34 +71,34 @@ func getStitchingInfo(schema *v1beta1.StitchedSchema, graphqlApis types.GraphQLA
 		stitchingScriptSubschema := createStitchingScriptSubschema(subschema, subschemaName, schemaDef, argMap)
 		schemas.Subschemas = append(schemas.Subschemas, stitchingScriptSubschema)
 	}
-	stitchingInfoOut, err := processStitchingInfo(DefaultStitchingIndexFilePath, schemas)
+	stitchingInfoOut, err := processStitchingInfo(schemas)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 	return stitchingInfoOut, argMap, queryFieldMap, subschemaGraphqlApis, nil
 }
 
-func createStitchingScriptSubschema(subschema *v1beta1.StitchedSchema_SubschemaConfig, subschemaName, schemaDef string, argMap map[string]ResolverInfoPerSubschema) *v1beta1.GraphQLToolsStitchingInput_Schema {
-	stitchingScriptSchema := &v1beta1.GraphQLToolsStitchingInput_Schema{
+func createStitchingScriptSubschema(subschema *gloov1beta1.StitchedSchema_SubschemaConfig, subschemaName, schemaDef string, argMap map[string]ResolverInfoPerSubschema) *enterprisev1.GraphQLToolsStitchingInput_Schema {
+	stitchingScriptSchema := &enterprisev1.GraphQLToolsStitchingInput_Schema{
 		Name:            subschemaName,
 		Schema:          schemaDef,
-		TypeMergeConfig: map[string]*v1beta1.GraphQLToolsStitchingInput_Schema_TypeMergeConfig{},
+		TypeMergeConfig: map[string]*enterprisev1.GraphQLToolsStitchingInput_Schema_TypeMergeConfig{},
 	}
 
 	for typeName, mergeCfg := range subschema.GetTypeMerge() {
-		stitchingScriptSchema.TypeMergeConfig[typeName] = &v1beta1.GraphQLToolsStitchingInput_Schema_TypeMergeConfig{
+		stitchingScriptSchema.TypeMergeConfig[typeName] = &enterprisev1.GraphQLToolsStitchingInput_Schema_TypeMergeConfig{
 			SelectionSet: mergeCfg.GetSelectionSet(),
 			FieldName:    mergeCfg.GetQueryName(),
 		}
 		if _, ok := argMap[typeName]; !ok {
-			argMap[typeName] = map[string]*v2.ResolverInfo{}
+			argMap[typeName] = map[string]*gloov2.ResolverInfo{}
 		}
 
-		ri := &v2.ResolverInfo{
+		ri := &gloov2.ResolverInfo{
 			FieldName: mergeCfg.GetQueryName(),
 		}
 		for setter, extraction := range mergeCfg.GetArgs() {
-			ri.Args = append(ri.Args, &v2.ArgPath{
+			ri.Args = append(ri.Args, &gloov2.ArgPath{
 				ExtractionPath: strings.Split(extraction, "."),
 				SetterPath:     strings.Split(setter, "."),
 			})
@@ -117,7 +108,7 @@ func createStitchingScriptSubschema(subschema *v1beta1.StitchedSchema_SubschemaC
 	return stitchingScriptSchema
 }
 
-func GetStitchedSchemaDefinition(stitchedSchema *v1beta1.StitchedSchema, gqlApis types.GraphQLApiList) (string, error) {
+func GetStitchedSchemaDefinition(stitchedSchema *gloov1beta1.StitchedSchema, gqlApis types.GraphQLApiList) (string, error) {
 	stitchedSchemaOut, _, _, _, err := getStitchingInfo(stitchedSchema, gqlApis)
 	if err != nil {
 		return "", err
@@ -128,8 +119,8 @@ func GetStitchedSchemaDefinition(stitchedSchema *v1beta1.StitchedSchema, gqlApis
 // A mock upstream list which will never return an error for the `Find` method.
 type MockUpstreamsList struct{}
 
-func (l *MockUpstreamsList) Find(namespace, name string) (*v1.Upstream, error) {
-	return &v1.Upstream{
+func (l *MockUpstreamsList) Find(namespace, name string) (*gloov1.Upstream, error) {
+	return &gloov1.Upstream{
 		Metadata: &core.Metadata{
 			Name:      "fake-upstream",
 			Namespace: "fake-namespace",
@@ -138,7 +129,7 @@ func (l *MockUpstreamsList) Find(namespace, name string) (*v1.Upstream, error) {
 }
 
 // Gets only the schema definition without validating upstreams, hence the use of the MockUpstreamList
-func getGraphQlApiSchemaDefinition(graphQLApi *v1beta1.GraphQLApi, gqlApis types.GraphQLApiList) (string, error) {
+func getGraphQlApiSchemaDefinition(graphQLApi *gloov1beta1.GraphQLApi, gqlApis types.GraphQLApiList) (string, error) {
 	v2ApiSchema, err := CreateGraphQlApi(&MockUpstreamsList{}, gqlApis, graphQLApi)
 	if err != nil {
 		return "", eris.Wrapf(err, "error getting schema definition for GraphQLApi %s.%s", graphQLApi.GetMetadata().GetNamespace(), graphQLApi.GetMetadata().GetName())
@@ -146,29 +137,19 @@ func getGraphQlApiSchemaDefinition(graphQLApi *v1beta1.GraphQLApi, gqlApis types
 	return v2ApiSchema.GetSchemaDefinition().GetInlineString(), nil
 }
 
-func processStitchingInfo(pathToStitchingJsFile string, schemas *v1beta1.GraphQLToolsStitchingInput) (*v1beta1.GraphQlToolsStitchingOutput, error) {
+func processStitchingInfo(schemas *enterprisev1.GraphQLToolsStitchingInput) (*enterprisev1.GraphQLToolsStitchingOutput, error) {
 	schemasBytes, err := proto.Marshal(schemas)
 	if err != nil {
 		return nil, eris.Wrapf(err, "error marshaling to binary data")
 	}
-	// This is the default path
-	var stitchingPath = pathToStitchingJsFile
-	// Used for local testing and unit/e2e tests
-	if path := os.Getenv(StitchingIndexFilePathEnvVar); path != "" {
-		stitchingPath = path
+	stitchingPath := GetGraphqlJsRoot()
+	cmd := exec.Command("node", stitchingPath+"stitching.js", base64.StdEncoding.EncodeToString(schemasBytes))
+
+	protoDirPath, err := GetGraphqlProtoRoot()
+	if err != nil {
+		return nil, err
 	}
-	cmd := exec.Command("node", stitchingPath, base64.StdEncoding.EncodeToString(schemasBytes))
-	// Set the environment variable STITCHING_PROTO_IMPORT_PATH for the node file to know where to import dependencies from.
-	protoDirPath := "/usr/local/bin/js/proto/github.com/solo-io/solo-apis/api/gloo/gloo"
-	if protoDir := os.Getenv(StitchingProtoDependenciesPathEnvVar); protoDir != "" {
-		// JS needs the absolute path to the stitching proto dir, so we join path to current dir + path from repository root
-		currentDir, err := os.Getwd()
-		if err != nil {
-			return nil, eris.Wrap(err, "unable to get current directory path for running stitching script")
-		}
-		protoDirPath = path.Join(currentDir, os.Getenv(StitchingProtoDependenciesPathEnvVar))
-	}
-	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", StitchingProtoDependenciesPathEnvVar, protoDirPath))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", GraphqlProtoRootEnvVar, protoDirPath))
 	stdOutBuf := bytes.NewBufferString("")
 	stdErrBuf := bytes.NewBufferString("")
 	cmd.Stdout = stdOutBuf
@@ -185,7 +166,7 @@ func processStitchingInfo(pathToStitchingJsFile string, schemas *v1beta1.GraphQL
 	if err != nil {
 		return nil, eris.Wrapf(err, "error decoding %s from base64 protobuf", stdOutBuf.String())
 	}
-	stitchingInfoOut := &v1beta1.GraphQlToolsStitchingOutput{}
+	stitchingInfoOut := &enterprisev1.GraphQLToolsStitchingOutput{}
 	err = proto.Unmarshal(decodedStdOutString, stitchingInfoOut)
 	if err != nil {
 		return nil, eris.Wrap(err, "unable to unmarshal graphql tools output to Go type")
@@ -201,19 +182,19 @@ var (
 	stitchingExtensionName = "stitching_extension"
 )
 
-func addSubschemaNameResolverInfo(mergeTypes map[string]*v2.MergedTypeConfig, argMap map[string]ResolverInfoPerSubschema) {
+func addSubschemaNameResolverInfo(mergeTypes map[string]*gloov2.MergedTypeConfig, argMap map[string]ResolverInfoPerSubschema) {
 	for typeName, cfg := range mergeTypes {
 		if argMap[typeName] == nil || cfg == nil {
 			continue
 		}
-		cfg.SubschemaNameToResolverInfo = map[string]*v2.ResolverInfo{}
+		cfg.SubschemaNameToResolverInfo = map[string]*gloov2.ResolverInfo{}
 		for subschemaName, subschemaMergeCfg := range argMap[typeName] {
 			cfg.SubschemaNameToResolverInfo[subschemaName] = subschemaMergeCfg
 		}
 	}
 }
 
-func translateStitchedSchema(upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, schema *v1beta1.StitchedSchema) (*v2.ExecutableSchema, error) {
+func translateStitchedSchema(upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, schema *gloov1beta1.StitchedSchema) (*gloov2.ExecutableSchema, error) {
 	stitchingInfoOut, argMap, queryFieldMap, subschemaGqls, err := getStitchingInfo(schema, graphqlapis)
 	if err != nil {
 		return nil, err
@@ -222,23 +203,23 @@ func translateStitchedSchema(upstreams types.UpstreamList, graphqlapis types.Gra
 	if err != nil {
 		return nil, err
 	}
-	var resolutions []*v2.Resolution
+	var resolutions []*gloov2.Resolution
 	for _, def := range gatewaySchema.Definitions {
 		if objDef, ok := def.(*ast.ObjectDefinition); ok && objDef.Name.Value == "Query" {
 			for _, field := range objDef.Fields {
-				resolver := &v2.StitchingResolver{
+				resolver := &gloov2.StitchingResolver{
 					SubschemaName: queryFieldMap[field.Name.Value],
 				}
-				r := &v2.Resolution{
-					Matcher: &v2.QueryMatcher{
-						Match: &v2.QueryMatcher_FieldMatcher_{
-							FieldMatcher: &v2.QueryMatcher_FieldMatcher{
+				r := &gloov2.Resolution{
+					Matcher: &gloov2.QueryMatcher{
+						Match: &gloov2.QueryMatcher_FieldMatcher_{
+							FieldMatcher: &gloov2.QueryMatcher_FieldMatcher{
 								Type:  "Query",
 								Field: field.Name.Value,
 							},
 						},
 					},
-					Resolver: &v3.TypedExtensionConfig{
+					Resolver: &gloov3.TypedExtensionConfig{
 						Name:        "io.solo.graphql.resolver.stitching",
 						TypedConfig: utils.MustMessageToAny(resolver),
 					},
@@ -248,41 +229,97 @@ func translateStitchedSchema(upstreams types.UpstreamList, graphqlapis types.Gra
 		}
 	}
 
-	addSubschemaNameResolverInfo(stitchingInfoOut.GetMergedTypes(), argMap)
-	subschemaNameToExecutableSchema := map[string]*v2.StitchingInfo_SubschemaConfig{}
+	// GraphQLToolsStitchingOutput uses the solo-apis version of the envoy apis. we need to convert the fields back to
+	// the gloo version of the envoy apis here
+	glooFieldNodesByType, err := toGlooFieldNodesByType(stitchingInfoOut.GetFieldNodesByType())
+	if err != nil {
+		return nil, eris.Wrap(err, "error converting FieldNodes")
+	}
+	glooFieldNodesByField, err := toGlooFieldNodesByField(stitchingInfoOut.GetFieldNodesByField())
+	if err != nil {
+		return nil, eris.Wrap(err, "error converting FieldNodeMap")
+	}
+	glooMergedTypes, err := toGlooMergedTypes(stitchingInfoOut.GetMergedTypes())
+	if err != nil {
+		return nil, eris.Wrap(err, "error converting MergedTypeConfig")
+	}
+
+	addSubschemaNameResolverInfo(glooMergedTypes, argMap)
+	subschemaNameToExecutableSchema := map[string]*gloov2.StitchingInfo_SubschemaConfig{}
 	for _, subschemaGql := range subschemaGqls {
 		subschemaRef := subschemaGql.GetMetadata().Ref()
 		execSchema, err := CreateGraphQlApi(upstreams, graphqlapis, subschemaGql)
 		if err != nil {
 			return nil, eris.Wrapf(err, "unable to create configuration for subschema %s.%s", subschemaGql.GetMetadata().GetNamespace(), subschemaGql.GetMetadata().GetName())
 		}
-		subschemaNameToExecutableSchema[generateSubschemaName(subschemaRef)] = &v2.StitchingInfo_SubschemaConfig{
+		subschemaNameToExecutableSchema[generateSubschemaName(subschemaRef)] = &gloov2.StitchingInfo_SubschemaConfig{
 			ExecutableSchema: execSchema,
 		}
 	}
-	stitchingExtension := &v2.StitchingInfo{
-		FieldNodesByType:               stitchingInfoOut.GetFieldNodesByType(),
-		FieldNodesByField:              stitchingInfoOut.GetFieldNodesByField(),
-		MergedTypes:                    stitchingInfoOut.GetMergedTypes(),
+
+	stitchingExtension := &gloov2.StitchingInfo{
+		FieldNodesByType:               glooFieldNodesByType,
+		FieldNodesByField:              glooFieldNodesByField,
+		MergedTypes:                    glooMergedTypes,
 		SubschemaNameToSubschemaConfig: subschemaNameToExecutableSchema,
 	}
 
-	return &v2.ExecutableSchema{
-		SchemaDefinition: &v3.DataSource{
-			Specifier: &v3.DataSource_InlineString{
+	return &gloov2.ExecutableSchema{
+		SchemaDefinition: &gloov3.DataSource{
+			Specifier: &gloov3.DataSource_InlineString{
 				InlineString: printer.PrettyPrintKubeString(stitchingInfoOut.GetStitchedSchema()),
 			},
 		},
 		Extensions: map[string]*any.Any{
 			stitchingExtensionName: utils.MustMessageToAny(stitchingExtension),
 		},
-		Executor: &v2.Executor{
-			Executor: &v2.Executor_Local_{
-				Local: &v2.Executor_Local{
+		Executor: &gloov2.Executor{
+			Executor: &gloov2.Executor_Local_{
+				Local: &gloov2.Executor_Local{
 					Resolutions:         resolutions,
 					EnableIntrospection: true,
 				},
 			},
 		},
 	}, nil
+}
+
+// solo-apis to gloo conversion functions
+func toGlooFieldNodesByType(fieldNodesByType map[string]*v2.FieldNodes) (map[string]*gloov2.FieldNodes, error) {
+	glooFieldNodesByType := make(map[string]*gloov2.FieldNodes)
+	for k, v := range fieldNodesByType {
+		glooVal := &gloov2.FieldNodes{}
+		err := types.ConvertGoProtoTypes(v, glooVal)
+		if err != nil {
+			return nil, err
+		}
+		glooFieldNodesByType[k] = glooVal
+	}
+	return glooFieldNodesByType, nil
+}
+
+func toGlooFieldNodesByField(fieldNodesByField map[string]*v2.FieldNodeMap) (map[string]*gloov2.FieldNodeMap, error) {
+	glooFieldNodesByField := make(map[string]*gloov2.FieldNodeMap)
+	for k, v := range fieldNodesByField {
+		glooVal := &gloov2.FieldNodeMap{}
+		err := types.ConvertGoProtoTypes(v, glooVal)
+		if err != nil {
+			return nil, err
+		}
+		glooFieldNodesByField[k] = glooVal
+	}
+	return glooFieldNodesByField, nil
+}
+
+func toGlooMergedTypes(mergedTypes map[string]*v2.MergedTypeConfig) (map[string]*gloov2.MergedTypeConfig, error) {
+	glooMergedTypes := make(map[string]*gloov2.MergedTypeConfig)
+	for k, v := range mergedTypes {
+		glooVal := &gloov2.MergedTypeConfig{}
+		err := types.ConvertGoProtoTypes(v, glooVal)
+		if err != nil {
+			return nil, err
+		}
+		glooMergedTypes[k] = glooVal
+	}
+	return glooMergedTypes, nil
 }

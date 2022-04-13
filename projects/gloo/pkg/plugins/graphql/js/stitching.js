@@ -3,20 +3,21 @@
 const graphql = require('graphql');
 const { stitchSchemas } = require('@graphql-tools/stitch');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
+const { msgToBase64String, base64StringToMsg } = require('./conversion');
 
-const protoImportPath = process.env.STITCHING_PROTO_DIR;
+const protoImportPath = process.env.GRAPHQL_PROTO_ROOT;
 if (!protoImportPath) {
   console.error(
-    'stitching tools script requires STITCHING_PROTO_DIR environment variable'
+    'stitching tools script requires GRAPHQL_PROTO_ROOT environment variable'
   );
   process.exit(1);
 }
 
 const {
   GraphQLToolsStitchingInput,
-  GraphQlToolsStitchingOutput,
+  GraphQLToolsStitchingOutput,
 } = require(protoImportPath +
-  '/v1/enterprise/options/graphql/v1beta1/stitching_info_pb');
+  'github.com/solo-io/solo-projects/projects/gloo/api/enterprise/graphql/v1/stitching_info_pb');
 const {
   MergedTypeConfig,
   FieldNodeMap,
@@ -24,7 +25,7 @@ const {
   FieldNode,
   Schemas,
 } = require(protoImportPath +
-  '/external/envoy/extensions/graphql/stitching_pb');
+  'github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/graphql/stitching_pb');
 
 async function makeStitchedSchema(input) {
   const inMsg = base64StringToMsg(
@@ -67,7 +68,7 @@ async function makeStitchedSchema(input) {
 }
 
 function convertStitchingInfo(si) {
-  let newSi = new GraphQlToolsStitchingOutput();
+  let newSi = new GraphQLToolsStitchingOutput();
   let subschemaMap = new Map();
   for (let [key, value] of si.subschemaMap) {
     subschemaMap.set(value, key.name);
@@ -141,32 +142,3 @@ makeStitchedSchema(process.argv[2]).then(schema => {
   // This is the stdout output that the control plane reads to get the StitchingInfo message
   console.log(b64);
 });
-
-function msgToBase64String(msg) {
-  return uintArrayToBase64(msg.serializeBinary());
-}
-
-function base64StringToMsg(string, deserializeFunc) {
-  return deserializeFunc(decodeBase64(string));
-}
-
-// function that converts uintarray8 to base64 string
-function uintArrayToBase64(uintArray) {
-  var binary = '';
-  for (var i = 0; i < uintArray.length; i++) {
-    binary += String.fromCharCode(uintArray[i]);
-  }
-  return Buffer.from(binary, 'binary').toString('base64');
-}
-
-// function that converts base64 string to uintarray8
-// function to decode base64 string to byte array
-function decodeBase64(base64) {
-  var binary_string = Buffer.from(base64, 'base64').toString('binary');
-  var len = binary_string.length;
-  var bytes = new Uint8Array(len);
-  for (var i = 0; i < len; i++) {
-    bytes[i] = binary_string.charCodeAt(i);
-  }
-  return bytes;
-}

@@ -111,6 +111,7 @@ clean-generated-protos:
 .PHONY: clean-fed
 clean-fed: clean-artifacts clean-generated-protos
 	rm -rf $(ROOTDIR)/vendor_any
+	rm -rf $(ROOTDIR)/projects/gloo/pkg/api
 	rm -rf $(ROOTDIR)/projects/gloo-fed/pkg/api
 	rm -rf $(ROOTDIR)/projects/apiserver/pkg/api
 	rm -rf $(ROOTDIR)/projects/glooctl-plugins/fed/pkg/api
@@ -315,8 +316,8 @@ run-apiserver: checkprogram-protoc install-graphql-js checkenv-GLOO_LICENSE_KEY
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn \
 	GRPC_PORT=$(GRPC_PORT) \
 	POD_NAMESPACE=gloo-system \
-	STITCHING_PATH="./projects/gloo/pkg/plugins/graphql/js/index.js" \
-	STITCHING_PROTO_DIR="./projects/ui/src/proto/github.com/solo-io/solo-apis/api/gloo/gloo" \
+	GRAPHQL_JS_ROOT="./projects/gloo/pkg/plugins/graphql/js/" \
+	GRAPHQL_PROTO_ROOT="./projects/ui/src/proto/" \
 	$(GO_BUILD_FLAGS) go run projects/apiserver/cmd/main.go
 
 .PHONY: run-envoy
@@ -545,6 +546,10 @@ generated-gloo-fed-ui-deps:
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/apiserver/api/*/*/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo/api/enterprise/*/*/*.proto
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \

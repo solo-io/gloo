@@ -287,8 +287,9 @@ type Query {
 
 			err = envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(os.Setenv(translation.StitchingIndexFilePathEnvVar, "../../projects/gloo/pkg/plugins/graphql/js/index.js")).NotTo(HaveOccurred())
-			err = os.Setenv(translation.StitchingProtoDependenciesPathEnvVar, "../../projects/ui/src/proto/github.com/solo-io/solo-apis/api/gloo/gloo")
+			err = os.Setenv(translation.GraphqlJsRootEnvVar, "../../projects/gloo/pkg/plugins/graphql/js/")
+			Expect(err).NotTo(HaveOccurred())
+			err = os.Setenv(translation.GraphqlProtoRootEnvVar, "../../projects/ui/src/proto/")
 			Expect(err).NotTo(HaveOccurred())
 
 			query = `
@@ -313,8 +314,8 @@ type Query {
 			if envoyInstance != nil {
 				envoyInstance.Clean()
 			}
-			Expect(os.Unsetenv(translation.StitchingProtoDependenciesPathEnvVar)).NotTo(HaveOccurred())
-			Expect(os.Unsetenv(translation.StitchingIndexFilePathEnvVar)).NotTo(HaveOccurred())
+			Expect(os.Unsetenv(translation.GraphqlProtoRootEnvVar)).NotTo(HaveOccurred())
+			Expect(os.Unsetenv(translation.GraphqlJsRootEnvVar)).NotTo(HaveOccurred())
 		})
 
 		Context("request to stitched schema", func() {

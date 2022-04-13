@@ -85,6 +85,15 @@ type GraphqlConfigApiGetStitchedSchemaDefinition = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetStitchedSchemaDefinitionResponse;
 };
 
+type GraphqlConfigApiGetSchemaDiff = {
+  readonly methodName: string;
+  readonly service: typeof GraphqlConfigApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetSchemaDiffRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetSchemaDiffResponse;
+};
+
 export class GraphqlConfigApi {
   static readonly serviceName: string;
   static readonly GetGraphqlApi: GraphqlConfigApiGetGraphqlApi;
@@ -96,6 +105,7 @@ export class GraphqlConfigApi {
   static readonly ValidateResolverYaml: GraphqlConfigApiValidateResolverYaml;
   static readonly ValidateSchemaDefinition: GraphqlConfigApiValidateSchemaDefinition;
   static readonly GetStitchedSchemaDefinition: GraphqlConfigApiGetStitchedSchemaDefinition;
+  static readonly GetSchemaDiff: GraphqlConfigApiGetSchemaDiff;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -210,6 +220,15 @@ export class GraphqlConfigApiClient {
   getStitchedSchemaDefinition(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetStitchedSchemaDefinitionRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetStitchedSchemaDefinitionResponse|null) => void
+  ): UnaryResponse;
+  getSchemaDiff(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetSchemaDiffRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetSchemaDiffResponse|null) => void
+  ): UnaryResponse;
+  getSchemaDiff(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetSchemaDiffRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_graphql_pb.GetSchemaDiffResponse|null) => void
   ): UnaryResponse;
 }
 

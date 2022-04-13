@@ -11,6 +11,7 @@
     "debug": "tsc --sourcemap"
   },
   "dependencies": {
+    "@graphql-inspector/core": "^3.1.2",
     "@graphql-tools/schema": "^8.3.1",
     "@graphql-tools/stitch": "^8.4.3",
     "@graphql-tools/wrap": "^8.3.3",

@@ -407,3 +407,7 @@ func (h *fedGraphqlHandler) GetStitchedSchemaDefinition(ctx context.Context, req
 	}
 	return GetStitchedSchemaDefinition(ctx, gqlClient.GraphQLApis(), request)
 }
+
+func (h *fedGraphqlHandler) GetSchemaDiff(ctx context.Context, request *rpc_edge_v1.GetSchemaDiffRequest) (*rpc_edge_v1.GetSchemaDiffResponse, error) {
+	return GetSchemaDiff(request)
+}

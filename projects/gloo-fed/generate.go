@@ -63,6 +63,7 @@ func main() {
 		[]string{
 			"projects/apiserver/**/*.proto",
 			"projects/gloo-fed/**/*.proto",
+			"projects/gloo/api/enterprise/**/*.proto",
 		},
 	)
 	anyvendorImports.External["github.com/solo-io/skv2"] = []string{

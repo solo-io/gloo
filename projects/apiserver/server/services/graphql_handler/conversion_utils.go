@@ -1,17 +1,13 @@
 package graphql_handler
 
 import (
-	"context"
-
-	"github.com/golang/protobuf/proto"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	graphql_v1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/types"
 )
 
 // Converts a list of GraphqlApi into a list of GraphqlApiSummary
@@ -56,7 +52,7 @@ func NewGraphqlApiList(graphqlapis *graphql_v1beta1.GraphQLApiList) (RequestGrap
 	subschemaApiList := map[ResourceRefGolangType]*v1beta1.GraphQLApi{}
 	for _, api := range graphqlapis.Items {
 		ret := &v1beta1.GraphQLApi{}
-		err := ConvertGoProtoTypes(&api.Spec, ret)
+		err := types.ConvertGoProtoTypes(&api.Spec, ret)
 		if err != nil {
 			return nil, eris.Wrapf(err, "unable to convert solo-apis GraphQLApi spec to enterprise gloo GraphQlApi type")
 		}
@@ -70,54 +66,6 @@ func NewGraphqlApiList(graphqlapis *graphql_v1beta1.GraphQLApiList) (RequestGrap
 		}] = ret
 	}
 	return subschemaApiList, nil
-}
-
-func GetStitchedSchemaDefinition(ctx context.Context, gqlClient graphql_v1beta1.GraphQLApiClient, request *rpc_edge_v1.GetStitchedSchemaDefinitionRequest) (*rpc_edge_v1.GetStitchedSchemaDefinitionResponse, error) {
-	stitchedSchema, err := gqlClient.GetGraphQLApi(ctx, client.ObjectKey{
-		Namespace: request.GetStitchedSchemaApiRef().GetNamespace(),
-		Name:      request.GetStitchedSchemaApiRef().GetName(),
-	})
-	if err != nil {
-		return nil, eris.Wrapf(err, "unable to find stitched schema GraphQLApi %s.%s", request.GetStitchedSchemaApiRef().GetNamespace(),
-			request.GetStitchedSchemaApiRef().GetName())
-	}
-	gqlApiList, err := gqlClient.ListGraphQLApi(ctx)
-	if err != nil {
-		return nil, eris.Wrap(err, "unable to list all graphql apis")
-	}
-	stitchedSchemaCfg := stitchedSchema.Spec.GetStitchedSchema()
-	if stitchedSchemaCfg == nil {
-		return nil, eris.Errorf("GraphQLApi %s.%s does not have a stitched schema definition",
-			request.GetStitchedSchemaApiRef().GetNamespace(), request.GetStitchedSchemaApiRef().GetName())
-	}
-	glooStitchedSchemaConfig := &v1beta1.StitchedSchema{}
-	err = ConvertGoProtoTypes(stitchedSchemaCfg, glooStitchedSchemaConfig)
-	if err != nil {
-		return nil, err
-	}
-	graphqlApiList, err := NewGraphqlApiList(gqlApiList)
-	if err != nil {
-		return nil, err
-	}
-	stitchedSchemaDef, err := translation.GetStitchedSchemaDefinition(glooStitchedSchemaConfig, graphqlApiList)
-	if err != nil {
-		return nil, err
-	}
-	return &rpc_edge_v1.GetStitchedSchemaDefinitionResponse{
-		StitchedSchemaSdl: stitchedSchemaDef,
-	}, nil
-}
-
-func ConvertGoProtoTypes(inputMessage proto.Message, outputProtoMessage proto.Message) error {
-	protoIntermediateBytes, err := proto.Marshal(inputMessage)
-	if err != nil {
-		return eris.Wrapf(err, "proto message %s cannot be marshalled", inputMessage.String())
-	}
-	err = proto.Unmarshal(protoIntermediateBytes, outputProtoMessage)
-	if err != nil {
-		return eris.Wrapf(err, "proto message %s cannot be unmarshalled into proto message %s", inputMessage.String(), outputProtoMessage.String())
-	}
-	return nil
 }
 
 type RequestGraphQlApiList map[ResourceRefGolangType]*v1beta1.GraphQLApi

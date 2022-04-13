@@ -7,6 +7,7 @@ import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_skv2_api_core_v1_core_pb from "../../../../../../../../github.com/solo-io/skv2/api/core/v1/core_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_graphql_gloo_v1beta1_graphql_pb from "../../../../../../../../github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb";
 import * as github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb";
+import * as github_com_solo_io_solo_projects_projects_gloo_api_enterprise_graphql_v1_diff_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo/api/enterprise/graphql/v1/diff_pb";
 
 export class GraphqlApi extends jspb.Message {
   hasMetadata(): boolean;
@@ -555,5 +556,49 @@ export class GetStitchedSchemaDefinitionResponse extends jspb.Message {
 export namespace GetStitchedSchemaDefinitionResponse {
   export type AsObject = {
     stitchedSchemaSdl: string,
+  }
+}
+
+export class GetSchemaDiffRequest extends jspb.Message {
+  hasDiffInput(): boolean;
+  clearDiffInput(): void;
+  getDiffInput(): github_com_solo_io_solo_projects_projects_gloo_api_enterprise_graphql_v1_diff_pb.GraphQLInspectorDiffInput | undefined;
+  setDiffInput(value?: github_com_solo_io_solo_projects_projects_gloo_api_enterprise_graphql_v1_diff_pb.GraphQLInspectorDiffInput): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetSchemaDiffRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetSchemaDiffRequest): GetSchemaDiffRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetSchemaDiffRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetSchemaDiffRequest;
+  static deserializeBinaryFromReader(message: GetSchemaDiffRequest, reader: jspb.BinaryReader): GetSchemaDiffRequest;
+}
+
+export namespace GetSchemaDiffRequest {
+  export type AsObject = {
+    diffInput?: github_com_solo_io_solo_projects_projects_gloo_api_enterprise_graphql_v1_diff_pb.GraphQLInspectorDiffInput.AsObject,
+  }
+}
+
+export class GetSchemaDiffResponse extends jspb.Message {
+  hasDiffOutput(): boolean;
+  clearDiffOutput(): void;
+  getDiffOutput(): github_com_solo_io_solo_projects_projects_gloo_api_enterprise_graphql_v1_diff_pb.GraphQLInspectorDiffOutput | undefined;
+  setDiffOutput(value?: github_com_solo_io_solo_projects_projects_gloo_api_enterprise_graphql_v1_diff_pb.GraphQLInspectorDiffOutput): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetSchemaDiffResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetSchemaDiffResponse): GetSchemaDiffResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetSchemaDiffResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetSchemaDiffResponse;
+  static deserializeBinaryFromReader(message: GetSchemaDiffResponse, reader: jspb.BinaryReader): GetSchemaDiffResponse;
+}
+
+export namespace GetSchemaDiffResponse {
+  export type AsObject = {
+    diffOutput?: github_com_solo_io_solo_projects_projects_gloo_api_enterprise_graphql_v1_diff_pb.GraphQLInspectorDiffOutput.AsObject,
   }
 }

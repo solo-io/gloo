@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package enterprise.graphql.gloo.solo.io;
+
+option go_package = "github.com/solo-io/solo-projects/projects/gloo/pkg/api/enterprise/graphql/v1";
+
+// This message is used to pass data from the control plane / apiserver to the graphql-inspector diff js script.
+message GraphQLInspectorDiffInput {
+  string old_schema = 1;
+  string new_schema = 2;
+}
+
+// This message is used to pass data from the graphql-inspector diff js script back to the control plane / apiserver.
+message GraphQLInspectorDiffOutput {
+  repeated Change changes = 1;
+
+  message Change {
+    string message = 1;
+    string path = 2;
+    string change_type = 3;
+    Criticality criticality = 4;
+  }
+
+  message Criticality {
+      CriticalityLevel level = 1;
+      string reason = 2;
+  }
+
+  enum CriticalityLevel {
+    NON_BREAKING = 0;
+    DANGEROUS = 1;
+    BREAKING = 2;
+  }
+
+}
