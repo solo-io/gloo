@@ -1,25 +1,24 @@
-import * as React from 'react';
+import { QuestionCircleOutlined } from '@ant-design/icons';
+import { Global } from '@emotion/core';
+import styled from '@emotion/styled';
+import { createGraphiQLFetcher } from '@graphiql/toolkit';
+import { Tooltip } from 'antd';
+import { useGetGraphqlApiDetails, useListVirtualServices } from 'API/hooks';
+import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
+import { ReactComponent as CopyIcon } from 'assets/document.svg';
+import { SoloInput } from 'Components/Common/SoloInput';
 import { Fetcher, GraphiQL } from 'graphiql';
 import { buildSchema } from 'graphql';
-import styled from '@emotion/styled';
-import { colors } from 'Styles/colors';
-import { useGetGraphqlApiDetails, useListVirtualServices } from 'API/hooks';
+import * as React from 'react';
+import { ChangeEvent, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
-import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
+import { colors } from 'Styles/colors';
+import { copyTextToClipboard } from 'utils';
 import {
   StatusHealth,
   WarningCircle,
 } from '../../../Overview/OverviewBoxSummary';
-import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import { SoloInput } from 'Components/Common/SoloInput';
-import { createGraphiQLFetcher } from '@graphiql/toolkit';
-import { Tooltip } from 'antd';
-import { copyTextToClipboard } from 'utils';
-import { ReactComponent as CopyIcon } from 'assets/document.svg';
-import { Global } from '@emotion/core';
 import graphiqlCustomStyles from './GraphqlApiExplorer.style';
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 const Wrapper = styled.div`
   background: white;
@@ -206,6 +205,12 @@ export const GraphqlApiExplorer = () => {
     setShowUrlBar(!showUrlBar);
   };
 
+  // The operation name === the tab name.
+  // This comes from the actual GraphQL operation.
+  //   e.g. query Test {} will have the tab name "Test".
+  //   The example has "query Example { }" in it.
+  const [opName, setOpName] = useState('Example');
+
   // TODO:  We can hide and show elements based on what we get back.
   //        The schema will only refetch if the executable schema is undefined.
   if (correspondingVirtualServices === undefined) return null;
@@ -281,9 +286,11 @@ export const GraphqlApiExplorer = () => {
       <StyledContainer>
         <GraphiQL
           ref={graphiqlRef}
-          // TODO: style the tab buttons before pushing with this enabled.
-          // tabs={true}
-          defaultQuery={`# Welcome to GraphiQL, an in-browser tool for
+          defaultQuery={`query Example {
+
+}
+
+# Welcome to GraphiQL, an in-browser tool for
 # writing, validating, and testing GraphQL queries.
 #
 # Type queries into this side of the screen, and you
@@ -293,9 +300,11 @@ export const GraphqlApiExplorer = () => {
 #
 # GraphQL queries typically start with a "{" character.
 # Lines that start with a # are ignored.
+# The name of the query on the first line of each tab
+# is the title of that tab.
 #
 # An example GraphQL query might look like:
-#     {
+#     query Example {
 #       field(arg: "value") {
 #         subField
 #       }
@@ -309,6 +318,9 @@ export const GraphqlApiExplorer = () => {
 
 `}
           variables={'{}'}
+          tabs={true}
+          operationName={opName}
+          onEditOperationName={s => setOpName(s)}
           schema={!refetch ? executableSchema : undefined}
           fetcher={gqlFetcher}>
           <GraphiQL.Toolbar>

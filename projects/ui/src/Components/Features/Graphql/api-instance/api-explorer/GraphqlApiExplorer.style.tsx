@@ -19,11 +19,81 @@ const graphiqlCustomStyles = css`
         transform: scale(0.9);
       }
     }
+    .editorBar {
+      border-top: 1px solid ${colors.aprilGrey};
+    }
 
     // ========================== //
     // RESULT WINDOW
     .result-window .CodeMirror {
       background: white;
+    }
+
+    // ========================== //
+    // TABS
+    .tabs {
+      button.tab,
+      .tab-add {
+        padding: 2px 10px 2px 10px;
+        margin: 2px 1px 0 1px;
+        position: relative;
+        border: 1px solid ${colors.aprilGrey};
+        border-bottom: none;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        transition: 0.1s background-color;
+        div.close {
+          transition: 0.1s opacity;
+        }
+        &:not(.active) {
+          &:hover {
+            background-color: ${colors.splashBlue};
+          }
+          &:active {
+            background-color: ${colors.lakeBlue};
+          }
+        }
+        &.active {
+          background-color: ${colors.oceanBlue};
+          color: white;
+          div.close:before,
+          div.close:after {
+            background-color: white;
+          }
+        }
+        div.close {
+          position: relative;
+          float: left;
+          margin-right: 10px;
+          margin-top: 2px;
+          width: 16px;
+          height: 16px;
+          border-radius: 100px;
+          opacity: 0.5;
+          &:hover {
+            opacity: 0.75;
+          }
+          &:active {
+            opacity: 1;
+          }
+          &:before,
+          &:after {
+            content: '';
+            position: absolute;
+            left: 2px;
+            top: 7px;
+            width: 12px;
+            height: 2px;
+            background-color: black;
+          }
+          &:before {
+            transform: rotate(45deg);
+          }
+          &:after {
+            transform: rotate(-45deg);
+          }
+        }
+      }
     }
 
     // ========================== //
