@@ -934,7 +934,8 @@ proto.gloo.solo.io.SettingsSpec.VaultSecrets.toObject = function(includeInstance
     clientKey: jspb.Message.getFieldWithDefault(msg, 6, ""),
     tlsServerName: jspb.Message.getFieldWithDefault(msg, 7, ""),
     insecure: (f = msg.getInsecure()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    rootKey: jspb.Message.getFieldWithDefault(msg, 9, "")
+    rootKey: jspb.Message.getFieldWithDefault(msg, 9, ""),
+    pathPrefix: jspb.Message.getFieldWithDefault(msg, 10, "")
   };
 
   if (includeInstance) {
@@ -1007,6 +1008,10 @@ proto.gloo.solo.io.SettingsSpec.VaultSecrets.deserializeBinaryFromReader = funct
     case 9:
       var value = /** @type {string} */ (reader.readString());
       msg.setRootKey(value);
+      break;
+    case 10:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPathPrefix(value);
       break;
     default:
       reader.skipField();
@@ -1098,6 +1103,13 @@ proto.gloo.solo.io.SettingsSpec.VaultSecrets.serializeBinaryToWriter = function(
   if (f.length > 0) {
     writer.writeString(
       9,
+      f
+    );
+  }
+  f = message.getPathPrefix();
+  if (f.length > 0) {
+    writer.writeString(
+      10,
       f
     );
   }
@@ -1251,6 +1263,21 @@ proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.getRootKey = function() {
 /** @param {string} value */
 proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.setRootKey = function(value) {
   jspb.Message.setProto3StringField(this, 9, value);
+};
+
+
+/**
+ * optional string path_prefix = 10;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.getPathPrefix = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 10, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.setPathPrefix = function(value) {
+  jspb.Message.setProto3StringField(this, 10, value);
 };
 
 

@@ -268,6 +268,9 @@ export namespace SettingsSpec {
     getRootKey(): string;
     setRootKey(value: string): void;
 
+    getPathPrefix(): string;
+    setPathPrefix(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): VaultSecrets.AsObject;
     static toObject(includeInstance: boolean, msg: VaultSecrets): VaultSecrets.AsObject;
@@ -289,6 +292,7 @@ export namespace SettingsSpec {
       tlsServerName: string,
       insecure?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       rootKey: string,
+      pathPrefix: string,
     }
   }
 
