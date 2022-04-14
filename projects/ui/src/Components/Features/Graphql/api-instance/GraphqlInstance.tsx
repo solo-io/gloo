@@ -15,12 +15,10 @@ import {
   StyledTabPanel,
 } from 'Components/Common/Tabs';
 import React from 'react';
-import { isExecutableAPI } from 'utils/graphql-helpers';
 import { GraphqlIconHolder } from '../GraphqlLanding.style';
 import GraphqlApiDetails from './api-details/GraphqlApiDetails';
 import { GraphqlApiExplorer } from './api-explorer/GraphqlApiExplorer';
-import GraphqlApiIntrospectionToggle from './GraphqlApiIntrospectionToggle';
-import GraphqlDefineResolversPrompt from './GraphqlDefineResolversPrompt';
+import GraphqlApiPolicyInputs from './api-policies/GraphqlApiPolicyInputs';
 
 export const GraphqlInstance: React.FC = () => {
   const apiRef = usePageApiRef();
@@ -45,19 +43,11 @@ export const GraphqlInstance: React.FC = () => {
             value: apiRef.namespace,
           },
         ]}>
-        {isExecutableAPI(graphqlApi) && (
-          <>
-            <GraphqlDefineResolversPrompt apiRef={apiRef} />
-            <div className='float-right'>
-              <GraphqlApiIntrospectionToggle apiRef={apiRef} />
-            </div>
-          </>
-        )}
-
         <Tabs index={tabIndex} onChange={handleTabsChange}>
           <FolderTabList>
             <FolderTab>API Details</FolderTab>
             {apiExplorerEnabled && <FolderTab>Explore</FolderTab>}
+            <FolderTab>Policies</FolderTab>
           </FolderTabList>
 
           <TabPanels>
@@ -69,6 +59,11 @@ export const GraphqlInstance: React.FC = () => {
             <StyledTabPanel>
               <FolderTabContentNoPadding>
                 {tabIndex === 1 && <GraphqlApiExplorer />}
+              </FolderTabContentNoPadding>
+            </StyledTabPanel>
+            <StyledTabPanel>
+              <FolderTabContentNoPadding>
+                {tabIndex === 2 && <GraphqlApiPolicyInputs />}
               </FolderTabContentNoPadding>
             </StyledTabPanel>
           </TabPanels>

@@ -1,6 +1,7 @@
 import { useGetGraphqlApiDetails, usePageApiRef } from 'API/hooks';
 import React from 'react';
 import { isExecutableAPI } from 'utils/graphql-helpers';
+import GraphqlDefineResolversPrompt from '../api-policies/GraphqlDefineResolversPrompt';
 import { ExecutableGraphqlApiDetails } from './executable-api/ExecutableGraphqlApiDetails';
 import GraphqlApiConfigurationHeader from './GraphqlApiConfigurationHeader';
 import { StitchedGraphqlApiDetails } from './stitched-api/StitchedGraphqlApiDetails';
@@ -15,7 +16,10 @@ const GraphqlApiDetails = () => {
       <GraphqlApiConfigurationHeader apiRef={apiRef} />
 
       {isExecutableAPI(graphqlApi) ? (
-        <ExecutableGraphqlApiDetails apiRef={apiRef} />
+        <>
+          <GraphqlDefineResolversPrompt apiRef={apiRef} />
+          <ExecutableGraphqlApiDetails apiRef={apiRef} />
+        </>
       ) : (
         <StitchedGraphqlApiDetails apiRef={apiRef} />
       )}

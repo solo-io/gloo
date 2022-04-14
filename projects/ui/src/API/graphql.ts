@@ -1,6 +1,9 @@
 import { grpc } from '@improbable-eng/grpc-web';
 import { Value } from 'google-protobuf/google/protobuf/struct_pb';
-import { StringValue } from 'google-protobuf/google/protobuf/wrappers_pb';
+import {
+  StringValue,
+  UInt32Value,
+} from 'google-protobuf/google/protobuf/wrappers_pb';
 import { FieldDefinitionNode } from 'graphql';
 import isEmpty from 'lodash/isEmpty';
 import {
@@ -249,11 +252,18 @@ function apiSpecFromObject(
       let newExecutor = newExecutableSchema.getExecutor() ?? new Executor();
 
       if (local !== undefined) {
-        let { enableIntrospection, resolutionsMap } = local;
+        let { enableIntrospection, resolutionsMap, options } = local;
         let newLocal = newExecutor.getLocal() ?? new Executor.Local();
 
         if (enableIntrospection !== undefined) {
           newLocal.setEnableIntrospection(enableIntrospection);
+        }
+        if (options?.maxDepth !== undefined) {
+          const localOptions = new Executor.Local.LocalExecutorOptions();
+          localOptions.setMaxDepth(
+            new UInt32Value().setValue(options.maxDepth.value)
+          );
+          newLocal.setOptions(localOptions);
         }
         // TODO:  This doesn't actually update the resolutions map because that's in the apiSec
         //        Also, this is another weird flipped conversion.

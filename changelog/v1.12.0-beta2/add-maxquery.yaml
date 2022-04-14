@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Added the ability to update the max query depth.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3386
