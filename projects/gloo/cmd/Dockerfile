@@ -13,7 +13,6 @@ COPY js /usr/local/bin/js
 COPY gloo-linux-amd64 /usr/local/bin/gloo
 RUN apk update;
 RUN npm install --prefix /usr/local/bin/js
-
 USER 10101
 
 ENTRYPOINT ["/usr/local/bin/gloo"]

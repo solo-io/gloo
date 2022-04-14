@@ -265,6 +265,8 @@ APISERVER_DIR=$(ROOTDIR)/projects/apiserver/api/
 APISERVER_SOURCES=$(shell find $(APISERVER_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/gloo-fed-apiserver-linux-amd64: $(APISERVER_SOURCES)
+	cp -r projects/gloo/pkg/plugins/graphql/js $(OUTPUT_DIR)/js
+	cp -r projects/ui/src/proto $(OUTPUT_DIR)/js
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_APISERVER_DIR)/cmd/main.go
 
 .PHONY: gloo-fed-apiserver

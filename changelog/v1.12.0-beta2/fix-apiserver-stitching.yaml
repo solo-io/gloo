@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/3350
+  description: >
+    Adds node and stitching javascript to gloo UI api server, so now stitching info
+    generation works in-cluster.
