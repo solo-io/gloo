@@ -105,7 +105,7 @@ var _ = Describe("fed graphql handler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp).To(Equal(&rpc_edge_v1.GetGraphqlApiResponse{
 				GraphqlApi: &rpc_edge_v1.GraphqlApi{
-					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns"},
+					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 					Spec:         &petstoreGraphqlApi.Spec,
 					Status:       &petstoreGraphqlApi.Status,
 					GlooInstance: &skv2_v1.ObjectRef{Name: "local-test", Namespace: "gloo-system"},
@@ -234,7 +234,7 @@ var _ = Describe("fed graphql handler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp).To(Equal(&rpc_edge_v1.CreateGraphqlApiResponse{
 				GraphqlApi: &rpc_edge_v1.GraphqlApi{
-					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns"},
+					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 					Spec:         &petstoreGraphqlApi.Spec,
 					Status:       &petstoreGraphqlApi.Status,
 					GlooInstance: &skv2_v1.ObjectRef{Name: "local-test", Namespace: "gloo-system"},
@@ -292,7 +292,7 @@ var _ = Describe("fed graphql handler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp).To(Equal(&rpc_edge_v1.UpdateGraphqlApiResponse{
 				GraphqlApi: &rpc_edge_v1.GraphqlApi{
-					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns"},
+					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
 					Spec:         &bookinfoGraphqlApi.Spec,
 					Status:       &petstoreGraphqlApi.Status,
 					GlooInstance: &skv2_v1.ObjectRef{Name: "local-test", Namespace: "gloo-system"},

@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/3505
+    description: Fixes issue with UI reading settings when Gloo Fed is enabled.
+    resolvesIssue: false

@@ -76,14 +76,14 @@ export function sortGlooInstances(
   if (
     instanceB?.metadata?.name === undefined ||
     instanceB?.metadata?.namespace === undefined ||
-    instanceB.metadata.clusterName === undefined
+    instanceB?.spec?.cluster === undefined
   ) {
     return 1;
   }
   if (
     instanceA?.metadata?.name === undefined ||
     instanceA?.metadata?.namespace === undefined ||
-    instanceA.metadata.clusterName === undefined
+    instanceA?.spec?.cluster === undefined
   ) {
     return -1;
   }
@@ -94,8 +94,8 @@ export function sortGlooInstances(
   const namespaceDiff = instanceA.metadata.namespace.localeCompare(
     instanceB.metadata.namespace
   );
-  const clusterDiff = instanceA.metadata.clusterName.localeCompare(
-    instanceB.metadata.clusterName
+  const clusterDiff = instanceA.spec.cluster.localeCompare(
+    instanceB.spec.cluster
   );
 
   return nameDiff || namespaceDiff || clusterDiff;

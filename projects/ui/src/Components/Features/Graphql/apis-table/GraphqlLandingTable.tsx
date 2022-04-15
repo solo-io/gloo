@@ -66,7 +66,7 @@ export const GraphqlLandingTable: React.FC<{
         link: makeGraphqlApiLink(
           api.metadata?.name,
           api.metadata?.namespace,
-          glooInstance?.metadata?.clusterName ?? '',
+          api.metadata?.clusterName ?? '',
           glooInstance?.metadata?.name ?? '',
           glooInstance?.metadata?.namespace ?? '',
           isGlooFedEnabled

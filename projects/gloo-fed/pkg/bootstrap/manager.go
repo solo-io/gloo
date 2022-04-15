@@ -17,7 +17,7 @@ import (
 	fedgatewayv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1"
 	fedgloov1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1"
 	fedratelimitv1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.ratelimit.solo.io/v1alpha1"
-	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
+	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -27,11 +27,12 @@ import (
 )
 
 var fedSchemes = runtime.SchemeBuilder{
-	v1.AddToScheme,
+	fedv1.AddToScheme,
 	fedgloov1.AddToScheme,
 	fedgatewayv1.AddToScheme,
 	fedenterprisev1.AddToScheme,
 	fedratelimitv1alpha1.AddToScheme,
+	gloov1.AddToScheme, // this is needed in order to read settings on the mgmt ("local") cluster
 }
 
 var singleClusterSchemes = runtime.SchemeBuilder{

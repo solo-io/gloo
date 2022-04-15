@@ -60,6 +60,7 @@ function getConsoleOptions(): Promise<GetConsoleOptionsResponse.AsObject | null>
       message,
       (err, responseMessage) => {
         if (err) {
+          console.error(err);
           reject(err.message);
         } else {
           if (responseMessage) {

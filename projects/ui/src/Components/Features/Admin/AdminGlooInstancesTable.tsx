@@ -178,9 +178,7 @@ export const AdminGlooInstancesTable = () => {
           <InstanceRow
             key={
               glooInstance.metadata?.name ??
-              '' +
-                glooInstance.metadata?.namespace +
-                glooInstance.metadata?.clusterName
+              '' + glooInstance.metadata?.namespace + glooInstance.spec?.cluster
             }>
             <InstanceTitle title={glooInstance.metadata?.name}>
               <InstanceTitleIconHolder>

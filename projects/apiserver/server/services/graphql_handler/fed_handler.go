@@ -65,15 +65,10 @@ func (h *fedGraphqlHandler) GetGraphqlApi(ctx context.Context, request *rpc_edge
 		return nil, err
 	}
 	return &rpc_edge_v1.GetGraphqlApiResponse{
-		GraphqlApi: &rpc_edge_v1.GraphqlApi{
-			Metadata: apiserverutils.ToMetadata(graphqlApi.ObjectMeta),
-			Spec:     &graphqlApi.Spec,
-			Status:   &graphqlApi.Status,
-			GlooInstance: &skv2_v1.ObjectRef{
-				Name:      glooInstance.GetName(),
-				Namespace: glooInstance.GetNamespace(),
-			},
-		},
+		GraphqlApi: convertGraphqlApi(graphqlApi, &skv2_v1.ObjectRef{
+			Name:      glooInstance.GetName(),
+			Namespace: glooInstance.GetNamespace(),
+		}, glooInstance.Spec.GetCluster()),
 	}, nil
 }
 
@@ -272,15 +267,10 @@ func (h *fedGraphqlHandler) CreateGraphqlApi(ctx context.Context, request *rpc_e
 		return nil, err
 	}
 	return &rpc_edge_v1.CreateGraphqlApiResponse{
-		GraphqlApi: &rpc_edge_v1.GraphqlApi{
-			Metadata: apiserverutils.ToMetadata(graphqlApi.ObjectMeta),
-			Spec:     &graphqlApi.Spec,
-			Status:   &graphqlApi.Status,
-			GlooInstance: &skv2_v1.ObjectRef{
-				Name:      glooInstance.GetName(),
-				Namespace: glooInstance.GetNamespace(),
-			},
-		},
+		GraphqlApi: convertGraphqlApi(graphqlApi, &skv2_v1.ObjectRef{
+			Name:      glooInstance.GetName(),
+			Namespace: glooInstance.GetNamespace(),
+		}, glooInstance.Spec.GetCluster()),
 	}, nil
 }
 
@@ -332,15 +322,10 @@ func (h *fedGraphqlHandler) UpdateGraphqlApi(ctx context.Context, request *rpc_e
 		return nil, err
 	}
 	return &rpc_edge_v1.UpdateGraphqlApiResponse{
-		GraphqlApi: &rpc_edge_v1.GraphqlApi{
-			Metadata: apiserverutils.ToMetadata(graphqlApi.ObjectMeta),
-			Spec:     &graphqlApi.Spec,
-			Status:   &graphqlApi.Status,
-			GlooInstance: &skv2_v1.ObjectRef{
-				Name:      glooInstance.GetName(),
-				Namespace: glooInstance.GetNamespace(),
-			},
-		},
+		GraphqlApi: convertGraphqlApi(graphqlApi, &skv2_v1.ObjectRef{
+			Name:      glooInstance.GetName(),
+			Namespace: glooInstance.GetNamespace(),
+		}, glooInstance.Spec.GetCluster()),
 	}, nil
 }
 
