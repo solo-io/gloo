@@ -40,6 +40,9 @@ export const ResolverTypeSection = () => {
 
   const onTypeChange = (resolverType: string) => {
     formik.setFieldValue('resolverType', resolverType);
+    if (resolverType !== 'gRPC') {
+      formik.setFieldValue('protoFile', '');
+    }
     formik.setFieldValue('resolverConfig', '');
     formik.setFieldValue('upstream', '');
   };

@@ -66,7 +66,6 @@ export const ResolverConfigSection = ({
 }: ResolverConfigSectionProps) => {
   const { setFieldValue, values, dirty, errors } =
     useFormikContext<ResolverWizardFormProps>();
-  const [isValid, setIsValid] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState('');
   const [demoConfig, setDemoConfig] = React.useState('');
 
@@ -118,18 +117,6 @@ export const ResolverConfigSection = ({
           <EditorContainer editMode={true}>
             <div className=''>
               <div className='' style={{ height: 'min-content' }}>
-                {isValid && errorMessage.length === 0 ? (
-                  <div
-                    className={`${
-                      isValid ? 'opacity-100' : 'opacity-0'
-                    } h-10 text-center`}>
-                    <div
-                      style={{ backgroundColor: '#f2fef2' }}
-                      className='p-2 text-green-400 border border-green-400 '>
-                      <div className='font-medium '>Valid</div>
-                    </div>
-                  </div>
-                ) : (
                   <div
                     className={`${
                       errorMessage.length > 0 ? 'opacity-100' : '  opacity-0'
@@ -145,9 +132,9 @@ export const ResolverConfigSection = ({
                       </ul>
                     </div>
                   </div>
-                )}
               </div>
             </div>
+
             <div className='flex flex-col w-full '>
               <>
                 <SpacedValuesContainer>
@@ -186,9 +173,6 @@ export const ResolverConfigSection = ({
                     setFieldValue('resolverConfig', newValue);
                   }}
                   focus={true}
-                  onInput={() => {
-                    setIsValid(false);
-                  }}
                   fontSize={16}
                   showPrintMargin={false}
                   showGutter={true}

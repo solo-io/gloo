@@ -22,15 +22,16 @@ export const StyledModalTab = (
     disabled?: boolean | undefined;
     isCompleted?: boolean | undefined;
     isSelected?: boolean | undefined;
+    className?: string;
   } & TabPanelProps
 ) => {
-  const { isSelected, children, isCompleted, ...otherProps } = props;
+  const { isSelected, children, isCompleted, className, ...otherProps } = props;
   const theme = useTheme();
   return (
     <StyledTabComponent
       {...otherProps}
       isSelected={!!isSelected}
-      className='flex justify-between p-1 pl-6 mb-2 text-left text-white focus:outline-none'>
+      className={`${className} flex justify-between p-1 pl-6 mb-2 text-left text-white focus:outline-none`}>
       {children}
 
       <div

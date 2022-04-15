@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Add the ability to upload a gRPC proto bin file.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3452

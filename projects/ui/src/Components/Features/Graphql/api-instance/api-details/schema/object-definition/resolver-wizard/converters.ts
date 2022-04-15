@@ -266,3 +266,40 @@ export const getResolverFromConfig = (resolver?: Resolution.AsObject) => {
   }
   return '';
 };
+
+export const isBase64 = (str: string) => {
+  // Technically, this is valid base64.
+  // @see https://datatracker.ietf.org/doc/html/rfc4648#section-10
+  if (!str || str.trim() === '') {
+    return false;
+  }
+  try {
+    return btoa(atob(str)) === str;
+  } catch (err) {
+    return false;
+  }
+};
+
+/**
+ * @example
+ * stringToBase64("foo"); // returns 'Zm9v'
+ */
+export const stringToBase64 = (str: string) => {
+  // First we escape the string using encodeURIComponent to get the UTF-8 encoding of the characters,
+  // then we convert the percent encodings into raw bytes, and finally feed it to btoa() function.
+  const utf8Bytes = encodeURIComponent(str).replace(
+    /%([0-9A-F]{2})/g,
+    (_match, p1) => {
+      // @ts-ignore
+      return String.fromCharCode('0x' + p1);
+    }
+  );
+  return btoa(utf8Bytes);
+};
+/**
+ * @example
+ * base64ToString("Zm9v") // returns 'foo'
+ */
+export const base64ToString = (str: string) => {
+  return decodeURIComponent(atob(str));
+};

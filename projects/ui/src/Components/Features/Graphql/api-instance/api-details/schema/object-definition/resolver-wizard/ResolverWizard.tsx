@@ -23,6 +23,7 @@ import {
 } from 'utils/graphql-helpers';
 import * as yup from 'yup';
 import { createResolverItem, getResolverFromConfig } from './converters';
+import { GrpcProtoCheck } from './grpcProtoCheck/GrpcProtoCheck';
 import { ResolverConfigSection } from './ResolverConfigSection';
 import { getType, ResolverTypeSection } from './ResolverTypeSection';
 import * as styles from './ResolverWizard.styles';
@@ -33,6 +34,7 @@ export type ResolverWizardFormProps = {
   upstream: string;
   resolverConfig: string;
   listOfResolvers: [string, Resolution.AsObject][];
+  protoFile?: string;
 };
 
 // --- VALIDATION --- //
@@ -49,10 +51,13 @@ const upstreamIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
   !formik.errors.upstream;
 const resolverConfigIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
   !formik.errors.resolverConfig;
+const protoFileIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
+  !formik.errors.protoFile;
 const formIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
   resolverTypeIsValid(formik) &&
   upstreamIsValid(formik) &&
-  resolverConfigIsValid(formik);
+  resolverConfigIsValid(formik) &&
+  protoFileIsValid(formik);
 
 //
 // --- COMPONENT --- //
@@ -173,6 +178,7 @@ export const ResolverWizard: React.FC<{
           upstream: existingUpstreamId,
           resolverConfig: getResolverFromConfig(resolution),
           listOfResolvers,
+          protoFile: '',
         }}
         enableReinitialize
         validateOnMount={true}
@@ -188,20 +194,38 @@ export const ResolverWizard: React.FC<{
               <TabList className='flex flex-col mt-6'>
                 {/* --- SIDEBAR --- */}
                 <StyledModalTab
+                  isSelected={tabIndex === 0}
                   data-testid='resolver-type-tab'
                   isCompleted={!!formik.values.resolverType?.length}>
                   Resolver Type
                 </StyledModalTab>
+                {/* TODO:  Toggle here on gRPC. */}
+                  <StyledModalTab
+                    isSelected={formik.values.resolverType === 'gRPC' && tabIndex === 1}
+                    className={`${formik.values.resolverType === 'gRPC' ? 'visible' : 'hidden'}`}
+                    data-testid='resolver-gprc-proto-tab'
+                    isCompleted={!!formik.values.protoFile?.length}>
+                    gRPC Toggle
+                  </StyledModalTab>
                 <StyledModalTab
+                  isSelected={
+                    formik.values.resolverType === 'gRPC' && tabIndex === 2 ||
+                    formik.values.resolverType === 'REST' && tabIndex === 1
+                  }
                   data-testid='upstream-tab'
                   isCompleted={!!formik.values.upstream?.length}>
                   Upstream
                 </StyledModalTab>
                 <StyledModalTab
+                  isSelected={
+                    formik.values.resolverType === 'gRPC' && tabIndex === 3 ||
+                    formik.values.resolverType === 'REST' && tabIndex === 2
+                  }
                   data-testid='resolver-config-tab'
                   isCompleted={!!formik.values.resolverConfig?.length}>
                   Resolver Config
                 </StyledModalTab>
+
               </TabList>
 
               <TabPanels className='bg-white rounded-r-lg flex flex-col h-full'>
@@ -230,13 +254,44 @@ export const ResolverWizard: React.FC<{
                       Cancel
                     </styles.IconButton>
                     <SoloButtonStyledComponent
-                      onClick={() => setTabIndex(tabIndex + 1)}
+                      onClick={() => {
+                        if (formik.values.resolverType === 'gRPC') {
+                          setTabIndex(tabIndex + 1);
+                        } else {
+                          setTabIndex(tabIndex + 2);
+                        }
+                      }}
                       disabled={!resolverTypeIsValid(formik)}>
                       Next Step
                     </SoloButtonStyledComponent>
                   </div>
                 </TabPanel>
-                {/* --- STEP 2: UPSTREAM --- */}
+                {/* Step 2 or none: Get the gRPC ProtoFile  */}
+                <TabPanel className={`
+                  ${formik.values.resolverType !== 'gRPC' ? 'hidden' : 'visible'}
+                  relative flex-grow flex flex-col justify-between pb-4 focus:outline-none`
+                }>
+                  <GrpcProtoCheck
+                    setWarningMessage={(message: string) => {
+                      setWarningMessage(message);
+                    }}
+                    warningMessage={warningMessage}
+                  />
+                  <div className='flex items-center justify-between px-6 '>
+                    <styles.IconButton onClick={onClose}>
+                      Cancel
+                    </styles.IconButton>
+                    {!readonly && (
+                      <SoloButtonStyledComponent
+                        data-testid='resolver-wizard-submit'
+                        onClick={() => setTabIndex(tabIndex + 1)}
+                      >
+                        Next Step
+                      </SoloButtonStyledComponent>
+                    )}
+                  </div>
+                </TabPanel>
+                {/* --- STEP 2 | 3: UPSTREAM --- */}
                 <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
                   <UpstreamSection existingUpstreamId={existingUpstreamId} />
                   <div className='flex items-center justify-between px-6 '>
@@ -250,11 +305,9 @@ export const ResolverWizard: React.FC<{
                     </SoloButtonStyledComponent>
                   </div>
                 </TabPanel>
-                {/* --- STEP 3: CONFIG --- */}
+                {/* --- STEP 3 | 4: CONFIG --- */}
                 <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
-                  {tabIndex === 2 && (
-                    <ResolverConfigSection warningMessage={warningMessage} />
-                  )}
+                  <ResolverConfigSection warningMessage={warningMessage} />
                   <div className='flex items-center justify-between px-6 '>
                     <styles.IconButton onClick={onClose}>
                       Cancel
@@ -269,6 +322,7 @@ export const ResolverWizard: React.FC<{
                     )}
                   </div>
                 </TabPanel>
+
               </TabPanels>
             </StyledModalTabs>
           </>
