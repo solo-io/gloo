@@ -1,13 +1,12 @@
 import * as React from 'react';
-import { diff, Change, CriticalityLevel } from '@graphql-inspector/core';
 import styled from '@emotion/styled';
 import { colors } from 'Styles/colors';
 import { ReactComponent as ErrorIcon } from 'assets/big-unsuccessful-x.svg';
 import { IconHolder } from 'Styles/StyledComponents/icons';
 import { SoloTable } from 'Components/Common/SoloTable';
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import * as styles from './UpdateApiModal.style';
-import upperFirst from 'lodash/upperFirst';
+import { graphqlConfigApi } from 'API/graphql';
+import { GraphQLInspectorDiffOutput } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/enterprise/graphql/v1/diff_pb';
 
 export interface ReactDiffProps {
   originalSchemaString: string;
@@ -17,16 +16,18 @@ export interface ReactDiffProps {
   validateApi: (schemaString: string) => Promise<any>;
 }
 
-const StyledContainer = styled.div<{ level: CriticalityLevel }>`
+const StyledContainer = styled.div<{ level: number }>`
   padding-top: 20px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   color: ${props => {
-    if (props.level === 'BREAKING') {
+    if (props.level === GraphQLInspectorDiffOutput.CriticalityLevel.BREAKING) {
       return colors.errorRed;
-    } else if (props.level === 'DANGEROUS') {
+    } else if (
+      props.level === GraphQLInspectorDiffOutput.CriticalityLevel.DANGEROUS
+    ) {
       return colors.errorRed;
     }
     return 'black';
@@ -58,16 +59,29 @@ export const GraphqlDiff = (props: ReactDiffProps) => {
     {
       title: 'Type',
       dataIndex: 'level',
-      render: (level: CriticalityLevel) => {
-        const formattedLevel = upperFirst(level.toLowerCase()).replace(
-          /_/g,
-          ' '
-        );
+      render: (level: number) => {
+        let formattedLevel = '';
+        if (
+          level === GraphQLInspectorDiffOutput.CriticalityLevel.NON_BREAKING
+        ) {
+          formattedLevel = 'Non breaking';
+        } else if (
+          level === GraphQLInspectorDiffOutput.CriticalityLevel.DANGEROUS
+        ) {
+          formattedLevel = 'Dangerous';
+        } else if (
+          level === GraphQLInspectorDiffOutput.CriticalityLevel.BREAKING
+        ) {
+          formattedLevel = 'Breaking';
+        }
         return (
           <>
             <StyledContainer level={level}>
               {formattedLevel}
-              {(level === 'BREAKING' || level === 'DANGEROUS') && (
+              {(level ===
+                GraphQLInspectorDiffOutput.CriticalityLevel.DANGEROUS ||
+                level ===
+                  GraphQLInspectorDiffOutput.CriticalityLevel.BREAKING) && (
                 <StyledIcon
                   applyColor={{
                     color: colors.errorRed,
@@ -83,7 +97,7 @@ export const GraphqlDiff = (props: ReactDiffProps) => {
     {
       title: 'Reason',
       dataIndex: 'reason',
-      render: (reason: { level: CriticalityLevel; message: string }) => {
+      render: (reason: { level: number; message: string }) => {
         return (
           <StyledContainer level={reason.level}>
             {reason.message}
@@ -93,47 +107,55 @@ export const GraphqlDiff = (props: ReactDiffProps) => {
     },
   ];
   // State
-  const [changes, setChanges] = React.useState<Change[]>([]);
+  const [changes, setChanges] = React.useState<
+    GraphQLInspectorDiffOutput.Change.AsObject[]
+  >([]);
 
   React.useEffect(() => {
     try {
-      const validatePromise = validateApi(newSchemaString)
+      validateApi(newSchemaString)
         .then(() => {
-          const original = makeExecutableSchema({
-            typeDefs: originalSchemaString,
-          });
-          const newExec = makeExecutableSchema({
-            typeDefs: newSchemaString,
-          });
-          return diff(original, newExec);
+          return graphqlConfigApi.getSchemaDiff(
+            originalSchemaString,
+            newSchemaString
+          );
         })
-        .then((values: Change[]) => {
+        .then((values: GraphQLInspectorDiffOutput.Change.AsObject[]) => {
           setWarningMessage('');
           const changes = values
             .map((v, idx) => {
-              (v as any).level = v.criticality.level;
-              (v as any).key = v.criticality.level + idx;
+              (v as any).level = v.criticality!.level;
+              (v as any).key = v.criticality!.level + idx;
               (v as any).reason = {
                 message: v.message,
-                level: v.criticality.level,
+                level: v.criticality!.level,
               };
               return v;
             })
             .sort((a, b) => {
               // Sort by dangerous, then breaking, then non-breaking.
 
-              const aLevel = a.criticality.level;
-              const bLevel = b.criticality.level;
+              const aLevel = a.criticality!.level;
+              const bLevel = b.criticality!.level;
               if (aLevel === bLevel) {
                 return 0;
               }
-              if (aLevel === 'DANGEROUS') {
+
+              if (
+                aLevel === GraphQLInspectorDiffOutput.CriticalityLevel.DANGEROUS
+              ) {
                 return -1;
-              } else if (bLevel === 'DANGEROUS') {
+              } else if (
+                bLevel === GraphQLInspectorDiffOutput.CriticalityLevel.DANGEROUS
+              ) {
                 return 1;
-              } else if (aLevel === 'BREAKING') {
+              } else if (
+                aLevel === GraphQLInspectorDiffOutput.CriticalityLevel.BREAKING
+              ) {
                 return -1;
-              } else if (bLevel === 'BREAKING') {
+              } else if (
+                bLevel === GraphQLInspectorDiffOutput.CriticalityLevel.BREAKING
+              ) {
                 return 1;
               }
               return 0;

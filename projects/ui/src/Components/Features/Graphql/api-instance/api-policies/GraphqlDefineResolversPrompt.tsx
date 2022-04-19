@@ -1,3 +1,4 @@
+import styled from '@emotion/styled';
 import { useGetGraphqlApiDetails } from 'API/hooks';
 import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
 import {
@@ -6,6 +7,22 @@ import {
 } from 'Components/Features/Overview/OverviewBoxSummary';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React from 'react';
+import { colors } from 'Styles/colors';
+
+const StyledBanner = styled.div`
+  background: ${colors.flashlightGold};
+  border: solid 1px ${colors.darkFebruaryGrey};
+  padding: 10px;
+  margin-bottom: 20px;
+`;
+
+const StyledStatusHealth = styled(StatusHealth)`
+  margin-bottom: 0;
+  margin-left: 50px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`;
 
 const GraphqlDefineResolversPrompt: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
@@ -34,21 +51,18 @@ const GraphqlDefineResolversPrompt: React.FC<{
 
   if (!showResolverPrompt) return null;
   return (
-    <div className='grid w-full '>
-      <StatusHealth isWarning className=' place-content-center'>
+    <StyledBanner className='grid w-full '>
+      <StyledStatusHealth isWarning className=''>
         <div>
           <WarningCircle>
             <WarningExclamation />
           </WarningCircle>
         </div>
         <div>
-          <>
-            <div className='text-xl '>No Resolvers defined</div>
-            <div className='text-lg '>Define resolvers</div>
-          </>
+          <div className='text-xl'>No Resolvers defined</div>
         </div>
-      </StatusHealth>
-    </div>
+      </StyledStatusHealth>
+    </StyledBanner>
   );
 };
 

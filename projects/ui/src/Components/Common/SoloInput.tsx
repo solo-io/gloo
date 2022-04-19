@@ -80,6 +80,7 @@ export interface InputProps
   > {
   name?: string;
   title?: string;
+  label?: React.ReactNode;
   placeholder?: string;
   value: string | number;
   disabled?: boolean;
@@ -106,6 +107,7 @@ export const SoloInput = (props: InputProps) => {
     onKeyPress,
     password,
     file,
+    label,
     ...rest
   } = props;
 
@@ -119,7 +121,8 @@ export const SoloInput = (props: InputProps) => {
 
   return (
     <div>
-      {title && <Label>{title}</Label>}
+      {title && !label && <Label>{title}</Label>}
+      {label && <Label>{label}</Label>}
       <InputContainer>
         <Input
           type={type}

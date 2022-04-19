@@ -1,4 +1,4 @@
-import { graphqlConfigApi } from 'API/graphql';
+import { getGraphqlApiPb, graphqlConfigApi } from 'API/graphql';
 import { useListGraphqlApis } from 'API/hooks';
 import { TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { DataError } from 'Components/Common/DataError';
@@ -87,11 +87,17 @@ export const UpdateApiModal: React.FC<{
   const validateApi = async (schemaString: string) => {
     const validationRequest = new ValidateSchemaDefinitionRequest();
     const validationObj = validationRequest.toObject();
+    // Because we are updating a current spec, we have to send that in the validationSchema.
+    let currentGraphqlApi = await getGraphqlApiPb(apiRef);
+    const exec = currentGraphqlApi!.getSpec()!.getExecutableSchema();
+    exec!.setSchemaDefinition(schemaString);
+    currentGraphqlApi.getSpec()!.setExecutableSchema(exec);
+    validationObj.spec = currentGraphqlApi!.getSpec()!.toObject();
+
     await graphqlConfigApi
       .validateSchema({
         ...validationObj,
         ...{
-          schemaDefinition: schemaString,
           apiRef,
         },
       })

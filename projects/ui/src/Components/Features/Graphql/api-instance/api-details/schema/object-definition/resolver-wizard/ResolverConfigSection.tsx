@@ -117,21 +117,21 @@ export const ResolverConfigSection = ({
           <EditorContainer editMode={true}>
             <div className=''>
               <div className='' style={{ height: 'min-content' }}>
+                <div
+                  className={`${
+                    errorMessage.length > 0 ? 'opacity-100' : '  opacity-0'
+                  }`}>
                   <div
-                    className={`${
-                      errorMessage.length > 0 ? 'opacity-100' : '  opacity-0'
-                    }`}>
-                    <div
-                      style={{ backgroundColor: '#FEF2F2' }}
-                      className='p-2 text-orange-400 border border-orange-400 mb-5'>
-                      <div className='font-medium '>
-                        {errorMessage?.split(',')[0]}
-                      </div>
-                      <ul className='pl-2 list-disc'>
-                        {errorMessage?.split(',')[1]}
-                      </ul>
+                    style={{ backgroundColor: '#FEF2F2' }}
+                    className='p-2 text-orange-400 border border-orange-400 mb-5'>
+                    <div className='font-medium '>
+                      {errorMessage?.split(',')[0]}
                     </div>
+                    <ul className='pl-2 list-disc'>
+                      {errorMessage?.split(',')[1]}
+                    </ul>
                   </div>
+                </div>
               </div>
             </div>
 

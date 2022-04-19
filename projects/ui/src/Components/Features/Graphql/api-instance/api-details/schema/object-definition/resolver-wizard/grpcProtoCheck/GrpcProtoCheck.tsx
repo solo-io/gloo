@@ -1,5 +1,7 @@
 import { SoloFormFileUpload } from 'Components/Common/SoloFormComponents';
-import VisualEditor, { SoloFormVisualEditorProps } from 'Components/Common/VisualEditor';
+import VisualEditor, {
+  SoloFormVisualEditorProps,
+} from 'Components/Common/VisualEditor';
 import { useFormikContext } from 'formik';
 import React from 'react';
 import { isBase64, base64ToString, stringToBase64 } from '../converters';
@@ -14,30 +16,31 @@ export const GrpcProtoCheck = (props: GrpcProtoCheckProps) => {
   const formik = useFormikContext<ResolverWizardFormProps>();
   const [showEditor, setShowEditor] = React.useState(false);
   const [editorValues, setEditorValues] = React.useState('');
-  const [fileExtension, setFileExtension] = React.useState<SoloFormVisualEditorProps['mode']>('protobuf');
+  const [fileExtension, setFileExtension] =
+    React.useState<SoloFormVisualEditorProps['mode']>('protobuf');
   const { setWarningMessage, warningMessage } = props;
 
   const updateExtension = (file: File) => {
-      let extension ='';
-      if (file.type) {
-          extension = file.type;
-      } else if (file.name) {
-        extension = file.name.split('.').pop()!;
-      }
-      if (extension === 'proto') {
-        return 'protobuf';
-      } else if (extension === 'go') {
-        return 'golang';
-      } else if (extension === 'js') {
-        return 'javascript';
-      } else {
-        return extension;
-      }
+    let extension = '';
+    if (file.type) {
+      extension = file.type;
+    } else if (file.name) {
+      extension = file.name.split('.').pop()!;
+    }
+    if (extension === 'proto') {
+      return 'protobuf';
+    } else if (extension === 'go') {
+      return 'golang';
+    } else if (extension === 'js') {
+      return 'javascript';
+    } else {
+      return extension;
+    }
   };
 
   return (
     <div data-testid='grpc-proto-check-section' className='px-6 pb-0'>
-        {/* TODO:  There's an edge case here where a user is adding multiple gRPC resolvers.
+      {/* TODO:  There's an edge case here where a user is adding multiple gRPC resolvers.
                    In this scenario, the proto page in the new resolver wizard should automatically
                    show the existing proto definition in the CR.
                    The user should have an option to update the proto bin if needed.
@@ -70,7 +73,7 @@ export const GrpcProtoCheck = (props: GrpcProtoCheckProps) => {
               const reader = new FileReader();
               reader.onload = e => {
                 if (typeof e.target?.result === 'string') {
-                    setFileExtension(updateExtension(file));
+                  setFileExtension(updateExtension(file));
                   const proto = e.target.result;
                   try {
                     const isEncoded64 = isBase64(proto);

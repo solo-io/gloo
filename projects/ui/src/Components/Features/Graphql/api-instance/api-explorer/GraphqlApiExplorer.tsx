@@ -48,12 +48,13 @@ const LabelTextWrapper = styled.div<{ hasError: boolean }>`
     color: ${props => (props.hasError ? colors.sunGold : 'black')};
   }
   input {
-    width: 250px;
+    width: 500px;
   }
 `;
 
 const StyledQuestionMark = styled(QuestionCircleOutlined)`
   margin-top: 3px;
+  margin-left: 20px;
   display: inline-flex;
   &:hover {
     cursor: pointer;
@@ -222,64 +223,71 @@ export const GraphqlApiExplorer = () => {
           <GqlInputWrapper>
             <LabelTextWrapper hasError={Boolean(gqlError)}>
               <SoloInput
-                title={`${
-                  Boolean(gqlError)
-                    ? 'Failed to fetch Graphql service.  Update the host to attempt again.'
-                    : 'Current url'
-                }`}
+                label={
+                  <>
+                    <div className='ml-2'>
+                      <span className='text-sm'>
+                        {gqlError
+                          ? 'Failed to fetch Graphql service.  Update the host to attempt again.'
+                          : 'Endpoint URL'}
+                      </span>
+                      <Tooltip
+                        title={
+                          <CodeWrapper>
+                            <p>
+                              Endpoint URL for the gateway proxy. The default
+                              URL can be used if you port forward with the
+                              following command:
+                            </p>
+                            <p
+                              className='copy'
+                              title='copy command'
+                              onClick={copyKubectlCommand}>
+                              <code>
+                                <i>
+                                  kubectl port-forward -n gloo-system
+                                  deploy/gateway-proxy 8080
+                                </i>
+                                {copyingKubectl ? (
+                                  <Copied>copied!</Copied>
+                                ) : (
+                                  <StyledCopyIcon />
+                                )}
+                              </code>
+                            </p>
+                            <p>
+                              Depending on your installation, you can also use
+                              the following glooctl command:
+                            </p>
+                            <p
+                              className='copy'
+                              title='copy command'
+                              onClick={copyGlooctlCommand}>
+                              <code>
+                                <i>glooctl proxy url</i>
+                                {copyingProxy ? (
+                                  <Copied>copied!</Copied>
+                                ) : (
+                                  <StyledCopyIcon />
+                                )}
+                              </code>
+                            </p>
+                          </CodeWrapper>
+                        }
+                        trigger='hover'
+                        visible={showTooltip}
+                        onVisibleChange={() => {
+                          setShowTooltip(!showTooltip);
+                        }}>
+                        <StyledQuestionMark />
+                      </Tooltip>
+                    </div>
+                  </>
+                }
                 value={url}
                 onChange={changeHost}
               />
             </LabelTextWrapper>
-            <Tooltip
-              title={
-                <CodeWrapper>
-                  <p>
-                    Endpoint URL for the gateway proxy. The default URL can be
-                    used if you port forward with the following command:
-                  </p>
-                  <p
-                    className='copy'
-                    title='copy command'
-                    onClick={copyKubectlCommand}>
-                    <code>
-                      <i>
-                        kubectl port-forward -n gloo-system deploy/gateway-proxy
-                        8080
-                      </i>
-                      {copyingKubectl ? (
-                        <Copied>copied!</Copied>
-                      ) : (
-                        <StyledCopyIcon />
-                      )}
-                    </code>
-                  </p>
-                  <p>
-                    Depending on your installation, you can also use the
-                    following glooctl command:
-                  </p>
-                  <p
-                    className='copy'
-                    title='copy command'
-                    onClick={copyGlooctlCommand}>
-                    <code>
-                      <i>glooctl proxy url</i>
-                      {copyingProxy ? (
-                        <Copied>copied!</Copied>
-                      ) : (
-                        <StyledCopyIcon />
-                      )}
-                    </code>
-                  </p>
-                </CodeWrapper>
-              }
-              trigger='hover'
-              visible={showTooltip}
-              onVisibleChange={() => {
-                setShowTooltip(!showTooltip);
-              }}>
-              <StyledQuestionMark />
-            </Tooltip>
           </GqlInputWrapper>
         </GqlInputContainer>
       ) : null}

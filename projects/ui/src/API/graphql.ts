@@ -30,6 +30,7 @@ import {
   DeleteGraphqlApiRequest,
   GetGraphqlApiRequest,
   GetGraphqlApiYamlRequest,
+  GetSchemaDiffRequest,
   GetStitchedSchemaDefinitionRequest,
   GraphqlApi,
   ListGraphqlApisRequest,
@@ -41,6 +42,10 @@ import {
   ValidateSchemaDefinitionResponse,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import { GraphqlConfigApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
+import {
+  GraphQLInspectorDiffInput,
+  GraphQLInspectorDiffOutput,
+} from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/enterprise/graphql/v1/diff_pb';
 import { updateSchemaAndResolutionMap } from './graphql-resolutions';
 import {
   getClusterRefClassFromClusterRefObj,
@@ -78,6 +83,7 @@ export const graphqlConfigApi = {
   updateGraphqlApiResolver,
   getGraphqlApiWithResolver,
   getStitchedSchemaDefinition,
+  getSchemaDiff,
 };
 
 function listGraphqlApis(
@@ -743,6 +749,26 @@ function getStitchedSchemaDefinition(
     graphqlApiClient.getStitchedSchemaDefinition(request, (error, data) => {
       if (error !== null) rejectWithError(reject, error);
       else resolve(data!.toObject()!.stitchedSchemaSdl!);
+    });
+  });
+}
+
+function getSchemaDiff(
+  oldSchema: string,
+  newSchema: string
+): Promise<GraphQLInspectorDiffOutput.AsObject['changesList']> {
+  const diff = new GraphQLInspectorDiffInput();
+  diff.setOldSchema(oldSchema);
+  diff.setNewSchema(newSchema);
+  const request = new GetSchemaDiffRequest();
+  request.setDiffInput(diff);
+  return new Promise((resolve, reject) => {
+    return graphqlApiClient.getSchemaDiff(request, (err, response) => {
+      if (err) {
+        return reject(err);
+      }
+      const diff = response!.toObject();
+      return resolve(diff.diffOutput!.changesList);
     });
   });
 }

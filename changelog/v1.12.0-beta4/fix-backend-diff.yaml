@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/3257
+    description: Switches from frontend to backend checks for diff.
+    resolvesIssue: true

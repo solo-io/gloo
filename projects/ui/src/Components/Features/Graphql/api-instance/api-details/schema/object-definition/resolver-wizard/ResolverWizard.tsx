@@ -200,17 +200,21 @@ export const ResolverWizard: React.FC<{
                   Resolver Type
                 </StyledModalTab>
                 {/* TODO:  Toggle here on gRPC. */}
-                  <StyledModalTab
-                    isSelected={formik.values.resolverType === 'gRPC' && tabIndex === 1}
-                    className={`${formik.values.resolverType === 'gRPC' ? 'visible' : 'hidden'}`}
-                    data-testid='resolver-gprc-proto-tab'
-                    isCompleted={!!formik.values.protoFile?.length}>
-                    gRPC Toggle
-                  </StyledModalTab>
                 <StyledModalTab
                   isSelected={
-                    formik.values.resolverType === 'gRPC' && tabIndex === 2 ||
-                    formik.values.resolverType === 'REST' && tabIndex === 1
+                    formik.values.resolverType === 'gRPC' && tabIndex === 1
+                  }
+                  className={`${
+                    formik.values.resolverType === 'gRPC' ? 'visible' : 'hidden'
+                  }`}
+                  data-testid='resolver-gprc-proto-tab'
+                  isCompleted={!!formik.values.protoFile?.length}>
+                  gRPC Toggle
+                </StyledModalTab>
+                <StyledModalTab
+                  isSelected={
+                    (formik.values.resolverType === 'gRPC' && tabIndex === 2) ||
+                    (formik.values.resolverType === 'REST' && tabIndex === 1)
                   }
                   data-testid='upstream-tab'
                   isCompleted={!!formik.values.upstream?.length}>
@@ -218,14 +222,13 @@ export const ResolverWizard: React.FC<{
                 </StyledModalTab>
                 <StyledModalTab
                   isSelected={
-                    formik.values.resolverType === 'gRPC' && tabIndex === 3 ||
-                    formik.values.resolverType === 'REST' && tabIndex === 2
+                    (formik.values.resolverType === 'gRPC' && tabIndex === 3) ||
+                    (formik.values.resolverType === 'REST' && tabIndex === 2)
                   }
                   data-testid='resolver-config-tab'
                   isCompleted={!!formik.values.resolverConfig?.length}>
                   Resolver Config
                 </StyledModalTab>
-
               </TabList>
 
               <TabPanels className='bg-white rounded-r-lg flex flex-col h-full'>
@@ -267,10 +270,12 @@ export const ResolverWizard: React.FC<{
                   </div>
                 </TabPanel>
                 {/* Step 2 or none: Get the gRPC ProtoFile  */}
-                <TabPanel className={`
-                  ${formik.values.resolverType !== 'gRPC' ? 'hidden' : 'visible'}
-                  relative flex-grow flex flex-col justify-between pb-4 focus:outline-none`
-                }>
+                <TabPanel
+                  className={`
+                  ${
+                    formik.values.resolverType !== 'gRPC' ? 'hidden' : 'visible'
+                  }
+                  relative flex-grow flex flex-col justify-between pb-4 focus:outline-none`}>
                   <GrpcProtoCheck
                     setWarningMessage={(message: string) => {
                       setWarningMessage(message);
@@ -283,8 +288,8 @@ export const ResolverWizard: React.FC<{
                     </styles.IconButton>
                     {!readonly && (
                       <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}
-                      >
+                        data-testid='resolver-wizard-submit'
+                        onClick={() => setTabIndex(tabIndex + 1)}>
                         Next Step
                       </SoloButtonStyledComponent>
                     )}
@@ -321,7 +326,6 @@ export const ResolverWizard: React.FC<{
                     )}
                   </div>
                 </TabPanel>
-
               </TabPanels>
             </StyledModalTabs>
           </>
