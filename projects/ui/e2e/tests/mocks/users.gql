@@ -1,0 +1,23 @@
+input UserSearchInput {
+  username: String
+}
+
+input UserByCountryInput {
+  country_code: String
+}
+
+type User {
+  first_name: String
+  last_name: String
+  username: String
+  country_code: String
+}
+
+type Users {
+  users: [User]
+}
+
+type Query {
+  GetUser(UserSearch: UserSearchInput): User
+  GetUserByCountry(UserByCountry: UserByCountryInput): Users
+}

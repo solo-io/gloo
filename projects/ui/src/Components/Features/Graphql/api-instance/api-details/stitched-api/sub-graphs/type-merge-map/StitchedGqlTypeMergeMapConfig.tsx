@@ -140,14 +140,16 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
                   </div>
                 </div>
               }>
-              <StitchedGqlAddSubGraphTypeMergeMapConfigItem
-                typeMergeConfig={m.typeMergeConfig}
-                onTypeMergeConfigChange={newValue => {
-                  const newTypeMergeMap = [...typeMergeMapSF];
-                  newTypeMergeMap[idx].typeMergeConfig = newValue;
-                  setTypeMergeMapSF(newTypeMergeMap);
-                }}
-              />
+              <div data-testid={`type-merge-${m.typeName}`}>
+                <StitchedGqlAddSubGraphTypeMergeMapConfigItem
+                  typeMergeConfig={m.typeMergeConfig}
+                  onTypeMergeConfigChange={newValue => {
+                    const newTypeMergeMap = [...typeMergeMapSF];
+                    newTypeMergeMap[idx].typeMergeConfig = newValue;
+                    setTypeMergeMapSF(newTypeMergeMap);
+                  }}
+                />
+              </div>
             </Collapse.Panel>
           ))}
         </Collapse>

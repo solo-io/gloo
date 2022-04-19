@@ -283,7 +283,6 @@ export const ResolverWizard: React.FC<{
                     </styles.IconButton>
                     {!readonly && (
                       <SoloButtonStyledComponent
-                        data-testid='resolver-wizard-submit'
                         onClick={() => setTabIndex(tabIndex + 1)}
                       >
                         Next Step

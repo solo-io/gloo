@@ -1,0 +1,33 @@
+input ProductSearchInput {
+  id: Int
+  name: String
+}
+
+input ProductsSearchInput {
+  name: String
+}
+
+input ProductsSoldByUserInput {
+  username: String
+}
+
+type Product {
+  name: String
+  id: Int
+  seller: User
+  price: String
+}
+
+type User {
+  username: String
+}
+
+type Products {
+  products: [Product]
+}
+
+type Query {
+  GetProduct(ProductSearch: ProductSearchInput): Product
+  GetProducts(ProductsSearch: ProductsSearchInput): Products
+  GetProductsSoldByUser(ProductsSoldByUser: ProductsSoldByUserInput): Products
+}

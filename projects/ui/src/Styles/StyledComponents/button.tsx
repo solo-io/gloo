@@ -43,6 +43,7 @@ interface SoloButtonProps extends Omit<ButtonProps, 'onClick'> {
   inProgress?: boolean;
   green?: boolean;
   disable?: boolean;
+  ['data-testid']?: string;
 }
 
 export const SoloButtonStyledComponent = styled(Button)<SoloButtonProps>`

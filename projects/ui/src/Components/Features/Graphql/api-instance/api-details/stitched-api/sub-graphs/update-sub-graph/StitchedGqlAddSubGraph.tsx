@@ -121,7 +121,9 @@ const StitchedGqlAddSubGraph: React.FC<{ onAfterAdd(): void }> = ({
   if (readonly) return null;
   return (
     <div>
-      <SoloAddButton onClick={() => setIsModalVisible(true)}>
+      <SoloAddButton
+        data-testid='add-sub-graph-modal-button'
+        onClick={() => setIsModalVisible(true)}>
         Add Sub Graph
       </SoloAddButton>
 
@@ -165,6 +167,7 @@ const StitchedGqlAddSubGraph: React.FC<{ onAfterAdd(): void }> = ({
 
           <div className='text-right mt-10'>
             <SoloButtonStyledComponent
+              data-testid='add-sub-graph-button'
               disabled={!canSubmit}
               onClick={addSubGraph}>
               Add Sub Graph

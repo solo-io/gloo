@@ -20,6 +20,13 @@ module.exports = function configOverload(config) {
    config.resolve.fallback = fallback;
    config.resolve.alias["process/browser"] = "process/browser.js";
 
+   config.ignoreWarnings = [
+       {
+           module: /.*/,
+           message: /.*Failed to parse source map.*/
+       },
+   ]
+
    config.plugins = (config.plugins || []).concat([
    	new webpack.ProvidePlugin({
     	process: 'process/browser',

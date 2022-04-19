@@ -54,13 +54,16 @@ const StitchedGqlRemoveSubGraph: React.FC<{
 
   if (readonly) return null;
   return (
-    <TableActions>
-      <TableActionCircle onClick={() => setIsModalVisible(true)}>
+    <TableActions className={`${subGraphConfig.name}-actions`}>
+      <TableActionCircle
+        data-testid='remove-sub-graph'
+        onClick={() => setIsModalVisible(true)}>
         <XIcon />
       </TableActionCircle>
       <ConfirmationModal
         visible={isModalVisible}
         confirmPrompt='remove this sub graph?'
+        confirmTestId='confirm-remove-sub-graph'
         confirmButtonText='Remove'
         goForIt={removeSubGraph}
         cancel={() => setIsModalVisible(false)}

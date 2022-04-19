@@ -77,6 +77,7 @@ const StitchedGqlTypeMergeFieldDropdown: React.FC<{
       <div className='flex items-center min-w-[200px]'>
         <div className='font-bold'>Type:&nbsp;&nbsp;</div>
         <SoloDropdown
+          data-testid='type-merge-name-dropdown'
           value={newMergedTypeName}
           options={availableTypes.map(t => ({ key: t, value: t }))}
           onChange={newValue => setNewMergedTypeName(newValue as string)}
@@ -84,7 +85,9 @@ const StitchedGqlTypeMergeFieldDropdown: React.FC<{
         />
       </div>
       <div className='flex-grow flex justify-end items-center'>
-        <SoloAddButton onClick={() => onAddTypeMerge(newMergedTypeName)}>
+        <SoloAddButton
+          data-testid='add-type-merge-button'
+          onClick={() => onAddTypeMerge(newMergedTypeName)}>
           Add Type Merge Configuration
         </SoloAddButton>
       </div>

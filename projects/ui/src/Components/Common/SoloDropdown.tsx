@@ -174,6 +174,12 @@ export const SoloDropdown = (props: DropdownProps) => {
         dropdownClassName={testId}
         value={searchable && isDropdownOpen ? searchValue : value}
         onDropdownVisibleChange={isOpen => {
+          if (onChange !== undefined) {
+            const foundOption = options?.find(o => o.value === searchValue);
+            if (searchable && foundOption !== undefined) {
+              onChange(foundOption.value);
+            }
+          }
           setIsDropdownOpen(isOpen);
           setSearchValue('');
         }}

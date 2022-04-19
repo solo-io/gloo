@@ -79,7 +79,8 @@
     "lint": "eslint \"./src/**/*.tsx\"",
     "fix": "eslint --fix \"./src/**/*.tsx\" && prettier --config ./.prettierrc.yaml --write \"./src/**/*.{ts,tsx}\"",
     "eject": "react-scripts eject",
-    "e2e": "jest --config ./e2e/jest.config.ts ./e2e"
+    "e2e": "jest --verbose --config ./e2e/jest.config.ts ./e2e",
+    "screenshots-to-gif": "ffmpeg -y -framerate 1 -pattern_type glob -i './e2e/tests/screenshots/*.jpeg' -r 15 ./e2e/tests/screenshots/out.gif"
   },
   "browserslist": {
     "production": [
