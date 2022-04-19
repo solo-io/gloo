@@ -1,4 +1,4 @@
-import { useListGraphqlApis } from 'API/hooks';
+import { useListGraphqlApis, usePageGlooInstance } from 'API/hooks';
 import { DataError } from 'Components/Common/DataError';
 import { Loading } from 'Components/Common/Loading';
 import { SoloCheckbox } from 'Components/Common/SoloCheckbox';
@@ -14,6 +14,8 @@ import { apiFilterGroups, ITypeFilter } from './GraphqlLandingTableFilters';
 // * and passes them to the GraphqlLandingTable.
 // *
 export const GraphqlLandingTableContainer = () => {
+  const { glooInstance, glooInstances } = usePageGlooInstance();
+
   // --- FILTERS STATE --- //
   const [searchText, setSearchText] = useState('');
   const [filters, setFilters] = useState<{
@@ -97,7 +99,33 @@ export const GraphqlLandingTableContainer = () => {
         ))}
       </div>
       {/* --- TABLE --- */}
-      <GraphqlLandingTable graphqlApis={filteredGraphqlApis} />
+      {glooInstances &&
+        (glooInstance ? (
+          <GraphqlLandingTable
+            title='GraphQL'
+            glooInstance={glooInstance}
+            graphqlApis={filteredGraphqlApis.filter(
+              api =>
+                api.glooInstance?.name === glooInstance.metadata?.name &&
+                api.glooInstance?.namespace === glooInstance.metadata?.namespace
+            )}
+          />
+        ) : (
+          <div>
+            {glooInstances.map(gi => (
+              <GraphqlLandingTable
+                key={`${gi.metadata?.name}:${gi.metadata?.namespace}`}
+                title={`GraphQL - ${gi.metadata?.name} - ${gi.metadata?.namespace}`}
+                glooInstance={gi}
+                graphqlApis={filteredGraphqlApis.filter(
+                  api =>
+                    api.glooInstance?.name === gi.metadata?.name &&
+                    api.glooInstance?.namespace === gi.metadata?.namespace
+                )}
+              />
+            ))}
+          </div>
+        ))}
     </>
   );
 };

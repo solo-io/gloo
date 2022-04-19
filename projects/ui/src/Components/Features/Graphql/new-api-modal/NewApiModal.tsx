@@ -1,10 +1,6 @@
 import { Alert } from 'antd';
 import { graphqlConfigApi } from 'API/graphql';
-import {
-  useIsGlooFedEnabled,
-  useListGraphqlApis,
-  usePageGlooInstance,
-} from 'API/hooks';
+import { useIsGlooFedEnabled, useListGraphqlApis } from 'API/hooks';
 import { DataError } from 'Components/Common/DataError';
 import {
   SoloFormFileUpload,
@@ -13,6 +9,7 @@ import {
 import { SoloModal } from 'Components/Common/SoloModal';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { Formik } from 'formik';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import {
   CreateGraphqlApiRequest,
   ValidateSchemaDefinitionRequest,
@@ -26,11 +23,11 @@ import * as yup from 'yup';
 import * as styles from './NewApiModal.style';
 
 export const NewApiModal: React.FC<{
+  glooInstance: GlooInstance.AsObject;
   show: boolean;
   onClose(): void;
-}> = ({ show, onClose }) => {
+}> = ({ glooInstance, show, onClose }) => {
   const navigate = useNavigate();
-  const { glooInstance } = usePageGlooInstance();
 
   // Api
   const { mutate } = useListGraphqlApis();

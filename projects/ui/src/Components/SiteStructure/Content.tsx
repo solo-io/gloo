@@ -241,6 +241,19 @@ export const Content = () => {
             }
           />
           <Route
+            path={'/gloo-instances/:namespace/:name/apis'}
+            element={
+              <EnableGraphqlFeature reroute>
+                <ErrorBoundary
+                  fallback={
+                    <div>Unable to pull information on GraphQL APIs.</div>
+                  }>
+                  <GraphqlLanding />
+                </ErrorBoundary>
+              </EnableGraphqlFeature>
+            }
+          />
+          <Route
             path={
               isGlooFedEnabled
                 ? '/gloo-instances/:namespace/:name/apis/:graphqlApiClusterName/:graphqlApiNamespace/:graphqlApiName'

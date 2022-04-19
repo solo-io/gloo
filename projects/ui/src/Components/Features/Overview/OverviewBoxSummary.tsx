@@ -386,8 +386,6 @@ export const OverviewGraphQLBox = () => {
   const { data: glooInstances, error: instancesError } = useListGlooInstances();
   const { data: clusterDetailsList, error: cError } = useListClusterDetails();
   const { data: graphqlApis, error: graphqlApiError } = useListGraphqlApis();
-  const { data: glooFedCheckResponse, error: glooFedCheckError } =
-    useIsGlooFedEnabled();
 
   if (!!instancesError) {
     return <DataError error={instancesError} />;
@@ -395,8 +393,6 @@ export const OverviewGraphQLBox = () => {
     return <DataError error={cError} />;
   } else if (Boolean(graphqlApiError)) {
     return <DataError error={graphqlApiError} />;
-  } else if (Boolean(glooFedCheckError)) {
-    return <DataError error={glooFedCheckError} />;
   } else if (!glooInstances || !clusterDetailsList || !graphqlApis) {
     return <Loading message={'Retrieving APIs...'} />;
   }
@@ -411,15 +407,9 @@ export const OverviewGraphQLBox = () => {
     ? GraphQLApiStatus.State.WARNING
     : GraphQLApiStatus.State.ACCEPTED;
 
-  const isGlooFedEnabled = glooFedCheckResponse?.enabled;
-
-  const route =
-    isGlooFedEnabled &&
-    clusterDetailsList?.length === 1 &&
+  const apiRoute =
     glooInstances?.length === 1
-      ? `/gloo-instances/${
-          clusterDetailsList[0]!.glooInstancesList[0].metadata?.namespace
-        }/${clusterDetailsList[0]!.glooInstancesList[0].metadata?.name}/apis/`
+      ? `/gloo-instances/${glooInstances[0].metadata?.namespace}/${glooInstances[0].metadata?.name}/apis/`
       : '/apis/';
 
   const totalServices = graphqlApis.length;
@@ -434,7 +424,7 @@ export const OverviewGraphQLBox = () => {
       countDescription={
         'APIs currently running across all of your Gloo instances'
       }
-      link={route}
+      link={apiRoute}
     />
   );
 };

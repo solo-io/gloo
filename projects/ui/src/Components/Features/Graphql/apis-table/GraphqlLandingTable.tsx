@@ -1,10 +1,11 @@
+import { ColumnsType } from 'antd/lib/table';
 import { graphqlConfigApi } from 'API/graphql';
-import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import {
+  useGetConsoleOptions,
   useIsGlooFedEnabled,
   useListGraphqlApis,
-  usePageGlooInstance,
 } from 'API/hooks';
+import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import { ReactComponent as XIcon } from 'assets/x-icon.svg';
 import ConfirmationModal from 'Components/Common/ConfirmationModal';
@@ -18,6 +19,8 @@ import {
   TableActions,
 } from 'Components/Common/SoloTable';
 import { doDownload } from 'download-helper';
+import { GraphQLApiStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React, { useEffect, useState } from 'react';
 import {
@@ -28,18 +31,19 @@ import {
 } from 'utils/graphql-helpers';
 import { useDeleteAPI } from 'utils/hooks';
 import * as styles from '../GraphqlLanding.style';
-import { ColumnsType } from 'antd/lib/table';
-import { GraphQLApiStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
+import { NewApiButton } from '../new-api-modal/NewApiButton';
 
 // *
 // * This table component takes care of the transofrmation and
 // * rendering (not the filtering), of graphqlApis passed to it.
 // *
 export const GraphqlLandingTable: React.FC<{
+  title: string;
+  glooInstance: GlooInstance.AsObject;
   graphqlApis: GraphqlApi.AsObject[];
-}> = ({ graphqlApis }) => {
+}> = ({ title, glooInstance, graphqlApis }) => {
   const isGlooFedEnabled = useIsGlooFedEnabled().data?.enabled;
-  const { glooInstance } = usePageGlooInstance();
+  const { readonly } = useGetConsoleOptions();
   const { mutate } = useListGraphqlApis();
   const {
     isDeleting,
@@ -57,7 +61,6 @@ export const GraphqlLandingTable: React.FC<{
   // --- TRANSFORM GRAPHQL -> TABLE DATA --- //
   const [tableData, setTableData] = useState<any[]>([]);
   useEffect(() => {
-    if (!glooInstance) return;
     // Map object properties to column names.
     const newTableData = graphqlApis.map(api => ({
       key: `${api.metadata?.uid}`,
@@ -67,8 +70,8 @@ export const GraphqlLandingTable: React.FC<{
           api.metadata?.name,
           api.metadata?.namespace,
           api.metadata?.clusterName ?? '',
-          glooInstance?.metadata?.name ?? '',
-          glooInstance?.metadata?.namespace ?? '',
+          api.glooInstance?.name ?? '',
+          api.glooInstance?.namespace ?? '',
           isGlooFedEnabled
         ),
       },
@@ -88,7 +91,7 @@ export const GraphqlLandingTable: React.FC<{
       api,
     }));
     setTableData(newTableData);
-  }, [graphqlApis, isGlooFedEnabled, glooInstance]);
+  }, [graphqlApis, isGlooFedEnabled]);
 
   // --- COLUMNS --- //
   let columns: ColumnsType = [
@@ -156,39 +159,42 @@ export const GraphqlLandingTable: React.FC<{
   ];
 
   return (
-    <SectionCard
-      key='graphql'
-      cardName='GraphQL'
-      logoIcon={
-        <styles.GraphqlIconHolder>
-          <GraphQLIcon />
-        </styles.GraphqlIconHolder>
-      }
-      noPadding={true}>
-      <styles.TableHolder wholePage={true}>
-        <SoloTable
-          columns={columns}
-          dataSource={tableData}
-          removePaging
-          flatTopped
-          removeShadows
-        />
-        <ConfirmationModal
-          visible={isDeleting}
-          confirmPrompt='delete this API'
-          confirmTestId='confirm-delete-graphql-table-row'
-          cancelTestId='cancel-delete-graphql-table-row'
-          confirmButtonText='Delete'
-          goForIt={deleteFn}
-          cancel={cancelDelete}
-          isNegative
-        />
-        <ErrorModal
-          {...errorDeleteModalProps}
-          cancel={closeErrorModal}
-          visible={errorModalIsOpen}
-        />
-      </styles.TableHolder>
-    </SectionCard>
+    <div className='pb-5'>
+      <SectionCard
+        key={title}
+        cardName={title}
+        logoIcon={
+          <styles.GraphqlIconHolder>
+            <GraphQLIcon />
+          </styles.GraphqlIconHolder>
+        }
+        noPadding={true}>
+        <styles.TableHolder wholePage={true}>
+          {!readonly && <NewApiButton glooInstance={glooInstance} />}
+          <SoloTable
+            columns={columns}
+            dataSource={tableData}
+            removePaging
+            flatTopped
+            removeShadows
+          />
+          <ConfirmationModal
+            visible={isDeleting}
+            confirmPrompt='delete this API'
+            confirmTestId='confirm-delete-graphql-table-row'
+            cancelTestId='cancel-delete-graphql-table-row'
+            confirmButtonText='Delete'
+            goForIt={deleteFn}
+            cancel={cancelDelete}
+            isNegative
+          />
+          <ErrorModal
+            {...errorDeleteModalProps}
+            cancel={closeErrorModal}
+            visible={errorModalIsOpen}
+          />
+        </styles.TableHolder>
+      </SectionCard>
+    </div>
   );
 };

@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Fix for API page routing for one or multiple gloo instances.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3533

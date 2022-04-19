@@ -44,7 +44,11 @@ export const MainMenu = () => {
       { name: 'Upstreams', href: '/upstreams/' },
       { name: 'Wasm', href: '/wasm-filters/' }
     );
-    if (isGraphQLEnabled) links.push({ name: 'APIs', href: '/apis/' });
+    const apiRoute =
+      glooInstances?.length === 1
+        ? `/gloo-instances/${glooInstances[0].metadata?.namespace}/${glooInstances[0].metadata?.name}/apis/`
+        : '/apis/';
+    if (isGraphQLEnabled) links.push({ name: 'APIs', href: apiRoute });
     return links;
   }, [multipleClustersOrInstances, isGraphQLEnabled]);
 
