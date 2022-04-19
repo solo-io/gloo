@@ -24,7 +24,7 @@ const StitchedGqlSubGraphs: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
   subGraphs: StitchedSchema.SubschemaConfig.AsObject[];
 }> = ({ apiRef, subGraphs }) => {
-  const [glooInstance] = usePageGlooInstance();
+  const { glooInstance } = usePageGlooInstance();
   const isGlooFedEnabled = useIsGlooFedEnabled().data?.enabled;
   const { data: graphqlApi, mutate: mutateDetails } =
     useGetGraphqlApiDetails(apiRef);

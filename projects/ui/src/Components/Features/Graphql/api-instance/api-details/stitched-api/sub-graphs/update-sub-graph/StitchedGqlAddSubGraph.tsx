@@ -27,7 +27,7 @@ const StitchedGqlAddSubGraph: React.FC<{ onAfterAdd(): void }> = ({
   const apiRef = usePageApiRef();
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [glooInstance] = usePageGlooInstance();
+  const { glooInstance } = usePageGlooInstance();
   const { data: graphqlApis } = useListGraphqlApis(glooInstance?.metadata);
   const { readonly } = useGetConsoleOptions();
 

@@ -114,7 +114,7 @@ export const GlooInstancesDetails = () => {
 
   const [tabIndex, setTabIndex] = React.useState(0); // 'virtual-services'
 
-  const [glooInstance, glooInstances, instancesError] = usePageGlooInstance();
+  const { glooInstance, glooInstances, instancesError } = usePageGlooInstance();
 
   if (!!instancesError) {
     return <DataError error={instancesError} />;

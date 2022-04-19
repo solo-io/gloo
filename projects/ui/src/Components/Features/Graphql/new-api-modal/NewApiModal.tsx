@@ -30,7 +30,7 @@ export const NewApiModal: React.FC<{
   onClose(): void;
 }> = ({ show, onClose }) => {
   const navigate = useNavigate();
-  const [glooInstance] = usePageGlooInstance();
+  const { glooInstance } = usePageGlooInstance();
 
   // Api
   const { mutate } = useListGraphqlApis();

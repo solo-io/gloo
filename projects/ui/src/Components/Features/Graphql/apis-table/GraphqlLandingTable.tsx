@@ -39,7 +39,7 @@ export const GraphqlLandingTable: React.FC<{
   graphqlApis: GraphqlApi.AsObject[];
 }> = ({ graphqlApis }) => {
   const isGlooFedEnabled = useIsGlooFedEnabled().data?.enabled;
-  const [glooInstance] = usePageGlooInstance();
+  const { glooInstance } = usePageGlooInstance();
   const { mutate } = useListGraphqlApis();
   const {
     isDeleting,

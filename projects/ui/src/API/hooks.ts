@@ -1,454 +1,162 @@
-import { GatewayResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
-import useSWR from 'swr';
 import {
-  getClusterRefClassFromClusterRefObj,
-  getObjectRefClassFromRefObj,
-  host,
-} from './helpers';
-import {
-  VirtualService,
-  Gateway,
-  RouteTable,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
-import { gatewayResourceApi } from './gateway-resources';
-import { GlooResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb_service';
-import {
-  Upstream,
-  UpstreamGroup,
-  Proxy,
-  Settings,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
-import { glooResourceApi } from './gloo-resource';
-import { FailoverSchemeApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/failover_scheme_pb_service';
-import { FailoverScheme } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/failover_scheme_pb';
-import { failoverSchemeApi } from './failover-scheme';
-import {
-  ObjectRef,
   ClusterObjectRef,
+  ObjectRef,
 } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { GlooInstanceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb_service';
-import { glooInstanceApi } from './gloo-instance';
-import {
-  GlooInstance,
-  ClusterDetails,
-  ConfigDump,
-  HostList,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
-import { federatedGatewayResourceApi } from './federated-gateway';
-import { FederatedGatewayResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_gateway_resources_pb_service';
-import {
-  FederatedVirtualService,
-  FederatedGateway,
-  FederatedRouteTable,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_gateway_resources_pb';
-import {
-  FederatedUpstream,
-  FederatedUpstreamGroup,
-  FederatedSettings,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_gloo_resources_pb';
-import { FederatedGlooResourceApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_gloo_resources_pb_service';
-import { federatedGlooResourceApi } from './federated-gloo';
-import { FederatedAuthConfig } from '../proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_enterprise_gloo_resources_pb';
-import { FederatedEnterpriseGlooResourceApi } from '../proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_enterprise_gloo_resources_pb_service';
-import { FederatedRatelimitResourceApi } from '../proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_ratelimit_resources_pb_service';
-import { federatedEnterpriseGlooResourceApi } from './federated-enterprise-gloo';
-import { SubRouteTableRow } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/rt_selector_pb';
-import { routeTablesSelectorApi } from './virtual-service-routes';
-import {
-  DescribeWasmFilterRequest,
-  WasmFilter,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/wasm_pb';
-import { WasmFilterApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/wasm_pb_service';
-import { wasmFilterApi } from './wasm-filter';
-import { VirtualServiceRoutesApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/rt_selector_pb_service';
-import { FederatedRateLimitConfig } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_ratelimit_resources_pb';
-import {
-  BootstrapApi,
-  BootstrapApiClient,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb_service';
-import { bootstrapApi } from './bootstrap';
-import {
-  GetConsoleOptionsRequest,
-  GlooFedCheckResponse,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/bootstrap_pb';
-import { graphqlConfigApi } from './graphql';
-import { GraphqlConfigApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
-import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
-import { useState, useEffect } from 'react';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
+import { DescribeWasmFilterRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/wasm_pb';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
-import { grpc } from '@improbable-eng/grpc-web';
+import useSWR from 'swr';
+import { bootstrapApi } from './bootstrap';
+import { failoverSchemeApi } from './failover-scheme';
+import { federatedEnterpriseGlooResourceApi } from './federated-enterprise-gloo';
+import { federatedGatewayResourceApi } from './federated-gateway';
+import { federatedGlooResourceApi } from './federated-gloo';
+import { gatewayResourceApi } from './gateway-resources';
+import { glooInstanceApi } from './gloo-instance';
+import { glooResourceApi } from './gloo-resource';
+import { graphqlConfigApi } from './graphql';
+import { routeTablesSelectorApi } from './virtual-service-routes';
+import { wasmFilterApi } from './wasm-filter';
 
-const normalRefreshInterval = 10000;
+const NORMAL_REFRESH_INTERVAL = 10000;
 
-export function useListGlooInstances() {
-  return useSWR<GlooInstance.AsObject[]>(
-    GlooInstanceApi.ListGlooInstances.methodName,
-    () => glooInstanceApi.listGlooInstances(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-export function useListClusterDetails() {
-  return useSWR<ClusterDetails.AsObject[]>(
-    GlooInstanceApi.ListClusterDetails.methodName,
-    () => glooInstanceApi.listClusterDetails(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useListVirtualServices(ref?: ObjectRef.AsObject) {
-  let key = !!ref
-    ? !!ref.name && !!ref.namespace
-      ? `${GatewayResourceApi.ListVirtualServices.methodName}/${ref.namespace}/${ref.name}`
-      : null
-    : GatewayResourceApi.ListVirtualServices.methodName;
-
-  return useSWR<VirtualService.AsObject[]>(
-    key,
-    () => gatewayResourceApi.listVirtualServices(ref),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useGetSubroutesForVirtualService(
-  ref?: ClusterObjectRef.AsObject
+export function useRequest<T extends (...args: any) => Promise<any>>(
+  fn: T,
+  ...fnArgs: Parameters<T>
 ) {
-  let key = !!ref
-    ? `${VirtualServiceRoutesApi.GetVirtualServiceRoutes.methodName}/${ref.clusterName}/${ref.namespace}/${ref.name}`
-    : null;
-
-  return useSWR<SubRouteTableRow.AsObject[]>(
-    key,
-    () => routeTablesSelectorApi.getSubroutesForVirtualService(ref),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useListRouteTables(ref?: ObjectRef.AsObject) {
-  let key = !!ref
-    ? !!ref.name && !!ref.namespace
-      ? `${GatewayResourceApi.ListRouteTables.methodName}/${ref.namespace}/${ref.name}`
-      : null
-    : GatewayResourceApi.ListRouteTables.methodName;
-
-  return useSWR<RouteTable.AsObject[]>(
-    key,
-    () => gatewayResourceApi.listRouteTables(ref),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useListGateways(ref?: ObjectRef.AsObject) {
-  let key = !!ref
-    ? `${GatewayResourceApi.ListGateways.methodName}/${ref.namespace}/${ref.name}`
-    : GatewayResourceApi.ListGateways.methodName;
-
-  return useSWR<Gateway.AsObject[]>(
-    key,
-    () => gatewayResourceApi.listGateways(ref),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useListSettings(ref?: ObjectRef.AsObject) {
-  let key = !!ref
-    ? `${GlooResourceApi.ListSettings.methodName}/${ref.namespace}/${ref.name}`
-    : null;
-
-  return useSWR<Settings.AsObject[]>(
-    key,
-    () => glooResourceApi.listSettings(ref),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useListProxies(ref?: ObjectRef.AsObject) {
-  let key = !!ref
-    ? `${GlooResourceApi.ListProxies.methodName}/${ref.namespace}/${ref.name}`
-    : null;
-
-  return useSWR<Proxy.AsObject[]>(key, () => glooResourceApi.listProxies(ref), {
-    refreshInterval: normalRefreshInterval,
+  const myArgs = Array.from(arguments);
+  const key = `${myArgs
+    .map(a => {
+      let s = '';
+      if (a) {
+        if (a?.name) s += a.name;
+        if (a?.namespace) s += ':' + a.namespace;
+        if (a?.clusterName) s += ':' + a.clusterName;
+      }
+      if (s === '') s += typeof a;
+      return s;
+    })
+    .join('/')}`;
+  return useSWR<Awaited<ReturnType<T>>>(key, () => fn(...(fnArgs as any[])), {
+    refreshInterval: NORMAL_REFRESH_INTERVAL,
   });
 }
 
-export function useListUpstreams(ref?: ObjectRef.AsObject) {
-  let key = !!ref
-    ? !!ref.name && !!ref.namespace
-      ? `${GlooResourceApi.ListUpstreams.methodName}/${ref.namespace}/${ref.name}`
-      : null
-    : GlooResourceApi.ListUpstreams.methodName;
+// -- glooInstanceApi
+export const useListGlooInstances = () =>
+  useRequest(glooInstanceApi.listGlooInstances);
+export const useListClusterDetails = () =>
+  useRequest(glooInstanceApi.listClusterDetails);
+export const useGetConfigDumps = (glooInstanceRef: ObjectRef.AsObject) =>
+  useRequest(glooInstanceApi.getConfigDumps, glooInstanceRef);
+export const useGetUpstreamHosts = (glooInstanceRef: ObjectRef.AsObject) =>
+  useRequest(glooInstanceApi.getUpstreamHosts, glooInstanceRef);
 
-  return useSWR<Upstream.AsObject[]>(
-    key,
-    () => glooResourceApi.listUpstreams(ref),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
+// -- gatewayResourceApi
+export const useListVirtualServices = (ref?: ObjectRef.AsObject) =>
+  useRequest(gatewayResourceApi.listVirtualServices, ref);
+export const useListRouteTables = (ref?: ObjectRef.AsObject) =>
+  useRequest(gatewayResourceApi.listRouteTables, ref);
+export const useGetGatewayYaml = (
+  gatewayClusterObjectRef: ClusterObjectRef.AsObject
+) => useRequest(gatewayResourceApi.getGatewayYAML, gatewayClusterObjectRef);
 
-export function useGetUpstreamDetails(
+// -- routeTablesSelectorApi
+export const useGetSubroutesForVirtualService = (
+  ref?: ClusterObjectRef.AsObject
+) => useRequest(routeTablesSelectorApi.getSubroutesForVirtualService, ref);
+
+// -- gatewayResourceApi
+export const useListGateways = (ref?: ObjectRef.AsObject) =>
+  useRequest(gatewayResourceApi.listGateways, ref);
+
+// -- glooResourceApi
+export const useListSettings = (ref?: ObjectRef.AsObject) =>
+  useRequest(glooResourceApi.listSettings, ref);
+export const useListProxies = (ref?: ObjectRef.AsObject) =>
+  useRequest(glooResourceApi.listProxies, ref);
+export const useListUpstreams = (ref?: ObjectRef.AsObject) =>
+  useRequest(glooResourceApi.listUpstreams, ref);
+export const useGetUpstreamDetails = (
   glooInstRef: ObjectRef.AsObject,
   upstreamRef: ClusterObjectRef.AsObject
-) {
-  const key = `get-${GlooResourceApi.ListUpstreams.methodName}/${glooInstRef.namespace}/${glooInstRef.name}/${upstreamRef.clusterName}/${upstreamRef.namespace}/${upstreamRef.name}`;
-
-  return useSWR<Upstream.AsObject>(
-    key,
-    () => glooResourceApi.getUpstream(glooInstRef, upstreamRef),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useGetUpstreamYaml(upstreamRef: ClusterObjectRef.AsObject) {
-  const key = `${GlooResourceApi.GetUpstreamYaml.methodName}/${upstreamRef.clusterName}/${upstreamRef.namespace}/${upstreamRef.name}`;
-
-  return useSWR<string>(
-    key,
-    () => glooResourceApi.getUpstreamYAML(upstreamRef),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useGetUpstreamGroupYaml(
+) => useRequest(glooResourceApi.getUpstream, glooInstRef, upstreamRef);
+export const useGetUpstreamYaml = (upstreamRef: ClusterObjectRef.AsObject) =>
+  useRequest(glooResourceApi.getUpstreamYAML, upstreamRef);
+export const useGetUpstreamGroupYaml = (
   upstreamGroupRef: ClusterObjectRef.AsObject
-) {
-  const key = `${GlooResourceApi.GetUpstreamGroupYaml.methodName}/${upstreamGroupRef.clusterName}/${upstreamGroupRef.namespace}/${upstreamGroupRef.name}`;
-
-  return useSWR<string>(
-    key,
-    () => glooResourceApi.getUpstreamGroupYAML(upstreamGroupRef),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useGetFailoverSchemeYaml(
-  failoverSchemeRef: ObjectRef.AsObject
-) {
-  const key = `${FailoverSchemeApi.GetFailoverSchemeYaml.methodName}/${failoverSchemeRef.namespace}/${failoverSchemeRef.name}`;
-
-  return useSWR<string>(
-    key,
-    () => failoverSchemeApi.getFailoverSchemeYAML(failoverSchemeRef),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useGetUpstreamGroupDetails(
+) => useRequest(glooResourceApi.getUpstreamGroupYAML, upstreamGroupRef);
+export const useGetUpstreamGroupDetails = (
   glooInstRef: ObjectRef.AsObject,
   upstreamGroupRef: ClusterObjectRef.AsObject
-) {
-  const key = `get-${GlooResourceApi.ListUpstreamGroups.methodName}/${glooInstRef.namespace}/${glooInstRef.name}/${upstreamGroupRef.clusterName}/${upstreamGroupRef.namespace}/${upstreamGroupRef.name}`;
+) =>
+  useRequest(glooResourceApi.getUpstreamGroup, glooInstRef, upstreamGroupRef);
+export const useListUpstreamGroups = (ref?: ObjectRef.AsObject) =>
+  useRequest(glooResourceApi.listUpstreamGroups, ref);
 
-  return useSWR<UpstreamGroup.AsObject>(
-    key,
-    () => glooResourceApi.getUpstreamGroup(glooInstRef, upstreamGroupRef),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
+// -- failoverSchemeApi
+export const useGetFailoverSchemeYaml = (
+  failoverSchemeRef: ObjectRef.AsObject
+) => useRequest(failoverSchemeApi.getFailoverSchemeYAML, failoverSchemeRef);
+export const useGetFailoverScheme = (upstreamRef: ClusterObjectRef.AsObject) =>
+  useRequest(failoverSchemeApi.getFailoverScheme, upstreamRef);
 
-export function useListUpstreamGroups(ref?: ObjectRef.AsObject) {
-  let key = !!ref
-    ? !!ref.name && !!ref.namespace
-      ? `${GlooResourceApi.ListUpstreamGroups.methodName}/${ref.namespace}/${ref.name}`
-      : null
-    : GlooResourceApi.ListUpstreamGroups.methodName;
-
-  return useSWR<UpstreamGroup.AsObject[]>(
-    key,
-    () => glooResourceApi.listUpstreamGroups(ref),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useGetFailoverScheme(upstreamRef: ClusterObjectRef.AsObject) {
-  const key = `${FailoverSchemeApi.GetFailoverScheme.methodName}/${upstreamRef.clusterName}/${upstreamRef.namespace}/${upstreamRef.name}`;
-
-  return useSWR<FailoverScheme.AsObject>(
-    key,
-    () => failoverSchemeApi.getFailoverScheme(upstreamRef),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-/**
- * FEDERATED SECTION
- */
-export function useListFederatedVirtualServices() {
-  return useSWR<FederatedVirtualService.AsObject[]>(
-    FederatedGatewayResourceApi.ListFederatedVirtualServices.methodName,
-    () => federatedGatewayResourceApi.listFederatedVirtualServices(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-export function useListFederatedGateways() {
-  return useSWR<FederatedGateway.AsObject[]>(
-    FederatedGatewayResourceApi.ListFederatedGateways.methodName,
-    () => federatedGatewayResourceApi.listFederatedGateways(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-export function useListFederatedRouteTables() {
-  return useSWR<FederatedRouteTable.AsObject[]>(
-    FederatedGatewayResourceApi.ListFederatedRouteTables.methodName,
-    () => federatedGatewayResourceApi.listFederatedRouteTables(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useListFederatedUpstreams() {
-  return useSWR<FederatedUpstream.AsObject[]>(
-    FederatedGlooResourceApi.ListFederatedUpstreams.methodName,
-    () => federatedGlooResourceApi.listFederatedUpstreams(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-export function useListFederatedUpstreamGroups() {
-  return useSWR<FederatedUpstreamGroup.AsObject[]>(
-    FederatedGlooResourceApi.ListFederatedUpstreamGroups.methodName,
-    () => federatedGlooResourceApi.listFederatedUpstreamGroups(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-export function useListFederatedSettings() {
-  return useSWR<FederatedSettings.AsObject[]>(
-    FederatedGlooResourceApi.ListFederatedSettings.methodName,
-    () => federatedGlooResourceApi.listFederatedSettings(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-export function useListFederatedAuthConfigs() {
-  return useSWR<FederatedAuthConfig.AsObject[]>(
-    FederatedEnterpriseGlooResourceApi.ListFederatedAuthConfigs.methodName,
-    () => federatedEnterpriseGlooResourceApi.listFederatedAuthConfigs(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-export function useListFederatedRateLimits() {
-  return useSWR<FederatedRateLimitConfig.AsObject[]>(
-    FederatedRatelimitResourceApi.ListFederatedRateLimitConfigs.methodName,
-    () => federatedEnterpriseGlooResourceApi.listFederatedRateLimitConfigs(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useGetWasmFilter(
+// -- wasmFilterApi
+export const useGetWasmFilter = (
   wasmFilterRequestRef: DescribeWasmFilterRequest.AsObject
-) {
-  let key = !!wasmFilterRequestRef?.gatewayRef
-    ? `${WasmFilterApi.DescribeWasmFilter.methodName}/${wasmFilterRequestRef.gatewayRef.namespace}/${wasmFilterRequestRef.gatewayRef.name}/${wasmFilterRequestRef.name}`
-    : null;
+) => useRequest(wasmFilterApi.getWasmFilter, wasmFilterRequestRef);
+export const useListWasmFilters = () =>
+  useRequest(wasmFilterApi.listWasmFilters);
 
-  return useSWR<WasmFilter.AsObject>(
-    key,
-    () => wasmFilterApi.getWasmFilter(wasmFilterRequestRef),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
+// -- bootstrapApi
+export const useIsGlooFedEnabled = () =>
+  useRequest(bootstrapApi.isGlooFedEnabled);
+export const useIsGraphqlEnabled = () =>
+  useRequest(bootstrapApi.isGraphqlEnabled);
 
-export function useListWasmFilters() {
-  return useSWR<WasmFilter.AsObject[]>(
-    WasmFilterApi.ListWasmFilters.methodName,
-    () => wasmFilterApi.listWasmFilters(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useGetGatewayYaml(
-  gatewayClusterObjectRef: ClusterObjectRef.AsObject
-) {
-  let key = `${GatewayResourceApi.GetGatewayYaml.methodName}/${gatewayClusterObjectRef.namespace}/${gatewayClusterObjectRef.name}/${gatewayClusterObjectRef.clusterName}`;
-
-  return useSWR<string>(
-    key,
-    () => gatewayResourceApi.getGatewayYAML(gatewayClusterObjectRef),
-    {
-      refreshInterval: normalRefreshInterval,
-    }
-  );
-}
-
-export function useGetConfigDumps(glooInstanceRef: ObjectRef.AsObject) {
-  let key = `${GlooInstanceApi.GetConfigDumps.methodName}/${glooInstanceRef.namespace}/${glooInstanceRef.name}`;
-
-  return useSWR<ConfigDump.AsObject[]>(
-    key,
-    () => glooInstanceApi.getConfigDumps(glooInstanceRef),
-    {
-      refreshInterval: normalRefreshInterval,
-    }
-  );
-}
-
-export function useGetUpstreamHosts(glooInstanceRef: ObjectRef.AsObject) {
-  let key = `${GlooInstanceApi.GetUpstreamHosts.methodName}/${glooInstanceRef.namespace}/${glooInstanceRef.name}`;
-
-  return useSWR<Map<string, HostList.AsObject>>(
-    key,
-    () => glooInstanceApi.getUpstreamHosts(glooInstanceRef),
-    {
-      refreshInterval: normalRefreshInterval,
-    }
-  );
-}
-
-export function useIsGlooFedEnabled() {
-  return useSWR<GlooFedCheckResponse.AsObject>(
-    BootstrapApi.IsGlooFedEnabled.methodName,
-    () => bootstrapApi.isGlooFedEnabled(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useIsGraphqlEnabled() {
-  return useSWR<boolean>(
-    BootstrapApi.IsGraphqlEnabled.methodName,
-    () => bootstrapApi.isGraphqlEnabled(),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export const LIST_GRAPHQL_APIS_KEY = (glooInstanceRef?: ObjectRef.AsObject) =>
-  !!glooInstanceRef
-    ? `${GraphqlConfigApi.ListGraphqlApis.methodName}/${glooInstanceRef.namespace}/${glooInstanceRef.name}`
-    : GraphqlConfigApi.ListGraphqlApis.methodName;
-export function useListGraphqlApis(glooInstanceRef?: ObjectRef.AsObject) {
-  return useSWR<GraphqlApi.AsObject[]>(
-    GraphqlConfigApi.ListGraphqlApis.methodName,
-    () => graphqlConfigApi.listGraphqlApis(glooInstanceRef),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useGetGraphqlApiDetails(
+// -- graphqlConfigApi
+export const useListGraphqlApis = (glooInstanceRef?: ObjectRef.AsObject) =>
+  useRequest(graphqlConfigApi.listGraphqlApis, glooInstanceRef);
+export const useGetGraphqlApiDetails = (
   graphqlApiRef: ClusterObjectRef.AsObject
-) {
-  const key = `${GraphqlConfigApi.GetGraphqlApi.methodName}/${graphqlApiRef.namespace}/${graphqlApiRef.name}/${graphqlApiRef.clusterName}`;
-  return useSWR<GraphqlApi.AsObject>(
-    key,
-    () => graphqlConfigApi.getGraphqlApi(graphqlApiRef),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useGetGraphqlApiYaml(graphqlApiRef: ClusterObjectRef.AsObject) {
-  const key = `${GraphqlConfigApi.GetGraphqlApiYaml.methodName}/${graphqlApiRef.namespace}/${graphqlApiRef.name}/${graphqlApiRef.clusterName}`;
-
-  return useSWR<string>(
-    key,
-    () => graphqlConfigApi.getGraphqlApiYaml(graphqlApiRef),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
-
-export function useGetStitchedSchemaDefinition(
+) => useRequest(graphqlConfigApi.getGraphqlApi, graphqlApiRef);
+export const useGetGraphqlApiYaml = (
   graphqlApiRef: ClusterObjectRef.AsObject
-) {
-  const key = `${GraphqlConfigApi.GetStitchedSchemaDefinition.methodName}/${graphqlApiRef.namespace}/${graphqlApiRef.name}/${graphqlApiRef.clusterName}`;
-  return useSWR<string>(
-    key,
-    () => graphqlConfigApi.getStitchedSchemaDefinition(graphqlApiRef),
-    { refreshInterval: normalRefreshInterval }
-  );
-}
+) => useRequest(graphqlConfigApi.getGraphqlApiYaml, graphqlApiRef);
+export const useGetStitchedSchemaDefinition = (
+  graphqlApiRef: ClusterObjectRef.AsObject
+) => useRequest(graphqlConfigApi.getStitchedSchemaDefinition, graphqlApiRef);
+
+// ------------------------ //
+//
+// Federated Start
+//
+// -- federatedGatewayResourceApi
+export const useListFederatedVirtualServices = () =>
+  useRequest(federatedGatewayResourceApi.listFederatedVirtualServices);
+export const useListFederatedGateways = () =>
+  useRequest(federatedGatewayResourceApi.listFederatedGateways);
+export const useListFederatedRouteTables = () =>
+  useRequest(federatedGatewayResourceApi.listFederatedRouteTables);
+//
+// -- federatedGlooResourceApi
+export const useListFederatedUpstreams = () =>
+  useRequest(federatedGlooResourceApi.listFederatedUpstreams);
+export const useListFederatedUpstreamGroups = () =>
+  useRequest(federatedGlooResourceApi.listFederatedUpstreamGroups);
+export const useListFederatedSettings = () =>
+  useRequest(federatedGlooResourceApi.listFederatedSettings);
+//
+// -- federatedEnterpriseGlooResourceApi
+export const useListFederatedAuthConfigs = () =>
+  useRequest(federatedEnterpriseGlooResourceApi.listFederatedAuthConfigs);
+export const useListFederatedRateLimits = () =>
+  useRequest(federatedEnterpriseGlooResourceApi.listFederatedRateLimitConfigs);
+//
+// Federated End
+//
+// ------------------------ //
 
 export function usePageGlooInstance() {
   // URL parameters (if on /apis/ then name='', namespace='')
@@ -473,14 +181,10 @@ export function usePageGlooInstance() {
       setGlooInstance(undefined);
     }
   }, [name, namespace, glooInstances]);
-  return [glooInstance, glooInstances, instancesError] as [
-    typeof glooInstance,
-    typeof glooInstances,
-    typeof instancesError
-  ];
+  return { glooInstance, glooInstances, instancesError };
 }
 
-export const usePageApiRef = () => {
+export function usePageApiRef() {
   const {
     graphqlApiName = '',
     graphqlApiNamespace = '',
@@ -491,25 +195,21 @@ export const usePageApiRef = () => {
     namespace: graphqlApiNamespace,
     clusterName: graphqlApiClusterName,
   } as ClusterObjectRef.AsObject;
-};
+}
 
 export function useGetConsoleOptions() {
   const [readonly, setReadonly] = useState(true);
   const [apiExplorerEnabled, setApiExplorerEnabled] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
-  const { data } = useSWR<any>(
-    bootstrapApi.getConsoleOptions.name,
-    bootstrapApi.getConsoleOptions,
-    { refreshInterval: normalRefreshInterval }
-  );
-
+  const { data, error } = useRequest(bootstrapApi.getConsoleOptions);
   useEffect(() => {
     if (data?.options) {
       setReadonly(data.options.readOnly);
       setApiExplorerEnabled(data.options.apiExplorerEnabled);
     }
+    if (error) {
+      setErrorMessage(error?.message ?? error);
+    }
   }, [data]);
-
   return { readonly, apiExplorerEnabled, errorMessage };
 }

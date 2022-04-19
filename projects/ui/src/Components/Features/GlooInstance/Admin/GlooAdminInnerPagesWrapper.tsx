@@ -56,10 +56,10 @@ export const GlooAdminInnerPagesWrapper = () => {
   const { adminPage, name } = useParams();
   const navigate = useNavigate();
 
-  const [glooInstance, _, instanceError] = usePageGlooInstance();
+  const { glooInstance, instancesError } = usePageGlooInstance();
 
-  if (!!instanceError) {
-    return <DataError error={instanceError} />;
+  if (!!instancesError) {
+    return <DataError error={instancesError} />;
   } else if (!glooInstance?.spec) {
     return <Loading message={`Retrieving instance ${name}...`} />;
   }

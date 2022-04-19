@@ -18,7 +18,7 @@ const StitchedGqlRemoveSubGraph: React.FC<{
 }> = ({ subGraphConfig, onAfterRemove }) => {
   const apiRef = usePageApiRef();
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
-  const [glooInstance] = usePageGlooInstance();
+  const { glooInstance } = usePageGlooInstance();
   const { data: graphqlApis } = useListGraphqlApis(glooInstance?.metadata);
   const { readonly } = useGetConsoleOptions();
 

@@ -55,7 +55,7 @@ export const GlooInstanceAdministration = () => {
     namespace,
   });
 
-  const [glooInstance, glooInstances, instancesError] = usePageGlooInstance();
+  const { glooInstance, glooInstances, instancesError } = usePageGlooInstance();
 
   if (!!instancesError) {
     return <DataError error={instancesError} />;
