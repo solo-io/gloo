@@ -2,6 +2,8 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Running Gloo-Fed UI
 
+It is reccomended that you use [nvm](https://github.com/nvm-sh/nvm) or [n](https://github.com/tj/n) to ensure that you are using the correct version of Node.
+
 Gloo Fed has two modes - single cluster and multicluster.
 
 1. `make run-ui-gloo-fed`
