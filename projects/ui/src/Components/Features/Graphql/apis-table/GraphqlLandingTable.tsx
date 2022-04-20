@@ -1,15 +1,9 @@
 import { ColumnsType } from 'antd/lib/table';
 import { graphqlConfigApi } from 'API/graphql';
-import {
-  useGetConsoleOptions,
-  useIsGlooFedEnabled,
-  useListGraphqlApis,
-} from 'API/hooks';
+import { useGetConsoleOptions, useIsGlooFedEnabled } from 'API/hooks';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import { ReactComponent as XIcon } from 'assets/x-icon.svg';
-import ConfirmationModal from 'Components/Common/ConfirmationModal';
-import ErrorModal from 'Components/Common/ErrorModal';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { RenderSimpleLink } from 'Components/Common/SoloLink';
 import {
@@ -29,7 +23,7 @@ import {
   makeGraphqlApiLink,
   makeGraphqlApiRef,
 } from 'utils/graphql-helpers';
-import { useDeleteAPI } from 'utils/hooks';
+import { useDeleteApi } from 'utils/hooks';
 import * as styles from '../GraphqlLanding.style';
 import { NewApiButton } from '../new-api-modal/NewApiButton';
 
@@ -44,19 +38,7 @@ export const GraphqlLandingTable: React.FC<{
 }> = ({ title, glooInstance, graphqlApis }) => {
   const isGlooFedEnabled = useIsGlooFedEnabled().data?.enabled;
   const { readonly } = useGetConsoleOptions();
-  const { mutate } = useListGraphqlApis();
-  const {
-    isDeleting,
-    triggerDelete,
-    cancelDelete,
-    closeErrorModal,
-    errorModalIsOpen,
-    errorDeleteModalProps,
-    deleteFn,
-  } = useDeleteAPI({
-    revalidate: mutate,
-    optimistic: true,
-  });
+  const confirmDeleteApi = useDeleteApi();
 
   // --- TRANSFORM GRAPHQL -> TABLE DATA --- //
   const [tableData, setTableData] = useState<any[]>([]);
@@ -150,7 +132,7 @@ export const GraphqlLandingTable: React.FC<{
           </TableActionCircle>
           <TableActionCircle
             data-testid='graphql-table-action-delete'
-            onClick={() => triggerDelete(makeGraphqlApiRef(api))}>
+            onClick={() => confirmDeleteApi(makeGraphqlApiRef(api))}>
             <XIcon />
           </TableActionCircle>
         </TableActions>
@@ -177,21 +159,6 @@ export const GraphqlLandingTable: React.FC<{
             removePaging
             flatTopped
             removeShadows
-          />
-          <ConfirmationModal
-            visible={isDeleting}
-            confirmPrompt='delete this API'
-            confirmTestId='confirm-delete-graphql-table-row'
-            cancelTestId='cancel-delete-graphql-table-row'
-            confirmButtonText='Delete'
-            goForIt={deleteFn}
-            cancel={cancelDelete}
-            isNegative
-          />
-          <ErrorModal
-            {...errorDeleteModalProps}
-            cancel={closeErrorModal}
-            visible={errorModalIsOpen}
           />
         </styles.TableHolder>
       </SectionCard>

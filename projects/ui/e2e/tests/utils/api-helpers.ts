@@ -81,7 +81,7 @@ export const deleteApi = async (page: puppeteer.Page, apiName: string) => {
   // The confirm-delete modal is already on the page, but is hidden.
   // so we have to wait for it to appear.
   await sleep(150);
-  await waitForAndClick(page, `[data-testid="confirm-delete-graphql-table-row"]`);
+  await waitForAndClick(page, `[data-testid="confirm-modal-button"]`);
   await sleep(150);
   //
   // Wait for the API to disappear from the list
@@ -184,7 +184,7 @@ export const removeSubGraph = async (page: puppeteer.Page, subGraphApiName: stri
   // The confirm-delete modal is already on the page, but is hidden.
   // so we have to wait for it to appear.
   await sleep(150);
-  await waitForAndClick(page, `[data-testid="confirm-remove-sub-graph"]`);
+  await waitForAndClick(page, `[data-testid="confirm-modal-button"]`);
   await sleep(150);
   //
   // Wait for the API to disappear from the list

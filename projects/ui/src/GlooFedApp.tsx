@@ -7,6 +7,8 @@ import { Content } from 'Components/SiteStructure/Content';
 import { MainMenu } from 'Components/SiteStructure/MainMenu';
 import { BrowserRouter } from 'react-router-dom';
 import './Styles/styles.css';
+import { ConfirmModalProvider } from 'Components/Context/ConfirmModalContext';
+import { Toaster } from 'react-hot-toast';
 
 const AppContainer = styled.div`
   display: grid;
@@ -16,16 +18,26 @@ const AppContainer = styled.div`
 
 function GlooFedApp() {
   return (
-    <BrowserRouter>
-      <Global styles={globalStyles} />
-      <AppContainer>
-        <MainMenu />
+    <ConfirmModalProvider>
+      <Toaster
+        position='bottom-right'
+        reverseOrder={false}
+        toastOptions={{
+          duration: 8000,
+          style: { borderRadius: '2px' },
+        }}
+      />
+      <BrowserRouter>
+        <Global styles={globalStyles} />
+        <AppContainer>
+          <MainMenu />
 
-        <Content />
+          <Content />
 
-        <Footer />
-      </AppContainer>
-    </BrowserRouter>
+          <Footer />
+        </AppContainer>
+      </BrowserRouter>
+    </ConfirmModalProvider>
   );
 }
 

@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import { Alert } from 'antd';
 import { graphqlConfigApi } from 'API/graphql';
 import {
@@ -14,6 +15,7 @@ import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/grap
 import React, { useEffect, useMemo, useState } from 'react';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
 import StitchedGqlTypeMergeMapConfig from '../type-merge-map/StitchedGqlTypeMergeMapConfig';
+import { hotToastError } from 'utils/hooks';
 
 interface gqlOptionType extends OptionType {
   apiIndex: number;
@@ -56,15 +58,22 @@ const StitchedGqlAddSubGraph: React.FC<{ onAfterAdd(): void }> = ({
     // Update the api with a new spec that includes the sub graphs.
     const existingSubGraphs =
       graphqlApi.spec?.stitchedSchema?.subschemasList ?? [];
-    await graphqlConfigApi.updateGraphqlApi({
-      graphqlApiRef: apiRef,
-      spec: {
-        stitchedSchema: {
-          subschemasList: [...existingSubGraphs, newSubGraph],
+    await toast.promise(
+      graphqlConfigApi.updateGraphqlApi({
+        graphqlApiRef: apiRef,
+        spec: {
+          stitchedSchema: {
+            subschemasList: [...existingSubGraphs, newSubGraph],
+          },
+          allowedQueryHashesList: [],
         },
-        allowedQueryHashesList: [],
-      },
-    });
+      }),
+      {
+        loading: 'Adding sub graph...',
+        success: 'Sub graph added!',
+        error: hotToastError,
+      }
+    );
     setIsModalVisible(false);
     setSelectedOption(undefined);
     onAfterAdd();

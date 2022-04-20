@@ -1,14 +1,15 @@
 import { TabList, TabPanel, TabPanels } from '@reach/tabs';
 import { graphqlConfigApi } from 'API/graphql';
 import { useGetConsoleOptions, useGetGraphqlApiDetails } from 'API/hooks';
-import ConfirmationModal from 'Components/Common/ConfirmationModal';
 import { StyledModalTab, StyledModalTabs } from 'Components/Common/SoloModal';
+import { useConfirm } from 'Components/Context/ConfirmModalContext';
 import { Formik, FormikState } from 'formik';
 import { FieldDefinitionNode } from 'graphql';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
+import toast from 'react-hot-toast';
 import { colors } from 'Styles/colors';
 import {
   SoloButtonStyledComponent,
@@ -21,6 +22,7 @@ import {
   getUpstreamId,
   getUpstreamRef,
 } from 'utils/graphql-helpers';
+import { hotToastError } from 'utils/hooks';
 import * as yup from 'yup';
 import { createResolverItem, getResolverFromConfig } from './converters';
 import { GrpcProtoCheck } from './grpcProtoCheck/GrpcProtoCheck';
@@ -70,6 +72,7 @@ export const ResolverWizard: React.FC<{
 }> = ({ apiRef, field, objectType, onClose }) => {
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
   const { readonly } = useGetConsoleOptions();
+  const confirm = useConfirm();
 
   // --- STATE (FIELD, RESOLVER) --- //
   const fieldName = field?.name.value ?? '';
@@ -96,11 +99,9 @@ export const ResolverWizard: React.FC<{
   // --- STATE (TAB, WARNING, CONFIRM) --- //
   const [tabIndex, setTabIndex] = React.useState(0);
   const [warningMessage, setWarningMessage] = React.useState('');
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   useEffect(() => {
     // Reset when field is unset (the wizard is hidden).
     if (field === null) {
-      setIsConfirmingDelete(false);
       setWarningMessage('');
     }
   }, [field]);
@@ -138,7 +139,14 @@ export const ResolverWizard: React.FC<{
       });
       //
       // Make the update and close the modal.
-      await graphqlConfigApi.updateGraphqlApiResolver(apiRef, resolverItem);
+      await toast.promise(
+        graphqlConfigApi.updateGraphqlApiResolver(apiRef, resolverItem),
+        {
+          loading: 'Updating API..',
+          success: 'API updated!',
+          error: hotToastError,
+        }
+      );
       onClose();
     } catch (err: any) {
       setWarningMessage(err?.message ?? err);
@@ -164,7 +172,6 @@ export const ResolverWizard: React.FC<{
       onClose();
     } catch (err: any) {
       setWarningMessage(err.message ?? err);
-      setIsConfirmingDelete(false);
     }
   };
 
@@ -247,7 +254,19 @@ export const ResolverWizard: React.FC<{
                     <div className='ml-2'>
                       <SoloNegativeButton
                         data-testid='remove-configuration-btn'
-                        onClick={() => setIsConfirmingDelete(true)}>
+                        onClick={() =>
+                          confirm({
+                            confirmButtonText: 'Delete',
+                            confirmPrompt: 'delete this Resolver',
+                            isNegative: true,
+                          }).then(() =>
+                            toast.promise(deleteResolverConfig(), {
+                              loading: 'Deleting Resolver Config',
+                              success: 'Resolver deleted!',
+                              error: hotToastError,
+                            })
+                          )
+                        }>
                         Remove Configuration
                       </SoloNegativeButton>
                     </div>
@@ -288,7 +307,6 @@ export const ResolverWizard: React.FC<{
                     </styles.IconButton>
                     {!readonly && (
                       <SoloButtonStyledComponent
-                        data-testid='resolver-wizard-submit'
                         onClick={() => setTabIndex(tabIndex + 1)}>
                         Next Step
                       </SoloButtonStyledComponent>
@@ -331,16 +349,6 @@ export const ResolverWizard: React.FC<{
           </>
         )}
       </Formik>
-      <ConfirmationModal
-        visible={isConfirmingDelete}
-        confirmPrompt='delete this Resolver'
-        confirmButtonText='Delete'
-        confirmTestId='confirm-delete-resolver'
-        cancelTestId='cancel-delete-resolver'
-        goForIt={deleteResolverConfig}
-        cancel={() => setIsConfirmingDelete(false)}
-        isNegative
-      />
     </div>
   );
 };

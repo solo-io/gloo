@@ -175,7 +175,7 @@ describe('API Tests', () => {
           // so we have to wait for it to appear.
           await sleep(150);
           await simpleScreenshot();
-          await waitForAndClick(page, `[data-testid="confirm-delete-resolver"]`);
+          await waitForAndClick(page, `[data-testid="confirm-modal-button"]`);
           await sleep(150);
           //
           // Verify that the resolverConfig has been removed.

@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    description: >
+      Refactored the confirmation modal UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3423
+  - type: FIX
+    description: >
+      Added toasts to the UI with react-hot-toast.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3428

@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import { EditFilled } from '@ant-design/icons';
 import { graphqlConfigApi } from 'API/graphql';
 import {
@@ -11,6 +12,7 @@ import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/grap
 import React, { useMemo, useState } from 'react';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
 import StitchedGqlTypeMergeMapConfig from '../type-merge-map/StitchedGqlTypeMergeMapConfig';
+import { hotToastError } from 'utils/hooks';
 
 const StitchedGqlEditTypeMergeMap: React.FC<{
   subGraphConfig: StitchedSchema.SubschemaConfig.AsObject;
@@ -49,13 +51,20 @@ const StitchedGqlEditTypeMergeMap: React.FC<{
     //
     // Update the object reference in the list, and call the api.
     existingSubGraph.typeMergeMap = typeMergeMap;
-    await graphqlConfigApi.updateGraphqlApi({
-      graphqlApiRef: apiRef,
-      spec: {
-        ...graphqlApi.spec,
-        stitchedSchema: { subschemasList },
-      },
-    });
+    await toast.promise(
+      graphqlConfigApi.updateGraphqlApi({
+        graphqlApiRef: apiRef,
+        spec: {
+          ...graphqlApi.spec,
+          stitchedSchema: { subschemasList },
+        },
+      }),
+      {
+        loading: 'Updating API...',
+        success: 'API updated!',
+        error: hotToastError,
+      }
+    );
     setIsModalVisible(false);
     onAfterEdit();
   };

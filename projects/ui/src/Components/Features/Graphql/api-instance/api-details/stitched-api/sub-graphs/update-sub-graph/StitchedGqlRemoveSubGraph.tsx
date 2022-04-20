@@ -7,10 +7,12 @@ import {
   usePageGlooInstance,
 } from 'API/hooks';
 import { ReactComponent as XIcon } from 'assets/x-icon.svg';
-import ConfirmationModal from 'Components/Common/ConfirmationModal';
 import { TableActionCircle, TableActions } from 'Components/Common/SoloTable';
+import { useConfirm } from 'Components/Context/ConfirmModalContext';
 import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
-import React, { useState } from 'react';
+import React from 'react';
+import toast from 'react-hot-toast';
+import { hotToastError } from 'utils/hooks';
 
 const StitchedGqlRemoveSubGraph: React.FC<{
   subGraphConfig: StitchedSchema.SubschemaConfig.AsObject;
@@ -21,14 +23,10 @@ const StitchedGqlRemoveSubGraph: React.FC<{
   const { glooInstance } = usePageGlooInstance();
   const { data: graphqlApis } = useListGraphqlApis(glooInstance?.metadata);
   const { readonly } = useGetConsoleOptions();
-
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const confirm = useConfirm();
 
   const removeSubGraph = async () => {
-    if (!graphqlApis) {
-      console.error('Unable to add sub graph.');
-      return;
-    }
+    if (!graphqlApis) throw new Error('Unable to add sub graph.');
     const existingSubGraphs =
       graphqlApi?.spec?.stitchedSchema?.subschemasList ?? [];
     const newSubschemasList = existingSubGraphs.filter(
@@ -48,7 +46,6 @@ const StitchedGqlRemoveSubGraph: React.FC<{
         allowedQueryHashesList: [],
       },
     });
-    setIsModalVisible(false);
     onAfterRemove();
   };
 
@@ -57,18 +54,21 @@ const StitchedGqlRemoveSubGraph: React.FC<{
     <TableActions className={`${subGraphConfig.name}-actions`}>
       <TableActionCircle
         data-testid='remove-sub-graph'
-        onClick={() => setIsModalVisible(true)}>
+        onClick={() =>
+          confirm({
+            confirmPrompt: 'remove this sub graph?',
+            confirmButtonText: 'Remove',
+            isNegative: true,
+          }).then(() =>
+            toast.promise(removeSubGraph(), {
+              loading: 'Removing sub graph...',
+              success: 'Sub graph removed!',
+              error: hotToastError,
+            })
+          )
+        }>
         <XIcon />
       </TableActionCircle>
-      <ConfirmationModal
-        visible={isModalVisible}
-        confirmPrompt='remove this sub graph?'
-        confirmTestId='confirm-remove-sub-graph'
-        confirmButtonText='Remove'
-        goForIt={removeSubGraph}
-        cancel={() => setIsModalVisible(false)}
-        isNegative
-      />
     </TableActions>
   );
 };

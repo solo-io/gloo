@@ -21,6 +21,8 @@ import { nameValidationSchema } from 'utils';
 import { makeGraphqlApiLink } from 'utils/graphql-helpers';
 import * as yup from 'yup';
 import * as styles from './NewApiModal.style';
+import toast from 'react-hot-toast';
+import { hotToastError } from 'utils/hooks';
 
 export const NewApiModal: React.FC<{
   glooInstance: GlooInstance.AsObject;
@@ -87,12 +89,14 @@ export const NewApiModal: React.FC<{
       };
     }
 
-    let createdGraphqlApi = await graphqlConfigApi
-      .createGraphqlApi(newApiSchema)
-      .catch(err => {
-        // Catch any errors on the backend the frontend can't catch.
-        setErrorMessage(err.message);
-      });
+    let createdGraphqlApi = await toast.promise(
+      graphqlConfigApi.createGraphqlApi(newApiSchema),
+      {
+        loading: `Creating API...`,
+        success: `API created!`,
+        error: hotToastError,
+      }
+    );
     if (!createdGraphqlApi) {
       return;
     }

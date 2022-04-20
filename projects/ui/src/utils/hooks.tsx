@@ -1,95 +1,34 @@
 import { graphqlConfigApi } from 'API/graphql';
-import {
-  useListClusterDetails,
-  useListGlooInstances,
-  useListGraphqlApis,
-} from 'API/hooks';
+import { useListGraphqlApis } from 'API/hooks';
+import { useConfirm } from 'Components/Context/ConfirmModalContext';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
-import React from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
-import { KeyedMutator } from 'swr';
 
-interface DeleteConfig {
-  optimistic?: boolean;
-  revalidate:
-    | KeyedMutator<GraphqlApi.AsObject[]>
-    | KeyedMutator<GraphqlApi.AsObject>;
-}
+export const hotToastError = (e: any) => {
+  toast.error(e?.message ?? e);
+  return 'Error';
+};
 
-// TODO: make reusable
-export function useDeleteAPI(config: DeleteConfig) {
-  let { revalidate, optimistic } = config;
-
-  const [isDeleting, setIsDeleting] = React.useState(false);
-  const [errorModal, setErrorModal] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState('');
-  const [errorDescription, setErrorDescription] = React.useState('');
-  const [apiRefToDelete, setApiRefToDelete] =
-    React.useState<ClusterObjectRef.AsObject>();
+export function useDeleteApi() {
+  const { mutate: mutateApiList } = useListGraphqlApis();
   const navigate = useNavigate();
-  const { data: graphqlApis, error: graphqlApiError } = useListGraphqlApis();
-  const { data: glooInstances, error: instancesError } = useListGlooInstances();
-
-  const { data: clusterDetailsList, error: cError } = useListClusterDetails();
-
-  const triggerDelete = (apiRef: ClusterObjectRef.AsObject) => {
-    setApiRefToDelete(apiRef);
-    setIsDeleting(true);
-  };
-  const cancelDelete = () => {
-    setIsDeleting(false);
-  };
-  const deleteAPI = async () => {
-    if (apiRefToDelete) {
-      if (optimistic) {
-        setTimeout(() => {
-          revalidate(
-            graphqlApis?.filter(
-              gqlApi =>
-                gqlApi.metadata?.name !== apiRefToDelete?.name &&
-                gqlApi.metadata?.namespace !== apiRefToDelete?.namespace
-            ),
-            false
-          );
-        }, 300);
-      }
-      try {
-        let deletedApiRef = await graphqlConfigApi.deleteGraphqlApi({
-          name: apiRefToDelete?.name,
-          namespace: apiRefToDelete?.namespace,
-          clusterName: apiRefToDelete?.clusterName,
-        });
-        cancelDelete();
-        if (optimistic) {
-          setTimeout(() => {
-            revalidate();
-          }, 300);
-        }
-
-        navigate('/apis/');
-      } catch (error: any) {
-        cancelDelete();
-        setErrorMessage('API deletion failed');
-        setErrorDescription(error.message ?? '');
-        setErrorModal(true);
-      }
-    }
-  };
-
-  return {
-    isDeleting,
-    triggerDelete,
-    cancelDelete,
-    closeErrorModal: () => setErrorModal(false),
-    errorModalIsOpen: errorModal,
-    deleteFn: deleteAPI,
-    errorDeleteModalProps: {
-      cancel: () => setErrorModal(false),
-      visible: errorModal,
-      errorDescription,
-      errorMessage,
+  const confirm = useConfirm();
+  return (apiRef: ClusterObjectRef.AsObject) =>
+    confirm({
+      confirmPrompt: `delete the API, ${apiRef.name}`,
+      confirmButtonText: 'Delete',
       isNegative: true,
-    },
-  };
+    }).then(() =>
+      toast
+        .promise(graphqlConfigApi.deleteGraphqlApi(apiRef), {
+          loading: 'Deleting API...',
+          success: () => {
+            mutateApiList();
+            return 'API Deleted!';
+          },
+          error: hotToastError,
+        })
+        .finally(() => navigate('/apis/'))
+    );
 }

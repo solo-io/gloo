@@ -1,6 +1,6 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Alert, Collapse } from 'antd';
-import ConfirmationModal from 'Components/Common/ConfirmationModal';
+import { useConfirm } from 'Components/Context/ConfirmModalContext';
 import lodash from 'lodash';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useEffect, useState } from 'react';
@@ -31,6 +31,7 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
   onTypeMergeMapChange,
   subGraphqlApiRef,
 }) => {
+  const confirm = useConfirm();
   // --- TYPE MERGE MAP (SF = string formatted) --- //
   const [typeMergeMapSF, setTypeMergeMapSF] =
     useState<TypeMergeMapStringFormat>([]);
@@ -53,7 +54,6 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
   }, [typeMergeMapSF]);
 
   // --- REMOVE TYPE MERGE MAPPING --- //
-  const [confirmMapIdxToRemove, setConfirmMapIdxToRemove] = useState(-1);
   const removeFromTypeMergeMap = (index: number) => {
     const newTypeMergeMap = [...typeMergeMapSF];
     newTypeMergeMap.splice(index, 1);
@@ -131,9 +131,14 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
                           trimmedMergeConfig === sampleTypeMerge ||
                           trimmedMergeConfig === ''
                         )
-                          removeFromTypeMergeMap(confirmMapIdxToRemove);
+                          removeFromTypeMergeMap(idx);
                         // Otherwise, confirm removing it.
-                        else setConfirmMapIdxToRemove(idx);
+                        else
+                          confirm({
+                            confirmPrompt: 'remove the edited type merge',
+                            confirmButtonText: 'Remove',
+                            isNegative: true,
+                          }).then(() => removeFromTypeMergeMap(idx));
                       }}>
                       <CloseOutlined />
                     </SoloNegativeButton>
@@ -155,7 +160,7 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
         </Collapse>
       )}
 
-      {/* --- ALERTS + CONFIRMATION --- */}
+      {/* --- ALERTS --- */}
       {!!warningMessage && (
         <Alert
           showIcon
@@ -164,17 +169,6 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
           description={warningMessage}
         />
       )}
-      <ConfirmationModal
-        visible={confirmMapIdxToRemove !== -1}
-        confirmPrompt='remove the edited type merge'
-        confirmButtonText='Remove'
-        goForIt={() => {
-          removeFromTypeMergeMap(confirmMapIdxToRemove);
-          setConfirmMapIdxToRemove(-1);
-        }}
-        cancel={() => setConfirmMapIdxToRemove(-1)}
-        isNegative
-      />
     </div>
   );
 };
