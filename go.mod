@@ -10,7 +10,7 @@ require (
 	github.com/bshuster-repo/logrus-logstash-hook v1.0.2 // indirect
 	github.com/deislabs/oras v0.11.1
 	github.com/docker/distribution v2.7.1+incompatible
-	github.com/envoyproxy/go-control-plane v0.10.1
+	github.com/envoyproxy/go-control-plane v0.10.2-0.20211130161932-f62def555c97
 	github.com/envoyproxy/protoc-gen-validate v0.6.1
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
@@ -22,7 +22,7 @@ require (
 	github.com/go-logr/zapr v0.4.0
 	github.com/go-openapi/inflect v0.19.0
 	github.com/go-openapi/swag v0.19.15
-	github.com/go-redis/redis/v8 v8.2.3
+	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-test/deep v1.0.7
 	github.com/gobuffalo/packr v1.30.1
 	github.com/golang/mock v1.6.0
@@ -38,7 +38,7 @@ require (
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.17.0
+	github.com/onsi/gomega v1.18.1
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
@@ -59,8 +59,8 @@ require (
 	github.com/solo-io/licensing v0.2.0
 	github.com/solo-io/protoc-gen-ext v0.0.16
 	github.com/solo-io/protoc-gen-openapi v0.0.4
-	github.com/solo-io/rate-limiter v0.5.6
-	github.com/solo-io/skv2 v0.21.6
+	github.com/solo-io/rate-limiter v0.6.2
+	github.com/solo-io/skv2 v0.22.11
 	github.com/solo-io/skv2-enterprise v0.2.8
 	github.com/solo-io/solo-apis v0.0.0-20220415205538-b9ab65847bc9
 	github.com/solo-io/solo-kit v0.26.0
@@ -85,7 +85,7 @@ require (
 	helm.sh/helm/v3 v3.7.1
 	istio.io/istio v0.0.0-20211130191315-d9963eecf782 // indirect
 	istio.io/pkg v0.0.0-20211123161558-1e5d0c4ee827
-	istio.io/tools v0.0.0-20200918020118-6d0a0e49b5d3
+	istio.io/tools v0.0.0-20210420211536-9c0f48df3262
 	k8s.io/api v0.22.4
 	k8s.io/apiextensions-apiserver v0.22.4
 	k8s.io/apimachinery v0.22.4
@@ -111,6 +111,9 @@ replace (
 	// skv2 uses a newer version than the imported solo-kit version which causes issues. Replaces the version with the solo-kit version
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
+
+	// Gloo-fed code currently relies on older skv2: https://github.com/solo-io/solo-projects/issues/3540
+	github.com/solo-io/skv2 => github.com/solo-io/skv2 v0.21.6
 	go.opentelemetry.io/otel => go.opentelemetry.io/otel v0.11.0
 
 	// Lock sys package to fix darwin upgrade issue

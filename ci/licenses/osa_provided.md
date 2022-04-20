@@ -5,7 +5,7 @@ Name|Version|License
 [aws/aws-sdk-go](https://github.com/aws/aws-sdk-go)|v1.42.15|Apache License 2.0
 [deislabs/oras](https://github.com/deislabs/oras)|v0.11.1|MIT License
 [docker/distribution](https://github.com/docker/distribution)|v2.7.1+incompatible|Apache License 2.0
-[envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.10.1|Apache License 2.0
+[envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.10.2-0.20211130161932-f62def555c97|Apache License 2.0
 [envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v0.6.1|Apache License 2.0
 [fgrosse/zaptest](https://github.com/fgrosse/zaptest)|v1.1.0|MIT License
 [form3tech-oss/jwt-go](https://github.com/form3tech-oss/jwt-go)|v3.2.3+incompatible|MIT License
@@ -17,7 +17,7 @@ Name|Version|License
 [go-logr/zapr](https://github.com/go-logr/zapr)|v0.4.0|Apache License 2.0
 [go-openapi/inflect](https://github.com/go-openapi/inflect)|v0.19.0|MIT License
 [go-openapi/swag](https://github.com/go-openapi/swag)|v0.19.15|Apache License 2.0
-[redis/v8](https://github.com/go-redis/redis)|v8.2.3|BSD 2-clause "Simplified" License
+[redis/v8](https://github.com/go-redis/redis)|v8.11.4|BSD 2-clause "Simplified" License
 [go-test/deep](https://github.com/go-test/deep)|v1.0.7|MIT License
 [gobuffalo/packr](https://github.com/gobuffalo/packr)|v1.30.1|MIT License
 [golang/protobuf](https://github.com/golang/protobuf)|v1.5.2|BSD 3-clause "New" or "Revised" License
@@ -30,7 +30,7 @@ Name|Version|License
 [mitchellh/hashstructure](https://github.com/mitchellh/hashstructure)|v1.0.0|MIT License
 [olekukonko/tablewriter](https://github.com/olekukonko/tablewriter)|v0.0.5|MIT License
 [onsi/ginkgo](https://github.com/onsi/ginkgo)|v1.16.5|MIT License
-[onsi/gomega](https://github.com/onsi/gomega)|v1.17.0|MIT License
+[onsi/gomega](https://github.com/onsi/gomega)|v1.18.1|MIT License
 [opencontainers/go-digest](https://github.com/opencontainers/go-digest)|v1.0.0-rc1|Apache License 2.0
 [pkg/errors](https://github.com/pkg/errors)|v0.9.1|BSD 2-clause "Simplified" License
 [prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.11.0|Apache License 2.0
@@ -50,7 +50,7 @@ Name|Version|License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.6.0|Apache License 2.0
 [helm/v3](https://helm.sh/helm/v3)|v3.6.0|Apache License 2.0
 [istio.io/pkg](https://istio.io/pkg)|v0.0.0-20211123161558-1e5d0c4ee827|Apache License 2.0
-[istio.io/tools](https://istio.io/tools)|v0.0.0-20200918020118-6d0a0e49b5d3|Apache License 2.0
+[istio.io/tools](https://istio.io/tools)|v0.0.0-20210420211536-9c0f48df3262|Apache License 2.0
 [k8s.io/api](https://k8s.io/api)|v0.22.4|Apache License 2.0
 [k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.22.4|Apache License 2.0
 [k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.22.4|Apache License 2.0
