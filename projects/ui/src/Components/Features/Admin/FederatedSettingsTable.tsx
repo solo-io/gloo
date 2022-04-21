@@ -11,6 +11,7 @@ import {
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as GearIcon } from 'assets/gear-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
+import Tooltip from 'antd/lib/tooltip';
 import { useNavigate } from 'react-router';
 import { useListFederatedSettings } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
@@ -123,11 +124,13 @@ export const FederatedSettingsTable = () => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (setting: FederatedSettings.AsObject) => (
-        <TableActions>
-          <TableActionCircle onClick={() => onDownloadSetting(setting)}>
-            <DownloadIcon />
-          </TableActionCircle>
-        </TableActions>
+        <Tooltip title='Download'>
+          <TableActions>
+            <TableActionCircle onClick={() => onDownloadSetting(setting)}>
+              <DownloadIcon />
+            </TableActionCircle>
+          </TableActions>
+        </Tooltip>
       ),
     },
   ];

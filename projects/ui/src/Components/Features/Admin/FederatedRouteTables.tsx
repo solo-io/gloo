@@ -11,6 +11,7 @@ import {
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as RouteIcon } from 'assets/route-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
+import Tooltip from 'antd/lib/tooltip';
 import { useNavigate } from 'react-router';
 import { useListFederatedRouteTables } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
@@ -138,11 +139,13 @@ export const FederatedRouteTables = () => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (routeTable: FederatedRouteTable.AsObject) => (
-        <TableActions>
-          <TableActionCircle onClick={() => onDownloadRouteTable(routeTable)}>
-            <DownloadIcon />
-          </TableActionCircle>
-        </TableActions>
+        <Tooltip title='Download'>
+          <TableActions>
+            <TableActionCircle onClick={() => onDownloadRouteTable(routeTable)}>
+              <DownloadIcon />
+            </TableActionCircle>
+          </TableActions>
+        </Tooltip>
       ),
     },
   ];

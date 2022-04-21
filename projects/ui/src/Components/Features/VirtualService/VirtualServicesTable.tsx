@@ -18,6 +18,7 @@ import {
   useListGlooInstances,
   useListVirtualServices,
 } from 'API/hooks';
+import Tooltip from 'antd/lib/tooltip';
 import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { Loading } from 'Components/Common/Loading';
 import { objectMetasAreEqual } from 'API/helpers';
@@ -244,11 +245,13 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (vs: VirtualService.AsObject) => (
-        <TableActions>
-          <TableActionCircle onClick={() => onDownloadVirtualService(vs)}>
-            <DownloadIcon />
-          </TableActionCircle>
-        </TableActions>
+        <Tooltip title='Download'>
+          <TableActions>
+            <TableActionCircle onClick={() => onDownloadVirtualService(vs)}>
+              <DownloadIcon />
+            </TableActionCircle>
+          </TableActions>
+        </Tooltip>
       ),
     },
   ];

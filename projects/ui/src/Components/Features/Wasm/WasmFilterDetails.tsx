@@ -14,7 +14,7 @@ import { useLocation, useParams } from 'react-router';
 import { HealthNotificationBox } from 'Components/Common/HealthNotificationBox';
 import { PolicyHeaderTitle } from './DetailModalHeader';
 import YamlDisplayer from 'Components/Common/YamlDisplayer';
-import { Tooltip } from 'antd';
+import Tooltip from 'antd/lib/tooltip';
 import { WasmFilter } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/wasm_pb';
 import { objectMetasAreEqual } from 'API/helpers';
 import { colors } from 'Styles/colors';
@@ -280,9 +280,11 @@ export const WasmFilterDetails = ({
       render: (gateway: ClusterObjectRef.AsObject) => (
         <TableActions>
           {!!gateway && (
-            <TableActionCircle onClick={() => onDownloadGateway(gateway)}>
-              <DownloadIcon />
-            </TableActionCircle>
+            <Tooltip title='Download'>
+              <TableActionCircle onClick={() => onDownloadGateway(gateway)}>
+                <DownloadIcon />
+              </TableActionCircle>
+            </Tooltip>
           )}
         </TableActions>
       ),

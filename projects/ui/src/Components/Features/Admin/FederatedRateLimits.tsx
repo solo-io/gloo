@@ -10,6 +10,7 @@ import {
 } from 'Components/Common/SoloTable';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
+import Tooltip from 'antd/lib/tooltip';
 import { useNavigate } from 'react-router';
 import { useListFederatedRateLimits } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
@@ -118,11 +119,13 @@ export const FederatedRateLimits = () => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (rateLimit: FederatedRateLimitConfig.AsObject) => (
-        <TableActions>
-          <TableActionCircle onClick={() => onDownloadRateLimit(rateLimit)}>
-            <DownloadIcon />
-          </TableActionCircle>
-        </TableActions>
+        <Tooltip title='Download'>
+          <TableActions>
+            <TableActionCircle onClick={() => onDownloadRateLimit(rateLimit)}>
+              <DownloadIcon />
+            </TableActionCircle>
+          </TableActions>
+        </Tooltip>
       ),
     },
   ];

@@ -8,6 +8,7 @@ import {
   RenderClustersList,
   RenderExpandableNamesList,
 } from 'Components/Common/SoloTable';
+import Tooltip from 'antd/lib/tooltip';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as GatewayIcon } from 'assets/gateway.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
@@ -139,11 +140,13 @@ export const FederatedGateways = () => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (gateway: FederatedGateway.AsObject) => (
-        <TableActions>
-          <TableActionCircle onClick={() => onDownloadGateway(gateway)}>
-            <DownloadIcon />
-          </TableActionCircle>
-        </TableActions>
+        <Tooltip title='Download'>
+          <TableActions>
+            <TableActionCircle onClick={() => onDownloadGateway(gateway)}>
+              <DownloadIcon />
+            </TableActionCircle>
+          </TableActions>
+        </Tooltip>
       ),
     },
   ];

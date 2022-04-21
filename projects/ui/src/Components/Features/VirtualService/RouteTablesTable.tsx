@@ -11,6 +11,7 @@ import {
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as RouteTableIcon } from 'assets/route-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
+import Tooltip from 'antd/lib/tooltip';
 import { useParams, useNavigate } from 'react-router';
 import { useListRouteTables, useIsGlooFedEnabled } from 'API/hooks';
 import { RouteTable } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
@@ -172,11 +173,13 @@ export const RouteTablesTable = ({ routeTables, wholePage }: TableProps) => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (rt: RouteTable.AsObject) => (
-        <TableActions>
-          <TableActionCircle onClick={() => onDownloadRouteTable(rt)}>
-            <DownloadIcon />
-          </TableActionCircle>
-        </TableActions>
+        <Tooltip title='Download'>
+          <TableActions>
+            <TableActionCircle onClick={() => onDownloadRouteTable(rt)}>
+              <DownloadIcon />
+            </TableActionCircle>
+          </TableActions>
+        </Tooltip>
       ),
     },
   ];

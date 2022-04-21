@@ -6,6 +6,7 @@ import {
   usePageApiRef,
   usePageGlooInstance,
 } from 'API/hooks';
+import Tooltip from 'antd/lib/tooltip';
 import { ReactComponent as XIcon } from 'assets/x-icon.svg';
 import { TableActionCircle, TableActions } from 'Components/Common/SoloTable';
 import { useConfirm } from 'Components/Context/ConfirmModalContext';
@@ -51,25 +52,27 @@ const StitchedGqlRemoveSubGraph: React.FC<{
 
   if (readonly) return null;
   return (
-    <TableActions className={`${subGraphConfig.name}-actions`}>
-      <TableActionCircle
-        data-testid='remove-sub-graph'
-        onClick={() =>
-          confirm({
-            confirmPrompt: 'remove this sub graph?',
-            confirmButtonText: 'Remove',
-            isNegative: true,
-          }).then(() =>
-            toast.promise(removeSubGraph(), {
-              loading: 'Removing sub graph...',
-              success: 'Sub graph removed!',
-              error: hotToastError,
-            })
-          )
-        }>
-        <XIcon />
-      </TableActionCircle>
-    </TableActions>
+    <Tooltip title='Remove sub graph'>
+      <TableActions className={`${subGraphConfig.name}-actions`}>
+        <TableActionCircle
+          data-testid='remove-sub-graph'
+          onClick={() =>
+            confirm({
+              confirmPrompt: 'remove this sub graph?',
+              confirmButtonText: 'Remove',
+              isNegative: true,
+            }).then(() =>
+              toast.promise(removeSubGraph(), {
+                loading: 'Removing sub graph...',
+                success: 'Sub graph removed!',
+                error: hotToastError,
+              })
+            )
+          }>
+          <XIcon />
+        </TableActionCircle>
+      </TableActions>
+    </Tooltip>
   );
 };
 

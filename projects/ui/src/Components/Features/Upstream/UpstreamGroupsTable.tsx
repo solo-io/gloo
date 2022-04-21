@@ -11,6 +11,7 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as UpstreamGroupIcon } from 'assets/upstream-group-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { colors } from 'Styles/colors';
+import Tooltip from 'antd/lib/tooltip';
 import { useParams, useNavigate } from 'react-router';
 import { useListUpstreamGroups, useIsGlooFedEnabled } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
@@ -204,11 +205,13 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (group: UpstreamGroup.AsObject) => (
-        <TableActions>
-          <TableActionCircle onClick={() => onDownloadUpstream(group)}>
-            <DownloadIcon />
-          </TableActionCircle>
-        </TableActions>
+        <Tooltip title='Download'>
+          <TableActions>
+            <TableActionCircle onClick={() => onDownloadUpstream(group)}>
+              <DownloadIcon />
+            </TableActionCircle>
+          </TableActions>
+        </Tooltip>
       ),
     },
   ];

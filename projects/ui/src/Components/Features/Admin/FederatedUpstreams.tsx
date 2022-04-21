@@ -9,6 +9,7 @@ import {
   RenderExpandableNamesList,
 } from 'Components/Common/SoloTable';
 import { SectionCard } from 'Components/Common/SectionCard';
+import Tooltip from 'antd/lib/tooltip';
 import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { ReactComponent as FailoverIcon } from 'assets/GlooFed-Specific/failover-icon.svg';
@@ -151,11 +152,13 @@ export const FederatedUpstreams = () => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (upstream: FederatedUpstream.AsObject) => (
-        <TableActions>
-          <TableActionCircle onClick={() => onDownloadUpstream(upstream)}>
-            <DownloadIcon />
-          </TableActionCircle>
-        </TableActions>
+        <Tooltip title='Download'>
+          <TableActions>
+            <TableActionCircle onClick={() => onDownloadUpstream(upstream)}>
+              <DownloadIcon />
+            </TableActionCircle>
+          </TableActions>
+        </Tooltip>
       ),
     },
   ];

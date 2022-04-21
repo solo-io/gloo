@@ -12,6 +12,7 @@ import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { ReactComponent as FailoverIcon } from 'assets/GlooFed-Specific/failover-icon.svg';
 import { colors } from 'Styles/colors';
+import Tooltip from 'antd/lib/tooltip';
 import { useParams, useNavigate } from 'react-router';
 import {
   useIsGlooFedEnabled,
@@ -252,11 +253,13 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (upstream: Upstream.AsObject) => (
-        <TableActions>
-          <TableActionCircle onClick={() => onDownloadUpstream(upstream)}>
-            <DownloadIcon />
-          </TableActionCircle>
-        </TableActions>
+        <Tooltip title='Download'>
+          <TableActions>
+            <TableActionCircle onClick={() => onDownloadUpstream(upstream)}>
+              <DownloadIcon />
+            </TableActionCircle>
+          </TableActions>
+        </Tooltip>
       ),
     },
   ];

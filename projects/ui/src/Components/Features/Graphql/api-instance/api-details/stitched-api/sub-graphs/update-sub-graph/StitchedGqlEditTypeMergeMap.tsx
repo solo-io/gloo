@@ -6,6 +6,7 @@ import {
   useGetGraphqlApiDetails,
   usePageApiRef,
 } from 'API/hooks';
+import Tooltip from 'antd/lib/tooltip';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { TableActionCircle, TableActions } from 'Components/Common/SoloTable';
 import { StitchedSchema } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
@@ -75,40 +76,42 @@ const StitchedGqlEditTypeMergeMap: React.FC<{
 
   if (readonly) return null;
   return (
-    <TableActions>
-      <TableActionCircle onClick={() => setIsModalVisible(true)}>
-        <EditFilled />
-      </TableActionCircle>
+    <Tooltip title='Update Type Merge Map'>
+      <TableActions>
+        <TableActionCircle onClick={() => setIsModalVisible(true)}>
+          <EditFilled />
+        </TableActionCircle>
 
-      <SoloModal
-        visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        title={`Editing ${subGraphConfig.name}`}
-        width={600}>
-        <div className='p-5 pb-10 pt-0'>
-          {!!subGraphConfig && (
-            <StitchedGqlTypeMergeMapConfig
-              onIsValidChange={isValid => setIsMergeMapValid(isValid)}
-              initialTypeMergeMap={existingSubGraph?.typeMergeMap ?? []}
-              onTypeMergeMapChange={m => setTypeMergeMap(m)}
-              subGraphqlApiRef={{
-                name: subGraphConfig.name ?? '',
-                namespace: subGraphConfig.namespace ?? '',
-                clusterName: apiRef.clusterName ?? '',
-              }}
-            />
-          )}
+        <SoloModal
+          visible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          title={`Editing ${subGraphConfig.name}`}
+          width={600}>
+          <div className='p-5 pb-10 pt-0'>
+            {!!subGraphConfig && (
+              <StitchedGqlTypeMergeMapConfig
+                onIsValidChange={isValid => setIsMergeMapValid(isValid)}
+                initialTypeMergeMap={existingSubGraph?.typeMergeMap ?? []}
+                onTypeMergeMapChange={m => setTypeMergeMap(m)}
+                subGraphqlApiRef={{
+                  name: subGraphConfig.name ?? '',
+                  namespace: subGraphConfig.namespace ?? '',
+                  clusterName: apiRef.clusterName ?? '',
+                }}
+              />
+            )}
 
-          <div className='text-right mt-10'>
-            <SoloButtonStyledComponent
-              disabled={!canSubmit}
-              onClick={saveTypeMergeMap}>
-              Update Type Merge Map
-            </SoloButtonStyledComponent>
+            <div className='text-right mt-10'>
+              <SoloButtonStyledComponent
+                disabled={!canSubmit}
+                onClick={saveTypeMergeMap}>
+                Update Type Merge Map
+              </SoloButtonStyledComponent>
+            </div>
           </div>
-        </div>
-      </SoloModal>
-    </TableActions>
+        </SoloModal>
+      </TableActions>
+    </Tooltip>
   );
 };
 

@@ -12,6 +12,7 @@ import {
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as UpstreamGroupIcon } from 'assets/upstream-group-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
+import Tooltip from 'antd/lib/tooltip';
 import { useNavigate } from 'react-router';
 import { useListFederatedUpstreamGroups } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
@@ -128,12 +129,14 @@ export const FederatedUpstreamGroups = () => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (upstreamGroup: FederatedUpstreamGroup.AsObject) => (
-        <TableActions>
-          <TableActionCircle
-            onClick={() => onDownloadUpstreamGroups(upstreamGroup)}>
-            <DownloadIcon />
-          </TableActionCircle>
-        </TableActions>
+        <Tooltip title='Download'>
+          <TableActions>
+            <TableActionCircle
+              onClick={() => onDownloadUpstreamGroups(upstreamGroup)}>
+              <DownloadIcon />
+            </TableActionCircle>
+          </TableActions>
+        </Tooltip>
       ),
     },
   ];

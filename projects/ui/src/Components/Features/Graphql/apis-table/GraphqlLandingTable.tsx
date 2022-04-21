@@ -1,4 +1,5 @@
 import { ColumnsType } from 'antd/lib/table';
+import Tooltip from 'antd/lib/tooltip';
 import { graphqlConfigApi } from 'API/graphql';
 import { useGetConsoleOptions, useIsGlooFedEnabled } from 'API/hooks';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
@@ -112,29 +113,33 @@ export const GraphqlLandingTable: React.FC<{
       align: 'center',
       render: (api: GraphqlApi.AsObject) => (
         <TableActions className='space-x-3 justify-center'>
-          <TableActionCircle
-            data-testid='graphql-table-action-download'
-            onClick={() => {
-              if (!api.metadata) return;
-              graphqlConfigApi
-                .getGraphqlApiYaml(makeGraphqlApiRef(api))
-                .then(gqlApiYaml => {
-                  doDownload(
-                    gqlApiYaml,
-                    api.metadata?.namespace +
-                      '--' +
-                      api.metadata?.name +
-                      '.yaml'
-                  );
-                });
-            }}>
-            <DownloadIcon />
-          </TableActionCircle>
-          <TableActionCircle
-            data-testid='graphql-table-action-delete'
-            onClick={() => confirmDeleteApi(makeGraphqlApiRef(api))}>
-            <XIcon />
-          </TableActionCircle>
+          <Tooltip title='Download schema'>
+            <TableActionCircle
+              data-testid='graphql-table-action-download'
+              onClick={() => {
+                if (!api.metadata) return;
+                graphqlConfigApi
+                  .getGraphqlApiYaml(makeGraphqlApiRef(api))
+                  .then(gqlApiYaml => {
+                    doDownload(
+                      gqlApiYaml,
+                      api.metadata?.namespace +
+                        '--' +
+                        api.metadata?.name +
+                        '.yaml'
+                    );
+                  });
+              }}>
+              <DownloadIcon />
+            </TableActionCircle>
+          </Tooltip>
+          <Tooltip title='Delete schema'>
+            <TableActionCircle
+              data-testid='graphql-table-action-delete'
+              onClick={() => confirmDeleteApi(makeGraphqlApiRef(api))}>
+              <XIcon />
+            </TableActionCircle>
+          </Tooltip>
         </TableActions>
       ),
     },
