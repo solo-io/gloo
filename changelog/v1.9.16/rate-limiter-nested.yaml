@@ -1,0 +1,16 @@
+changelog:
+  - type: FIX
+    description: fix for rate limiting action based nested descriptors
+    issueLink: https://github.com/solo-io/gloo/issues/6225
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: rate-limiter
+    dependencyTag: v0.4.6
+    description: Update rate-limiter to version 0.4.6
+    issueLink: https://github.com/solo-io/gloo/issues/6225 
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.9.13

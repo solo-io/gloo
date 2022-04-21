@@ -139,7 +139,7 @@ run-ci-gloo-fed-regression-tests: install-go-tools
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
 .PHONY: run-e2e-tests
 run-e2e-tests: install-go-tools
-	ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
 
 .PHONY: update-ui-deps
 update-ui-deps:
@@ -297,7 +297,7 @@ CONFIG_YAML=cfg.yaml
 
 .PHONY: run-apiserver
 run-apiserver:
-	GRPC_PORT=$(GRPC_PORT) POD_NAMESPACE=gloo-system $(GO_BUILD_FLAGS) go run projects/apiserver/cmd/main.go
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn GRPC_PORT=$(GRPC_PORT) POD_NAMESPACE=gloo-system $(GO_BUILD_FLAGS) go run projects/apiserver/cmd/main.go
 
 .PHONY: run-envoy
 run-envoy:
