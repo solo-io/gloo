@@ -181,6 +181,26 @@ const graphiqlCustomStyles = css`
     }
 
     // ========================== //
+    // QUERY VARIABLES + REQUEST HEADERS
+    .secondary-editor-title.variable-editor-title {
+      display: flex;
+      padding-top: 0px;
+      padding-bottom: 0px;
+      .variable-editor-title-text {
+        cursor: pointer;
+        opacity: 0.75;
+        padding: 8px 10px 10px 5px;
+        &:hover,
+        &.active {
+          opacity: 1;
+        }
+        &.active {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    // ========================== //
     // EXECUTE/RUN QUERY BUTTON //
     .execute-button-wrap {
       height: unset;

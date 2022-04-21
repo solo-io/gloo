@@ -121,27 +121,21 @@ const GraphqlApiPolicyInputs: React.FC = () => {
       <Styles.ButtonContainer className='ml-2'>
         <SoloButtonStyledComponent
           onClick={() =>
-            confirm({
-              confirmPrompt: 'update this schema',
-              confirmButtonText: 'Update',
-              isNegative: true,
-            }).then(() =>
-              toast
-                .promise(updateApi(), {
-                  loading: 'Updating API...',
-                  success: 'API updated!',
-                  error: hotToastError,
-                })
-                .catch(() => {
-                  setIntrospectionEnabled(
-                    (graphqlApi?.spec?.executableSchema?.executor?.local
-                      ?.enableIntrospection &&
-                      !readonly) ??
-                      false
-                  );
-                  updateApi();
-                })
-            )
+            toast
+              .promise(updateApi(), {
+                loading: 'Updating Policies...',
+                success: 'Policies updated!',
+                error: hotToastError,
+              })
+              .catch(() => {
+                setIntrospectionEnabled(
+                  (graphqlApi?.spec?.executableSchema?.executor?.local
+                    ?.enableIntrospection &&
+                    !readonly) ??
+                    false
+                );
+                updateApi();
+              })
           }>
           Update Policies
         </SoloButtonStyledComponent>

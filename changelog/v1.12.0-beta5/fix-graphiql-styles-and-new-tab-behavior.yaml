@@ -1,0 +1,13 @@
+changelog:
+  - type: FIX
+    description: >
+      Removes the confirm-update-policy modal.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3550
+  - type: FIX
+    description: >
+      Fixes a problem with the policy tab not loading correctly when API explorer is disabled.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3543
+  - type: FIX
+    description: >
+      Fixes some GraphiQL API Explorer styles and new tab behavior.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3549

@@ -46,7 +46,7 @@ export const GraphqlInstance: React.FC = () => {
         <Tabs index={tabIndex} onChange={handleTabsChange}>
           <FolderTabList>
             <FolderTab>API Details</FolderTab>
-            {apiExplorerEnabled && <FolderTab>Explore</FolderTab>}
+            <FolderTab hidden={!apiExplorerEnabled}>Explore</FolderTab>
             <FolderTab>Policies</FolderTab>
           </FolderTabList>
 

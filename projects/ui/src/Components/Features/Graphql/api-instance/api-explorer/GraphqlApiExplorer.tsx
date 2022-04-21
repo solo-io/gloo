@@ -149,6 +149,7 @@ export const GraphqlApiExplorer = () => {
   let gqlFetcher: Fetcher = createGraphiQLFetcher({
     url,
     schemaFetcher: async graphQLParams => {
+      if (!graphQLParams.variables?.trim()) graphQLParams.variables = '{}';
       try {
         setRefetch(false);
         setGqlError('');

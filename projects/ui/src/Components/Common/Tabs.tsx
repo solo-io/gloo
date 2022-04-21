@@ -42,11 +42,14 @@ export const FolderTab = (
   props: {
     disabled?: boolean | undefined;
     isSelected?: boolean | undefined;
+    hidden?: boolean | undefined;
   } & TabPanelProps
 ) => {
-  const { children, isSelected, ...rest } = props;
+  const { children, isSelected, hidden, ...rest } = props;
   return (
-    <FolderTabHolder isSelected={isSelected}>
+    <FolderTabHolder
+      style={{ display: hidden ? 'none' : '' }}
+      isSelected={isSelected}>
       <Tab {...rest}>{children}</Tab>
     </FolderTabHolder>
   );
