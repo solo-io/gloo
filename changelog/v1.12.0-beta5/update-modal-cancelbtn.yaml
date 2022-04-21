@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Add cancel button.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3548

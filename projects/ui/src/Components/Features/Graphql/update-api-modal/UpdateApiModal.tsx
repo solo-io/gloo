@@ -55,30 +55,6 @@ export const UpdateApiModal: React.FC<{
   const [errorMessage, setErrorMessage] = useState('');
   const [warningMessage, setWarningMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [uploadType, setUploadType] = useState<UploadType>(UploadType.FILE);
-
-  const pageOptions: {
-    displayName: string;
-    id: string | number;
-  }[] = [
-    {
-      displayName: 'File Upload',
-      id: UploadType.FILE,
-    },
-    {
-      displayName: 'Text Editor',
-      id: UploadType.TEXT,
-    },
-  ];
-
-  const handleRadioChange = (newId?: string | number) => {
-    const found = pageOptions.find(p => p.id === newId);
-    if (found) {
-      setUploadType(found.id as UploadType);
-    }
-  };
-
-  // TODO:  Add an onclick listener for resetting errors and checking them.
 
   const initialValues = {
     schemaString,
@@ -171,7 +147,7 @@ export const UpdateApiModal: React.FC<{
 
   return (
     <StyledSoloModal visible={show} width={800} onClose={onClose}>
-      <Formik initialValues={initialValues} onSubmit={createApi}>
+      <Formik enableReinitialize initialValues={initialValues} onSubmit={createApi}>
         {formik => {
           const setSchema = (newValue: string) => {
             formik.setFieldValue('schemaString', newValue);
@@ -254,6 +230,10 @@ export const UpdateApiModal: React.FC<{
                               onClick={formik.handleSubmit as any}>
                               Update Schema
                             </SoloButtonStyledComponent>
+                            <SoloCancelButton
+                              onClick={onClose}>
+                              Cancel
+                            </SoloCancelButton>
                           </styles.Footer>
                         </FooterContainer>
                       </TabPanel>
