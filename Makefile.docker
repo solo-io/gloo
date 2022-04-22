@@ -12,8 +12,8 @@ OUTPUT_DIR ?= $(ROOTDIR)/$(RELATIVE_OUTPUT_DIR)
 # To use gcr images, set the IMAGE_REPO to "gcr.io/$PROJECT_NAME"
 IMAGE_REPO ?= quay.io/solo-io
 
-GOLANG_VERSION := golang:1.16.3-alpine
-GOBORING_VERSION := goboring/golang:1.16.3b7
+GOLANG_VERSION := golang:1.18.1-alpine
+GOBORING_VERSION := us-docker.pkg.dev/google.com/api-project-999119582588/go-boringcrypto/golang:1.18.1b7
 
 RELEASE := "false"
 ifeq ($(TAGGED_VERSION),)

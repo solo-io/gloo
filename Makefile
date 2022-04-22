@@ -96,7 +96,7 @@ install-go-tools: mod-download
 
 .PHONY: mod-download
 mod-download:
-	go mod download
+	go mod download all
 
 .PHONY: clean-artifacts
 clean-artifacts:

@@ -43,6 +43,6 @@ RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
     -o verify-plugins-linux-amd64 \
     projects/extauth/scripts/verify_plugins.go
 
-FROM alpine:3.13.8
+FROM alpine:3.15.4
 COPY --from=build-env /go/src/github.com/solo-io/solo-projects/extauth-linux-amd64 /
 COPY --from=build-env /go/src/github.com/solo-io/solo-projects/verify-plugins-linux-amd64 /

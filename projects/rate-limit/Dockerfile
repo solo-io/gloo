@@ -37,5 +37,5 @@ RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
     projects/rate-limit/cmd/main.go
 
 
-FROM alpine:3.13.8
+FROM alpine:3.15.4
 COPY --from=build-env /go/src/github.com/solo-io/solo-projects/rate-limit-linux-amd64 /

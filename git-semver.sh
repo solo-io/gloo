@@ -18,7 +18,7 @@
 # using build metadata (https://semver.org/#spec-item-10) when formatting the
 # version (with the -no-meta) to keep both helm and docker happy.
 
-go install github.com/mdomke/git-semver/v6@v6.0.1
+go install github.com/mdomke/git-semver/v6@v6.2.0
 VERSION=$(git-semver -no-meta)
 VERSION=${VERSION:1} # Remove leading 'v'
 echo "$VERSION"

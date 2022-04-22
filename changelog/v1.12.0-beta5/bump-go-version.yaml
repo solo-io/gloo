@@ -1,0 +1,10 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Bumped the go version for go.mod
+    dependencyOwner: golang
+    dependencyRepo: go
+    dependencyTag: v1.18.1
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.19.18

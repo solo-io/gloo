@@ -47,10 +47,10 @@ jobs:
       - name: Setup docker
         run: |
           gcloud auth configure-docker
-      - name: Set up Go 1.16.3
-        uses: actions/setup-go@v2
+      - name: Set up Go
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.16.3
+          go-version: 1.18.1
       - uses: actions/cache@v1
         with:
           path: ~/go/pkg/mod
@@ -128,10 +128,10 @@ jobs:
       - name: Setup docker
         run: |
           gcloud auth configure-docker
-      - name: Set up Go 1.16.3
-        uses: actions/setup-go@v2
+      - name: Set up Go
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.16.3
+          go-version: 1.18.1
         id: go
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
