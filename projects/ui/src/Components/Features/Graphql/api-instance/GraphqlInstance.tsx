@@ -15,6 +15,7 @@ import {
   StyledTabPanel,
 } from 'Components/Common/Tabs';
 import React from 'react';
+import { isStitchedAPI } from 'utils/graphql-helpers';
 import { GraphqlIconHolder } from '../GraphqlLanding.style';
 import GraphqlApiDetails from './api-details/GraphqlApiDetails';
 import { GraphqlApiExplorer } from './api-explorer/GraphqlApiExplorer';
@@ -32,6 +33,8 @@ export const GraphqlInstance: React.FC = () => {
   };
 
   if (!graphqlApi) return <Loading />;
+  const isStiched = isStitchedAPI(graphqlApi!);
+
   return (
     <div className='w-full mx-auto '>
       <SectionCard
@@ -47,7 +50,7 @@ export const GraphqlInstance: React.FC = () => {
           <FolderTabList>
             <FolderTab>API Details</FolderTab>
             <FolderTab hidden={!apiExplorerEnabled}>Explore</FolderTab>
-            <FolderTab>Policies</FolderTab>
+            <FolderTab hidden={isStiched}>Policies</FolderTab>
           </FolderTabList>
 
           <TabPanels>

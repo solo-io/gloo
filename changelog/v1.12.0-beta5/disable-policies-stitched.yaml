@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Disable editing policies when using a stitched resolver to prevent it from deleting.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3551

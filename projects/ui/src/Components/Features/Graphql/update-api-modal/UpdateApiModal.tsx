@@ -147,7 +147,10 @@ export const UpdateApiModal: React.FC<{
 
   return (
     <StyledSoloModal visible={show} width={800} onClose={onClose}>
-      <Formik enableReinitialize initialValues={initialValues} onSubmit={createApi}>
+      <Formik
+        enableReinitialize
+        initialValues={initialValues}
+        onSubmit={createApi}>
         {formik => {
           const setSchema = (newValue: string) => {
             formik.setFieldValue('schemaString', newValue);
@@ -230,8 +233,7 @@ export const UpdateApiModal: React.FC<{
                               onClick={formik.handleSubmit as any}>
                               Update Schema
                             </SoloButtonStyledComponent>
-                            <SoloCancelButton
-                              onClick={onClose}>
+                            <SoloCancelButton onClick={onClose}>
                               Cancel
                             </SoloCancelButton>
                           </styles.Footer>
