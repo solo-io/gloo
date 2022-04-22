@@ -277,10 +277,10 @@ export const getFieldReturnType = (
   else return emptyType;
 };
 
-export const objectToArrayMap = (map: { [key: string]: any }) =>
-  Object.keys(map).map(k => [k, map[k]] as [string, string]);
-export const arrayMapToObject = <T>(map: [keyof T, any][]) => {
+export const objectToArrayMap = (obj: { [key: string]: any }) =>
+  Object.keys(obj).map(k => [k, obj[k]] as [string, string]);
+export const arrayMapToObject = <T>(arr: [keyof T, any][]) => {
   const objMap = {} as T;
-  map.forEach(pair => (objMap[pair[0]] = pair[1]));
+  arr.forEach(pair => (objMap[pair[0]] = pair[1]));
   return objMap;
 };

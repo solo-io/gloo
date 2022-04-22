@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Refactored how we update the graphql spec.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3454

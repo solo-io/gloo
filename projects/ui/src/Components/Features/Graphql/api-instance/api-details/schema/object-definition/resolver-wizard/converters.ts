@@ -4,6 +4,7 @@ import YAML from 'yaml';
 import cloneDeep from 'lodash/cloneDeep';
 import { getDefaultConfigFromType } from './ResolverConfigSection';
 import { FieldDefinitionNode } from 'graphql';
+import { arrayMapToObject, objectToArrayMap } from 'utils/graphql-helpers';
 
 export const removeNulls = (obj: any) => {
   const isArray = Array.isArray(obj);
@@ -86,48 +87,20 @@ export const createResolverItem = (
 
   if (resolverType === 'REST') {
     if (request) {
-      const headerValues = request?.headers ?? {};
-
-      headersMap = Object.keys(headerValues).reduce(
-        (acc: [string, string][], curr: string) => {
-          acc.push([curr, headerValues[curr]]);
-          return acc;
-        },
-        []
-      );
-
-      const queryValues = request?.queryParams ?? {};
-
-      queryParamsMap = Object.keys(queryValues).reduce(
-        (acc: [string, string][], curr: string) => {
-          acc.push([curr, queryValues[curr]]);
-          return acc;
-        },
-        []
-      );
-
+      headersMap = objectToArrayMap(request?.headers ?? {});
+      queryParamsMap = objectToArrayMap(request?.queryParams ?? {});
       body = request?.body;
     }
     if (response) {
-      const values = response?.settersMap ?? response?.setters ?? {};
-      settersMap = Object.keys(values).reduce(
-        (acc: [string, string][], curr: string) => {
-          acc.push([curr, values[curr]]);
-          return acc;
-        },
-        []
+      settersMap = objectToArrayMap(
+        response?.settersMap ?? response?.setters ?? {}
       );
       resultRoot = response?.resultRoot;
     }
   } else {
     if (resolverType === 'gRPC' && requestTransform) {
-      const requestMetaValues = requestTransform?.requestMetadataMap ?? {};
-      requestMetadataMap = Object.keys(requestMetaValues).reduce(
-        (acc: [string, string][], curr: string) => {
-          acc.push([curr, requestMetaValues[curr]]);
-          return acc;
-        },
-        []
+      requestMetadataMap = objectToArrayMap(
+        requestTransform?.requestMetadataMap ?? {}
       );
       serviceName = requestTransform?.serviceName;
       methodName = requestTransform?.methodName;
@@ -181,16 +154,7 @@ export const getResolverFromConfig = (resolver?: Resolution.AsObject) => {
     delete parsed.upstreamRef;
 
     if (parsed?.request?.headersMap) {
-      parsed.request.headers = parsed.request.headersMap.reduce(
-        (acc: any, curr: [string, string]) => {
-          const [key, value] = curr;
-          return {
-            ...acc,
-            [key]: value,
-          };
-        },
-        {}
-      );
+      parsed.request.headers = arrayMapToObject(parsed.request.headersMap);
       if (!parsed.request.headersMap.length) {
         delete parsed.request.headers;
       }
@@ -198,15 +162,8 @@ export const getResolverFromConfig = (resolver?: Resolution.AsObject) => {
     }
 
     if (parsed?.request?.queryParamsMap) {
-      parsed.request.queryParams = parsed.request.queryParamsMap.reduce(
-        (acc: any, curr: [string, string]) => {
-          const [key, value] = curr;
-          return {
-            ...acc,
-            [key]: value,
-          };
-        },
-        {}
+      parsed.request.queryParams = arrayMapToObject(
+        parsed.request.queryParamsMap
       );
       if (!parsed.request.queryParamsMap.length) {
         delete parsed.request.queryParams;
@@ -214,16 +171,7 @@ export const getResolverFromConfig = (resolver?: Resolution.AsObject) => {
       delete parsed.request.queryParamsMap;
     }
     if (parsed?.response?.settersMap) {
-      parsed.response.setters = parsed.response.settersMap.reduce(
-        (acc: any, curr: [string, string]) => {
-          const [key, value] = curr;
-          return {
-            ...acc,
-            [key]: value,
-          };
-        },
-        {}
-      );
+      parsed.response.setters = arrayMapToObject(parsed.response.settersMap);
       if (!parsed.response.settersMap.length) {
         delete parsed.response.setters;
       }
@@ -231,17 +179,9 @@ export const getResolverFromConfig = (resolver?: Resolution.AsObject) => {
     }
 
     if (parsed?.requestTransform?.requestMetadataMap) {
-      parsed.requestTransform.requestMetadata =
-        parsed.requestTransform.requestMetadataMap.reduce(
-          (acc: any, curr: any) => {
-            const [key, value] = curr;
-            return {
-              ...acc,
-              [key]: value,
-            };
-          },
-          {}
-        );
+      parsed.requestTransform.requestMetadata = arrayMapToObject(
+        parsed.requestTransform.requestMetadataMap
+      );
       if (!parsed.requestTransform.requestMetadataMap.length) {
         delete parsed.requestTransform.requestMetadata;
       }

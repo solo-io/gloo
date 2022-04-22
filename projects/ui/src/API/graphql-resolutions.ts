@@ -1,21 +1,15 @@
-import {
-  ASTNode,
-  FieldDefinitionNode,
-  Kind,
-  ObjectTypeDefinitionNode,
-  print,
-} from 'graphql';
 import jspb from 'google-protobuf';
-import {
-  parseSchemaString,
-  getResolveDirectiveName,
-  SupportedDocumentNode,
-} from 'utils/graphql-helpers';
-import { ResolverItem } from './graphql';
+import { ASTNode, FieldDefinitionNode, Kind, print, visit } from 'graphql';
 import {
   ExecutableSchema,
   Resolution,
 } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
+import {
+  getResolveDirectiveName,
+  parseSchemaString,
+  SupportedDocumentNode,
+} from 'utils/graphql-helpers';
+import { ResolverItem } from './graphql';
 
 //
 // --- ADD RESOLVE DIRECTIVE --- //
@@ -36,55 +30,63 @@ const addResolveDirectiveToField = (
   field: FieldDefinitionNode,
   currentExSchema: ExecutableSchema
 ) => {
-  const fieldName = field.name.value;
   //
-  // Create the new schema.
-  const newField = {
-    ...field,
-    directives: [
-      ...(field.directives ?? []),
-      {
-        kind: Kind.DIRECTIVE,
-        name: {
-          kind: Kind.NAME,
-          value: 'resolve',
-        },
-        arguments: [
-          {
-            kind: Kind.ARGUMENT,
-            name: {
-              kind: Kind.NAME,
-              value: 'name',
-            },
-            value: {
-              kind: Kind.STRING,
-              value: newResolveDirectiveName,
-            },
+  // Traverse the parsed schema.
+  // visit() does a depth first search, and we can return new nodes
+  // in each enter() function to replace them. A new AST is returned.
+  var newSchema = visit(parsedSchema, {
+    enter(node, key, parent, path, ancestors) {
+      // @return
+      //   undefined: no action
+      //   false: skip visiting this node
+      //   visitor.BREAK: stop visiting altogether
+      //   null: delete this node
+      //   any value: replace this node with the returned value
+      //
+      // At this object type definition.
+      if (
+        node.kind === Kind.OBJECT_TYPE_DEFINITION &&
+        node.name.value === objectType
+      )
+        return visit(node, {
+          enter(node, key, parent, path, ancestors) {
+            //
+            // At this field.
+            if (
+              node.kind === Kind.FIELD_DEFINITION &&
+              node.name.value === field.name.value
+            )
+              // Replace the field, adding in the resolve directive.
+              return {
+                ...field,
+                directives: [
+                  ...(field.directives ?? []),
+                  {
+                    kind: Kind.DIRECTIVE,
+                    name: {
+                      kind: Kind.NAME,
+                      value: 'resolve',
+                    },
+                    arguments: [
+                      {
+                        kind: Kind.ARGUMENT,
+                        name: {
+                          kind: Kind.NAME,
+                          value: 'name',
+                        },
+                        value: {
+                          kind: Kind.STRING,
+                          value: newResolveDirectiveName,
+                        },
+                      },
+                    ],
+                  },
+                ],
+              } as FieldDefinitionNode;
           },
-        ],
-      },
-    ],
-  } as FieldDefinitionNode;
-  // Most of these types are readonly, so we duplicate the arrays.
-  const newDefinitions = [
-    ...parsedSchema.definitions,
-  ] as ObjectTypeDefinitionNode[];
-  const defIdx = newDefinitions.findIndex(d => d.name.value === objectType);
-  const fieldIdx = newDefinitions[defIdx].fields!.findIndex(
-    d => d.name.value === fieldName
-  );
-  const newFields = [
-    ...newDefinitions[defIdx].fields!,
-  ] as FieldDefinitionNode[];
-  newFields[fieldIdx] = newField;
-  newDefinitions[defIdx] = {
-    ...newDefinitions[defIdx],
-    fields: newFields,
-  };
-  const newSchema = {
-    ...parsedSchema,
-    definitions: newDefinitions,
-  } as SupportedDocumentNode;
+        });
+    },
+  });
   //
   // Serialize the newSchema that we just made, and set that as the schema definition.
   const newSchemaString = print(newSchema);
@@ -112,42 +114,52 @@ const removeResolveDirectiveFromField = (
   currentExSchema: ExecutableSchema
 ) => {
   //
-  // If deleting, we have to remove the resolve directive from the schema.
-  // First we recreate the schema without this specific resolve directive.
-  const newDirectives = [...(field.directives ?? [])];
-  const directiveIdx = newDirectives.findIndex(
-    d =>
-      d.kind === Kind.DIRECTIVE &&
-      d.name.value === 'resolve' &&
-      d.arguments?.length === 1 &&
-      d.arguments[0].value.kind === Kind.STRING &&
-      d.arguments[0].value.value === resolutionName
-  );
-  newDirectives.splice(directiveIdx, 1);
-  const newField = {
-    ...field,
-    directives: newDirectives,
-  } as FieldDefinitionNode;
-  // Most of these types are readonly, so we duplicate the arrays.
-  const newDefinitions = [
-    ...parsedSchema.definitions,
-  ] as ObjectTypeDefinitionNode[];
-  const defIdx = newDefinitions.findIndex(d => d.name.value === objectType);
-  const fieldIdx = newDefinitions[defIdx].fields!.findIndex(
-    d => d.name.value === field.name.value
-  );
-  const newFields = [
-    ...newDefinitions[defIdx].fields!,
-  ] as FieldDefinitionNode[];
-  newFields[fieldIdx] = newField;
-  newDefinitions[defIdx] = {
-    ...newDefinitions[defIdx],
-    fields: newFields,
-  };
-  const newSchema = {
-    ...parsedSchema,
-    definitions: newDefinitions,
-  } as SupportedDocumentNode;
+  // Traverse the parsed schema.
+  // visit() does a depth first search, and we can return new nodes
+  // in each enter() function to replace them. A new AST is returned.
+  var newSchema = visit(parsedSchema, {
+    enter(node, key, parent, path, ancestors) {
+      // @return
+      //   undefined: no action
+      //   false: skip visiting this node
+      //   visitor.BREAK: stop visiting altogether
+      //   null: delete this node
+      //   any value: replace this node with the returned value
+      //
+      // At this object type definition.
+      if (
+        node.kind === Kind.OBJECT_TYPE_DEFINITION &&
+        node.name.value === objectType
+      )
+        return visit(node, {
+          enter(node, key, parent, path, ancestors) {
+            //
+            // At this field.
+            if (
+              node.kind === Kind.FIELD_DEFINITION &&
+              node.name.value === field.name.value
+            )
+              return visit(node, {
+                enter(node, key, parent, path, ancestors) {
+                  //
+                  // Return null to delete the resolve directive.
+                  if (
+                    node.kind === Kind.DIRECTIVE &&
+                    node.name.value === 'resolve' &&
+                    node.arguments?.find(
+                      a =>
+                        a.name.value === 'name' &&
+                        a.value.kind === Kind.STRING &&
+                        a.value.value === resolutionName
+                    ) !== undefined
+                  )
+                    return null;
+                },
+              });
+          },
+        });
+    },
+  });
   //
   // Serialize the newSchema that we just made, and set that as the schema definition.
   const newSchemaString = print(newSchema as ASTNode);
