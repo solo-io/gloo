@@ -35,6 +35,9 @@ export class UpstreamSpec extends jspb.Message {
   getServiceSpec(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_service_spec_pb.ServiceSpec | undefined;
   setServiceSpec(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_service_spec_pb.ServiceSpec): void;
 
+  getConsistencymode(): UpstreamSpec.ConsulConsistencyModesMap[keyof UpstreamSpec.ConsulConsistencyModesMap];
+  setConsistencymode(value: UpstreamSpec.ConsulConsistencyModesMap[keyof UpstreamSpec.ConsulConsistencyModesMap]): void;
+
   getConnectEnabled(): boolean;
   setConnectEnabled(value: boolean): void;
 
@@ -61,7 +64,16 @@ export namespace UpstreamSpec {
     instanceTagsList: Array<string>,
     instanceBlacklistTagsList: Array<string>,
     serviceSpec?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_service_spec_pb.ServiceSpec.AsObject,
+    consistencymode: UpstreamSpec.ConsulConsistencyModesMap[keyof UpstreamSpec.ConsulConsistencyModesMap],
     connectEnabled: boolean,
     dataCentersList: Array<string>,
   }
+
+  export interface ConsulConsistencyModesMap {
+    CONSISTENTMODE: 0;
+    DEFAULTMODE: 2;
+    STALEMODE: 1;
+  }
+
+  export const ConsulConsistencyModes: ConsulConsistencyModesMap;
 }

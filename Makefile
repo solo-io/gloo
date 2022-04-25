@@ -135,7 +135,7 @@ run-ci-regression-tests: install-go-tools
 .PHONE: run-ci-gloo-fed-regression-tests
 run-ci-gloo-fed-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
-	REMOTE_CLUSTER_CONTEXT=kind-remote LOCAL_CLUSTER_CONTEXT=kind-local $(DEPSGOBIN)/ginkgo -r ./test/gloo-fed-e2e/...
+	MANAGEMENT_CLUSTER_CONTEXT=$(MANAGEMENT_CLUSTER_CONTEXT) REMOTE_CLUSTER_CONTEXT=$(REMOTE_CLUSTER_CONTEXT) $(DEPSGOBIN)/ginkgo -r ./test/gloo-fed-e2e/...
 
 # command to run e2e tests
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run

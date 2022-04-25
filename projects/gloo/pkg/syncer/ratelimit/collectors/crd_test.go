@@ -172,7 +172,7 @@ var _ = Describe("CRD Config Collector", func() {
 				Expect(reports).To(HaveLen(0))
 			})
 
-			It("generates the expected descriptors for staged config (late)", func() {
+			It("generates the expected descriptors for staged config (regular)", func() {
 				descriptor := &v1alpha1.Descriptor{Key: "foo"}
 				setDescriptor := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "bar"}}}
 				expected := &enterprise.RateLimitConfig{
@@ -301,7 +301,7 @@ var _ = Describe("CRD Config Collector", func() {
 				Expect(reports).To(HaveLen(0))
 			})
 
-			It("generates the expected descriptors for staged config (late)", func() {
+			It("generates the expected descriptors for staged config (regular)", func() {
 				descriptor := &v1alpha1.Descriptor{Key: "foo"}
 				setDescriptor := &v1alpha1.SetDescriptor{SimpleDescriptors: []*v1alpha1.SimpleDescriptor{{Key: "bar"}}}
 				expected := &enterprise.RateLimitConfig{
@@ -433,8 +433,8 @@ func virtualHostWithStagedConfigs(isEarlyStage bool, configs ...*core.ResourceRe
 
 	return &v1.VirtualHost{
 		Options: &v1.VirtualHostOptions{
-			RateLimitConfigType: &v1.VirtualHostOptions_RateLimitConfigs{
-				RateLimitConfigs: &ratelimit.RateLimitConfigRefs{
+			RateLimitRegularConfigType: &v1.VirtualHostOptions_RateLimitRegularConfigs{
+				RateLimitRegularConfigs: &ratelimit.RateLimitConfigRefs{
 					Refs: refs,
 				},
 			},
@@ -484,8 +484,8 @@ func routeWithStagedConfigs(isEarlyStage bool, configs ...*core.ResourceRef) *v1
 
 	return &v1.Route{
 		Options: &v1.RouteOptions{
-			RateLimitConfigType: &v1.RouteOptions_RateLimitConfigs{
-				RateLimitConfigs: &ratelimit.RateLimitConfigRefs{
+			RateLimitRegularConfigType: &v1.RouteOptions_RateLimitRegularConfigs{
+				RateLimitRegularConfigs: &ratelimit.RateLimitConfigRefs{
 					Refs: refs,
 				},
 			},

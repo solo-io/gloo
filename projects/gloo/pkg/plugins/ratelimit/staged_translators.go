@@ -180,24 +180,22 @@ func (c *crdTranslator) Init(params plugins.InitParams) error {
 func (c *crdTranslator) GetVirtualHostRateLimitsByStage(params plugins.VirtualHostParams, virtualHost *v1.VirtualHost) (StagedRateLimits, error) {
 	var errs = &multierror.Error{}
 
+	earlyConfigRefs := virtualHost.GetOptions().GetRateLimitEarlyConfigs().GetRefs()
+	regularConfigRefs := virtualHost.GetOptions().GetRateLimitRegularConfigs().GetRefs()
+
 	// These refs may be beforeAuth or afterAuth depending on the configuration of settings.rateLimitBeforeAuth
-	regularConfigRefs := virtualHost.GetOptions().GetRateLimitConfigs().GetRefs()
-
-	beforeAuthConfigRefs := virtualHost.GetOptions().GetRateLimitEarlyConfigs().GetRefs()
-	var afterAuthConfigRefs []*ratelimit.RateLimitConfigRef
-
-	regularConfigRefsBeforeAuth := c.shouldRateLimitBeforeAuth(params.HttpListener)
-	if regularConfigRefsBeforeAuth {
-		beforeAuthConfigRefs = append(beforeAuthConfigRefs, regularConfigRefs...)
+	earlyOrRegularConfigRefs := virtualHost.GetOptions().GetRateLimitConfigs().GetRefs()
+	if c.shouldRateLimitBeforeAuth(params.HttpListener) {
+		earlyConfigRefs = append(earlyConfigRefs, earlyOrRegularConfigRefs...)
 	} else {
-		afterAuthConfigRefs = append(afterAuthConfigRefs, regularConfigRefs...)
+		regularConfigRefs = append(regularConfigRefs, earlyOrRegularConfigRefs...)
 	}
 
-	beforeAuthLimits, beforeAuthErr := c.getCrdRateLimits(params.Ctx, beforeAuthConfigRefs, params.Snapshot, CrdRateLimitStageBeforeAuth)
+	beforeAuthLimits, beforeAuthErr := c.getCrdRateLimits(params.Ctx, earlyConfigRefs, params.Snapshot, CrdRateLimitStageBeforeAuth)
 	if beforeAuthErr != nil {
 		errs = multierror.Append(errs, beforeAuthErr)
 	}
-	afterAuthLimits, afterAuthErr := c.getCrdRateLimits(params.Ctx, afterAuthConfigRefs, params.Snapshot, CrdRateLimitStage)
+	afterAuthLimits, afterAuthErr := c.getCrdRateLimits(params.Ctx, regularConfigRefs, params.Snapshot, CrdRateLimitStage)
 	if afterAuthErr != nil {
 		errs = multierror.Append(errs, afterAuthErr)
 	}
@@ -211,24 +209,22 @@ func (c *crdTranslator) GetVirtualHostRateLimitsByStage(params plugins.VirtualHo
 func (c *crdTranslator) GetRouteRateLimitsByStage(params plugins.RouteParams, route *v1.Route) (StagedRateLimits, error) {
 	var errs = &multierror.Error{}
 
+	earlyConfigRefs := route.GetOptions().GetRateLimitEarlyConfigs().GetRefs()
+	regularConfigRefs := route.GetOptions().GetRateLimitRegularConfigs().GetRefs()
+
 	// These refs may be beforeAuth or afterAuth depending on the configuration of settings.rateLimitBeforeAuth
-	regularConfigRefs := route.GetOptions().GetRateLimitConfigs().GetRefs()
-
-	beforeAuthConfigRefs := route.GetOptions().GetRateLimitEarlyConfigs().GetRefs()
-	var afterAuthConfigRefs []*ratelimit.RateLimitConfigRef
-
-	regularConfigRefsBeforeAuth := c.shouldRateLimitBeforeAuth(params.HttpListener)
-	if regularConfigRefsBeforeAuth {
-		beforeAuthConfigRefs = append(beforeAuthConfigRefs, regularConfigRefs...)
+	earlyOrRegularConfigRefs := route.GetOptions().GetRateLimitConfigs().GetRefs()
+	if c.shouldRateLimitBeforeAuth(params.HttpListener) {
+		earlyConfigRefs = append(earlyConfigRefs, earlyOrRegularConfigRefs...)
 	} else {
-		afterAuthConfigRefs = append(afterAuthConfigRefs, regularConfigRefs...)
+		regularConfigRefs = append(regularConfigRefs, earlyOrRegularConfigRefs...)
 	}
 
-	beforeAuthLimits, beforeAuthErr := c.getCrdRateLimits(params.Ctx, beforeAuthConfigRefs, params.Snapshot, CrdRateLimitStageBeforeAuth)
+	beforeAuthLimits, beforeAuthErr := c.getCrdRateLimits(params.Ctx, earlyConfigRefs, params.Snapshot, CrdRateLimitStageBeforeAuth)
 	if beforeAuthErr != nil {
 		errs = multierror.Append(errs, beforeAuthErr)
 	}
-	afterAuthLimits, afterAuthErr := c.getCrdRateLimits(params.Ctx, afterAuthConfigRefs, params.Snapshot, CrdRateLimitStage)
+	afterAuthLimits, afterAuthErr := c.getCrdRateLimits(params.Ctx, regularConfigRefs, params.Snapshot, CrdRateLimitStage)
 	if afterAuthErr != nil {
 		errs = multierror.Append(errs, afterAuthErr)
 	}
@@ -304,24 +300,22 @@ func (s *setActionTranslator) Init(params plugins.InitParams) error {
 func (s *setActionTranslator) GetVirtualHostRateLimitsByStage(params plugins.VirtualHostParams, virtualHost *v1.VirtualHost) (StagedRateLimits, error) {
 	var errs = &multierror.Error{}
 
+	earlyActions := virtualHost.GetOptions().GetRatelimitEarly().GetRateLimits()
+	regularActions := virtualHost.GetOptions().GetRatelimitRegular().GetRateLimits()
+
 	// These actions may be beforeAuth or afterAuth depending on the configuration of settings.rateLimitBeforeAuth
-	regularActions := virtualHost.GetOptions().GetRatelimit().GetRateLimits()
-
-	beforeAuthActions := virtualHost.GetOptions().GetRatelimitEarly().GetRateLimits()
-	var afterAuthActions []*solo_api_rl_types.RateLimitActions
-
-	regularActionsBeforeAuth := s.shouldRateLimitBeforeAuth(params.HttpListener)
-	if regularActionsBeforeAuth {
-		beforeAuthActions = append(beforeAuthActions, regularActions...)
+	earlyOrRegularActions := virtualHost.GetOptions().GetRatelimit().GetRateLimits()
+	if s.shouldRateLimitBeforeAuth(params.HttpListener) {
+		earlyActions = append(earlyActions, earlyOrRegularActions...)
 	} else {
-		afterAuthActions = append(afterAuthActions, regularActions...)
+		regularActions = append(regularActions, earlyOrRegularActions...)
 	}
 
-	beforeAuthLimits, beforeAuthErr := s.getSetActionRateLimits(params.Ctx, beforeAuthActions, SetActionRateLimitStageBeforeAuth)
+	beforeAuthLimits, beforeAuthErr := s.getSetActionRateLimits(params.Ctx, earlyActions, SetActionRateLimitStageBeforeAuth)
 	if beforeAuthErr != nil {
 		errs = multierror.Append(errs, beforeAuthErr)
 	}
-	afterAuthLimits, afterAuthErr := s.getSetActionRateLimits(params.Ctx, afterAuthActions, SetActionRateLimitStage)
+	afterAuthLimits, afterAuthErr := s.getSetActionRateLimits(params.Ctx, regularActions, SetActionRateLimitStage)
 	if afterAuthErr != nil {
 		errs = multierror.Append(errs, afterAuthErr)
 	}
@@ -335,24 +329,22 @@ func (s *setActionTranslator) GetVirtualHostRateLimitsByStage(params plugins.Vir
 func (s *setActionTranslator) GetRouteRateLimitsByStage(params plugins.RouteParams, route *v1.Route) (StagedRateLimits, error) {
 	var errs = &multierror.Error{}
 
+	earlyActions := route.GetOptions().GetRatelimitEarly().GetRateLimits()
+	regularActions := route.GetOptions().GetRatelimitRegular().GetRateLimits()
+
 	// These actions may be beforeAuth or afterAuth depending on the configuration of settings.rateLimitBeforeAuth
-	regularActions := route.GetOptions().GetRatelimit().GetRateLimits()
-
-	beforeAuthActions := route.GetOptions().GetRatelimitEarly().GetRateLimits()
-	var afterAuthActions []*solo_api_rl_types.RateLimitActions
-
-	regularActionsBeforeAuth := s.shouldRateLimitBeforeAuth(params.HttpListener)
-	if regularActionsBeforeAuth {
-		beforeAuthActions = append(beforeAuthActions, regularActions...)
+	earlyOrRegularActions := route.GetOptions().GetRatelimit().GetRateLimits()
+	if s.shouldRateLimitBeforeAuth(params.HttpListener) {
+		earlyActions = append(earlyActions, earlyOrRegularActions...)
 	} else {
-		afterAuthActions = append(afterAuthActions, regularActions...)
+		regularActions = append(regularActions, earlyOrRegularActions...)
 	}
 
-	beforeAuthLimits, beforeAuthErr := s.getSetActionRateLimits(params.Ctx, beforeAuthActions, SetActionRateLimitStageBeforeAuth)
+	beforeAuthLimits, beforeAuthErr := s.getSetActionRateLimits(params.Ctx, earlyActions, SetActionRateLimitStageBeforeAuth)
 	if beforeAuthErr != nil {
 		errs = multierror.Append(errs, beforeAuthErr)
 	}
-	afterAuthLimits, afterAuthErr := s.getSetActionRateLimits(params.Ctx, afterAuthActions, SetActionRateLimitStage)
+	afterAuthLimits, afterAuthErr := s.getSetActionRateLimits(params.Ctx, regularActions, SetActionRateLimitStage)
 	if afterAuthErr != nil {
 		errs = multierror.Append(errs, afterAuthErr)
 	}

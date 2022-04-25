@@ -48,7 +48,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.18
 	github.com/solo-io/external-apis v0.1.11
-	github.com/solo-io/gloo v1.12.0-beta5
+	github.com/solo-io/gloo v1.12.0-beta6
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.21.24
 	github.com/solo-io/k8s-utils v0.1.0
@@ -58,8 +58,8 @@ require (
 	github.com/solo-io/rate-limiter v0.6.2
 	github.com/solo-io/skv2 v0.22.11
 	github.com/solo-io/skv2-enterprise v0.2.8
-	github.com/solo-io/solo-apis v0.0.0-20220415205538-b9ab65847bc9
-	github.com/solo-io/solo-kit v0.26.0
+	github.com/solo-io/solo-apis v0.0.0-20220422193431-271762a4fcc8
+	github.com/solo-io/solo-kit v0.27.0
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spf13/cobra v1.2.1
@@ -164,7 +164,7 @@ require (
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/loads v0.19.4 // indirect
 	github.com/go-openapi/spec v0.19.6 // indirect
-	github.com/go-openapi/strfmt v0.19.3 // indirect
+	github.com/go-openapi/strfmt v0.19.5 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect

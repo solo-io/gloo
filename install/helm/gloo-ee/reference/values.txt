@@ -15,7 +15,7 @@
 |settings.integrations.knative.proxy.httpsPort|int||HTTPS port for the proxy|
 |settings.integrations.knative.proxy.tracing|string||tracing configuration|
 |settings.integrations.knative.proxy.loopBackAddress|string||Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1|
-|settings.integrations.knative.proxy.stats|bool||Controls whether or not envoy stats are enabled|
+|settings.integrations.knative.proxy.stats|bool||Controls whether or not Envoy stats are enabled|
 |settings.integrations.knative.proxy.extraClusterIngressProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the cluster ingress proxy deployment.|
 |settings.integrations.knative.proxy.extraClusterIngressProxyAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the cluster ingress proxy deployment.|
 |settings.integrations.knative.proxy.internal.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -126,7 +126,7 @@
 |gloo.settings.integrations.knative.proxy.httpsPort|int||HTTPS port for the proxy|
 |gloo.settings.integrations.knative.proxy.tracing|string||tracing configuration|
 |gloo.settings.integrations.knative.proxy.loopBackAddress|string||Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1|
-|gloo.settings.integrations.knative.proxy.stats|bool||Controls whether or not envoy stats are enabled|
+|gloo.settings.integrations.knative.proxy.stats|bool||Controls whether or not Envoy stats are enabled|
 |gloo.settings.integrations.knative.proxy.extraClusterIngressProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the cluster ingress proxy deployment.|
 |gloo.settings.integrations.knative.proxy.extraClusterIngressProxyAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the cluster ingress proxy deployment.|
 |gloo.settings.integrations.knative.proxy.internal.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -228,11 +228,11 @@
 |gloo.gloo.deployment.xdsPort|int||port where gloo serves xDS API to Envoy|
 |gloo.gloo.deployment.restXdsPort|uint32||port where gloo serves REST xDS API to Envoy|
 |gloo.gloo.deployment.validationPort|int||port where gloo serves gRPC Proxy Validation to Gateway|
-|gloo.gloo.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|gloo.gloo.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.gloo.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|gloo.gloo.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo.gloo.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |gloo.gloo.deployment.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|gloo.gloo.deployment.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|gloo.gloo.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo.gloo.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo.gloo.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo.gloo.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
@@ -240,6 +240,7 @@
 |gloo.gloo.deployment.externalTrafficPolicy|string||Set the external traffic policy on the gloo service|
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
+|gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
 |gloo.gloo.deployment.replicas|int||number of instances to deploy|
 |gloo.gloo.deployment.customEnv[].name|string|||
 |gloo.gloo.deployment.customEnv[].value|string|||
@@ -288,11 +289,11 @@
 |gloo.discovery.deployment.image.pullSecret|string||image pull policy for the container |
 |gloo.discovery.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
 |gloo.discovery.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
-|gloo.discovery.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|gloo.discovery.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.discovery.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|gloo.discovery.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo.discovery.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |gloo.discovery.deployment.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|gloo.discovery.deployment.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|gloo.discovery.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo.discovery.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo.discovery.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo.discovery.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
@@ -348,7 +349,7 @@
 |gloo.gateway.validation.enabled|bool||enable Gloo Edge API Gateway validation hook (default true)|
 |gloo.gateway.validation.alwaysAcceptResources|bool||unless this is set this to false in order to ensure validation webhook rejects invalid resources. by default, validation webhook will only log and report metrics for invalid resource admission without rejecting them outright.|
 |gloo.gateway.validation.allowWarnings|bool||set this to false in order to ensure validation webhook rejects resources that would have warning status or rejected status, rather than just rejected.|
-|gloo.gateway.validation.disableTransformationValidation|bool||set this to true to disable transformation validation. This may bring signifigant performance benefits if using many transformations, at the cost of possibly incorrect transformations being sent to envoy. When using this value make sure to pre-validate transformations.|
+|gloo.gateway.validation.disableTransformationValidation|bool||set this to true to disable transformation validation. This may bring signifigant performance benefits if using many transformations, at the cost of possibly incorrect transformations being sent to Envoy. When using this value make sure to pre-validate transformations.|
 |gloo.gateway.validation.warnRouteShortCircuiting|bool||Write a warning to route resources if validation produced a route ordering warning (defaults to false). By setting to true, this means that Gloo Edge will start assigning warnings to resources that would result in route short-circuiting within a virtual host.|
 |gloo.gateway.validation.secretName|string||Name of the Kubernetes Secret containing TLS certificates used by the validation webhook server. This secret will be created by the certGen Job if the certGen Job is enabled.|
 |gloo.gateway.validation.failurePolicy|string||failurePolicy defines how unrecognized errors from the Gateway validation endpoint are handled - allowed values are 'Ignore' or 'Fail'. Defaults to Ignore |
@@ -357,18 +358,19 @@
 |gloo.gateway.validation.webhook.extraAnnotations.NAME|string||extra annotations to add to the webhook|
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
-|gloo.gateway.deployment.image.tag|string|1.12.0-beta5|tag for the container|
+|gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
+|gloo.gateway.deployment.image.tag|string|1.12.0-beta6|tag for the container|
 |gloo.gateway.deployment.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
 |gloo.gateway.deployment.image.pullSecret|string||image pull policy for the container |
 |gloo.gateway.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
 |gloo.gateway.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
-|gloo.gateway.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|gloo.gateway.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.gateway.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|gloo.gateway.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo.gateway.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |gloo.gateway.deployment.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|gloo.gateway.deployment.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|gloo.gateway.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo.gateway.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo.gateway.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo.gateway.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
@@ -410,7 +412,7 @@
 |gloo.gateway.deployment.resources.requests.memory|string||amount of memory|
 |gloo.gateway.deployment.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.certGenJob.image.tag|string|1.12.0-beta5|tag for the container|
+|gloo.gateway.certGenJob.image.tag|string|1.12.0-beta6|tag for the container|
 |gloo.gateway.certGenJob.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.certGenJob.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -504,18 +506,19 @@
 |gloo.gatewayProxies.NAME.podTemplate.tolerations[].value|string|||
 |gloo.gatewayProxies.NAME.podTemplate.tolerations[].effect|string|||
 |gloo.gatewayProxies.NAME.podTemplate.tolerations[].tolerationSeconds|int64|||
-|gloo.gatewayProxies.NAME.podTemplate.probes|bool||enable liveness and readiness probes|
+|gloo.gatewayProxies.NAME.podTemplate.probes|bool||Set to true to enable a readiness probe (default is false). Then, you can also enable a liveness probe.|
+|gloo.gatewayProxies.NAME.podTemplate.livenessProbeEnabled|bool||Set to true to enable a liveness probe (default is false).|
 |gloo.gatewayProxies.NAME.podTemplate.resources.limits.memory|string||amount of memory|
 |gloo.gatewayProxies.NAME.podTemplate.resources.limits.cpu|string||amount of CPUs|
 |gloo.gatewayProxies.NAME.podTemplate.resources.requests.memory|string||amount of memory|
 |gloo.gatewayProxies.NAME.podTemplate.resources.requests.cpu|string||amount of CPUs|
 |gloo.gatewayProxies.NAME.podTemplate.disableNetBind|bool||don't add the NET_BIND_SERVICE capability to the pod. This means that the gateway proxy will not be able to bind to ports below 1024|
-|gloo.gatewayProxies.NAME.podTemplate.runUnprivileged|bool||run envoy as an unprivileged user|
+|gloo.gatewayProxies.NAME.podTemplate.runUnprivileged|bool||run Envoy as an unprivileged user|
 |gloo.gatewayProxies.NAME.podTemplate.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
 |gloo.gatewayProxies.NAME.podTemplate.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
 |gloo.gatewayProxies.NAME.podTemplate.fsGroup|float64||Explicitly set the group ID for volume ownership. Default is 10101|
-|gloo.gatewayProxies.NAME.podTemplate.gracefulShutdown.enabled|bool||Enable grace period before shutdown to finish current requests while envoy health checks fail to e.g. notify external load balancers. *NOTE:* This will not have any effect if you have not defined health checks via the health check filter|
-|gloo.gatewayProxies.NAME.podTemplate.gracefulShutdown.sleepTimeSeconds|int||Time (in seconds) for the preStop hook to wait before allowing envoy to terminate|
+|gloo.gatewayProxies.NAME.podTemplate.gracefulShutdown.enabled|bool||Enable grace period before shutdown to finish current requests while Envoy health checks fail to e.g. notify external load balancers. *NOTE:* This will not have any effect if you have not defined health checks via the health check filter|
+|gloo.gatewayProxies.NAME.podTemplate.gracefulShutdown.sleepTimeSeconds|int||Time (in seconds) for the preStop hook to wait before allowing Envoy to terminate|
 |gloo.gatewayProxies.NAME.podTemplate.terminationGracePeriodSeconds|int||Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podspec-v1-core) for more info|
 |gloo.gatewayProxies.NAME.podTemplate.customReadinessProbe.exec.command[]|string|||
 |gloo.gatewayProxies.NAME.podTemplate.customReadinessProbe.httpGet.path|string|||
@@ -536,6 +539,25 @@
 |gloo.gatewayProxies.NAME.podTemplate.customReadinessProbe.successThreshold|int32|||
 |gloo.gatewayProxies.NAME.podTemplate.customReadinessProbe.failureThreshold|int32|||
 |gloo.gatewayProxies.NAME.podTemplate.customReadinessProbe.terminationGracePeriodSeconds|int64|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.exec.command[]|string|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.httpGet.path|string|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.httpGet.port|int64|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.httpGet.port|int32|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.httpGet.port|string|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.httpGet.host|string|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.httpGet.scheme|string|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.httpGet.httpHeaders[].name|string|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.httpGet.httpHeaders[].value|string|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.tcpSocket.port|int64|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.tcpSocket.port|int32|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.tcpSocket.port|string|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.tcpSocket.host|string|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.initialDelaySeconds|int32|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.timeoutSeconds|int32|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.periodSeconds|int32|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.successThreshold|int32|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.failureThreshold|int32|||
+|gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.terminationGracePeriodSeconds|int64|||
 |gloo.gatewayProxies.NAME.podTemplate.extraGatewayProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge gateway-proxy deployment.|
 |gloo.gatewayProxies.NAME.podTemplate.enablePodSecurityContext|bool||Whether or not to render the pod security context. Default is true|
 |gloo.gatewayProxies.NAME.configMap.data.NAME|string|||
@@ -555,7 +577,7 @@
 |gloo.gatewayProxies.NAME.service.httpsFirst|bool||List HTTPS port before HTTP|
 |gloo.gatewayProxies.NAME.service.loadBalancerIP|string||IP address of the load balancer|
 |gloo.gatewayProxies.NAME.service.loadBalancerSourceRanges[]|string||List of IP CIDR ranges that are allowed to access the load balancer|
-|gloo.gatewayProxies.NAME.service.customPorts[]|interface||List of custom port to expose in the envoy proxy. Each element follows conventional port syntax (port, targetPort, protocol, name)|
+|gloo.gatewayProxies.NAME.service.customPorts[]|interface||List of custom port to expose in the Envoy proxy. Each element follows conventional port syntax (port, targetPort, protocol, name)|
 |gloo.gatewayProxies.NAME.service.externalIPs[]|string||externalIPs is a list of IP addresses for which nodes in the cluster will also accept traffic for this service|
 |gloo.gatewayProxies.NAME.service.configDumpService.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.NAME.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -573,26 +595,26 @@
 |gloo.gatewayProxies.NAME.gatewaySettings.httpsHybridGateway.NAME|interface||custom yaml to use for hybrid gateway settings for the https gateway|
 |gloo.gatewayProxies.NAME.gatewaySettings.customHttpGateway.NAME|interface||custom yaml to use for http gateway settings|
 |gloo.gatewayProxies.NAME.gatewaySettings.customHttpsGateway.NAME|interface||custom yaml to use for https gateway settings|
-|gloo.gatewayProxies.NAME.gatewaySettings.accessLoggingService.NAME|interface||cust yaml to use for access logging service (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/)|
+|gloo.gatewayProxies.NAME.gatewaySettings.accessLoggingService.NAME|interface||custom yaml to use for access logging service (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/)|
 |gloo.gatewayProxies.NAME.gatewaySettings.options.NAME|interface||custom options for http(s) gateways (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options.proto.sk/#listeneroptions)|
 |gloo.gatewayProxies.NAME.gatewaySettings.httpGatewayKubeOverride.NAME|interface|||
 |gloo.gatewayProxies.NAME.gatewaySettings.httpsGatewayKubeOverride.NAME|interface|||
 |gloo.gatewayProxies.NAME.gatewaySettings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gatewayProxies.NAME.extraEnvoyArgs[]|string||envoy container args, (e.g. https://www.envoyproxy.io/docs/envoy/latest/operations/cli)|
+|gloo.gatewayProxies.NAME.extraEnvoyArgs[]|string||Envoy container args, (e.g. https://www.envoyproxy.io/docs/envoy/latest/operations/cli)|
 |gloo.gatewayProxies.NAME.extraContainersHelper|string|||
 |gloo.gatewayProxies.NAME.extraInitContainersHelper|string|||
 |gloo.gatewayProxies.NAME.extraVolumes[].NAME|interface|||
 |gloo.gatewayProxies.NAME.extraVolumeHelper|string|||
 |gloo.gatewayProxies.NAME.extraListenersHelper|string|||
-|gloo.gatewayProxies.NAME.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|gloo.gatewayProxies.NAME.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.gatewayProxies.NAME.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|gloo.gatewayProxies.NAME.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo.gatewayProxies.NAME.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |gloo.gatewayProxies.NAME.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|gloo.gatewayProxies.NAME.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|gloo.gatewayProxies.NAME.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo.gatewayProxies.NAME.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo.gatewayProxies.NAME.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
-|gloo.gatewayProxies.NAME.readConfig|bool||expose a read-only subset of the envoy admin api|
-|gloo.gatewayProxies.NAME.readConfigMulticluster|bool||expose a read-only subset of the envoy admin api to gloo-fed|
+|gloo.gatewayProxies.NAME.readConfig|bool||expose a read-only subset of the Envoy admin api|
+|gloo.gatewayProxies.NAME.readConfigMulticluster|bool||expose a read-only subset of the Envoy admin api to gloo-fed|
 |gloo.gatewayProxies.NAME.extraProxyVolumeMounts[].NAME|interface|||
 |gloo.gatewayProxies.NAME.extraProxyVolumeMountHelper|string||name of custom made named template allowing for extra volume mounts on the proxy container|
 |gloo.gatewayProxies.NAME.loopBackAddress|string||Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1|
@@ -602,9 +624,10 @@
 |gloo.gatewayProxies.NAME.failover.secretName|string||(Enterprise Only): Secret containing downstream Ssl Secrets Default is failover-downstream|
 |gloo.gatewayProxies.NAME.failover.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.NAME.disabled|bool||Skips creation of this gateway proxy. Used to turn off gateway proxies created by preceding configurations|
-|gloo.gatewayProxies.NAME.envoyApiVersion|string||Version of the envoy API to use for the xDS transport and resources. Default is V3|
-|gloo.gatewayProxies.NAME.envoyBootstrapExtensions[].NAME|interface||List of bootstrap extensions to add to envoy bootstrap config. Examples include Wasm Service (https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/wasm/v3/wasm.proto#extensions-wasm-v3-wasmservice).|
-|gloo.gatewayProxies.NAME.envoyStaticClusters[].NAME|interface||List of extra static clusters to be added to envoy bootstrap config. https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/cluster.proto#envoy-v3-api-msg-config-cluster-v3-cluster|
+|gloo.gatewayProxies.NAME.envoyApiVersion|string||Version of the Envoy API to use for the xDS transport and resources. Default is V3|
+|gloo.gatewayProxies.NAME.envoyBootstrapExtensions[].NAME|interface||List of bootstrap extensions to add to Envoy bootstrap config. Examples include Wasm Service (https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/wasm/v3/wasm.proto#extensions-wasm-v3-wasmservice).|
+|gloo.gatewayProxies.NAME.envoyOverloadManager.NAME|interface||Overload Manager definition for Envoy bootstrap config. If enabled, a list of Resource Monitors MUST be defined in order to produce a valid Envoy config (https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/overload/v3/overload.proto#overload-manager).|
+|gloo.gatewayProxies.NAME.envoyStaticClusters[].NAME|interface||List of extra static clusters to be added to Envoy bootstrap config. https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/cluster.proto#envoy-v3-api-msg-config-cluster-v3-cluster|
 |gloo.gatewayProxies.NAME.horizontalPodAutoscaler.apiVersion|string||accepts autoscaling/v1 or autoscaling/v2beta2.|
 |gloo.gatewayProxies.NAME.horizontalPodAutoscaler.minReplicas|int32||minReplicas is the lower limit for the number of replicas to which the autoscaler can scale down.|
 |gloo.gatewayProxies.NAME.horizontalPodAutoscaler.maxReplicas|int32||maxReplicas is the upper limit for the number of replicas to which the autoscaler can scale up. It cannot be less that minReplicas.|
@@ -673,18 +696,19 @@
 |gloo.gatewayProxies.gatewayProxy.podTemplate.tolerations[].value|string|||
 |gloo.gatewayProxies.gatewayProxy.podTemplate.tolerations[].effect|string|||
 |gloo.gatewayProxies.gatewayProxy.podTemplate.tolerations[].tolerationSeconds|int64|||
-|gloo.gatewayProxies.gatewayProxy.podTemplate.probes|bool||enable liveness and readiness probes|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.probes|bool||Set to true to enable a readiness probe (default is false). Then, you can also enable a liveness probe.|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.livenessProbeEnabled|bool||Set to true to enable a liveness probe (default is false).|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.resources.limits.memory|string||amount of memory|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.resources.limits.cpu|string||amount of CPUs|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.resources.requests.memory|string||amount of memory|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.resources.requests.cpu|string||amount of CPUs|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.disableNetBind|bool||don't add the NET_BIND_SERVICE capability to the pod. This means that the gateway proxy will not be able to bind to ports below 1024|
-|gloo.gatewayProxies.gatewayProxy.podTemplate.runUnprivileged|bool||run envoy as an unprivileged user|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.runUnprivileged|bool||run Envoy as an unprivileged user|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.fsGroup|float64||Explicitly set the group ID for volume ownership. Default is 10101|
-|gloo.gatewayProxies.gatewayProxy.podTemplate.gracefulShutdown.enabled|bool||Enable grace period before shutdown to finish current requests while envoy health checks fail to e.g. notify external load balancers. *NOTE:* This will not have any effect if you have not defined health checks via the health check filter|
-|gloo.gatewayProxies.gatewayProxy.podTemplate.gracefulShutdown.sleepTimeSeconds|int||Time (in seconds) for the preStop hook to wait before allowing envoy to terminate|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.gracefulShutdown.enabled|bool||Enable grace period before shutdown to finish current requests while Envoy health checks fail to e.g. notify external load balancers. *NOTE:* This will not have any effect if you have not defined health checks via the health check filter|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.gracefulShutdown.sleepTimeSeconds|int||Time (in seconds) for the preStop hook to wait before allowing Envoy to terminate|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.terminationGracePeriodSeconds|int||Time in seconds to wait for the pod to terminate gracefully. See [kubernetes docs](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podspec-v1-core) for more info|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.customReadinessProbe.exec.command[]|string|||
 |gloo.gatewayProxies.gatewayProxy.podTemplate.customReadinessProbe.httpGet.path|string|||
@@ -705,6 +729,25 @@
 |gloo.gatewayProxies.gatewayProxy.podTemplate.customReadinessProbe.successThreshold|int32|||
 |gloo.gatewayProxies.gatewayProxy.podTemplate.customReadinessProbe.failureThreshold|int32|||
 |gloo.gatewayProxies.gatewayProxy.podTemplate.customReadinessProbe.terminationGracePeriodSeconds|int64|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.exec.command[]|string|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.httpGet.path|string|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.httpGet.port|int64|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.httpGet.port|int32|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.httpGet.port|string|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.httpGet.host|string|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.httpGet.scheme|string|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.httpGet.httpHeaders[].name|string|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.httpGet.httpHeaders[].value|string|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.tcpSocket.port|int64|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.tcpSocket.port|int32|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.tcpSocket.port|string|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.tcpSocket.host|string|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.initialDelaySeconds|int32|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.timeoutSeconds|int32|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.periodSeconds|int32|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.successThreshold|int32|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.failureThreshold|int32|||
+|gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.terminationGracePeriodSeconds|int64|||
 |gloo.gatewayProxies.gatewayProxy.podTemplate.extraGatewayProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge gateway-proxy deployment.|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.enablePodSecurityContext|bool||Whether or not to render the pod security context. Default is true|
 |gloo.gatewayProxies.gatewayProxy.configMap.data.NAME|string|||
@@ -727,7 +770,7 @@
 |gloo.gatewayProxies.gatewayProxy.service.httpsFirst|bool||List HTTPS port before HTTP|
 |gloo.gatewayProxies.gatewayProxy.service.loadBalancerIP|string||IP address of the load balancer|
 |gloo.gatewayProxies.gatewayProxy.service.loadBalancerSourceRanges[]|string||List of IP CIDR ranges that are allowed to access the load balancer|
-|gloo.gatewayProxies.gatewayProxy.service.customPorts[]|interface||List of custom port to expose in the envoy proxy. Each element follows conventional port syntax (port, targetPort, protocol, name)|
+|gloo.gatewayProxies.gatewayProxy.service.customPorts[]|interface||List of custom port to expose in the Envoy proxy. Each element follows conventional port syntax (port, targetPort, protocol, name)|
 |gloo.gatewayProxies.gatewayProxy.service.externalIPs[]|string||externalIPs is a list of IP addresses for which nodes in the cluster will also accept traffic for this service|
 |gloo.gatewayProxies.gatewayProxy.service.configDumpService.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.gatewayProxy.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -745,26 +788,26 @@
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.httpsHybridGateway.NAME|interface||custom yaml to use for hybrid gateway settings for the https gateway|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.customHttpGateway.NAME|interface||custom yaml to use for http gateway settings|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.customHttpsGateway.NAME|interface||custom yaml to use for https gateway settings|
-|gloo.gatewayProxies.gatewayProxy.gatewaySettings.accessLoggingService.NAME|interface||cust yaml to use for access logging service (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/)|
+|gloo.gatewayProxies.gatewayProxy.gatewaySettings.accessLoggingService.NAME|interface||custom yaml to use for access logging service (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/als/als.proto.sk/)|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.options.NAME|interface||custom options for http(s) gateways (https://docs.solo.io/gloo-edge/latest/reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options.proto.sk/#listeneroptions)|
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.httpGatewayKubeOverride.NAME|interface|||
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.httpsGatewayKubeOverride.NAME|interface|||
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gatewayProxies.gatewayProxy.extraEnvoyArgs[]|string||envoy container args, (e.g. https://www.envoyproxy.io/docs/envoy/latest/operations/cli)|
+|gloo.gatewayProxies.gatewayProxy.extraEnvoyArgs[]|string||Envoy container args, (e.g. https://www.envoyproxy.io/docs/envoy/latest/operations/cli)|
 |gloo.gatewayProxies.gatewayProxy.extraContainersHelper|string|||
 |gloo.gatewayProxies.gatewayProxy.extraInitContainersHelper|string|||
 |gloo.gatewayProxies.gatewayProxy.extraVolumes[].NAME|interface|||
 |gloo.gatewayProxies.gatewayProxy.extraVolumeHelper|string|||
 |gloo.gatewayProxies.gatewayProxy.extraListenersHelper|string|||
-|gloo.gatewayProxies.gatewayProxy.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|gloo.gatewayProxies.gatewayProxy.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.gatewayProxies.gatewayProxy.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|gloo.gatewayProxies.gatewayProxy.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo.gatewayProxies.gatewayProxy.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |gloo.gatewayProxies.gatewayProxy.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|gloo.gatewayProxies.gatewayProxy.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|gloo.gatewayProxies.gatewayProxy.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo.gatewayProxies.gatewayProxy.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo.gatewayProxies.gatewayProxy.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
-|gloo.gatewayProxies.gatewayProxy.readConfig|bool||expose a read-only subset of the envoy admin api|
-|gloo.gatewayProxies.gatewayProxy.readConfigMulticluster|bool||expose a read-only subset of the envoy admin api to gloo-fed|
+|gloo.gatewayProxies.gatewayProxy.readConfig|bool||expose a read-only subset of the Envoy admin api|
+|gloo.gatewayProxies.gatewayProxy.readConfigMulticluster|bool||expose a read-only subset of the Envoy admin api to gloo-fed|
 |gloo.gatewayProxies.gatewayProxy.extraProxyVolumeMounts[].NAME|interface|||
 |gloo.gatewayProxies.gatewayProxy.extraProxyVolumeMountHelper|string||name of custom made named template allowing for extra volume mounts on the proxy container|
 |gloo.gatewayProxies.gatewayProxy.loopBackAddress|string||Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1|
@@ -774,9 +817,10 @@
 |gloo.gatewayProxies.gatewayProxy.failover.secretName|string||(Enterprise Only): Secret containing downstream Ssl Secrets Default is failover-downstream|
 |gloo.gatewayProxies.gatewayProxy.failover.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.gatewayProxy.disabled|bool||Skips creation of this gateway proxy. Used to turn off gateway proxies created by preceding configurations|
-|gloo.gatewayProxies.gatewayProxy.envoyApiVersion|string||Version of the envoy API to use for the xDS transport and resources. Default is V3|
-|gloo.gatewayProxies.gatewayProxy.envoyBootstrapExtensions[].NAME|interface||List of bootstrap extensions to add to envoy bootstrap config. Examples include Wasm Service (https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/wasm/v3/wasm.proto#extensions-wasm-v3-wasmservice).|
-|gloo.gatewayProxies.gatewayProxy.envoyStaticClusters[].NAME|interface||List of extra static clusters to be added to envoy bootstrap config. https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/cluster.proto#envoy-v3-api-msg-config-cluster-v3-cluster|
+|gloo.gatewayProxies.gatewayProxy.envoyApiVersion|string||Version of the Envoy API to use for the xDS transport and resources. Default is V3|
+|gloo.gatewayProxies.gatewayProxy.envoyBootstrapExtensions[].NAME|interface||List of bootstrap extensions to add to Envoy bootstrap config. Examples include Wasm Service (https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/wasm/v3/wasm.proto#extensions-wasm-v3-wasmservice).|
+|gloo.gatewayProxies.gatewayProxy.envoyOverloadManager.NAME|interface||Overload Manager definition for Envoy bootstrap config. If enabled, a list of Resource Monitors MUST be defined in order to produce a valid Envoy config (https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/overload/v3/overload.proto#overload-manager).|
+|gloo.gatewayProxies.gatewayProxy.envoyStaticClusters[].NAME|interface||List of extra static clusters to be added to Envoy bootstrap config. https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/cluster.proto#envoy-v3-api-msg-config-cluster-v3-cluster|
 |gloo.gatewayProxies.gatewayProxy.horizontalPodAutoscaler.apiVersion|string||accepts autoscaling/v1 or autoscaling/v2beta2.|
 |gloo.gatewayProxies.gatewayProxy.horizontalPodAutoscaler.minReplicas|int32||minReplicas is the lower limit for the number of replicas to which the autoscaler can scale down.|
 |gloo.gatewayProxies.gatewayProxy.horizontalPodAutoscaler.maxReplicas|int32||maxReplicas is the upper limit for the number of replicas to which the autoscaler can scale up. It cannot be less that minReplicas.|
@@ -806,7 +850,7 @@
 |gloo.ingress.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
 |gloo.ingress.deployment.extraIngressLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress deployment.|
 |gloo.ingress.deployment.extraIngressAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the ingress deployment.|
-|gloo.ingress.deployment.stats|bool||Controls whether or not envoy stats are enabled|
+|gloo.ingress.deployment.stats|bool||Controls whether or not Envoy stats are enabled|
 |gloo.ingress.deployment.replicas|int||number of instances to deploy|
 |gloo.ingress.deployment.customEnv[].name|string|||
 |gloo.ingress.deployment.customEnv[].value|string|||
@@ -858,7 +902,7 @@
 |gloo.ingressProxy.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
 |gloo.ingressProxy.deployment.runAsUser|float64||Explicitly set the user ID for the pod to run as. Default is 10101|
 |gloo.ingressProxy.deployment.extraIngressProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress proxy deployment.|
-|gloo.ingressProxy.deployment.stats|bool||Controls whether or not envoy stats are enabled|
+|gloo.ingressProxy.deployment.stats|bool||Controls whether or not Envoy stats are enabled|
 |gloo.ingressProxy.deployment.replicas|int||number of instances to deploy|
 |gloo.ingressProxy.deployment.customEnv[].name|string|||
 |gloo.ingressProxy.deployment.customEnv[].value|string|||
@@ -916,11 +960,11 @@
 |gloo.accessLogger.port|uint|||
 |gloo.accessLogger.serviceName|string|||
 |gloo.accessLogger.enabled|bool|||
-|gloo.accessLogger.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|gloo.accessLogger.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo.accessLogger.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|gloo.accessLogger.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo.accessLogger.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |gloo.accessLogger.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|gloo.accessLogger.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|gloo.accessLogger.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo.accessLogger.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo.accessLogger.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo.accessLogger.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
@@ -1036,11 +1080,11 @@
 |observability.deployment.image.pullSecret|string||image pull policy for the container |
 |observability.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
 |observability.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
-|observability.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|observability.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|observability.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|observability.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |observability.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |observability.deployment.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|observability.deployment.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|observability.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |observability.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |observability.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |observability.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
@@ -1122,11 +1166,11 @@
 |gloo-fed.glooFedApiserver.resources.limits.cpu|string||amount of CPUs|
 |gloo-fed.glooFedApiserver.resources.requests.memory|string||amount of memory|
 |gloo-fed.glooFedApiserver.resources.requests.cpu|string||amount of CPUs|
-|gloo-fed.glooFedApiserver.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|gloo-fed.glooFedApiserver.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo-fed.glooFedApiserver.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|gloo-fed.glooFedApiserver.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo-fed.glooFedApiserver.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |gloo-fed.glooFedApiserver.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|gloo-fed.glooFedApiserver.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|gloo-fed.glooFedApiserver.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo-fed.glooFedApiserver.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo-fed.glooFedApiserver.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo-fed.glooFedApiserver.floatingUserId|bool|||
@@ -1167,11 +1211,11 @@
 |gloo-fed.glooFed.image.pullSecret|string||image pull policy for the container |
 |gloo-fed.glooFed.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
 |gloo-fed.glooFed.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
-|gloo-fed.glooFed.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|gloo-fed.glooFed.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|gloo-fed.glooFed.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|gloo-fed.glooFed.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo-fed.glooFed.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |gloo-fed.glooFed.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|gloo-fed.glooFed.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|gloo-fed.glooFed.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo-fed.glooFed.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo-fed.glooFed.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo-fed.rbac.create|bool|||
@@ -1197,15 +1241,15 @@
 |global.glooRbac.create|bool|true|create rbac rules for the gloo-system service account|
 |global.glooRbac.namespaced|bool||use Roles instead of ClusterRoles|
 |global.glooRbac.nameSuffix|string||When nameSuffix is nonempty, append '-$nameSuffix' to the names of Gloo Edge RBAC resources; e.g. when nameSuffix is 'foo', the role 'gloo-resource-reader' will become 'gloo-resource-reader-foo'|
-|global.glooStats.enabled|bool|true|Controls whether or not envoy stats are enabled|
-|global.glooStats.routePrefixRewrite|string|/stats/prometheus|The envoy stats endpoint to which the metrics are written|
+|global.glooStats.enabled|bool|true|Controls whether or not Envoy stats are enabled|
+|global.glooStats.routePrefixRewrite|string|/stats/prometheus|The Envoy stats endpoint to which the metrics are written|
 |global.glooStats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |global.glooStats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|global.glooStats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|global.glooStats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.12.0-beta5|tag for the container|
+|global.glooMtls.sds.image.tag|string|1.12.0-beta6|tag for the container|
 |global.glooMtls.sds.image.repository|string||image name (repository) for the container.|
 |global.glooMtls.sds.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |global.glooMtls.sds.image.pullPolicy|string||image pull policy for the container|
@@ -1236,11 +1280,11 @@
 |global.extraSpecs|bool|true|Add additional specs to include in the settings manifest, as defined by a helm partial. Defaults to false in open source, and true in enterprise.|
 |global.extauthCustomYaml|bool|false|Inject whatever yaml exists in .Values.global.extensions.extAuth into settings.spec.extauth, instead of structured yaml (which is enterprise only). Defaults to true in open source, and false in enterprise|
 |global.console|interface||Configuration options for the Enterprise Console (UI).|
-|global.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|global.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|global.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|global.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |global.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |global.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|global.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|global.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |global.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.stats.serviceMonitor.releaseLabel|string||The release label used for the Pod/Service Monitor (default prom)|
@@ -1258,11 +1302,11 @@
 |global.extensions.extAuth.deployment.image.pullSecret|string||image pull policy for the container |
 |global.extensions.extAuth.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
 |global.extensions.extAuth.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
-|global.extensions.extAuth.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|global.extensions.extAuth.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|global.extensions.extAuth.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|global.extensions.extAuth.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |global.extensions.extAuth.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |global.extensions.extAuth.deployment.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|global.extensions.extAuth.deployment.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|global.extensions.extAuth.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |global.extensions.extAuth.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.extensions.extAuth.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.extensions.extAuth.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
@@ -1354,11 +1398,11 @@
 |global.extensions.rateLimit.deployment.image.pullSecret|string||image pull policy for the container |
 |global.extensions.rateLimit.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
 |global.extensions.rateLimit.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
-|global.extensions.rateLimit.deployment.stats.enabled|bool||Controls whether or not envoy stats are enabled|
-|global.extensions.rateLimit.deployment.stats.routePrefixRewrite|string||The envoy stats endpoint to which the metrics are written|
+|global.extensions.rateLimit.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|global.extensions.rateLimit.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |global.extensions.rateLimit.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
 |global.extensions.rateLimit.deployment.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|global.extensions.rateLimit.deployment.stats.statsPrefixRewrite|string||The envoy stats endpoint with general metrics for the additional stats route|
+|global.extensions.rateLimit.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |global.extensions.rateLimit.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.extensions.rateLimit.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.extensions.rateLimit.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|

@@ -1556,8 +1556,8 @@ func (b *rateLimitingProxyBuilder) build() *gloov1.Proxy {
 				}
 			}
 			if routeCfg.regularStageRateLimitConfigRef != nil {
-				routeOptions.RateLimitConfigType = &gloov1.RouteOptions_RateLimitConfigs{
-					RateLimitConfigs: &ratelimit.RateLimitConfigRefs{
+				routeOptions.RateLimitRegularConfigType = &gloov1.RouteOptions_RateLimitRegularConfigs{
+					RateLimitRegularConfigs: &ratelimit.RateLimitConfigRefs{
 						Refs: []*ratelimit.RateLimitConfigRef{
 							{
 								Name:      routeCfg.regularStageRateLimitConfigRef.Name,

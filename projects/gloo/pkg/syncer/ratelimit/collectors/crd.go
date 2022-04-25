@@ -40,6 +40,7 @@ func (c *crdConfigCollector) ProcessVirtualHost(
 	configRefsSlice := []*ratelimit.RateLimitConfigRefs{
 		virtualHost.GetOptions().GetRateLimitConfigs(),
 		virtualHost.GetOptions().GetRateLimitEarlyConfigs(),
+		virtualHost.GetOptions().GetRateLimitRegularConfigs(),
 	}
 
 	var configRefs []*ratelimit.RateLimitConfigRef
@@ -63,6 +64,7 @@ func (c *crdConfigCollector) ProcessRoute(
 	configRefsSlice := []*ratelimit.RateLimitConfigRefs{
 		route.GetOptions().GetRateLimitConfigs(),
 		route.GetOptions().GetRateLimitEarlyConfigs(),
+		route.GetOptions().GetRateLimitRegularConfigs(),
 	}
 
 	var configRefs []*ratelimit.RateLimitConfigRef

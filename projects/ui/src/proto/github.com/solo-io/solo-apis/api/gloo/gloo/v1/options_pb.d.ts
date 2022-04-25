@@ -309,6 +309,16 @@ export class VirtualHostOptions extends jspb.Message {
   getRateLimitConfigs(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs | undefined;
   setRateLimitConfigs(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs): void;
 
+  hasRatelimitRegular(): boolean;
+  clearRatelimitRegular(): void;
+  getRatelimitRegular(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension | undefined;
+  setRatelimitRegular(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension): void;
+
+  hasRateLimitRegularConfigs(): boolean;
+  clearRateLimitRegularConfigs(): void;
+  getRateLimitRegularConfigs(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs | undefined;
+  setRateLimitRegularConfigs(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs): void;
+
   hasWaf(): boolean;
   clearWaf(): void;
   getWaf(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb.Settings | undefined;
@@ -366,6 +376,7 @@ export class VirtualHostOptions extends jspb.Message {
 
   getRateLimitEarlyConfigTypeCase(): VirtualHostOptions.RateLimitEarlyConfigTypeCase;
   getRateLimitConfigTypeCase(): VirtualHostOptions.RateLimitConfigTypeCase;
+  getRateLimitRegularConfigTypeCase(): VirtualHostOptions.RateLimitRegularConfigTypeCase;
   getJwtConfigCase(): VirtualHostOptions.JwtConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHostOptions.AsObject;
@@ -390,6 +401,8 @@ export namespace VirtualHostOptions {
     rateLimitEarlyConfigs?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.AsObject,
     ratelimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension.AsObject,
     rateLimitConfigs?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.AsObject,
+    ratelimitRegular?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension.AsObject,
+    rateLimitRegularConfigs?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.AsObject,
     waf?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb.Settings.AsObject,
     jwt?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb.VhostExtension.AsObject,
     jwtStaged?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb.JwtStagedVhostExtension.AsObject,
@@ -413,6 +426,12 @@ export namespace VirtualHostOptions {
     RATE_LIMIT_CONFIG_TYPE_NOT_SET = 0,
     RATELIMIT = 70,
     RATE_LIMIT_CONFIGS = 71,
+  }
+
+  export enum RateLimitRegularConfigTypeCase {
+    RATE_LIMIT_REGULAR_CONFIG_TYPE_NOT_SET = 0,
+    RATELIMIT_REGULAR = 74,
+    RATE_LIMIT_REGULAR_CONFIGS = 75,
   }
 
   export enum JwtConfigCase {
@@ -518,6 +537,16 @@ export class RouteOptions extends jspb.Message {
   getRateLimitConfigs(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs | undefined;
   setRateLimitConfigs(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs): void;
 
+  hasRatelimitRegular(): boolean;
+  clearRatelimitRegular(): void;
+  getRatelimitRegular(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension | undefined;
+  setRatelimitRegular(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension): void;
+
+  hasRateLimitRegularConfigs(): boolean;
+  clearRateLimitRegularConfigs(): void;
+  getRateLimitRegularConfigs(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs | undefined;
+  setRateLimitRegularConfigs(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs): void;
+
   hasWaf(): boolean;
   clearWaf(): void;
   getWaf(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb.Settings | undefined;
@@ -573,6 +602,7 @@ export class RouteOptions extends jspb.Message {
   getHostRewriteTypeCase(): RouteOptions.HostRewriteTypeCase;
   getRateLimitEarlyConfigTypeCase(): RouteOptions.RateLimitEarlyConfigTypeCase;
   getRateLimitConfigTypeCase(): RouteOptions.RateLimitConfigTypeCase;
+  getRateLimitRegularConfigTypeCase(): RouteOptions.RateLimitRegularConfigTypeCase;
   getJwtConfigCase(): RouteOptions.JwtConfigCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RouteOptions.AsObject;
@@ -605,6 +635,8 @@ export namespace RouteOptions {
     rateLimitEarlyConfigs?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.AsObject,
     ratelimit?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension.AsObject,
     rateLimitConfigs?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.AsObject,
+    ratelimitRegular?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension.AsObject,
+    rateLimitRegularConfigs?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.AsObject,
     waf?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb.Settings.AsObject,
     jwt?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb.RouteExtension.AsObject,
     jwtStaged?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb.JwtStagedRouteExtension.AsObject,
@@ -634,6 +666,12 @@ export namespace RouteOptions {
     RATE_LIMIT_CONFIG_TYPE_NOT_SET = 0,
     RATELIMIT = 140,
     RATE_LIMIT_CONFIGS = 141,
+  }
+
+  export enum RateLimitRegularConfigTypeCase {
+    RATE_LIMIT_REGULAR_CONFIG_TYPE_NOT_SET = 0,
+    RATELIMIT_REGULAR = 144,
+    RATE_LIMIT_REGULAR_CONFIGS = 145,
   }
 
   export enum JwtConfigCase {

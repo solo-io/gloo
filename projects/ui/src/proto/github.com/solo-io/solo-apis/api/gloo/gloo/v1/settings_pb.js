@@ -37,6 +37,7 @@ goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ConsulConfiguration', null, g
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ConsulConfiguration.ServiceDiscoveryOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ConsulKv', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration', null, global);
+goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.Directory', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.DiscoveryOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.DiscoveryOptions.FdsMode', null, global);
@@ -3061,7 +3062,8 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.toObject = 
     usetlstagging: jspb.Message.getFieldWithDefault(msg, 16, false),
     tlstagname: jspb.Message.getFieldWithDefault(msg, 17, ""),
     rootca: (f = msg.getRootca()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    splittlsservices: jspb.Message.getFieldWithDefault(msg, 19, false)
+    splittlsservices: jspb.Message.getFieldWithDefault(msg, 19, false),
+    consistencymode: jspb.Message.getFieldWithDefault(msg, 20, 0)
   };
 
   if (includeInstance) {
@@ -3114,6 +3116,10 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.deserialize
     case 19:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setSplittlsservices(value);
+      break;
+    case 20:
+      var value = /** @type {!proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes} */ (reader.readEnum());
+      msg.setConsistencymode(value);
       break;
     default:
       reader.skipField();
@@ -3173,8 +3179,24 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.serializeBi
       f
     );
   }
+  f = message.getConsistencymode();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      20,
+      f
+    );
+  }
 };
 
+
+/**
+ * @enum {number}
+ */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes = {
+  CONSISTENTMODE: 0,
+  DEFAULTMODE: 2,
+  STALEMODE: 1
+};
 
 /**
  * optional bool useTlsTagging = 16;
@@ -3252,6 +3274,21 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.g
 /** @param {boolean} value */
 proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.setSplittlsservices = function(value) {
   jspb.Message.setProto3BooleanField(this, 19, value);
+};
+
+
+/**
+ * optional ConsulConsistencyModes consistencyMode = 20;
+ * @return {!proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes}
+ */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.getConsistencymode = function() {
+  return /** @type {!proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes} */ (jspb.Message.getFieldWithDefault(this, 20, 0));
+};
+
+
+/** @param {!proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes} value */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.setConsistencymode = function(value) {
+  jspb.Message.setProto3EnumField(this, 20, value);
 };
 
 

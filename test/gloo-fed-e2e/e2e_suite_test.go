@@ -26,10 +26,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const (
+	remoteClusterContextEnvName     = "REMOTE_CLUSTER_CONTEXT"
+	managementClusterContextEnvName = "MANAGEMENT_CLUSTER_CONTEXT"
+)
+
 func TestE2e(t *testing.T) {
-	if os.Getenv("REMOTE_CLUSTER_CONTEXT") == "" || os.Getenv("LOCAL_CLUSTER_CONTEXT") == "" {
-		log.Warnf("This test is disabled. " +
-			"To enable, set REMOTE_CLUSTER_CONTEXT and LOCAL_CLUSTER_CONTEXT in your env.")
+	if os.Getenv(remoteClusterContextEnvName) == "" || os.Getenv(managementClusterContextEnvName) == "" {
+		log.Warnf("This test is disabled. "+
+			"To enable, set %s and %s in your env.", remoteClusterContextEnvName, managementClusterContextEnvName)
 		return
 	}
 	RegisterFailHandler(Fail)
@@ -38,32 +43,32 @@ func TestE2e(t *testing.T) {
 }
 
 var (
-	remoteClusterContext string
-	localClusterContext  string
-	mcRole               *v1alpha1.MultiClusterRole
-	mcRoleBinding        *v1alpha1.MultiClusterRoleBinding
-	err                  error
-	namespace            = defaults.GlooSystem
+	remoteClusterContext     string
+	managementClusterContext string
+	mcRole                   *v1alpha1.MultiClusterRole
+	mcRoleBinding            *v1alpha1.MultiClusterRoleBinding
+	err                      error
+	namespace                = defaults.GlooSystem
 )
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-	if os.Getenv("REMOTE_CLUSTER_CONTEXT") == "" {
+	if os.Getenv(remoteClusterContextEnvName) == "" {
 		return nil
 	}
-	remoteClusterContext = os.Getenv("REMOTE_CLUSTER_CONTEXT")
-	localClusterContext = os.Getenv("LOCAL_CLUSTER_CONTEXT")
+	remoteClusterContext = os.Getenv(remoteClusterContextEnvName)
+	managementClusterContext = os.Getenv(managementClusterContextEnvName)
 
 	err = os.Setenv(statusutils.PodNamespaceEnvName, namespace)
 	Expect(err).NotTo(HaveOccurred())
 
-	restCfg := skv2_test.MustConfig(localClusterContext)
+	restCfg := skv2_test.MustConfig(managementClusterContext)
 	// Wait for the Gloo Instances to be created
 	clientset, err := fedv1.NewClientsetFromConfig(restCfg)
 	Eventually(func() int {
 		instances, err := clientset.GlooInstances().ListGlooInstance(context.TODO())
 		Expect(err).NotTo(HaveOccurred())
 		return len(instances.Items)
-	}, time.Second*30, time.Millisecond*500).Should(Equal(2))
+	}, time.Second*60, time.Millisecond*500).Should(Equal(2))
 
 	// Wait for Upstream to be Accepted
 	glooClient, err := gloov1.NewClientsetFromConfig(restCfg)
@@ -195,7 +200,7 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	if mcRoleBinding != nil {
-		rbacClientset, err := v1alpha1.NewClientsetFromConfig(skv2_test.MustConfig(localClusterContext))
+		rbacClientset, err := v1alpha1.NewClientsetFromConfig(skv2_test.MustConfig(managementClusterContext))
 		Expect(err).NotTo(HaveOccurred())
 		rbacClientset.MultiClusterRoleBindings().DeleteMultiClusterRoleBinding(context.TODO(), client.ObjectKey{
 			Namespace: mcRoleBinding.GetNamespace(),
@@ -203,7 +208,7 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 		})
 	}
 	if mcRole != nil {
-		rbacClientset, err := v1alpha1.NewClientsetFromConfig(skv2_test.MustConfig(localClusterContext))
+		rbacClientset, err := v1alpha1.NewClientsetFromConfig(skv2_test.MustConfig(managementClusterContext))
 		Expect(err).NotTo(HaveOccurred())
 		rbacClientset.MultiClusterRoles().DeleteMultiClusterRole(context.TODO(), client.ObjectKey{
 			Namespace: mcRole.GetNamespace(),

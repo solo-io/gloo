@@ -2,6 +2,7 @@ package gloo_fed_e2e_test
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 	"strconv"
 
@@ -39,6 +40,8 @@ var _ = Describe("Remote Envoy Config Getter", func() {
 	It("works for getting remote envoy config", func() {
 		serverAddr := "localhost:" + strconv.Itoa(apiserverPort)
 
+		glooInstanceRefName := fmt.Sprintf("%s-%s", managementClusterContext, defaults.GlooSystem)
+
 		var opts []grpc.DialOption
 		opts = append(opts, grpc.WithInsecure())
 		opts = append(opts, grpc.WithBlock())
@@ -48,8 +51,8 @@ var _ = Describe("Remote Envoy Config Getter", func() {
 		client := rpc_edge_v1.NewGlooInstanceApiClient(conn)
 		resp, err := client.GetConfigDumps(context.TODO(), &rpc_edge_v1.GetConfigDumpsRequest{
 			GlooInstanceRef: &v1.ObjectRef{
-				Name:      "kind-local-gloo-system",
-				Namespace: "gloo-system",
+				Name:      glooInstanceRefName,
+				Namespace: defaults.GlooSystem,
 			},
 		})
 		Expect(err).NotTo(HaveOccurred())

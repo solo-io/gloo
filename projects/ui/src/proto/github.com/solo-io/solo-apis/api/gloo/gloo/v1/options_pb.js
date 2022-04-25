@@ -1612,7 +1612,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.VirtualHostOptions.oneofGroups_ = [[72,73],[70,71],[9,19]];
+proto.gloo.solo.io.VirtualHostOptions.oneofGroups_ = [[72,73],[70,71],[74,75],[9,19]];
 
 /**
  * @enum {number}
@@ -1649,6 +1649,22 @@ proto.gloo.solo.io.VirtualHostOptions.prototype.getRateLimitConfigTypeCase = fun
 /**
  * @enum {number}
  */
+proto.gloo.solo.io.VirtualHostOptions.RateLimitRegularConfigTypeCase = {
+  RATE_LIMIT_REGULAR_CONFIG_TYPE_NOT_SET: 0,
+  RATELIMIT_REGULAR: 74,
+  RATE_LIMIT_REGULAR_CONFIGS: 75
+};
+
+/**
+ * @return {proto.gloo.solo.io.VirtualHostOptions.RateLimitRegularConfigTypeCase}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.getRateLimitRegularConfigTypeCase = function() {
+  return /** @type {proto.gloo.solo.io.VirtualHostOptions.RateLimitRegularConfigTypeCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.VirtualHostOptions.oneofGroups_[2]));
+};
+
+/**
+ * @enum {number}
+ */
 proto.gloo.solo.io.VirtualHostOptions.JwtConfigCase = {
   JWT_CONFIG_NOT_SET: 0,
   JWT: 9,
@@ -1659,7 +1675,7 @@ proto.gloo.solo.io.VirtualHostOptions.JwtConfigCase = {
  * @return {proto.gloo.solo.io.VirtualHostOptions.JwtConfigCase}
  */
 proto.gloo.solo.io.VirtualHostOptions.prototype.getJwtConfigCase = function() {
-  return /** @type {proto.gloo.solo.io.VirtualHostOptions.JwtConfigCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.VirtualHostOptions.oneofGroups_[2]));
+  return /** @type {proto.gloo.solo.io.VirtualHostOptions.JwtConfigCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.VirtualHostOptions.oneofGroups_[3]));
 };
 
 
@@ -1702,6 +1718,8 @@ proto.gloo.solo.io.VirtualHostOptions.toObject = function(includeInstance, msg) 
     rateLimitEarlyConfigs: (f = msg.getRateLimitEarlyConfigs()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.toObject(includeInstance, f),
     ratelimit: (f = msg.getRatelimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension.toObject(includeInstance, f),
     rateLimitConfigs: (f = msg.getRateLimitConfigs()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.toObject(includeInstance, f),
+    ratelimitRegular: (f = msg.getRatelimitRegular()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension.toObject(includeInstance, f),
+    rateLimitRegularConfigs: (f = msg.getRateLimitRegularConfigs()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.toObject(includeInstance, f),
     waf: (f = msg.getWaf()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb.Settings.toObject(includeInstance, f),
     jwt: (f = msg.getJwt()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb.VhostExtension.toObject(includeInstance, f),
     jwtStaged: (f = msg.getJwtStaged()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb.JwtStagedVhostExtension.toObject(includeInstance, f),
@@ -1803,6 +1821,16 @@ proto.gloo.solo.io.VirtualHostOptions.deserializeBinaryFromReader = function(msg
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.deserializeBinaryFromReader);
       msg.setRateLimitConfigs(value);
+      break;
+    case 74:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension.deserializeBinaryFromReader);
+      msg.setRatelimitRegular(value);
+      break;
+    case 75:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.deserializeBinaryFromReader);
+      msg.setRateLimitRegularConfigs(value);
       break;
     case 8:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb.Settings;
@@ -1972,6 +2000,22 @@ proto.gloo.solo.io.VirtualHostOptions.serializeBinaryToWriter = function(message
   if (f != null) {
     writer.writeMessage(
       71,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.serializeBinaryToWriter
+    );
+  }
+  f = message.getRatelimitRegular();
+  if (f != null) {
+    writer.writeMessage(
+      74,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension.serializeBinaryToWriter
+    );
+  }
+  f = message.getRateLimitRegularConfigs();
+  if (f != null) {
+    writer.writeMessage(
+      75,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.serializeBinaryToWriter
     );
@@ -2398,6 +2442,66 @@ proto.gloo.solo.io.VirtualHostOptions.prototype.hasRateLimitConfigs = function()
 
 
 /**
+ * optional ratelimit.options.gloo.solo.io.RateLimitVhostExtension ratelimit_regular = 74;
+ * @return {?proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.getRatelimitRegular = function() {
+  return /** @type{?proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitVhostExtension, 74));
+};
+
+
+/** @param {?proto.ratelimit.options.gloo.solo.io.RateLimitVhostExtension|undefined} value */
+proto.gloo.solo.io.VirtualHostOptions.prototype.setRatelimitRegular = function(value) {
+  jspb.Message.setOneofWrapperField(this, 74, proto.gloo.solo.io.VirtualHostOptions.oneofGroups_[2], value);
+};
+
+
+proto.gloo.solo.io.VirtualHostOptions.prototype.clearRatelimitRegular = function() {
+  this.setRatelimitRegular(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.hasRatelimitRegular = function() {
+  return jspb.Message.getField(this, 74) != null;
+};
+
+
+/**
+ * optional ratelimit.options.gloo.solo.io.RateLimitConfigRefs rate_limit_regular_configs = 75;
+ * @return {?proto.ratelimit.options.gloo.solo.io.RateLimitConfigRefs}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.getRateLimitRegularConfigs = function() {
+  return /** @type{?proto.ratelimit.options.gloo.solo.io.RateLimitConfigRefs} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs, 75));
+};
+
+
+/** @param {?proto.ratelimit.options.gloo.solo.io.RateLimitConfigRefs|undefined} value */
+proto.gloo.solo.io.VirtualHostOptions.prototype.setRateLimitRegularConfigs = function(value) {
+  jspb.Message.setOneofWrapperField(this, 75, proto.gloo.solo.io.VirtualHostOptions.oneofGroups_[2], value);
+};
+
+
+proto.gloo.solo.io.VirtualHostOptions.prototype.clearRateLimitRegularConfigs = function() {
+  this.setRateLimitRegularConfigs(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.VirtualHostOptions.prototype.hasRateLimitRegularConfigs = function() {
+  return jspb.Message.getField(this, 75) != null;
+};
+
+
+/**
  * optional waf.options.gloo.solo.io.Settings waf = 8;
  * @return {?proto.waf.options.gloo.solo.io.Settings}
  */
@@ -2439,7 +2543,7 @@ proto.gloo.solo.io.VirtualHostOptions.prototype.getJwt = function() {
 
 /** @param {?proto.jwt.options.gloo.solo.io.VhostExtension|undefined} value */
 proto.gloo.solo.io.VirtualHostOptions.prototype.setJwt = function(value) {
-  jspb.Message.setOneofWrapperField(this, 9, proto.gloo.solo.io.VirtualHostOptions.oneofGroups_[2], value);
+  jspb.Message.setOneofWrapperField(this, 9, proto.gloo.solo.io.VirtualHostOptions.oneofGroups_[3], value);
 };
 
 
@@ -2469,7 +2573,7 @@ proto.gloo.solo.io.VirtualHostOptions.prototype.getJwtStaged = function() {
 
 /** @param {?proto.jwt.options.gloo.solo.io.JwtStagedVhostExtension|undefined} value */
 proto.gloo.solo.io.VirtualHostOptions.prototype.setJwtStaged = function(value) {
-  jspb.Message.setOneofWrapperField(this, 19, proto.gloo.solo.io.VirtualHostOptions.oneofGroups_[2], value);
+  jspb.Message.setOneofWrapperField(this, 19, proto.gloo.solo.io.VirtualHostOptions.oneofGroups_[3], value);
 };
 
 
@@ -2760,7 +2864,7 @@ proto.gloo.solo.io.RouteOptions.repeatedFields_ = [21];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.RouteOptions.oneofGroups_ = [[10,19],[142,143],[140,141],[16,25]];
+proto.gloo.solo.io.RouteOptions.oneofGroups_ = [[10,19],[142,143],[140,141],[144,145],[16,25]];
 
 /**
  * @enum {number}
@@ -2813,6 +2917,22 @@ proto.gloo.solo.io.RouteOptions.prototype.getRateLimitConfigTypeCase = function(
 /**
  * @enum {number}
  */
+proto.gloo.solo.io.RouteOptions.RateLimitRegularConfigTypeCase = {
+  RATE_LIMIT_REGULAR_CONFIG_TYPE_NOT_SET: 0,
+  RATELIMIT_REGULAR: 144,
+  RATE_LIMIT_REGULAR_CONFIGS: 145
+};
+
+/**
+ * @return {proto.gloo.solo.io.RouteOptions.RateLimitRegularConfigTypeCase}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.getRateLimitRegularConfigTypeCase = function() {
+  return /** @type {proto.gloo.solo.io.RouteOptions.RateLimitRegularConfigTypeCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.RouteOptions.oneofGroups_[3]));
+};
+
+/**
+ * @enum {number}
+ */
 proto.gloo.solo.io.RouteOptions.JwtConfigCase = {
   JWT_CONFIG_NOT_SET: 0,
   JWT: 16,
@@ -2823,7 +2943,7 @@ proto.gloo.solo.io.RouteOptions.JwtConfigCase = {
  * @return {proto.gloo.solo.io.RouteOptions.JwtConfigCase}
  */
 proto.gloo.solo.io.RouteOptions.prototype.getJwtConfigCase = function() {
-  return /** @type {proto.gloo.solo.io.RouteOptions.JwtConfigCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.RouteOptions.oneofGroups_[3]));
+  return /** @type {proto.gloo.solo.io.RouteOptions.JwtConfigCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.RouteOptions.oneofGroups_[4]));
 };
 
 
@@ -2875,6 +2995,8 @@ proto.gloo.solo.io.RouteOptions.toObject = function(includeInstance, msg) {
     rateLimitEarlyConfigs: (f = msg.getRateLimitEarlyConfigs()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.toObject(includeInstance, f),
     ratelimit: (f = msg.getRatelimit()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension.toObject(includeInstance, f),
     rateLimitConfigs: (f = msg.getRateLimitConfigs()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.toObject(includeInstance, f),
+    ratelimitRegular: (f = msg.getRatelimitRegular()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension.toObject(includeInstance, f),
+    rateLimitRegularConfigs: (f = msg.getRateLimitRegularConfigs()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.toObject(includeInstance, f),
     waf: (f = msg.getWaf()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb.Settings.toObject(includeInstance, f),
     jwt: (f = msg.getJwt()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb.RouteExtension.toObject(includeInstance, f),
     jwtStaged: (f = msg.getJwtStaged()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb.JwtStagedRouteExtension.toObject(includeInstance, f),
@@ -3015,6 +3137,16 @@ proto.gloo.solo.io.RouteOptions.deserializeBinaryFromReader = function(msg, read
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.deserializeBinaryFromReader);
       msg.setRateLimitConfigs(value);
+      break;
+    case 144:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension.deserializeBinaryFromReader);
+      msg.setRatelimitRegular(value);
+      break;
+    case 145:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.deserializeBinaryFromReader);
+      msg.setRateLimitRegularConfigs(value);
       break;
     case 15:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb.Settings;
@@ -3248,6 +3380,22 @@ proto.gloo.solo.io.RouteOptions.serializeBinaryToWriter = function(message, writ
   if (f != null) {
     writer.writeMessage(
       141,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.serializeBinaryToWriter
+    );
+  }
+  f = message.getRatelimitRegular();
+  if (f != null) {
+    writer.writeMessage(
+      144,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension.serializeBinaryToWriter
+    );
+  }
+  f = message.getRateLimitRegularConfigs();
+  if (f != null) {
+    writer.writeMessage(
+      145,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs.serializeBinaryToWriter
     );
@@ -3910,6 +4058,66 @@ proto.gloo.solo.io.RouteOptions.prototype.hasRateLimitConfigs = function() {
 
 
 /**
+ * optional ratelimit.options.gloo.solo.io.RateLimitRouteExtension ratelimit_regular = 144;
+ * @return {?proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.getRatelimitRegular = function() {
+  return /** @type{?proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitRouteExtension, 144));
+};
+
+
+/** @param {?proto.ratelimit.options.gloo.solo.io.RateLimitRouteExtension|undefined} value */
+proto.gloo.solo.io.RouteOptions.prototype.setRatelimitRegular = function(value) {
+  jspb.Message.setOneofWrapperField(this, 144, proto.gloo.solo.io.RouteOptions.oneofGroups_[3], value);
+};
+
+
+proto.gloo.solo.io.RouteOptions.prototype.clearRatelimitRegular = function() {
+  this.setRatelimitRegular(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.hasRatelimitRegular = function() {
+  return jspb.Message.getField(this, 144) != null;
+};
+
+
+/**
+ * optional ratelimit.options.gloo.solo.io.RateLimitConfigRefs rate_limit_regular_configs = 145;
+ * @return {?proto.ratelimit.options.gloo.solo.io.RateLimitConfigRefs}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.getRateLimitRegularConfigs = function() {
+  return /** @type{?proto.ratelimit.options.gloo.solo.io.RateLimitConfigRefs} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.RateLimitConfigRefs, 145));
+};
+
+
+/** @param {?proto.ratelimit.options.gloo.solo.io.RateLimitConfigRefs|undefined} value */
+proto.gloo.solo.io.RouteOptions.prototype.setRateLimitRegularConfigs = function(value) {
+  jspb.Message.setOneofWrapperField(this, 145, proto.gloo.solo.io.RouteOptions.oneofGroups_[3], value);
+};
+
+
+proto.gloo.solo.io.RouteOptions.prototype.clearRateLimitRegularConfigs = function() {
+  this.setRateLimitRegularConfigs(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.hasRateLimitRegularConfigs = function() {
+  return jspb.Message.getField(this, 145) != null;
+};
+
+
+/**
  * optional waf.options.gloo.solo.io.Settings waf = 15;
  * @return {?proto.waf.options.gloo.solo.io.Settings}
  */
@@ -3951,7 +4159,7 @@ proto.gloo.solo.io.RouteOptions.prototype.getJwt = function() {
 
 /** @param {?proto.jwt.options.gloo.solo.io.RouteExtension|undefined} value */
 proto.gloo.solo.io.RouteOptions.prototype.setJwt = function(value) {
-  jspb.Message.setOneofWrapperField(this, 16, proto.gloo.solo.io.RouteOptions.oneofGroups_[3], value);
+  jspb.Message.setOneofWrapperField(this, 16, proto.gloo.solo.io.RouteOptions.oneofGroups_[4], value);
 };
 
 
@@ -3981,7 +4189,7 @@ proto.gloo.solo.io.RouteOptions.prototype.getJwtStaged = function() {
 
 /** @param {?proto.jwt.options.gloo.solo.io.JwtStagedRouteExtension|undefined} value */
 proto.gloo.solo.io.RouteOptions.prototype.setJwtStaged = function(value) {
-  jspb.Message.setOneofWrapperField(this, 25, proto.gloo.solo.io.RouteOptions.oneofGroups_[3], value);
+  jspb.Message.setOneofWrapperField(this, 25, proto.gloo.solo.io.RouteOptions.oneofGroups_[4], value);
 };
 
 

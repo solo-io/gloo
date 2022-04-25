@@ -560,6 +560,9 @@ export namespace SettingsSpec {
     getSplittlsservices(): boolean;
     setSplittlsservices(value: boolean): void;
 
+    getConsistencymode(): SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap[keyof SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap];
+    setConsistencymode(value: SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap[keyof SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap]): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ConsulUpstreamDiscoveryConfiguration.AsObject;
     static toObject(includeInstance: boolean, msg: ConsulUpstreamDiscoveryConfiguration): ConsulUpstreamDiscoveryConfiguration.AsObject;
@@ -576,7 +579,16 @@ export namespace SettingsSpec {
       tlstagname: string,
       rootca?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
       splittlsservices: boolean,
+      consistencymode: SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap[keyof SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap],
     }
+
+    export interface ConsulConsistencyModesMap {
+      CONSISTENTMODE: 0;
+      DEFAULTMODE: 2;
+      STALEMODE: 1;
+    }
+
+    export const ConsulConsistencyModes: ConsulConsistencyModesMap;
   }
 
   export class KubernetesConfiguration extends jspb.Message {

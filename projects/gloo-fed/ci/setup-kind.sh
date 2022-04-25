@@ -1,46 +1,36 @@
-#!/bin/bash
+#!/bin/bash -ex
 
-# Absolute path to this script, e.g. /home/user/go/.../gloo-fed/ci/setup-kind.sh
-SCRIPT=$(readlink -f "$0")
-# Absolute path this script is in, thus /home/user/go/.../gloo-fed/ci
-CI_DIR=$(dirname "$SCRIPT")
-GIT_SEMVER_SCRIPT="$CI_DIR/../../../git-semver.sh"
-
-set -ex
-
-kindClusterImage=kindest/node:v1.22.4
-
-if [ "$1" == "" ] || [ "$2" == "" ]; then
-  echo "please provide a name for both the master and remote clusters"
-  exit 0
+# 0. Assign default values to some of our environment variables
+# The name of the management kind cluster to deploy to
+MANAGEMENT_CLUSTER_NAME="${MANAGEMENT_CLUSTER_NAME:-management}"
+# The name of the remote kind cluster to deploy to
+REMOTE_CLUSTER_NAME="${REMOTE_CLUSTER_NAME:-remote}"
+# The version of the Node Docker image to use for booting the clusters
+CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.22.4}"
+# The version used to tag images
+VERSION="${VERSION:-0.0.0-kind}"
+# The license key used to support enterprise features
+GLOO_LICENSE_KEY="${GLOO_LICENSE_KEY:-}"
+# Automatically (lazily) determine OS type
+if [[ $OSTYPE == 'darwin'* ]]; then
+  OS='darwin'
+else
+  OS='linux'
 fi
 
+# 1. Ensure that a license key is provided
 if [ "$GLOO_LICENSE_KEY" == "" ]; then
   echo "please provide a license key"
   exit 0
 fi
 
-# Ensure that dependencies are consistent with what's in go.mod.
-go mod tidy
+# 2. Build the gloo command line tool, ensuring we have one in the `_output` folder
+make glooctl-$OS-amd64
+shopt -s expand_aliases
+alias glooctl=_output/glooctl-$OS-amd64
 
-GLOO_VERSION="$(echo $(go list -m github.com/solo-io/gloo) | cut -d' ' -f2)"
-# NOTE: If inter-PR dependency is needed, this must be changed to a hard-coded version (ex: v1.7.0-beta25).
-GLOO_VERSION_TEST_INSTALL=$GLOO_VERSION
-VERSION=$(. $GIT_SEMVER_SCRIPT)
-
-# Install glooctl
-if which glooctl;
-then
-    echo "Found glooctl installed already"
-    glooctl upgrade --release="$GLOO_VERSION_TEST_INSTALL"
-else
-    echo "Installing glooctl"
-    curl -sL https://run.solo.io/gloo/install | sh
-    export PATH=$HOME/.gloo/bin:$PATH
-    glooctl upgrade --release="$GLOO_VERSION_TEST_INSTALL"
-fi
-
-cat <<EOF | kind create cluster --name $1 --image $kindClusterImage --config=-
+# 3. Create the management kind cluster
+cat <<EOF | kind create cluster --name "$MANAGEMENT_CLUSTER_NAME" --image "kindest/node:$CLUSTER_NODE_VERSION" --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 kubeadmConfigPatches:
@@ -68,8 +58,9 @@ kubeadmConfigPatches:
       "feature-gates": "EphemeralContainers=true"
 EOF
 
+# 4. Create the remote kind cluster
 # Add locality labels to remote kind cluster for discovery
-(cat <<EOF | kind create cluster --name "$2" --image $kindClusterImage --config=-
+(cat <<EOF | kind create cluster --name "$REMOTE_CLUSTER_NAME" --image "kindest/node:$CLUSTER_NODE_VERSION" --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -109,24 +100,26 @@ kubeadmConfigPatches:
 EOF
 )
 
-kubectl config use-context kind-"$1"
+# 5. Build local federation and enterprise images used in these clusters
+VERSION=$VERSION make package-gloo-fed-chart package-gloo-edge-chart
+VERSION=$VERSION make gloo-ee-docker gloo-ee-envoy-wrapper-docker discovery-ee-docker
+
+# 6. Install Gloo in the management kind cluster
+kubectl config use-context kind-"$MANAGEMENT_CLUSTER_NAME"
 
 yarn --cwd projects/ui build
-make CLUSTER_NAME=$1 VERSION=${VERSION} package-gloo-fed-chart package-gloo-edge-chart gloofed-load-kind-images
-# Only build and load in the gloo-ee images used in this test
-make VERSION=${VERSION} gloo-ee-docker gloo-ee-envoy-wrapper-docker rate-limit-ee-docker -B
-kind load docker-image quay.io/solo-io/gloo-ee:${VERSION} --name $1
-kind load docker-image quay.io/solo-io/gloo-ee-envoy-wrapper:${VERSION} --name $1
-kind load docker-image quay.io/solo-io/rate-limit-ee:${VERSION} --name $1
 
-# Install gloo-fed and gloo-ee to cluster $1
+# 6a. Load federation and enterprise images used in this test
+CLUSTER_NAME=$MANAGEMENT_CLUSTER_NAME VERSION=$VERSION make gloofed-load-kind-images
+CLUSTER_NAME=$MANAGEMENT_CLUSTER_NAME VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
 
-cat > basic-enterprise.yaml << EOF
-rateLimit:
-  enable: false
+# 6b. Install gloo-fed and gloo-ee to management kind cluster
+cat > management-helm-values.yaml << EOF
 global:
   extensions:
     extAuth:
+      enabled: false
+    rateLimit:
       enabled: false
 observability:
   enabled: false
@@ -134,6 +127,8 @@ prometheus:
   enabled: false
 grafana:
   defaultInstallationEnabled: false
+gloo-fed:
+  enabled: true
 gloo:
   gatewayProxies:
     gatewayProxy:
@@ -141,40 +136,62 @@ gloo:
       readConfigMulticluster: true
       service:
         type: NodePort
-gloo-fed:
-  enabled: true
 EOF
 
-glooctl install gateway enterprise --license-key=$GLOO_LICENSE_KEY --file _output/helm/gloo-ee-${VERSION}.tgz --with-gloo-fed=false --values basic-enterprise.yaml
+glooctl install gateway enterprise --license-key="$GLOO_LICENSE_KEY" --file _output/helm/gloo-ee-"$VERSION".tgz --values management-helm-values.yaml
 
-rm basic-enterprise.yaml
+rm management-helm-values.yaml
 
-# gloo-system rollout
+# 6c. Wait for the installation to complete
 kubectl -n gloo-system rollout status deployment gloo-fed --timeout=1m || true
 kubectl -n gloo-system rollout status deployment gloo --timeout=2m || true
 kubectl -n gloo-system rollout status deployment discovery --timeout=2m || true
 kubectl -n gloo-system rollout status deployment gateway-proxy --timeout=2m || true
 kubectl -n gloo-system rollout status deployment gateway --timeout=2m || true
 
+# 7. Install Gloo in the remote kind cluster
+kubectl config use-context kind-"$REMOTE_CLUSTER_NAME"
 
-# Install gloo to cluster $2
-kubectl config use-context kind-"$2"
-cat > nodeport.yaml <<EOF
-gatewayProxies:
-  gatewayProxy:
-    failover:
-      enabled: true
-    service:
-      type: NodePort
+# 7a. Load enterprise images used in this test
+CLUSTER_NAME=$REMOTE_CLUSTER_NAME VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
+
+# 7b. Install gloo-ee to remote kind cluster
+cat > remote-helm-values.yaml <<EOF
+global:
+  extensions:
+    extAuth:
+      enabled: false
+    rateLimit:
+      enabled: false
+observability:
+  enabled: false
+prometheus:
+  enabled: false
+grafana:
+  defaultInstallationEnabled: false
+gloo-fed:
+  enabled: false
+gloo:
+  gatewayProxies:
+    gatewayProxy:
+      failover:
+        enabled: true
+      service:
+        type: NodePort
 EOF
-glooctl install gateway --values nodeport.yaml
-rm nodeport.yaml
+
+glooctl install gateway enterprise --license-key="$GLOO_LICENSE_KEY" --file _output/helm/gloo-ee-"$VERSION".tgz --values remote-helm-values.yaml
+
+rm remote-helm-values.yaml
+
+# 7c. Wait for the installation to complete
 kubectl -n gloo-system rollout status deployment gloo --timeout=2m || true
 kubectl -n gloo-system rollout status deployment discovery --timeout=2m || true
 kubectl -n gloo-system rollout status deployment gateway-proxy --timeout=2m || true
 kubectl -n gloo-system rollout status deployment gateway --timeout=2m || true
 kubectl patch settings -n gloo-system default --type=merge -p '{"spec":{"watchNamespaces":["gloo-system", "default"]}}'
 
+# 8. Generate certs and keys
 # Generate downstream cert and key
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
    -keyout tls.key -out tls.crt -subj "/CN=solo.io"
@@ -185,35 +202,25 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 
 glooctl create secret tls --name failover-downstream --certchain tls.crt --privatekey tls.key --rootca mtls.crt
 
-# Revert back to cluster context $1
-kubectl config use-context kind-"$1"
+# Revert back to management cluster context
+kubectl config use-context kind-"$MANAGEMENT_CLUSTER_NAME"
 
 glooctl create secret tls --name failover-upstream --certchain mtls.crt --privatekey mtls.key
 rm mtls.key mtls.crt tls.crt tls.key
 
-case $(uname) in
-  "Darwin")
-  {
-      CLUSTER_DOMAIN_MGMT=host.docker.internal
-      CLUSTER_DOMAIN_REMOTE=host.docker.internal
-  } ;;
-  "Linux")
-  {
-      CLUSTER_DOMAIN_MGMT=$(docker exec $1-control-plane ip addr show dev eth0 | sed -nE 's|\s*inet\s+([0-9.]+).*|\1|p'):6443
-      CLUSTER_DOMAIN_REMOTE=$(docker exec $2-control-plane ip addr show dev eth0 | sed -nE 's|\s*inet\s+([0-9.]+).*|\1|p'):6443
-  } ;;
-  *)
-  {
-      echo "Unsupported OS"
-      exit 1
-  } ;;
-esac
-
 # Register the gloo clusters
-glooctl cluster register --cluster-name kind-$1 --remote-context kind-$1 --local-cluster-domain-override $CLUSTER_DOMAIN_MGMT --federation-namespace gloo-system
-glooctl cluster register --cluster-name kind-$2 --remote-context kind-$2 --local-cluster-domain-override $CLUSTER_DOMAIN_REMOTE --federation-namespace gloo-system
+# Automatically determine cluster domains based on OS
+if [[ $OS == 'darwin' ]]; then
+  MANAGEMENT_CLUSTER_DOMAIN=host.docker.internal
+  REMOTE_CLUSTER_DOMAIN=host.docker.internal
+else
+  MANAGEMENT_CLUSTER_DOMAIN=$(docker exec "$MANAGEMENT_CLUSTER_NAME"-control-plane ip addr show dev eth0 | sed -nE 's|\s*inet\s+([0-9.]+).*|\1|p'):6443
+  REMOTE_CLUSTER_DOMAIN=$(docker exec "$REMOTE_CLUSTER_NAME"-control-plane ip addr show dev eth0 | sed -nE 's|\s*inet\s+([0-9.]+).*|\1|p'):6443
+fi
+glooctl cluster register --cluster-name kind-"$MANAGEMENT_CLUSTER_NAME" --remote-context kind-"$MANAGEMENT_CLUSTER_NAME" --local-cluster-domain-override "$MANAGEMENT_CLUSTER_DOMAIN" --federation-namespace gloo-system
+glooctl cluster register --cluster-name kind-"$REMOTE_CLUSTER_NAME" --remote-context kind-"$REMOTE_CLUSTER_NAME" --local-cluster-domain-override "$REMOTE_CLUSTER_DOMAIN" --federation-namespace gloo-system
 
-echo "Registered gloo clusters kind-$1 and kind-$2"
+echo "Registered gloo clusters kind-$MANAGEMENT_CLUSTER_NAME and kind-$REMOTE_CLUSTER_NAME"
 
 # Set up resources for Failover demo
 echo "Set up resources for Failover demo..."
@@ -349,7 +356,7 @@ spec:
       terminationGracePeriodSeconds: 0
 EOF
 
-kubectl config use-context kind-"$2"
+kubectl config use-context kind-"$REMOTE_CLUSTER_NAME"
 
 # Apply green deployment and service
 kubectl apply -f - <<EOF
@@ -483,7 +490,7 @@ spec:
       terminationGracePeriodSeconds: 0
 EOF
 
-kubectl config use-context kind-"$1"
+kubectl config use-context kind-"$MANAGEMENT_CLUSTER_NAME"
 
 kubectl apply -f - <<EOF
 apiVersion: fed.gloo.solo.io/v1
@@ -494,7 +501,7 @@ metadata:
 spec:
   placement:
     clusters:
-      - kind-$1
+      - kind-$MANAGEMENT_CLUSTER_NAME
     namespaces:
       - gloo-system
   template:
@@ -526,7 +533,7 @@ metadata:
 spec:
   placement:
     clusters:
-      - kind-$1
+      - kind-$MANAGEMENT_CLUSTER_NAME
     namespaces:
       - gloo-system
   template:
@@ -552,12 +559,12 @@ metadata:
   namespace: gloo-system
 spec:
   primary:
-    clusterName: kind-$1
+    clusterName: kind-$MANAGEMENT_CLUSTER_NAME
     name: default-service-blue-10000
     namespace: gloo-system
   failoverGroups:
   - priorityGroup:
-    - cluster: kind-$2
+    - cluster: kind-$REMOTE_CLUSTER_NAME
       upstreams:
       - name: default-service-green-10000
         namespace: gloo-system

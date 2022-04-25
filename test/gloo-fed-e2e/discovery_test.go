@@ -36,7 +36,7 @@ var _ = Describe("Discovery e2e", func() {
 		Expect(instance.Spec.GetCluster()).To(BeEquivalentTo(remoteClusterContext))
 		Expect(instance.Spec.GetControlPlane().GetNamespace()).To(BeEquivalentTo("gloo-system"))
 		Expect(instance.Spec.GetControlPlane().GetWatchedNamespaces()).To(BeEquivalentTo([]string{"gloo-system", "default"}))
-		Expect(instance.Spec.IsEnterprise).To(BeEquivalentTo(false))
+		Expect(instance.Spec.IsEnterprise).To(BeEquivalentTo(true))
 		Expect(instance.Spec.GetProxies()).To(HaveLen(1))
 		Expect(instance.Spec.GetProxies()[0].GetNamespace()).To(BeEquivalentTo("gloo-system"))
 		Expect(instance.Spec.GetProxies()[0].GetReadyReplicas()).To(BeEquivalentTo(1))
@@ -81,12 +81,12 @@ var _ = Describe("Discovery e2e", func() {
 				GetGlooInstance(
 					context.TODO(),
 					types.NamespacedName{
-						Name:      localClusterContext + "-gloo-system",
+						Name:      managementClusterContext + "-gloo-system",
 						Namespace: "gloo-system",
 					})
 			return instance
 		}, 5*time.Second).ShouldNot(BeNil())
-		Expect(instance.Spec.GetCluster()).To(BeEquivalentTo(localClusterContext))
+		Expect(instance.Spec.GetCluster()).To(BeEquivalentTo(managementClusterContext))
 		Expect(instance.Spec.GetControlPlane().GetNamespace()).To(BeEquivalentTo("gloo-system"))
 		Expect(instance.Spec.GetControlPlane().GetWatchedNamespaces()).To(HaveLen(0))
 		Expect(instance.Spec.IsEnterprise).To(BeEquivalentTo(true))
