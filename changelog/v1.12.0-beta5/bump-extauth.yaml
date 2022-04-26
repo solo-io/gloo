@@ -1,0 +1,8 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.19.19
+    description: Bump extauth version to pull in fix for invalid JWT response codes.
+    issueLink: https://github.com/solo-io/gloo/issues/6318
+    resolvesIssue: false

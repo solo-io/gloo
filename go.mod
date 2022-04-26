@@ -46,7 +46,7 @@ require (
 	github.com/solo-io/anyvendor v0.0.4
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.19.18
+	github.com/solo-io/ext-auth-service v0.19.19
 	github.com/solo-io/external-apis v0.1.11
 	github.com/solo-io/gloo v1.12.0-beta6
 	github.com/solo-io/go-list-licenses v0.1.4
