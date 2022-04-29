@@ -97,7 +97,8 @@
                           },
                           "oneof": [
                             "protoDescriptor",
-                            "protoDescriptorBin"
+                            "protoDescriptorBin",
+                            "protoRefsList"
                           ]
                         }
                       },
@@ -109,6 +110,21 @@
                         "protoDescriptorBin": {
                           "type": "bytes",
                           "id": 2
+                        },
+                        "protoRefsList": {
+                          "type": "ProtoRefs",
+                          "id": 3
+                        }
+                      },
+                      "nested": {
+                        "ProtoRefs": {
+                          "fields": {
+                            "configMapRefs": {
+                              "rule": "repeated",
+                              "type": "core.solo.io.ResourceRef",
+                              "id": 1
+                            }
+                          }
                         }
                       }
                     },

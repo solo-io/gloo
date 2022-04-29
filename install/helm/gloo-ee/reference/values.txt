@@ -359,7 +359,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.deployment.image.tag|string|1.12.0-beta6|tag for the container|
+|gloo.gateway.deployment.image.tag|string|1.12.0-beta8|tag for the container|
 |gloo.gateway.deployment.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -412,7 +412,7 @@
 |gloo.gateway.deployment.resources.requests.memory|string||amount of memory|
 |gloo.gateway.deployment.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.certGenJob.image.tag|string|1.12.0-beta6|tag for the container|
+|gloo.gateway.certGenJob.image.tag|string|1.12.0-beta8|tag for the container|
 |gloo.gateway.certGenJob.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.certGenJob.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -454,6 +454,7 @@
 |gloo.gateway.readGatewaysFromAllNamespaces|bool||if true, read Gateway custom resources from all watched namespaces rather than just the namespace of the Gateway controller|
 |gloo.gateway.compressedProxySpec|bool||if true, enables compression for the Proxy CRD spec|
 |gloo.gateway.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
+|gloo.gateway.persistProxySpec|bool||Enable writing Proxy CRD to etcd. Disabled by default for performance.|
 |gloo.gateway.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.NAME.kind.deployment.replicas|int||number of instances to deploy|
 |gloo.gatewayProxies.NAME.kind.deployment.customEnv[].name|string|||
@@ -1249,7 +1250,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.12.0-beta6|tag for the container|
+|global.glooMtls.sds.image.tag|string|1.12.0-beta8|tag for the container|
 |global.glooMtls.sds.image.repository|string||image name (repository) for the container.|
 |global.glooMtls.sds.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |global.glooMtls.sds.image.pullPolicy|string||image pull policy for the container|

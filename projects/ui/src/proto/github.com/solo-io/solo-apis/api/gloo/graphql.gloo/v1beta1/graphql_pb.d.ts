@@ -147,6 +147,11 @@ export class GrpcDescriptorRegistry extends jspb.Message {
   getProtoDescriptorBin_asB64(): string;
   setProtoDescriptorBin(value: Uint8Array | string): void;
 
+  hasProtoRefsList(): boolean;
+  clearProtoRefsList(): void;
+  getProtoRefsList(): GrpcDescriptorRegistry.ProtoRefs | undefined;
+  setProtoRefsList(value?: GrpcDescriptorRegistry.ProtoRefs): void;
+
   getDescriptorSetCase(): GrpcDescriptorRegistry.DescriptorSetCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GrpcDescriptorRegistry.AsObject;
@@ -162,12 +167,36 @@ export namespace GrpcDescriptorRegistry {
   export type AsObject = {
     protoDescriptor: string,
     protoDescriptorBin: Uint8Array | string,
+    protoRefsList?: GrpcDescriptorRegistry.ProtoRefs.AsObject,
+  }
+
+  export class ProtoRefs extends jspb.Message {
+    clearConfigMapRefsList(): void;
+    getConfigMapRefsList(): Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>;
+    setConfigMapRefsList(value: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>): void;
+    addConfigMapRefs(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef, index?: number): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ProtoRefs.AsObject;
+    static toObject(includeInstance: boolean, msg: ProtoRefs): ProtoRefs.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ProtoRefs, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ProtoRefs;
+    static deserializeBinaryFromReader(message: ProtoRefs, reader: jspb.BinaryReader): ProtoRefs;
+  }
+
+  export namespace ProtoRefs {
+    export type AsObject = {
+      configMapRefsList: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
+    }
   }
 
   export enum DescriptorSetCase {
     DESCRIPTOR_SET_NOT_SET = 0,
     PROTO_DESCRIPTOR = 1,
     PROTO_DESCRIPTOR_BIN = 2,
+    PROTO_REFS_LIST = 3,
   }
 }
 

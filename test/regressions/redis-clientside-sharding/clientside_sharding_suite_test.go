@@ -128,6 +128,8 @@ gloo:
   gatewayProxies:
     gatewayProxy:
       healthyPanicThreshold: 0
+  gateway:
+    persistProxySpec: true
   rbac:
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix

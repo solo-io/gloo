@@ -6506,7 +6506,9 @@ proto.gloo.solo.io.GatewayOptions.toObject = function(includeInstance, msg) {
     readGatewaysFromAllNamespaces: jspb.Message.getFieldWithDefault(msg, 4, false),
     alwaysSortRouteTableRoutes: jspb.Message.getFieldWithDefault(msg, 5, false),
     compressedProxySpec: jspb.Message.getFieldWithDefault(msg, 6, false),
-    virtualServiceOptions: (f = msg.getVirtualServiceOptions()) && proto.gloo.solo.io.VirtualServiceOptions.toObject(includeInstance, f)
+    virtualServiceOptions: (f = msg.getVirtualServiceOptions()) && proto.gloo.solo.io.VirtualServiceOptions.toObject(includeInstance, f),
+    persistProxySpec: (f = msg.getPersistProxySpec()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    enableGatewayController: (f = msg.getEnableGatewayController()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -6568,6 +6570,16 @@ proto.gloo.solo.io.GatewayOptions.deserializeBinaryFromReader = function(msg, re
       var value = new proto.gloo.solo.io.VirtualServiceOptions;
       reader.readMessage(value,proto.gloo.solo.io.VirtualServiceOptions.deserializeBinaryFromReader);
       msg.setVirtualServiceOptions(value);
+      break;
+    case 8:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setPersistProxySpec(value);
+      break;
+    case 9:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setEnableGatewayController(value);
       break;
     default:
       reader.skipField();
@@ -6640,6 +6652,22 @@ proto.gloo.solo.io.GatewayOptions.serializeBinaryToWriter = function(message, wr
       7,
       f,
       proto.gloo.solo.io.VirtualServiceOptions.serializeBinaryToWriter
+    );
+  }
+  f = message.getPersistProxySpec();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getEnableGatewayController();
+  if (f != null) {
+    writer.writeMessage(
+      9,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -7213,6 +7241,66 @@ proto.gloo.solo.io.GatewayOptions.prototype.clearVirtualServiceOptions = functio
  */
 proto.gloo.solo.io.GatewayOptions.prototype.hasVirtualServiceOptions = function() {
   return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue persist_proxy_spec = 8;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.getPersistProxySpec = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 8));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GatewayOptions.prototype.setPersistProxySpec = function(value) {
+  jspb.Message.setWrapperField(this, 8, value);
+};
+
+
+proto.gloo.solo.io.GatewayOptions.prototype.clearPersistProxySpec = function() {
+  this.setPersistProxySpec(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.hasPersistProxySpec = function() {
+  return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue enable_gateway_controller = 9;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.getEnableGatewayController = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 9));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GatewayOptions.prototype.setEnableGatewayController = function(value) {
+  jspb.Message.setWrapperField(this, 9, value);
+};
+
+
+proto.gloo.solo.io.GatewayOptions.prototype.clearEnableGatewayController = function() {
+  this.setEnableGatewayController(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.hasEnableGatewayController = function() {
+  return jspb.Message.getField(this, 9) != null;
 };
 
 

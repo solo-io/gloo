@@ -51,8 +51,9 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
 		what := services.What{
-			DisableFds: true,
-			DisableUds: true,
+			DisableGateway: true,
+			DisableFds:     true,
+			DisableUds:     true,
 		}
 
 		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: "gloo-system", Settings: &gloov1.Settings{}})

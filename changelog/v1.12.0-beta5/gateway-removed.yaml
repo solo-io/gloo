@@ -1,0 +1,7 @@
+changelog:
+ - type: DEPENDENCY_BUMP
+   dependencyOwner: solo-io
+   dependencyRepo: gloo
+   dependencyTag: v1.12.0-beta8
+   issueLink: https://github.com/solo-io/solo-projects/issues/3374
+   description: Get the latest version of Gloo, in particular the change to merge Gloo and Gateway pods.

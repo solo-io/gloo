@@ -49,7 +49,7 @@ var _ = Describe("Graphql E2E test", func() {
 		testClients.GlooPort = int(services.AllocateGlooPort())
 
 		what := services.What{
-			DisableGateway: false,
+			DisableGateway: true,
 			DisableUds:     true,
 			DisableFds:     false,
 		}

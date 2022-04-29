@@ -20,11 +20,10 @@ import (
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
 
-	"github.com/solo-io/gloo/pkg/utils/settingsutil"
-	gatewaysyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
-
 	"context"
 	"sync/atomic"
+
+	"github.com/solo-io/gloo/pkg/utils/settingsutil"
 
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -168,9 +167,6 @@ func RunGlooGatewayUdsFdsOnPort(runOpts RunGlooGatewayOpts) {
 	ctx, cache, ns, what, s, extensions, kubeclient, localglooPort, licenseState := runOpts.Ctx, runOpts.Cache, runOpts.Namespace, runOpts.What, runOpts.Settings, runOpts.Extensions, runOpts.KubeClient, runOpts.LocalGlooPort, runOpts.License
 	// no gateway for now
 	opts := DefaultTestConstructOpts(ctx, cache, ns)
-	if !what.DisableGateway {
-		go gatewaysyncer.RunGateway(opts)
-	}
 	settings := v1.Settings{}
 	if s != nil {
 		settings = *s
@@ -185,6 +181,7 @@ func RunGlooGatewayUdsFdsOnPort(runOpts RunGlooGatewayOpts) {
 	glooOpts.ControlPlane.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
 	glooOpts.Settings = &settings
 	glooOpts.ControlPlane.StartGrpcServer = true
+	glooOpts.GatewayControllerEnabled = !what.DisableGateway
 	apiEmitterChan := make(chan struct{})
 
 	// For testing purposes, load the LicensedFeatureProvider with the injected license

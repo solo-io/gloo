@@ -146,6 +146,8 @@ func getHelmOverrides(fips bool) (filename string, cleanup func()) {
   gatewayProxies:
     gatewayProxy:
       healthyPanicThreshold: 0
+  gateway:
+    persistProxySpec: true
   rbac:    
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix

@@ -88,6 +88,8 @@ func getHelmaWasmValuesOverrideFile() (filename string, cleanup func()) {
 	// install to a single namespace so we can run multiple invocations of the regression tests against the
 	// same cluster in CI.
 	_, err = values.Write([]byte(`
+gateway:
+  persistProxySpec: true
 global:
   image:
     pullPolicy: IfNotPresent

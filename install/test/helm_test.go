@@ -1672,6 +1672,7 @@ spec:
     requestTimeout: "1s"
     userIdHeader: "x-user-id"
   gateway:
+    enableGatewayController: true
     readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
@@ -1739,6 +1740,7 @@ spec:
       packAsBytes: true
     userIdHeader: "x-user-id"
   gateway:
+    enableGatewayController: true
     readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
@@ -1801,6 +1803,7 @@ spec:
       namespace: ` + namespace + `
     userIdHeader: "x-user-id"
   gateway:
+    enableGatewayController: true
     readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
@@ -1863,6 +1866,7 @@ spec:
       namespace: ` + namespace + `
     userIdHeader: "x-user-id"
   gateway:
+    enableGatewayController: true
     readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
@@ -1930,6 +1934,7 @@ spec:
       namespace: ` + namespace + `
     userIdHeader: "x-user-id"
   gateway:
+    enableGatewayController: true
     readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
@@ -2000,6 +2005,7 @@ spec:
       namespace: ` + namespace + `
     userIdHeader: "x-user-id"
   gateway:
+    enableGatewayController: true
     readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
@@ -3184,6 +3190,7 @@ spec:
       namespace: ` + namespace + `
     userIdHeader: "x-user-id"
   gateway:
+    enableGatewayController: true
     readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
@@ -3853,6 +3860,7 @@ spec:
       namespace: ` + namespace + `
     userIdHeader: "x-user-id"
   gateway:
+    enableGatewayController: true
     readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
@@ -3915,6 +3923,7 @@ spec:
       namespace: ` + namespace + `
     userIdHeader: "x-user-id"
   gateway:
+    enableGatewayController: true
     readGatewaysFromAllNamespaces: false
     validation:
       alwaysAccept: true
