@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/4486
+    description: >
+      Observability.customGrafana: caBundle property can now be a base64-encoded certificate bundle as intended. 
+      It was previously implemented to take a file name, which continues to work for backwards compatability.
+  - type: HELM
+    issueLink: https://github.com/solo-io/gloo/issues/2789
+    description: >
+      Observability.customGrafana: use of the caBundle property no longer requires setting the apiKey property.
