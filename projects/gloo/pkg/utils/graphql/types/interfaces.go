@@ -9,6 +9,11 @@ import (
 /*
 	These interfaces are useful for sharing logic between the GraphQL plugin and apiserver logic
 */
+
+type ArtifactList interface {
+	Find(namespace, name string) (*v1.Artifact, error)
+}
+
 type UpstreamList interface {
 	Find(namespace, name string) (*v1.Upstream, error)
 }

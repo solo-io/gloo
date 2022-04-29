@@ -3,12 +3,15 @@ package e2e_test
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
 	"github.com/solo-io/licensing/pkg/model"
 
@@ -37,9 +40,10 @@ import (
 var _ = Describe("graphql", func() {
 
 	var (
-		ctx         context.Context
-		cancel      context.CancelFunc
-		testClients services.TestClients
+		ctx                    context.Context
+		cancel                 context.CancelFunc
+		testClients            services.TestClients
+		grpcDescriptorRegistry v1beta1.GrpcDescriptorRegistry
 	)
 
 	var getGraphQLApi = func(restUsRef, grpcUsRef *core.ResourceRef) *v1beta1.GraphQLApi {
@@ -62,8 +66,7 @@ var _ = Describe("graphql", func() {
 		      }
 		      type TestResponse {
 		        str: String
-		      }
-`
+		      }`
 
 		resolutions := map[string]*v1beta1.Resolution{
 			"simple_resolver": {
@@ -101,6 +104,12 @@ var _ = Describe("graphql", func() {
 			},
 		}
 
+		grpcDescriptorRegistry = v1beta1.GrpcDescriptorRegistry{
+			DescriptorSet: &v1beta1.GrpcDescriptorRegistry_ProtoDescriptorBin{
+				ProtoDescriptorBin: glootestpb.ProtoBytes,
+			},
+		}
+
 		return &v1beta1.GraphQLApi{
 			Metadata: &core.Metadata{
 				Name:      "gql",
@@ -117,11 +126,7 @@ var _ = Describe("graphql", func() {
 							},
 						},
 					},
-					GrpcDescriptorRegistry: &v1beta1.GrpcDescriptorRegistry{
-						DescriptorSet: &v1beta1.GrpcDescriptorRegistry_ProtoDescriptorBin{
-							ProtoDescriptorBin: glootestpb.ProtoBytes,
-						},
-					},
+					GrpcDescriptorRegistry: &grpcDescriptorRegistry,
 				},
 			},
 		}
@@ -333,6 +338,48 @@ var _ = Describe("graphql", func() {
 {
   "query":"{f:field2{str}}"
 }`
+				})
+				Context("With artifact list", func() {
+					BeforeEach(func() {
+						grpcDescriptorRegistry = v1beta1.GrpcDescriptorRegistry{
+							DescriptorSet: &v1beta1.GrpcDescriptorRegistry_ProtoRefsList{
+								ProtoRefsList: &v1beta1.GrpcDescriptorRegistry_ProtoRefs{
+									ConfigMapRefs: []*core.ResourceRef{
+										&core.ResourceRef{
+											Name:      "fake-artifact-one",
+											Namespace: "gloo-system",
+										},
+									},
+								},
+							},
+						}
+						//create artifacts
+						artifactOne := v1.Artifact{
+							Metadata: &core.Metadata{
+								Name:      "fake-artifact-one",
+								Namespace: "gloo-system",
+							},
+							Data: map[string]string{
+								"proto": base64.StdEncoding.EncodeToString(glootestpb.ProtoBytes),
+							},
+						}
+						_, err := testClients.ArtifactClient.Write(&artifactOne, clients.WriteOpts{})
+						Expect(err).ToNot(HaveOccurred())
+
+					})
+					AfterEach(func() {
+						//delete artifacts
+						err := testClients.ArtifactClient.Delete("gloo-system", "fake-artifact-one", clients.DeleteOpts{})
+						Expect(err).ToNot(HaveOccurred())
+
+					})
+
+					It("resolves graphql queries to GRPC upstreams with artifacts", func() {
+						testRequest(`{"data":{"f":{"str":"foo"}}}`)
+						Eventually(grpcUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+							"GRPCRequest": PointTo(Equal(glootest.TestRequest{Str: "foo"})),
+						}))))
+					})
 				})
 
 				It("resolves graphql queries to GRPC upstreams", func() {

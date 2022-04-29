@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/3489
+    description: Added to the GraphQL API the ability to set per-resolver proto definitions for gRPC APIs.

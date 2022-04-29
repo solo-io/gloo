@@ -1,8 +1,11 @@
 package graphql_test
 
 import (
+	"encoding/base64"
 	"fmt"
 
+	"github.com/rotisserie/eris"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	openapi "github.com/getkin/kin-openapi/openapi3"
@@ -25,6 +28,44 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
+
+type MockArtifactsList struct{}
+
+func (m *MockArtifactsList) Find(namespace string, name string) (*v1.Artifact, error) {
+	var proto string
+
+	if name == "fake-artifact-one" || name == "fake-artifact-two" {
+		proto = `ClEKC21vdmllLnByb3RvEgVtb3ZpZSIzCgVNb3ZpZRISCgRuYW1lGAEgASgJUgRuYW1lEhYKBnJhdGluZxgCIAEoBVIGcmF0aW5nYgZwcm90bzM=`
+	} else if name == "illegal-artifact" {
+		proto = `&$(*@#$&@! A bunch of illegal bytes here +_!(#_+#`
+	} else if name == "malformed-artifact" {
+		proto = `ClEKC21vdmllLnByb3RvEgVtb3ZpZSIzCgVNb3ISCgRuYW1lGAEgASgJUgRuYW1lEhYKBnJhdGluZxgCIAEoBVIGcmF0aW5nYgZwcm90bzM=`
+	} else {
+		return nil, eris.Errorf("Some could not find error")
+	}
+
+	return &v1.Artifact{
+		Metadata: &core.Metadata{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Data: map[string]string{
+			"proto": proto,
+		},
+	}, nil
+}
+
+type EmptyMockArtifactsList struct{}
+
+func (m *EmptyMockArtifactsList) Find(namespace string, name string) (*v1.Artifact, error) {
+	return &v1.Artifact{
+		Metadata: &core.Metadata{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Data: map[string]string{},
+	}, nil
+}
 
 var _ = Describe("Graphql plugin", func() {
 	var (
@@ -168,6 +209,157 @@ var _ = Describe("Graphql plugin", func() {
 				It("is disabled on routes by default", func() {
 					pfc := outRoute.TypedPerFilterConfig[schemas.FilterName]
 					Expect(pfc).To(BeNil())
+				})
+			})
+
+			Context("translates gRPC config", func() {
+				It("properly accumulates and returns referenced configmaps", func() {
+					output, err := translation.TranslateExtensions(&MockArtifactsList{}, &GraphQLApi{
+						Schema: &GraphQLApi_ExecutableSchema{
+							ExecutableSchema: &ExecutableSchema{
+								GrpcDescriptorRegistry: &GrpcDescriptorRegistry{
+									DescriptorSet: &GrpcDescriptorRegistry_ProtoRefsList{
+										ProtoRefsList: &GrpcDescriptorRegistry_ProtoRefs{
+											ConfigMapRefs: []*core.ResourceRef{
+												&core.ResourceRef{
+													Name:      "fake-artifact-one",
+													Namespace: "fake-namespace",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					})
+					var expected = "ClEKC21vdmllLnByb3RvEgVtb3ZpZSIzCgVNb3ZpZRISCgRuYW1lGAEgASgJUgRuYW1lEhYKBnJhdGluZxgCIAEoBVIGcmF0aW5nYgZwcm90bzM="
+					expectedBytes, _ := base64.StdEncoding.DecodeString(expected)
+					message, _ := utils.AnyToMessage(output["grpc_extension"])
+					bytes := message.(*v2.GrpcDescriptorRegistry).ProtoDescriptors.GetInlineBytes()
+					Expect(bytes).To(Equal(expectedBytes))
+					Expect(err).ToNot(HaveOccurred())
+				})
+				It("properly deduplictes protos", func() {
+					output, err := translation.TranslateExtensions(&MockArtifactsList{}, &GraphQLApi{
+						Schema: &GraphQLApi_ExecutableSchema{
+							ExecutableSchema: &ExecutableSchema{
+								GrpcDescriptorRegistry: &GrpcDescriptorRegistry{
+									DescriptorSet: &GrpcDescriptorRegistry_ProtoRefsList{
+										ProtoRefsList: &GrpcDescriptorRegistry_ProtoRefs{
+											ConfigMapRefs: []*core.ResourceRef{
+												&core.ResourceRef{
+													Name:      "fake-artifact-one",
+													Namespace: "fake-namespace",
+												}, &core.ResourceRef{
+													Name:      "fake-artifact-two",
+													Namespace: "fake-namespace",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					})
+
+					var expected = "ClEKC21vdmllLnByb3RvEgVtb3ZpZSIzCgVNb3ZpZRISCgRuYW1lGAEgASgJUgRuYW1lEhYKBnJhdGluZxgCIAEoBVIGcmF0aW5nYgZwcm90bzM="
+					expectedBytes, _ := base64.StdEncoding.DecodeString(expected)
+					message, _ := utils.AnyToMessage(output["grpc_extension"])
+					bytes := message.(*v2.GrpcDescriptorRegistry).ProtoDescriptors.GetInlineBytes()
+					Expect(bytes).To(Equal(expectedBytes))
+					Expect(err).ToNot(HaveOccurred())
+				})
+				It("fails if no matching configmap exists in artifacts", func() {
+					_, err := translation.TranslateExtensions(&MockArtifactsList{}, &GraphQLApi{
+						Schema: &GraphQLApi_ExecutableSchema{
+							ExecutableSchema: &ExecutableSchema{
+								GrpcDescriptorRegistry: &GrpcDescriptorRegistry{
+									DescriptorSet: &GrpcDescriptorRegistry_ProtoRefsList{
+										ProtoRefsList: &GrpcDescriptorRegistry_ProtoRefs{
+											ConfigMapRefs: []*core.ResourceRef{
+												&core.ResourceRef{
+													Name:      "missing-artifact",
+													Namespace: "fake-namespace",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					})
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("Could not find ConfigMap with ref fake-namespace.missing-artifact to use a gRPC proto registry source")))
+				})
+				It("fails if no keys exist on configmaps", func() {
+					_, err := translation.TranslateExtensions(&EmptyMockArtifactsList{}, &GraphQLApi{
+						Schema: &GraphQLApi_ExecutableSchema{
+							ExecutableSchema: &ExecutableSchema{
+								GrpcDescriptorRegistry: &GrpcDescriptorRegistry{
+									DescriptorSet: &GrpcDescriptorRegistry_ProtoRefsList{
+										ProtoRefsList: &GrpcDescriptorRegistry_ProtoRefs{
+											ConfigMapRefs: []*core.ResourceRef{
+												&core.ResourceRef{
+													Name:      "fake-artifact",
+													Namespace: "fake-namespace",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					})
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("No keys exist in fake-namespace.fake-artifact")))
+				})
+				It("fails if invalid value exists on configmap", func() {
+					_, err := translation.TranslateExtensions(&MockArtifactsList{}, &GraphQLApi{
+						Schema: &GraphQLApi_ExecutableSchema{
+							ExecutableSchema: &ExecutableSchema{
+								GrpcDescriptorRegistry: &GrpcDescriptorRegistry{
+									DescriptorSet: &GrpcDescriptorRegistry_ProtoRefsList{
+										ProtoRefsList: &GrpcDescriptorRegistry_ProtoRefs{
+											ConfigMapRefs: []*core.ResourceRef{
+												&core.ResourceRef{
+													Name:      "illegal-artifact",
+													Namespace: "fake-namespace",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					})
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("Error decoding proto data in proto: &$(*@#$&@! A bunch of illegal bytes here +_!(#_+#")))
+				})
+				It("fails if concatenated protos arent valid", func() {
+					_, err := translation.TranslateExtensions(&MockArtifactsList{}, &GraphQLApi{
+						Schema: &GraphQLApi_ExecutableSchema{
+							ExecutableSchema: &ExecutableSchema{
+								GrpcDescriptorRegistry: &GrpcDescriptorRegistry{
+									DescriptorSet: &GrpcDescriptorRegistry_ProtoRefsList{
+										ProtoRefsList: &GrpcDescriptorRegistry_ProtoRefs{
+											ConfigMapRefs: []*core.ResourceRef{
+												&core.ResourceRef{
+													Name:      "fake-artifact-one",
+													Namespace: "fake-namespace",
+												},
+												&core.ResourceRef{
+													Name:      "malformed-artifact",
+													Namespace: "fake-namespace",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					})
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("key proto in configMap fake-namespace.malformed-artifact does not contain valid proto bytes")))
 				})
 			})
 

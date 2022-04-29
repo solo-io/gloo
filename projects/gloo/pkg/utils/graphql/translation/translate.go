@@ -1,8 +1,11 @@
 package translation
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strings"
+
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
@@ -23,8 +26,8 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/types"
 )
 
-func CreateGraphQlApi(upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
-	executableSchema, err := translateSchema(upstreams, graphqlapis, graphQLApi)
+func CreateGraphQlApi(artifacts types.ArtifactList, upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
+	executableSchema, err := translateSchema(artifacts, upstreams, graphqlapis, graphQLApi)
 	if err != nil {
 		return nil, err
 	}
@@ -32,15 +35,15 @@ func CreateGraphQlApi(upstreams types.UpstreamList, graphqlapis types.GraphQLApi
 	return executableSchema, nil
 }
 
-func translateSchema(upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
+func translateSchema(artifacts types.ArtifactList, upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
 	switch schema := graphQLApi.GetSchema().(type) {
 	case *v1beta1.GraphQLApi_StitchedSchema:
 		{
-			return translateStitchedSchema(upstreams, graphqlapis, schema.StitchedSchema)
+			return translateStitchedSchema(artifacts, upstreams, graphqlapis, schema.StitchedSchema)
 		}
 	case *v1beta1.GraphQLApi_ExecutableSchema:
 		{
-			return translateExecutableSchema(upstreams, graphQLApi)
+			return translateExecutableSchema(artifacts, upstreams, graphQLApi)
 		}
 	default:
 		{
@@ -49,8 +52,8 @@ func translateSchema(upstreams types.UpstreamList, graphqlapis types.GraphQLApiL
 	}
 }
 
-func translateExecutableSchema(upstreams types.UpstreamList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
-	extensions, err := translateExtensions(graphQLApi)
+func translateExecutableSchema(artifacts types.ArtifactList, upstreams types.UpstreamList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
+	extensions, err := TranslateExtensions(artifacts, graphQLApi)
 	if err != nil {
 		return nil, err
 	}
@@ -76,10 +79,10 @@ func translateExecutableSchema(upstreams types.UpstreamList, graphQLApi *v1beta1
 	}, nil
 }
 
-func translateExtensions(api *v1beta1.GraphQLApi) (map[string]*any.Any, error) {
+func TranslateExtensions(artifacts types.ArtifactList, api *v1beta1.GraphQLApi) (map[string]*any.Any, error) {
 	extensions := map[string]*any.Any{}
-
-	if reg := api.GetExecutableSchema().GetGrpcDescriptorRegistry(); reg != nil {
+	reg := api.GetExecutableSchema().GetGrpcDescriptorRegistry()
+	if reg != nil {
 
 		grpcDescRegistry := &v2.GrpcDescriptorRegistry{
 			ProtoDescriptors: &v3.DataSource{
@@ -95,6 +98,44 @@ func translateExtensions(api *v1beta1.GraphQLApi) (map[string]*any.Any, error) {
 		case *v1beta1.GrpcDescriptorRegistry_ProtoDescriptorBin:
 			grpcDescRegistry.ProtoDescriptors.Specifier = &v3.DataSource_InlineBytes{
 				InlineBytes: reg.GetProtoDescriptorBin(),
+			}
+		case *v1beta1.GrpcDescriptorRegistry_ProtoRefsList:
+			var accumulator []byte
+			table := make(map[string]struct{})
+			for _, protoRef := range reg.GetProtoRefsList().GetConfigMapRefs() {
+				configMap, err := artifacts.Find(protoRef.GetNamespace(), protoRef.GetName())
+				if err != nil {
+					return nil, eris.Errorf("Could not find ConfigMap with ref %s.%s to use a gRPC proto registry source", protoRef.GetNamespace(), protoRef.GetName())
+				}
+				if len(configMap.GetData()) == 0 {
+					return nil, eris.Errorf("No keys exist in %s.%s", protoRef.GetNamespace(), protoRef.GetName())
+				}
+				for key, protoData := range configMap.GetData() {
+					if protoData == "" {
+						return nil, eris.Errorf("Expecting value in configmap %s.%s associated with key %s", protoRef.GetNamespace(), protoRef.GetName(), key)
+					}
+
+					bytes, err := base64.StdEncoding.DecodeString(protoData)
+					if err != nil {
+						return nil, eris.Errorf("Error decoding proto data in %s: %s", key, protoData)
+					}
+
+					//Validate the proto
+					addr := &descriptor.FileDescriptorProto{}
+					err = proto.Unmarshal(bytes, addr)
+					if err != nil {
+						return nil, eris.Errorf("key %s in configMap %s.%s does not contain valid proto bytes", key, protoRef.GetNamespace(), protoRef.GetName())
+					}
+
+					if _, found := table[string(bytes)]; !found {
+						accumulator = append(accumulator, bytes...)
+						table[string(bytes)] = struct{}{}
+					}
+				}
+			}
+
+			grpcDescRegistry.ProtoDescriptors.Specifier = &v3.DataSource_InlineBytes{
+				InlineBytes: accumulator,
 			}
 		default:
 			return nil, eris.Errorf("unimplemented type %T for grpc resolver proto descriptor translation", regType)

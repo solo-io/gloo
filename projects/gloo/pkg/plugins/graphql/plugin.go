@@ -94,7 +94,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 }
 
 func translateGraphQlApiToRouteConf(params plugins.RouteParams, in *v1.Route, api *v1beta1.GraphQLApi) (*v2.GraphQLRouteConfig, error) {
-	execSchema, err := translation.CreateGraphQlApi(params.Snapshot.Upstreams, params.Snapshot.GraphqlApis, api)
+	execSchema, err := translation.CreateGraphQlApi(params.Snapshot.Artifacts, params.Snapshot.Upstreams, params.Snapshot.GraphqlApis, api)
 	if err != nil {
 		return nil, eris.Wrap(err, "error creating executable schema")
 	}
