@@ -167,7 +167,7 @@ type CustomGrafana struct {
 	Password   string `json:"password,omitempty" desc:"Set this and the 'username' field to authenticate to the custom grafana instance using basic auth"`
 	ApiKey     string `json:"apiKey,omitempty" desc:"Authenticate to the custom grafana instance using this api key"`
 	Url        string `json:"url,omitempty" desc:"The URL for the custom grafana instance"`
-	CaBundle   string `jsonx:"caBundle,omitempty" desc:"The Certificate Authority used to verify the server certificates.'"`
+	CaBundle   string `json:"caBundle,omitempty" desc:"The Certificate Authority used to verify the server certificates."`
 	DataSource string `json:"dataSource,omitempty" desc:"The data source for Gloo-generated dashboards to point to; defaults to null (ie Grafana's default data source)'"`
 	*glooGen.KubeResourceOverride
 }

@@ -1132,7 +1132,7 @@
 |observability.customGrafana.password|string||Set this and the 'username' field to authenticate to the custom grafana instance using basic auth|
 |observability.customGrafana.apiKey|string||Authenticate to the custom grafana instance using this api key|
 |observability.customGrafana.url|string||The URL for the custom grafana instance|
-|observability.customGrafana|string||The Certificate Authority used to verify the server certificates.'|
+|observability.customGrafana.caBundle|string||The Certificate Authority used to verify the server certificates.|
 |observability.customGrafana.dataSource|string||The data source for Gloo-generated dashboards to point to; defaults to null (ie Grafana's default data source)'|
 |observability.customGrafana.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |observability.upstreamDashboardTemplate|string||Provide a custom dashboard template to use when generating per-upstream dashboards. The only variables available for use in this template are: {{.Uid}} and {{.EnvoyClusterName}}. Recommended to use Helm's --set-file to provide this value.|
