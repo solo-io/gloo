@@ -42,6 +42,8 @@ rules:
   - federatedvirtualservices/status
   - federatedgateways
   - federatedgateways/status
+  - federatedmatchablehttpgateways
+  - federatedmatchablehttpgateways/status
   - federatedroutetables
   - federatedroutetables/status
   verbs:

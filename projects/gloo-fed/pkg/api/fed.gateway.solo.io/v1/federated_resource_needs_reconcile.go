@@ -13,6 +13,13 @@ func (obj *FederatedGateway) NeedsReconcile() bool {
 		obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_INVALID
 }
 
+func (obj *FederatedMatchableHttpGateway) NeedsReconcile() bool {
+	// If the FederatedMatchableHttpGateway has not been observed or is in some state where a retry is needed, it needs reconcile
+	return obj.Generation != obj.Status.PlacementStatus.GetObservedGeneration() ||
+		obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_PLACED ||
+		obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_INVALID
+}
+
 func (obj *FederatedVirtualService) NeedsReconcile() bool {
 	// If the FederatedVirtualService has not been observed or is in some state where a retry is needed, it needs reconcile
 	return obj.Generation != obj.Status.PlacementStatus.GetObservedGeneration() ||

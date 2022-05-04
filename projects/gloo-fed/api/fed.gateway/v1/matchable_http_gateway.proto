@@ -1,0 +1,35 @@
+syntax = "proto3";
+package fed.gateway.solo.io;
+
+option go_package = "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1/types";
+
+
+option (extproto.equal_all) = true;
+import "extproto/ext.proto";
+option (extproto.hash_all) = true;
+
+import "github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/multicluster/v1alpha1/multicluster.proto";
+import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/placement.proto";
+import "github.com/solo-io/solo-apis/api/gloo/gateway/v1/matchable_http_gateway.proto";
+
+import "google/protobuf/wrappers.proto";
+
+// The Federated[Resource] CRDs are a gloo-fed wrapper around Gloo Edge CRDs, with a Placement field indicating which
+// clusters and namespaces to federate the object to.
+// For more, see: https://docs.solo.io/gloo-edge/latest/guides/gloo_federation/federated_configuration/
+message FederatedMatchableHttpGatewaySpec {
+
+    message Template {
+        .gateway.solo.io.MatchableHttpGatewaySpec spec = 1;
+
+        core.fed.solo.io.TemplateMetadata metadata = 2;
+    }
+
+    Template template = 1;
+
+    multicluster.solo.io.Placement placement = 2;
+}
+
+message FederatedMatchableHttpGatewayStatus {
+    core.fed.solo.io.PlacementStatus placement_status = 1;
+}

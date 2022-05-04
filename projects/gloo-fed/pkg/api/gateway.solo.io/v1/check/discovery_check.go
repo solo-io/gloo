@@ -57,6 +57,50 @@ func GetGatewaySummary(ctx context.Context, set sets.GatewaySet, watchedNamespac
 	return summary
 }
 
+func GetMatchableHttpGatewaySummary(ctx context.Context, set sets.MatchableHttpGatewaySet, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+	summary := &types.GlooInstanceSpec_Check_Summary{}
+
+	for _, matchableHttpGatewayIter := range set.List() {
+		matchableHttpGateway := matchableHttpGatewayIter
+
+		// If the resource is not in the right cluster, continue
+		if matchableHttpGateway.GetClusterName() != cluster {
+			continue
+		}
+
+		// If the resource is not in a watched namespace, continue
+		if len(watchedNamespaces) > 0 && !stringutils.ContainsString(matchableHttpGateway.Namespace, watchedNamespaces) {
+			continue
+		}
+
+		summary.Total += 1
+
+		if matchableHttpGateway.Status.GetState() == types2.MatchableHttpGatewayStatus_Rejected {
+			summary.Errors = append(summary.Errors, &types.GlooInstanceSpec_Check_Summary_ResourceReport{
+				Ref: &corev1.ObjectRef{
+					Name:      matchableHttpGateway.Name,
+					Namespace: matchableHttpGateway.Namespace,
+				},
+				Message: matchableHttpGateway.Status.Reason,
+			})
+		}
+
+		if matchableHttpGateway.Status.GetState() == types2.MatchableHttpGatewayStatus_Warning {
+			summary.Warnings = append(summary.Warnings, &types.GlooInstanceSpec_Check_Summary_ResourceReport{
+				Ref: &corev1.ObjectRef{
+					Name:      matchableHttpGateway.Name,
+					Namespace: matchableHttpGateway.Namespace,
+				},
+				Message: matchableHttpGateway.Status.Reason,
+			})
+		}
+
+	}
+
+	summarize.SortLists(summary)
+	return summary
+}
+
 func GetVirtualServiceSummary(ctx context.Context, set sets.VirtualServiceSet, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
 	summary := &types.GlooInstanceSpec_Check_Summary{}
 

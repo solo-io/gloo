@@ -100,6 +100,21 @@ func (mr *MockmultiClusterReconcilerMockRecorder) ReconcileGateway(clusterName, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileGateway", reflect.TypeOf((*MockmultiClusterReconciler)(nil).ReconcileGateway), clusterName, obj)
 }
 
+// ReconcileMatchableHttpGateway mocks base method.
+func (m *MockmultiClusterReconciler) ReconcileMatchableHttpGateway(clusterName string, obj *v10.MatchableHttpGateway) (reconcile.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReconcileMatchableHttpGateway", clusterName, obj)
+	ret0, _ := ret[0].(reconcile.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReconcileMatchableHttpGateway indicates an expected call of ReconcileMatchableHttpGateway.
+func (mr *MockmultiClusterReconcilerMockRecorder) ReconcileMatchableHttpGateway(clusterName, obj interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileMatchableHttpGateway", reflect.TypeOf((*MockmultiClusterReconciler)(nil).ReconcileMatchableHttpGateway), clusterName, obj)
+}
+
 // ReconcilePod mocks base method.
 func (m *MockmultiClusterReconciler) ReconcilePod(clusterName string, obj *v13.Pod) (reconcile.Result, error) {
 	m.ctrl.T.Helper()
@@ -316,6 +331,21 @@ func (m *MocksingleClusterReconciler) ReconcileGateway(obj *v10.Gateway) (reconc
 func (mr *MocksingleClusterReconcilerMockRecorder) ReconcileGateway(obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileGateway", reflect.TypeOf((*MocksingleClusterReconciler)(nil).ReconcileGateway), obj)
+}
+
+// ReconcileMatchableHttpGateway mocks base method.
+func (m *MocksingleClusterReconciler) ReconcileMatchableHttpGateway(obj *v10.MatchableHttpGateway) (reconcile.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReconcileMatchableHttpGateway", obj)
+	ret0, _ := ret[0].(reconcile.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReconcileMatchableHttpGateway indicates an expected call of ReconcileMatchableHttpGateway.
+func (mr *MocksingleClusterReconcilerMockRecorder) ReconcileMatchableHttpGateway(obj interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileMatchableHttpGateway", reflect.TypeOf((*MocksingleClusterReconciler)(nil).ReconcileMatchableHttpGateway), obj)
 }
 
 // ReconcilePod mocks base method.

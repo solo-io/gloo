@@ -1730,8 +1730,8 @@ github.com/solo-io/external-apis v0.1.4/go.mod h1:3vyADtIZj8hCD5cBUwGuA60hd8O5fa
 github.com/solo-io/external-apis v0.1.7/go.mod h1:rzyuYEanRLvRfKK9GG/Mb/H//0A8DNvhxrEP+iTToTY=
 github.com/solo-io/external-apis v0.1.11 h1:7ow9GPXDRIwP9UV2JUkLDPOgp1rV7hjn82o7RI65lLs=
 github.com/solo-io/external-apis v0.1.11/go.mod h1:hGvyrVXsGfS46lY9YEvHO2dlrv9PHChWum27GDqz8wY=
-github.com/solo-io/gloo v1.12.0-beta8 h1:Pdbo9axpZwg463oUzGSA9GVwAYL7PETCANXODEchF+k=
-github.com/solo-io/gloo v1.12.0-beta8/go.mod h1:ysobiXKHCYWl7fqQ+R82hhDTrg95S00lwy5KR2Id2aU=
+github.com/solo-io/gloo v1.12.0-beta9 h1:Z8acWG/KV++dFhs4YoXpnV9fEecEJyImJ78FvJQibPs=
+github.com/solo-io/gloo v1.12.0-beta9/go.mod h1:ysobiXKHCYWl7fqQ+R82hhDTrg95S00lwy5KR2Id2aU=
 github.com/solo-io/go-list-licenses v0.0.4/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-list-licenses v0.1.4 h1:u4xh1OUORT4iSWuAp3Q4NsfHcDaeUV8QRDH8ACQqbxw=
 github.com/solo-io/go-list-licenses v0.1.4/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
@@ -1767,8 +1767,8 @@ github.com/solo-io/skv2-enterprise v0.2.8 h1:WdqUIauXXC2qYrC912obJ7zskiBPqlvO96b
 github.com/solo-io/skv2-enterprise v0.2.8/go.mod h1:xjPmB/iLhqz0Dip3YMvjyHCccHxHv8+7d+qRPAxJJ88=
 github.com/solo-io/solo-apis v0.0.0-20210119160956-e52ac14025d3/go.mod h1:9tB/zzr7cGk308Y7tqwWRkccG8N4rSslS6s8mlKXd5s=
 github.com/solo-io/solo-apis v0.0.0-20220406195312-f3112a184870/go.mod h1:GAQmAtj0eGBfDUKKlLm9wIrwq0UOVZaW4TOtFeS8xaM=
-github.com/solo-io/solo-apis v0.0.0-20220428194511-c60422d152e7 h1:rL+Gwsm0KqIK6K9eXT3mnXibgaS+XkEcUonQ39ZfIu0=
-github.com/solo-io/solo-apis v0.0.0-20220428194511-c60422d152e7/go.mod h1:VToDLeOuzYyqCNnCVpmW0Pn+X5FCzYivMahsfcIx91c=
+github.com/solo-io/solo-apis v0.0.0-20220503182343-7de036ba34d6 h1:eEhMSW456jtcc3va2rSakxsEwTXguGuEyPzAFQVW9fU=
+github.com/solo-io/solo-apis v0.0.0-20220503182343-7de036ba34d6/go.mod h1:VToDLeOuzYyqCNnCVpmW0Pn+X5FCzYivMahsfcIx91c=
 github.com/solo-io/solo-kit v0.16.0/go.mod h1:zf+vof9HAavbFKRgL80jJ24SeE9PvoB8ooQ7DACtK8I=
 github.com/solo-io/solo-kit v0.17.1/go.mod h1:3p9X8edqLS4KokXBZ+4txX+cxGJqtZlBqFEdDD/x1HQ=
 github.com/solo-io/solo-kit v0.24.0/go.mod h1:uCOi8RQ3MetHXsRFvVKPzafYySUvFuPxB+gvo7ScRR8=

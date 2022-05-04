@@ -52,6 +52,7 @@ webhooks:
     - DELETE
     resources:
     - federatedgateways
+    - federatedmatchablehttpgateways
     - federatedvirtualservices
     - federatedroutetables
   - apiGroups:

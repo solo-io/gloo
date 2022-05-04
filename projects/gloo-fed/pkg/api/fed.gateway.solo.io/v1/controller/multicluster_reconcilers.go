@@ -89,6 +89,77 @@ func (g genericFederatedGatewayMulticlusterReconciler) Reconcile(cluster string,
 	return g.reconciler.ReconcileFederatedGateway(cluster, obj)
 }
 
+// Reconcile Upsert events for the FederatedMatchableHttpGateway Resource across clusters.
+// implemented by the user
+type MulticlusterFederatedMatchableHttpGatewayReconciler interface {
+	ReconcileFederatedMatchableHttpGateway(clusterName string, obj *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) (reconcile.Result, error)
+}
+
+// Reconcile deletion events for the FederatedMatchableHttpGateway Resource across clusters.
+// Deletion receives a reconcile.Request as we cannot guarantee the last state of the object
+// before being deleted.
+// implemented by the user
+type MulticlusterFederatedMatchableHttpGatewayDeletionReconciler interface {
+	ReconcileFederatedMatchableHttpGatewayDeletion(clusterName string, req reconcile.Request) error
+}
+
+type MulticlusterFederatedMatchableHttpGatewayReconcilerFuncs struct {
+	OnReconcileFederatedMatchableHttpGateway         func(clusterName string, obj *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) (reconcile.Result, error)
+	OnReconcileFederatedMatchableHttpGatewayDeletion func(clusterName string, req reconcile.Request) error
+}
+
+func (f *MulticlusterFederatedMatchableHttpGatewayReconcilerFuncs) ReconcileFederatedMatchableHttpGateway(clusterName string, obj *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) (reconcile.Result, error) {
+	if f.OnReconcileFederatedMatchableHttpGateway == nil {
+		return reconcile.Result{}, nil
+	}
+	return f.OnReconcileFederatedMatchableHttpGateway(clusterName, obj)
+}
+
+func (f *MulticlusterFederatedMatchableHttpGatewayReconcilerFuncs) ReconcileFederatedMatchableHttpGatewayDeletion(clusterName string, req reconcile.Request) error {
+	if f.OnReconcileFederatedMatchableHttpGatewayDeletion == nil {
+		return nil
+	}
+	return f.OnReconcileFederatedMatchableHttpGatewayDeletion(clusterName, req)
+}
+
+type MulticlusterFederatedMatchableHttpGatewayReconcileLoop interface {
+	// AddMulticlusterFederatedMatchableHttpGatewayReconciler adds a MulticlusterFederatedMatchableHttpGatewayReconciler to the MulticlusterFederatedMatchableHttpGatewayReconcileLoop.
+	AddMulticlusterFederatedMatchableHttpGatewayReconciler(ctx context.Context, rec MulticlusterFederatedMatchableHttpGatewayReconciler, predicates ...predicate.Predicate)
+}
+
+type multiclusterFederatedMatchableHttpGatewayReconcileLoop struct {
+	loop multicluster.Loop
+}
+
+func (m *multiclusterFederatedMatchableHttpGatewayReconcileLoop) AddMulticlusterFederatedMatchableHttpGatewayReconciler(ctx context.Context, rec MulticlusterFederatedMatchableHttpGatewayReconciler, predicates ...predicate.Predicate) {
+	genericReconciler := genericFederatedMatchableHttpGatewayMulticlusterReconciler{reconciler: rec}
+
+	m.loop.AddReconciler(ctx, genericReconciler, predicates...)
+}
+
+func NewMulticlusterFederatedMatchableHttpGatewayReconcileLoop(name string, cw multicluster.ClusterWatcher, options reconcile.Options) MulticlusterFederatedMatchableHttpGatewayReconcileLoop {
+	return &multiclusterFederatedMatchableHttpGatewayReconcileLoop{loop: mc_reconcile.NewLoop(name, cw, &fed_gateway_solo_io_v1.FederatedMatchableHttpGateway{}, options)}
+}
+
+type genericFederatedMatchableHttpGatewayMulticlusterReconciler struct {
+	reconciler MulticlusterFederatedMatchableHttpGatewayReconciler
+}
+
+func (g genericFederatedMatchableHttpGatewayMulticlusterReconciler) ReconcileDeletion(cluster string, req reconcile.Request) error {
+	if deletionReconciler, ok := g.reconciler.(MulticlusterFederatedMatchableHttpGatewayDeletionReconciler); ok {
+		return deletionReconciler.ReconcileFederatedMatchableHttpGatewayDeletion(cluster, req)
+	}
+	return nil
+}
+
+func (g genericFederatedMatchableHttpGatewayMulticlusterReconciler) Reconcile(cluster string, object ezkube.Object) (reconcile.Result, error) {
+	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedMatchableHttpGateway)
+	if !ok {
+		return reconcile.Result{}, errors.Errorf("internal error: FederatedMatchableHttpGateway handler received event for %T", object)
+	}
+	return g.reconciler.ReconcileFederatedMatchableHttpGateway(cluster, obj)
+}
+
 // Reconcile Upsert events for the FederatedVirtualService Resource across clusters.
 // implemented by the user
 type MulticlusterFederatedVirtualServiceReconciler interface {

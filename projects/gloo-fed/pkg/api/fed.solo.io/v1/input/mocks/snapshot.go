@@ -156,6 +156,20 @@ func (mr *MockSnapshotMockRecorder) MarshalJSON() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarshalJSON", reflect.TypeOf((*MockSnapshot)(nil).MarshalJSON))
 }
 
+// MatchableHttpGateways mocks base method.
+func (m *MockSnapshot) MatchableHttpGateways() v1sets2.MatchableHttpGatewaySet {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MatchableHttpGateways")
+	ret0, _ := ret[0].(v1sets2.MatchableHttpGatewaySet)
+	return ret0
+}
+
+// MatchableHttpGateways indicates an expected call of MatchableHttpGateways.
+func (mr *MockSnapshotMockRecorder) MatchableHttpGateways() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MatchableHttpGateways", reflect.TypeOf((*MockSnapshot)(nil).MatchableHttpGateways))
+}
+
 // Pods mocks base method.
 func (m *MockSnapshot) Pods() v1sets0.PodSet {
 	m.ctrl.T.Helper()

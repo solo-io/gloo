@@ -68,6 +68,66 @@ func (in *FederatedGatewayList) DeepCopyObject() runtime.Object {
 	return nil
 }
 
+// Generated Deepcopy methods for FederatedMatchableHttpGateway
+
+func (in *FederatedMatchableHttpGateway) DeepCopyInto(out *FederatedMatchableHttpGateway) {
+	out.TypeMeta = in.TypeMeta
+	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
+
+	// deepcopy spec
+	in.Spec.DeepCopyInto(&out.Spec)
+	// deepcopy status
+	in.Status.DeepCopyInto(&out.Status)
+
+	return
+}
+
+func (in *FederatedMatchableHttpGateway) DeepCopy() *FederatedMatchableHttpGateway {
+	if in == nil {
+		return nil
+	}
+	out := new(FederatedMatchableHttpGateway)
+	in.DeepCopyInto(out)
+	return out
+}
+
+func (in *FederatedMatchableHttpGateway) DeepCopyObject() runtime.Object {
+	if c := in.DeepCopy(); c != nil {
+		return c
+	}
+	return nil
+}
+
+func (in *FederatedMatchableHttpGatewayList) DeepCopyInto(out *FederatedMatchableHttpGatewayList) {
+	*out = *in
+	out.TypeMeta = in.TypeMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
+	if in.Items != nil {
+		in, out := &in.Items, &out.Items
+		*out = make([]FederatedMatchableHttpGateway, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	return
+}
+
+func (in *FederatedMatchableHttpGatewayList) DeepCopy() *FederatedMatchableHttpGatewayList {
+	if in == nil {
+		return nil
+	}
+	out := new(FederatedMatchableHttpGatewayList)
+	in.DeepCopyInto(out)
+	return out
+}
+
+func (in *FederatedMatchableHttpGatewayList) DeepCopyObject() runtime.Object {
+	if c := in.DeepCopy(); c != nil {
+		return c
+	}
+	return nil
+}
+
 // Generated Deepcopy methods for FederatedVirtualService
 
 func (in *FederatedVirtualService) DeepCopyInto(out *FederatedVirtualService) {

@@ -58,6 +58,20 @@ func (f *clusterHandler) handleClusterEvent(cluster string) {
 		}
 	}
 
+	federatedMatchableHttpGatewayList, err := f.clients.FederatedMatchableHttpGateways().ListFederatedMatchableHttpGateway(f.ctx)
+	if err != nil {
+		contextutils.LoggerFrom(f.ctx).Errorf("Failed to list FederatedMatchableHttpGateways referencing cluster %s", cluster)
+	} else {
+		for _, item := range federatedMatchableHttpGatewayList.Items {
+			item := item
+			if err := f.maybeUpdateFederatedMatchableHttpGatewayStatusWithRetries(&item, cluster); err != nil {
+				contextutils.LoggerFrom(f.ctx).Errorw("Failed to update status on FederatedMatchableHttpGateway",
+					zap.Error(err),
+					zap.Any("FederatedMatchableHttpGateway", item))
+			}
+		}
+	}
+
 	federatedVirtualServiceList, err := f.clients.FederatedVirtualServices().ListFederatedVirtualService(f.ctx)
 	if err != nil {
 		contextutils.LoggerFrom(f.ctx).Errorf("Failed to list FederatedVirtualServices referencing cluster %s", cluster)
@@ -115,6 +129,39 @@ func (f *clusterHandler) maybeUpdateFederatedGatewayStatus(item *fed_gateway_sol
 				Eject(item.Status.PlacementStatus.GetObservedGeneration())
 
 			return f.clients.FederatedGateways().UpdateFederatedGatewayStatus(f.ctx, item)
+		}
+	}
+	return nil
+}
+
+func (f *clusterHandler) maybeUpdateFederatedMatchableHttpGatewayStatusWithRetries(item *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway, cluster string) error {
+	return retry.Do(func() error {
+		err := f.maybeUpdateFederatedMatchableHttpGatewayStatus(item, cluster)
+		if err != nil && errors.IsNotFound(err) {
+			// If the resource no longer exists, there is nothing to do.
+			return nil
+		} else if err != nil {
+			// On conflict, retry with the new object to pick up any changes to the resource's spec.
+			obj, err := f.clients.FederatedMatchableHttpGateways().GetFederatedMatchableHttpGateway(f.ctx, client.ObjectKey{Namespace: item.Namespace, Name: item.Name})
+			if err != nil {
+				return err
+			}
+			item = obj
+		}
+		return err
+	}, retry.Attempts(ClusterHandlerRetryAttempts))
+}
+
+func (f *clusterHandler) maybeUpdateFederatedMatchableHttpGatewayStatus(item *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway, cluster string) error {
+	for _, c := range item.Spec.Placement.GetClusters() {
+		if c == cluster {
+			// An existing resource references the given cluster. Update its status to trigger a resync.
+			item.Status.PlacementStatus = f.factory.GetBuilder().
+				UpdateUnprocessed(item.Status.PlacementStatus, placement.ClusterEventTriggered(cluster), mc_types.PlacementStatus_PENDING).
+				// Do not update the observed generation or written by fields as we have not actually processed the resource.
+				Eject(item.Status.PlacementStatus.GetObservedGeneration())
+
+			return f.clients.FederatedMatchableHttpGateways().UpdateFederatedMatchableHttpGatewayStatus(f.ctx, item)
 		}
 	}
 	return nil

@@ -122,6 +122,102 @@ func (m *Gateway) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
+func (m *MatchableHttpGateway) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.MatchableHttpGateway")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetMetadata()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Metadata")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetMetadata(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Metadata")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetSpec()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Spec")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetSpec(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Spec")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetStatus()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Status")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetStatus(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Status")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetGlooInstance()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("GlooInstance")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetGlooInstance(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("GlooInstance")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
 func (m *VirtualService) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -435,6 +531,154 @@ func (m *GetGatewayYamlResponse) Hash(hasher hash.Hash64) (uint64, error) {
 	}
 	var err error
 	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetGatewayYamlResponse")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetYamlData()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("YamlData")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetYamlData(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("YamlData")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *ListMatchableHttpGatewaysRequest) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.ListMatchableHttpGatewaysRequest")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetGlooInstanceRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("GlooInstanceRef")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetGlooInstanceRef(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("GlooInstanceRef")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *ListMatchableHttpGatewaysResponse) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.ListMatchableHttpGatewaysResponse")); err != nil {
+		return 0, err
+	}
+
+	for _, v := range m.GetMatchableHttpGateways() {
+
+		if h, ok := interface{}(v).(safe_hasher.SafeHasher); ok {
+			if _, err = hasher.Write([]byte("")); err != nil {
+				return 0, err
+			}
+			if _, err = h.Hash(hasher); err != nil {
+				return 0, err
+			}
+		} else {
+			if fieldValue, err := hashstructure.Hash(v, nil); err != nil {
+				return 0, err
+			} else {
+				if _, err = hasher.Write([]byte("")); err != nil {
+					return 0, err
+				}
+				if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+					return 0, err
+				}
+			}
+		}
+
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *GetMatchableHttpGatewayYamlRequest) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetMatchableHttpGatewayYamlRequest")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetMatchableHttpGatewayRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("MatchableHttpGatewayRef")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetMatchableHttpGatewayRef(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("MatchableHttpGatewayRef")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *GetMatchableHttpGatewayYamlResponse) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetMatchableHttpGatewayYamlResponse")); err != nil {
 		return 0, err
 	}
 

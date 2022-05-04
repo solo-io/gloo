@@ -8,6 +8,7 @@
 // * Deployments
 // * DaemonSets
 // * Gateways
+// * MatchableHttpGateways
 // * VirtualServices
 // * RouteTables
 // * Upstreams
@@ -100,6 +101,11 @@ var SnapshotGVKs = []schema.GroupVersionKind{
 	schema.GroupVersionKind{
 		Group:   "gateway.solo.io",
 		Version: "v1",
+		Kind:    "MatchableHttpGateway",
+	},
+	schema.GroupVersionKind{
+		Group:   "gateway.solo.io",
+		Version: "v1",
 		Kind:    "VirtualService",
 	},
 	schema.GroupVersionKind{
@@ -154,6 +160,8 @@ type Snapshot interface {
 
 	// return the set of input Gateways
 	Gateways() gateway_solo_io_v1_sets.GatewaySet
+	// return the set of input MatchableHttpGateways
+	MatchableHttpGateways() gateway_solo_io_v1_sets.MatchableHttpGatewaySet
 	// return the set of input VirtualServices
 	VirtualServices() gateway_solo_io_v1_sets.VirtualServiceSet
 	// return the set of input RouteTables
@@ -207,6 +215,8 @@ type SyncStatusOptions struct {
 
 	// sync status of Gateway objects
 	Gateway bool
+	// sync status of MatchableHttpGateway objects
+	MatchableHttpGateway bool
 	// sync status of VirtualService objects
 	VirtualService bool
 	// sync status of RouteTable objects
@@ -237,9 +247,10 @@ type snapshot struct {
 	deployments apps_v1_sets.DeploymentSet
 	daemonSets  apps_v1_sets.DaemonSetSet
 
-	gateways        gateway_solo_io_v1_sets.GatewaySet
-	virtualServices gateway_solo_io_v1_sets.VirtualServiceSet
-	routeTables     gateway_solo_io_v1_sets.RouteTableSet
+	gateways              gateway_solo_io_v1_sets.GatewaySet
+	matchableHttpGateways gateway_solo_io_v1_sets.MatchableHttpGatewaySet
+	virtualServices       gateway_solo_io_v1_sets.VirtualServiceSet
+	routeTables           gateway_solo_io_v1_sets.RouteTableSet
 
 	upstreams      gloo_solo_io_v1_sets.UpstreamSet
 	upstreamGroups gloo_solo_io_v1_sets.UpstreamGroupSet
@@ -261,6 +272,7 @@ func NewSnapshot(
 	daemonSets apps_v1_sets.DaemonSetSet,
 
 	gateways gateway_solo_io_v1_sets.GatewaySet,
+	matchableHttpGateways gateway_solo_io_v1_sets.MatchableHttpGatewaySet,
 	virtualServices gateway_solo_io_v1_sets.VirtualServiceSet,
 	routeTables gateway_solo_io_v1_sets.RouteTableSet,
 
@@ -277,19 +289,20 @@ func NewSnapshot(
 	return &snapshot{
 		name: name,
 
-		services:         services,
-		pods:             pods,
-		deployments:      deployments,
-		daemonSets:       daemonSets,
-		gateways:         gateways,
-		virtualServices:  virtualServices,
-		routeTables:      routeTables,
-		upstreams:        upstreams,
-		upstreamGroups:   upstreamGroups,
-		settings:         settings,
-		proxies:          proxies,
-		authConfigs:      authConfigs,
-		rateLimitConfigs: rateLimitConfigs,
+		services:              services,
+		pods:                  pods,
+		deployments:           deployments,
+		daemonSets:            daemonSets,
+		gateways:              gateways,
+		matchableHttpGateways: matchableHttpGateways,
+		virtualServices:       virtualServices,
+		routeTables:           routeTables,
+		upstreams:             upstreams,
+		upstreamGroups:        upstreamGroups,
+		settings:              settings,
+		proxies:               proxies,
+		authConfigs:           authConfigs,
+		rateLimitConfigs:      rateLimitConfigs,
 	}
 }
 
@@ -305,6 +318,7 @@ func NewSnapshotFromGeneric(
 	daemonSetSet := apps_v1_sets.NewDaemonSetSet()
 
 	gatewaySet := gateway_solo_io_v1_sets.NewGatewaySet()
+	matchableHttpGatewaySet := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
 	virtualServiceSet := gateway_solo_io_v1_sets.NewVirtualServiceSet()
 	routeTableSet := gateway_solo_io_v1_sets.NewRouteTableSet()
 
@@ -365,6 +379,15 @@ func NewSnapshotFromGeneric(
 
 		for _, gateway := range gateways {
 			gatewaySet.Insert(gateway.(*gateway_solo_io_v1_types.Gateway))
+		}
+		matchableHttpGateways := snapshot[schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "MatchableHttpGateway",
+		}]
+
+		for _, matchableHttpGateway := range matchableHttpGateways {
+			matchableHttpGatewaySet.Insert(matchableHttpGateway.(*gateway_solo_io_v1_types.MatchableHttpGateway))
 		}
 		virtualServices := snapshot[schema.GroupVersionKind{
 			Group:   "gateway.solo.io",
@@ -450,6 +473,7 @@ func NewSnapshotFromGeneric(
 		deploymentSet,
 		daemonSetSet,
 		gatewaySet,
+		matchableHttpGatewaySet,
 		virtualServiceSet,
 		routeTableSet,
 		upstreamSet,
@@ -479,6 +503,10 @@ func (s *snapshot) DaemonSets() apps_v1_sets.DaemonSetSet {
 
 func (s *snapshot) Gateways() gateway_solo_io_v1_sets.GatewaySet {
 	return s.gateways
+}
+
+func (s *snapshot) MatchableHttpGateways() gateway_solo_io_v1_sets.MatchableHttpGatewaySet {
+	return s.matchableHttpGateways
 }
 
 func (s *snapshot) VirtualServices() gateway_solo_io_v1_sets.VirtualServiceSet {
@@ -518,6 +546,18 @@ func (s *snapshot) SyncStatusesMultiCluster(ctx context.Context, mcClient multic
 
 	if opts.Gateway {
 		for _, obj := range s.Gateways().List() {
+			clusterClient, err := mcClient.Cluster(obj.ClusterName)
+			if err != nil {
+				errs = multierror.Append(errs, err)
+				continue
+			}
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, clusterClient, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
+	if opts.MatchableHttpGateway {
+		for _, obj := range s.MatchableHttpGateways().List() {
 			clusterClient, err := mcClient.Cluster(obj.ClusterName)
 			if err != nil {
 				errs = multierror.Append(errs, err)
@@ -640,6 +680,13 @@ func (s *snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncS
 			}
 		}
 	}
+	if opts.MatchableHttpGateway {
+		for _, obj := range s.MatchableHttpGateways().List() {
+			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+	}
 	if opts.VirtualService {
 		for _, obj := range s.VirtualServices().List() {
 			if _, err := controllerutils.UpdateStatusImmutable(ctx, c, obj); err != nil {
@@ -742,6 +789,13 @@ func (s *snapshot) MarshalJSON() ([]byte, error) {
 		gatewaySet.Insert(obj.(*gateway_solo_io_v1_types.Gateway))
 	}
 	snapshotMap["gateways"] = gatewaySet.List()
+	matchableHttpGatewaySet := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
+	for _, obj := range s.matchableHttpGateways.UnsortedList() {
+		// redact secret data from the snapshot
+		obj := snapshotutils.RedactSecretData(obj)
+		matchableHttpGatewaySet.Insert(obj.(*gateway_solo_io_v1_types.MatchableHttpGateway))
+	}
+	snapshotMap["matchableHttpGateways"] = matchableHttpGatewaySet.List()
 	virtualServiceSet := gateway_solo_io_v1_sets.NewVirtualServiceSet()
 	for _, obj := range s.virtualServices.UnsortedList() {
 		// redact secret data from the snapshot
@@ -808,19 +862,20 @@ func (s *snapshot) Clone() Snapshot {
 	return &snapshot{
 		name: s.name,
 
-		services:         s.services.Clone(),
-		pods:             s.pods.Clone(),
-		deployments:      s.deployments.Clone(),
-		daemonSets:       s.daemonSets.Clone(),
-		gateways:         s.gateways.Clone(),
-		virtualServices:  s.virtualServices.Clone(),
-		routeTables:      s.routeTables.Clone(),
-		upstreams:        s.upstreams.Clone(),
-		upstreamGroups:   s.upstreamGroups.Clone(),
-		settings:         s.settings.Clone(),
-		proxies:          s.proxies.Clone(),
-		authConfigs:      s.authConfigs.Clone(),
-		rateLimitConfigs: s.rateLimitConfigs.Clone(),
+		services:              s.services.Clone(),
+		pods:                  s.pods.Clone(),
+		deployments:           s.deployments.Clone(),
+		daemonSets:            s.daemonSets.Clone(),
+		gateways:              s.gateways.Clone(),
+		matchableHttpGateways: s.matchableHttpGateways.Clone(),
+		virtualServices:       s.virtualServices.Clone(),
+		routeTables:           s.routeTables.Clone(),
+		upstreams:             s.upstreams.Clone(),
+		upstreamGroups:        s.upstreamGroups.Clone(),
+		settings:              s.settings.Clone(),
+		proxies:               s.proxies.Clone(),
+		authConfigs:           s.authConfigs.Clone(),
+		rateLimitConfigs:      s.rateLimitConfigs.Clone(),
 	}
 }
 
@@ -880,6 +935,15 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 			Group:   "gateway.solo.io",
 			Version: "v1",
 			Kind:    "Gateway",
+		}
+		handleObject(cluster, gvk, obj)
+	}
+	for _, obj := range s.matchableHttpGateways.List() {
+		cluster := obj.GetClusterName()
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "MatchableHttpGateway",
 		}
 		handleObject(cluster, gvk, obj)
 	}
@@ -980,6 +1044,8 @@ type BuildOptions struct {
 
 	// List options for composing a snapshot from Gateways
 	Gateways ResourceBuildOptions
+	// List options for composing a snapshot from MatchableHttpGateways
+	MatchableHttpGateways ResourceBuildOptions
 	// List options for composing a snapshot from VirtualServices
 	VirtualServices ResourceBuildOptions
 	// List options for composing a snapshot from RouteTables
@@ -1037,6 +1103,7 @@ func (b *multiClusterBuilder) BuildSnapshot(ctx context.Context, name string, op
 	daemonSets := apps_v1_sets.NewDaemonSetSet()
 
 	gateways := gateway_solo_io_v1_sets.NewGatewaySet()
+	matchableHttpGateways := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
 	virtualServices := gateway_solo_io_v1_sets.NewVirtualServiceSet()
 	routeTables := gateway_solo_io_v1_sets.NewRouteTableSet()
 
@@ -1066,6 +1133,9 @@ func (b *multiClusterBuilder) BuildSnapshot(ctx context.Context, name string, op
 			errs = multierror.Append(errs, err)
 		}
 		if err := b.insertGatewaysFromCluster(ctx, cluster, gateways, opts.Gateways); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+		if err := b.insertMatchableHttpGatewaysFromCluster(ctx, cluster, matchableHttpGateways, opts.MatchableHttpGateways); err != nil {
 			errs = multierror.Append(errs, err)
 		}
 		if err := b.insertVirtualServicesFromCluster(ctx, cluster, virtualServices, opts.VirtualServices); err != nil {
@@ -1103,6 +1173,7 @@ func (b *multiClusterBuilder) BuildSnapshot(ctx context.Context, name string, op
 		deployments,
 		daemonSets,
 		gateways,
+		matchableHttpGateways,
 		virtualServices,
 		routeTables,
 		upstreams,
@@ -1324,6 +1395,48 @@ func (b *multiClusterBuilder) insertGatewaysFromCluster(ctx context.Context, clu
 		item := item.DeepCopy()    // pike + own
 		item.ClusterName = cluster // set cluster for in-memory processing
 		gateways.Insert(item)
+	}
+
+	return nil
+}
+func (b *multiClusterBuilder) insertMatchableHttpGatewaysFromCluster(ctx context.Context, cluster string, matchableHttpGateways gateway_solo_io_v1_sets.MatchableHttpGatewaySet, opts ResourceBuildOptions) error {
+	matchableHttpGatewayClient, err := gateway_solo_io_v1.NewMulticlusterMatchableHttpGatewayClient(b.client).Cluster(cluster)
+	if err != nil {
+		return err
+	}
+
+	if opts.Verifier != nil {
+		mgr, err := b.clusters.Cluster(cluster)
+		if err != nil {
+			return err
+		}
+
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "MatchableHttpGateway",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			cluster,
+			mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	matchableHttpGatewayList, err := matchableHttpGatewayClient.ListMatchableHttpGateway(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range matchableHttpGatewayList.Items {
+		item := item.DeepCopy()    // pike + own
+		item.ClusterName = cluster // set cluster for in-memory processing
+		matchableHttpGateways.Insert(item)
 	}
 
 	return nil
@@ -1702,6 +1815,7 @@ func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, o
 	daemonSets := apps_v1_sets.NewDaemonSetSet()
 
 	gateways := gateway_solo_io_v1_sets.NewGatewaySet()
+	matchableHttpGateways := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
 	virtualServices := gateway_solo_io_v1_sets.NewVirtualServiceSet()
 	routeTables := gateway_solo_io_v1_sets.NewRouteTableSet()
 
@@ -1729,6 +1843,9 @@ func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, o
 		errs = multierror.Append(errs, err)
 	}
 	if err := b.insertGateways(ctx, gateways, opts.Gateways); err != nil {
+		errs = multierror.Append(errs, err)
+	}
+	if err := b.insertMatchableHttpGateways(ctx, matchableHttpGateways, opts.MatchableHttpGateways); err != nil {
 		errs = multierror.Append(errs, err)
 	}
 	if err := b.insertVirtualServices(ctx, virtualServices, opts.VirtualServices); err != nil {
@@ -1764,6 +1881,7 @@ func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, o
 		deployments,
 		daemonSets,
 		gateways,
+		matchableHttpGateways,
 		virtualServices,
 		routeTables,
 		upstreams,
@@ -1940,6 +2058,39 @@ func (b *singleClusterBuilder) insertGateways(ctx context.Context, gateways gate
 		item := item.DeepCopy() // pike + own the item.
 		item.ClusterName = b.clusterName
 		gateways.Insert(item)
+	}
+
+	return nil
+}
+func (b *singleClusterBuilder) insertMatchableHttpGateways(ctx context.Context, matchableHttpGateways gateway_solo_io_v1_sets.MatchableHttpGatewaySet, opts ResourceBuildOptions) error {
+
+	if opts.Verifier != nil {
+		gvk := schema.GroupVersionKind{
+			Group:   "gateway.solo.io",
+			Version: "v1",
+			Kind:    "MatchableHttpGateway",
+		}
+
+		if resourceRegistered, err := opts.Verifier.VerifyServerResource(
+			"", // verify in the local cluster
+			b.mgr.GetConfig(),
+			gvk,
+		); err != nil {
+			return err
+		} else if !resourceRegistered {
+			return nil
+		}
+	}
+
+	matchableHttpGatewayList, err := gateway_solo_io_v1.NewMatchableHttpGatewayClient(b.mgr.GetClient()).ListMatchableHttpGateway(ctx, opts.ListOptions...)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range matchableHttpGatewayList.Items {
+		item := item.DeepCopy() // pike + own the item.
+		item.ClusterName = b.clusterName
+		matchableHttpGateways.Insert(item)
 	}
 
 	return nil
@@ -2239,6 +2390,7 @@ func (i *inMemoryBuilder) BuildSnapshot(ctx context.Context, name string, opts B
 	daemonSets := apps_v1_sets.NewDaemonSetSet()
 
 	gateways := gateway_solo_io_v1_sets.NewGatewaySet()
+	matchableHttpGateways := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
 	virtualServices := gateway_solo_io_v1_sets.NewVirtualServiceSet()
 	routeTables := gateway_solo_io_v1_sets.NewRouteTableSet()
 
@@ -2268,6 +2420,9 @@ func (i *inMemoryBuilder) BuildSnapshot(ctx context.Context, name string, opts B
 		// insert Gateways
 		case *gateway_solo_io_v1_types.Gateway:
 			i.insertGateway(ctx, obj, gateways, opts)
+		// insert MatchableHttpGateways
+		case *gateway_solo_io_v1_types.MatchableHttpGateway:
+			i.insertMatchableHttpGateway(ctx, obj, matchableHttpGateways, opts)
 		// insert VirtualServices
 		case *gateway_solo_io_v1_types.VirtualService:
 			i.insertVirtualService(ctx, obj, virtualServices, opts)
@@ -2303,6 +2458,7 @@ func (i *inMemoryBuilder) BuildSnapshot(ctx context.Context, name string, opts B
 		deployments,
 		daemonSets,
 		gateways,
+		matchableHttpGateways,
 		virtualServices,
 		routeTables,
 		upstreams,
@@ -2459,6 +2615,35 @@ func (i *inMemoryBuilder) insertGateway(
 
 	if !filteredOut {
 		gatewaySet.Insert(gateway)
+	}
+}
+func (i *inMemoryBuilder) insertMatchableHttpGateway(
+	ctx context.Context,
+	matchableHttpGateway *gateway_solo_io_v1_types.MatchableHttpGateway,
+	matchableHttpGatewaySet gateway_solo_io_v1_sets.MatchableHttpGatewaySet,
+	buildOpts BuildOptions,
+) {
+
+	opts := buildOpts.MatchableHttpGateways.ListOptions
+
+	listOpts := &client.ListOptions{}
+	for _, opt := range opts {
+		opt.ApplyToList(listOpts)
+	}
+
+	filteredOut := false
+	if listOpts.Namespace != "" {
+		filteredOut = matchableHttpGateway.Namespace != listOpts.Namespace
+	}
+	if listOpts.LabelSelector != nil {
+		filteredOut = !listOpts.LabelSelector.Matches(labels.Set(matchableHttpGateway.Labels))
+	}
+	if listOpts.FieldSelector != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("field selector is not implemented for in-memory remote snapshot")
+	}
+
+	if !filteredOut {
+		matchableHttpGatewaySet.Insert(matchableHttpGateway)
 	}
 }
 func (i *inMemoryBuilder) insertVirtualService(

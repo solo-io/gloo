@@ -51,6 +51,7 @@ var GatewayGroup = makeGroup(
 	allBaseGlooResourceTemplates,
 	[]resourceToGenerate{
 		{kind: "Gateway"},
+		{kind: "MatchableHttpGateway"},
 		{kind: "VirtualService"},
 		{kind: "RouteTable"},
 	})
@@ -62,6 +63,7 @@ var FedGatewayGroup = makeGroup(
 	allFederatedResourceTemplates,
 	[]resourceToGenerate{
 		{kind: "FederatedGateway"},
+		{kind: "FederatedMatchableHttpGateway"},
 		{kind: "FederatedVirtualService"},
 		{kind: "FederatedRouteTable"},
 	})
@@ -166,6 +168,7 @@ func fedTemplates() []model.CustomTemplates {
 			Version: "v1",
 		}: {
 			"Gateway",
+			"MatchableHttpGateway",
 			"VirtualService",
 			"RouteTable",
 		},

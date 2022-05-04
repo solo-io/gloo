@@ -22,6 +22,24 @@ type GatewayResourceApiGetGatewayYaml = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayYamlResponse;
 };
 
+type GatewayResourceApiListMatchableHttpGateways = {
+  readonly methodName: string;
+  readonly service: typeof GatewayResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableHttpGatewaysRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableHttpGatewaysResponse;
+};
+
+type GatewayResourceApiGetMatchableHttpGatewayYaml = {
+  readonly methodName: string;
+  readonly service: typeof GatewayResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlResponse;
+};
+
 type GatewayResourceApiListVirtualServices = {
   readonly methodName: string;
   readonly service: typeof GatewayResourceApi;
@@ -62,6 +80,8 @@ export class GatewayResourceApi {
   static readonly serviceName: string;
   static readonly ListGateways: GatewayResourceApiListGateways;
   static readonly GetGatewayYaml: GatewayResourceApiGetGatewayYaml;
+  static readonly ListMatchableHttpGateways: GatewayResourceApiListMatchableHttpGateways;
+  static readonly GetMatchableHttpGatewayYaml: GatewayResourceApiGetMatchableHttpGatewayYaml;
   static readonly ListVirtualServices: GatewayResourceApiListVirtualServices;
   static readonly GetVirtualServiceYaml: GatewayResourceApiGetVirtualServiceYaml;
   static readonly ListRouteTables: GatewayResourceApiListRouteTables;
@@ -117,6 +137,24 @@ export class GatewayResourceApiClient {
   getGatewayYaml(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayYamlResponse|null) => void
+  ): UnaryResponse;
+  listMatchableHttpGateways(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableHttpGatewaysRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableHttpGatewaysResponse|null) => void
+  ): UnaryResponse;
+  listMatchableHttpGateways(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableHttpGatewaysRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableHttpGatewaysResponse|null) => void
+  ): UnaryResponse;
+  getMatchableHttpGatewayYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlResponse|null) => void
+  ): UnaryResponse;
+  getMatchableHttpGatewayYaml(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlResponse|null) => void
   ): UnaryResponse;
   listVirtualServices(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListVirtualServicesRequest,

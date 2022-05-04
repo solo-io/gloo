@@ -4,13 +4,13 @@
 |settings.writeNamespace|string||namespace where intermediary CRDs will be written to, e.g. Upstreams written by Gloo Edge Discovery.|
 |settings.integrations.knative.enabled|bool||enabled knative components|
 |settings.integrations.knative.version|string||the version of knative installed to the cluster. if using version < 0.8.0, Gloo Edge will use Knative's ClusterIngress API for configuration rather than the namespace-scoped Ingress|
-|settings.integrations.knative.proxy.image.tag|string||tag for the container|
-|settings.integrations.knative.proxy.image.repository|string||image name (repository) for the container.|
-|settings.integrations.knative.proxy.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|settings.integrations.knative.proxy.image.pullPolicy|string||image pull policy for the container|
-|settings.integrations.knative.proxy.image.pullSecret|string||image pull policy for the container |
-|settings.integrations.knative.proxy.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|settings.integrations.knative.proxy.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|settings.integrations.knative.proxy.image.tag|string||The image tag for the container.|
+|settings.integrations.knative.proxy.image.repository|string||The image repository (name) for the container.|
+|settings.integrations.knative.proxy.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|settings.integrations.knative.proxy.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|settings.integrations.knative.proxy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|settings.integrations.knative.proxy.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|settings.integrations.knative.proxy.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |settings.integrations.knative.proxy.httpPort|int||HTTP port for the proxy|
 |settings.integrations.knative.proxy.httpsPort|int||HTTPS port for the proxy|
 |settings.integrations.knative.proxy.tracing|string||tracing configuration|
@@ -115,13 +115,13 @@
 |gloo.settings.writeNamespace|string||namespace where intermediary CRDs will be written to, e.g. Upstreams written by Gloo Edge Discovery.|
 |gloo.settings.integrations.knative.enabled|bool||enabled knative components|
 |gloo.settings.integrations.knative.version|string||the version of knative installed to the cluster. if using version < 0.8.0, Gloo Edge will use Knative's ClusterIngress API for configuration rather than the namespace-scoped Ingress|
-|gloo.settings.integrations.knative.proxy.image.tag|string|Version number, ex. 1.8.0|tag for the container|
-|gloo.settings.integrations.knative.proxy.image.repository|string|gloo-ee-envoy-wrapper|image name (repository) for the container.|
-|gloo.settings.integrations.knative.proxy.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo.settings.integrations.knative.proxy.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|gloo.settings.integrations.knative.proxy.image.pullSecret|string||image pull policy for the container |
-|gloo.settings.integrations.knative.proxy.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo.settings.integrations.knative.proxy.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo.settings.integrations.knative.proxy.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
+|gloo.settings.integrations.knative.proxy.image.repository|string|gloo-ee-envoy-wrapper|The image repository (name) for the container.|
+|gloo.settings.integrations.knative.proxy.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.settings.integrations.knative.proxy.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.settings.integrations.knative.proxy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.settings.integrations.knative.proxy.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.settings.integrations.knative.proxy.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo.settings.integrations.knative.proxy.httpPort|int||HTTP port for the proxy|
 |gloo.settings.integrations.knative.proxy.httpsPort|int||HTTPS port for the proxy|
 |gloo.settings.integrations.knative.proxy.tracing|string||tracing configuration|
@@ -218,13 +218,13 @@
 |gloo.settings.rateLimit|interface||Partial config for Gloo Edge Enterprise’s rate-limiting service, based on Envoy’s rate-limit service; supports Envoy’s rate-limit service API. (reference here: https://github.com/lyft/ratelimit#configuration) Configure rate-limit descriptors here, which define the limits for requests based on their descriptors. Configure rate-limits (composed of actions, which define how request characteristics get translated into descriptors) on the VirtualHost or its routes.|
 |gloo.settings.enableRestEds|bool||Whether or not to use rest xds for all EDS by default. Defaults to false.|
 |gloo.settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gloo.deployment.image.tag|string|Version number, ex. 1.8.0|tag for the container|
-|gloo.gloo.deployment.image.repository|string|gloo-ee|image name (repository) for the container.|
-|gloo.gloo.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo.gloo.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|gloo.gloo.deployment.image.pullSecret|string||image pull policy for the container |
-|gloo.gloo.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo.gloo.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo.gloo.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
+|gloo.gloo.deployment.image.repository|string|gloo-ee|The image repository (name) for the container.|
+|gloo.gloo.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.gloo.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.gloo.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.gloo.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.gloo.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo.gloo.deployment.xdsPort|int||port where gloo serves xDS API to Envoy|
 |gloo.gloo.deployment.restXdsPort|uint32||port where gloo serves REST xDS API to Envoy|
 |gloo.gloo.deployment.validationPort|int||port where gloo serves gRPC Proxy Validation to Gateway|
@@ -235,8 +235,8 @@
 |gloo.gloo.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo.gloo.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo.gloo.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
-|gloo.gloo.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
-|gloo.gloo.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|gloo.gloo.deployment.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
+|gloo.gloo.deployment.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |gloo.gloo.deployment.externalTrafficPolicy|string||Set the external traffic policy on the gloo service|
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
@@ -282,13 +282,13 @@
 |gloo.gloo.splitLogOutput|bool||Set to true to send debug/info/warning logs to stdout, error/fatal/panic to stderr. Set to false to send all logs to stdout|
 |gloo.gloo.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gloo.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
-|gloo.discovery.deployment.image.tag|string|Version number, ex. 1.8.0|tag for the container|
-|gloo.discovery.deployment.image.repository|string|discovery-ee|image name (repository) for the container.|
-|gloo.discovery.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo.discovery.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|gloo.discovery.deployment.image.pullSecret|string||image pull policy for the container |
-|gloo.discovery.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo.discovery.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo.discovery.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
+|gloo.discovery.deployment.image.repository|string|discovery-ee|The image repository (name) for the container.|
+|gloo.discovery.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.discovery.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.discovery.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.discovery.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.discovery.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo.discovery.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
 |gloo.discovery.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo.discovery.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
@@ -296,8 +296,8 @@
 |gloo.discovery.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo.discovery.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo.discovery.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
-|gloo.discovery.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
-|gloo.discovery.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|gloo.discovery.deployment.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
+|gloo.discovery.deployment.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |gloo.discovery.deployment.fsGroup|float64||Explicitly set the group ID for volume ownership. Default is 10101|
 |gloo.discovery.deployment.extraDiscoveryLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge discovery deployment.|
 |gloo.discovery.deployment.extraDiscoveryAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the gloo edge discovery deployment.|
@@ -359,13 +359,13 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.deployment.image.tag|string|1.12.0-beta8|tag for the container|
-|gloo.gateway.deployment.image.repository|string||image name (repository) for the container.|
-|gloo.gateway.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|gloo.gateway.deployment.image.pullSecret|string||image pull policy for the container |
-|gloo.gateway.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo.gateway.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo.gateway.deployment.image.tag|string|1.12.0-beta9|The image tag for the container.|
+|gloo.gateway.deployment.image.repository|string||The image repository (name) for the container.|
+|gloo.gateway.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.gateway.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.gateway.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.gateway.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo.gateway.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
 |gloo.gateway.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo.gateway.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
@@ -373,8 +373,8 @@
 |gloo.gateway.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo.gateway.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo.gateway.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
-|gloo.gateway.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
-|gloo.gateway.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|gloo.gateway.deployment.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
+|gloo.gateway.deployment.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |gloo.gateway.deployment.extraGatewayLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge gateway deployment.|
 |gloo.gateway.deployment.extraGatewayAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the gloo edge gateway deployment.|
 |gloo.gateway.deployment.replicas|int||number of instances to deploy|
@@ -412,13 +412,13 @@
 |gloo.gateway.deployment.resources.requests.memory|string||amount of memory|
 |gloo.gateway.deployment.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.certGenJob.image.tag|string|1.12.0-beta8|tag for the container|
-|gloo.gateway.certGenJob.image.repository|string||image name (repository) for the container.|
-|gloo.gateway.certGenJob.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|gloo.gateway.certGenJob.image.pullSecret|string||image pull policy for the container |
-|gloo.gateway.certGenJob.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo.gateway.certGenJob.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo.gateway.certGenJob.image.tag|string|1.12.0-beta9|The image tag for the container.|
+|gloo.gateway.certGenJob.image.repository|string||The image repository (name) for the container.|
+|gloo.gateway.certGenJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.gateway.certGenJob.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.gateway.certGenJob.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.gateway.certGenJob.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo.gateway.certGenJob.restartPolicy|string||restart policy to use when the pod exits|
 |gloo.gateway.certGenJob.nodeName|string||name of node to run on|
 |gloo.gateway.certGenJob.nodeSelector.NAME|string||label selector for nodes|
@@ -434,8 +434,8 @@
 |gloo.gateway.certGenJob.enabled|bool||enable the job that generates the certificates for the validating webhook at install time (default true)|
 |gloo.gateway.certGenJob.setTtlAfterFinished|bool||Set ttlSecondsAfterFinished (a k8s feature in Alpha) on the job. Defaults to true|
 |gloo.gateway.certGenJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
-|gloo.gateway.certGenJob.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
-|gloo.gateway.certGenJob.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|gloo.gateway.certGenJob.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
+|gloo.gateway.certGenJob.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |gloo.gateway.certGenJob.resources.limits.memory|string||amount of memory|
 |gloo.gateway.certGenJob.resources.limits.cpu|string||amount of CPUs|
 |gloo.gateway.certGenJob.resources.requests.memory|string||amount of memory|
@@ -444,6 +444,24 @@
 |gloo.gateway.certGenJob.cron.enabled|bool||enable the cronjob|
 |gloo.gateway.certGenJob.cron.schedule|string||Cron job scheduling|
 |gloo.gateway.certGenJob.cron.mtlsKubeResourceOverride.NAME|interface||override fields in the gloo-mtls-certgen cronjob.|
+|gloo.gateway.rolloutJob.image.tag|string||The image tag for the container.|
+|gloo.gateway.rolloutJob.image.repository|string||The image repository (name) for the container.|
+|gloo.gateway.rolloutJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.gateway.rolloutJob.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.gateway.rolloutJob.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.gateway.rolloutJob.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.gateway.rolloutJob.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|gloo.gateway.rolloutJob.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
+|gloo.gateway.rolloutJob.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
+|gloo.gateway.cleanupJob.image.tag|string||The image tag for the container.|
+|gloo.gateway.cleanupJob.image.repository|string||The image repository (name) for the container.|
+|gloo.gateway.cleanupJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.gateway.cleanupJob.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.gateway.cleanupJob.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.gateway.cleanupJob.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.gateway.cleanupJob.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|gloo.gateway.cleanupJob.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
+|gloo.gateway.cleanupJob.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |gloo.gateway.updateValues|bool|true|if true, will use a provided helm helper 'gloo.updatevalues' to update values during template render - useful for plugins/extensions|
 |gloo.gateway.proxyServiceAccount.extraAnnotations.NAME|string||extra annotations to add to the service account|
 |gloo.gateway.proxyServiceAccount.disableAutomount|bool||disable automounting the service account to the gateway proxy. not mounting the token hardens the proxy container, but may interfere with service mesh integrations|
@@ -489,13 +507,13 @@
 |gloo.gatewayProxies.NAME.kind.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.NAME.kind.daemonSet.hostPort|bool||whether or not to enable host networking on the pod. Only relevant when running as a DaemonSet|
 |gloo.gatewayProxies.NAME.kind.daemonSet.hostNetwork|bool|||
-|gloo.gatewayProxies.NAME.podTemplate.image.tag|string||tag for the container|
-|gloo.gatewayProxies.NAME.podTemplate.image.repository|string||image name (repository) for the container.|
-|gloo.gatewayProxies.NAME.podTemplate.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo.gatewayProxies.NAME.podTemplate.image.pullPolicy|string||image pull policy for the container|
-|gloo.gatewayProxies.NAME.podTemplate.image.pullSecret|string||image pull policy for the container |
-|gloo.gatewayProxies.NAME.podTemplate.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo.gatewayProxies.NAME.podTemplate.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo.gatewayProxies.NAME.podTemplate.image.tag|string||The image tag for the container.|
+|gloo.gatewayProxies.NAME.podTemplate.image.repository|string||The image repository (name) for the container.|
+|gloo.gatewayProxies.NAME.podTemplate.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.gatewayProxies.NAME.podTemplate.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.gatewayProxies.NAME.podTemplate.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.gatewayProxies.NAME.podTemplate.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.gatewayProxies.NAME.podTemplate.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo.gatewayProxies.NAME.podTemplate.httpPort|int||HTTP port for the gateway service target port|
 |gloo.gatewayProxies.NAME.podTemplate.httpsPort|int||HTTPS port for the gateway service target port|
 |gloo.gatewayProxies.NAME.podTemplate.extraPorts[]|interface||extra ports for the gateway pod|
@@ -515,8 +533,8 @@
 |gloo.gatewayProxies.NAME.podTemplate.resources.requests.cpu|string||amount of CPUs|
 |gloo.gatewayProxies.NAME.podTemplate.disableNetBind|bool||don't add the NET_BIND_SERVICE capability to the pod. This means that the gateway proxy will not be able to bind to ports below 1024|
 |gloo.gatewayProxies.NAME.podTemplate.runUnprivileged|bool||run Envoy as an unprivileged user|
-|gloo.gatewayProxies.NAME.podTemplate.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
-|gloo.gatewayProxies.NAME.podTemplate.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|gloo.gatewayProxies.NAME.podTemplate.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
+|gloo.gatewayProxies.NAME.podTemplate.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |gloo.gatewayProxies.NAME.podTemplate.fsGroup|float64||Explicitly set the group ID for volume ownership. Default is 10101|
 |gloo.gatewayProxies.NAME.podTemplate.gracefulShutdown.enabled|bool||Enable grace period before shutdown to finish current requests while Envoy health checks fail to e.g. notify external load balancers. *NOTE:* This will not have any effect if you have not defined health checks via the health check filter|
 |gloo.gatewayProxies.NAME.podTemplate.gracefulShutdown.sleepTimeSeconds|int||Time (in seconds) for the preStop hook to wait before allowing Envoy to terminate|
@@ -679,13 +697,13 @@
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.gatewayProxy.kind.daemonSet.hostPort|bool||whether or not to enable host networking on the pod. Only relevant when running as a DaemonSet|
 |gloo.gatewayProxies.gatewayProxy.kind.daemonSet.hostNetwork|bool|||
-|gloo.gatewayProxies.gatewayProxy.podTemplate.image.tag|string|Version number, ex. 1.8.0|tag for the container|
-|gloo.gatewayProxies.gatewayProxy.podTemplate.image.repository|string|gloo-ee-envoy-wrapper|image name (repository) for the container.|
-|gloo.gatewayProxies.gatewayProxy.podTemplate.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo.gatewayProxies.gatewayProxy.podTemplate.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|gloo.gatewayProxies.gatewayProxy.podTemplate.image.pullSecret|string||image pull policy for the container |
-|gloo.gatewayProxies.gatewayProxy.podTemplate.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo.gatewayProxies.gatewayProxy.podTemplate.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.image.repository|string|gloo-ee-envoy-wrapper|The image repository (name) for the container.|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.httpPort|int||HTTP port for the gateway service target port|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.httpsPort|int||HTTPS port for the gateway service target port|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.extraPorts[]|interface||extra ports for the gateway pod|
@@ -705,8 +723,8 @@
 |gloo.gatewayProxies.gatewayProxy.podTemplate.resources.requests.cpu|string||amount of CPUs|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.disableNetBind|bool||don't add the NET_BIND_SERVICE capability to the pod. This means that the gateway proxy will not be able to bind to ports below 1024|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.runUnprivileged|bool||run Envoy as an unprivileged user|
-|gloo.gatewayProxies.gatewayProxy.podTemplate.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
-|gloo.gatewayProxies.gatewayProxy.podTemplate.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.fsGroup|float64||Explicitly set the group ID for volume ownership. Default is 10101|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.gracefulShutdown.enabled|bool||Enable grace period before shutdown to finish current requests while Envoy health checks fail to e.g. notify external load balancers. *NOTE:* This will not have any effect if you have not defined health checks via the health check filter|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.gracefulShutdown.sleepTimeSeconds|int||Time (in seconds) for the preStop hook to wait before allowing Envoy to terminate|
@@ -840,15 +858,15 @@
 |gloo.gatewayProxies.gatewayProxy.xdsServicePort|uint32||The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay.|
 |gloo.gatewayProxies.gatewayProxy.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.ingress.enabled|bool|||
-|gloo.ingress.deployment.image.tag|string||tag for the container|
-|gloo.ingress.deployment.image.repository|string||image name (repository) for the container.|
-|gloo.ingress.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo.ingress.deployment.image.pullPolicy|string||image pull policy for the container|
-|gloo.ingress.deployment.image.pullSecret|string||image pull policy for the container |
-|gloo.ingress.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo.ingress.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
-|gloo.ingress.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
-|gloo.ingress.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
+|gloo.ingress.deployment.image.tag|string||The image tag for the container.|
+|gloo.ingress.deployment.image.repository|string||The image repository (name) for the container.|
+|gloo.ingress.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.ingress.deployment.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.ingress.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.ingress.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.ingress.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|gloo.ingress.deployment.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
+|gloo.ingress.deployment.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
 |gloo.ingress.deployment.extraIngressLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress deployment.|
 |gloo.ingress.deployment.extraIngressAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the ingress deployment.|
 |gloo.ingress.deployment.stats|bool||Controls whether or not Envoy stats are enabled|
@@ -889,18 +907,18 @@
 |gloo.ingress.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.ingress.requireIngressClass|bool||only serve traffic for Ingress objects with the Ingress Class annotation 'kubernetes.io/ingress.class'. By default the annotation value must be set to 'gloo', however this can be overriden via customIngressClass.|
 |gloo.ingress.customIngressClass|bool||Only relevant when requireIngressClass is set to true. Setting this value will cause the Gloo Edge Ingress Controller to process only those Ingress objects which have their ingress class set to this value (e.g. 'kubernetes.io/ingress.class=SOMEVALUE').|
-|gloo.ingressProxy.deployment.image.tag|string|Version number, ex. 1.8.0|tag for the container|
-|gloo.ingressProxy.deployment.image.repository|string|gloo-ee-envoy-wrapper|image name (repository) for the container.|
-|gloo.ingressProxy.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo.ingressProxy.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|gloo.ingressProxy.deployment.image.pullSecret|string||image pull policy for the container |
-|gloo.ingressProxy.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo.ingressProxy.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo.ingressProxy.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
+|gloo.ingressProxy.deployment.image.repository|string|gloo-ee-envoy-wrapper|The image repository (name) for the container.|
+|gloo.ingressProxy.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.ingressProxy.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.ingressProxy.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.ingressProxy.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.ingressProxy.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo.ingressProxy.deployment.httpPort|int||HTTP port for the ingress container|
 |gloo.ingressProxy.deployment.httpsPort|int||HTTPS port for the ingress container|
 |gloo.ingressProxy.deployment.extraPorts[]|interface|||
 |gloo.ingressProxy.deployment.extraAnnotations.NAME|string|||
-|gloo.ingressProxy.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
+|gloo.ingressProxy.deployment.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
 |gloo.ingressProxy.deployment.runAsUser|float64||Explicitly set the user ID for the pod to run as. Default is 10101|
 |gloo.ingressProxy.deployment.extraIngressProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ingress proxy deployment.|
 |gloo.ingressProxy.deployment.stats|bool||Controls whether or not Envoy stats are enabled|
@@ -951,13 +969,13 @@
 |gloo.ingressProxy.service.httpsPort|int||HTTPS port for the knative/ingress proxy service|
 |gloo.ingressProxy.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.k8s.clusterName|string||cluster name to use when referencing services.|
-|gloo.accessLogger.image.tag|string||tag for the container|
-|gloo.accessLogger.image.repository|string||image name (repository) for the container.|
-|gloo.accessLogger.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo.accessLogger.image.pullPolicy|string||image pull policy for the container|
-|gloo.accessLogger.image.pullSecret|string||image pull policy for the container |
-|gloo.accessLogger.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo.accessLogger.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo.accessLogger.image.tag|string||The image tag for the container.|
+|gloo.accessLogger.image.repository|string||The image repository (name) for the container.|
+|gloo.accessLogger.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo.accessLogger.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.accessLogger.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo.accessLogger.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo.accessLogger.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo.accessLogger.port|uint|||
 |gloo.accessLogger.serviceName|string|||
 |gloo.accessLogger.enabled|bool|||
@@ -968,7 +986,7 @@
 |gloo.accessLogger.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |gloo.accessLogger.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo.accessLogger.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
-|gloo.accessLogger.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|gloo.accessLogger.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |gloo.accessLogger.fsGroup|float64||Explicitly set the group ID for volume ownership. Default is 10101|
 |gloo.accessLogger.extraAccessLoggerLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the access logger deployment.|
 |gloo.accessLogger.extraAccessLoggerAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the access logger deployment.|
@@ -1009,20 +1027,20 @@
 |gloo.accessLogger.resources.requests.memory|string||amount of memory|
 |gloo.accessLogger.resources.requests.cpu|string||amount of CPUs|
 |gloo.accessLogger.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|redis.deployment.image.tag|string|6.2.4|tag for the container|
-|redis.deployment.image.repository|string|redis|image name (repository) for the container.|
-|redis.deployment.image.registry|string|docker.io|image prefix/registry e.g. (quay.io/solo-io)|
-|redis.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|redis.deployment.image.pullSecret|string||image pull policy for the container |
-|redis.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|redis.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
-|redis.deployment.initContainer.image.tag|string|1.28|tag for the container|
-|redis.deployment.initContainer.image.repository|string|busybox|image name (repository) for the container.|
-|redis.deployment.initContainer.image.registry|string|docker.io|image prefix/registry e.g. (quay.io/solo-io)|
-|redis.deployment.initContainer.image.pullPolicy|string||image pull policy for the container|
-|redis.deployment.initContainer.image.pullSecret|string||image pull policy for the container |
-|redis.deployment.initContainer.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|redis.deployment.initContainer.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|redis.deployment.image.tag|string|6.2.4|The image tag for the container.|
+|redis.deployment.image.repository|string|redis|The image repository (name) for the container.|
+|redis.deployment.image.registry|string|docker.io|The image hostname prefix and registry, such as quay.io/solo-io.|
+|redis.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|redis.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|redis.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|redis.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|redis.deployment.initContainer.image.tag|string|1.28|The image tag for the container.|
+|redis.deployment.initContainer.image.repository|string|busybox|The image repository (name) for the container.|
+|redis.deployment.initContainer.image.registry|string|docker.io|The image hostname prefix and registry, such as quay.io/solo-io.|
+|redis.deployment.initContainer.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|redis.deployment.initContainer.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|redis.deployment.initContainer.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|redis.deployment.initContainer.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |redis.deployment.name|string|redis||
 |redis.deployment.staticPort|uint|6379||
 |redis.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 999|
@@ -1074,13 +1092,13 @@
 |redis.disabled|bool|false|If set to true, Redis service creation will be blocked. Default is false.|
 |redis.aclPrefix|string|user default +@all allkeys on >|The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password.|
 |observability.enabled|bool|true|if true, deploy observability service (default true)|
-|observability.deployment.image.tag|string|Version number, ex. 1.8.0|tag for the container|
-|observability.deployment.image.repository|string|observability-ee|image name (repository) for the container.|
-|observability.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|observability.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|observability.deployment.image.pullSecret|string||image pull policy for the container |
-|observability.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|observability.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|observability.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
+|observability.deployment.image.repository|string|observability-ee|The image repository (name) for the container.|
+|observability.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|observability.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|observability.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|observability.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|observability.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |observability.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
 |observability.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |observability.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
@@ -1154,13 +1172,13 @@
 |gloo-fed.enableMultiClusterRbac|bool|||
 |gloo-fed.glooFedApiserver.enable|bool|||
 |gloo-fed.glooFedApiserver.replicas|int|||
-|gloo-fed.glooFedApiserver.image.tag|string||tag for the container|
-|gloo-fed.glooFedApiserver.image.repository|string||image name (repository) for the container.|
-|gloo-fed.glooFedApiserver.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo-fed.glooFedApiserver.image.pullPolicy|string||image pull policy for the container|
-|gloo-fed.glooFedApiserver.image.pullSecret|string||image pull policy for the container |
-|gloo-fed.glooFedApiserver.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo-fed.glooFedApiserver.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo-fed.glooFedApiserver.image.tag|string||The image tag for the container.|
+|gloo-fed.glooFedApiserver.image.repository|string||The image repository (name) for the container.|
+|gloo-fed.glooFedApiserver.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo-fed.glooFedApiserver.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo-fed.glooFedApiserver.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo-fed.glooFedApiserver.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo-fed.glooFedApiserver.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo-fed.glooFedApiserver.port|int|||
 |gloo-fed.glooFedApiserver.healthCheckPort|int|||
 |gloo-fed.glooFedApiserver.resources.limits.memory|string||amount of memory|
@@ -1176,25 +1194,25 @@
 |gloo-fed.glooFedApiserver.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo-fed.glooFedApiserver.floatingUserId|bool|||
 |gloo-fed.glooFedApiserver.runAsUser|float64|||
-|gloo-fed.glooFedApiserver.console.image.tag|string||tag for the container|
-|gloo-fed.glooFedApiserver.console.image.repository|string||image name (repository) for the container.|
-|gloo-fed.glooFedApiserver.console.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo-fed.glooFedApiserver.console.image.pullPolicy|string||image pull policy for the container|
-|gloo-fed.glooFedApiserver.console.image.pullSecret|string||image pull policy for the container |
-|gloo-fed.glooFedApiserver.console.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo-fed.glooFedApiserver.console.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo-fed.glooFedApiserver.console.image.tag|string||The image tag for the container.|
+|gloo-fed.glooFedApiserver.console.image.repository|string||The image repository (name) for the container.|
+|gloo-fed.glooFedApiserver.console.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo-fed.glooFedApiserver.console.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo-fed.glooFedApiserver.console.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo-fed.glooFedApiserver.console.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo-fed.glooFedApiserver.console.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo-fed.glooFedApiserver.console.port|int|||
 |gloo-fed.glooFedApiserver.console.resources.limits.memory|string||amount of memory|
 |gloo-fed.glooFedApiserver.console.resources.limits.cpu|string||amount of CPUs|
 |gloo-fed.glooFedApiserver.console.resources.requests.memory|string||amount of memory|
 |gloo-fed.glooFedApiserver.console.resources.requests.cpu|string||amount of CPUs|
-|gloo-fed.glooFedApiserver.envoy.image.tag|string||tag for the container|
-|gloo-fed.glooFedApiserver.envoy.image.repository|string||image name (repository) for the container.|
-|gloo-fed.glooFedApiserver.envoy.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo-fed.glooFedApiserver.envoy.image.pullPolicy|string||image pull policy for the container|
-|gloo-fed.glooFedApiserver.envoy.image.pullSecret|string||image pull policy for the container |
-|gloo-fed.glooFedApiserver.envoy.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo-fed.glooFedApiserver.envoy.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo-fed.glooFedApiserver.envoy.image.tag|string||The image tag for the container.|
+|gloo-fed.glooFedApiserver.envoy.image.repository|string||The image repository (name) for the container.|
+|gloo-fed.glooFedApiserver.envoy.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo-fed.glooFedApiserver.envoy.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo-fed.glooFedApiserver.envoy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo-fed.glooFedApiserver.envoy.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo-fed.glooFedApiserver.envoy.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo-fed.glooFedApiserver.envoy.resources.limits.memory|string||amount of memory|
 |gloo-fed.glooFedApiserver.envoy.resources.limits.cpu|string||amount of CPUs|
 |gloo-fed.glooFedApiserver.envoy.resources.requests.memory|string||amount of memory|
@@ -1205,13 +1223,13 @@
 |gloo-fed.glooFed.resources.limits.cpu|string||amount of CPUs|
 |gloo-fed.glooFed.resources.requests.memory|string||amount of memory|
 |gloo-fed.glooFed.resources.requests.cpu|string||amount of CPUs|
-|gloo-fed.glooFed.image.tag|string||tag for the container|
-|gloo-fed.glooFed.image.repository|string||image name (repository) for the container.|
-|gloo-fed.glooFed.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo-fed.glooFed.image.pullPolicy|string||image pull policy for the container|
-|gloo-fed.glooFed.image.pullSecret|string||image pull policy for the container |
-|gloo-fed.glooFed.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo-fed.glooFed.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo-fed.glooFed.image.tag|string||The image tag for the container.|
+|gloo-fed.glooFed.image.repository|string||The image repository (name) for the container.|
+|gloo-fed.glooFed.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo-fed.glooFed.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo-fed.glooFed.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo-fed.glooFed.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo-fed.glooFed.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo-fed.glooFed.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
 |gloo-fed.glooFed.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo-fed.glooFed.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
@@ -1220,24 +1238,24 @@
 |gloo-fed.glooFed.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |gloo-fed.glooFed.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |gloo-fed.rbac.create|bool|||
-|gloo-fed.rbacWebhook.image.tag|string||tag for the container|
-|gloo-fed.rbacWebhook.image.repository|string||image name (repository) for the container.|
-|gloo-fed.rbacWebhook.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|gloo-fed.rbacWebhook.image.pullPolicy|string||image pull policy for the container|
-|gloo-fed.rbacWebhook.image.pullSecret|string||image pull policy for the container |
-|gloo-fed.rbacWebhook.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|gloo-fed.rbacWebhook.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|gloo-fed.rbacWebhook.image.tag|string||The image tag for the container.|
+|gloo-fed.rbacWebhook.image.repository|string||The image repository (name) for the container.|
+|gloo-fed.rbacWebhook.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|gloo-fed.rbacWebhook.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo-fed.rbacWebhook.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|gloo-fed.rbacWebhook.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|gloo-fed.rbacWebhook.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo-fed.rbacWebhook.resources.limits.memory|string||amount of memory|
 |gloo-fed.rbacWebhook.resources.limits.cpu|string||amount of CPUs|
 |gloo-fed.rbacWebhook.resources.requests.memory|string||amount of memory|
 |gloo-fed.rbacWebhook.resources.requests.cpu|string||amount of CPUs|
-|global.image.tag|string||tag for the container|
-|global.image.repository|string||image name (repository) for the container.|
-|global.image.registry|string|quay.io/solo-io|image prefix/registry e.g. (quay.io/solo-io)|
-|global.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|global.image.pullSecret|string||image pull policy for the container |
-|global.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|global.image.fips|bool|false|if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|global.image.tag|string||The image tag for the container.|
+|global.image.repository|string||The image repository (name) for the container.|
+|global.image.registry|string|quay.io/solo-io|The image hostname prefix and registry, such as quay.io/solo-io.|
+|global.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|global.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|global.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|global.image.fips|bool|false|If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |global.extensions|interface|||
 |global.glooRbac.create|bool|true|create rbac rules for the gloo-system service account|
 |global.glooRbac.namespaced|bool||use Roles instead of ClusterRoles|
@@ -1250,20 +1268,20 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.12.0-beta8|tag for the container|
-|global.glooMtls.sds.image.repository|string||image name (repository) for the container.|
-|global.glooMtls.sds.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|global.glooMtls.sds.image.pullPolicy|string||image pull policy for the container|
-|global.glooMtls.sds.image.pullSecret|string||image pull policy for the container |
-|global.glooMtls.sds.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|global.glooMtls.sds.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
-|global.glooMtls.envoy.image.tag|string|Version number, ex. 1.8.0|tag for the container|
-|global.glooMtls.envoy.image.repository|string|gloo-ee-envoy-wrapper|image name (repository) for the container.|
-|global.glooMtls.envoy.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|global.glooMtls.envoy.image.pullPolicy|string||image pull policy for the container|
-|global.glooMtls.envoy.image.pullSecret|string||image pull policy for the container |
-|global.glooMtls.envoy.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|global.glooMtls.envoy.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|global.glooMtls.sds.image.tag|string|1.12.0-beta9|The image tag for the container.|
+|global.glooMtls.sds.image.repository|string||The image repository (name) for the container.|
+|global.glooMtls.sds.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|global.glooMtls.sds.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|global.glooMtls.sds.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|global.glooMtls.sds.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|global.glooMtls.sds.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|global.glooMtls.envoy.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
+|global.glooMtls.envoy.image.repository|string|gloo-ee-envoy-wrapper|The image repository (name) for the container.|
+|global.glooMtls.envoy.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|global.glooMtls.envoy.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|global.glooMtls.envoy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|global.glooMtls.envoy.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|global.glooMtls.envoy.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |global.glooMtls.envoySidecarResources.limits.memory|string||amount of memory|
 |global.glooMtls.envoySidecarResources.limits.cpu|string||amount of CPUs|
 |global.glooMtls.envoySidecarResources.requests.memory|string||amount of memory|
@@ -1296,13 +1314,13 @@
 |global.extensions.extAuth.deployment.glooAddress|string|||
 |global.extensions.extAuth.deployment.glooPort|uint|9977|Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config|
 |global.extensions.extAuth.deployment.port|uint|8083||
-|global.extensions.extAuth.deployment.image.tag|string|Version number, ex. 1.8.0|tag for the container|
-|global.extensions.extAuth.deployment.image.repository|string|extauth-ee|image name (repository) for the container.|
-|global.extensions.extAuth.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|global.extensions.extAuth.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|global.extensions.extAuth.deployment.image.pullSecret|string||image pull policy for the container |
-|global.extensions.extAuth.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|global.extensions.extAuth.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|global.extensions.extAuth.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
+|global.extensions.extAuth.deployment.image.repository|string|extauth-ee|The image repository (name) for the container.|
+|global.extensions.extAuth.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|global.extensions.extAuth.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|global.extensions.extAuth.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|global.extensions.extAuth.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|global.extensions.extAuth.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |global.extensions.extAuth.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
 |global.extensions.extAuth.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |global.extensions.extAuth.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
@@ -1363,13 +1381,13 @@
 |global.extensions.extAuth.secretName|string||the name of the tls secret used to secure connections to the extauth service|
 |global.extensions.extAuth.certPath|string||location of tls termination cert, if omitted defaults to /etc/envoy/ssl/tls.crt|
 |global.extensions.extAuth.keyPath|string||location of tls termination key, if omitted defaults to /etc/envoy/ssl/tls.key|
-|global.extensions.extAuth.plugins.NAME.image.tag|string||tag for the container|
-|global.extensions.extAuth.plugins.NAME.image.repository|string||image name (repository) for the container.|
-|global.extensions.extAuth.plugins.NAME.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|global.extensions.extAuth.plugins.NAME.image.pullPolicy|string||image pull policy for the container|
-|global.extensions.extAuth.plugins.NAME.image.pullSecret|string||image pull policy for the container |
-|global.extensions.extAuth.plugins.NAME.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|global.extensions.extAuth.plugins.NAME.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|global.extensions.extAuth.plugins.NAME.image.tag|string||The image tag for the container.|
+|global.extensions.extAuth.plugins.NAME.image.repository|string||The image repository (name) for the container.|
+|global.extensions.extAuth.plugins.NAME.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|global.extensions.extAuth.plugins.NAME.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|global.extensions.extAuth.plugins.NAME.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|global.extensions.extAuth.plugins.NAME.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|global.extensions.extAuth.plugins.NAME.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |global.extensions.extAuth.envoySidecar|bool|false|if true, deploy ExtAuth as a sidecar with envoy (defaults to false)|
 |global.extensions.extAuth.standaloneDeployment|bool|true|if true, create a standalone ExtAuth deployment (defaults to true)|
 |global.extensions.extAuth.transportApiVersion|string|V3|Determines the API version for the ext_authz transport protocol that will be used by Envoy to communicate with the auth server. Defaults to 'V3''|
@@ -1392,13 +1410,13 @@
 |global.extensions.rateLimit.deployment.dynamodb.tableName|string|rate-limits|DynamoDB table name used to back rate limit service (default rate-limits)|
 |global.extensions.rateLimit.deployment.dynamodb.consistentReads|bool|true|if true, reads from DynamoDB will be strongly consistent (default false)|
 |global.extensions.rateLimit.deployment.dynamodb.batchSize|uint8|100|batch size for get requests to DynamoDB (max 100, default 100)|
-|global.extensions.rateLimit.deployment.image.tag|string|Version number, ex. 1.8.0|tag for the container|
-|global.extensions.rateLimit.deployment.image.repository|string|rate-limit-ee|image name (repository) for the container.|
-|global.extensions.rateLimit.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
-|global.extensions.rateLimit.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
-|global.extensions.rateLimit.deployment.image.pullSecret|string||image pull policy for the container |
-|global.extensions.rateLimit.deployment.image.extended|bool||if true, deploy an extended version of the container with additional debug tools|
-|global.extensions.rateLimit.deployment.image.fips|bool||if true, deploy a version of the container (for data-plane containers) built with FIPS-compliant crypto libraries (enterprise only)|
+|global.extensions.rateLimit.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
+|global.extensions.rateLimit.deployment.image.repository|string|rate-limit-ee|The image repository (name) for the container.|
+|global.extensions.rateLimit.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|global.extensions.rateLimit.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|global.extensions.rateLimit.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|global.extensions.rateLimit.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|global.extensions.rateLimit.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |global.extensions.rateLimit.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
 |global.extensions.rateLimit.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |global.extensions.rateLimit.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|

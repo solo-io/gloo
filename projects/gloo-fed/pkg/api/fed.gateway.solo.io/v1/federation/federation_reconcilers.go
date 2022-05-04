@@ -238,6 +238,219 @@ func (f *federatedGatewayReconciler) deleteAll(ownerLabel map[string]string) err
 	return nil
 }
 
+type federatedMatchableHttpGatewayReconciler struct {
+	ctx                            context.Context
+	federatedMatchableHttpGateways fed_gateway_solo_io_v1.FederatedMatchableHttpGatewayClient
+	baseClients                    gateway_solo_io_v1.MulticlusterClientset
+	statusBuilderFactory           placement.StatusBuilderFactory
+	clusterSet                     multicluster.ClusterSet
+}
+
+func NewFederatedMatchableHttpGatewayReconciler(
+	ctx context.Context,
+	federatedMatchableHttpGateways fed_gateway_solo_io_v1.FederatedMatchableHttpGatewayClient,
+	baseClients gateway_solo_io_v1.MulticlusterClientset,
+	statusBuilderFactory placement.StatusBuilderFactory,
+	clusterSet multicluster.ClusterSet,
+) controller.FederatedMatchableHttpGatewayFinalizer {
+	return &federatedMatchableHttpGatewayReconciler{
+		ctx:                            ctx,
+		federatedMatchableHttpGateways: federatedMatchableHttpGateways,
+		baseClients:                    baseClients,
+		statusBuilderFactory:           statusBuilderFactory,
+		clusterSet:                     clusterSet,
+	}
+}
+
+func (f *federatedMatchableHttpGatewayReconciler) ReconcileFederatedMatchableHttpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) (reconcile.Result, error) {
+	if !obj.NeedsReconcile() {
+		return reconcile.Result{}, nil
+	}
+
+	contextutils.LoggerFrom(f.ctx).Debugw("processing federated matchableHttpGateway", zap.Any("FederatedMatchableHttpGateway", obj))
+	statusBuilder := f.statusBuilderFactory.GetBuilder()
+
+	allClusters := f.clusterSet.ListClusters()
+
+	// Validate resource
+	for _, cluster := range obj.Spec.Placement.GetClusters() {
+		if !stringutils.ContainsString(cluster, allClusters) {
+			obj.Status.PlacementStatus = statusBuilder.
+				UpdateUnprocessed(obj.Status.PlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
+				Eject(obj.GetGeneration())
+			return reconcile.Result{}, f.federatedMatchableHttpGateways.UpdateFederatedMatchableHttpGatewayStatus(f.ctx, obj)
+		}
+	}
+	if obj.Spec.Template.GetSpec() == nil {
+		obj.Status.PlacementStatus = statusBuilder.
+			UpdateUnprocessed(obj.Status.PlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
+			Eject(obj.GetGeneration())
+		return reconcile.Result{}, f.federatedMatchableHttpGateways.UpdateFederatedMatchableHttpGatewayStatus(f.ctx, obj)
+	}
+	if obj.Spec.Template.GetMetadata() == nil {
+		obj.Status.PlacementStatus = statusBuilder.
+			UpdateUnprocessed(obj.Status.PlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
+			Eject(obj.GetGeneration())
+		return reconcile.Result{}, f.federatedMatchableHttpGateways.UpdateFederatedMatchableHttpGatewayStatus(f.ctx, obj)
+	}
+
+	// ownerLabel is used to reference Federated resources via their children.
+	ownerLabel := federation.GetOwnerLabel(obj)
+
+	spec := obj.Spec.Template.GetSpec()
+	meta := obj.Spec.Template.GetMetadata()
+	labels := federation.Merge(meta.GetLabels(), ownerLabel)
+
+	multiErr := &multierror.Error{}
+	for _, cluster := range allClusters {
+		clusterMatchableHttpGateways := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
+		if stringutils.ContainsString(cluster, obj.Spec.Placement.GetClusters()) {
+			for _, namespace := range obj.Spec.Placement.GetNamespaces() {
+
+				clusterMatchableHttpGateways.Insert(&gateway_solo_io_v1.MatchableHttpGateway{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace:   namespace,
+						Name:        meta.GetName(),
+						Labels:      labels,
+						Annotations: meta.GetAnnotations(),
+					},
+					Spec: *spec,
+				})
+			}
+		}
+
+		if err := f.ensureCluster(cluster, statusBuilder, clusterMatchableHttpGateways, ownerLabel); err != nil {
+			multiErr.Errors = append(multiErr.Errors, err)
+		}
+	}
+
+	obj.Status = fed_gateway_solo_io_v1_types.FederatedMatchableHttpGatewayStatus{
+		PlacementStatus: statusBuilder.Build(obj.GetGeneration()),
+	}
+	err := f.federatedMatchableHttpGateways.UpdateFederatedMatchableHttpGatewayStatus(f.ctx, obj)
+	if err != nil {
+		multiErr.Errors = append(multiErr.Errors, err)
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to update status on federated matchableHttpGateway", zap.Error(err))
+	}
+
+	return reconcile.Result{}, multiErr.ErrorOrNil()
+}
+
+func (f *federatedMatchableHttpGatewayReconciler) FederatedMatchableHttpGatewayFinalizerName() string {
+	return federation.HubFinalizer
+}
+
+func (f *federatedMatchableHttpGatewayReconciler) FinalizeFederatedMatchableHttpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) error {
+	return f.deleteAll(federation.GetOwnerLabel(obj))
+}
+
+// ensureCluster upserts all desired resources on the given cluster.
+// An error is returned only if a retry is expected to resolve the issue.
+func (f *federatedMatchableHttpGatewayReconciler) ensureCluster(cluster string, statusBuilder placement.StatusBuilder, desired gateway_solo_io_v1_sets.MatchableHttpGatewaySet, ownerLabel map[string]string) error {
+	clientset, err := f.baseClients.Cluster(cluster)
+	if err != nil {
+		var namespaces []string
+		for _, obj := range desired.List() {
+			namespaces = append(namespaces, obj.GetNamespace())
+		}
+
+		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
+			State:   mc_types.PlacementStatus_FAILED,
+			Message: placement.FailedToCreateClientForCluster(cluster),
+		})
+		return nil
+	}
+
+	matchableHttpGatewayClient := clientset.MatchableHttpGateways()
+
+	existingList, err := matchableHttpGatewayClient.ListMatchableHttpGateway(f.ctx, client.MatchingLabels(ownerLabel))
+	if err != nil {
+		var namespaces []string
+		for _, obj := range desired.List() {
+			namespaces = append(namespaces, obj.GetNamespace())
+		}
+
+		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
+			State:   mc_types.PlacementStatus_FAILED,
+			Message: placement.FailedToListResource("matchableHttpGateway", cluster),
+		})
+		return nil
+	}
+
+	existing := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
+	for _, matchableHttpGateway := range existingList.Items {
+		matchableHttpGatewayPointer := matchableHttpGateway
+		existing.Insert(&matchableHttpGatewayPointer)
+	}
+
+	multiErr := &multierror.Error{}
+	for _, desiredMatchableHttpGateway := range desired.List() {
+		err := matchableHttpGatewayClient.UpsertMatchableHttpGateway(f.ctx, desiredMatchableHttpGateway)
+		if err != nil && errors.IsConflict(err) {
+			multiErr.Errors = append(multiErr.Errors, err)
+			contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert matchableHttpGateway due to resource conflict", zap.Error(err))
+			statusBuilder.AddDestination(cluster, desiredMatchableHttpGateway.Namespace, mc_types.PlacementStatus_Namespace{
+				State:   mc_types.PlacementStatus_FAILED,
+				Message: placement.FailedToUpsertResourceDueToConflict("matchableHttpGateway"),
+			})
+		} else if err != nil {
+			multiErr.Errors = append(multiErr.Errors, err)
+			contextutils.LoggerFrom(f.ctx).Errorw("Failed to upsert matchableHttpGateway", zap.Error(err))
+			statusBuilder.AddDestination(cluster, desiredMatchableHttpGateway.Namespace, mc_types.PlacementStatus_Namespace{
+				State:   mc_types.PlacementStatus_FAILED,
+				Message: placement.FailedToUpsertResource("matchableHttpGateway"),
+			})
+		} else {
+			statusBuilder.AddDestination(cluster, desiredMatchableHttpGateway.Namespace, mc_types.PlacementStatus_Namespace{
+				State: mc_types.PlacementStatus_PLACED,
+			})
+		}
+	}
+
+	for _, staleMatchableHttpGateway := range existing.Difference(desired).List() {
+		err := matchableHttpGatewayClient.DeleteMatchableHttpGateway(f.ctx, client.ObjectKey{
+			Namespace: staleMatchableHttpGateway.Namespace,
+			Name:      staleMatchableHttpGateway.Name,
+		})
+		if client.IgnoreNotFound(err) != nil {
+			contextutils.LoggerFrom(f.ctx).Errorw("Failed to delete matchableHttpGateway", zap.Error(err))
+			statusBuilder.AddDestination(cluster, staleMatchableHttpGateway.Namespace, mc_types.PlacementStatus_Namespace{
+				State:   mc_types.PlacementStatus_STALE,
+				Message: placement.FailedToDeleteResource("matchableHttpGateway"),
+			})
+		}
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
+// Delete all matchableHttpGateways in the matching the ownerLabel on all clusters.
+// Used to ensure that matchableHttpGateways generated by a FederatedMatchableHttpGateway are cleaned up on delete.
+func (f *federatedMatchableHttpGatewayReconciler) deleteAll(ownerLabel map[string]string) error {
+	for _, cluster := range f.clusterSet.ListClusters() {
+		clusterClient, err := f.baseClients.Cluster(cluster)
+		if err != nil {
+			return err
+		}
+		// TODO this requires permissions in all namespaces, we could restrict to to namespaces referenced by gloo instances
+		list, err := clusterClient.MatchableHttpGateways().ListMatchableHttpGateway(f.ctx, client.MatchingLabels(ownerLabel))
+		if err != nil {
+			return err
+		}
+
+		for _, matchableHttpGateway := range list.Items {
+			err = clusterClient.MatchableHttpGateways().DeleteMatchableHttpGateway(f.ctx, client.ObjectKey{
+				Namespace: matchableHttpGateway.Namespace,
+				Name:      matchableHttpGateway.Name,
+			})
+			if client.IgnoreNotFound(err) != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 type federatedVirtualServiceReconciler struct {
 	ctx                      context.Context
 	federatedVirtualServices fed_gateway_solo_io_v1.FederatedVirtualServiceClient

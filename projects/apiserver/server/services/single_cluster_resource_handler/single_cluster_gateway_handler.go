@@ -140,6 +140,113 @@ func (h *singleClusterGatewayResourceHandler) GetGatewayYaml(ctx context.Context
 	}, nil
 }
 
+func (h *singleClusterGatewayResourceHandler) ListMatchableHttpGateways(ctx context.Context, request *rpc_edge_v1.ListMatchableHttpGatewaysRequest) (*rpc_edge_v1.ListMatchableHttpGatewaysResponse, error) {
+	var rpcMatchableHttpGateways []*rpc_edge_v1.MatchableHttpGateway
+	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
+		// List matchableHttpGateways across all gloo edge instances
+		instanceList, err := h.glooInstanceLister.ListGlooInstances(ctx)
+		if err != nil {
+			wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+			return nil, wrapped
+		}
+		for _, instance := range instanceList {
+			rpcMatchableHttpGatewayList, err := h.listMatchableHttpGatewaysForGlooInstance(ctx, instance)
+			if err != nil {
+				wrapped := eris.Wrapf(err, "Failed to list matchableHttpGateways for gloo edge instance %v", instance)
+				contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+				return nil, wrapped
+			}
+			rpcMatchableHttpGateways = append(rpcMatchableHttpGateways, rpcMatchableHttpGatewayList...)
+		}
+	} else {
+		// List matchableHttpGateways for a specific gloo edge instance
+		instance, err := h.glooInstanceLister.GetGlooInstance(ctx, request.GetGlooInstanceRef())
+		if err != nil {
+			wrapped := eris.Wrap(err, "Failed to get gloo edge instance")
+			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+			return nil, wrapped
+		}
+		rpcMatchableHttpGateways, err = h.listMatchableHttpGatewaysForGlooInstance(ctx, instance)
+		if err != nil {
+			wrapped := eris.Wrapf(err, "Failed to list matchableHttpGateways for gloo edge instance %v", instance)
+			contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+			return nil, wrapped
+		}
+	}
+
+	return &rpc_edge_v1.ListMatchableHttpGatewaysResponse{
+		MatchableHttpGateways: rpcMatchableHttpGateways,
+	}, nil
+}
+
+func (h *singleClusterGatewayResourceHandler) listMatchableHttpGatewaysForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.MatchableHttpGateway, error) {
+	var matchableHttpGatewayList []*gateway_solo_io_v1.MatchableHttpGateway
+	watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+	if len(watchedNamespaces) != 0 {
+		for _, ns := range watchedNamespaces {
+			list, err := h.gatewayClientset.MatchableHttpGateways().ListMatchableHttpGateway(ctx, client.InNamespace(ns))
+			if err != nil {
+				return nil, err
+			}
+			for i, _ := range list.Items {
+				matchableHttpGatewayList = append(matchableHttpGatewayList, &list.Items[i])
+			}
+		}
+	} else {
+		list, err := h.gatewayClientset.MatchableHttpGateways().ListMatchableHttpGateway(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for i, _ := range list.Items {
+			matchableHttpGatewayList = append(matchableHttpGatewayList, &list.Items[i])
+		}
+	}
+	sort.Slice(matchableHttpGatewayList, func(i, j int) bool {
+		x := matchableHttpGatewayList[i]
+		y := matchableHttpGatewayList[j]
+		return x.GetNamespace()+x.GetName() < y.GetNamespace()+y.GetName()
+	})
+
+	var rpcMatchableHttpGateways []*rpc_edge_v1.MatchableHttpGateway
+	glooInstanceRef := &skv2_v1.ObjectRef{
+		Name:      instance.GetMetadata().GetName(),
+		Namespace: instance.GetMetadata().GetNamespace(),
+	}
+	for _, matchableHttpGateway := range matchableHttpGatewayList {
+		rpcMatchableHttpGateways = append(rpcMatchableHttpGateways, &rpc_edge_v1.MatchableHttpGateway{
+			Metadata:     apiserverutils.ToMetadata(matchableHttpGateway.ObjectMeta),
+			GlooInstance: glooInstanceRef,
+			Spec:         &matchableHttpGateway.Spec,
+			Status:       &matchableHttpGateway.Status,
+		})
+	}
+	return rpcMatchableHttpGateways, nil
+}
+
+func (h *singleClusterGatewayResourceHandler) GetMatchableHttpGatewayYaml(ctx context.Context, request *rpc_edge_v1.GetMatchableHttpGatewayYamlRequest) (*rpc_edge_v1.GetMatchableHttpGatewayYamlResponse, error) {
+	matchableHttpGateway, err := h.gatewayClientset.MatchableHttpGateways().GetMatchableHttpGateway(ctx, client.ObjectKey{
+		Namespace: request.GetMatchableHttpGatewayRef().GetNamespace(),
+		Name:      request.GetMatchableHttpGatewayRef().GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get matchableHttpGateway")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	content, err := yaml.Marshal(matchableHttpGateway)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to marshal kube resource into yaml")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	return &rpc_edge_v1.GetMatchableHttpGatewayYamlResponse{
+		YamlData: &rpc_edge_v1.ResourceYaml{
+			Yaml: string(content),
+		},
+	}, nil
+}
+
 func (h *singleClusterGatewayResourceHandler) ListVirtualServices(ctx context.Context, request *rpc_edge_v1.ListVirtualServicesRequest) (*rpc_edge_v1.ListVirtualServicesResponse, error) {
 	var rpcVirtualServices []*rpc_edge_v1.VirtualService
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {

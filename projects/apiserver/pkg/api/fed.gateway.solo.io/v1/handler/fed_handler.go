@@ -77,6 +77,53 @@ func (k *gatewayFedResourceHandler) GetFederatedGatewayYaml(ctx context.Context,
 	}, nil
 }
 
+func (k *gatewayFedResourceHandler) ListFederatedMatchableHttpGateways(ctx context.Context, request *rpc_fed_v1.ListFederatedMatchableHttpGatewaysRequest) (*rpc_fed_v1.ListFederatedMatchableHttpGatewaysResponse, error) {
+	var rpcFederatedMatchableHttpGateways []*rpc_fed_v1.FederatedMatchableHttpGateway
+	list, err := k.gatewayFedClient.FederatedMatchableHttpGateways().ListFederatedMatchableHttpGateway(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list federatedMatchableHttpGateway")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err))
+		return nil, wrapped
+	}
+	for i, _ := range list.Items {
+		rpcFederatedMatchableHttpGateways = append(rpcFederatedMatchableHttpGateways, BuildRpcFederatedMatchableHttpGateway(&list.Items[i]))
+	}
+	return &rpc_fed_v1.ListFederatedMatchableHttpGatewaysResponse{
+		FederatedMatchableHttpGateways: rpcFederatedMatchableHttpGateways,
+	}, nil
+}
+
+func BuildRpcFederatedMatchableHttpGateway(federatedMatchableHttpGateway *gateway_solo_io_v1.FederatedMatchableHttpGateway) *rpc_fed_v1.FederatedMatchableHttpGateway {
+	return &rpc_fed_v1.FederatedMatchableHttpGateway{
+		Metadata: apiserverutils.ToMetadata(federatedMatchableHttpGateway.ObjectMeta),
+		Spec:     &federatedMatchableHttpGateway.Spec,
+		Status:   &federatedMatchableHttpGateway.Status,
+	}
+}
+
+func (k *gatewayFedResourceHandler) GetFederatedMatchableHttpGatewayYaml(ctx context.Context, request *rpc_fed_v1.GetFederatedMatchableHttpGatewayYamlRequest) (*rpc_fed_v1.GetFederatedMatchableHttpGatewayYamlResponse, error) {
+	federatedMatchableHttpGateway, err := k.gatewayFedClient.FederatedMatchableHttpGateways().GetFederatedMatchableHttpGateway(ctx, client.ObjectKey{
+		Namespace: request.GetFederatedMatchableHttpGatewayRef().GetNamespace(),
+		Name:      request.GetFederatedMatchableHttpGatewayRef().GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get FederatedMatchableHttpGateway")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	content, err := yaml.Marshal(federatedMatchableHttpGateway)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to marshal kube resource into yaml")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	return &rpc_fed_v1.GetFederatedMatchableHttpGatewayYamlResponse{
+		YamlData: &rpc_edge_v1.ResourceYaml{
+			Yaml: string(content),
+		},
+	}, nil
+}
+
 func (k *gatewayFedResourceHandler) ListFederatedVirtualServices(ctx context.Context, request *rpc_fed_v1.ListFederatedVirtualServicesRequest) (*rpc_fed_v1.ListFederatedVirtualServicesResponse, error) {
 	var rpcFederatedVirtualServices []*rpc_fed_v1.FederatedVirtualService
 	list, err := k.gatewayFedClient.FederatedVirtualServices().ListFederatedVirtualService(ctx)

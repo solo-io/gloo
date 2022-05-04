@@ -9,6 +9,7 @@
 // * Deployments
 // * DaemonSets
 // * Gateways
+// * MatchableHttpGateways
 // * VirtualServices
 // * RouteTables
 // * Upstreams
@@ -64,6 +65,7 @@ type multiClusterReconciler interface {
 	apps_v1_controllers.MulticlusterDaemonSetReconciler
 
 	gateway_solo_io_v1_controllers.MulticlusterGatewayReconciler
+	gateway_solo_io_v1_controllers.MulticlusterMatchableHttpGatewayReconciler
 	gateway_solo_io_v1_controllers.MulticlusterVirtualServiceReconciler
 	gateway_solo_io_v1_controllers.MulticlusterRouteTableReconciler
 
@@ -98,6 +100,8 @@ type ReconcileOptions struct {
 
 	// Options for reconciling Gateways
 	Gateways reconcile.Options
+	// Options for reconciling MatchableHttpGateways
+	MatchableHttpGateways reconcile.Options
 	// Options for reconciling VirtualServices
 	VirtualServices reconcile.Options
 	// Options for reconciling RouteTables
@@ -153,6 +157,8 @@ func RegisterMultiClusterReconciler(
 	apps_v1_controllers.NewMulticlusterDaemonSetReconcileLoop("DaemonSet", clusters, options.DaemonSets).AddMulticlusterDaemonSetReconciler(ctx, r, predicates...)
 
 	gateway_solo_io_v1_controllers.NewMulticlusterGatewayReconcileLoop("Gateway", clusters, options.Gateways).AddMulticlusterGatewayReconciler(ctx, r, predicates...)
+
+	gateway_solo_io_v1_controllers.NewMulticlusterMatchableHttpGatewayReconcileLoop("MatchableHttpGateway", clusters, options.MatchableHttpGateways).AddMulticlusterMatchableHttpGatewayReconciler(ctx, r, predicates...)
 
 	gateway_solo_io_v1_controllers.NewMulticlusterVirtualServiceReconcileLoop("VirtualService", clusters, options.VirtualServices).AddMulticlusterVirtualServiceReconciler(ctx, r, predicates...)
 
@@ -238,6 +244,21 @@ func (r *multiClusterReconcilerImpl) ReconcileGateway(clusterName string, obj *g
 }
 
 func (r *multiClusterReconcilerImpl) ReconcileGatewayDeletion(clusterName string, obj reconcile.Request) error {
+	ref := &sk_core_v1.ClusterObjectRef{
+		Name:        obj.Name,
+		Namespace:   obj.Namespace,
+		ClusterName: clusterName,
+	}
+	_, err := r.base.ReconcileRemoteGeneric(ref)
+	return err
+}
+
+func (r *multiClusterReconcilerImpl) ReconcileMatchableHttpGateway(clusterName string, obj *gateway_solo_io_v1.MatchableHttpGateway) (reconcile.Result, error) {
+	obj.ClusterName = clusterName
+	return r.base.ReconcileRemoteGeneric(obj)
+}
+
+func (r *multiClusterReconcilerImpl) ReconcileMatchableHttpGatewayDeletion(clusterName string, obj reconcile.Request) error {
 	ref := &sk_core_v1.ClusterObjectRef{
 		Name:        obj.Name,
 		Namespace:   obj.Namespace,
@@ -377,6 +398,7 @@ type singleClusterReconciler interface {
 	apps_v1_controllers.DaemonSetReconciler
 
 	gateway_solo_io_v1_controllers.GatewayReconciler
+	gateway_solo_io_v1_controllers.MatchableHttpGatewayReconciler
 	gateway_solo_io_v1_controllers.VirtualServiceReconciler
 	gateway_solo_io_v1_controllers.RouteTableReconciler
 
@@ -436,6 +458,9 @@ func RegisterSingleClusterReconciler(
 	}
 
 	if err := gateway_solo_io_v1_controllers.NewGatewayReconcileLoop("Gateway", mgr, options).RunGatewayReconciler(ctx, r, predicates...); err != nil {
+		return nil, err
+	}
+	if err := gateway_solo_io_v1_controllers.NewMatchableHttpGatewayReconcileLoop("MatchableHttpGateway", mgr, options).RunMatchableHttpGatewayReconciler(ctx, r, predicates...); err != nil {
 		return nil, err
 	}
 	if err := gateway_solo_io_v1_controllers.NewVirtualServiceReconcileLoop("VirtualService", mgr, options).RunVirtualServiceReconciler(ctx, r, predicates...); err != nil {
@@ -526,6 +551,19 @@ func (r *singleClusterReconcilerImpl) ReconcileGateway(obj *gateway_solo_io_v1.G
 }
 
 func (r *singleClusterReconcilerImpl) ReconcileGatewayDeletion(obj reconcile.Request) error {
+	ref := &sk_core_v1.ObjectRef{
+		Name:      obj.Name,
+		Namespace: obj.Namespace,
+	}
+	_, err := r.base.ReconcileLocalGeneric(ref)
+	return err
+}
+
+func (r *singleClusterReconcilerImpl) ReconcileMatchableHttpGateway(obj *gateway_solo_io_v1.MatchableHttpGateway) (reconcile.Result, error) {
+	return r.base.ReconcileLocalGeneric(obj)
+}
+
+func (r *singleClusterReconcilerImpl) ReconcileMatchableHttpGatewayDeletion(obj reconcile.Request) error {
 	ref := &sk_core_v1.ObjectRef{
 		Name:      obj.Name,
 		Namespace: obj.Namespace,

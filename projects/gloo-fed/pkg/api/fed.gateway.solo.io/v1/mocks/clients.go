@@ -88,6 +88,20 @@ func (mr *MockClientsetMockRecorder) FederatedGateways() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FederatedGateways", reflect.TypeOf((*MockClientset)(nil).FederatedGateways))
 }
 
+// FederatedMatchableHttpGateways mocks base method.
+func (m *MockClientset) FederatedMatchableHttpGateways() v1.FederatedMatchableHttpGatewayClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FederatedMatchableHttpGateways")
+	ret0, _ := ret[0].(v1.FederatedMatchableHttpGatewayClient)
+	return ret0
+}
+
+// FederatedMatchableHttpGateways indicates an expected call of FederatedMatchableHttpGateways.
+func (mr *MockClientsetMockRecorder) FederatedMatchableHttpGateways() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FederatedMatchableHttpGateways", reflect.TypeOf((*MockClientset)(nil).FederatedMatchableHttpGateways))
+}
+
 // FederatedRouteTables mocks base method.
 func (m *MockClientset) FederatedRouteTables() v1.FederatedRouteTableClient {
 	m.ctrl.T.Helper()
@@ -618,6 +632,510 @@ func (m *MockMulticlusterFederatedGatewayClient) Cluster(cluster string) (v1.Fed
 func (mr *MockMulticlusterFederatedGatewayClientMockRecorder) Cluster(cluster interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cluster", reflect.TypeOf((*MockMulticlusterFederatedGatewayClient)(nil).Cluster), cluster)
+}
+
+// MockFederatedMatchableHttpGatewayReader is a mock of FederatedMatchableHttpGatewayReader interface.
+type MockFederatedMatchableHttpGatewayReader struct {
+	ctrl     *gomock.Controller
+	recorder *MockFederatedMatchableHttpGatewayReaderMockRecorder
+}
+
+// MockFederatedMatchableHttpGatewayReaderMockRecorder is the mock recorder for MockFederatedMatchableHttpGatewayReader.
+type MockFederatedMatchableHttpGatewayReaderMockRecorder struct {
+	mock *MockFederatedMatchableHttpGatewayReader
+}
+
+// NewMockFederatedMatchableHttpGatewayReader creates a new mock instance.
+func NewMockFederatedMatchableHttpGatewayReader(ctrl *gomock.Controller) *MockFederatedMatchableHttpGatewayReader {
+	mock := &MockFederatedMatchableHttpGatewayReader{ctrl: ctrl}
+	mock.recorder = &MockFederatedMatchableHttpGatewayReaderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFederatedMatchableHttpGatewayReader) EXPECT() *MockFederatedMatchableHttpGatewayReaderMockRecorder {
+	return m.recorder
+}
+
+// GetFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayReader) GetFederatedMatchableHttpGateway(ctx context.Context, key client.ObjectKey) (*v1.FederatedMatchableHttpGateway, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFederatedMatchableHttpGateway", ctx, key)
+	ret0, _ := ret[0].(*v1.FederatedMatchableHttpGateway)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFederatedMatchableHttpGateway indicates an expected call of GetFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayReaderMockRecorder) GetFederatedMatchableHttpGateway(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayReader)(nil).GetFederatedMatchableHttpGateway), ctx, key)
+}
+
+// ListFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayReader) ListFederatedMatchableHttpGateway(ctx context.Context, opts ...client.ListOption) (*v1.FederatedMatchableHttpGatewayList, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(*v1.FederatedMatchableHttpGatewayList)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListFederatedMatchableHttpGateway indicates an expected call of ListFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayReaderMockRecorder) ListFederatedMatchableHttpGateway(ctx interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayReader)(nil).ListFederatedMatchableHttpGateway), varargs...)
+}
+
+// MockFederatedMatchableHttpGatewayWriter is a mock of FederatedMatchableHttpGatewayWriter interface.
+type MockFederatedMatchableHttpGatewayWriter struct {
+	ctrl     *gomock.Controller
+	recorder *MockFederatedMatchableHttpGatewayWriterMockRecorder
+}
+
+// MockFederatedMatchableHttpGatewayWriterMockRecorder is the mock recorder for MockFederatedMatchableHttpGatewayWriter.
+type MockFederatedMatchableHttpGatewayWriterMockRecorder struct {
+	mock *MockFederatedMatchableHttpGatewayWriter
+}
+
+// NewMockFederatedMatchableHttpGatewayWriter creates a new mock instance.
+func NewMockFederatedMatchableHttpGatewayWriter(ctrl *gomock.Controller) *MockFederatedMatchableHttpGatewayWriter {
+	mock := &MockFederatedMatchableHttpGatewayWriter{ctrl: ctrl}
+	mock.recorder = &MockFederatedMatchableHttpGatewayWriterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFederatedMatchableHttpGatewayWriter) EXPECT() *MockFederatedMatchableHttpGatewayWriterMockRecorder {
+	return m.recorder
+}
+
+// CreateFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayWriter) CreateFederatedMatchableHttpGateway(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, opts ...client.CreateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateFederatedMatchableHttpGateway indicates an expected call of CreateFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayWriterMockRecorder) CreateFederatedMatchableHttpGateway(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayWriter)(nil).CreateFederatedMatchableHttpGateway), varargs...)
+}
+
+// DeleteAllOfFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayWriter) DeleteAllOfFederatedMatchableHttpGateway(ctx context.Context, opts ...client.DeleteAllOfOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteAllOfFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAllOfFederatedMatchableHttpGateway indicates an expected call of DeleteAllOfFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayWriterMockRecorder) DeleteAllOfFederatedMatchableHttpGateway(ctx interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllOfFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayWriter)(nil).DeleteAllOfFederatedMatchableHttpGateway), varargs...)
+}
+
+// DeleteFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayWriter) DeleteFederatedMatchableHttpGateway(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, key}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFederatedMatchableHttpGateway indicates an expected call of DeleteFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayWriterMockRecorder) DeleteFederatedMatchableHttpGateway(ctx, key interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, key}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayWriter)(nil).DeleteFederatedMatchableHttpGateway), varargs...)
+}
+
+// PatchFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayWriter) PatchFederatedMatchableHttpGateway(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, patch client.Patch, opts ...client.PatchOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj, patch}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PatchFederatedMatchableHttpGateway indicates an expected call of PatchFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayWriterMockRecorder) PatchFederatedMatchableHttpGateway(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj, patch}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayWriter)(nil).PatchFederatedMatchableHttpGateway), varargs...)
+}
+
+// UpdateFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayWriter) UpdateFederatedMatchableHttpGateway(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedMatchableHttpGateway indicates an expected call of UpdateFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayWriterMockRecorder) UpdateFederatedMatchableHttpGateway(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayWriter)(nil).UpdateFederatedMatchableHttpGateway), varargs...)
+}
+
+// UpsertFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayWriter) UpsertFederatedMatchableHttpGateway(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, transitionFuncs ...v1.FederatedMatchableHttpGatewayTransitionFunction) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range transitionFuncs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpsertFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpsertFederatedMatchableHttpGateway indicates an expected call of UpsertFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayWriterMockRecorder) UpsertFederatedMatchableHttpGateway(ctx, obj interface{}, transitionFuncs ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, transitionFuncs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayWriter)(nil).UpsertFederatedMatchableHttpGateway), varargs...)
+}
+
+// MockFederatedMatchableHttpGatewayStatusWriter is a mock of FederatedMatchableHttpGatewayStatusWriter interface.
+type MockFederatedMatchableHttpGatewayStatusWriter struct {
+	ctrl     *gomock.Controller
+	recorder *MockFederatedMatchableHttpGatewayStatusWriterMockRecorder
+}
+
+// MockFederatedMatchableHttpGatewayStatusWriterMockRecorder is the mock recorder for MockFederatedMatchableHttpGatewayStatusWriter.
+type MockFederatedMatchableHttpGatewayStatusWriterMockRecorder struct {
+	mock *MockFederatedMatchableHttpGatewayStatusWriter
+}
+
+// NewMockFederatedMatchableHttpGatewayStatusWriter creates a new mock instance.
+func NewMockFederatedMatchableHttpGatewayStatusWriter(ctrl *gomock.Controller) *MockFederatedMatchableHttpGatewayStatusWriter {
+	mock := &MockFederatedMatchableHttpGatewayStatusWriter{ctrl: ctrl}
+	mock.recorder = &MockFederatedMatchableHttpGatewayStatusWriterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFederatedMatchableHttpGatewayStatusWriter) EXPECT() *MockFederatedMatchableHttpGatewayStatusWriterMockRecorder {
+	return m.recorder
+}
+
+// PatchFederatedMatchableHttpGatewayStatus mocks base method.
+func (m *MockFederatedMatchableHttpGatewayStatusWriter) PatchFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, patch client.Patch, opts ...client.PatchOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj, patch}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchFederatedMatchableHttpGatewayStatus", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PatchFederatedMatchableHttpGatewayStatus indicates an expected call of PatchFederatedMatchableHttpGatewayStatus.
+func (mr *MockFederatedMatchableHttpGatewayStatusWriterMockRecorder) PatchFederatedMatchableHttpGatewayStatus(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj, patch}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedMatchableHttpGatewayStatus", reflect.TypeOf((*MockFederatedMatchableHttpGatewayStatusWriter)(nil).PatchFederatedMatchableHttpGatewayStatus), varargs...)
+}
+
+// UpdateFederatedMatchableHttpGatewayStatus mocks base method.
+func (m *MockFederatedMatchableHttpGatewayStatusWriter) UpdateFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedMatchableHttpGatewayStatus", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedMatchableHttpGatewayStatus indicates an expected call of UpdateFederatedMatchableHttpGatewayStatus.
+func (mr *MockFederatedMatchableHttpGatewayStatusWriterMockRecorder) UpdateFederatedMatchableHttpGatewayStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedMatchableHttpGatewayStatus", reflect.TypeOf((*MockFederatedMatchableHttpGatewayStatusWriter)(nil).UpdateFederatedMatchableHttpGatewayStatus), varargs...)
+}
+
+// MockFederatedMatchableHttpGatewayClient is a mock of FederatedMatchableHttpGatewayClient interface.
+type MockFederatedMatchableHttpGatewayClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockFederatedMatchableHttpGatewayClientMockRecorder
+}
+
+// MockFederatedMatchableHttpGatewayClientMockRecorder is the mock recorder for MockFederatedMatchableHttpGatewayClient.
+type MockFederatedMatchableHttpGatewayClientMockRecorder struct {
+	mock *MockFederatedMatchableHttpGatewayClient
+}
+
+// NewMockFederatedMatchableHttpGatewayClient creates a new mock instance.
+func NewMockFederatedMatchableHttpGatewayClient(ctrl *gomock.Controller) *MockFederatedMatchableHttpGatewayClient {
+	mock := &MockFederatedMatchableHttpGatewayClient{ctrl: ctrl}
+	mock.recorder = &MockFederatedMatchableHttpGatewayClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFederatedMatchableHttpGatewayClient) EXPECT() *MockFederatedMatchableHttpGatewayClientMockRecorder {
+	return m.recorder
+}
+
+// CreateFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayClient) CreateFederatedMatchableHttpGateway(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, opts ...client.CreateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateFederatedMatchableHttpGateway indicates an expected call of CreateFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayClientMockRecorder) CreateFederatedMatchableHttpGateway(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayClient)(nil).CreateFederatedMatchableHttpGateway), varargs...)
+}
+
+// DeleteAllOfFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayClient) DeleteAllOfFederatedMatchableHttpGateway(ctx context.Context, opts ...client.DeleteAllOfOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteAllOfFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAllOfFederatedMatchableHttpGateway indicates an expected call of DeleteAllOfFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayClientMockRecorder) DeleteAllOfFederatedMatchableHttpGateway(ctx interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllOfFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayClient)(nil).DeleteAllOfFederatedMatchableHttpGateway), varargs...)
+}
+
+// DeleteFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayClient) DeleteFederatedMatchableHttpGateway(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, key}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFederatedMatchableHttpGateway indicates an expected call of DeleteFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayClientMockRecorder) DeleteFederatedMatchableHttpGateway(ctx, key interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, key}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayClient)(nil).DeleteFederatedMatchableHttpGateway), varargs...)
+}
+
+// GetFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayClient) GetFederatedMatchableHttpGateway(ctx context.Context, key client.ObjectKey) (*v1.FederatedMatchableHttpGateway, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFederatedMatchableHttpGateway", ctx, key)
+	ret0, _ := ret[0].(*v1.FederatedMatchableHttpGateway)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFederatedMatchableHttpGateway indicates an expected call of GetFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayClientMockRecorder) GetFederatedMatchableHttpGateway(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayClient)(nil).GetFederatedMatchableHttpGateway), ctx, key)
+}
+
+// ListFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayClient) ListFederatedMatchableHttpGateway(ctx context.Context, opts ...client.ListOption) (*v1.FederatedMatchableHttpGatewayList, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(*v1.FederatedMatchableHttpGatewayList)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListFederatedMatchableHttpGateway indicates an expected call of ListFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayClientMockRecorder) ListFederatedMatchableHttpGateway(ctx interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayClient)(nil).ListFederatedMatchableHttpGateway), varargs...)
+}
+
+// PatchFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayClient) PatchFederatedMatchableHttpGateway(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, patch client.Patch, opts ...client.PatchOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj, patch}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PatchFederatedMatchableHttpGateway indicates an expected call of PatchFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayClientMockRecorder) PatchFederatedMatchableHttpGateway(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj, patch}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayClient)(nil).PatchFederatedMatchableHttpGateway), varargs...)
+}
+
+// PatchFederatedMatchableHttpGatewayStatus mocks base method.
+func (m *MockFederatedMatchableHttpGatewayClient) PatchFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, patch client.Patch, opts ...client.PatchOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj, patch}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PatchFederatedMatchableHttpGatewayStatus", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PatchFederatedMatchableHttpGatewayStatus indicates an expected call of PatchFederatedMatchableHttpGatewayStatus.
+func (mr *MockFederatedMatchableHttpGatewayClientMockRecorder) PatchFederatedMatchableHttpGatewayStatus(ctx, obj, patch interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj, patch}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchFederatedMatchableHttpGatewayStatus", reflect.TypeOf((*MockFederatedMatchableHttpGatewayClient)(nil).PatchFederatedMatchableHttpGatewayStatus), varargs...)
+}
+
+// UpdateFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayClient) UpdateFederatedMatchableHttpGateway(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedMatchableHttpGateway indicates an expected call of UpdateFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayClientMockRecorder) UpdateFederatedMatchableHttpGateway(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayClient)(nil).UpdateFederatedMatchableHttpGateway), varargs...)
+}
+
+// UpdateFederatedMatchableHttpGatewayStatus mocks base method.
+func (m *MockFederatedMatchableHttpGatewayClient) UpdateFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, opts ...client.UpdateOption) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFederatedMatchableHttpGatewayStatus", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFederatedMatchableHttpGatewayStatus indicates an expected call of UpdateFederatedMatchableHttpGatewayStatus.
+func (mr *MockFederatedMatchableHttpGatewayClientMockRecorder) UpdateFederatedMatchableHttpGatewayStatus(ctx, obj interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFederatedMatchableHttpGatewayStatus", reflect.TypeOf((*MockFederatedMatchableHttpGatewayClient)(nil).UpdateFederatedMatchableHttpGatewayStatus), varargs...)
+}
+
+// UpsertFederatedMatchableHttpGateway mocks base method.
+func (m *MockFederatedMatchableHttpGatewayClient) UpsertFederatedMatchableHttpGateway(ctx context.Context, obj *v1.FederatedMatchableHttpGateway, transitionFuncs ...v1.FederatedMatchableHttpGatewayTransitionFunction) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, obj}
+	for _, a := range transitionFuncs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpsertFederatedMatchableHttpGateway", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpsertFederatedMatchableHttpGateway indicates an expected call of UpsertFederatedMatchableHttpGateway.
+func (mr *MockFederatedMatchableHttpGatewayClientMockRecorder) UpsertFederatedMatchableHttpGateway(ctx, obj interface{}, transitionFuncs ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, obj}, transitionFuncs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertFederatedMatchableHttpGateway", reflect.TypeOf((*MockFederatedMatchableHttpGatewayClient)(nil).UpsertFederatedMatchableHttpGateway), varargs...)
+}
+
+// MockMulticlusterFederatedMatchableHttpGatewayClient is a mock of MulticlusterFederatedMatchableHttpGatewayClient interface.
+type MockMulticlusterFederatedMatchableHttpGatewayClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockMulticlusterFederatedMatchableHttpGatewayClientMockRecorder
+}
+
+// MockMulticlusterFederatedMatchableHttpGatewayClientMockRecorder is the mock recorder for MockMulticlusterFederatedMatchableHttpGatewayClient.
+type MockMulticlusterFederatedMatchableHttpGatewayClientMockRecorder struct {
+	mock *MockMulticlusterFederatedMatchableHttpGatewayClient
+}
+
+// NewMockMulticlusterFederatedMatchableHttpGatewayClient creates a new mock instance.
+func NewMockMulticlusterFederatedMatchableHttpGatewayClient(ctrl *gomock.Controller) *MockMulticlusterFederatedMatchableHttpGatewayClient {
+	mock := &MockMulticlusterFederatedMatchableHttpGatewayClient{ctrl: ctrl}
+	mock.recorder = &MockMulticlusterFederatedMatchableHttpGatewayClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockMulticlusterFederatedMatchableHttpGatewayClient) EXPECT() *MockMulticlusterFederatedMatchableHttpGatewayClientMockRecorder {
+	return m.recorder
+}
+
+// Cluster mocks base method.
+func (m *MockMulticlusterFederatedMatchableHttpGatewayClient) Cluster(cluster string) (v1.FederatedMatchableHttpGatewayClient, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Cluster", cluster)
+	ret0, _ := ret[0].(v1.FederatedMatchableHttpGatewayClient)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Cluster indicates an expected call of Cluster.
+func (mr *MockMulticlusterFederatedMatchableHttpGatewayClientMockRecorder) Cluster(cluster interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cluster", reflect.TypeOf((*MockMulticlusterFederatedMatchableHttpGatewayClient)(nil).Cluster), cluster)
 }
 
 // MockFederatedVirtualServiceReader is a mock of FederatedVirtualServiceReader interface.

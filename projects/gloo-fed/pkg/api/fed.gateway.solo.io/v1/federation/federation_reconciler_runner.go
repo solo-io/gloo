@@ -38,6 +38,19 @@ func Initialize(
 		return err
 	}
 
+	federatedMatchableHttpGateways := NewFederatedMatchableHttpGatewayReconciler(
+		ctx,
+		fed_gateway_solo_io_v1.NewClientset(localManager.GetClient()).FederatedMatchableHttpGateways(),
+		baseMCClientset,
+		placement.NewFactory(podName),
+		clusterSet,
+	)
+	federatedMatchableHttpGatewayReconciler := fed_gateway_solo_io_v1_controller.NewFederatedMatchableHttpGatewayReconcileLoop("federatedMatchableHttpGateway", localManager, reconcile.Options{})
+	if err := federatedMatchableHttpGatewayReconciler.RunFederatedMatchableHttpGatewayReconciler(ctx, federatedMatchableHttpGateways); err != nil {
+		contextutils.LoggerFrom(ctx).Errorw("Error running FederatedMatchableHttpGateway reconciler", zap.Error(err))
+		return err
+	}
+
 	federatedVirtualServices := NewFederatedVirtualServiceReconciler(
 		ctx,
 		fed_gateway_solo_io_v1.NewClientset(localManager.GetClient()).FederatedVirtualServices(),

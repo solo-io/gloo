@@ -90,6 +90,70 @@ func (m *Gateway) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *MatchableHttpGateway) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*MatchableHttpGateway)
+	if !ok {
+		that2, ok := that.(MatchableHttpGateway)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetMetadata()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMetadata()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMetadata(), target.GetMetadata()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetSpec()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSpec()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSpec(), target.GetSpec()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetStatus()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetStatus()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetStatus(), target.GetStatus()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetGlooInstance()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGlooInstance()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGlooInstance(), target.GetGlooInstance()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *VirtualService) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -335,6 +399,149 @@ func (m *GetGatewayYamlResponse) Equal(that interface{}) bool {
 	target, ok := that.(*GetGatewayYamlResponse)
 	if !ok {
 		that2, ok := that.(GetGatewayYamlResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetYamlData()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetYamlData()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetYamlData(), target.GetYamlData()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ListMatchableHttpGatewaysRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ListMatchableHttpGatewaysRequest)
+	if !ok {
+		that2, ok := that.(ListMatchableHttpGatewaysRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetGlooInstanceRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGlooInstanceRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGlooInstanceRef(), target.GetGlooInstanceRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ListMatchableHttpGatewaysResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ListMatchableHttpGatewaysResponse)
+	if !ok {
+		that2, ok := that.(ListMatchableHttpGatewaysResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if len(m.GetMatchableHttpGateways()) != len(target.GetMatchableHttpGateways()) {
+		return false
+	}
+	for idx, v := range m.GetMatchableHttpGateways() {
+
+		if h, ok := interface{}(v).(equality.Equalizer); ok {
+			if !h.Equal(target.GetMatchableHttpGateways()[idx]) {
+				return false
+			}
+		} else {
+			if !proto.Equal(v, target.GetMatchableHttpGateways()[idx]) {
+				return false
+			}
+		}
+
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetMatchableHttpGatewayYamlRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetMatchableHttpGatewayYamlRequest)
+	if !ok {
+		that2, ok := that.(GetMatchableHttpGatewayYamlRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetMatchableHttpGatewayRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMatchableHttpGatewayRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMatchableHttpGatewayRef(), target.GetMatchableHttpGatewayRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetMatchableHttpGatewayYamlResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetMatchableHttpGatewayYamlResponse)
+	if !ok {
+		that2, ok := that.(GetMatchableHttpGatewayYamlResponse)
 		if ok {
 			target = &that2
 		} else {

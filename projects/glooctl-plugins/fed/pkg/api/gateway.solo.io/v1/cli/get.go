@@ -69,6 +69,57 @@ func Gateway(opts *options.Options) *cobra.Command {
 	return cmd
 }
 
+func MatchableHttpGateway(opts *options.Options) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     constants.MATCHABLE_HTTP_GATEWAY_COMMAND.Use,
+		Aliases: constants.MATCHABLE_HTTP_GATEWAY_COMMAND.Aliases,
+		Short:   "list MatchableHttpGateways across all clusters",
+		Long:    "usage: glooctl fed get matchablehttpgateway [NAME] [--namespace=namespace] [-o FORMAT]",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			flag.Parse()
+			portFwd, err := cliutil.PortForward(opts.Namespace, "deploy/gloo-fed-console", opts.ApiserverPort, opts.ApiserverPort, false)
+			if err != nil {
+				return err
+			}
+			defer func() {
+				if portFwd.Process != nil {
+					portFwd.Process.Kill()
+					portFwd.Process.Release()
+				}
+			}()
+			grpcOpts := []grpc.DialOption{
+				grpc.WithInsecure(),
+				grpc.WithBlock(),
+			}
+			serverAddr := "localhost:" + opts.ApiserverPort
+			ctx, _ := context.WithTimeout(opts.Ctx, 10*time.Second)
+			conn, err := grpc.DialContext(ctx, serverAddr, grpcOpts...)
+			if err != nil {
+				return err
+			}
+			defer conn.Close()
+			client := rpc_edge_v1.NewGatewayResourceApiClient(conn)
+			matchableHttpGateways, err := client.ListMatchableHttpGateways(opts.Ctx, &rpc_edge_v1.ListMatchableHttpGatewaysRequest{})
+			if err != nil {
+				return err
+			}
+
+			table := tablewriter.NewWriter(os.Stdout)
+			table.SetHeader([]string{"CLUSTER", "NAMESPACE", "NAME"})
+			for _, v := range matchableHttpGateways.GetMatchableHttpGateways() {
+				table.Append([]string{v.GetMetadata().GetClusterName(), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
+			}
+			if table.NumLines() == 0 {
+				fmt.Printf("No resources found.\n")
+			} else {
+				table.Render()
+			}
+			return nil
+		},
+	}
+	return cmd
+}
+
 func VirtualService(opts *options.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     constants.VIRTUAL_SERVICE_COMMAND.Use,

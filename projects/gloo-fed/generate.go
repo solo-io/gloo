@@ -31,6 +31,7 @@ var (
 			Version: "v1",
 		}: {
 			"FederatedGateway",
+			"FederatedMatchableHttpGateway",
 			"FederatedRouteTable",
 			"FederatedVirtualService",
 		},

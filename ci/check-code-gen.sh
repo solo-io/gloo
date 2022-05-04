@@ -19,8 +19,7 @@ make install-go-tools
 set +e
 
 # Ensure that the gloo and solo-apis dependencies are in lockstep
-GLOO_VERSION="$(echo $(go list -m github.com/solo-io/gloo) | cut -d' ' -f2)"
-go get github.com/solo-io/solo-apis@gloo-$GLOO_VERSION
+make check-solo-apis
 
 make generate-all -B  > /dev/null
 

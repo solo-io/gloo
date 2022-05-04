@@ -28,6 +28,24 @@ GatewayResourceApi.GetGatewayYaml = {
   responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayYamlResponse
 };
 
+GatewayResourceApi.ListMatchableHttpGateways = {
+  methodName: "ListMatchableHttpGateways",
+  service: GatewayResourceApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableHttpGatewaysRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableHttpGatewaysResponse
+};
+
+GatewayResourceApi.GetMatchableHttpGatewayYaml = {
+  methodName: "GetMatchableHttpGatewayYaml",
+  service: GatewayResourceApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlResponse
+};
+
 GatewayResourceApi.ListVirtualServices = {
   methodName: "ListVirtualServices",
   service: GatewayResourceApi,
@@ -107,6 +125,68 @@ GatewayResourceApiClient.prototype.getGatewayYaml = function getGatewayYaml(requ
     callback = arguments[1];
   }
   var client = grpc.unary(GatewayResourceApi.GetGatewayYaml, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+GatewayResourceApiClient.prototype.listMatchableHttpGateways = function listMatchableHttpGateways(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(GatewayResourceApi.ListMatchableHttpGateways, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+GatewayResourceApiClient.prototype.getMatchableHttpGatewayYaml = function getMatchableHttpGatewayYaml(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(GatewayResourceApi.GetMatchableHttpGatewayYaml, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

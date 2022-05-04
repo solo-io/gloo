@@ -329,6 +329,8 @@ func ApplyPermissionsForGlooFedServiceAccounts(permissions *manifesttestutils.Se
 		[]string{
 			"federatedgateways",
 			"federatedgateways/status",
+			"federatedmatchablehttpgateways",
+			"federatedmatchablehttpgateways/status",
 			"federatedroutetables",
 			"federatedroutetables/status",
 			"federatedvirtualservices",
@@ -398,6 +400,8 @@ func ApplyPermissionsForGlooFedConsoleServiceAccounts(permissions *manifesttestu
 		[]string{
 			"federatedgateways",
 			"federatedgateways/status",
+			"federatedmatchablehttpgateways",
+			"federatedmatchablehttpgateways/status",
 			"federatedroutetables",
 			"federatedroutetables/status",
 			"federatedvirtualservices",

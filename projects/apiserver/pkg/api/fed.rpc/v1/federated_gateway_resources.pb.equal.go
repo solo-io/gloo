@@ -80,6 +80,60 @@ func (m *FederatedGateway) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *FederatedMatchableHttpGateway) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*FederatedMatchableHttpGateway)
+	if !ok {
+		that2, ok := that.(FederatedMatchableHttpGateway)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetMetadata()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMetadata()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMetadata(), target.GetMetadata()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetSpec()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSpec()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSpec(), target.GetSpec()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetStatus()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetStatus()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetStatus(), target.GetStatus()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *FederatedVirtualService) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -295,6 +349,139 @@ func (m *GetFederatedGatewayYamlResponse) Equal(that interface{}) bool {
 	target, ok := that.(*GetFederatedGatewayYamlResponse)
 	if !ok {
 		that2, ok := that.(GetFederatedGatewayYamlResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetYamlData()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetYamlData()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetYamlData(), target.GetYamlData()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ListFederatedMatchableHttpGatewaysRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ListFederatedMatchableHttpGatewaysRequest)
+	if !ok {
+		that2, ok := that.(ListFederatedMatchableHttpGatewaysRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *ListFederatedMatchableHttpGatewaysResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*ListFederatedMatchableHttpGatewaysResponse)
+	if !ok {
+		that2, ok := that.(ListFederatedMatchableHttpGatewaysResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if len(m.GetFederatedMatchableHttpGateways()) != len(target.GetFederatedMatchableHttpGateways()) {
+		return false
+	}
+	for idx, v := range m.GetFederatedMatchableHttpGateways() {
+
+		if h, ok := interface{}(v).(equality.Equalizer); ok {
+			if !h.Equal(target.GetFederatedMatchableHttpGateways()[idx]) {
+				return false
+			}
+		} else {
+			if !proto.Equal(v, target.GetFederatedMatchableHttpGateways()[idx]) {
+				return false
+			}
+		}
+
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetFederatedMatchableHttpGatewayYamlRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetFederatedMatchableHttpGatewayYamlRequest)
+	if !ok {
+		that2, ok := that.(GetFederatedMatchableHttpGatewayYamlRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetFederatedMatchableHttpGatewayRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetFederatedMatchableHttpGatewayRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetFederatedMatchableHttpGatewayRef(), target.GetFederatedMatchableHttpGatewayRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetFederatedMatchableHttpGatewayYamlResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetFederatedMatchableHttpGatewayYamlResponse)
+	if !ok {
+		that2, ok := that.(GetFederatedMatchableHttpGatewayYamlResponse)
 		if ok {
 			target = &that2
 		} else {

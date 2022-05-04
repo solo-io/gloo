@@ -171,6 +171,8 @@ grafana:
   defaultInstallationEnabled: false
 gloo-fed:
   enabled: false
+  glooFedApiserver:
+    enable: false
 gloo:
   gatewayProxies:
     gatewayProxy:

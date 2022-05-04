@@ -28,6 +28,24 @@ FederatedGatewayResourceApi.GetFederatedGatewayYaml = {
   responseType: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedGatewayYamlResponse
 };
 
+FederatedGatewayResourceApi.ListFederatedMatchableHttpGateways = {
+  methodName: "ListFederatedMatchableHttpGateways",
+  service: FederatedGatewayResourceApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.ListFederatedMatchableHttpGatewaysRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.ListFederatedMatchableHttpGatewaysResponse
+};
+
+FederatedGatewayResourceApi.GetFederatedMatchableHttpGatewayYaml = {
+  methodName: "GetFederatedMatchableHttpGatewayYaml",
+  service: FederatedGatewayResourceApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedMatchableHttpGatewayYamlRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_fed_rpc_v1_federated_gateway_resources_pb.GetFederatedMatchableHttpGatewayYamlResponse
+};
+
 FederatedGatewayResourceApi.ListFederatedVirtualServices = {
   methodName: "ListFederatedVirtualServices",
   service: FederatedGatewayResourceApi,
@@ -107,6 +125,68 @@ FederatedGatewayResourceApiClient.prototype.getFederatedGatewayYaml = function g
     callback = arguments[1];
   }
   var client = grpc.unary(FederatedGatewayResourceApi.GetFederatedGatewayYaml, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+FederatedGatewayResourceApiClient.prototype.listFederatedMatchableHttpGateways = function listFederatedMatchableHttpGateways(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(FederatedGatewayResourceApi.ListFederatedMatchableHttpGateways, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+FederatedGatewayResourceApiClient.prototype.getFederatedMatchableHttpGatewayYaml = function getFederatedMatchableHttpGatewayYaml(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(FederatedGatewayResourceApi.GetFederatedMatchableHttpGatewayYaml, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

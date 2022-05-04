@@ -37,6 +37,7 @@ type TypedParser interface {
 
 	// Parsers for fed.gateway.solo.io/v1 types.
 	ParseFederatedGateway(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedGateway) ([]*v1alpha1.Placement, error)
+	ParseFederatedMatchableHttpGateway(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedMatchableHttpGateway) ([]*v1alpha1.Placement, error)
 	ParseFederatedVirtualService(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedVirtualService) ([]*v1alpha1.Placement, error)
 	ParseFederatedRouteTable(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedRouteTable) ([]*v1alpha1.Placement, error)
 
@@ -79,6 +80,9 @@ func (p *parser) Parse(ctx context.Context, rawObj []byte) ([]*v1alpha1.Placemen
 
 	case *fed_gateway_solo_io_v1_types.FederatedGateway:
 		return p.typedParser.ParseFederatedGateway(ctx, obj.(*fed_gateway_solo_io_v1_types.FederatedGateway))
+
+	case *fed_gateway_solo_io_v1_types.FederatedMatchableHttpGateway:
+		return p.typedParser.ParseFederatedMatchableHttpGateway(ctx, obj.(*fed_gateway_solo_io_v1_types.FederatedMatchableHttpGateway))
 
 	case *fed_gateway_solo_io_v1_types.FederatedVirtualService:
 		return p.typedParser.ParseFederatedVirtualService(ctx, obj.(*fed_gateway_solo_io_v1_types.FederatedVirtualService))

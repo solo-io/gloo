@@ -134,6 +134,123 @@ func (r genericFederatedGatewayFinalizer) Finalize(object ezkube.Object) error {
 	return r.finalizingReconciler.FinalizeFederatedGateway(obj)
 }
 
+// Reconcile Upsert events for the FederatedMatchableHttpGateway Resource.
+// implemented by the user
+type FederatedMatchableHttpGatewayReconciler interface {
+	ReconcileFederatedMatchableHttpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) (reconcile.Result, error)
+}
+
+// Reconcile deletion events for the FederatedMatchableHttpGateway Resource.
+// Deletion receives a reconcile.Request as we cannot guarantee the last state of the object
+// before being deleted.
+// implemented by the user
+type FederatedMatchableHttpGatewayDeletionReconciler interface {
+	ReconcileFederatedMatchableHttpGatewayDeletion(req reconcile.Request) error
+}
+
+type FederatedMatchableHttpGatewayReconcilerFuncs struct {
+	OnReconcileFederatedMatchableHttpGateway         func(obj *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) (reconcile.Result, error)
+	OnReconcileFederatedMatchableHttpGatewayDeletion func(req reconcile.Request) error
+}
+
+func (f *FederatedMatchableHttpGatewayReconcilerFuncs) ReconcileFederatedMatchableHttpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) (reconcile.Result, error) {
+	if f.OnReconcileFederatedMatchableHttpGateway == nil {
+		return reconcile.Result{}, nil
+	}
+	return f.OnReconcileFederatedMatchableHttpGateway(obj)
+}
+
+func (f *FederatedMatchableHttpGatewayReconcilerFuncs) ReconcileFederatedMatchableHttpGatewayDeletion(req reconcile.Request) error {
+	if f.OnReconcileFederatedMatchableHttpGatewayDeletion == nil {
+		return nil
+	}
+	return f.OnReconcileFederatedMatchableHttpGatewayDeletion(req)
+}
+
+// Reconcile and finalize the FederatedMatchableHttpGateway Resource
+// implemented by the user
+type FederatedMatchableHttpGatewayFinalizer interface {
+	FederatedMatchableHttpGatewayReconciler
+
+	// name of the finalizer used by this handler.
+	// finalizer names should be unique for a single task
+	FederatedMatchableHttpGatewayFinalizerName() string
+
+	// finalize the object before it is deleted.
+	// Watchers created with a finalizing handler will a
+	FinalizeFederatedMatchableHttpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) error
+}
+
+type FederatedMatchableHttpGatewayReconcileLoop interface {
+	RunFederatedMatchableHttpGatewayReconciler(ctx context.Context, rec FederatedMatchableHttpGatewayReconciler, predicates ...predicate.Predicate) error
+}
+
+type federatedMatchableHttpGatewayReconcileLoop struct {
+	loop reconcile.Loop
+}
+
+func NewFederatedMatchableHttpGatewayReconcileLoop(name string, mgr manager.Manager, options reconcile.Options) FederatedMatchableHttpGatewayReconcileLoop {
+	return &federatedMatchableHttpGatewayReconcileLoop{
+		// empty cluster indicates this reconciler is built for the local cluster
+		loop: reconcile.NewLoop(name, "", mgr, &fed_gateway_solo_io_v1.FederatedMatchableHttpGateway{}, options),
+	}
+}
+
+func (c *federatedMatchableHttpGatewayReconcileLoop) RunFederatedMatchableHttpGatewayReconciler(ctx context.Context, reconciler FederatedMatchableHttpGatewayReconciler, predicates ...predicate.Predicate) error {
+	genericReconciler := genericFederatedMatchableHttpGatewayReconciler{
+		reconciler: reconciler,
+	}
+
+	var reconcilerWrapper reconcile.Reconciler
+	if finalizingReconciler, ok := reconciler.(FederatedMatchableHttpGatewayFinalizer); ok {
+		reconcilerWrapper = genericFederatedMatchableHttpGatewayFinalizer{
+			genericFederatedMatchableHttpGatewayReconciler: genericReconciler,
+			finalizingReconciler:                           finalizingReconciler,
+		}
+	} else {
+		reconcilerWrapper = genericReconciler
+	}
+	return c.loop.RunReconciler(ctx, reconcilerWrapper, predicates...)
+}
+
+// genericFederatedMatchableHttpGatewayHandler implements a generic reconcile.Reconciler
+type genericFederatedMatchableHttpGatewayReconciler struct {
+	reconciler FederatedMatchableHttpGatewayReconciler
+}
+
+func (r genericFederatedMatchableHttpGatewayReconciler) Reconcile(object ezkube.Object) (reconcile.Result, error) {
+	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedMatchableHttpGateway)
+	if !ok {
+		return reconcile.Result{}, errors.Errorf("internal error: FederatedMatchableHttpGateway handler received event for %T", object)
+	}
+	return r.reconciler.ReconcileFederatedMatchableHttpGateway(obj)
+}
+
+func (r genericFederatedMatchableHttpGatewayReconciler) ReconcileDeletion(request reconcile.Request) error {
+	if deletionReconciler, ok := r.reconciler.(FederatedMatchableHttpGatewayDeletionReconciler); ok {
+		return deletionReconciler.ReconcileFederatedMatchableHttpGatewayDeletion(request)
+	}
+	return nil
+}
+
+// genericFederatedMatchableHttpGatewayFinalizer implements a generic reconcile.FinalizingReconciler
+type genericFederatedMatchableHttpGatewayFinalizer struct {
+	genericFederatedMatchableHttpGatewayReconciler
+	finalizingReconciler FederatedMatchableHttpGatewayFinalizer
+}
+
+func (r genericFederatedMatchableHttpGatewayFinalizer) FinalizerName() string {
+	return r.finalizingReconciler.FederatedMatchableHttpGatewayFinalizerName()
+}
+
+func (r genericFederatedMatchableHttpGatewayFinalizer) Finalize(object ezkube.Object) error {
+	obj, ok := object.(*fed_gateway_solo_io_v1.FederatedMatchableHttpGateway)
+	if !ok {
+		return errors.Errorf("internal error: FederatedMatchableHttpGateway handler received event for %T", object)
+	}
+	return r.finalizingReconciler.FinalizeFederatedMatchableHttpGateway(obj)
+}
+
 // Reconcile Upsert events for the FederatedVirtualService Resource.
 // implemented by the user
 type FederatedVirtualServiceReconciler interface {

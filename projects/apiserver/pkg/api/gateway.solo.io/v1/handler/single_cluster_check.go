@@ -59,6 +59,51 @@ func GetGatewaySummary(ctx context.Context, gatewayClient types.GatewayClient, w
 	return summary
 }
 
+func GetMatchableHttpGatewaySummary(ctx context.Context, matchableHttpGatewayClient types.MatchableHttpGatewayClient, watchedNamespaces []string) *rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary {
+	summary := &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{}
+
+	matchableHttpGatewayList, err := matchableHttpGatewayClient.ListMatchableHttpGateway(ctx)
+	if err != nil {
+		contextutils.LoggerFrom(ctx).Warnw("Failed to get MatchableHttpGateway summary", zap.Error(err), zap.Any("watchedNamespaces", watchedNamespaces))
+		return summary
+	}
+
+	for _, matchableHttpGateway := range matchableHttpGatewayList.Items {
+		matchableHttpGateway := matchableHttpGateway
+
+		// If the resource is not in a watched namespace, continue
+		if len(watchedNamespaces) > 0 && !stringutils.ContainsString(matchableHttpGateway.Namespace, watchedNamespaces) {
+			continue
+		}
+
+		summary.Total += 1
+
+		if matchableHttpGateway.Status.GetState() == types.MatchableHttpGatewayStatus_Rejected {
+			summary.Errors = append(summary.Errors, &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
+				Ref: &corev1.ObjectRef{
+					Name:      matchableHttpGateway.Name,
+					Namespace: matchableHttpGateway.Namespace,
+				},
+				Message: matchableHttpGateway.Status.Reason,
+			})
+		}
+
+		if matchableHttpGateway.Status.GetState() == types.MatchableHttpGatewayStatus_Warning {
+			summary.Warnings = append(summary.Warnings, &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
+				Ref: &corev1.ObjectRef{
+					Name:      matchableHttpGateway.Name,
+					Namespace: matchableHttpGateway.Namespace,
+				},
+				Message: matchableHttpGateway.Status.Reason,
+			})
+		}
+
+	}
+
+	apiserverutils.SortCheckSummaryLists(summary)
+	return summary
+}
+
 func GetVirtualServiceSummary(ctx context.Context, virtualServiceClient types.VirtualServiceClient, watchedNamespaces []string) *rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary {
 	summary := &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{}
 

@@ -42,6 +42,8 @@ type Clientset interface {
 	// clienset for the fed.gateway.solo.io/v1/v1 APIs
 	FederatedGateways() FederatedGatewayClient
 	// clienset for the fed.gateway.solo.io/v1/v1 APIs
+	FederatedMatchableHttpGateways() FederatedMatchableHttpGatewayClient
+	// clienset for the fed.gateway.solo.io/v1/v1 APIs
 	FederatedVirtualServices() FederatedVirtualServiceClient
 	// clienset for the fed.gateway.solo.io/v1/v1 APIs
 	FederatedRouteTables() FederatedRouteTableClient
@@ -72,6 +74,11 @@ func NewClientset(client client.Client) Clientset {
 // clienset for the fed.gateway.solo.io/v1/v1 APIs
 func (c *clientSet) FederatedGateways() FederatedGatewayClient {
 	return NewFederatedGatewayClient(c.client)
+}
+
+// clienset for the fed.gateway.solo.io/v1/v1 APIs
+func (c *clientSet) FederatedMatchableHttpGateways() FederatedMatchableHttpGatewayClient {
+	return NewFederatedMatchableHttpGatewayClient(c.client)
 }
 
 // clienset for the fed.gateway.solo.io/v1/v1 APIs
@@ -224,6 +231,148 @@ func (m *multiclusterFederatedGatewayClient) Cluster(cluster string) (FederatedG
 		return nil, err
 	}
 	return NewFederatedGatewayClient(client), nil
+}
+
+// Reader knows how to read and list FederatedMatchableHttpGateways.
+type FederatedMatchableHttpGatewayReader interface {
+	// Get retrieves a FederatedMatchableHttpGateway for the given object key
+	GetFederatedMatchableHttpGateway(ctx context.Context, key client.ObjectKey) (*FederatedMatchableHttpGateway, error)
+
+	// List retrieves list of FederatedMatchableHttpGateways for a given namespace and list options.
+	ListFederatedMatchableHttpGateway(ctx context.Context, opts ...client.ListOption) (*FederatedMatchableHttpGatewayList, error)
+}
+
+// FederatedMatchableHttpGatewayTransitionFunction instructs the FederatedMatchableHttpGatewayWriter how to transition between an existing
+// FederatedMatchableHttpGateway object and a desired on an Upsert
+type FederatedMatchableHttpGatewayTransitionFunction func(existing, desired *FederatedMatchableHttpGateway) error
+
+// Writer knows how to create, delete, and update FederatedMatchableHttpGateways.
+type FederatedMatchableHttpGatewayWriter interface {
+	// Create saves the FederatedMatchableHttpGateway object.
+	CreateFederatedMatchableHttpGateway(ctx context.Context, obj *FederatedMatchableHttpGateway, opts ...client.CreateOption) error
+
+	// Delete deletes the FederatedMatchableHttpGateway object.
+	DeleteFederatedMatchableHttpGateway(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error
+
+	// Update updates the given FederatedMatchableHttpGateway object.
+	UpdateFederatedMatchableHttpGateway(ctx context.Context, obj *FederatedMatchableHttpGateway, opts ...client.UpdateOption) error
+
+	// Patch patches the given FederatedMatchableHttpGateway object.
+	PatchFederatedMatchableHttpGateway(ctx context.Context, obj *FederatedMatchableHttpGateway, patch client.Patch, opts ...client.PatchOption) error
+
+	// DeleteAllOf deletes all FederatedMatchableHttpGateway objects matching the given options.
+	DeleteAllOfFederatedMatchableHttpGateway(ctx context.Context, opts ...client.DeleteAllOfOption) error
+
+	// Create or Update the FederatedMatchableHttpGateway object.
+	UpsertFederatedMatchableHttpGateway(ctx context.Context, obj *FederatedMatchableHttpGateway, transitionFuncs ...FederatedMatchableHttpGatewayTransitionFunction) error
+}
+
+// StatusWriter knows how to update status subresource of a FederatedMatchableHttpGateway object.
+type FederatedMatchableHttpGatewayStatusWriter interface {
+	// Update updates the fields corresponding to the status subresource for the
+	// given FederatedMatchableHttpGateway object.
+	UpdateFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, opts ...client.UpdateOption) error
+
+	// Patch patches the given FederatedMatchableHttpGateway object's subresource.
+	PatchFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, patch client.Patch, opts ...client.PatchOption) error
+}
+
+// Client knows how to perform CRUD operations on FederatedMatchableHttpGateways.
+type FederatedMatchableHttpGatewayClient interface {
+	FederatedMatchableHttpGatewayReader
+	FederatedMatchableHttpGatewayWriter
+	FederatedMatchableHttpGatewayStatusWriter
+}
+
+type federatedMatchableHttpGatewayClient struct {
+	client client.Client
+}
+
+func NewFederatedMatchableHttpGatewayClient(client client.Client) *federatedMatchableHttpGatewayClient {
+	return &federatedMatchableHttpGatewayClient{client: client}
+}
+
+func (c *federatedMatchableHttpGatewayClient) GetFederatedMatchableHttpGateway(ctx context.Context, key client.ObjectKey) (*FederatedMatchableHttpGateway, error) {
+	obj := &FederatedMatchableHttpGateway{}
+	if err := c.client.Get(ctx, key, obj); err != nil {
+		return nil, err
+	}
+	return obj, nil
+}
+
+func (c *federatedMatchableHttpGatewayClient) ListFederatedMatchableHttpGateway(ctx context.Context, opts ...client.ListOption) (*FederatedMatchableHttpGatewayList, error) {
+	list := &FederatedMatchableHttpGatewayList{}
+	if err := c.client.List(ctx, list, opts...); err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+func (c *federatedMatchableHttpGatewayClient) CreateFederatedMatchableHttpGateway(ctx context.Context, obj *FederatedMatchableHttpGateway, opts ...client.CreateOption) error {
+	return c.client.Create(ctx, obj, opts...)
+}
+
+func (c *federatedMatchableHttpGatewayClient) DeleteFederatedMatchableHttpGateway(ctx context.Context, key client.ObjectKey, opts ...client.DeleteOption) error {
+	obj := &FederatedMatchableHttpGateway{}
+	obj.SetName(key.Name)
+	obj.SetNamespace(key.Namespace)
+	return c.client.Delete(ctx, obj, opts...)
+}
+
+func (c *federatedMatchableHttpGatewayClient) UpdateFederatedMatchableHttpGateway(ctx context.Context, obj *FederatedMatchableHttpGateway, opts ...client.UpdateOption) error {
+	return c.client.Update(ctx, obj, opts...)
+}
+
+func (c *federatedMatchableHttpGatewayClient) PatchFederatedMatchableHttpGateway(ctx context.Context, obj *FederatedMatchableHttpGateway, patch client.Patch, opts ...client.PatchOption) error {
+	return c.client.Patch(ctx, obj, patch, opts...)
+}
+
+func (c *federatedMatchableHttpGatewayClient) DeleteAllOfFederatedMatchableHttpGateway(ctx context.Context, opts ...client.DeleteAllOfOption) error {
+	obj := &FederatedMatchableHttpGateway{}
+	return c.client.DeleteAllOf(ctx, obj, opts...)
+}
+
+func (c *federatedMatchableHttpGatewayClient) UpsertFederatedMatchableHttpGateway(ctx context.Context, obj *FederatedMatchableHttpGateway, transitionFuncs ...FederatedMatchableHttpGatewayTransitionFunction) error {
+	genericTxFunc := func(existing, desired runtime.Object) error {
+		for _, txFunc := range transitionFuncs {
+			if err := txFunc(existing.(*FederatedMatchableHttpGateway), desired.(*FederatedMatchableHttpGateway)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	_, err := controllerutils.Upsert(ctx, c.client, obj, genericTxFunc)
+	return err
+}
+
+func (c *federatedMatchableHttpGatewayClient) UpdateFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, opts ...client.UpdateOption) error {
+	return c.client.Status().Update(ctx, obj, opts...)
+}
+
+func (c *federatedMatchableHttpGatewayClient) PatchFederatedMatchableHttpGatewayStatus(ctx context.Context, obj *FederatedMatchableHttpGateway, patch client.Patch, opts ...client.PatchOption) error {
+	return c.client.Status().Patch(ctx, obj, patch, opts...)
+}
+
+// Provides FederatedMatchableHttpGatewayClients for multiple clusters.
+type MulticlusterFederatedMatchableHttpGatewayClient interface {
+	// Cluster returns a FederatedMatchableHttpGatewayClient for the given cluster
+	Cluster(cluster string) (FederatedMatchableHttpGatewayClient, error)
+}
+
+type multiclusterFederatedMatchableHttpGatewayClient struct {
+	client multicluster.Client
+}
+
+func NewMulticlusterFederatedMatchableHttpGatewayClient(client multicluster.Client) MulticlusterFederatedMatchableHttpGatewayClient {
+	return &multiclusterFederatedMatchableHttpGatewayClient{client: client}
+}
+
+func (m *multiclusterFederatedMatchableHttpGatewayClient) Cluster(cluster string) (FederatedMatchableHttpGatewayClient, error) {
+	client, err := m.client.Cluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+	return NewFederatedMatchableHttpGatewayClient(client), nil
 }
 
 // Reader knows how to read and list FederatedVirtualServices.
