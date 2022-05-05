@@ -54,7 +54,7 @@ require (
 	github.com/solo-io/skv2 v0.21.6
 	// Pinned to the `gloo-namespaced-statuses` tag of solo-apis
 	github.com/solo-io/solo-apis v0.0.0-20210922150112-505473b2e66c
-	github.com/solo-io/solo-kit v0.27.0
+	github.com/solo-io/solo-kit v0.27.1-0.20220505175423-ee94bb725cc3
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
@@ -187,7 +187,6 @@ require (
 	github.com/hashicorp/vault/sdk v0.1.14-0.20191112033314-390e96e22eb2 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/iancoleman/strcase v0.1.3 // indirect
-	github.com/ilackarms/protoc-gen-doc v1.0.0 // indirect
 	github.com/imroc/req v0.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
@@ -240,7 +239,7 @@ require (
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/prometheus/statsd_exporter v0.21.0 // indirect
-	github.com/pseudomuto/protoc-gen-doc v1.4.1 // indirect
+	github.com/pseudomuto/protoc-gen-doc v1.5.1 // indirect
 	github.com/pseudomuto/protokit v0.2.0 // indirect
 	github.com/radovskyb/watcher v1.0.2 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
