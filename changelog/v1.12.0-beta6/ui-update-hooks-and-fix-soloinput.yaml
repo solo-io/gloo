@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: Text inputs no longer have X buttons to clear them if they are disabled.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3597
+  - type: NON_USER_FACING
+    description: Updated the useRequest hook.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3596

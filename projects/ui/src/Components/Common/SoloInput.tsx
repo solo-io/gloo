@@ -138,7 +138,7 @@ export const SoloInput = (props: InputProps) => {
           onKeyPress={onKeyPress}
           {...rest}
         />
-        {value !== '' && (
+        {value !== '' && !disabled && (
           <ClearSearchButton
             onClick={e => {
               if (onChange)
