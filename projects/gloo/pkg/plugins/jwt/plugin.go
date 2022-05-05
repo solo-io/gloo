@@ -60,7 +60,8 @@ var (
 
 type plugin struct {
 	requireJwtBeforeExtauthFilter bool // is set to indicate if a filter before extauth is needed
-	filterNeeded                  bool // is set to indicate if the base filter is needed
+	removeUnused                  bool
+	filterRequiredForListener     map[*v1.HttpListener]struct{}
 	uniqProviders                 map[uint32]map[string]*v3.JwtProvider
 	perVhostProviders             map[uint32]map[*v1.VirtualHost][]string
 	perRouteJwtRequirements       map[uint32]map[string]*v3.JwtRequirement
@@ -91,7 +92,8 @@ func (p *plugin) Init(params plugins.InitParams) error {
 		AfterExtAuthStage:  make(map[string]*v3.JwtRequirement),
 	}
 	p.requireJwtBeforeExtauthFilter = false
-	p.filterNeeded = !params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
+	p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
+	p.filterRequiredForListener = make(map[*v1.HttpListener]struct{})
 	return nil
 }
 
@@ -119,7 +121,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	if len(stagedCfg.JwtConfigs) == 0 {
 		return nil
 	}
-	p.filterNeeded = true
+	p.filterRequiredForListener[params.HttpListener] = struct{}{}
 
 	return pluginutils.SetRoutePerFilterConfig(out, SoloJwtFilterName, stagedCfg)
 }
@@ -138,7 +140,7 @@ func (p *plugin) ProcessVirtualHost(
 		// no config found, nothing to do here
 		return nil
 	}
-	p.filterNeeded = true
+	p.filterRequiredForListener[params.HttpListener] = struct{}{}
 	if jwtExt.BeforeExtAuth != nil {
 		p.requireJwtBeforeExtauthFilter = true
 	}
@@ -163,11 +165,13 @@ func (p *plugin) ProcessVirtualHost(
 }
 
 func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-
 	var filters []plugins.StagedHttpFilter
-	if !p.filterNeeded {
+
+	_, ok := p.filterRequiredForListener[listener]
+	if !ok && p.removeUnused {
 		return filters, nil
 	}
+
 	// Get filter config for after extauth (default)
 	stagedFilter, err := p.getFilterForStage(AfterExtAuthStage, afterExtauthFilterStage)
 	if err != nil {

@@ -39,8 +39,9 @@ var (
 )
 
 type plugin struct {
-	settings     *rbac.Settings
-	filterNeeded bool // is set to indicate if the base filter is needed
+	settings                  *rbac.Settings
+	removeUnused              bool
+	filterRequiredForListener map[*v1.HttpListener]struct{}
 }
 
 func NewPlugin() *plugin {
@@ -54,7 +55,8 @@ func (p *plugin) Name() string {
 // Init resets the plugin and creates the maps within the structure.
 func (p *plugin) Init(params plugins.InitParams) error {
 	p.settings = params.Settings.GetRbac()
-	p.filterNeeded = !params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
+	p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
+	p.filterRequiredForListener = make(map[*v1.HttpListener]struct{})
 	return nil
 }
 
@@ -64,8 +66,7 @@ func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		// no config found, nothing to do here
 		return nil
 	}
-
-	p.filterNeeded = true
+	p.filterRequiredForListener[params.HttpListener] = struct{}{}
 
 	if rbacConf.Disable {
 		perRouteRbac := &envoyauthz.RBACPerRoute{}
@@ -88,7 +89,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		// no config found, nothing to do here
 		return nil
 	}
-	p.filterNeeded = true
+	p.filterRequiredForListener[params.HttpListener] = struct{}{}
 
 	var perRouteRbac *envoyauthz.RBACPerRoute
 
@@ -112,7 +113,8 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 
 	var cfg proto.Message
 
-	if !strict && !p.filterNeeded {
+	_, ok := p.filterRequiredForListener[listener]
+	if !strict && !ok && p.removeUnused {
 		return []plugins.StagedHttpFilter{}, nil
 	}
 

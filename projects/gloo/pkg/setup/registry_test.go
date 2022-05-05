@@ -197,6 +197,7 @@ var _ = Describe("PluginRegistryFactory", func() {
 	})
 
 	Context("Plugins adhere to standards", func() {
+
 		BeforeEach(func() {
 			validatedLicense = &license.ValidatedLicense{
 				License: &model.License{
@@ -220,19 +221,21 @@ var _ = Describe("PluginRegistryFactory", func() {
 				Name:    "virt1",
 				Domains: []string{"*"},
 			}
+			listener := &gloov1.Listener{
+				Name: "default",
+				ListenerType: &gloov1.Listener_HttpListener{
+					HttpListener: &gloov1.HttpListener{
+						Options:      &gloov1.HttpListenerOptions{},
+						VirtualHosts: []*gloov1.VirtualHost{virtualHost},
+					},
+				},
+			}
 			proxy := &gloov1.Proxy{
 				Metadata: &core.Metadata{
 					Name:      "proxy",
 					Namespace: "default",
 				},
-				Listeners: []*gloov1.Listener{{
-					Name: "default",
-					ListenerType: &gloov1.Listener_HttpListener{
-						HttpListener: &gloov1.HttpListener{
-							VirtualHosts: []*gloov1.VirtualHost{virtualHost},
-						},
-					},
-				}},
+				Listeners: []*gloov1.Listener{listener},
 			}
 			params := plugins.Params{
 				Ctx: ctx,
@@ -241,23 +244,25 @@ var _ = Describe("PluginRegistryFactory", func() {
 				},
 			}
 
-			plugs := pluginRegistry.GetPlugins()
+			for _, p := range pluginRegistry.GetPlugins() {
+				// Many plugins require safety via an init which is outside of the creation step
+				p.Init(plugins.InitParams{
+					Ctx: ctx,
+					Settings: &gloov1.Settings{
+						Gloo: &gloov1.GlooOptions{
+							RemoveUnusedFilters: &wrapperspb.BoolValue{Value: true},
+						},
+					},
+				})
+			}
 
 			potentiallyNonConformingFilters := []plugins.StagedHttpFilter{}
-			for _, p := range plugs {
-				// Many plugins require safety via an init which is outside of the creation step
-				p.Init(plugins.InitParams{Ctx: ctx, Settings: &gloov1.Settings{Gloo: &gloov1.GlooOptions{RemoveUnusedFilters: &wrapperspb.BoolValue{Value: true}}}})
-
-				httpPlug, ok := p.(plugins.HttpFilterPlugin)
-				if !ok {
-					continue
-				}
-				filters, err := httpPlug.HttpFilters(params, nil)
+			for _, httpPlug := range pluginRegistry.GetHttpFilterPlugins() {
+				filters, err := httpPlug.HttpFilters(params, listener.GetHttpListener())
 				Expect(err).To(BeNil())
 				if len(filters) > 0 {
 					potentiallyNonConformingFilters = append(potentiallyNonConformingFilters, filters...)
 				}
-
 			}
 
 			// This check wont be needed once we bake the expected filter count
@@ -267,7 +272,6 @@ var _ = Describe("PluginRegistryFactory", func() {
 			// In general we should strive not to add any new default filters going forwards
 			knownBaseFilters := map[string]struct{}{
 				"io.solo.filters.http.sanitize": {},
-				"envoy.filters.http.grpc_web":   {}, "envoy.filters.http.cors": {},
 			}
 			if len(potentiallyNonConformingFilters) != len(knownBaseFilters) {
 

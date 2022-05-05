@@ -22,7 +22,8 @@ const (
 )
 
 type plugin struct {
-	listenerEnabled map[*v1.HttpListener]bool
+	removeUnused              bool
+	filterRequiredForListener map[*v1.HttpListener]struct{}
 }
 
 var (
@@ -31,9 +32,7 @@ var (
 )
 
 func NewPlugin() *plugin {
-	return &plugin{
-		listenerEnabled: make(map[*v1.HttpListener]bool),
-	}
+	return &plugin{}
 }
 
 func (p *plugin) Name() string {
@@ -41,19 +40,9 @@ func (p *plugin) Name() string {
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
+	p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
+	p.filterRequiredForListener = make(map[*v1.HttpListener]struct{})
 	return nil
-}
-
-func (p *plugin) addListener(listener *v1.HttpListener) {
-	p.listenerEnabled[listener] = true
-}
-
-func (p *plugin) listenerPresent(listener *v1.HttpListener) bool {
-	val, ok := p.listenerEnabled[listener]
-	if !ok {
-		return false
-	}
-	return val
 }
 
 // Process virtual host plugin
@@ -65,7 +54,7 @@ func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 	}
 
 	// should never be nil
-	p.addListener(params.Listener.GetHttpListener())
+	p.filterRequiredForListener[params.HttpListener] = struct{}{}
 
 	perVhostCfg := &ModSecurityPerRoute{
 		Disabled:                  wafConfig.GetDisabled(),
@@ -93,7 +82,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return nil
 	}
 
-	p.addListener(params.Listener.GetHttpListener())
+	p.filterRequiredForListener[params.HttpListener] = struct{}{}
 
 	perRouteCfg := &ModSecurityPerRoute{
 		Disabled:                  wafConfig.GetDisabled(),
@@ -116,14 +105,15 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
 	// If the list does not already have the listener than it is necessary to check for nil
-	if !p.listenerPresent(listener) {
-		if listener.GetOptions() == nil {
-			return nil, nil
-		}
+
+	wafSettings := listener.GetOptions().GetWaf()
+
+	_, ok := p.filterRequiredForListener[listener]
+	if !ok && p.removeUnused && wafSettings == nil {
+		return filters, nil
 	}
 
 	var settings waf.Settings
-	wafSettings := listener.GetOptions().GetWaf()
 	if wafSettings != nil {
 		settings = *wafSettings
 	}

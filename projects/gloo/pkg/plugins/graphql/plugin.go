@@ -31,7 +31,8 @@ var (
 )
 
 type plugin struct {
-	filterNeeded bool
+	removeUnused              bool
+	filterRequiredForListener map[*v1.HttpListener]struct{}
 }
 
 // NewPlugin creates the basic graphql plugin structure.
@@ -46,14 +47,17 @@ func (p *plugin) Name() string {
 
 // Init resets the plugin and creates the maps within the structure.
 func (p *plugin) Init(params plugins.InitParams) error {
-	p.filterNeeded = !params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
+	p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
+	p.filterRequiredForListener = make(map[*v1.HttpListener]struct{})
 	return nil
 }
 
 // HttpFilters sets up the filters for envoy if it is needed.
-func (p *plugin) HttpFilters(_ plugins.Params, _ *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *plugin) HttpFilters(_ plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
-	if !p.filterNeeded {
+
+	_, ok := p.filterRequiredForListener[listener]
+	if !ok && p.removeUnused {
 		return filters, nil
 	}
 
@@ -83,7 +87,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return eris.Wrapf(err, "unable to find graphql api custom resource `%s` in namespace `%s`, list of all graphqlapis found: %s", gqlRef.GetName(), gqlRef.GetNamespace(), ret)
 	}
 
-	p.filterNeeded = true // Set here as user is at least attempting to use graphql at this point so might as well place it in the filterchain.
+	p.filterRequiredForListener[params.HttpListener] = struct{}{} // Set here as user is at least attempting to use graphql at this point so might as well place it in the filterchain.
 	routeConf, err := translateGraphQlApiToRouteConf(params, in, gql)
 
 	if err != nil {

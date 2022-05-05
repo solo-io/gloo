@@ -57,7 +57,7 @@ var (
 type plugin struct {
 	serverSettings *ratelimit.Settings
 
-	filterNeeded     bool // is set to indicate if the ratelimit configs exist
+	removeUnused     bool
 	configuredStages map[uint32]struct{}
 	stagedTranslator StagedTranslator
 }
@@ -89,7 +89,7 @@ func (p *plugin) Init(params plugins.InitParams) error {
 		p.serverSettings = rlServer
 	}
 
-	p.filterNeeded = !params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
+	p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
 	p.configuredStages = make(map[uint32]struct{})
 
 	return p.stagedTranslator.Init(params)
@@ -182,7 +182,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 
 	var stagedFilters []plugins.StagedHttpFilter
 	for rateLimitStage, filterDomain := range rateLimitStageToDomain {
-		if !p.filterNeeded {
+		if p.removeUnused {
 			// If the filter is not required, check if there is configuration for the particular stage
 			if _, ok := p.configuredStages[rateLimitStage]; !ok {
 				// There is no configuration for the stage, skip it

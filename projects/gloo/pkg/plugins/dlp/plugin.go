@@ -36,13 +36,12 @@ var (
 )
 
 type plugin struct {
-	listenerEnabled map[*v1.HttpListener]bool
+	removeUnused              bool
+	filterRequiredForListener map[*v1.HttpListener]struct{}
 }
 
 func NewPlugin() *plugin {
-	return &plugin{
-		listenerEnabled: make(map[*v1.HttpListener]bool),
-	}
+	return &plugin{}
 }
 
 func (p *plugin) Name() string {
@@ -50,19 +49,9 @@ func (p *plugin) Name() string {
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
+	p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
+	p.filterRequiredForListener = make(map[*v1.HttpListener]struct{})
 	return nil
-}
-
-func (p *plugin) addListener(listener *v1.HttpListener) {
-	p.listenerEnabled[listener] = true
-}
-
-func (p *plugin) listenerPresent(listener *v1.HttpListener) bool {
-	found, ok := p.listenerEnabled[listener]
-	if !ok {
-		return false
-	}
-	return found
 }
 
 // Process virtual host plugin
@@ -72,8 +61,9 @@ func (p *plugin) ProcessVirtualHost(
 	out *envoy_config_route_v3.VirtualHost,
 ) error {
 	dlpSettings := in.GetOptions().GetDlp()
-	// should never be nil
-	p.addListener(params.Listener.GetHttpListener())
+	if dlpSettings == nil {
+		return nil
+	}
 
 	actions := getRelevantActions(params.Ctx, dlpSettings.GetActions())
 	dlpConfig := &transformation_ee.RouteTransformations{}
@@ -86,6 +76,7 @@ func (p *plugin) ProcessVirtualHost(
 			setOnStreamCompletionTransformaton(dlpConfig, actions)
 		}
 
+		p.filterRequiredForListener[params.HttpListener] = struct{}{}
 		pluginutils.SetVhostPerFilterConfig(out, FilterName, dlpConfig)
 	}
 
@@ -95,6 +86,9 @@ func (p *plugin) ProcessVirtualHost(
 // Process route plugin
 func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	dlpSettings := in.GetOptions().GetDlp()
+	if dlpSettings == nil {
+		return nil
+	}
 
 	actions := getRelevantActions(params.Ctx, dlpSettings.GetActions())
 	dlpConfig := &transformation_ee.RouteTransformations{}
@@ -107,6 +101,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 			setOnStreamCompletionTransformaton(dlpConfig, actions)
 		}
 
+		p.filterRequiredForListener[params.HttpListener] = struct{}{}
 		pluginutils.SetRoutePerFilterConfig(out, FilterName, dlpConfig)
 	}
 	return nil
@@ -116,13 +111,13 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
 	// If the list does not already have the listener then it is necessary to check for nil
-	if !p.listenerPresent(listener) {
-		if listener.GetOptions() == nil {
-			return nil, nil
-		}
-	}
 
 	dlpSettings := listener.GetOptions().GetDlp()
+
+	_, ok := p.filterRequiredForListener[listener]
+	if !ok && p.removeUnused && dlpSettings == nil {
+		return filters, nil
+	}
 
 	var (
 		transformationRules []*transformation_ee.TransformationRule

@@ -1,0 +1,17 @@
+changelog:
+  - type: FIX
+    description: |
+      Ensure WAF and DLP filters are not added to filter chain when removeUnusedFilters is enabled
+      and there is no filter configuration defined.
+    issueLink: https://github.com/solo-io/gloo/issues/6042
+    resolvesIssue: false
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5651
+    description: |
+      Ensure that removeUnusedFilters is localized to an HttpListener instead of a Proxy.
+      Previously, if a filter were configured for one listener, it would cause another listener to
+      render empty configuration.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.12.0-beta10
