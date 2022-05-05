@@ -1,0 +1,9 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink: https://github.com/solo-io/gloo-mesh-enterprise/issues/3624
+    resolvesIssue: false
+    dependencyOwner: solo-io
+    dependencyRepo: solo-kit
+    dependencyTag: v0.28.0
+    description: >
+      Bumps solo-kit to v0.28.0, which resolves a dependency conflict in solo-apis
