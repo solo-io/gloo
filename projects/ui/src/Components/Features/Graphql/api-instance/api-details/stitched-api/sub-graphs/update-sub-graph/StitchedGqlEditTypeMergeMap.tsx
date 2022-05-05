@@ -76,42 +76,44 @@ const StitchedGqlEditTypeMergeMap: React.FC<{
 
   if (readonly) return null;
   return (
-    <Tooltip title='Update Type Merge Map'>
-      <TableActions>
-        <TableActionCircle onClick={() => setIsModalVisible(true)}>
-          <EditFilled />
-        </TableActionCircle>
+    <>
+      <Tooltip title='Update Type Merge Map'>
+        <TableActions>
+          <TableActionCircle onClick={() => setIsModalVisible(true)}>
+            <EditFilled />
+          </TableActionCircle>
+        </TableActions>
+      </Tooltip>
 
-        <SoloModal
-          visible={isModalVisible}
-          onClose={() => setIsModalVisible(false)}
-          title={`Editing ${subGraphConfig.name}`}
-          width={600}>
-          <div className='p-5 pb-10 pt-0'>
-            {!!subGraphConfig && (
-              <StitchedGqlTypeMergeMapConfig
-                onIsValidChange={isValid => setIsMergeMapValid(isValid)}
-                initialTypeMergeMap={existingSubGraph?.typeMergeMap ?? []}
-                onTypeMergeMapChange={m => setTypeMergeMap(m)}
-                subGraphqlApiRef={{
-                  name: subGraphConfig.name ?? '',
-                  namespace: subGraphConfig.namespace ?? '',
-                  clusterName: apiRef.clusterName ?? '',
-                }}
-              />
-            )}
+      <SoloModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        title={`Editing ${subGraphConfig.name}`}
+        width={600}>
+        <div className='p-5 pb-10 pt-0'>
+          {!!subGraphConfig && (
+            <StitchedGqlTypeMergeMapConfig
+              onIsValidChange={isValid => setIsMergeMapValid(isValid)}
+              initialTypeMergeMap={existingSubGraph?.typeMergeMap ?? []}
+              onTypeMergeMapChange={m => setTypeMergeMap(m)}
+              subGraphqlApiRef={{
+                name: subGraphConfig.name ?? '',
+                namespace: subGraphConfig.namespace ?? '',
+                clusterName: apiRef.clusterName ?? '',
+              }}
+            />
+          )}
 
-            <div className='text-right mt-10'>
-              <SoloButtonStyledComponent
-                disabled={!canSubmit}
-                onClick={saveTypeMergeMap}>
-                Update Type Merge Map
-              </SoloButtonStyledComponent>
-            </div>
+          <div className='text-right mt-10'>
+            <SoloButtonStyledComponent
+              disabled={!canSubmit}
+              onClick={saveTypeMergeMap}>
+              Update Type Merge Map
+            </SoloButtonStyledComponent>
           </div>
-        </SoloModal>
-      </TableActions>
-    </Tooltip>
+        </div>
+      </SoloModal>
+    </>
   );
 };
 

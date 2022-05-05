@@ -15,6 +15,7 @@ import 'ace-builds/src-noconflict/theme-chrome';
 import 'ace-builds/webpack-resolver';
 import { colors } from 'Styles/colors';
 import { SoloDropdown } from './SoloDropdown';
+import { useAppSettings } from 'Components/Context/AppSettingsContext';
 
 export const Label = styled.label`
   display: block;
@@ -22,6 +23,25 @@ export const Label = styled.label`
   font-size: 16px;
   margin-bottom: 10px;
   font-weight: 500;
+`;
+
+const StyledVisualEditor = styled.div`
+  position: relative;
+  border: 1px solid ${colors.aprilGrey};
+  .ant-select {
+    opacity: 0;
+    transition: 0.1s opacity;
+  }
+  &:focus-within .ant-select,
+  &:hover .ant-select {
+    opacity: 1;
+  }
+`;
+
+const StyledEditorSettings = styled.div`
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
 `;
 
 const StyledAceEditor = styled(AceEditor)`
@@ -39,21 +59,15 @@ export interface SoloFormVisualEditorProps extends IAceEditorProps {
 
 const VisualEditor = (props: SoloFormVisualEditorProps) => {
   const { name, title, value, ...rest } = props;
-
-  // Commenting this out since it looks strange when multiple editors are on one page.
-  // TODO: Make a context API that stores lightweight global settings like this.
-  // const lsKey = 'ace-keyboard-handler';
-  // const lsKeyboardHander = localStorage.getItem(lsKey);
-  // const [keyboardHandler, setKeyboardHandler] = React.useState(
-  //   lsKeyboardHander ? lsKeyboardHander : 'keyboard'
-  // );
+  const { appSettings, onAppSettingsChange } = useAppSettings();
+  const { keyboardHandler } = appSettings;
 
   return (
-    <div className='relative'>
+    <StyledVisualEditor>
       {title && <Label>{title}</Label>}
 
       <StyledAceEditor
-        // keyboardHandler={keyboardHandler}
+        keyboardHandler={keyboardHandler}
         mode={rest.mode ?? 'yaml'}
         theme='chrome'
         name={name ?? title}
@@ -84,27 +98,27 @@ const VisualEditor = (props: SoloFormVisualEditorProps) => {
         {...rest}
       />
 
-      {/* <div
-        style={{
-          position: 'absolute',
-          right: '0px',
-          bottom: '0px',
-        }}>
+      <StyledEditorSettings>
         <SoloDropdown
           value={keyboardHandler}
           options={[
-            { key: 'keyboard', value: 'keyboard' },
-            { key: 'vim', value: 'vim' },
-            { key: 'emacs', value: 'emacs' },
+            {
+              key: 'keyboard',
+              value: 'keyboard',
+              displayValue: 'Editor: Standard',
+            },
+            { key: 'vim', value: 'vim', displayValue: 'Editor: Vim' },
+            { key: 'emacs', value: 'emacs', displayValue: 'Editor: Emacs' },
           ]}
-          onChange={e => {
-            const newKeyboardHandler = e as string;
-            setKeyboardHandler(newKeyboardHandler);
-            localStorage.setItem(lsKey, newKeyboardHandler);
+          onChange={newKeyboardHandler => {
+            onAppSettingsChange({
+              ...appSettings,
+              keyboardHandler: newKeyboardHandler as string,
+            });
           }}
         />
-      </div> */}
-    </div>
+      </StyledEditorSettings>
+    </StyledVisualEditor>
   );
 };
 

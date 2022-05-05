@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: Hides the edit type merge config button tooltip when the modal is open.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3599
+  - type: NEW_FEATURE
+    description: Added options for vim and emacs keyboard modes when using the Ace editor.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3422
