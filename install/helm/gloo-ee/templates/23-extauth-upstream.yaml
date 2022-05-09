@@ -3,14 +3,14 @@
 {{- $extAuthName := $extAuth.service.name }}
 
 {{- if $extAuth.envoySidecar }}
+{{ $labels := dict "gloo" $extAuthName }}
+{{ $data := dict "release" $.Release "values" $.Values.gloo "labels" $labels }}
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  labels:
-    app: gloo
-    gloo: {{ $extAuthName }}
   name: {{ $extAuthName }}-sidecar
   namespace: {{ $.Release.Namespace }}
+{{- include "gloo.customResourceLabelsAndAnnotations" $data }}
 spec:
   useHttp2: true
   pipe:
@@ -24,14 +24,14 @@ spec:
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $extAuthName = printf "%s-%s" $extAuth.service.name ($name | kebabcase) }}
 {{- end }}
+{{ $labels := dict "gloo" $extAuthName }}
+{{ $data := dict "release" $.Release "values" $.Values.gloo "labels" $labels }}
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  labels:
-    app: gloo
-    gloo: {{ $extAuthName }}
   name: {{ $extAuthName }}
   namespace: {{ $.Release.Namespace }}
+{{- include "gloo.customResourceLabelsAndAnnotations" $data }}
 spec:
   useHttp2: true
   healthChecks:

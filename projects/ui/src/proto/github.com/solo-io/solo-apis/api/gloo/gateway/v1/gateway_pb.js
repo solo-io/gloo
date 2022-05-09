@@ -20,6 +20,7 @@ var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../
 var github_com_solo$io_solo$apis_api_gloo_gateway_v1_http_gateway_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gateway/v1/http_gateway_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_proxy_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_hcm_hcm_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/hcm/hcm_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/selectors/selectors_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb.js');
@@ -1067,7 +1068,10 @@ proto.gateway.solo.io.DelegatedHttpGateway.prototype.toObject = function(opt_inc
 proto.gateway.solo.io.DelegatedHttpGateway.toObject = function(includeInstance, msg) {
   var f, obj = {
     ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    selector: (f = msg.getSelector()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector.toObject(includeInstance, f)
+    selector: (f = msg.getSelector()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector.toObject(includeInstance, f),
+    preventChildOverrides: jspb.Message.getFieldWithDefault(msg, 5, false),
+    httpConnectionManagerSettings: (f = msg.getHttpConnectionManagerSettings()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_hcm_hcm_pb.HttpConnectionManagerSettings.toObject(includeInstance, f),
+    sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1114,6 +1118,20 @@ proto.gateway.solo.io.DelegatedHttpGateway.deserializeBinaryFromReader = functio
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector.deserializeBinaryFromReader);
       msg.setSelector(value);
       break;
+    case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setPreventChildOverrides(value);
+      break;
+    case 6:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_hcm_hcm_pb.HttpConnectionManagerSettings;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_hcm_hcm_pb.HttpConnectionManagerSettings.deserializeBinaryFromReader);
+      msg.setHttpConnectionManagerSettings(value);
+      break;
+    case 2:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.deserializeBinaryFromReader);
+      msg.setSslConfig(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1157,6 +1175,29 @@ proto.gateway.solo.io.DelegatedHttpGateway.serializeBinaryToWriter = function(me
       4,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector.serializeBinaryToWriter
+    );
+  }
+  f = message.getPreventChildOverrides();
+  if (f) {
+    writer.writeBool(
+      5,
+      f
+    );
+  }
+  f = message.getHttpConnectionManagerSettings();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_hcm_hcm_pb.HttpConnectionManagerSettings.serializeBinaryToWriter
+    );
+  }
+  f = message.getSslConfig();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.serializeBinaryToWriter
     );
   }
 };
@@ -1219,6 +1260,83 @@ proto.gateway.solo.io.DelegatedHttpGateway.prototype.clearSelector = function() 
  */
 proto.gateway.solo.io.DelegatedHttpGateway.prototype.hasSelector = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional bool prevent_child_overrides = 5;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.gateway.solo.io.DelegatedHttpGateway.prototype.getPreventChildOverrides = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+};
+
+
+/** @param {boolean} value */
+proto.gateway.solo.io.DelegatedHttpGateway.prototype.setPreventChildOverrides = function(value) {
+  jspb.Message.setProto3BooleanField(this, 5, value);
+};
+
+
+/**
+ * optional hcm.options.gloo.solo.io.HttpConnectionManagerSettings http_connection_manager_settings = 6;
+ * @return {?proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings}
+ */
+proto.gateway.solo.io.DelegatedHttpGateway.prototype.getHttpConnectionManagerSettings = function() {
+  return /** @type{?proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_hcm_hcm_pb.HttpConnectionManagerSettings, 6));
+};
+
+
+/** @param {?proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings|undefined} value */
+proto.gateway.solo.io.DelegatedHttpGateway.prototype.setHttpConnectionManagerSettings = function(value) {
+  jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+proto.gateway.solo.io.DelegatedHttpGateway.prototype.clearHttpConnectionManagerSettings = function() {
+  this.setHttpConnectionManagerSettings(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.DelegatedHttpGateway.prototype.hasHttpConnectionManagerSettings = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional gloo.solo.io.SslConfig ssl_config = 2;
+ * @return {?proto.gloo.solo.io.SslConfig}
+ */
+proto.gateway.solo.io.DelegatedHttpGateway.prototype.getSslConfig = function() {
+  return /** @type{?proto.gloo.solo.io.SslConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig, 2));
+};
+
+
+/** @param {?proto.gloo.solo.io.SslConfig|undefined} value */
+proto.gateway.solo.io.DelegatedHttpGateway.prototype.setSslConfig = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.gateway.solo.io.DelegatedHttpGateway.prototype.clearSslConfig = function() {
+  this.setSslConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gateway.solo.io.DelegatedHttpGateway.prototype.hasSslConfig = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

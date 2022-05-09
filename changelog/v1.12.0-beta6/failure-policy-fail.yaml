@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/6213
+    resolvesIssue: false
+    description: |
+      Ensure that Gloo Edge Enterprise can be installed successfully when the validation webhook failure policy is set to Fail.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.12.0-beta11

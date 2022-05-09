@@ -4031,6 +4031,190 @@ spec:
 			)
 		})
 
+		Context("custom resource lifecycles", func() {
+
+			It("upstreams should have custom hook annotations when failurePolicy=Fail", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"gloo.gateway.validation.failurePolicy=Fail",
+						"global.extensions.extAuth.envoySidecar=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				// when gateway validation is enabled and failurePolicy is Fail, the upstreams should have a
+				// post-install/post-upgrade annotation
+				extauthUpstream := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: extauth
+  namespace: ` + namespace + `
+  labels:
+    app: gloo
+    gloo: extauth
+    created_by: gloo-install
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    meta.helm.sh/release-name: glooe
+    meta.helm.sh/release-namespace: ` + namespace + `
+spec:
+  healthChecks:
+  - grpcHealthCheck:
+      serviceName: ext-auth
+    healthyThreshold: 3
+    interval: 10s
+    timeout: 5s
+    unhealthyThreshold: 3
+  kube:
+    serviceName: extauth
+    serviceNamespace: ` + namespace + `
+    servicePort: 8083
+    serviceSpec:
+      grpc: {}
+  useHttp2: true
+`)
+				extauthSidecarUpstream := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: extauth-sidecar
+  namespace: ` + namespace + `
+  labels:
+    app: gloo
+    gloo: extauth
+    created_by: gloo-install
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    meta.helm.sh/release-name: glooe
+    meta.helm.sh/release-namespace: ` + namespace + `
+spec:
+  pipe:
+    path: /usr/share/shared-data/.sock
+  useHttp2: true
+`)
+				ratelimitUpstream := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: rate-limit
+  namespace: ` + namespace + `
+  labels:
+    app: gloo
+    gloo: rate-limit
+    created_by: gloo-install
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    meta.helm.sh/release-name: glooe
+    meta.helm.sh/release-namespace: ` + namespace + `
+spec:
+  healthChecks:
+  - grpcHealthCheck:
+      serviceName: ratelimit
+    healthyThreshold: 5
+    interval: 1m
+    timeout: 5s
+    unhealthyThreshold: 5
+  kube:
+    serviceName: rate-limit
+    serviceNamespace: ` + namespace + `
+    servicePort: 18081
+    serviceSpec:
+      grpc: {}
+`)
+
+				testManifest.ExpectUnstructured(extauthUpstream.GetKind(), extauthUpstream.GetNamespace(), extauthUpstream.GetName()).To(BeEquivalentTo(extauthUpstream))
+				testManifest.ExpectUnstructured(extauthSidecarUpstream.GetKind(), extauthSidecarUpstream.GetNamespace(), extauthSidecarUpstream.GetName()).To(BeEquivalentTo(extauthSidecarUpstream))
+				testManifest.ExpectUnstructured(ratelimitUpstream.GetKind(), ratelimitUpstream.GetNamespace(), ratelimitUpstream.GetName()).To(BeEquivalentTo(ratelimitUpstream))
+			})
+
+			It("upstreams should not have custom hook annotations when failurePolicy=Ignore", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"gloo.gateway.validation.failurePolicy=Ignore",
+						"global.extensions.extAuth.envoySidecar=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				// the upstreams should not have the helm hook annotations because they don't need to be applied in a specific order
+				// in relation to the validation service
+				extauthUpstream := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: extauth
+  namespace: ` + namespace + `
+  labels:
+    app: gloo
+    gloo: extauth
+spec:
+  healthChecks:
+  - grpcHealthCheck:
+      serviceName: ext-auth
+    healthyThreshold: 3
+    interval: 10s
+    timeout: 5s
+    unhealthyThreshold: 3
+  kube:
+    serviceName: extauth
+    serviceNamespace: ` + namespace + `
+    servicePort: 8083
+    serviceSpec:
+      grpc: {}
+  useHttp2: true
+`)
+				extauthSidecarUpstream := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: extauth-sidecar
+  namespace: ` + namespace + `
+  labels:
+    app: gloo
+    gloo: extauth
+spec:
+  pipe:
+    path: /usr/share/shared-data/.sock
+  useHttp2: true
+`)
+				ratelimitUpstream := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: rate-limit
+  namespace: ` + namespace + `
+  labels:
+    app: gloo
+    gloo: rate-limit
+spec:
+  healthChecks:
+  - grpcHealthCheck:
+      serviceName: ratelimit
+    healthyThreshold: 5
+    interval: 1m
+    timeout: 5s
+    unhealthyThreshold: 5
+  kube:
+    serviceName: rate-limit
+    serviceNamespace: ` + namespace + `
+    servicePort: 18081
+    serviceSpec:
+      grpc: {}
+`)
+
+				testManifest.ExpectUnstructured(extauthUpstream.GetKind(), extauthUpstream.GetNamespace(), extauthUpstream.GetName()).To(BeEquivalentTo(extauthUpstream))
+				testManifest.ExpectUnstructured(extauthSidecarUpstream.GetKind(), extauthSidecarUpstream.GetNamespace(), extauthSidecarUpstream.GetName()).To(BeEquivalentTo(extauthSidecarUpstream))
+				testManifest.ExpectUnstructured(ratelimitUpstream.GetKind(), ratelimitUpstream.GetNamespace(), ratelimitUpstream.GetName()).To(BeEquivalentTo(ratelimitUpstream))
+			})
+		})
+
 		// Lines ending with whitespace causes malformatted config map (https://github.com/solo-io/gloo/issues/4645)
 		It("Should not containing trailing whitespace", func() {
 			out, err := exec.Command("helm", "template", "../helm/gloo-ee").CombinedOutput()

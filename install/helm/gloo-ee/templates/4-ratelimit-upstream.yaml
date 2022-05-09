@@ -5,14 +5,14 @@
 {{- if .Values.global.extensions.dataplanePerProxy }}
 {{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
 {{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
+{{ $labels := dict "gloo" $rateLimitName }}
+{{ $data := dict "release" .Release "values" .Values.gloo "labels" $labels }}
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  labels:
-    app: gloo
-    gloo: {{ $rateLimitName }}
   name: {{ $rateLimitName }}
   namespace: {{ .Release.Namespace }}
+{{- include "gloo.customResourceLabelsAndAnnotations" $data }}
 spec:
   healthChecks:
   - timeout: 5s
