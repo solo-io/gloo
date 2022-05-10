@@ -1,0 +1,9 @@
+changelog:
+ - type: DEPENDENCY_BUMP
+   dependencyOwner: solo-io
+   dependencyRepo: gloo
+   dependencyTag: v1.12.0-beta8
+   issueLink: https://github.com/solo-io/gloo/issues/6409
+   description: >
+     Update to the latest gloo beta version to get the change that adds an 
+     option to truncate Proxy statuses.
