@@ -28,11 +28,13 @@ import { createResolverItem, getResolverFromConfig } from './converters';
 import { GrpcProtoCheck } from './grpcProtoCheck/GrpcProtoCheck';
 import { ResolverConfigSection } from './ResolverConfigSection';
 import { getType, ResolverTypeSection } from './ResolverTypeSection';
-import * as styles from './ResolverWizard.styles';
+import * as ResolverWizardStyles from './ResolverWizard.styles';
 import { UpstreamSection } from './UpstreamSection';
 
+export type ResolverType = 'gRPC' | 'REST' | 'Mock';
+
 export type ResolverWizardFormProps = {
-  resolverType: 'REST' | 'gRPC';
+  resolverType: ResolverType;
   upstream: string;
   resolverConfig: string;
   listOfResolvers: [string, Resolution.AsObject][];
@@ -42,7 +44,18 @@ export type ResolverWizardFormProps = {
 // --- VALIDATION --- //
 const validationSchema = yup.object().shape({
   resolverType: yup.string().required('You need to specify a resolver type.'),
-  upstream: yup.string().required('You need to specify an upstream.'),
+  upstream: yup
+    .string()
+    .test(
+      'is-upstream-valid',
+      'You need to specify an upstream.',
+      (item, context) => {
+        // Upstream is undefined for Mock resolvers.
+        const values = context.parent as ResolverWizardFormProps;
+        if (values.resolverType === 'Mock') return true;
+        return !!item;
+      }
+    ),
   resolverConfig: yup
     .string()
     .required('You need to specify a resolver configuration.'),
@@ -178,7 +191,7 @@ export const ResolverWizard: React.FC<{
   return (
     <div
       data-testid='resolver-wizard'
-      className='relative min-h-[600px] max-h-[800px] h-[85vh]'>
+      className='relative min-h-[700px] max-h-[800px] h-[85vh]'>
       <Formik<ResolverWizardFormProps>
         initialValues={{
           resolverType: getType(resolution),
@@ -206,36 +219,69 @@ export const ResolverWizard: React.FC<{
                   isCompleted={!!formik.values.resolverType?.length}>
                   Resolver Type
                 </StyledModalTab>
-                {/* TODO:  Toggle here on gRPC. */}
-                <StyledModalTab
-                  isSelected={
-                    formik.values.resolverType === 'gRPC' && tabIndex === 1
-                  }
-                  className={`${
-                    formik.values.resolverType === 'gRPC' ? 'visible' : 'hidden'
-                  }`}
-                  data-testid='resolver-gprc-proto-tab'
-                  isCompleted={!!formik.values.protoFile?.length}>
-                  gRPC Toggle
-                </StyledModalTab>
-                <StyledModalTab
-                  isSelected={
-                    (formik.values.resolverType === 'gRPC' && tabIndex === 2) ||
-                    (formik.values.resolverType === 'REST' && tabIndex === 1)
-                  }
-                  data-testid='upstream-tab'
-                  isCompleted={!!formik.values.upstream?.length}>
-                  Upstream
-                </StyledModalTab>
-                <StyledModalTab
-                  isSelected={
-                    (formik.values.resolverType === 'gRPC' && tabIndex === 3) ||
-                    (formik.values.resolverType === 'REST' && tabIndex === 2)
-                  }
-                  data-testid='resolver-config-tab'
-                  isCompleted={!!formik.values.resolverConfig?.length}>
-                  Resolver Config
-                </StyledModalTab>
+                {
+                  // ==============
+                  // SIDEBAR (gRPC)
+                  // ==============
+                  formik.values.resolverType === 'gRPC' && (
+                    <>
+                      <StyledModalTab
+                        isSelected={tabIndex === 1}
+                        data-testid='resolver-gprc-proto-tab'
+                        isCompleted={!!formik.values.protoFile?.length}>
+                        gRPC Toggle
+                      </StyledModalTab>
+                      <StyledModalTab
+                        isSelected={tabIndex === 2}
+                        data-testid='upstream-tab'
+                        isCompleted={!!formik.values.upstream?.length}>
+                        Upstream
+                      </StyledModalTab>
+                      <StyledModalTab
+                        isSelected={tabIndex === 3}
+                        data-testid='resolver-config-tab'
+                        isCompleted={!!formik.values.resolverConfig?.length}>
+                        Resolver Config
+                      </StyledModalTab>
+                    </>
+                  )
+                }
+                {
+                  // ==============
+                  // SIDEBAR (REST)
+                  // ==============
+                  formik.values.resolverType === 'REST' && (
+                    <>
+                      <StyledModalTab
+                        isSelected={tabIndex === 1}
+                        data-testid='upstream-tab'
+                        isCompleted={!!formik.values.upstream?.length}>
+                        Upstream
+                      </StyledModalTab>
+                      <StyledModalTab
+                        isSelected={tabIndex === 2}
+                        data-testid='resolver-config-tab'
+                        isCompleted={!!formik.values.resolverConfig?.length}>
+                        Resolver Config
+                      </StyledModalTab>
+                    </>
+                  )
+                }
+                {
+                  // ==============
+                  // SIDEBAR (Mock)
+                  // ==============
+                  formik.values.resolverType === 'Mock' && (
+                    <>
+                      <StyledModalTab
+                        isSelected={tabIndex === 1}
+                        data-testid='resolver-config-tab'
+                        isCompleted={!!formik.values.resolverConfig?.length}>
+                        Resolver Config
+                      </StyledModalTab>
+                    </>
+                  )
+                }
               </TabList>
 
               <TabPanels className='bg-white rounded-r-lg flex flex-col h-full'>
@@ -247,7 +293,7 @@ export const ResolverWizard: React.FC<{
                   for:&nbsp;
                   <b>{fieldName}</b>
                 </div>
-                {/* --- STEP 1: API TYPE --- */}
+                {/* --- STEP 1: RESOLVED API TYPE --- */}
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
                   <ResolverTypeSection />
                   {!readonly && !isNewResolution && (
@@ -272,9 +318,9 @@ export const ResolverWizard: React.FC<{
                     </div>
                   )}
                   <div className='flex items-center justify-between px-6 '>
-                    <styles.IconButton onClick={onClose}>
+                    <ResolverWizardStyles.IconButton onClick={onClose}>
                       Cancel
-                    </styles.IconButton>
+                    </ResolverWizardStyles.IconButton>
                     <SoloButtonStyledComponent
                       onClick={() => {
                         if (formik.values.resolverType === 'gRPC') {
@@ -288,62 +334,103 @@ export const ResolverWizard: React.FC<{
                     </SoloButtonStyledComponent>
                   </div>
                 </TabPanel>
-                {/* Step 2 or none: Get the gRPC ProtoFile  */}
-                <TabPanel
-                  className={`
-                  ${
-                    formik.values.resolverType !== 'gRPC' ? 'hidden' : 'visible'
-                  }
-                  relative flex-grow flex flex-col justify-between pb-4 focus:outline-none`}>
-                  <GrpcProtoCheck
-                    setWarningMessage={(message: string) => {
-                      setWarningMessage(message);
-                    }}
-                    warningMessage={warningMessage}
-                  />
-                  <div className='flex items-center justify-between px-6 '>
-                    <styles.IconButton onClick={onClose}>
-                      Cancel
-                    </styles.IconButton>
-                    {!readonly && (
-                      <SoloButtonStyledComponent
-                        onClick={() => setTabIndex(tabIndex + 1)}>
-                        Next Step
-                      </SoloButtonStyledComponent>
-                    )}
-                  </div>
-                </TabPanel>
-                {/* --- STEP 2 | 3: UPSTREAM --- */}
-                <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
-                  <UpstreamSection existingUpstreamId={existingUpstreamId} />
-                  <div className='flex items-center justify-between px-6 '>
-                    <styles.IconButton onClick={onClose}>
-                      Cancel
-                    </styles.IconButton>
-                    <SoloButtonStyledComponent
-                      onClick={() => setTabIndex(tabIndex + 1)}
-                      disabled={!upstreamIsValid(formik)}>
-                      Next Step
-                    </SoloButtonStyledComponent>
-                  </div>
-                </TabPanel>
-                {/* --- STEP 3 | 4: CONFIG --- */}
-                <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
-                  <ResolverConfigSection warningMessage={warningMessage} />
-                  <div className='flex items-center justify-between px-6 '>
-                    <styles.IconButton onClick={onClose}>
-                      Cancel
-                    </styles.IconButton>
-                    {!readonly && (
-                      <SoloButtonStyledComponent
-                        data-testid='resolver-wizard-submit'
-                        onClick={formik.handleSubmit as any}
-                        disabled={!formik.isValid || !formIsValid(formik)}>
-                        Submit
-                      </SoloButtonStyledComponent>
-                    )}
-                  </div>
-                </TabPanel>
+
+                {
+                  // ==============
+                  // CONTENT (gRPC)
+                  // ==============
+                  formik.values.resolverType === 'gRPC' && (
+                    <>
+                      {/* STEP 2: Get the gRPC ProtoFile  */}
+                      <TabPanel
+                        className={`relative flex-grow flex flex-col justify-between pb-4 focus:outline-none`}>
+                        <GrpcProtoCheck
+                          setWarningMessage={(message: string) => {
+                            setWarningMessage(message);
+                          }}
+                          warningMessage={warningMessage}
+                        />
+                        <div className='flex items-center justify-between px-6 '>
+                          <ResolverWizardStyles.IconButton onClick={onClose}>
+                            Cancel
+                          </ResolverWizardStyles.IconButton>
+                          <SoloButtonStyledComponent
+                            onClick={() => setTabIndex(tabIndex + 1)}>
+                            Next Step
+                          </SoloButtonStyledComponent>
+                        </div>
+                      </TabPanel>
+                      {/* --- STEP 3: UPSTREAM --- */}
+                      <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
+                        <UpstreamSection
+                          onCancel={onClose}
+                          nextButtonDisabled={!upstreamIsValid(formik)}
+                          onNextClicked={() => setTabIndex(tabIndex + 1)}
+                          existingUpstreamId={existingUpstreamId}
+                        />
+                      </TabPanel>
+                      {/* --- STEP 4: CONFIG --- */}
+                      <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
+                        <ResolverConfigSection
+                          onCancel={onClose}
+                          submitDisabled={
+                            !formik.isValid || !formIsValid(formik)
+                          }
+                          warningMessage={warningMessage}
+                        />
+                      </TabPanel>
+                    </>
+                  )
+                }
+
+                {
+                  // ==============
+                  // CONTENT (REST)
+                  // ==============
+                  formik.values.resolverType === 'REST' && (
+                    <>
+                      {/* --- STEP 2: UPSTREAM --- */}
+                      <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
+                        <UpstreamSection
+                          onCancel={onClose}
+                          nextButtonDisabled={!upstreamIsValid(formik)}
+                          onNextClicked={() => setTabIndex(tabIndex + 1)}
+                          existingUpstreamId={existingUpstreamId}
+                        />
+                      </TabPanel>
+                      {/* --- STEP 3: CONFIG --- */}
+                      <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
+                        <ResolverConfigSection
+                          onCancel={onClose}
+                          submitDisabled={
+                            !formik.isValid || !formIsValid(formik)
+                          }
+                          warningMessage={warningMessage}
+                        />
+                      </TabPanel>
+                    </>
+                  )
+                }
+
+                {
+                  // ==============
+                  // CONTENT (Mock)
+                  // ==============
+                  formik.values.resolverType === 'Mock' && (
+                    <>
+                      {/* --- STEP 2: CONFIG --- */}
+                      <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
+                        <ResolverConfigSection
+                          onCancel={onClose}
+                          submitDisabled={
+                            !formik.isValid || !formIsValid(formik)
+                          }
+                          warningMessage={warningMessage}
+                        />
+                      </TabPanel>
+                    </>
+                  )
+                }
               </TabPanels>
             </StyledModalTabs>
           </>

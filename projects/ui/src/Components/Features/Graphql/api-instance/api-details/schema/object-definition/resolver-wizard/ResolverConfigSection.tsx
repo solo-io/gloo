@@ -1,13 +1,19 @@
-import * as React from 'react';
-import { ResolverWizardFormProps } from './ResolverWizard';
-import { useFormikContext } from 'formik';
-import YAML from 'yaml';
 import styled from '@emotion/styled/macro';
-import VisualEditor from 'Components/Common/VisualEditor';
+import { useGetConsoleOptions } from 'API/hooks';
 import { SoloFormDropdown } from 'Components/Common/SoloFormComponents';
-import { SoloCancelButton } from 'Styles/StyledComponents/button';
-import { useParams } from 'react-router';
+import VisualEditor from 'Components/Common/VisualEditor';
+import { useFormikContext } from 'formik';
+import * as React from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  SoloButtonStyledComponent,
+  SoloCancelButton,
+} from 'Styles/StyledComponents/button';
+import { Spacer } from 'Styles/StyledComponents/spacer';
+import YAML from 'yaml';
 import { getResolverFromConfig } from './converters';
+import { ResolverWizardFormProps } from './ResolverWizard';
+import * as ResolverWizardStyles from './ResolverWizard.styles';
 
 export const EditorContainer = styled.div<{ editMode: boolean }>`
   .ace_cursor {
@@ -16,25 +22,33 @@ export const EditorContainer = styled.div<{ editMode: boolean }>`
   cursor: ${props => (props.editMode ? 'text' : 'default')};
 `;
 
-const SpacedValuesContainer = styled.div`
-  margin: 10px 0;
-`;
-
-const InnerValues = styled.div`
-  margin: 5px 0;
-`;
-
-type ResolverConfigSectionProps = {
-  warningMessage: string;
-};
-
 export const getDefaultConfigFromType = (
   resolverType: ResolverWizardFormProps['resolverType']
 ) => {
   YAML.scalarOptions.null.nullStr = '';
-  return resolverType === 'REST'
-    ? YAML.stringify(
-        YAML.parse(`
+  if (resolverType === 'gRPC')
+    return YAML.stringify(
+      YAML.parse(`requestTransform:
+         serviceName:
+         methodName:
+         requestMetadata:
+         outgoingMessageJson:
+  `),
+      {
+        simpleKeys: true,
+      }
+    );
+  if (resolverType === 'Mock')
+    return YAML.stringify(
+      YAML.parse(`syncResponse:
+  `),
+      {
+        simpleKeys: true,
+      }
+    );
+  // Default: resolverType==='REST'
+  return YAML.stringify(
+    YAML.parse(`
           request:
             headers:
               :method:
@@ -43,55 +57,49 @@ export const getDefaultConfigFromType = (
             body:
           response:
             resultRoot:
-            setters:`),
-        {
-          simpleKeys: true,
-        }
-      )
-    : YAML.stringify(
-        YAML.parse(`requestTransform:
-         serviceName:
-         methodName:
-         requestMetadata:
-         outgoingMessageJson:
+            setters:
   `),
-        {
-          simpleKeys: true,
-        }
-      );
+    {
+      simpleKeys: true,
+    }
+  );
 };
 
-export const ResolverConfigSection = ({
-  warningMessage,
-}: ResolverConfigSectionProps) => {
-  const { setFieldValue, values, dirty, errors } =
+export const ResolverConfigSection: React.FC<{
+  onCancel(): void;
+  submitDisabled: boolean;
+  warningMessage: string;
+}> = ({ onCancel, submitDisabled, warningMessage }) => {
+  const { readonly } = useGetConsoleOptions();
+  const { setFieldValue, values, dirty, handleSubmit } =
     useFormikContext<ResolverWizardFormProps>();
   const [errorMessage, setErrorMessage] = React.useState('');
-  const [demoConfig, setDemoConfig] = React.useState('');
 
-  const { graphqlApiName = '', graphqlApiNamespace = '' } = useParams();
-
-  React.useEffect(() => {
+  useEffect(() => {
     setErrorMessage(warningMessage);
   }, [warningMessage, setErrorMessage]);
 
-  const [selectedName, setSelectedName] = React.useState<string>();
-  const resolverOptions = values.listOfResolvers
-    .filter(([_rName, rObj]) => {
-      let type = '';
-      if (rObj.grpcResolver) {
-        type = 'gRPC';
-      } else if (rObj.restResolver) {
-        type = 'REST';
-      }
-      return type === values.resolverType;
-    })
-    .map(([rName]) => {
-      return {
-        key: rName,
-        value: rName,
-      };
-    });
+  const [selectedName, setSelectedName] = useState<string>();
+  const resolverOptions = useMemo(
+    () =>
+      values.listOfResolvers
+        .filter(([_rName, rObj]) => {
+          let type = '';
+          if (rObj.grpcResolver) {
+            type = 'gRPC';
+          } else if (rObj.restResolver) {
+            type = 'REST';
+          }
+          return type === values.resolverType;
+        })
+        .map(([rName]) => {
+          return {
+            key: rName,
+            value: rName,
+          };
+        }),
+    [values.listOfResolvers, values.resolverType]
+  );
 
   const onResolverCopy = (copyName: any) => {
     const resolver = values.listOfResolvers.find(([rName]) => {
@@ -105,58 +113,59 @@ export const ResolverConfigSection = ({
     }
   };
 
-  React.useEffect(() => {
-    const newDemo = getDefaultConfigFromType(values.resolverType);
-    setDemoConfig(newDemo);
-  }, [graphqlApiName, graphqlApiNamespace, values.resolverType]);
+  const resetResolverConfig = () => {
+    setFieldValue(
+      'resolverConfig',
+      getDefaultConfigFromType(values.resolverType)
+    );
+    setErrorMessage('');
+  };
 
   return (
-    <div data-testid='resolver-config-section' className='px-6 pb-0 '>
-      <div className='mb-2 '>
-        <div>
-          <EditorContainer editMode={true}>
-            <div className=''>
-              <div className='' style={{ height: 'min-content' }}>
-                <div
-                  className={`${
-                    errorMessage.length > 0 ? 'opacity-100' : '  opacity-0'
-                  }`}>
+    <>
+      <div data-testid='resolver-config-section'>
+        <Spacer mb={2}>
+          <div>
+            <EditorContainer editMode={true}>
+              <Spacer px={6}>
+                <div style={{ height: 'min-content' }}>
                   <div
-                    style={{ backgroundColor: '#FEF2F2' }}
-                    className='p-2 text-orange-400 border border-orange-400 mb-5'>
-                    <div className='font-medium '>
-                      {errorMessage?.split(',')[0]}
+                    className={`${
+                      errorMessage.length > 0 ? 'opacity-100' : '  opacity-0'
+                    }`}>
+                    <div
+                      style={{ backgroundColor: '#FEF2F2' }}
+                      className='p-2 text-orange-400 border border-orange-400'>
+                      <div className='font-medium '>
+                        {errorMessage?.split(',')[0]}
+                      </div>
+                      <ul className='pl-2 list-disc'>
+                        {errorMessage?.split(',')[1]}
+                      </ul>
                     </div>
-                    <ul className='pl-2 list-disc'>
-                      {errorMessage?.split(',')[1]}
-                    </ul>
                   </div>
                 </div>
-              </div>
-            </div>
+              </Spacer>
 
-            <div className='flex flex-col w-full '>
-              <>
-                <SpacedValuesContainer>
-                  <InnerValues className='p-2'>
-                    {resolverOptions.length > 0 && (
-                      <div
-                        data-testid='create-resolver-from-config'
-                        className='grid grid-cols-2 gap-4 '>
-                        <div>
-                          <SoloFormDropdown
-                            searchable={true}
-                            name='resolverCopy'
-                            title='Create Resolver From Config'
-                            value={selectedName}
-                            onChange={onResolverCopy}
-                            options={resolverOptions}
-                          />
-                        </div>
+              <div className='flex flex-col w-full'>
+                <Spacer mb={3}>
+                  {resolverOptions.length > 0 && (
+                    <div
+                      data-testid='create-resolver-from-config'
+                      className='grid grid-cols-2 gap-4 '>
+                      <div>
+                        <SoloFormDropdown
+                          searchable={true}
+                          name='resolverCopy'
+                          title='Create Resolver From Config'
+                          value={selectedName}
+                          onChange={onResolverCopy}
+                          options={resolverOptions}
+                        />
                       </div>
-                    )}
-                  </InnerValues>
-                </SpacedValuesContainer>
+                    </div>
+                  )}
+                </Spacer>
                 <VisualEditor
                   data-testid='resolve-config-editor'
                   mode='yaml'
@@ -164,11 +173,13 @@ export const ResolverConfigSection = ({
                   name='resolverConfiguration'
                   style={{
                     width: '100%',
-                    height: '30vh',
-                    maxHeight: '400px',
+                    height: '55vh',
+                    maxHeight: '450px',
                     minHeight: '200px',
                     cursor: 'text',
                   }}
+                  defaultValue={values.resolverConfig || ''}
+                  value={values.resolverConfig}
                   onChange={(newValue, e) => {
                     setFieldValue('resolverConfig', newValue);
                   }}
@@ -177,8 +188,6 @@ export const ResolverConfigSection = ({
                   showPrintMargin={false}
                   showGutter={true}
                   highlightActiveLine={true}
-                  defaultValue={values.resolverConfig || ''}
-                  value={values.resolverConfig}
                   readOnly={false}
                   setOptions={{
                     highlightGutterLine: true,
@@ -190,21 +199,31 @@ export const ResolverConfigSection = ({
                     tabSize: 2,
                   }}
                 />
-                <div className='flex gap-3 mt-2'>
+                <Spacer mt={2} px={3}>
                   <SoloCancelButton
                     disabled={!dirty}
-                    onClick={() => {
-                      setFieldValue('resolverConfig', demoConfig);
-                      setErrorMessage('');
-                    }}>
+                    onClick={resetResolverConfig}>
                     Reset
                   </SoloCancelButton>
-                </div>
-              </>
-            </div>
-          </EditorContainer>
-        </div>
+                </Spacer>
+              </div>
+            </EditorContainer>
+          </div>
+        </Spacer>
       </div>
-    </div>
+      <Spacer px={6} className='flex items-center justify-between'>
+        <ResolverWizardStyles.IconButton onClick={onCancel}>
+          Cancel
+        </ResolverWizardStyles.IconButton>
+        {!readonly && (
+          <SoloButtonStyledComponent
+            data-testid='resolver-wizard-submit'
+            onClick={handleSubmit as any}
+            disabled={submitDisabled}>
+            Submit
+          </SoloButtonStyledComponent>
+        )}
+      </Spacer>
+    </>
   );
 };

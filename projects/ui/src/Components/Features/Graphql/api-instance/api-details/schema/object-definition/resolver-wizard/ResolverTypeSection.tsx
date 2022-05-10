@@ -6,6 +6,7 @@ import {
 import React from 'react';
 import { useFormikContext } from 'formik';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
+import { getDefaultConfigFromType } from './ResolverConfigSection';
 
 export let apiTypeOptions = [
   {
@@ -19,31 +20,37 @@ export let apiTypeOptions = [
     value: 'gRPC',
     subHeader: 'Integrate with upstream gRPC APIs based on a proto definition.',
   },
+  {
+    displayValue: 'Mock',
+    value: 'Mock',
+    subHeader:
+      'Create a mock response value for the GraphlApi instead of wiring it to an upstream API. This can be useful for demos and rapid prototyping.',
+  },
 ] as SoloFormRadioOption[];
 
 export const getType = (
   resolver?: Resolution.AsObject
 ): ResolverWizardFormProps['resolverType'] => {
-  if (!resolver) {
-    return 'REST';
-  }
-  if (resolver.grpcResolver) {
-    return 'gRPC';
-  } else if (resolver.restResolver) {
-    return 'REST';
-  }
+  if (resolver?.mockResolver) return 'Mock';
+  if (resolver?.grpcResolver) return 'gRPC';
+  if (resolver?.restResolver) return 'REST';
   return 'REST';
 };
 
 export const ResolverTypeSection = () => {
   const formik = useFormikContext<ResolverWizardFormProps>();
 
-  const onTypeChange = (resolverType: string) => {
+  const onTypeChange = (
+    resolverType: ResolverWizardFormProps['resolverType']
+  ) => {
     formik.setFieldValue('resolverType', resolverType);
     if (resolverType !== 'gRPC') {
       formik.setFieldValue('protoFile', '');
     }
-    formik.setFieldValue('resolverConfig', '');
+    formik.setFieldValue(
+      'resolverConfig',
+      getDefaultConfigFromType(resolverType)
+    );
     formik.setFieldValue('upstream', '');
   };
 

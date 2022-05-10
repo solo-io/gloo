@@ -4,6 +4,7 @@ import VisualEditor, {
 } from 'Components/Common/VisualEditor';
 import { useFormikContext } from 'formik';
 import React from 'react';
+import { Spacer } from 'Styles/StyledComponents/spacer';
 import { isBase64, base64ToString, stringToBase64 } from '../converters';
 import { ResolverWizardFormProps } from '../ResolverWizard';
 
@@ -39,71 +40,76 @@ export const GrpcProtoCheck = (props: GrpcProtoCheckProps) => {
   };
 
   return (
-    <div data-testid='grpc-proto-check-section' className='px-6 pb-0'>
-      {/* TODO:  There's an edge case here where a user is adding multiple gRPC resolvers.
+    <div data-testid='grpc-proto-check-section'>
+      <Spacer px={6}>
+        {/* TODO:  There's an edge case here where a user is adding multiple gRPC resolvers.
                    In this scenario, the proto page in the new resolver wizard should automatically
                    show the existing proto definition in the CR.
                    The user should have an option to update the proto bin if needed.
          */}
-      <div
-        className={`${
-          warningMessage.length > 0 ? 'opacity-100' : '  opacity-0'
-        }`}>
         <div
-          style={{ backgroundColor: '#FEF2F2' }}
-          className='p-2 text-orange-400 border border-orange-400 mb-5'>
-          <div className='font-medium '>{warningMessage}</div>
+          className={`${
+            warningMessage.length > 0 ? 'opacity-100' : '  opacity-0'
+          }`}>
+          <div
+            style={{ backgroundColor: '#FEF2F2' }}
+            className='p-2 text-orange-400 border border-orange-400 mb-5'>
+            <div className='font-medium '>{warningMessage}</div>
+          </div>
         </div>
-      </div>
-      <SoloFormFileUpload
-        data-testid='resolver-wizard-upload-proto'
-        name='uploadProto'
-        title='Upload gRPC pb.* file'
-        fileType='*'
-        buttonLabel='Upload ProtoFile'
-        onRemoveFile={() => {
-          setWarningMessage('');
-          formik.setFieldValue('protoFile', '');
-          setEditorValues('');
-          setShowEditor(false);
-        }}
-        validateFile={file => {
-          return new Promise((resolve, reject) => {
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = e => {
-                if (typeof e.target?.result === 'string') {
-                  setFileExtension(updateExtension(file));
-                  const proto = e.target.result;
-                  try {
-                    const isEncoded64 = isBase64(proto);
-                    let newEditorValues = proto;
-                    if (isEncoded64) {
-                      newEditorValues = base64ToString(proto);
-                      formik.setFieldValue('protoFile', proto);
-                    } else {
-                      newEditorValues = proto;
-                      formik.setFieldValue('protoFile', stringToBase64(proto));
+        <SoloFormFileUpload
+          data-testid='resolver-wizard-upload-proto'
+          name='uploadProto'
+          title='Upload gRPC pb.* file'
+          fileType='*'
+          buttonLabel='Upload ProtoFile'
+          onRemoveFile={() => {
+            setWarningMessage('');
+            formik.setFieldValue('protoFile', '');
+            setEditorValues('');
+            setShowEditor(false);
+          }}
+          validateFile={file => {
+            return new Promise((resolve, reject) => {
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                  if (typeof e.target?.result === 'string') {
+                    setFileExtension(updateExtension(file));
+                    const proto = e.target.result;
+                    try {
+                      const isEncoded64 = isBase64(proto);
+                      let newEditorValues = proto;
+                      if (isEncoded64) {
+                        newEditorValues = base64ToString(proto);
+                        formik.setFieldValue('protoFile', proto);
+                      } else {
+                        newEditorValues = proto;
+                        formik.setFieldValue(
+                          'protoFile',
+                          stringToBase64(proto)
+                        );
+                      }
+                      setWarningMessage('');
+                      setEditorValues(newEditorValues);
+                      setShowEditor(true);
+                      resolve({ isValid: true, errorMessage: '' });
+                    } catch (err: any) {
+                      setWarningMessage(err.message);
+                      setEditorValues('');
+                      setShowEditor(false);
+                      reject({ isValid: false, errorMessage: err.message });
                     }
-                    setWarningMessage('');
-                    setEditorValues(newEditorValues);
-                    setShowEditor(true);
-                    resolve({ isValid: true, errorMessage: '' });
-                  } catch (err: any) {
-                    setWarningMessage(err.message);
-                    setEditorValues('');
-                    setShowEditor(false);
-                    reject({ isValid: false, errorMessage: err.message });
                   }
-                }
-              };
-              reader.readAsText(file);
-            } else {
-              resolve({ isValid: true, errorMessage: '' });
-            }
-          });
-        }}
-      />
+                };
+                reader.readAsText(file);
+              } else {
+                resolve({ isValid: true, errorMessage: '' });
+              }
+            });
+          }}
+        />
+      </Spacer>
       {showEditor && (
         <div className='mt-4'>
           <VisualEditor

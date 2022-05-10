@@ -28,7 +28,12 @@ describe('UpstreamSection', () => {
         }}
         onSubmit={jest.fn()}>
         <Form>
-          <UpstreamSection existingUpstreamId={''} />
+          <UpstreamSection
+            onCancel={jest.fn()}
+            onNextClicked={jest.fn()}
+            nextButtonDisabled={false}
+            existingUpstreamId={''}
+          />
         </Form>
       </Formik>
     );

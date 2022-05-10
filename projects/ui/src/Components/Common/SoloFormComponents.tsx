@@ -1,27 +1,13 @@
-import { useTheme } from '@emotion/react';
 import styled from '@emotion/styled';
-import { Select } from 'antd';
-import { CheckboxChangeEvent } from 'antd/lib/checkbox';
-import { SelectProps, SelectValue } from 'antd/lib/select';
-import { ReactComponent as NoImageIcon } from 'assets/no-image-placeholder.svg';
-import { ReactComponent as PlaceholderPortal } from 'assets/placeholder-portal.svg';
-import { ReactComponent as RemoveIcon } from 'assets/remove.svg';
-import {
-  Field,
-  FieldProps,
-  FormikContextType,
-  FormikValues,
-  useFormikContext,
-} from 'formik';
+import { SelectValue } from 'antd/lib/select';
+import { FormikValues, useFormikContext } from 'formik';
 import React, { useRef } from 'react';
 import { colors } from 'Styles/colors';
 import tw from 'twin.macro';
-
-import { SoloCheckbox, CheckboxProps } from './SoloCheckbox';
-import { SoloDropdown, DropdownProps } from './SoloDropdown';
+import { DropdownProps, SoloDropdown } from './SoloDropdown';
 import { Input, InputProps, Label, SoloInput } from './SoloInput';
-import { SoloTextarea, TextareaProps } from './SoloTextarea';
 import { SoloToggleSwitch, SoloToggleSwitchProps } from './SoloToggleSwitch';
+
 type ErrorTextProps = { errorExists?: boolean };
 
 // focus rings for form elements
@@ -304,6 +290,7 @@ export const SoloFormRadio = <Values extends FormikValues>(
                 key={option.displayValue}
                 onClick={() => {
                   if (onChange) {
+                    if (option.value === values[name]) return;
                     onChange(option.value);
                   }
                   if (isUpdate) return;

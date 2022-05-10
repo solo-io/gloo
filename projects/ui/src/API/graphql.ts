@@ -1,5 +1,10 @@
 import { grpc } from '@improbable-eng/grpc-web';
-import { Value } from 'google-protobuf/google/protobuf/struct_pb';
+import {
+  Value,
+  ListValue,
+  NullValue,
+  Struct,
+} from 'google-protobuf/google/protobuf/struct_pb';
 import {
   StringValue,
   UInt32Value,
@@ -17,6 +22,7 @@ import {
   GrpcDescriptorRegistry,
   GrpcRequestTemplate,
   GrpcResolver,
+  MockResolver,
   RequestTemplate,
   Resolution,
   ResponseTemplate,
@@ -52,6 +58,8 @@ import {
   getObjectRefClassFromRefObj,
   host,
 } from './helpers';
+import { arrayMapToObject, objectToArrayMap } from 'utils/graphql-helpers';
+import { ResolverType } from 'Components/Features/Graphql/api-instance/api-details/schema/object-definition/resolver-wizard/ResolverWizard';
 const graphqlApiClient = new GraphqlConfigApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true,
@@ -59,7 +67,7 @@ const graphqlApiClient = new GraphqlConfigApiClient(host, {
 
 export type ResolverItem = {
   field: FieldDefinitionNode;
-  resolverType?: 'REST' | 'gRPC';
+  resolverType?: ResolverType;
   request?: RequestTemplate.AsObject;
   response?: ResponseTemplate.AsObject;
   grpcRequest?: GrpcRequestTemplate.AsObject;
@@ -68,6 +76,7 @@ export type ResolverItem = {
   isNewResolution: boolean;
   fieldReturnType: string;
   objectType: string;
+  mockResolver?: any;
 };
 
 export const graphqlConfigApi = {
@@ -498,6 +507,67 @@ async function updateGraphqlApiResolver(
       newGrpcResolver.setSpanName(resolverItem.spanName);
     }
     newResolution.setGrpcResolver(newGrpcResolver);
+  } else if (resolverItem.resolverType === 'Mock') {
+    let newMockResolver = new MockResolver();
+    // currResolMap?.get(fieldName)?.getMockResolver() ?? new MockResolver();
+
+    /**
+     * Checks which type the newValue could be
+     * and assigns it to the protobuf accordingly.
+     */
+    const setPBValue = (pbValue: Value, newValue: Value.AsObject) => {
+      if (newValue.numberValue !== undefined) {
+        pbValue.setNumberValue(newValue.numberValue);
+      }
+      if (newValue.boolValue !== undefined) {
+        pbValue.setBoolValue(newValue.boolValue);
+      }
+      if (newValue.stringValue !== undefined) {
+        pbValue.setStringValue(newValue.stringValue);
+      }
+      if (newValue.listValue?.valuesList !== undefined) {
+        const listValue = new ListValue();
+        const pbValues = [] as Value[];
+        newValue.listValue.valuesList.forEach(v => {
+          const newPBValue = new Value();
+          setPBValue(newPBValue, v);
+          pbValues.push(newPBValue);
+        });
+        listValue.setValuesList(pbValues);
+        pbValue.setListValue(listValue);
+      }
+      if (newValue.nullValue !== undefined) {
+        pbValue.setNullValue(NullValue.NULL_VALUE);
+      }
+      if (newValue.structValue !== undefined) {
+        const newStruct = Struct.fromJavaScript(
+          arrayMapToObject(newValue.structValue.fieldsMap)
+        );
+        pbValue.setStructValue(newStruct);
+      }
+      return pbValue;
+    };
+
+    const configSyncResponse = resolverItem.mockResolver?.syncResponse;
+    if (!!configSyncResponse) {
+      const newSyncResponse = new Value();
+      setPBValue(newSyncResponse, configSyncResponse);
+      newMockResolver.setSyncResponse(newSyncResponse);
+    }
+    const configAsyncResponse = resolverItem.mockResolver?.asyncResponse;
+    if (!!configAsyncResponse) {
+      const newAsyncResponse = new MockResolver.AsyncResponse();
+      const newAsyncResponseResponse = new Value();
+      setPBValue(newAsyncResponseResponse, configAsyncResponse?.response);
+      newAsyncResponse.setResponse(newAsyncResponseResponse);
+      newMockResolver.setAsyncResponse(newAsyncResponse);
+    }
+    const configErrorResponse = resolverItem.mockResolver?.errorResponse;
+    if (!!configErrorResponse) {
+      newMockResolver.setErrorResponse(configErrorResponse);
+    }
+
+    newResolution.setMockResolver(newMockResolver);
   }
 
   let request = new UpdateGraphqlApiRequest();
