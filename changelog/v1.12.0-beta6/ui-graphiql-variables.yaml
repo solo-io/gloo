@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix new tab variable updates.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3619

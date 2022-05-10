@@ -20,6 +20,22 @@ import {
 } from '../../../Overview/OverviewBoxSummary';
 import graphiqlCustomStyles from './GraphqlApiExplorer.style';
 
+type TabState = {
+  id: string;
+  hash: string;
+  title: string;
+  query: string | undefined;
+  variables: string | undefined;
+  headers: string | undefined;
+  operationName: string | undefined;
+  response: string | undefined;
+};
+
+type TabsState = {
+  activeTabIndex: number;
+  tabs: Array<TabState>;
+};
+
 const Wrapper = styled.div`
   background: white;
 `;
@@ -327,7 +343,25 @@ export const GraphqlApiExplorer = () => {
 
 `}
           variables={'{}'}
-          tabs={true}
+          tabs={{onTabChange: (tabs: TabsState) => {
+            /**
+             * This is a little gnarly, but they don't have a way to update the tabsState
+             * from within this method.  Here's the original PR on graphiql:
+             *
+             * https://github.com/graphql/graphiql/pull/2197/files#diff-26ce5690905d4057a50dc0071ebe62289aa386651901373ea48ca6a499f5639a
+             *
+             * Using the `graphiqlRef.current?.safeSetState` doesn't work because it uses a
+             * reducer to calculate the state.
+             *
+             * So we have to fake manually entering a variable whenever the tab is changed.
+             */
+            const currentTab = tabs.tabs[tabs.activeTabIndex];
+            const performChange = !Boolean(currentTab.variables?.trim());
+
+            if (performChange) {
+              graphiqlRef.current?.handleEditVariables('{}');
+            }
+          }}}
           operationName={opName}
           onEditOperationName={s => setOpName(s)}
           schema={!refetch ? executableSchema : undefined}
