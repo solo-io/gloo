@@ -263,7 +263,7 @@
 |gloo.gloo.splitLogOutput|bool||Set to true to send debug/info/warning logs to stdout, error/fatal/panic to stderr. Set to false to send all logs to stdout|
 |gloo.gloo.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gloo.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
-|gloo.discovery.deployment.image.tag|string|1.9.13|tag for the container|
+|gloo.discovery.deployment.image.tag|string|1.9.14|tag for the container|
 |gloo.discovery.deployment.image.repository|string||image name (repository) for the container.|
 |gloo.discovery.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.discovery.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -332,7 +332,7 @@
 |gloo.gateway.validation.webhook.extraAnnotations.NAME|string||extra annotations to add to the webhook|
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
-|gloo.gateway.deployment.image.tag|string|1.9.13|tag for the container|
+|gloo.gateway.deployment.image.tag|string|1.9.14|tag for the container|
 |gloo.gateway.deployment.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.deployment.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -379,7 +379,7 @@
 |gloo.gateway.deployment.resources.requests.memory|string||amount of memory|
 |gloo.gateway.deployment.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.certGenJob.image.tag|string|1.9.13|tag for the container|
+|gloo.gateway.certGenJob.image.tag|string|1.9.14|tag for the container|
 |gloo.gateway.certGenJob.image.repository|string||image name (repository) for the container.|
 |gloo.gateway.certGenJob.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|image pull policy for the container|
@@ -1129,7 +1129,7 @@
 |global.glooStats.enabled|bool|true|Controls whether or not envoy stats are enabled|
 |global.glooStats.routePrefixRewrite|string|/stats/prometheus|The envoy stats endpoint to which the metrics are written|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.9.13|tag for the container|
+|global.glooMtls.sds.image.tag|string|1.9.14|tag for the container|
 |global.glooMtls.sds.image.repository|string||image name (repository) for the container.|
 |global.glooMtls.sds.image.registry|string||image prefix/registry e.g. (quay.io/solo-io)|
 |global.glooMtls.sds.image.pullPolicy|string||image pull policy for the container|
