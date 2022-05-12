@@ -126,7 +126,7 @@ var _ = Describe("Kube2e: wasm", func() {
 			}
 
 			// Should still have a successful response
-			testHelper.CurlEventuallyShouldRespond(co, regressions.SimpleTestRunnerHttpResponse, 1, 60*time.Second, 1*time.Second)
+			testHelper.CurlEventuallyShouldRespond(co, regressions.GetSimpleTestRunnerHttpResponse(), 1, 60*time.Second, 1*time.Second)
 
 			// Check for the header added by the wasm filter
 			testHelper.CurlEventuallyShouldOutput(co, wasmHeader, 1, 60*time.Second, 1*time.Second)

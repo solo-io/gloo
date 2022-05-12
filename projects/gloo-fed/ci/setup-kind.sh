@@ -25,7 +25,7 @@ if [ "$GLOO_LICENSE_KEY" == "" ]; then
 fi
 
 # 2. Build the gloo command line tool, ensuring we have one in the `_output` folder
-make glooctl-$OS-amd64
+make glooctl-$OS
 shopt -s expand_aliases
 alias glooctl=_output/glooctl-$OS-amd64
 

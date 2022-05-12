@@ -36,7 +36,7 @@ require (
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.18.1
+	github.com/onsi/gomega v1.19.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
@@ -67,7 +67,7 @@ require (
 	go.opencensus.io v0.23.0
 	go.uber.org/zap v1.19.1
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
-	golang.org/x/net v0.0.0-20211205041911-012df41ee64c
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/tools v0.1.10
 	google.golang.org/grpc v1.42.0
@@ -148,7 +148,7 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/fsnotify/fsnotify v1.5.3 // indirect
+	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/fvbommel/sortorder v1.0.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
@@ -313,7 +313,7 @@ require (
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sys v0.0.0-20220422013727-9388b58f7150 // indirect
-	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect

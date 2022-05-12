@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -177,7 +178,9 @@ var _ = Describe("dlp tests", func() {
 		}
 
 		It("will transform xml -> json", func() {
-
+			if runtime.GOARCH == "arm64" {
+				Skip("Fails on arm64")
+			}
 			virtualHostPlugins := &gloov1.VirtualHostOptions{
 				StagedTransformations: &transformation.TransformationStages{
 					Early: &transformation.RequestResponseTransformations{

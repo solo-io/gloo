@@ -97,7 +97,6 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				"Authorization": fmt.Sprintf("Basic %s", encodedCredentials),
 			}
 		}
-
 		curlAndAssertResponse := func(path string, headers map[string]string, expectedResponseSubstring string) {
 			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 				Protocol:          "http",
@@ -111,7 +110,6 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				Verbose:           true, // this is important, as curl will only output status codes with verbose output
 			}, expectedResponseSubstring, 1, 2*time.Minute)
 		}
-
 		// This just registers the clients that we will need during the tests
 		BeforeEach(func() {
 			testHelper = inputs.TestHelper
@@ -1114,7 +1112,7 @@ func createHttpEchoDeploymentAndService(ctx context.Context, kubeClient kubernet
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
 						Name:  "http-echo",
-						Image: "hashicorp/http-echo",
+						Image: regressions.GetHttpEchoImage(),
 						Args:  []string{fmt.Sprintf("-text=%s", expectedResponse(appName))},
 						Ports: []corev1.ContainerPort{{
 							Name:          "http",

@@ -14,22 +14,33 @@ export const initBrowser = async () => {
   });
   if (process.env.VERBOSE === 'true') {
     page
-      .on('console', message => console.log(`${message.type().substring(0, 3).toUpperCase()} ${message.text()}`))
+      .on('console', message =>
+        console.log(
+          `${message.type().substring(0, 3).toUpperCase()} ${message.text()}`
+        )
+      )
       .on('pageerror', ({ message }) => console.log(message))
-      .on('response', response => console.log(`${response.status()} ${response.url()}`))
-      .on('requestfailed', request => console.log(`${request.failure().errorText} ${request.url()}`));
+      .on('response', response =>
+        console.log(`${response.status()} ${response.url()}`)
+      )
+      .on('requestfailed', request =>
+        console.log(`${request.failure().errorText} ${request.url()}`)
+      );
   }
   return { browser, page };
 };
 
 let numScreenshots = 0;
 const makeScreenshotPath = (fileName: string) =>
-  `${__dirname}/../screenshots/${(numScreenshots++).toString().padStart(3, '0')}_${fileName}.jpeg`;
+  `${__dirname}/../screenshots/${(numScreenshots++)
+    .toString()
+    .padStart(3, '0')}_${fileName}.jpeg`;
 
 export const screenshot = async (page: puppeteer.Page, fileName: string) =>
   await page.screenshot({ path: makeScreenshotPath(fileName) });
 
-export const sleep = async (ms: number) => await new Promise((resolve, _) => setTimeout(resolve, ms));
+export const sleep = async (ms: number) =>
+  await new Promise((resolve, _) => setTimeout(resolve, ms));
 
 /**
  *  This will retry finding the selector until it errors when it isn't found,
@@ -38,7 +49,11 @@ export const sleep = async (ms: number) => await new Promise((resolve, _) => set
  * @param selector
  * @param interval
  */
-export const waitForSelectorToBeRemoved = async (page: puppeteer.Page, selector: string, interval = 50) => {
+export const waitForSelectorToBeRemoved = async (
+  page: puppeteer.Page,
+  selector: string,
+  interval = 50
+) => {
   while (true) {
     try {
       await page.waitForSelector(selector, { timeout: interval });
@@ -49,7 +64,10 @@ export const waitForSelectorToBeRemoved = async (page: puppeteer.Page, selector:
   }
 };
 
-export const waitForAndClick = async (page: puppeteer.Page, selector: string) => {
+export const waitForAndClick = async (
+  page: puppeteer.Page,
+  selector: string
+) => {
   const el = await page.waitForSelector(selector);
   await el.click();
   return el;

@@ -104,7 +104,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			Service:           defaults.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		}, regressions.SimpleTestRunnerHttpResponse, 1, time.Minute*5)
+		}, regressions.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*5)
 	})
 
 	Context("virtual service in configured with SSL", func() {
@@ -164,7 +164,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				Port:              gatewayPort,
 				CaFile:            "/tmp/ca.crt",
 				ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-			}, regressions.SimpleTestRunnerHttpResponse, 1, time.Minute*2)
+			}, regressions.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*2)
 		})
 	})
 

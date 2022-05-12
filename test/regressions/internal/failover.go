@@ -157,7 +157,7 @@ func FailoverBeforeEach(testHelper *helper.SoloTestHelper) *FailoverTest {
 					Containers: []corev1.Container{
 						{
 							Name:  "echo",
-							Image: "hashicorp/http-echo@sha256:ba27d460cd1f22a1a4331bdf74f4fccbc025552357e8a3249c40ae216275de96",
+							Image: regressions.GetHttpEchoImage(),
 							Args:  []string{"-text=\"red-pod\""},
 						},
 						{

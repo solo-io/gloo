@@ -1,7 +1,18 @@
 /// <reference types="@types/jest" />
 import puppeteer from 'puppeteer';
-import { addSubGraph, createApi, deleteApi, removeSubGraph } from './utils/api-helpers';
-import { initBrowser, screenshot, sleep, waitForAndClick, waitForSelectorToBeRemoved } from './utils/helpers';
+import {
+  addSubGraph,
+  createApi,
+  deleteApi,
+  removeSubGraph,
+} from './utils/api-helpers';
+import {
+  initBrowser,
+  screenshot,
+  sleep,
+  waitForAndClick,
+  waitForSelectorToBeRemoved,
+} from './utils/helpers';
 import fs from 'fs';
 import { isEqual } from 'lodash';
 
@@ -45,7 +56,12 @@ describe('API Tests', () => {
       it('Should be able to create executable APIs', async () => {
         await createApi(page, 'jest-exe-book', 'executable', 'book.gql');
         await createApi(page, 'jest-exe-users', 'executable', 'users.gql');
-        await createApi(page, 'jest-exe-products', 'executable', 'products.gql');
+        await createApi(
+          page,
+          'jest-exe-products',
+          'executable',
+          'products.gql'
+        );
       });
     });
 
@@ -57,8 +73,12 @@ describe('API Tests', () => {
 
     describe('Download API', () => {
       it('Should be able to see a download API button', async () => {
-        await page.goto('http://localhost:3000/apis/', { waitUntil: ['networkidle0'] });
-        const downloadButton = await page.waitForSelector(`[data-testid='graphql-table-action-download']`);
+        await page.goto('http://localhost:3000/apis/', {
+          waitUntil: ['networkidle0'],
+        });
+        const downloadButton = await page.waitForSelector(
+          `[data-testid='graphql-table-action-download']`
+        );
         expect(downloadButton!.asElement()).not.toBeNull();
       });
     });
@@ -99,11 +119,15 @@ describe('API Tests', () => {
       describe('Resolve Config', () => {
         it('Should be able to create a resolve definition', async () => {
           await page.goto(exeApiUrl, { waitUntil: ['networkidle0'] });
-          const simpleScreenshot = () => screenshot(page, `AddResolveDirective`);
+          const simpleScreenshot = () =>
+            screenshot(page, `AddResolveDirective`);
           await simpleScreenshot();
           //
           // Open @resolve configuration wizard.
-          await waitForAndClick(page, `[data-testid="resolver-${fieldNameWithResolveDirective}"]`);
+          await waitForAndClick(
+            page,
+            `[data-testid="resolver-${fieldNameWithResolveDirective}"]`
+          );
           await simpleScreenshot();
           //
           // Open the upstream tab
@@ -118,23 +142,31 @@ describe('API Tests', () => {
           // Open the resolve config tab
           await waitForAndClick(page, `[data-testid="resolver-config-tab"]`);
           await simpleScreenshot();
-          const submitBtn = await page.waitForSelector(`[data-testid="resolver-wizard-submit"]`);
+          const submitBtn = await page.waitForSelector(
+            `[data-testid="resolver-wizard-submit"]`
+          );
           await submitBtn.click();
           await simpleScreenshot();
           // Verify a new resolverConfig has been created.
-          const resolverCreatedEl = await page.waitForSelector(`[data-testid="route-${fieldNameWithResolveDirective}"]`);
+          const resolverCreatedEl = await page.waitForSelector(
+            `[data-testid="route-${fieldNameWithResolveDirective}"]`
+          );
           expect(!!resolverCreatedEl).toBeTruthy();
           await simpleScreenshot();
         });
 
         it('Should be able to verify the resolution values.', async () => {
           await page.goto(exeApiUrl, { waitUntil: ['networkidle0'] });
-          const simpleScreenshot = () => screenshot(page, `VerifyResolveDirective`);
+          const simpleScreenshot = () =>
+            screenshot(page, `VerifyResolveDirective`);
           await simpleScreenshot();
           //
           // Verify a new resolverConfig has been created.
           // Open the @resolve config modal and the resolver config tab.
-          await waitForAndClick(page, `[data-testid="resolver-${fieldNameWithResolveDirective}"]`);
+          await waitForAndClick(
+            page,
+            `[data-testid="resolver-${fieldNameWithResolveDirective}"]`
+          );
           await waitForAndClick(page, `[data-testid="resolver-config-tab"]`);
           await page.waitForSelector('#resolverConfiguration > textarea');
           //
@@ -167,9 +199,15 @@ describe('API Tests', () => {
           await page.goto(exeApiUrl, { waitUntil: ['networkidle0'] });
           await simpleScreenshot();
           // Open @resolve configuration wizard.
-          await waitForAndClick(page, `[data-testid="resolver-${fieldNameWithResolveDirective}"]`);
+          await waitForAndClick(
+            page,
+            `[data-testid="resolver-${fieldNameWithResolveDirective}"]`
+          );
           // Remove.
-          await waitForAndClick(page, `[data-testid="remove-configuration-btn"]`);
+          await waitForAndClick(
+            page,
+            `[data-testid="remove-configuration-btn"]`
+          );
           //
           // The confirm-delete modal is already on the page, but is hidden.
           // so we have to wait for it to appear.
@@ -179,7 +217,10 @@ describe('API Tests', () => {
           await sleep(150);
           //
           // Verify that the resolverConfig has been removed.
-          await waitForSelectorToBeRemoved(page, `[data-testid="route-${fieldNameWithResolveDirective}"]`);
+          await waitForSelectorToBeRemoved(
+            page,
+            `[data-testid="route-${fieldNameWithResolveDirective}"]`
+          );
           await simpleScreenshot();
         });
       });

@@ -5,12 +5,15 @@
 ROOTDIR := $(shell pwd)
 RELATIVE_OUTPUT_DIR ?= _output
 OUTPUT_DIR ?= $(ROOTDIR)/$(RELATIVE_OUTPUT_DIR)
+UNAME_M ?=$(shell uname -m)
 
 # If you just put your username, then that refers to your account at hub.docker.com
 # To use quay images, set the IMAGE_REPO to "quay.io/solo-io" (or leave unset)
 # To use dockerhub images, set the IMAGE_REPO to "soloio"
 # To use gcr images, set the IMAGE_REPO to "gcr.io/$PROJECT_NAME"
-IMAGE_REPO ?= quay.io/solo-io
+# leave default value unset
+IMAGE_REPO_DEFAULT_VALUE := quay.io/solo-io
+IMAGE_REPO ?= $(IMAGE_REPO_DEFAULT_VALUE)
 
 GOLANG_VERSION := golang:1.18.1-alpine
 GOBORING_VERSION := us-docker.pkg.dev/google.com/api-project-999119582588/go-boringcrypto/golang:1.18.1b7
@@ -21,7 +24,30 @@ ifeq ($(TAGGED_VERSION),)
 else
 	RELEASE := "true"
 endif
+ifeq ($(PUSH_TESTS_ARM), true)
+	RELEASE := "true"
+	IMAGE_REPO ?= localhost:5000
+endif
+
+
 VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
+
+GOARCH ?= amd64
+ifneq ($(or	$(filter $(UNAME_M), arm64), $(filter $(UNAME_M), aarch64)), )
+	GOARCH := arm64
+	PLATFORM := --platform=linux/amd64
+endif
+
+# enable CGO for amd64 only
+GO_ENABLE_CGO=0
+ifeq ($(GOARCH), amd64)
+	GO_ENABLE_CGO=1
+endif
+
+DOCKER_BUILD_ARGS=--build-arg DOCKER_GOARCH=$(GOARCH)
+DOCKER_BUILD_ARGS_PLATFORM=$(DOCKER_BUILD_ARGS) $(PLATFORM)
+
+DOCKER_GO_BORING_ARGS=--build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1
 
 #----------------------------------------------------------------------------------
 # Kind Load Images
