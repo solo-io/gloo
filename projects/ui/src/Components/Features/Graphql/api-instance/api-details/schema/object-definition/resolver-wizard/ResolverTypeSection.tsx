@@ -37,12 +37,15 @@ export const getType = (
   return 'REST';
 };
 
-export const ResolverTypeSection = () => {
+export const ResolverTypeSection: React.FC<{
+  setWarningMessage(message: string): void;
+}> = ({ setWarningMessage }) => {
   const formik = useFormikContext<ResolverWizardFormProps>();
 
   const onTypeChange = (
     resolverType: ResolverWizardFormProps['resolverType']
   ) => {
+    setWarningMessage('');
     formik.setFieldValue('resolverType', resolverType);
     if (resolverType !== 'gRPC') {
       formik.setFieldValue('protoFile', '');

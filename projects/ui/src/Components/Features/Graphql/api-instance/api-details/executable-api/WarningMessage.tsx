@@ -1,3 +1,4 @@
+import { Alert } from 'antd';
 import * as React from 'react';
 
 interface Props {
@@ -6,9 +7,13 @@ interface Props {
 
 export const WarningMessage: React.FC<Props> = ({ message }) => {
   return Boolean(message) ? (
-    <div className='p-2 text-orange-400 border border-orange-400 mb-5 mt-5'>
-      {message}
-    </div>
+    <Alert
+      showIcon
+      type='warning'
+      className='p-2 mb-3 mt-3'
+      message={' '}
+      description={message}
+    />
   ) : null;
 };
 

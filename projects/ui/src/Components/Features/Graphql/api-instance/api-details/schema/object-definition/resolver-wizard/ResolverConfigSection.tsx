@@ -11,6 +11,7 @@ import {
 } from 'Styles/StyledComponents/button';
 import { Spacer } from 'Styles/StyledComponents/spacer';
 import YAML from 'yaml';
+import WarningMessage from '../../../executable-api/WarningMessage';
 import { getResolverFromConfig } from './converters';
 import { ResolverWizardFormProps } from './ResolverWizard';
 import * as ResolverWizardStyles from './ResolverWizard.styles';
@@ -34,17 +35,13 @@ export const getDefaultConfigFromType = (
          requestMetadata:
          outgoingMessageJson:
   `),
-      {
-        simpleKeys: true,
-      }
+      { simpleKeys: true }
     );
   if (resolverType === 'Mock')
     return YAML.stringify(
       YAML.parse(`syncResponse:
   `),
-      {
-        simpleKeys: true,
-      }
+      { simpleKeys: true }
     );
   // Default: resolverType==='REST'
   return YAML.stringify(
@@ -59,9 +56,7 @@ export const getDefaultConfigFromType = (
             resultRoot:
             setters:
   `),
-    {
-      simpleKeys: true,
-    }
+    { simpleKeys: true }
   );
 };
 
@@ -127,28 +122,15 @@ export const ResolverConfigSection: React.FC<{
         <Spacer mb={2}>
           <div>
             <EditorContainer editMode={true}>
-              <Spacer px={6}>
-                <div style={{ height: 'min-content' }}>
-                  <div
-                    className={`${
-                      errorMessage.length > 0 ? 'opacity-100' : '  opacity-0'
-                    }`}>
-                    <div
-                      style={{ backgroundColor: '#FEF2F2' }}
-                      className='p-2 text-orange-400 border border-orange-400'>
-                      <div className='font-medium '>
-                        {errorMessage?.split(',')[0]}
-                      </div>
-                      <ul className='pl-2 list-disc'>
-                        {errorMessage?.split(',')[1]}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
+              <Spacer px={6} mt='-20px'>
+                {!!warningMessage ? (
+                  <WarningMessage message={warningMessage} />
+                ) : (
+                  <Spacer pt='1.5rem' />
+                )}
               </Spacer>
-
               <div className='flex flex-col w-full'>
-                <Spacer mb={3}>
+                <Spacer my={3} mx={6}>
                   {resolverOptions.length > 0 && (
                     <div
                       data-testid='create-resolver-from-config'
@@ -173,9 +155,9 @@ export const ResolverConfigSection: React.FC<{
                   name='resolverConfiguration'
                   style={{
                     width: '100%',
-                    height: '55vh',
+                    height: '35vh',
                     maxHeight: '450px',
-                    minHeight: '200px',
+                    minHeight: '350px',
                     cursor: 'text',
                   }}
                   defaultValue={values.resolverConfig || ''}

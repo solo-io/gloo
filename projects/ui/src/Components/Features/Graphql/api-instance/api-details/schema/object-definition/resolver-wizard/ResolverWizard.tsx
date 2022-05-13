@@ -191,7 +191,7 @@ export const ResolverWizard: React.FC<{
   return (
     <div
       data-testid='resolver-wizard'
-      className='relative min-h-[700px] max-h-[800px] h-[85vh]'>
+      className='relative min-h-[700px] max-h-[800px] h-[75vh]'>
       <Formik<ResolverWizardFormProps>
         initialValues={{
           resolverType: getType(resolution),
@@ -295,7 +295,9 @@ export const ResolverWizard: React.FC<{
                 </div>
                 {/* --- STEP 1: RESOLVED API TYPE --- */}
                 <TabPanel className='relative flex flex-col justify-between h-full pb-4 focus:outline-none'>
-                  <ResolverTypeSection />
+                  <ResolverTypeSection
+                    setWarningMessage={message => setWarningMessage(message)}
+                  />
                   {!readonly && !isNewResolution && (
                     <div className='ml-2'>
                       <SoloNegativeButton
@@ -363,6 +365,9 @@ export const ResolverWizard: React.FC<{
                       {/* --- STEP 3: UPSTREAM --- */}
                       <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
                         <UpstreamSection
+                          setWarningMessage={message =>
+                            setWarningMessage(message)
+                          }
                           onCancel={onClose}
                           nextButtonDisabled={!upstreamIsValid(formik)}
                           onNextClicked={() => setTabIndex(tabIndex + 1)}
@@ -392,6 +397,9 @@ export const ResolverWizard: React.FC<{
                       {/* --- STEP 2: UPSTREAM --- */}
                       <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
                         <UpstreamSection
+                          setWarningMessage={message =>
+                            setWarningMessage(message)
+                          }
                           onCancel={onClose}
                           nextButtonDisabled={!upstreamIsValid(formik)}
                           onNextClicked={() => setTabIndex(tabIndex + 1)}

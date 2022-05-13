@@ -1,9 +1,16 @@
+import {
+  ListValue,
+  NullValue,
+  Struct,
+  Value,
+} from 'google-protobuf/google/protobuf/struct_pb';
 import { ObjectMeta } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
 import {
   ObjectRef,
   ClusterObjectRef,
 } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import useSWR, { Key } from 'swr';
+import { arrayMapToObject } from 'utils/graphql-helpers';
 
 export const host = `${
   process.env.NODE_ENV === 'production'
@@ -126,4 +133,44 @@ export function useRequest<T extends (...args: any) => Promise<any>>(
     refreshInterval: NORMAL_REFRESH_INTERVAL,
     ...(swrConfig as any),
   });
+}
+
+/**
+ * Checks which type the newValue could be
+ * and assigns it to the protobuf accordingly.
+ */
+export function setPBValue(pbValue: Value, newValue: Value.AsObject) {
+  if (newValue.numberValue !== undefined) {
+    pbValue.setNumberValue(newValue.numberValue);
+  }
+  if (newValue.boolValue !== undefined) {
+    pbValue.setBoolValue(newValue.boolValue);
+  }
+  if (newValue.stringValue !== undefined) {
+    pbValue.setStringValue(newValue.stringValue);
+  }
+  if (
+    newValue.listValue?.valuesList !== undefined ||
+    (newValue.listValue as any)?.values !== undefined
+  ) {
+    const listValue = new ListValue();
+    const pbValues = [] as Value[];
+    const values = newValue.listValue?.valuesList ?? [];
+    values.forEach(v => {
+      const newPBValue = new Value();
+      setPBValue(newPBValue, v);
+      pbValues.push(newPBValue);
+    });
+    listValue.setValuesList(pbValues);
+    pbValue.setListValue(listValue);
+  }
+  if (newValue.nullValue !== undefined) {
+    pbValue.setNullValue(NullValue.NULL_VALUE);
+  }
+  if (newValue.structValue !== undefined) {
+    const fields = newValue.structValue.fieldsMap ?? [];
+    const newStruct = Struct.fromJavaScript(arrayMapToObject(fields));
+    pbValue.setStructValue(newStruct);
+  }
+  return pbValue;
 }

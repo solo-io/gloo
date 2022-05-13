@@ -21,7 +21,7 @@ describe('ResolverTypeSection', () => {
         }}
         onSubmit={jest.fn()}>
         <Form>
-          <ResolverTypeSection />
+          <ResolverTypeSection setWarningMessage={jest.fn()} />
         </Form>
       </Formik>
     );

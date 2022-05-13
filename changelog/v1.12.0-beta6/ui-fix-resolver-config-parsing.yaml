@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fixed parsing issues in the resovler config editor and added parsing validation messages.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3608

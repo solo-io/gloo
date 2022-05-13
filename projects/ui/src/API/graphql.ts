@@ -1,10 +1,7 @@
 import { grpc } from '@improbable-eng/grpc-web';
-import {
-  Value,
-  ListValue,
-  NullValue,
-  Struct,
-} from 'google-protobuf/google/protobuf/struct_pb';
+import { ResolverType } from 'Components/Features/Graphql/api-instance/api-details/schema/object-definition/resolver-wizard/ResolverWizard';
+import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
+import { Value } from 'google-protobuf/google/protobuf/struct_pb';
 import {
   StringValue,
   UInt32Value,
@@ -57,9 +54,8 @@ import {
   getClusterRefClassFromClusterRefObj,
   getObjectRefClassFromRefObj,
   host,
+  setPBValue,
 } from './helpers';
-import { arrayMapToObject, objectToArrayMap } from 'utils/graphql-helpers';
-import { ResolverType } from 'Components/Features/Graphql/api-instance/api-details/schema/object-definition/resolver-wizard/ResolverWizard';
 const graphqlApiClient = new GraphqlConfigApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
   debug: true,
@@ -76,7 +72,7 @@ export type ResolverItem = {
   isNewResolution: boolean;
   fieldReturnType: string;
   objectType: string;
-  mockResolver?: any;
+  mockResolver?: MockResolver.AsObject;
 };
 
 export const graphqlConfigApi = {
@@ -406,9 +402,9 @@ async function updateGraphqlApiResolver(
       let newReq = newRestResolver?.getRequest() ?? new RequestTemplate();
 
       if (body !== undefined) {
-        let bodyVal = new Value();
-        bodyVal.setStringValue(body.stringValue);
-        newReq.setBody(bodyVal);
+        const newBody = new Value();
+        setPBValue(newBody, body);
+        newReq.setBody(newBody);
       } else {
         newReq.clearBody();
         newReq.setBody(undefined);
@@ -490,9 +486,9 @@ async function updateGraphqlApiResolver(
       }
 
       if (outgoingMessageJson !== undefined) {
-        let outgoingJson = new Value();
-        outgoingJson.setStringValue(outgoingMessageJson.stringValue);
-        newReq.setOutgoingMessageJson(outgoingJson);
+        const newOutgoingMessageJSON = new Value();
+        setPBValue(newOutgoingMessageJSON, outgoingMessageJson);
+        newReq.setOutgoingMessageJson(newOutgoingMessageJSON);
       } else {
         newReq.clearOutgoingMessageJson();
         newReq.setOutgoingMessageJson(undefined);
@@ -509,45 +505,6 @@ async function updateGraphqlApiResolver(
     newResolution.setGrpcResolver(newGrpcResolver);
   } else if (resolverItem.resolverType === 'Mock') {
     let newMockResolver = new MockResolver();
-    // currResolMap?.get(fieldName)?.getMockResolver() ?? new MockResolver();
-
-    /**
-     * Checks which type the newValue could be
-     * and assigns it to the protobuf accordingly.
-     */
-    const setPBValue = (pbValue: Value, newValue: Value.AsObject) => {
-      if (newValue.numberValue !== undefined) {
-        pbValue.setNumberValue(newValue.numberValue);
-      }
-      if (newValue.boolValue !== undefined) {
-        pbValue.setBoolValue(newValue.boolValue);
-      }
-      if (newValue.stringValue !== undefined) {
-        pbValue.setStringValue(newValue.stringValue);
-      }
-      if (newValue.listValue?.valuesList !== undefined) {
-        const listValue = new ListValue();
-        const pbValues = [] as Value[];
-        newValue.listValue.valuesList.forEach(v => {
-          const newPBValue = new Value();
-          setPBValue(newPBValue, v);
-          pbValues.push(newPBValue);
-        });
-        listValue.setValuesList(pbValues);
-        pbValue.setListValue(listValue);
-      }
-      if (newValue.nullValue !== undefined) {
-        pbValue.setNullValue(NullValue.NULL_VALUE);
-      }
-      if (newValue.structValue !== undefined) {
-        const newStruct = Struct.fromJavaScript(
-          arrayMapToObject(newValue.structValue.fieldsMap)
-        );
-        pbValue.setStructValue(newStruct);
-      }
-      return pbValue;
-    };
-
     const configSyncResponse = resolverItem.mockResolver?.syncResponse;
     if (!!configSyncResponse) {
       const newSyncResponse = new Value();
@@ -558,15 +515,21 @@ async function updateGraphqlApiResolver(
     if (!!configAsyncResponse) {
       const newAsyncResponse = new MockResolver.AsyncResponse();
       const newAsyncResponseResponse = new Value();
-      setPBValue(newAsyncResponseResponse, configAsyncResponse?.response);
-      newAsyncResponse.setResponse(newAsyncResponseResponse);
+      if (!!configAsyncResponse.response) {
+        setPBValue(newAsyncResponseResponse, configAsyncResponse.response);
+        newAsyncResponse.setResponse(newAsyncResponseResponse);
+      }
+      if (!!configAsyncResponse.delay) {
+        const delay = new Duration();
+        delay.setNanos(configAsyncResponse.delay.nanos);
+        delay.setSeconds(configAsyncResponse.delay.seconds);
+        newAsyncResponse.setDelay(delay);
+      }
       newMockResolver.setAsyncResponse(newAsyncResponse);
     }
     const configErrorResponse = resolverItem.mockResolver?.errorResponse;
-    if (!!configErrorResponse) {
+    if (!!configErrorResponse)
       newMockResolver.setErrorResponse(configErrorResponse);
-    }
-
     newResolution.setMockResolver(newMockResolver);
   }
 
@@ -643,9 +606,9 @@ async function getGraphqlApiWithResolver(
       let newReq = newRestResolver?.getRequest() ?? new RequestTemplate();
 
       if (body !== undefined) {
-        let bodyVal = new Value();
-        bodyVal.setStringValue(body.stringValue);
-        newReq.setBody(bodyVal);
+        const newBody = new Value();
+        setPBValue(newBody, body);
+        newReq.setBody(newBody);
       } else {
         newReq.clearBody();
         newReq.setBody(undefined);
