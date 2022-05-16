@@ -12,7 +12,7 @@ metadata:
     gloo: gateway-proxy
     gateway-proxy-id: {{ $name | kebabcase }}
   name: {{ $svcName | kebabcase }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ $spec.namespace | default .Release.Namespace }}
 {{- if $spec.service.extraAnnotations }}
   annotations:
   {{- range $key, $value := $spec.service.extraAnnotations }}
