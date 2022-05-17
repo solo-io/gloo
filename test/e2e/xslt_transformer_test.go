@@ -3,7 +3,7 @@ package e2e_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -100,9 +100,11 @@ var _ = Describe("XSLT Transformer E2E", func() {
 		client := &http.Client{}
 		Eventually(func() (int, error) {
 			response, err := client.Do(request)
-			if response == nil {
+			if err != nil {
 				return 0, err
 			}
+			defer response.Body.Close()
+			_, _ = io.ReadAll(response.Body)
 			return response.StatusCode, err
 		}, 20*time.Second, 1*time.Second).Should(Equal(200))
 
@@ -146,17 +148,21 @@ var _ = Describe("XSLT Transformer E2E", func() {
 				setupProxy()
 				request, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/", envoyPort), strings.NewReader(body))
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
-				var response *http.Response
+				var bodyStr string
 				EventuallyWithOffset(1, func() (int, error) {
-					response, err = http.DefaultClient.Do(request)
-					if response == nil {
+					response, err := http.DefaultClient.Do(request)
+					if err != nil {
 						return 0, err
 					}
-					return response.StatusCode, err
+					defer response.Body.Close()
+					bodyResp, err := io.ReadAll(response.Body)
+					if err != nil {
+						return 0, err
+					}
+					bodyStr = string(bodyResp)
+					return response.StatusCode, nil
 				}, 10*time.Second, 1*time.Second).Should(Equal(200))
-				bodyBytes, err := ioutil.ReadAll(response.Body)
-				ExpectWithOffset(1, err).NotTo(HaveOccurred())
-				ExpectWithOffset(1, string(bodyBytes)).To(Equal(expectedBody))
+				ExpectWithOffset(1, bodyStr).To(Equal(expectedBody))
 			},
 			Entry("json -> xml", JsonToXmlTransform, "application/xml", true, AutomobileJson, AutomobileXml),
 			Entry("xml -> json", XmlToJsonTransform, "application/json", false, CarsXml, CarsJson),
@@ -167,16 +173,21 @@ var _ = Describe("XSLT Transformer E2E", func() {
 			expectBadRequest := func(body string) {
 				request, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/", envoyPort), strings.NewReader(body))
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
-				var response *http.Response
+				var bodyStr string
 				EventuallyWithOffset(1, func() (int, error) {
-					response, _ = http.DefaultClient.Do(request)
-					if response == nil {
+					response, err := http.DefaultClient.Do(request)
+					if err != nil {
 						return 0, err
 					}
-					return response.StatusCode, err
+					defer response.Body.Close()
+					bodyResp, err := io.ReadAll(response.Body)
+					if err != nil {
+						return 0, err
+					}
+					bodyStr = string(bodyResp)
+					return response.StatusCode, nil
 				}, 15*time.Second, 1*time.Second).Should(Equal(400))
-				bodyBytes, err := ioutil.ReadAll(response.Body)
-				ExpectWithOffset(1, string(bodyBytes)).To(ContainSubstring("bad request"))
+				ExpectWithOffset(1, bodyStr).To(ContainSubstring("bad request"))
 			}
 
 			transform = getXsltTransform(XmlToXmlTransform, "application/xml", false)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -131,6 +132,8 @@ var _ = Describe("Graphql E2E test", func() {
 				if err != nil {
 					return 0, err
 				}
+				defer resp.Body.Close()
+				_, _ = io.ReadAll(resp.Body)
 				return resp.StatusCode, nil
 			}, "5s", "0.5s").Should(Equal(http.StatusOK))
 		}
@@ -169,21 +172,21 @@ var _ = Describe("Graphql E2E test", func() {
 				graphqlAddress := fmt.Sprintf("http://localhost:%d/graphql", envoyPort)
 				req, err := http.NewRequest(http.MethodPost, graphqlAddress, strings.NewReader(query))
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
-				var res *http.Response
+				var bodyStr string
 				EventuallyWithOffset(1, func() (int, error) {
-					res, err = http.DefaultClient.Do(req)
+					res, err := http.DefaultClient.Do(req)
 					if err != nil {
 						return 0, err
 					}
+					defer res.Body.Close()
+					body, err := io.ReadAll(res.Body)
 					if err != nil {
 						return 0, err
 					}
+					bodyStr = string(body)
 					return res.StatusCode, err
 				}, "10s", "1s").Should(Equal(http.StatusOK))
-
-				body, err := ioutil.ReadAll(res.Body)
-				ExpectWithOffset(1, err).NotTo(HaveOccurred())
-				return string(body)
+				return bodyStr
 			}
 
 			It("discovers openapi schema and translates to graphql schema", func() {

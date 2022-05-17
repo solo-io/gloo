@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -79,9 +80,11 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 		client := &http.Client{}
 		Eventually(func() (int, error) {
 			response, err := client.Do(request)
-			if response == nil {
+			if err != nil {
 				return 0, err
 			}
+			defer response.Body.Close()
+			_, _ = io.ReadAll(response.Body)
 			return response.StatusCode, err
 		}, 20*time.Second, 1*time.Second).Should(Equal(200))
 
@@ -106,10 +109,12 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 			request.Header.Add("cluster-header-name", upstreamName)
 
 			Eventually(func() int {
-				response, _ := http.DefaultClient.Do(request)
-				if response == nil {
+				response, err := http.DefaultClient.Do(request)
+				if err != nil {
 					return 0
 				}
+				defer response.Body.Close()
+				_, _ = io.ReadAll(response.Body)
 				return response.StatusCode
 			}, 10*time.Second, 1*time.Second).Should(Equal(200))
 
@@ -142,6 +147,7 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 				if err != nil {
 					return err
 				}
+				defer response.Body.Close()
 				body, err := ioutil.ReadAll(response.Body)
 				if err != nil {
 					return err

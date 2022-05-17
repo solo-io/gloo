@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sync/atomic"
 
@@ -188,53 +189,53 @@ var _ = Describe("JWT + RBAC", func() {
 	})
 
 	ExpectAccess := func(bar, fooget, foopost int, getBookRecommendations int, getVerifiedEmail int, augmentRequest func(*http.Request)) {
-		query := func(method, path string) (*http.Response, error) {
+		// nestedFunctionLevel is for callstack reporting and should end up in the calling function.
+		// here we are in expected access and then in the testquery function
+		const nestedFunctionLevel = 2
+		testQuery := func(method, path string, expectedStatus int, eventually bool) {
 			url := fmt.Sprintf("http://%s:%d%s", "localhost", envoyPort, path)
 			By("Querying " + url)
 			req, err := http.NewRequest(method, url, nil)
-			if err != nil {
-				return nil, err
-			}
+			Expect(err).NotTo(HaveOccurred())
 			augmentRequest(req)
-			return http.DefaultClient.Do(req)
+
+			if eventually {
+				EventuallyWithOffset(nestedFunctionLevel, func() (int, error) {
+					resp, err := http.DefaultClient.Do(req)
+					if err != nil {
+						return 0, err
+					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
+					return resp.StatusCode, nil
+				}, "5s", "0.5s").Should(Equal(expectedStatus))
+			} else {
+				resp, err := http.DefaultClient.Do(req)
+				ExpectWithOffset(nestedFunctionLevel, err).NotTo(HaveOccurred())
+				defer resp.Body.Close()
+				_, _ = io.ReadAll(resp.Body)
+				ExpectWithOffset(nestedFunctionLevel, resp.StatusCode).To(Equal(expectedStatus))
+			}
 		}
 
 		// test public route in eventually to let the proxy time to start
-		Eventually(func() (int, error) {
-			resp, err := query("GET", "/public_route")
-			if err != nil {
-				return 0, err
-			}
-			return resp.StatusCode, nil
-		}, "5s", "0.5s").Should(Equal(http.StatusOK))
+		testQuery("GET", "/public_route", http.StatusOK, true)
 
 		// No need to do eventually here as all is initialized.
-		resp, err := query("GET", "/private_route")
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
-		ExpectWithOffset(1, resp.StatusCode).To(Equal(http.StatusForbidden))
+		testQuery("GET", "/private_route", http.StatusForbidden, false)
 
-		resp, err = query("GET", "/bar")
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
-		ExpectWithOffset(1, resp.StatusCode).To(Equal(bar))
+		testQuery("GET", "/bar", bar, false)
 
-		resp, err = query("GET", "/foo")
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
-		ExpectWithOffset(1, resp.StatusCode).To(Equal(fooget))
+		testQuery("GET", "/foo", fooget, false)
 
-		resp, err = query("POST", "/foo")
-		ExpectWithOffset(1, err).NotTo(HaveOccurred())
-		ExpectWithOffset(1, resp.StatusCode).To(Equal(foopost))
+		testQuery("POST", "/foo", foopost, false)
 
 		// These endpoints are only for those with advanced nested claims, -1 to skip
 		if getBookRecommendations != -1 {
-			resp, err = query("GET", "/book-recommendations")
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-			ExpectWithOffset(1, resp.StatusCode).To(Equal(getBookRecommendations))
+			testQuery("GET", "/book-recommendations", getBookRecommendations, false)
 		}
 		if getVerifiedEmail != -1 {
-			resp, err = query("GET", "/verified-email")
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
-			ExpectWithOffset(1, resp.StatusCode).To(Equal(getVerifiedEmail))
+			testQuery("GET", "/verified-email", getVerifiedEmail, false)
 		}
 	}
 
@@ -311,8 +312,13 @@ var _ = Describe("JWT + RBAC", func() {
 
 			// wait for key service to start
 			Eventually(func() error {
-				_, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
-				return err
+				resp, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
+				if err != nil {
+					return err
+				}
+				defer resp.Body.Close()
+				_, _ = io.ReadAll(resp.Body)
+				return nil
 			}, "5s", "0.5s").ShouldNot(HaveOccurred())
 		})
 
@@ -330,6 +336,8 @@ var _ = Describe("JWT + RBAC", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
@@ -356,6 +364,8 @@ var _ = Describe("JWT + RBAC", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 			})
@@ -369,6 +379,8 @@ var _ = Describe("JWT + RBAC", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 			})
@@ -387,6 +399,8 @@ var _ = Describe("JWT + RBAC", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
@@ -407,6 +421,8 @@ var _ = Describe("JWT + RBAC", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
@@ -433,8 +449,13 @@ var _ = Describe("JWT + RBAC", func() {
 
 			// wait for key service to start
 			Eventually(func() error {
-				_, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
-				return err
+				resp, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
+				if err != nil {
+					return err
+				}
+				defer resp.Body.Close()
+				_, _ = io.ReadAll(resp.Body)
+				return nil
 			}, "5s", "0.5s").ShouldNot(HaveOccurred())
 
 		})
@@ -493,8 +514,13 @@ var _ = Describe("JWT + RBAC", func() {
 
 			// wait for key service to start
 			Eventually(func() error {
-				_, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
-				return err
+				resp, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
+				if err != nil {
+					return err
+				}
+				defer resp.Body.Close()
+				_, _ = io.ReadAll(resp.Body)
+				return nil
 			}, "5s", "0.5s").ShouldNot(HaveOccurred())
 
 		})

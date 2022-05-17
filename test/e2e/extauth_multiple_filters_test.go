@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -138,7 +139,8 @@ var _ = Describe("External auth with multiple auth servers", func() {
 				if err != nil {
 					return 0, err
 				}
-
+				defer resp.Body.Close()
+				_, _ = io.ReadAll(resp.Body)
 				return resp.StatusCode, nil
 			}, "5s", "0.5s").Should(Equal(responseCode))
 		}

@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/big"
 	"net/http"
 	"net/http/cookiejar"
@@ -240,6 +240,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
 				})
@@ -250,6 +252,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 				})
@@ -260,6 +264,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
 				})
@@ -339,18 +345,21 @@ var _ = Describe("External auth", func() {
 					discoveryServer.Stop()
 				})
 
-				makeSingleRequest := func(client *http.Client) (http.Response, error) {
+				makeSingleRequest := func(client *http.Client) (int, error) {
 					req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/success?foo=bar", "localhost", envoyPort), nil)
-					Expect(err).NotTo(HaveOccurred())
+					if err != nil {
+						return 0, err
+					}
 					r, err := client.Do(req)
 					if err != nil {
-						return http.Response{}, err
+						return 0, err
 					}
-
-					return *r, err
+					defer r.Body.Close()
+					_, _ = io.ReadAll(r.Body)
+					return r.StatusCode, nil
 				}
 
-				ExpectHappyPathToWork := func(makeSingleRequest func(client *http.Client) (http.Response, error), loginSuccessExpectation func()) {
+				ExpectHappyPathToWork := func(makeSingleRequest func(client *http.Client) (int, error), loginSuccessExpectation func()) {
 					// do auth flow and make sure we have a cookie named cookie:
 					appPage, err := url.Parse(fmt.Sprintf("http://%s:%d/", "localhost", envoyPort))
 					Expect(err).NotTo(HaveOccurred())
@@ -370,11 +379,9 @@ var _ = Describe("External auth", func() {
 						},
 					}
 
-					Eventually(func() (http.Response, error) {
+					Eventually(func() (int, error) {
 						return makeSingleRequest(client)
-					}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
-						"StatusCode": Equal(http.StatusOK),
-					}))
+					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
 					Expect(finalurl).NotTo(BeNil())
 					Expect(finalurl.Path).To(Equal("/success"))
@@ -401,6 +408,8 @@ var _ = Describe("External auth", func() {
 					Expect(err).NotTo(HaveOccurred())
 					resp, err := client.Do(req)
 					Expect(err).NotTo(HaveOccurred())
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					Expect(resp.StatusCode).To(Equal(http.StatusOK))
 					// Verify that the logout resulted in a redirect to the defaul url
 					Expect(finalurl).NotTo(BeNil())
@@ -462,7 +471,7 @@ var _ = Describe("External auth", func() {
 					})
 
 					It("should auth successfully after refreshing token", func() {
-						forceTokenRefresh := func(client *http.Client) (http.Response, error) {
+						forceTokenRefresh := func(client *http.Client) (int, error) {
 							// Create token that will expire in 1 second
 							discoveryServer.createNearlyExpiredToken = true
 							discoveryServer.updateToken("")
@@ -470,26 +479,24 @@ var _ = Describe("External auth", func() {
 							Expect(handlerStats["/token"]).To(BeEquivalentTo(0))
 
 							// execute first request.
-							Eventually(func() (http.Response, error) {
+							Eventually(func() (int, error) {
 								return makeSingleRequest(client)
-							}, "10s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
-								"StatusCode": Equal(http.StatusOK),
-							}))
+							}, "10s", "0.5s").Should(Equal(http.StatusOK))
 
 							// sleep for 1 second, so the token expires
 							time.Sleep(time.Second)
 
 							// execute second request.
-							r, err := makeSingleRequest(client)
+							statusCode, err := makeSingleRequest(client)
 							Expect(err).NotTo(HaveOccurred())
 
 							// execute third request. We should not hit the /token handler, because the refreshed token should be in the store.
 							baseRefreshes := handlerStats["/token"]
-							r, err = makeSingleRequest(client)
+							statusCode, err = makeSingleRequest(client)
 							Expect(err).NotTo(HaveOccurred())
 							Expect(handlerStats["/token"]).To(BeNumerically("==", baseRefreshes))
 
-							return r, err
+							return statusCode, err
 						}
 
 						ExpectHappyPathToWork(forceTokenRefresh, func() {
@@ -518,8 +525,13 @@ var _ = Describe("External auth", func() {
 							Eventually(func() error {
 								req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/success?foo=bar", "localhost", envoyPort), nil)
 								Expect(err).NotTo(HaveOccurred())
-								_, err = client.Do(req)
-								return err
+								resp, err := client.Do(req)
+								if err != nil {
+									return err
+								}
+								defer resp.Body.Close()
+								_, _ = io.ReadAll(resp.Body)
+								return nil
 							}, "5s", "0.5s").Should(MatchError(ContainSubstring("stopped after 10 redirects")))
 							Expect(discoveryServer.lastGrant).To(Equal(""))
 						})
@@ -577,7 +589,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return "", err
 							}
-							body, err := ioutil.ReadAll(resp.Body)
+							defer resp.Body.Close()
+							body, err := io.ReadAll(resp.Body)
 							if err != nil {
 								return "", err
 							}
@@ -603,12 +616,17 @@ var _ = Describe("External auth", func() {
 					expectRequestWithTokenSucceeds := func(offset int, token string) {
 						EventuallyWithOffset(offset+1, func() (int, error) {
 							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							if err != nil {
+								return 0, err
+							}
 							req.Header.Add("Authorization", "Bearer "+token)
 
 							resp, err := http.DefaultClient.Do(req)
 							if err != nil {
 								return 0, err
 							}
+							defer resp.Body.Close()
+							_, _ = io.ReadAll(resp.Body)
 							return resp.StatusCode, nil
 						}, "5s", "0.5s").Should(Equal(http.StatusOK))
 					}
@@ -633,7 +651,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return "", err
 							}
-							body, err := ioutil.ReadAll(resp.Body)
+							defer resp.Body.Close()
+							body, err := io.ReadAll(resp.Body)
 							if err != nil {
 								return "", err
 							}
@@ -871,7 +890,9 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return http.Response{}, err
 							}
-							return *r, err
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
 						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
 							"StatusCode": Equal(http.StatusFound),
 							"Header":     HaveKeyWithValue("Location", []string{finalpage}),
@@ -896,7 +917,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return "", err
 							}
-							body, err := ioutil.ReadAll(resp.Body)
+							defer resp.Body.Close()
+							body, err := io.ReadAll(resp.Body)
 							if err != nil {
 								return "", err
 							}
@@ -919,7 +941,9 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return http.Response{}, err
 							}
-							return *r, err
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
 						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
 							"StatusCode": Equal(http.StatusFound),
 							"Header":     HaveKeyWithValue("Location", ContainElement(ContainSubstring("email"))),
@@ -945,7 +969,9 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return http.Response{}, err
 							}
-							return *r, err
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
 						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
 							"StatusCode": Equal(http.StatusFound),
 							"Header":     HaveKeyWithValue("Location", []string{finalpage}),
@@ -1009,6 +1035,8 @@ var _ = Describe("External auth", func() {
 								if err != nil {
 									return 0, err
 								}
+								defer resp.Body.Close()
+								_, _ = io.ReadAll(resp.Body)
 								return resp.StatusCode, nil
 							}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
 
@@ -1026,6 +1054,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
@@ -1116,11 +1146,12 @@ var _ = Describe("External auth", func() {
 							return http.ErrUseLastResponse
 						},
 					}
-					var resp *http.Response
-					resp, err = client.Do(getReq)
+					resp, err := client.Do(getReq)
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}
 
@@ -1470,6 +1501,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
 				})
@@ -1479,10 +1512,11 @@ var _ = Describe("External auth", func() {
 						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
 						req.Header.Add("api-key", "badApiKey")
 						resp, err := http.DefaultClient.Do(req)
-
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
 				})
@@ -1492,10 +1526,11 @@ var _ = Describe("External auth", func() {
 						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
 						req.Header.Add("api-key", "secretApiKey1")
 						resp, err := http.DefaultClient.Do(req)
-
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 				})
@@ -1505,10 +1540,11 @@ var _ = Describe("External auth", func() {
 						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
 						req.Header.Add("api-key", "secretApiKey2")
 						resp, err := http.DefaultClient.Do(req)
-
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 				})
@@ -1516,39 +1552,36 @@ var _ = Describe("External auth", func() {
 
 			Context("http passthrough", func() {
 
-				expectStatusCodeWithHeaders := func(responseCode int, reqHeadersToAdd map[string][]string, responseHeadersToExpect map[string]string) *http.Response {
-					var resp *http.Response
+				expectStatusCodeWithHeaders := func(responseCode int, reqHeadersToAdd map[string][]string, responseHeadersToExpect map[string]string) {
 					EventuallyWithOffset(1, func() (int, error) {
 						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
 						if err != nil {
 							return 0, err
 						}
 						req.Header = reqHeadersToAdd
-						resp, err = http.DefaultClient.Do(req)
+						resp, err := http.DefaultClient.Do(req)
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						for headerName, headerValue := range responseHeadersToExpect {
 							ExpectWithOffset(2, resp.Header.Get(headerName)).To(Equal(headerValue))
 						}
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(responseCode))
-					return resp
 				}
 
-				expectStatusCodeWithBody := func(responseCode int, body string) *http.Response {
-					var (
-						resp *http.Response
-						err  error
-					)
+				expectStatusCodeWithBody := func(responseCode int, body string) {
 					EventuallyWithOffset(1, func() (int, error) {
-						resp, err = http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "text/plain", strings.NewReader(body))
+						resp, err := http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "text/plain", strings.NewReader(body))
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}).Should(Equal(responseCode))
-					return resp
 				}
 
 				Context("passthrough sanity", func() {
@@ -1914,19 +1947,16 @@ var _ = Describe("External auth", func() {
 						})
 					})
 
-					_ = func(responseCode int, body string) *http.Response {
-						var (
-							resp *http.Response
-							err  error
-						)
+					_ = func(responseCode int, body string) {
 						EventuallyWithOffset(1, func() (int, error) {
-							resp, err = http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "text/plain", strings.NewReader(body))
+							resp, err := http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "text/plain", strings.NewReader(body))
 							if err != nil {
 								return 0, err
 							}
+							defer resp.Body.Close()
+							_, _ = io.ReadAll(resp.Body)
 							return resp.StatusCode, nil
 						}).Should(Equal(responseCode))
-						return resp
 					}
 
 					It("works", func() {
@@ -2004,6 +2034,13 @@ var _ = Describe("External auth", func() {
 								},
 							}},
 						}
+
+						// paranoia check if its already deleted thats fine as we just check that its gone
+						_ = testClients.AuthConfigClient.Delete(ac.Metadata.Namespace, ac.Metadata.Name, clients.DeleteOpts{})
+						helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
+							return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
+						})
+
 						_, err = testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
 						Expect(err).NotTo(HaveOccurred())
 
@@ -2059,7 +2096,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return 0, err
 							}
-
+							defer resp.Body.Close()
+							_, _ = io.ReadAll(resp.Body)
 							return resp.StatusCode, nil
 						}, "5s", "0.5s").Should(Equal(responseCode))
 					}
@@ -2227,7 +2265,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return 0, err
 							}
-
+							defer resp.Body.Close()
+							_, _ = io.ReadAll(resp.Body)
 							return resp.StatusCode, nil
 						}, "5s", "0.5s").Should(Equal(responseCode))
 					}
@@ -2371,7 +2410,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return 0, err
 							}
-
+							defer resp.Body.Close()
+							_, _ = io.ReadAll(resp.Body)
 							return resp.StatusCode, nil
 						}, "5s", "0.5s").Should(Equal(responseCode))
 					}
@@ -2540,7 +2580,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return "", err
 							}
-							body, err := ioutil.ReadAll(resp.Body)
+							defer resp.Body.Close()
+							body, err := io.ReadAll(resp.Body)
 							if err != nil {
 								return "", err
 							}
@@ -2562,7 +2603,9 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return http.Response{}, err
 							}
-							return *r, err
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
 						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
 							"StatusCode": Equal(http.StatusFound),
 							"Header":     HaveKeyWithValue("Location", ContainElement(ContainSubstring("email"))),
@@ -2588,7 +2631,9 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return http.Response{}, err
 							}
-							return *r, err
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
 						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
 							"StatusCode": Equal(http.StatusFound),
 							"Header":     HaveKeyWithValue("Location", []string{finalpage}),
@@ -2650,6 +2695,8 @@ var _ = Describe("External auth", func() {
 								if err != nil {
 									return 0, err
 								}
+								defer resp.Body.Close()
+								_, _ = io.ReadAll(resp.Body)
 								return resp.StatusCode, nil
 							}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
 
@@ -2667,6 +2714,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 

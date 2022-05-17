@@ -2,8 +2,8 @@ package e2e_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -1333,66 +1333,27 @@ var _ = Describe("Rate Limit Local E2E", func() {
 	})
 })
 
-func EventuallyOk(hostname string, port uint32) {
+func ConsistentlyNotRateLimited(hostname string, port uint32) {
+	// waiting for envoy to start, so that consistently works.
 	// wait for three seconds so gloo race can be waited out
 	// it's possible gloo upstreams hit after the proxy does
 	// (gloo resyncs once per second)
 	time.Sleep(3 * time.Second)
-	EventuallyWithOffset(1, func() error {
-		res, err := get(hostname, port, nil)
-		if err != nil {
-			return err
-		}
-		if res.StatusCode != http.StatusOK {
-			return errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
-		}
-		return nil
-	}, "5s", ".1s").Should(BeNil())
-}
+	testStatus(hostname, port, nil, http.StatusOK, 2, false)
 
-func ConsistentlyNotRateLimited(hostname string, port uint32) {
-	// waiting for envoy to start, so that consistently works
-	EventuallyOk(hostname, port)
-
-	ConsistentlyWithOffset(2, func() error {
-		res, err := get(hostname, port, nil)
-		if err != nil {
-			return err
-		}
-		if res.StatusCode != http.StatusOK {
-			return errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
-		}
-		return nil
-	}, "5s", ".1s").Should(BeNil())
+	testStatus(hostname, port, nil, http.StatusOK, 2, true)
 }
 
 func EventuallyRateLimited(hostname string, port uint32) {
-	EventuallyWithOffset(1, func() error {
-		res, err := get(hostname, port, nil)
-		if err != nil {
-			return err
-		}
-		if res.StatusCode != http.StatusTooManyRequests {
-			return errors.New(fmt.Sprintf("%v is not TooManyRequests", res.StatusCode))
-		}
-		return nil
-	}, "5s", ".1s").Should(BeNil())
+	testStatus(hostname, port, nil, http.StatusTooManyRequests, 2, false)
 }
 
 func EventuallyRateLimitedWithHeaders(hostname string, port uint32, headers http.Header) {
-	EventuallyWithOffset(1, func() error {
-		res, err := get(hostname, port, headers)
-		if err != nil {
-			return err
-		}
-		if res.StatusCode != http.StatusTooManyRequests {
-			return errors.New(fmt.Sprintf("%v is not TooManyRequests", res.StatusCode))
-		}
-		return nil
-	}, "5s", ".1s").Should(BeNil())
+	testStatus(hostname, port, headers, http.StatusTooManyRequests, 2, false)
 }
 
-func get(hostname string, port uint32, headers http.Header) (*http.Response, error) {
+func testStatus(hostname string, port uint32, headers http.Header, expectedStatus int,
+	offset int, consistently bool) {
 	parts := strings.SplitN(hostname, "/", 2)
 	hostname = parts[0]
 	path := "1"
@@ -1415,7 +1376,28 @@ func get(hostname string, port uint32, headers http.Header) (*http.Response, err
 	}
 
 	req.Host = hostname
-	return http.DefaultClient.Do(req)
+
+	if consistently {
+		ConsistentlyWithOffset(offset, func() (int, error) {
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return 0, err
+			}
+			defer resp.Body.Close()
+			_, _ = io.ReadAll(resp.Body)
+			return resp.StatusCode, nil
+		}, "5s", ".1s").Should(Equal(expectedStatus))
+	} else {
+		EventuallyWithOffset(offset, func() (int, error) {
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return 0, err
+			}
+			defer resp.Body.Close()
+			_, _ = io.ReadAll(resp.Body)
+			return resp.StatusCode, nil
+		}, "5s", ".1s").Should(Equal(expectedStatus))
+	}
 }
 
 func getRedisPath() string {

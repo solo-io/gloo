@@ -321,8 +321,13 @@ func (ei *EnvoyInstance) DisablePanicMode() error {
 }
 
 func (ei *EnvoyInstance) setRuntimeConfiguration(queryParameters string) error {
-	_, err := http.Post(fmt.Sprintf("http://localhost:%d/runtime_modify?%s", ei.AdminPort, queryParameters), "", nil)
-	return err
+	resp, err := http.Post(fmt.Sprintf("http://localhost:%d/runtime_modify?%s", ei.AdminPort, queryParameters), "", nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	_, _ = io.ReadAll(resp.Body)
+	return nil
 }
 
 func (ei *EnvoyInstance) UseDocker() bool {
@@ -330,7 +335,13 @@ func (ei *EnvoyInstance) UseDocker() bool {
 }
 
 func (ei *EnvoyInstance) Clean() error {
-	http.Post(fmt.Sprintf("http://localhost:%d/quitquitquit", ei.AdminPort), "", nil)
+	postResp, err := http.Post(fmt.Sprintf("http://localhost:%d/quitquitquit", ei.AdminPort), "", nil)
+	if err != nil {
+		fmt.Fprintf(ginkgo.GinkgoWriter, "Error posting to quitquitquit (%s). continuing anyway.", err)
+	} else {
+		_, _ = io.ReadAll(postResp.Body)
+		postResp.Body.Close()
+	}
 	if ei.cmd != nil {
 		ei.cmd.Process.Kill()
 		ei.cmd.Wait()
@@ -351,10 +362,12 @@ func (ei *EnvoyInstance) Clean() error {
 	timeout := 5 // seconds
 	timer := timeout
 	for timer > 0 {
-		_, err = client.Do(request)
+		resp, err := client.Do(request)
 		if err != nil {
 			break
 		}
+		_, _ = io.ReadAll(resp.Body)
+		resp.Body.Close()
 		if timer == 0 {
 			return errors.Errorf("did not shut down envoy succesfully in %d seconds", timeout)
 		}

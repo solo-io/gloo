@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -212,36 +213,42 @@ var _ = Describe("graphql", func() {
 			graphqlApi *v1beta1.GraphQLApi
 		)
 
-		var testRequestWithRespAssertions = func(result string, f func(resp *http.Response)) {
-			var resp *http.Response
+		var testRequestWithHeaders = func(result string, headers map[string]string) {
+			var bodyStr string
+			var respHeaders http.Header
 			Eventually(func() (int, error) {
 				client := http.DefaultClient
 				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/testroute", "localhost", envoyPort))
 				Expect(err).NotTo(HaveOccurred())
-				resp, err = client.Do(&http.Request{
+				resp, err := client.Do(&http.Request{
 					Method: http.MethodPost,
 					URL:    reqUrl,
 					Body:   ioutil.NopCloser(strings.NewReader(query)),
 				})
-				if resp == nil {
-					return 0, nil
+				if err != nil {
+					return 0, err
 				}
+				defer resp.Body.Close()
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					return 0, err
+				}
+				bodyStr = string(body)
+				respHeaders = resp.Header
 				return resp.StatusCode, nil
 			}, "5s", "0.5s").Should(Equal(http.StatusOK))
-			bodyStr, err := ioutil.ReadAll(resp.Body)
-			if f != nil {
-				f(resp)
-			}
-			Expect(err).NotTo(HaveOccurred())
 			Expect(bodyStr).To(ContainSubstring(result))
+			for k, v := range headers {
+				Expect(respHeaders.Get(k)).To(Equal(v))
+			}
 		}
 
 		var testRequest = func(result string) {
-			testRequestWithRespAssertions(result, nil)
+			testRequestWithHeaders(result, nil)
 		}
 
 		var testGetRequest = func(result string, includeQuery bool) {
-			var resp *http.Response
+			var bodyStr string
 			Eventually(func() (int, error) {
 				client := http.DefaultClient
 				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/testroute", "localhost", envoyPort))
@@ -253,17 +260,21 @@ var _ = Describe("graphql", func() {
 				sum := sha256.Sum256([]byte(query))
 				values.Add("extensions", fmt.Sprintf(`{"persistedQuery":{"version":1,"sha256Hash":"%x"}}`, sum))
 				reqUrl.RawQuery = values.Encode()
-				resp, err = client.Do(&http.Request{
+				resp, err := client.Do(&http.Request{
 					Method: http.MethodGet,
 					URL:    reqUrl,
 				})
-				if resp == nil {
-					return 0, nil
+				if err != nil {
+					return 0, err
 				}
+				defer resp.Body.Close()
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					return 0, err
+				}
+				bodyStr = string(body)
 				return resp.StatusCode, nil
 			}, "5s", "0.5s").Should(Equal(http.StatusOK))
-			bodyStr, err := ioutil.ReadAll(resp.Body)
-			Expect(err).NotTo(HaveOccurred())
 			Expect(bodyStr).To(ContainSubstring(result))
 		}
 
@@ -517,9 +528,8 @@ var _ = Describe("graphql", func() {
 					})
 
 					It("sets cache control header and simple field on response", func() {
-						testRequestWithRespAssertions(`{"data":{"f":{"simple":"foo","setme":"foo"}}}`, func(resp *http.Response) {
-							Expect(resp.Header.Get("Cache-Control")).To(Equal("private, max-age=60"))
-						})
+						testRequestWithHeaders(`{"data":{"f":{"simple":"foo","setme":"foo"}}}`,
+							map[string]string{"Cache-Control": "private, max-age=60"})
 						Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
 							"URL": PointTo(Equal(url.URL{
 								Path: "/",

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -248,25 +249,29 @@ var _ = Describe("waf", func() {
 			})
 
 			It("will get rejected by waf", func() {
-				var resp *http.Response
+				var bodyStr string
 				Eventually(func() (int, error) {
 					client := http.DefaultClient
 					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
 					Expect(err).NotTo(HaveOccurred())
-					resp, err = client.Do(&http.Request{
+					resp, err := client.Do(&http.Request{
 						Method: http.MethodGet,
 						URL:    reqUrl,
 						Header: map[string][]string{
 							"user-agent": {"nikto"},
 						},
 					})
-					if resp == nil {
-						return 0, nil
+					if err != nil {
+						return 0, err
 					}
+					defer resp.Body.Close()
+					body, err := io.ReadAll(resp.Body)
+					if err != nil {
+						return 0, err
+					}
+					bodyStr = string(body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
-				bodyStr, err := ioutil.ReadAll(resp.Body)
-				Expect(err).NotTo(HaveOccurred())
 				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
 			})
 
@@ -279,9 +284,11 @@ var _ = Describe("waf", func() {
 						Method: http.MethodGet,
 						URL:    reqUrl,
 					})
-					if resp == nil {
-						return 0, nil
+					if err != nil {
+						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 			})
@@ -351,9 +358,11 @@ var _ = Describe("waf", func() {
 						URL:    reqUrl,
 						Body:   ioutil.NopCloser(bytes.NewBuffer([]byte("nikto"))),
 					})
-					if resp == nil {
-						return 0, nil
+					if err != nil {
+						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s")
 			}
@@ -458,25 +467,29 @@ var _ = Describe("waf", func() {
 			})
 
 			It("will get rejected by waf", func() {
-				var resp *http.Response
+				var bodyStr string
 				Eventually(func() (int, error) {
 					client := http.DefaultClient
 					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
 					Expect(err).NotTo(HaveOccurred())
-					resp, err = client.Do(&http.Request{
+					resp, err := client.Do(&http.Request{
 						Method: http.MethodGet,
 						URL:    reqUrl,
 						Header: map[string][]string{
 							"user-agent": {"nikto"},
 						},
 					})
-					if resp == nil {
-						return 0, nil
+					if err != nil {
+						return 0, err
 					}
+					defer resp.Body.Close()
+					body, err := io.ReadAll(resp.Body)
+					if err != nil {
+						return 0, err
+					}
+					bodyStr = string(body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
-				bodyStr, err := ioutil.ReadAll(resp.Body)
-				Expect(err).NotTo(HaveOccurred())
 				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
 			})
 
@@ -489,9 +502,11 @@ var _ = Describe("waf", func() {
 						Method: http.MethodGet,
 						URL:    reqUrl,
 					})
-					if resp == nil {
-						return 0, nil
+					if err != nil {
+						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 			})
@@ -519,25 +534,29 @@ var _ = Describe("waf", func() {
 			})
 
 			It("will get rejected by waf", func() {
-				var resp *http.Response
+				var bodyStr string
 				Eventually(func() (int, error) {
 					client := http.DefaultClient
 					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
 					Expect(err).NotTo(HaveOccurred())
-					resp, err = client.Do(&http.Request{
+					resp, err := client.Do(&http.Request{
 						Method: http.MethodGet,
 						URL:    reqUrl,
 						Header: map[string][]string{
 							"user-agent": {"nikto"},
 						},
 					})
-					if resp == nil {
-						return 0, nil
+					if err != nil {
+						return 0, err
 					}
+					defer resp.Body.Close()
+					body, err := io.ReadAll(resp.Body)
+					if err != nil {
+						return 0, err
+					}
+					bodyStr = string(body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
-				bodyStr, err := ioutil.ReadAll(resp.Body)
-				Expect(err).NotTo(HaveOccurred())
 				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
 			})
 
@@ -550,9 +569,11 @@ var _ = Describe("waf", func() {
 						Method: http.MethodGet,
 						URL:    reqUrl,
 					})
-					if resp == nil {
-						return 0, nil
+					if err != nil {
+						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 			})
@@ -566,9 +587,11 @@ var _ = Describe("waf", func() {
 						Method: http.MethodGet,
 						URL:    reqUrl,
 					})
-					if resp == nil {
-						return 0, nil
+					if err != nil {
+						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 			})
@@ -662,9 +685,11 @@ var _ = Describe("waf", func() {
 							"user-agent": {"nikto"},
 						},
 					})
-					if resp == nil {
-						return 0, nil
+					if err != nil {
+						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "10s", "0.5s").Should(Equal(http.StatusForbidden))
 			}
@@ -677,9 +702,11 @@ var _ = Describe("waf", func() {
 						Method: http.MethodGet,
 						URL:    reqUrl,
 					})
-					if resp == nil {
-						return 0, nil
+					if err != nil {
+						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "10s", "0.5s").Should(Equal(http.StatusOK))
 			}

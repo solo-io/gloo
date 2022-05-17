@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -81,9 +82,11 @@ var _ = Describe("Leftmost x-forwarded-for address Local E2E", func() {
 		client := &http.Client{}
 		Eventually(func() (int, error) {
 			response, err := client.Do(request)
-			if response == nil {
+			if err != nil {
 				return 0, err
 			}
+			defer response.Body.Close()
+			_, _ = io.ReadAll(response.Body)
 			return response.StatusCode, err
 		}, 20*time.Second, 1*time.Second).Should(Equal(200))
 
@@ -106,10 +109,12 @@ var _ = Describe("Leftmost x-forwarded-for address Local E2E", func() {
 			address := "192.168.2.1"
 			request.Header.Add("x-forwarded-for", address+",192.123.3.1,192.123.3.2")
 			Eventually(func() int {
-				response, _ := http.DefaultClient.Do(request)
-				if response == nil {
+				response, err := http.DefaultClient.Do(request)
+				if err != nil {
 					return 0
 				}
+				defer response.Body.Close()
+				_, _ = io.ReadAll(response.Body)
 				return response.StatusCode
 			}, 3*time.Second, 1*time.Second).Should(Equal(200))
 
@@ -128,10 +133,12 @@ var _ = Describe("Leftmost x-forwarded-for address Local E2E", func() {
 			address := "192.168.2.1"
 			request.Header.Add("x-forwarded-for", "192.123.3.1,192.123.3.2,"+address)
 			Eventually(func() int {
-				response, _ := http.DefaultClient.Do(request)
-				if response == nil {
+				response, err := http.DefaultClient.Do(request)
+				if err != nil {
 					return 0
 				}
+				defer response.Body.Close()
+				_, _ = io.ReadAll(response.Body)
 				return response.StatusCode
 			}, 3*time.Second, 1*time.Second).Should(Equal(200))
 

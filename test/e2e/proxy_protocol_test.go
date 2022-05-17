@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 
@@ -129,6 +130,8 @@ var _ = Describe("Proxy Protocol", func() {
 			if err != nil {
 				return 0, err
 			}
+			defer res.Body.Close()
+			_, _ = io.ReadAll(res.Body)
 			return res.StatusCode, nil
 
 		}, "15s", "1s").Should(Equal(http.StatusOK))

@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -80,10 +81,12 @@ var _ = Describe("Http Sanitize Headers Local E2E", func() {
 		client := &http.Client{}
 		Eventually(func() (int, error) {
 			response, err := client.Do(request)
-			if response == nil {
+			if err != nil {
 				return 0, err
 			}
-			return response.StatusCode, err
+			defer response.Body.Close()
+			_, _ = io.ReadAll(response.Body)
+			return response.StatusCode, nil
 		}, 20*time.Second, 1*time.Second).Should(Equal(200))
 
 	}
@@ -330,10 +333,18 @@ func expectStatusCode(envoyPort uint32, statusCode int) {
 	Expect(err).NotTo(HaveOccurred())
 
 	Eventually(func() int {
-		response, _ := http.DefaultClient.Do(request)
-		if response == nil {
+		client := &http.Client{
+			// do not follow redirects
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		}
+		response, err := client.Do(request)
+		if err != nil {
 			return 0
 		}
+		defer response.Body.Close()
+		_, _ = io.ReadAll(response.Body)
 		return response.StatusCode
 	}, 10*time.Second, 1*time.Second).Should(Equal(statusCode))
 }

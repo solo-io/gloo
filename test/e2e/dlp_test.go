@@ -3,7 +3,7 @@ package e2e_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -146,22 +146,26 @@ var _ = Describe("dlp", func() {
 		)
 
 		var testRequest = func(result string) {
-			var resp *http.Response
+			var bodyStr string
 			Eventually(func() (int, error) {
 				client := http.DefaultClient
 				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
 				Expect(err).NotTo(HaveOccurred())
-				resp, err = client.Do(&http.Request{
+				resp, err := client.Do(&http.Request{
 					Method: http.MethodGet,
 					URL:    reqUrl,
 				})
-				if resp == nil {
-					return 0, nil
+				if err != nil {
+					return 0, err
 				}
+				defer resp.Body.Close()
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					return 0, err
+				}
+				bodyStr = string(body)
 				return resp.StatusCode, nil
 			}, "5s", "0.5s").Should(Equal(http.StatusOK))
-			bodyStr, err := ioutil.ReadAll(resp.Body)
-			Expect(err).NotTo(HaveOccurred())
 			Expect(bodyStr).To(ContainSubstring(result))
 		}
 

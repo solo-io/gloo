@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"runtime"
@@ -196,8 +197,13 @@ var _ = Describe("Staged JWT + extauth ", func() {
 
 			// Wait for proxy to be ready
 			Eventually(func() error {
-				_, err := http.Get(fmt.Sprintf("http://localhost:%d", envoyPort))
-				return err
+				resp, err := http.Get(fmt.Sprintf("http://localhost:%d", envoyPort))
+				if err != nil {
+					return err
+				}
+				defer resp.Body.Close()
+				_, _ = io.ReadAll(resp.Body)
+				return nil
 			}, "5s", "0.2s").ShouldNot(HaveOccurred())
 		})
 
@@ -207,8 +213,13 @@ var _ = Describe("Staged JWT + extauth ", func() {
 
 				// Wait for jwks server to start
 				Eventually(func() error {
-					_, err := http.Get(fmt.Sprintf("http://%s:%d/1", "localhost", jwksPort))
-					return err
+					resp, err := http.Get(fmt.Sprintf("http://%s:%d/1", "localhost", jwksPort))
+					if err != nil {
+						return err
+					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
+					return nil
 				}, "5s", "0.5s").ShouldNot(HaveOccurred())
 			})
 
@@ -227,6 +238,8 @@ var _ = Describe("Staged JWT + extauth ", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
@@ -251,6 +264,8 @@ var _ = Describe("Staged JWT + extauth ", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
 
@@ -276,6 +291,8 @@ var _ = Describe("Staged JWT + extauth ", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 				select {
@@ -298,6 +315,8 @@ var _ = Describe("Staged JWT + extauth ", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "15s", "0.5s").Should(Equal(http.StatusOK))
 
@@ -322,6 +341,8 @@ var _ = Describe("Staged JWT + extauth ", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "2s", "0.5s").Should(Equal(http.StatusUnauthorized))
 
@@ -350,6 +371,8 @@ var _ = Describe("Staged JWT + extauth ", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 				select {
@@ -385,6 +408,8 @@ var _ = Describe("Staged JWT + extauth ", func() {
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}, "5s", "0.5s").Should(Equal(http.StatusOK))
 				select {

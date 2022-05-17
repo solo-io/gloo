@@ -4,6 +4,7 @@ import (
 	"context"
 	json2 "encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -245,27 +246,28 @@ type Query {
 			proxy *gloov1.Proxy
 		)
 
-		var testRequestWithRespAssertions = func(result string, f func(resp *http.Response)) {
-			var resp *http.Response
+		var testRequest = func(result string) {
+			var bodyStr string
 			EventuallyWithOffset(1, func() (int, error) {
 				client := http.DefaultClient
 				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/testroute", "localhost", envoyPort))
 				ExpectWithOffset(1, err).NotTo(HaveOccurred())
-				resp, err = client.Do(&http.Request{
+				resp, err := client.Do(&http.Request{
 					Method: http.MethodPost,
 					URL:    reqUrl,
 					Body:   ioutil.NopCloser(strings.NewReader(query)),
 				})
-				if resp == nil {
-					return 0, nil
+				if err != nil {
+					return 0, err
 				}
+				defer resp.Body.Close()
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					return 0, err
+				}
+				bodyStr = string(body)
 				return resp.StatusCode, nil
 			}, "5s", "0.5s").Should(Equal(http.StatusOK))
-			bodyStr, err := ioutil.ReadAll(resp.Body)
-			if f != nil {
-				f(resp)
-			}
-			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 			ExpectWithOffset(1, bodyStr).To(ContainSubstring(result))
 		}
 
@@ -321,7 +323,7 @@ type Query {
 		Context("request to stitched schema", func() {
 
 			It("stitches delegated responses from subschemas to a stitched response", func() {
-				testRequestWithRespAssertions(`{"data":{"products":{"id":1,"seller":{"username":"user1","firstName":"User","lastName":"One"}}}}`, nil)
+				testRequest(`{"data":{"products":{"id":1,"seller":{"username":"user1","firstName":"User","lastName":"One"}}}}`)
 			})
 		})
 	})

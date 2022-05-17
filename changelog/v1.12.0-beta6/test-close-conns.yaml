@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Make sure all response bodies get closed in tests.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3644
