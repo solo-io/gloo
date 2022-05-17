@@ -385,6 +385,13 @@ func (ei *EnvoyInstance) runContainer() error {
 
 	image := "quay.io/solo-io/gloo-ee-envoy-wrapper:" + envoyImageTag
 	args := []string{"run", "-d", "--rm", "--name", containerName}
+
+	// bind-mount the temp dir for tests that might need it e.g. waf e2e audit log tests
+	tmpDir := os.TempDir()
+	if fi, err := os.Stat(tmpDir); err == nil && fi.IsDir() {
+		args = append(args, "-v", fmt.Sprintf("%s:%s", tmpDir, tmpDir))
+	}
+
 	if runtime.GOOS == "linux" {
 		args = append(args, "--net=host")
 	} else {

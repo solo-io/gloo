@@ -11,8 +11,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/solo-io/gloo/test/helpers"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
+	envoy_type "github.com/solo-io/solo-kit/pkg/api/external/envoy/type"
 
 	"github.com/fgrosse/zaptest"
 	. "github.com/onsi/ginkgo"
@@ -21,12 +21,15 @@ import (
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/test/services"
 	"github.com/solo-io/solo-projects/test/v1helpers"
@@ -37,21 +40,22 @@ import (
 var _ = Describe("waf", func() {
 
 	var (
-		ctx         context.Context
-		cancel      context.CancelFunc
-		testClients services.TestClients
+		ctx           context.Context
+		cancel        context.CancelFunc
+		testClients   services.TestClients
+		rulesTemplate = `
+			# Turn rule engine on
+			SecRuleEngine On
+			SecAuditLogFormat %s
+			SecRule %s:User-Agent "nikto" "%s,id:107,%s,msg:'blocked nikto scammer'"
+`
 	)
 
 	const (
-		rulesTemplate = `
-            # Turn rule engine on
-            SecRuleEngine On
-            SecRule %s:User-Agent "nikto" "%s,id:107,%s,msg:'blocked nikto scammer'"
- `
 		customInterventionMessage = "It's a custom intervention message"
 	)
 
-	var getRulesTemplate = func(deny, request, phase1 bool) *envoywaf.RuleSet {
+	var getRulesTemplate = func(deny, request, phase1, jsonLog bool) *envoywaf.RuleSet {
 		denialString := "deny,status:403"
 		if deny == false {
 			denialString = "redirect:'http://example.com'"
@@ -64,8 +68,12 @@ var _ = Describe("waf", func() {
 		if phase1 == false {
 			phaseString = "phase:3"
 		}
+		logFormatString := "Native"
+		if jsonLog {
+			logFormatString = "JSON"
+		}
 		return &envoywaf.RuleSet{
-			RuleStr: fmt.Sprintf(rulesTemplate, requestString, denialString, phaseString),
+			RuleStr: fmt.Sprintf(rulesTemplate, logFormatString, requestString, denialString, phaseString),
 		}
 	}
 
@@ -74,7 +82,9 @@ var _ = Describe("waf", func() {
 		upstream *core.ResourceRef,
 		wafListenerSettings *waf.Settings,
 		wafVhostSettings *waf.Settings,
+		dlpVhostSettings *dlp.Config,
 		wafRouteSettings *waf.Settings,
+		dlpListenerSettings *dlp.FilterConfig,
 	) *gloov1.Proxy {
 		var vhosts []*gloov1.VirtualHost
 
@@ -83,6 +93,7 @@ var _ = Describe("waf", func() {
 			Domains: []string{"*"},
 			Options: &gloov1.VirtualHostOptions{
 				Waf: wafVhostSettings,
+				Dlp: dlpVhostSettings,
 			},
 			Routes: []*gloov1.Route{
 				{
@@ -143,6 +154,7 @@ var _ = Describe("waf", func() {
 						VirtualHosts: vhosts,
 						Options: &gloov1.HttpListenerOptions{
 							Waf: wafListenerSettings,
+							Dlp: dlpListenerSettings,
 						},
 					},
 				},
@@ -154,10 +166,10 @@ var _ = Describe("waf", func() {
 
 	var getProxyWafDisruptiveListener = func(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 		wafCfg := &waf.Settings{
-			RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+			RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
 			CustomInterventionMessage: customInterventionMessage,
 		}
-		return getProxyWaf(envoyPort, upstream, wafCfg, nil, nil)
+		return getProxyWaf(envoyPort, upstream, wafCfg, nil, nil, nil, nil)
 	}
 
 	var getProxyWafDisruptiveVhost = func(
@@ -165,7 +177,7 @@ var _ = Describe("waf", func() {
 		upstream *core.ResourceRef,
 		wafVhostSettings *waf.Settings,
 	) *gloov1.Proxy {
-		return getProxyWaf(envoyPort, upstream, nil, wafVhostSettings, nil)
+		return getProxyWaf(envoyPort, upstream, nil, wafVhostSettings, nil, nil, nil)
 	}
 
 	var getProxyWafDisruptiveRoute = func(
@@ -176,7 +188,7 @@ var _ = Describe("waf", func() {
 		vhostSettings := &waf.Settings{
 			Disabled: true,
 		}
-		return getProxyWaf(envoyPort, upstream, nil, vhostSettings, wafRouteSettings)
+		return getProxyWaf(envoyPort, upstream, nil, vhostSettings, nil, wafRouteSettings, nil)
 	}
 
 	BeforeEach(func() {
@@ -245,7 +257,7 @@ var _ = Describe("waf", func() {
 
 				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 					return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				})
+				}, "10s", "0.5s")
 			})
 
 			It("will get rejected by waf", func() {
@@ -271,7 +283,7 @@ var _ = Describe("waf", func() {
 					}
 					bodyStr = string(body)
 					return resp.StatusCode, nil
-				}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+				}, "10s", "0.5s").Should(Equal(http.StatusForbidden))
 				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
 			})
 
@@ -290,7 +302,7 @@ var _ = Describe("waf", func() {
 					defer resp.Body.Close()
 					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
-				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+				}, "10s", "0.5s").Should(Equal(http.StatusOK))
 			})
 
 		})
@@ -333,11 +345,11 @@ var _ = Describe("waf", func() {
 				}
 				wafCfg.RuleSets = []*envoywaf.RuleSet{ruleset}
 				if vhost {
-					proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), nil, wafCfg, nil)
+					proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), nil, wafCfg, nil, nil, nil)
 				} else if route {
-					proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), nil, nil, wafCfg)
+					proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), nil, nil, nil, wafCfg, nil)
 				} else {
-					proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg, nil, nil)
+					proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg, nil, nil, nil, nil)
 				}
 
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
@@ -345,7 +357,7 @@ var _ = Describe("waf", func() {
 
 				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 					return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				})
+				}, "10s", "0.5s")
 			}
 
 			EventuallyWithBody := func() gomega.AsyncAssertion {
@@ -364,7 +376,7 @@ var _ = Describe("waf", func() {
 					defer resp.Body.Close()
 					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
-				}, "5s", "0.5s")
+				}, "10s", "0.5s")
 			}
 			Context("on listener", func() {
 				BeforeEach(func() {
@@ -453,7 +465,7 @@ var _ = Describe("waf", func() {
 
 			BeforeEach(func() {
 				wafCfg := &waf.Settings{
-					RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
 					CustomInterventionMessage: customInterventionMessage,
 				}
 				proxy = getProxyWafDisruptiveVhost(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg)
@@ -463,7 +475,7 @@ var _ = Describe("waf", func() {
 
 				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 					return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				})
+				}, "10s", "0.5s")
 			})
 
 			It("will get rejected by waf", func() {
@@ -489,7 +501,7 @@ var _ = Describe("waf", func() {
 					}
 					bodyStr = string(body)
 					return resp.StatusCode, nil
-				}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+				}, "10s", "0.5s").Should(Equal(http.StatusForbidden))
 				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
 			})
 
@@ -508,7 +520,7 @@ var _ = Describe("waf", func() {
 					defer resp.Body.Close()
 					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
-				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+				}, "10s", "0.5s").Should(Equal(http.StatusOK))
 			})
 
 		})
@@ -520,7 +532,7 @@ var _ = Describe("waf", func() {
 
 			BeforeEach(func() {
 				wafCfg := &waf.Settings{
-					RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
 					CustomInterventionMessage: customInterventionMessage,
 				}
 				proxy = getProxyWafDisruptiveRoute(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg)
@@ -530,7 +542,7 @@ var _ = Describe("waf", func() {
 
 				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 					return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				})
+				}, "10s", "0.5s")
 			})
 
 			It("will get rejected by waf", func() {
@@ -556,7 +568,7 @@ var _ = Describe("waf", func() {
 					}
 					bodyStr = string(body)
 					return resp.StatusCode, nil
-				}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+				}, "10s", "0.5s").Should(Equal(http.StatusForbidden))
 				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
 			})
 
@@ -575,7 +587,7 @@ var _ = Describe("waf", func() {
 					defer resp.Body.Close()
 					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
-				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+				}, "10s", "0.5s").Should(Equal(http.StatusOK))
 			})
 
 			It("will not get rejected by waf since it's on a different route", func() {
@@ -593,7 +605,7 @@ var _ = Describe("waf", func() {
 					defer resp.Body.Close()
 					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
-				}, "5s", "0.5s").Should(Equal(http.StatusOK))
+				}, "10s", "0.5s").Should(Equal(http.StatusOK))
 			})
 
 		})
@@ -636,11 +648,11 @@ var _ = Describe("waf", func() {
 				return string(b)
 			}
 
-			startProxy := func(wafListenerSettings, wafVhostSettings, wafRouteSettings *waf.Settings) {
+			startProxy := func(wafListenerSettings, wafVhostSettings, wafRouteSettings *waf.Settings, dlpVhostSettings *dlp.Config, dlpFilterSettings *dlp.FilterConfig) {
 
 				By("tmp file " + tmpFileFSName + " " + tmpFileDMName)
 
-				proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafListenerSettings, wafVhostSettings, wafRouteSettings)
+				proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafListenerSettings, wafVhostSettings, dlpVhostSettings, wafRouteSettings, dlpFilterSettings)
 				proxy.Listeners[0].Options = &gloov1.ListenerOptions{
 					AccessLoggingService: &als.AccessLoggingService{
 						AccessLog: []*als.AccessLog{
@@ -649,7 +661,7 @@ var _ = Describe("waf", func() {
 									FileSink: &als.FileSink{
 										Path: tmpFileFSName,
 										OutputFormat: &als.FileSink_StringFormat{
-											StringFormat: "%FILTER_STATE(io.solo.modsecurity.audit_log)%\n",
+											StringFormat: "%FILTER_STATE(io.solo.modsecurity.audit_log)%",
 										},
 									},
 								},
@@ -658,7 +670,7 @@ var _ = Describe("waf", func() {
 									FileSink: &als.FileSink{
 										Path: tmpFileDMName,
 										OutputFormat: &als.FileSink_StringFormat{
-											StringFormat: "%DYNAMIC_METADATA(io.solo.filters.http.modsecurity:audit_log)%\n",
+											StringFormat: "%DYNAMIC_METADATA(io.solo.filters.http.modsecurity:audit_log)%",
 										},
 									},
 								},
@@ -671,7 +683,7 @@ var _ = Describe("waf", func() {
 
 				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 					return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				})
+				}, "10s", "0.5s")
 			}
 			makeBadRequest := func() {
 				Eventually(func() (int, error) {
@@ -682,7 +694,8 @@ var _ = Describe("waf", func() {
 						Method: http.MethodGet,
 						URL:    reqUrl,
 						Header: map[string][]string{
-							"user-agent": {"nikto"},
+							"user-agent":  {"nikto"},
+							"test-header": {"test-value"},
 						},
 					})
 					if err != nil {
@@ -701,6 +714,9 @@ var _ = Describe("waf", func() {
 					resp, err := client.Do(&http.Request{
 						Method: http.MethodGet,
 						URL:    reqUrl,
+						Header: map[string][]string{
+							"test-header": {"test-value"},
+						},
 					})
 					if err != nil {
 						return 0, err
@@ -713,112 +729,198 @@ var _ = Describe("waf", func() {
 
 			It("auditlog listener filter state", func() {
 				startProxy(&waf.Settings{
-					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
 					AuditLogging: &envoywaf.AuditLogging{
 						Action:   envoywaf.AuditLogging_ALWAYS,
 						Location: envoywaf.AuditLogging_FILTER_STATE,
 					},
-				}, nil, nil)
+				}, nil, nil, nil, nil)
 				makeBadRequest()
 				// check the logs
-				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
+				Eventually(getAccessFSLog, "10s", "1s").Should(ContainSubstring("nikto"))
 				// nothing written to dm log
-				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
+				Eventually(getAccessDMLog, "10s", "1s").Should(Equal("-"))
 			})
 
 			It("auditlog listener dynamic meta", func() {
 				startProxy(&waf.Settings{
-					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
 					AuditLogging: &envoywaf.AuditLogging{
 						Action:   envoywaf.AuditLogging_ALWAYS,
 						Location: envoywaf.AuditLogging_DYNAMIC_METADATA,
 					},
-				}, nil, nil)
+				}, nil, nil, nil, nil)
 				makeBadRequest()
 				// check the logs
-				Eventually(getAccessDMLog, "5s", "1s").Should(ContainSubstring("nikto"))
+				Eventually(getAccessDMLog, "10s", "1s").Should(ContainSubstring("nikto"))
 				// nothing written to dm log
-				Eventually(getAccessFSLog, "5s", "1s").Should(Equal("-\n"))
+				Eventually(getAccessFSLog, "10s", "1s").Should(Equal("-"))
 			})
 			It("auditlog listener fs - logs relevant", func() {
 				startProxy(&waf.Settings{
-					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
 					AuditLogging: &envoywaf.AuditLogging{
 						Action:   envoywaf.AuditLogging_RELEVANT_ONLY,
 						Location: envoywaf.AuditLogging_FILTER_STATE,
 					},
-				}, nil, nil)
+				}, nil, nil, nil, nil)
 				makeBadRequest()
 				// check the logs
-				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
+				Eventually(getAccessFSLog, "10s", "1s").Should(ContainSubstring("nikto"))
 				// nothing written to dm log
-				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
+				Eventually(getAccessDMLog, "10s", "1s").Should(Equal("-"))
 			})
 			It("auditlog listener fs - not log not relevant", func() {
 				startProxy(&waf.Settings{
-					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
 					AuditLogging: &envoywaf.AuditLogging{
 						Action:   envoywaf.AuditLogging_RELEVANT_ONLY,
 						Location: envoywaf.AuditLogging_FILTER_STATE,
 					},
-				}, nil, nil)
+				}, nil, nil, nil, nil)
 				makeGoodRequest()
 				// check the logs
-				Eventually(getAccessFSLog, "5s", "1s").Should(Equal("-\n"))
+				Eventually(getAccessFSLog, "10s", "1s").Should(Equal("-"))
 				// nothing written to dm log
-				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
+				Eventually(getAccessDMLog, "10s", "1s").Should(Equal("-"))
 			})
 			It("auditlog listener dm - not log not relevant", func() {
 				startProxy(&waf.Settings{
-					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
 					AuditLogging: &envoywaf.AuditLogging{
 						Action:   envoywaf.AuditLogging_RELEVANT_ONLY,
 						Location: envoywaf.AuditLogging_DYNAMIC_METADATA,
 					},
-				}, nil, nil)
+				}, nil, nil, nil, nil)
 				makeGoodRequest()
 				// nothing written to dm log
-				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
-				Eventually(getAccessFSLog, "5s", "1s").Should(Equal("-\n"))
+				Eventually(getAccessDMLog, "10s", "1s").Should(Equal("-"))
+				Eventually(getAccessFSLog, "10s", "1s").Should(Equal("-"))
 			})
 			It("auditlog listener dm - not log relevant if disabled", func() {
 				startProxy(&waf.Settings{
-					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
-				}, nil, nil)
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
+				}, nil, nil, nil, nil)
 				makeBadRequest()
 				// nothing written to any logs
-				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
-				Eventually(getAccessFSLog, "5s", "1s").Should(Equal("-\n"))
+				Eventually(getAccessDMLog, "10s", "1s").Should(Equal("-"))
+				Eventually(getAccessFSLog, "10s", "1s").Should(Equal("-"))
 			})
 
 			It("auditlog vhost filter state", func() {
 				startProxy(nil, &waf.Settings{
-					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
 					AuditLogging: &envoywaf.AuditLogging{
 						Action:   envoywaf.AuditLogging_ALWAYS,
 						Location: envoywaf.AuditLogging_FILTER_STATE,
 					},
-				}, nil)
+				}, nil, nil, nil)
 				makeBadRequest()
 				// check the logs
-				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
+				Eventually(getAccessFSLog, "10s", "1s").Should(ContainSubstring("nikto"))
 				// nothing written to dm log
-				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
+				Eventually(getAccessDMLog, "10s", "1s").Should(Equal("-"))
 			})
 
 			It("auditlog route filter state", func() {
 				startProxy(nil, nil, &waf.Settings{
-					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true)},
+					RuleSets: []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
 					AuditLogging: &envoywaf.AuditLogging{
 						Action:   envoywaf.AuditLogging_ALWAYS,
 						Location: envoywaf.AuditLogging_FILTER_STATE,
 					},
-				})
+				}, nil, nil)
 				makeBadRequest()
 				// check the logs
-				Eventually(getAccessFSLog, "5s", "1s").Should(ContainSubstring("nikto"))
+				Eventually(getAccessFSLog, "10s", "1s").Should(ContainSubstring("nikto"))
 				// nothing written to dm log
-				Eventually(getAccessDMLog, "5s", "1s").Should(Equal("-\n"))
+				Eventually(getAccessDMLog, "10s", "1s").Should(Equal("-"))
+			})
+
+			Context("DLP", func() {
+				// Configure DLP to log to dynamic metadata and censor any instance of the text "test-value"
+				var setupProxyDLP = func(logJSON bool) {
+					rule := getRulesTemplate(true, true, true, logJSON)
+					startProxy(&waf.Settings{
+						RuleSets: []*envoywaf.RuleSet{rule},
+						AuditLogging: &envoywaf.AuditLogging{
+							Action:   envoywaf.AuditLogging_ALWAYS,
+							Location: envoywaf.AuditLogging_DYNAMIC_METADATA,
+						},
+					}, nil, nil, nil,
+						&dlp.FilterConfig{
+							EnabledFor: dlp.FilterConfig_ALL,
+							DlpRules: []*dlp.DlpRule{
+								{
+									Matcher: nil,
+									Actions: []*dlp.Action{
+										{
+											ActionType: dlp.Action_CUSTOM,
+											CustomAction: &dlp.CustomAction{
+												Name:     "test-action",
+												MaskChar: "X",
+												Percent: &envoy_type.Percent{
+													Value: 60,
+												},
+												RegexActions: []*transformation_ee.RegexAction{
+													{
+														Regex:    "(.*)(test-value)(.*)",
+														Subgroup: 2,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					)
+				}
+
+				Describe("string log format", func() {
+					It("censors logs made to dynamic metadata when a good request is made", func() {
+						setupProxyDLP(false)
+						makeGoodRequest()
+						// should be no logs to Filter State
+						Eventually(getAccessFSLog, "10s", "1s").Should(BeEquivalentTo("-"))
+
+						// logs to dynamic metadata should not contain the masked substring
+						Eventually(getAccessDMLog, "10s", "1s").ShouldNot(BeEquivalentTo("-"))
+						Eventually(getAccessDMLog, "10s", "1s").ShouldNot(ContainSubstring("test-value"))
+					})
+					It("censors logs made to dynamic metadata when a bad request is made", func() {
+						setupProxyDLP(false)
+						makeBadRequest()
+						// should be no logs to Filter State
+						Eventually(getAccessFSLog, "10s", "1s").Should(BeEquivalentTo("-"))
+
+						// logs to dynamic metadata should not contain the masked substring
+						Eventually(getAccessDMLog, "10s", "1s").ShouldNot(BeEquivalentTo("-"))
+						Eventually(getAccessDMLog, "10s", "1s").ShouldNot(ContainSubstring("test-value"))
+					})
+				})
+				Describe("json log format", func() {
+					It("censors logs made to dynamic metadata when a good request is made", func() {
+						setupProxyDLP(true)
+						makeGoodRequest()
+						// should be no logs to Filter State
+						Eventually(getAccessFSLog, "10s", "1s").Should(BeEquivalentTo("-"))
+
+						// logs to dynamic metadata should not contain the masked substring
+						Eventually(getAccessDMLog, "10s", "1s").ShouldNot(BeEquivalentTo("-"))
+						Eventually(getAccessDMLog, "10s", "1s").ShouldNot(ContainSubstring("test-value"))
+					})
+					It("censors logs made to dynamic metadata when a bad request is made", func() {
+						setupProxyDLP(true)
+						makeBadRequest()
+						// should be no logs to Filter State
+						Eventually(getAccessFSLog, "10s", "1s").Should(BeEquivalentTo("-"))
+
+						// logs to dynamic metadata should not contain the masked substring
+						Eventually(getAccessDMLog, "10s", "1s").ShouldNot(BeEquivalentTo("-"))
+						Eventually(getAccessDMLog, "10s", "1s").ShouldNot(ContainSubstring("test-value"))
+					})
+				})
 			})
 
 		})

@@ -18,6 +18,7 @@ var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_extensions_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/extensions_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/ratelimit/ratelimit_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/caching/caching_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/rbac/rbac_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_circuit_breaker_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/circuit_breaker_pb.js');
@@ -198,6 +199,7 @@ proto.gloo.solo.io.SettingsSpec.toObject = function(includeInstance, msg) {
     rbac: (f = msg.getRbac()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb.Settings.toObject(includeInstance, f),
     extauth: (f = msg.getExtauth()) && github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings.toObject(includeInstance, f),
     namedExtauthMap: (f = msg.getNamedExtauthMap()) ? f.toObject(includeInstance, proto.enterprise.gloo.solo.io.Settings.toObject) : [],
+    cachingServer: (f = msg.getCachingServer()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.toObject(includeInstance, f),
     observabilityoptions: (f = msg.getObservabilityoptions()) && proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.toObject(includeInstance, f),
     upstreamoptions: (f = msg.getUpstreamoptions()) && proto.gloo.solo.io.UpstreamOptions.toObject(includeInstance, f),
     consoleOptions: (f = msg.getConsoleOptions()) && proto.gloo.solo.io.ConsoleOptions.toObject(includeInstance, f)
@@ -368,6 +370,11 @@ proto.gloo.solo.io.SettingsSpec.deserializeBinaryFromReader = function(msg, read
       reader.readMessage(value, function(message, reader) {
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.enterprise.gloo.solo.io.Settings.deserializeBinaryFromReader, "");
          });
+      break;
+    case 36:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.deserializeBinaryFromReader);
+      msg.setCachingServer(value);
       break;
     case 31:
       var value = new proto.gloo.solo.io.SettingsSpec.ObservabilityOptions;
@@ -620,6 +627,14 @@ proto.gloo.solo.io.SettingsSpec.serializeBinaryToWriter = function(message, writ
   f = message.getNamedExtauthMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(33, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.enterprise.gloo.solo.io.Settings.serializeBinaryToWriter);
+  }
+  f = message.getCachingServer();
+  if (f != null) {
+    writer.writeMessage(
+      36,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.serializeBinaryToWriter
+    );
   }
   f = message.getObservabilityoptions();
   if (f != null) {
@@ -4864,6 +4879,36 @@ proto.gloo.solo.io.SettingsSpec.prototype.getNamedExtauthMap = function(opt_noLa
 
 proto.gloo.solo.io.SettingsSpec.prototype.clearNamedExtauthMap = function() {
   this.getNamedExtauthMap().clear();
+};
+
+
+/**
+ * optional caching.options.gloo.solo.io.Settings caching_server = 36;
+ * @return {?proto.caching.options.gloo.solo.io.Settings}
+ */
+proto.gloo.solo.io.SettingsSpec.prototype.getCachingServer = function() {
+  return /** @type{?proto.caching.options.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings, 36));
+};
+
+
+/** @param {?proto.caching.options.gloo.solo.io.Settings|undefined} value */
+proto.gloo.solo.io.SettingsSpec.prototype.setCachingServer = function(value) {
+  jspb.Message.setWrapperField(this, 36, value);
+};
+
+
+proto.gloo.solo.io.SettingsSpec.prototype.clearCachingServer = function() {
+  this.setCachingServer(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SettingsSpec.prototype.hasCachingServer = function() {
+  return jspb.Message.getField(this, 36) != null;
 };
 
 

@@ -132,7 +132,7 @@ var _ = Describe("dlp plugin", func() {
 	var checkAllActions = func(actions []*dlp.Action, dlpTransform *transformation_ee.DlpTransformation, transformNum int) {
 		Expect(dlpTransform).NotTo(BeNil())
 		Expect(dlpTransform.GetActions()).To(HaveLen(transformNum))
-		relevantActions := getRelevantActions(context.Background(), actions)
+		relevantActions := GetRelevantActions(context.Background(), actions)
 		Expect(dlpTransform.GetActions()).To(Equal(relevantActions))
 	}
 

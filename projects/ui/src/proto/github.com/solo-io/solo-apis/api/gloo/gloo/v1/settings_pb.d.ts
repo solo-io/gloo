@@ -9,6 +9,7 @@ import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_extensions_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/extensions_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/ratelimit/ratelimit_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/caching/caching_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/rbac/rbac_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_circuit_breaker_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/circuit_breaker_pb";
@@ -144,6 +145,11 @@ export class SettingsSpec extends jspb.Message {
 
   getNamedExtauthMap(): jspb.Map<string, github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings>;
   clearNamedExtauthMap(): void;
+  hasCachingServer(): boolean;
+  clearCachingServer(): void;
+  getCachingServer(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings | undefined;
+  setCachingServer(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings): void;
+
   hasObservabilityoptions(): boolean;
   clearObservabilityoptions(): void;
   getObservabilityoptions(): SettingsSpec.ObservabilityOptions | undefined;
@@ -201,6 +207,7 @@ export namespace SettingsSpec {
     rbac?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb.Settings.AsObject,
     extauth?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings.AsObject,
     namedExtauthMap: Array<[string, github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings.AsObject]>,
+    cachingServer?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.AsObject,
     observabilityoptions?: SettingsSpec.ObservabilityOptions.AsObject,
     upstreamoptions?: UpstreamOptions.AsObject,
     consoleOptions?: ConsoleOptions.AsObject,

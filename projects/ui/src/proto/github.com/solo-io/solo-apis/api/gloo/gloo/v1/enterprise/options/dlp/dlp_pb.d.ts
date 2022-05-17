@@ -142,16 +142,16 @@ export namespace Action {
 
   export interface ActionTypeMap {
     CUSTOM: 0;
-    KEYVALUE: 1;
-    SSN: 2;
-    MASTERCARD: 3;
-    VISA: 4;
-    AMEX: 5;
-    DISCOVER: 6;
-    JCB: 7;
-    DINERS_CLUB: 8;
-    CREDIT_CARD_TRACKERS: 9;
-    ALL_CREDIT_CARDS: 10;
+    SSN: 1;
+    MASTERCARD: 2;
+    VISA: 3;
+    AMEX: 4;
+    DISCOVER: 5;
+    JCB: 6;
+    DINERS_CLUB: 7;
+    CREDIT_CARD_TRACKERS: 8;
+    ALL_CREDIT_CARDS: 9;
+    KEYVALUE: 10;
   }
 
   export const ActionType: ActionTypeMap;

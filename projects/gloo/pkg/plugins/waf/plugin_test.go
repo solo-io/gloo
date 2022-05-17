@@ -5,12 +5,15 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
 	envoywaf "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	envoy_type "github.com/solo-io/solo-kit/pkg/api/external/envoy/type"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -24,6 +27,7 @@ var _ = Describe("waf plugin", func() {
 		httpListener *v1.HttpListener
 		wafVhost     *waf.Settings
 		wafRoute     *waf.Settings
+		dlpSettings  *dlp.Config
 		wafListener  *waf.Settings
 	)
 
@@ -219,6 +223,72 @@ var _ = Describe("waf plugin", func() {
 						checkRuleSets(perVhostWaf.RuleSets)
 					})
 				})
+				Context("with DLP", func() {
+					BeforeEach(func() {
+						customTestAction := &dlp.Action{
+							ActionType: dlp.Action_CUSTOM,
+							Shadow:     true,
+							CustomAction: &dlp.CustomAction{
+								Name:  "test",
+								Regex: []string{"regex"},
+								Percent: &envoy_type.Percent{
+									Value: 75,
+								},
+								MaskChar: "Z",
+								RegexActions: []*transformation_ee.RegexAction{
+									{Regex: "actionRegex", Subgroup: 1},
+								},
+							},
+						}
+
+						dlpSettings = &dlp.Config{
+							Actions:    []*dlp.Action{customTestAction},
+							EnabledFor: dlp.Config_ALL,
+						}
+					})
+
+					It("sets properties on route", func() {
+						goTpfc := outRoute.TypedPerFilterConfig[FilterName]
+						Expect(goTpfc).NotTo(BeNil())
+						var perRouteWaf envoywaf.ModSecurityPerRoute
+						err := ptypes.UnmarshalAny(goTpfc, &perRouteWaf)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(perRouteWaf.Disabled).To(BeFalse())
+
+						Expect(perRouteWaf.DlpTransformation).ToNot(BeNil())
+						Expect(perRouteWaf.DlpTransformation.Actions).To(HaveLen(1))
+						action := perRouteWaf.DlpTransformation.Actions[0]
+						Expect(action.MaskChar).To(BeEquivalentTo("Z"))
+						Expect(action.Shadow).To(BeEquivalentTo(true))
+						Expect(action.Name).To(BeEquivalentTo("test"))
+						Expect(action.Regex).To(BeEquivalentTo([]string{"regex"}))
+						Expect(action.GetMatcher().GetRegexMatcher().GetRegexActions()).To(HaveLen(1))
+						regexAction := action.GetMatcher().GetRegexMatcher().GetRegexActions()[0]
+						Expect(regexAction.Regex).To(BeEquivalentTo("actionRegex"))
+						Expect(regexAction.Subgroup).To(BeEquivalentTo(1))
+					})
+
+					It("sets properties on vhost", func() {
+						goTpfc := outVhost.TypedPerFilterConfig[FilterName]
+						Expect(goTpfc).NotTo(BeNil())
+						var perVhostWaf envoywaf.ModSecurityPerRoute
+						err := ptypes.UnmarshalAny(goTpfc, &perVhostWaf)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(perVhostWaf.Disabled).To(BeFalse())
+
+						Expect(perVhostWaf.DlpTransformation).ToNot(BeNil())
+						Expect(perVhostWaf.DlpTransformation.Actions).To(HaveLen(1))
+						action := perVhostWaf.DlpTransformation.Actions[0]
+						Expect(action.MaskChar).To(BeEquivalentTo("Z"))
+						Expect(action.Shadow).To(BeEquivalentTo(true))
+						Expect(action.Name).To(BeEquivalentTo("test"))
+						Expect(action.Regex).To(BeEquivalentTo([]string{"regex"}))
+						Expect(action.GetMatcher().GetRegexMatcher().GetRegexActions()).To(HaveLen(1))
+						regexAction := action.GetMatcher().GetRegexMatcher().GetRegexActions()[0]
+						Expect(regexAction.Regex).To(BeEquivalentTo("actionRegex"))
+						Expect(regexAction.Subgroup).To(BeEquivalentTo(1))
+					})
+				})
 			})
 
 		})
@@ -231,6 +301,9 @@ var _ = Describe("waf plugin", func() {
 	JustBeforeEach(func() {
 		if wafRoute == nil {
 			wafRoute = &waf.Settings{}
+		}
+		if dlpSettings == nil {
+			dlpSettings = &dlp.Config{}
 		}
 		route = &v1.Route{
 			Matchers: []*matchers.Matcher{{
@@ -246,6 +319,7 @@ var _ = Describe("waf plugin", func() {
 			},
 			Options: &v1.RouteOptions{
 				Waf: wafRoute,
+				Dlp: dlpSettings,
 			},
 		}
 
@@ -258,6 +332,7 @@ var _ = Describe("waf plugin", func() {
 			Domains: []string{"*"},
 			Options: &v1.VirtualHostOptions{
 				Waf: wafVhost,
+				Dlp: dlpSettings,
 			},
 			Routes: []*v1.Route{route},
 		}

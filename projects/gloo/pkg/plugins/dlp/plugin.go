@@ -65,7 +65,7 @@ func (p *plugin) ProcessVirtualHost(
 		return nil
 	}
 
-	actions := getRelevantActions(params.Ctx, dlpSettings.GetActions())
+	actions := GetRelevantActions(params.Ctx, dlpSettings.GetActions())
 	dlpConfig := &transformation_ee.RouteTransformations{}
 	if len(actions) != 0 {
 		if dlpSettings.EnabledFor == dlp.Config_RESPONSE_BODY || dlpSettings.EnabledFor == dlp.Config_ALL {
@@ -90,7 +90,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return nil
 	}
 
-	actions := getRelevantActions(params.Ctx, dlpSettings.GetActions())
+	actions := GetRelevantActions(params.Ctx, dlpSettings.GetActions())
 	dlpConfig := &transformation_ee.RouteTransformations{}
 	if len(actions) != 0 {
 		if dlpSettings.EnabledFor == dlp.Config_RESPONSE_BODY || dlpSettings.EnabledFor == dlp.Config_ALL {
@@ -130,7 +130,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		if rule.GetMatcher() != nil {
 			envoyMatcher = translator.GlooMatcherToEnvoyMatcher(params.Ctx, rule.GetMatcher())
 		}
-		actions := getRelevantActions(params.Ctx, rule.GetActions())
+		actions := GetRelevantActions(params.Ctx, rule.GetActions())
 		if len(actions) == 0 {
 			contextutils.LoggerFrom(params.Ctx).Debugf("dlp rule at index %d has no actions, "+
 				"therefore it will be skipped", i)
@@ -189,7 +189,9 @@ func setOnStreamCompletionTransformaton(routeTransformations *transformation_ee.
 	}
 }
 
-func getRelevantActions(ctx context.Context, dlpActions []*dlp.Action) []*transformation_ee.Action {
+// GetRelevantActions enables the transformation from different styles of dlp.Action instances
+// to an API-compliant slice of transformation_ee.Action instances
+func GetRelevantActions(ctx context.Context, dlpActions []*dlp.Action) []*transformation_ee.Action {
 	result := make([]*transformation_ee.Action, 0, len(dlpActions))
 	for _, dlpAction := range dlpActions {
 		var transformAction []*transformation_ee.Action

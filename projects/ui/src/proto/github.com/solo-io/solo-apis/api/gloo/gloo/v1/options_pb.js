@@ -44,6 +44,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_re
 var github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/jwt/jwt_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/ratelimit/ratelimit_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/caching/caching_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/rbac/rbac_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/waf/waf_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_dlp_dlp_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/dlp/dlp_pb.js');
@@ -620,6 +621,7 @@ proto.gloo.solo.io.HttpListenerOptions.toObject = function(includeInstance, msg)
     wasm: (f = msg.getWasm()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_wasm_wasm_pb.PluginSource.toObject(includeInstance, f),
     extauth: (f = msg.getExtauth()) && github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings.toObject(includeInstance, f),
     ratelimitServer: (f = msg.getRatelimitServer()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.toObject(includeInstance, f),
+    caching: (f = msg.getCaching()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.toObject(includeInstance, f),
     gzip: (f = msg.getGzip()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.toObject(includeInstance, f),
     proxyLatency: (f = msg.getProxyLatency()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.toObject(includeInstance, f),
     buffer: (f = msg.getBuffer()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.toObject(includeInstance, f),
@@ -708,6 +710,11 @@ proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader = function(ms
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.Settings;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.deserializeBinaryFromReader);
       msg.setRatelimitServer(value);
+      break;
+    case 17:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.deserializeBinaryFromReader);
+      msg.setCaching(value);
       break;
     case 8:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip;
@@ -848,6 +855,14 @@ proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter = function(messag
       11,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.serializeBinaryToWriter
+    );
+  }
+  f = message.getCaching();
+  if (f != null) {
+    writer.writeMessage(
+      17,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.serializeBinaryToWriter
     );
   }
   f = message.getGzip();
@@ -1184,6 +1199,36 @@ proto.gloo.solo.io.HttpListenerOptions.prototype.clearRatelimitServer = function
  */
 proto.gloo.solo.io.HttpListenerOptions.prototype.hasRatelimitServer = function() {
   return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional caching.options.gloo.solo.io.Settings caching = 17;
+ * @return {?proto.caching.options.gloo.solo.io.Settings}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.getCaching = function() {
+  return /** @type{?proto.caching.options.gloo.solo.io.Settings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings, 17));
+};
+
+
+/** @param {?proto.caching.options.gloo.solo.io.Settings|undefined} value */
+proto.gloo.solo.io.HttpListenerOptions.prototype.setCaching = function(value) {
+  jspb.Message.setWrapperField(this, 17, value);
+};
+
+
+proto.gloo.solo.io.HttpListenerOptions.prototype.clearCaching = function() {
+  this.setCaching(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.HttpListenerOptions.prototype.hasCaching = function() {
+  return jspb.Message.getField(this, 17) != null;
 };
 
 

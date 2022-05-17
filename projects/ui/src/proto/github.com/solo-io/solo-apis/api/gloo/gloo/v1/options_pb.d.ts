@@ -35,6 +35,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_match
 import * as github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_jwt_jwt_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/jwt/jwt_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/ratelimit/ratelimit_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/caching/caching_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/rbac/rbac_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_waf_waf_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/waf/waf_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_dlp_dlp_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/dlp/dlp_pb";
@@ -159,6 +160,11 @@ export class HttpListenerOptions extends jspb.Message {
   getRatelimitServer(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.Settings | undefined;
   setRatelimitServer(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.Settings): void;
 
+  hasCaching(): boolean;
+  clearCaching(): void;
+  getCaching(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings | undefined;
+  setCaching(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings): void;
+
   hasGzip(): boolean;
   clearGzip(): void;
   getGzip(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip | undefined;
@@ -220,6 +226,7 @@ export namespace HttpListenerOptions {
     wasm?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_wasm_wasm_pb.PluginSource.AsObject,
     extauth?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.Settings.AsObject,
     ratelimitServer?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_ratelimit_ratelimit_pb.Settings.AsObject,
+    caching?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_caching_caching_pb.Settings.AsObject,
     gzip?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_filter_http_gzip_v2_gzip_pb.Gzip.AsObject,
     proxyLatency?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_proxylatency_proxylatency_pb.ProxyLatency.AsObject,
     buffer?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_buffer_v3_buffer_pb.Buffer.AsObject,

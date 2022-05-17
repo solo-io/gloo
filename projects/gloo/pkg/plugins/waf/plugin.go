@@ -1,12 +1,17 @@
 package waf
 
 import (
+	"context"
+
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
 	. "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/waf"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
+	dlp_plugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 )
 
 var (
@@ -47,13 +52,19 @@ func (p *plugin) Init(params plugins.InitParams) error {
 
 // Process virtual host plugin
 func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {
-	wafConfig := in.Options.GetWaf()
+	wafConfig := in.GetOptions().GetWaf()
 	if wafConfig == nil {
 		// no config found, nothing to do here
 		return nil
 	}
 
-	// should never be nil
+	dlpActions := dlp_plugin.GetRelevantActions(context.Background(), in.GetOptions().GetDlp().GetActions())
+	// fallback to listener dlp just in case it exists
+	if len(dlpActions) == 0 {
+		dlpActions = dlpActionsForListener(params.HttpListener)
+	}
+
+	// filterRequiredForListener should be instantiated at plugin init
 	p.filterRequiredForListener[params.HttpListener] = struct{}{}
 
 	perVhostCfg := &ModSecurityPerRoute{
@@ -64,7 +75,16 @@ func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		ResponseHeadersOnly:       wafConfig.GetResponseHeadersOnly(),
 	}
 
+	if dlpActions != nil && len(dlpActions) > 0 {
+		perVhostCfg.DlpTransformation = &transformation_ee.DlpTransformation{
+			Actions:                             dlpActions,
+			EnableHeaderTransformation:          true,
+			EnableDynamicMetadataTransformation: true,
+		}
+	}
+
 	perVhostCfg.RuleSets = wafConfig.GetRuleSets()
+
 	if coreRuleSet := getCoreRuleSet(wafConfig.GetCoreRuleSet()); coreRuleSet != nil {
 		perVhostCfg.RuleSets = append(perVhostCfg.RuleSets, coreRuleSet...)
 	}
@@ -82,7 +102,14 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		return nil
 	}
 
+	// filterRequiredForListener should be instantiated at plugin init
 	p.filterRequiredForListener[params.HttpListener] = struct{}{}
+
+	dlpActions := dlp_plugin.GetRelevantActions(context.Background(), in.GetOptions().GetDlp().GetActions())
+	// fallback to listener dlp just in case it exists
+	if len(dlpActions) == 0 {
+		dlpActions = dlpActionsForListener(params.VirtualHostParams.HttpListener)
+	}
 
 	perRouteCfg := &ModSecurityPerRoute{
 		Disabled:                  wafConfig.GetDisabled(),
@@ -90,6 +117,14 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		CustomInterventionMessage: wafConfig.GetCustomInterventionMessage(),
 		RequestHeadersOnly:        wafConfig.GetRequestHeadersOnly(),
 		ResponseHeadersOnly:       wafConfig.GetResponseHeadersOnly(),
+	}
+
+	if dlpActions != nil && len(dlpActions) > 0 {
+		perRouteCfg.DlpTransformation = &transformation_ee.DlpTransformation{
+			Actions:                             dlpActions,
+			EnableHeaderTransformation:          true,
+			EnableDynamicMetadataTransformation: true,
+		}
 	}
 
 	perRouteCfg.RuleSets = wafConfig.GetRuleSets()
@@ -107,6 +142,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	// If the list does not already have the listener than it is necessary to check for nil
 
 	wafSettings := listener.GetOptions().GetWaf()
+	dlpActions := dlpActionsForListener(listener)
 
 	_, ok := p.filterRequiredForListener[listener]
 	if !ok && p.removeUnused && wafSettings == nil {
@@ -130,6 +166,13 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		modSecurityConfig.RequestHeadersOnly = settings.GetRequestHeadersOnly()
 		modSecurityConfig.ResponseHeadersOnly = settings.GetResponseHeadersOnly()
 
+		if dlpActions != nil && len(dlpActions) > 0 {
+			modSecurityConfig.DlpTransformation = &transformation_ee.DlpTransformation{
+				Actions:                             dlpActions,
+				EnableHeaderTransformation:          true,
+				EnableDynamicMetadataTransformation: true,
+			}
+		}
 		if coreRuleSet := getCoreRuleSet(settings.GetCoreRuleSet()); coreRuleSet != nil {
 			modSecurityConfig.RuleSets = append(modSecurityConfig.RuleSets, coreRuleSet...)
 		}
@@ -141,6 +184,19 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	}
 	filters = append(filters, stagedFilter)
 	return filters, nil
+}
+
+func dlpActionsForListener(listener *v1.HttpListener) []*transformation_ee.Action {
+	dlpRules := listener.GetOptions().GetDlp().GetDlpRules()
+	if dlpRules == nil || len(dlpRules) == 0 {
+		return nil
+	}
+	var dlpActions []*transformation_ee.Action
+	for _, rule := range dlpRules {
+		dlpActions = append(dlpActions, dlp_plugin.GetRelevantActions(context.Background(), rule.GetActions())...)
+	}
+	return dlpActions
+
 }
 
 func getCoreRuleSet(crs *waf.CoreRuleSet) []*RuleSet {
@@ -158,4 +214,18 @@ func getCoreRuleSet(crs *waf.CoreRuleSet) []*RuleSet {
 		coreRuleSetSettings.Files = append([]string{additionalSettings.CustomSettingsFile}, coreRuleSet.Files...)
 	}
 	return []*RuleSet{coreRuleSetSettings, coreRuleSet}
+}
+
+func getDlpTransformation(ctx context.Context, dlpSettings *dlp.Config) *transformation_ee.DlpTransformation {
+	actions := dlp_plugin.GetRelevantActions(ctx, dlpSettings.GetActions())
+	if len(actions) != 0 {
+		if dlpSettings.EnabledFor == dlp.Config_ACCESS_LOGS || dlpSettings.EnabledFor == dlp.Config_ALL {
+			return &transformation_ee.DlpTransformation{
+				EnableHeaderTransformation:          true,
+				EnableDynamicMetadataTransformation: true,
+				Actions:                             actions,
+			}
+		}
+	}
+	return nil
 }
