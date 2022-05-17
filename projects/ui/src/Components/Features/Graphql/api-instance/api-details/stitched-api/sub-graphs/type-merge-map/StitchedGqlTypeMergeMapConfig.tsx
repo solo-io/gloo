@@ -1,10 +1,11 @@
 import { CloseOutlined } from '@ant-design/icons';
-import { Alert, Collapse } from 'antd';
+import { Collapse } from 'antd';
 import { useConfirm } from 'Components/Context/ConfirmModalContext';
 import lodash from 'lodash';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useEffect, useState } from 'react';
 import { SoloNegativeButton } from 'Styles/StyledComponents/button';
+import WarningMessage from '../../../executable-api/WarningMessage';
 import StitchedGqlTypeMergeFieldDropdown from './StitchedGqlTypeMergeFieldDropdown';
 import StitchedGqlAddSubGraphTypeMergeMapConfigItem from './StitchedGqlTypeMergeMapConfigItem';
 import {
@@ -12,11 +13,9 @@ import {
   typeMergeMapFromStringFormat,
   TypeMergeMapStringFormat,
   typeMergeMapToStringFormat,
-  validateTypeMergeMap,
 } from './StitchedGqlTypeMergeMapHelpers';
 
-// TODO: Fix argsmap > args naming.
-const sampleTypeMerge = `argsMap:
+const sampleTypeMerge = `args:
 queryName:
 selectionSet:`;
 
@@ -32,6 +31,7 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
   subGraphqlApiRef,
 }) => {
   const confirm = useConfirm();
+
   // --- TYPE MERGE MAP (SF = string formatted) --- //
   const [typeMergeMapSF, setTypeMergeMapSF] =
     useState<TypeMergeMapStringFormat>([]);
@@ -44,12 +44,10 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
       const parsedMap = typeMergeMapFromStringFormat(typeMergeMapSF);
       // Call event handlers
       onTypeMergeMapChange(parsedMap);
-      // Validate (this can throw errors, which we handle here)
-      validateTypeMergeMap(parsedMap);
       // Clear the warning
       setWarningMessage('');
     } catch (err: any) {
-      setWarningMessage(err.message);
+      setWarningMessage(err?.message ?? err);
     }
   }, [typeMergeMapSF]);
 
@@ -161,14 +159,7 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
       )}
 
       {/* --- ALERTS --- */}
-      {!!warningMessage && (
-        <Alert
-          showIcon
-          type='error'
-          message='Error'
-          description={warningMessage}
-        />
-      )}
+      <WarningMessage message={warningMessage} />
     </div>
   );
 };

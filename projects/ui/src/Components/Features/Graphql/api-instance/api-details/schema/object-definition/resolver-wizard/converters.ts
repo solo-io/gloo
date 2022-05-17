@@ -12,7 +12,7 @@ import { ResolverType } from './ResolverWizard';
 /**
  * This is the root of the generated GraphQL protobuffer type descriptor.
  */
-const jsonRoot = protobuf.Root.fromJSON(GQLJsonDescriptor);
+export const gqlJsonRoot = protobuf.Root.fromJSON(GQLJsonDescriptor);
 
 export function removeNulls(obj: any) {
   const isArray = Array.isArray(obj);
@@ -115,7 +115,7 @@ export function createResolverItem(
     if (resolver.upstreamRef) delete resolver.upstreamRef;
     //
     // Converts using the generated proto type descriptor.
-    pbTypeObj = jsonRoot.lookupType(resolverPBType);
+    pbTypeObj = gqlJsonRoot.lookupType(resolverPBType);
     parsedResolver = preMarshallProtoValues(resolver, pbTypeObj.toJSON());
   }
   if (
@@ -184,7 +184,7 @@ export function getResolverFromConfig(resolver?: Resolution.AsObject) {
   if (clonedResolver.upstreamRef) delete clonedResolver.upstreamRef;
   //
   // Parses the object using the generated proto JSON descriptor.
-  const pbTypeObj = jsonRoot.lookupType(resolverPBType);
+  const pbTypeObj = gqlJsonRoot.lookupType(resolverPBType);
   let parsedResolver: any;
   try {
     parsedResolver = postUnmarshallProtoValues(
@@ -248,7 +248,7 @@ export function base64ToString(str: string) {
  * `'Components/Features/Graphql/data/graphql.json'`
  * @returns A deep copy of obj, formatted for the resolver wizard config.
  */
-function postUnmarshallProtoValues(
+export function postUnmarshallProtoValues(
   obj: any,
   pbType: protobuf.IType,
   path = ''
@@ -293,7 +293,9 @@ function postUnmarshallProtoValues(
     // ====================== //
     const newPath = path === '' ? k : `${path}.${k}`;
     try {
-      const nestedType = jsonRoot.lookupType(fieldTypeName) as protobuf.IType;
+      const nestedType = gqlJsonRoot.lookupType(
+        fieldTypeName
+      ) as protobuf.IType;
       parsedObj[k] = postUnmarshallProtoValues(obj[k], nestedType, newPath);
     } catch (e: any) {
       if (e?.message?.split(':')[0] === 'Parsing Error') throw e;
@@ -325,7 +327,11 @@ function postUnmarshallProtoValues(
  * `'Components/Features/Graphql/data/graphql.json'`
  * @returns A deep copy of obj, formatted to be marshalled and sent to the API.
  */
-function preMarshallProtoValues(obj: any, pbType: protobuf.IType, path = '') {
+export function preMarshallProtoValues(
+  obj: any,
+  pbType: protobuf.IType,
+  path = ''
+) {
   const primitive = tryGetPrimitiveWithPbCheck(obj, pbType, path);
   if (!!primitive) return primitive.value;
   //
@@ -354,7 +360,9 @@ function preMarshallProtoValues(obj: any, pbType: protobuf.IType, path = '') {
     // ====================== //
     const newPath = path === '' ? k : `${path}.${k}`;
     try {
-      const nestedType = jsonRoot.lookupType(fieldTypeName) as protobuf.IType;
+      const nestedType = gqlJsonRoot.lookupType(
+        fieldTypeName
+      ) as protobuf.IType;
       parsedObj[k] = preMarshallProtoValues(obj[k], nestedType, newPath);
     } catch (e: any) {
       if (e?.message?.split(':')[0] === 'Parsing Error') throw e;

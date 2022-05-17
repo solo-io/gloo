@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Fixed parsing issues in the type merge map editor for stitched APIs, and added parsing validation messages.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3636
