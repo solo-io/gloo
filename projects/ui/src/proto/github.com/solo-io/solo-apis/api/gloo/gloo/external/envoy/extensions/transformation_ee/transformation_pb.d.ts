@@ -185,6 +185,11 @@ export class Action extends jspb.Message {
   getMaskChar(): string;
   setMaskChar(value: string): void;
 
+  hasMatcher(): boolean;
+  clearMatcher(): void;
+  getMatcher(): Action.DlpMatcher | undefined;
+  setMatcher(value?: Action.DlpMatcher): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Action.AsObject;
   static toObject(includeInstance: boolean, msg: Action): Action.AsObject;
@@ -203,6 +208,86 @@ export namespace Action {
     shadow: boolean,
     percent?: github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb.Percent.AsObject,
     maskChar: string,
+    matcher?: Action.DlpMatcher.AsObject,
+  }
+
+  export class RegexMatcher extends jspb.Message {
+    clearRegexActionsList(): void;
+    getRegexActionsList(): Array<RegexAction>;
+    setRegexActionsList(value: Array<RegexAction>): void;
+    addRegexActions(value?: RegexAction, index?: number): RegexAction;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): RegexMatcher.AsObject;
+    static toObject(includeInstance: boolean, msg: RegexMatcher): RegexMatcher.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: RegexMatcher, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): RegexMatcher;
+    static deserializeBinaryFromReader(message: RegexMatcher, reader: jspb.BinaryReader): RegexMatcher;
+  }
+
+  export namespace RegexMatcher {
+    export type AsObject = {
+      regexActionsList: Array<RegexAction.AsObject>,
+    }
+  }
+
+  export class KeyValueMatcher extends jspb.Message {
+    clearKeysList(): void;
+    getKeysList(): Array<string>;
+    setKeysList(value: Array<string>): void;
+    addKeys(value: string, index?: number): string;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): KeyValueMatcher.AsObject;
+    static toObject(includeInstance: boolean, msg: KeyValueMatcher): KeyValueMatcher.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: KeyValueMatcher, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): KeyValueMatcher;
+    static deserializeBinaryFromReader(message: KeyValueMatcher, reader: jspb.BinaryReader): KeyValueMatcher;
+  }
+
+  export namespace KeyValueMatcher {
+    export type AsObject = {
+      keysList: Array<string>,
+    }
+  }
+
+  export class DlpMatcher extends jspb.Message {
+    hasRegexMatcher(): boolean;
+    clearRegexMatcher(): void;
+    getRegexMatcher(): Action.RegexMatcher | undefined;
+    setRegexMatcher(value?: Action.RegexMatcher): void;
+
+    hasKeyValueMatcher(): boolean;
+    clearKeyValueMatcher(): void;
+    getKeyValueMatcher(): Action.KeyValueMatcher | undefined;
+    setKeyValueMatcher(value?: Action.KeyValueMatcher): void;
+
+    getMatcherCase(): DlpMatcher.MatcherCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): DlpMatcher.AsObject;
+    static toObject(includeInstance: boolean, msg: DlpMatcher): DlpMatcher.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: DlpMatcher, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): DlpMatcher;
+    static deserializeBinaryFromReader(message: DlpMatcher, reader: jspb.BinaryReader): DlpMatcher;
+  }
+
+  export namespace DlpMatcher {
+    export type AsObject = {
+      regexMatcher?: Action.RegexMatcher.AsObject,
+      keyValueMatcher?: Action.KeyValueMatcher.AsObject,
+    }
+
+    export enum MatcherCase {
+      MATCHER_NOT_SET = 0,
+      REGEX_MATCHER = 1,
+      KEY_VALUE_MATCHER = 2,
+    }
   }
 }
 

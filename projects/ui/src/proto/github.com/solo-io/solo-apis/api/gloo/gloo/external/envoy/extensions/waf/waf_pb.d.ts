@@ -4,6 +4,7 @@
 
 import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../../../../extproto/ext_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/transformation_ee/transformation_pb";
 
 export class AuditLogging extends jspb.Message {
   getAction(): AuditLogging.AuditLogActionMap[keyof AuditLogging.AuditLogActionMap];
@@ -70,6 +71,11 @@ export class ModSecurity extends jspb.Message {
   getRegressionLogs(): boolean;
   setRegressionLogs(value: boolean): void;
 
+  hasDlpTransformation(): boolean;
+  clearDlpTransformation(): void;
+  getDlpTransformation(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation | undefined;
+  setDlpTransformation(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ModSecurity.AsObject;
   static toObject(includeInstance: boolean, msg: ModSecurity): ModSecurity.AsObject;
@@ -89,6 +95,7 @@ export namespace ModSecurity {
     requestHeadersOnly: boolean,
     responseHeadersOnly: boolean,
     regressionLogs: boolean,
+    dlpTransformation?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation.AsObject,
   }
 }
 
@@ -145,6 +152,11 @@ export class ModSecurityPerRoute extends jspb.Message {
   getResponseHeadersOnly(): boolean;
   setResponseHeadersOnly(value: boolean): void;
 
+  hasDlpTransformation(): boolean;
+  clearDlpTransformation(): void;
+  getDlpTransformation(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation | undefined;
+  setDlpTransformation(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ModSecurityPerRoute.AsObject;
   static toObject(includeInstance: boolean, msg: ModSecurityPerRoute): ModSecurityPerRoute.AsObject;
@@ -163,5 +175,6 @@ export namespace ModSecurityPerRoute {
     auditLogging?: AuditLogging.AsObject,
     requestHeadersOnly: boolean,
     responseHeadersOnly: boolean,
+    dlpTransformation?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation.AsObject,
   }
 }

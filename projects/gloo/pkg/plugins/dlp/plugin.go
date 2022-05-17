@@ -30,9 +30,9 @@ const (
 )
 
 var (
-	// Dlp should happen before any code is run.
-	// And before waf to sanitize for logs.
-	filterStage = plugins.BeforeStage(plugins.WafStage)
+	// Dlp will be executed last, but before logging,
+	// so as to sanitize any logs.
+	filterStage = plugins.AfterStage(plugins.RouteStage)
 )
 
 type plugin struct {
@@ -197,12 +197,35 @@ func getRelevantActions(ctx context.Context, dlpActions []*dlp.Action) []*transf
 		case dlp.Action_CUSTOM:
 			customAction := dlpAction.GetCustomAction()
 			transformAction = append(transformAction, &transformation_ee.Action{
-				Name:         customAction.GetName(),
-				Regex:        customAction.GetRegex(),
-				RegexActions: customAction.GetRegexActions(),
-				Shadow:       dlpAction.GetShadow(),
-				Percent:      customAction.GetPercent(),
-				MaskChar:     customAction.GetMaskChar(),
+				Name:     customAction.GetName(),
+				Regex:    customAction.GetRegex(),
+				Shadow:   dlpAction.GetShadow(),
+				Percent:  customAction.GetPercent(),
+				MaskChar: customAction.GetMaskChar(),
+				Matcher: &transformation_ee.Action_DlpMatcher{
+					Matcher: &transformation_ee.Action_DlpMatcher_RegexMatcher{
+						RegexMatcher: &transformation_ee.Action_RegexMatcher{
+							RegexActions: customAction.GetRegexActions(),
+						},
+					},
+				},
+			})
+		case dlp.Action_KEYVALUE:
+			keyValueAction := dlpAction.GetKeyValueAction()
+			transformAction = append(transformAction, &transformation_ee.Action{
+				Name:     keyValueAction.GetName(),
+				MaskChar: keyValueAction.GetMaskChar(),
+				Percent:  keyValueAction.GetPercent(),
+				Shadow:   dlpAction.GetShadow(),
+				Matcher: &transformation_ee.Action_DlpMatcher{
+					Matcher: &transformation_ee.Action_DlpMatcher_KeyValueMatcher{
+						KeyValueMatcher: &transformation_ee.Action_KeyValueMatcher{
+							Keys: []string{
+								keyValueAction.GetKeyToMask(),
+							},
+						},
+					},
+				},
 			})
 		default:
 			transformAction = GetTransformsFromMap(dlpAction.ActionType)

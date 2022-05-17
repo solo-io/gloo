@@ -124,9 +124,9 @@ var _ = Describe("Proxy latency", func() {
 					if err != nil {
 						return "", err
 					}
-					// last filter is router, so get the one before that:
-					if len(filters) >= 2 {
-						return filters[len(filters)-2], nil
+					// last filter is router, second to last is transformation_ee/DLP, so get the one before that:
+					if len(filters) >= 3 {
+						return filters[len(filters)-3], nil
 					}
 					return "", nil
 				}, "5s", "0.5s").Should(ContainSubstring("proxy_latency"))

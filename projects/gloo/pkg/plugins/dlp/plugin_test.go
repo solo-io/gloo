@@ -50,6 +50,19 @@ var _ = Describe("dlp plugin", func() {
 				},
 			},
 		}
+
+		KeyValueTestAction = &dlp.Action{
+			ActionType: dlp.Action_KEYVALUE,
+			Shadow:     true,
+			KeyValueAction: &dlp.KeyValueAction{
+				Name: "test",
+				Percent: &envoy_type.Percent{
+					Value: 75,
+				},
+				MaskChar:  "Z",
+				KeyToMask: "ssn",
+			},
+		}
 	)
 
 	BeforeEach(func() {
@@ -139,11 +152,26 @@ var _ = Describe("dlp plugin", func() {
 		Expect(customTransform.Name).To(Equal(customTestAction.CustomAction.Name))
 		Expect(customTransform.Percent.Equal(customTestAction.CustomAction.Percent)).To(BeTrue())
 		Expect(customTransform.Regex).To(Equal(customTestAction.CustomAction.Regex))
-		Expect(len(customTransform.RegexActions)).To(Equal(1))
-		Expect(customTransform.RegexActions[0].GetRegex()).To(Equal(customTestAction.CustomAction.RegexActions[0].GetRegex()))
-		Expect(customTransform.RegexActions[0].GetSubgroup()).To(Equal(customTestAction.CustomAction.RegexActions[0].GetSubgroup()))
+		Expect(len(customTransform.GetMatcher().GetRegexMatcher().GetRegexActions())).To(Equal(1))
+		regexAction := customTransform.GetMatcher().GetRegexMatcher().GetRegexActions()[0]
+		Expect(regexAction.GetRegex()).To(Equal(customTestAction.CustomAction.RegexActions[0].GetRegex()))
+		Expect(regexAction.GetSubgroup()).To(Equal(customTestAction.CustomAction.RegexActions[0].GetSubgroup()))
 	}
 
+	var checkkeyValueAction = func(dlpTransform *transformation_ee.DlpTransformation) {
+		Expect(dlpTransform).NotTo(BeNil())
+		Expect(dlpTransform.GetActions()).To(HaveLen(1))
+		action := dlpTransform.GetActions()[0]
+		Expect(action.Shadow).To(Equal(KeyValueTestAction.Shadow))
+		Expect(action.MaskChar).To(Equal(KeyValueTestAction.KeyValueAction.MaskChar))
+		Expect(action.Name).To(Equal(KeyValueTestAction.KeyValueAction.Name))
+		Expect(action.Percent.Equal(KeyValueTestAction.KeyValueAction.Percent)).To(BeTrue())
+		Expect(action.GetMatcher().GetKeyValueMatcher()).To(Not(BeNil()))
+		keyValueMatcher := action.GetMatcher().GetKeyValueMatcher()
+		Expect(keyValueMatcher.GetKeys()).To(HaveLen(1))
+		keyToMask := keyValueMatcher.GetKeys()[0]
+		Expect(keyToMask).To(Equal(KeyValueTestAction.KeyValueAction.KeyToMask))
+	}
 	Context("process snapshot", func() {
 		var (
 			outRoute   envoy_config_route_v3.Route
@@ -195,10 +223,10 @@ var _ = Describe("dlp plugin", func() {
 		Context("empty extensions", func() {
 			It("can create the proper filters", func() {
 				Expect(outFilters).To(HaveLen(1))
-				wafFilter := outFilters[0]
-				Expect(wafFilter.HttpFilter.Name).To(Equal(FilterName))
-				Expect(wafFilter.Stage).To(Equal(plugins.BeforeStage(plugins.WafStage)))
-				st := wafFilter.HttpFilter.GetTypedConfig()
+				dlpFilter := outFilters[0]
+				Expect(dlpFilter.HttpFilter.Name).To(Equal(FilterName))
+				Expect(dlpFilter.Stage).To(Equal(plugins.AfterStage(plugins.RouteStage)))
+				st := dlpFilter.HttpFilter.GetTypedConfig()
 				Expect(st).To(BeNil())
 			})
 		})
@@ -213,7 +241,6 @@ var _ = Describe("dlp plugin", func() {
 				Expect(outFilters).To(HaveLen(1))
 				dlpFilter := outFilters[0]
 				Expect(dlpFilter.HttpFilter.Name).To(Equal(FilterName))
-				Expect(dlpFilter.Stage).To(Equal(plugins.BeforeStage(plugins.WafStage)))
 				goTypedConfig := dlpFilter.HttpFilter.GetTypedConfig()
 				if goTypedConfig == nil {
 					return nil
@@ -483,6 +510,48 @@ var _ = Describe("dlp plugin", func() {
 				It("sets default actions on vhost", func() {
 					perVhostDlp := translateVhost()
 					checkCustomAction(perVhostDlp.GetResponseTransformation().GetDlpTransformation())
+				})
+			})
+		})
+
+		Context("key-value action", func() {
+			BeforeEach(func() {
+				dlpRoute = &dlp.Config{
+					Actions: []*dlp.Action{KeyValueTestAction},
+				}
+				dlpVhost = &dlp.Config{
+					Actions: []*dlp.Action{KeyValueTestAction},
+				}
+			})
+
+			Describe("on stream complete transformation enabled", func() {
+				BeforeEach(func() {
+					dlpRoute.EnabledFor = dlp.Config_ALL
+					dlpVhost.EnabledFor = dlp.Config_ALL
+				})
+				It("sets default actions on route", func() {
+					perRouteDlp := translateRoute()
+					checkkeyValueAction(perRouteDlp.GetOnStreamCompletionTransformation().GetDlpTransformation())
+				})
+
+				It("sets default actions on vhost", func() {
+					perVhostDlp := translateVhost()
+					checkkeyValueAction(perVhostDlp.GetOnStreamCompletionTransformation().GetDlpTransformation())
+				})
+			})
+			Describe("on stream complete transformation not enabled", func() {
+				BeforeEach(func() {
+					dlpRoute.EnabledFor = dlp.Config_RESPONSE_BODY
+					dlpVhost.EnabledFor = dlp.Config_RESPONSE_BODY
+				})
+				It("does not default actions on route", func() {
+					perRouteDlp := translateRoute()
+					Expect(perRouteDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetActions()).To(HaveLen(0))
+				})
+
+				It("does not default actions on vhost", func() {
+					perVhostDlp := translateVhost()
+					Expect(perVhostDlp.GetOnStreamCompletionTransformation().GetDlpTransformation().GetActions()).To(HaveLen(0))
 				})
 			})
 		})

@@ -13,6 +13,7 @@ var goog = jspb;
 var global = Function('return this')();
 
 var extproto_ext_pb = require('../../../../../../../../../../extproto/ext_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/transformation_ee/transformation_pb.js');
 goog.exportSymbol('proto.envoy.config.filter.http.modsecurity.v2.AuditLogging', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.modsecurity.v2.AuditLogging.AuditLogAction', null, global);
 goog.exportSymbol('proto.envoy.config.filter.http.modsecurity.v2.AuditLogging.AuditLogLocation', null, global);
@@ -266,7 +267,8 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.toObject = function(in
     auditLogging: (f = msg.getAuditLogging()) && proto.envoy.config.filter.http.modsecurity.v2.AuditLogging.toObject(includeInstance, f),
     requestHeadersOnly: jspb.Message.getFieldWithDefault(msg, 6, false),
     responseHeadersOnly: jspb.Message.getFieldWithDefault(msg, 7, false),
-    regressionLogs: jspb.Message.getFieldWithDefault(msg, 4, false)
+    regressionLogs: jspb.Message.getFieldWithDefault(msg, 4, false),
+    dlpTransformation: (f = msg.getDlpTransformation()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -332,6 +334,11 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.deserializeBinaryFromR
     case 4:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setRegressionLogs(value);
+      break;
+    case 8:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation.deserializeBinaryFromReader);
+      msg.setDlpTransformation(value);
       break;
     default:
       reader.skipField();
@@ -411,6 +418,14 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.serializeBinaryToWrite
     writer.writeBool(
       4,
       f
+    );
+  }
+  f = message.getDlpTransformation();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation.serializeBinaryToWriter
     );
   }
 };
@@ -557,6 +572,36 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.getRegressio
 /** @param {boolean} value */
 proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.setRegressionLogs = function(value) {
   jspb.Message.setProto3BooleanField(this, 4, value);
+};
+
+
+/**
+ * optional envoy.config.filter.http.transformation_ee.v2.DlpTransformation dlp_transformation = 8;
+ * @return {?proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation}
+ */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.getDlpTransformation = function() {
+  return /** @type{?proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation, 8));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation|undefined} value */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.setDlpTransformation = function(value) {
+  jspb.Message.setWrapperField(this, 8, value);
+};
+
+
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.clearDlpTransformation = function() {
+  this.setDlpTransformation(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurity.prototype.hasDlpTransformation = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 
@@ -837,7 +882,8 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.toObject = fun
     customInterventionMessage: jspb.Message.getFieldWithDefault(msg, 3, ""),
     auditLogging: (f = msg.getAuditLogging()) && proto.envoy.config.filter.http.modsecurity.v2.AuditLogging.toObject(includeInstance, f),
     requestHeadersOnly: jspb.Message.getFieldWithDefault(msg, 6, false),
-    responseHeadersOnly: jspb.Message.getFieldWithDefault(msg, 7, false)
+    responseHeadersOnly: jspb.Message.getFieldWithDefault(msg, 7, false),
+    dlpTransformation: (f = msg.getDlpTransformation()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -899,6 +945,11 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.deserializeBin
     case 7:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setResponseHeadersOnly(value);
+      break;
+    case 8:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation.deserializeBinaryFromReader);
+      msg.setDlpTransformation(value);
       break;
     default:
       reader.skipField();
@@ -971,6 +1022,14 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.serializeBinar
     writer.writeBool(
       7,
       f
+    );
+  }
+  f = message.getDlpTransformation();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation.serializeBinaryToWriter
     );
   }
 };
@@ -1100,6 +1159,36 @@ proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.getR
 /** @param {boolean} value */
 proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.setResponseHeadersOnly = function(value) {
   jspb.Message.setProto3BooleanField(this, 7, value);
+};
+
+
+/**
+ * optional envoy.config.filter.http.transformation_ee.v2.DlpTransformation dlp_transformation = 8;
+ * @return {?proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation}
+ */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.getDlpTransformation = function() {
+  return /** @type{?proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.DlpTransformation, 8));
+};
+
+
+/** @param {?proto.envoy.config.filter.http.transformation_ee.v2.DlpTransformation|undefined} value */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.setDlpTransformation = function(value) {
+  jspb.Message.setWrapperField(this, 8, value);
+};
+
+
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.clearDlpTransformation = function() {
+  this.setDlpTransformation(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.modsecurity.v2.ModSecurityPerRoute.prototype.hasDlpTransformation = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 

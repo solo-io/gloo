@@ -114,6 +114,11 @@ export class Action extends jspb.Message {
   getCustomAction(): CustomAction | undefined;
   setCustomAction(value?: CustomAction): void;
 
+  hasKeyValueAction(): boolean;
+  clearKeyValueAction(): void;
+  getKeyValueAction(): KeyValueAction | undefined;
+  setKeyValueAction(value?: KeyValueAction): void;
+
   getShadow(): boolean;
   setShadow(value: boolean): void;
 
@@ -131,20 +136,22 @@ export namespace Action {
   export type AsObject = {
     actionType: Action.ActionTypeMap[keyof Action.ActionTypeMap],
     customAction?: CustomAction.AsObject,
+    keyValueAction?: KeyValueAction.AsObject,
     shadow: boolean,
   }
 
   export interface ActionTypeMap {
     CUSTOM: 0;
-    SSN: 1;
-    MASTERCARD: 2;
-    VISA: 3;
-    AMEX: 4;
-    DISCOVER: 5;
-    JCB: 6;
-    DINERS_CLUB: 7;
-    CREDIT_CARD_TRACKERS: 8;
-    ALL_CREDIT_CARDS: 9;
+    KEYVALUE: 1;
+    SSN: 2;
+    MASTERCARD: 3;
+    VISA: 4;
+    AMEX: 5;
+    DISCOVER: 6;
+    JCB: 7;
+    DINERS_CLUB: 8;
+    CREDIT_CARD_TRACKERS: 9;
+    ALL_CREDIT_CARDS: 10;
   }
 
   export const ActionType: ActionTypeMap;
@@ -189,5 +196,39 @@ export namespace CustomAction {
     maskChar: string,
     percent?: github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb.Percent.AsObject,
     regexActionsList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_transformation_ee_transformation_pb.RegexAction.AsObject>,
+  }
+}
+
+export class KeyValueAction extends jspb.Message {
+  getName(): string;
+  setName(value: string): void;
+
+  getMaskChar(): string;
+  setMaskChar(value: string): void;
+
+  hasPercent(): boolean;
+  clearPercent(): void;
+  getPercent(): github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb.Percent | undefined;
+  setPercent(value?: github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb.Percent): void;
+
+  getKeyToMask(): string;
+  setKeyToMask(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): KeyValueAction.AsObject;
+  static toObject(includeInstance: boolean, msg: KeyValueAction): KeyValueAction.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: KeyValueAction, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): KeyValueAction;
+  static deserializeBinaryFromReader(message: KeyValueAction, reader: jspb.BinaryReader): KeyValueAction;
+}
+
+export namespace KeyValueAction {
+  export type AsObject = {
+    name: string,
+    maskChar: string,
+    percent?: github_com_solo_io_solo_kit_api_external_envoy_type_percent_pb.Percent.AsObject,
+    keyToMask: string,
   }
 }
