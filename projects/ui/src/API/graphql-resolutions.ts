@@ -164,6 +164,7 @@ const removeResolveDirectiveFromField = (
   // Serialize the newSchema that we just made, and set that as the schema definition.
   const newSchemaString = print(newSchema as ASTNode);
   currentExSchema.setSchemaDefinition(newSchemaString);
+  return newSchema;
 };
 
 //
@@ -243,7 +244,7 @@ export const updateSchemaAndResolutionMap = (
       return invalidUpdate('The resolution to delete does not have a name.');
     //
     // Update the schema with the removed resolve directive.
-    removeResolveDirectiveFromField(
+    const newParsedSchema = removeResolveDirectiveFromField(
       parsedSchema,
       objectType,
       existingResolveDirectiveName,
@@ -251,14 +252,35 @@ export const updateSchemaAndResolutionMap = (
       currentExSchema
     );
     //
-    // And delete the resolution from the resolution map if it exists (which it should).
-    if (currResolMap.has(existingResolveDirectiveName))
-      currResolMap.del(existingResolveDirectiveName);
-    else
-      console.warn(
-        `An @resolve directive was found with the name "${existingResolveDirectiveName}", but this value ` +
-          `was not found in the resolutions map. This @resolve directive has been removed from ` +
-          `the schema for the field, "${fieldName}".`
-      );
+    // Check if any other fields reference the same resolution in their @resolve directive.
+    let anotherFieldWithSameResolutionExists = false;
+    visit(newParsedSchema, {
+      enter(node, key, parent, path, ancestors) {
+        if (
+          node.kind === Kind.DIRECTIVE &&
+          node.name.value === 'resolve' &&
+          node.arguments?.find(
+            a =>
+              a.name.value === 'name' &&
+              a.value.kind === Kind.STRING &&
+              a.value.value === existingResolveDirectiveName
+          ) !== undefined
+        )
+          anotherFieldWithSameResolutionExists = true;
+      },
+    });
+    //
+    // Delete the resolution from the resolution map (if it is not referenced
+    // by any other fields, and the resolution exists in the map).
+    if (!anotherFieldWithSameResolutionExists) {
+      if (currResolMap.has(existingResolveDirectiveName))
+        currResolMap.del(existingResolveDirectiveName);
+      else
+        console.warn(
+          `An @resolve directive was found with the name "${existingResolveDirectiveName}", but this value ` +
+            `was not found in the resolutions map. This @resolve directive has been removed from ` +
+            `the schema for the field, "${fieldName}".`
+        );
+    }
   }
 };

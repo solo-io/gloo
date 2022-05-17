@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: >
+      Fixed issue with deleting resolvers when multiple fields reference the same resolution.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3456
