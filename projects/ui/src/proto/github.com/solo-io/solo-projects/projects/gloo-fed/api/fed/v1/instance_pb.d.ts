@@ -280,6 +280,16 @@ export namespace GlooInstanceSpec {
     getProxies(): GlooInstanceSpec.Check.Summary | undefined;
     setProxies(value?: GlooInstanceSpec.Check.Summary): void;
 
+    hasRateLimitConfigs(): boolean;
+    clearRateLimitConfigs(): void;
+    getRateLimitConfigs(): GlooInstanceSpec.Check.Summary | undefined;
+    setRateLimitConfigs(value?: GlooInstanceSpec.Check.Summary): void;
+
+    hasMatchableHttpGateways(): boolean;
+    clearMatchableHttpGateways(): void;
+    getMatchableHttpGateways(): GlooInstanceSpec.Check.Summary | undefined;
+    setMatchableHttpGateways(value?: GlooInstanceSpec.Check.Summary): void;
+
     hasDeployments(): boolean;
     clearDeployments(): void;
     getDeployments(): GlooInstanceSpec.Check.Summary | undefined;
@@ -310,6 +320,8 @@ export namespace GlooInstanceSpec {
       upstreams?: GlooInstanceSpec.Check.Summary.AsObject,
       upstreamGroups?: GlooInstanceSpec.Check.Summary.AsObject,
       proxies?: GlooInstanceSpec.Check.Summary.AsObject,
+      rateLimitConfigs?: GlooInstanceSpec.Check.Summary.AsObject,
+      matchableHttpGateways?: GlooInstanceSpec.Check.Summary.AsObject,
       deployments?: GlooInstanceSpec.Check.Summary.AsObject,
       pods?: GlooInstanceSpec.Check.Summary.AsObject,
     }

@@ -3,11 +3,6 @@ package glooinstance_handler
 import (
 	"context"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/checker"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/images"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/locality"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/proxy"
-
 	"github.com/rotisserie/eris"
 	apps_v1 "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
 	apps_v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1/sets"
@@ -24,8 +19,13 @@ import (
 	enterprise_gloo_resource_handler "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/enterprise.gloo.solo.io/v1/handler"
 	gateway_resource_handler "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/gateway.solo.io/v1/handler"
 	gloo_resource_handler "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/gloo.solo.io/v1/handler"
+	ratelimit_resource_handler "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/ratelimit.api.solo.io/v1alpha1/handler"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/checker"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/images"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/locality"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/proxy"
 	"go.uber.org/zap"
 	k8s_apps_types "k8s.io/api/apps/v1"
 	k8s_core_types "k8s.io/api/core/v1"
@@ -239,11 +239,13 @@ func (l *singleClusterGlooInstanceLister) buildGlooInstanceFromDeployment(
 	instance.Spec.Check.UpstreamGroups = gloo_resource_handler.GetUpstreamGroupSummary(ctx, l.glooClientset.UpstreamGroups(), watchedNamespaces)
 	instance.Spec.Check.Proxies = gloo_resource_handler.GetProxySummary(ctx, l.glooClientset.Proxies(), watchedNamespaces)
 	instance.Spec.Check.AuthConfigs = enterprise_gloo_resource_handler.GetAuthConfigSummary(ctx, l.enterpriseGlooClientset.AuthConfigs(), watchedNamespaces)
+	instance.Spec.Check.RateLimitConfigs = ratelimit_resource_handler.GetRateLimitConfigSummary(ctx, l.ratelimitClientset.RateLimitConfigs(), watchedNamespaces)
 
 	// gateway resource summaries
 	instance.Spec.Check.Gateways = gateway_resource_handler.GetGatewaySummary(ctx, l.gatewayClientset.Gateways(), watchedNamespaces)
 	instance.Spec.Check.VirtualServices = gateway_resource_handler.GetVirtualServiceSummary(ctx, l.gatewayClientset.VirtualServices(), watchedNamespaces)
 	instance.Spec.Check.RouteTables = gateway_resource_handler.GetRouteTableSummary(ctx, l.gatewayClientset.RouteTables(), watchedNamespaces)
+	instance.Spec.Check.MatchableHttpGateways = gateway_resource_handler.GetMatchableHttpGatewaySummary(ctx, l.gatewayClientset.MatchableHttpGateways(), watchedNamespaces)
 
 	return instance, nil
 }

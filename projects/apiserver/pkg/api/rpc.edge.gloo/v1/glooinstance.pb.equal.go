@@ -856,6 +856,26 @@ func (m *GlooInstance_GlooInstanceSpec_Check) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetRateLimitConfigs()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetRateLimitConfigs()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetRateLimitConfigs(), target.GetRateLimitConfigs()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetMatchableHttpGateways()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMatchableHttpGateways()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMatchableHttpGateways(), target.GetMatchableHttpGateways()) {
+			return false
+		}
+	}
+
 	if h, ok := interface{}(m.GetDeployments()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetDeployments()) {
 			return false

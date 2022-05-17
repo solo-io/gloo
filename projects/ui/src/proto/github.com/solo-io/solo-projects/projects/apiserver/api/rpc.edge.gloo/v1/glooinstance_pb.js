@@ -1524,6 +1524,8 @@ proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.toObject = funct
     upstreams: (f = msg.getUpstreams()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     upstreamGroups: (f = msg.getUpstreamGroups()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     proxies: (f = msg.getProxies()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
+    rateLimitConfigs: (f = msg.getRateLimitConfigs()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
+    matchableHttpGateways: (f = msg.getMatchableHttpGateways()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     deployments: (f = msg.getDeployments()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f),
     pods: (f = msg.getPods()) && proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.toObject(includeInstance, f)
   };
@@ -1601,6 +1603,16 @@ proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.deserializeBinar
       var value = new proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary;
       reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.deserializeBinaryFromReader);
       msg.setProxies(value);
+      break;
+    case 9:
+      var value = new proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary;
+      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.deserializeBinaryFromReader);
+      msg.setRateLimitConfigs(value);
+      break;
+    case 10:
+      var value = new proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary;
+      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.deserializeBinaryFromReader);
+      msg.setMatchableHttpGateways(value);
       break;
     case 20:
       var value = new proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary;
@@ -1701,6 +1713,22 @@ proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.serializeBinaryT
   if (f != null) {
     writer.writeMessage(
       8,
+      f,
+      proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.serializeBinaryToWriter
+    );
+  }
+  f = message.getRateLimitConfigs();
+  if (f != null) {
+    writer.writeMessage(
+      9,
+      f,
+      proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.serializeBinaryToWriter
+    );
+  }
+  f = message.getMatchableHttpGateways();
+  if (f != null) {
+    writer.writeMessage(
+      10,
       f,
       proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary.serializeBinaryToWriter
     );
@@ -2388,6 +2416,66 @@ proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.clearP
  */
 proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.hasProxies = function() {
   return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional Summary rate_limit_configs = 9;
+ * @return {?proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary}
+ */
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.getRateLimitConfigs = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary} */ (
+    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary, 9));
+};
+
+
+/** @param {?proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary|undefined} value */
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.setRateLimitConfigs = function(value) {
+  jspb.Message.setWrapperField(this, 9, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.clearRateLimitConfigs = function() {
+  this.setRateLimitConfigs(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.hasRateLimitConfigs = function() {
+  return jspb.Message.getField(this, 9) != null;
+};
+
+
+/**
+ * optional Summary matchable_http_gateways = 10;
+ * @return {?proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary}
+ */
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.getMatchableHttpGateways = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary} */ (
+    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary, 10));
+};
+
+
+/** @param {?proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.Summary|undefined} value */
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.setMatchableHttpGateways = function(value) {
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.clearMatchableHttpGateways = function() {
+  this.setMatchableHttpGateways(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.GlooInstance.GlooInstanceSpec.Check.prototype.hasMatchableHttpGateways = function() {
+  return jspb.Message.getField(this, 10) != null;
 };
 
 

@@ -21,6 +21,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	gateway_check "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/gateway.solo.io/v1/check"
 	gloo_check "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/gloo.solo.io/v1/check"
+	ratelimit_check "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/ratelimit.api.solo.io/v1alpha1/check"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -106,11 +107,13 @@ func (t *translator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) 
 		instance.Spec.Check.UpstreamGroups = gloo_check.GetUpstreamGroupSummary(ctx, snapshot.UpstreamGroups(), watchedNamespaces, cluster)
 		instance.Spec.Check.Proxies = gloo_check.GetProxySummary(ctx, snapshot.Proxies(), watchedNamespaces, cluster)
 		instance.Spec.Check.AuthConfigs = enterprise_check.GetAuthConfigSummary(ctx, snapshot.AuthConfigs(), watchedNamespaces, cluster)
+		instance.Spec.Check.RateLimitConfigs = ratelimit_check.GetRateLimitConfigSummary(ctx, snapshot.RateLimitConfigs(), watchedNamespaces, cluster)
 
 		// Gateway
 		instance.Spec.Check.Gateways = gateway_check.GetGatewaySummary(ctx, snapshot.Gateways(), watchedNamespaces, cluster)
 		instance.Spec.Check.VirtualServices = gateway_check.GetVirtualServiceSummary(ctx, snapshot.VirtualServices(), watchedNamespaces, cluster)
 		instance.Spec.Check.RouteTables = gateway_check.GetRouteTableSummary(ctx, snapshot.RouteTables(), watchedNamespaces, cluster)
+		instance.Spec.Check.MatchableHttpGateways = gateway_check.GetMatchableHttpGatewaySummary(ctx, snapshot.MatchableHttpGateways(), watchedNamespaces, cluster)
 
 		instances = append(instances, instance)
 	}

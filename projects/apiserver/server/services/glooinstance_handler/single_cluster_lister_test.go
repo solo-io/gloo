@@ -15,6 +15,7 @@ import (
 	mock_gateway_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1/mocks"
 	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	mock_gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/mocks"
+	ratelimit_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	mock_ratelimit_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1/mocks"
 	. "github.com/solo-io/solo-kit/test/matchers"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
@@ -42,6 +43,22 @@ var (
 			Check: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check{
 				Gateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
 					Total: 2,
+				},
+				MatchableHttpGateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+					Total: 1,
+					Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
+						{
+							Ref: &v1.ObjectRef{Name: "httpgw1", Namespace: "gloo-system"},
+						},
+					},
+				},
+				RateLimitConfigs: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+					Total: 2,
+					Errors: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{
+						{
+							Ref: &v1.ObjectRef{Name: "rlc1", Namespace: "gloo-system"},
+						},
+					},
 				},
 				VirtualServices: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
 				RouteTables:     &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{},
@@ -89,19 +106,21 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		mockRateLimitClientset      *mock_ratelimit_v1alpha1.MockClientset
 
 		// clients
-		mockServiceClient        *mock_core_v1.MockServiceClient
-		mockPodClient            *mock_core_v1.MockPodClient
-		mockNodeClient           *mock_core_v1.MockNodeClient
-		mockDeploymentClient     *mock_apps_v1.MockDeploymentClient
-		mockDaemonSetClient      *mock_apps_v1.MockDaemonSetClient
-		mockGatewayClient        *mock_gateway_v1.MockGatewayClient
-		mockVirtualServiceClient *mock_gateway_v1.MockVirtualServiceClient
-		mockRouteTableClient     *mock_gateway_v1.MockRouteTableClient
-		mockSettingsClient       *mock_gloo_v1.MockSettingsClient
-		mockUpstreamClient       *mock_gloo_v1.MockUpstreamClient
-		mockUpstreamGroupClient  *mock_gloo_v1.MockUpstreamGroupClient
-		mockProxyClient          *mock_gloo_v1.MockProxyClient
-		mockAuthConfigClient     *mock_enterprise_gloo_v1.MockAuthConfigClient
+		mockServiceClient              *mock_core_v1.MockServiceClient
+		mockPodClient                  *mock_core_v1.MockPodClient
+		mockNodeClient                 *mock_core_v1.MockNodeClient
+		mockDeploymentClient           *mock_apps_v1.MockDeploymentClient
+		mockDaemonSetClient            *mock_apps_v1.MockDaemonSetClient
+		mockGatewayClient              *mock_gateway_v1.MockGatewayClient
+		mockVirtualServiceClient       *mock_gateway_v1.MockVirtualServiceClient
+		mockRouteTableClient           *mock_gateway_v1.MockRouteTableClient
+		mockMatchableHttpGatewayClient *mock_gateway_v1.MockMatchableHttpGatewayClient
+		mockSettingsClient             *mock_gloo_v1.MockSettingsClient
+		mockUpstreamClient             *mock_gloo_v1.MockUpstreamClient
+		mockUpstreamGroupClient        *mock_gloo_v1.MockUpstreamGroupClient
+		mockProxyClient                *mock_gloo_v1.MockProxyClient
+		mockAuthConfigClient           *mock_enterprise_gloo_v1.MockAuthConfigClient
+		mockRateLimitConfigClient      *mock_ratelimit_v1alpha1.MockRateLimitConfigClient
 	)
 
 	BeforeEach(func() {
@@ -128,9 +147,11 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		mockGatewayClient = mock_gateway_v1.NewMockGatewayClient(ctrl)
 		mockVirtualServiceClient = mock_gateway_v1.NewMockVirtualServiceClient(ctrl)
 		mockRouteTableClient = mock_gateway_v1.NewMockRouteTableClient(ctrl)
+		mockMatchableHttpGatewayClient = mock_gateway_v1.NewMockMatchableHttpGatewayClient(ctrl)
 		mockGatewayClientset.EXPECT().Gateways().Return(mockGatewayClient)
 		mockGatewayClientset.EXPECT().VirtualServices().Return(mockVirtualServiceClient)
 		mockGatewayClientset.EXPECT().RouteTables().Return(mockRouteTableClient)
+		mockGatewayClientset.EXPECT().MatchableHttpGateways().Return(mockMatchableHttpGatewayClient)
 
 		// gloo clientset
 		mockGlooClientset = mock_gloo_v1.NewMockClientset(ctrl)
@@ -150,6 +171,8 @@ var _ = Describe("single cluster gloo instance lister", func() {
 
 		// ratelimit clientset
 		mockRateLimitClientset = mock_ratelimit_v1alpha1.NewMockClientset(ctrl)
+		mockRateLimitConfigClient = mock_ratelimit_v1alpha1.NewMockRateLimitConfigClient(ctrl)
+		mockRateLimitClientset.EXPECT().RateLimitConfigs().Return(mockRateLimitConfigClient)
 
 		// mock data
 		mockServiceClient.EXPECT().ListService(ctx).Return(&core_v1.ServiceList{
@@ -222,6 +245,41 @@ var _ = Describe("single cluster gloo instance lister", func() {
 		}, nil)
 		mockRouteTableClient.EXPECT().ListRouteTable(ctx).Return(&gateway_v1.RouteTableList{
 			Items: []gateway_v1.RouteTable{},
+		}, nil)
+		mockMatchableHttpGatewayClient.EXPECT().ListMatchableHttpGateway(ctx).Return(&gateway_v1.MatchableHttpGatewayList{
+			Items: []gateway_v1.MatchableHttpGateway{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "httpgw1",
+						Namespace: "gloo-system",
+					},
+					Status: gateway_v1.MatchableHttpGatewayStatus{
+						State: gateway_v1.MatchableHttpGatewayStatus_Warning,
+					},
+				},
+			},
+		}, nil)
+		mockRateLimitConfigClient.EXPECT().ListRateLimitConfig(ctx).Return(&ratelimit_v1alpha1.RateLimitConfigList{
+			Items: []ratelimit_v1alpha1.RateLimitConfig{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "rlc1",
+						Namespace: "gloo-system",
+					},
+					Status: ratelimit_v1alpha1.RateLimitConfigStatus{
+						State: ratelimit_v1alpha1.RateLimitConfigStatus_REJECTED,
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "rlc2",
+						Namespace: "gloo-system",
+					},
+					Status: ratelimit_v1alpha1.RateLimitConfigStatus{
+						State: ratelimit_v1alpha1.RateLimitConfigStatus_ACCEPTED,
+					},
+				},
+			},
 		}, nil)
 		mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
 			ObjectMeta: metav1.ObjectMeta{

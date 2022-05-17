@@ -489,6 +489,46 @@ func (m *GlooInstanceSpec_Check) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
+	if h, ok := interface{}(m.GetRateLimitConfigs()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("RateLimitConfigs")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetRateLimitConfigs(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("RateLimitConfigs")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetMatchableHttpGateways()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("MatchableHttpGateways")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetMatchableHttpGateways(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("MatchableHttpGateways")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
 	if h, ok := interface{}(m.GetDeployments()).(safe_hasher.SafeHasher); ok {
 		if _, err = hasher.Write([]byte("Deployments")); err != nil {
 			return 0, err

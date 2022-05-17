@@ -124,6 +124,12 @@ message GlooInstanceSpec {
         // Proxies describes the Proxies configuring the GlooInstance.
         Summary proxies = 8;
 
+        // RateLimitConfigs describes the RateLimitConfigs available to the GlooInstance.
+        Summary rate_limit_configs = 9;
+
+        // MatchableHttpGateways describes the MatchableHttpGateways available to the GlooInstance.
+        Summary matchable_http_gateways = 10;
+
         // Deployments describes the Deployments in the GlooInstance's install namespace.
         Summary deployments = 20;
 

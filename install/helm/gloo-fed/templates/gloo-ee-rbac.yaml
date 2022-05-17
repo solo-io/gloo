@@ -25,6 +25,7 @@ rules:
   - gateway.solo.io
   resources:
   - gateways
+  - httpgateways
   - routetables
   - virtualservices
   verbs:
@@ -52,7 +53,7 @@ rules:
   - patch
   - delete
 - apiGroups:
-  - ratelimit.api.solo.io
+  - ratelimit.solo.io
   resources:
   - ratelimitconfigs
   verbs:

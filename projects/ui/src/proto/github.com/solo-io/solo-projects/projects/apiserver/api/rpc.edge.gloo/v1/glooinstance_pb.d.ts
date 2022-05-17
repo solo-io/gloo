@@ -282,6 +282,16 @@ export namespace GlooInstance {
       getProxies(): GlooInstance.GlooInstanceSpec.Check.Summary | undefined;
       setProxies(value?: GlooInstance.GlooInstanceSpec.Check.Summary): void;
 
+      hasRateLimitConfigs(): boolean;
+      clearRateLimitConfigs(): void;
+      getRateLimitConfigs(): GlooInstance.GlooInstanceSpec.Check.Summary | undefined;
+      setRateLimitConfigs(value?: GlooInstance.GlooInstanceSpec.Check.Summary): void;
+
+      hasMatchableHttpGateways(): boolean;
+      clearMatchableHttpGateways(): void;
+      getMatchableHttpGateways(): GlooInstance.GlooInstanceSpec.Check.Summary | undefined;
+      setMatchableHttpGateways(value?: GlooInstance.GlooInstanceSpec.Check.Summary): void;
+
       hasDeployments(): boolean;
       clearDeployments(): void;
       getDeployments(): GlooInstance.GlooInstanceSpec.Check.Summary | undefined;
@@ -312,6 +322,8 @@ export namespace GlooInstance {
         upstreams?: GlooInstance.GlooInstanceSpec.Check.Summary.AsObject,
         upstreamGroups?: GlooInstance.GlooInstanceSpec.Check.Summary.AsObject,
         proxies?: GlooInstance.GlooInstanceSpec.Check.Summary.AsObject,
+        rateLimitConfigs?: GlooInstance.GlooInstanceSpec.Check.Summary.AsObject,
+        matchableHttpGateways?: GlooInstance.GlooInstanceSpec.Check.Summary.AsObject,
         deployments?: GlooInstance.GlooInstanceSpec.Check.Summary.AsObject,
         pods?: GlooInstance.GlooInstanceSpec.Check.Summary.AsObject,
       }

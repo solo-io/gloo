@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/3631
+    resolvesIssue: false
+    description: |
+      Include RateLimitConfigs and MatchableHttpGateways in the health status in the UI. Fix typo in RateLimitConfig rbac.
