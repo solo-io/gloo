@@ -1,5 +1,5 @@
 changelog:
-- type: NEW_FEATURE
+- type: FIX
   issueLink: https://github.com/solo-io/gloo/issues/6377
   description: >
     Adds the KeyValueMatcher message type to transformation_ee_filter.proto
