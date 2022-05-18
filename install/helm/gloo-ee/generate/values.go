@@ -108,6 +108,7 @@ type RateLimitService struct {
 type Redis struct {
 	Deployment                *RedisDeployment `json:"deployment,omitempty"`
 	Service                   *RedisService    `json:"service,omitempty"`
+	Cert                      *RedisCert       `json:"cert,omitempty"`
 	ClientSideShardingEnabled bool             `json:"clientSideShardingEnabled" desc:"If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false."`
 	Disabled                  bool             `json:"disabled" desc:"If set to true, Redis service creation will be blocked. Default is false."`
 	AclPrefix                 *string          `json:"aclPrefix,omitempty" desc:"The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password."`
@@ -133,8 +134,16 @@ type RedisDeployment struct {
 }
 
 type RedisService struct {
-	Port uint   `json:"port"`
-	Name string `json:"name"`
+	Port uint   `json:"port" desc:"This is the port set for the redis service."`
+	Name string `json:"name" desc:"This is the name of the redis service. If there is an external service, this can be used to set the endpoint of the external service.  Set redis.disabled if setting the value of the redis service."`
+	*glooGen.KubeResourceOverride
+}
+
+type RedisCert struct {
+	Enabled bool   `json:"enabled" desc:"If set to true, a secret for redis will be created, and cert.crt and cert.key will be required. If redis.disabled is not set the socket type is set to tsl. If redis.disabled is set, then only a secret will be created containing the cert and key. The secret is mounted to the rate-limiter and redis deployments with the cert and key. Default is false."`
+	Crt     string `json:"crt" desc:"TLS certificate. If CACert is not provided, this will be used as the CA cert as well as the TLS cert for the redis server."`
+	Key     string `json:"key" desc:"TLS certificate key."`
+	CaCrt   string `json:"cacrt" desc:"Optional. CA certificate."`
 	*glooGen.KubeResourceOverride
 }
 

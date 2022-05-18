@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 	"strings"
 	"unicode"
 
@@ -845,6 +846,10 @@ var _ = Describe("Helm Test", func() {
 
 			Context("dataplane per proxy", func() {
 
+				redisTlsSecretName := "redis-tls-secret"
+				redisCACertSecretName := "redis-ca-cert-secret"
+				redisRegex := ".*redis.*secret"
+
 				helmOverrideFileContents := func(dataplanePerProxy bool) string {
 					return fmt.Sprintf(`
 global:
@@ -1053,10 +1058,280 @@ gloo:
 						valuesArgs: []string{"redis.disabled=true"},
 					})
 
+					redisResources := testManifest.SelectResources(func(un *unstructured.Unstructured) bool {
+						match, _ := regexp.MatchString(redisRegex, un.GetName())
+						return match
+					})
+
 					gatewayProxyRedisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 						return unstructured.GetLabels()["gloo"] == fmt.Sprintf("redis-%s", proxyName)
 					})
 					Expect(gatewayProxyRedisResources.NumResources()).To(Equal(0), fmt.Sprintf("%s: Expecting Redis Deployment and Service to not be created", proxyName))
+					Expect(redisResources.NumResources()).To(Equal(0), fmt.Sprintf("%s: Expecting Redis secret to not be created", proxyName))
+				})
+
+				It("Redis objects are not built when .Values.redis.disabled is set but rate-limit sets up TLS when .Values.redis.cert.enabled is set", func() {
+					// file creation operations to support test
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
+
+					proxyName := "gateway-proxy"
+
+					// assert no redis resources exist wtih "redis.disabled=true"
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
+						valuesArgs: []string{
+							"redis.disabled=true",
+							"redis.cert.enabled=true",
+							"redis.cert.crt=certValue",
+							"redis.cert.key=keyValue",
+						},
+					})
+					redisResources := testManifest.SelectResources(func(un *unstructured.Unstructured) bool {
+						match, _ := regexp.MatchString(redisRegex, un.GetName())
+						return match
+					})
+					Expect(redisResources.NumResources()).To(Equal(1), fmt.Sprintf("%s: Expecting Redis secret to be created", proxyName))
+
+					redisDeploymentCreated := false
+					rateLimitDeploymentCreated := false
+					testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+						return resource.GetKind() == "Deployment"
+					}).ExpectAll(func(deployment *unstructured.Unstructured) {
+						deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+						Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+						structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+						Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+						if structuredDeployment.GetName() == "redis" {
+							redisDeploymentCreated = true
+						}
+						// should add Redis TLS cert and secret to rate-limit
+						if structuredDeployment.GetName() == "rate-limit" {
+							rateLimitDeploymentCreated = true
+							ex := ExpectContainer{
+								Containers: structuredDeployment.Spec.Template.Spec.Containers,
+								Name:       "rate-limit",
+							}
+							Expect(structuredDeployment.Spec.Template.Spec.Containers).To(HaveLen(1), "should have exactly 1 container")
+							ex.ExpectToHaveEnv("REDIS_URL", "redis:6379", "should have the redis url for rate-limit")
+							ex.ExpectToHaveEnv("REDIS_SOCKET_TYPE", "tls", "should use tls socket for redis url")
+							ex.ExpectToHaveEnv("REDIS_CA_CERT", "/etc/tls/ca.crt", "should have tls cert set to secret")
+							Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(v1.Volume{
+								Name: "ca-cert-volume",
+								VolumeSource: v1.VolumeSource{
+									Secret: &v1.SecretVolumeSource{
+										SecretName:  "glooe-" + redisCACertSecretName,
+										Items:       nil,
+										DefaultMode: proto.Int(420),
+									},
+								},
+							}))
+						}
+					})
+					Expect(redisDeploymentCreated).To(BeFalse(), "Should not create the redis deployment")
+					Expect(rateLimitDeploymentCreated).To(BeTrue(), "Should create the rate-limit deployment")
+				})
+
+				It("Redis objects are built when .Values.redis.disabled is not set and rate-limit sets up TLS when .Values.redis.cert.enabled is set", func() {
+					// file creation operations to support test
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
+
+					proxyName := "gateway-proxy"
+
+					// assert no redis resources exist wtih "redis.disabled=true"
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
+						valuesArgs: []string{
+							"redis.cert.enabled=true",
+							"redis.cert.crt=certValue",
+							"redis.cert.key=keyValue",
+						},
+					})
+					redisResources := testManifest.SelectResources(func(un *unstructured.Unstructured) bool {
+						match, _ := regexp.MatchString(redisRegex, un.GetName())
+						return match
+					})
+					Expect(redisResources.NumResources()).To(Equal(2), fmt.Sprintf("%s: Expecting Redis secret to be created", proxyName))
+
+					redisDeploymentCreated := false
+					rateLimitDeploymentCreated := false
+					testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+						return resource.GetKind() == "Deployment"
+					}).ExpectAll(func(deployment *unstructured.Unstructured) {
+						deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+						Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+						structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+						Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+						// should have redis deployed with tls enabled
+						if structuredDeployment.GetName() == "redis" {
+							redisDeploymentCreated = true
+							ex := ExpectContainer{
+								Containers: structuredDeployment.Spec.Template.Spec.Containers,
+								Name:       "redis",
+							}
+							Expect(structuredDeployment.Spec.Template.Spec.Containers).To(HaveLen(1), "should have exactly 1 container")
+							ex.ExpectToHaveArg("--tls-port 6379", "should have tls port enabled at default port")
+							ex.ExpectToHaveArg("--port 0", "should not listen to from any port")
+							ex.ExpectToHaveArg("--tls-cert-file /etc/tls/tls.crt", "should set the tls cert to the location in the secret volume")
+							ex.ExpectToHaveArg("--tls-ca-cert-file /etc/ca-cert/ca.crt", "should set the CA cert to the location in the secret volume")
+							ex.ExpectToHaveArg("--tls-key-file /etc/tls/tls.key", "should set the tls key to the location in the secret volume")
+							ex.ExpectToHaveArg("--tls-auth-clients no", "should set auth clients to no")
+							Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(v1.Volume{
+								Name: "tls-volume",
+								VolumeSource: v1.VolumeSource{
+									Secret: &v1.SecretVolumeSource{
+										SecretName:  "glooe-" + redisTlsSecretName,
+										Items:       nil,
+										DefaultMode: proto.Int(420),
+									},
+								},
+							}))
+							Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(v1.Volume{
+								Name: "ca-cert-volume",
+								VolumeSource: v1.VolumeSource{
+									Secret: &v1.SecretVolumeSource{
+										SecretName:  "glooe-" + redisCACertSecretName,
+										Items:       nil,
+										DefaultMode: proto.Int(420),
+									},
+								},
+							}))
+						}
+						// should add Redis TLS cert and secret to rate-limit
+						if structuredDeployment.GetName() == "rate-limit" {
+							rateLimitDeploymentCreated = true
+							ex := ExpectContainer{
+								Containers: structuredDeployment.Spec.Template.Spec.Containers,
+								Name:       "rate-limit",
+							}
+							Expect(structuredDeployment.Spec.Template.Spec.Containers).To(HaveLen(1), "should have exactly 1 container")
+							ex.ExpectToHaveEnv("REDIS_URL", "redis:6379", "should have the redis url for rate-limit")
+							ex.ExpectToHaveEnv("REDIS_SOCKET_TYPE", "tls", "should use tls socket for redis url")
+							ex.ExpectToHaveEnv("REDIS_CA_CERT", "/etc/tls/ca.crt", "should have tls cert set to secret")
+							Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(v1.Volume{
+								Name: "ca-cert-volume",
+								VolumeSource: v1.VolumeSource{
+									Secret: &v1.SecretVolumeSource{
+										SecretName:  "glooe-" + redisCACertSecretName,
+										Items:       nil,
+										DefaultMode: proto.Int(420),
+									},
+								},
+							}))
+						}
+					})
+					Expect(redisDeploymentCreated).To(BeTrue(), "Should create the redis deployment")
+					Expect(rateLimitDeploymentCreated).To(BeTrue(), "Should create the rate-limit deployment")
+				})
+
+				It("Redis objects are built when .Values.redis.disabled is not set and rate-limit sets up TLS when .Values.redis.cert.enabled is set", func() {
+					// file creation operations to support test
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
+
+					proxyName := "gateway-proxy"
+
+					// assert no redis resources exist wtih "redis.disabled=true"
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
+						valuesArgs: []string{
+							"redis.cert.enabled=true",
+							"redis.cert.crt=certValue",
+							"redis.cert.key=keyValue",
+						},
+					})
+					redisResources := testManifest.SelectResources(func(un *unstructured.Unstructured) bool {
+						match, _ := regexp.MatchString(redisRegex, un.GetName())
+						return match
+					})
+
+					Expect(redisResources.NumResources()).To(Equal(2), fmt.Sprintf("%s: Expecting Redis secret to be created", proxyName))
+
+					redisDeploymentCreated := false
+					rateLimitDeploymentCreated := false
+					testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+						return resource.GetKind() == "Deployment"
+					}).ExpectAll(func(deployment *unstructured.Unstructured) {
+						deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+						Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+						structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+						Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+						// should have redis deployed with tls enabled
+						if structuredDeployment.GetName() == "redis" {
+							redisDeploymentCreated = true
+							ex := ExpectContainer{
+								Containers: structuredDeployment.Spec.Template.Spec.Containers,
+								Name:       "redis",
+							}
+							Expect(structuredDeployment.Spec.Template.Spec.Containers).To(HaveLen(1), "should have exactly 1 container")
+							ex.ExpectToHaveArg("--tls-port 6379", "should have tls port enabled at default port")
+							ex.ExpectToHaveArg("--port 0", "should not listen to from any port")
+							ex.ExpectToHaveArg("--tls-cert-file /etc/tls/tls.crt", "should set the tls cert to the location in the secret volume")
+							ex.ExpectToHaveArg("--tls-ca-cert-file /etc/ca-cert/ca.crt", "should set the CA cert to the location in the secret volume")
+							ex.ExpectToHaveArg("--tls-key-file /etc/tls/tls.key", "should set the tls key to the location in the secret volume")
+							ex.ExpectToHaveArg("--tls-auth-clients no", "should set auth clients to no")
+							Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(v1.Volume{
+								Name: "tls-volume",
+								VolumeSource: v1.VolumeSource{
+									Secret: &v1.SecretVolumeSource{
+										SecretName:  "glooe-" + redisTlsSecretName,
+										Items:       nil,
+										DefaultMode: proto.Int(420),
+									},
+								},
+							}))
+							Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(v1.Volume{
+								Name: "ca-cert-volume",
+								VolumeSource: v1.VolumeSource{
+									Secret: &v1.SecretVolumeSource{
+										SecretName:  "glooe-" + redisCACertSecretName,
+										Items:       nil,
+										DefaultMode: proto.Int(420),
+									},
+								},
+							}))
+						}
+						// should add Redis TLS cert and secret to rate-limit
+						if structuredDeployment.GetName() == "rate-limit" {
+							rateLimitDeploymentCreated = true
+							ex := ExpectContainer{
+								Containers: structuredDeployment.Spec.Template.Spec.Containers,
+								Name:       "rate-limit",
+							}
+							Expect(structuredDeployment.Spec.Template.Spec.Containers).To(HaveLen(1), "should have exactly 1 container")
+							ex.ExpectToHaveEnv("REDIS_URL", "redis:6379", "should have the redis url for rate-limit")
+							ex.ExpectToHaveEnv("REDIS_SOCKET_TYPE", "tls", "should use tls socket for redis url")
+							ex.ExpectToHaveEnv("REDIS_CA_CERT", "/etc/tls/ca.crt", "should have tls cert set to secret")
+							Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(v1.Volume{
+								Name: "ca-cert-volume",
+								VolumeSource: v1.VolumeSource{
+									Secret: &v1.SecretVolumeSource{
+										SecretName:  "glooe-" + redisCACertSecretName,
+										Items:       nil,
+										DefaultMode: proto.Int(420),
+									},
+								},
+							}))
+						}
+					})
+					Expect(redisDeploymentCreated).To(BeTrue(), "Should create the redis deployment")
+					Expect(rateLimitDeploymentCreated).To(BeTrue(), "Should create the rate-limit deployment")
 				})
 
 				It("doesn't duplicate resources across proxies when dataplane per proxy is false", func() {

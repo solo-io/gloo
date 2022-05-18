@@ -1537,3 +1537,8 @@ publish-security-scan:
 ifeq ($(RELEASE),"true")
 	gsutil cp -r $(SCAN_DIR)/$(VERSION)/$(SCAN_FILE) gs://$(SCAN_BUCKET)/$(VERSION)/$(SCAN_FILE)
 endif
+
+_local/redis.key:
+	mkdir -p _local
+	openssl req -new -x509 -newkey rsa:2048 -sha256 -nodes -keyout _local/redis.key -days 3560 -out _local/redis.crt -config - < _local/cert.conf
+

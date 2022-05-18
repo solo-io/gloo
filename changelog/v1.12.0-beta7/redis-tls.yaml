@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add TLS support for Redis.
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/gloo/issues/5857

@@ -1,6 +1,7 @@
 {{- define "redis.deploymentSpec" -}}
 {{- $name := (index . 1) }}
 {{- with (first .) }}
+{{- if not (.Values.redis.disabled) }}
 {{- $image := merge .Values.redis.deployment.image .Values.global.image }}
 {{- $initImage := merge .Values.redis.deployment.initContainer.image .Values.global.image }}
 {{- $redisName := .Values.redis.deployment.name }}
@@ -50,10 +51,20 @@ spec:
         - image: {{template "glooe.imagenonextended" $image}}
           imagePullPolicy:  {{ $image.pullPolicy }}
           name: redis
-          {{- if .Values.global.extensions.glooRedis.enableAcl }}
+          {{- if or .Values.redis.cert.enabled .Values.global.extensions.glooRedis.enableAcl }}
           args:
+            {{- if .Values.redis.cert.enabled }}
+            - "--tls-port {{ .Values.redis.service.port }}"
+            - "--port 0"  
+            - "--tls-cert-file /etc/tls/tls.crt"
+            - "--tls-ca-cert-file /etc/ca-cert/ca.crt"
+            - "--tls-key-file /etc/tls/tls.key"
+            - "--tls-auth-clients no"
+            {{- end }}{{/* .Values.redis.cert.enabled */}}
+            {{- if .Values.global.extensions.glooRedis.enableAcl }}
             - redis-server
             - /redis-acl/users.acl
+            {{- end }}{{/* .Values.global.extensions.glooRedis.enableAcl */}}
           {{- end }}
           ports:
             - containerPort: {{ .Values.redis.deployment.staticPort }}
@@ -68,6 +79,12 @@ spec:
               name: acl
             - mountPath: /conf
               name: conf
+            {{- end }}
+            {{- if .Values.redis.cert.enabled }}
+            - mountPath: /etc/tls
+              name: tls-volume
+            - mountPath: /etc/ca-cert
+              name: ca-cert-volume
             {{- end }}
           {{- if .Values.redis.deployment.resources }}
           resources:
@@ -85,6 +102,16 @@ spec:
       volumes:
         - name: data
           emptyDir: {}
+        {{- if .Values.redis.cert.enabled }}
+        - name: tls-volume
+          secret:
+            secretName: {{.Release.Name}}-redis-tls-secret
+            defaultMode: 420
+        - name: ca-cert-volume
+          secret:
+            secretName: {{.Release.Name}}-redis-ca-cert-secret
+            defaultMode: 420
+        {{- end }}{{/* .Values.redis.cert.enabled */}}
         {{- if .Values.global.extensions.glooRedis.enableAcl }}
         - name: conf
           emptyDir: {}
@@ -96,6 +123,7 @@ spec:
 {{- include "gloo.pullSecret" $image | nindent 6}}
 
 ---
+{{- end }}{{/* .Values.redis.disabled */}}
 {{- end }}{{/* with (first .) */}}
 {{- end }}{{/* define "redis.deploymentSpec" */}}
 

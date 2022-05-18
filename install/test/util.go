@@ -1,9 +1,44 @@
 package test
 
 import (
+	. "github.com/onsi/gomega"
 	glooTest "github.com/solo-io/gloo/install/test"
 	"github.com/solo-io/k8s-utils/manifesttestutils"
+	v1 "k8s.io/api/core/v1"
 )
+
+type ExpectContainer struct {
+	Containers []v1.Container
+	Name       string
+}
+
+func (c *ExpectContainer) ExpectToHaveArg(arg, errorMsg string) {
+	Expect(c.hasArgument(arg)).To(BeTrue(), errorMsg)
+}
+
+func (c *ExpectContainer) ExpectToHaveEnv(envName, envValue, errorMsg string) {
+	Expect(c.hasEnvVar(envName, envValue)).To(BeTrue(), errorMsg)
+}
+
+func (ec *ExpectContainer) hasArgument(arg string) bool {
+	for _, c := range ec.Containers {
+		if c.Name == ec.Name {
+			Expect(c.Args).To(ContainElement(arg))
+			return true
+		}
+	}
+	return false
+}
+
+func (ec *ExpectContainer) hasEnvVar(env, value string) bool {
+	for _, c := range ec.Containers {
+		if c.Name == ec.Name {
+			Expect(c.Env).To(ContainElement(v1.EnvVar{Name: env, Value: value}))
+			return true
+		}
+	}
+	return false
+}
 
 func GetGlooEServiceAccountPermissions(namespace string) *manifesttestutils.ServiceAccountPermissions {
 	// build off of the permissions imported from Gloo

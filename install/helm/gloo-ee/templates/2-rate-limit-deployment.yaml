@@ -97,8 +97,15 @@ spec:
             {{- else }}
             - name: REDIS_URL
               value: {{ printf "%s:%v" $redisName .Values.redis.service.port }}
+            {{- if .Values.redis.cert.enabled }}
+            - name: REDIS_CA_CERT
+              value: /etc/tls/ca.crt
+            - name: REDIS_SOCKET_TYPE
+              value: tls
+            {{- else }}
             - name: REDIS_SOCKET_TYPE
               value: tcp
+            {{- end }}{{/* .Values.redis.cert.enabled */}}
             {{- end }}{{/* .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
             {{- if .Values.global.extensions.glooRedis.enableAcl }}
             - name: REDIS_PASSWORD
@@ -131,11 +138,17 @@ spec:
             - name: http-monitoring
               containerPort: 9091
           {{- end }}
-          {{- if .Values.redis.clientSideShardingEnabled }}
+          {{- if or .Values.redis.clientSideShardingEnabled .Values.redis.cert.enabled }}
           volumeMounts:
+            {{- if .Values.redis.clientSideShardingEnabled }}
             - mountPath: /var/run/envoy/
               name: redis-socket
-          {{- end }}
+            {{- end}}
+            {{- if .Values.redis.cert.enabled }}
+            - mountPath: /etc/tls/
+              name: ca-cert-volume
+            {{- end }}
+          {{- end }}{{/* or .Values.redis.clientSideShardingEnabled .Values.redis.cert.enabled */}}
         {{- if or .Values.global.glooMtls.enabled .Values.redis.clientSideShardingEnabled }}
         {{- $envoyImage := merge .Values.global.glooMtls.envoy.image .Values.global.image}}
         - name: envoy-sidecar
@@ -195,7 +208,7 @@ spec:
       {{- if .Values.global.extensions.rateLimit.antiAffinity }}
         {{ toYaml .Values.global.extensions.rateLimit.antiAffinity | nindent 8 }}
       {{- end }}
-      {{- if or .Values.global.glooMtls.enabled .Values.redis.clientSideShardingEnabled }}
+      {{- if or (or .Values.global.glooMtls.enabled .Values.redis.clientSideShardingEnabled) .Values.redis.cert.enabled }}
       volumes:
         {{- if .Values.global.glooMtls.enabled }}
         - name: gloo-mtls-certs
@@ -210,7 +223,13 @@ spec:
         - emptyDir: {}
           name: redis-socket
         {{- end }}
-      {{- end }}{{/* .Values.global.glooMtls.enabled || .Values.redis.clientSideShardingEnabled */}}
+        {{- if .Values.redis.cert.enabled }}
+        - name: ca-cert-volume
+          secret:
+            secretName: {{.Release.Name}}-redis-ca-cert-secret
+            defaultMode: 420
+        {{- end }}
+      {{- end }}{{/* .Values.global.glooMtls.enabled || .Values.redis.clientSideShardingEnabled || .Values.redis.cert.enabled */}}
 {{- include "gloo.pullSecret" $image | nindent 6}}
 ---
 {{- end }}{{/* with (first .) */}}
