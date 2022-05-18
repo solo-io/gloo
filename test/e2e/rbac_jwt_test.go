@@ -437,8 +437,15 @@ var _ = Describe("JWT + RBAC", func() {
 
 	})
 	Context("user access tests", func() {
+
 		BeforeEach(func() {
+
+			// paranoid check. We do this each time as someof the handles
+			// are reset by a higher level beforeeach
 			proxy := getProxyJwtRbac(envoyPort, jwtksServerRef, testUpstream.Upstream.Metadata.Ref())
+			_ = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
+
+			proxy = getProxyJwtRbac(envoyPort, jwtksServerRef, testUpstream.Upstream.Metadata.Ref())
 
 			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
@@ -502,8 +509,15 @@ var _ = Describe("JWT + RBAC", func() {
 	})
 
 	Context("User access with nested claims", func() {
+
 		BeforeEach(func() {
+
+			// paranoid check. We do this each time as someof the handles
+			// are reset by a higher level beforeeach
 			proxy := getProxyJwtRbacNestedClaims(envoyPort, jwtksServerRef, testUpstream.Upstream.Metadata.Ref())
+			_ = testClients.ProxyClient.Delete(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.DeleteOpts{})
+
+			proxy = getProxyJwtRbacNestedClaims(envoyPort, jwtksServerRef, testUpstream.Upstream.Metadata.Ref())
 
 			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())

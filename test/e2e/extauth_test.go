@@ -171,6 +171,22 @@ var _ = Describe("External auth", func() {
 		cancel()
 	})
 
+	waitForHealthyExtauthService := func() {
+		extAuthHealthServerAddr := "localhost:" + strconv.Itoa(settings.ExtAuthSettings.ServerPort)
+		conn, err := grpc.Dial(extAuthHealthServerAddr, grpc.WithInsecure())
+		Expect(err).ToNot(HaveOccurred())
+
+		// make sure that extauth is up and serving
+		healthClient := grpc_health_v1.NewHealthClient(conn)
+		var header metadata.MD
+		Eventually(func() (grpc_health_v1.HealthCheckResponse_ServingStatus, error) {
+			resp, err := healthClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
+				Service: settings.ExtAuthSettings.ServiceName,
+			}, grpc.Header(&header))
+			return resp.GetStatus(), err
+		}, "10s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
+	}
+
 	Context("With envoy", func() {
 
 		var (
@@ -339,6 +355,7 @@ var _ = Describe("External auth", func() {
 					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 						return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 					})
+					waitForHealthyExtauthService()
 				})
 
 				AfterEach(func() {
@@ -1631,6 +1648,13 @@ var _ = Describe("External auth", func() {
 								},
 							}},
 						}
+
+						// paranoia check if its already deleted thats fine as we just check that its gone
+						_ = testClients.AuthConfigClient.Delete(ac.Metadata.Namespace, ac.Metadata.Name, clients.DeleteOpts{})
+						helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
+							return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
+						})
+
 						_, err = testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
 						Expect(err).NotTo(HaveOccurred())
 
@@ -1641,11 +1665,15 @@ var _ = Describe("External auth", func() {
 
 						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref(), false)
 						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-
+						Expect(err).ToNot(HaveOccurred())
 						// ensure proxy is accepted
 						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						})
+
+						// make sure that
+						waitForHealthyExtauthService()
+
 					})
 
 					It("works", func() {
@@ -2531,7 +2559,7 @@ var _ = Describe("External auth", func() {
 					_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
-					_, err = testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+					ac := &extauth.AuthConfig{
 						Metadata: &core.Metadata{
 							Name:      getOidcExtAuthExtension().GetConfigRef().Name,
 							Namespace: getOidcExtAuthExtension().GetConfigRef().Namespace,
@@ -2541,12 +2569,22 @@ var _ = Describe("External auth", func() {
 								Oauth: getOauthConfig(envoyPort, secret.Metadata.Ref()),
 							},
 						}},
-					}, clients.WriteOpts{Ctx: ctx})
+					}
+					// paranoia check if its already deleted thats fine as we just check that its gone
+					_ = testClients.AuthConfigClient.Delete(ac.Metadata.Namespace, ac.Metadata.Name, clients.DeleteOpts{})
+					helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
+						return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
+					})
+
+					_, err = testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
 
 					proxy = getProxyExtAuthOIDC(envoyPort, testUpstream.Upstream.Metadata.Ref())
 
 					token = createIdTokenWithKid(discoveryServer.getValidKeyId())
+
+					waitForHealthyExtauthService()
+
 				})
 
 				JustBeforeEach(func() {
