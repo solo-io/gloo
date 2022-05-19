@@ -4,6 +4,9 @@ import (
 	"context"
 	json2 "encoding/json"
 	"fmt"
+
+	"github.com/solo-io/gloo/test/v1helpers"
+
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -39,7 +42,41 @@ var _ = Describe("graphql stitching", func() {
 		testClients services.TestClients
 	)
 
-	productSchemaDef := `
+	var getStitchedGqlApi = func() *v1beta1.GraphQLApi {
+		return &v1beta1.GraphQLApi{
+			Metadata: &core.Metadata{
+				Name:      "stitched-gql",
+				Namespace: "gloo-system",
+			},
+			Schema: &v1beta1.GraphQLApi_StitchedSchema{
+				StitchedSchema: &v1beta1.StitchedSchema{
+					Subschemas: []*v1beta1.StitchedSchema_SubschemaConfig{
+						// Stitch product api
+						{
+							Name:      "product-gql",
+							Namespace: "gloo-system",
+						},
+						// Stitch Users api with type merge configuration for Users type
+						{
+							Name:      "users-gql",
+							Namespace: "gloo-system",
+							TypeMerge: map[string]*v1beta1.StitchedSchema_SubschemaConfig_TypeMergeConfig{
+								"User": {
+									QueryName:    "user",
+									SelectionSet: "{ username }",
+									Args: map[string]string{
+										"username": "username",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+	var getProductGqlApi = func() *v1beta1.GraphQLApi {
+		productSchemaDef := `
 type User {
 	username: String
 }
@@ -53,38 +90,38 @@ type Query {
   products: Product @resolve(name: "product_resolver")
 }
 `
-
-	productGqlApi := &v1beta1.GraphQLApi{
-		Metadata: &core.Metadata{
-			Name:      "product-gql",
-			Namespace: "gloo-system",
-		},
-		Schema: &v1beta1.GraphQLApi_ExecutableSchema{
-			ExecutableSchema: &v1beta1.ExecutableSchema{
-				SchemaDefinition: productSchemaDef,
-				Executor: &v1beta1.Executor{
-					Executor: &v1beta1.Executor_Local_{
-						Local: &v1beta1.Executor_Local{
-							Resolutions: map[string]*v1beta1.Resolution{
-								"product_resolver": {
-									Resolver: &v1beta1.Resolution_MockResolver{
-										MockResolver: &v1beta1.MockResolver{
-											Response: &v1beta1.MockResolver_SyncResponse{
-												SyncResponse: JsonToStructPbValue(`{"id": 1, "seller": {"username": "user1"}}`),
+		return &v1beta1.GraphQLApi{
+			Metadata: &core.Metadata{
+				Name:      "product-gql",
+				Namespace: "gloo-system",
+			},
+			Schema: &v1beta1.GraphQLApi_ExecutableSchema{
+				ExecutableSchema: &v1beta1.ExecutableSchema{
+					SchemaDefinition: productSchemaDef,
+					Executor: &v1beta1.Executor{
+						Executor: &v1beta1.Executor_Local_{
+							Local: &v1beta1.Executor_Local{
+								Resolutions: map[string]*v1beta1.Resolution{
+									"product_resolver": {
+										Resolver: &v1beta1.Resolution_MockResolver{
+											MockResolver: &v1beta1.MockResolver{
+												Response: &v1beta1.MockResolver_SyncResponse{
+													SyncResponse: JsonToStructPbValue(`{"id": 1, "seller": {"username": "user1"}}`),
+												},
 											},
 										},
 									},
 								},
+								EnableIntrospection: true,
 							},
-							EnableIntrospection: true,
 						},
 					},
 				},
 			},
-		},
+		}
 	}
-
-	userSchemaDef := `
+	var getUserGqlApi = func(remoteUsRef *core.ResourceRef) *v1beta1.GraphQLApi {
+		userSchemaDef := `
 type User {
 	username: String
 	firstName: String
@@ -95,67 +132,44 @@ type Query {
   user: User @resolve(name: "user_resolver")
 }
 `
-
-	userGqlApi := &v1beta1.GraphQLApi{
-		Metadata: &core.Metadata{
-			Name:      "users-gql",
-			Namespace: "gloo-system",
-		},
-		Schema: &v1beta1.GraphQLApi_ExecutableSchema{
-			ExecutableSchema: &v1beta1.ExecutableSchema{
-				SchemaDefinition: userSchemaDef,
-				Executor: &v1beta1.Executor{
-					Executor: &v1beta1.Executor_Local_{
-						Local: &v1beta1.Executor_Local{
-							Resolutions: map[string]*v1beta1.Resolution{
-								"user_resolver": {
-									Resolver: &v1beta1.Resolution_MockResolver{
-										MockResolver: &v1beta1.MockResolver{
-											Response: &v1beta1.MockResolver_SyncResponse{
-												SyncResponse: JsonToStructPbValue(`{"username": "user1", "firstName": "User", "lastName": "One"}`),
-											},
+		executor := &v1beta1.Executor{
+			Executor: &v1beta1.Executor_Remote_{
+				Remote: &v1beta1.Executor_Remote{
+					UpstreamRef: remoteUsRef,
+				},
+			},
+		}
+		if remoteUsRef == nil {
+			executor = &v1beta1.Executor{
+				Executor: &v1beta1.Executor_Local_{
+					Local: &v1beta1.Executor_Local{
+						Resolutions: map[string]*v1beta1.Resolution{
+							"user_resolver": {
+								Resolver: &v1beta1.Resolution_MockResolver{
+									MockResolver: &v1beta1.MockResolver{
+										Response: &v1beta1.MockResolver_SyncResponse{
+											SyncResponse: JsonToStructPbValue(`{"username": "user1", "firstName": "User", "lastName": "One"}`),
 										},
 									},
 								},
 							},
-							EnableIntrospection: true,
 						},
+						EnableIntrospection: true,
 					},
+				}}
+		}
+		return &v1beta1.GraphQLApi{
+			Metadata: &core.Metadata{
+				Name:      "users-gql",
+				Namespace: "gloo-system",
+			},
+			Schema: &v1beta1.GraphQLApi_ExecutableSchema{
+				ExecutableSchema: &v1beta1.ExecutableSchema{
+					SchemaDefinition: userSchemaDef,
+					Executor:         executor,
 				},
 			},
-		},
-	}
-
-	stitchedGqlApi := &v1beta1.GraphQLApi{
-		Metadata: &core.Metadata{
-			Name:      "stitched-gql",
-			Namespace: "gloo-system",
-		},
-		Schema: &v1beta1.GraphQLApi_StitchedSchema{
-			StitchedSchema: &v1beta1.StitchedSchema{
-				Subschemas: []*v1beta1.StitchedSchema_SubschemaConfig{
-					// Stitch product api
-					{
-						Name:      "product-gql",
-						Namespace: "gloo-system",
-					},
-					// Stitch Users api with type merge configuration for Users type
-					{
-						Name:      "users-gql",
-						Namespace: "gloo-system",
-						TypeMerge: map[string]*v1beta1.StitchedSchema_SubschemaConfig_TypeMergeConfig{
-							"User": {
-								QueryName:    "user",
-								SelectionSet: "{ username }",
-								Args: map[string]string{
-									"username": "username",
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+		}
 	}
 
 	var getProxy = func(envoyPort uint32) *gloov1.Proxy {
@@ -242,8 +256,7 @@ type Query {
 			envoyInstance *services.EnvoyInstance
 			envoyPort     = uint32(8080)
 			query         string
-
-			proxy *gloov1.Proxy
+			proxy         *gloov1.Proxy
 		)
 
 		var testRequest = func(result string) {
@@ -299,13 +312,22 @@ type Query {
 
 		})
 		JustBeforeEach(func() {
-			_, err := testClients.GraphQLApiClient.Write(userGqlApi, clients.WriteOpts{})
+			var remoteUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), `{"username": "user1", "firstName": "User", "lastName": "One"}`)
+			_, err := testClients.UpstreamClient.Write(remoteUpstream.Upstream, clients.WriteOpts{})
+			Expect(err).NotTo(HaveOccurred())
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				return testClients.UpstreamClient.Read(remoteUpstream.Upstream.Metadata.Namespace,
+					remoteUpstream.Upstream.Metadata.Name, clients.ReadOpts{})
+			})
+
+			//To test with remote executor, pass in getUserGqlApi(remoteUpstream.Upstream.Metadata.Ref()) instead
+			_, err = testClients.GraphQLApiClient.Write(getUserGqlApi(nil), clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = testClients.GraphQLApiClient.Write(productGqlApi, clients.WriteOpts{})
+			_, err = testClients.GraphQLApiClient.Write(getProductGqlApi(), clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = testClients.GraphQLApiClient.Write(stitchedGqlApi, clients.WriteOpts{})
+			_, err = testClients.GraphQLApiClient.Write(getStitchedGqlApi(), clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
 			proxy = getProxy(envoyPort)
@@ -321,10 +343,12 @@ type Query {
 		})
 
 		Context("request to stitched schema", func() {
-
 			It("stitches delegated responses from subschemas to a stitched response", func() {
 				testRequest(`{"data":{"products":{"id":1,"seller":{"username":"user1","firstName":"User","lastName":"One"}}}}`)
 			})
+		})
+		Context("request to stitched schema with remote executor(s)", func() {
+			//TODO: Add test when https://github.com/solo-io/envoy-gloo-ee/issues/304#issuecomment-1128963614 is resolved
 		})
 	})
 })

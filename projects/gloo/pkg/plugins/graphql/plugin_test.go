@@ -362,7 +362,6 @@ var _ = Describe("Graphql plugin", func() {
 					Expect(err).To(MatchError(ContainSubstring("key proto in configMap fake-namespace.malformed-artifact does not contain valid proto bytes")))
 				})
 			})
-
 			Context("translate route config", func() {
 				BeforeEach(func() {
 					gqlApiSpec.GetExecutableSchema().GetExecutor().GetLocal().EnableIntrospection = true
@@ -505,9 +504,62 @@ var _ = Describe("Graphql plugin", func() {
 						Expect(restResolver.GetRequestTransform().GetOutgoingBody().GetNode().GetKeyValues()[0].GetValue().GetNode().GetKeyValues()[0].GetValue().GetValueProvider().GetProviders()["ARBITRARY_PROVIDER_NAME"].GetTypedProvider().GetValue()).To(Equal("val"))
 					})
 				})
-
 			})
+			Context("translate schema config for remote executor", func() {
+				BeforeEach(func() {
+					gqlApiSpec = &GraphQLApi{
+						Metadata: &core.Metadata{
+							Name:      "gql",
+							Namespace: "gloo-system",
+						},
+						Schema: &GraphQLApi_ExecutableSchema{
+							ExecutableSchema: &ExecutableSchema{
+								Executor: &Executor{
+									Executor: &Executor_Remote_{
+										Remote: &Executor_Remote{
+											UpstreamRef: &core.ResourceRef{
+												Name:      "us",
+												Namespace: "gloo-system",
+											},
+											Headers: map[string]string{
+												"foo": "far",
+												"boo": "{$headers.bar}",
+												"zoo": "{$metadata.io.solo.transformation.:endpoint_url}",
+											},
+											QueryParams: map[string]string{
+												"moo": "mar",
+												"noo": "{$headers.nar}",
+											},
+											SpanName: "TestSpanName",
+										},
+									},
+								},
+							},
+						},
+					}
+				})
 
+				It("Translates user facing api to ennvoy api for remote executors", func() {
+					upstreams := v1.UpstreamList{
+						{
+							Metadata: &core.Metadata{
+								Name:      "us",
+								Namespace: "gloo-system",
+							},
+						},
+					}
+					api, err := translation.CreateGraphQlApi(&MockArtifactsList{}, upstreams, nil, gqlApiSpec)
+					Expect(err).ToNot(HaveOccurred())
+					translatedExecutor := api.GetExecutor().GetRemote()
+					Expect(translatedExecutor.GetSpanName()).To(Equal("TestSpanName"))
+					Expect(translatedExecutor.GetRequest().GetHeaders()["foo"].GetValue()).To(Equal("far"))
+					Expect(translatedExecutor.GetRequest().GetHeaders()["boo"].GetHeader()).To(Equal("bar"))
+					Expect(translatedExecutor.GetRequest().GetHeaders()["zoo"].GetDynamicMetadata().GetMetadataNamespace()).To(Equal("io.solo.transformation"))
+					Expect(translatedExecutor.GetRequest().GetHeaders()["zoo"].GetDynamicMetadata().GetKey()).To(Equal("endpoint_url"))
+					Expect(translatedExecutor.GetRequest().GetQueryParams()["moo"].GetValue()).To(Equal("mar"))
+					Expect(translatedExecutor.GetRequest().GetQueryParams()["noo"].GetHeader()).To(Equal("nar"))
+				})
+			})
 		})
 		Context("graphql translation", func() {
 
@@ -608,8 +660,6 @@ var _ = Describe("Graphql plugin", func() {
 					},
 				})))
 			})
-
 		})
-
 	})
 })

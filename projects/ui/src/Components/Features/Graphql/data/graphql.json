@@ -334,7 +334,8 @@
                       "oneofs": {
                         "executor": {
                           "oneof": [
-                            "local"
+                            "local",
+                            "remote"
                           ]
                         }
                       },
@@ -342,6 +343,10 @@
                         "local": {
                           "type": "Local",
                           "id": 1
+                        },
+                        "remote": {
+                          "type": "Remote",
+                          "id": 2
                         }
                       },
                       "nested": {
@@ -369,6 +374,28 @@
                                   "id": 1
                                 }
                               }
+                            }
+                          }
+                        },
+                        "Remote": {
+                          "fields": {
+                            "upstreamRef": {
+                              "type": "core.solo.io.ResourceRef",
+                              "id": 1
+                            },
+                            "headers": {
+                              "keyType": "string",
+                              "type": "string",
+                              "id": 2
+                            },
+                            "queryParams": {
+                              "keyType": "string",
+                              "type": "string",
+                              "id": 3
+                            },
+                            "spanName": {
+                              "type": "string",
+                              "id": 4
                             }
                           }
                         }

@@ -563,6 +563,11 @@ export class Executor extends jspb.Message {
   getLocal(): Executor.Local | undefined;
   setLocal(value?: Executor.Local): void;
 
+  hasRemote(): boolean;
+  clearRemote(): void;
+  getRemote(): Executor.Remote | undefined;
+  setRemote(value?: Executor.Remote): void;
+
   getExecutorCase(): Executor.ExecutorCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Executor.AsObject;
@@ -577,6 +582,7 @@ export class Executor extends jspb.Message {
 export namespace Executor {
   export type AsObject = {
     local?: Executor.Local.AsObject,
+    remote?: Executor.Remote.AsObject,
   }
 
   export class Local extends jspb.Message {
@@ -630,9 +636,42 @@ export namespace Executor {
     }
   }
 
+  export class Remote extends jspb.Message {
+    hasUpstreamRef(): boolean;
+    clearUpstreamRef(): void;
+    getUpstreamRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+    setUpstreamRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+    getHeadersMap(): jspb.Map<string, string>;
+    clearHeadersMap(): void;
+    getQueryParamsMap(): jspb.Map<string, string>;
+    clearQueryParamsMap(): void;
+    getSpanName(): string;
+    setSpanName(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Remote.AsObject;
+    static toObject(includeInstance: boolean, msg: Remote): Remote.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Remote, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Remote;
+    static deserializeBinaryFromReader(message: Remote, reader: jspb.BinaryReader): Remote;
+  }
+
+  export namespace Remote {
+    export type AsObject = {
+      upstreamRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+      headersMap: Array<[string, string]>,
+      queryParamsMap: Array<[string, string]>,
+      spanName: string,
+    }
+  }
+
   export enum ExecutorCase {
     EXECUTOR_NOT_SET = 0,
     LOCAL = 1,
+    REMOTE = 2,
   }
 }
 

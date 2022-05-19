@@ -44,6 +44,7 @@ var _ = Describe("graphql", func() {
 		ctx                    context.Context
 		cancel                 context.CancelFunc
 		testClients            services.TestClients
+		executor               v1beta1.Executor
 		grpcDescriptorRegistry v1beta1.GrpcDescriptorRegistry
 	)
 
@@ -110,6 +111,14 @@ var _ = Describe("graphql", func() {
 				ProtoDescriptorBin: glootestpb.ProtoBytes,
 			},
 		}
+		executor = v1beta1.Executor{
+			Executor: &v1beta1.Executor_Local_{
+				Local: &v1beta1.Executor_Local{
+					Resolutions:         resolutions,
+					EnableIntrospection: false,
+				},
+			},
+		}
 
 		return &v1beta1.GraphQLApi{
 			Metadata: &core.Metadata{
@@ -118,15 +127,8 @@ var _ = Describe("graphql", func() {
 			},
 			Schema: &v1beta1.GraphQLApi_ExecutableSchema{
 				ExecutableSchema: &v1beta1.ExecutableSchema{
-					SchemaDefinition: schema,
-					Executor: &v1beta1.Executor{
-						Executor: &v1beta1.Executor_Local_{
-							Local: &v1beta1.Executor_Local{
-								Resolutions:         resolutions,
-								EnableIntrospection: false,
-							},
-						},
-					},
+					SchemaDefinition:       schema,
+					Executor:               &executor,
 					GrpcDescriptorRegistry: &grpcDescriptorRegistry,
 				},
 			},
@@ -204,10 +206,10 @@ var _ = Describe("graphql", func() {
 	})
 	Context("With envoy", func() {
 		var (
-			envoyInstance              *services.EnvoyInstance
-			restUpstream, grpcUpstream *v1helpers.TestUpstream
-			envoyPort                  = uint32(8080)
-			query                      string
+			envoyInstance                             *services.EnvoyInstance
+			restUpstream, grpcUpstream, graphqlServer *v1helpers.TestUpstream
+			envoyPort                                 = uint32(8080)
+			query                                     string
 
 			proxy      *gloov1.Proxy
 			graphqlApi *v1beta1.GraphQLApi
@@ -224,6 +226,10 @@ var _ = Describe("graphql", func() {
 					Method: http.MethodPost,
 					URL:    reqUrl,
 					Body:   ioutil.NopCloser(strings.NewReader(query)),
+					Header: map[string][]string{
+						"bar":           []string{"bam"},
+						"queryparamkey": []string{"queryparamvalue"},
+					},
 				})
 				if err != nil {
 					return 0, err
@@ -242,11 +248,9 @@ var _ = Describe("graphql", func() {
 				Expect(respHeaders.Get(k)).To(Equal(v))
 			}
 		}
-
 		var testRequest = func(result string) {
 			testRequestWithHeaders(result, nil)
 		}
-
 		var testGetRequest = func(result string, includeQuery bool) {
 			var bodyStr string
 			Eventually(func() (int, error) {
@@ -277,7 +281,6 @@ var _ = Describe("graphql", func() {
 			}, "5s", "0.5s").Should(Equal(http.StatusOK))
 			Expect(bodyStr).To(ContainSubstring(result))
 		}
-
 		var configureProxy = func() {
 			Expect(proxy).NotTo(BeNil())
 			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
@@ -296,10 +299,8 @@ var _ = Describe("graphql", func() {
 			err = envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
-			query = `
-{
-  "query":"{f:field1(intArg: 2, boolArg: true, floatArg: 9.99993, stringArg: \"this is a string arg\", mapArg: {a: 9}, listArg: [21,22,23]){simple}}"
-}`
+			query = `{"query":"{f:field1(intArg: 2, boolArg: true, floatArg: 9.99993, stringArg: \"this is a string arg\", mapArg: {a: 9}, listArg: [21,22,23]){simple}}","variables":{}}`
+
 			restUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "{\"simple\":\"foo\"}")
 			_, err = testClients.UpstreamClient.Write(restUpstream.Upstream, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
@@ -316,6 +317,14 @@ var _ = Describe("graphql", func() {
 					grpcUpstream.Upstream.Metadata.Name, clients.ReadOpts{})
 			})
 
+			graphqlServer = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "{\"data\":{\"user\":\"JohnDoe\"}}")
+			_, err = testClients.UpstreamClient.Write(graphqlServer.Upstream, clients.WriteOpts{})
+			Expect(err).NotTo(HaveOccurred())
+			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				return testClients.UpstreamClient.Read(graphqlServer.Upstream.Metadata.Namespace,
+					graphqlServer.Upstream.Metadata.Name, clients.ReadOpts{})
+			})
+
 			graphqlApi = getGraphQLApi(restUpstream.Upstream.Metadata.Ref(), grpcUpstream.Upstream.Metadata.Ref())
 		})
 		JustBeforeEach(func() {
@@ -325,15 +334,12 @@ var _ = Describe("graphql", func() {
 			proxy = getProxy(envoyPort)
 			configureProxy()
 		})
-
 		AfterEach(func() {
 			if envoyInstance != nil {
 				envoyInstance.Clean()
 			}
 		})
-
 		Context("route rules", func() {
-
 			It("resolves graphql queries to REST upstreams", func() {
 				testRequest(`{"data":{"f":{"simple":"foo"}}}`)
 				Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
@@ -342,13 +348,9 @@ var _ = Describe("graphql", func() {
 					})),
 				}))))
 			})
-
 			Context("grpc resolver", func() {
 				BeforeEach(func() {
-					query = `
-{
-  "query":"{f:field2{str}}"
-}`
+					query = `{"query":"{f:field2{str}}"}`
 				})
 				Context("With artifact list", func() {
 					BeforeEach(func() {
@@ -392,7 +394,6 @@ var _ = Describe("graphql", func() {
 						}))))
 					})
 				})
-
 				It("resolves graphql queries to GRPC upstreams", func() {
 					testRequest(`{"data":{"f":{"str":"foo"}}}`)
 					Eventually(grpcUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
@@ -400,9 +401,7 @@ var _ = Describe("graphql", func() {
 					}))))
 				})
 			})
-
 			Context("with body to upstream", func() {
-
 				BeforeEach(func() {
 					body := &structpb.Value{
 						Kind: &structpb.Value_StructValue{
@@ -415,7 +414,6 @@ var _ = Describe("graphql", func() {
 					}
 					graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Body = body
 				})
-
 				It("resolves graphql queries to REST upstreams with body", func() {
 					testRequest(`{"data":{"f":{"simple":"foo"}}}`)
 					Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
@@ -425,16 +423,34 @@ var _ = Describe("graphql", func() {
 						})),
 					}))))
 				})
+				Context("With remote executor", func() {
+					BeforeEach(func() {
+						graphqlApi.GetExecutableSchema().Executor = &v1beta1.Executor{
+							Executor: &v1beta1.Executor_Remote_{
+								Remote: &v1beta1.Executor_Remote{
+									UpstreamRef: graphqlServer.Upstream.Metadata.Ref(),
+								},
+							},
+						}
+					})
+
+					It("resolves graphql queries to REST upstreams with body via remote executor", func() {
+						testRequest(`{"data":{"user":"JohnDoe"}}`)
+						Eventually(graphqlServer.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+							"Body": Equal([]byte(query)),
+							"URL": PointTo(Equal(url.URL{
+								Path: "/",
+							})),
+						}))))
+					})
+				})
 			})
-
 			Context("with query params", func() {
-
 				BeforeEach(func() {
 					graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.QueryParams = map[string]string{
 						"queryparam": "queryparamval",
 					}
 				})
-
 				It("resolves graphql queries to REST upstreams with query params", func() {
 					testRequest(`{"data":{"f":{"simple":"foo"}}}`)
 					Eventually(restUpstream.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
@@ -444,10 +460,34 @@ var _ = Describe("graphql", func() {
 						})),
 					}))))
 				})
+				Context("With remote executor and query params", func() {
+					BeforeEach(func() {
+						graphqlApi.GetExecutableSchema().Executor = &v1beta1.Executor{
+							Executor: &v1beta1.Executor_Remote_{
+								Remote: &v1beta1.Executor_Remote{
+									UpstreamRef: graphqlServer.Upstream.Metadata.Ref(),
+									QueryParams: map[string]string{
+										"queryparam":    "queryparamval",
+										"queryparamtwo": "{$headers.queryparamkey}",
+									},
+								},
+							},
+						}
+					})
+
+					It("resolves graphql queries to REST upstreams with query param via remote executor", func() {
+						testRequest(`{"data":{"user":"JohnDoe"}}`)
+						Eventually(graphqlServer.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+							"Body": Equal([]byte(query)),
+							"URL": PointTo(Equal(url.URL{
+								Path:     "/",
+								RawQuery: "queryparam=queryparamval&queryparamtwo=queryparamvalue",
+							})),
+						}))))
+					})
+				})
 			})
-
 			Context("with headers", func() {
-
 				BeforeEach(func() {
 					graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Request.Headers = map[string]string{
 						"header": "headerval",
@@ -463,10 +503,36 @@ var _ = Describe("graphql", func() {
 						"Headers": HaveKeyWithValue("Header", []string{"headerval"}),
 					}))))
 				})
+				Context("With remote executor and headers", func() {
+					BeforeEach(func() {
+						graphqlApi.GetExecutableSchema().Executor = &v1beta1.Executor{
+							Executor: &v1beta1.Executor_Remote_{
+								Remote: &v1beta1.Executor_Remote{
+									UpstreamRef: graphqlServer.Upstream.Metadata.Ref(),
+									Headers: map[string]string{
+										"foo": "far",
+										"boo": "{$headers.bar}",
+									},
+								},
+							},
+						}
+					})
+
+					It("resolves graphql queries to REST upstreams with headers via remote executor", func() {
+						testRequest(`{"data":{"user":"JohnDoe"}}`)
+						Eventually(graphqlServer.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+							"Body": Equal([]byte(query)),
+							"URL": PointTo(Equal(url.URL{
+								Path: "/",
+							})),
+							"Headers": And(
+								HaveKeyWithValue("Foo", []string{"far"}),
+								HaveKeyWithValue("Boo", []string{"bam"})),
+						}))))
+					})
+				})
 			})
-
 			Context("allowlist", func() {
-
 				Context("allowed", func() {
 					BeforeEach(func() {
 						graphqlApi.AllowedQueryHashes = []string{"075f4c9392a098f9b6d4e45fa87551d461edc7eedbc67b604bedc1cb9c854692"}
@@ -481,18 +547,15 @@ var _ = Describe("graphql", func() {
 						}))))
 					})
 				})
-
 				Context("disallowed", func() {
 					BeforeEach(func() {
 						graphqlApi.AllowedQueryHashes = []string{"hashnotfound"}
 					})
-
 					It("denies disallowed query hashes", func() {
 						testRequest(`{"errors":[{"message":"hash 075f4c9392a098f9b6d4e45fa87551d461edc7eedbc67b604bedc1cb9c854692 not found in allowlist for query: '{f:field1(intArg: 2, boolArg: true, floatArg: 9.99993, stringArg: \"this is a string arg\", mapArg: {a: 9}, listArg: [21,22,23]){simple}}'"}]}`)
 					})
 				})
 			})
-
 			Context("persisted queries", func() {
 				BeforeEach(func() {
 					query = `{__typename}`
@@ -508,7 +571,6 @@ var _ = Describe("graphql", func() {
 					testGetRequest(`{"data":{"__typename":"Query"}}`, false)
 				})
 			})
-
 			Context("response setters and cache control", func() {
 
 				BeforeEach(func() {
@@ -517,7 +579,6 @@ var _ = Describe("graphql", func() {
   "query":"{f:field3{simple setme}}"
 }`
 				})
-
 				Context("cache control", func() {
 					BeforeEach(func() {
 						graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1beta1.ResponseTemplate{
@@ -537,7 +598,6 @@ var _ = Describe("graphql", func() {
 						}))))
 					})
 				})
-
 				Context("response template", func() {
 					BeforeEach(func() {
 						graphqlApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions()["simple_resolver"].GetRestResolver().Response = &v1beta1.ResponseTemplate{
@@ -556,9 +616,7 @@ var _ = Describe("graphql", func() {
 						}))))
 					})
 				})
-
 			})
-
 		})
 	})
 })

@@ -165,6 +165,11 @@ export class SettingsSpec extends jspb.Message {
   getConsoleOptions(): ConsoleOptions | undefined;
   setConsoleOptions(value?: ConsoleOptions): void;
 
+  hasGraphqlOptions(): boolean;
+  clearGraphqlOptions(): void;
+  getGraphqlOptions(): GraphqlOptions | undefined;
+  setGraphqlOptions(value?: GraphqlOptions): void;
+
   getConfigSourceCase(): SettingsSpec.ConfigSourceCase;
   getSecretSourceCase(): SettingsSpec.SecretSourceCase;
   getArtifactSourceCase(): SettingsSpec.ArtifactSourceCase;
@@ -211,6 +216,7 @@ export namespace SettingsSpec {
     observabilityoptions?: SettingsSpec.ObservabilityOptions.AsObject,
     upstreamoptions?: UpstreamOptions.AsObject,
     consoleOptions?: ConsoleOptions.AsObject,
+    graphqlOptions?: GraphqlOptions.AsObject,
   }
 
   export class KubernetesCrds extends jspb.Message {
@@ -1086,6 +1092,66 @@ export namespace ConsoleOptions {
   export type AsObject = {
     readOnly?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     apiExplorerEnabled?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+  }
+}
+
+export class GraphqlOptions extends jspb.Message {
+  hasSchemaChangeValidationOptions(): boolean;
+  clearSchemaChangeValidationOptions(): void;
+  getSchemaChangeValidationOptions(): GraphqlOptions.SchemaChangeValidationOptions | undefined;
+  setSchemaChangeValidationOptions(value?: GraphqlOptions.SchemaChangeValidationOptions): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GraphqlOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: GraphqlOptions): GraphqlOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GraphqlOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GraphqlOptions;
+  static deserializeBinaryFromReader(message: GraphqlOptions, reader: jspb.BinaryReader): GraphqlOptions;
+}
+
+export namespace GraphqlOptions {
+  export type AsObject = {
+    schemaChangeValidationOptions?: GraphqlOptions.SchemaChangeValidationOptions.AsObject,
+  }
+
+  export class SchemaChangeValidationOptions extends jspb.Message {
+    hasRejectBreakingChanges(): boolean;
+    clearRejectBreakingChanges(): void;
+    getRejectBreakingChanges(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setRejectBreakingChanges(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+    clearProcessingRulesList(): void;
+    getProcessingRulesList(): Array<GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap[keyof GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap]>;
+    setProcessingRulesList(value: Array<GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap[keyof GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap]>): void;
+    addProcessingRules(value: GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap[keyof GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap], index?: number): GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap[keyof GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap];
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): SchemaChangeValidationOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: SchemaChangeValidationOptions): SchemaChangeValidationOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: SchemaChangeValidationOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): SchemaChangeValidationOptions;
+    static deserializeBinaryFromReader(message: SchemaChangeValidationOptions, reader: jspb.BinaryReader): SchemaChangeValidationOptions;
+  }
+
+  export namespace SchemaChangeValidationOptions {
+    export type AsObject = {
+      rejectBreakingChanges?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      processingRulesList: Array<GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap[keyof GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap]>,
+    }
+
+    export interface ProcessingRuleMap {
+      RULE_UNSPECIFIED: 0;
+      RULE_DANGEROUS_TO_BREAKING: 1;
+      RULE_DEPRECATED_FIELD_REMOVAL_DANGEROUS: 2;
+      RULE_IGNORE_DESCRIPTION_CHANGES: 3;
+      RULE_IGNORE_UNREACHABLE: 4;
+    }
+
+    export const ProcessingRule: ProcessingRuleMap;
   }
 }
 

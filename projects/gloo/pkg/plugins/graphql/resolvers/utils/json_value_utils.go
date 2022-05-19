@@ -129,7 +129,7 @@ func TranslateStringValueProviderMap(headers map[string]string) (map[string]*v2.
 }
 
 var (
-	ProviderTemplateRegex   = regexp.MustCompile(`{\$([[a-zA-Z0-9\[\]*.\-_]+)}`)
+	ProviderTemplateRegex   = regexp.MustCompile(`{\$([[a-zA-Z0-9\[\]*.\-_:]+)}`)
 	ARBITRARY_PROVIDER_NAME = "ARBITRARY_PROVIDER_NAME"
 )
 
@@ -182,9 +182,10 @@ func NewExtractionCb(extractionString string) ExtractionCb {
 }
 
 const (
-	HEADERS = "headers"
-	ARGS    = "args"
-	PARENT  = "parent"
+	HEADERS  = "headers"
+	METADATA = "metadata"
+	ARGS     = "args"
+	PARENT   = "parent"
 )
 
 func getExtraction(pathSegment []*v2.PathSegment, errorCb ExtractionCb) (*v2.ValueProvider_Provider, error) {

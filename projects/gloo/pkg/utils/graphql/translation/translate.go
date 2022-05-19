@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/dot_notation"
+	resolver_utils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/utils"
+
+	"github.com/golang/protobuf/ptypes/duration"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/parser"
@@ -17,10 +21,12 @@ import (
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/grpc"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/mock"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/rest"
+	jsonUtils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/utils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/directives"
 	printer2 "github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/printer"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/types"
@@ -51,32 +57,149 @@ func translateSchema(artifacts types.ArtifactList, upstreams types.UpstreamList,
 		}
 	}
 }
+func glooToEnvoyTranslation(client map[string]string) (map[string]*v2.Executor_Remote_Extraction, error) {
+	output := make(map[string]*v2.Executor_Remote_Extraction)
+	for key, val := range client {
+		submatches := resolver_utils.ProviderTemplateRegex.FindAllStringSubmatch(val, -1)
+		out := ""
+		if len(submatches) > 1 {
+			return nil, eris.Errorf("No support for templated strings in the dataplane")
+		}
+		if submatches == nil {
+			output[key] = &v2.Executor_Remote_Extraction{
+				ExtractionType: &v2.Executor_Remote_Extraction_Value{
+					Value: val,
+				},
+			}
+			continue
+		}
+
+		dotNot, _ := dot_notation.DotNotationToPathSegments(submatches[0][1])
+		switch dotNot[0].GetKey() {
+		case jsonUtils.HEADERS:
+			{
+				for _, segment := range dotNot[1:] {
+					out += segment.GetKey()
+				}
+				output[key] = &v2.Executor_Remote_Extraction{
+					ExtractionType: &v2.Executor_Remote_Extraction_Header{
+						Header: out,
+					},
+				}
+			}
+		case jsonUtils.METADATA:
+			{
+				isNamespace := true
+				var namespace []string
+				var name []string
+				for _, segment := range dotNot[1:len(dotNot)] {
+					if segment.GetKey()[0] == ':' {
+						if !isNamespace {
+							return nil, eris.Errorf("Malformed dynamic metadata value %s", val)
+						}
+						isNamespace = false
+					}
+					if isNamespace {
+						namespace = append(namespace, segment.GetKey())
+					} else {
+						name = append(name, segment.GetKey())
+					}
+				}
+				if len(name) == 0 {
+					return nil, eris.Errorf("No name specified for dynamic metadata %s: %s", key, val)
+				}
+				if len(namespace) == 0 {
+					return nil, eris.Errorf("No namespace specified for dynamic metadata %s: %s", key, val)
+				}
+				output[key] = &v2.Executor_Remote_Extraction{
+					ExtractionType: &v2.Executor_Remote_Extraction_DynamicMetadata{
+						DynamicMetadata: &v2.Executor_Remote_Extraction_DynamicMetadataExtraction{
+							MetadataNamespace: strings.Join(namespace, "."),
+							Key:               strings.Join(name, ".")[1:],
+						},
+					},
+				}
+			}
+		}
+
+	}
+	return output, nil
+}
 
 func translateExecutableSchema(artifacts types.ArtifactList, upstreams types.UpstreamList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
 	extensions, err := TranslateExtensions(artifacts, graphQLApi)
 	if err != nil {
 		return nil, err
 	}
-	schemaStr := graphQLApi.GetExecutableSchema().GetSchemaDefinition()
-	_, resolutions, processedSchema, err := processGraphqlSchema(upstreams, schemaStr, graphQLApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions())
-	if err != nil {
-		return nil, err
-	}
-
-	return &v2.ExecutableSchema{
-		Executor: &v2.Executor{
-			Executor: &v2.Executor_Local_{
-				Local: &v2.Executor_Local{
-					Resolutions:         resolutions,
-					EnableIntrospection: graphQLApi.GetExecutableSchema().GetExecutor().GetLocal().GetEnableIntrospection(),
+	switch typedExecutor := graphQLApi.GetExecutableSchema().Executor.Executor.(type) {
+	case *v1beta1.Executor_Local_:
+		schemaStr := graphQLApi.GetExecutableSchema().GetSchemaDefinition()
+		_, resolutions, processedSchema, err := processGraphqlSchema(upstreams, schemaStr, graphQLApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions())
+		if err != nil {
+			return nil, err
+		}
+		return &v2.ExecutableSchema{
+			Executor: &v2.Executor{
+				Executor: &v2.Executor_Local_{
+					Local: &v2.Executor_Local{
+						Resolutions:         resolutions,
+						EnableIntrospection: graphQLApi.GetExecutableSchema().GetExecutor().GetLocal().GetEnableIntrospection(),
+					},
 				},
 			},
-		},
-		SchemaDefinition: &v3.DataSource{
-			Specifier: &v3.DataSource_InlineString{InlineString: printer2.PrettyPrintKubeString(processedSchema)},
-		},
-		Extensions: extensions,
-	}, nil
+			SchemaDefinition: &v3.DataSource{
+				Specifier: &v3.DataSource_InlineString{InlineString: printer2.PrettyPrintKubeString(processedSchema)},
+			},
+			Extensions: extensions,
+		}, nil
+	case *v1beta1.Executor_Remote_:
+		remoteExecutor := graphQLApi.GetExecutableSchema().GetExecutor().GetRemote()
+		headers, err := glooToEnvoyTranslation(remoteExecutor.GetHeaders())
+		if err != nil {
+			return nil, err
+		}
+		queryParams, err := glooToEnvoyTranslation(remoteExecutor.GetQueryParams())
+		if err != nil {
+			return nil, err
+		}
+		upstream, err := upstreams.Find(remoteExecutor.GetUpstreamRef().GetNamespace(), remoteExecutor.GetUpstreamRef().GetName())
+		if err != nil {
+			return nil, eris.Errorf(
+				"No upstream found on cluster with namespace.name: %s.%s",
+				remoteExecutor.GetUpstreamRef().GetNamespace(),
+				remoteExecutor.GetUpstreamRef().GetName())
+		}
+		return &v2.ExecutableSchema{
+			Executor: &v2.Executor{
+				Executor: &v2.Executor_Remote_{
+					Remote: &v2.Executor_Remote{
+						ServerUri: &v3.HttpUri{
+							Uri: "ignored", // ignored by graphql filter,
+							HttpUpstreamType: &v3.HttpUri_Cluster{
+								Cluster: translator.UpstreamToClusterName(upstream.GetMetadata().Ref()),
+							},
+							Timeout: &duration.Duration{
+								Seconds: upstream.GetConnectionConfig().GetConnectTimeout().GetSeconds(),
+								Nanos:   upstream.GetConnectionConfig().GetConnectTimeout().GetNanos(),
+							},
+						},
+						Request: &v2.Executor_Remote_RemoteSchemaRequest{
+							Headers:     headers,
+							QueryParams: queryParams,
+						},
+						SpanName: graphQLApi.GetExecutableSchema().GetExecutor().GetRemote().GetSpanName(),
+					},
+				},
+			},
+			SchemaDefinition: &v3.DataSource{
+				Specifier: &v3.DataSource_InlineString{
+					InlineString: graphQLApi.GetExecutableSchema().GetSchemaDefinition(),
+				},
+			},
+		}, nil
+	default:
+		return nil, eris.Errorf("unsupported executor type %T", typedExecutor)
+	}
 }
 
 func TranslateExtensions(artifacts types.ArtifactList, api *v1beta1.GraphQLApi) (map[string]*any.Any, error) {

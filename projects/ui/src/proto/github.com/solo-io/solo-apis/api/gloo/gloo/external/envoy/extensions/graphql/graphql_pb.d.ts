@@ -926,8 +926,18 @@ export namespace Executor {
   }
 
   export class Remote extends jspb.Message {
-    getCluster(): string;
-    setCluster(value: string): void;
+    hasServerUri(): boolean;
+    clearServerUri(): void;
+    getServerUri(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri | undefined;
+    setServerUri(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri): void;
+
+    hasRequest(): boolean;
+    clearRequest(): void;
+    getRequest(): Executor.Remote.RemoteSchemaRequest | undefined;
+    setRequest(value?: Executor.Remote.RemoteSchemaRequest): void;
+
+    getSpanName(): string;
+    setSpanName(value: string): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Remote.AsObject;
@@ -941,7 +951,97 @@ export namespace Executor {
 
   export namespace Remote {
     export type AsObject = {
-      cluster: string,
+      serverUri?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_http_uri_pb.HttpUri.AsObject,
+      request?: Executor.Remote.RemoteSchemaRequest.AsObject,
+      spanName: string,
+    }
+
+    export class Extraction extends jspb.Message {
+      hasValue(): boolean;
+      clearValue(): void;
+      getValue(): string;
+      setValue(value: string): void;
+
+      hasHeader(): boolean;
+      clearHeader(): void;
+      getHeader(): string;
+      setHeader(value: string): void;
+
+      hasDynamicMetadata(): boolean;
+      clearDynamicMetadata(): void;
+      getDynamicMetadata(): Executor.Remote.Extraction.DynamicMetadataExtraction | undefined;
+      setDynamicMetadata(value?: Executor.Remote.Extraction.DynamicMetadataExtraction): void;
+
+      getExtractionTypeCase(): Extraction.ExtractionTypeCase;
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): Extraction.AsObject;
+      static toObject(includeInstance: boolean, msg: Extraction): Extraction.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: Extraction, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): Extraction;
+      static deserializeBinaryFromReader(message: Extraction, reader: jspb.BinaryReader): Extraction;
+    }
+
+    export namespace Extraction {
+      export type AsObject = {
+        value: string,
+        header: string,
+        dynamicMetadata?: Executor.Remote.Extraction.DynamicMetadataExtraction.AsObject,
+      }
+
+      export class DynamicMetadataExtraction extends jspb.Message {
+        getMetadataNamespace(): string;
+        setMetadataNamespace(value: string): void;
+
+        getKey(): string;
+        setKey(value: string): void;
+
+        serializeBinary(): Uint8Array;
+        toObject(includeInstance?: boolean): DynamicMetadataExtraction.AsObject;
+        static toObject(includeInstance: boolean, msg: DynamicMetadataExtraction): DynamicMetadataExtraction.AsObject;
+        static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+        static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+        static serializeBinaryToWriter(message: DynamicMetadataExtraction, writer: jspb.BinaryWriter): void;
+        static deserializeBinary(bytes: Uint8Array): DynamicMetadataExtraction;
+        static deserializeBinaryFromReader(message: DynamicMetadataExtraction, reader: jspb.BinaryReader): DynamicMetadataExtraction;
+      }
+
+      export namespace DynamicMetadataExtraction {
+        export type AsObject = {
+          metadataNamespace: string,
+          key: string,
+        }
+      }
+
+      export enum ExtractionTypeCase {
+        EXTRACTION_TYPE_NOT_SET = 0,
+        VALUE = 1,
+        HEADER = 2,
+        DYNAMIC_METADATA = 3,
+      }
+    }
+
+    export class RemoteSchemaRequest extends jspb.Message {
+      getHeadersMap(): jspb.Map<string, Executor.Remote.Extraction>;
+      clearHeadersMap(): void;
+      getQueryParamsMap(): jspb.Map<string, Executor.Remote.Extraction>;
+      clearQueryParamsMap(): void;
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): RemoteSchemaRequest.AsObject;
+      static toObject(includeInstance: boolean, msg: RemoteSchemaRequest): RemoteSchemaRequest.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: RemoteSchemaRequest, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): RemoteSchemaRequest;
+      static deserializeBinaryFromReader(message: RemoteSchemaRequest, reader: jspb.BinaryReader): RemoteSchemaRequest;
+    }
+
+    export namespace RemoteSchemaRequest {
+      export type AsObject = {
+        headersMap: Array<[string, Executor.Remote.Extraction.AsObject]>,
+        queryParamsMap: Array<[string, Executor.Remote.Extraction.AsObject]>,
+      }
     }
   }
 
