@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Updates pre-configured DLP actions to use RE2 Syntax.
+    issueLink: https://github.com/solo-io/gloo/issues/6257

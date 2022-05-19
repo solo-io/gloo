@@ -9,63 +9,105 @@ import (
 var (
 	ssnTransform = &transformation_ee.Action{
 		Name: "ssn",
-		Regex: []string{
-			"(?!\\D)[0-9]{9}(?=\\D|$)",
-			"(?!\\D)[0-9]{3}\\-[0-9]{2}\\-[0-9]{4}(?=\\D|$)",
-			"(?!\\D)[0-9]{3}\\ [0-9]{2}\\ [0-9]{4}(?=\\D|$)",
+		RegexActions: []*transformation_ee.RegexAction{
+			{
+				Regex:    `(?:^|\D)([0-9]{9})(?:\D|$)`,
+				Subgroup: 1,
+			},
+			{
+				Regex:    `(?:^|\D)([0-9]{3}\-[0-9]{2}\-[0-9]{4})(?:\D|$)`,
+				Subgroup: 1,
+			},
+			{
+				Regex:    `(?:^|\D)([0-9]{3}\ [0-9]{2}\ [0-9]{4})(?:\D|$)`,
+				Subgroup: 1,
+			},
 		},
 	}
 
 	visaTransform = &transformation_ee.Action{
 		Name: "visa",
-		Regex: []string{
-			"(?!\\D)4[0-9]{3}(\\ |\\-|)[0-9]{4}(\\ |\\-|)[0-9]{4}(\\ |\\-|)[0-9]{4}(?=\\D|$)",
+		RegexActions: []*transformation_ee.RegexAction{
+			{
+				Regex:    `(?:^|\D)(4[0-9]{3}(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4})(?:\D|$)`,
+				Subgroup: 1,
+			},
 		},
 	}
 
 	mastercardTransform = &transformation_ee.Action{
 		Name: "master_card",
-		Regex: []string{
-			"(?!\\D)5[1-5][0-9]{2}(\\ |\\-|)[0-9]{4}(\\ |\\-|)[0-9]{4}(\\ |\\-|)[0-9]{4}(?=\\D|$)",
+		RegexActions: []*transformation_ee.RegexAction{
+			{
+				Regex:    `(?:^|\D)(5[1-5][0-9]{2}(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4})(?:\D|$)`,
+				Subgroup: 1,
+			},
 		},
 	}
 
 	discoverTransform = &transformation_ee.Action{
 		Name: "discover",
-		Regex: []string{
-			"(?!\\D)6011(\\ |\\-|)[0-9]{4}(\\ |\\-|)[0-9]{4}(\\ |\\-|)[0-9]{4}(?=\\D|$)",
+		RegexActions: []*transformation_ee.RegexAction{
+			{
+				Regex:    `(?:^|\D)(6011(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4})(?:\D|$)`,
+				Subgroup: 1,
+			},
 		},
 	}
 
 	amexTransform = &transformation_ee.Action{
 		Name: "amex",
-		Regex: []string{
-			"(?!\\D)(34|37)[0-9]{2}(\\ |\\-|)[0-9]{6}(\\ |\\-|)[0-9]{5}(?=\\D|$)",
+		RegexActions: []*transformation_ee.RegexAction{
+			{
+				Regex:    `(?:^|\D)((?:34|37)[0-9]{2}(?:\ |\-|)[0-9]{6}(?:\ |\-|)[0-9]{5})(?:\D|$)`,
+				Subgroup: 1,
+			},
 		},
 	}
 
 	jcbTransform = &transformation_ee.Action{
 		Name: "jcb",
-		Regex: []string{
-			"(?!\\D)3[0-9]{3}(\\ |\\-|)[0-9]{4}(\\ |\\-|)[0-9]{4}(\\ |\\-|)[0-9]{4}(?=\\D|$)",
-			"(?!\\D)(2131|1800)[0-9]{11}(?=\\D|$)",
+		RegexActions: []*transformation_ee.RegexAction{
+			{
+				Regex:    `(?:^|\D)(3[0-9]{3}(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4}(?:\ |\-|)[0-9]{4})(?:\D|$)`,
+				Subgroup: 1,
+			},
+			{
+				Regex:    `(?:^|\D)((?:2131|1800)[0-9]{11})(?:\D|$)`,
+				Subgroup: 1,
+			},
 		},
 	}
 
 	dinersClubTransform = &transformation_ee.Action{
 		Name: "diners_club",
-		Regex: []string{
-			"(?!\\D)30[0-5][0-9](\\ |\\-|)[0-9]{6}(\\ |\\-|)[0-9]{4}(?=\\D|$)",
-			"(?!\\D)(36|38)[0-9]{2}(\\ |\\-|)[0-9]{6}(\\ |\\-|)[0-9]{4}(?=\\D|$)",
+		RegexActions: []*transformation_ee.RegexAction{
+			{
+				Regex:    `(?:^|\D)(30[0-5][0-9](?:\ |\-|)[0-9]{6}(?:\ |\-|)[0-9]{4})(?:\D|$)`,
+				Subgroup: 1,
+			},
+			{
+				Regex:    `(?:^|\D)((?:36|38)[0-9]{2}(?:\ |\-|)[0-9]{6}(?:\ |\-|)[0-9]{4})(?:\D|$)`,
+				Subgroup: 1,
+			},
 		},
 	}
 
 	creditCardTrackersTransform = &transformation_ee.Action{
 		Name: "credit_card_trackers",
-		Regex: []string{
-			"[1-9][0-9]{2}\\-[0-9]{2}\\-[0-9]{4}\\^\\d",
-			"(?!\\D)\\%?[Bb]\\d{13,19}\\^[\\-\\/\\.\\w\\s]{2,26}\\^[0-9][0-9][01][0-9][0-9]{3}",
-			"(?!\\D)\\;\\d{13,19}\\=(\\d{3}|)(\\d{4}|\\=)",
+		RegexActions: []*transformation_ee.RegexAction{
+			{
+				Regex:    `([1-9][0-9]{2}\-[0-9]{2}\-[0-9]{4}\^\d)`,
+				Subgroup: 1,
+			},
+			{
+				Regex:    `(?:^|\D)(\%?[Bb]\d{13,19}\^[\-\/\.\w\s]{2,26}\^[0-9][0-9][01][0-9][0-9]{3})`,
+				Subgroup: 1,
+			},
+			{
+				Regex:    `(?:^|\D)(\;\d{13,19}\=(?:\d{3}|)(?:\d{4}|\=))`,
+				Subgroup: 1,
+			},
 		},
 	}
 
