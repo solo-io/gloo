@@ -225,7 +225,7 @@ var _ = Describe("dlp plugin", func() {
 				Expect(outFilters).To(HaveLen(1))
 				dlpFilter := outFilters[0]
 				Expect(dlpFilter.HttpFilter.Name).To(Equal(FilterName))
-				Expect(dlpFilter.Stage).To(Equal(plugins.AfterStage(plugins.RouteStage)))
+				Expect(dlpFilter.Stage).To(Equal(plugins.BeforeStage(plugins.WafStage)))
 				st := dlpFilter.HttpFilter.GetTypedConfig()
 				Expect(st).To(BeNil())
 			})

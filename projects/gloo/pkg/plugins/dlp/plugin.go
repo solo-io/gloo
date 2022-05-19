@@ -32,7 +32,7 @@ const (
 var (
 	// Dlp will be executed last, but before logging,
 	// so as to sanitize any logs.
-	filterStage = plugins.AfterStage(plugins.RouteStage)
+	filterStage = plugins.BeforeStage(plugins.WafStage)
 )
 
 type plugin struct {

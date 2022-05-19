@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    description: |
+      Revert changing the position of DLP to run right before Routing.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3658
+    resolvesIssue: true
