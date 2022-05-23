@@ -46,7 +46,7 @@ require (
 	github.com/solo-io/anyvendor v0.0.4
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.19.20
+	github.com/solo-io/ext-auth-service v0.20.1
 	github.com/solo-io/external-apis v0.1.11
 	github.com/solo-io/gloo v1.12.0-beta15
 	github.com/solo-io/go-list-licenses v0.1.4
@@ -56,7 +56,7 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.16
 	github.com/solo-io/protoc-gen-openapi v0.0.4
 	github.com/solo-io/rate-limiter v0.6.2
-	github.com/solo-io/skv2 v0.22.11
+	github.com/solo-io/skv2 v0.22.15
 	github.com/solo-io/skv2-enterprise v0.2.8
 	github.com/solo-io/solo-apis v0.0.0-20220519120440-d8883af27c7a
 	github.com/solo-io/solo-kit v0.27.2
@@ -287,7 +287,7 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/servicemeshinterface/smi-sdk-go v0.4.1 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/solo-io/cue v0.4.1 // indirect
+	github.com/solo-io/cue v0.4.3 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

@@ -927,6 +927,7 @@ github.com/googleapis/gnostic v0.4.1/go.mod h1:LRhVm6pbyptWbWbuZ38d1eyptfvIytN3i
 github.com/googleapis/gnostic v0.5.1/go.mod h1:6U4PtQXGIEt/Z3h5MAT7FNofLnw9vXk2cUuW7uA/OeU=
 github.com/googleapis/gnostic v0.5.5 h1:9fHAtK0uDfpveeqqo1hkEZJcFvYXAiCN3UutL8F9xHw=
 github.com/googleapis/gnostic v0.5.5/go.mod h1:7+EbHbldMins07ALC74bsA81Ovc97DwqyJO1AENw9kA=
+github.com/googleapis/googleapis v0.0.0-20210126034214-6fa7194aba4d/go.mod h1:XrPm4xpez/lHHyE+8/G+NqQRcB4lg42HF9zQVTvxtXw=
 github.com/gookit/color v1.3.8/go.mod h1:R3ogXq2B9rTbXoSHJ1HyUVAZ3poOJHpd9nQmyGZsfvQ=
 github.com/goph/emperror v0.17.1 h1:6lOybhIvG/BB6VGoWfdv30FVZeZFBBZ9VvgzGXLVkyY=
 github.com/goph/emperror v0.17.1/go.mod h1:+ZbQ+fUNO/6FNiUo0ujtMjhgad9Xa6fQL9KhH4LNHic=
@@ -1722,12 +1723,13 @@ github.com/solo-io/anyvendor v0.0.4 h1:9nI7o7Srml2uaOpT5HJSru06IHUZpzSCU/dEkseiG
 github.com/solo-io/anyvendor v0.0.4/go.mod h1:+TTkDGd11u8ugXccqtukBEWvkZkODaBbeWgdH/F/IWY=
 github.com/solo-io/cli-kit v0.2.1 h1:Hc5EXi0ccP4yHmuBLHHr98Q/Jz0cQt7huRg9x/iH3qQ=
 github.com/solo-io/cli-kit v0.2.1/go.mod h1:l99zSPTfmt9KaSKQMGwju+IdVvw1HaVU8ZrO4q19meo=
-github.com/solo-io/cue v0.4.1 h1:P+A+/4o1NIJ0BDLmIF7vMDEsKQFlIn6M01Q9CHV77AY=
 github.com/solo-io/cue v0.4.1/go.mod h1:NaNBm1PrzINbNcE/ZU9wEAJ6JXvi//F/HU5cIpngeZE=
+github.com/solo-io/cue v0.4.3 h1:kCND5t/M40nccSg9zKX3xmwATfvqbGpjqFpJfzTJkLg=
+github.com/solo-io/cue v0.4.3/go.mod h1:P1tN9y6nBPAMoEK5aJxI8kn0VUcjVcRc+8esieRzQ7M=
 github.com/solo-io/ext-auth-plugins v0.2.1 h1:8ZkQx9DnTUE3z4vK029l1F2GHbDjNphkewR4opYwvFc=
 github.com/solo-io/ext-auth-plugins v0.2.1/go.mod h1:bVOJ1BvrBQC6CyYa+DtGU+vJ0asUu3Xa0CSSp9l97fA=
-github.com/solo-io/ext-auth-service v0.19.20 h1:nO5Q++zCW9o0MAIRPsHIA5/Dah4JvMkyBh3kVE/fR5M=
-github.com/solo-io/ext-auth-service v0.19.20/go.mod h1:EOBbxQnCFJ2w3pPUp2PNb4OEhfgBIAxlcNYIHvgw258=
+github.com/solo-io/ext-auth-service v0.20.1 h1:1C1fWSt7BqLXfg9BkMFPF8+DsjUvUepB4stCxhZMr/Q=
+github.com/solo-io/ext-auth-service v0.20.1/go.mod h1:fHYZB1qI+96JhVuMHBP+xQHAH6C3nOJiPDhTfYYNIYo=
 github.com/solo-io/external-apis v0.1.4/go.mod h1:3vyADtIZj8hCD5cBUwGuA60hd8O5faQKvfUl400brLY=
 github.com/solo-io/external-apis v0.1.7/go.mod h1:rzyuYEanRLvRfKK9GG/Mb/H//0A8DNvhxrEP+iTToTY=
 github.com/solo-io/external-apis v0.1.11 h1:7ow9GPXDRIwP9UV2JUkLDPOgp1rV7hjn82o7RI65lLs=

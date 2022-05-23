@@ -1,0 +1,8 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.20.1
+    description: Bump ext-auth-service version to pull in fix for booleanExpr with OIDC redirects.
+    issueLink: https://github.com/solo-io/gloo/issues/5401
+    resolvesIssue: false
