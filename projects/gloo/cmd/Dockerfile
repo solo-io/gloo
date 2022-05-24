@@ -1,5 +1,5 @@
 ARG ENVOY_IMAGE
-FROM node:16.14.2-alpine AS node
+FROM node:16.15-alpine AS node
 FROM $ENVOY_IMAGE
 ARG DOCKER_GOARCH
 RUN apk upgrade --update-cache \

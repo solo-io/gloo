@@ -1,4 +1,4 @@
-FROM node:16.14.2-alpine
+FROM node:16.15-alpine
 
 RUN apk -U upgrade
 COPY gloo-fed-apiserver-linux-amd64 /usr/local/bin/gloo-fed-apiserver

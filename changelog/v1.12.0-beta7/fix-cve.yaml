@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: nodejs
+    dependencyRepo: node
+    dependencyTag: 16.15-alpine
+    description: Fix for CVE-2021-3807
+    issueLink: https://github.com/solo-io/solo-projects/issues/3668
