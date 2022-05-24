@@ -36,4 +36,6 @@ var (
 	MetaTemplateMissing = "Metadata template must not be nil"
 
 	FailedToPlaceResource = "Resource is not federated to all destinations"
+
+	PlacementMissing = "Placement must not be nil"
 )

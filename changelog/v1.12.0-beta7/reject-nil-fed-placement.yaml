@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5928
+    resolvesIssue: false
+    description: |
+      There have been instances in the past where, when using a `Federated*` CR, users would neglect to add a `Placement` field specifying where said CR should be federated to.  This PR adds a simple error message as a means of (hopefully) curtailing this issue.

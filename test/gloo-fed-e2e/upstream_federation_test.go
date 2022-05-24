@@ -15,6 +15,7 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1"
 	gloo_fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1/types"
 	fed_core_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
+	mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,6 +50,44 @@ var _ = Describe("Upstream federation", func() {
 				Name:      fedUpstream.GetName(),
 			})
 		}
+	})
+
+	It("throws validation error when missing Placement", func() {
+		fedUpstream = &v1.FederatedUpstream{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: localGlooHubNamespace,
+				Name:      "fed-upstream",
+			},
+			Spec: gloo_fed_types.FederatedUpstreamSpec{
+				Template: &gloo_fed_types.FederatedUpstreamSpec_Template{
+					Spec:     upstreamSpec,
+					Metadata: meta,
+				},
+				Placement: nil, // placement set to `nil` to cause error
+			},
+		}
+
+		// register fedUpstream with kind-mgmt
+		clientset, err := v1.NewClientsetFromConfig(test.MustConfig(""))
+		Expect(err).NotTo(HaveOccurred())
+		err = clientset.FederatedUpstreams().CreateFederatedUpstream(ctx, fedUpstream)
+		Expect(err).NotTo(HaveOccurred())
+
+		// wait for INVALID placement status, per `federation_reconcilers.go`
+		var resultingFedUpstream *v1.FederatedUpstream
+		Eventually(func() (mc_types.PlacementStatus_State, error) {
+			resultingFedUpstream, err = clientset.FederatedUpstreams().GetFederatedUpstream(
+				ctx,
+				types.NamespacedName{
+					Name:      fedUpstream.GetObjectMeta().GetName(),
+					Namespace: fedUpstream.GetObjectMeta().GetNamespace(),
+				},
+			)
+			if err != nil {
+				return mc_types.PlacementStatus_FAILED, err
+			}
+			return resultingFedUpstream.Status.GetPlacementStatus().GetState(), nil
+		}, 10*time.Second).Should(Equal(mc_types.PlacementStatus_INVALID))
 	})
 
 	It("works", func() {
