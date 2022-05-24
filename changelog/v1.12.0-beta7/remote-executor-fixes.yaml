@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/3541
+    description: Follow up bug fixes related to the remote-executor PR

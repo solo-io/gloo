@@ -505,7 +505,7 @@ var _ = Describe("Graphql plugin", func() {
 					})
 				})
 			})
-			Context("translate schema config for remote executor", func() {
+			Context("Translate schema config for remote executor", func() {
 				BeforeEach(func() {
 					gqlApiSpec = &GraphQLApi{
 						Metadata: &core.Metadata{
@@ -524,7 +524,7 @@ var _ = Describe("Graphql plugin", func() {
 											Headers: map[string]string{
 												"foo": "far",
 												"boo": "{$headers.bar}",
-												"zoo": "{$metadata.io.solo.transformation.:endpoint_url}",
+												"zoo": "{$metadata.io.solo.transformation:endpoint_url}",
 											},
 											QueryParams: map[string]string{
 												"moo": "mar",
@@ -538,8 +538,7 @@ var _ = Describe("Graphql plugin", func() {
 						},
 					}
 				})
-
-				It("Translates user facing api to ennvoy api for remote executors", func() {
+				It("Translates user facing api to envoy api for remote executors", func() {
 					upstreams := v1.UpstreamList{
 						{
 							Metadata: &core.Metadata{
@@ -558,6 +557,47 @@ var _ = Describe("Graphql plugin", func() {
 					Expect(translatedExecutor.GetRequest().GetHeaders()["zoo"].GetDynamicMetadata().GetKey()).To(Equal("endpoint_url"))
 					Expect(translatedExecutor.GetRequest().GetQueryParams()["moo"].GetValue()).To(Equal("mar"))
 					Expect(translatedExecutor.GetRequest().GetQueryParams()["noo"].GetHeader()).To(Equal("nar"))
+				})
+			})
+			Context("Incorrectly translates schema config for remote executor", func() {
+				JustBeforeEach(func() {
+					gqlApiSpec = &GraphQLApi{
+						Metadata: &core.Metadata{
+							Name:      "gql",
+							Namespace: "gloo-system",
+						},
+						Schema: &GraphQLApi_ExecutableSchema{
+							ExecutableSchema: &ExecutableSchema{
+								Executor: &Executor{
+									Executor: &Executor_Remote_{
+										Remote: &Executor_Remote{
+											UpstreamRef: &core.ResourceRef{
+												Name:      "us",
+												Namespace: "gloo-system",
+											},
+											Headers: map[string]string{
+												"zoo": "{$metadata.}",
+											},
+											SpanName: "TestSpanName",
+										},
+									},
+								},
+							},
+						},
+					}
+				})
+				It("Incorrectly translates user facing api to envoy api for remote executors", func() {
+					upstreams := v1.UpstreamList{
+						{
+							Metadata: &core.Metadata{
+								Name:      "us",
+								Namespace: "gloo-system",
+							},
+						},
+					}
+					_, err := translation.CreateGraphQlApi(&MockArtifactsList{}, upstreams, nil, gqlApiSpec)
+					Expect(err).To(MatchError(ContainSubstring("Malformed value for dynamic metadata zoo: {$metadata.}")))
+
 				})
 			})
 		})

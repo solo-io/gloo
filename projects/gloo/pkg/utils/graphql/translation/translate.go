@@ -57,15 +57,15 @@ func translateSchema(artifacts types.ArtifactList, upstreams types.UpstreamList,
 		}
 	}
 }
-func glooToEnvoyTranslation(client map[string]string) (map[string]*v2.Executor_Remote_Extraction, error) {
+func glooToEnvoyTranslation(namedExtractions map[string]string) (map[string]*v2.Executor_Remote_Extraction, error) {
 	output := make(map[string]*v2.Executor_Remote_Extraction)
-	for key, val := range client {
+	for key, val := range namedExtractions {
 		submatches := resolver_utils.ProviderTemplateRegex.FindAllStringSubmatch(val, -1)
 		out := ""
 		if len(submatches) > 1 {
-			return nil, eris.Errorf("No support for templated strings in the dataplane")
+			return nil, eris.Errorf("'%s' is a templated extraction, which we not currently support with remote executor extractions", val)
 		}
-		if submatches == nil {
+		if len(submatches) == 0 {
 			output[key] = &v2.Executor_Remote_Extraction{
 				ExtractionType: &v2.Executor_Remote_Extraction_Value{
 					Value: val,
@@ -73,55 +73,42 @@ func glooToEnvoyTranslation(client map[string]string) (map[string]*v2.Executor_R
 			}
 			continue
 		}
-
-		dotNot, _ := dot_notation.DotNotationToPathSegments(submatches[0][1])
+		if len(submatches[0]) < 2 {
+			return nil, eris.Errorf("Malformed value for dynamic metadata %s: %s", key, val)
+		}
+		dotNot, err := dot_notation.DotNotationToPathSegments(submatches[0][1])
+		if err != nil || dotNot == nil || dotNot[0] == nil {
+			return nil, eris.Errorf("Malformed value for dynamic metadata %s: %s", key, val)
+		}
 		switch dotNot[0].GetKey() {
 		case jsonUtils.HEADERS:
-			{
-				for _, segment := range dotNot[1:] {
-					out += segment.GetKey()
-				}
-				output[key] = &v2.Executor_Remote_Extraction{
-					ExtractionType: &v2.Executor_Remote_Extraction_Header{
-						Header: out,
-					},
-				}
+			for _, segment := range dotNot[1:] {
+				out += segment.GetKey()
 			}
+			output[key] = &v2.Executor_Remote_Extraction{
+				ExtractionType: &v2.Executor_Remote_Extraction_Header{
+					Header: out}}
 		case jsonUtils.METADATA:
-			{
-				isNamespace := true
-				var namespace []string
-				var name []string
-				for _, segment := range dotNot[1:len(dotNot)] {
-					if segment.GetKey()[0] == ':' {
-						if !isNamespace {
-							return nil, eris.Errorf("Malformed dynamic metadata value %s", val)
-						}
-						isNamespace = false
-					}
-					if isNamespace {
-						namespace = append(namespace, segment.GetKey())
-					} else {
-						name = append(name, segment.GetKey())
-					}
-				}
-				if len(name) == 0 {
-					return nil, eris.Errorf("No name specified for dynamic metadata %s: %s", key, val)
-				}
-				if len(namespace) == 0 {
-					return nil, eris.Errorf("No namespace specified for dynamic metadata %s: %s", key, val)
-				}
-				output[key] = &v2.Executor_Remote_Extraction{
-					ExtractionType: &v2.Executor_Remote_Extraction_DynamicMetadata{
-						DynamicMetadata: &v2.Executor_Remote_Extraction_DynamicMetadataExtraction{
-							MetadataNamespace: strings.Join(namespace, "."),
-							Key:               strings.Join(name, ".")[1:],
-						},
+			var segmentStrings []string
+			for _, segment := range dotNot[1:len(dotNot)] {
+				segmentStrings = append(segmentStrings, segment.GetKey())
+			}
+			if len(segmentStrings) == 0 {
+				return nil, eris.Errorf("No name specified for dynamic metadata %s: %s", key, val)
+			}
+			joinedSegments := strings.Join(segmentStrings, ".")
+			if strings.Index(joinedSegments, ":") == -1 {
+				return nil, eris.Errorf("No namespace specified for dynamic metadata %s: %s", key, val)
+			}
+			output[key] = &v2.Executor_Remote_Extraction{
+				ExtractionType: &v2.Executor_Remote_Extraction_DynamicMetadata{
+					DynamicMetadata: &v2.Executor_Remote_Extraction_DynamicMetadataExtraction{
+						MetadataNamespace: joinedSegments[:strings.Index(joinedSegments, ":")],
+						Key:               joinedSegments[strings.Index(joinedSegments, ":")+1:],
 					},
-				}
+				},
 			}
 		}
-
 	}
 	return output, nil
 }
@@ -134,7 +121,7 @@ func translateExecutableSchema(artifacts types.ArtifactList, upstreams types.Ups
 	switch typedExecutor := graphQLApi.GetExecutableSchema().Executor.Executor.(type) {
 	case *v1beta1.Executor_Local_:
 		schemaStr := graphQLApi.GetExecutableSchema().GetSchemaDefinition()
-		_, resolutions, processedSchema, err := processGraphqlSchema(upstreams, schemaStr, graphQLApi.GetExecutableSchema().GetExecutor().GetLocal().GetResolutions())
+		_, resolutions, processedSchema, err := processGraphqlSchema(upstreams, schemaStr, typedExecutor.Local.GetResolutions())
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +130,7 @@ func translateExecutableSchema(artifacts types.ArtifactList, upstreams types.Ups
 				Executor: &v2.Executor_Local_{
 					Local: &v2.Executor_Local{
 						Resolutions:         resolutions,
-						EnableIntrospection: graphQLApi.GetExecutableSchema().GetExecutor().GetLocal().GetEnableIntrospection(),
+						EnableIntrospection: typedExecutor.Local.GetEnableIntrospection(),
 					},
 				},
 			},
@@ -153,7 +140,7 @@ func translateExecutableSchema(artifacts types.ArtifactList, upstreams types.Ups
 			Extensions: extensions,
 		}, nil
 	case *v1beta1.Executor_Remote_:
-		remoteExecutor := graphQLApi.GetExecutableSchema().GetExecutor().GetRemote()
+		remoteExecutor := typedExecutor.Remote
 		headers, err := glooToEnvoyTranslation(remoteExecutor.GetHeaders())
 		if err != nil {
 			return nil, err
@@ -187,7 +174,7 @@ func translateExecutableSchema(artifacts types.ArtifactList, upstreams types.Ups
 							Headers:     headers,
 							QueryParams: queryParams,
 						},
-						SpanName: graphQLApi.GetExecutableSchema().GetExecutor().GetRemote().GetSpanName(),
+						SpanName: typedExecutor.Remote.GetSpanName(),
 					},
 				},
 			},
