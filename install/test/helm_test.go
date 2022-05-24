@@ -1960,6 +1960,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:
@@ -2028,6 +2029,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:
@@ -2091,6 +2093,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:
@@ -2154,6 +2157,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:
@@ -2222,6 +2226,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:
@@ -2293,6 +2298,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     awsOptions:
@@ -3478,6 +3484,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:
@@ -4148,6 +4155,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:
@@ -4211,6 +4219,7 @@ spec:
     enableRestEds: false
     xdsBindAddr: 0.0.0.0:9977
     restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
     disableKubernetesDestinations: false
     disableProxyGarbageCollection: false
     invalidConfigPolicy:

@@ -823,6 +823,9 @@ export class GlooOptions extends jspb.Message {
   getRemoveUnusedFilters(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setRemoveUnusedFilters(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  getProxyDebugBindAddr(): string;
+  setProxyDebugBindAddr(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GlooOptions.AsObject;
   static toObject(includeInstance: boolean, msg: GlooOptions): GlooOptions.AsObject;
@@ -849,6 +852,7 @@ export namespace GlooOptions {
     enableRestEds?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     failoverUpstreamDnsPollingInterval?: google_protobuf_duration_pb.Duration.AsObject,
     removeUnusedFilters?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    proxyDebugBindAddr: string,
   }
 
   export class AWSOptions extends jspb.Message {

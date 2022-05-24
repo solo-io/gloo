@@ -5268,7 +5268,8 @@ proto.gloo.solo.io.GlooOptions.toObject = function(includeInstance, msg) {
     restXdsBindAddr: jspb.Message.getFieldWithDefault(msg, 11, ""),
     enableRestEds: (f = msg.getEnableRestEds()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     failoverUpstreamDnsPollingInterval: (f = msg.getFailoverUpstreamDnsPollingInterval()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    removeUnusedFilters: (f = msg.getRemoveUnusedFilters()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    removeUnusedFilters: (f = msg.getRemoveUnusedFilters()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    proxyDebugBindAddr: jspb.Message.getFieldWithDefault(msg, 15, "")
   };
 
   if (includeInstance) {
@@ -5370,6 +5371,10 @@ proto.gloo.solo.io.GlooOptions.deserializeBinaryFromReader = function(msg, reade
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setRemoveUnusedFilters(value);
+      break;
+    case 15:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setProxyDebugBindAddr(value);
       break;
     default:
       reader.skipField();
@@ -5506,6 +5511,13 @@ proto.gloo.solo.io.GlooOptions.serializeBinaryToWriter = function(message, write
       14,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getProxyDebugBindAddr();
+  if (f.length > 0) {
+    writer.writeString(
+      15,
+      f
     );
   }
 };
@@ -6384,6 +6396,21 @@ proto.gloo.solo.io.GlooOptions.prototype.clearRemoveUnusedFilters = function() {
  */
 proto.gloo.solo.io.GlooOptions.prototype.hasRemoveUnusedFilters = function() {
   return jspb.Message.getField(this, 14) != null;
+};
+
+
+/**
+ * optional string proxy_debug_bind_addr = 15;
+ * @return {string}
+ */
+proto.gloo.solo.io.GlooOptions.prototype.getProxyDebugBindAddr = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 15, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.GlooOptions.prototype.setProxyDebugBindAddr = function(value) {
+  jspb.Message.setProto3StringField(this, 15, value);
 };
 
 

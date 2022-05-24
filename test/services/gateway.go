@@ -183,7 +183,6 @@ func RunGlooGatewayUdsFdsOnPort(runOpts RunGlooGatewayOpts) {
 	glooOpts.ControlPlane.StartGrpcServer = true
 	glooOpts.GatewayControllerEnabled = !what.DisableGateway
 	apiEmitterChan := make(chan struct{})
-
 	// For testing purposes, load the LicensedFeatureProvider with the injected license
 	licensedFeatureProvider := setupLicensedFeatureProvider(licenseState)
 
@@ -308,6 +307,10 @@ func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 8081,
 		}, true),
+		ProxyDebugServer: syncer_setup.NewProxyDebugServer(ctx, grpcServerValidation, &net.TCPAddr{
+			IP:   net.ParseIP("0.0.0.0"),
+			Port: 8081,
+		}, false),
 		KubeClient: kubeclient,
 		DevMode:    true,
 	}

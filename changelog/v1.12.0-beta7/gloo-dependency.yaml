@@ -1,0 +1,9 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.12.0-beta-16
+    issueLink: https://github.com/solo-io/solo-projects/issues/3471
+    description: >
+      Update gloo dependency to pick up recent changes including the grpc endpoint to read proxies when they are not persisted
+      to etcd and a check to ensure that the validation admission webhook is actually started when it is configured in K8s.
