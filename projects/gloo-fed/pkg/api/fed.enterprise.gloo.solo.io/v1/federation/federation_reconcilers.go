@@ -60,6 +60,12 @@ func (f *federatedAuthConfigReconciler) ReconcileFederatedAuthConfig(obj *fed_en
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
+	if obj.Spec.GetPlacement() == nil {
+		obj.Status.PlacementStatus = statusBuilder.
+			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+			Eject(obj.GetGeneration())
+		return reconcile.Result{}, f.federatedAuthConfigs.UpdateFederatedAuthConfigStatus(f.ctx, obj)
+	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
 			obj.Status.PlacementStatus = statusBuilder.

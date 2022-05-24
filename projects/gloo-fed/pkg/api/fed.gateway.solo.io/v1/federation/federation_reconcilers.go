@@ -60,6 +60,12 @@ func (f *federatedGatewayReconciler) ReconcileFederatedGateway(obj *fed_gateway_
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
+	if obj.Spec.GetPlacement() == nil {
+		obj.Status.PlacementStatus = statusBuilder.
+			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+			Eject(obj.GetGeneration())
+		return reconcile.Result{}, f.federatedGateways.UpdateFederatedGatewayStatus(f.ctx, obj)
+	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
 			obj.Status.PlacementStatus = statusBuilder.
@@ -272,6 +278,12 @@ func (f *federatedVirtualServiceReconciler) ReconcileFederatedVirtualService(obj
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
+	if obj.Spec.GetPlacement() == nil {
+		obj.Status.PlacementStatus = statusBuilder.
+			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+			Eject(obj.GetGeneration())
+		return reconcile.Result{}, f.federatedVirtualServices.UpdateFederatedVirtualServiceStatus(f.ctx, obj)
+	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
 			obj.Status.PlacementStatus = statusBuilder.
@@ -484,6 +496,12 @@ func (f *federatedRouteTableReconciler) ReconcileFederatedRouteTable(obj *fed_ga
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
+	if obj.Spec.GetPlacement() == nil {
+		obj.Status.PlacementStatus = statusBuilder.
+			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+			Eject(obj.GetGeneration())
+		return reconcile.Result{}, f.federatedRouteTables.UpdateFederatedRouteTableStatus(f.ctx, obj)
+	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
 			obj.Status.PlacementStatus = statusBuilder.

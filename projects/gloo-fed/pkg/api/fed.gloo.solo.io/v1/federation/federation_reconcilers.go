@@ -60,6 +60,12 @@ func (f *federatedUpstreamReconciler) ReconcileFederatedUpstream(obj *fed_gloo_s
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
+	if obj.Spec.GetPlacement() == nil {
+		obj.Status.PlacementStatus = statusBuilder.
+			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+			Eject(obj.GetGeneration())
+		return reconcile.Result{}, f.federatedUpstreams.UpdateFederatedUpstreamStatus(f.ctx, obj)
+	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
 			obj.Status.PlacementStatus = statusBuilder.
@@ -272,6 +278,12 @@ func (f *federatedUpstreamGroupReconciler) ReconcileFederatedUpstreamGroup(obj *
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
+	if obj.Spec.GetPlacement() == nil {
+		obj.Status.PlacementStatus = statusBuilder.
+			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+			Eject(obj.GetGeneration())
+		return reconcile.Result{}, f.federatedUpstreamGroups.UpdateFederatedUpstreamGroupStatus(f.ctx, obj)
+	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
 			obj.Status.PlacementStatus = statusBuilder.
@@ -484,6 +496,12 @@ func (f *federatedSettingsReconciler) ReconcileFederatedSettings(obj *fed_gloo_s
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
+	if obj.Spec.GetPlacement() == nil {
+		obj.Status.PlacementStatus = statusBuilder.
+			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+			Eject(obj.GetGeneration())
+		return reconcile.Result{}, f.federatedSettings.UpdateFederatedSettingsStatus(f.ctx, obj)
+	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
 			obj.Status.PlacementStatus = statusBuilder.
