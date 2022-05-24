@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"time"
 
+	printer2 "github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/printer"
+
 	"github.com/go-openapi/swag"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/printer"
@@ -234,7 +236,7 @@ func (f *OpenApiFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, 
 		return err
 	}
 	schema := ast.Node(schemaAst)
-	printedSchema := printer.Print(schema).(string)
+	printedSchema := printer2.PrettyPrintKubeString(printer.Print(schema).(string))
 	schemaCrd := &v1beta1.GraphQLApi{
 		Metadata: &core.Metadata{
 			Name:      f.upstream.GetMetadata().GetName(),

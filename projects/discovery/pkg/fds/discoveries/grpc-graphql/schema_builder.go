@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	structpb "github.com/golang/protobuf/ptypes/struct"
@@ -108,21 +109,21 @@ func (sb *SchemaBuilder) CreateGraphqlType(t *desc.FieldDescriptor, CreateObjTyp
 	}
 }
 
-func GetMessageName(t desc.Descriptor) string {
-	if parentMsg, ok := t.GetParent().(*desc.MessageDescriptor); ok {
-		return GetMessageName(parentMsg) + "_" + t.GetName()
-	}
-	return t.GetName()
+func GetFullyQualifiedMessageName(t desc.Descriptor) string {
+	fqdnSlice := strings.Split(t.GetFullyQualifiedName(), ".")
+	return strings.Join(fqdnSlice, "_")
 }
 
 func (sb *SchemaBuilder) CreateOutputMessageType(t *desc.MessageDescriptor) (ast.Definition, string, error) {
-	typeName := GetMessageName(t)
+	typeName := GetFullyQualifiedMessageName(t)
 	if objDef, ok := sb.TypeDefs[typeName]; ok {
 		return objDef, typeName, nil
 	}
 	obj := ast.NewObjectDefinition(&ast.ObjectDefinition{})
 	sb.TypeDefs[typeName] = obj
 	obj.Name = CreateNameType(typeName)
+	obj.Description = ast.NewStringValue(&ast.StringValue{Value: "Created from protobuf type " + t.GetFullyQualifiedName()})
+
 	for _, field := range t.GetFields() {
 		t, _, err := sb.CreateGraphqlType(field, sb.CreateOutputMessageType)
 		if err != nil {
@@ -134,16 +135,28 @@ func (sb *SchemaBuilder) CreateOutputMessageType(t *desc.MessageDescriptor) (ast
 		})
 		obj.Fields = append(obj.Fields, newValDef)
 	}
+	// we can not have empty graphql types, so we need to add a field definition which will not be used.
+	// If queried, this field will always return false.
+	if len(t.GetFields()) == 0 {
+		obj.Fields = []*ast.FieldDefinition{
+			ast.NewFieldDefinition(&ast.FieldDefinition{
+				Name:        CreateNameType("_"),
+				Description: ast.NewStringValue(&ast.StringValue{Value: "This GraphQL type was generated from an empty proto message. This empty field exists to keep the schema GraphQL spec compliant. If queried, this field will always return false."}),
+				Type:        CreateNamedType("Boolean"),
+			}),
+		}
+	}
 	return obj, typeName, nil
 }
 
 func (sb *SchemaBuilder) CreateInputMessageType(inputType *desc.MessageDescriptor) (ast.Definition, string, error) {
-	typeName := GetMessageName(inputType) + "Input"
+	typeName := GetFullyQualifiedMessageName(inputType) + "Input"
 	if def := sb.InputTypeDefs[typeName]; def != nil {
 		return def, typeName, nil
 	}
 	inputObj := ast.NewInputObjectDefinition(&ast.InputObjectDefinition{})
 	sb.InputTypeDefs[typeName] = inputObj
+	inputObj.Description = ast.NewStringValue(&ast.StringValue{Value: "Created from protobuf type " + inputType.GetFullyQualifiedName()})
 	inputObj.Name = CreateNameType(typeName)
 	for _, field := range inputType.GetFields() {
 		t, _, err := sb.CreateGraphqlType(field, sb.CreateInputMessageType)
@@ -156,11 +169,22 @@ func (sb *SchemaBuilder) CreateInputMessageType(inputType *desc.MessageDescripto
 		}
 		inputObj.Fields = append(inputObj.Fields, newInputValDef)
 	}
+	// we can not have empty graphql types, so we need to add a field definition which will not be used.
+	// If queried, this field will always return false.
+	if len(inputType.GetFields()) == 0 {
+		inputObj.Fields = []*ast.InputValueDefinition{
+			ast.NewInputValueDefinition(&ast.InputValueDefinition{
+				Name:        CreateNameType("_"),
+				Description: ast.NewStringValue(&ast.StringValue{Value: "This GraphQL type was generated from an empty proto message. This empty field exists to keep the schema GraphQL spec compliant. If queried, this field will always return false."}),
+				Type:        CreateNamedType("Boolean"),
+			}),
+		}
+	}
 	return inputObj, typeName, nil
 }
 
 func (sb *SchemaBuilder) CreateEnumType(enumType *desc.EnumDescriptor) string {
-	typeName := GetMessageName(enumType)
+	typeName := GetFullyQualifiedMessageName(enumType)
 	if sb.EnumDefs[typeName] != nil {
 		return typeName
 	}

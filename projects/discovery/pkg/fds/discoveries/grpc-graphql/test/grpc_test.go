@@ -114,15 +114,16 @@ service Foo {
 				})
 				It("creates PetRequestInput and PetInput graphql objects", func() {
 					// input types
-					petRequestInputType := getTypeDefinition(doc, true, "PetRequestInput")
+					fmt.Println(printer.Print(doc))
+					petRequestInputType := getTypeDefinition(doc, true, "foo_PetRequestInput")
 					Expect(petRequestInputType).NotTo(BeNil())
-					Expect(getFieldsWithType(petRequestInputType, "pet", "PetInput")).To(BeTrue())
-					petInputType := getTypeDefinition(doc, true, "PetInput")
+					Expect(getFieldsWithType(petRequestInputType, "pet", "foo_PetInput")).To(BeTrue())
+					petInputType := getTypeDefinition(doc, true, "foo_PetInput")
 					Expect(petInputType).NotTo(BeNil())
 					Expect(getFieldsWithType(petInputType, "id", "Int")).To(BeTrue())
 
 					// non input types
-					petType := getTypeDefinition(doc, false, "Pet")
+					petType := getTypeDefinition(doc, false, "foo_Pet")
 					Expect(petType).NotTo(BeNil())
 					Expect(getFieldsWithType(petType, "id", "Int")).To(BeTrue())
 				})
@@ -150,10 +151,10 @@ service Foo {
 				})
 
 				It("creates PetRequestInput and PetInput graphql objects", func() {
-					petRequestInputType := getTypeDefinition(doc, true, "PetRequestInput")
+					petRequestInputType := getTypeDefinition(doc, true, "foo_PetRequestInput")
 					Expect(petRequestInputType).NotTo(BeNil())
-					Expect(getFieldsWithType(petRequestInputType, "pet", "PetRequest_PetInput")).To(BeTrue())
-					petInputType := getTypeDefinition(doc, true, "PetRequest_PetInput")
+					Expect(getFieldsWithType(petRequestInputType, "pet", "foo_PetRequest_PetInput")).To(BeTrue())
+					petInputType := getTypeDefinition(doc, true, "foo_PetRequest_PetInput")
 					Expect(petInputType).NotTo(BeNil())
 					Expect(getFieldsWithType(petInputType, "input_id", "Float")).To(BeTrue())
 				})
@@ -195,12 +196,11 @@ service Foo {
 					return ret
 				}
 				It("creates PetRequestInput and PetInput graphql objects", func() {
-					fmt.Println(printer.Print(doc))
-					petStatusEnum := getEnumDefinition(doc, "Status")
+					petStatusEnum := getEnumDefinition(doc, "foo_Status")
 					Expect(petStatusEnum).NotTo(BeNil())
 					Expect(getEnumValues(petStatusEnum)).To(ContainElements("IN_STORE", "IN_TRANSIT"))
 
-					petStatusEnum2 := getEnumDefinition(doc, "Pet_Status")
+					petStatusEnum2 := getEnumDefinition(doc, "foo_Pet_Status")
 					Expect(petStatusEnum2).NotTo(BeNil())
 					Expect(getEnumValues(petStatusEnum2)).To(ContainElements("AVAILABLE", "SOLD"))
 

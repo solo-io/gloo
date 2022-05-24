@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	printer2 "github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/printer"
+
 	"github.com/hashicorp/go-multierror"
 
 	"github.com/golang/protobuf/proto"
@@ -227,7 +229,7 @@ func (f *GraphqlSchemaDiscovery) BuildGraphQLApiFromGrpcReflection(refClient Grp
 	}
 
 	doc := schemaBuilder.Build()
-	schemaDef := fmt.Sprintf("%s", printer.Print(doc))
+	schemaDef := printer2.PrettyPrintKubeString(printer.Print(doc).(string))
 	d, err := proto.Marshal(descriptors)
 	if err != nil {
 		return nil, errors.Wrap(err, "error marshalling descriptors")

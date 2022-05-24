@@ -1,0 +1,4 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/gloo/issues/6329
+  description: fixes issue where empty arguments are not able to be sent to gRPC upstreams.
