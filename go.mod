@@ -51,6 +51,7 @@ require (
 	github.com/solo-io/k8s-utils v0.1.0
 	github.com/solo-io/licensing v0.1.20
 	github.com/solo-io/protoc-gen-ext v0.0.16
+	github.com/solo-io/protoc-gen-openapi v0.0.1
 	github.com/solo-io/rate-limiter v0.4.6
 	github.com/solo-io/reporting-client v0.2.0
 	github.com/solo-io/skv2 v0.17.19
@@ -66,7 +67,7 @@ require (
 	go.opencensus.io v0.23.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/mod v0.4.2
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/tools v0.1.5
 	google.golang.org/grpc v1.36.0
@@ -74,6 +75,7 @@ require (
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	helm.sh/helm/v3 v3.4.2
+	istio.io/tools v0.0.0-20200918020118-6d0a0e49b5d3
 	k8s.io/api v0.19.7
 	k8s.io/apiextensions-apiserver v0.19.7
 	k8s.io/apimachinery v0.20.1
@@ -104,6 +106,8 @@ replace (
 	// skv2 uses a newer version than the imported solo-kit version which causes issues. Replaces the version with the solo-kit version
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
+	// pin to fix CVE-2022-27191
+	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
 
 	// Lock sys package to fix darwin upgrade issue
 	// https://github.com/helm/chart-releaser/pull/82/files#diff-33ef32bf6c23acb95f5902d7097b7a1d5128ca061167ec0716715b0b9eeaa5f6R41

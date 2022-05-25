@@ -34,13 +34,14 @@ Name|Version|License
 [go.opencensus.io](https://go.opencensus.io)|v0.23.0|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.16.0|MIT License
 [x/mod](https://golang.org/x/mod)|v0.4.2|BSD 3-clause "New" or "Revised" License
-[x/net](https://golang.org/x/net)|v0.0.0-20210614182718-04defd469f4e|BSD 3-clause "New" or "Revised" License
+[x/net](https://golang.org/x/net)|v0.0.0-20211112202133-69e39bad7dc2|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.0.0-20210220032951-036812b2e83c|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
 [google.golang.org/grpc](https://google.golang.org/grpc)|v1.36.0|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.27.1|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.5.1|Apache License 2.0
 [helm/v3](https://helm.sh/helm/v3)|v3.4.2|Apache License 2.0
+[istio.io/tools](https://istio.io/tools)|v0.0.0-20200918020118-6d0a0e49b5d3|Apache License 2.0
 [k8s.io/api](https://k8s.io/api)|v0.19.6|Apache License 2.0
 [k8s.io/apiextensions-apiserver](https://k8s.io/apiextensions-apiserver)|v0.19.6|Apache License 2.0
 [k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.19.6|Apache License 2.0

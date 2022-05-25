@@ -1,4 +1,4 @@
-FROM alpine:3.13.8
+FROM alpine:3.13.10
 
 RUN apk -U upgrade
 COPY gloo-fed-apiserver-linux-amd64 /usr/local/bin/gloo-fed-apiserver

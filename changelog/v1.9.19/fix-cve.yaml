@@ -1,0 +1,13 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: linux
+    dependencyRepo: alpine
+    dependencyTag: 3.13.10
+    description: Fix for CVE-2022-28391, CVE-2018-25032
+    issueLink: https://github.com/solo-io/solo-projects/issues/3669
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang
+    dependencyRepo: crypto
+    dependencyTag: v0.0.0-20220315160706-3147a52a75dd
+    description: Fix for CVE-2022-27191
+    issueLink: https://github.com/solo-io/solo-projects/issues/3669
