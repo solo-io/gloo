@@ -27,7 +27,7 @@ steps:
       git config --global url."ssh://git@github.com/solo-io".insteadOf https://github.com/solo-io
   id: "configure-git"
 
-- name: "golang:1.18.1"
+- name: "golang:1.18.2"
   args: ["go", "env", "-w", "GOPRIVATE=github.com/solo-io"]
   id: "set-private"
 

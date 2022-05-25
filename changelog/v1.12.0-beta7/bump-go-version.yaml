@@ -1,0 +1,11 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Bumped the go version for go.mod
+    dependencyOwner: golang
+    dependencyRepo: go
+    dependencyTag: v1.18.2
+  - type: DEPENDENCY_BUMP
+    description: Bumped the gloo version 
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.12.0-beta16

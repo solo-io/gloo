@@ -15,8 +15,10 @@ UNAME_M ?=$(shell uname -m)
 IMAGE_REPO_DEFAULT_VALUE := quay.io/solo-io
 IMAGE_REPO ?= $(IMAGE_REPO_DEFAULT_VALUE)
 
-GOLANG_VERSION := golang:1.18.1-alpine
-GOBORING_VERSION := us-docker.pkg.dev/google.com/api-project-999119582588/go-boringcrypto/golang:1.18.1b7
+GOLANG_VERSION := golang:1.18.2-alpine
+# https://github.com/golang/go/tree/dev.boringcrypto/misc/boring#building-from-docker
+# repository can be found here https://go-boringcrypto.storage.googleapis.com/
+GOBORING_VERSION := us-docker.pkg.dev/google.com/api-project-999119582588/go-boringcrypto/golang:1.18.2b7
 
 RELEASE := "false"
 ifeq ($(TAGGED_VERSION),)
