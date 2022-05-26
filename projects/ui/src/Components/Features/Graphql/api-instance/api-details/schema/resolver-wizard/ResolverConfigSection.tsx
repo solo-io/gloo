@@ -11,7 +11,7 @@ import {
 } from 'Styles/StyledComponents/button';
 import { Spacer } from 'Styles/StyledComponents/spacer';
 import YAML from 'yaml';
-import WarningMessage from '../../../executable-api/WarningMessage';
+import WarningMessage from '../../executable-api/WarningMessage';
 import { getResolverFromConfig } from './converters';
 import { ResolverWizardFormProps } from './ResolverWizard';
 import * as ResolverWizardStyles from './ResolverWizard.styles';

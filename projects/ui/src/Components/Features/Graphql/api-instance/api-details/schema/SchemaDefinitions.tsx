@@ -1,17 +1,17 @@
 import { Global } from '@emotion/core';
 import { Collapse } from 'antd';
-import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
 import { SoloInput } from 'Components/Common/SoloInput';
 import SoloNoMatches from 'Components/Common/SoloNoMatches';
 import { Kind } from 'graphql';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useEffect, useState } from 'react';
+import { Spacer } from 'Styles/StyledComponents/spacer';
 import {
+  getKindTypeReadableName,
   makeSchemaDefinitionId,
   SupportedDocumentNode,
 } from 'utils/graphql-helpers';
-import { SchemaEnumDefinition } from './enum-definition/SchemaEnumDefinition';
-import { SchemaObjectDefinition } from './object-definition/SchemaObjectDefinition';
+import SchemaDefinitionContent from './SchemaDefinitionContent';
 import { globalStyles } from './SchemaDefinitions.style';
 
 const SchemaDefinitions: React.FC<{
@@ -31,11 +31,13 @@ const SchemaDefinitions: React.FC<{
     if (/type:.*/g.test(lstext)) {
       const processedText = searchText.replaceAll('type:', '');
       schema.definitions.forEach(d => {
-        if (d.name.value === processedText) newSchemaDefinitions.push(d);
+        const name = d.name?.value ?? '';
+        if (name === processedText) newSchemaDefinitions.push(d);
       });
     } else {
       schema.definitions.forEach(d => {
-        if (d.name.value.toLowerCase().includes(lstext)) {
+        const name = d.name?.value ?? '';
+        if (name.toLowerCase().includes(lstext)) {
           newSchemaDefinitions.push(d);
         } else if (d.kind === Kind.ENUM_TYPE_DEFINITION) {
           const newValues = d.values?.filter(v =>
@@ -43,12 +45,42 @@ const SchemaDefinitions: React.FC<{
           );
           if (newValues && newValues.length > 0)
             newSchemaDefinitions.push({ ...d, values: newValues });
-        } else {
-          // d.kind === Kind.OBJECT_TYPE_DEFINITION
-          const newFields = d.fields?.filter(v =>
+        } else if (d.kind === Kind.UNION_TYPE_DEFINITION) {
+          const newTypes = d.types?.filter(v =>
             v.name.value.toLowerCase().includes(lstext)
           );
-          if (newFields && newFields.length > 0)
+          if (newTypes && newTypes.length > 0)
+            newSchemaDefinitions.push({ ...d, types: newTypes });
+        } else if (d.kind === Kind.OPERATION_DEFINITION) {
+          const newSelections = d.selectionSet.selections.filter(s => {
+            if (
+              s.kind === Kind.FIELD &&
+              !s.name.value.toLowerCase().includes(lstext)
+            )
+              return false;
+            return true;
+          });
+          if (newSelections && newSelections.length > 0)
+            newSchemaDefinitions.push({
+              ...d,
+              selectionSet: {
+                ...d.selectionSet,
+                selections: newSelections,
+              },
+            });
+        } else if (d.kind === Kind.DIRECTIVE_DEFINITION) {
+          const newArgs = [] as any[];
+          d.arguments?.forEach(a => {
+            if (a.name.value.toLowerCase().includes(lstext)) newArgs.push(a);
+          });
+          if (newArgs.length > 0)
+            newSchemaDefinitions.push({ ...d, arguments: newArgs });
+        } else {
+          const newFields = [] as any[];
+          d.fields?.forEach(f => {
+            if (f.name.value.toLowerCase().includes(lstext)) newFields.push(f);
+          });
+          if (newFields.length > 0)
             newSchemaDefinitions.push({ ...d, fields: newFields });
         }
       });
@@ -101,25 +133,21 @@ const SchemaDefinitions: React.FC<{
                 id={definitionId}
                 header={
                   <div className='inline font-medium text-gray-900 whitespace-nowrap'>
-                    <GraphQLIcon className='w-4 h-4 fill-current inline' />
-                    &nbsp;&nbsp;
-                    {d.name.value}
+                    <Spacer className='inline-block text-gray-600'>
+                      {getKindTypeReadableName(d)}&nbsp;
+                    </Spacer>
+                    <div className='inline-block'>
+                      {d.kind === Kind.DIRECTIVE_DEFINITION && '@'}
+                      {d.name?.value ?? ''}
+                    </div>
                   </div>
                 }>
-                {d.kind === Kind.ENUM_TYPE_DEFINITION ? (
-                  <SchemaEnumDefinition
-                    resolverType={d.name.value}
-                    values={d.values ?? []}
-                  />
-                ) : (
-                  <SchemaObjectDefinition
-                    apiRef={apiRef}
-                    schema={schema}
-                    objectTypeDefinition={d}
-                    onReturnTypeClicked={t => setSearchText(`type:${t}`)}
-                    isEditable={isEditable}
-                  />
-                )}
+                <SchemaDefinitionContent
+                  isEditable={isEditable}
+                  schema={schema}
+                  node={d}
+                  onReturnTypeClicked={t => setSearchText(`type:${t}`)}
+                />
               </Collapse.Panel>
             );
           })}

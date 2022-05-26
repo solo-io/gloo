@@ -48,7 +48,7 @@ const StitchedGqlTypeMergeFieldDropdown: React.FC<{
   const availableTypes = useMemo(() => {
     if (!subSchemaDefinitions) return [];
     return subSchemaDefinitions
-      .map(d => d.name.value)
+      .map(d => d.name?.value ?? '')
       .filter(
         d =>
           // "Query" and "Mutation" are special types:

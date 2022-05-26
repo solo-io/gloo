@@ -4,7 +4,7 @@ import {
   gqlJsonRoot,
   postUnmarshallProtoValues,
   preMarshallProtoValues,
-} from '../../../schema/object-definition/resolver-wizard/converters';
+} from '../../../schema/resolver-wizard/converters';
 
 export type ParsedTypeMergeMap = [
   string,

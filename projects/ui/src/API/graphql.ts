@@ -1,5 +1,5 @@
 import { grpc } from '@improbable-eng/grpc-web';
-import { ResolverType } from 'Components/Features/Graphql/api-instance/api-details/schema/object-definition/resolver-wizard/ResolverWizard';
+import { ResolverType } from 'Components/Features/Graphql/api-instance/api-details/schema/resolver-wizard/ResolverWizard';
 import { Duration } from 'google-protobuf/google/protobuf/duration_pb';
 import { Value } from 'google-protobuf/google/protobuf/struct_pb';
 import {

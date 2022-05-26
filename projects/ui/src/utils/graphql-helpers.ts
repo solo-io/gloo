@@ -1,10 +1,16 @@
 import {
+  DirectiveDefinitionNode,
   DocumentNode,
   EnumTypeDefinitionNode,
   FieldDefinitionNode,
+  InputObjectTypeDefinitionNode,
+  InterfaceTypeDefinitionNode,
   Kind,
   ObjectTypeDefinitionNode,
+  OperationDefinitionNode,
   parse,
+  TypeNode,
+  UnionTypeDefinitionNode,
 } from 'graphql';
 import lodash from 'lodash';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
@@ -26,8 +32,12 @@ export function isElementInView(el: HTMLElement | null) {
 
 export const makeSchemaDefinitionId = (
   apiRef: ClusterObjectRef.AsObject,
-  d: { name: { value: string } }
-) => `${apiRef.namespace}-${apiRef.name}-${d.name.value.replace(/-|\s/g, '_')}`;
+  d: SupportedDefinitionNode
+) => {
+  let name = d.kind + ':';
+  if (d.name) name += d.name.value;
+  return `${apiRef.namespace}-${apiRef.name}-${name.replace(/-|\s/g, '_')}`;
+};
 
 export const isExecutableAPI = (graphqlApi: GraphqlApi.AsObject) =>
   !!graphqlApi.spec?.executableSchema || !!(graphqlApi as any)?.executable;
@@ -61,11 +71,76 @@ export const makeGraphqlApiRef = (api: GraphqlApi.AsObject) => ({
 });
 
 export type SupportedDefinitionNode =
+  | InterfaceTypeDefinitionNode
   | ObjectTypeDefinitionNode
-  | EnumTypeDefinitionNode;
+  | EnumTypeDefinitionNode
+  | InputObjectTypeDefinitionNode
+  | UnionTypeDefinitionNode
+  | OperationDefinitionNode
+  | DirectiveDefinitionNode;
 export interface SupportedDocumentNode extends DocumentNode {
   definitions: SupportedDefinitionNode[];
 }
+
+export const getKindTypeReadableName = (
+  definitionNode: SupportedDefinitionNode
+) => {
+  switch (definitionNode.kind) {
+    case Kind.OBJECT_TYPE_DEFINITION:
+      // return 'Object';
+      return 'type';
+    case Kind.ENUM_TYPE_DEFINITION:
+      return 'enum';
+    case Kind.INTERFACE_TYPE_DEFINITION:
+      return 'interface';
+    case Kind.INPUT_OBJECT_TYPE_DEFINITION:
+      return 'input';
+    case Kind.DIRECTIVE_DEFINITION:
+      return 'directive';
+    case Kind.UNION_TYPE_DEFINITION:
+      return 'union';
+    case Kind.OPERATION_DEFINITION:
+      // return lodash.capitalize(definitionNode.operation);
+      return definitionNode.operation;
+    default:
+      return '';
+  }
+};
+
+export const kindTypeSort = (
+  a: SupportedDefinitionNode,
+  b: SupportedDefinitionNode
+) => {
+  // - Objects
+  const isAObjType = a.kind === Kind.OBJECT_TYPE_DEFINITION;
+  const isBObjType = b.kind === Kind.OBJECT_TYPE_DEFINITION;
+  if (isAObjType && a.name.value === 'Query') return -1;
+  if (isBObjType && b.name.value === 'Query') return 1;
+  if (isAObjType && a.name.value === 'Mutation') return -1;
+  if (isBObjType && b.name.value === 'Mutation') return 1;
+  if (isAObjType) return -1;
+  if (isBObjType) return 1;
+  // - Enums
+  if (a.kind === Kind.ENUM_TYPE_DEFINITION) return -1;
+  if (b.kind === Kind.ENUM_TYPE_DEFINITION) return 1;
+  // - Interfaces
+  if (a.kind === Kind.INTERFACE_TYPE_DEFINITION) return -1;
+  if (b.kind === Kind.INTERFACE_TYPE_DEFINITION) return 1;
+  // - Inputs
+  if (a.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION) return -1;
+  if (b.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION) return 1;
+  // - Directives
+  if (a.kind === Kind.DIRECTIVE_DEFINITION) return -1;
+  if (b.kind === Kind.DIRECTIVE_DEFINITION) return 1;
+  // - Unions
+  if (a.kind === Kind.UNION_TYPE_DEFINITION) return -1;
+  if (b.kind === Kind.UNION_TYPE_DEFINITION) return 1;
+  // - Subscriptions
+  if (a.kind === Kind.OPERATION_DEFINITION) return -1;
+  if (b.kind === Kind.OPERATION_DEFINITION) return 1;
+  else return 0;
+};
+
 /**
  *
  * @param api
@@ -75,6 +150,7 @@ export interface SupportedDocumentNode extends DocumentNode {
 export const getParsedExecutableApiSchema = (
   api: GraphqlApi.AsObject | undefined
 ) => parseSchemaString(api?.spec?.executableSchema?.schemaDefinition);
+
 /**
  *
  * @param schemaString
@@ -94,23 +170,17 @@ export const parseSchemaString = (schemaString: string | undefined) => {
     const definitions = lodash.cloneDeep(
       parsedSchema.definitions.filter(
         d =>
+          d.kind === Kind.INTERFACE_TYPE_DEFINITION ||
           d.kind === Kind.ENUM_TYPE_DEFINITION ||
-          d.kind === Kind.OBJECT_TYPE_DEFINITION
+          d.kind === Kind.OBJECT_TYPE_DEFINITION ||
+          d.kind === Kind.INPUT_OBJECT_TYPE_DEFINITION ||
+          d.kind === Kind.DIRECTIVE_DEFINITION ||
+          d.kind === Kind.UNION_TYPE_DEFINITION ||
+          d.kind === Kind.OPERATION_DEFINITION
       )
     ) as SupportedDefinitionNode[];
-    // ? Uncomment this push(...mockEnumDefinitions) line for testing enums:
-    // definitions.push(...mockEnumDefinitions);
     // We can sort the definitions here, and any filtering will keep it sorted.
-    // "Query" and "Mutation" are special types:
-    // https://graphql.org/learn/schema/#the-query-and-mutation-types
-    definitions.sort((a, b) => {
-      // Ordering: Query, mutation, Everything else.
-      if (a.name.value === 'Query') return -1;
-      else if (b.name.value === 'Query') return 1;
-      if (a.name.value === 'Mutation') return -1;
-      else if (b.name.value === 'Mutation') return 1;
-      else return 0;
-    });
+    definitions.sort(kindTypeSort);
     return { ...parsedSchema, definitions };
   } catch (_) {
     return emptySchema;
@@ -241,7 +311,7 @@ export const getUpstreamRef = (resolution: Resolution.AsObject | undefined) =>
  * @returns [prefix, base-type, suffix]
  */
 export const getFieldReturnType = (
-  field: FieldDefinitionNode | undefined | null
+  field: FieldDefinitionNode | undefined | null | TypeNode
 ) => {
   const emptyType = {
     fullType: '',
@@ -254,7 +324,7 @@ export const getFieldReturnType = (
   if (!field) return emptyType;
   let typePrefix = '';
   let typeSuffix = '';
-  let typeBaseObj = field.type;
+  let typeBaseObj = 'type' in field ? field.type : (field as any);
   // The fieldDefinition could be nested.
   while (true) {
     if (typeBaseObj?.kind === Kind.NON_NULL_TYPE) {
@@ -272,6 +342,18 @@ export const getFieldReturnType = (
         prefix: typePrefix,
         base: typeBaseObj.name.value,
         suffix: typeSuffix,
+      },
+    };
+  else if (
+    typeBaseObj.kind === Kind.ARGUMENT &&
+    typeBaseObj.value.kind === Kind.VARIABLE
+  )
+    return {
+      fullType: '$' + typeBaseObj.value.name.value,
+      parts: {
+        prefix: '$',
+        base: typeBaseObj.value.name.value,
+        suffix: '',
       },
     };
   else return emptyType;

@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Adds UI support for viewing various GraphQL types on the API details page.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3628

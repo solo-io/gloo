@@ -62,7 +62,6 @@
     "react-router": "^6.0.0-alpha.4",
     "react-router-dom": "^6.0.0-alpha.4",
     "react-scripts": "5.0.0",
-    "react-virtual": "^2.10.4",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
     "swr": "^1.1.2",
