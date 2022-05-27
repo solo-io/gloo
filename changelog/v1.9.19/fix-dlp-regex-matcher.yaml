@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    description: |
+      Fix a bug that would cause Envoy config to be rejected when `DlpRule.Matcher` is set with a regex `PathSpecifier`
+    issueLink: https://github.com/solo-io/gloo/issues/6199
+    resolvesIssue: true

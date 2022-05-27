@@ -29,7 +29,7 @@ make init
 
 You can use the following command to build all Gloo Edge Enterprise Docker images:
 ```bash
-TAGGED_VERSION=<VERSION> IMAGE_REPO=`quay.io/solo-io` make docker
+TAGGED_VERSION=<VERSION> IMAGE_REPO='quay.io/solo-io' make docker
 ```
 
 The following variables can be set to affect the output:
@@ -61,17 +61,17 @@ The `docker` make target will build the following images:
 ### Notes:
  - You will need the gcr.io/gloo-ee/envoy-gloo-ee Docker image in order to build the gloo-ee and gloo-ee-envoy-wrapper images
    - You can set the `ENVOY_GLOO_IMAGE` environment variable to `gcr.io/gloo-ee/envoy-gloo-ee:<tag>` to point to a locally tagged version of this image
-   - Ex: `TAGGED_VERSION=<VERSION> IMAGE_REPO=`quay.io/solo-io` ENVOY_GLOO_IMAGE=gcr.io/gloo-ee/envoy-gloo-ee:1.19.0-patch4 make docker`
+   - Ex: `TAGGED_VERSION=<VERSION> IMAGE_REPO='quay.io/solo-io' ENVOY_GLOO_IMAGE=gcr.io/gloo-ee/envoy-gloo-ee:1.19.0-patch4 make docker`
  - You will need the gcr.io/gloo-ee/envoy-gloo-ee-fips Docker image in order to build the gloo-ee-fips and gloo-ee-envoy-wrapper-fips images
    - You can set the `ENVOY_GLOO_FIPS_IMAGE` environment variable to `gcr.io/gloo-ee/envoy-gloo-ee-fips:<tag>` to point to a locally tagged version of this image
-   - Ex: `TAGGED_VERSION=<VERSION> IMAGE_REPO=`quay.io/solo-io` ENVOY_GLOO_FIPS_IMAGE=gcr.io/gloo-ee/envoy-gloo-ee-fips:1.19.0-patch4 make docker`
+   - Ex: `TAGGED_VERSION=<VERSION> IMAGE_REPO='quay.io/solo-io' ENVOY_GLOO_FIPS_IMAGE=gcr.io/gloo-ee/envoy-gloo-ee-fips:1.19.0-patch4 make docker`
  - `make docker` attempts to build all of the images listed above, and will stop execution if any of the images fails to build. You can prevent this behavior by calling `make` with the `-i` flag, which will build as many images as possible, even if some fail.
 
 ## Pushing Docker Images
 
 You can use the following command to push all Gloo Edge Enterprise Docker images to the repository specified by `IMAGE_REPO`:
 ```bash
-TAGGED_VERSION=<VERSION> IMAGE_REPO=`quay.io/solo-io` make docker-push
+TAGGED_VERSION=<VERSION> IMAGE_REPO='quay.io/solo-io' make docker-push
 ```
  - Please note that the above command will have no effect if `TAGGED_VERSION` is not explicitly set
  - You should run the prior `make docker` step with the same values of `TAGGED_VERSION` and `IMAGE_REPO` set in order to ensure that the proper images are pushed
@@ -85,7 +85,7 @@ TAGGED_VERSION=<VERSION> IMAGE_REPO=`quay.io/solo-io` make docker-push
 
 If using a [Kind](https://kind.sigs.k8s.io/) Cluster for development or local testing, you can sidestep pushing your Docker images to a remote repository. Instead, use the following command to load local images directly into the repository:
 ```bash
-CLUSTER_NAME=<CLUSTER NAME> TAGGED_VERSION=<VERSION> IMAGE_REPO=`quay.io/solo-io` make push-kind-images
+CLUSTER_NAME=<CLUSTER NAME> TAGGED_VERSION=<VERSION> IMAGE_REPO='quay.io/solo-io' make push-kind-images
 ```
 
 Where `CLUSTER_NAME` is set to the name of the Kind cluster, and `TAGGED_VERSION` and `IMAGE_REPO` are set to the values used during the prior `make docker` step.
@@ -94,7 +94,7 @@ Where `CLUSTER_NAME` is set to the name of the Kind cluster, and `TAGGED_VERSION
 
 You can use the following command to build helm charts for Gloo Edge Enterprise and Gloo Fed which reference the images built in the previous steps:
 ```bash
-TAGGED_VERSION=<VERSION> IMAGE_REPO=`quay.io/solo-io` make build-test-chart
+TAGGED_VERSION=<VERSION> IMAGE_REPO='quay.io/solo-io' make build-test-chart
 ```
 
 Where `TAGGED_VERSION` and `IMAGE_REPO` are set to the values used during the prior `make docker` and `make docker-push` steps.

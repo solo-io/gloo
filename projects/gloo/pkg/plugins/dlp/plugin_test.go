@@ -7,7 +7,6 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/pkg/utils/api_conversion"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
@@ -267,8 +266,44 @@ var _ = Describe("dlp plugin", func() {
 					Expect(filterDlp.GetResponseTransformation().GetDlpTransformation()).NotTo(BeNil())
 					checkAllDefaultActions(dlpRule.GetActions(), filterDlp.GetResponseTransformation().GetDlpTransformation())
 					mAll := translator.GlooMatcherToEnvoyMatcher(params.Ctx, matchAll)
-					expected := api_conversion.ToGlooRouteMatch(&mAll)
-					Expect(*(rule.GetMatch())).To(Equal(*expected))
+					expected := toGlooRouteMatch(&mAll)
+					Expect(rule.GetMatch()).To(BeNil())
+					Expect(*(rule.GetMatchV3())).To(Equal(*expected))
+				})
+			})
+
+			Context("default filters with regex matcher", func() {
+				matchRegex := &matchers.Matcher{
+					PathSpecifier: &matchers.Matcher_Regex{
+						Regex: "foo",
+					},
+				}
+
+				BeforeEach(func() {
+					dlpRule = &dlp.DlpRule{
+						Matcher: matchRegex,
+						Actions: nil,
+					}
+					dlpRule.Actions = make([]*dlp.Action, 0, len(transformMap))
+					for key := range transformMap {
+						dlpRule.Actions = append(dlpRule.Actions, &dlp.Action{
+							ActionType: key,
+						})
+					}
+					dlpListener = &dlp.FilterConfig{
+						DlpRules: []*dlp.DlpRule{dlpRule},
+					}
+				})
+
+				It("can create the proper filled http filters", func() {
+					rule := checkListenerFilter()
+					filterDlp := rule.GetRouteTransformations()
+					Expect(filterDlp.GetResponseTransformation().GetDlpTransformation()).NotTo(BeNil())
+					checkAllDefaultActions(dlpRule.GetActions(), filterDlp.GetResponseTransformation().GetDlpTransformation())
+					mRegex := translator.GlooMatcherToEnvoyMatcher(params.Ctx, matchRegex)
+					expected := toGlooRouteMatch(&mRegex)
+					Expect(rule.GetMatch()).To(BeNil())
+					Expect(*(rule.GetMatchV3())).To(Equal(*expected))
 				})
 			})
 
@@ -340,8 +375,9 @@ var _ = Describe("dlp plugin", func() {
 
 					Expect(filterDlp.GetResponseTransformation().GetDlpTransformation()).To(BeNil())
 					mAll := translator.GlooMatcherToEnvoyMatcher(params.Ctx, matchAll)
-					expected := api_conversion.ToGlooRouteMatch(&mAll)
-					Expect(*(rule.GetMatch())).To(Equal(*expected))
+					expected := toGlooRouteMatch(&mAll)
+					Expect(rule.GetMatch()).To(BeNil())
+					Expect(*(rule.GetMatchV3())).To(Equal(*expected))
 				})
 			})
 
@@ -376,8 +412,9 @@ var _ = Describe("dlp plugin", func() {
 					Expect(filterDlp.GetResponseTransformation().GetDlpTransformation().GetEnableDynamicMetadataTransformation()).To(BeFalse())
 					checkAllDefaultActions(dlpRule.GetActions(), filterDlp.GetResponseTransformation().GetDlpTransformation())
 					mAll := translator.GlooMatcherToEnvoyMatcher(params.Ctx, matchAll)
-					expected := api_conversion.ToGlooRouteMatch(&mAll)
-					Expect(*(rule.GetMatch())).To(Equal(*expected))
+					expected := toGlooRouteMatch(&mAll)
+					Expect(rule.GetMatch()).To(BeNil())
+					Expect(*(rule.GetMatchV3())).To(Equal(*expected))
 				})
 			})
 
