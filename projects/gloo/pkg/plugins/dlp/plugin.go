@@ -3,11 +3,17 @@ package dlp
 import (
 	"context"
 
+	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	envoy_type_v3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
+
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
-	"github.com/solo-io/gloo/pkg/utils/api_conversion"
+	core_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
+	route_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/route/v3"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
+	matcher_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
+	type_v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/v3"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -30,8 +36,8 @@ const (
 )
 
 var (
-	// Dlp will be executed last, but before logging,
-	// so as to sanitize any logs.
+	// Dlp should happen before any code is run.
+	// And before waf to sanitize for logs.
 	filterStage = plugins.BeforeStage(plugins.WafStage)
 )
 
@@ -138,7 +144,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		}
 		routeTransformations := &transformation_ee.RouteTransformations{}
 		rules := &transformation_ee.TransformationRule{
-			Match:                api_conversion.ToGlooRouteMatch(&envoyMatcher),
+			MatchV3:              toGlooRouteMatch(&envoyMatcher),
 			RouteTransformations: routeTransformations,
 		}
 
@@ -259,4 +265,183 @@ func removeDuplicates(ctx context.Context, dlpActions []*transformation_ee.Actio
 		}
 	}
 	return result
+}
+
+// Converts between Envoy and Gloo/solokit versions of envoy protos
+func toGlooRouteMatch(routeMatch *envoy_config_route_v3.RouteMatch) *route_v3.RouteMatch {
+	if routeMatch == nil {
+		return nil
+	}
+	rm := &route_v3.RouteMatch{
+		PathSpecifier:   nil, // gets set later in function
+		CaseSensitive:   routeMatch.GetCaseSensitive(),
+		RuntimeFraction: toGlooRuntimeFractionalPercent(routeMatch.GetRuntimeFraction()),
+		Headers:         toGlooHeaders(routeMatch.GetHeaders()),
+		QueryParameters: toGlooQueryParameterMatchers(routeMatch.GetQueryParameters()),
+		Grpc:            toGlooGrpc(routeMatch.GetGrpc()),
+	}
+	switch typed := routeMatch.GetPathSpecifier().(type) {
+	case *envoy_config_route_v3.RouteMatch_Prefix:
+		rm.PathSpecifier = &route_v3.RouteMatch_Prefix{
+			Prefix: typed.Prefix,
+		}
+	case *envoy_config_route_v3.RouteMatch_SafeRegex:
+		rm.PathSpecifier = &route_v3.RouteMatch_SafeRegex{
+			SafeRegex: &matcher_v3.RegexMatcher{
+				EngineType: &matcher_v3.RegexMatcher_GoogleRe2{
+					GoogleRe2: &matcher_v3.RegexMatcher_GoogleRE2{},
+				},
+				Regex: typed.SafeRegex.GetRegex(),
+			},
+		}
+	case *envoy_config_route_v3.RouteMatch_Path:
+		rm.PathSpecifier = &route_v3.RouteMatch_Path{
+			Path: typed.Path,
+		}
+	}
+	return rm
+}
+
+func toGlooRuntimeFractionalPercent(fp *envoy_config_core_v3.RuntimeFractionalPercent) *core_v3.RuntimeFractionalPercent {
+	if fp == nil {
+		return nil
+	}
+	return &core_v3.RuntimeFractionalPercent{
+		DefaultValue: toGlooFractionalPercent(fp.GetDefaultValue()),
+		RuntimeKey:   fp.GetRuntimeKey(),
+	}
+}
+
+func toGlooFractionalPercent(fp *envoy_type_v3.FractionalPercent) *type_v3.FractionalPercent {
+	if fp == nil {
+		return nil
+	}
+	glooFp := &type_v3.FractionalPercent{
+		Numerator:   fp.GetNumerator(),
+		Denominator: type_v3.FractionalPercent_HUNDRED, // gets set later in function
+	}
+	switch str := fp.GetDenominator().String(); str {
+	case envoy_type_v3.FractionalPercent_DenominatorType_name[int32(envoy_type_v3.FractionalPercent_HUNDRED)]:
+		glooFp.Denominator = type_v3.FractionalPercent_HUNDRED
+	case envoy_type_v3.FractionalPercent_DenominatorType_name[int32(envoy_type_v3.FractionalPercent_TEN_THOUSAND)]:
+		glooFp.Denominator = type_v3.FractionalPercent_TEN_THOUSAND
+	case envoy_type_v3.FractionalPercent_DenominatorType_name[int32(envoy_type_v3.FractionalPercent_MILLION)]:
+		glooFp.Denominator = type_v3.FractionalPercent_MILLION
+	}
+	return glooFp
+}
+
+func toGlooHeaders(headers []*envoy_config_route_v3.HeaderMatcher) []*route_v3.HeaderMatcher {
+	if headers == nil {
+		return nil
+	}
+	result := make([]*route_v3.HeaderMatcher, len(headers))
+	for i, v := range headers {
+		result[i] = toGlooHeader(v)
+	}
+	return result
+}
+
+func toGlooHeader(header *envoy_config_route_v3.HeaderMatcher) *route_v3.HeaderMatcher {
+	if header == nil {
+		return nil
+	}
+	h := &route_v3.HeaderMatcher{
+		Name:                 header.GetName(),
+		HeaderMatchSpecifier: nil, // gets set later in function
+		InvertMatch:          header.GetInvertMatch(),
+	}
+	switch specificHeaderSpecifier := header.GetHeaderMatchSpecifier().(type) {
+	case *envoy_config_route_v3.HeaderMatcher_ExactMatch:
+		h.HeaderMatchSpecifier = &route_v3.HeaderMatcher_ExactMatch{
+			ExactMatch: specificHeaderSpecifier.ExactMatch,
+		}
+	case *envoy_config_route_v3.HeaderMatcher_SafeRegexMatch:
+		h.HeaderMatchSpecifier = &route_v3.HeaderMatcher_SafeRegexMatch{
+			SafeRegexMatch: &matcher_v3.RegexMatcher{
+				EngineType: &matcher_v3.RegexMatcher_GoogleRe2{
+					GoogleRe2: &matcher_v3.RegexMatcher_GoogleRE2{},
+				},
+				Regex: specificHeaderSpecifier.SafeRegexMatch.GetRegex(),
+			},
+		}
+	case *envoy_config_route_v3.HeaderMatcher_RangeMatch:
+		h.HeaderMatchSpecifier = &route_v3.HeaderMatcher_RangeMatch{
+			RangeMatch: &type_v3.Int64Range{
+				Start: specificHeaderSpecifier.RangeMatch.GetStart(),
+				End:   specificHeaderSpecifier.RangeMatch.GetEnd(),
+			},
+		}
+	case *envoy_config_route_v3.HeaderMatcher_PresentMatch:
+		h.HeaderMatchSpecifier = &route_v3.HeaderMatcher_PresentMatch{
+			PresentMatch: specificHeaderSpecifier.PresentMatch,
+		}
+	case *envoy_config_route_v3.HeaderMatcher_PrefixMatch:
+		h.HeaderMatchSpecifier = &route_v3.HeaderMatcher_PrefixMatch{
+			PrefixMatch: specificHeaderSpecifier.PrefixMatch,
+		}
+	case *envoy_config_route_v3.HeaderMatcher_SuffixMatch:
+		h.HeaderMatchSpecifier = &route_v3.HeaderMatcher_SuffixMatch{
+			SuffixMatch: specificHeaderSpecifier.SuffixMatch,
+		}
+	}
+	return h
+}
+
+func toGlooQueryParameterMatchers(queryParamMatchers []*envoy_config_route_v3.QueryParameterMatcher) []*route_v3.QueryParameterMatcher {
+	if queryParamMatchers == nil {
+		return nil
+	}
+	result := make([]*route_v3.QueryParameterMatcher, len(queryParamMatchers))
+	for i, v := range queryParamMatchers {
+		result[i] = toGlooQueryParameterMatcher(v)
+	}
+	return result
+}
+
+func toGlooQueryParameterMatcher(queryParamMatcher *envoy_config_route_v3.QueryParameterMatcher) *route_v3.QueryParameterMatcher {
+	if queryParamMatcher == nil {
+		return nil
+	}
+	qpm := &route_v3.QueryParameterMatcher{
+		Name: queryParamMatcher.GetName(),
+	}
+	switch {
+	case queryParamMatcher.GetPresentMatch():
+		qpm.QueryParameterMatchSpecifier = &route_v3.QueryParameterMatcher_PresentMatch{
+			PresentMatch: true,
+		}
+	case queryParamMatcher.GetStringMatch().GetExact() != "":
+		qpm.QueryParameterMatchSpecifier = &route_v3.QueryParameterMatcher_StringMatch{
+			StringMatch: &matcher_v3.StringMatcher{
+				MatchPattern: &matcher_v3.StringMatcher_Exact{
+					Exact: queryParamMatcher.GetStringMatch().GetExact(),
+				},
+			},
+		}
+	case queryParamMatcher.GetStringMatch().GetSafeRegex() != nil:
+		qpm.QueryParameterMatchSpecifier = &route_v3.QueryParameterMatcher_StringMatch{
+			StringMatch: &matcher_v3.StringMatcher{
+				MatchPattern: &matcher_v3.StringMatcher_SafeRegex{
+					SafeRegex: &matcher_v3.RegexMatcher{
+						EngineType: &matcher_v3.RegexMatcher_GoogleRe2{
+							GoogleRe2: &matcher_v3.RegexMatcher_GoogleRE2{},
+						},
+						Regex: queryParamMatcher.GetStringMatch().GetSafeRegex().GetRegex(),
+					},
+				},
+			},
+		}
+	}
+
+	return qpm
+}
+
+func toGlooGrpc(grpc *envoy_config_route_v3.RouteMatch_GrpcRouteMatchOptions) *route_v3.RouteMatch_GrpcRouteMatchOptions {
+	if grpc == nil {
+		return nil
+	}
+	return &route_v3.RouteMatch_GrpcRouteMatchOptions{
+		// envoy currently doesn't support any options
+	}
 }

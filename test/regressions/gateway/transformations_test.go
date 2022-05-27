@@ -50,6 +50,8 @@ var _ = Describe("dlp tests", func() {
 		virtualServiceClient v1.VirtualServiceClient
 
 		httpEcho helper.TestRunner
+
+		preservedGateway *v1.Gateway
 	)
 
 	BeforeEach(func() {
@@ -82,6 +84,11 @@ var _ = Describe("dlp tests", func() {
 		err = httpEcho.Deploy(2 * time.Minute)
 		Expect(err).NotTo(HaveOccurred())
 
+		// the gateway may be modified during the test, so we retrieve it beforehand and return it to the previous state after
+		preservedGateway, err = gatewayClient.Read(testHelper.InstallNamespace, defaults.DefaultGateway(testHelper.InstallNamespace).GetMetadata().GetName(), clients.ReadOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		preservedGateway.Metadata.ResourceVersion = ""
+
 		// bounce envoy, get a clean state (draining listener can break this test). see https://github.com/solo-io/solo-projects/issues/2921 for more.
 		out, err := services.KubectlOut(strings.Split("rollout restart -n "+testHelper.InstallNamespace+" deploy/gateway-proxy", " ")...)
 		fmt.Println(out)
@@ -95,6 +102,13 @@ var _ = Describe("dlp tests", func() {
 		regressions.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 		err := httpEcho.Terminate()
 		Expect(err).NotTo(HaveOccurred())
+
+		// return the gateway to previous state, deleting previous gateway to avoid resource version conflict
+		err = gatewayClient.Delete(testHelper.InstallNamespace, preservedGateway.Metadata.GetName(), clients.DeleteOpts{IgnoreNotExist: true})
+		Expect(err).NotTo(HaveOccurred())
+		_, err = gatewayClient.Write(preservedGateway, clients.WriteOpts{OverwriteExisting: true})
+		Expect(err).NotTo(HaveOccurred())
+
 		// Delete http echo service
 		err = testutils.Kubectl("delete", "service", "-n", testHelper.InstallNamespace, helper.HttpEchoName, "--grace-period=0")
 		Expect(err).NotTo(HaveOccurred())
@@ -109,13 +123,13 @@ var _ = Describe("dlp tests", func() {
 		}, "15s", "0.5s").Should(Not(BeNil()))
 	}
 
-	checkConnection := func(body string) {
+	checkConnection := func(path, body string) {
 		waitForGateway()
 
 		gatewayPort := 80
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
-			Path:              regressions.TestMatcherPrefix,
+			Path:              path,
 			Method:            "GET",
 			Headers:           map[string]string{"hello": "world"},
 			Host:              defaults.GatewayProxyName,
@@ -155,7 +169,60 @@ var _ = Describe("dlp tests", func() {
 				Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
 			}
 			regressions.WriteCustomVirtualService(ctx, 1, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil, httpEchoRef, regressions.TestMatcherPrefix)
-			checkConnection(`"YYYlo":"YYYld"`)
+			checkConnection(regressions.TestMatcherPrefix, `"YYYlo":"YYYld"`)
+		})
+
+		It("will only apply to matched routes on gateway-level dlp option", func() {
+			unmatchedPath := "/unmatched"
+			gateway, err := gatewayClient.Read(testHelper.InstallNamespace, defaults.DefaultGateway(testHelper.InstallNamespace).GetMetadata().GetName(), clients.ReadOpts{})
+			Expect(err).NotTo(HaveOccurred())
+			gateway.GatewayType = &v1.Gateway_HttpGateway{
+				HttpGateway: &v1.HttpGateway{
+					Options: &gloov1.HttpListenerOptions{
+						Dlp: &dlp.FilterConfig{
+							DlpRules: []*dlp.DlpRule{
+								{
+									Matcher: &matchers.Matcher{
+										PathSpecifier: &matchers.Matcher_Regex{
+											Regex: "\\/t.*t",
+										},
+									},
+									Actions: []*dlp.Action{
+										{
+											ActionType: dlp.Action_CUSTOM,
+											CustomAction: &dlp.CustomAction{
+												Name:     "test",
+												Regex:    []string{"hello", "world"},
+												MaskChar: "Y",
+												Percent: &envoy_type.Percent{
+													Value: 60,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			_, err = gatewayClient.Write(gateway, clients.WriteOpts{OverwriteExisting: true})
+			Expect(err).NotTo(HaveOccurred())
+
+			httpEchoRef := &core.ResourceRef{
+				Namespace: testHelper.InstallNamespace,
+				Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, helper.HttpEchoName, helper.HttpEchoPort),
+			}
+
+			// we expect DLP to apply when requesting a path, /test, that matches the matcher in the DlpRule
+			regressions.WriteCustomVirtualService(ctx, 1, testHelper, virtualServiceClient, nil, nil, nil, httpEchoRef, regressions.TestMatcherPrefix)
+			checkConnection(regressions.TestMatcherPrefix, `"YYYlo":"YYYld"`)
+
+			// we do not expect DLP to apply when requesting a path, /unmatched, that does not match the matcher in the DlpRule
+			regressions.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+			regressions.WriteCustomVirtualService(ctx, 1, testHelper, virtualServiceClient, nil, nil, nil, httpEchoRef, unmatchedPath)
+			checkConnection(unmatchedPath, `"hello":"world"`)
+
 		})
 	})
 
