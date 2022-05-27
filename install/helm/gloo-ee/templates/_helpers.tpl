@@ -269,4 +269,28 @@ Injection point for enterprise-exclusive settings into the settings manifest
   consoleOptions:
     readOnly: {{ hasKey $consoleOpts "readOnly" | ternary $consoleOpts.readOnly false }}
     apiExplorerEnabled: {{ hasKey $consoleOpts "apiExplorerEnabled" | ternary $consoleOpts.apiExplorerEnabled true }}
+{{- if (($.Values.global.graphql).changeValidation) }}
+{{- $changeValidation := $.Values.global.graphql.changeValidation }}
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: {{ ternary true false $changeValidation.rejectBreaking }}
+      {{- $rules := $changeValidation.rules | default dict }}
+      {{- if or $rules.dangerousToBreaking $rules.deprecatedFieldRemovalDangerous $rules.ignoreDescriptionChanges $rules.ignoreUnreachable }}
+      processingRules:
+      {{- if $rules.dangerousToBreaking }}
+        - RULE_DANGEROUS_TO_BREAKING
+      {{- end }}
+      {{- if $rules.deprecatedFieldRemovalDangerous }}
+        - RULE_DEPRECATED_FIELD_REMOVAL_DANGEROUS
+      {{- end }}
+      {{- if $rules.ignoreDescriptionChanges }}
+        - RULE_IGNORE_DESCRIPTION_CHANGES
+      {{- end }}
+      {{- if $rules.ignoreUnreachable }}
+        - RULE_IGNORE_UNREACHABLE
+      {{- end }}
+      {{- else }}
+      processingRules: []
+      {{- end }} {{/* if or $rules.dangerousToBreaking $rules.deprecatedFieldRemovalDangerous $rules.ignoreDescriptionChanges $rules.ignoreUnreachable */}}
+{{- end }} {{/* if (($.Values.global.graphql).changeValidation) */}}
 {{- end -}} {{/* define "gloo.extraSpecs" */}}

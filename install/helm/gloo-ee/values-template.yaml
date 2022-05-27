@@ -156,6 +156,14 @@ global:
   glooStats:
     enabled: true
     routePrefixRewrite: /stats/prometheus
+  graphql:
+    changeValidation:
+      rejectBreaking: false
+      rules:
+        dangerousToBreaking: false
+        deprecatedFieldRemovalDangerous: false
+        ignoreDescriptionChanges: false
+        ignoreUnreachable: false
   extraSpecs: true
   extauthCustomYaml: false
 ########################################################################

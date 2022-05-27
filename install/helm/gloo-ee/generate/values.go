@@ -14,6 +14,7 @@ type GlobalConfig struct {
 	*glooGen.Global
 	Stats      *GlooEEStats      `json:"stats,omitempty"`
 	Extensions *GlooEeExtensions `json:"extensions,omitempty"`
+	Graphql    *GraphqlOptions   `json:"graphql,omitempty" desc:"GraphQL configuration options."`
 }
 
 type GlooConfig struct {
@@ -252,4 +253,20 @@ type OAuth struct {
 type PodDisruptionBudget struct {
 	MinAvailable   int32 `json:"minAvailable,omitempty" desc:"An eviction is allowed if at least \"minAvailable\" pods selected by \"selector\" will still be available after the eviction, i.e. even in the absence of the evicted pod. So for example you can prevent all voluntary evictions by specifying \"100%\"."`
 	MaxUnavailable int32 `json:"maxUnavailable,omitempty" desc:"An eviction is allowed if at most \"maxUnavailable\" pods selected by \"selector\" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with \"minAvailable\"."`
+}
+
+type GraphqlOptions struct {
+	ChangeValidation *GraphqlChangeValidationOptions `json:"changeValidation,omitempty" desc:"Options for validating GraphQL schema updates."`
+}
+
+type GraphqlChangeValidationOptions struct {
+	RejectBreaking *bool                         `json:"rejectBreaking,omitempty" desc:"Whether to reject breaking GraphQL schema updates (default false)."`
+	Rules          *GraphqlChangeValidationRules `json:"rules,omitempty" desc:"GraphQL Inspector processing rules."`
+}
+
+type GraphqlChangeValidationRules struct {
+	DangerousToBreaking             *bool `json:"dangerousToBreaking,omitempty" desc:"Whether the RULE_DANGEROUS_TO_BREAKING processing rule is enabled (default false)."`
+	DeprecatedFieldRemovalDangerous *bool `json:"deprecatedFieldRemovalDangerous,omitempty" desc:"Whether the RULE_DEPRECATED_FIELD_REMOVAL_DANGEROUS processing rule is enabled (default false)."`
+	IgnoreDescriptionChanges        *bool `json:"ignoreDescriptionChanges,omitempty" desc:"Whether the RULE_IGNORE_DESCRIPTION_CHANGES processing rule is enabled (default false)."`
+	IgnoreUnreachable               *bool `json:"ignoreUnreachable,omitempty" desc:"Whether the RULE_IGNORE_UNREACHABLE processing rule is enabled (default false)."`
 }

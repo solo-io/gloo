@@ -1483,3 +1483,8 @@
 |global.extensions.rateLimit.antiAffinity.NAME|interface||Anti-affinity rules to be applied|
 |global.extensions.glooRedis.enableAcl|bool|true|Whether to include the ACL policy on redis install. Defaults to true.|
 |global.extensions.dataPlanePerProxy|bool|||
+|global.graphql.changeValidation.rejectBreaking|bool|false|Whether to reject breaking GraphQL schema updates (default false).|
+|global.graphql.changeValidation.rules.dangerousToBreaking|bool|false|Whether the RULE_DANGEROUS_TO_BREAKING processing rule is enabled (default false).|
+|global.graphql.changeValidation.rules.deprecatedFieldRemovalDangerous|bool|false|Whether the RULE_DEPRECATED_FIELD_REMOVAL_DANGEROUS processing rule is enabled (default false).|
+|global.graphql.changeValidation.rules.ignoreDescriptionChanges|bool|false|Whether the RULE_IGNORE_DESCRIPTION_CHANGES processing rule is enabled (default false).|
+|global.graphql.changeValidation.rules.ignoreUnreachable|bool|false|Whether the RULE_IGNORE_UNREACHABLE processing rule is enabled (default false).|

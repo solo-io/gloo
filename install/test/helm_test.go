@@ -1981,6 +1981,10 @@ spec:
   consoleOptions:
     readOnly: false
     apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
@@ -2050,6 +2054,10 @@ spec:
   consoleOptions:
     readOnly: false
     apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
@@ -2114,6 +2122,10 @@ spec:
   consoleOptions:
     readOnly: false
     apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
@@ -2180,6 +2192,10 @@ spec:
   consoleOptions:
     readOnly: false
     apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
@@ -2254,6 +2270,10 @@ spec:
   consoleOptions:
     readOnly: false
     apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
@@ -2323,6 +2343,10 @@ spec:
   consoleOptions:
     readOnly: false
     apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
@@ -3505,6 +3529,10 @@ spec:
   consoleOptions:
     readOnly: false
     apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
@@ -4176,6 +4204,10 @@ spec:
   consoleOptions:
     readOnly: false
     apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})
@@ -4240,6 +4272,220 @@ spec:
   consoleOptions:
     readOnly: true
     apiExplorerEnabled: false
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []
+`)
+				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+		})
+
+		Context("graphql settings", func() {
+			It("writes default graphql options to settings manifest", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				settings := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  labels:
+    app: gloo
+    gloo: settings
+  name: default
+  namespace: ` + namespace + `
+spec:
+  discovery:
+    fdsMode: WHITELIST
+  extauth:
+    transportApiVersion: V3
+    extauthzServerRef:
+      name: extauth
+      namespace: ` + namespace + `
+    userIdHeader: "x-user-id"
+  gateway:
+    enableGatewayController: true
+    readGatewaysFromAllNamespaces: false
+    validation:
+      alwaysAccept: true
+      proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
+      allowWarnings: true
+      warnRouteShortCircuiting: false
+      validationServerGrpcMaxSizeBytes: 104857600
+  gloo:
+    enableRestEds: false
+    xdsBindAddr: 0.0.0.0:9977
+    restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
+    disableKubernetesDestinations: false
+    disableProxyGarbageCollection: false
+    invalidConfigPolicy:
+      replaceInvalidRoutes: false
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
+  ratelimitServer:
+    rateLimitBeforeAuth: false
+    ratelimitServerRef:
+      namespace: ` + namespace + `
+      name: rate-limit
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  discoveryNamespace: ` + namespace + `
+  consoleOptions:
+    readOnly: false
+    apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules: []
+`)
+				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+			It("can override graphql options", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.graphql.changeValidation.rejectBreaking=true",
+						"global.graphql.changeValidation.rules.ignoreUnreachable=true",
+						"global.graphql.changeValidation.rules.deprecatedFieldRemovalDangerous=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				settings := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  labels:
+    app: gloo
+    gloo: settings
+  name: default
+  namespace: ` + namespace + `
+spec:
+  discovery:
+    fdsMode: WHITELIST
+  extauth:
+    transportApiVersion: V3
+    extauthzServerRef:
+      name: extauth
+      namespace: ` + namespace + `
+    userIdHeader: "x-user-id"
+  gateway:
+    enableGatewayController: true
+    readGatewaysFromAllNamespaces: false
+    validation:
+      alwaysAccept: true
+      proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
+      allowWarnings: true
+      warnRouteShortCircuiting: false
+      validationServerGrpcMaxSizeBytes: 104857600
+  gloo:
+    enableRestEds: false
+    xdsBindAddr: 0.0.0.0:9977
+    restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
+    disableKubernetesDestinations: false
+    disableProxyGarbageCollection: false
+    invalidConfigPolicy:
+      replaceInvalidRoutes: false
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
+  ratelimitServer:
+    rateLimitBeforeAuth: false
+    ratelimitServerRef:
+      namespace: ` + namespace + `
+      name: rate-limit
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  discoveryNamespace: ` + namespace + `
+  consoleOptions:
+    readOnly: false
+    apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: true
+      processingRules:
+      - RULE_DEPRECATED_FIELD_REMOVAL_DANGEROUS
+      - RULE_IGNORE_UNREACHABLE
+`)
+				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+			})
+			It("does not add rules that are set to false", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.graphql.changeValidation.rules.ignoreUnreachable=false",
+						"global.graphql.changeValidation.rules.dangerousToBreaking=true",
+						"global.graphql.changeValidation.rules.ignoreDescriptionChanges=true",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				settings := makeUnstructured(`
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  labels:
+    app: gloo
+    gloo: settings
+  name: default
+  namespace: ` + namespace + `
+spec:
+  discovery:
+    fdsMode: WHITELIST
+  extauth:
+    transportApiVersion: V3
+    extauthzServerRef:
+      name: extauth
+      namespace: ` + namespace + `
+    userIdHeader: "x-user-id"
+  gateway:
+    enableGatewayController: true
+    readGatewaysFromAllNamespaces: false
+    validation:
+      alwaysAccept: true
+      proxyValidationServerAddr: gloo:9988
+      disableTransformationValidation: false
+      allowWarnings: true
+      warnRouteShortCircuiting: false
+      validationServerGrpcMaxSizeBytes: 104857600
+  gloo:
+    enableRestEds: false
+    xdsBindAddr: 0.0.0.0:9977
+    restXdsBindAddr: 0.0.0.0:9976
+    proxyDebugBindAddr: 0.0.0.0:9966
+    disableKubernetesDestinations: false
+    disableProxyGarbageCollection: false
+    invalidConfigPolicy:
+      replaceInvalidRoutes: false
+      invalidRouteResponseBody: "Gloo Gateway has invalid configuration. Administrators should run ` + backtick + "glooctl check" + backtick + ` to find and fix config errors."
+      invalidRouteResponseCode: 404
+      replaceInvalidRoutes: false
+  ratelimitServer:
+    rateLimitBeforeAuth: false
+    ratelimitServerRef:
+      namespace: ` + namespace + `
+      name: rate-limit
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  discoveryNamespace: ` + namespace + `
+  consoleOptions:
+    readOnly: false
+    apiExplorerEnabled: true
+  graphqlOptions:
+    schemaChangeValidationOptions:
+      rejectBreakingChanges: false
+      processingRules:
+      - RULE_DANGEROUS_TO_BREAKING
+      - RULE_IGNORE_DESCRIPTION_CHANGES
 `)
 				testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 			})

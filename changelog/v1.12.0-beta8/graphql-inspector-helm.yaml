@@ -1,0 +1,5 @@
+changelog:
+- type: HELM
+  issueLink: https://github.com/solo-io/solo-projects/issues/3431
+  description: Make GraphQL schema change validation options configurable via Helm.
+  resolvesIssue: false
