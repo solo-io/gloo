@@ -23,8 +23,9 @@ const pbTypeObj = gqlJsonRoot.lookupType(
 );
 
 /**
+ * Used when GETTING the type merge map.
  * @param typeMergeMap
- * @returns The Type Merge Map but with serialized configs.
+ * @returns The type merge map but with serialized configs.
  */
 export const typeMergeMapToStringFormat = (
   typeMergeMap: ParsedTypeMergeMap
@@ -43,6 +44,7 @@ export const typeMergeMapToStringFormat = (
 };
 
 /**
+ * Used when SETTING the type merge map.
  * @param typeMergeMapStringFormat The Type Merge Map with serialized configs.
  * @returns The parsed Type Merge Map object.
  */
@@ -50,14 +52,18 @@ export const typeMergeMapFromStringFormat = (
   typeMergeMapStringFormat: TypeMergeMapStringFormat
 ) => {
   const preMarshalledMap = [] as any;
-  YAML.scalarOptions.null.nullStr = '';
   typeMergeMapStringFormat.forEach(({ typeName, typeMergeConfig }) => {
-    let jsonConfig = YAML.parse(typeMergeConfig, { simpleKeys: true });
-    const preMarshalledConfig = preMarshallProtoValues(
-      jsonConfig,
-      pbTypeObj.toJSON()
-    );
-    preMarshalledMap.push([typeName, preMarshalledConfig]);
+    preMarshalledMap.push([typeName, getPreMarshalledConfig(typeMergeConfig)]);
   });
   return preMarshalledMap;
 };
+
+export function getPreMarshalledConfig(typeMergeConfigSF: string) {
+  YAML.scalarOptions.null.nullStr = '';
+  let jsonConfig = YAML.parse(typeMergeConfigSF, { simpleKeys: true });
+  const preMarshalledConfig = preMarshallProtoValues(
+    jsonConfig,
+    pbTypeObj.toJSON()
+  );
+  return preMarshalledConfig;
+}

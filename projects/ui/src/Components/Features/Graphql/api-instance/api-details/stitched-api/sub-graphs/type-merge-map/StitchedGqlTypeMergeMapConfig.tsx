@@ -5,7 +5,6 @@ import lodash from 'lodash';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useEffect, useState } from 'react';
 import { SoloNegativeButton } from 'Styles/StyledComponents/button';
-import WarningMessage from '../../../executable-api/WarningMessage';
 import StitchedGqlTypeMergeFieldDropdown from './StitchedGqlTypeMergeFieldDropdown';
 import StitchedGqlAddSubGraphTypeMergeMapConfigItem from './StitchedGqlTypeMergeMapConfigItem';
 import {
@@ -15,9 +14,16 @@ import {
   typeMergeMapToStringFormat,
 } from './StitchedGqlTypeMergeMapHelpers';
 
-const sampleTypeMerge = `args:
+const defaultTypeMergeConfig = `args:
 queryName:
 selectionSet:`;
+
+export const typeMergeConfigChangedFromDefault = (typeMergeConfig: string) => {
+  return (
+    typeMergeConfig.replaceAll(/\s|\n|\t/g, '') !==
+    defaultTypeMergeConfig.replaceAll(/\s|\n|\t/g, '')
+  );
+};
 
 const StitchedGqlTypeMergeMapConfig: React.FC<{
   onIsValidChange(isValid: boolean): void;
@@ -44,10 +50,10 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
       const parsedMap = typeMergeMapFromStringFormat(typeMergeMapSF);
       // Call event handlers
       onTypeMergeMapChange(parsedMap);
-      // Clear the warning
-      setWarningMessage('');
-    } catch (err: any) {
-      setWarningMessage(err?.message ?? err);
+      // If it got to here it is valid
+      onIsValidChange(true);
+    } catch (_) {
+      onIsValidChange(false);
     }
   }, [typeMergeMapSF]);
 
@@ -57,13 +63,6 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
     newTypeMergeMap.splice(index, 1);
     setTypeMergeMapSF(newTypeMergeMap);
   };
-
-  // --- WARNING MESSAGE --- //
-  const [warningMessage, setWarningMessage] = useState('');
-  useEffect(() => {
-    // If there is a warning, we shouldn't be able to submit.
-    onIsValidChange(warningMessage === '');
-  }, [warningMessage]);
 
   // --- PANELS --- //
   const [openPanels, setOpenPanels] = useState<string[]>([]);
@@ -80,7 +79,7 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
           const newTypeMergeMap = lodash.cloneDeep(typeMergeMapSF);
           newTypeMergeMap.push({
             typeName: newMergedTypeName,
-            typeMergeConfig: sampleTypeMerge,
+            typeMergeConfig: defaultTypeMergeConfig,
           });
           setOpenPanels([...openPanels, newMergedTypeName]);
           setTypeMergeMapSF(newTypeMergeMap);
@@ -124,10 +123,11 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
                       onClick={e => {
                         e.stopPropagation();
                         // If the config was not changed or is empty, remove it.
-                        const trimmedMergeConfig = m.typeMergeConfig.trim();
                         if (
-                          trimmedMergeConfig === sampleTypeMerge ||
-                          trimmedMergeConfig === ''
+                          !typeMergeConfigChangedFromDefault(
+                            m.typeMergeConfig
+                          ) ||
+                          m.typeMergeConfig.trim() === ''
                         )
                           removeFromTypeMergeMap(idx);
                         // Otherwise, confirm removing it.
@@ -157,9 +157,6 @@ const StitchedGqlTypeMergeMapConfig: React.FC<{
           ))}
         </Collapse>
       )}
-
-      {/* --- ALERTS --- */}
-      <WarningMessage message={warningMessage} />
     </div>
   );
 };

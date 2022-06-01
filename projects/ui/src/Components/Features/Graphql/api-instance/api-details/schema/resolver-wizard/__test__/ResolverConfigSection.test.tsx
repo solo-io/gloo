@@ -38,8 +38,19 @@ describe('ResolverConfigSection', () => {
           <Form>
             <ResolverConfigSection
               onCancel={jest.fn()}
-              submitDisabled={false}
-              warningMessage=''
+              formik={
+                {
+                  values: {
+                    upstream: '',
+                    listOfResolvers: [],
+                    resolverConfig: 'testing',
+                    resolverType: 'Mock',
+                  },
+                  errors: [],
+                  isValid: true,
+                } as any
+              }
+              globalWarningMessage=''
             />
           </Form>
         </Formik>

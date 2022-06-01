@@ -33,7 +33,6 @@ describe('UpstreamSection', () => {
             onNextClicked={jest.fn()}
             nextButtonDisabled={false}
             existingUpstreamId={''}
-            setWarningMessage={jest.fn()}
           />
         </Form>
       </Formik>

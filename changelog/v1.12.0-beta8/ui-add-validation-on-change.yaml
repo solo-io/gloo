@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Adds validation to the resolver config and type merge config editors when their values change.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3670

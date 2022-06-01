@@ -136,7 +136,7 @@ export function createResolverItem(
   }
   //
   // Gets the upstream dropdown value.
-  let [upstreamName, upstreamNamespace] = upstream.split('::');
+  let [upstreamName, upstreamNamespace] = (upstream ?? '::').split('::');
   const upstreamRef = {
     name: upstreamName,
     namespace: upstreamNamespace,
@@ -396,14 +396,37 @@ function objectToArrayMapWithPbCheck(obj: any, pbType: any, path: string) {
   );
   if (pbType?.type === 'string' && nonStringKeys.length > 0)
     throw new Error(
-      `Parsing Error: "${nonStringKeys.join('", "')}"${
-        path && ' at "' + path + '"'
+      `Parsing Error: "${nonStringKeys.join('", "')}" at ${
+        path ? '"' + path + '"' : 'the first level'
       } should be ${nonStringKeys.length > 1 ? 'strings' : 'a string'}.`
     );
   return objectToArrayMap(obj);
 }
 
 function tryGetPrimitiveWithPbCheck(obj: any, pbType: any, path: string) {
+  const pbTypeErr = () => {
+    throw new Error(
+      `Parsing Error: "${obj}" at ${
+        path ? '"' + path + '"' : 'the first level'
+      } should be type: "${pbType?.type}".`
+    );
+  };
+  if (!pbType?.keyType) {
+    if (pbType?.type === 'bool') {
+      if (typeof obj === 'boolean') return { value: obj };
+      else pbTypeErr();
+    }
+    if (pbType?.type === 'string') {
+      if (typeof obj === 'string') return { value: obj };
+      else pbTypeErr();
+    }
+    if (
+      ['int32', 'uint32', 'int64', 'uint64', 'double'].includes(pbType?.type)
+    ) {
+      if (typeof obj === 'number') return { value: obj };
+      else pbTypeErr();
+    }
+  }
   if (
     obj === null ||
     typeof obj !== 'object' ||
@@ -412,10 +435,6 @@ function tryGetPrimitiveWithPbCheck(obj: any, pbType: any, path: string) {
     if (!!pbType?.fields)
       throwPbObjectValueError(Object.keys(pbType.fields), obj, path);
     if (!!pbType?.keyType) throwPbMapError(obj, path);
-    if (pbType?.type === 'string' && typeof obj !== 'string')
-      throw new Error(
-        `Parsing Error: "${obj}"${path && ' at ' + path} should be a string.`
-      );
     return { value: obj };
   }
   return null;
@@ -442,7 +461,9 @@ function throwPbObjectValueError(
   if (!!path)
     errorMessage += `"${path}" is an object, so it cannot be "${k}". Its properties include: ${validKeys}`;
   else
-    errorMessage += `"${k}" is not an object. This configuration object must include the properties: ${validKeys}`;
+    errorMessage += `"${k}" at ${
+      path ? '"' + path + '"' : 'the first level'
+    } is invalid. This configuration object must include the properties: ${validKeys}`;
   throw new Error(errorMessage);
 }
 

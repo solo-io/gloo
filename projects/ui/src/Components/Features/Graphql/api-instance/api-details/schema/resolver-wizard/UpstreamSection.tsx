@@ -14,19 +14,11 @@ export const UpstreamSection: React.FC<{
   nextButtonDisabled: boolean;
   onNextClicked(): void;
   onCancel(): void;
-  setWarningMessage(message: string): void;
-}> = ({
-  existingUpstreamId,
-  nextButtonDisabled,
-  onNextClicked,
-  onCancel,
-  setWarningMessage,
-}) => {
+}> = ({ existingUpstreamId, nextButtonDisabled, onNextClicked, onCancel }) => {
   const formik = useFormikContext<ResolverWizardFormProps>();
   const { data: upstreams } = useListUpstreams();
 
   const onChange = (newUpstreamId: any) => {
-    setWarningMessage('');
     try {
       formik.setFieldError('upstream', undefined);
       const demoConfig = getDefaultConfigFromType(formik.values.resolverType);

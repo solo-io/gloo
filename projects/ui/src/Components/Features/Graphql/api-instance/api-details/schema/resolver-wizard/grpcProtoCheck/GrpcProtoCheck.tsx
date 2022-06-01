@@ -5,6 +5,7 @@ import VisualEditor, {
 import { useFormikContext } from 'formik';
 import React from 'react';
 import { Spacer } from 'Styles/StyledComponents/spacer';
+import WarningMessage from '../../../executable-api/WarningMessage';
 import { isBase64, base64ToString, stringToBase64 } from '../converters';
 import { ResolverWizardFormProps } from '../ResolverWizard';
 
@@ -47,16 +48,9 @@ export const GrpcProtoCheck = (props: GrpcProtoCheckProps) => {
                    show the existing proto definition in the CR.
                    The user should have an option to update the proto bin if needed.
          */}
-        <div
-          className={`${
-            warningMessage.length > 0 ? 'opacity-100' : '  opacity-0'
-          }`}>
-          <div
-            style={{ backgroundColor: '#FEF2F2' }}
-            className='p-2 text-orange-400 border border-orange-400 mb-5'>
-            <div className='font-medium '>{warningMessage}</div>
-          </div>
-        </div>
+        <Spacer pb={2}>
+          <WarningMessage message={warningMessage} />
+        </Spacer>
         <SoloFormFileUpload
           data-testid='resolver-wizard-upload-proto'
           name='uploadProto'

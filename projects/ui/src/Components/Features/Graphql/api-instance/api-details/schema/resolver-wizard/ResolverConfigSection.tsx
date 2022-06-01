@@ -2,9 +2,9 @@ import styled from '@emotion/styled/macro';
 import { useGetConsoleOptions } from 'API/hooks';
 import { SoloFormDropdown } from 'Components/Common/SoloFormComponents';
 import VisualEditor from 'Components/Common/VisualEditor';
-import { useFormikContext } from 'formik';
+import { FormikProps, useFormikContext } from 'formik';
 import * as React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   SoloButtonStyledComponent,
   SoloCancelButton,
@@ -13,7 +13,7 @@ import { Spacer } from 'Styles/StyledComponents/spacer';
 import YAML from 'yaml';
 import WarningMessage from '../../executable-api/WarningMessage';
 import { getResolverFromConfig } from './converters';
-import { ResolverWizardFormProps } from './ResolverWizard';
+import { resolverFormIsValid, ResolverWizardFormProps } from './ResolverWizard';
 import * as ResolverWizardStyles from './ResolverWizard.styles';
 
 export const EditorContainer = styled.div<{ editMode: boolean }>`
@@ -62,17 +62,22 @@ export const getDefaultConfigFromType = (
 
 export const ResolverConfigSection: React.FC<{
   onCancel(): void;
-  submitDisabled: boolean;
-  warningMessage: string;
-}> = ({ onCancel, submitDisabled, warningMessage }) => {
+  globalWarningMessage: string;
+  formik: FormikProps<ResolverWizardFormProps>;
+}> = ({ onCancel, formik, globalWarningMessage }) => {
   const { readonly } = useGetConsoleOptions();
   const { setFieldValue, values, dirty, handleSubmit } =
     useFormikContext<ResolverWizardFormProps>();
-  const [errorMessage, setErrorMessage] = React.useState('');
-
-  useEffect(() => {
-    setErrorMessage(warningMessage);
-  }, [warningMessage, setErrorMessage]);
+  const resolverConfigWarningMessage =
+    !formik.values.resolverConfig?.trim() ||
+    formik.values.resolverConfig.replaceAll(/\s|\n|\t/g, '') ===
+      getDefaultConfigFromType(formik.values.resolverType).replaceAll(
+        /\s|\n|\t/g,
+        ''
+      )
+      ? ''
+      : formik.errors.resolverConfig ?? '';
+  const submitDisabled = !formik.isValid || !resolverFormIsValid(formik);
 
   const [selectedName, setSelectedName] = useState<string>();
   const resolverOptions = useMemo(
@@ -113,7 +118,6 @@ export const ResolverConfigSection: React.FC<{
       'resolverConfig',
       getDefaultConfigFromType(values.resolverType)
     );
-    setErrorMessage('');
   };
 
   return (
@@ -122,13 +126,6 @@ export const ResolverConfigSection: React.FC<{
         <Spacer mb={2}>
           <div>
             <EditorContainer editMode={true}>
-              <Spacer px={6} mt='-20px'>
-                {!!warningMessage ? (
-                  <WarningMessage message={warningMessage} />
-                ) : (
-                  <Spacer pt='1.5rem' />
-                )}
-              </Spacer>
               <div className='flex flex-col w-full'>
                 <Spacer my={3} mx={6}>
                   {resolverOptions.length > 0 && (
@@ -181,7 +178,7 @@ export const ResolverConfigSection: React.FC<{
                     tabSize: 2,
                   }}
                 />
-                <Spacer mt={2} px={3}>
+                <Spacer mt={2} px={6}>
                   <SoloCancelButton
                     disabled={!dirty}
                     onClick={resetResolverConfig}>
@@ -189,6 +186,12 @@ export const ResolverConfigSection: React.FC<{
                   </SoloCancelButton>
                 </Spacer>
               </div>
+              <Spacer px={6}>
+                <WarningMessage message={resolverConfigWarningMessage} />
+              </Spacer>
+              <Spacer px={6}>
+                <WarningMessage message={globalWarningMessage} />
+              </Spacer>
             </EditorContainer>
           </div>
         </Spacer>

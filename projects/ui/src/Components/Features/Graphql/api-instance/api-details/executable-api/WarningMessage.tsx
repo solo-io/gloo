@@ -2,15 +2,16 @@ import { Alert } from 'antd';
 import * as React from 'react';
 
 interface Props {
+  className?: string;
   message: string;
 }
 
-export const WarningMessage: React.FC<Props> = ({ message }) => {
+export const WarningMessage: React.FC<Props> = ({ className, message }) => {
   return Boolean(message) ? (
     <Alert
       showIcon
       type='warning'
-      className='p-2 mb-3 mt-3'
+      className={!!className ? className : 'p-2 mb-3 mt-3'}
       message={' '}
       description={message}
     />

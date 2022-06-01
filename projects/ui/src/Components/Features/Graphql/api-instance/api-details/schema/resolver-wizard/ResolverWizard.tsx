@@ -58,6 +58,25 @@ const validationSchema = yup.object().shape({
     ),
   resolverConfig: yup
     .string()
+    .test((value, ctx) => {
+      if (!value?.trim()) return false;
+      // This tries to do the conversion to the protobuffer type and prepare the request.
+      // It should catch protobuffer or YAML parsing errors and send the warning message to formik.
+      try {
+        createResolverItem(
+          value ?? '',
+          ctx.parent.resolverType,
+          {} as any,
+          ctx.parent.upstream,
+          {}
+        );
+      } catch (err: any) {
+        return ctx.createError({
+          message: err?.message ?? err,
+        });
+      }
+      return true;
+    })
     .required('You need to specify a resolver configuration.'),
 });
 const resolverTypeIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
@@ -68,7 +87,9 @@ const resolverConfigIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
   !formik.errors.resolverConfig;
 const protoFileIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
   !formik.errors.protoFile;
-const formIsValid = (formik: FormikState<ResolverWizardFormProps>) =>
+export const resolverFormIsValid = (
+  formik: FormikState<ResolverWizardFormProps>
+) =>
   resolverTypeIsValid(formik) &&
   upstreamIsValid(formik) &&
   resolverConfigIsValid(formik) &&
@@ -365,9 +386,6 @@ export const ResolverWizard: React.FC<{
                       {/* --- STEP 3: UPSTREAM --- */}
                       <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
                         <UpstreamSection
-                          setWarningMessage={message =>
-                            setWarningMessage(message)
-                          }
                           onCancel={onClose}
                           nextButtonDisabled={!upstreamIsValid(formik)}
                           onNextClicked={() => setTabIndex(tabIndex + 1)}
@@ -378,10 +396,8 @@ export const ResolverWizard: React.FC<{
                       <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
                         <ResolverConfigSection
                           onCancel={onClose}
-                          submitDisabled={
-                            !formik.isValid || !formIsValid(formik)
-                          }
-                          warningMessage={warningMessage}
+                          formik={formik}
+                          globalWarningMessage={warningMessage}
                         />
                       </TabPanel>
                     </>
@@ -397,9 +413,6 @@ export const ResolverWizard: React.FC<{
                       {/* --- STEP 2: UPSTREAM --- */}
                       <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
                         <UpstreamSection
-                          setWarningMessage={message =>
-                            setWarningMessage(message)
-                          }
                           onCancel={onClose}
                           nextButtonDisabled={!upstreamIsValid(formik)}
                           onNextClicked={() => setTabIndex(tabIndex + 1)}
@@ -410,10 +423,8 @@ export const ResolverWizard: React.FC<{
                       <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
                         <ResolverConfigSection
                           onCancel={onClose}
-                          submitDisabled={
-                            !formik.isValid || !formIsValid(formik)
-                          }
-                          warningMessage={warningMessage}
+                          formik={formik}
+                          globalWarningMessage={warningMessage}
                         />
                       </TabPanel>
                     </>
@@ -430,10 +441,8 @@ export const ResolverWizard: React.FC<{
                       <TabPanel className='relative flex-grow flex flex-col justify-between pb-4 focus:outline-none'>
                         <ResolverConfigSection
                           onCancel={onClose}
-                          submitDisabled={
-                            !formik.isValid || !formIsValid(formik)
-                          }
-                          warningMessage={warningMessage}
+                          formik={formik}
+                          globalWarningMessage={warningMessage}
                         />
                       </TabPanel>
                     </>
