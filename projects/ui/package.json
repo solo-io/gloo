@@ -81,7 +81,11 @@
     "fix": "eslint --fix \"./src/**/*.tsx\" && prettier --config ./.prettierrc.yaml --write \"./src/**/*.{ts,tsx}\"",
     "eject": "react-scripts eject",
     "e2e": "jest --verbose --config ./e2e/jest.config.ts ./e2e",
-    "screenshots-to-gif": "ffmpeg -y -framerate 1 -pattern_type glob -i './e2e/tests/screenshots/*.jpeg' -r 15 ./e2e/tests/screenshots/out.gif"
+    "screenshots-to-gif": "ffmpeg -y -framerate 1 -pattern_type glob -i './e2e/tests/screenshots/*.jpeg' -r 15 ./e2e/tests/screenshots/out.gif",
+    "storybook": "start-storybook -p 6006 -s public",
+    "build-storybook": "build-storybook -s public",
+    "build:tailwind": "npx tailwindcss -i ./src/Styles/precompile.css -o ./src/Styles/styles.css",
+    "watch:tailwind": "yarn build:tailwind --watch"
   },
   "browserslist": {
     "production": [
@@ -103,6 +107,16 @@
   },
   "devDependencies": {
     "@emotion/eslint-plugin": "^11.7.0",
+    "@storybook/addon-actions": "^6.5.5",
+    "@storybook/addon-essentials": "^6.5.5",
+    "@storybook/addon-interactions": "^6.5.5",
+    "@storybook/addon-links": "^6.5.5",
+    "@storybook/builder-webpack5": "^6.5.5",
+    "@storybook/manager-webpack5": "^6.5.5",
+    "@storybook/node-logger": "^6.5.5",
+    "@storybook/preset-create-react-app": "^4.1.1",
+    "@storybook/react": "^6.5.5",
+    "@storybook/testing-library": "^0.0.11",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.4",
     "@types/graphql": "^14.5.0",
@@ -111,17 +125,26 @@
     "@types/lodash": "^4.14.180",
     "@typescript-eslint/parser": "^5.12.1",
     "autoprefixer": "^10.4.2",
+    "babel-jest": "^28.1.0",
+    "babel-plugin-named-exports-order": "^0.0.2",
     "customize-cra": "^1.0.0",
     "eslint-plugin-react-hooks": "^4.3.0",
+    "file-loader": "^6.2.0",
     "husky": "4",
+    "jest-image-snapshot": "^4.5.1",
     "jest-puppeteer": "^6.1.0",
+    "jest-snapshot": "^28.1.0",
+    "jest-watch-typeahead": "^1.1.0",
     "lint-staged": "^10.2.11",
     "postcss": "^8.4.5",
+    "postcss-import": "^14.1.0",
     "prettier": "^2.5.1",
+    "prop-types": "^15.8.1",
     "puppeteer": "^13.5.1",
     "react-app-rewired": "^2.1.8",
     "tailwindcss": "^3.0.15",
-    "ts-jest": "^27.1.4"
+    "ts-jest": "^27.1.4",
+    "webpack": "^5.72.1"
   },
   "husky": {
     "hooks": {
@@ -131,6 +154,18 @@
   "lint-staged": {
     "**/*.{ts,tsx}": [
       "prettier --config .prettierrc.yaml --write"
+    ]
+  },
+  "eslintConfig": {
+    "overrides": [
+      {
+        "files": [
+          "**/*.stories.*"
+        ],
+        "rules": {
+          "import/no-anonymous-default-export": "off"
+        }
+      }
     ]
   }
 }

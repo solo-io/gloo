@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { ResolverTypeSection } from './ResolverTypeSection';
+import { ResolverTypeSection } from '../ResolverTypeSection';
 import { Formik, Form } from 'formik';
 import * as ace from 'ace-builds/src-noconflict/ace';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
@@ -27,9 +27,6 @@ describe('ResolverTypeSection', () => {
     );
     await waitFor(() => {
       expect(screen.getByTestId('resolver-type-section')).toBeInTheDocument();
-      expect(
-        screen.getByTestId('create-resolver-from-config')
-      ).toBeInTheDocument();
     });
   });
 });

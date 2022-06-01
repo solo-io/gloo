@@ -87,7 +87,7 @@ const BodyContainer = styled.div<BodyContainerProps>`
   padding: ${(props: BodyContainerProps) => (props.noPadding ? '' : '20px;')};
 `;
 
-interface Props {
+export interface SectionCardProps {
   cardName: string;
   logoIcon?: React.ReactNode;
   headerSecondaryInformation?: {
@@ -105,7 +105,7 @@ interface Props {
   noPadding?: boolean;
 }
 
-export const SectionCard: React.FunctionComponent<Props> = props => {
+export const SectionCard: React.FunctionComponent<SectionCardProps> = props => {
   const {
     logoIcon,
     cardName,

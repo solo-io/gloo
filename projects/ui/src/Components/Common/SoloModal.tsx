@@ -2,7 +2,6 @@ import * as React from 'react';
 import styled from '@emotion/styled';
 import { ReactComponent as CloseX } from 'assets/close-x.svg';
 import { colors } from 'Styles/colors';
-import { useTheme } from '@emotion/react';
 import { Tab, TabPanelProps, Tabs } from '@reach/tabs';
 import { ReactComponent as Checkmark } from 'assets/success-checkmark.svg';
 
@@ -26,7 +25,6 @@ export const StyledModalTab = (
   } & TabPanelProps
 ) => {
   const { isSelected, children, isCompleted, className, ...otherProps } = props;
-  const theme = useTheme();
   return (
     <StyledTabComponent
       {...otherProps}

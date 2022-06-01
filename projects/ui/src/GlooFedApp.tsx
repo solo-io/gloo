@@ -1,6 +1,7 @@
 import React from 'react';
 import { Global } from '@emotion/core';
 import styled from '@emotion/styled';
+import { ThemeProvider, useTheme } from '@emotion/react';
 import { globalStyles } from './Styles/globalStyles';
 import { Footer } from 'Components/SiteStructure/Footer';
 import { Content } from 'Components/SiteStructure/Content';
@@ -18,29 +19,30 @@ const AppContainer = styled.div`
 `;
 
 function GlooFedApp() {
+  const theme = useTheme();
   return (
-    <AppSettingsProvider>
-      <ConfirmModalProvider>
-        <Toaster
-          position='bottom-right'
-          reverseOrder={false}
-          toastOptions={{
-            duration: 8000,
-            style: { borderRadius: '2px' },
-          }}
-        />
-        <BrowserRouter>
-          <Global styles={globalStyles} />
-          <AppContainer>
-            <MainMenu />
-
-            <Content />
-
-            <Footer />
-          </AppContainer>
-        </BrowserRouter>
-      </ConfirmModalProvider>
-    </AppSettingsProvider>
+    <ThemeProvider theme={theme}>
+      <AppSettingsProvider>
+        <ConfirmModalProvider>
+          <Toaster
+            position='bottom-right'
+            reverseOrder={false}
+            toastOptions={{
+              duration: 8000,
+              style: { borderRadius: '2px' },
+            }}
+          />
+          <BrowserRouter>
+            <Global styles={globalStyles} />
+            <AppContainer>
+              <MainMenu />
+              <Content />
+              <Footer />
+            </AppContainer>
+          </BrowserRouter>
+        </ConfirmModalProvider>
+      </AppSettingsProvider>
+    </ThemeProvider>
   );
 }
 

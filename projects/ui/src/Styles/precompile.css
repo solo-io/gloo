@@ -1,0 +1,18 @@
+/* @import '~@reach/tabs/styles.css'; */
+/* The reach styles conflict with the graphiql styles */
+@import '~antd/dist/antd.css';
+@import 'graphiql.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Note:  This is not the recommended way to do this.  This is a temporary fix. */
+/* Recommended path is to change everything to be pure components rather than re-using the
+   same.
+   See twin-macro for correct way to do this.
+*/
+@layer components {
+    .green-btn {
+        @apply flex items-center text-green-400 cursor-pointer hover:text-green-300;
+    }
+}

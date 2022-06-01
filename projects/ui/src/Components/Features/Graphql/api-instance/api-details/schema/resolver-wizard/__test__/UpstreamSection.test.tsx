@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { UpstreamSection } from './UpstreamSection';
+import { UpstreamSection } from '../../resolver-wizard/UpstreamSection';
 import { Formik, Form } from 'formik';
 import * as ace from 'ace-builds/src-noconflict/ace';
 

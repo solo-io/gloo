@@ -29,13 +29,15 @@ export const ErrorText = React.memo(
     prev.errorExists === curr.errorExists && prev.children === curr.children
 );
 
-interface SoloFormDropdownProps extends Partial<DropdownProps> {
+export interface SoloFormDropdownProps extends Partial<DropdownProps> {
   name: string;
   hideError?: boolean;
   'data-testid'?: string;
 }
 export const SoloFormDropdown = (props: SoloFormDropdownProps) => {
   const { hideError } = props;
+  const cleanProps = { ...props }; // Remove from DOM
+  delete cleanProps.hideError;
   const form = useFormikContext<any>();
   const field = form.getFieldProps(props.name);
   const meta = form.getFieldMeta(props.name);
@@ -43,7 +45,7 @@ export const SoloFormDropdown = (props: SoloFormDropdownProps) => {
     <>
       <SoloDropdown
         {...field}
-        {...props}
+        {...cleanProps}
         data-testid={props['data-testid'] ?? 'solo-form-dropdown'}
         error={!!meta.error && meta.touched}
         onChange={(newVal: SelectValue) => {
@@ -204,11 +206,12 @@ export const SoloFormFileUpload = <Values extends FormikValues>(
                   </RemoveFileButton>
                 )}
                 <small
-                  className={` flex-1 block w-full min-w-0 border-r-0 border-gray-300 rounded-none  sm:text-sm w-2/3 p-2 flex-1 block w-full min-w-0 text-base text-gray-500 border ${
+                  className={`flex-1 block w-full min-w-0 border-r-0 border-gray-300 rounded-none  sm:text-sm w-2/3 p-2 flex-1 block w-full min-w-0 text-base text-gray-500 border
+                  border-r-0 border-gray-300 rounded-lg rounded-r-none ${
                     values[name] !== undefined
                       ? 'border-l-0 rounded-l-none '
                       : 'rounded-l-md'
-                  } border-r-0 border-gray-300 rounded-lg rounded-r-none`}>
+                  } `}>
                   {values[name]
                     ? values[name].name && !hasError
                       ? values[name].name
@@ -272,9 +275,11 @@ export const SoloFormRadio = <Values extends FormikValues>(
         <label className='mb-2 text-base font-medium'>{title}</label>
       ) : null}
       <div
-        className={`${
-          horizontal ? 'flex items-center' : 'grid grid-cols-2 '
-        } col-span-2 gap-2 mb-2 cursor-pointer`}>
+        className={
+          horizontal
+            ? 'flex items-center col-span-2 gap-2 mb-2 cursor-pointer'
+            : 'grid grid-cols-2 col-span-2 gap-2 mb-2 cursor-pointer'
+        }>
         {title && titleAbove ? null : (
           <label className='text-base font-medium '>{title}</label>
         )}
@@ -320,7 +325,7 @@ export const SoloFormRadio = <Values extends FormikValues>(
                     type='radio'
                     readOnly
                     disabled={isUpdate}
-                    className={`'w-4 h-4 border-gray-300 ${
+                    className={`w-4 h-4 border-gray-300 ${
                       isUpdate
                         ? 'text-gray-600 focus:ring-gray-600 cursor-not-allowed'
                         : 'text-blue-600gloo focus:ring-blue-600gloo cursor-pointer'

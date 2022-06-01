@@ -1,3 +1,5 @@
+const plugin = require('tailwindcss/plugin');
+
 module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   theme: {
@@ -36,5 +38,10 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // @see https://tailwindcss.com/docs/plugins
+    plugin(function({ addUtilities, addComponents, e, prefix, config }) {
+      // Add your custom styles here
+    }),
+  ],
 };
