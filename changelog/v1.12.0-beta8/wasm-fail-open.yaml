@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    description: |
+      Propagate `FailOpen` from WASM listener options to Envoy config
+    issueLink: https://github.com/solo-io/gloo/issues/6474
+    resolvesIssue: false

@@ -73,6 +73,7 @@ var _ = Describe("wasm plugin", func() {
 			Src: &wasm.WasmFilter_FilePath{
 				FilePath: filepath,
 			},
+			FailOpen: true,
 		}
 		hl := &v1.HttpListener{
 			Options: &v1.HttpListenerOptions{
@@ -97,6 +98,7 @@ var _ = Describe("wasm plugin", func() {
 		Expect(pc.Config.Configuration).To(matchers.MatchProto(wasmFilter.Config))
 		Expect(pc.Config.GetVmConfig().GetVmId()).To(Equal(VmId))
 		Expect(pc.Config.GetVmConfig().GetRuntime()).To(Equal(V8Runtime))
+		Expect(pc.Config.FailOpen).To(Equal(wasmFilter.FailOpen))
 		local := pc.Config.GetVmConfig().GetCode().GetLocal()
 		Expect(local.GetFilename()).To(Equal(filepath))
 	})
@@ -112,9 +114,10 @@ var _ = Describe("wasm plugin", func() {
 				TypeUrl: "type.googleapis.com/google.protobuf.StringValue",
 				Value:   []byte("test-config"),
 			},
-			Name:   "test",
-			RootId: "test-root",
-			VmType: wasm.WasmFilter_V8,
+			Name:     "test",
+			RootId:   "test-root",
+			VmType:   wasm.WasmFilter_V8,
+			FailOpen: true,
 		}
 		hl := &v1.HttpListener{
 			Options: &v1.HttpListenerOptions{
@@ -136,6 +139,7 @@ var _ = Describe("wasm plugin", func() {
 		Expect(pc.Config.Configuration).To(matchers.MatchProto(wasmFilter.Config))
 		Expect(pc.Config.GetVmConfig().GetVmId()).To(Equal(VmId))
 		Expect(pc.Config.GetVmConfig().GetRuntime()).To(Equal(V8Runtime))
+		Expect(pc.Config.FailOpen).To(Equal(wasmFilter.FailOpen))
 		remote := pc.Config.GetVmConfig().GetCode().GetRemote()
 		Expect(remote).NotTo(BeNil())
 		Expect(remote.Sha256).To(Equal(sha))

@@ -152,6 +152,7 @@ func (p *plugin) ensureFilter(ctx context.Context, wasmFilter *wasm.WasmFilter) 
 					Code:                source,
 				},
 			},
+			FailOpen: wasmFilter.FailOpen,
 		},
 	}
 

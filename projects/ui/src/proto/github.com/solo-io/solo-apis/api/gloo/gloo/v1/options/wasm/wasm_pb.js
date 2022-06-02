@@ -267,7 +267,8 @@ proto.wasm.options.gloo.solo.io.WasmFilter.toObject = function(includeInstance, 
     filterStage: (f = msg.getFilterStage()) && proto.wasm.options.gloo.solo.io.FilterStage.toObject(includeInstance, f),
     name: jspb.Message.getFieldWithDefault(msg, 5, ""),
     rootId: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    vmType: jspb.Message.getFieldWithDefault(msg, 7, 0)
+    vmType: jspb.Message.getFieldWithDefault(msg, 7, 0),
+    failOpen: jspb.Message.getFieldWithDefault(msg, 9, false)
   };
 
   if (includeInstance) {
@@ -333,6 +334,10 @@ proto.wasm.options.gloo.solo.io.WasmFilter.deserializeBinaryFromReader = functio
     case 7:
       var value = /** @type {!proto.wasm.options.gloo.solo.io.WasmFilter.VmType} */ (reader.readEnum());
       msg.setVmType(value);
+      break;
+    case 9:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setFailOpen(value);
       break;
     default:
       reader.skipField();
@@ -411,6 +416,13 @@ proto.wasm.options.gloo.solo.io.WasmFilter.serializeBinaryToWriter = function(me
   if (f !== 0.0) {
     writer.writeEnum(
       7,
+      f
+    );
+  }
+  f = message.getFailOpen();
+  if (f) {
+    writer.writeBool(
+      9,
       f
     );
   }
@@ -585,6 +597,23 @@ proto.wasm.options.gloo.solo.io.WasmFilter.prototype.getVmType = function() {
 /** @param {!proto.wasm.options.gloo.solo.io.WasmFilter.VmType} value */
 proto.wasm.options.gloo.solo.io.WasmFilter.prototype.setVmType = function(value) {
   jspb.Message.setProto3EnumField(this, 7, value);
+};
+
+
+/**
+ * optional bool fail_open = 9;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.wasm.options.gloo.solo.io.WasmFilter.prototype.getFailOpen = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 9, false));
+};
+
+
+/** @param {boolean} value */
+proto.wasm.options.gloo.solo.io.WasmFilter.prototype.setFailOpen = function(value) {
+  jspb.Message.setProto3BooleanField(this, 9, value);
 };
 
 

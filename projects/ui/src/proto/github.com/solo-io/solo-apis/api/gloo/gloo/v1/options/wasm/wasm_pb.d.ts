@@ -58,6 +58,9 @@ export class WasmFilter extends jspb.Message {
   getVmType(): WasmFilter.VmTypeMap[keyof WasmFilter.VmTypeMap];
   setVmType(value: WasmFilter.VmTypeMap[keyof WasmFilter.VmTypeMap]): void;
 
+  getFailOpen(): boolean;
+  setFailOpen(value: boolean): void;
+
   getSrcCase(): WasmFilter.SrcCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WasmFilter.AsObject;
@@ -78,6 +81,7 @@ export namespace WasmFilter {
     name: string,
     rootId: string,
     vmType: WasmFilter.VmTypeMap[keyof WasmFilter.VmTypeMap],
+    failOpen: boolean,
   }
 
   export interface VmTypeMap {
