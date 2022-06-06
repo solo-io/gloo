@@ -44,15 +44,6 @@ type TableProps = {
 };
 
 export const GlooAdminSecrets = () => {
-  const { name = '', namespace = '' } = useParams();
-
-  const { data: settings, error: sError } = useListSettings({
-    name,
-    namespace,
-  });
-
-  const [tableData, setTableData] = React.useState<TableProps[]>([]);
-
   return (
     <SectionCard
       logoIcon={

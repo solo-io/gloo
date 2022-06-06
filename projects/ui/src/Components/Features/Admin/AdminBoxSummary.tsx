@@ -13,9 +13,6 @@ import { ReactComponent as VirtualServiceIcon } from 'assets/virtualservice-icon
 import { ReactComponent as UpstreamsIcon } from 'assets/upstreams-icon.svg';
 import { ReactComponent as UpstreamGroupIcon } from 'assets/upstream-group-icon.svg';
 import { ReactComponent as FedResourcesIcon } from 'assets/GlooFed-Specific/federated-resources-icon-gray.svg';
-import { ReactComponent as RoutesIcon } from 'assets/route-icon.svg';
-import { ReactComponent as GatewayIcon } from 'assets/gateway.svg';
-import { ReactComponent as KeyIcon } from 'assets/key-icon.svg';
 import { ReactComponent as ClustersIcon } from 'assets/cluster-icon.svg';
 import { ReactComponent as SuccessCircle } from 'assets/big-successful-checkmark.svg';
 import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';

@@ -16,5 +16,5 @@ const Template: ComponentStory<typeof SectionCard> = args => (
 
 export const Primary = Template.bind({});
 Primary.args = {
-  cardName: 'SectionCard',
+  cardName: SectionCard.name,
 } as Partial<SectionCardProps>;

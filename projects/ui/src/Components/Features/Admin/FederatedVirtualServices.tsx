@@ -13,7 +13,6 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as GlooIcon } from 'assets/Gloo.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import Tooltip from 'antd/lib/tooltip';
-import { useNavigate } from 'react-router';
 import { useListFederatedVirtualServices } from 'API/hooks';
 import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { Loading } from 'Components/Common/Loading';
@@ -46,8 +45,6 @@ type Props = {
   nameFilter?: string;
 };
 export const FederatedVirtualServices = (props: Props) => {
-  const navigate = useNavigate();
-
   const [tableData, setTableData] = React.useState<VirtualServiceTableFields[]>(
     []
   );
