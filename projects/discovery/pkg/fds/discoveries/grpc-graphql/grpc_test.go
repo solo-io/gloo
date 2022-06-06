@@ -48,7 +48,7 @@ var _ = Describe("Grpc reflection - graphql schema discovery test", func() {
 			// translates empty types
 			Expect(schemaDef).To(ContainSubstring(`
 """Created from protobuf type google.protobuf.Empty"""
-type google_protobuf_Empty {
+type Empty {
 
   """This GraphQL type was generated from an empty proto message. This empty field exists to keep the schema GraphQL spec compliant. If queried, this field will always return false."""
   _: Boolean
@@ -59,16 +59,16 @@ type google_protobuf_Empty {
 
 			// translates empty types
 			Expect(schemaDef).To(ContainSubstring(`"""Created from protobuf type foo.Pet"""
-type foo_Pet {
+type Pet {
   id: Int
   full_name: String
   first_name: String
-  empty: google_protobuf_Empty
+  empty: Empty
 }`))
 		})
 		It("should translate an input type", func() {
 			Expect(schemaDef).To(ContainSubstring(`"""Created from protobuf type foo.PetRequest"""
-input foo_PetRequestInput {
+input PetRequestInput {
   id: Int
 }
 `))

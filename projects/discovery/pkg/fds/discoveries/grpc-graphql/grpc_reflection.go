@@ -181,7 +181,7 @@ func (f *GraphqlSchemaDiscovery) GetSchemaBuilderForProtoFileDescriptor(refClien
 					inputType := method.GetInputType()
 					outputType := method.GetOutputType()
 					resolverName := fmt.Sprintf("Query|%s.%s", serviceName, methodName)
-					_, _, err = sb.CreateInputMessageType(inputType)
+					_, inputTypeName, err := sb.CreateInputMessageType(inputType)
 					if err != nil {
 						return nil, nil, errors.Wrapf(err, "unable to translate input type %s of method %s for service %s",
 							inputType.GetName(), method, svc.GetName())
@@ -191,7 +191,7 @@ func (f *GraphqlSchemaDiscovery) GetSchemaBuilderForProtoFileDescriptor(refClien
 						return nil, nil, errors.Wrapf(err, "unable to translate type %s of method %s for service %s",
 							inputType.GetName(), method, svc.GetName())
 					}
-					sb.AddQueryField(method.GetName(), inputType, outputType, resolverName)
+					sb.AddQueryField(method.GetName(), inputType, inputTypeName, outputType, resolverName)
 					outgoingJsonBody := GenerateOutgoingJsonBodyForInputType(inputType, "{$args."+inputType.GetName())
 					t := &v1beta1.GrpcRequestTemplate{
 						OutgoingMessageJson: outgoingJsonBody,

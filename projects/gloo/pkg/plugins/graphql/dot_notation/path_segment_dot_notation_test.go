@@ -86,7 +86,8 @@ var _ = Describe("Dot Notation Test", func() {
 			testDotNotationTranslation("headers.:method", []*v2.PathSegment{
 				Key("headers"),
 				Key(":method"),
-			}, nil)
+			},
+				nil)
 
 		})
 	})

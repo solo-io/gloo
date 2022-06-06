@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	structpb "github.com/golang/protobuf/ptypes/struct"
@@ -109,13 +108,15 @@ func (sb *SchemaBuilder) CreateGraphqlType(t *desc.FieldDescriptor, CreateObjTyp
 	}
 }
 
-func GetFullyQualifiedMessageName(t desc.Descriptor) string {
-	fqdnSlice := strings.Split(t.GetFullyQualifiedName(), ".")
-	return strings.Join(fqdnSlice, "_")
+func GetMessageName(t desc.Descriptor) string {
+	if parentMsg, ok := t.GetParent().(*desc.MessageDescriptor); ok {
+		return GetMessageName(parentMsg) + "_" + t.GetName()
+	}
+	return t.GetName()
 }
 
 func (sb *SchemaBuilder) CreateOutputMessageType(t *desc.MessageDescriptor) (ast.Definition, string, error) {
-	typeName := GetFullyQualifiedMessageName(t)
+	typeName := GetMessageName(t)
 	if objDef, ok := sb.TypeDefs[typeName]; ok {
 		return objDef, typeName, nil
 	}
@@ -150,7 +151,7 @@ func (sb *SchemaBuilder) CreateOutputMessageType(t *desc.MessageDescriptor) (ast
 }
 
 func (sb *SchemaBuilder) CreateInputMessageType(inputType *desc.MessageDescriptor) (ast.Definition, string, error) {
-	typeName := GetFullyQualifiedMessageName(inputType) + "Input"
+	typeName := GetMessageName(inputType) + "Input"
 	if def := sb.InputTypeDefs[typeName]; def != nil {
 		return def, typeName, nil
 	}
@@ -184,7 +185,7 @@ func (sb *SchemaBuilder) CreateInputMessageType(inputType *desc.MessageDescripto
 }
 
 func (sb *SchemaBuilder) CreateEnumType(enumType *desc.EnumDescriptor) string {
-	typeName := GetFullyQualifiedMessageName(enumType)
+	typeName := GetMessageName(enumType)
 	if sb.EnumDefs[typeName] != nil {
 		return typeName
 	}
@@ -199,14 +200,14 @@ func (sb *SchemaBuilder) CreateEnumType(enumType *desc.EnumDescriptor) string {
 	return typeName
 }
 
-func (sb *SchemaBuilder) AddQueryField(name string, inputType *desc.MessageDescriptor, outputType *desc.MessageDescriptor, resolverName string) {
+func (sb *SchemaBuilder) AddQueryField(name string, inputType *desc.MessageDescriptor, inputTypeName string, outputType *desc.MessageDescriptor, resolverName string) {
 	fieldDef := ast.NewFieldDefinition(&ast.FieldDefinition{})
 	fieldDef.Name = CreateNameType(name)
 	fieldDef.Type = CreateNamedType(outputType.GetName())
 	fieldDef.Arguments = []*ast.InputValueDefinition{
 		ast.NewInputValueDefinition(&ast.InputValueDefinition{
 			Name: CreateNameType(inputType.GetName()),
-			Type: CreateNamedType(inputType.GetName() + "Input"),
+			Type: CreateNamedType(inputTypeName),
 		}),
 	}
 	fieldDef.Directives = append(fieldDef.Directives, ast.NewDirective(&ast.Directive{

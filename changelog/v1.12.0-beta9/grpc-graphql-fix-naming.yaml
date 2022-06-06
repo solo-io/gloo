@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/gloo/issues/6525
+  description: >
+    Reverts grpc GraphQL discovery naming scheme so GraphQL types generated from gRPC types are no longer prefixed by the
+    gRPC proto's package.
