@@ -1,0 +1,5 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/3722
+  description: >
+    Adds in explorer tab to the graphql API so we can click to generate queries and mutations.

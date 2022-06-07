@@ -8,7 +8,9 @@ import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclama
 import { ReactComponent as CopyIcon } from 'assets/document.svg';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { Fetcher, GraphiQL } from 'graphiql';
-import { buildSchema } from 'graphql';
+// @ts-ignore
+import GraphiQLExplorer from "graphiql-explorer";
+import { buildSchema, DocumentNode } from 'graphql';
 import * as React from 'react';
 import { ChangeEvent, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
@@ -42,6 +44,31 @@ const Wrapper = styled.div`
 
 const StyledContainer = styled.div`
   height: 70vh;
+  display: flex;
+  flex-direction: row;
+  .doc-explorer-title-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+  }
+  .doc-explorer-rhs {
+    margin-right: 30px;
+    &:hover {
+      cursor: pointer;
+    }
+  }
+  .graphiql-explorer-root, .docExplorerWrap {
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+  }
+  .doc-explorer-contents {
+    overflow-y: scroll !important;
+  }
+  .doc-explorer-title {
+    margin-left: 10px;
+  }
 `;
 
 const GqlInputContainer = styled.div`
@@ -114,16 +141,49 @@ const setGqlStorage = (value: string) => {
   localStorage.setItem(GQL_STORAGE_KEY, value);
 };
 
+const defaultQuery = `query Example {
+  }
+
+  # Welcome to GraphiQL, an in-browser tool for
+  # writing, validating, and testing GraphQL queries.
+  #
+  # Type queries into this side of the screen, and you
+  # will see intelligent typeaheads aware of the current
+  # GraphQL type schema and live syntax and
+  # validation errors highlighted within the text.
+  #
+  # GraphQL queries typically start with a "{" character.
+  # Lines that start with a # are ignored.
+  # The name of the query on the first line of each tab
+  # is the title of that tab.
+  #
+  # An example GraphQL query might look like:
+  #     query Example {
+  #       field(arg: "value") {
+  #         subField
+  #       }
+  #     }
+  #
+  # Keyboard shortcuts:
+  #     Prettify Query:    Shift-Ctrl-P
+  #     Merge Query:     Shift-Ctrl-M
+  #     Run Query:        Ctrl-Enter
+  #     Auto Complete:  Ctrl-Space
+
+`;
+
 export const GraphqlApiExplorer = () => {
   const { graphqlApiName, graphqlApiNamespace, graphqlApiClusterName } =
     useParams();
   const [gqlError, setGqlError] = useState('');
+  const [explorerOpen, setExplorerOpen] = useState(false);
   const [refetch, setRefetch] = useState(false);
   const [url, setUrl] = useState(getGqlStorage());
   const [showTooltip, setShowTooltip] = useState(false);
   const [copyingKubectl, setCopyingKubectl] = useState(false);
   const [copyingProxy, setCopyingProxy] = useState(false);
   const [showUrlBar, setShowUrlBar] = useState(false);
+  const [query, setQuery] = useState<string>();
 
   const {
     data: graphqlApi,
@@ -214,6 +274,7 @@ export const GraphqlApiExplorer = () => {
   const handlePrettifyQuery = () => {
     graphiqlRef?.current?.handlePrettifyQuery();
   };
+
   const changeHost = (e: ChangeEvent<HTMLInputElement>) => {
     setRefetch(true);
     changeUrl(e.currentTarget.value);
@@ -222,6 +283,17 @@ export const GraphqlApiExplorer = () => {
   const toggleUrlBar = () => {
     setShowUrlBar(!showUrlBar);
   };
+
+  const toggleExplorer = () => {
+    setExplorerOpen(!explorerOpen);
+  }
+
+  const handleQueryUpdate = (
+    query?: string,
+    documentAST?: DocumentNode
+  ) => {
+    setQuery(query);
+  }
 
   // The operation name === the tab name.
   // This comes from the actual GraphQL operation.
@@ -309,39 +381,19 @@ export const GraphqlApiExplorer = () => {
         </GqlInputContainer>
       ) : null}
       <StyledContainer>
+        <GraphiQLExplorer
+          schema={!refetch ? executableSchema : undefined}
+          query={query}
+          onEdit={handleQueryUpdate}
+          onRunOperation={(operationName?: string) =>
+            graphiqlRef.current?.handleRunQuery(operationName)
+          }
+          explorerIsOpen={explorerOpen}
+          onToggleExplorer={toggleExplorer}
+        />
         <GraphiQL
           ref={graphiqlRef}
-          defaultQuery={`query Example {
-
-}
-
-# Welcome to GraphiQL, an in-browser tool for
-# writing, validating, and testing GraphQL queries.
-#
-# Type queries into this side of the screen, and you
-# will see intelligent typeaheads aware of the current
-# GraphQL type schema and live syntax and
-# validation errors highlighted within the text.
-#
-# GraphQL queries typically start with a "{" character.
-# Lines that start with a # are ignored.
-# The name of the query on the first line of each tab
-# is the title of that tab.
-#
-# An example GraphQL query might look like:
-#     query Example {
-#       field(arg: "value") {
-#         subField
-#       }
-#     }
-#
-# Keyboard shortcuts:
-#     Prettify Query:    Shift-Ctrl-P
-#     Merge Query:     Shift-Ctrl-M
-#     Run Query:        Ctrl-Enter
-#     Auto Complete:  Ctrl-Space
-
-`}
+          defaultQuery={defaultQuery}
           variables={'{}'}
           tabs={{
             onTabChange: (tabs: TabsState) => {
@@ -358,17 +410,24 @@ export const GraphqlApiExplorer = () => {
                */
               const currentTab = tabs.tabs[tabs.activeTabIndex];
               const performChange = !Boolean(currentTab.variables?.trim());
-
+              handleQueryUpdate(currentTab.query);
               if (performChange) {
                 graphiqlRef.current?.handleEditVariables('{}');
               }
             },
           }}
+          onEditQuery={handleQueryUpdate}
+          query={query}
           operationName={opName}
           onEditOperationName={s => setOpName(s)}
           schema={!refetch ? executableSchema : undefined}
           fetcher={gqlFetcher}>
           <GraphiQL.Toolbar>
+            <GraphiQL.Button
+              onClick={toggleExplorer}
+              label={explorerOpen ? 'Hide Explorer' : 'Show Explorer'}
+              title='Show/Hide Explorer'
+            />
             <GraphiQL.Button
               onClick={handlePrettifyQuery}
               label='Prettify'
