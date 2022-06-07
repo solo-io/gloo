@@ -5,6 +5,7 @@ package single_cluster_resource_handler
 import (
 	"context"
 	"sort"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/rotisserie/eris"
@@ -68,9 +69,71 @@ func (h *singleClusterGatewayResourceHandler) ListGateways(ctx context.Context, 
 		}
 	}
 
-	return &rpc_edge_v1.ListGatewaysResponse{
-		Gateways: rpcGateways,
-	}, nil
+	// Search, Filter
+	var filteredGateways []*rpc_edge_v1.Gateway
+	qs := request.GetQueryString()
+	sf := request.GetStatusFilter()
+	if sf != nil || qs != "" {
+		for _, d := range rpcGateways {
+			if (sf == nil || sf.State == int32(d.Status.State)) && strings.Contains(d.Metadata.Name, qs) {
+				filteredGateways = append(filteredGateways, d)
+			}
+		}
+	} else {
+		filteredGateways = rpcGateways
+	}
+	// Sort
+	sortOptions := request.GetSortOptions()
+	if sortOptions != nil {
+		isDescending := sortOptions.GetDescending()
+		sortKey := sortOptions.GetSortKey()
+		if isDescending == true {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredGateways, func(i, j int) bool {
+					return filteredGateways[i].Metadata.Name > filteredGateways[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredGateways, func(i, j int) bool {
+					return filteredGateways[i].Metadata.Namespace > filteredGateways[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredGateways, func(i, j int) bool {
+					return filteredGateways[i].Status.State > filteredGateways[j].Status.State
+				})
+			}
+		} else {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredGateways, func(i, j int) bool {
+					return filteredGateways[i].Metadata.Name < filteredGateways[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredGateways, func(i, j int) bool {
+					return filteredGateways[i].Metadata.Namespace < filteredGateways[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredGateways, func(i, j int) bool {
+					return filteredGateways[i].Status.State < filteredGateways[j].Status.State
+				})
+			}
+		}
+	}
+	// Paginate
+	paginatedGateways := filteredGateways
+	pagination := request.GetPagination()
+	totalCount := int32(len(filteredGateways))
+	if pagination.GetLimit() > 0 && pagination.GetOffset() >= 0 {
+		start := apiserverutils.Min(pagination.GetOffset(), totalCount)
+		end := apiserverutils.Min(pagination.GetOffset()+pagination.GetLimit(), totalCount)
+		paginatedGateways = filteredGateways[start:end]
+	}
+	// Build response
+	res := &rpc_edge_v1.ListGatewaysResponse{
+		Gateways: paginatedGateways,
+		Total:    totalCount,
+	}
+	return res, nil
 }
 
 func (h *singleClusterGatewayResourceHandler) listGatewaysForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.Gateway, error) {
@@ -175,9 +238,71 @@ func (h *singleClusterGatewayResourceHandler) ListMatchableHttpGateways(ctx cont
 		}
 	}
 
-	return &rpc_edge_v1.ListMatchableHttpGatewaysResponse{
-		MatchableHttpGateways: rpcMatchableHttpGateways,
-	}, nil
+	// Search, Filter
+	var filteredMatchableHttpGateways []*rpc_edge_v1.MatchableHttpGateway
+	qs := request.GetQueryString()
+	sf := request.GetStatusFilter()
+	if sf != nil || qs != "" {
+		for _, d := range rpcMatchableHttpGateways {
+			if (sf == nil || sf.State == int32(d.Status.State)) && strings.Contains(d.Metadata.Name, qs) {
+				filteredMatchableHttpGateways = append(filteredMatchableHttpGateways, d)
+			}
+		}
+	} else {
+		filteredMatchableHttpGateways = rpcMatchableHttpGateways
+	}
+	// Sort
+	sortOptions := request.GetSortOptions()
+	if sortOptions != nil {
+		isDescending := sortOptions.GetDescending()
+		sortKey := sortOptions.GetSortKey()
+		if isDescending == true {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
+					return filteredMatchableHttpGateways[i].Metadata.Name > filteredMatchableHttpGateways[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
+					return filteredMatchableHttpGateways[i].Metadata.Namespace > filteredMatchableHttpGateways[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
+					return filteredMatchableHttpGateways[i].Status.State > filteredMatchableHttpGateways[j].Status.State
+				})
+			}
+		} else {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
+					return filteredMatchableHttpGateways[i].Metadata.Name < filteredMatchableHttpGateways[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
+					return filteredMatchableHttpGateways[i].Metadata.Namespace < filteredMatchableHttpGateways[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
+					return filteredMatchableHttpGateways[i].Status.State < filteredMatchableHttpGateways[j].Status.State
+				})
+			}
+		}
+	}
+	// Paginate
+	paginatedMatchableHttpGateways := filteredMatchableHttpGateways
+	pagination := request.GetPagination()
+	totalCount := int32(len(filteredMatchableHttpGateways))
+	if pagination.GetLimit() > 0 && pagination.GetOffset() >= 0 {
+		start := apiserverutils.Min(pagination.GetOffset(), totalCount)
+		end := apiserverutils.Min(pagination.GetOffset()+pagination.GetLimit(), totalCount)
+		paginatedMatchableHttpGateways = filteredMatchableHttpGateways[start:end]
+	}
+	// Build response
+	res := &rpc_edge_v1.ListMatchableHttpGatewaysResponse{
+		MatchableHttpGateways: paginatedMatchableHttpGateways,
+		Total:                 totalCount,
+	}
+	return res, nil
 }
 
 func (h *singleClusterGatewayResourceHandler) listMatchableHttpGatewaysForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.MatchableHttpGateway, error) {
@@ -282,9 +407,71 @@ func (h *singleClusterGatewayResourceHandler) ListVirtualServices(ctx context.Co
 		}
 	}
 
-	return &rpc_edge_v1.ListVirtualServicesResponse{
-		VirtualServices: rpcVirtualServices,
-	}, nil
+	// Search, Filter
+	var filteredVirtualServices []*rpc_edge_v1.VirtualService
+	qs := request.GetQueryString()
+	sf := request.GetStatusFilter()
+	if sf != nil || qs != "" {
+		for _, d := range rpcVirtualServices {
+			if (sf == nil || sf.State == int32(d.Status.State)) && strings.Contains(d.Metadata.Name, qs) {
+				filteredVirtualServices = append(filteredVirtualServices, d)
+			}
+		}
+	} else {
+		filteredVirtualServices = rpcVirtualServices
+	}
+	// Sort
+	sortOptions := request.GetSortOptions()
+	if sortOptions != nil {
+		isDescending := sortOptions.GetDescending()
+		sortKey := sortOptions.GetSortKey()
+		if isDescending == true {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredVirtualServices, func(i, j int) bool {
+					return filteredVirtualServices[i].Metadata.Name > filteredVirtualServices[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredVirtualServices, func(i, j int) bool {
+					return filteredVirtualServices[i].Metadata.Namespace > filteredVirtualServices[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredVirtualServices, func(i, j int) bool {
+					return filteredVirtualServices[i].Status.State > filteredVirtualServices[j].Status.State
+				})
+			}
+		} else {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredVirtualServices, func(i, j int) bool {
+					return filteredVirtualServices[i].Metadata.Name < filteredVirtualServices[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredVirtualServices, func(i, j int) bool {
+					return filteredVirtualServices[i].Metadata.Namespace < filteredVirtualServices[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredVirtualServices, func(i, j int) bool {
+					return filteredVirtualServices[i].Status.State < filteredVirtualServices[j].Status.State
+				})
+			}
+		}
+	}
+	// Paginate
+	paginatedVirtualServices := filteredVirtualServices
+	pagination := request.GetPagination()
+	totalCount := int32(len(filteredVirtualServices))
+	if pagination.GetLimit() > 0 && pagination.GetOffset() >= 0 {
+		start := apiserverutils.Min(pagination.GetOffset(), totalCount)
+		end := apiserverutils.Min(pagination.GetOffset()+pagination.GetLimit(), totalCount)
+		paginatedVirtualServices = filteredVirtualServices[start:end]
+	}
+	// Build response
+	res := &rpc_edge_v1.ListVirtualServicesResponse{
+		VirtualServices: paginatedVirtualServices,
+		Total:           totalCount,
+	}
+	return res, nil
 }
 
 func (h *singleClusterGatewayResourceHandler) listVirtualServicesForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.VirtualService, error) {
@@ -389,9 +576,71 @@ func (h *singleClusterGatewayResourceHandler) ListRouteTables(ctx context.Contex
 		}
 	}
 
-	return &rpc_edge_v1.ListRouteTablesResponse{
-		RouteTables: rpcRouteTables,
-	}, nil
+	// Search, Filter
+	var filteredRouteTables []*rpc_edge_v1.RouteTable
+	qs := request.GetQueryString()
+	sf := request.GetStatusFilter()
+	if sf != nil || qs != "" {
+		for _, d := range rpcRouteTables {
+			if (sf == nil || sf.State == int32(d.Status.State)) && strings.Contains(d.Metadata.Name, qs) {
+				filteredRouteTables = append(filteredRouteTables, d)
+			}
+		}
+	} else {
+		filteredRouteTables = rpcRouteTables
+	}
+	// Sort
+	sortOptions := request.GetSortOptions()
+	if sortOptions != nil {
+		isDescending := sortOptions.GetDescending()
+		sortKey := sortOptions.GetSortKey()
+		if isDescending == true {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredRouteTables, func(i, j int) bool {
+					return filteredRouteTables[i].Metadata.Name > filteredRouteTables[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredRouteTables, func(i, j int) bool {
+					return filteredRouteTables[i].Metadata.Namespace > filteredRouteTables[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredRouteTables, func(i, j int) bool {
+					return filteredRouteTables[i].Status.State > filteredRouteTables[j].Status.State
+				})
+			}
+		} else {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredRouteTables, func(i, j int) bool {
+					return filteredRouteTables[i].Metadata.Name < filteredRouteTables[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredRouteTables, func(i, j int) bool {
+					return filteredRouteTables[i].Metadata.Namespace < filteredRouteTables[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredRouteTables, func(i, j int) bool {
+					return filteredRouteTables[i].Status.State < filteredRouteTables[j].Status.State
+				})
+			}
+		}
+	}
+	// Paginate
+	paginatedRouteTables := filteredRouteTables
+	pagination := request.GetPagination()
+	totalCount := int32(len(filteredRouteTables))
+	if pagination.GetLimit() > 0 && pagination.GetOffset() >= 0 {
+		start := apiserverutils.Min(pagination.GetOffset(), totalCount)
+		end := apiserverutils.Min(pagination.GetOffset()+pagination.GetLimit(), totalCount)
+		paginatedRouteTables = filteredRouteTables[start:end]
+	}
+	// Build response
+	res := &rpc_edge_v1.ListRouteTablesResponse{
+		RouteTables: paginatedRouteTables,
+		Total:       totalCount,
+	}
+	return res, nil
 }
 
 func (h *singleClusterGatewayResourceHandler) listRouteTablesForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.RouteTable, error) {

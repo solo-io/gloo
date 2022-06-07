@@ -154,6 +154,70 @@ func (m *ListAuthConfigsRequest) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
+	if h, ok := interface{}(m.GetPagination()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Pagination")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetPagination(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Pagination")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if _, err = hasher.Write([]byte(m.GetQueryString())); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetStatusFilter()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("StatusFilter")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetStatusFilter(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("StatusFilter")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	if h, ok := interface{}(m.GetSortOptions()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("SortOptions")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetSortOptions(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("SortOptions")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
 	return hasher.Sum64(), nil
 }
 
@@ -192,6 +256,11 @@ func (m *ListAuthConfigsResponse) Hash(hasher hash.Hash64) (uint64, error) {
 			}
 		}
 
+	}
+
+	err = binary.Write(hasher, binary.LittleEndian, m.GetTotal())
+	if err != nil {
+		return 0, err
 	}
 
 	return hasher.Sum64(), nil

@@ -54,6 +54,24 @@ export class ListAuthConfigsRequest extends jspb.Message {
   getGlooInstanceRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef | undefined;
   setGlooInstanceRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef): void;
 
+  hasPagination(): boolean;
+  clearPagination(): void;
+  getPagination(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination | undefined;
+  setPagination(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination): void;
+
+  getQueryString(): string;
+  setQueryString(value: string): void;
+
+  hasStatusFilter(): boolean;
+  clearStatusFilter(): void;
+  getStatusFilter(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter | undefined;
+  setStatusFilter(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter): void;
+
+  hasSortOptions(): boolean;
+  clearSortOptions(): void;
+  getSortOptions(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions | undefined;
+  setSortOptions(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListAuthConfigsRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListAuthConfigsRequest): ListAuthConfigsRequest.AsObject;
@@ -67,6 +85,10 @@ export class ListAuthConfigsRequest extends jspb.Message {
 export namespace ListAuthConfigsRequest {
   export type AsObject = {
     glooInstanceRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
+    pagination?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination.AsObject,
+    queryString: string,
+    statusFilter?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter.AsObject,
+    sortOptions?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions.AsObject,
   }
 }
 
@@ -75,6 +97,9 @@ export class ListAuthConfigsResponse extends jspb.Message {
   getAuthConfigsList(): Array<AuthConfig>;
   setAuthConfigsList(value: Array<AuthConfig>): void;
   addAuthConfigs(value?: AuthConfig, index?: number): AuthConfig;
+
+  getTotal(): number;
+  setTotal(value: number): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListAuthConfigsResponse.AsObject;
@@ -89,6 +114,7 @@ export class ListAuthConfigsResponse extends jspb.Message {
 export namespace ListAuthConfigsResponse {
   export type AsObject = {
     authConfigsList: Array<AuthConfig.AsObject>,
+    total: number,
   }
 }
 

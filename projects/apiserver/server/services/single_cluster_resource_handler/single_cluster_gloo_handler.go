@@ -5,6 +5,7 @@ package single_cluster_resource_handler
 import (
 	"context"
 	"sort"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/rotisserie/eris"
@@ -68,9 +69,71 @@ func (h *singleClusterGlooResourceHandler) ListUpstreams(ctx context.Context, re
 		}
 	}
 
-	return &rpc_edge_v1.ListUpstreamsResponse{
-		Upstreams: rpcUpstreams,
-	}, nil
+	// Search, Filter
+	var filteredUpstreams []*rpc_edge_v1.Upstream
+	qs := request.GetQueryString()
+	sf := request.GetStatusFilter()
+	if sf != nil || qs != "" {
+		for _, d := range rpcUpstreams {
+			if (sf == nil || sf.State == int32(d.Status.State)) && strings.Contains(d.Metadata.Name, qs) {
+				filteredUpstreams = append(filteredUpstreams, d)
+			}
+		}
+	} else {
+		filteredUpstreams = rpcUpstreams
+	}
+	// Sort
+	sortOptions := request.GetSortOptions()
+	if sortOptions != nil {
+		isDescending := sortOptions.GetDescending()
+		sortKey := sortOptions.GetSortKey()
+		if isDescending == true {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredUpstreams, func(i, j int) bool {
+					return filteredUpstreams[i].Metadata.Name > filteredUpstreams[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredUpstreams, func(i, j int) bool {
+					return filteredUpstreams[i].Metadata.Namespace > filteredUpstreams[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredUpstreams, func(i, j int) bool {
+					return filteredUpstreams[i].Status.State > filteredUpstreams[j].Status.State
+				})
+			}
+		} else {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredUpstreams, func(i, j int) bool {
+					return filteredUpstreams[i].Metadata.Name < filteredUpstreams[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredUpstreams, func(i, j int) bool {
+					return filteredUpstreams[i].Metadata.Namespace < filteredUpstreams[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredUpstreams, func(i, j int) bool {
+					return filteredUpstreams[i].Status.State < filteredUpstreams[j].Status.State
+				})
+			}
+		}
+	}
+	// Paginate
+	paginatedUpstreams := filteredUpstreams
+	pagination := request.GetPagination()
+	totalCount := int32(len(filteredUpstreams))
+	if pagination.GetLimit() > 0 && pagination.GetOffset() >= 0 {
+		start := apiserverutils.Min(pagination.GetOffset(), totalCount)
+		end := apiserverutils.Min(pagination.GetOffset()+pagination.GetLimit(), totalCount)
+		paginatedUpstreams = filteredUpstreams[start:end]
+	}
+	// Build response
+	res := &rpc_edge_v1.ListUpstreamsResponse{
+		Upstreams: paginatedUpstreams,
+		Total:     totalCount,
+	}
+	return res, nil
 }
 
 func (h *singleClusterGlooResourceHandler) listUpstreamsForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.Upstream, error) {
@@ -175,9 +238,71 @@ func (h *singleClusterGlooResourceHandler) ListUpstreamGroups(ctx context.Contex
 		}
 	}
 
-	return &rpc_edge_v1.ListUpstreamGroupsResponse{
-		UpstreamGroups: rpcUpstreamGroups,
-	}, nil
+	// Search, Filter
+	var filteredUpstreamGroups []*rpc_edge_v1.UpstreamGroup
+	qs := request.GetQueryString()
+	sf := request.GetStatusFilter()
+	if sf != nil || qs != "" {
+		for _, d := range rpcUpstreamGroups {
+			if (sf == nil || sf.State == int32(d.Status.State)) && strings.Contains(d.Metadata.Name, qs) {
+				filteredUpstreamGroups = append(filteredUpstreamGroups, d)
+			}
+		}
+	} else {
+		filteredUpstreamGroups = rpcUpstreamGroups
+	}
+	// Sort
+	sortOptions := request.GetSortOptions()
+	if sortOptions != nil {
+		isDescending := sortOptions.GetDescending()
+		sortKey := sortOptions.GetSortKey()
+		if isDescending == true {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
+					return filteredUpstreamGroups[i].Metadata.Name > filteredUpstreamGroups[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
+					return filteredUpstreamGroups[i].Metadata.Namespace > filteredUpstreamGroups[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
+					return filteredUpstreamGroups[i].Status.State > filteredUpstreamGroups[j].Status.State
+				})
+			}
+		} else {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
+					return filteredUpstreamGroups[i].Metadata.Name < filteredUpstreamGroups[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
+					return filteredUpstreamGroups[i].Metadata.Namespace < filteredUpstreamGroups[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
+					return filteredUpstreamGroups[i].Status.State < filteredUpstreamGroups[j].Status.State
+				})
+			}
+		}
+	}
+	// Paginate
+	paginatedUpstreamGroups := filteredUpstreamGroups
+	pagination := request.GetPagination()
+	totalCount := int32(len(filteredUpstreamGroups))
+	if pagination.GetLimit() > 0 && pagination.GetOffset() >= 0 {
+		start := apiserverutils.Min(pagination.GetOffset(), totalCount)
+		end := apiserverutils.Min(pagination.GetOffset()+pagination.GetLimit(), totalCount)
+		paginatedUpstreamGroups = filteredUpstreamGroups[start:end]
+	}
+	// Build response
+	res := &rpc_edge_v1.ListUpstreamGroupsResponse{
+		UpstreamGroups: paginatedUpstreamGroups,
+		Total:          totalCount,
+	}
+	return res, nil
 }
 
 func (h *singleClusterGlooResourceHandler) listUpstreamGroupsForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.UpstreamGroup, error) {
@@ -282,9 +407,71 @@ func (h *singleClusterGlooResourceHandler) ListSettings(ctx context.Context, req
 		}
 	}
 
-	return &rpc_edge_v1.ListSettingsResponse{
-		Settings: rpcSettings,
-	}, nil
+	// Search, Filter
+	var filteredSettings []*rpc_edge_v1.Settings
+	qs := request.GetQueryString()
+	sf := request.GetStatusFilter()
+	if sf != nil || qs != "" {
+		for _, d := range rpcSettings {
+			if (sf == nil || sf.State == int32(d.Status.State)) && strings.Contains(d.Metadata.Name, qs) {
+				filteredSettings = append(filteredSettings, d)
+			}
+		}
+	} else {
+		filteredSettings = rpcSettings
+	}
+	// Sort
+	sortOptions := request.GetSortOptions()
+	if sortOptions != nil {
+		isDescending := sortOptions.GetDescending()
+		sortKey := sortOptions.GetSortKey()
+		if isDescending == true {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredSettings, func(i, j int) bool {
+					return filteredSettings[i].Metadata.Name > filteredSettings[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredSettings, func(i, j int) bool {
+					return filteredSettings[i].Metadata.Namespace > filteredSettings[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredSettings, func(i, j int) bool {
+					return filteredSettings[i].Status.State > filteredSettings[j].Status.State
+				})
+			}
+		} else {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredSettings, func(i, j int) bool {
+					return filteredSettings[i].Metadata.Name < filteredSettings[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredSettings, func(i, j int) bool {
+					return filteredSettings[i].Metadata.Namespace < filteredSettings[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredSettings, func(i, j int) bool {
+					return filteredSettings[i].Status.State < filteredSettings[j].Status.State
+				})
+			}
+		}
+	}
+	// Paginate
+	paginatedSettings := filteredSettings
+	pagination := request.GetPagination()
+	totalCount := int32(len(filteredSettings))
+	if pagination.GetLimit() > 0 && pagination.GetOffset() >= 0 {
+		start := apiserverutils.Min(pagination.GetOffset(), totalCount)
+		end := apiserverutils.Min(pagination.GetOffset()+pagination.GetLimit(), totalCount)
+		paginatedSettings = filteredSettings[start:end]
+	}
+	// Build response
+	res := &rpc_edge_v1.ListSettingsResponse{
+		Settings: paginatedSettings,
+		Total:    totalCount,
+	}
+	return res, nil
 }
 
 func (h *singleClusterGlooResourceHandler) listSettingsForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.Settings, error) {
@@ -389,9 +576,71 @@ func (h *singleClusterGlooResourceHandler) ListProxies(ctx context.Context, requ
 		}
 	}
 
-	return &rpc_edge_v1.ListProxiesResponse{
-		Proxies: rpcProxies,
-	}, nil
+	// Search, Filter
+	var filteredProxies []*rpc_edge_v1.Proxy
+	qs := request.GetQueryString()
+	sf := request.GetStatusFilter()
+	if sf != nil || qs != "" {
+		for _, d := range rpcProxies {
+			if (sf == nil || sf.State == int32(d.Status.State)) && strings.Contains(d.Metadata.Name, qs) {
+				filteredProxies = append(filteredProxies, d)
+			}
+		}
+	} else {
+		filteredProxies = rpcProxies
+	}
+	// Sort
+	sortOptions := request.GetSortOptions()
+	if sortOptions != nil {
+		isDescending := sortOptions.GetDescending()
+		sortKey := sortOptions.GetSortKey()
+		if isDescending == true {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredProxies, func(i, j int) bool {
+					return filteredProxies[i].Metadata.Name > filteredProxies[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredProxies, func(i, j int) bool {
+					return filteredProxies[i].Metadata.Namespace > filteredProxies[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredProxies, func(i, j int) bool {
+					return filteredProxies[i].Status.State > filteredProxies[j].Status.State
+				})
+			}
+		} else {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredProxies, func(i, j int) bool {
+					return filteredProxies[i].Metadata.Name < filteredProxies[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredProxies, func(i, j int) bool {
+					return filteredProxies[i].Metadata.Namespace < filteredProxies[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredProxies, func(i, j int) bool {
+					return filteredProxies[i].Status.State < filteredProxies[j].Status.State
+				})
+			}
+		}
+	}
+	// Paginate
+	paginatedProxies := filteredProxies
+	pagination := request.GetPagination()
+	totalCount := int32(len(filteredProxies))
+	if pagination.GetLimit() > 0 && pagination.GetOffset() >= 0 {
+		start := apiserverutils.Min(pagination.GetOffset(), totalCount)
+		end := apiserverutils.Min(pagination.GetOffset()+pagination.GetLimit(), totalCount)
+		paginatedProxies = filteredProxies[start:end]
+	}
+	// Build response
+	res := &rpc_edge_v1.ListProxiesResponse{
+		Proxies: paginatedProxies,
+		Total:   totalCount,
+	}
+	return res, nil
 }
 
 func (h *singleClusterGlooResourceHandler) listProxiesForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.Proxy, error) {

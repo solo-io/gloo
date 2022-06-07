@@ -359,7 +359,11 @@ proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.toObject = function
  */
 proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    glooInstanceRef: (f = msg.getGlooInstanceRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ObjectRef.toObject(includeInstance, f)
+    glooInstanceRef: (f = msg.getGlooInstanceRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ObjectRef.toObject(includeInstance, f),
+    pagination: (f = msg.getPagination()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination.toObject(includeInstance, f),
+    queryString: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    statusFilter: (f = msg.getStatusFilter()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter.toObject(includeInstance, f),
+    sortOptions: (f = msg.getSortOptions()) && github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -401,6 +405,25 @@ proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.deserializeBinaryFromReader =
       reader.readMessage(value,github_com_solo$io_skv2_api_core_v1_core_pb.ObjectRef.deserializeBinaryFromReader);
       msg.setGlooInstanceRef(value);
       break;
+    case 2:
+      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination.deserializeBinaryFromReader);
+      msg.setPagination(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setQueryString(value);
+      break;
+    case 4:
+      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter.deserializeBinaryFromReader);
+      msg.setStatusFilter(value);
+      break;
+    case 5:
+      var value = new github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions.deserializeBinaryFromReader);
+      msg.setSortOptions(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -438,6 +461,37 @@ proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.serializeBinaryToWriter = fun
       github_com_solo$io_skv2_api_core_v1_core_pb.ObjectRef.serializeBinaryToWriter
     );
   }
+  f = message.getPagination();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination.serializeBinaryToWriter
+    );
+  }
+  f = message.getQueryString();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getStatusFilter();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter.serializeBinaryToWriter
+    );
+  }
+  f = message.getSortOptions();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -468,6 +522,111 @@ proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.clearGlooInstanceRe
  */
 proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.hasGlooInstanceRef = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional Pagination pagination = 2;
+ * @return {?proto.rpc.edge.gloo.solo.io.Pagination}
+ */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.getPagination = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.Pagination} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination, 2));
+};
+
+
+/** @param {?proto.rpc.edge.gloo.solo.io.Pagination|undefined} value */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.setPagination = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.clearPagination = function() {
+  this.setPagination(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.hasPagination = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string query_string = 3;
+ * @return {string}
+ */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.getQueryString = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.setQueryString = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional StatusFilter status_filter = 4;
+ * @return {?proto.rpc.edge.gloo.solo.io.StatusFilter}
+ */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.getStatusFilter = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.StatusFilter} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter, 4));
+};
+
+
+/** @param {?proto.rpc.edge.gloo.solo.io.StatusFilter|undefined} value */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.setStatusFilter = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.clearStatusFilter = function() {
+  this.setStatusFilter(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.hasStatusFilter = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional SortOptions sort_options = 5;
+ * @return {?proto.rpc.edge.gloo.solo.io.SortOptions}
+ */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.getSortOptions = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.SortOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions, 5));
+};
+
+
+/** @param {?proto.rpc.edge.gloo.solo.io.SortOptions|undefined} value */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.setSortOptions = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.clearSortOptions = function() {
+  this.setSortOptions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsRequest.prototype.hasSortOptions = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 
@@ -526,7 +685,8 @@ proto.rpc.edge.gloo.solo.io.ListAuthConfigsResponse.prototype.toObject = functio
 proto.rpc.edge.gloo.solo.io.ListAuthConfigsResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
     authConfigsList: jspb.Message.toObjectList(msg.getAuthConfigsList(),
-    proto.rpc.edge.gloo.solo.io.AuthConfig.toObject, includeInstance)
+    proto.rpc.edge.gloo.solo.io.AuthConfig.toObject, includeInstance),
+    total: jspb.Message.getFieldWithDefault(msg, 2, 0)
   };
 
   if (includeInstance) {
@@ -568,6 +728,10 @@ proto.rpc.edge.gloo.solo.io.ListAuthConfigsResponse.deserializeBinaryFromReader 
       reader.readMessage(value,proto.rpc.edge.gloo.solo.io.AuthConfig.deserializeBinaryFromReader);
       msg.addAuthConfigs(value);
       break;
+    case 2:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setTotal(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -605,6 +769,13 @@ proto.rpc.edge.gloo.solo.io.ListAuthConfigsResponse.serializeBinaryToWriter = fu
       proto.rpc.edge.gloo.solo.io.AuthConfig.serializeBinaryToWriter
     );
   }
+  f = message.getTotal();
+  if (f !== 0) {
+    writer.writeInt32(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -636,6 +807,21 @@ proto.rpc.edge.gloo.solo.io.ListAuthConfigsResponse.prototype.addAuthConfigs = f
 
 proto.rpc.edge.gloo.solo.io.ListAuthConfigsResponse.prototype.clearAuthConfigsList = function() {
   this.setAuthConfigsList([]);
+};
+
+
+/**
+ * optional int32 total = 2;
+ * @return {number}
+ */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsResponse.prototype.getTotal = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/** @param {number} value */
+proto.rpc.edge.gloo.solo.io.ListAuthConfigsResponse.prototype.setTotal = function(value) {
+  jspb.Message.setProto3IntField(this, 2, value);
 };
 
 

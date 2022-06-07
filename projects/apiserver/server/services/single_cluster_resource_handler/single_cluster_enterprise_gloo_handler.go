@@ -5,6 +5,7 @@ package single_cluster_resource_handler
 import (
 	"context"
 	"sort"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/rotisserie/eris"
@@ -68,9 +69,71 @@ func (h *singleClusterEnterpriseGlooResourceHandler) ListAuthConfigs(ctx context
 		}
 	}
 
-	return &rpc_edge_v1.ListAuthConfigsResponse{
-		AuthConfigs: rpcAuthConfigs,
-	}, nil
+	// Search, Filter
+	var filteredAuthConfigs []*rpc_edge_v1.AuthConfig
+	qs := request.GetQueryString()
+	sf := request.GetStatusFilter()
+	if sf != nil || qs != "" {
+		for _, d := range rpcAuthConfigs {
+			if (sf == nil || sf.State == int32(d.Status.State)) && strings.Contains(d.Metadata.Name, qs) {
+				filteredAuthConfigs = append(filteredAuthConfigs, d)
+			}
+		}
+	} else {
+		filteredAuthConfigs = rpcAuthConfigs
+	}
+	// Sort
+	sortOptions := request.GetSortOptions()
+	if sortOptions != nil {
+		isDescending := sortOptions.GetDescending()
+		sortKey := sortOptions.GetSortKey()
+		if isDescending == true {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
+					return filteredAuthConfigs[i].Metadata.Name > filteredAuthConfigs[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
+					return filteredAuthConfigs[i].Metadata.Namespace > filteredAuthConfigs[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
+					return filteredAuthConfigs[i].Status.State > filteredAuthConfigs[j].Status.State
+				})
+			}
+		} else {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
+					return filteredAuthConfigs[i].Metadata.Name < filteredAuthConfigs[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
+					return filteredAuthConfigs[i].Metadata.Namespace < filteredAuthConfigs[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
+					return filteredAuthConfigs[i].Status.State < filteredAuthConfigs[j].Status.State
+				})
+			}
+		}
+	}
+	// Paginate
+	paginatedAuthConfigs := filteredAuthConfigs
+	pagination := request.GetPagination()
+	totalCount := int32(len(filteredAuthConfigs))
+	if pagination.GetLimit() > 0 && pagination.GetOffset() >= 0 {
+		start := apiserverutils.Min(pagination.GetOffset(), totalCount)
+		end := apiserverutils.Min(pagination.GetOffset()+pagination.GetLimit(), totalCount)
+		paginatedAuthConfigs = filteredAuthConfigs[start:end]
+	}
+	// Build response
+	res := &rpc_edge_v1.ListAuthConfigsResponse{
+		AuthConfigs: paginatedAuthConfigs,
+		Total:       totalCount,
+	}
+	return res, nil
 }
 
 func (h *singleClusterEnterpriseGlooResourceHandler) listAuthConfigsForGlooInstance(ctx context.Context, instance *rpc_edge_v1.GlooInstance) ([]*rpc_edge_v1.AuthConfig, error) {

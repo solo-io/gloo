@@ -36,10 +36,15 @@ message {{ $base_kind }} {
 
 message List{{ pluralize $base_kind }}Request {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .rpc.edge.gloo.solo.io.Pagination pagination = 2;
+    string query_string = 3;
+    .rpc.edge.gloo.solo.io.StatusFilter status_filter = 4;
+    .rpc.edge.gloo.solo.io.SortOptions sort_options = 5;
 }
 
 message List{{ pluralize $base_kind }}Response {
     repeated {{ $base_kind }} {{ pluralize $kind_snake_case }} = 1;
+    int32 total = 2;
 }
 
 message Get{{ $base_kind }}YamlRequest {

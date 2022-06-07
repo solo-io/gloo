@@ -160,3 +160,95 @@ func (m *ResourceYaml) Equal(that interface{}) bool {
 
 	return true
 }
+
+// Equal function
+func (m *Pagination) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*Pagination)
+	if !ok {
+		that2, ok := that.(Pagination)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetLimit() != target.GetLimit() {
+		return false
+	}
+
+	if m.GetOffset() != target.GetOffset() {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *SortOptions) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*SortOptions)
+	if !ok {
+		that2, ok := that.(SortOptions)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetDescending() != target.GetDescending() {
+		return false
+	}
+
+	if m.GetSortKey() != target.GetSortKey() {
+		return false
+	}
+
+	return true
+}
+
+// Equal function
+func (m *StatusFilter) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*StatusFilter)
+	if !ok {
+		that2, ok := that.(StatusFilter)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetState() != target.GetState() {
+		return false
+	}
+
+	return true
+}

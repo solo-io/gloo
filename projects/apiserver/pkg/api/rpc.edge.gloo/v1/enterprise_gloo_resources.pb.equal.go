@@ -120,6 +120,40 @@ func (m *ListAuthConfigsRequest) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetPagination()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetPagination()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetPagination(), target.GetPagination()) {
+			return false
+		}
+	}
+
+	if strings.Compare(m.GetQueryString(), target.GetQueryString()) != 0 {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetStatusFilter()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetStatusFilter()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetStatusFilter(), target.GetStatusFilter()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetSortOptions()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSortOptions()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSortOptions(), target.GetSortOptions()) {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -159,6 +193,10 @@ func (m *ListAuthConfigsResponse) Equal(that interface{}) bool {
 			}
 		}
 
+	}
+
+	if m.GetTotal() != target.GetTotal() {
+		return false
 	}
 
 	return true

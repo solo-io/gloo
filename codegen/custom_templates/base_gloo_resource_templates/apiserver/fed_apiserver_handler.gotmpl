@@ -9,6 +9,8 @@ import (
 	"context"
 	"math"
 	"sort"
+	"string"
+	"sort"
 
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
@@ -47,7 +49,6 @@ type fed{{ $base_Group }}ResourceHandler struct {
 {{- $baseKind := base_kind $resource.Kind }}
 
 func (k *fed{{ $base_Group }}ResourceHandler) List{{ pluralize $baseKind }}(ctx context.Context, request *rpc_edge_v1.List{{ pluralize $baseKind }}Request) (*rpc_edge_v1.List{{ pluralize $baseKind }}Response, error) {
-
 	var rpc{{ pluralize $baseKind }} []*rpc_edge_v1.{{ $baseKind }}
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
 		// List {{ pluralize $kindLowerCamel }} across all gloo edge instances
@@ -85,9 +86,71 @@ func (k *fed{{ $base_Group }}ResourceHandler) List{{ pluralize $baseKind }}(ctx 
 		}
 	}
 
-	return &rpc_edge_v1.List{{ pluralize $baseKind }}Response{
-		{{ pluralize $baseKind }}: rpc{{ pluralize $baseKind }},
-	}, nil
+	// Search, Filter
+	var filtered{{ pluralize $baseKind }} []*rpc_edge_v1.{{ $baseKind }}
+	qs := request.GetQueryString()
+	sf := request.GetStatusFilter()
+	if sf != nil || qs != "" {
+	    for _, d := range rpc{{ pluralize $baseKind }} {
+	        if (sf == nil || sf.State == int32(d.Status.State) ) && strings.Contains(d.Metadata.Name, qs) {
+	            filtered{{ pluralize $baseKind }} = append(filtered{{ pluralize $baseKind }}, d)
+	        }
+	    }
+	} else {
+		filtered{{ pluralize $baseKind }} = rpc{{ pluralize $baseKind }}
+	}
+	// Sort
+	sortOptions := request.GetSortOptions()
+	if sortOptions != nil {
+		isDescending := sortOptions.GetDescending();
+		sortKey := sortOptions.GetSortKey();
+		if isDescending == true {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filtered{{ pluralize $baseKind }}, func(i, j int) bool {
+					return filtered{{ pluralize $baseKind }}[i].Metadata.Name > filtered{{ pluralize $baseKind }}[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE :
+				sort.Slice(filtered{{ pluralize $baseKind }}, func(i, j int) bool {
+					return filtered{{ pluralize $baseKind }}[i].Metadata.Namespace > filtered{{ pluralize $baseKind }}[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filtered{{ pluralize $baseKind }}, func(i, j int) bool {
+					return filtered{{ pluralize $baseKind }}[i].Status.State > filtered{{ pluralize $baseKind }}[j].Status.State
+				})
+			}
+		} else {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filtered{{ pluralize $baseKind }}, func(i, j int) bool {
+					return filtered{{ pluralize $baseKind }}[i].Metadata.Name < filtered{{ pluralize $baseKind }}[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filtered{{ pluralize $baseKind }}, func(i, j int) bool {
+					return filtered{{ pluralize $baseKind }}[i].Metadata.Namespace < filtered{{ pluralize $baseKind }}[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filtered{{ pluralize $baseKind }}, func(i, j int) bool {
+					return filtered{{ pluralize $baseKind }}[i].Status.State < filtered{{ pluralize $baseKind }}[j].Status.State
+				})
+			}
+		}
+	}
+	// Paginate
+	paginated{{ pluralize $baseKind }} := filtered{{ pluralize $baseKind }}
+	pagination := request.GetPagination()
+	totalCount := int32(len(filtered{{ pluralize $baseKind }}))
+	if pagination.GetLimit() > 0 && pagination.GetOffset() >= 0 {
+		start := apiserverutils.Min(pagination.GetOffset(), totalCount)
+		end := apiserverutils.Min(pagination.GetOffset()+pagination.GetLimit(), totalCount)
+		paginated{{ pluralize $baseKind }} = filtered{{ pluralize $baseKind }}[start:end]
+	}
+	// Build response
+	res := &rpc_edge_v1.List{{ pluralize $baseKind }}Response{
+		{{ pluralize $baseKind }}: paginated{{ pluralize $baseKind }},
+		Total: totalCount,
+	}
+	return res, nil
 }
 
 func (k *fed{{ $base_Group }}ResourceHandler) list{{ pluralize $baseKind }}ForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.{{ $baseKind }}, error) {

@@ -5,6 +5,7 @@ package ratelimit_resource_handler
 import (
 	"context"
 	"sort"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/rotisserie/eris"
@@ -37,7 +38,6 @@ type fedRatelimitResourceHandler struct {
 }
 
 func (k *fedRatelimitResourceHandler) ListRateLimitConfigs(ctx context.Context, request *rpc_edge_v1.ListRateLimitConfigsRequest) (*rpc_edge_v1.ListRateLimitConfigsResponse, error) {
-
 	var rpcRateLimitConfigs []*rpc_edge_v1.RateLimitConfig
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
 		// List rateLimitConfigs across all gloo edge instances
@@ -75,9 +75,71 @@ func (k *fedRatelimitResourceHandler) ListRateLimitConfigs(ctx context.Context, 
 		}
 	}
 
-	return &rpc_edge_v1.ListRateLimitConfigsResponse{
-		RateLimitConfigs: rpcRateLimitConfigs,
-	}, nil
+	// Search, Filter
+	var filteredRateLimitConfigs []*rpc_edge_v1.RateLimitConfig
+	qs := request.GetQueryString()
+	sf := request.GetStatusFilter()
+	if sf != nil || qs != "" {
+		for _, d := range rpcRateLimitConfigs {
+			if (sf == nil || sf.State == int32(d.Status.State)) && strings.Contains(d.Metadata.Name, qs) {
+				filteredRateLimitConfigs = append(filteredRateLimitConfigs, d)
+			}
+		}
+	} else {
+		filteredRateLimitConfigs = rpcRateLimitConfigs
+	}
+	// Sort
+	sortOptions := request.GetSortOptions()
+	if sortOptions != nil {
+		isDescending := sortOptions.GetDescending()
+		sortKey := sortOptions.GetSortKey()
+		if isDescending == true {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
+					return filteredRateLimitConfigs[i].Metadata.Name > filteredRateLimitConfigs[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
+					return filteredRateLimitConfigs[i].Metadata.Namespace > filteredRateLimitConfigs[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
+					return filteredRateLimitConfigs[i].Status.State > filteredRateLimitConfigs[j].Status.State
+				})
+			}
+		} else {
+			switch sortKey {
+			case rpc_edge_v1.SortOptions_NAME:
+				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
+					return filteredRateLimitConfigs[i].Metadata.Name < filteredRateLimitConfigs[j].Metadata.Name
+				})
+			case rpc_edge_v1.SortOptions_NAMESPACE:
+				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
+					return filteredRateLimitConfigs[i].Metadata.Namespace < filteredRateLimitConfigs[j].Metadata.Namespace
+				})
+			case rpc_edge_v1.SortOptions_STATUS:
+				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
+					return filteredRateLimitConfigs[i].Status.State < filteredRateLimitConfigs[j].Status.State
+				})
+			}
+		}
+	}
+	// Paginate
+	paginatedRateLimitConfigs := filteredRateLimitConfigs
+	pagination := request.GetPagination()
+	totalCount := int32(len(filteredRateLimitConfigs))
+	if pagination.GetLimit() > 0 && pagination.GetOffset() >= 0 {
+		start := apiserverutils.Min(pagination.GetOffset(), totalCount)
+		end := apiserverutils.Min(pagination.GetOffset()+pagination.GetLimit(), totalCount)
+		paginatedRateLimitConfigs = filteredRateLimitConfigs[start:end]
+	}
+	// Build response
+	res := &rpc_edge_v1.ListRateLimitConfigsResponse{
+		RateLimitConfigs: paginatedRateLimitConfigs,
+		Total:            totalCount,
+	}
+	return res, nil
 }
 
 func (k *fedRatelimitResourceHandler) listRateLimitConfigsForGlooInstance(ctx context.Context, instance *fedv1.GlooInstance) ([]*rpc_edge_v1.RateLimitConfig, error) {

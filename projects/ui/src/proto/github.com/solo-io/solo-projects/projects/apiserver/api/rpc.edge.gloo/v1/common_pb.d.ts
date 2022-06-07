@@ -96,3 +96,79 @@ export namespace ResourceYaml {
     yaml: string,
   }
 }
+
+export class Pagination extends jspb.Message {
+  getLimit(): number;
+  setLimit(value: number): void;
+
+  getOffset(): number;
+  setOffset(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Pagination.AsObject;
+  static toObject(includeInstance: boolean, msg: Pagination): Pagination.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Pagination, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Pagination;
+  static deserializeBinaryFromReader(message: Pagination, reader: jspb.BinaryReader): Pagination;
+}
+
+export namespace Pagination {
+  export type AsObject = {
+    limit: number,
+    offset: number,
+  }
+}
+
+export class SortOptions extends jspb.Message {
+  getDescending(): boolean;
+  setDescending(value: boolean): void;
+
+  getSortKey(): SortOptions.SortKeyMap[keyof SortOptions.SortKeyMap];
+  setSortKey(value: SortOptions.SortKeyMap[keyof SortOptions.SortKeyMap]): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SortOptions.AsObject;
+  static toObject(includeInstance: boolean, msg: SortOptions): SortOptions.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SortOptions, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SortOptions;
+  static deserializeBinaryFromReader(message: SortOptions, reader: jspb.BinaryReader): SortOptions;
+}
+
+export namespace SortOptions {
+  export type AsObject = {
+    descending: boolean,
+    sortKey: SortOptions.SortKeyMap[keyof SortOptions.SortKeyMap],
+  }
+
+  export interface SortKeyMap {
+    NAME: 0;
+    NAMESPACE: 1;
+    STATUS: 2;
+  }
+
+  export const SortKey: SortKeyMap;
+}
+
+export class StatusFilter extends jspb.Message {
+  getState(): number;
+  setState(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): StatusFilter.AsObject;
+  static toObject(includeInstance: boolean, msg: StatusFilter): StatusFilter.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: StatusFilter, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): StatusFilter;
+  static deserializeBinaryFromReader(message: StatusFilter, reader: jspb.BinaryReader): StatusFilter;
+}
+
+export namespace StatusFilter {
+  export type AsObject = {
+    state: number,
+  }
+}

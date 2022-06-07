@@ -24,6 +24,56 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// The properties we can sort by.
+type SortOptions_SortKey int32
+
+const (
+	SortOptions_NAME      SortOptions_SortKey = 0
+	SortOptions_NAMESPACE SortOptions_SortKey = 1
+	SortOptions_STATUS    SortOptions_SortKey = 2
+)
+
+// Enum value maps for SortOptions_SortKey.
+var (
+	SortOptions_SortKey_name = map[int32]string{
+		0: "NAME",
+		1: "NAMESPACE",
+		2: "STATUS",
+	}
+	SortOptions_SortKey_value = map[string]int32{
+		"NAME":      0,
+		"NAMESPACE": 1,
+		"STATUS":    2,
+	}
+)
+
+func (x SortOptions_SortKey) Enum() *SortOptions_SortKey {
+	p := new(SortOptions_SortKey)
+	*p = x
+	return p
+}
+
+func (x SortOptions_SortKey) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SortOptions_SortKey) Descriptor() protoreflect.EnumDescriptor {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_enumTypes[0].Descriptor()
+}
+
+func (SortOptions_SortKey) Type() protoreflect.EnumType {
+	return &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_enumTypes[0]
+}
+
+func (x SortOptions_SortKey) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SortOptions_SortKey.Descriptor instead.
+func (SortOptions_SortKey) EnumDescriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_rawDescGZIP(), []int{4, 0}
+}
+
 // ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.
 // This is a boiled-down version of Kubernetes ObjectMeta which can be found at:
 // https://github.com/kubernetes/apimachinery/blob/master/pkg/apis/meta/v1/generated.proto
@@ -303,6 +353,168 @@ func (x *ResourceYaml) GetYaml() string {
 	return ""
 }
 
+type Pagination struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Limit  int32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset int32 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+}
+
+func (x *Pagination) Reset() {
+	*x = Pagination{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Pagination) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Pagination) ProtoMessage() {}
+
+func (x *Pagination) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Pagination.ProtoReflect.Descriptor instead.
+func (*Pagination) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Pagination) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *Pagination) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+type SortOptions struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Whether to sort descending (true) or ascending (false).
+	// Default: Sorts ascending.
+	Descending bool `protobuf:"varint,1,opt,name=descending,proto3" json:"descending,omitempty"`
+	// The property to sort by.
+	// Default: Sorts by name.
+	SortKey SortOptions_SortKey `protobuf:"varint,2,opt,name=sort_key,json=sortKey,proto3,enum=rpc.edge.gloo.solo.io.SortOptions_SortKey" json:"sort_key,omitempty"`
+}
+
+func (x *SortOptions) Reset() {
+	*x = SortOptions{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SortOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SortOptions) ProtoMessage() {}
+
+func (x *SortOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SortOptions.ProtoReflect.Descriptor instead.
+func (*SortOptions) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SortOptions) GetDescending() bool {
+	if x != nil {
+		return x.Descending
+	}
+	return false
+}
+
+func (x *SortOptions) GetSortKey() SortOptions_SortKey {
+	if x != nil {
+		return x.SortKey
+	}
+	return SortOptions_NAME
+}
+
+type StatusFilter struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// This matches up to the {{...}}Status.State field for each gloo resource.
+	State int32 `protobuf:"varint,1,opt,name=state,proto3" json:"state,omitempty"`
+}
+
+func (x *StatusFilter) Reset() {
+	*x = StatusFilter{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StatusFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusFilter) ProtoMessage() {}
+
+func (x *StatusFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusFilter.ProtoReflect.Descriptor instead.
+func (*StatusFilter) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *StatusFilter) GetState() int32 {
+	if x != nil {
+		return x.State
+	}
+	return 0
+}
+
 var File_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto protoreflect.FileDescriptor
 
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_rawDesc = []byte{
@@ -352,13 +564,29 @@ var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v
 	0x6f, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x6e, 0x61, 0x6e, 0x6f, 0x73, 0x22,
 	0x22, 0x0a, 0x0c, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x59, 0x61, 0x6d, 0x6c, 0x12,
 	0x12, 0x0a, 0x04, 0x79, 0x61, 0x6d, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x79,
-	0x61, 0x6d, 0x6c, 0x42, 0x56, 0x5a, 0x4c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
-	0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x70,
-	0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73,
-	0x2f, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61,
-	0x70, 0x69, 0x2f, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f,
-	0x2f, 0x76, 0x31, 0xc0, 0xf5, 0x04, 0x01, 0xb8, 0xf5, 0x04, 0x01, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x61, 0x6d, 0x6c, 0x22, 0x3a, 0x0a, 0x0a, 0x50, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05,
+	0x52, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65,
+	0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x22,
+	0xa4, 0x01, 0x0a, 0x0b, 0x53, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12,
+	0x1e, 0x0a, 0x0a, 0x64, 0x65, 0x73, 0x63, 0x65, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x08, 0x52, 0x0a, 0x64, 0x65, 0x73, 0x63, 0x65, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x12,
+	0x45, 0x0a, 0x08, 0x73, 0x6f, 0x72, 0x74, 0x5f, 0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x0e, 0x32, 0x2a, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
+	0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x53, 0x6f, 0x72, 0x74, 0x4f, 0x70,
+	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x53, 0x6f, 0x72, 0x74, 0x4b, 0x65, 0x79, 0x52, 0x07, 0x73,
+	0x6f, 0x72, 0x74, 0x4b, 0x65, 0x79, 0x22, 0x2e, 0x0a, 0x07, 0x53, 0x6f, 0x72, 0x74, 0x4b, 0x65,
+	0x79, 0x12, 0x08, 0x0a, 0x04, 0x4e, 0x41, 0x4d, 0x45, 0x10, 0x00, 0x12, 0x0d, 0x0a, 0x09, 0x4e,
+	0x41, 0x4d, 0x45, 0x53, 0x50, 0x41, 0x43, 0x45, 0x10, 0x01, 0x12, 0x0a, 0x0a, 0x06, 0x53, 0x54,
+	0x41, 0x54, 0x55, 0x53, 0x10, 0x02, 0x22, 0x24, 0x0a, 0x0c, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73,
+	0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x12, 0x14, 0x0a, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x42, 0x56, 0x5a, 0x4c,
+	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d,
+	0x69, 0x6f, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73,
+	0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72,
+	0x76, 0x65, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x72, 0x70, 0x63, 0x2e,
+	0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x76, 0x31, 0xc0, 0xf5, 0x04, 0x01,
+	0xb8, 0xf5, 0x04, 0x01, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -373,23 +601,29 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_rawDescData
 }
 
-var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_goTypes = []interface{}{
-	(*ObjectMeta)(nil),   // 0: rpc.edge.gloo.solo.io.ObjectMeta
-	(*Time)(nil),         // 1: rpc.edge.gloo.solo.io.Time
-	(*ResourceYaml)(nil), // 2: rpc.edge.gloo.solo.io.ResourceYaml
-	nil,                  // 3: rpc.edge.gloo.solo.io.ObjectMeta.LabelsEntry
-	nil,                  // 4: rpc.edge.gloo.solo.io.ObjectMeta.AnnotationsEntry
+	(SortOptions_SortKey)(0), // 0: rpc.edge.gloo.solo.io.SortOptions.SortKey
+	(*ObjectMeta)(nil),       // 1: rpc.edge.gloo.solo.io.ObjectMeta
+	(*Time)(nil),             // 2: rpc.edge.gloo.solo.io.Time
+	(*ResourceYaml)(nil),     // 3: rpc.edge.gloo.solo.io.ResourceYaml
+	(*Pagination)(nil),       // 4: rpc.edge.gloo.solo.io.Pagination
+	(*SortOptions)(nil),      // 5: rpc.edge.gloo.solo.io.SortOptions
+	(*StatusFilter)(nil),     // 6: rpc.edge.gloo.solo.io.StatusFilter
+	nil,                      // 7: rpc.edge.gloo.solo.io.ObjectMeta.LabelsEntry
+	nil,                      // 8: rpc.edge.gloo.solo.io.ObjectMeta.AnnotationsEntry
 }
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_depIdxs = []int32{
-	1, // 0: rpc.edge.gloo.solo.io.ObjectMeta.creation_timestamp:type_name -> rpc.edge.gloo.solo.io.Time
-	3, // 1: rpc.edge.gloo.solo.io.ObjectMeta.labels:type_name -> rpc.edge.gloo.solo.io.ObjectMeta.LabelsEntry
-	4, // 2: rpc.edge.gloo.solo.io.ObjectMeta.annotations:type_name -> rpc.edge.gloo.solo.io.ObjectMeta.AnnotationsEntry
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	2, // 0: rpc.edge.gloo.solo.io.ObjectMeta.creation_timestamp:type_name -> rpc.edge.gloo.solo.io.Time
+	7, // 1: rpc.edge.gloo.solo.io.ObjectMeta.labels:type_name -> rpc.edge.gloo.solo.io.ObjectMeta.LabelsEntry
+	8, // 2: rpc.edge.gloo.solo.io.ObjectMeta.annotations:type_name -> rpc.edge.gloo.solo.io.ObjectMeta.AnnotationsEntry
+	0, // 3: rpc.edge.gloo.solo.io.SortOptions.sort_key:type_name -> rpc.edge.gloo.solo.io.SortOptions.SortKey
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() {
@@ -436,19 +670,56 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 				return nil
 			}
 		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Pagination); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SortOptions); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StatusFilter); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   5,
+			NumEnums:      1,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_goTypes,
 		DependencyIndexes: file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_depIdxs,
+		EnumInfos:         file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_enumTypes,
 		MessageInfos:      file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto_msgTypes,
 	}.Build()
 	File_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_proto = out.File

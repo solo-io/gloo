@@ -20,10 +20,15 @@ message AuthConfig {
 
 message ListAuthConfigsRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .rpc.edge.gloo.solo.io.Pagination pagination = 2;
+    string query_string = 3;
+    .rpc.edge.gloo.solo.io.StatusFilter status_filter = 4;
+    .rpc.edge.gloo.solo.io.SortOptions sort_options = 5;
 }
 
 message ListAuthConfigsResponse {
     repeated AuthConfig auth_configs = 1;
+    int32 total = 2;
 }
 
 message GetAuthConfigYamlRequest {

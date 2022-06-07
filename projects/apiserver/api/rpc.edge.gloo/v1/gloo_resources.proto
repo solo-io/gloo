@@ -44,10 +44,15 @@ message Proxy {
 
 message ListUpstreamsRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .rpc.edge.gloo.solo.io.Pagination pagination = 2;
+    string query_string = 3;
+    .rpc.edge.gloo.solo.io.StatusFilter status_filter = 4;
+    .rpc.edge.gloo.solo.io.SortOptions sort_options = 5;
 }
 
 message ListUpstreamsResponse {
     repeated Upstream upstreams = 1;
+    int32 total = 2;
 }
 
 message GetUpstreamYamlRequest {
@@ -60,10 +65,15 @@ message GetUpstreamYamlResponse {
 
 message ListUpstreamGroupsRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .rpc.edge.gloo.solo.io.Pagination pagination = 2;
+    string query_string = 3;
+    .rpc.edge.gloo.solo.io.StatusFilter status_filter = 4;
+    .rpc.edge.gloo.solo.io.SortOptions sort_options = 5;
 }
 
 message ListUpstreamGroupsResponse {
     repeated UpstreamGroup upstream_groups = 1;
+    int32 total = 2;
 }
 
 message GetUpstreamGroupYamlRequest {
@@ -76,10 +86,15 @@ message GetUpstreamGroupYamlResponse {
 
 message ListSettingsRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .rpc.edge.gloo.solo.io.Pagination pagination = 2;
+    string query_string = 3;
+    .rpc.edge.gloo.solo.io.StatusFilter status_filter = 4;
+    .rpc.edge.gloo.solo.io.SortOptions sort_options = 5;
 }
 
 message ListSettingsResponse {
     repeated Settings settings = 1;
+    int32 total = 2;
 }
 
 message GetSettingsYamlRequest {
@@ -92,10 +107,15 @@ message GetSettingsYamlResponse {
 
 message ListProxiesRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .rpc.edge.gloo.solo.io.Pagination pagination = 2;
+    string query_string = 3;
+    .rpc.edge.gloo.solo.io.StatusFilter status_filter = 4;
+    .rpc.edge.gloo.solo.io.SortOptions sort_options = 5;
 }
 
 message ListProxiesResponse {
     repeated Proxy proxies = 1;
+    int32 total = 2;
 }
 
 message GetProxyYamlRequest {

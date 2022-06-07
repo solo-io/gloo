@@ -177,6 +177,24 @@ export class ListGatewaysRequest extends jspb.Message {
   getGlooInstanceRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef | undefined;
   setGlooInstanceRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef): void;
 
+  hasPagination(): boolean;
+  clearPagination(): void;
+  getPagination(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination | undefined;
+  setPagination(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination): void;
+
+  getQueryString(): string;
+  setQueryString(value: string): void;
+
+  hasStatusFilter(): boolean;
+  clearStatusFilter(): void;
+  getStatusFilter(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter | undefined;
+  setStatusFilter(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter): void;
+
+  hasSortOptions(): boolean;
+  clearSortOptions(): void;
+  getSortOptions(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions | undefined;
+  setSortOptions(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListGatewaysRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListGatewaysRequest): ListGatewaysRequest.AsObject;
@@ -190,6 +208,10 @@ export class ListGatewaysRequest extends jspb.Message {
 export namespace ListGatewaysRequest {
   export type AsObject = {
     glooInstanceRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
+    pagination?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination.AsObject,
+    queryString: string,
+    statusFilter?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter.AsObject,
+    sortOptions?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions.AsObject,
   }
 }
 
@@ -198,6 +220,9 @@ export class ListGatewaysResponse extends jspb.Message {
   getGatewaysList(): Array<Gateway>;
   setGatewaysList(value: Array<Gateway>): void;
   addGateways(value?: Gateway, index?: number): Gateway;
+
+  getTotal(): number;
+  setTotal(value: number): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListGatewaysResponse.AsObject;
@@ -212,6 +237,7 @@ export class ListGatewaysResponse extends jspb.Message {
 export namespace ListGatewaysResponse {
   export type AsObject = {
     gatewaysList: Array<Gateway.AsObject>,
+    total: number,
   }
 }
 
@@ -265,6 +291,24 @@ export class ListMatchableHttpGatewaysRequest extends jspb.Message {
   getGlooInstanceRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef | undefined;
   setGlooInstanceRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef): void;
 
+  hasPagination(): boolean;
+  clearPagination(): void;
+  getPagination(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination | undefined;
+  setPagination(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination): void;
+
+  getQueryString(): string;
+  setQueryString(value: string): void;
+
+  hasStatusFilter(): boolean;
+  clearStatusFilter(): void;
+  getStatusFilter(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter | undefined;
+  setStatusFilter(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter): void;
+
+  hasSortOptions(): boolean;
+  clearSortOptions(): void;
+  getSortOptions(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions | undefined;
+  setSortOptions(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListMatchableHttpGatewaysRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListMatchableHttpGatewaysRequest): ListMatchableHttpGatewaysRequest.AsObject;
@@ -278,6 +322,10 @@ export class ListMatchableHttpGatewaysRequest extends jspb.Message {
 export namespace ListMatchableHttpGatewaysRequest {
   export type AsObject = {
     glooInstanceRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
+    pagination?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination.AsObject,
+    queryString: string,
+    statusFilter?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter.AsObject,
+    sortOptions?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions.AsObject,
   }
 }
 
@@ -286,6 +334,9 @@ export class ListMatchableHttpGatewaysResponse extends jspb.Message {
   getMatchableHttpGatewaysList(): Array<MatchableHttpGateway>;
   setMatchableHttpGatewaysList(value: Array<MatchableHttpGateway>): void;
   addMatchableHttpGateways(value?: MatchableHttpGateway, index?: number): MatchableHttpGateway;
+
+  getTotal(): number;
+  setTotal(value: number): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListMatchableHttpGatewaysResponse.AsObject;
@@ -300,6 +351,7 @@ export class ListMatchableHttpGatewaysResponse extends jspb.Message {
 export namespace ListMatchableHttpGatewaysResponse {
   export type AsObject = {
     matchableHttpGatewaysList: Array<MatchableHttpGateway.AsObject>,
+    total: number,
   }
 }
 
@@ -353,6 +405,24 @@ export class ListVirtualServicesRequest extends jspb.Message {
   getGlooInstanceRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef | undefined;
   setGlooInstanceRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef): void;
 
+  hasPagination(): boolean;
+  clearPagination(): void;
+  getPagination(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination | undefined;
+  setPagination(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination): void;
+
+  getQueryString(): string;
+  setQueryString(value: string): void;
+
+  hasStatusFilter(): boolean;
+  clearStatusFilter(): void;
+  getStatusFilter(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter | undefined;
+  setStatusFilter(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter): void;
+
+  hasSortOptions(): boolean;
+  clearSortOptions(): void;
+  getSortOptions(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions | undefined;
+  setSortOptions(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListVirtualServicesRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListVirtualServicesRequest): ListVirtualServicesRequest.AsObject;
@@ -366,6 +436,10 @@ export class ListVirtualServicesRequest extends jspb.Message {
 export namespace ListVirtualServicesRequest {
   export type AsObject = {
     glooInstanceRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
+    pagination?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination.AsObject,
+    queryString: string,
+    statusFilter?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter.AsObject,
+    sortOptions?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions.AsObject,
   }
 }
 
@@ -374,6 +448,9 @@ export class ListVirtualServicesResponse extends jspb.Message {
   getVirtualServicesList(): Array<VirtualService>;
   setVirtualServicesList(value: Array<VirtualService>): void;
   addVirtualServices(value?: VirtualService, index?: number): VirtualService;
+
+  getTotal(): number;
+  setTotal(value: number): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListVirtualServicesResponse.AsObject;
@@ -388,6 +465,7 @@ export class ListVirtualServicesResponse extends jspb.Message {
 export namespace ListVirtualServicesResponse {
   export type AsObject = {
     virtualServicesList: Array<VirtualService.AsObject>,
+    total: number,
   }
 }
 
@@ -441,6 +519,24 @@ export class ListRouteTablesRequest extends jspb.Message {
   getGlooInstanceRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef | undefined;
   setGlooInstanceRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef): void;
 
+  hasPagination(): boolean;
+  clearPagination(): void;
+  getPagination(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination | undefined;
+  setPagination(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination): void;
+
+  getQueryString(): string;
+  setQueryString(value: string): void;
+
+  hasStatusFilter(): boolean;
+  clearStatusFilter(): void;
+  getStatusFilter(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter | undefined;
+  setStatusFilter(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter): void;
+
+  hasSortOptions(): boolean;
+  clearSortOptions(): void;
+  getSortOptions(): github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions | undefined;
+  setSortOptions(value?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListRouteTablesRequest.AsObject;
   static toObject(includeInstance: boolean, msg: ListRouteTablesRequest): ListRouteTablesRequest.AsObject;
@@ -454,6 +550,10 @@ export class ListRouteTablesRequest extends jspb.Message {
 export namespace ListRouteTablesRequest {
   export type AsObject = {
     glooInstanceRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ObjectRef.AsObject,
+    pagination?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.Pagination.AsObject,
+    queryString: string,
+    statusFilter?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.StatusFilter.AsObject,
+    sortOptions?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.SortOptions.AsObject,
   }
 }
 
@@ -462,6 +562,9 @@ export class ListRouteTablesResponse extends jspb.Message {
   getRouteTablesList(): Array<RouteTable>;
   setRouteTablesList(value: Array<RouteTable>): void;
   addRouteTables(value?: RouteTable, index?: number): RouteTable;
+
+  getTotal(): number;
+  setTotal(value: number): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListRouteTablesResponse.AsObject;
@@ -476,6 +579,7 @@ export class ListRouteTablesResponse extends jspb.Message {
 export namespace ListRouteTablesResponse {
   export type AsObject = {
     routeTablesList: Array<RouteTable.AsObject>,
+    total: number,
   }
 }
 

@@ -113,3 +113,30 @@ message Time {
 message ResourceYaml {
     string yaml = 1;
 }
+
+message Pagination {
+    int32 limit = 1;
+    int32 offset = 2;
+}
+
+message SortOptions {
+    // Whether to sort descending (true) or ascending (false).
+    // Default: Sorts ascending.
+    bool descending = 1;
+
+    // The property to sort by.
+    // Default: Sorts by name.
+    SortKey sort_key = 2;
+
+    // The properties we can sort by.
+    enum SortKey {
+        NAME = 0;
+        NAMESPACE = 1;
+        STATUS = 2;
+    }
+}
+
+message StatusFilter {
+    // This matches up to the {{...}}Status.State field for each gloo resource.
+    int32 state = 1;
+}

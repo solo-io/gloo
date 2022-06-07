@@ -44,10 +44,15 @@ message RouteTable {
 
 message ListGatewaysRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .rpc.edge.gloo.solo.io.Pagination pagination = 2;
+    string query_string = 3;
+    .rpc.edge.gloo.solo.io.StatusFilter status_filter = 4;
+    .rpc.edge.gloo.solo.io.SortOptions sort_options = 5;
 }
 
 message ListGatewaysResponse {
     repeated Gateway gateways = 1;
+    int32 total = 2;
 }
 
 message GetGatewayYamlRequest {
@@ -60,10 +65,15 @@ message GetGatewayYamlResponse {
 
 message ListMatchableHttpGatewaysRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .rpc.edge.gloo.solo.io.Pagination pagination = 2;
+    string query_string = 3;
+    .rpc.edge.gloo.solo.io.StatusFilter status_filter = 4;
+    .rpc.edge.gloo.solo.io.SortOptions sort_options = 5;
 }
 
 message ListMatchableHttpGatewaysResponse {
     repeated MatchableHttpGateway matchable_http_gateways = 1;
+    int32 total = 2;
 }
 
 message GetMatchableHttpGatewayYamlRequest {
@@ -76,10 +86,15 @@ message GetMatchableHttpGatewayYamlResponse {
 
 message ListVirtualServicesRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .rpc.edge.gloo.solo.io.Pagination pagination = 2;
+    string query_string = 3;
+    .rpc.edge.gloo.solo.io.StatusFilter status_filter = 4;
+    .rpc.edge.gloo.solo.io.SortOptions sort_options = 5;
 }
 
 message ListVirtualServicesResponse {
     repeated VirtualService virtual_services = 1;
+    int32 total = 2;
 }
 
 message GetVirtualServiceYamlRequest {
@@ -92,10 +107,15 @@ message GetVirtualServiceYamlResponse {
 
 message ListRouteTablesRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
+    .rpc.edge.gloo.solo.io.Pagination pagination = 2;
+    string query_string = 3;
+    .rpc.edge.gloo.solo.io.StatusFilter status_filter = 4;
+    .rpc.edge.gloo.solo.io.SortOptions sort_options = 5;
 }
 
 message ListRouteTablesResponse {
     repeated RouteTable route_tables = 1;
+    int32 total = 2;
 }
 
 message GetRouteTableYamlRequest {

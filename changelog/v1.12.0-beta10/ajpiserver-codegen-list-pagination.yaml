@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: |
+      Added pagination, searching and filtering to the list-gloo-resources endpoints.
+    issueLink: https://github.com/solo-io/gloo/issues/6281

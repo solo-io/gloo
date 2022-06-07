@@ -38,3 +38,10 @@ func ToClusterObjectRef(name, namespace, cluster string) v1.ClusterObjectRef {
 		ClusterName: cluster,
 	}
 }
+
+func Min(a, b int32) int {
+	if a < b {
+		return int(a)
+	}
+	return int(b)
+}
