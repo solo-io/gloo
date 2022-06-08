@@ -10,6 +10,10 @@ export const globalStyles = css`
     line-height: 19px;
   }
 
+  .ant-table-pagination.ant-pagination {
+    margin-right: 8px;
+  }
+
   body {
     font-family: 'Proxima Nova', 'Open Sans', 'Helvetica', 'Arial', 'sans-serif';
     margin: 0;

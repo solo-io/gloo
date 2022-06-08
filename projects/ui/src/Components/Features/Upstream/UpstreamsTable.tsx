@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled/macro';
 import {
   SoloTable,
@@ -21,7 +21,6 @@ import {
   useListUpstreams,
 } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
-import { objectMetasAreEqual } from 'API/helpers';
 import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { SimpleLinkProps, RenderSimpleLink } from 'Components/Common/SoloLink';
@@ -29,8 +28,6 @@ import { glooResourceApi } from 'API/gloo-resource';
 import { doDownload } from 'download-helper';
 import { IconHolder } from 'Styles/StyledComponents/icons';
 import { DataError } from 'Components/Common/DataError';
-import { getUpstreamType } from 'utils/upstream-helpers';
-import { CheckboxFilterProps } from 'Components/Common/SoloCheckbox';
 
 const UpstreamIconHolder = styled.div`
   display: flex;
@@ -58,7 +55,6 @@ const TableHolder = styled.div<TableHolderProps>`
 type Props = {
   statusFilter?: UpstreamStatus.StateMap[keyof UpstreamStatus.StateMap];
   nameFilter?: string;
-  typeFilters?: CheckboxFilterProps[];
   glooInstanceFilter?: {
     name: string;
     namespace: string;
@@ -66,6 +62,8 @@ type Props = {
 };
 export const UpstreamsTable = (props: Props & TableHolderProps) => {
   const { name, namespace } = useParams();
+  const [offset, setOffset] = React.useState(0);
+  const [limit, _] = React.useState(10);
   const navigate = useNavigate();
 
   const [tableData, setTableData] = React.useState<
@@ -81,86 +79,66 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
     }[]
   >([]);
 
-  const { data: upstreams, error: upstreamsError } = useListUpstreams(
-    !!name && !!namespace
-      ? {
-          name,
-          namespace,
-        }
-      : undefined
-  );
-
+  const { data: upstreamsResponse, error: upstreamsResponseError } =
+    useListUpstreams(
+      { name, namespace },
+      { limit, offset },
+      props.nameFilter,
+      props.statusFilter
+    );
   const { data: glooInstances, error: glooError } = useListGlooInstances();
   const { data: clusterDetailsList, error: cError } = useListClusterDetails();
-
   const { data: glooFedCheckResponse, error: glooFedCheckError } =
     useIsGlooFedEnabled();
+
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
+  const upstreams = upstreamsResponse?.upstreamsList;
+  const total = upstreamsResponse?.total ?? 0;
 
   const multipleClustersOrInstances =
     (clusterDetailsList && clusterDetailsList.length > 1) ||
     (glooInstances && glooInstances.length > 1);
 
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    setPage(1);
+  }, [
+    props.nameFilter,
+    props.statusFilter,
+    props.glooInstanceFilter,
+    isGlooFedEnabled,
+  ]);
+  useEffect(() => {
+    setOffset(limit * (page - 1));
+  }, [page]);
+
   useEffect(() => {
     if (upstreams) {
-      let typeCheckboxesNotSet =
-        !props.typeFilters?.length || props.typeFilters.every(c => !c.checked);
       setTableData(
-        upstreams
-          .filter(
-            upstream =>
-              upstream.metadata?.name.includes(props.nameFilter ?? '') &&
-              (props.statusFilter === undefined ||
-                upstream.status?.state === props.statusFilter) &&
-              (typeCheckboxesNotSet ||
-                props.typeFilters?.find(
-                  c => c.label === getUpstreamType(upstream)
-                )?.checked) &&
-              (!props.glooInstanceFilter ||
-                objectMetasAreEqual(
-                  {
-                    name: upstream.glooInstance?.name ?? '',
-                    namespace: upstream.glooInstance?.namespace ?? '',
-                  },
-                  props.glooInstanceFilter
-                ))
-          )
-          .sort(
-            (gA, gB) =>
-              (gA.metadata?.name ?? '').localeCompare(
-                gB.metadata?.name ?? ''
-              ) ||
-              (!props.wholePage
-                ? 0
-                : (gA.glooInstance?.name ?? '').localeCompare(
-                    gB.glooInstance?.name ?? ''
-                  ))
-          )
-          .map(upstream => {
-            const glooInstNamespace = upstream.glooInstance?.namespace;
-            const glooInstName = upstream.glooInstance?.name;
-            const upstreamCluster = upstream.metadata?.clusterName ?? '';
-            const upstreamNamespace = upstream.metadata?.namespace ?? '';
-            const upstreamName = upstream.metadata?.name ?? '';
-            const link = isGlooFedEnabled
-              ? `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upstreamCluster}/${upstreamNamespace}/${upstreamName}`
-              : `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upstreamNamespace}/${upstreamName}`;
-            return {
-              key:
-                upstream.metadata?.uid ??
-                'An upstream was provided with no UID',
-              name: {
-                displayElement: upstreamName,
-                link,
-              },
-              namespace: upstreamNamespace,
-              glooInstance: upstream.glooInstance,
-              cluster: upstreamCluster,
-              failover: !!upstream.spec?.failover,
-              status: upstream.status?.state ?? UpstreamStatus.State.PENDING,
-              actions: upstream,
-            };
-          })
+        upstreams.map(upstream => {
+          const glooInstNamespace = upstream.glooInstance?.namespace;
+          const glooInstName = upstream.glooInstance?.name;
+          const upstreamCluster = upstream.metadata?.clusterName ?? '';
+          const upstreamNamespace = upstream.metadata?.namespace ?? '';
+          const upstreamName = upstream.metadata?.name ?? '';
+          const link = isGlooFedEnabled
+            ? `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upstreamCluster}/${upstreamNamespace}/${upstreamName}`
+            : `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upstreamNamespace}/${upstreamName}`;
+          return {
+            key:
+              upstream.metadata?.uid ?? 'An upstream was provided with no UID',
+            name: {
+              displayElement: upstreamName,
+              link,
+            },
+            namespace: upstreamNamespace,
+            glooInstance: upstream.glooInstance,
+            cluster: upstreamCluster,
+            failover: !!upstream.spec?.failover,
+            status: upstream.status?.state ?? UpstreamStatus.State.PENDING,
+            actions: upstream,
+          };
+        })
       );
     } else {
       setTableData([]);
@@ -169,16 +147,13 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
     upstreams,
     props.nameFilter,
     props.statusFilter,
-    props.typeFilters,
     props.glooInstanceFilter,
     isGlooFedEnabled,
     props.wholePage,
   ]);
 
-  if (!!upstreamsError) {
-    return <DataError error={upstreamsError} />;
-  } else if (!upstreams) {
-    return <Loading message={'Retrieving upstreams...'} />;
+  if (!!upstreamsResponseError) {
+    return <DataError error={upstreamsResponseError} />;
   }
 
   const onDownloadUpstream = (upstream: Upstream.AsObject) => {
@@ -282,9 +257,15 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
   return (
     <TableHolder wholePage={props.wholePage}>
       <SoloTable
+        pagination={{
+          total,
+          pageSize: limit,
+          current: page,
+          onChange: newPage => setPage(newPage),
+        }}
+        removePaging={total <= limit}
         columns={columns}
         dataSource={tableData}
-        removePaging
         removeShadows
         curved={props.wholePage}
       />

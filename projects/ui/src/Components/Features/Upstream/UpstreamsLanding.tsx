@@ -7,17 +7,8 @@ import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo
 import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import {
-  CheckboxFilterProps,
   SoloCheckbox,
 } from 'Components/Common/SoloCheckbox';
-import {
-  TYPE_AWS,
-  TYPE_AWS_EC2,
-  TYPE_AZURE,
-  TYPE_CONSUL,
-  TYPE_KUBE,
-  TYPE_STATIC,
-} from 'utils/upstream-helpers';
 
 const UpstreamLandingContainer = styled.div`
   display: grid;
@@ -46,34 +37,15 @@ const HorizontalDivider = styled.div`
   }
 `;
 
-const CheckboxWrapper = styled.div`
-  > div {
-    width: 190px;
-    margin-bottom: 15px;
-  }
-`;
-
 const UpstreamGroupToggleWrapper = styled.div`
   margin-top: 15px;
 `;
-
-const CHECKBOX_DEFAULT_FILTERS: CheckboxFilterProps[] = [
-  TYPE_AWS,
-  TYPE_AZURE,
-  TYPE_CONSUL,
-  TYPE_KUBE,
-  TYPE_AWS_EC2,
-  TYPE_STATIC,
-].map(s => ({ label: s, checked: false }));
 
 export const UpstreamsLanding = () => {
   const [nameFilter, setNameFilter] = useState('');
   const [showUG, setShowUG] = useState(false);
   const [statusFilter, setStatusFilter] =
     useState<UpstreamStatus.StateMap[keyof UpstreamStatus.StateMap]>();
-  const [typeFilters, setTypeFilters] = useState<CheckboxFilterProps[]>(
-    CHECKBOX_DEFAULT_FILTERS
-  );
 
   const changeNameFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNameFilter(e.target.value);
@@ -85,11 +57,6 @@ export const UpstreamsLanding = () => {
     );
   };
 
-  const changeTypeFilter = (ind: number, checked: boolean) => {
-    const newArray = [...typeFilters];
-    newArray[ind].checked = checked;
-    setTypeFilters(newArray);
-  };
   return (
     <UpstreamLandingContainer>
       <div>
@@ -134,23 +101,6 @@ export const UpstreamsLanding = () => {
           currentSelection={statusFilter}
           onChange={changeStatus}
         />
-
-        <HorizontalDivider>
-          <div>Types Filter</div>
-        </HorizontalDivider>
-        <CheckboxWrapper>
-          {typeFilters.map((filter, ind) => {
-            return (
-              <SoloCheckbox
-                key={filter.label}
-                title={filter.label}
-                checked={filter.checked}
-                withWrapper={true}
-                onChange={evt => changeTypeFilter(ind, evt.target.checked)}
-              />
-            );
-          })}
-        </CheckboxWrapper>
       </div>
       <div>
         {showUG && (
@@ -162,7 +112,6 @@ export const UpstreamsLanding = () => {
         <UpstreamsPageTable
           nameFilter={nameFilter}
           statusFilter={statusFilter}
-          typeFilters={typeFilters}
         />
       </div>
     </UpstreamLandingContainer>

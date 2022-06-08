@@ -3,7 +3,6 @@ import { Select } from 'antd';
 import styled from '@emotion/styled';
 import { Label } from './SoloInput';
 import { colors } from 'Styles/colors';
-import { valueType } from 'antd/lib/statistic/utils';
 import { SelectValue } from 'antd/lib/select';
 import { soloConstants } from 'Styles/StyledComponents/button';
 
@@ -134,6 +133,7 @@ export interface DropdownProps {
   testId?: string;
   error?: any;
   searchable?: boolean;
+  onSearch?(s: string): void;
 }
 
 export const SoloDropdown = (props: DropdownProps) => {
@@ -149,6 +149,7 @@ export const SoloDropdown = (props: DropdownProps) => {
     testId,
     error,
     searchable,
+    onSearch,
     ...rest
   } = props;
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
@@ -168,7 +169,14 @@ export const SoloDropdown = (props: DropdownProps) => {
 
       <SoloDropdownBlock
         searchValue={searchable && isDropdownOpen ? searchValue : ''}
-        onSearch={searchable === undefined ? undefined : s => setSearchValue(s)}
+        onSearch={
+          searchable === undefined
+            ? undefined
+            : s => {
+                setSearchValue(s);
+                if (onSearch) onSearch(s);
+              }
+        }
         showSearch={searchable}
         data-testid={testId}
         dropdownClassName={testId}

@@ -2,6 +2,7 @@ import { useListUpstreams } from 'API/hooks';
 import { SoloFormDropdown } from 'Components/Common/SoloFormComponents';
 import { useFormikContext } from 'formik';
 import * as React from 'react';
+import { useState } from 'react';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
 import { getUpstreamId, getUpstreamRefFromId } from 'utils/graphql-helpers';
 import YAML from 'yaml';
@@ -16,7 +17,13 @@ export const UpstreamSection: React.FC<{
   onCancel(): void;
 }> = ({ existingUpstreamId, nextButtonDisabled, onNextClicked, onCancel }) => {
   const formik = useFormikContext<ResolverWizardFormProps>();
-  const { data: upstreams } = useListUpstreams();
+  const [searchString, setSearchString] = useState('');
+  const { data: upstreamsResponse } = useListUpstreams(
+    undefined,
+    { limit: 10, offset: 0 },
+    searchString
+  );
+  const upstreams = upstreamsResponse?.upstreamsList;
 
   const onChange = (newUpstreamId: any) => {
     try {
@@ -67,6 +74,7 @@ export const UpstreamSection: React.FC<{
                 name='upstream'
                 defaultValue={existingUpstreamId}
                 searchable={true}
+                onSearch={s => setSearchString(s)}
                 onChange={onChange}
                 options={upstreams
                   ?.map(upstream => {

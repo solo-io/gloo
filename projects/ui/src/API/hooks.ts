@@ -18,6 +18,8 @@ import { graphqlConfigApi } from './graphql';
 import { useRequest } from './helpers';
 import { routeTablesSelectorApi } from './virtual-service-routes';
 import { wasmFilterApi } from './wasm-filter';
+import { Pagination } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
+import { RouteTableStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/route_table_pb';
 
 // -- glooInstanceApi
 export const useListGlooInstances = () =>
@@ -32,8 +34,8 @@ export const useGetUpstreamHosts = (glooInstanceRef: ObjectRef.AsObject) =>
 // -- gatewayResourceApi
 export const useListVirtualServices = (ref?: ObjectRef.AsObject) =>
   useRequest(gatewayResourceApi.listVirtualServices, [ref]);
-export const useListRouteTables = (ref?: ObjectRef.AsObject) =>
-  useRequest(gatewayResourceApi.listRouteTables, [ref]);
+export const useListRouteTables = (ref?: ObjectRef.AsObject, pag?: Pagination.AsObject, qs?: string, sf?: RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]) =>
+  useRequest(gatewayResourceApi.listRouteTables, [ref, pag, qs, sf]);
 export const useGetGatewayYaml = (
   gatewayClusterObjectRef: ClusterObjectRef.AsObject
 ) => useRequest(gatewayResourceApi.getGatewayYAML, [gatewayClusterObjectRef]);
@@ -52,8 +54,8 @@ export const useListSettings = (ref?: ObjectRef.AsObject) =>
   useRequest(glooResourceApi.listSettings, [ref]);
 export const useListProxies = (ref?: ObjectRef.AsObject) =>
   useRequest(glooResourceApi.listProxies, [ref]);
-export const useListUpstreams = (ref?: ObjectRef.AsObject) =>
-  useRequest(glooResourceApi.listUpstreams, [ref]);
+export const useListUpstreams = (ref?: ObjectRef.AsObject, pag?: Pagination.AsObject, qs?: string, sf?: RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]) =>
+  useRequest(glooResourceApi.listUpstreams, [ref, pag, qs, sf]);
 export const useGetUpstreamDetails = (
   glooInstRef: ObjectRef.AsObject,
   upstreamRef: ClusterObjectRef.AsObject

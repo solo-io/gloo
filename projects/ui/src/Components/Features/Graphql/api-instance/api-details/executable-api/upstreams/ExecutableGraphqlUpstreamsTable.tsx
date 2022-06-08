@@ -11,7 +11,8 @@ const ExecutableGraphqlUpstreamsTable: React.FC<{
 
   // api hooks
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
-  const { data: upstreams } = useListUpstreams();
+  const { data: upstreamsResponse } = useListUpstreams();
+  const upstreams = upstreamsResponse?.upstreamsList
 
   const resolverUpstreams = useMemo<Upstream.AsObject[]>(() => {
     let resUpstreams =

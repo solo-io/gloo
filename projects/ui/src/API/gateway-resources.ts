@@ -2,6 +2,7 @@ import { GatewayResourceApiClient } from 'proto/github.com/solo-io/solo-projects
 import {
   host,
   getObjectRefClassFromRefObj,
+  toPaginationClass,
   getClusterRefClassFromClusterRefObj,
 } from './helpers';
 import { grpc } from '@improbable-eng/grpc-web';
@@ -14,8 +15,14 @@ import {
   GetGatewayYamlRequest,
   GetRouteTableYamlRequest,
   ListRouteTablesRequest,
-  RouteTable,
+  ListRouteTablesResponse,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
+
+import {
+  Pagination,
+  StatusFilter,
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
+
 import {
   ObjectRef,
   ClusterObjectRef,
@@ -58,13 +65,27 @@ function listVirtualServices(
 }
 
 function listRouteTables(
-  listRouteTableRequest?: ObjectRef.AsObject
-): Promise<RouteTable.AsObject[]> {
+  listRouteTableRequest?: ObjectRef.AsObject,
+  pagination?: Pagination.AsObject,
+  queryString?: string,
+  statusFilter?: number
+): Promise<ListRouteTablesResponse.AsObject> {
   let request = new ListRouteTablesRequest();
   if (listRouteTableRequest) {
     request.setGlooInstanceRef(
       getObjectRefClassFromRefObj(listRouteTableRequest)
     );
+  }
+  if (pagination) {
+    request.setPagination(toPaginationClass(pagination));
+  }
+  if (queryString) {
+    request.setQueryString(queryString);
+  }
+  if (statusFilter !== undefined) {
+    const sf = new StatusFilter();
+    sf.setState(statusFilter);
+    request.setStatusFilter(sf);
   }
 
   return new Promise((resolve, reject) => {
@@ -75,7 +96,7 @@ function listRouteTables(
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject().routeTablesList);
+        resolve(data!.toObject());
       }
     });
   });

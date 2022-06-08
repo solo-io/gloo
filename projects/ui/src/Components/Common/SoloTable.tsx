@@ -332,6 +332,7 @@ export interface SoloTableProps extends TableProps<any> {
   formComponent?: React.FC;
   removeShadows?: boolean;
   removePaging?: boolean;
+  total?: number;
   curved?: boolean;
   flatTopped?: boolean;
   withBorder?: boolean;
@@ -374,21 +375,25 @@ export const SoloTable = (props: SoloTableProps) => {
       row: EditableRow,
     },
   };
+  const newProps = { ...props };
+  if (newProps.pagination) delete newProps.pagination;
 
   return (
-    <TableContainer
-      rowHeight={props.rowHeight}
-      removeShadows={props.removeShadows}
-      curved={props.curved}
-      withBorder={props.withBorder}
-      flatTopped={props.flatTopped}
-      className={props.containerClassName}>
+    <TableContainer className={props.containerClassName}>
       <Table
         rowClassName={classNameGenerator}
-        pagination={props.removePaging ? false : { position: ['bottomRight'] }}
+        pagination={
+          newProps.removePaging
+            ? false
+            : {
+                position: ['bottomRight'],
+                simple: true,
+                ...(props.pagination ?? {}),
+              }
+        }
         showHeader={!props.hideHeader}
         components={components}
-        {...props}
+        {...newProps}
       />
     </TableContainer>
   );

@@ -156,7 +156,10 @@ const COLUMNS: any = [
 const UpstreamFailoverGroupTable = ({ group, isWeighted }: Props) => {
   const [tableData, setTableData] = React.useState<RowData[]>([]);
 
-  const { data: allUpstreams, error: upstreamError } = useListUpstreams();
+  // TODO: Replace with useUpstreamDetails().
+  const { data: upstreamsResponse, error: upstreamResponseError } =
+    useListUpstreams();
+  const allUpstreams = upstreamsResponse?.upstreamsList;
 
   useEffect(() => {
     const getGlooInstance = (
@@ -210,8 +213,8 @@ const UpstreamFailoverGroupTable = ({ group, isWeighted }: Props) => {
     setTableData(tableData);
   }, [group, allUpstreams, isWeighted]);
 
-  if (!!upstreamError) {
-    return <DataError error={upstreamError} />;
+  if (!!upstreamResponseError) {
+    return <DataError error={upstreamResponseError} />;
   } else if (!allUpstreams) {
     return <Loading message={'Retrieving upstreams...'} />;
   }

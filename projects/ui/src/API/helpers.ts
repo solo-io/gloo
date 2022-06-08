@@ -11,6 +11,7 @@ import {
 } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import useSWR, { Key } from 'swr';
 import { arrayMapToObject } from 'utils/graphql-helpers';
+import { Pagination } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
 
 export const host = `${
   process.env.NODE_ENV === 'production'
@@ -25,6 +26,17 @@ export function getObjectRefClassFromRefObj(
   ref.setName(requestMeta.name);
   ref.setNamespace(requestMeta.namespace);
   return ref;
+}
+
+export function toPaginationClass(
+  paginationObj?: Pagination.AsObject
+): Pagination {
+  let pagination = new Pagination();
+  if (paginationObj?.offset) {
+    pagination.setOffset(paginationObj.offset);
+  }
+  pagination.setLimit(paginationObj?.limit ?? 0);
+  return pagination;
 }
 
 export function getClusterRefClassFromClusterRefObj(

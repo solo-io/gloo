@@ -3,11 +3,13 @@ import {
   host,
   getObjectRefClassFromRefObj,
   getClusterRefClassFromClusterRefObj,
+  toPaginationClass,
 } from './helpers';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
   ListUpstreamGroupsRequest,
   ListUpstreamsRequest,
+  ListUpstreamsResponse,
   UpstreamGroup,
   Upstream,
   GetUpstreamGroupYamlRequest,
@@ -22,6 +24,10 @@ import {
   ObjectRef,
   ClusterObjectRef,
 } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
+import {
+  Pagination,
+  StatusFilter,
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
 
 const glooResourceApiClient = new GlooResourceApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -42,13 +48,27 @@ export const glooResourceApi = {
 };
 
 function listUpstreams(
-  listUpstreamsRequest?: ObjectRef.AsObject
-): Promise<Upstream.AsObject[]> {
+  listUpstreamsRequest?: ObjectRef.AsObject,
+  pagination?: Pagination.AsObject,
+  queryString?: string,
+  statusFilter?: number
+): Promise<ListUpstreamsResponse.AsObject> {
   let request = new ListUpstreamsRequest();
   if (listUpstreamsRequest) {
     request.setGlooInstanceRef(
       getObjectRefClassFromRefObj(listUpstreamsRequest)
     );
+  }
+  if (pagination) {
+    request.setPagination(toPaginationClass(pagination));
+  }
+  if (queryString) {
+    request.setQueryString(queryString);
+  }
+  if (statusFilter !== undefined) {
+    const sf = new StatusFilter();
+    sf.setState(statusFilter);
+    request.setStatusFilter(sf);
   }
 
   return new Promise((resolve, reject) => {
@@ -59,7 +79,7 @@ function listUpstreams(
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject().upstreamsList);
+        resolve(data!.toObject());
       }
     });
   });

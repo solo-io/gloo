@@ -1,29 +1,27 @@
-import React from 'react';
 import styled from '@emotion/styled';
-import { colors } from 'Styles/colors';
 import {
-  useListUpstreams,
-  useListVirtualServices,
   useListClusterDetails,
   useListGlooInstances,
   useListGraphqlApis,
-  useIsGlooFedEnabled,
+  useListUpstreams,
+  useListVirtualServices,
 } from 'API/hooks';
-import { ReactComponent as VirtualServiceIcon } from 'assets/virtualservice-icon.svg';
-import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
-import { ReactComponent as ClusterIcon } from 'assets/cluster-icon.svg';
 import { ReactComponent as SuccessCircle } from 'assets/big-successful-checkmark.svg';
 import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
-import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
-import { Loading } from 'Components/Common/Loading';
-import { HealthIndicator } from 'Components/Common/HealthIndicator';
-import { VirtualServiceStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service_pb';
-import { CountBox } from 'Components/Common/CountBox';
-import { SoloLink } from 'Components/Common/SoloLink';
-import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
-import { DataError } from 'Components/Common/DataError';
+import { ReactComponent as ClusterIcon } from 'assets/cluster-icon.svg';
 import { ReactComponent as GraphQLIcon } from 'assets/graphql-icon.svg';
+import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
+import { ReactComponent as VirtualServiceIcon } from 'assets/virtualservice-icon.svg';
+import { CountBox } from 'Components/Common/CountBox';
+import { DataError } from 'Components/Common/DataError';
+import { HealthIndicator } from 'Components/Common/HealthIndicator';
+import { Loading } from 'Components/Common/Loading';
+import { SoloLink } from 'Components/Common/SoloLink';
+import { VirtualServiceStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service_pb';
+import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { GraphQLApiStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
+import React from 'react';
+import { colors } from 'Styles/colors';
 type BoxProps = {
   title: string;
   logo: React.ReactNode;
@@ -330,15 +328,19 @@ export const OverviewVirtualServiceBox = () => {
   );
 };
 export const OverviewUpstreamsBox = () => {
-  const { data: upstreams, error: uError } = useListUpstreams();
+  const { data: upstreamsResponse, error: upstreamsResponseError } =
+    useListUpstreams(undefined, { limit: 30, offset: 0 });
 
-  if (!!uError) {
-    return <DataError error={uError} />;
-  } else if (!upstreams) {
+  if (!!upstreamsResponseError) {
+    return <DataError error={upstreamsResponseError} />;
+  } else if (upstreamsResponse?.upstreamsList === undefined) {
     return <Loading message={'Retrieving upstreams...'} />;
+  } else if (upstreamsResponse?.upstreamsList === undefined) {
+    return <div>upstreams failed to load</div>;
   }
 
-  const servicesStatus = upstreams.some(
+  // TODO: Return upstream status from the apiserver (this just checks the first 30 upstreams).
+  const servicesStatus = upstreamsResponse.upstreamsList.some(
     upstream => upstream.status?.state !== VirtualServiceStatus.State.ACCEPTED
   )
     ? UpstreamStatus.State.WARNING
@@ -350,7 +352,7 @@ export const OverviewUpstreamsBox = () => {
       logo={<UpstreamIcon />}
       description='Upstreams define destinations for routes. Upstreams tell Gloo what to route to and how to route to them.'
       status={servicesStatus}
-      count={upstreams?.length ?? 0}
+      count={upstreamsResponse.total}
       countDescription={
         'Upstreams currently running across all of your Gloo instances'
       }

@@ -417,13 +417,15 @@ const GlooInstanceCard = ({
 
 export const GlooInstancesLanding = () => {
   const { data: glooInstances, error: instancesError } = useListGlooInstances();
-  const { data: upstreams, error: upstreamsError } = useListUpstreams();
+  const { data: upstreamsResponse, error: upstreamsResponseError } = useListUpstreams();
   const { data: virtualServices, error: vsError } = useListVirtualServices();
+
+  const upstreams = upstreamsResponse?.upstreamsList
 
   if (!!instancesError) {
     return <DataError error={instancesError} />;
-  } else if (!!upstreamsError) {
-    return <DataError error={upstreamsError} />;
+  } else if (!!upstreamsResponseError) {
+    return <DataError error={upstreamsResponseError} />;
   } else if (vsError) {
     return <DataError error={vsError} />;
   } else if (!glooInstances) {
@@ -469,7 +471,7 @@ export const GlooInstancesLanding = () => {
               instance={instance}
               virtualServicesCount={virtualServicesCount}
               virtualServicesError={vsError}
-              upstreamsError={upstreamsError}
+              upstreamsError={upstreamsResponseError}
               upstreamsCount={upstreamsCount}
             />
           );

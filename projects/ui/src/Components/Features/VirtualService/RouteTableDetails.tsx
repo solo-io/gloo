@@ -23,10 +23,15 @@ const GlooIconHolder = styled.div`
 export const RouteTableDetails = () => {
   const { name, namespace, routeTableName, routeTableNamespace } = useParams();
 
-  const { data: allRouteTables, error: rtError } = useListRouteTables({
-    name: name!,
-    namespace: namespace!,
-  });
+  // TODO: This should be changed to useRouteTableDetails().
+  const { data: allRouteTablesResponse, error: rtResponseError } =
+    useListRouteTables({
+      name: name!,
+      namespace: namespace!,
+    });
+
+  const allRouteTables = allRouteTablesResponse?.routeTablesList;
+
   const [routeTable, setRouteTable] = useState<RouteTable.AsObject>();
 
   useEffect(() => {
@@ -43,8 +48,8 @@ export const RouteTableDetails = () => {
     }
   }, [name, namespace, allRouteTables, routeTableName, routeTableNamespace]);
 
-  if (!!rtError) {
-    return <DataError error={rtError} />;
+  if (!!rtResponseError) {
+    return <DataError error={rtResponseError} />;
   } else if (!allRouteTables) {
     return <Loading message={'Retrieving route tables...'} />;
   }

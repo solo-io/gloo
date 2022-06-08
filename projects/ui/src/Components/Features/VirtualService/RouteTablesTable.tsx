@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled/macro';
 import { colors } from 'Styles/colors';
 import {
@@ -16,7 +16,6 @@ import { useParams, useNavigate } from 'react-router';
 import { useListRouteTables, useIsGlooFedEnabled } from 'API/hooks';
 import { RouteTable } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import { Loading } from 'Components/Common/Loading';
-import { objectMetasAreEqual } from 'API/helpers';
 import { SimpleLinkProps, RenderSimpleLink } from 'Components/Common/SoloLink';
 import { gatewayResourceApi } from 'API/gateway-resources';
 import { doDownload } from 'download-helper';
@@ -113,9 +112,22 @@ const onDownloadRouteTable = (rt: RouteTable.AsObject) => {
 
 type TableProps = {
   routeTables: RouteTable.AsObject[];
+  page: number;
+  setPage(newPage: number): void;
+  total: number;
+  limit: number;
+  setOffset: React.Dispatch<React.SetStateAction<number>>;
 } & TableHolderProps;
 
-export const RouteTablesTable = ({ routeTables, wholePage }: TableProps) => {
+export const RouteTablesTable = ({
+  page,
+  setPage,
+  limit,
+  setOffset,
+  total,
+  routeTables,
+  wholePage,
+}: TableProps) => {
   const [tableData, setTableData] = React.useState<RouteTableTableFields[]>([]);
 
   const { data: glooFedCheckResponse, error: glooFedCheckError } =
@@ -187,9 +199,15 @@ export const RouteTablesTable = ({ routeTables, wholePage }: TableProps) => {
   return (
     <RoutesTableHolder>
       <SoloTable
+        pagination={{
+          total,
+          pageSize: limit,
+          current: page,
+          onChange: newPage => setPage(newPage),
+        }}
+        removePaging={total <= limit}
         columns={columns}
         dataSource={tableData}
-        removePaging
         removeShadows
         curved={false}
       />
@@ -200,67 +218,54 @@ export const RouteTablesTable = ({ routeTables, wholePage }: TableProps) => {
 type Props = {
   statusFilter?: RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap];
   nameFilter?: string;
-  glooInstanceFilter?: {
-    name: string;
-    namespace: string;
-  };
 } & TableHolderProps;
 export const RouteTablesPageCardContents = (props: Props) => {
-  const { name, namespace } = useParams();
-
   const [tableData, setTableData] = React.useState<RouteTable.AsObject[]>([]);
+  const [offset, setOffset] = React.useState(0);
+  const [limit, _] = React.useState(10);
+  const { name, namespace } = useParams();
+  const { data: routeTablesResponse, error: routeTablesResponseError } =
+    useListRouteTables(
+      { name, namespace },
+      { limit, offset },
+      props.nameFilter,
+      props.statusFilter
+    );
 
-  const { data: routeTables, error: routeTablesError } = useListRouteTables(
-    !!name && !!namespace ? { name, namespace } : undefined
-  );
+  const routeTables = routeTablesResponse?.routeTablesList ?? [];
+  const total = routeTablesResponse?.total ?? 0;
+
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    setPage(1);
+  }, [props.nameFilter, props.statusFilter]);
+  useEffect(() => {
+    setOffset(limit * (page - 1));
+  }, [page]);
 
   useEffect(() => {
     if (routeTables) {
-      setTableData(
-        routeTables
-          .filter(
-            vs =>
-              vs.metadata?.name.includes(props.nameFilter ?? '') &&
-              (props.statusFilter === undefined ||
-                vs.status?.state === props.statusFilter) &&
-              (!props.glooInstanceFilter ||
-                objectMetasAreEqual(
-                  {
-                    name: vs.glooInstance?.name ?? '',
-                    namespace: vs.glooInstance?.namespace ?? '',
-                  },
-                  props.glooInstanceFilter
-                ))
-          )
-          .sort(
-            (gA, gB) =>
-              (gA.metadata?.name ?? '').localeCompare(
-                gB.metadata?.name ?? ''
-              ) ||
-              (gA.glooInstance?.name ?? '').localeCompare(
-                gB.glooInstance?.name ?? ''
-              )
-          )
-      );
+      setTableData(routeTables);
     } else {
       setTableData([]);
     }
-  }, [
-    routeTables,
-    props.nameFilter,
-    props.statusFilter,
-    props.glooInstanceFilter,
-  ]);
+  }, [routeTables, props.nameFilter, props.statusFilter]);
 
-  if (!!routeTablesError) {
-    return <DataError error={routeTablesError} />;
-  } else if (!routeTables) {
-    return <Loading message={'Retrieving route tables...'} />;
+  if (!!routeTablesResponseError) {
+    return <DataError error={routeTablesResponseError} />;
   }
 
   return (
     <TableHolder wholePage={props.wholePage}>
-      <RouteTablesTable routeTables={tableData} wholePage={props.wholePage} />
+      <RouteTablesTable
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setOffset={setOffset}
+        total={total}
+        routeTables={tableData}
+        wholePage={props.wholePage}
+      />
     </TableHolder>
   );
 };
