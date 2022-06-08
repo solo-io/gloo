@@ -859,6 +859,9 @@ export class DiscoveryOverride extends jspb.Message {
   setClaimsList(value: Array<string>): void;
   addClaims(value: string, index?: number): string;
 
+  getRevocationEndpoint(): string;
+  setRevocationEndpoint(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DiscoveryOverride.AsObject;
   static toObject(includeInstance: boolean, msg: DiscoveryOverride): DiscoveryOverride.AsObject;
@@ -880,6 +883,7 @@ export namespace DiscoveryOverride {
     idTokenAlgsList: Array<string>,
     authMethodsList: Array<string>,
     claimsList: Array<string>,
+    revocationEndpoint: string,
   }
 }
 

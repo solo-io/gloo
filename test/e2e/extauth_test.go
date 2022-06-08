@@ -428,7 +428,7 @@ var _ = Describe("External auth", func() {
 					defer resp.Body.Close()
 					_, _ = io.ReadAll(resp.Body)
 					Expect(resp.StatusCode).To(Equal(http.StatusOK))
-					// Verify that the logout resulted in a redirect to the defaul url
+					// Verify that the logout resulted in a redirect to the default url
 					Expect(finalurl).NotTo(BeNil())
 					Expect(finalurl.Path).To(Equal("/"))
 				}
@@ -3031,6 +3031,7 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 			"issuer": "http://localhost:5556",
 			"authorization_endpoint": "http://localhost:5556/auth",
 			"token_endpoint": "http://localhost:5556/token",
+			"revocation_endpoint": "http://localhost:5556/revoke",
 			"jwks_uri": "http://localhost:5556/keys",
 			"response_types_supported": [
 			  "code"
@@ -3086,6 +3087,21 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 			}
 			`
 			_, _ = rw.Write([]byte(keysResponse))
+		case "/revoke":
+			r.ParseForm()
+			tokenTypeHint := r.Form.Get("token_type_hint")
+
+			httpReply := ""
+			if tokenTypeHint != "refresh_token" && tokenTypeHint != "access_token" {
+				httpReply = `
+                {
+                	"error":"unsupported_token_type"
+				}
+                `
+			}
+
+			rw.WriteHeader(http.StatusOK)
+			_, _ = rw.Write([]byte(httpReply))
 		}
 	})
 

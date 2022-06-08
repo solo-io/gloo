@@ -1,0 +1,17 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Update tests to include e2e token revocation test on oidc.
+    issueLink: https://github.com/solo-io/gloo/issues/6328
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.20.4
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.12.0-beta18
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.12.0-beta18

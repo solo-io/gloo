@@ -5710,7 +5710,8 @@ proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject = function(includeInsta
     subjectsList: jspb.Message.getRepeatedField(msg, 6),
     idTokenAlgsList: jspb.Message.getRepeatedField(msg, 7),
     authMethodsList: jspb.Message.getRepeatedField(msg, 8),
-    claimsList: jspb.Message.getRepeatedField(msg, 9)
+    claimsList: jspb.Message.getRepeatedField(msg, 9),
+    revocationEndpoint: jspb.Message.getFieldWithDefault(msg, 10, "")
   };
 
   if (includeInstance) {
@@ -5782,6 +5783,10 @@ proto.enterprise.gloo.solo.io.DiscoveryOverride.deserializeBinaryFromReader = fu
     case 9:
       var value = /** @type {string} */ (reader.readString());
       msg.addClaims(value);
+      break;
+    case 10:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRevocationEndpoint(value);
       break;
     default:
       reader.skipField();
@@ -5872,6 +5877,13 @@ proto.enterprise.gloo.solo.io.DiscoveryOverride.serializeBinaryToWriter = functi
   if (f.length > 0) {
     writer.writeRepeatedString(
       9,
+      f
+    );
+  }
+  f = message.getRevocationEndpoint();
+  if (f.length > 0) {
+    writer.writeString(
+      10,
       f
     );
   }
@@ -6094,6 +6106,21 @@ proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.addClaims = function(v
 
 proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.clearClaimsList = function() {
   this.setClaimsList([]);
+};
+
+
+/**
+ * optional string revocation_endpoint = 10;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getRevocationEndpoint = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 10, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setRevocationEndpoint = function(value) {
+  jspb.Message.setProto3StringField(this, 10, value);
 };
 
 

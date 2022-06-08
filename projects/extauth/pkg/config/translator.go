@@ -541,15 +541,16 @@ func ToDiscoveryDataOverride(discoveryOverride *extauthv1.DiscoveryOverride) *oi
 	if discoveryOverride != nil {
 		discoveryDataOverride = &oidc.DiscoveryData{
 			// IssuerUrl is intentionally excluded as it cannot be overridden
-			AuthEndpoint:  discoveryOverride.GetAuthEndpoint(),
-			TokenEndpoint: discoveryOverride.GetTokenEndpoint(),
-			KeysUri:       discoveryOverride.GetJwksUri(),
-			ResponseTypes: discoveryOverride.GetResponseTypes(),
-			Subjects:      discoveryOverride.GetSubjects(),
-			IDTokenAlgs:   discoveryOverride.GetIdTokenAlgs(),
-			Scopes:        discoveryOverride.GetScopes(),
-			AuthMethods:   discoveryOverride.GetAuthMethods(),
-			Claims:        discoveryOverride.GetClaims(),
+			AuthEndpoint:       discoveryOverride.GetAuthEndpoint(),
+			RevocationEndpoint: discoveryOverride.GetRevocationEndpoint(),
+			TokenEndpoint:      discoveryOverride.GetTokenEndpoint(),
+			KeysUri:            discoveryOverride.GetJwksUri(),
+			ResponseTypes:      discoveryOverride.GetResponseTypes(),
+			Subjects:           discoveryOverride.GetSubjects(),
+			IDTokenAlgs:        discoveryOverride.GetIdTokenAlgs(),
+			Scopes:             discoveryOverride.GetScopes(),
+			AuthMethods:        discoveryOverride.GetAuthMethods(),
+			Claims:             discoveryOverride.GetClaims(),
 		}
 	}
 	return discoveryDataOverride

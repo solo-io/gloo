@@ -537,27 +537,29 @@ var _ = Describe("Ext Auth Config Translator", func() {
 
 		It("should translate valid discovery override", func() {
 			discoveryOverride := &extauthv1.DiscoveryOverride{
-				AuthEndpoint:  "auth.url/",
-				TokenEndpoint: "token.url/",
-				JwksUri:       "keys",
-				ResponseTypes: []string{"code"},
-				Subjects:      []string{"public"},
-				IdTokenAlgs:   []string{"HS256"},
-				Scopes:        []string{"openid"},
-				AuthMethods:   []string{"client_secret_basic"},
-				Claims:        []string{"aud"},
+				AuthEndpoint:       "auth.url/",
+				TokenEndpoint:      "token.url/",
+				RevocationEndpoint: "revoke.url/",
+				JwksUri:            "keys",
+				ResponseTypes:      []string{"code"},
+				Subjects:           []string{"public"},
+				IdTokenAlgs:        []string{"HS256"},
+				Scopes:             []string{"openid"},
+				AuthMethods:        []string{"client_secret_basic"},
+				Claims:             []string{"aud"},
 			}
 			overrideDiscoveryData := config.ToDiscoveryDataOverride(discoveryOverride)
 			expectedOverrideDiscoveryData := &oidc.DiscoveryData{
-				AuthEndpoint:  "auth.url/",
-				TokenEndpoint: "token.url/",
-				KeysUri:       "keys",
-				ResponseTypes: []string{"code"},
-				Subjects:      []string{"public"},
-				IDTokenAlgs:   []string{"HS256"},
-				Scopes:        []string{"openid"},
-				AuthMethods:   []string{"client_secret_basic"},
-				Claims:        []string{"aud"},
+				AuthEndpoint:       "auth.url/",
+				TokenEndpoint:      "token.url/",
+				RevocationEndpoint: "revoke.url/",
+				KeysUri:            "keys",
+				ResponseTypes:      []string{"code"},
+				Subjects:           []string{"public"},
+				IDTokenAlgs:        []string{"HS256"},
+				Scopes:             []string{"openid"},
+				AuthMethods:        []string{"client_secret_basic"},
+				Claims:             []string{"aud"},
 			}
 			Expect(overrideDiscoveryData).To(Equal(expectedOverrideDiscoveryData))
 		})
@@ -569,14 +571,14 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			// If a new field is added to DiscoveryData, this test should fail,
 			// signaling that we need to modify the ToDiscoveryDataOverride implementation
 			Expect(reflect.TypeOf(oidc.DiscoveryData{}).NumField()).To(
-				Equal(10),
+				Equal(11),
 				"wrong number of fields found",
 			)
 
 			// If a new field is added to DiscoveryOverride, this test should fail,
 			// signaling that we need to modify the ToDiscoveryDataOverride implementation
 			Expect(reflect.TypeOf(extauthv1.DiscoveryOverride{}).NumField()).To(
-				Equal(12),
+				Equal(13),
 				"wrong number of fields found",
 			)
 		})
