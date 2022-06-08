@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Use Helm apiversion v2.
+    issueLink: https://github.com/solo-io/gloo/issues/5984
