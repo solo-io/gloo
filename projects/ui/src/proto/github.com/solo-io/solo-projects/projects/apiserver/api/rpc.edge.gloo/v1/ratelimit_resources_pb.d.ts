@@ -161,3 +161,47 @@ export namespace GetRateLimitConfigYamlResponse {
     yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
   }
 }
+
+export class GetRateLimitConfigDetailsRequest extends jspb.Message {
+  hasRateLimitConfigRef(): boolean;
+  clearRateLimitConfigRef(): void;
+  getRateLimitConfigRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setRateLimitConfigRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetRateLimitConfigDetailsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetRateLimitConfigDetailsRequest): GetRateLimitConfigDetailsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetRateLimitConfigDetailsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetRateLimitConfigDetailsRequest;
+  static deserializeBinaryFromReader(message: GetRateLimitConfigDetailsRequest, reader: jspb.BinaryReader): GetRateLimitConfigDetailsRequest;
+}
+
+export namespace GetRateLimitConfigDetailsRequest {
+  export type AsObject = {
+    rateLimitConfigRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class GetRateLimitConfigDetailsResponse extends jspb.Message {
+  hasRateLimitConfig(): boolean;
+  clearRateLimitConfig(): void;
+  getRateLimitConfig(): RateLimitConfig | undefined;
+  setRateLimitConfig(value?: RateLimitConfig): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetRateLimitConfigDetailsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetRateLimitConfigDetailsResponse): GetRateLimitConfigDetailsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetRateLimitConfigDetailsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetRateLimitConfigDetailsResponse;
+  static deserializeBinaryFromReader(message: GetRateLimitConfigDetailsResponse, reader: jspb.BinaryReader): GetRateLimitConfigDetailsResponse;
+}
+
+export namespace GetRateLimitConfigDetailsResponse {
+  export type AsObject = {
+    rateLimitConfig?: RateLimitConfig.AsObject,
+  }
+}

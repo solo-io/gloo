@@ -20,12 +20,20 @@ var github_com_solo$io_solo$apis_api_gloo_gateway_v1_route_table_pb = require('.
 var github_com_solo$io_skv2_api_core_v1_core_pb = require('../../../../../../../../github.com/solo-io/skv2/api/core/v1/core_pb.js');
 var github_com_solo$io_solo$projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb = require('../../../../../../../../github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb.js');
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.Gateway', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGatewayYamlRequest', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetGatewayYamlResponse', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayYamlRequest', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayYamlResponse', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetRouteTableYamlRequest', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetRouteTableYamlResponse', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest', null, global);
+goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetVirtualServiceYamlRequest', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.GetVirtualServiceYamlResponse', null, global);
 goog.exportSymbol('proto.rpc.edge.gloo.solo.io.ListGatewaysRequest', null, global);
@@ -2045,6 +2053,324 @@ proto.rpc.edge.gloo.solo.io.GetGatewayYamlResponse.prototype.hasYamlData = funct
  * @extends {jspb.Message}
  * @constructor
  */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.displayName = 'proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    gatewayRef: (f = msg.getGatewayRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest;
+  return proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef;
+      reader.readMessage(value,github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.deserializeBinaryFromReader);
+      msg.setGatewayRef(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getGatewayRef();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional core.skv2.solo.io.ClusterObjectRef gateway_ref = 1;
+ * @return {?proto.core.skv2.solo.io.ClusterObjectRef}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.prototype.getGatewayRef = function() {
+  return /** @type{?proto.core.skv2.solo.io.ClusterObjectRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef, 1));
+};
+
+
+/** @param {?proto.core.skv2.solo.io.ClusterObjectRef|undefined} value */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.prototype.setGatewayRef = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.prototype.clearGatewayRef = function() {
+  this.setGatewayRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsRequest.prototype.hasGatewayRef = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.displayName = 'proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    gateway: (f = msg.getGateway()) && proto.rpc.edge.gloo.solo.io.Gateway.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse;
+  return proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.rpc.edge.gloo.solo.io.Gateway;
+      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.Gateway.deserializeBinaryFromReader);
+      msg.setGateway(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getGateway();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.rpc.edge.gloo.solo.io.Gateway.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional Gateway gateway = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.Gateway}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.prototype.getGateway = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.Gateway} */ (
+    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.Gateway, 1));
+};
+
+
+/** @param {?proto.rpc.edge.gloo.solo.io.Gateway|undefined} value */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.prototype.setGateway = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.prototype.clearGateway = function() {
+  this.setGateway(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.GetGatewayDetailsResponse.prototype.hasGateway = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.rpc.edge.gloo.solo.io.ListMatchableHttpGatewaysRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
@@ -2861,6 +3187,324 @@ proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayYamlResponse.prototype.clearY
  * @return {!boolean}
  */
 proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayYamlResponse.prototype.hasYamlData = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.displayName = 'proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    matchableHttpGatewayRef: (f = msg.getMatchableHttpGatewayRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest;
+  return proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef;
+      reader.readMessage(value,github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.deserializeBinaryFromReader);
+      msg.setMatchableHttpGatewayRef(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getMatchableHttpGatewayRef();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional core.skv2.solo.io.ClusterObjectRef matchable_http_gateway_ref = 1;
+ * @return {?proto.core.skv2.solo.io.ClusterObjectRef}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.prototype.getMatchableHttpGatewayRef = function() {
+  return /** @type{?proto.core.skv2.solo.io.ClusterObjectRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef, 1));
+};
+
+
+/** @param {?proto.core.skv2.solo.io.ClusterObjectRef|undefined} value */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.prototype.setMatchableHttpGatewayRef = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.prototype.clearMatchableHttpGatewayRef = function() {
+  this.setMatchableHttpGatewayRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsRequest.prototype.hasMatchableHttpGatewayRef = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.displayName = 'proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    matchableHttpGateway: (f = msg.getMatchableHttpGateway()) && proto.rpc.edge.gloo.solo.io.MatchableHttpGateway.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse;
+  return proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.rpc.edge.gloo.solo.io.MatchableHttpGateway;
+      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.MatchableHttpGateway.deserializeBinaryFromReader);
+      msg.setMatchableHttpGateway(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getMatchableHttpGateway();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.rpc.edge.gloo.solo.io.MatchableHttpGateway.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional MatchableHttpGateway matchable_http_gateway = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.MatchableHttpGateway}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.prototype.getMatchableHttpGateway = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.MatchableHttpGateway} */ (
+    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.MatchableHttpGateway, 1));
+};
+
+
+/** @param {?proto.rpc.edge.gloo.solo.io.MatchableHttpGateway|undefined} value */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.prototype.setMatchableHttpGateway = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.prototype.clearMatchableHttpGateway = function() {
+  this.setMatchableHttpGateway(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.GetMatchableHttpGatewayDetailsResponse.prototype.hasMatchableHttpGateway = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -3707,6 +4351,324 @@ proto.rpc.edge.gloo.solo.io.GetVirtualServiceYamlResponse.prototype.hasYamlData 
  * @extends {jspb.Message}
  * @constructor
  */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.displayName = 'proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    virtualServiceRef: (f = msg.getVirtualServiceRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest;
+  return proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef;
+      reader.readMessage(value,github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.deserializeBinaryFromReader);
+      msg.setVirtualServiceRef(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getVirtualServiceRef();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional core.skv2.solo.io.ClusterObjectRef virtual_service_ref = 1;
+ * @return {?proto.core.skv2.solo.io.ClusterObjectRef}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.prototype.getVirtualServiceRef = function() {
+  return /** @type{?proto.core.skv2.solo.io.ClusterObjectRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef, 1));
+};
+
+
+/** @param {?proto.core.skv2.solo.io.ClusterObjectRef|undefined} value */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.prototype.setVirtualServiceRef = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.prototype.clearVirtualServiceRef = function() {
+  this.setVirtualServiceRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsRequest.prototype.hasVirtualServiceRef = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.displayName = 'proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    virtualService: (f = msg.getVirtualService()) && proto.rpc.edge.gloo.solo.io.VirtualService.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse;
+  return proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.rpc.edge.gloo.solo.io.VirtualService;
+      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.VirtualService.deserializeBinaryFromReader);
+      msg.setVirtualService(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getVirtualService();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.rpc.edge.gloo.solo.io.VirtualService.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional VirtualService virtual_service = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.VirtualService}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.prototype.getVirtualService = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.VirtualService} */ (
+    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.VirtualService, 1));
+};
+
+
+/** @param {?proto.rpc.edge.gloo.solo.io.VirtualService|undefined} value */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.prototype.setVirtualService = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.prototype.clearVirtualService = function() {
+  this.setVirtualService(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.GetVirtualServiceDetailsResponse.prototype.hasVirtualService = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.rpc.edge.gloo.solo.io.ListRouteTablesRequest = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
@@ -4523,6 +5485,324 @@ proto.rpc.edge.gloo.solo.io.GetRouteTableYamlResponse.prototype.clearYamlData = 
  * @return {!boolean}
  */
 proto.rpc.edge.gloo.solo.io.GetRouteTableYamlResponse.prototype.hasYamlData = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.displayName = 'proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    routeTableRef: (f = msg.getRouteTableRef()) && github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest;
+  return proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef;
+      reader.readMessage(value,github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.deserializeBinaryFromReader);
+      msg.setRouteTableRef(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRouteTableRef();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional core.skv2.solo.io.ClusterObjectRef route_table_ref = 1;
+ * @return {?proto.core.skv2.solo.io.ClusterObjectRef}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.prototype.getRouteTableRef = function() {
+  return /** @type{?proto.core.skv2.solo.io.ClusterObjectRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_skv2_api_core_v1_core_pb.ClusterObjectRef, 1));
+};
+
+
+/** @param {?proto.core.skv2.solo.io.ClusterObjectRef|undefined} value */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.prototype.setRouteTableRef = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.prototype.clearRouteTableRef = function() {
+  this.setRouteTableRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsRequest.prototype.hasRouteTableRef = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.displayName = 'proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    routeTable: (f = msg.getRouteTable()) && proto.rpc.edge.gloo.solo.io.RouteTable.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse;
+  return proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.rpc.edge.gloo.solo.io.RouteTable;
+      reader.readMessage(value,proto.rpc.edge.gloo.solo.io.RouteTable.deserializeBinaryFromReader);
+      msg.setRouteTable(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRouteTable();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.rpc.edge.gloo.solo.io.RouteTable.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional RouteTable route_table = 1;
+ * @return {?proto.rpc.edge.gloo.solo.io.RouteTable}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.prototype.getRouteTable = function() {
+  return /** @type{?proto.rpc.edge.gloo.solo.io.RouteTable} */ (
+    jspb.Message.getWrapperField(this, proto.rpc.edge.gloo.solo.io.RouteTable, 1));
+};
+
+
+/** @param {?proto.rpc.edge.gloo.solo.io.RouteTable|undefined} value */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.prototype.setRouteTable = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.prototype.clearRouteTable = function() {
+  this.setRouteTable(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.rpc.edge.gloo.solo.io.GetRouteTableDetailsResponse.prototype.hasRouteTable = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 

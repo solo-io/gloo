@@ -9,7 +9,7 @@ import { ReactComponent as CopyIcon } from 'assets/document.svg';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { Fetcher, GraphiQL } from 'graphiql';
 // @ts-ignore
-import GraphiQLExplorer from "graphiql-explorer";
+import GraphiQLExplorer from 'graphiql-explorer';
 import { buildSchema, DocumentNode } from 'graphql';
 import * as React from 'react';
 import { ChangeEvent, useMemo, useRef, useState } from 'react';
@@ -59,7 +59,8 @@ const StyledContainer = styled.div`
       cursor: pointer;
     }
   }
-  .graphiql-explorer-root, .docExplorerWrap {
+  .graphiql-explorer-root,
+  .docExplorerWrap {
     font-size: 16px !important;
     line-height: 1.3 !important;
   }
@@ -247,8 +248,9 @@ export const GraphqlApiExplorer = () => {
 
   const graphiqlRef = useRef<null | GraphiQL>(null);
 
-  const { data: virtualServices, error: virtualServicesError } =
+  const { data: vsResponse, error: virtualServicesError } =
     useListVirtualServices();
+  const virtualServices = vsResponse?.virtualServicesList;
 
   const correspondingVirtualServices = useMemo(
     () =>
@@ -286,14 +288,11 @@ export const GraphqlApiExplorer = () => {
 
   const toggleExplorer = () => {
     setExplorerOpen(!explorerOpen);
-  }
+  };
 
-  const handleQueryUpdate = (
-    query?: string,
-    documentAST?: DocumentNode
-  ) => {
+  const handleQueryUpdate = (query?: string, documentAST?: DocumentNode) => {
     setQuery(query);
-  }
+  };
 
   // The operation name === the tab name.
   // This comes from the actual GraphQL operation.

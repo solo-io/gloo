@@ -329,6 +329,100 @@ func (x *GetRateLimitConfigYamlResponse) GetYamlData() *ResourceYaml {
 	return nil
 }
 
+type GetRateLimitConfigDetailsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	RateLimitConfigRef *v1.ClusterObjectRef `protobuf:"bytes,1,opt,name=rate_limit_config_ref,json=rateLimitConfigRef,proto3" json:"rate_limit_config_ref,omitempty"`
+}
+
+func (x *GetRateLimitConfigDetailsRequest) Reset() {
+	*x = GetRateLimitConfigDetailsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetRateLimitConfigDetailsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRateLimitConfigDetailsRequest) ProtoMessage() {}
+
+func (x *GetRateLimitConfigDetailsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRateLimitConfigDetailsRequest.ProtoReflect.Descriptor instead.
+func (*GetRateLimitConfigDetailsRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetRateLimitConfigDetailsRequest) GetRateLimitConfigRef() *v1.ClusterObjectRef {
+	if x != nil {
+		return x.RateLimitConfigRef
+	}
+	return nil
+}
+
+type GetRateLimitConfigDetailsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	RateLimitConfig *RateLimitConfig `protobuf:"bytes,1,opt,name=rate_limit_config,json=rateLimitConfig,proto3" json:"rate_limit_config,omitempty"`
+}
+
+func (x *GetRateLimitConfigDetailsResponse) Reset() {
+	*x = GetRateLimitConfigDetailsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetRateLimitConfigDetailsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRateLimitConfigDetailsResponse) ProtoMessage() {}
+
+func (x *GetRateLimitConfigDetailsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRateLimitConfigDetailsResponse.ProtoReflect.Descriptor instead.
+func (*GetRateLimitConfigDetailsResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetRateLimitConfigDetailsResponse) GetRateLimitConfig() *RateLimitConfig {
+	if x != nil {
+		return x.RateLimitConfig
+	}
+	return nil
+}
+
 var File_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto protoreflect.FileDescriptor
 
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_rawDesc = []byte{
@@ -416,31 +510,56 @@ var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67,
 	0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x52,
 	0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x08, 0x79, 0x61, 0x6d,
-	0x6c, 0x44, 0x61, 0x74, 0x61, 0x32, 0xa4, 0x02, 0x0a, 0x14, 0x52, 0x61, 0x74, 0x65, 0x6c, 0x69,
-	0x6d, 0x69, 0x74, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x41, 0x70, 0x69, 0x12, 0x81,
-	0x01, 0x0a, 0x14, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6d, 0x69, 0x74,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x12, 0x32, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64,
-	0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e,
-	0x4c, 0x69, 0x73, 0x74, 0x52, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x72, 0x70,
-	0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f,
-	0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6d, 0x69,
-	0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x87, 0x01, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x52, 0x61, 0x74, 0x65, 0x4c, 0x69,
-	0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x59, 0x61, 0x6d, 0x6c, 0x12, 0x34, 0x2e,
-	0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f,
-	0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6d,
-	0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x35, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67,
-	0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x52,
+	0x6c, 0x44, 0x61, 0x74, 0x61, 0x22, 0x7a, 0x0a, 0x20, 0x47, 0x65, 0x74, 0x52, 0x61, 0x74, 0x65,
+	0x4c, 0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x74, 0x61, 0x69,
+	0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x56, 0x0a, 0x15, 0x72, 0x61, 0x74,
+	0x65, 0x5f, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x72,
+	0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e,
+	0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x43, 0x6c, 0x75,
+	0x73, 0x74, 0x65, 0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52, 0x12, 0x72,
+	0x61, 0x74, 0x65, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65,
+	0x66, 0x22, 0x77, 0x0a, 0x21, 0x47, 0x65, 0x74, 0x52, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6d, 0x69,
+	0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x52, 0x0a, 0x11, 0x72, 0x61, 0x74, 0x65, 0x5f, 0x6c,
+	0x69, 0x6d, 0x69, 0x74, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x26, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
+	0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x52, 0x61, 0x74, 0x65, 0x4c, 0x69,
+	0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x0f, 0x72, 0x61, 0x74, 0x65, 0x4c,
+	0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x32, 0xb7, 0x03, 0x0a, 0x14, 0x52,
+	0x61, 0x74, 0x65, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65,
+	0x41, 0x70, 0x69, 0x12, 0x81, 0x01, 0x0a, 0x14, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x61, 0x74, 0x65,
+	0x4c, 0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x12, 0x32, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c,
+	0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6d,
+	0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x33, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f,
+	0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x61, 0x74,
+	0x65, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x87, 0x01, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x52,
 	0x61, 0x74, 0x65, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x59, 0x61,
-	0x6d, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x56, 0x5a, 0x4c,
-	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d,
-	0x69, 0x6f, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73,
-	0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72,
-	0x76, 0x65, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x72, 0x70, 0x63, 0x2e,
-	0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x76, 0x31, 0xc0, 0xf5, 0x04, 0x01,
-	0xb8, 0xf5, 0x04, 0x01, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6d, 0x6c, 0x12, 0x34, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c,
+	0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x61,
+	0x74, 0x65, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x59, 0x61, 0x6d,
+	0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x35, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
+	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
+	0x2e, 0x47, 0x65, 0x74, 0x52, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x12, 0x90, 0x01, 0x0a, 0x19, 0x47, 0x65, 0x74, 0x52, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6d,
+	0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x12,
+	0x37, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e,
+	0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x61, 0x74, 0x65, 0x4c,
+	0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c,
+	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x38, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
+	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
+	0x2e, 0x47, 0x65, 0x74, 0x52, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x42, 0x56, 0x5a, 0x4c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d,
+	0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74,
+	0x73, 0x2f, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f,
+	0x61, 0x70, 0x69, 0x2f, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
+	0x6f, 0x2f, 0x76, 0x31, 0xc0, 0xf5, 0x04, 0x01, 0xb8, 0xf5, 0x04, 0x01, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -455,44 +574,50 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_rawDescData
 }
 
-var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_goTypes = []interface{}{
-	(*RateLimitConfig)(nil),                // 0: rpc.edge.gloo.solo.io.RateLimitConfig
-	(*ListRateLimitConfigsRequest)(nil),    // 1: rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest
-	(*ListRateLimitConfigsResponse)(nil),   // 2: rpc.edge.gloo.solo.io.ListRateLimitConfigsResponse
-	(*GetRateLimitConfigYamlRequest)(nil),  // 3: rpc.edge.gloo.solo.io.GetRateLimitConfigYamlRequest
-	(*GetRateLimitConfigYamlResponse)(nil), // 4: rpc.edge.gloo.solo.io.GetRateLimitConfigYamlResponse
-	(*ObjectMeta)(nil),                     // 5: rpc.edge.gloo.solo.io.ObjectMeta
-	(*v1alpha1.RateLimitConfigSpec)(nil),   // 6: ratelimit.api.solo.io.RateLimitConfigSpec
-	(*v1alpha1.RateLimitConfigStatus)(nil), // 7: ratelimit.api.solo.io.RateLimitConfigStatus
-	(*v1.ObjectRef)(nil),                   // 8: core.skv2.solo.io.ObjectRef
-	(*Pagination)(nil),                     // 9: rpc.edge.gloo.solo.io.Pagination
-	(*StatusFilter)(nil),                   // 10: rpc.edge.gloo.solo.io.StatusFilter
-	(*SortOptions)(nil),                    // 11: rpc.edge.gloo.solo.io.SortOptions
-	(*v1.ClusterObjectRef)(nil),            // 12: core.skv2.solo.io.ClusterObjectRef
-	(*ResourceYaml)(nil),                   // 13: rpc.edge.gloo.solo.io.ResourceYaml
+	(*RateLimitConfig)(nil),                   // 0: rpc.edge.gloo.solo.io.RateLimitConfig
+	(*ListRateLimitConfigsRequest)(nil),       // 1: rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest
+	(*ListRateLimitConfigsResponse)(nil),      // 2: rpc.edge.gloo.solo.io.ListRateLimitConfigsResponse
+	(*GetRateLimitConfigYamlRequest)(nil),     // 3: rpc.edge.gloo.solo.io.GetRateLimitConfigYamlRequest
+	(*GetRateLimitConfigYamlResponse)(nil),    // 4: rpc.edge.gloo.solo.io.GetRateLimitConfigYamlResponse
+	(*GetRateLimitConfigDetailsRequest)(nil),  // 5: rpc.edge.gloo.solo.io.GetRateLimitConfigDetailsRequest
+	(*GetRateLimitConfigDetailsResponse)(nil), // 6: rpc.edge.gloo.solo.io.GetRateLimitConfigDetailsResponse
+	(*ObjectMeta)(nil),                        // 7: rpc.edge.gloo.solo.io.ObjectMeta
+	(*v1alpha1.RateLimitConfigSpec)(nil),      // 8: ratelimit.api.solo.io.RateLimitConfigSpec
+	(*v1alpha1.RateLimitConfigStatus)(nil),    // 9: ratelimit.api.solo.io.RateLimitConfigStatus
+	(*v1.ObjectRef)(nil),                      // 10: core.skv2.solo.io.ObjectRef
+	(*Pagination)(nil),                        // 11: rpc.edge.gloo.solo.io.Pagination
+	(*StatusFilter)(nil),                      // 12: rpc.edge.gloo.solo.io.StatusFilter
+	(*SortOptions)(nil),                       // 13: rpc.edge.gloo.solo.io.SortOptions
+	(*v1.ClusterObjectRef)(nil),               // 14: core.skv2.solo.io.ClusterObjectRef
+	(*ResourceYaml)(nil),                      // 15: rpc.edge.gloo.solo.io.ResourceYaml
 }
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_depIdxs = []int32{
-	5,  // 0: rpc.edge.gloo.solo.io.RateLimitConfig.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
-	6,  // 1: rpc.edge.gloo.solo.io.RateLimitConfig.spec:type_name -> ratelimit.api.solo.io.RateLimitConfigSpec
-	7,  // 2: rpc.edge.gloo.solo.io.RateLimitConfig.status:type_name -> ratelimit.api.solo.io.RateLimitConfigStatus
-	8,  // 3: rpc.edge.gloo.solo.io.RateLimitConfig.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
-	8,  // 4: rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
-	9,  // 5: rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
-	10, // 6: rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
-	11, // 7: rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
+	7,  // 0: rpc.edge.gloo.solo.io.RateLimitConfig.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
+	8,  // 1: rpc.edge.gloo.solo.io.RateLimitConfig.spec:type_name -> ratelimit.api.solo.io.RateLimitConfigSpec
+	9,  // 2: rpc.edge.gloo.solo.io.RateLimitConfig.status:type_name -> ratelimit.api.solo.io.RateLimitConfigStatus
+	10, // 3: rpc.edge.gloo.solo.io.RateLimitConfig.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
+	10, // 4: rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
+	11, // 5: rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
+	12, // 6: rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
+	13, // 7: rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
 	0,  // 8: rpc.edge.gloo.solo.io.ListRateLimitConfigsResponse.rate_limit_configs:type_name -> rpc.edge.gloo.solo.io.RateLimitConfig
-	12, // 9: rpc.edge.gloo.solo.io.GetRateLimitConfigYamlRequest.rate_limit_config_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
-	13, // 10: rpc.edge.gloo.solo.io.GetRateLimitConfigYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
-	1,  // 11: rpc.edge.gloo.solo.io.RatelimitResourceApi.ListRateLimitConfigs:input_type -> rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest
-	3,  // 12: rpc.edge.gloo.solo.io.RatelimitResourceApi.GetRateLimitConfigYaml:input_type -> rpc.edge.gloo.solo.io.GetRateLimitConfigYamlRequest
-	2,  // 13: rpc.edge.gloo.solo.io.RatelimitResourceApi.ListRateLimitConfigs:output_type -> rpc.edge.gloo.solo.io.ListRateLimitConfigsResponse
-	4,  // 14: rpc.edge.gloo.solo.io.RatelimitResourceApi.GetRateLimitConfigYaml:output_type -> rpc.edge.gloo.solo.io.GetRateLimitConfigYamlResponse
-	13, // [13:15] is the sub-list for method output_type
-	11, // [11:13] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	14, // 9: rpc.edge.gloo.solo.io.GetRateLimitConfigYamlRequest.rate_limit_config_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	15, // 10: rpc.edge.gloo.solo.io.GetRateLimitConfigYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
+	14, // 11: rpc.edge.gloo.solo.io.GetRateLimitConfigDetailsRequest.rate_limit_config_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	0,  // 12: rpc.edge.gloo.solo.io.GetRateLimitConfigDetailsResponse.rate_limit_config:type_name -> rpc.edge.gloo.solo.io.RateLimitConfig
+	1,  // 13: rpc.edge.gloo.solo.io.RatelimitResourceApi.ListRateLimitConfigs:input_type -> rpc.edge.gloo.solo.io.ListRateLimitConfigsRequest
+	3,  // 14: rpc.edge.gloo.solo.io.RatelimitResourceApi.GetRateLimitConfigYaml:input_type -> rpc.edge.gloo.solo.io.GetRateLimitConfigYamlRequest
+	5,  // 15: rpc.edge.gloo.solo.io.RatelimitResourceApi.GetRateLimitConfigDetails:input_type -> rpc.edge.gloo.solo.io.GetRateLimitConfigDetailsRequest
+	2,  // 16: rpc.edge.gloo.solo.io.RatelimitResourceApi.ListRateLimitConfigs:output_type -> rpc.edge.gloo.solo.io.ListRateLimitConfigsResponse
+	4,  // 17: rpc.edge.gloo.solo.io.RatelimitResourceApi.GetRateLimitConfigYaml:output_type -> rpc.edge.gloo.solo.io.GetRateLimitConfigYamlResponse
+	6,  // 18: rpc.edge.gloo.solo.io.RatelimitResourceApi.GetRateLimitConfigDetails:output_type -> rpc.edge.gloo.solo.io.GetRateLimitConfigDetailsResponse
+	16, // [16:19] is the sub-list for method output_type
+	13, // [13:16] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() {
@@ -564,6 +689,30 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 				return nil
 			}
 		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetRateLimitConfigDetailsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetRateLimitConfigDetailsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -571,7 +720,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -599,6 +748,7 @@ const _ = grpc.SupportPackageIsVersion6
 type RatelimitResourceApiClient interface {
 	ListRateLimitConfigs(ctx context.Context, in *ListRateLimitConfigsRequest, opts ...grpc.CallOption) (*ListRateLimitConfigsResponse, error)
 	GetRateLimitConfigYaml(ctx context.Context, in *GetRateLimitConfigYamlRequest, opts ...grpc.CallOption) (*GetRateLimitConfigYamlResponse, error)
+	GetRateLimitConfigDetails(ctx context.Context, in *GetRateLimitConfigDetailsRequest, opts ...grpc.CallOption) (*GetRateLimitConfigDetailsResponse, error)
 }
 
 type ratelimitResourceApiClient struct {
@@ -627,10 +777,20 @@ func (c *ratelimitResourceApiClient) GetRateLimitConfigYaml(ctx context.Context,
 	return out, nil
 }
 
+func (c *ratelimitResourceApiClient) GetRateLimitConfigDetails(ctx context.Context, in *GetRateLimitConfigDetailsRequest, opts ...grpc.CallOption) (*GetRateLimitConfigDetailsResponse, error) {
+	out := new(GetRateLimitConfigDetailsResponse)
+	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.RatelimitResourceApi/GetRateLimitConfigDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RatelimitResourceApiServer is the server API for RatelimitResourceApi service.
 type RatelimitResourceApiServer interface {
 	ListRateLimitConfigs(context.Context, *ListRateLimitConfigsRequest) (*ListRateLimitConfigsResponse, error)
 	GetRateLimitConfigYaml(context.Context, *GetRateLimitConfigYamlRequest) (*GetRateLimitConfigYamlResponse, error)
+	GetRateLimitConfigDetails(context.Context, *GetRateLimitConfigDetailsRequest) (*GetRateLimitConfigDetailsResponse, error)
 }
 
 // UnimplementedRatelimitResourceApiServer can be embedded to have forward compatible implementations.
@@ -642,6 +802,9 @@ func (*UnimplementedRatelimitResourceApiServer) ListRateLimitConfigs(context.Con
 }
 func (*UnimplementedRatelimitResourceApiServer) GetRateLimitConfigYaml(context.Context, *GetRateLimitConfigYamlRequest) (*GetRateLimitConfigYamlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRateLimitConfigYaml not implemented")
+}
+func (*UnimplementedRatelimitResourceApiServer) GetRateLimitConfigDetails(context.Context, *GetRateLimitConfigDetailsRequest) (*GetRateLimitConfigDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRateLimitConfigDetails not implemented")
 }
 
 func RegisterRatelimitResourceApiServer(s *grpc.Server, srv RatelimitResourceApiServer) {
@@ -684,6 +847,24 @@ func _RatelimitResourceApi_GetRateLimitConfigYaml_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RatelimitResourceApi_GetRateLimitConfigDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRateLimitConfigDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RatelimitResourceApiServer).GetRateLimitConfigDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.edge.gloo.solo.io.RatelimitResourceApi/GetRateLimitConfigDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RatelimitResourceApiServer).GetRateLimitConfigDetails(ctx, req.(*GetRateLimitConfigDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _RatelimitResourceApi_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "rpc.edge.gloo.solo.io.RatelimitResourceApi",
 	HandlerType: (*RatelimitResourceApiServer)(nil),
@@ -695,6 +876,10 @@ var _RatelimitResourceApi_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRateLimitConfigYaml",
 			Handler:    _RatelimitResourceApi_GetRateLimitConfigYaml_Handler,
+		},
+		{
+			MethodName: "GetRateLimitConfigDetails",
+			Handler:    _RatelimitResourceApi_GetRateLimitConfigDetails_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

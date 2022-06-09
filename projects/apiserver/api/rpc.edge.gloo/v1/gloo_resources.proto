@@ -63,6 +63,14 @@ message GetUpstreamYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
+message GetUpstreamDetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef upstream_ref = 1;
+}
+
+message GetUpstreamDetailsResponse {
+    Upstream upstream = 1;
+}
+
 message ListUpstreamGroupsRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
     .rpc.edge.gloo.solo.io.Pagination pagination = 2;
@@ -82,6 +90,14 @@ message GetUpstreamGroupYamlRequest {
 
 message GetUpstreamGroupYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
+}
+
+message GetUpstreamGroupDetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef upstream_group_ref = 1;
+}
+
+message GetUpstreamGroupDetailsResponse {
+    UpstreamGroup upstream_group = 1;
 }
 
 message ListSettingsRequest {
@@ -105,6 +121,14 @@ message GetSettingsYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
+message GetSettingsDetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef settings_ref = 1;
+}
+
+message GetSettingsDetailsResponse {
+    Settings settings = 1;
+}
+
 message ListProxiesRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
     .rpc.edge.gloo.solo.io.Pagination pagination = 2;
@@ -126,17 +150,29 @@ message GetProxyYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
+message GetProxyDetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef proxy_ref = 1;
+}
+
+message GetProxyDetailsResponse {
+    Proxy proxy = 1;
+}
+
 service GlooResourceApi {
 
     rpc ListUpstreams (ListUpstreamsRequest) returns (ListUpstreamsResponse) {}
     rpc GetUpstreamYaml (GetUpstreamYamlRequest) returns (GetUpstreamYamlResponse) {}
+    rpc GetUpstreamDetails (GetUpstreamDetailsRequest) returns (GetUpstreamDetailsResponse) {}
 
     rpc ListUpstreamGroups (ListUpstreamGroupsRequest) returns (ListUpstreamGroupsResponse) {}
     rpc GetUpstreamGroupYaml (GetUpstreamGroupYamlRequest) returns (GetUpstreamGroupYamlResponse) {}
+    rpc GetUpstreamGroupDetails (GetUpstreamGroupDetailsRequest) returns (GetUpstreamGroupDetailsResponse) {}
 
     rpc ListSettings (ListSettingsRequest) returns (ListSettingsResponse) {}
     rpc GetSettingsYaml (GetSettingsYamlRequest) returns (GetSettingsYamlResponse) {}
+    rpc GetSettingsDetails (GetSettingsDetailsRequest) returns (GetSettingsDetailsResponse) {}
 
     rpc ListProxies (ListProxiesRequest) returns (ListProxiesResponse) {}
     rpc GetProxyYaml (GetProxyYamlRequest) returns (GetProxyYamlResponse) {}
+    rpc GetProxyDetails (GetProxyDetailsRequest) returns (GetProxyDetailsResponse) {}
 }

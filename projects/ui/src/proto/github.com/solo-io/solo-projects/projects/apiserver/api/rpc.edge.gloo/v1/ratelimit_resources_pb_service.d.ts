@@ -22,10 +22,20 @@ type RatelimitResourceApiGetRateLimitConfigYaml = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_pb.GetRateLimitConfigYamlResponse;
 };
 
+type RatelimitResourceApiGetRateLimitConfigDetails = {
+  readonly methodName: string;
+  readonly service: typeof RatelimitResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_pb.GetRateLimitConfigDetailsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_pb.GetRateLimitConfigDetailsResponse;
+};
+
 export class RatelimitResourceApi {
   static readonly serviceName: string;
   static readonly ListRateLimitConfigs: RatelimitResourceApiListRateLimitConfigs;
   static readonly GetRateLimitConfigYaml: RatelimitResourceApiGetRateLimitConfigYaml;
+  static readonly GetRateLimitConfigDetails: RatelimitResourceApiGetRateLimitConfigDetails;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -77,6 +87,15 @@ export class RatelimitResourceApiClient {
   getRateLimitConfigYaml(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_pb.GetRateLimitConfigYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_pb.GetRateLimitConfigYamlResponse|null) => void
+  ): UnaryResponse;
+  getRateLimitConfigDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_pb.GetRateLimitConfigDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_pb.GetRateLimitConfigDetailsResponse|null) => void
+  ): UnaryResponse;
+  getRateLimitConfigDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_pb.GetRateLimitConfigDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_ratelimit_resources_pb.GetRateLimitConfigDetailsResponse|null) => void
   ): UnaryResponse;
 }
 

@@ -16,6 +16,7 @@ import {
   GetRouteTableYamlRequest,
   ListRouteTablesRequest,
   ListRouteTablesResponse,
+  ListVirtualServicesResponse,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 
 import {
@@ -43,11 +44,25 @@ export const gatewayResourceApi = {
 };
 
 function listVirtualServices(
-  listVSRequest?: ObjectRef.AsObject
-): Promise<VirtualService.AsObject[]> {
+  listVSRequest?: ObjectRef.AsObject,
+  pagination?: Pagination.AsObject,
+  queryString?: string,
+  statusFilter?: number
+): Promise<ListVirtualServicesResponse.AsObject> {
   let request = new ListVirtualServicesRequest();
   if (listVSRequest) {
     request.setGlooInstanceRef(getObjectRefClassFromRefObj(listVSRequest));
+  }
+  if (pagination) {
+    request.setPagination(toPaginationClass(pagination));
+  }
+  if (queryString) {
+    request.setQueryString(queryString);
+  }
+  if (statusFilter !== undefined) {
+    const sf = new StatusFilter();
+    sf.setState(statusFilter);
+    request.setStatusFilter(sf);
   }
 
   return new Promise((resolve, reject) => {
@@ -58,7 +73,7 @@ function listVirtualServices(
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject().virtualServicesList);
+        resolve(data!.toObject());
       }
     });
   });

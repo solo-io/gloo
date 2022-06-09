@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: |
+      Added a details endpoint for getting a single gloo-resource.
+    issueLink: https://github.com/solo-io/solo-projects/issues/2847

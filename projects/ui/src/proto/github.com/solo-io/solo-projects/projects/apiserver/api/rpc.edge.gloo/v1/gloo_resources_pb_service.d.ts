@@ -22,6 +22,15 @@ type GlooResourceApiGetUpstreamYaml = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamYamlResponse;
 };
 
+type GlooResourceApiGetUpstreamDetails = {
+  readonly methodName: string;
+  readonly service: typeof GlooResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamDetailsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamDetailsResponse;
+};
+
 type GlooResourceApiListUpstreamGroups = {
   readonly methodName: string;
   readonly service: typeof GlooResourceApi;
@@ -38,6 +47,15 @@ type GlooResourceApiGetUpstreamGroupYaml = {
   readonly responseStream: false;
   readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupYamlRequest;
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupYamlResponse;
+};
+
+type GlooResourceApiGetUpstreamGroupDetails = {
+  readonly methodName: string;
+  readonly service: typeof GlooResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupDetailsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupDetailsResponse;
 };
 
 type GlooResourceApiListSettings = {
@@ -58,6 +76,15 @@ type GlooResourceApiGetSettingsYaml = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsYamlResponse;
 };
 
+type GlooResourceApiGetSettingsDetails = {
+  readonly methodName: string;
+  readonly service: typeof GlooResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsDetailsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsDetailsResponse;
+};
+
 type GlooResourceApiListProxies = {
   readonly methodName: string;
   readonly service: typeof GlooResourceApi;
@@ -76,16 +103,29 @@ type GlooResourceApiGetProxyYaml = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyYamlResponse;
 };
 
+type GlooResourceApiGetProxyDetails = {
+  readonly methodName: string;
+  readonly service: typeof GlooResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyDetailsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyDetailsResponse;
+};
+
 export class GlooResourceApi {
   static readonly serviceName: string;
   static readonly ListUpstreams: GlooResourceApiListUpstreams;
   static readonly GetUpstreamYaml: GlooResourceApiGetUpstreamYaml;
+  static readonly GetUpstreamDetails: GlooResourceApiGetUpstreamDetails;
   static readonly ListUpstreamGroups: GlooResourceApiListUpstreamGroups;
   static readonly GetUpstreamGroupYaml: GlooResourceApiGetUpstreamGroupYaml;
+  static readonly GetUpstreamGroupDetails: GlooResourceApiGetUpstreamGroupDetails;
   static readonly ListSettings: GlooResourceApiListSettings;
   static readonly GetSettingsYaml: GlooResourceApiGetSettingsYaml;
+  static readonly GetSettingsDetails: GlooResourceApiGetSettingsDetails;
   static readonly ListProxies: GlooResourceApiListProxies;
   static readonly GetProxyYaml: GlooResourceApiGetProxyYaml;
+  static readonly GetProxyDetails: GlooResourceApiGetProxyDetails;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -138,6 +178,15 @@ export class GlooResourceApiClient {
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamYamlResponse|null) => void
   ): UnaryResponse;
+  getUpstreamDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamDetailsResponse|null) => void
+  ): UnaryResponse;
+  getUpstreamDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamDetailsResponse|null) => void
+  ): UnaryResponse;
   listUpstreamGroups(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.ListUpstreamGroupsRequest,
     metadata: grpc.Metadata,
@@ -155,6 +204,15 @@ export class GlooResourceApiClient {
   getUpstreamGroupYaml(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupYamlResponse|null) => void
+  ): UnaryResponse;
+  getUpstreamGroupDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupDetailsResponse|null) => void
+  ): UnaryResponse;
+  getUpstreamGroupDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupDetailsResponse|null) => void
   ): UnaryResponse;
   listSettings(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.ListSettingsRequest,
@@ -174,6 +232,15 @@ export class GlooResourceApiClient {
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsYamlResponse|null) => void
   ): UnaryResponse;
+  getSettingsDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsDetailsResponse|null) => void
+  ): UnaryResponse;
+  getSettingsDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsDetailsResponse|null) => void
+  ): UnaryResponse;
   listProxies(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.ListProxiesRequest,
     metadata: grpc.Metadata,
@@ -191,6 +258,15 @@ export class GlooResourceApiClient {
   getProxyYaml(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyYamlResponse|null) => void
+  ): UnaryResponse;
+  getProxyDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyDetailsResponse|null) => void
+  ): UnaryResponse;
+  getProxyDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyDetailsResponse|null) => void
   ): UnaryResponse;
 }
 

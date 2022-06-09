@@ -269,3 +269,71 @@ func (m *GetAuthConfigYamlResponse) Equal(that interface{}) bool {
 
 	return true
 }
+
+// Equal function
+func (m *GetAuthConfigDetailsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetAuthConfigDetailsRequest)
+	if !ok {
+		that2, ok := that.(GetAuthConfigDetailsRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetAuthConfigRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetAuthConfigRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetAuthConfigRef(), target.GetAuthConfigRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetAuthConfigDetailsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetAuthConfigDetailsResponse)
+	if !ok {
+		that2, ok := that.(GetAuthConfigDetailsResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetAuthConfig()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetAuthConfig()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetAuthConfig(), target.GetAuthConfig()) {
+			return false
+		}
+	}
+
+	return true
+}

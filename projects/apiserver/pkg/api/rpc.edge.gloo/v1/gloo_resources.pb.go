@@ -542,6 +542,100 @@ func (x *GetUpstreamYamlResponse) GetYamlData() *ResourceYaml {
 	return nil
 }
 
+type GetUpstreamDetailsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	UpstreamRef *v11.ClusterObjectRef `protobuf:"bytes,1,opt,name=upstream_ref,json=upstreamRef,proto3" json:"upstream_ref,omitempty"`
+}
+
+func (x *GetUpstreamDetailsRequest) Reset() {
+	*x = GetUpstreamDetailsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetUpstreamDetailsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUpstreamDetailsRequest) ProtoMessage() {}
+
+func (x *GetUpstreamDetailsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUpstreamDetailsRequest.ProtoReflect.Descriptor instead.
+func (*GetUpstreamDetailsRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetUpstreamDetailsRequest) GetUpstreamRef() *v11.ClusterObjectRef {
+	if x != nil {
+		return x.UpstreamRef
+	}
+	return nil
+}
+
+type GetUpstreamDetailsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Upstream *Upstream `protobuf:"bytes,1,opt,name=upstream,proto3" json:"upstream,omitempty"`
+}
+
+func (x *GetUpstreamDetailsResponse) Reset() {
+	*x = GetUpstreamDetailsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetUpstreamDetailsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUpstreamDetailsResponse) ProtoMessage() {}
+
+func (x *GetUpstreamDetailsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUpstreamDetailsResponse.ProtoReflect.Descriptor instead.
+func (*GetUpstreamDetailsResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetUpstreamDetailsResponse) GetUpstream() *Upstream {
+	if x != nil {
+		return x.Upstream
+	}
+	return nil
+}
+
 type ListUpstreamGroupsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -557,7 +651,7 @@ type ListUpstreamGroupsRequest struct {
 func (x *ListUpstreamGroupsRequest) Reset() {
 	*x = ListUpstreamGroupsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[8]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -570,7 +664,7 @@ func (x *ListUpstreamGroupsRequest) String() string {
 func (*ListUpstreamGroupsRequest) ProtoMessage() {}
 
 func (x *ListUpstreamGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[8]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -583,7 +677,7 @@ func (x *ListUpstreamGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUpstreamGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListUpstreamGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{8}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListUpstreamGroupsRequest) GetGlooInstanceRef() *v11.ObjectRef {
@@ -633,7 +727,7 @@ type ListUpstreamGroupsResponse struct {
 func (x *ListUpstreamGroupsResponse) Reset() {
 	*x = ListUpstreamGroupsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[9]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -646,7 +740,7 @@ func (x *ListUpstreamGroupsResponse) String() string {
 func (*ListUpstreamGroupsResponse) ProtoMessage() {}
 
 func (x *ListUpstreamGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[9]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -659,7 +753,7 @@ func (x *ListUpstreamGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUpstreamGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListUpstreamGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{9}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListUpstreamGroupsResponse) GetUpstreamGroups() []*UpstreamGroup {
@@ -687,7 +781,7 @@ type GetUpstreamGroupYamlRequest struct {
 func (x *GetUpstreamGroupYamlRequest) Reset() {
 	*x = GetUpstreamGroupYamlRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[10]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -700,7 +794,7 @@ func (x *GetUpstreamGroupYamlRequest) String() string {
 func (*GetUpstreamGroupYamlRequest) ProtoMessage() {}
 
 func (x *GetUpstreamGroupYamlRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[10]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -713,7 +807,7 @@ func (x *GetUpstreamGroupYamlRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUpstreamGroupYamlRequest.ProtoReflect.Descriptor instead.
 func (*GetUpstreamGroupYamlRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{10}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetUpstreamGroupYamlRequest) GetUpstreamGroupRef() *v11.ClusterObjectRef {
@@ -734,7 +828,7 @@ type GetUpstreamGroupYamlResponse struct {
 func (x *GetUpstreamGroupYamlResponse) Reset() {
 	*x = GetUpstreamGroupYamlResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[11]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -747,7 +841,7 @@ func (x *GetUpstreamGroupYamlResponse) String() string {
 func (*GetUpstreamGroupYamlResponse) ProtoMessage() {}
 
 func (x *GetUpstreamGroupYamlResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[11]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -760,12 +854,106 @@ func (x *GetUpstreamGroupYamlResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUpstreamGroupYamlResponse.ProtoReflect.Descriptor instead.
 func (*GetUpstreamGroupYamlResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{11}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetUpstreamGroupYamlResponse) GetYamlData() *ResourceYaml {
 	if x != nil {
 		return x.YamlData
+	}
+	return nil
+}
+
+type GetUpstreamGroupDetailsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	UpstreamGroupRef *v11.ClusterObjectRef `protobuf:"bytes,1,opt,name=upstream_group_ref,json=upstreamGroupRef,proto3" json:"upstream_group_ref,omitempty"`
+}
+
+func (x *GetUpstreamGroupDetailsRequest) Reset() {
+	*x = GetUpstreamGroupDetailsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetUpstreamGroupDetailsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUpstreamGroupDetailsRequest) ProtoMessage() {}
+
+func (x *GetUpstreamGroupDetailsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUpstreamGroupDetailsRequest.ProtoReflect.Descriptor instead.
+func (*GetUpstreamGroupDetailsRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetUpstreamGroupDetailsRequest) GetUpstreamGroupRef() *v11.ClusterObjectRef {
+	if x != nil {
+		return x.UpstreamGroupRef
+	}
+	return nil
+}
+
+type GetUpstreamGroupDetailsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	UpstreamGroup *UpstreamGroup `protobuf:"bytes,1,opt,name=upstream_group,json=upstreamGroup,proto3" json:"upstream_group,omitempty"`
+}
+
+func (x *GetUpstreamGroupDetailsResponse) Reset() {
+	*x = GetUpstreamGroupDetailsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetUpstreamGroupDetailsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUpstreamGroupDetailsResponse) ProtoMessage() {}
+
+func (x *GetUpstreamGroupDetailsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUpstreamGroupDetailsResponse.ProtoReflect.Descriptor instead.
+func (*GetUpstreamGroupDetailsResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetUpstreamGroupDetailsResponse) GetUpstreamGroup() *UpstreamGroup {
+	if x != nil {
+		return x.UpstreamGroup
 	}
 	return nil
 }
@@ -785,7 +973,7 @@ type ListSettingsRequest struct {
 func (x *ListSettingsRequest) Reset() {
 	*x = ListSettingsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[12]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -798,7 +986,7 @@ func (x *ListSettingsRequest) String() string {
 func (*ListSettingsRequest) ProtoMessage() {}
 
 func (x *ListSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[12]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -811,7 +999,7 @@ func (x *ListSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSettingsRequest.ProtoReflect.Descriptor instead.
 func (*ListSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{12}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListSettingsRequest) GetGlooInstanceRef() *v11.ObjectRef {
@@ -861,7 +1049,7 @@ type ListSettingsResponse struct {
 func (x *ListSettingsResponse) Reset() {
 	*x = ListSettingsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[13]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -874,7 +1062,7 @@ func (x *ListSettingsResponse) String() string {
 func (*ListSettingsResponse) ProtoMessage() {}
 
 func (x *ListSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[13]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -887,7 +1075,7 @@ func (x *ListSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSettingsResponse.ProtoReflect.Descriptor instead.
 func (*ListSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{13}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListSettingsResponse) GetSettings() []*Settings {
@@ -915,7 +1103,7 @@ type GetSettingsYamlRequest struct {
 func (x *GetSettingsYamlRequest) Reset() {
 	*x = GetSettingsYamlRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[14]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -928,7 +1116,7 @@ func (x *GetSettingsYamlRequest) String() string {
 func (*GetSettingsYamlRequest) ProtoMessage() {}
 
 func (x *GetSettingsYamlRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[14]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -941,7 +1129,7 @@ func (x *GetSettingsYamlRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSettingsYamlRequest.ProtoReflect.Descriptor instead.
 func (*GetSettingsYamlRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{14}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetSettingsYamlRequest) GetSettingsRef() *v11.ClusterObjectRef {
@@ -962,7 +1150,7 @@ type GetSettingsYamlResponse struct {
 func (x *GetSettingsYamlResponse) Reset() {
 	*x = GetSettingsYamlResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[15]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -975,7 +1163,7 @@ func (x *GetSettingsYamlResponse) String() string {
 func (*GetSettingsYamlResponse) ProtoMessage() {}
 
 func (x *GetSettingsYamlResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[15]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -988,12 +1176,106 @@ func (x *GetSettingsYamlResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSettingsYamlResponse.ProtoReflect.Descriptor instead.
 func (*GetSettingsYamlResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{15}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetSettingsYamlResponse) GetYamlData() *ResourceYaml {
 	if x != nil {
 		return x.YamlData
+	}
+	return nil
+}
+
+type GetSettingsDetailsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SettingsRef *v11.ClusterObjectRef `protobuf:"bytes,1,opt,name=settings_ref,json=settingsRef,proto3" json:"settings_ref,omitempty"`
+}
+
+func (x *GetSettingsDetailsRequest) Reset() {
+	*x = GetSettingsDetailsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[20]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetSettingsDetailsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSettingsDetailsRequest) ProtoMessage() {}
+
+func (x *GetSettingsDetailsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[20]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSettingsDetailsRequest.ProtoReflect.Descriptor instead.
+func (*GetSettingsDetailsRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetSettingsDetailsRequest) GetSettingsRef() *v11.ClusterObjectRef {
+	if x != nil {
+		return x.SettingsRef
+	}
+	return nil
+}
+
+type GetSettingsDetailsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Settings *Settings `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+}
+
+func (x *GetSettingsDetailsResponse) Reset() {
+	*x = GetSettingsDetailsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[21]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetSettingsDetailsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSettingsDetailsResponse) ProtoMessage() {}
+
+func (x *GetSettingsDetailsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[21]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSettingsDetailsResponse.ProtoReflect.Descriptor instead.
+func (*GetSettingsDetailsResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetSettingsDetailsResponse) GetSettings() *Settings {
+	if x != nil {
+		return x.Settings
 	}
 	return nil
 }
@@ -1013,7 +1295,7 @@ type ListProxiesRequest struct {
 func (x *ListProxiesRequest) Reset() {
 	*x = ListProxiesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[16]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1026,7 +1308,7 @@ func (x *ListProxiesRequest) String() string {
 func (*ListProxiesRequest) ProtoMessage() {}
 
 func (x *ListProxiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[16]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1039,7 +1321,7 @@ func (x *ListProxiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProxiesRequest.ProtoReflect.Descriptor instead.
 func (*ListProxiesRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{16}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListProxiesRequest) GetGlooInstanceRef() *v11.ObjectRef {
@@ -1089,7 +1371,7 @@ type ListProxiesResponse struct {
 func (x *ListProxiesResponse) Reset() {
 	*x = ListProxiesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[17]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1102,7 +1384,7 @@ func (x *ListProxiesResponse) String() string {
 func (*ListProxiesResponse) ProtoMessage() {}
 
 func (x *ListProxiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[17]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1115,7 +1397,7 @@ func (x *ListProxiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProxiesResponse.ProtoReflect.Descriptor instead.
 func (*ListProxiesResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{17}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListProxiesResponse) GetProxies() []*Proxy {
@@ -1143,7 +1425,7 @@ type GetProxyYamlRequest struct {
 func (x *GetProxyYamlRequest) Reset() {
 	*x = GetProxyYamlRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[18]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1156,7 +1438,7 @@ func (x *GetProxyYamlRequest) String() string {
 func (*GetProxyYamlRequest) ProtoMessage() {}
 
 func (x *GetProxyYamlRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[18]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1169,7 +1451,7 @@ func (x *GetProxyYamlRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProxyYamlRequest.ProtoReflect.Descriptor instead.
 func (*GetProxyYamlRequest) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{18}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetProxyYamlRequest) GetProxyRef() *v11.ClusterObjectRef {
@@ -1190,7 +1472,7 @@ type GetProxyYamlResponse struct {
 func (x *GetProxyYamlResponse) Reset() {
 	*x = GetProxyYamlResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[19]
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1203,7 +1485,7 @@ func (x *GetProxyYamlResponse) String() string {
 func (*GetProxyYamlResponse) ProtoMessage() {}
 
 func (x *GetProxyYamlResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[19]
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1216,12 +1498,106 @@ func (x *GetProxyYamlResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProxyYamlResponse.ProtoReflect.Descriptor instead.
 func (*GetProxyYamlResponse) Descriptor() ([]byte, []int) {
-	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{19}
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetProxyYamlResponse) GetYamlData() *ResourceYaml {
 	if x != nil {
 		return x.YamlData
+	}
+	return nil
+}
+
+type GetProxyDetailsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ProxyRef *v11.ClusterObjectRef `protobuf:"bytes,1,opt,name=proxy_ref,json=proxyRef,proto3" json:"proxy_ref,omitempty"`
+}
+
+func (x *GetProxyDetailsRequest) Reset() {
+	*x = GetProxyDetailsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[26]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetProxyDetailsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProxyDetailsRequest) ProtoMessage() {}
+
+func (x *GetProxyDetailsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[26]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProxyDetailsRequest.ProtoReflect.Descriptor instead.
+func (*GetProxyDetailsRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetProxyDetailsRequest) GetProxyRef() *v11.ClusterObjectRef {
+	if x != nil {
+		return x.ProxyRef
+	}
+	return nil
+}
+
+type GetProxyDetailsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Proxy *Proxy `protobuf:"bytes,1,opt,name=proxy,proto3" json:"proxy,omitempty"`
+}
+
+func (x *GetProxyDetailsResponse) Reset() {
+	*x = GetProxyDetailsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[27]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetProxyDetailsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProxyDetailsResponse) ProtoMessage() {}
+
+func (x *GetProxyDetailsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[27]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProxyDetailsResponse.ProtoReflect.Descriptor instead.
+func (*GetProxyDetailsResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *GetProxyDetailsResponse) GetProxy() *Proxy {
+	if x != nil {
+		return x.Proxy
 	}
 	return nil
 }
@@ -1359,7 +1735,19 @@ var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v
 	0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x72, 0x70, 0x63,
 	0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e,
 	0x69, 0x6f, 0x2e, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x59, 0x61, 0x6d, 0x6c, 0x52,
-	0x08, 0x79, 0x61, 0x6d, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x22, 0xdc, 0x02, 0x0a, 0x19, 0x4c, 0x69,
+	0x08, 0x79, 0x61, 0x6d, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x22, 0x63, 0x0a, 0x19, 0x47, 0x65, 0x74,
+	0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x46, 0x0a, 0x0c, 0x75, 0x70, 0x73, 0x74, 0x72, 0x65,
+	0x61, 0x6d, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63,
+	0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
+	0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65,
+	0x66, 0x52, 0x0b, 0x75, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x66, 0x22, 0x59,
+	0x0a, 0x1a, 0x47, 0x65, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x44, 0x65, 0x74,
+	0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3b, 0x0a, 0x08,
+	0x75, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f,
+	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73,
+	0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52,
+	0x08, 0x75, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x22, 0xdc, 0x02, 0x0a, 0x19, 0x4c, 0x69,
 	0x73, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x48, 0x0a, 0x11, 0x67, 0x6c, 0x6f, 0x6f, 0x5f,
 	0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01,
@@ -1403,86 +1791,123 @@ var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v
 	0x0b, 0x32, 0x23, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
 	0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72,
 	0x63, 0x65, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x08, 0x79, 0x61, 0x6d, 0x6c, 0x44, 0x61, 0x74, 0x61,
-	0x22, 0xd6, 0x02, 0x0a, 0x13, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67,
-	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x48, 0x0a, 0x11, 0x67, 0x6c, 0x6f, 0x6f,
-	0x5f, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e,
-	0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65,
-	0x66, 0x52, 0x0f, 0x67, 0x6c, 0x6f, 0x6f, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x52,
-	0x65, 0x66, 0x12, 0x41, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67,
-	0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x50,
-	0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e,
-	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x21, 0x0a, 0x0c, 0x71, 0x75, 0x65, 0x72, 0x79, 0x5f, 0x73,
-	0x74, 0x72, 0x69, 0x6e, 0x67, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x71, 0x75, 0x65,
-	0x72, 0x79, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x12, 0x48, 0x0a, 0x0d, 0x73, 0x74, 0x61, 0x74,
-	0x75, 0x73, 0x5f, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x23, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e,
-	0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x46, 0x69,
-	0x6c, 0x74, 0x65, 0x72, 0x52, 0x0c, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x46, 0x69, 0x6c, 0x74,
-	0x65, 0x72, 0x12, 0x45, 0x0a, 0x0c, 0x73, 0x6f, 0x72, 0x74, 0x5f, 0x6f, 0x70, 0x74, 0x69, 0x6f,
-	0x6e, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
-	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
-	0x2e, 0x53, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x0b, 0x73, 0x6f,
-	0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x22, 0x69, 0x0a, 0x14, 0x4c, 0x69, 0x73,
-	0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x3b, 0x0a, 0x08, 0x73, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x18, 0x01, 0x20,
-	0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67,
-	0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x53, 0x65, 0x74, 0x74,
-	0x69, 0x6e, 0x67, 0x73, 0x52, 0x08, 0x73, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x14,
-	0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x74,
-	0x6f, 0x74, 0x61, 0x6c, 0x22, 0x60, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69,
-	0x6e, 0x67, 0x73, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x46,
-	0x0a, 0x0c, 0x73, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32,
-	0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72,
-	0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52, 0x0b, 0x73, 0x65, 0x74, 0x74, 0x69,
-	0x6e, 0x67, 0x73, 0x52, 0x65, 0x66, 0x22, 0x5b, 0x0a, 0x17, 0x47, 0x65, 0x74, 0x53, 0x65, 0x74,
-	0x74, 0x69, 0x6e, 0x67, 0x73, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x40, 0x0a, 0x09, 0x79, 0x61, 0x6d, 0x6c, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01,
+	0x22, 0x73, 0x0a, 0x1e, 0x47, 0x65, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x47,
+	0x72, 0x6f, 0x75, 0x70, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x51, 0x0a, 0x12, 0x75, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x5f, 0x67,
+	0x72, 0x6f, 0x75, 0x70, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23,
+	0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e,
+	0x69, 0x6f, 0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74,
+	0x52, 0x65, 0x66, 0x52, 0x10, 0x75, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f,
+	0x75, 0x70, 0x52, 0x65, 0x66, 0x22, 0x6e, 0x0a, 0x1f, 0x47, 0x65, 0x74, 0x55, 0x70, 0x73, 0x74,
+	0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x4b, 0x0a, 0x0e, 0x75, 0x70, 0x73, 0x74,
+	0x72, 0x65, 0x61, 0x6d, 0x5f, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x24, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f,
+	0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61,
+	0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x0d, 0x75, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x47, 0x72, 0x6f, 0x75, 0x70, 0x22, 0xd6, 0x02, 0x0a, 0x13, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65,
+	0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x48, 0x0a,
+	0x11, 0x67, 0x6c, 0x6f, 0x6f, 0x5f, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x5f, 0x72,
+	0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e,
+	0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4f, 0x62, 0x6a,
+	0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52, 0x0f, 0x67, 0x6c, 0x6f, 0x6f, 0x49, 0x6e, 0x73, 0x74,
+	0x61, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x66, 0x12, 0x41, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x72, 0x70,
+	0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f,
+	0x2e, 0x69, 0x6f, 0x2e, 0x50, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0a,
+	0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x21, 0x0a, 0x0c, 0x71, 0x75,
+	0x65, 0x72, 0x79, 0x5f, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0b, 0x71, 0x75, 0x65, 0x72, 0x79, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x12, 0x48, 0x0a,
+	0x0d, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x5f, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x18, 0x04,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e,
-	0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x52, 0x65, 0x73,
-	0x6f, 0x75, 0x72, 0x63, 0x65, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x08, 0x79, 0x61, 0x6d, 0x6c, 0x44,
-	0x61, 0x74, 0x61, 0x22, 0xd5, 0x02, 0x0a, 0x12, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x78,
-	0x69, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x48, 0x0a, 0x11, 0x67, 0x6c,
-	0x6f, 0x6f, 0x5f, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x5f, 0x72, 0x65, 0x66, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76,
-	0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74,
-	0x52, 0x65, 0x66, 0x52, 0x0f, 0x67, 0x6c, 0x6f, 0x6f, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63,
-	0x65, 0x52, 0x65, 0x66, 0x12, 0x41, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
+	0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x53, 0x74, 0x61,
+	0x74, 0x75, 0x73, 0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x52, 0x0c, 0x73, 0x74, 0x61, 0x74, 0x75,
+	0x73, 0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x12, 0x45, 0x0a, 0x0c, 0x73, 0x6f, 0x72, 0x74, 0x5f,
+	0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x22, 0x2e,
+	0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f,
+	0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x53, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x73, 0x52, 0x0b, 0x73, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x22, 0x69,
+	0x0a, 0x14, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3b, 0x0a, 0x08, 0x73, 0x65, 0x74, 0x74, 0x69, 0x6e,
+	0x67, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
 	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
-	0x2e, 0x50, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x70, 0x61, 0x67,
-	0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x21, 0x0a, 0x0c, 0x71, 0x75, 0x65, 0x72, 0x79,
-	0x5f, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x71,
-	0x75, 0x65, 0x72, 0x79, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x12, 0x48, 0x0a, 0x0d, 0x73, 0x74,
-	0x61, 0x74, 0x75, 0x73, 0x5f, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x23, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
-	0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73,
-	0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x52, 0x0c, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x46, 0x69,
-	0x6c, 0x74, 0x65, 0x72, 0x12, 0x45, 0x0a, 0x0c, 0x73, 0x6f, 0x72, 0x74, 0x5f, 0x6f, 0x70, 0x74,
-	0x69, 0x6f, 0x6e, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x72, 0x70, 0x63,
-	0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e,
-	0x69, 0x6f, 0x2e, 0x53, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x0b,
-	0x73, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x22, 0x63, 0x0a, 0x13, 0x4c,
-	0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x69, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x12, 0x36, 0x0a, 0x07, 0x70, 0x72, 0x6f, 0x78, 0x69, 0x65, 0x73, 0x18, 0x01, 0x20,
-	0x03, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67,
-	0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x50, 0x72, 0x6f, 0x78,
-	0x79, 0x52, 0x07, 0x70, 0x72, 0x6f, 0x78, 0x69, 0x65, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f,
-	0x74, 0x61, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c,
-	0x22, 0x57, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x59, 0x61, 0x6d, 0x6c,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x40, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x78, 0x79,
-	0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63, 0x6f, 0x72,
-	0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x43,
-	0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52,
-	0x08, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x52, 0x65, 0x66, 0x22, 0x58, 0x0a, 0x14, 0x47, 0x65, 0x74,
-	0x50, 0x72, 0x6f, 0x78, 0x79, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x40, 0x0a, 0x09, 0x79, 0x61, 0x6d, 0x6c, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e,
-	0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x52, 0x65, 0x73,
-	0x6f, 0x75, 0x72, 0x63, 0x65, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x08, 0x79, 0x61, 0x6d, 0x6c, 0x44,
-	0x61, 0x74, 0x61, 0x32, 0xa6, 0x07, 0x0a, 0x0f, 0x47, 0x6c, 0x6f, 0x6f, 0x52, 0x65, 0x73, 0x6f,
+	0x2e, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x08, 0x73, 0x65, 0x74, 0x74, 0x69,
+	0x6e, 0x67, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x05, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x22, 0x60, 0x0a, 0x16, 0x47, 0x65, 0x74,
+	0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x46, 0x0a, 0x0c, 0x73, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x5f,
+	0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63, 0x6f, 0x72, 0x65,
+	0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x43, 0x6c,
+	0x75, 0x73, 0x74, 0x65, 0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52, 0x0b,
+	0x73, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x66, 0x22, 0x5b, 0x0a, 0x17, 0x47,
+	0x65, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x40, 0x0a, 0x09, 0x79, 0x61, 0x6d, 0x6c, 0x5f, 0x64,
+	0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x72, 0x70, 0x63, 0x2e,
+	0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69,
+	0x6f, 0x2e, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x08,
+	0x79, 0x61, 0x6d, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x22, 0x63, 0x0a, 0x19, 0x47, 0x65, 0x74, 0x53,
+	0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x46, 0x0a, 0x0c, 0x73, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67,
+	0x73, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63, 0x6f,
+	0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e,
+	0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66,
+	0x52, 0x0b, 0x73, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x66, 0x22, 0x59, 0x0a,
+	0x1a, 0x47, 0x65, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x44, 0x65, 0x74, 0x61,
+	0x69, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3b, 0x0a, 0x08, 0x73,
+	0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e,
+	0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f,
+	0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x08,
+	0x73, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x22, 0xd5, 0x02, 0x0a, 0x12, 0x4c, 0x69, 0x73,
+	0x74, 0x50, 0x72, 0x6f, 0x78, 0x69, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x48, 0x0a, 0x11, 0x67, 0x6c, 0x6f, 0x6f, 0x5f, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65,
+	0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x63, 0x6f, 0x72,
+	0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4f,
+	0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52, 0x0f, 0x67, 0x6c, 0x6f, 0x6f, 0x49, 0x6e,
+	0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x66, 0x12, 0x41, 0x0a, 0x0a, 0x70, 0x61, 0x67,
+	0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x21, 0x2e,
+	0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f,
+	0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x50, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x21, 0x0a, 0x0c,
+	0x71, 0x75, 0x65, 0x72, 0x79, 0x5f, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0b, 0x71, 0x75, 0x65, 0x72, 0x79, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x12,
+	0x48, 0x0a, 0x0d, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x5f, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67,
+	0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x53,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x52, 0x0c, 0x73, 0x74, 0x61,
+	0x74, 0x75, 0x73, 0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x12, 0x45, 0x0a, 0x0c, 0x73, 0x6f, 0x72,
+	0x74, 0x5f, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x22, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e,
+	0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x53, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x52, 0x0b, 0x73, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+	0x22, 0x63, 0x0a, 0x13, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x69, 0x65, 0x73, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x36, 0x0a, 0x07, 0x70, 0x72, 0x6f, 0x78, 0x69,
+	0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
+	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
+	0x2e, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x52, 0x07, 0x70, 0x72, 0x6f, 0x78, 0x69, 0x65, 0x73, 0x12,
+	0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05,
+	0x74, 0x6f, 0x74, 0x61, 0x6c, 0x22, 0x57, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x78,
+	0x79, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x40, 0x0a, 0x09,
+	0x70, 0x72, 0x6f, 0x78, 0x79, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x23, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f,
+	0x2e, 0x69, 0x6f, 0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63,
+	0x74, 0x52, 0x65, 0x66, 0x52, 0x08, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x52, 0x65, 0x66, 0x22, 0x58,
+	0x0a, 0x14, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x40, 0x0a, 0x09, 0x79, 0x61, 0x6d, 0x6c, 0x5f, 0x64,
+	0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x72, 0x70, 0x63, 0x2e,
+	0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69,
+	0x6f, 0x2e, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x08,
+	0x79, 0x61, 0x6d, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x22, 0x5a, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x50,
+	0x72, 0x6f, 0x78, 0x79, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x40, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x5f, 0x72, 0x65, 0x66, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76,
+	0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65,
+	0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x52, 0x08, 0x70, 0x72, 0x6f, 0x78,
+	0x79, 0x52, 0x65, 0x66, 0x22, 0x4d, 0x0a, 0x17, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79,
+	0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x32, 0x0a, 0x05, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c,
+	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73,
+	0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x52, 0x05, 0x70, 0x72,
+	0x6f, 0x78, 0x79, 0x32, 0xa1, 0x0b, 0x0a, 0x0f, 0x47, 0x6c, 0x6f, 0x6f, 0x52, 0x65, 0x73, 0x6f,
 	0x75, 0x72, 0x63, 0x65, 0x41, 0x70, 0x69, 0x12, 0x6c, 0x0a, 0x0d, 0x4c, 0x69, 0x73, 0x74, 0x55,
 	0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x73, 0x12, 0x2b, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
 	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
@@ -1497,56 +1922,88 @@ var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64,
 	0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e,
 	0x47, 0x65, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x59, 0x61, 0x6d, 0x6c, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7b, 0x0a, 0x12, 0x4c, 0x69, 0x73,
-	0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x12,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7b, 0x0a, 0x12, 0x47, 0x65, 0x74,
+	0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x12,
 	0x30, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e,
-	0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x55, 0x70, 0x73, 0x74,
-	0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x31, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
-	0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x55, 0x70,
-	0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x81, 0x01, 0x0a, 0x14, 0x47, 0x65, 0x74, 0x55, 0x70,
-	0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x59, 0x61, 0x6d, 0x6c, 0x12,
-	0x32, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e,
 	0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72,
-	0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67,
+	0x65, 0x61, 0x6d, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x31, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
+	0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x70, 0x73,
+	0x74, 0x72, 0x65, 0x61, 0x6d, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7b, 0x0a, 0x12, 0x4c, 0x69, 0x73, 0x74, 0x55, 0x70,
+	0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x12, 0x30, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c,
+	0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61,
+	0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31,
+	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73,
+	0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x81, 0x01, 0x0a, 0x14, 0x47, 0x65, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x59, 0x61, 0x6d, 0x6c, 0x12, 0x32, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c,
+	0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x47, 0x72, 0x6f, 0x75, 0x70, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x33, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f,
+	0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x70, 0x73, 0x74,
+	0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x8a, 0x01, 0x0a, 0x17, 0x47, 0x65, 0x74, 0x55,
+	0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x44, 0x65, 0x74, 0x61,
+	0x69, 0x6c, 0x73, 0x12, 0x35, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67,
 	0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x55,
-	0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x59, 0x61, 0x6d, 0x6c,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x69, 0x0a, 0x0c, 0x4c, 0x69,
-	0x73, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x2a, 0x2e, 0x72, 0x70, 0x63,
+	0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x44, 0x65, 0x74, 0x61,
+	0x69, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x36, 0x2e, 0x72, 0x70, 0x63,
 	0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e,
-	0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67,
-	0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c,
-	0x69, 0x73, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x72, 0x0a, 0x0f, 0x47, 0x65, 0x74, 0x53, 0x65, 0x74, 0x74,
-	0x69, 0x6e, 0x67, 0x73, 0x59, 0x61, 0x6d, 0x6c, 0x12, 0x2d, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
+	0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x47, 0x72,
+	0x6f, 0x75, 0x70, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x69, 0x0a, 0x0c, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x74, 0x74,
+	0x69, 0x6e, 0x67, 0x73, 0x12, 0x2a, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e,
+	0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73,
+	0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x2b, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f,
+	0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x65, 0x74,
+	0x74, 0x69, 0x6e, 0x67, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
+	0x72, 0x0a, 0x0f, 0x47, 0x65, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x59, 0x61,
+	0x6d, 0x6c, 0x12, 0x2d, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c,
+	0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x53, 0x65,
+	0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x2e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
+	0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x53, 0x65, 0x74,
+	0x74, 0x69, 0x6e, 0x67, 0x73, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x7b, 0x0a, 0x12, 0x47, 0x65, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e,
+	0x67, 0x73, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x12, 0x30, 0x2e, 0x72, 0x70, 0x63, 0x2e,
+	0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69,
+	0x6f, 0x2e, 0x47, 0x65, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x44, 0x65, 0x74,
+	0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x72, 0x70,
+	0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f,
+	0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x44,
+	0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x66, 0x0a, 0x0b, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x69, 0x65, 0x73, 0x12,
+	0x29, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e,
+	0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x78,
+	0x69, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e,
+	0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x69, 0x65, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x69, 0x0a, 0x0c, 0x47, 0x65, 0x74, 0x50,
+	0x72, 0x6f, 0x78, 0x79, 0x59, 0x61, 0x6d, 0x6c, 0x12, 0x2a, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
 	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
-	0x2e, 0x47, 0x65, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x59, 0x61, 0x6d, 0x6c,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64,
-	0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e,
-	0x47, 0x65, 0x74, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x59, 0x61, 0x6d, 0x6c, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x66, 0x0a, 0x0b, 0x4c, 0x69, 0x73,
-	0x74, 0x50, 0x72, 0x6f, 0x78, 0x69, 0x65, 0x73, 0x12, 0x29, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65,
-	0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
-	0x2e, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x69, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67,
-	0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x4c, 0x69, 0x73, 0x74,
-	0x50, 0x72, 0x6f, 0x78, 0x69, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x12, 0x69, 0x0a, 0x0c, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x59, 0x61, 0x6d,
-	0x6c, 0x12, 0x2a, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
-	0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f,
-	0x78, 0x79, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e,
-	0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f,
-	0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x59, 0x61,
-	0x6d, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x56, 0x5a, 0x4c,
-	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d,
-	0x69, 0x6f, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73,
-	0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72,
-	0x76, 0x65, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x72, 0x70, 0x63, 0x2e,
-	0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x76, 0x31, 0xc0, 0xf5, 0x04, 0x01,
-	0xb8, 0xf5, 0x04, 0x01, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x2e, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e,
+	0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74,
+	0x50, 0x72, 0x6f, 0x78, 0x79, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x72, 0x0a, 0x0f, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x44,
+	0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x12, 0x2d, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67,
+	0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47,
+	0x65, 0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65,
+	0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65,
+	0x74, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x56, 0x5a, 0x4c, 0x67, 0x69, 0x74, 0x68, 0x75,
+	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x73, 0x6f,
+	0x6c, 0x6f, 0x2d, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x6a,
+	0x65, 0x63, 0x74, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2f, 0x70,
+	0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e,
+	0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x76, 0x31, 0xc0, 0xf5, 0x04, 0x01, 0xb8, 0xf5, 0x04, 0x01, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1561,110 +2018,134 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDescData
 }
 
-var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_goTypes = []interface{}{
-	(*Upstream)(nil),                     // 0: rpc.edge.gloo.solo.io.Upstream
-	(*UpstreamGroup)(nil),                // 1: rpc.edge.gloo.solo.io.UpstreamGroup
-	(*Settings)(nil),                     // 2: rpc.edge.gloo.solo.io.Settings
-	(*Proxy)(nil),                        // 3: rpc.edge.gloo.solo.io.Proxy
-	(*ListUpstreamsRequest)(nil),         // 4: rpc.edge.gloo.solo.io.ListUpstreamsRequest
-	(*ListUpstreamsResponse)(nil),        // 5: rpc.edge.gloo.solo.io.ListUpstreamsResponse
-	(*GetUpstreamYamlRequest)(nil),       // 6: rpc.edge.gloo.solo.io.GetUpstreamYamlRequest
-	(*GetUpstreamYamlResponse)(nil),      // 7: rpc.edge.gloo.solo.io.GetUpstreamYamlResponse
-	(*ListUpstreamGroupsRequest)(nil),    // 8: rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest
-	(*ListUpstreamGroupsResponse)(nil),   // 9: rpc.edge.gloo.solo.io.ListUpstreamGroupsResponse
-	(*GetUpstreamGroupYamlRequest)(nil),  // 10: rpc.edge.gloo.solo.io.GetUpstreamGroupYamlRequest
-	(*GetUpstreamGroupYamlResponse)(nil), // 11: rpc.edge.gloo.solo.io.GetUpstreamGroupYamlResponse
-	(*ListSettingsRequest)(nil),          // 12: rpc.edge.gloo.solo.io.ListSettingsRequest
-	(*ListSettingsResponse)(nil),         // 13: rpc.edge.gloo.solo.io.ListSettingsResponse
-	(*GetSettingsYamlRequest)(nil),       // 14: rpc.edge.gloo.solo.io.GetSettingsYamlRequest
-	(*GetSettingsYamlResponse)(nil),      // 15: rpc.edge.gloo.solo.io.GetSettingsYamlResponse
-	(*ListProxiesRequest)(nil),           // 16: rpc.edge.gloo.solo.io.ListProxiesRequest
-	(*ListProxiesResponse)(nil),          // 17: rpc.edge.gloo.solo.io.ListProxiesResponse
-	(*GetProxyYamlRequest)(nil),          // 18: rpc.edge.gloo.solo.io.GetProxyYamlRequest
-	(*GetProxyYamlResponse)(nil),         // 19: rpc.edge.gloo.solo.io.GetProxyYamlResponse
-	(*ObjectMeta)(nil),                   // 20: rpc.edge.gloo.solo.io.ObjectMeta
-	(*v1.UpstreamSpec)(nil),              // 21: gloo.solo.io.UpstreamSpec
-	(*v1.UpstreamStatus)(nil),            // 22: gloo.solo.io.UpstreamStatus
-	(*v11.ObjectRef)(nil),                // 23: core.skv2.solo.io.ObjectRef
-	(*v1.UpstreamGroupSpec)(nil),         // 24: gloo.solo.io.UpstreamGroupSpec
-	(*v1.UpstreamGroupStatus)(nil),       // 25: gloo.solo.io.UpstreamGroupStatus
-	(*v1.SettingsSpec)(nil),              // 26: gloo.solo.io.SettingsSpec
-	(*v1.SettingsStatus)(nil),            // 27: gloo.solo.io.SettingsStatus
-	(*v1.ProxySpec)(nil),                 // 28: gloo.solo.io.ProxySpec
-	(*v1.ProxyStatus)(nil),               // 29: gloo.solo.io.ProxyStatus
-	(*Pagination)(nil),                   // 30: rpc.edge.gloo.solo.io.Pagination
-	(*StatusFilter)(nil),                 // 31: rpc.edge.gloo.solo.io.StatusFilter
-	(*SortOptions)(nil),                  // 32: rpc.edge.gloo.solo.io.SortOptions
-	(*v11.ClusterObjectRef)(nil),         // 33: core.skv2.solo.io.ClusterObjectRef
-	(*ResourceYaml)(nil),                 // 34: rpc.edge.gloo.solo.io.ResourceYaml
+	(*Upstream)(nil),                        // 0: rpc.edge.gloo.solo.io.Upstream
+	(*UpstreamGroup)(nil),                   // 1: rpc.edge.gloo.solo.io.UpstreamGroup
+	(*Settings)(nil),                        // 2: rpc.edge.gloo.solo.io.Settings
+	(*Proxy)(nil),                           // 3: rpc.edge.gloo.solo.io.Proxy
+	(*ListUpstreamsRequest)(nil),            // 4: rpc.edge.gloo.solo.io.ListUpstreamsRequest
+	(*ListUpstreamsResponse)(nil),           // 5: rpc.edge.gloo.solo.io.ListUpstreamsResponse
+	(*GetUpstreamYamlRequest)(nil),          // 6: rpc.edge.gloo.solo.io.GetUpstreamYamlRequest
+	(*GetUpstreamYamlResponse)(nil),         // 7: rpc.edge.gloo.solo.io.GetUpstreamYamlResponse
+	(*GetUpstreamDetailsRequest)(nil),       // 8: rpc.edge.gloo.solo.io.GetUpstreamDetailsRequest
+	(*GetUpstreamDetailsResponse)(nil),      // 9: rpc.edge.gloo.solo.io.GetUpstreamDetailsResponse
+	(*ListUpstreamGroupsRequest)(nil),       // 10: rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest
+	(*ListUpstreamGroupsResponse)(nil),      // 11: rpc.edge.gloo.solo.io.ListUpstreamGroupsResponse
+	(*GetUpstreamGroupYamlRequest)(nil),     // 12: rpc.edge.gloo.solo.io.GetUpstreamGroupYamlRequest
+	(*GetUpstreamGroupYamlResponse)(nil),    // 13: rpc.edge.gloo.solo.io.GetUpstreamGroupYamlResponse
+	(*GetUpstreamGroupDetailsRequest)(nil),  // 14: rpc.edge.gloo.solo.io.GetUpstreamGroupDetailsRequest
+	(*GetUpstreamGroupDetailsResponse)(nil), // 15: rpc.edge.gloo.solo.io.GetUpstreamGroupDetailsResponse
+	(*ListSettingsRequest)(nil),             // 16: rpc.edge.gloo.solo.io.ListSettingsRequest
+	(*ListSettingsResponse)(nil),            // 17: rpc.edge.gloo.solo.io.ListSettingsResponse
+	(*GetSettingsYamlRequest)(nil),          // 18: rpc.edge.gloo.solo.io.GetSettingsYamlRequest
+	(*GetSettingsYamlResponse)(nil),         // 19: rpc.edge.gloo.solo.io.GetSettingsYamlResponse
+	(*GetSettingsDetailsRequest)(nil),       // 20: rpc.edge.gloo.solo.io.GetSettingsDetailsRequest
+	(*GetSettingsDetailsResponse)(nil),      // 21: rpc.edge.gloo.solo.io.GetSettingsDetailsResponse
+	(*ListProxiesRequest)(nil),              // 22: rpc.edge.gloo.solo.io.ListProxiesRequest
+	(*ListProxiesResponse)(nil),             // 23: rpc.edge.gloo.solo.io.ListProxiesResponse
+	(*GetProxyYamlRequest)(nil),             // 24: rpc.edge.gloo.solo.io.GetProxyYamlRequest
+	(*GetProxyYamlResponse)(nil),            // 25: rpc.edge.gloo.solo.io.GetProxyYamlResponse
+	(*GetProxyDetailsRequest)(nil),          // 26: rpc.edge.gloo.solo.io.GetProxyDetailsRequest
+	(*GetProxyDetailsResponse)(nil),         // 27: rpc.edge.gloo.solo.io.GetProxyDetailsResponse
+	(*ObjectMeta)(nil),                      // 28: rpc.edge.gloo.solo.io.ObjectMeta
+	(*v1.UpstreamSpec)(nil),                 // 29: gloo.solo.io.UpstreamSpec
+	(*v1.UpstreamStatus)(nil),               // 30: gloo.solo.io.UpstreamStatus
+	(*v11.ObjectRef)(nil),                   // 31: core.skv2.solo.io.ObjectRef
+	(*v1.UpstreamGroupSpec)(nil),            // 32: gloo.solo.io.UpstreamGroupSpec
+	(*v1.UpstreamGroupStatus)(nil),          // 33: gloo.solo.io.UpstreamGroupStatus
+	(*v1.SettingsSpec)(nil),                 // 34: gloo.solo.io.SettingsSpec
+	(*v1.SettingsStatus)(nil),               // 35: gloo.solo.io.SettingsStatus
+	(*v1.ProxySpec)(nil),                    // 36: gloo.solo.io.ProxySpec
+	(*v1.ProxyStatus)(nil),                  // 37: gloo.solo.io.ProxyStatus
+	(*Pagination)(nil),                      // 38: rpc.edge.gloo.solo.io.Pagination
+	(*StatusFilter)(nil),                    // 39: rpc.edge.gloo.solo.io.StatusFilter
+	(*SortOptions)(nil),                     // 40: rpc.edge.gloo.solo.io.SortOptions
+	(*v11.ClusterObjectRef)(nil),            // 41: core.skv2.solo.io.ClusterObjectRef
+	(*ResourceYaml)(nil),                    // 42: rpc.edge.gloo.solo.io.ResourceYaml
 }
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_depIdxs = []int32{
-	20, // 0: rpc.edge.gloo.solo.io.Upstream.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
-	21, // 1: rpc.edge.gloo.solo.io.Upstream.spec:type_name -> gloo.solo.io.UpstreamSpec
-	22, // 2: rpc.edge.gloo.solo.io.Upstream.status:type_name -> gloo.solo.io.UpstreamStatus
-	23, // 3: rpc.edge.gloo.solo.io.Upstream.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
-	20, // 4: rpc.edge.gloo.solo.io.UpstreamGroup.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
-	24, // 5: rpc.edge.gloo.solo.io.UpstreamGroup.spec:type_name -> gloo.solo.io.UpstreamGroupSpec
-	25, // 6: rpc.edge.gloo.solo.io.UpstreamGroup.status:type_name -> gloo.solo.io.UpstreamGroupStatus
-	23, // 7: rpc.edge.gloo.solo.io.UpstreamGroup.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
-	20, // 8: rpc.edge.gloo.solo.io.Settings.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
-	26, // 9: rpc.edge.gloo.solo.io.Settings.spec:type_name -> gloo.solo.io.SettingsSpec
-	27, // 10: rpc.edge.gloo.solo.io.Settings.status:type_name -> gloo.solo.io.SettingsStatus
-	23, // 11: rpc.edge.gloo.solo.io.Settings.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
-	20, // 12: rpc.edge.gloo.solo.io.Proxy.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
-	28, // 13: rpc.edge.gloo.solo.io.Proxy.spec:type_name -> gloo.solo.io.ProxySpec
-	29, // 14: rpc.edge.gloo.solo.io.Proxy.status:type_name -> gloo.solo.io.ProxyStatus
-	23, // 15: rpc.edge.gloo.solo.io.Proxy.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
-	23, // 16: rpc.edge.gloo.solo.io.ListUpstreamsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
-	30, // 17: rpc.edge.gloo.solo.io.ListUpstreamsRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
-	31, // 18: rpc.edge.gloo.solo.io.ListUpstreamsRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
-	32, // 19: rpc.edge.gloo.solo.io.ListUpstreamsRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
+	28, // 0: rpc.edge.gloo.solo.io.Upstream.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
+	29, // 1: rpc.edge.gloo.solo.io.Upstream.spec:type_name -> gloo.solo.io.UpstreamSpec
+	30, // 2: rpc.edge.gloo.solo.io.Upstream.status:type_name -> gloo.solo.io.UpstreamStatus
+	31, // 3: rpc.edge.gloo.solo.io.Upstream.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
+	28, // 4: rpc.edge.gloo.solo.io.UpstreamGroup.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
+	32, // 5: rpc.edge.gloo.solo.io.UpstreamGroup.spec:type_name -> gloo.solo.io.UpstreamGroupSpec
+	33, // 6: rpc.edge.gloo.solo.io.UpstreamGroup.status:type_name -> gloo.solo.io.UpstreamGroupStatus
+	31, // 7: rpc.edge.gloo.solo.io.UpstreamGroup.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
+	28, // 8: rpc.edge.gloo.solo.io.Settings.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
+	34, // 9: rpc.edge.gloo.solo.io.Settings.spec:type_name -> gloo.solo.io.SettingsSpec
+	35, // 10: rpc.edge.gloo.solo.io.Settings.status:type_name -> gloo.solo.io.SettingsStatus
+	31, // 11: rpc.edge.gloo.solo.io.Settings.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
+	28, // 12: rpc.edge.gloo.solo.io.Proxy.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
+	36, // 13: rpc.edge.gloo.solo.io.Proxy.spec:type_name -> gloo.solo.io.ProxySpec
+	37, // 14: rpc.edge.gloo.solo.io.Proxy.status:type_name -> gloo.solo.io.ProxyStatus
+	31, // 15: rpc.edge.gloo.solo.io.Proxy.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
+	31, // 16: rpc.edge.gloo.solo.io.ListUpstreamsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
+	38, // 17: rpc.edge.gloo.solo.io.ListUpstreamsRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
+	39, // 18: rpc.edge.gloo.solo.io.ListUpstreamsRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
+	40, // 19: rpc.edge.gloo.solo.io.ListUpstreamsRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
 	0,  // 20: rpc.edge.gloo.solo.io.ListUpstreamsResponse.upstreams:type_name -> rpc.edge.gloo.solo.io.Upstream
-	33, // 21: rpc.edge.gloo.solo.io.GetUpstreamYamlRequest.upstream_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
-	34, // 22: rpc.edge.gloo.solo.io.GetUpstreamYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
-	23, // 23: rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
-	30, // 24: rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
-	31, // 25: rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
-	32, // 26: rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
-	1,  // 27: rpc.edge.gloo.solo.io.ListUpstreamGroupsResponse.upstream_groups:type_name -> rpc.edge.gloo.solo.io.UpstreamGroup
-	33, // 28: rpc.edge.gloo.solo.io.GetUpstreamGroupYamlRequest.upstream_group_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
-	34, // 29: rpc.edge.gloo.solo.io.GetUpstreamGroupYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
-	23, // 30: rpc.edge.gloo.solo.io.ListSettingsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
-	30, // 31: rpc.edge.gloo.solo.io.ListSettingsRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
-	31, // 32: rpc.edge.gloo.solo.io.ListSettingsRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
-	32, // 33: rpc.edge.gloo.solo.io.ListSettingsRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
-	2,  // 34: rpc.edge.gloo.solo.io.ListSettingsResponse.settings:type_name -> rpc.edge.gloo.solo.io.Settings
-	33, // 35: rpc.edge.gloo.solo.io.GetSettingsYamlRequest.settings_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
-	34, // 36: rpc.edge.gloo.solo.io.GetSettingsYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
-	23, // 37: rpc.edge.gloo.solo.io.ListProxiesRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
-	30, // 38: rpc.edge.gloo.solo.io.ListProxiesRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
-	31, // 39: rpc.edge.gloo.solo.io.ListProxiesRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
-	32, // 40: rpc.edge.gloo.solo.io.ListProxiesRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
-	3,  // 41: rpc.edge.gloo.solo.io.ListProxiesResponse.proxies:type_name -> rpc.edge.gloo.solo.io.Proxy
-	33, // 42: rpc.edge.gloo.solo.io.GetProxyYamlRequest.proxy_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
-	34, // 43: rpc.edge.gloo.solo.io.GetProxyYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
-	4,  // 44: rpc.edge.gloo.solo.io.GlooResourceApi.ListUpstreams:input_type -> rpc.edge.gloo.solo.io.ListUpstreamsRequest
-	6,  // 45: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamYaml:input_type -> rpc.edge.gloo.solo.io.GetUpstreamYamlRequest
-	8,  // 46: rpc.edge.gloo.solo.io.GlooResourceApi.ListUpstreamGroups:input_type -> rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest
-	10, // 47: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamGroupYaml:input_type -> rpc.edge.gloo.solo.io.GetUpstreamGroupYamlRequest
-	12, // 48: rpc.edge.gloo.solo.io.GlooResourceApi.ListSettings:input_type -> rpc.edge.gloo.solo.io.ListSettingsRequest
-	14, // 49: rpc.edge.gloo.solo.io.GlooResourceApi.GetSettingsYaml:input_type -> rpc.edge.gloo.solo.io.GetSettingsYamlRequest
-	16, // 50: rpc.edge.gloo.solo.io.GlooResourceApi.ListProxies:input_type -> rpc.edge.gloo.solo.io.ListProxiesRequest
-	18, // 51: rpc.edge.gloo.solo.io.GlooResourceApi.GetProxyYaml:input_type -> rpc.edge.gloo.solo.io.GetProxyYamlRequest
-	5,  // 52: rpc.edge.gloo.solo.io.GlooResourceApi.ListUpstreams:output_type -> rpc.edge.gloo.solo.io.ListUpstreamsResponse
-	7,  // 53: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamYaml:output_type -> rpc.edge.gloo.solo.io.GetUpstreamYamlResponse
-	9,  // 54: rpc.edge.gloo.solo.io.GlooResourceApi.ListUpstreamGroups:output_type -> rpc.edge.gloo.solo.io.ListUpstreamGroupsResponse
-	11, // 55: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamGroupYaml:output_type -> rpc.edge.gloo.solo.io.GetUpstreamGroupYamlResponse
-	13, // 56: rpc.edge.gloo.solo.io.GlooResourceApi.ListSettings:output_type -> rpc.edge.gloo.solo.io.ListSettingsResponse
-	15, // 57: rpc.edge.gloo.solo.io.GlooResourceApi.GetSettingsYaml:output_type -> rpc.edge.gloo.solo.io.GetSettingsYamlResponse
-	17, // 58: rpc.edge.gloo.solo.io.GlooResourceApi.ListProxies:output_type -> rpc.edge.gloo.solo.io.ListProxiesResponse
-	19, // 59: rpc.edge.gloo.solo.io.GlooResourceApi.GetProxyYaml:output_type -> rpc.edge.gloo.solo.io.GetProxyYamlResponse
-	52, // [52:60] is the sub-list for method output_type
-	44, // [44:52] is the sub-list for method input_type
-	44, // [44:44] is the sub-list for extension type_name
-	44, // [44:44] is the sub-list for extension extendee
-	0,  // [0:44] is the sub-list for field type_name
+	41, // 21: rpc.edge.gloo.solo.io.GetUpstreamYamlRequest.upstream_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	42, // 22: rpc.edge.gloo.solo.io.GetUpstreamYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
+	41, // 23: rpc.edge.gloo.solo.io.GetUpstreamDetailsRequest.upstream_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	0,  // 24: rpc.edge.gloo.solo.io.GetUpstreamDetailsResponse.upstream:type_name -> rpc.edge.gloo.solo.io.Upstream
+	31, // 25: rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
+	38, // 26: rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
+	39, // 27: rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
+	40, // 28: rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
+	1,  // 29: rpc.edge.gloo.solo.io.ListUpstreamGroupsResponse.upstream_groups:type_name -> rpc.edge.gloo.solo.io.UpstreamGroup
+	41, // 30: rpc.edge.gloo.solo.io.GetUpstreamGroupYamlRequest.upstream_group_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	42, // 31: rpc.edge.gloo.solo.io.GetUpstreamGroupYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
+	41, // 32: rpc.edge.gloo.solo.io.GetUpstreamGroupDetailsRequest.upstream_group_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	1,  // 33: rpc.edge.gloo.solo.io.GetUpstreamGroupDetailsResponse.upstream_group:type_name -> rpc.edge.gloo.solo.io.UpstreamGroup
+	31, // 34: rpc.edge.gloo.solo.io.ListSettingsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
+	38, // 35: rpc.edge.gloo.solo.io.ListSettingsRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
+	39, // 36: rpc.edge.gloo.solo.io.ListSettingsRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
+	40, // 37: rpc.edge.gloo.solo.io.ListSettingsRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
+	2,  // 38: rpc.edge.gloo.solo.io.ListSettingsResponse.settings:type_name -> rpc.edge.gloo.solo.io.Settings
+	41, // 39: rpc.edge.gloo.solo.io.GetSettingsYamlRequest.settings_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	42, // 40: rpc.edge.gloo.solo.io.GetSettingsYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
+	41, // 41: rpc.edge.gloo.solo.io.GetSettingsDetailsRequest.settings_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	2,  // 42: rpc.edge.gloo.solo.io.GetSettingsDetailsResponse.settings:type_name -> rpc.edge.gloo.solo.io.Settings
+	31, // 43: rpc.edge.gloo.solo.io.ListProxiesRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
+	38, // 44: rpc.edge.gloo.solo.io.ListProxiesRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
+	39, // 45: rpc.edge.gloo.solo.io.ListProxiesRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
+	40, // 46: rpc.edge.gloo.solo.io.ListProxiesRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
+	3,  // 47: rpc.edge.gloo.solo.io.ListProxiesResponse.proxies:type_name -> rpc.edge.gloo.solo.io.Proxy
+	41, // 48: rpc.edge.gloo.solo.io.GetProxyYamlRequest.proxy_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	42, // 49: rpc.edge.gloo.solo.io.GetProxyYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
+	41, // 50: rpc.edge.gloo.solo.io.GetProxyDetailsRequest.proxy_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	3,  // 51: rpc.edge.gloo.solo.io.GetProxyDetailsResponse.proxy:type_name -> rpc.edge.gloo.solo.io.Proxy
+	4,  // 52: rpc.edge.gloo.solo.io.GlooResourceApi.ListUpstreams:input_type -> rpc.edge.gloo.solo.io.ListUpstreamsRequest
+	6,  // 53: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamYaml:input_type -> rpc.edge.gloo.solo.io.GetUpstreamYamlRequest
+	8,  // 54: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamDetails:input_type -> rpc.edge.gloo.solo.io.GetUpstreamDetailsRequest
+	10, // 55: rpc.edge.gloo.solo.io.GlooResourceApi.ListUpstreamGroups:input_type -> rpc.edge.gloo.solo.io.ListUpstreamGroupsRequest
+	12, // 56: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamGroupYaml:input_type -> rpc.edge.gloo.solo.io.GetUpstreamGroupYamlRequest
+	14, // 57: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamGroupDetails:input_type -> rpc.edge.gloo.solo.io.GetUpstreamGroupDetailsRequest
+	16, // 58: rpc.edge.gloo.solo.io.GlooResourceApi.ListSettings:input_type -> rpc.edge.gloo.solo.io.ListSettingsRequest
+	18, // 59: rpc.edge.gloo.solo.io.GlooResourceApi.GetSettingsYaml:input_type -> rpc.edge.gloo.solo.io.GetSettingsYamlRequest
+	20, // 60: rpc.edge.gloo.solo.io.GlooResourceApi.GetSettingsDetails:input_type -> rpc.edge.gloo.solo.io.GetSettingsDetailsRequest
+	22, // 61: rpc.edge.gloo.solo.io.GlooResourceApi.ListProxies:input_type -> rpc.edge.gloo.solo.io.ListProxiesRequest
+	24, // 62: rpc.edge.gloo.solo.io.GlooResourceApi.GetProxyYaml:input_type -> rpc.edge.gloo.solo.io.GetProxyYamlRequest
+	26, // 63: rpc.edge.gloo.solo.io.GlooResourceApi.GetProxyDetails:input_type -> rpc.edge.gloo.solo.io.GetProxyDetailsRequest
+	5,  // 64: rpc.edge.gloo.solo.io.GlooResourceApi.ListUpstreams:output_type -> rpc.edge.gloo.solo.io.ListUpstreamsResponse
+	7,  // 65: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamYaml:output_type -> rpc.edge.gloo.solo.io.GetUpstreamYamlResponse
+	9,  // 66: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamDetails:output_type -> rpc.edge.gloo.solo.io.GetUpstreamDetailsResponse
+	11, // 67: rpc.edge.gloo.solo.io.GlooResourceApi.ListUpstreamGroups:output_type -> rpc.edge.gloo.solo.io.ListUpstreamGroupsResponse
+	13, // 68: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamGroupYaml:output_type -> rpc.edge.gloo.solo.io.GetUpstreamGroupYamlResponse
+	15, // 69: rpc.edge.gloo.solo.io.GlooResourceApi.GetUpstreamGroupDetails:output_type -> rpc.edge.gloo.solo.io.GetUpstreamGroupDetailsResponse
+	17, // 70: rpc.edge.gloo.solo.io.GlooResourceApi.ListSettings:output_type -> rpc.edge.gloo.solo.io.ListSettingsResponse
+	19, // 71: rpc.edge.gloo.solo.io.GlooResourceApi.GetSettingsYaml:output_type -> rpc.edge.gloo.solo.io.GetSettingsYamlResponse
+	21, // 72: rpc.edge.gloo.solo.io.GlooResourceApi.GetSettingsDetails:output_type -> rpc.edge.gloo.solo.io.GetSettingsDetailsResponse
+	23, // 73: rpc.edge.gloo.solo.io.GlooResourceApi.ListProxies:output_type -> rpc.edge.gloo.solo.io.ListProxiesResponse
+	25, // 74: rpc.edge.gloo.solo.io.GlooResourceApi.GetProxyYaml:output_type -> rpc.edge.gloo.solo.io.GetProxyYamlResponse
+	27, // 75: rpc.edge.gloo.solo.io.GlooResourceApi.GetProxyDetails:output_type -> rpc.edge.gloo.solo.io.GetProxyDetailsResponse
+	64, // [64:76] is the sub-list for method output_type
+	52, // [52:64] is the sub-list for method input_type
+	52, // [52:52] is the sub-list for extension type_name
+	52, // [52:52] is the sub-list for extension extendee
+	0,  // [0:52] is the sub-list for field type_name
 }
 
 func init() {
@@ -1773,7 +2254,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListUpstreamGroupsRequest); i {
+			switch v := v.(*GetUpstreamDetailsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1785,7 +2266,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListUpstreamGroupsResponse); i {
+			switch v := v.(*GetUpstreamDetailsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1797,7 +2278,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetUpstreamGroupYamlRequest); i {
+			switch v := v.(*ListUpstreamGroupsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1809,7 +2290,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetUpstreamGroupYamlResponse); i {
+			switch v := v.(*ListUpstreamGroupsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1821,7 +2302,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListSettingsRequest); i {
+			switch v := v.(*GetUpstreamGroupYamlRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1833,7 +2314,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListSettingsResponse); i {
+			switch v := v.(*GetUpstreamGroupYamlResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1845,7 +2326,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetSettingsYamlRequest); i {
+			switch v := v.(*GetUpstreamGroupDetailsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1857,7 +2338,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetSettingsYamlResponse); i {
+			switch v := v.(*GetUpstreamGroupDetailsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1869,7 +2350,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListProxiesRequest); i {
+			switch v := v.(*ListSettingsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1881,7 +2362,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListProxiesResponse); i {
+			switch v := v.(*ListSettingsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1893,7 +2374,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetProxyYamlRequest); i {
+			switch v := v.(*GetSettingsYamlRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1905,7 +2386,103 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			}
 		}
 		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetSettingsYamlResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetSettingsDetailsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetSettingsDetailsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListProxiesRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListProxiesResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetProxyYamlRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetProxyYamlResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetProxyDetailsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetProxyDetailsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1923,7 +2500,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -1951,12 +2528,16 @@ const _ = grpc.SupportPackageIsVersion6
 type GlooResourceApiClient interface {
 	ListUpstreams(ctx context.Context, in *ListUpstreamsRequest, opts ...grpc.CallOption) (*ListUpstreamsResponse, error)
 	GetUpstreamYaml(ctx context.Context, in *GetUpstreamYamlRequest, opts ...grpc.CallOption) (*GetUpstreamYamlResponse, error)
+	GetUpstreamDetails(ctx context.Context, in *GetUpstreamDetailsRequest, opts ...grpc.CallOption) (*GetUpstreamDetailsResponse, error)
 	ListUpstreamGroups(ctx context.Context, in *ListUpstreamGroupsRequest, opts ...grpc.CallOption) (*ListUpstreamGroupsResponse, error)
 	GetUpstreamGroupYaml(ctx context.Context, in *GetUpstreamGroupYamlRequest, opts ...grpc.CallOption) (*GetUpstreamGroupYamlResponse, error)
+	GetUpstreamGroupDetails(ctx context.Context, in *GetUpstreamGroupDetailsRequest, opts ...grpc.CallOption) (*GetUpstreamGroupDetailsResponse, error)
 	ListSettings(ctx context.Context, in *ListSettingsRequest, opts ...grpc.CallOption) (*ListSettingsResponse, error)
 	GetSettingsYaml(ctx context.Context, in *GetSettingsYamlRequest, opts ...grpc.CallOption) (*GetSettingsYamlResponse, error)
+	GetSettingsDetails(ctx context.Context, in *GetSettingsDetailsRequest, opts ...grpc.CallOption) (*GetSettingsDetailsResponse, error)
 	ListProxies(ctx context.Context, in *ListProxiesRequest, opts ...grpc.CallOption) (*ListProxiesResponse, error)
 	GetProxyYaml(ctx context.Context, in *GetProxyYamlRequest, opts ...grpc.CallOption) (*GetProxyYamlResponse, error)
+	GetProxyDetails(ctx context.Context, in *GetProxyDetailsRequest, opts ...grpc.CallOption) (*GetProxyDetailsResponse, error)
 }
 
 type glooResourceApiClient struct {
@@ -1985,6 +2566,15 @@ func (c *glooResourceApiClient) GetUpstreamYaml(ctx context.Context, in *GetUpst
 	return out, nil
 }
 
+func (c *glooResourceApiClient) GetUpstreamDetails(ctx context.Context, in *GetUpstreamDetailsRequest, opts ...grpc.CallOption) (*GetUpstreamDetailsResponse, error) {
+	out := new(GetUpstreamDetailsResponse)
+	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GlooResourceApi/GetUpstreamDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *glooResourceApiClient) ListUpstreamGroups(ctx context.Context, in *ListUpstreamGroupsRequest, opts ...grpc.CallOption) (*ListUpstreamGroupsResponse, error) {
 	out := new(ListUpstreamGroupsResponse)
 	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GlooResourceApi/ListUpstreamGroups", in, out, opts...)
@@ -1997,6 +2587,15 @@ func (c *glooResourceApiClient) ListUpstreamGroups(ctx context.Context, in *List
 func (c *glooResourceApiClient) GetUpstreamGroupYaml(ctx context.Context, in *GetUpstreamGroupYamlRequest, opts ...grpc.CallOption) (*GetUpstreamGroupYamlResponse, error) {
 	out := new(GetUpstreamGroupYamlResponse)
 	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GlooResourceApi/GetUpstreamGroupYaml", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *glooResourceApiClient) GetUpstreamGroupDetails(ctx context.Context, in *GetUpstreamGroupDetailsRequest, opts ...grpc.CallOption) (*GetUpstreamGroupDetailsResponse, error) {
+	out := new(GetUpstreamGroupDetailsResponse)
+	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GlooResourceApi/GetUpstreamGroupDetails", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2021,6 +2620,15 @@ func (c *glooResourceApiClient) GetSettingsYaml(ctx context.Context, in *GetSett
 	return out, nil
 }
 
+func (c *glooResourceApiClient) GetSettingsDetails(ctx context.Context, in *GetSettingsDetailsRequest, opts ...grpc.CallOption) (*GetSettingsDetailsResponse, error) {
+	out := new(GetSettingsDetailsResponse)
+	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GlooResourceApi/GetSettingsDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *glooResourceApiClient) ListProxies(ctx context.Context, in *ListProxiesRequest, opts ...grpc.CallOption) (*ListProxiesResponse, error) {
 	out := new(ListProxiesResponse)
 	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GlooResourceApi/ListProxies", in, out, opts...)
@@ -2039,16 +2647,29 @@ func (c *glooResourceApiClient) GetProxyYaml(ctx context.Context, in *GetProxyYa
 	return out, nil
 }
 
+func (c *glooResourceApiClient) GetProxyDetails(ctx context.Context, in *GetProxyDetailsRequest, opts ...grpc.CallOption) (*GetProxyDetailsResponse, error) {
+	out := new(GetProxyDetailsResponse)
+	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.GlooResourceApi/GetProxyDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GlooResourceApiServer is the server API for GlooResourceApi service.
 type GlooResourceApiServer interface {
 	ListUpstreams(context.Context, *ListUpstreamsRequest) (*ListUpstreamsResponse, error)
 	GetUpstreamYaml(context.Context, *GetUpstreamYamlRequest) (*GetUpstreamYamlResponse, error)
+	GetUpstreamDetails(context.Context, *GetUpstreamDetailsRequest) (*GetUpstreamDetailsResponse, error)
 	ListUpstreamGroups(context.Context, *ListUpstreamGroupsRequest) (*ListUpstreamGroupsResponse, error)
 	GetUpstreamGroupYaml(context.Context, *GetUpstreamGroupYamlRequest) (*GetUpstreamGroupYamlResponse, error)
+	GetUpstreamGroupDetails(context.Context, *GetUpstreamGroupDetailsRequest) (*GetUpstreamGroupDetailsResponse, error)
 	ListSettings(context.Context, *ListSettingsRequest) (*ListSettingsResponse, error)
 	GetSettingsYaml(context.Context, *GetSettingsYamlRequest) (*GetSettingsYamlResponse, error)
+	GetSettingsDetails(context.Context, *GetSettingsDetailsRequest) (*GetSettingsDetailsResponse, error)
 	ListProxies(context.Context, *ListProxiesRequest) (*ListProxiesResponse, error)
 	GetProxyYaml(context.Context, *GetProxyYamlRequest) (*GetProxyYamlResponse, error)
+	GetProxyDetails(context.Context, *GetProxyDetailsRequest) (*GetProxyDetailsResponse, error)
 }
 
 // UnimplementedGlooResourceApiServer can be embedded to have forward compatible implementations.
@@ -2061,11 +2682,17 @@ func (*UnimplementedGlooResourceApiServer) ListUpstreams(context.Context, *ListU
 func (*UnimplementedGlooResourceApiServer) GetUpstreamYaml(context.Context, *GetUpstreamYamlRequest) (*GetUpstreamYamlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUpstreamYaml not implemented")
 }
+func (*UnimplementedGlooResourceApiServer) GetUpstreamDetails(context.Context, *GetUpstreamDetailsRequest) (*GetUpstreamDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUpstreamDetails not implemented")
+}
 func (*UnimplementedGlooResourceApiServer) ListUpstreamGroups(context.Context, *ListUpstreamGroupsRequest) (*ListUpstreamGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUpstreamGroups not implemented")
 }
 func (*UnimplementedGlooResourceApiServer) GetUpstreamGroupYaml(context.Context, *GetUpstreamGroupYamlRequest) (*GetUpstreamGroupYamlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUpstreamGroupYaml not implemented")
+}
+func (*UnimplementedGlooResourceApiServer) GetUpstreamGroupDetails(context.Context, *GetUpstreamGroupDetailsRequest) (*GetUpstreamGroupDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUpstreamGroupDetails not implemented")
 }
 func (*UnimplementedGlooResourceApiServer) ListSettings(context.Context, *ListSettingsRequest) (*ListSettingsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSettings not implemented")
@@ -2073,11 +2700,17 @@ func (*UnimplementedGlooResourceApiServer) ListSettings(context.Context, *ListSe
 func (*UnimplementedGlooResourceApiServer) GetSettingsYaml(context.Context, *GetSettingsYamlRequest) (*GetSettingsYamlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSettingsYaml not implemented")
 }
+func (*UnimplementedGlooResourceApiServer) GetSettingsDetails(context.Context, *GetSettingsDetailsRequest) (*GetSettingsDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSettingsDetails not implemented")
+}
 func (*UnimplementedGlooResourceApiServer) ListProxies(context.Context, *ListProxiesRequest) (*ListProxiesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProxies not implemented")
 }
 func (*UnimplementedGlooResourceApiServer) GetProxyYaml(context.Context, *GetProxyYamlRequest) (*GetProxyYamlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProxyYaml not implemented")
+}
+func (*UnimplementedGlooResourceApiServer) GetProxyDetails(context.Context, *GetProxyDetailsRequest) (*GetProxyDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProxyDetails not implemented")
 }
 
 func RegisterGlooResourceApiServer(s *grpc.Server, srv GlooResourceApiServer) {
@@ -2120,6 +2753,24 @@ func _GlooResourceApi_GetUpstreamYaml_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GlooResourceApi_GetUpstreamDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUpstreamDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GlooResourceApiServer).GetUpstreamDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.edge.gloo.solo.io.GlooResourceApi/GetUpstreamDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GlooResourceApiServer).GetUpstreamDetails(ctx, req.(*GetUpstreamDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _GlooResourceApi_ListUpstreamGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListUpstreamGroupsRequest)
 	if err := dec(in); err != nil {
@@ -2152,6 +2803,24 @@ func _GlooResourceApi_GetUpstreamGroupYaml_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GlooResourceApiServer).GetUpstreamGroupYaml(ctx, req.(*GetUpstreamGroupYamlRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GlooResourceApi_GetUpstreamGroupDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUpstreamGroupDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GlooResourceApiServer).GetUpstreamGroupDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.edge.gloo.solo.io.GlooResourceApi/GetUpstreamGroupDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GlooResourceApiServer).GetUpstreamGroupDetails(ctx, req.(*GetUpstreamGroupDetailsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2192,6 +2861,24 @@ func _GlooResourceApi_GetSettingsYaml_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GlooResourceApi_GetSettingsDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSettingsDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GlooResourceApiServer).GetSettingsDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.edge.gloo.solo.io.GlooResourceApi/GetSettingsDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GlooResourceApiServer).GetSettingsDetails(ctx, req.(*GetSettingsDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _GlooResourceApi_ListProxies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListProxiesRequest)
 	if err := dec(in); err != nil {
@@ -2228,6 +2915,24 @@ func _GlooResourceApi_GetProxyYaml_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GlooResourceApi_GetProxyDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProxyDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GlooResourceApiServer).GetProxyDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.edge.gloo.solo.io.GlooResourceApi/GetProxyDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GlooResourceApiServer).GetProxyDetails(ctx, req.(*GetProxyDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _GlooResourceApi_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "rpc.edge.gloo.solo.io.GlooResourceApi",
 	HandlerType: (*GlooResourceApiServer)(nil),
@@ -2241,12 +2946,20 @@ var _GlooResourceApi_serviceDesc = grpc.ServiceDesc{
 			Handler:    _GlooResourceApi_GetUpstreamYaml_Handler,
 		},
 		{
+			MethodName: "GetUpstreamDetails",
+			Handler:    _GlooResourceApi_GetUpstreamDetails_Handler,
+		},
+		{
 			MethodName: "ListUpstreamGroups",
 			Handler:    _GlooResourceApi_ListUpstreamGroups_Handler,
 		},
 		{
 			MethodName: "GetUpstreamGroupYaml",
 			Handler:    _GlooResourceApi_GetUpstreamGroupYaml_Handler,
+		},
+		{
+			MethodName: "GetUpstreamGroupDetails",
+			Handler:    _GlooResourceApi_GetUpstreamGroupDetails_Handler,
 		},
 		{
 			MethodName: "ListSettings",
@@ -2257,12 +2970,20 @@ var _GlooResourceApi_serviceDesc = grpc.ServiceDesc{
 			Handler:    _GlooResourceApi_GetSettingsYaml_Handler,
 		},
 		{
+			MethodName: "GetSettingsDetails",
+			Handler:    _GlooResourceApi_GetSettingsDetails_Handler,
+		},
+		{
 			MethodName: "ListProxies",
 			Handler:    _GlooResourceApi_ListProxies_Handler,
 		},
 		{
 			MethodName: "GetProxyYaml",
 			Handler:    _GlooResourceApi_GetProxyYaml_Handler,
+		},
+		{
+			MethodName: "GetProxyDetails",
+			Handler:    _GlooResourceApi_GetProxyDetails_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

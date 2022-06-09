@@ -285,6 +285,50 @@ export namespace GetGatewayYamlResponse {
   }
 }
 
+export class GetGatewayDetailsRequest extends jspb.Message {
+  hasGatewayRef(): boolean;
+  clearGatewayRef(): void;
+  getGatewayRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setGatewayRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetGatewayDetailsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetGatewayDetailsRequest): GetGatewayDetailsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetGatewayDetailsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetGatewayDetailsRequest;
+  static deserializeBinaryFromReader(message: GetGatewayDetailsRequest, reader: jspb.BinaryReader): GetGatewayDetailsRequest;
+}
+
+export namespace GetGatewayDetailsRequest {
+  export type AsObject = {
+    gatewayRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class GetGatewayDetailsResponse extends jspb.Message {
+  hasGateway(): boolean;
+  clearGateway(): void;
+  getGateway(): Gateway | undefined;
+  setGateway(value?: Gateway): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetGatewayDetailsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetGatewayDetailsResponse): GetGatewayDetailsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetGatewayDetailsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetGatewayDetailsResponse;
+  static deserializeBinaryFromReader(message: GetGatewayDetailsResponse, reader: jspb.BinaryReader): GetGatewayDetailsResponse;
+}
+
+export namespace GetGatewayDetailsResponse {
+  export type AsObject = {
+    gateway?: Gateway.AsObject,
+  }
+}
+
 export class ListMatchableHttpGatewaysRequest extends jspb.Message {
   hasGlooInstanceRef(): boolean;
   clearGlooInstanceRef(): void;
@@ -396,6 +440,50 @@ export class GetMatchableHttpGatewayYamlResponse extends jspb.Message {
 export namespace GetMatchableHttpGatewayYamlResponse {
   export type AsObject = {
     yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
+  }
+}
+
+export class GetMatchableHttpGatewayDetailsRequest extends jspb.Message {
+  hasMatchableHttpGatewayRef(): boolean;
+  clearMatchableHttpGatewayRef(): void;
+  getMatchableHttpGatewayRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setMatchableHttpGatewayRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetMatchableHttpGatewayDetailsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetMatchableHttpGatewayDetailsRequest): GetMatchableHttpGatewayDetailsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetMatchableHttpGatewayDetailsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetMatchableHttpGatewayDetailsRequest;
+  static deserializeBinaryFromReader(message: GetMatchableHttpGatewayDetailsRequest, reader: jspb.BinaryReader): GetMatchableHttpGatewayDetailsRequest;
+}
+
+export namespace GetMatchableHttpGatewayDetailsRequest {
+  export type AsObject = {
+    matchableHttpGatewayRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class GetMatchableHttpGatewayDetailsResponse extends jspb.Message {
+  hasMatchableHttpGateway(): boolean;
+  clearMatchableHttpGateway(): void;
+  getMatchableHttpGateway(): MatchableHttpGateway | undefined;
+  setMatchableHttpGateway(value?: MatchableHttpGateway): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetMatchableHttpGatewayDetailsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetMatchableHttpGatewayDetailsResponse): GetMatchableHttpGatewayDetailsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetMatchableHttpGatewayDetailsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetMatchableHttpGatewayDetailsResponse;
+  static deserializeBinaryFromReader(message: GetMatchableHttpGatewayDetailsResponse, reader: jspb.BinaryReader): GetMatchableHttpGatewayDetailsResponse;
+}
+
+export namespace GetMatchableHttpGatewayDetailsResponse {
+  export type AsObject = {
+    matchableHttpGateway?: MatchableHttpGateway.AsObject,
   }
 }
 
@@ -513,6 +601,50 @@ export namespace GetVirtualServiceYamlResponse {
   }
 }
 
+export class GetVirtualServiceDetailsRequest extends jspb.Message {
+  hasVirtualServiceRef(): boolean;
+  clearVirtualServiceRef(): void;
+  getVirtualServiceRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setVirtualServiceRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetVirtualServiceDetailsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetVirtualServiceDetailsRequest): GetVirtualServiceDetailsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetVirtualServiceDetailsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetVirtualServiceDetailsRequest;
+  static deserializeBinaryFromReader(message: GetVirtualServiceDetailsRequest, reader: jspb.BinaryReader): GetVirtualServiceDetailsRequest;
+}
+
+export namespace GetVirtualServiceDetailsRequest {
+  export type AsObject = {
+    virtualServiceRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class GetVirtualServiceDetailsResponse extends jspb.Message {
+  hasVirtualService(): boolean;
+  clearVirtualService(): void;
+  getVirtualService(): VirtualService | undefined;
+  setVirtualService(value?: VirtualService): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetVirtualServiceDetailsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetVirtualServiceDetailsResponse): GetVirtualServiceDetailsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetVirtualServiceDetailsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetVirtualServiceDetailsResponse;
+  static deserializeBinaryFromReader(message: GetVirtualServiceDetailsResponse, reader: jspb.BinaryReader): GetVirtualServiceDetailsResponse;
+}
+
+export namespace GetVirtualServiceDetailsResponse {
+  export type AsObject = {
+    virtualService?: VirtualService.AsObject,
+  }
+}
+
 export class ListRouteTablesRequest extends jspb.Message {
   hasGlooInstanceRef(): boolean;
   clearGlooInstanceRef(): void;
@@ -624,5 +756,49 @@ export class GetRouteTableYamlResponse extends jspb.Message {
 export namespace GetRouteTableYamlResponse {
   export type AsObject = {
     yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
+  }
+}
+
+export class GetRouteTableDetailsRequest extends jspb.Message {
+  hasRouteTableRef(): boolean;
+  clearRouteTableRef(): void;
+  getRouteTableRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setRouteTableRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetRouteTableDetailsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetRouteTableDetailsRequest): GetRouteTableDetailsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetRouteTableDetailsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetRouteTableDetailsRequest;
+  static deserializeBinaryFromReader(message: GetRouteTableDetailsRequest, reader: jspb.BinaryReader): GetRouteTableDetailsRequest;
+}
+
+export namespace GetRouteTableDetailsRequest {
+  export type AsObject = {
+    routeTableRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class GetRouteTableDetailsResponse extends jspb.Message {
+  hasRouteTable(): boolean;
+  clearRouteTable(): void;
+  getRouteTable(): RouteTable | undefined;
+  setRouteTable(value?: RouteTable): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetRouteTableDetailsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetRouteTableDetailsResponse): GetRouteTableDetailsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetRouteTableDetailsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetRouteTableDetailsResponse;
+  static deserializeBinaryFromReader(message: GetRouteTableDetailsResponse, reader: jspb.BinaryReader): GetRouteTableDetailsResponse;
+}
+
+export namespace GetRouteTableDetailsResponse {
+  export type AsObject = {
+    routeTable?: RouteTable.AsObject,
   }
 }

@@ -4,7 +4,7 @@ import styled from '@emotion/styled/macro';
 import { ReactComponent as UpstreamGroupIcon } from 'assets/upstream-group-icon.svg';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { glooResourceApi } from 'API/gloo-resource';
-import { useGetUpstreamGroupDetails, useGetUpstreamGroupYaml } from 'API/hooks';
+import { useGetUpstreamGroupDetails } from 'API/hooks';
 import { SectionCard } from 'Components/Common/SectionCard';
 import AreaHeader from 'Components/Common/AreaHeader';
 import { HealthNotificationBox } from 'Components/Common/HealthNotificationBox';
@@ -19,28 +19,17 @@ const ConfigArea = styled.div`
 
 export const UpstreamGroupDetails = () => {
   const {
-    name = '',
-    namespace = '',
     upstreamGroupName = '',
     upstreamGroupNamespace = '',
     upstreamGroupClusterName = '',
   } = useParams();
 
-  const { data: upstreamGroup, error: ugError } = useGetUpstreamGroupDetails(
-    { name, namespace },
-    {
-      name: upstreamGroupName,
-      namespace: upstreamGroupNamespace,
-      clusterName: upstreamGroupClusterName,
-    }
-  );
-
-  const { data: upstreamGroupYaml, error: ugYamlError } =
-    useGetUpstreamGroupYaml({
-      name: upstreamGroupName,
-      namespace: upstreamGroupNamespace,
-      clusterName: upstreamGroupClusterName,
-    });
+  const { data: ugResponse, error: ugError } = useGetUpstreamGroupDetails({
+    name: upstreamGroupName,
+    namespace: upstreamGroupNamespace,
+    clusterName: upstreamGroupClusterName,
+  });
+  const upstreamGroup = ugResponse?.upstreamGroup;
 
   if (!!ugError) {
     return <DataError error={ugError} />;

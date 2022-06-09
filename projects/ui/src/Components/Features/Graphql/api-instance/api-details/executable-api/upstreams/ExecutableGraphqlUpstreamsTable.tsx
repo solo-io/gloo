@@ -11,8 +11,13 @@ const ExecutableGraphqlUpstreamsTable: React.FC<{
 
   // api hooks
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
-  const { data: upstreamsResponse } = useListUpstreams();
-  const upstreams = upstreamsResponse?.upstreamsList
+  // TODO: The referenced upstreams should be returned as part of the graphql details response.
+  const maxUpstreams = 500;
+  const { data: upstreamsResponse } = useListUpstreams(undefined, {
+    limit: maxUpstreams,
+    offset: 0,
+  });
+  const upstreams = upstreamsResponse?.upstreamsList;
 
   const resolverUpstreams = useMemo<Upstream.AsObject[]>(() => {
     let resUpstreams =

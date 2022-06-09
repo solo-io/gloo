@@ -299,7 +299,8 @@ export const OverviewSmallBoxSummary = ({
 };
 
 export const OverviewVirtualServiceBox = () => {
-  const { data: virtualServices, error: vsError } = useListVirtualServices();
+  const { data: vsResponse, error: vsError } = useListVirtualServices();
+  const virtualServices = vsResponse?.virtualServicesList;
 
   if (!!vsError) {
     return <DataError error={vsError} />;
@@ -319,7 +320,7 @@ export const OverviewVirtualServiceBox = () => {
       logo={<VirtualServiceIcon />}
       description='Virtual Services define a set of route rules for a given domain or set of domains.'
       status={servicesStatus}
-      count={virtualServices?.length ?? 0}
+      count={vsResponse.total}
       countDescription={
         'Virtual Services currently running across all of your Gloo instances'
       }
@@ -329,7 +330,8 @@ export const OverviewVirtualServiceBox = () => {
 };
 export const OverviewUpstreamsBox = () => {
   const { data: upstreamsResponse, error: upstreamsResponseError } =
-    useListUpstreams(undefined, { limit: 30, offset: 0 });
+    // TODO: Return aggregate statuses from the apiserver similarly to how `total` is returned.
+    useListUpstreams(undefined, { limit: 500, offset: 0 });
 
   if (!!upstreamsResponseError) {
     return <DataError error={upstreamsResponseError} />;
@@ -339,7 +341,6 @@ export const OverviewUpstreamsBox = () => {
     return <div>upstreams failed to load</div>;
   }
 
-  // TODO: Return upstream status from the apiserver (this just checks the first 30 upstreams).
   const servicesStatus = upstreamsResponse.upstreamsList.some(
     upstream => upstream.status?.state !== VirtualServiceStatus.State.ACCEPTED
   )

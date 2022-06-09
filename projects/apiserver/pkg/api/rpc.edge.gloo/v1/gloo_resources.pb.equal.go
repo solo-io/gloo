@@ -463,6 +463,74 @@ func (m *GetUpstreamYamlResponse) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *GetUpstreamDetailsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetUpstreamDetailsRequest)
+	if !ok {
+		that2, ok := that.(GetUpstreamDetailsRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetUpstreamRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetUpstreamRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetUpstreamRef(), target.GetUpstreamRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetUpstreamDetailsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetUpstreamDetailsResponse)
+	if !ok {
+		that2, ok := that.(GetUpstreamDetailsResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetUpstream()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetUpstream()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetUpstream(), target.GetUpstream()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *ListUpstreamGroupsRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -636,6 +704,74 @@ func (m *GetUpstreamGroupYamlResponse) Equal(that interface{}) bool {
 		}
 	} else {
 		if !proto.Equal(m.GetYamlData(), target.GetYamlData()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetUpstreamGroupDetailsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetUpstreamGroupDetailsRequest)
+	if !ok {
+		that2, ok := that.(GetUpstreamGroupDetailsRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetUpstreamGroupRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetUpstreamGroupRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetUpstreamGroupRef(), target.GetUpstreamGroupRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetUpstreamGroupDetailsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetUpstreamGroupDetailsResponse)
+	if !ok {
+		that2, ok := that.(GetUpstreamGroupDetailsResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetUpstreamGroup()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetUpstreamGroup()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetUpstreamGroup(), target.GetUpstreamGroup()) {
 			return false
 		}
 	}
@@ -825,6 +961,74 @@ func (m *GetSettingsYamlResponse) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *GetSettingsDetailsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetSettingsDetailsRequest)
+	if !ok {
+		that2, ok := that.(GetSettingsDetailsRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetSettingsRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSettingsRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSettingsRef(), target.GetSettingsRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetSettingsDetailsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetSettingsDetailsResponse)
+	if !ok {
+		that2, ok := that.(GetSettingsDetailsResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetSettings()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetSettings()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetSettings(), target.GetSettings()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *ListProxiesRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -998,6 +1202,74 @@ func (m *GetProxyYamlResponse) Equal(that interface{}) bool {
 		}
 	} else {
 		if !proto.Equal(m.GetYamlData(), target.GetYamlData()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetProxyDetailsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetProxyDetailsRequest)
+	if !ok {
+		that2, ok := that.(GetProxyDetailsRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetProxyRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetProxyRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetProxyRef(), target.GetProxyRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetProxyDetailsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetProxyDetailsResponse)
+	if !ok {
+		that2, ok := that.(GetProxyDetailsResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetProxy()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetProxy()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetProxy(), target.GetProxy()) {
 			return false
 		}
 	}

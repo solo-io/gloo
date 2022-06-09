@@ -1,27 +1,26 @@
-import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled/macro';
-import { colors } from 'Styles/colors';
+import Tooltip from 'antd/lib/tooltip';
+import { gatewayResourceApi } from 'API/gateway-resources';
+import { useIsGlooFedEnabled, useListRouteTables } from 'API/hooks';
+import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
+import { ReactComponent as RouteTableIcon } from 'assets/route-icon.svg';
+import { DataError } from 'Components/Common/DataError';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { RenderSimpleLink, SimpleLinkProps } from 'Components/Common/SoloLink';
 import {
-  SoloTable,
+  RenderCluster,
   RenderStatus,
+  SoloTable,
   TableActionCircle,
   TableActions,
-  RenderCluster,
 } from 'Components/Common/SoloTable';
-import { SectionCard } from 'Components/Common/SectionCard';
-import { ReactComponent as RouteTableIcon } from 'assets/route-icon.svg';
-import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
-import Tooltip from 'antd/lib/tooltip';
-import { useParams, useNavigate } from 'react-router';
-import { useListRouteTables, useIsGlooFedEnabled } from 'API/hooks';
-import { RouteTable } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
-import { Loading } from 'Components/Common/Loading';
-import { SimpleLinkProps, RenderSimpleLink } from 'Components/Common/SoloLink';
-import { gatewayResourceApi } from 'API/gateway-resources';
 import { doDownload } from 'download-helper';
-import { DataError } from 'Components/Common/DataError';
-import { RouteTableStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/route_table_pb';
 import { ObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
+import { RouteTableStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/route_table_pb';
+import { RouteTable } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { colors } from 'Styles/colors';
 
 const RoutesTableHolder = styled.div`
   position: relative;
@@ -220,9 +219,9 @@ type Props = {
   nameFilter?: string;
 } & TableHolderProps;
 export const RouteTablesPageCardContents = (props: Props) => {
-  const [tableData, setTableData] = React.useState<RouteTable.AsObject[]>([]);
-  const [offset, setOffset] = React.useState(0);
-  const [limit, _] = React.useState(10);
+  const [tableData, setTableData] = useState<RouteTable.AsObject[]>([]);
+  const [offset, setOffset] = useState(0);
+  const limit = 5;
   const { name, namespace } = useParams();
   const { data: routeTablesResponse, error: routeTablesResponseError } =
     useListRouteTables(

@@ -329,6 +329,100 @@ func (x *GetAuthConfigYamlResponse) GetYamlData() *ResourceYaml {
 	return nil
 }
 
+type GetAuthConfigDetailsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AuthConfigRef *v11.ClusterObjectRef `protobuf:"bytes,1,opt,name=auth_config_ref,json=authConfigRef,proto3" json:"auth_config_ref,omitempty"`
+}
+
+func (x *GetAuthConfigDetailsRequest) Reset() {
+	*x = GetAuthConfigDetailsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetAuthConfigDetailsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAuthConfigDetailsRequest) ProtoMessage() {}
+
+func (x *GetAuthConfigDetailsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAuthConfigDetailsRequest.ProtoReflect.Descriptor instead.
+func (*GetAuthConfigDetailsRequest) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetAuthConfigDetailsRequest) GetAuthConfigRef() *v11.ClusterObjectRef {
+	if x != nil {
+		return x.AuthConfigRef
+	}
+	return nil
+}
+
+type GetAuthConfigDetailsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AuthConfig *AuthConfig `protobuf:"bytes,1,opt,name=auth_config,json=authConfig,proto3" json:"auth_config,omitempty"`
+}
+
+func (x *GetAuthConfigDetailsResponse) Reset() {
+	*x = GetAuthConfigDetailsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetAuthConfigDetailsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAuthConfigDetailsResponse) ProtoMessage() {}
+
+func (x *GetAuthConfigDetailsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAuthConfigDetailsResponse.ProtoReflect.Descriptor instead.
+func (*GetAuthConfigDetailsResponse) Descriptor() ([]byte, []int) {
+	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetAuthConfigDetailsResponse) GetAuthConfig() *AuthConfig {
+	if x != nil {
+		return x.AuthConfig
+	}
+	return nil
+}
+
 var File_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto protoreflect.FileDescriptor
 
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_rawDesc = []byte{
@@ -413,7 +507,20 @@ var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v
 	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65,
 	0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x52, 0x65,
 	0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x08, 0x79, 0x61, 0x6d, 0x6c,
-	0x44, 0x61, 0x74, 0x61, 0x32, 0x89, 0x02, 0x0a, 0x19, 0x45, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72,
+	0x44, 0x61, 0x74, 0x61, 0x22, 0x6a, 0x0a, 0x1b, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x68, 0x43,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x4b, 0x0a, 0x0f, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x63, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63,
+	0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6b, 0x76, 0x32, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f,
+	0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65,
+	0x66, 0x52, 0x0d, 0x61, 0x75, 0x74, 0x68, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x66,
+	0x22, 0x62, 0x0a, 0x1c, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x68, 0x43, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x42, 0x0a, 0x0b, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65,
+	0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x41, 0x75,
+	0x74, 0x68, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x0a, 0x61, 0x75, 0x74, 0x68, 0x43, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x32, 0x8d, 0x03, 0x0a, 0x19, 0x45, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72,
 	0x69, 0x73, 0x65, 0x47, 0x6c, 0x6f, 0x6f, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x41,
 	0x70, 0x69, 0x12, 0x72, 0x0a, 0x0f, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x75, 0x74, 0x68, 0x43, 0x6f,
 	0x6e, 0x66, 0x69, 0x67, 0x73, 0x12, 0x2d, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65,
@@ -430,12 +537,21 @@ var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v
 	0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c,
 	0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x68, 0x43, 0x6f, 0x6e, 0x66,
 	0x69, 0x67, 0x59, 0x61, 0x6d, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x42, 0x56, 0x5a, 0x4c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73,
-	0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x70, 0x72, 0x6f, 0x6a,
-	0x65, 0x63, 0x74, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x61, 0x70,
-	0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f,
-	0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2f, 0x76, 0x31,
-	0xc0, 0xf5, 0x04, 0x01, 0xb8, 0xf5, 0x04, 0x01, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x12, 0x81, 0x01, 0x0a, 0x14, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x68, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x12, 0x32, 0x2e, 0x72, 0x70, 0x63, 0x2e,
+	0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f, 0x6c, 0x6f, 0x2e, 0x69,
+	0x6f, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x68, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x44,
+	0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e,
+	0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f, 0x6f, 0x2e, 0x73, 0x6f,
+	0x6c, 0x6f, 0x2e, 0x69, 0x6f, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x68, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x42, 0x56, 0x5a, 0x4c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d, 0x69, 0x6f, 0x2f, 0x73, 0x6f, 0x6c, 0x6f, 0x2d,
+	0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x6a, 0x65, 0x63, 0x74,
+	0x73, 0x2f, 0x61, 0x70, 0x69, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f,
+	0x61, 0x70, 0x69, 0x2f, 0x72, 0x70, 0x63, 0x2e, 0x65, 0x64, 0x67, 0x65, 0x2e, 0x67, 0x6c, 0x6f,
+	0x6f, 0x2f, 0x76, 0x31, 0xc0, 0xf5, 0x04, 0x01, 0xb8, 0xf5, 0x04, 0x01, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -450,44 +566,50 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 	return file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_rawDescData
 }
 
-var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_goTypes = []interface{}{
-	(*AuthConfig)(nil),                // 0: rpc.edge.gloo.solo.io.AuthConfig
-	(*ListAuthConfigsRequest)(nil),    // 1: rpc.edge.gloo.solo.io.ListAuthConfigsRequest
-	(*ListAuthConfigsResponse)(nil),   // 2: rpc.edge.gloo.solo.io.ListAuthConfigsResponse
-	(*GetAuthConfigYamlRequest)(nil),  // 3: rpc.edge.gloo.solo.io.GetAuthConfigYamlRequest
-	(*GetAuthConfigYamlResponse)(nil), // 4: rpc.edge.gloo.solo.io.GetAuthConfigYamlResponse
-	(*ObjectMeta)(nil),                // 5: rpc.edge.gloo.solo.io.ObjectMeta
-	(*v1.AuthConfigSpec)(nil),         // 6: enterprise.gloo.solo.io.AuthConfigSpec
-	(*v1.AuthConfigStatus)(nil),       // 7: enterprise.gloo.solo.io.AuthConfigStatus
-	(*v11.ObjectRef)(nil),             // 8: core.skv2.solo.io.ObjectRef
-	(*Pagination)(nil),                // 9: rpc.edge.gloo.solo.io.Pagination
-	(*StatusFilter)(nil),              // 10: rpc.edge.gloo.solo.io.StatusFilter
-	(*SortOptions)(nil),               // 11: rpc.edge.gloo.solo.io.SortOptions
-	(*v11.ClusterObjectRef)(nil),      // 12: core.skv2.solo.io.ClusterObjectRef
-	(*ResourceYaml)(nil),              // 13: rpc.edge.gloo.solo.io.ResourceYaml
+	(*AuthConfig)(nil),                   // 0: rpc.edge.gloo.solo.io.AuthConfig
+	(*ListAuthConfigsRequest)(nil),       // 1: rpc.edge.gloo.solo.io.ListAuthConfigsRequest
+	(*ListAuthConfigsResponse)(nil),      // 2: rpc.edge.gloo.solo.io.ListAuthConfigsResponse
+	(*GetAuthConfigYamlRequest)(nil),     // 3: rpc.edge.gloo.solo.io.GetAuthConfigYamlRequest
+	(*GetAuthConfigYamlResponse)(nil),    // 4: rpc.edge.gloo.solo.io.GetAuthConfigYamlResponse
+	(*GetAuthConfigDetailsRequest)(nil),  // 5: rpc.edge.gloo.solo.io.GetAuthConfigDetailsRequest
+	(*GetAuthConfigDetailsResponse)(nil), // 6: rpc.edge.gloo.solo.io.GetAuthConfigDetailsResponse
+	(*ObjectMeta)(nil),                   // 7: rpc.edge.gloo.solo.io.ObjectMeta
+	(*v1.AuthConfigSpec)(nil),            // 8: enterprise.gloo.solo.io.AuthConfigSpec
+	(*v1.AuthConfigStatus)(nil),          // 9: enterprise.gloo.solo.io.AuthConfigStatus
+	(*v11.ObjectRef)(nil),                // 10: core.skv2.solo.io.ObjectRef
+	(*Pagination)(nil),                   // 11: rpc.edge.gloo.solo.io.Pagination
+	(*StatusFilter)(nil),                 // 12: rpc.edge.gloo.solo.io.StatusFilter
+	(*SortOptions)(nil),                  // 13: rpc.edge.gloo.solo.io.SortOptions
+	(*v11.ClusterObjectRef)(nil),         // 14: core.skv2.solo.io.ClusterObjectRef
+	(*ResourceYaml)(nil),                 // 15: rpc.edge.gloo.solo.io.ResourceYaml
 }
 var file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_depIdxs = []int32{
-	5,  // 0: rpc.edge.gloo.solo.io.AuthConfig.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
-	6,  // 1: rpc.edge.gloo.solo.io.AuthConfig.spec:type_name -> enterprise.gloo.solo.io.AuthConfigSpec
-	7,  // 2: rpc.edge.gloo.solo.io.AuthConfig.status:type_name -> enterprise.gloo.solo.io.AuthConfigStatus
-	8,  // 3: rpc.edge.gloo.solo.io.AuthConfig.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
-	8,  // 4: rpc.edge.gloo.solo.io.ListAuthConfigsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
-	9,  // 5: rpc.edge.gloo.solo.io.ListAuthConfigsRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
-	10, // 6: rpc.edge.gloo.solo.io.ListAuthConfigsRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
-	11, // 7: rpc.edge.gloo.solo.io.ListAuthConfigsRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
+	7,  // 0: rpc.edge.gloo.solo.io.AuthConfig.metadata:type_name -> rpc.edge.gloo.solo.io.ObjectMeta
+	8,  // 1: rpc.edge.gloo.solo.io.AuthConfig.spec:type_name -> enterprise.gloo.solo.io.AuthConfigSpec
+	9,  // 2: rpc.edge.gloo.solo.io.AuthConfig.status:type_name -> enterprise.gloo.solo.io.AuthConfigStatus
+	10, // 3: rpc.edge.gloo.solo.io.AuthConfig.gloo_instance:type_name -> core.skv2.solo.io.ObjectRef
+	10, // 4: rpc.edge.gloo.solo.io.ListAuthConfigsRequest.gloo_instance_ref:type_name -> core.skv2.solo.io.ObjectRef
+	11, // 5: rpc.edge.gloo.solo.io.ListAuthConfigsRequest.pagination:type_name -> rpc.edge.gloo.solo.io.Pagination
+	12, // 6: rpc.edge.gloo.solo.io.ListAuthConfigsRequest.status_filter:type_name -> rpc.edge.gloo.solo.io.StatusFilter
+	13, // 7: rpc.edge.gloo.solo.io.ListAuthConfigsRequest.sort_options:type_name -> rpc.edge.gloo.solo.io.SortOptions
 	0,  // 8: rpc.edge.gloo.solo.io.ListAuthConfigsResponse.auth_configs:type_name -> rpc.edge.gloo.solo.io.AuthConfig
-	12, // 9: rpc.edge.gloo.solo.io.GetAuthConfigYamlRequest.auth_config_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
-	13, // 10: rpc.edge.gloo.solo.io.GetAuthConfigYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
-	1,  // 11: rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi.ListAuthConfigs:input_type -> rpc.edge.gloo.solo.io.ListAuthConfigsRequest
-	3,  // 12: rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi.GetAuthConfigYaml:input_type -> rpc.edge.gloo.solo.io.GetAuthConfigYamlRequest
-	2,  // 13: rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi.ListAuthConfigs:output_type -> rpc.edge.gloo.solo.io.ListAuthConfigsResponse
-	4,  // 14: rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi.GetAuthConfigYaml:output_type -> rpc.edge.gloo.solo.io.GetAuthConfigYamlResponse
-	13, // [13:15] is the sub-list for method output_type
-	11, // [11:13] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	14, // 9: rpc.edge.gloo.solo.io.GetAuthConfigYamlRequest.auth_config_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	15, // 10: rpc.edge.gloo.solo.io.GetAuthConfigYamlResponse.yaml_data:type_name -> rpc.edge.gloo.solo.io.ResourceYaml
+	14, // 11: rpc.edge.gloo.solo.io.GetAuthConfigDetailsRequest.auth_config_ref:type_name -> core.skv2.solo.io.ClusterObjectRef
+	0,  // 12: rpc.edge.gloo.solo.io.GetAuthConfigDetailsResponse.auth_config:type_name -> rpc.edge.gloo.solo.io.AuthConfig
+	1,  // 13: rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi.ListAuthConfigs:input_type -> rpc.edge.gloo.solo.io.ListAuthConfigsRequest
+	3,  // 14: rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi.GetAuthConfigYaml:input_type -> rpc.edge.gloo.solo.io.GetAuthConfigYamlRequest
+	5,  // 15: rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi.GetAuthConfigDetails:input_type -> rpc.edge.gloo.solo.io.GetAuthConfigDetailsRequest
+	2,  // 16: rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi.ListAuthConfigs:output_type -> rpc.edge.gloo.solo.io.ListAuthConfigsResponse
+	4,  // 17: rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi.GetAuthConfigYaml:output_type -> rpc.edge.gloo.solo.io.GetAuthConfigYamlResponse
+	6,  // 18: rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi.GetAuthConfigDetails:output_type -> rpc.edge.gloo.solo.io.GetAuthConfigDetailsResponse
+	16, // [16:19] is the sub-list for method output_type
+	13, // [13:16] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() {
@@ -559,6 +681,30 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 				return nil
 			}
 		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetAuthConfigDetailsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetAuthConfigDetailsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -566,7 +712,7 @@ func file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -594,6 +740,7 @@ const _ = grpc.SupportPackageIsVersion6
 type EnterpriseGlooResourceApiClient interface {
 	ListAuthConfigs(ctx context.Context, in *ListAuthConfigsRequest, opts ...grpc.CallOption) (*ListAuthConfigsResponse, error)
 	GetAuthConfigYaml(ctx context.Context, in *GetAuthConfigYamlRequest, opts ...grpc.CallOption) (*GetAuthConfigYamlResponse, error)
+	GetAuthConfigDetails(ctx context.Context, in *GetAuthConfigDetailsRequest, opts ...grpc.CallOption) (*GetAuthConfigDetailsResponse, error)
 }
 
 type enterpriseGlooResourceApiClient struct {
@@ -622,10 +769,20 @@ func (c *enterpriseGlooResourceApiClient) GetAuthConfigYaml(ctx context.Context,
 	return out, nil
 }
 
+func (c *enterpriseGlooResourceApiClient) GetAuthConfigDetails(ctx context.Context, in *GetAuthConfigDetailsRequest, opts ...grpc.CallOption) (*GetAuthConfigDetailsResponse, error) {
+	out := new(GetAuthConfigDetailsResponse)
+	err := c.cc.Invoke(ctx, "/rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi/GetAuthConfigDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EnterpriseGlooResourceApiServer is the server API for EnterpriseGlooResourceApi service.
 type EnterpriseGlooResourceApiServer interface {
 	ListAuthConfigs(context.Context, *ListAuthConfigsRequest) (*ListAuthConfigsResponse, error)
 	GetAuthConfigYaml(context.Context, *GetAuthConfigYamlRequest) (*GetAuthConfigYamlResponse, error)
+	GetAuthConfigDetails(context.Context, *GetAuthConfigDetailsRequest) (*GetAuthConfigDetailsResponse, error)
 }
 
 // UnimplementedEnterpriseGlooResourceApiServer can be embedded to have forward compatible implementations.
@@ -637,6 +794,9 @@ func (*UnimplementedEnterpriseGlooResourceApiServer) ListAuthConfigs(context.Con
 }
 func (*UnimplementedEnterpriseGlooResourceApiServer) GetAuthConfigYaml(context.Context, *GetAuthConfigYamlRequest) (*GetAuthConfigYamlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAuthConfigYaml not implemented")
+}
+func (*UnimplementedEnterpriseGlooResourceApiServer) GetAuthConfigDetails(context.Context, *GetAuthConfigDetailsRequest) (*GetAuthConfigDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAuthConfigDetails not implemented")
 }
 
 func RegisterEnterpriseGlooResourceApiServer(s *grpc.Server, srv EnterpriseGlooResourceApiServer) {
@@ -679,6 +839,24 @@ func _EnterpriseGlooResourceApi_GetAuthConfigYaml_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EnterpriseGlooResourceApi_GetAuthConfigDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAuthConfigDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnterpriseGlooResourceApiServer).GetAuthConfigDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi/GetAuthConfigDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnterpriseGlooResourceApiServer).GetAuthConfigDetails(ctx, req.(*GetAuthConfigDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _EnterpriseGlooResourceApi_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "rpc.edge.gloo.solo.io.EnterpriseGlooResourceApi",
 	HandlerType: (*EnterpriseGlooResourceApiServer)(nil),
@@ -690,6 +868,10 @@ var _EnterpriseGlooResourceApi_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAuthConfigYaml",
 			Handler:    _EnterpriseGlooResourceApi_GetAuthConfigYaml_Handler,
+		},
+		{
+			MethodName: "GetAuthConfigDetails",
+			Handler:    _EnterpriseGlooResourceApi_GetAuthConfigDetails_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

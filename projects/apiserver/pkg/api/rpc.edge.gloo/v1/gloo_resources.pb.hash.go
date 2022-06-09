@@ -627,6 +627,78 @@ func (m *GetUpstreamYamlResponse) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
+func (m *GetUpstreamDetailsRequest) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetUpstreamDetailsRequest")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetUpstreamRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("UpstreamRef")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetUpstreamRef(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("UpstreamRef")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *GetUpstreamDetailsResponse) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetUpstreamDetailsResponse")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetUpstream()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Upstream")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetUpstream(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Upstream")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
 func (m *ListUpstreamGroupsRequest) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -832,6 +904,78 @@ func (m *GetUpstreamGroupYamlResponse) Hash(hasher hash.Hash64) (uint64, error) 
 			return 0, err
 		} else {
 			if _, err = hasher.Write([]byte("YamlData")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *GetUpstreamGroupDetailsRequest) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetUpstreamGroupDetailsRequest")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetUpstreamGroupRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("UpstreamGroupRef")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetUpstreamGroupRef(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("UpstreamGroupRef")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *GetUpstreamGroupDetailsResponse) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetUpstreamGroupDetailsResponse")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetUpstreamGroup()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("UpstreamGroup")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetUpstreamGroup(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("UpstreamGroup")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
@@ -1061,6 +1205,78 @@ func (m *GetSettingsYamlResponse) Hash(hasher hash.Hash64) (uint64, error) {
 }
 
 // Hash function
+func (m *GetSettingsDetailsRequest) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetSettingsDetailsRequest")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetSettingsRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("SettingsRef")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetSettingsRef(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("SettingsRef")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *GetSettingsDetailsResponse) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetSettingsDetailsResponse")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetSettings()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Settings")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetSettings(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Settings")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
 func (m *ListProxiesRequest) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
@@ -1266,6 +1482,78 @@ func (m *GetProxyYamlResponse) Hash(hasher hash.Hash64) (uint64, error) {
 			return 0, err
 		} else {
 			if _, err = hasher.Write([]byte("YamlData")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *GetProxyDetailsRequest) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetProxyDetailsRequest")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetProxyRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("ProxyRef")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetProxyRef(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("ProxyRef")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *GetProxyDetailsResponse) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetProxyDetailsResponse")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetProxy()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("Proxy")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetProxy(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("Proxy")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {

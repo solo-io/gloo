@@ -269,3 +269,71 @@ func (m *GetRateLimitConfigYamlResponse) Equal(that interface{}) bool {
 
 	return true
 }
+
+// Equal function
+func (m *GetRateLimitConfigDetailsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetRateLimitConfigDetailsRequest)
+	if !ok {
+		that2, ok := that.(GetRateLimitConfigDetailsRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetRateLimitConfigRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetRateLimitConfigRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetRateLimitConfigRef(), target.GetRateLimitConfigRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetRateLimitConfigDetailsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetRateLimitConfigDetailsResponse)
+	if !ok {
+		that2, ok := that.(GetRateLimitConfigDetailsResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetRateLimitConfig()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetRateLimitConfig()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetRateLimitConfig(), target.GetRateLimitConfig()) {
+			return false
+		}
+	}
+
+	return true
+}

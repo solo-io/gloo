@@ -48,10 +48,11 @@ export const VirtualServiceDetails = () => {
   const { name, namespace, virtualservicename, virtualservicenamespace } =
     useParams();
 
-  const { data: allVirtualServices, error: vsError } = useListVirtualServices({
+  const { data: vsResponse, error: vsError } = useListVirtualServices({
     name: name!,
     namespace: namespace!,
   });
+  const allVirtualServices = vsResponse?.virtualServicesList;
 
   const [virtualService, setVirtualService] =
     useState<VirtualService.AsObject>();

@@ -1,36 +1,24 @@
-import React, { useEffect } from 'react';
 import styled from '@emotion/styled/macro';
-import {
-  SoloTable,
-  RenderStatus,
-  TableActionCircle,
-  RenderCluster,
-  RenderExpandableNamesList,
-} from 'Components/Common/SoloTable';
-import { SectionCard } from 'Components/Common/SectionCard';
-import { ReactComponent as FilterIcon } from 'assets/filter-icon.svg';
-import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
-import { colors } from 'Styles/colors';
-import { useParams, useNavigate } from 'react-router';
-import {
-  useGetWasmFilter,
-  useListGateways,
-  useListWasmFilters,
-} from 'API/hooks';
-import { Loading } from 'Components/Common/Loading';
 import { objectMetasAreEqual } from 'API/helpers';
-import { SimpleLinkProps, RenderSimpleLink } from 'Components/Common/SoloLink';
-import { VirtualServiceStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service_pb';
-import { gatewayResourceApi } from 'API/gateway-resources';
-import { doDownload } from 'download-helper';
+import { useListWasmFilters } from 'API/hooks';
+import { ReactComponent as FilterIcon } from 'assets/filter-icon.svg';
 import { DataError } from 'Components/Common/DataError';
+import { Loading } from 'Components/Common/Loading';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { RenderSimpleLink, SimpleLinkProps } from 'Components/Common/SoloLink';
+import { SoloModal } from 'Components/Common/SoloModal';
+import {
+  RenderExpandableNamesList,
+  SoloTable,
+} from 'Components/Common/SoloTable';
 import {
   ClusterObjectRef,
   ObjectRef,
 } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { ObjectMeta } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
 import { WasmFilter } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/wasm_pb';
-import { SoloModal } from 'Components/Common/SoloModal';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { colors } from 'Styles/colors';
 import { WasmFilterDetails } from './WasmFilterDetails';
 
 const FilterIconHolder = styled.div`
@@ -75,9 +63,9 @@ export const WasmPageTable = ({
   const navigate = useNavigate();
   const { filterName } = useParams();
 
-  const [tableData, setTableData] = React.useState<WasmFilterTableFields[]>([]);
+  const [tableData, setTableData] = useState<WasmFilterTableFields[]>([]);
   const [filterOfInterest, setFilterOfInterest] =
-    React.useState<WasmFilter.AsObject>();
+    useState<WasmFilter.AsObject>();
 
   const { data: wasmFilters, error: wasmFiltersError } = useListWasmFilters();
 

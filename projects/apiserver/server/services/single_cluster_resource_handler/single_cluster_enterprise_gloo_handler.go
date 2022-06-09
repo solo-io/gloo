@@ -90,31 +90,43 @@ func (h *singleClusterEnterpriseGlooResourceHandler) ListAuthConfigs(ctx context
 		if isDescending == true {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
-					return filteredAuthConfigs[i].Metadata.Name > filteredAuthConfigs[j].Metadata.Name
+				sort.SliceStable(filteredAuthConfigs, func(i, j int) bool {
+					a := filteredAuthConfigs[i]
+					b := filteredAuthConfigs[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) > b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
-					return filteredAuthConfigs[i].Metadata.Namespace > filteredAuthConfigs[j].Metadata.Namespace
+				sort.SliceStable(filteredAuthConfigs, func(i, j int) bool {
+					a := filteredAuthConfigs[i]
+					b := filteredAuthConfigs[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) > b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
-					return filteredAuthConfigs[i].Status.State > filteredAuthConfigs[j].Status.State
+				sort.SliceStable(filteredAuthConfigs, func(i, j int) bool {
+					a := filteredAuthConfigs[i]
+					b := filteredAuthConfigs[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace > string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		} else {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
-					return filteredAuthConfigs[i].Metadata.Name < filteredAuthConfigs[j].Metadata.Name
+				sort.SliceStable(filteredAuthConfigs, func(i, j int) bool {
+					a := filteredAuthConfigs[i]
+					b := filteredAuthConfigs[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) < b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
-					return filteredAuthConfigs[i].Metadata.Namespace < filteredAuthConfigs[j].Metadata.Namespace
+				sort.SliceStable(filteredAuthConfigs, func(i, j int) bool {
+					a := filteredAuthConfigs[i]
+					b := filteredAuthConfigs[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) < b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredAuthConfigs, func(i, j int) bool {
-					return filteredAuthConfigs[i].Status.State < filteredAuthConfigs[j].Status.State
+				sort.SliceStable(filteredAuthConfigs, func(i, j int) bool {
+					a := filteredAuthConfigs[i]
+					b := filteredAuthConfigs[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace < string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		}
@@ -200,5 +212,62 @@ func (h *singleClusterEnterpriseGlooResourceHandler) GetAuthConfigYaml(ctx conte
 		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
+	}, nil
+}
+
+func (h *singleClusterEnterpriseGlooResourceHandler) GetAuthConfigDetails(ctx context.Context, request *rpc_edge_v1.GetAuthConfigDetailsRequest) (*rpc_edge_v1.GetAuthConfigDetailsResponse, error) {
+	AuthConfigRef := request.GetAuthConfigRef()
+	if AuthConfigRef == nil {
+		return nil, eris.Errorf("AuthConfig ref missing from request: %v", request)
+	}
+	AuthConfig, err := h.enterprise_glooClientset.AuthConfigs().GetAuthConfig(ctx, client.ObjectKey{
+		Namespace: AuthConfigRef.GetNamespace(),
+		Name:      AuthConfigRef.GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get AuthConfig")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	// find which gloo instance this AuthConfig belongs to, by finding a gloo instance that is watching
+	// the AuthConfig's namespace
+	instanceList, err := h.glooInstanceLister.ListGlooInstances(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	var glooInstance *rpc_edge_v1.GlooInstance
+	for _, instance := range instanceList {
+		watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+		if len(watchedNamespaces) == 0 {
+			glooInstance = instance
+			break
+		}
+		for _, ns := range watchedNamespaces {
+			if ns == AuthConfigRef.GetNamespace() {
+				glooInstance = instance
+				break
+			}
+		}
+		if glooInstance != nil {
+			break
+		}
+	}
+	if glooInstance == nil {
+		return nil, eris.Errorf("Failed to find a gloo edge instance for namespace %s", AuthConfig.GetNamespace())
+	}
+	rpcAuthConfig := &rpc_edge_v1.AuthConfig{
+		Metadata: apiserverutils.ToMetadata(AuthConfig.ObjectMeta),
+		GlooInstance: &skv2_v1.ObjectRef{
+			Name:      glooInstance.GetMetadata().GetName(),
+			Namespace: glooInstance.GetMetadata().GetNamespace(),
+		},
+		Spec:   &AuthConfig.Spec,
+		Status: &AuthConfig.Status,
+	}
+	rpcAuthConfig.Metadata.ClusterName = glooInstance.GetSpec().GetCluster()
+	return &rpc_edge_v1.GetAuthConfigDetailsResponse{
+		AuthConfig: rpcAuthConfig,
 	}, nil
 }

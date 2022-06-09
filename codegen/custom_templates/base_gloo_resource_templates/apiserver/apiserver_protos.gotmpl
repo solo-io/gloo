@@ -55,6 +55,14 @@ message Get{{ $base_kind }}YamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
+message Get{{ $base_kind }}DetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef {{ $kind_snake_case }}_ref = 1;
+}
+
+message Get{{ $base_kind }}DetailsResponse {
+    {{ $base_kind }} {{ $kind_snake_case }} = 1;
+}
+
 {{- end }}
 
 service {{ $base_Group }}ResourceApi {
@@ -63,5 +71,6 @@ service {{ $base_Group }}ResourceApi {
 
     rpc List{{ pluralize $base_kind }} (List{{ pluralize $base_kind }}Request) returns (List{{ pluralize $base_kind }}Response) {}
     rpc Get{{ $base_kind }}Yaml (Get{{ $base_kind }}YamlRequest) returns (Get{{ $base_kind }}YamlResponse) {}
+    rpc Get{{ $base_kind }}Details (Get{{ $base_kind }}DetailsRequest) returns (Get{{ $base_kind }}DetailsResponse) {}
     {{- end }}
 }

@@ -337,3 +337,75 @@ func (m *GetRateLimitConfigYamlResponse) Hash(hasher hash.Hash64) (uint64, error
 
 	return hasher.Sum64(), nil
 }
+
+// Hash function
+func (m *GetRateLimitConfigDetailsRequest) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetRateLimitConfigDetailsRequest")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetRateLimitConfigRef()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("RateLimitConfigRef")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetRateLimitConfigRef(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("RateLimitConfigRef")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *GetRateLimitConfigDetailsResponse) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("rpc.edge.gloo.solo.io.github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1.GetRateLimitConfigDetailsResponse")); err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetRateLimitConfig()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("RateLimitConfig")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetRateLimitConfig(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("RateLimitConfig")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}

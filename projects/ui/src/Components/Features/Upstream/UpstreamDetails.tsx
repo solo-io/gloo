@@ -26,26 +26,18 @@ const ConfigArea = styled.div`
 export const UpstreamDetails = () => {
   const {
     name = '',
-    namespace = '',
     upstreamName = '',
     upstreamNamespace = '',
     upstreamClusterName = '',
   } = useParams();
 
-  const { data: upstream, error: upstreamError } = useGetUpstreamDetails(
-    { name, namespace },
-    {
-      name: upstreamName,
-      namespace: upstreamNamespace,
-      clusterName: upstreamClusterName,
-    }
-  );
-
-  const { data: upstreamYaml, error: upstreamYamlError } = useGetUpstreamYaml({
+  const { data: upResponse, error: upstreamError } = useGetUpstreamDetails({
     name: upstreamName,
     namespace: upstreamNamespace,
     clusterName: upstreamClusterName,
   });
+  const upstream = upResponse?.upstream;
+
   const { data: glooFedCheckResponse, error: glooFedCheckError } =
     useIsGlooFedEnabled();
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;

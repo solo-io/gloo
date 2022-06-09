@@ -463,6 +463,74 @@ func (m *GetGatewayYamlResponse) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *GetGatewayDetailsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetGatewayDetailsRequest)
+	if !ok {
+		that2, ok := that.(GetGatewayDetailsRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetGatewayRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGatewayRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGatewayRef(), target.GetGatewayRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetGatewayDetailsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetGatewayDetailsResponse)
+	if !ok {
+		that2, ok := that.(GetGatewayDetailsResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetGateway()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetGateway()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetGateway(), target.GetGateway()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *ListMatchableHttpGatewaysRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -636,6 +704,74 @@ func (m *GetMatchableHttpGatewayYamlResponse) Equal(that interface{}) bool {
 		}
 	} else {
 		if !proto.Equal(m.GetYamlData(), target.GetYamlData()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetMatchableHttpGatewayDetailsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetMatchableHttpGatewayDetailsRequest)
+	if !ok {
+		that2, ok := that.(GetMatchableHttpGatewayDetailsRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetMatchableHttpGatewayRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMatchableHttpGatewayRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMatchableHttpGatewayRef(), target.GetMatchableHttpGatewayRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetMatchableHttpGatewayDetailsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetMatchableHttpGatewayDetailsResponse)
+	if !ok {
+		that2, ok := that.(GetMatchableHttpGatewayDetailsResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetMatchableHttpGateway()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMatchableHttpGateway()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMatchableHttpGateway(), target.GetMatchableHttpGateway()) {
 			return false
 		}
 	}
@@ -825,6 +961,74 @@ func (m *GetVirtualServiceYamlResponse) Equal(that interface{}) bool {
 }
 
 // Equal function
+func (m *GetVirtualServiceDetailsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetVirtualServiceDetailsRequest)
+	if !ok {
+		that2, ok := that.(GetVirtualServiceDetailsRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetVirtualServiceRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetVirtualServiceRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetVirtualServiceRef(), target.GetVirtualServiceRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetVirtualServiceDetailsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetVirtualServiceDetailsResponse)
+	if !ok {
+		that2, ok := that.(GetVirtualServiceDetailsResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetVirtualService()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetVirtualService()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetVirtualService(), target.GetVirtualService()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
 func (m *ListRouteTablesRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
@@ -998,6 +1202,74 @@ func (m *GetRouteTableYamlResponse) Equal(that interface{}) bool {
 		}
 	} else {
 		if !proto.Equal(m.GetYamlData(), target.GetYamlData()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetRouteTableDetailsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetRouteTableDetailsRequest)
+	if !ok {
+		that2, ok := that.(GetRouteTableDetailsRequest)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetRouteTableRef()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetRouteTableRef()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetRouteTableRef(), target.GetRouteTableRef()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *GetRouteTableDetailsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*GetRouteTableDetailsResponse)
+	if !ok {
+		that2, ok := that.(GetRouteTableDetailsResponse)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetRouteTable()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetRouteTable()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetRouteTable(), target.GetRouteTable()) {
 			return false
 		}
 	}

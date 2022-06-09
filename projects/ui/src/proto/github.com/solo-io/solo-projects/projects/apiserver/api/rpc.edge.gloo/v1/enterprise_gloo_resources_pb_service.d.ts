@@ -22,10 +22,20 @@ type EnterpriseGlooResourceApiGetAuthConfigYaml = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_pb.GetAuthConfigYamlResponse;
 };
 
+type EnterpriseGlooResourceApiGetAuthConfigDetails = {
+  readonly methodName: string;
+  readonly service: typeof EnterpriseGlooResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_pb.GetAuthConfigDetailsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_pb.GetAuthConfigDetailsResponse;
+};
+
 export class EnterpriseGlooResourceApi {
   static readonly serviceName: string;
   static readonly ListAuthConfigs: EnterpriseGlooResourceApiListAuthConfigs;
   static readonly GetAuthConfigYaml: EnterpriseGlooResourceApiGetAuthConfigYaml;
+  static readonly GetAuthConfigDetails: EnterpriseGlooResourceApiGetAuthConfigDetails;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -77,6 +87,15 @@ export class EnterpriseGlooResourceApiClient {
   getAuthConfigYaml(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_pb.GetAuthConfigYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_pb.GetAuthConfigYamlResponse|null) => void
+  ): UnaryResponse;
+  getAuthConfigDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_pb.GetAuthConfigDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_pb.GetAuthConfigDetailsResponse|null) => void
+  ): UnaryResponse;
+  getAuthConfigDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_pb.GetAuthConfigDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_enterprise_gloo_resources_pb.GetAuthConfigDetailsResponse|null) => void
   ): UnaryResponse;
 }
 

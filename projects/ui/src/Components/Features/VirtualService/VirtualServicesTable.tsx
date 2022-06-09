@@ -1,33 +1,31 @@
-import React, { useEffect } from 'react';
 import styled from '@emotion/styled/macro';
-import {
-  SoloTable,
-  RenderStatus,
-  TableActionCircle,
-  TableActions,
-  RenderCluster,
-} from 'Components/Common/SoloTable';
-import { SectionCard } from 'Components/Common/SectionCard';
-import { ReactComponent as GlooIcon } from 'assets/Gloo.svg';
-import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
-import { colors } from 'Styles/colors';
-import { useParams, useNavigate } from 'react-router';
+import Tooltip from 'antd/lib/tooltip';
+import { gatewayResourceApi } from 'API/gateway-resources';
 import {
   useIsGlooFedEnabled,
   useListClusterDetails,
   useListGlooInstances,
   useListVirtualServices,
 } from 'API/hooks';
-import Tooltip from 'antd/lib/tooltip';
-import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
-import { Loading } from 'Components/Common/Loading';
-import { objectMetasAreEqual } from 'API/helpers';
-import { SimpleLinkProps, RenderSimpleLink } from 'Components/Common/SoloLink';
-import { VirtualServiceStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service_pb';
-import { gatewayResourceApi } from 'API/gateway-resources';
-import { doDownload } from 'download-helper';
+import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
+import { ReactComponent as GlooIcon } from 'assets/Gloo.svg';
 import { DataError } from 'Components/Common/DataError';
 import { EmptyAsterisk } from 'Components/Common/EmptyAsterisk';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { RenderSimpleLink, SimpleLinkProps } from 'Components/Common/SoloLink';
+import {
+  RenderCluster,
+  RenderStatus,
+  SoloTable,
+  TableActionCircle,
+  TableActions,
+} from 'Components/Common/SoloTable';
+import { doDownload } from 'download-helper';
+import { VirtualServiceStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/virtual_service_pb';
+import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { colors } from 'Styles/colors';
 
 const GlooIconHolder = styled.div`
   display: flex;
@@ -89,81 +87,69 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
     (clusterDetailsList && clusterDetailsList.length > 1) ||
     (glooInstances && glooInstances.length > 1);
 
-  const { data: virtualServices, error: virtualServicesError } =
+  const [offset, setOffset] = useState(0);
+  const limit = 10;
+  const { data: vsResponse, error: virtualServicesError } =
     useListVirtualServices(
-      !!name && !!namespace
-        ? {
-            name,
-            namespace,
-          }
-        : undefined
+      { name, namespace },
+      { limit, offset },
+      props.nameFilter,
+      props.statusFilter
     );
+  const virtualServices = vsResponse?.virtualServicesList;
+  const total = vsResponse?.total ?? 0;
+
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    setPage(1);
+  }, [
+    props.nameFilter,
+    props.statusFilter,
+    props.glooInstanceFilter,
+    isGlooFedEnabled,
+  ]);
+  useEffect(() => {
+    setOffset(limit * (page - 1));
+  }, [page]);
 
   useEffect(() => {
     if (virtualServices) {
       setTableData(
-        virtualServices
-          .filter(
-            vs =>
-              vs.metadata?.name.includes(props.nameFilter ?? '') &&
-              (props.statusFilter === undefined ||
-                vs.status?.state === props.statusFilter) &&
-              (!props.glooInstanceFilter ||
-                objectMetasAreEqual(
-                  {
-                    name: vs.glooInstance?.name ?? '',
-                    namespace: vs.glooInstance?.namespace ?? '',
-                  },
-                  props.glooInstanceFilter
-                ))
-          )
-          .sort(
-            (gA, gB) =>
-              (gA.metadata?.name ?? '').localeCompare(
-                gB.metadata?.name ?? ''
-              ) ||
-              (!props.wholePage
-                ? 0
-                : (gA.glooInstance?.name ?? '').localeCompare(
-                    gB.glooInstance?.name ?? ''
-                  ))
-          )
-          .map(vs => {
-            let dataItem: VirtualServiceTableFields = {
-              key:
-                vs.metadata?.uid ??
-                'An virtual service was provided with no UID',
-              name: {
-                displayElement: vs.metadata?.name ?? '',
-                link: vs.metadata
-                  ? isGlooFedEnabled
-                    ? `/gloo-instances/${vs.glooInstance?.namespace}/${vs.glooInstance?.name}/virtual-services/${vs.metadata.clusterName}/${vs.metadata.namespace}/${vs.metadata.name}/`
-                    : `/gloo-instances/${vs.glooInstance?.namespace}/${vs.glooInstance?.name}/virtual-services/${vs.metadata.namespace}/${vs.metadata.name}/`
-                  : '',
-              },
-              namespace: vs.metadata?.namespace ?? '',
-              domain: vs.spec?.virtualHost?.domainsList ? (
-                vs.spec?.virtualHost?.domainsList.length === 1 &&
-                vs.spec?.virtualHost?.domainsList[0] === '*' ? (
-                  <EmptyAsterisk />
-                ) : (
-                  vs.spec?.virtualHost?.domainsList.join(', ')
-                )
+        virtualServices.map(vs => {
+          let dataItem: VirtualServiceTableFields = {
+            key:
+              vs.metadata?.uid ?? 'An virtual service was provided with no UID',
+            name: {
+              displayElement: vs.metadata?.name ?? '',
+              link: vs.metadata
+                ? isGlooFedEnabled
+                  ? `/gloo-instances/${vs.glooInstance?.namespace}/${vs.glooInstance?.name}/virtual-services/${vs.metadata.clusterName}/${vs.metadata.namespace}/${vs.metadata.name}/`
+                  : `/gloo-instances/${vs.glooInstance?.namespace}/${vs.glooInstance?.name}/virtual-services/${vs.metadata.namespace}/${vs.metadata.name}/`
+                : '',
+            },
+            namespace: vs.metadata?.namespace ?? '',
+            domain: vs.spec?.virtualHost?.domainsList ? (
+              vs.spec?.virtualHost?.domainsList.length === 1 &&
+              vs.spec?.virtualHost?.domainsList[0] === '*' ? (
+                <EmptyAsterisk />
               ) : (
-                ''
-              ),
-              routes: vs.spec?.virtualHost?.routesList.length ?? 0,
-              status: vs.status?.state ?? 0,
-              actions: vs,
-            };
+                vs.spec?.virtualHost?.domainsList.join(', ')
+              )
+            ) : (
+              ''
+            ),
+            routes: vs.spec?.virtualHost?.routesList.length ?? 0,
+            status: vs.status?.state ?? 0,
+            actions: vs,
+          };
 
-            if (props.wholePage) {
-              dataItem['glooInstance'] = vs.glooInstance;
-              dataItem['cluster'] = vs.metadata?.clusterName ?? '';
-            }
+          if (props.wholePage) {
+            dataItem['glooInstance'] = vs.glooInstance;
+            dataItem['cluster'] = vs.metadata?.clusterName ?? '';
+          }
 
-            return dataItem;
-          })
+          return dataItem;
+        })
       );
     } else {
       setTableData([]);
@@ -179,8 +165,6 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
 
   if (!!virtualServicesError) {
     return <DataError error={virtualServicesError} />;
-  } else if (!virtualServices) {
-    return <Loading message={'Retrieving virtual services...'} />;
   }
 
   const onDownloadVirtualService = (vs: VirtualService.AsObject) => {
@@ -275,7 +259,13 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
       <SoloTable
         columns={columns}
         dataSource={tableData}
-        removePaging
+        pagination={{
+          total,
+          pageSize: limit,
+          current: page,
+          onChange: newPage => setPage(newPage),
+        }}
+        removePaging={total <= limit}
         removeShadows
         curved={props.wholePage}
       />

@@ -32,10 +32,18 @@ export const useGetUpstreamHosts = (glooInstanceRef: ObjectRef.AsObject) =>
   useRequest(glooInstanceApi.getUpstreamHosts, [glooInstanceRef]);
 
 // -- gatewayResourceApi
-export const useListVirtualServices = (ref?: ObjectRef.AsObject) =>
-  useRequest(gatewayResourceApi.listVirtualServices, [ref]);
-export const useListRouteTables = (ref?: ObjectRef.AsObject, pag?: Pagination.AsObject, qs?: string, sf?: RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]) =>
-  useRequest(gatewayResourceApi.listRouteTables, [ref, pag, qs, sf]);
+export const useListVirtualServices = (
+  ref?: ObjectRef.AsObject,
+  pag?: Pagination.AsObject,
+  qs?: string,
+  sf?: RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]
+) => useRequest(gatewayResourceApi.listVirtualServices, [ref, pag, qs, sf]);
+export const useListRouteTables = (
+  ref?: ObjectRef.AsObject,
+  pag?: Pagination.AsObject,
+  qs?: string,
+  sf?: RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]
+) => useRequest(gatewayResourceApi.listRouteTables, [ref, pag, qs, sf]);
 export const useGetGatewayYaml = (
   gatewayClusterObjectRef: ClusterObjectRef.AsObject
 ) => useRequest(gatewayResourceApi.getGatewayYAML, [gatewayClusterObjectRef]);
@@ -54,24 +62,26 @@ export const useListSettings = (ref?: ObjectRef.AsObject) =>
   useRequest(glooResourceApi.listSettings, [ref]);
 export const useListProxies = (ref?: ObjectRef.AsObject) =>
   useRequest(glooResourceApi.listProxies, [ref]);
-export const useListUpstreams = (ref?: ObjectRef.AsObject, pag?: Pagination.AsObject, qs?: string, sf?: RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]) =>
-  useRequest(glooResourceApi.listUpstreams, [ref, pag, qs, sf]);
-export const useGetUpstreamDetails = (
-  glooInstRef: ObjectRef.AsObject,
-  upstreamRef: ClusterObjectRef.AsObject
-) => useRequest(glooResourceApi.getUpstream, [glooInstRef, upstreamRef]);
+export const useListUpstreams = (
+  ref?: ObjectRef.AsObject,
+  pag?: Pagination.AsObject,
+  qs?: string,
+  sf?: RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]
+) => useRequest(glooResourceApi.listUpstreams, [ref, pag, qs, sf]);
+export const useListUpstreamGroups = (ref?: ObjectRef.AsObject) =>
+  useRequest(glooResourceApi.listUpstreamGroups, [ref]);
+
 export const useGetUpstreamYaml = (upstreamRef: ClusterObjectRef.AsObject) =>
   useRequest(glooResourceApi.getUpstreamYAML, [upstreamRef]);
 export const useGetUpstreamGroupYaml = (
   upstreamGroupRef: ClusterObjectRef.AsObject
 ) => useRequest(glooResourceApi.getUpstreamGroupYAML, [upstreamGroupRef]);
+
+export const useGetUpstreamDetails = (upstreamRef: ClusterObjectRef.AsObject) =>
+  useRequest(glooResourceApi.getUpstreamDetails, [upstreamRef]);
 export const useGetUpstreamGroupDetails = (
-  glooInstRef: ObjectRef.AsObject,
   upstreamGroupRef: ClusterObjectRef.AsObject
-) =>
-  useRequest(glooResourceApi.getUpstreamGroup, [glooInstRef, upstreamGroupRef]);
-export const useListUpstreamGroups = (ref?: ObjectRef.AsObject) =>
-  useRequest(glooResourceApi.listUpstreamGroups, [ref]);
+) => useRequest(glooResourceApi.getUpstreamGroupDetails, [upstreamGroupRef]);
 
 // -- failoverSchemeApi
 export const useGetFailoverSchemeYaml = (

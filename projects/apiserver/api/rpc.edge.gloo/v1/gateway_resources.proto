@@ -63,6 +63,14 @@ message GetGatewayYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
+message GetGatewayDetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef gateway_ref = 1;
+}
+
+message GetGatewayDetailsResponse {
+    Gateway gateway = 1;
+}
+
 message ListMatchableHttpGatewaysRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
     .rpc.edge.gloo.solo.io.Pagination pagination = 2;
@@ -82,6 +90,14 @@ message GetMatchableHttpGatewayYamlRequest {
 
 message GetMatchableHttpGatewayYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
+}
+
+message GetMatchableHttpGatewayDetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef matchable_http_gateway_ref = 1;
+}
+
+message GetMatchableHttpGatewayDetailsResponse {
+    MatchableHttpGateway matchable_http_gateway = 1;
 }
 
 message ListVirtualServicesRequest {
@@ -105,6 +121,14 @@ message GetVirtualServiceYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
+message GetVirtualServiceDetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef virtual_service_ref = 1;
+}
+
+message GetVirtualServiceDetailsResponse {
+    VirtualService virtual_service = 1;
+}
+
 message ListRouteTablesRequest {
     .core.skv2.solo.io.ObjectRef gloo_instance_ref = 1;
     .rpc.edge.gloo.solo.io.Pagination pagination = 2;
@@ -126,17 +150,29 @@ message GetRouteTableYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
+message GetRouteTableDetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef route_table_ref = 1;
+}
+
+message GetRouteTableDetailsResponse {
+    RouteTable route_table = 1;
+}
+
 service GatewayResourceApi {
 
     rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
     rpc GetGatewayYaml (GetGatewayYamlRequest) returns (GetGatewayYamlResponse) {}
+    rpc GetGatewayDetails (GetGatewayDetailsRequest) returns (GetGatewayDetailsResponse) {}
 
     rpc ListMatchableHttpGateways (ListMatchableHttpGatewaysRequest) returns (ListMatchableHttpGatewaysResponse) {}
     rpc GetMatchableHttpGatewayYaml (GetMatchableHttpGatewayYamlRequest) returns (GetMatchableHttpGatewayYamlResponse) {}
+    rpc GetMatchableHttpGatewayDetails (GetMatchableHttpGatewayDetailsRequest) returns (GetMatchableHttpGatewayDetailsResponse) {}
 
     rpc ListVirtualServices (ListVirtualServicesRequest) returns (ListVirtualServicesResponse) {}
     rpc GetVirtualServiceYaml (GetVirtualServiceYamlRequest) returns (GetVirtualServiceYamlResponse) {}
+    rpc GetVirtualServiceDetails (GetVirtualServiceDetailsRequest) returns (GetVirtualServiceDetailsResponse) {}
 
     rpc ListRouteTables (ListRouteTablesRequest) returns (ListRouteTablesResponse) {}
     rpc GetRouteTableYaml (GetRouteTableYamlRequest) returns (GetRouteTableYamlResponse) {}
+    rpc GetRouteTableDetails (GetRouteTableDetailsRequest) returns (GetRouteTableDetailsResponse) {}
 }

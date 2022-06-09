@@ -417,10 +417,16 @@ const GlooInstanceCard = ({
 
 export const GlooInstancesLanding = () => {
   const { data: glooInstances, error: instancesError } = useListGlooInstances();
-  const { data: upstreamsResponse, error: upstreamsResponseError } = useListUpstreams();
-  const { data: virtualServices, error: vsError } = useListVirtualServices();
+  const { data: upstreamsResponse, error: upstreamsResponseError } =
+    useListUpstreams(undefined, { limit: 0, offset: 0 });
+  const { data: virtualServices, error: vsError } = useListVirtualServices(
+    undefined,
+    { limit: 0, offset: 0 }
+  );
+  const upstreamsCount = upstreamsResponse?.total ?? 0;
+  const virtualServicesCount = virtualServices?.total ?? 0;
 
-  const upstreams = upstreamsResponse?.upstreamsList
+  const upstreams = upstreamsResponse?.upstreamsList;
 
   if (!!instancesError) {
     return <DataError error={instancesError} />;
@@ -443,39 +449,16 @@ export const GlooInstancesLanding = () => {
   return (
     <>
       {!!glooInstances.length ? (
-        glooInstances.map(instance => {
-          const upstreamsCount = upstreams?.reduce(
-            (acc, upstream) =>
-              acc +
-              (objectMetasAreEqual(
-                upstream.glooInstance,
-                instance.metadata,
-                true
-              )
-                ? 1
-                : 0),
-            0
-          );
-          const virtualServicesCount = virtualServices?.reduce(
-            (acc, vs) =>
-              acc +
-              (objectMetasAreEqual(vs.glooInstance, instance.metadata, true)
-                ? 1
-                : 0),
-            0
-          );
-
-          return (
-            <GlooInstanceCard
-              key={instance.metadata?.uid}
-              instance={instance}
-              virtualServicesCount={virtualServicesCount}
-              virtualServicesError={vsError}
-              upstreamsError={upstreamsResponseError}
-              upstreamsCount={upstreamsCount}
-            />
-          );
-        })
+        glooInstances.map(instance => (
+          <GlooInstanceCard
+            key={instance.metadata?.uid}
+            instance={instance}
+            virtualServicesCount={virtualServicesCount}
+            virtualServicesError={vsError}
+            upstreamsError={upstreamsResponseError}
+            upstreamsCount={upstreamsCount}
+          />
+        ))
       ) : (
         <SectionCard
           cardName={'No Instances'}

@@ -28,6 +28,15 @@ GlooResourceApi.GetUpstreamYaml = {
   responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamYamlResponse
 };
 
+GlooResourceApi.GetUpstreamDetails = {
+  methodName: "GetUpstreamDetails",
+  service: GlooResourceApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamDetailsRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamDetailsResponse
+};
+
 GlooResourceApi.ListUpstreamGroups = {
   methodName: "ListUpstreamGroups",
   service: GlooResourceApi,
@@ -44,6 +53,15 @@ GlooResourceApi.GetUpstreamGroupYaml = {
   responseStream: false,
   requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupYamlRequest,
   responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupYamlResponse
+};
+
+GlooResourceApi.GetUpstreamGroupDetails = {
+  methodName: "GetUpstreamGroupDetails",
+  service: GlooResourceApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupDetailsRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetUpstreamGroupDetailsResponse
 };
 
 GlooResourceApi.ListSettings = {
@@ -64,6 +82,15 @@ GlooResourceApi.GetSettingsYaml = {
   responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsYamlResponse
 };
 
+GlooResourceApi.GetSettingsDetails = {
+  methodName: "GetSettingsDetails",
+  service: GlooResourceApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsDetailsRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetSettingsDetailsResponse
+};
+
 GlooResourceApi.ListProxies = {
   methodName: "ListProxies",
   service: GlooResourceApi,
@@ -80,6 +107,15 @@ GlooResourceApi.GetProxyYaml = {
   responseStream: false,
   requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyYamlRequest,
   responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyYamlResponse
+};
+
+GlooResourceApi.GetProxyDetails = {
+  methodName: "GetProxyDetails",
+  service: GlooResourceApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyDetailsRequest,
+  responseType: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gloo_resources_pb.GetProxyDetailsResponse
 };
 
 exports.GlooResourceApi = GlooResourceApi;
@@ -125,6 +161,37 @@ GlooResourceApiClient.prototype.getUpstreamYaml = function getUpstreamYaml(reque
     callback = arguments[1];
   }
   var client = grpc.unary(GlooResourceApi.GetUpstreamYaml, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+GlooResourceApiClient.prototype.getUpstreamDetails = function getUpstreamDetails(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(GlooResourceApi.GetUpstreamDetails, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,
@@ -213,6 +280,37 @@ GlooResourceApiClient.prototype.getUpstreamGroupYaml = function getUpstreamGroup
   };
 };
 
+GlooResourceApiClient.prototype.getUpstreamGroupDetails = function getUpstreamGroupDetails(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(GlooResourceApi.GetUpstreamGroupDetails, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
 GlooResourceApiClient.prototype.listSettings = function listSettings(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
@@ -275,6 +373,37 @@ GlooResourceApiClient.prototype.getSettingsYaml = function getSettingsYaml(reque
   };
 };
 
+GlooResourceApiClient.prototype.getSettingsDetails = function getSettingsDetails(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(GlooResourceApi.GetSettingsDetails, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
 GlooResourceApiClient.prototype.listProxies = function listProxies(requestMessage, metadata, callback) {
   if (arguments.length === 2) {
     callback = arguments[1];
@@ -311,6 +440,37 @@ GlooResourceApiClient.prototype.getProxyYaml = function getProxyYaml(requestMess
     callback = arguments[1];
   }
   var client = grpc.unary(GlooResourceApi.GetProxyYaml, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+GlooResourceApiClient.prototype.getProxyDetails = function getProxyDetails(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(GlooResourceApi.GetProxyDetails, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

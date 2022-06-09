@@ -1,33 +1,32 @@
-import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled/macro';
-import {
-  SoloTable,
-  RenderStatus,
-  TableActionCircle,
-  TableActions,
-  RenderCluster,
-} from 'Components/Common/SoloTable';
-import { SectionCard } from 'Components/Common/SectionCard';
-import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
-import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
-import { ReactComponent as FailoverIcon } from 'assets/GlooFed-Specific/failover-icon.svg';
-import { colors } from 'Styles/colors';
 import Tooltip from 'antd/lib/tooltip';
-import { useParams, useNavigate } from 'react-router';
+import { glooResourceApi } from 'API/gloo-resource';
 import {
   useIsGlooFedEnabled,
   useListClusterDetails,
   useListGlooInstances,
   useListUpstreams,
 } from 'API/hooks';
-import { Loading } from 'Components/Common/Loading';
-import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
-import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
-import { SimpleLinkProps, RenderSimpleLink } from 'Components/Common/SoloLink';
-import { glooResourceApi } from 'API/gloo-resource';
-import { doDownload } from 'download-helper';
-import { IconHolder } from 'Styles/StyledComponents/icons';
+import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
+import { ReactComponent as FailoverIcon } from 'assets/GlooFed-Specific/failover-icon.svg';
+import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
 import { DataError } from 'Components/Common/DataError';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { RenderSimpleLink, SimpleLinkProps } from 'Components/Common/SoloLink';
+import {
+  RenderCluster,
+  RenderStatus,
+  SoloTable,
+  TableActionCircle,
+  TableActions,
+} from 'Components/Common/SoloTable';
+import { doDownload } from 'download-helper';
+import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
+import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { colors } from 'Styles/colors';
+import { IconHolder } from 'Styles/StyledComponents/icons';
 
 const UpstreamIconHolder = styled.div`
   display: flex;
@@ -63,7 +62,7 @@ type Props = {
 export const UpstreamsTable = (props: Props & TableHolderProps) => {
   const { name, namespace } = useParams();
   const [offset, setOffset] = React.useState(0);
-  const [limit, _] = React.useState(10);
+  const limit = 10;
   const navigate = useNavigate();
 
   const [tableData, setTableData] = React.useState<

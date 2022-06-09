@@ -90,31 +90,43 @@ func (h *singleClusterRatelimitResourceHandler) ListRateLimitConfigs(ctx context
 		if isDescending == true {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
-					return filteredRateLimitConfigs[i].Metadata.Name > filteredRateLimitConfigs[j].Metadata.Name
+				sort.SliceStable(filteredRateLimitConfigs, func(i, j int) bool {
+					a := filteredRateLimitConfigs[i]
+					b := filteredRateLimitConfigs[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) > b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
-					return filteredRateLimitConfigs[i].Metadata.Namespace > filteredRateLimitConfigs[j].Metadata.Namespace
+				sort.SliceStable(filteredRateLimitConfigs, func(i, j int) bool {
+					a := filteredRateLimitConfigs[i]
+					b := filteredRateLimitConfigs[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) > b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
-					return filteredRateLimitConfigs[i].Status.State > filteredRateLimitConfigs[j].Status.State
+				sort.SliceStable(filteredRateLimitConfigs, func(i, j int) bool {
+					a := filteredRateLimitConfigs[i]
+					b := filteredRateLimitConfigs[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace > string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		} else {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
-					return filteredRateLimitConfigs[i].Metadata.Name < filteredRateLimitConfigs[j].Metadata.Name
+				sort.SliceStable(filteredRateLimitConfigs, func(i, j int) bool {
+					a := filteredRateLimitConfigs[i]
+					b := filteredRateLimitConfigs[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) < b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
-					return filteredRateLimitConfigs[i].Metadata.Namespace < filteredRateLimitConfigs[j].Metadata.Namespace
+				sort.SliceStable(filteredRateLimitConfigs, func(i, j int) bool {
+					a := filteredRateLimitConfigs[i]
+					b := filteredRateLimitConfigs[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) < b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredRateLimitConfigs, func(i, j int) bool {
-					return filteredRateLimitConfigs[i].Status.State < filteredRateLimitConfigs[j].Status.State
+				sort.SliceStable(filteredRateLimitConfigs, func(i, j int) bool {
+					a := filteredRateLimitConfigs[i]
+					b := filteredRateLimitConfigs[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace < string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		}
@@ -200,5 +212,62 @@ func (h *singleClusterRatelimitResourceHandler) GetRateLimitConfigYaml(ctx conte
 		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
+	}, nil
+}
+
+func (h *singleClusterRatelimitResourceHandler) GetRateLimitConfigDetails(ctx context.Context, request *rpc_edge_v1.GetRateLimitConfigDetailsRequest) (*rpc_edge_v1.GetRateLimitConfigDetailsResponse, error) {
+	RateLimitConfigRef := request.GetRateLimitConfigRef()
+	if RateLimitConfigRef == nil {
+		return nil, eris.Errorf("RateLimitConfig ref missing from request: %v", request)
+	}
+	RateLimitConfig, err := h.ratelimitClientset.RateLimitConfigs().GetRateLimitConfig(ctx, client.ObjectKey{
+		Namespace: RateLimitConfigRef.GetNamespace(),
+		Name:      RateLimitConfigRef.GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get RateLimitConfig")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	// find which gloo instance this RateLimitConfig belongs to, by finding a gloo instance that is watching
+	// the RateLimitConfig's namespace
+	instanceList, err := h.glooInstanceLister.ListGlooInstances(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	var glooInstance *rpc_edge_v1.GlooInstance
+	for _, instance := range instanceList {
+		watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+		if len(watchedNamespaces) == 0 {
+			glooInstance = instance
+			break
+		}
+		for _, ns := range watchedNamespaces {
+			if ns == RateLimitConfigRef.GetNamespace() {
+				glooInstance = instance
+				break
+			}
+		}
+		if glooInstance != nil {
+			break
+		}
+	}
+	if glooInstance == nil {
+		return nil, eris.Errorf("Failed to find a gloo edge instance for namespace %s", RateLimitConfig.GetNamespace())
+	}
+	rpcRateLimitConfig := &rpc_edge_v1.RateLimitConfig{
+		Metadata: apiserverutils.ToMetadata(RateLimitConfig.ObjectMeta),
+		GlooInstance: &skv2_v1.ObjectRef{
+			Name:      glooInstance.GetMetadata().GetName(),
+			Namespace: glooInstance.GetMetadata().GetNamespace(),
+		},
+		Spec:   &RateLimitConfig.Spec,
+		Status: &RateLimitConfig.Status,
+	}
+	rpcRateLimitConfig.Metadata.ClusterName = glooInstance.GetSpec().GetCluster()
+	return &rpc_edge_v1.GetRateLimitConfigDetailsResponse{
+		RateLimitConfig: rpcRateLimitConfig,
 	}, nil
 }

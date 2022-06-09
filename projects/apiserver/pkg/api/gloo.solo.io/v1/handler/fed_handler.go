@@ -96,31 +96,43 @@ func (k *fedGlooResourceHandler) ListUpstreams(ctx context.Context, request *rpc
 		if isDescending == true {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredUpstreams, func(i, j int) bool {
-					return filteredUpstreams[i].Metadata.Name > filteredUpstreams[j].Metadata.Name
+				sort.SliceStable(filteredUpstreams, func(i, j int) bool {
+					a := filteredUpstreams[i]
+					b := filteredUpstreams[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) > b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredUpstreams, func(i, j int) bool {
-					return filteredUpstreams[i].Metadata.Namespace > filteredUpstreams[j].Metadata.Namespace
+				sort.SliceStable(filteredUpstreams, func(i, j int) bool {
+					a := filteredUpstreams[i]
+					b := filteredUpstreams[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) > b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredUpstreams, func(i, j int) bool {
-					return filteredUpstreams[i].Status.State > filteredUpstreams[j].Status.State
+				sort.SliceStable(filteredUpstreams, func(i, j int) bool {
+					a := filteredUpstreams[i]
+					b := filteredUpstreams[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace > string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		} else {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredUpstreams, func(i, j int) bool {
-					return filteredUpstreams[i].Metadata.Name < filteredUpstreams[j].Metadata.Name
+				sort.SliceStable(filteredUpstreams, func(i, j int) bool {
+					a := filteredUpstreams[i]
+					b := filteredUpstreams[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) < b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredUpstreams, func(i, j int) bool {
-					return filteredUpstreams[i].Metadata.Namespace < filteredUpstreams[j].Metadata.Namespace
+				sort.SliceStable(filteredUpstreams, func(i, j int) bool {
+					a := filteredUpstreams[i]
+					b := filteredUpstreams[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) < b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredUpstreams, func(i, j int) bool {
-					return filteredUpstreams[i].Status.State < filteredUpstreams[j].Status.State
+				sort.SliceStable(filteredUpstreams, func(i, j int) bool {
+					a := filteredUpstreams[i]
+					b := filteredUpstreams[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace < string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		}
@@ -227,6 +239,69 @@ func (k *fedGlooResourceHandler) GetUpstreamYaml(ctx context.Context, request *r
 	}, nil
 }
 
+func (k *fedGlooResourceHandler) GetUpstreamDetails(ctx context.Context, request *rpc_edge_v1.GetUpstreamDetailsRequest) (*rpc_edge_v1.GetUpstreamDetailsResponse, error) {
+	UpstreamRef := request.GetUpstreamRef()
+	if UpstreamRef == nil {
+		return nil, eris.Errorf("Upstream ref missing from request: %v", request)
+	}
+	clientset, err := k.mcGlooCRDClientset.Cluster(UpstreamRef.GetClusterName())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get Upstream client set")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	Upstream, err := clientset.Upstreams().GetUpstream(ctx, client.ObjectKey{
+		Namespace: UpstreamRef.GetNamespace(),
+		Name:      UpstreamRef.GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get Upstream")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	// find which gloo instance this Upstream belongs to, by finding a gloo instance that is watching
+	// the Upstream's namespace
+	instanceList, err := k.instanceClient.ListGlooInstance(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	var glooInstance *fedv1.GlooInstance
+	for _, instance := range instanceList.Items {
+		watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+		if len(watchedNamespaces) == 0 {
+			glooInstance = &instance
+			break
+		}
+		for _, ns := range watchedNamespaces {
+			if ns == UpstreamRef.GetNamespace() {
+				glooInstance = &instance
+				break
+			}
+		}
+		if glooInstance != nil {
+			break
+		}
+	}
+	if glooInstance == nil {
+		return nil, eris.Errorf("Failed to find a gloo edge instance for namespace %s", Upstream.GetNamespace())
+	}
+	rpcUpstream := &rpc_edge_v1.Upstream{
+		Metadata: apiserverutils.ToMetadata(Upstream.ObjectMeta),
+		GlooInstance: &skv2v1.ObjectRef{
+			Name:      glooInstance.GetName(),
+			Namespace: glooInstance.GetNamespace(),
+		},
+		Spec:   &Upstream.Spec,
+		Status: &Upstream.Status,
+	}
+	rpcUpstream.Metadata.ClusterName = glooInstance.Spec.GetCluster()
+	return &rpc_edge_v1.GetUpstreamDetailsResponse{
+		Upstream: rpcUpstream,
+	}, nil
+}
+
 func (k *fedGlooResourceHandler) ListUpstreamGroups(ctx context.Context, request *rpc_edge_v1.ListUpstreamGroupsRequest) (*rpc_edge_v1.ListUpstreamGroupsResponse, error) {
 	var rpcUpstreamGroups []*rpc_edge_v1.UpstreamGroup
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -286,31 +361,43 @@ func (k *fedGlooResourceHandler) ListUpstreamGroups(ctx context.Context, request
 		if isDescending == true {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
-					return filteredUpstreamGroups[i].Metadata.Name > filteredUpstreamGroups[j].Metadata.Name
+				sort.SliceStable(filteredUpstreamGroups, func(i, j int) bool {
+					a := filteredUpstreamGroups[i]
+					b := filteredUpstreamGroups[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) > b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
-					return filteredUpstreamGroups[i].Metadata.Namespace > filteredUpstreamGroups[j].Metadata.Namespace
+				sort.SliceStable(filteredUpstreamGroups, func(i, j int) bool {
+					a := filteredUpstreamGroups[i]
+					b := filteredUpstreamGroups[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) > b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
-					return filteredUpstreamGroups[i].Status.State > filteredUpstreamGroups[j].Status.State
+				sort.SliceStable(filteredUpstreamGroups, func(i, j int) bool {
+					a := filteredUpstreamGroups[i]
+					b := filteredUpstreamGroups[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace > string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		} else {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
-					return filteredUpstreamGroups[i].Metadata.Name < filteredUpstreamGroups[j].Metadata.Name
+				sort.SliceStable(filteredUpstreamGroups, func(i, j int) bool {
+					a := filteredUpstreamGroups[i]
+					b := filteredUpstreamGroups[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) < b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
-					return filteredUpstreamGroups[i].Metadata.Namespace < filteredUpstreamGroups[j].Metadata.Namespace
+				sort.SliceStable(filteredUpstreamGroups, func(i, j int) bool {
+					a := filteredUpstreamGroups[i]
+					b := filteredUpstreamGroups[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) < b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredUpstreamGroups, func(i, j int) bool {
-					return filteredUpstreamGroups[i].Status.State < filteredUpstreamGroups[j].Status.State
+				sort.SliceStable(filteredUpstreamGroups, func(i, j int) bool {
+					a := filteredUpstreamGroups[i]
+					b := filteredUpstreamGroups[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace < string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		}
@@ -417,6 +504,69 @@ func (k *fedGlooResourceHandler) GetUpstreamGroupYaml(ctx context.Context, reque
 	}, nil
 }
 
+func (k *fedGlooResourceHandler) GetUpstreamGroupDetails(ctx context.Context, request *rpc_edge_v1.GetUpstreamGroupDetailsRequest) (*rpc_edge_v1.GetUpstreamGroupDetailsResponse, error) {
+	UpstreamGroupRef := request.GetUpstreamGroupRef()
+	if UpstreamGroupRef == nil {
+		return nil, eris.Errorf("UpstreamGroup ref missing from request: %v", request)
+	}
+	clientset, err := k.mcGlooCRDClientset.Cluster(UpstreamGroupRef.GetClusterName())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get UpstreamGroup client set")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	UpstreamGroup, err := clientset.UpstreamGroups().GetUpstreamGroup(ctx, client.ObjectKey{
+		Namespace: UpstreamGroupRef.GetNamespace(),
+		Name:      UpstreamGroupRef.GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get UpstreamGroup")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	// find which gloo instance this UpstreamGroup belongs to, by finding a gloo instance that is watching
+	// the UpstreamGroup's namespace
+	instanceList, err := k.instanceClient.ListGlooInstance(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	var glooInstance *fedv1.GlooInstance
+	for _, instance := range instanceList.Items {
+		watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+		if len(watchedNamespaces) == 0 {
+			glooInstance = &instance
+			break
+		}
+		for _, ns := range watchedNamespaces {
+			if ns == UpstreamGroupRef.GetNamespace() {
+				glooInstance = &instance
+				break
+			}
+		}
+		if glooInstance != nil {
+			break
+		}
+	}
+	if glooInstance == nil {
+		return nil, eris.Errorf("Failed to find a gloo edge instance for namespace %s", UpstreamGroup.GetNamespace())
+	}
+	rpcUpstreamGroup := &rpc_edge_v1.UpstreamGroup{
+		Metadata: apiserverutils.ToMetadata(UpstreamGroup.ObjectMeta),
+		GlooInstance: &skv2v1.ObjectRef{
+			Name:      glooInstance.GetName(),
+			Namespace: glooInstance.GetNamespace(),
+		},
+		Spec:   &UpstreamGroup.Spec,
+		Status: &UpstreamGroup.Status,
+	}
+	rpcUpstreamGroup.Metadata.ClusterName = glooInstance.Spec.GetCluster()
+	return &rpc_edge_v1.GetUpstreamGroupDetailsResponse{
+		UpstreamGroup: rpcUpstreamGroup,
+	}, nil
+}
+
 func (k *fedGlooResourceHandler) ListSettings(ctx context.Context, request *rpc_edge_v1.ListSettingsRequest) (*rpc_edge_v1.ListSettingsResponse, error) {
 	var rpcSettings []*rpc_edge_v1.Settings
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -476,31 +626,43 @@ func (k *fedGlooResourceHandler) ListSettings(ctx context.Context, request *rpc_
 		if isDescending == true {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredSettings, func(i, j int) bool {
-					return filteredSettings[i].Metadata.Name > filteredSettings[j].Metadata.Name
+				sort.SliceStable(filteredSettings, func(i, j int) bool {
+					a := filteredSettings[i]
+					b := filteredSettings[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) > b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredSettings, func(i, j int) bool {
-					return filteredSettings[i].Metadata.Namespace > filteredSettings[j].Metadata.Namespace
+				sort.SliceStable(filteredSettings, func(i, j int) bool {
+					a := filteredSettings[i]
+					b := filteredSettings[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) > b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredSettings, func(i, j int) bool {
-					return filteredSettings[i].Status.State > filteredSettings[j].Status.State
+				sort.SliceStable(filteredSettings, func(i, j int) bool {
+					a := filteredSettings[i]
+					b := filteredSettings[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace > string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		} else {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredSettings, func(i, j int) bool {
-					return filteredSettings[i].Metadata.Name < filteredSettings[j].Metadata.Name
+				sort.SliceStable(filteredSettings, func(i, j int) bool {
+					a := filteredSettings[i]
+					b := filteredSettings[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) < b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredSettings, func(i, j int) bool {
-					return filteredSettings[i].Metadata.Namespace < filteredSettings[j].Metadata.Namespace
+				sort.SliceStable(filteredSettings, func(i, j int) bool {
+					a := filteredSettings[i]
+					b := filteredSettings[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) < b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredSettings, func(i, j int) bool {
-					return filteredSettings[i].Status.State < filteredSettings[j].Status.State
+				sort.SliceStable(filteredSettings, func(i, j int) bool {
+					a := filteredSettings[i]
+					b := filteredSettings[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace < string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		}
@@ -607,6 +769,69 @@ func (k *fedGlooResourceHandler) GetSettingsYaml(ctx context.Context, request *r
 	}, nil
 }
 
+func (k *fedGlooResourceHandler) GetSettingsDetails(ctx context.Context, request *rpc_edge_v1.GetSettingsDetailsRequest) (*rpc_edge_v1.GetSettingsDetailsResponse, error) {
+	SettingsRef := request.GetSettingsRef()
+	if SettingsRef == nil {
+		return nil, eris.Errorf("Settings ref missing from request: %v", request)
+	}
+	clientset, err := k.mcGlooCRDClientset.Cluster(SettingsRef.GetClusterName())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get Settings client set")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	Settings, err := clientset.Settings().GetSettings(ctx, client.ObjectKey{
+		Namespace: SettingsRef.GetNamespace(),
+		Name:      SettingsRef.GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get Settings")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	// find which gloo instance this Settings belongs to, by finding a gloo instance that is watching
+	// the Settings's namespace
+	instanceList, err := k.instanceClient.ListGlooInstance(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	var glooInstance *fedv1.GlooInstance
+	for _, instance := range instanceList.Items {
+		watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+		if len(watchedNamespaces) == 0 {
+			glooInstance = &instance
+			break
+		}
+		for _, ns := range watchedNamespaces {
+			if ns == SettingsRef.GetNamespace() {
+				glooInstance = &instance
+				break
+			}
+		}
+		if glooInstance != nil {
+			break
+		}
+	}
+	if glooInstance == nil {
+		return nil, eris.Errorf("Failed to find a gloo edge instance for namespace %s", Settings.GetNamespace())
+	}
+	rpcSettings := &rpc_edge_v1.Settings{
+		Metadata: apiserverutils.ToMetadata(Settings.ObjectMeta),
+		GlooInstance: &skv2v1.ObjectRef{
+			Name:      glooInstance.GetName(),
+			Namespace: glooInstance.GetNamespace(),
+		},
+		Spec:   &Settings.Spec,
+		Status: &Settings.Status,
+	}
+	rpcSettings.Metadata.ClusterName = glooInstance.Spec.GetCluster()
+	return &rpc_edge_v1.GetSettingsDetailsResponse{
+		Settings: rpcSettings,
+	}, nil
+}
+
 func (k *fedGlooResourceHandler) ListProxies(ctx context.Context, request *rpc_edge_v1.ListProxiesRequest) (*rpc_edge_v1.ListProxiesResponse, error) {
 	var rpcProxies []*rpc_edge_v1.Proxy
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -666,31 +891,43 @@ func (k *fedGlooResourceHandler) ListProxies(ctx context.Context, request *rpc_e
 		if isDescending == true {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredProxies, func(i, j int) bool {
-					return filteredProxies[i].Metadata.Name > filteredProxies[j].Metadata.Name
+				sort.SliceStable(filteredProxies, func(i, j int) bool {
+					a := filteredProxies[i]
+					b := filteredProxies[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) > b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredProxies, func(i, j int) bool {
-					return filteredProxies[i].Metadata.Namespace > filteredProxies[j].Metadata.Namespace
+				sort.SliceStable(filteredProxies, func(i, j int) bool {
+					a := filteredProxies[i]
+					b := filteredProxies[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) > b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredProxies, func(i, j int) bool {
-					return filteredProxies[i].Status.State > filteredProxies[j].Status.State
+				sort.SliceStable(filteredProxies, func(i, j int) bool {
+					a := filteredProxies[i]
+					b := filteredProxies[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace > string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		} else {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredProxies, func(i, j int) bool {
-					return filteredProxies[i].Metadata.Name < filteredProxies[j].Metadata.Name
+				sort.SliceStable(filteredProxies, func(i, j int) bool {
+					a := filteredProxies[i]
+					b := filteredProxies[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) < b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredProxies, func(i, j int) bool {
-					return filteredProxies[i].Metadata.Namespace < filteredProxies[j].Metadata.Namespace
+				sort.SliceStable(filteredProxies, func(i, j int) bool {
+					a := filteredProxies[i]
+					b := filteredProxies[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) < b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredProxies, func(i, j int) bool {
-					return filteredProxies[i].Status.State < filteredProxies[j].Status.State
+				sort.SliceStable(filteredProxies, func(i, j int) bool {
+					a := filteredProxies[i]
+					b := filteredProxies[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace < string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		}
@@ -794,5 +1031,68 @@ func (k *fedGlooResourceHandler) GetProxyYaml(ctx context.Context, request *rpc_
 		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
+	}, nil
+}
+
+func (k *fedGlooResourceHandler) GetProxyDetails(ctx context.Context, request *rpc_edge_v1.GetProxyDetailsRequest) (*rpc_edge_v1.GetProxyDetailsResponse, error) {
+	ProxyRef := request.GetProxyRef()
+	if ProxyRef == nil {
+		return nil, eris.Errorf("Proxy ref missing from request: %v", request)
+	}
+	clientset, err := k.mcGlooCRDClientset.Cluster(ProxyRef.GetClusterName())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get Proxy client set")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	Proxy, err := clientset.Proxies().GetProxy(ctx, client.ObjectKey{
+		Namespace: ProxyRef.GetNamespace(),
+		Name:      ProxyRef.GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get Proxy")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	// find which gloo instance this Proxy belongs to, by finding a gloo instance that is watching
+	// the Proxy's namespace
+	instanceList, err := k.instanceClient.ListGlooInstance(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	var glooInstance *fedv1.GlooInstance
+	for _, instance := range instanceList.Items {
+		watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+		if len(watchedNamespaces) == 0 {
+			glooInstance = &instance
+			break
+		}
+		for _, ns := range watchedNamespaces {
+			if ns == ProxyRef.GetNamespace() {
+				glooInstance = &instance
+				break
+			}
+		}
+		if glooInstance != nil {
+			break
+		}
+	}
+	if glooInstance == nil {
+		return nil, eris.Errorf("Failed to find a gloo edge instance for namespace %s", Proxy.GetNamespace())
+	}
+	rpcProxy := &rpc_edge_v1.Proxy{
+		Metadata: apiserverutils.ToMetadata(Proxy.ObjectMeta),
+		GlooInstance: &skv2v1.ObjectRef{
+			Name:      glooInstance.GetName(),
+			Namespace: glooInstance.GetNamespace(),
+		},
+		Spec:   &Proxy.Spec,
+		Status: &Proxy.Status,
+	}
+	rpcProxy.Metadata.ClusterName = glooInstance.Spec.GetCluster()
+	return &rpc_edge_v1.GetProxyDetailsResponse{
+		Proxy: rpcProxy,
 	}, nil
 }

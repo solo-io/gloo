@@ -22,6 +22,15 @@ type GatewayResourceApiGetGatewayYaml = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayYamlResponse;
 };
 
+type GatewayResourceApiGetGatewayDetails = {
+  readonly methodName: string;
+  readonly service: typeof GatewayResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayDetailsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayDetailsResponse;
+};
+
 type GatewayResourceApiListMatchableHttpGateways = {
   readonly methodName: string;
   readonly service: typeof GatewayResourceApi;
@@ -38,6 +47,15 @@ type GatewayResourceApiGetMatchableHttpGatewayYaml = {
   readonly responseStream: false;
   readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlRequest;
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlResponse;
+};
+
+type GatewayResourceApiGetMatchableHttpGatewayDetails = {
+  readonly methodName: string;
+  readonly service: typeof GatewayResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayDetailsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayDetailsResponse;
 };
 
 type GatewayResourceApiListVirtualServices = {
@@ -58,6 +76,15 @@ type GatewayResourceApiGetVirtualServiceYaml = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetVirtualServiceYamlResponse;
 };
 
+type GatewayResourceApiGetVirtualServiceDetails = {
+  readonly methodName: string;
+  readonly service: typeof GatewayResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetVirtualServiceDetailsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetVirtualServiceDetailsResponse;
+};
+
 type GatewayResourceApiListRouteTables = {
   readonly methodName: string;
   readonly service: typeof GatewayResourceApi;
@@ -76,16 +103,29 @@ type GatewayResourceApiGetRouteTableYaml = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetRouteTableYamlResponse;
 };
 
+type GatewayResourceApiGetRouteTableDetails = {
+  readonly methodName: string;
+  readonly service: typeof GatewayResourceApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetRouteTableDetailsRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetRouteTableDetailsResponse;
+};
+
 export class GatewayResourceApi {
   static readonly serviceName: string;
   static readonly ListGateways: GatewayResourceApiListGateways;
   static readonly GetGatewayYaml: GatewayResourceApiGetGatewayYaml;
+  static readonly GetGatewayDetails: GatewayResourceApiGetGatewayDetails;
   static readonly ListMatchableHttpGateways: GatewayResourceApiListMatchableHttpGateways;
   static readonly GetMatchableHttpGatewayYaml: GatewayResourceApiGetMatchableHttpGatewayYaml;
+  static readonly GetMatchableHttpGatewayDetails: GatewayResourceApiGetMatchableHttpGatewayDetails;
   static readonly ListVirtualServices: GatewayResourceApiListVirtualServices;
   static readonly GetVirtualServiceYaml: GatewayResourceApiGetVirtualServiceYaml;
+  static readonly GetVirtualServiceDetails: GatewayResourceApiGetVirtualServiceDetails;
   static readonly ListRouteTables: GatewayResourceApiListRouteTables;
   static readonly GetRouteTableYaml: GatewayResourceApiGetRouteTableYaml;
+  static readonly GetRouteTableDetails: GatewayResourceApiGetRouteTableDetails;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -138,6 +178,15 @@ export class GatewayResourceApiClient {
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayYamlResponse|null) => void
   ): UnaryResponse;
+  getGatewayDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayDetailsResponse|null) => void
+  ): UnaryResponse;
+  getGatewayDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetGatewayDetailsResponse|null) => void
+  ): UnaryResponse;
   listMatchableHttpGateways(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListMatchableHttpGatewaysRequest,
     metadata: grpc.Metadata,
@@ -155,6 +204,15 @@ export class GatewayResourceApiClient {
   getMatchableHttpGatewayYaml(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayYamlResponse|null) => void
+  ): UnaryResponse;
+  getMatchableHttpGatewayDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayDetailsResponse|null) => void
+  ): UnaryResponse;
+  getMatchableHttpGatewayDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetMatchableHttpGatewayDetailsResponse|null) => void
   ): UnaryResponse;
   listVirtualServices(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListVirtualServicesRequest,
@@ -174,6 +232,15 @@ export class GatewayResourceApiClient {
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetVirtualServiceYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetVirtualServiceYamlResponse|null) => void
   ): UnaryResponse;
+  getVirtualServiceDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetVirtualServiceDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetVirtualServiceDetailsResponse|null) => void
+  ): UnaryResponse;
+  getVirtualServiceDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetVirtualServiceDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetVirtualServiceDetailsResponse|null) => void
+  ): UnaryResponse;
   listRouteTables(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.ListRouteTablesRequest,
     metadata: grpc.Metadata,
@@ -191,6 +258,15 @@ export class GatewayResourceApiClient {
   getRouteTableYaml(
     requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetRouteTableYamlRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetRouteTableYamlResponse|null) => void
+  ): UnaryResponse;
+  getRouteTableDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetRouteTableDetailsRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetRouteTableDetailsResponse|null) => void
+  ): UnaryResponse;
+  getRouteTableDetails(
+    requestMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetRouteTableDetailsRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_gateway_resources_pb.GetRouteTableDetailsResponse|null) => void
   ): UnaryResponse;
 }
 

@@ -161,3 +161,47 @@ export namespace GetAuthConfigYamlResponse {
     yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
   }
 }
+
+export class GetAuthConfigDetailsRequest extends jspb.Message {
+  hasAuthConfigRef(): boolean;
+  clearAuthConfigRef(): void;
+  getAuthConfigRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setAuthConfigRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetAuthConfigDetailsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetAuthConfigDetailsRequest): GetAuthConfigDetailsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetAuthConfigDetailsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetAuthConfigDetailsRequest;
+  static deserializeBinaryFromReader(message: GetAuthConfigDetailsRequest, reader: jspb.BinaryReader): GetAuthConfigDetailsRequest;
+}
+
+export namespace GetAuthConfigDetailsRequest {
+  export type AsObject = {
+    authConfigRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class GetAuthConfigDetailsResponse extends jspb.Message {
+  hasAuthConfig(): boolean;
+  clearAuthConfig(): void;
+  getAuthConfig(): AuthConfig | undefined;
+  setAuthConfig(value?: AuthConfig): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetAuthConfigDetailsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetAuthConfigDetailsResponse): GetAuthConfigDetailsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetAuthConfigDetailsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetAuthConfigDetailsResponse;
+  static deserializeBinaryFromReader(message: GetAuthConfigDetailsResponse, reader: jspb.BinaryReader): GetAuthConfigDetailsResponse;
+}
+
+export namespace GetAuthConfigDetailsResponse {
+  export type AsObject = {
+    authConfig?: AuthConfig.AsObject,
+  }
+}

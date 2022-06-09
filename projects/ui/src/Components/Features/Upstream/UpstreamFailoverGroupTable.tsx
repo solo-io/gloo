@@ -156,7 +156,7 @@ const COLUMNS: any = [
 const UpstreamFailoverGroupTable = ({ group, isWeighted }: Props) => {
   const [tableData, setTableData] = React.useState<RowData[]>([]);
 
-  // TODO: Replace with useUpstreamDetails().
+  // TODO: This will not scale well with a large amount of upstreams, see below TODO.
   const { data: upstreamsResponse, error: upstreamResponseError } =
     useListUpstreams();
   const allUpstreams = upstreamsResponse?.upstreamsList;
@@ -191,6 +191,7 @@ const UpstreamFailoverGroupTable = ({ group, isWeighted }: Props) => {
           : undefined,
       });
       priorityGroup.upstreamsList.forEach((upstream, uIdx) => {
+        // TODO: Make a bunch of parallel requests to get all the details for these upstreams.
         const glooInstance = getGlooInstance({
           clusterName: priorityGroup.cluster,
           name: upstream.name,

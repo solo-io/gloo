@@ -1,33 +1,40 @@
-import { GlooResourceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb_service';
-import {
-  host,
-  getObjectRefClassFromRefObj,
-  getClusterRefClassFromClusterRefObj,
-  toPaginationClass,
-} from './helpers';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
-  ListUpstreamGroupsRequest,
-  ListUpstreamsRequest,
-  ListUpstreamsResponse,
-  UpstreamGroup,
-  Upstream,
-  GetUpstreamGroupYamlRequest,
-  GetUpstreamYamlRequest,
-  GetProxyYamlRequest,
-  ListProxiesRequest,
-  Proxy,
-  Settings,
-  GetSettingsYamlRequest,
-} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
-import {
-  ObjectRef,
   ClusterObjectRef,
+  ObjectRef,
 } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import {
   Pagination,
   StatusFilter,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
+import {
+  GetProxyDetailsRequest,
+  GetProxyDetailsResponse,
+  GetProxyYamlRequest,
+  GetSettingsDetailsRequest,
+  GetSettingsDetailsResponse,
+  GetSettingsYamlRequest,
+  GetUpstreamDetailsRequest,
+  GetUpstreamDetailsResponse,
+  GetUpstreamGroupDetailsRequest,
+  GetUpstreamGroupDetailsResponse,
+  GetUpstreamGroupYamlRequest,
+  GetUpstreamYamlRequest,
+  ListProxiesRequest,
+  ListUpstreamGroupsRequest,
+  ListUpstreamsRequest,
+  ListUpstreamsResponse,
+  Proxy,
+  Settings,
+  UpstreamGroup,
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
+import { GlooResourceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb_service';
+import {
+  getClusterRefClassFromClusterRefObj,
+  getObjectRefClassFromRefObj,
+  host,
+  toPaginationClass,
+} from './helpers';
 
 const glooResourceApiClient = new GlooResourceApiClient(host, {
   transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
@@ -39,12 +46,14 @@ export const glooResourceApi = {
   listUpstreamGroups,
   listProxies,
   listSettings,
-  getUpstream,
-  getUpstreamGroup,
   getUpstreamYAML,
   getUpstreamGroupYAML,
   getProxyYAML,
   getSettingYAML,
+  getUpstreamDetails,
+  getUpstreamGroupDetails,
+  getProxyDetails,
+  getSettingDetails,
 };
 
 function listUpstreams(
@@ -53,6 +62,29 @@ function listUpstreams(
   queryString?: string,
   statusFilter?: number
 ): Promise<ListUpstreamsResponse.AsObject> {
+  // Used to debug slowdown issues.
+  // return new Promise((resolve, reject) => {
+  //   setTimeout(() => {
+  //     const res = new ListUpstreamsResponse();
+  //     res.setTotal(1903);
+  //     const ul = [] as Upstream[];
+  //     for (let i = 0; i < res.getTotal(); i++) {
+  //       const u = new Upstream();
+  //       const g = new ClusterObjectRef();
+  //       g.setName('gloo');
+  //       g.setNamespace('gloo-system');
+  //       u.setGlooInstance(g);
+  //       const m = new ObjectMeta();
+  //       m.setName('upstream_' + i);
+  //       m.setNamespace('gloo-system');
+  //       m.setUid(i.toString());
+  //       u.setMetadata(m);
+  //       ul.push(u);
+  //     }
+  //     res.setUpstreamsList(ul);
+  //     resolve(res!.toObject());
+  //   }, 500);
+  // });
   let request = new ListUpstreamsRequest();
   if (listUpstreamsRequest) {
     request.setGlooInstanceRef(
@@ -70,7 +102,6 @@ function listUpstreams(
     sf.setState(statusFilter);
     request.setStatusFilter(sf);
   }
-
   return new Promise((resolve, reject) => {
     glooResourceApiClient.listUpstreams(request, (error, data) => {
       if (error !== null) {
@@ -155,72 +186,6 @@ function listSettings(
   });
 }
 
-function getUpstream(
-  glooInstRef: ObjectRef.AsObject,
-  upstreamRef: ClusterObjectRef.AsObject
-): Promise<Upstream.AsObject> {
-  let request = new ListUpstreamsRequest();
-  request.setGlooInstanceRef(getObjectRefClassFromRefObj(glooInstRef));
-
-  return new Promise((resolve, reject) => {
-    glooResourceApiClient.listUpstreams(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
-        const upstreamsList = data!.toObject().upstreamsList;
-        const upstream = upstreamsList.find(
-          u =>
-            (!upstreamRef.clusterName ||
-              u.metadata?.clusterName === upstreamRef.clusterName) &&
-            u.metadata?.namespace === upstreamRef.namespace &&
-            u.metadata?.name === upstreamRef.name
-        );
-        if (upstream) {
-          resolve(upstream);
-        } else {
-          reject({ message: 'Upstream not found' });
-        }
-      }
-    });
-  });
-}
-
-function getUpstreamGroup(
-  glooInstRef: ObjectRef.AsObject,
-  upstreamGroupRef: ClusterObjectRef.AsObject
-): Promise<UpstreamGroup.AsObject> {
-  let request = new ListUpstreamGroupsRequest();
-  request.setGlooInstanceRef(getObjectRefClassFromRefObj(glooInstRef));
-
-  return new Promise((resolve, reject) => {
-    glooResourceApiClient.listUpstreamGroups(request, (error, data) => {
-      if (error !== null) {
-        console.error('Error:', error.message);
-        console.error('Code:', error.code);
-        console.error('Metadata:', error.metadata);
-        reject(error);
-      } else {
-        const upstreamGroupsList = data!.toObject().upstreamGroupsList;
-        const upstreamGroup = upstreamGroupsList.find(
-          u =>
-            (!upstreamGroupRef.clusterName ||
-              u.metadata?.clusterName === upstreamGroupRef.clusterName) &&
-            u.metadata?.namespace === upstreamGroupRef.namespace &&
-            u.metadata?.name === upstreamGroupRef.name
-        );
-        if (upstreamGroup) {
-          resolve(upstreamGroup);
-        } else {
-          reject({ message: 'Upstream Group not found' });
-        }
-      }
-    });
-  });
-}
-
 function getUpstreamYAML(
   upstreamObjectRef: ClusterObjectRef.AsObject
 ): Promise<string> {
@@ -300,6 +265,86 @@ function getSettingYAML(
         reject(error);
       } else {
         resolve(data!.toObject().yamlData?.yaml ?? 'None');
+      }
+    });
+  });
+}
+
+function getUpstreamDetails(
+  upstreamObjectRef: ClusterObjectRef.AsObject
+): Promise<GetUpstreamDetailsResponse.AsObject> {
+  let request = new GetUpstreamDetailsRequest();
+  request.setUpstreamRef(
+    getClusterRefClassFromClusterRefObj(upstreamObjectRef)
+  );
+  return new Promise((resolve, reject) => {
+    glooResourceApiClient.getUpstreamDetails(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject());
+      }
+    });
+  });
+}
+
+function getUpstreamGroupDetails(
+  upstreamGroupObjectRef: ClusterObjectRef.AsObject
+): Promise<GetUpstreamGroupDetailsResponse.AsObject> {
+  let request = new GetUpstreamGroupDetailsRequest();
+  request.setUpstreamGroupRef(
+    getClusterRefClassFromClusterRefObj(upstreamGroupObjectRef)
+  );
+  return new Promise((resolve, reject) => {
+    glooResourceApiClient.getUpstreamGroupDetails(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject());
+      }
+    });
+  });
+}
+
+function getProxyDetails(
+  proxyObjectRef: ClusterObjectRef.AsObject
+): Promise<GetProxyDetailsResponse.AsObject> {
+  let request = new GetProxyDetailsRequest();
+  request.setProxyRef(getClusterRefClassFromClusterRefObj(proxyObjectRef));
+  return new Promise((resolve, reject) => {
+    glooResourceApiClient.getProxyDetails(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject());
+      }
+    });
+  });
+}
+
+function getSettingDetails(
+  settingObjectRef: ClusterObjectRef.AsObject
+): Promise<GetSettingsDetailsResponse.AsObject> {
+  let request = new GetSettingsDetailsRequest();
+  request.setSettingsRef(getClusterRefClassFromClusterRefObj(settingObjectRef));
+  return new Promise((resolve, reject) => {
+    glooResourceApiClient.getSettingsDetails(request, (error, data) => {
+      if (error !== null) {
+        console.error('Error:', error.message);
+        console.error('Code:', error.code);
+        console.error('Metadata:', error.metadata);
+        reject(error);
+      } else {
+        resolve(data!.toObject());
       }
     });
   });

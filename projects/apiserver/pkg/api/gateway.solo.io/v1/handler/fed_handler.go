@@ -96,31 +96,43 @@ func (k *fedGatewayResourceHandler) ListGateways(ctx context.Context, request *r
 		if isDescending == true {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredGateways, func(i, j int) bool {
-					return filteredGateways[i].Metadata.Name > filteredGateways[j].Metadata.Name
+				sort.SliceStable(filteredGateways, func(i, j int) bool {
+					a := filteredGateways[i]
+					b := filteredGateways[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) > b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredGateways, func(i, j int) bool {
-					return filteredGateways[i].Metadata.Namespace > filteredGateways[j].Metadata.Namespace
+				sort.SliceStable(filteredGateways, func(i, j int) bool {
+					a := filteredGateways[i]
+					b := filteredGateways[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) > b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredGateways, func(i, j int) bool {
-					return filteredGateways[i].Status.State > filteredGateways[j].Status.State
+				sort.SliceStable(filteredGateways, func(i, j int) bool {
+					a := filteredGateways[i]
+					b := filteredGateways[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace > string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		} else {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredGateways, func(i, j int) bool {
-					return filteredGateways[i].Metadata.Name < filteredGateways[j].Metadata.Name
+				sort.SliceStable(filteredGateways, func(i, j int) bool {
+					a := filteredGateways[i]
+					b := filteredGateways[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) < b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredGateways, func(i, j int) bool {
-					return filteredGateways[i].Metadata.Namespace < filteredGateways[j].Metadata.Namespace
+				sort.SliceStable(filteredGateways, func(i, j int) bool {
+					a := filteredGateways[i]
+					b := filteredGateways[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) < b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredGateways, func(i, j int) bool {
-					return filteredGateways[i].Status.State < filteredGateways[j].Status.State
+				sort.SliceStable(filteredGateways, func(i, j int) bool {
+					a := filteredGateways[i]
+					b := filteredGateways[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace < string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		}
@@ -227,6 +239,69 @@ func (k *fedGatewayResourceHandler) GetGatewayYaml(ctx context.Context, request 
 	}, nil
 }
 
+func (k *fedGatewayResourceHandler) GetGatewayDetails(ctx context.Context, request *rpc_edge_v1.GetGatewayDetailsRequest) (*rpc_edge_v1.GetGatewayDetailsResponse, error) {
+	GatewayRef := request.GetGatewayRef()
+	if GatewayRef == nil {
+		return nil, eris.Errorf("Gateway ref missing from request: %v", request)
+	}
+	clientset, err := k.mcGatewayCRDClientset.Cluster(GatewayRef.GetClusterName())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get Gateway client set")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	Gateway, err := clientset.Gateways().GetGateway(ctx, client.ObjectKey{
+		Namespace: GatewayRef.GetNamespace(),
+		Name:      GatewayRef.GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get Gateway")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	// find which gloo instance this Gateway belongs to, by finding a gloo instance that is watching
+	// the Gateway's namespace
+	instanceList, err := k.instanceClient.ListGlooInstance(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	var glooInstance *fedv1.GlooInstance
+	for _, instance := range instanceList.Items {
+		watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+		if len(watchedNamespaces) == 0 {
+			glooInstance = &instance
+			break
+		}
+		for _, ns := range watchedNamespaces {
+			if ns == GatewayRef.GetNamespace() {
+				glooInstance = &instance
+				break
+			}
+		}
+		if glooInstance != nil {
+			break
+		}
+	}
+	if glooInstance == nil {
+		return nil, eris.Errorf("Failed to find a gloo edge instance for namespace %s", Gateway.GetNamespace())
+	}
+	rpcGateway := &rpc_edge_v1.Gateway{
+		Metadata: apiserverutils.ToMetadata(Gateway.ObjectMeta),
+		GlooInstance: &skv2v1.ObjectRef{
+			Name:      glooInstance.GetName(),
+			Namespace: glooInstance.GetNamespace(),
+		},
+		Spec:   &Gateway.Spec,
+		Status: &Gateway.Status,
+	}
+	rpcGateway.Metadata.ClusterName = glooInstance.Spec.GetCluster()
+	return &rpc_edge_v1.GetGatewayDetailsResponse{
+		Gateway: rpcGateway,
+	}, nil
+}
+
 func (k *fedGatewayResourceHandler) ListMatchableHttpGateways(ctx context.Context, request *rpc_edge_v1.ListMatchableHttpGatewaysRequest) (*rpc_edge_v1.ListMatchableHttpGatewaysResponse, error) {
 	var rpcMatchableHttpGateways []*rpc_edge_v1.MatchableHttpGateway
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -286,31 +361,43 @@ func (k *fedGatewayResourceHandler) ListMatchableHttpGateways(ctx context.Contex
 		if isDescending == true {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
-					return filteredMatchableHttpGateways[i].Metadata.Name > filteredMatchableHttpGateways[j].Metadata.Name
+				sort.SliceStable(filteredMatchableHttpGateways, func(i, j int) bool {
+					a := filteredMatchableHttpGateways[i]
+					b := filteredMatchableHttpGateways[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) > b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
-					return filteredMatchableHttpGateways[i].Metadata.Namespace > filteredMatchableHttpGateways[j].Metadata.Namespace
+				sort.SliceStable(filteredMatchableHttpGateways, func(i, j int) bool {
+					a := filteredMatchableHttpGateways[i]
+					b := filteredMatchableHttpGateways[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) > b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
-					return filteredMatchableHttpGateways[i].Status.State > filteredMatchableHttpGateways[j].Status.State
+				sort.SliceStable(filteredMatchableHttpGateways, func(i, j int) bool {
+					a := filteredMatchableHttpGateways[i]
+					b := filteredMatchableHttpGateways[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace > string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		} else {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
-					return filteredMatchableHttpGateways[i].Metadata.Name < filteredMatchableHttpGateways[j].Metadata.Name
+				sort.SliceStable(filteredMatchableHttpGateways, func(i, j int) bool {
+					a := filteredMatchableHttpGateways[i]
+					b := filteredMatchableHttpGateways[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) < b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
-					return filteredMatchableHttpGateways[i].Metadata.Namespace < filteredMatchableHttpGateways[j].Metadata.Namespace
+				sort.SliceStable(filteredMatchableHttpGateways, func(i, j int) bool {
+					a := filteredMatchableHttpGateways[i]
+					b := filteredMatchableHttpGateways[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) < b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredMatchableHttpGateways, func(i, j int) bool {
-					return filteredMatchableHttpGateways[i].Status.State < filteredMatchableHttpGateways[j].Status.State
+				sort.SliceStable(filteredMatchableHttpGateways, func(i, j int) bool {
+					a := filteredMatchableHttpGateways[i]
+					b := filteredMatchableHttpGateways[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace < string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		}
@@ -417,6 +504,69 @@ func (k *fedGatewayResourceHandler) GetMatchableHttpGatewayYaml(ctx context.Cont
 	}, nil
 }
 
+func (k *fedGatewayResourceHandler) GetMatchableHttpGatewayDetails(ctx context.Context, request *rpc_edge_v1.GetMatchableHttpGatewayDetailsRequest) (*rpc_edge_v1.GetMatchableHttpGatewayDetailsResponse, error) {
+	MatchableHttpGatewayRef := request.GetMatchableHttpGatewayRef()
+	if MatchableHttpGatewayRef == nil {
+		return nil, eris.Errorf("MatchableHttpGateway ref missing from request: %v", request)
+	}
+	clientset, err := k.mcGatewayCRDClientset.Cluster(MatchableHttpGatewayRef.GetClusterName())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get MatchableHttpGateway client set")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	MatchableHttpGateway, err := clientset.MatchableHttpGateways().GetMatchableHttpGateway(ctx, client.ObjectKey{
+		Namespace: MatchableHttpGatewayRef.GetNamespace(),
+		Name:      MatchableHttpGatewayRef.GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get MatchableHttpGateway")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	// find which gloo instance this MatchableHttpGateway belongs to, by finding a gloo instance that is watching
+	// the MatchableHttpGateway's namespace
+	instanceList, err := k.instanceClient.ListGlooInstance(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	var glooInstance *fedv1.GlooInstance
+	for _, instance := range instanceList.Items {
+		watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+		if len(watchedNamespaces) == 0 {
+			glooInstance = &instance
+			break
+		}
+		for _, ns := range watchedNamespaces {
+			if ns == MatchableHttpGatewayRef.GetNamespace() {
+				glooInstance = &instance
+				break
+			}
+		}
+		if glooInstance != nil {
+			break
+		}
+	}
+	if glooInstance == nil {
+		return nil, eris.Errorf("Failed to find a gloo edge instance for namespace %s", MatchableHttpGateway.GetNamespace())
+	}
+	rpcMatchableHttpGateway := &rpc_edge_v1.MatchableHttpGateway{
+		Metadata: apiserverutils.ToMetadata(MatchableHttpGateway.ObjectMeta),
+		GlooInstance: &skv2v1.ObjectRef{
+			Name:      glooInstance.GetName(),
+			Namespace: glooInstance.GetNamespace(),
+		},
+		Spec:   &MatchableHttpGateway.Spec,
+		Status: &MatchableHttpGateway.Status,
+	}
+	rpcMatchableHttpGateway.Metadata.ClusterName = glooInstance.Spec.GetCluster()
+	return &rpc_edge_v1.GetMatchableHttpGatewayDetailsResponse{
+		MatchableHttpGateway: rpcMatchableHttpGateway,
+	}, nil
+}
+
 func (k *fedGatewayResourceHandler) ListVirtualServices(ctx context.Context, request *rpc_edge_v1.ListVirtualServicesRequest) (*rpc_edge_v1.ListVirtualServicesResponse, error) {
 	var rpcVirtualServices []*rpc_edge_v1.VirtualService
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -476,31 +626,43 @@ func (k *fedGatewayResourceHandler) ListVirtualServices(ctx context.Context, req
 		if isDescending == true {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredVirtualServices, func(i, j int) bool {
-					return filteredVirtualServices[i].Metadata.Name > filteredVirtualServices[j].Metadata.Name
+				sort.SliceStable(filteredVirtualServices, func(i, j int) bool {
+					a := filteredVirtualServices[i]
+					b := filteredVirtualServices[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) > b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredVirtualServices, func(i, j int) bool {
-					return filteredVirtualServices[i].Metadata.Namespace > filteredVirtualServices[j].Metadata.Namespace
+				sort.SliceStable(filteredVirtualServices, func(i, j int) bool {
+					a := filteredVirtualServices[i]
+					b := filteredVirtualServices[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) > b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredVirtualServices, func(i, j int) bool {
-					return filteredVirtualServices[i].Status.State > filteredVirtualServices[j].Status.State
+				sort.SliceStable(filteredVirtualServices, func(i, j int) bool {
+					a := filteredVirtualServices[i]
+					b := filteredVirtualServices[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace > string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		} else {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredVirtualServices, func(i, j int) bool {
-					return filteredVirtualServices[i].Metadata.Name < filteredVirtualServices[j].Metadata.Name
+				sort.SliceStable(filteredVirtualServices, func(i, j int) bool {
+					a := filteredVirtualServices[i]
+					b := filteredVirtualServices[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) < b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredVirtualServices, func(i, j int) bool {
-					return filteredVirtualServices[i].Metadata.Namespace < filteredVirtualServices[j].Metadata.Namespace
+				sort.SliceStable(filteredVirtualServices, func(i, j int) bool {
+					a := filteredVirtualServices[i]
+					b := filteredVirtualServices[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) < b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredVirtualServices, func(i, j int) bool {
-					return filteredVirtualServices[i].Status.State < filteredVirtualServices[j].Status.State
+				sort.SliceStable(filteredVirtualServices, func(i, j int) bool {
+					a := filteredVirtualServices[i]
+					b := filteredVirtualServices[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace < string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		}
@@ -607,6 +769,69 @@ func (k *fedGatewayResourceHandler) GetVirtualServiceYaml(ctx context.Context, r
 	}, nil
 }
 
+func (k *fedGatewayResourceHandler) GetVirtualServiceDetails(ctx context.Context, request *rpc_edge_v1.GetVirtualServiceDetailsRequest) (*rpc_edge_v1.GetVirtualServiceDetailsResponse, error) {
+	VirtualServiceRef := request.GetVirtualServiceRef()
+	if VirtualServiceRef == nil {
+		return nil, eris.Errorf("VirtualService ref missing from request: %v", request)
+	}
+	clientset, err := k.mcGatewayCRDClientset.Cluster(VirtualServiceRef.GetClusterName())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get VirtualService client set")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	VirtualService, err := clientset.VirtualServices().GetVirtualService(ctx, client.ObjectKey{
+		Namespace: VirtualServiceRef.GetNamespace(),
+		Name:      VirtualServiceRef.GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get VirtualService")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	// find which gloo instance this VirtualService belongs to, by finding a gloo instance that is watching
+	// the VirtualService's namespace
+	instanceList, err := k.instanceClient.ListGlooInstance(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	var glooInstance *fedv1.GlooInstance
+	for _, instance := range instanceList.Items {
+		watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+		if len(watchedNamespaces) == 0 {
+			glooInstance = &instance
+			break
+		}
+		for _, ns := range watchedNamespaces {
+			if ns == VirtualServiceRef.GetNamespace() {
+				glooInstance = &instance
+				break
+			}
+		}
+		if glooInstance != nil {
+			break
+		}
+	}
+	if glooInstance == nil {
+		return nil, eris.Errorf("Failed to find a gloo edge instance for namespace %s", VirtualService.GetNamespace())
+	}
+	rpcVirtualService := &rpc_edge_v1.VirtualService{
+		Metadata: apiserverutils.ToMetadata(VirtualService.ObjectMeta),
+		GlooInstance: &skv2v1.ObjectRef{
+			Name:      glooInstance.GetName(),
+			Namespace: glooInstance.GetNamespace(),
+		},
+		Spec:   &VirtualService.Spec,
+		Status: &VirtualService.Status,
+	}
+	rpcVirtualService.Metadata.ClusterName = glooInstance.Spec.GetCluster()
+	return &rpc_edge_v1.GetVirtualServiceDetailsResponse{
+		VirtualService: rpcVirtualService,
+	}, nil
+}
+
 func (k *fedGatewayResourceHandler) ListRouteTables(ctx context.Context, request *rpc_edge_v1.ListRouteTablesRequest) (*rpc_edge_v1.ListRouteTablesResponse, error) {
 	var rpcRouteTables []*rpc_edge_v1.RouteTable
 	if request.GetGlooInstanceRef() == nil || request.GetGlooInstanceRef().GetName() == "" || request.GetGlooInstanceRef().GetNamespace() == "" {
@@ -666,31 +891,43 @@ func (k *fedGatewayResourceHandler) ListRouteTables(ctx context.Context, request
 		if isDescending == true {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredRouteTables, func(i, j int) bool {
-					return filteredRouteTables[i].Metadata.Name > filteredRouteTables[j].Metadata.Name
+				sort.SliceStable(filteredRouteTables, func(i, j int) bool {
+					a := filteredRouteTables[i]
+					b := filteredRouteTables[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) > b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredRouteTables, func(i, j int) bool {
-					return filteredRouteTables[i].Metadata.Namespace > filteredRouteTables[j].Metadata.Namespace
+				sort.SliceStable(filteredRouteTables, func(i, j int) bool {
+					a := filteredRouteTables[i]
+					b := filteredRouteTables[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) > b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredRouteTables, func(i, j int) bool {
-					return filteredRouteTables[i].Status.State > filteredRouteTables[j].Status.State
+				sort.SliceStable(filteredRouteTables, func(i, j int) bool {
+					a := filteredRouteTables[i]
+					b := filteredRouteTables[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace > string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		} else {
 			switch sortKey {
 			case rpc_edge_v1.SortOptions_NAME:
-				sort.Slice(filteredRouteTables, func(i, j int) bool {
-					return filteredRouteTables[i].Metadata.Name < filteredRouteTables[j].Metadata.Name
+				sort.SliceStable(filteredRouteTables, func(i, j int) bool {
+					a := filteredRouteTables[i]
+					b := filteredRouteTables[j]
+					return a.Metadata.Name+a.Metadata.Namespace+string(a.Status.State) < b.Metadata.Name+b.Metadata.Namespace+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_NAMESPACE:
-				sort.Slice(filteredRouteTables, func(i, j int) bool {
-					return filteredRouteTables[i].Metadata.Namespace < filteredRouteTables[j].Metadata.Namespace
+				sort.SliceStable(filteredRouteTables, func(i, j int) bool {
+					a := filteredRouteTables[i]
+					b := filteredRouteTables[j]
+					return a.Metadata.Namespace+a.Metadata.Name+string(a.Status.State) < b.Metadata.Namespace+b.Metadata.Name+string(b.Status.State)
 				})
 			case rpc_edge_v1.SortOptions_STATUS:
-				sort.Slice(filteredRouteTables, func(i, j int) bool {
-					return filteredRouteTables[i].Status.State < filteredRouteTables[j].Status.State
+				sort.SliceStable(filteredRouteTables, func(i, j int) bool {
+					a := filteredRouteTables[i]
+					b := filteredRouteTables[j]
+					return string(a.Status.State)+a.Metadata.Name+a.Metadata.Namespace < string(b.Status.State)+b.Metadata.Name+b.Metadata.Namespace
 				})
 			}
 		}
@@ -794,5 +1031,68 @@ func (k *fedGatewayResourceHandler) GetRouteTableYaml(ctx context.Context, reque
 		YamlData: &rpc_edge_v1.ResourceYaml{
 			Yaml: string(content),
 		},
+	}, nil
+}
+
+func (k *fedGatewayResourceHandler) GetRouteTableDetails(ctx context.Context, request *rpc_edge_v1.GetRouteTableDetailsRequest) (*rpc_edge_v1.GetRouteTableDetailsResponse, error) {
+	RouteTableRef := request.GetRouteTableRef()
+	if RouteTableRef == nil {
+		return nil, eris.Errorf("RouteTable ref missing from request: %v", request)
+	}
+	clientset, err := k.mcGatewayCRDClientset.Cluster(RouteTableRef.GetClusterName())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get RouteTable client set")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	RouteTable, err := clientset.RouteTables().GetRouteTable(ctx, client.ObjectKey{
+		Namespace: RouteTableRef.GetNamespace(),
+		Name:      RouteTableRef.GetName(),
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to get RouteTable")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	// find which gloo instance this RouteTable belongs to, by finding a gloo instance that is watching
+	// the RouteTable's namespace
+	instanceList, err := k.instanceClient.ListGlooInstance(ctx)
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Failed to list gloo edge instances")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	var glooInstance *fedv1.GlooInstance
+	for _, instance := range instanceList.Items {
+		watchedNamespaces := instance.Spec.GetControlPlane().GetWatchedNamespaces()
+		if len(watchedNamespaces) == 0 {
+			glooInstance = &instance
+			break
+		}
+		for _, ns := range watchedNamespaces {
+			if ns == RouteTableRef.GetNamespace() {
+				glooInstance = &instance
+				break
+			}
+		}
+		if glooInstance != nil {
+			break
+		}
+	}
+	if glooInstance == nil {
+		return nil, eris.Errorf("Failed to find a gloo edge instance for namespace %s", RouteTable.GetNamespace())
+	}
+	rpcRouteTable := &rpc_edge_v1.RouteTable{
+		Metadata: apiserverutils.ToMetadata(RouteTable.ObjectMeta),
+		GlooInstance: &skv2v1.ObjectRef{
+			Name:      glooInstance.GetName(),
+			Namespace: glooInstance.GetNamespace(),
+		},
+		Spec:   &RouteTable.Spec,
+		Status: &RouteTable.Status,
+	}
+	rpcRouteTable.Metadata.ClusterName = glooInstance.Spec.GetCluster()
+	return &rpc_edge_v1.GetRouteTableDetailsResponse{
+		RouteTable: rpcRouteTable,
 	}, nil
 }

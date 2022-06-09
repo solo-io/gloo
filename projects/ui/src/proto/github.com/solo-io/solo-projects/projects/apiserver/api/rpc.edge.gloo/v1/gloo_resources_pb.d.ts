@@ -284,6 +284,50 @@ export namespace GetUpstreamYamlResponse {
   }
 }
 
+export class GetUpstreamDetailsRequest extends jspb.Message {
+  hasUpstreamRef(): boolean;
+  clearUpstreamRef(): void;
+  getUpstreamRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setUpstreamRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetUpstreamDetailsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetUpstreamDetailsRequest): GetUpstreamDetailsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetUpstreamDetailsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetUpstreamDetailsRequest;
+  static deserializeBinaryFromReader(message: GetUpstreamDetailsRequest, reader: jspb.BinaryReader): GetUpstreamDetailsRequest;
+}
+
+export namespace GetUpstreamDetailsRequest {
+  export type AsObject = {
+    upstreamRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class GetUpstreamDetailsResponse extends jspb.Message {
+  hasUpstream(): boolean;
+  clearUpstream(): void;
+  getUpstream(): Upstream | undefined;
+  setUpstream(value?: Upstream): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetUpstreamDetailsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetUpstreamDetailsResponse): GetUpstreamDetailsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetUpstreamDetailsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetUpstreamDetailsResponse;
+  static deserializeBinaryFromReader(message: GetUpstreamDetailsResponse, reader: jspb.BinaryReader): GetUpstreamDetailsResponse;
+}
+
+export namespace GetUpstreamDetailsResponse {
+  export type AsObject = {
+    upstream?: Upstream.AsObject,
+  }
+}
+
 export class ListUpstreamGroupsRequest extends jspb.Message {
   hasGlooInstanceRef(): boolean;
   clearGlooInstanceRef(): void;
@@ -395,6 +439,50 @@ export class GetUpstreamGroupYamlResponse extends jspb.Message {
 export namespace GetUpstreamGroupYamlResponse {
   export type AsObject = {
     yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
+  }
+}
+
+export class GetUpstreamGroupDetailsRequest extends jspb.Message {
+  hasUpstreamGroupRef(): boolean;
+  clearUpstreamGroupRef(): void;
+  getUpstreamGroupRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setUpstreamGroupRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetUpstreamGroupDetailsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetUpstreamGroupDetailsRequest): GetUpstreamGroupDetailsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetUpstreamGroupDetailsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetUpstreamGroupDetailsRequest;
+  static deserializeBinaryFromReader(message: GetUpstreamGroupDetailsRequest, reader: jspb.BinaryReader): GetUpstreamGroupDetailsRequest;
+}
+
+export namespace GetUpstreamGroupDetailsRequest {
+  export type AsObject = {
+    upstreamGroupRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class GetUpstreamGroupDetailsResponse extends jspb.Message {
+  hasUpstreamGroup(): boolean;
+  clearUpstreamGroup(): void;
+  getUpstreamGroup(): UpstreamGroup | undefined;
+  setUpstreamGroup(value?: UpstreamGroup): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetUpstreamGroupDetailsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetUpstreamGroupDetailsResponse): GetUpstreamGroupDetailsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetUpstreamGroupDetailsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetUpstreamGroupDetailsResponse;
+  static deserializeBinaryFromReader(message: GetUpstreamGroupDetailsResponse, reader: jspb.BinaryReader): GetUpstreamGroupDetailsResponse;
+}
+
+export namespace GetUpstreamGroupDetailsResponse {
+  export type AsObject = {
+    upstreamGroup?: UpstreamGroup.AsObject,
   }
 }
 
@@ -512,6 +600,50 @@ export namespace GetSettingsYamlResponse {
   }
 }
 
+export class GetSettingsDetailsRequest extends jspb.Message {
+  hasSettingsRef(): boolean;
+  clearSettingsRef(): void;
+  getSettingsRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setSettingsRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetSettingsDetailsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetSettingsDetailsRequest): GetSettingsDetailsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetSettingsDetailsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetSettingsDetailsRequest;
+  static deserializeBinaryFromReader(message: GetSettingsDetailsRequest, reader: jspb.BinaryReader): GetSettingsDetailsRequest;
+}
+
+export namespace GetSettingsDetailsRequest {
+  export type AsObject = {
+    settingsRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class GetSettingsDetailsResponse extends jspb.Message {
+  hasSettings(): boolean;
+  clearSettings(): void;
+  getSettings(): Settings | undefined;
+  setSettings(value?: Settings): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetSettingsDetailsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetSettingsDetailsResponse): GetSettingsDetailsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetSettingsDetailsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetSettingsDetailsResponse;
+  static deserializeBinaryFromReader(message: GetSettingsDetailsResponse, reader: jspb.BinaryReader): GetSettingsDetailsResponse;
+}
+
+export namespace GetSettingsDetailsResponse {
+  export type AsObject = {
+    settings?: Settings.AsObject,
+  }
+}
+
 export class ListProxiesRequest extends jspb.Message {
   hasGlooInstanceRef(): boolean;
   clearGlooInstanceRef(): void;
@@ -623,5 +755,49 @@ export class GetProxyYamlResponse extends jspb.Message {
 export namespace GetProxyYamlResponse {
   export type AsObject = {
     yamlData?: github_com_solo_io_solo_projects_projects_apiserver_api_rpc_edge_gloo_v1_common_pb.ResourceYaml.AsObject,
+  }
+}
+
+export class GetProxyDetailsRequest extends jspb.Message {
+  hasProxyRef(): boolean;
+  clearProxyRef(): void;
+  getProxyRef(): github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef | undefined;
+  setProxyRef(value?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetProxyDetailsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetProxyDetailsRequest): GetProxyDetailsRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetProxyDetailsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetProxyDetailsRequest;
+  static deserializeBinaryFromReader(message: GetProxyDetailsRequest, reader: jspb.BinaryReader): GetProxyDetailsRequest;
+}
+
+export namespace GetProxyDetailsRequest {
+  export type AsObject = {
+    proxyRef?: github_com_solo_io_skv2_api_core_v1_core_pb.ClusterObjectRef.AsObject,
+  }
+}
+
+export class GetProxyDetailsResponse extends jspb.Message {
+  hasProxy(): boolean;
+  clearProxy(): void;
+  getProxy(): Proxy | undefined;
+  setProxy(value?: Proxy): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetProxyDetailsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetProxyDetailsResponse): GetProxyDetailsResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetProxyDetailsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetProxyDetailsResponse;
+  static deserializeBinaryFromReader(message: GetProxyDetailsResponse, reader: jspb.BinaryReader): GetProxyDetailsResponse;
+}
+
+export namespace GetProxyDetailsResponse {
+  export type AsObject = {
+    proxy?: Proxy.AsObject,
   }
 }

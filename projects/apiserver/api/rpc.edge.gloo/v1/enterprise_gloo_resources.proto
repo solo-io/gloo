@@ -39,8 +39,17 @@ message GetAuthConfigYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
+message GetAuthConfigDetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef auth_config_ref = 1;
+}
+
+message GetAuthConfigDetailsResponse {
+    AuthConfig auth_config = 1;
+}
+
 service EnterpriseGlooResourceApi {
 
     rpc ListAuthConfigs (ListAuthConfigsRequest) returns (ListAuthConfigsResponse) {}
     rpc GetAuthConfigYaml (GetAuthConfigYamlRequest) returns (GetAuthConfigYamlResponse) {}
+    rpc GetAuthConfigDetails (GetAuthConfigDetailsRequest) returns (GetAuthConfigDetailsResponse) {}
 }

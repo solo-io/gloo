@@ -39,8 +39,17 @@ message GetRateLimitConfigYamlResponse {
     .rpc.edge.gloo.solo.io.ResourceYaml yaml_data = 1;
 }
 
+message GetRateLimitConfigDetailsRequest {
+    .core.skv2.solo.io.ClusterObjectRef rate_limit_config_ref = 1;
+}
+
+message GetRateLimitConfigDetailsResponse {
+    RateLimitConfig rate_limit_config = 1;
+}
+
 service RatelimitResourceApi {
 
     rpc ListRateLimitConfigs (ListRateLimitConfigsRequest) returns (ListRateLimitConfigsResponse) {}
     rpc GetRateLimitConfigYaml (GetRateLimitConfigYamlRequest) returns (GetRateLimitConfigYamlResponse) {}
+    rpc GetRateLimitConfigDetails (GetRateLimitConfigDetailsRequest) returns (GetRateLimitConfigDetailsResponse) {}
 }
