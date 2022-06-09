@@ -10,7 +10,7 @@ import { SoloInput } from 'Components/Common/SoloInput';
 import { Fetcher, GraphiQL } from 'graphiql';
 // @ts-ignore
 import GraphiQLExplorer from 'graphiql-explorer';
-import { buildSchema, DocumentNode } from 'graphql';
+import { buildSchema, DocumentNode, parse } from 'graphql';
 import * as React from 'react';
 import { ChangeEvent, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
@@ -40,36 +40,6 @@ type TabsState = {
 
 const Wrapper = styled.div`
   background: white;
-`;
-
-const StyledContainer = styled.div`
-  height: 70vh;
-  display: flex;
-  flex-direction: row;
-  .doc-explorer-title-bar {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 20px;
-  }
-  .doc-explorer-rhs {
-    margin-right: 30px;
-    &:hover {
-      cursor: pointer;
-    }
-  }
-  .graphiql-explorer-root,
-  .docExplorerWrap {
-    font-size: 16px !important;
-    line-height: 1.3 !important;
-  }
-  .doc-explorer-contents {
-    overflow-y: scroll !important;
-  }
-  .doc-explorer-title {
-    margin-left: 10px;
-  }
 `;
 
 const GqlInputContainer = styled.div`
@@ -292,6 +262,11 @@ export const GraphqlApiExplorer = () => {
 
   const handleQueryUpdate = (query?: string, documentAST?: DocumentNode) => {
     setQuery(query);
+    // This queryChanged check is needed, since the explorer tab
+    // might need to manually update the graphiqlRef in this way.
+    const queryChanged =
+      graphiqlRef.current?.getQueryEditor().getValue() !== query;
+    if (queryChanged) graphiqlRef.current?.handleEditQuery(query ?? '');
   };
 
   // The operation name === the tab name.
@@ -379,7 +354,7 @@ export const GraphqlApiExplorer = () => {
           </GqlInputWrapper>
         </GqlInputContainer>
       ) : null}
-      <StyledContainer>
+      <div className='graphiql-outer-container'>
         <GraphiQLExplorer
           schema={!refetch ? executableSchema : undefined}
           query={query}
@@ -439,7 +414,7 @@ export const GraphqlApiExplorer = () => {
             />
           </GraphiQL.Toolbar>
         </GraphiQL>
-      </StyledContainer>
+      </div>
     </Wrapper>
   ) : (
     <div className='overflow-hidden bg-white rounded-lg shadow'>
