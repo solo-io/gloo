@@ -3,15 +3,36 @@ package test
 import (
 	"fmt"
 
+	. "github.com/onsi/gomega"
+
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/printer"
 )
 
+// Gets the type of the argument used in the query
+// and verifies that the type is used in the correct
+// input type
 func getInputFieldType(document *ast.Document) string {
+	var inputFieldType string
+	for _, node := range document.Definitions {
+		if t, ok := node.(*ast.ObjectDefinition); ok {
+			if t.GetName().Value == "Query" {
+				// There should only be one query we are testing at a time
+				ExpectWithOffset(1, t.Fields).To(HaveLen(1))
+				queryField := t.Fields[0]
+				// there should only be one argument in this test that we are checking the type of
+				ExpectWithOffset(1, queryField.Arguments).To(HaveLen(1))
+				arg := queryField.Arguments[0]
+				inputFieldType = printer.Print(arg.Type).(string)
+			}
+		}
+	}
 	for _, node := range document.Definitions {
 		if inputType, ok := node.(*ast.InputObjectDefinition); ok {
-			for _, inputValueDef := range inputType.Fields {
-				return fmt.Sprintf("%s", printer.Print(inputValueDef.Type))
+			if inputType.GetName().Value == inputFieldType {
+				for _, inputValueDef := range inputType.Fields {
+					return printer.Print(inputValueDef.Type).(string)
+				}
 			}
 		}
 	}

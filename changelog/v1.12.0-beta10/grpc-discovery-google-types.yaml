@@ -1,0 +1,6 @@
+changelog:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/6460
+  description: >
+    Support google.protobuf.* types that use a custom JSON encoding when discovering these types via gRPC reflection.
+    An example of such a type is `google.protobuf.Timestamp`, which is a protobuf message but is encoded in JSON as a string.

@@ -46,9 +46,21 @@ var _ = Describe("Grpc reflection - graphql schema discovery test", func() {
 			return doc
 		}
 
-		DescribeTable("translates basic gRPC types", func(grpcType, expectedGraphqlType string) {
-			sampleGrpcProto := fmt.Sprintf(`
+		DescribeTable("translates basic gRPC types",
+			func(grpcType, expectedGraphqlType string, expectedGraphqlInputType ...string) {
+				expectedInputType := expectedGraphqlType
+				if len(expectedGraphqlInputType) > 0 {
+					expectedInputType = expectedGraphqlInputType[0]
+				}
+				sampleGrpcProto := fmt.Sprintf(`
 syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/field_mask.proto";
+
+
 package foo;
 message Pet {
 	%s testType = 1;
@@ -61,11 +73,11 @@ service Foo {
 	rpc GetPet(PetRequest) returns (Pet) {};
 }
 `, grpcType, grpcType)
-			doc := getGraphqlDocForProto(1, sampleGrpcProto)
-			ExpectWithOffset(1, getInputFieldType(doc)).To(Equal(expectedGraphqlType))
-			ExpectWithOffset(1, getFieldType(doc)).To(Equal(expectedGraphqlType))
-			fmt.Println(printer.Print(doc))
-		},
+				doc := getGraphqlDocForProto(1, sampleGrpcProto)
+				fmt.Println(printer.Print(doc))
+				Expect(getInputFieldType(doc)).To(Equal(expectedInputType))
+				Expect(getFieldType(doc)).To(Equal(expectedGraphqlType))
+			},
 			Entry("double", "double", "Float"),
 			Entry("float", "float", "Float"),
 			Entry("int32", "int32", "Int"),
@@ -84,6 +96,21 @@ service Foo {
 			Entry("repeated double", "repeated double", "[Float]"),
 			Entry("repeated bool", "repeated bool", "[Boolean]"),
 			Entry("repeated int32", "repeated int32", "[Int]"),
+			// google protobuf wrapper types
+			Entry("string wrapper", "google.protobuf.StringValue", "String", "StringValueInput"),
+			Entry("bytes wrapper", "google.protobuf.BytesValue", "String", "BytesValueInput"),
+			Entry("double wrapper", "google.protobuf.DoubleValue", "Float", "DoubleValueInput"),
+			Entry("bool wrapper", "google.protobuf.BoolValue", "Boolean", "BoolValueInput"),
+			Entry("int32 wrapper", "google.protobuf.Int32Value", "Int", "Int32ValueInput"),
+			Entry("uint32 wrapper", "google.protobuf.UInt32Value", "Int", "UInt32ValueInput"),
+			Entry("int64 wrapper", "google.protobuf.Int64Value", "String", "Int64ValueInput"),
+			Entry("uint64 wrapper", "google.protobuf.UInt64Value", "String", "UInt64ValueInput"),
+			Entry("float wrapper", "google.protobuf.FloatValue", "Float", "FloatValueInput"),
+			Entry("repeated int wrapper", "repeated google.protobuf.Int32Value", "[Int]", "[Int32ValueInput]"),
+			// misc google types
+			Entry("duration", "google.protobuf.Duration", "String", "DurationInput"),
+			Entry("field mask", "google.protobuf.FieldMask", "String", "FieldMaskInput"),
+			Entry("time stamp", "google.protobuf.Timestamp", "String", "TimestampInput"),
 		)
 
 		Context("translates proto messages", func() {

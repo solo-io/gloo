@@ -90,6 +90,8 @@ func (sb *SchemaBuilder) CreateGraphqlType(t *desc.FieldDescriptor, CreateObjTyp
 		fallthrough
 	case descriptor.FieldDescriptorProto_TYPE_FIXED32:
 		return named("Int")
+	case descriptor.FieldDescriptorProto_TYPE_BYTES:
+		fallthrough
 	case descriptor.FieldDescriptorProto_TYPE_STRING:
 		return named("String")
 	case descriptor.FieldDescriptorProto_TYPE_GROUP:
@@ -104,7 +106,7 @@ func (sb *SchemaBuilder) CreateGraphqlType(t *desc.FieldDescriptor, CreateObjTyp
 		enumName := sb.CreateEnumType(t.GetEnumType())
 		return named(enumName)
 	default:
-		return nil, "", errors.New(fmt.Sprintf("Uanble to translate protobuf type %s", t.GetType().String()))
+		return nil, "", errors.New(fmt.Sprintf("Unable to translate protobuf type %s", t.GetType().String()))
 	}
 }
 
@@ -116,6 +118,10 @@ func GetMessageName(t desc.Descriptor) string {
 }
 
 func (sb *SchemaBuilder) CreateOutputMessageType(t *desc.MessageDescriptor) (ast.Definition, string, error) {
+	// special case for google.protobuf.WrapperValue types
+	if substitutionName := TranslateGoogleProtobufWrapperTypes(t); substitutionName != "" {
+		return nil, substitutionName, nil
+	}
 	typeName := GetMessageName(t)
 	if objDef, ok := sb.TypeDefs[typeName]; ok {
 		return objDef, typeName, nil
@@ -126,14 +132,23 @@ func (sb *SchemaBuilder) CreateOutputMessageType(t *desc.MessageDescriptor) (ast
 	obj.Description = ast.NewStringValue(&ast.StringValue{Value: "Created from protobuf type " + t.GetFullyQualifiedName()})
 
 	for _, field := range t.GetFields() {
-		t, _, err := sb.CreateGraphqlType(field, sb.CreateOutputMessageType)
+		t, typeName, err := sb.CreateGraphqlType(field, sb.CreateOutputMessageType)
 		if err != nil {
 			return nil, "", err
 		}
 		newValDef := ast.NewFieldDefinition(&ast.FieldDefinition{
 			Name: CreateNameType(field.GetName()),
-			Type: t,
 		})
+
+		if t != nil {
+			newValDef.Type = t
+		} else {
+			// If the type t was not created and no err is thrown,
+			// this is a case where a Message maps to a GraphQL primitive value
+			// For example, google.protobuf.Timestamp is encoded in JSON as a String.
+			newValDef.Type = CreateNamedType(typeName)
+		}
+
 		obj.Fields = append(obj.Fields, newValDef)
 	}
 	// we can not have empty graphql types, so we need to add a field definition which will not be used.
