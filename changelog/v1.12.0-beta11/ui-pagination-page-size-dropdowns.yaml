@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Added page-size dropdowns to table pagination controls.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3739

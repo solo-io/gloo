@@ -14,6 +14,7 @@ import { DataError } from 'Components/Common/DataError';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { RenderSimpleLink, SimpleLinkProps } from 'Components/Common/SoloLink';
 import {
+  defaultPageSize,
   RenderCluster,
   RenderStatus,
   SoloTable,
@@ -54,15 +55,11 @@ const TableHolder = styled.div<TableHolderProps>`
 type Props = {
   statusFilter?: UpstreamStatus.StateMap[keyof UpstreamStatus.StateMap];
   nameFilter?: string;
-  glooInstanceFilter?: {
-    name: string;
-    namespace: string;
-  };
 };
 export const UpstreamsTable = (props: Props & TableHolderProps) => {
   const { name, namespace } = useParams();
-  const [offset, setOffset] = React.useState(0);
-  const limit = 10;
+  const [offset, setOffset] = useState(0);
+  const [limit, setLimit] = useState(defaultPageSize);
   const navigate = useNavigate();
 
   const [tableData, setTableData] = React.useState<
@@ -101,12 +98,7 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
   const [page, setPage] = useState(1);
   useEffect(() => {
     setPage(1);
-  }, [
-    props.nameFilter,
-    props.statusFilter,
-    props.glooInstanceFilter,
-    isGlooFedEnabled,
-  ]);
+  }, [props.nameFilter, props.statusFilter, isGlooFedEnabled]);
   useEffect(() => {
     setOffset(limit * (page - 1));
   }, [page]);
@@ -146,7 +138,6 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
     upstreams,
     props.nameFilter,
     props.statusFilter,
-    props.glooInstanceFilter,
     isGlooFedEnabled,
     props.wholePage,
   ]);
@@ -256,13 +247,17 @@ export const UpstreamsTable = (props: Props & TableHolderProps) => {
   return (
     <TableHolder wholePage={props.wholePage}>
       <SoloTable
+        loading={upstreams === undefined}
         pagination={{
           total,
           pageSize: limit,
+          onShowSizeChange: (_page, size) => {
+            setLimit(size);
+            setPage(1);
+          },
           current: page,
           onChange: newPage => setPage(newPage),
         }}
-        removePaging={total <= limit}
         columns={columns}
         dataSource={tableData}
         removeShadows

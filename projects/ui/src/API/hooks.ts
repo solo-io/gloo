@@ -18,8 +18,6 @@ import { graphqlConfigApi } from './graphql';
 import { useRequest } from './helpers';
 import { routeTablesSelectorApi } from './virtual-service-routes';
 import { wasmFilterApi } from './wasm-filter';
-import { Pagination } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
-import { RouteTableStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gateway/v1/route_table_pb';
 
 // -- glooInstanceApi
 export const useListGlooInstances = () =>
@@ -33,17 +31,11 @@ export const useGetUpstreamHosts = (glooInstanceRef: ObjectRef.AsObject) =>
 
 // -- gatewayResourceApi
 export const useListVirtualServices = (
-  ref?: ObjectRef.AsObject,
-  pag?: Pagination.AsObject,
-  qs?: string,
-  sf?: RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]
-) => useRequest(gatewayResourceApi.listVirtualServices, [ref, pag, qs, sf]);
+  ...args: Parameters<typeof gatewayResourceApi.listVirtualServices>
+) => useRequest(gatewayResourceApi.listVirtualServices, args);
 export const useListRouteTables = (
-  ref?: ObjectRef.AsObject,
-  pag?: Pagination.AsObject,
-  qs?: string,
-  sf?: RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]
-) => useRequest(gatewayResourceApi.listRouteTables, [ref, pag, qs, sf]);
+  ...args: Parameters<typeof gatewayResourceApi.listRouteTables>
+) => useRequest(gatewayResourceApi.listRouteTables, args);
 export const useGetGatewayYaml = (
   gatewayClusterObjectRef: ClusterObjectRef.AsObject
 ) => useRequest(gatewayResourceApi.getGatewayYAML, [gatewayClusterObjectRef]);
@@ -63,13 +55,11 @@ export const useListSettings = (ref?: ObjectRef.AsObject) =>
 export const useListProxies = (ref?: ObjectRef.AsObject) =>
   useRequest(glooResourceApi.listProxies, [ref]);
 export const useListUpstreams = (
-  ref?: ObjectRef.AsObject,
-  pag?: Pagination.AsObject,
-  qs?: string,
-  sf?: RouteTableStatus.StateMap[keyof RouteTableStatus.StateMap]
-) => useRequest(glooResourceApi.listUpstreams, [ref, pag, qs, sf]);
-export const useListUpstreamGroups = (ref?: ObjectRef.AsObject) =>
-  useRequest(glooResourceApi.listUpstreamGroups, [ref]);
+  ...args: Parameters<typeof glooResourceApi.listUpstreams>
+) => useRequest(glooResourceApi.listUpstreams, args);
+export const useListUpstreamGroups = (
+  ...args: Parameters<typeof glooResourceApi.listUpstreamGroups>
+) => useRequest(glooResourceApi.listUpstreamGroups, args);
 
 export const useGetUpstreamYaml = (upstreamRef: ClusterObjectRef.AsObject) =>
   useRequest(glooResourceApi.getUpstreamYAML, [upstreamRef]);

@@ -11,7 +11,13 @@ export const globalStyles = css`
   }
 
   .ant-table-pagination.ant-pagination {
-    margin-right: 8px;
+    margin-right: 20px;
+    li,
+    li button {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
   }
 
   body {

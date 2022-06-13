@@ -22,11 +22,11 @@ import {
   GetUpstreamYamlRequest,
   ListProxiesRequest,
   ListUpstreamGroupsRequest,
+  ListUpstreamGroupsResponse,
   ListUpstreamsRequest,
   ListUpstreamsResponse,
   Proxy,
   Settings,
-  UpstreamGroup,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { GlooResourceApiClient } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb_service';
 import {
@@ -49,11 +49,11 @@ export const glooResourceApi = {
   getUpstreamYAML,
   getUpstreamGroupYAML,
   getProxyYAML,
-  getSettingYAML,
+  getSettingsYAML,
   getUpstreamDetails,
   getUpstreamGroupDetails,
   getProxyDetails,
-  getSettingDetails,
+  getSettingsDetails,
 };
 
 function listUpstreams(
@@ -91,12 +91,8 @@ function listUpstreams(
       getObjectRefClassFromRefObj(listUpstreamsRequest)
     );
   }
-  if (pagination) {
-    request.setPagination(toPaginationClass(pagination));
-  }
-  if (queryString) {
-    request.setQueryString(queryString);
-  }
+  if (pagination) request.setPagination(toPaginationClass(pagination));
+  if (queryString) request.setQueryString(queryString);
   if (statusFilter !== undefined) {
     const sf = new StatusFilter();
     sf.setState(statusFilter);
@@ -117,15 +113,24 @@ function listUpstreams(
 }
 
 function listUpstreamGroups(
-  listUpstreamGroupsRequest?: ObjectRef.AsObject
-): Promise<UpstreamGroup.AsObject[]> {
+  listUpstreamGroupsRequest?: ObjectRef.AsObject,
+  pagination?: Pagination.AsObject,
+  queryString?: string,
+  statusFilter?: number
+): Promise<ListUpstreamGroupsResponse.AsObject> {
   let request = new ListUpstreamGroupsRequest();
   if (listUpstreamGroupsRequest) {
     request.setGlooInstanceRef(
       getObjectRefClassFromRefObj(listUpstreamGroupsRequest)
     );
   }
-
+  if (pagination) request.setPagination(toPaginationClass(pagination));
+  if (queryString) request.setQueryString(queryString);
+  if (statusFilter !== undefined) {
+    const sf = new StatusFilter();
+    sf.setState(statusFilter);
+    request.setStatusFilter(sf);
+  }
   return new Promise((resolve, reject) => {
     glooResourceApiClient.listUpstreamGroups(request, (error, data) => {
       if (error !== null) {
@@ -134,7 +139,7 @@ function listUpstreamGroups(
         console.error('Metadata:', error.metadata);
         reject(error);
       } else {
-        resolve(data!.toObject().upstreamGroupsList);
+        resolve(data!.toObject());
       }
     });
   });
@@ -250,7 +255,7 @@ function getProxyYAML(
   });
 }
 
-function getSettingYAML(
+function getSettingsYAML(
   settingObjectRef: ClusterObjectRef.AsObject
 ): Promise<string> {
   let request = new GetSettingsYamlRequest();
@@ -331,7 +336,7 @@ function getProxyDetails(
   });
 }
 
-function getSettingDetails(
+function getSettingsDetails(
   settingObjectRef: ClusterObjectRef.AsObject
 ): Promise<GetSettingsDetailsResponse.AsObject> {
   let request = new GetSettingsDetailsRequest();

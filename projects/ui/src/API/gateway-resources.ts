@@ -7,7 +7,6 @@ import {
 } from './helpers';
 import { grpc } from '@improbable-eng/grpc-web';
 import {
-  VirtualService,
   ListVirtualServicesRequest,
   ListGatewaysRequest,
   Gateway,

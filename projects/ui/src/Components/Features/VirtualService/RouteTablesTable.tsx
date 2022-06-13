@@ -110,19 +110,21 @@ const onDownloadRouteTable = (rt: RouteTable.AsObject) => {
 };
 
 type TableProps = {
+  loading: boolean;
   routeTables: RouteTable.AsObject[];
   page: number;
   setPage(newPage: number): void;
+  setLimit(newLimit: number): void;
   total: number;
   limit: number;
-  setOffset: React.Dispatch<React.SetStateAction<number>>;
 } & TableHolderProps;
 
 export const RouteTablesTable = ({
+  loading,
   page,
   setPage,
   limit,
-  setOffset,
+  setLimit,
   total,
   routeTables,
   wholePage,
@@ -198,13 +200,17 @@ export const RouteTablesTable = ({
   return (
     <RoutesTableHolder>
       <SoloTable
+        loading={loading}
         pagination={{
           total,
           pageSize: limit,
+          onShowSizeChange: (_page, size) => {
+            setLimit(size);
+            setPage(1);
+          },
           current: page,
           onChange: newPage => setPage(newPage),
         }}
-        removePaging={total <= limit}
         columns={columns}
         dataSource={tableData}
         removeShadows
@@ -221,7 +227,7 @@ type Props = {
 export const RouteTablesPageCardContents = (props: Props) => {
   const [tableData, setTableData] = useState<RouteTable.AsObject[]>([]);
   const [offset, setOffset] = useState(0);
-  const limit = 5;
+  const [limit, setLimit] = useState(5);
   const { name, namespace } = useParams();
   const { data: routeTablesResponse, error: routeTablesResponseError } =
     useListRouteTables(
@@ -257,10 +263,11 @@ export const RouteTablesPageCardContents = (props: Props) => {
   return (
     <TableHolder wholePage={props.wholePage}>
       <RouteTablesTable
+        loading={routeTablesResponse === undefined}
         page={page}
         setPage={setPage}
         limit={limit}
-        setOffset={setOffset}
+        setLimit={setLimit}
         total={total}
         routeTables={tableData}
         wholePage={props.wholePage}

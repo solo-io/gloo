@@ -14,6 +14,7 @@ import { EmptyAsterisk } from 'Components/Common/EmptyAsterisk';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { RenderSimpleLink, SimpleLinkProps } from 'Components/Common/SoloLink';
 import {
+  defaultPageSize,
   RenderCluster,
   RenderStatus,
   SoloTable,
@@ -64,10 +65,6 @@ type VirtualServiceTableFields = {
 type Props = {
   statusFilter?: VirtualServiceStatus.StateMap[keyof VirtualServiceStatus.StateMap];
   nameFilter?: string;
-  glooInstanceFilter?: {
-    name: string;
-    namespace: string;
-  };
 };
 export const VirtualServicesTable = (props: Props & TableHolderProps) => {
   const { name, namespace } = useParams();
@@ -88,7 +85,7 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
     (glooInstances && glooInstances.length > 1);
 
   const [offset, setOffset] = useState(0);
-  const limit = 10;
+  const [limit, setLimit] = useState(defaultPageSize);
   const { data: vsResponse, error: virtualServicesError } =
     useListVirtualServices(
       { name, namespace },
@@ -102,12 +99,7 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
   const [page, setPage] = useState(1);
   useEffect(() => {
     setPage(1);
-  }, [
-    props.nameFilter,
-    props.statusFilter,
-    props.glooInstanceFilter,
-    isGlooFedEnabled,
-  ]);
+  }, [props.nameFilter, props.statusFilter, isGlooFedEnabled]);
   useEffect(() => {
     setOffset(limit * (page - 1));
   }, [page]);
@@ -158,7 +150,6 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
     virtualServices,
     props.nameFilter,
     props.statusFilter,
-    props.glooInstanceFilter,
     isGlooFedEnabled,
     props.wholePage,
   ]);
@@ -257,15 +248,19 @@ export const VirtualServicesTable = (props: Props & TableHolderProps) => {
   return (
     <TableHolder wholePage={props.wholePage}>
       <SoloTable
+        loading={virtualServices === undefined}
         columns={columns}
         dataSource={tableData}
         pagination={{
           total,
           pageSize: limit,
+          onShowSizeChange: (_page, size) => {
+            setLimit(size);
+            setPage(1);
+          },
           current: page,
           onChange: newPage => setPage(newPage),
         }}
-        removePaging={total <= limit}
         removeShadows
         curved={props.wholePage}
       />

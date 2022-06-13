@@ -1,27 +1,25 @@
-import React, { useEffect } from 'react';
 import styled from '@emotion/styled/macro';
+import Tooltip from 'antd/lib/tooltip';
+import { glooResourceApi } from 'API/gloo-resource';
+import { useIsGlooFedEnabled, useListUpstreamGroups } from 'API/hooks';
+import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
+import { ReactComponent as UpstreamGroupIcon } from 'assets/upstream-group-icon.svg';
+import { DataError } from 'Components/Common/DataError';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { RenderSimpleLink, SimpleLinkProps } from 'Components/Common/SoloLink';
 import {
-  SoloTable,
+  RenderCluster,
   RenderStatus,
+  SoloTable,
   TableActionCircle,
   TableActions,
-  RenderCluster,
 } from 'Components/Common/SoloTable';
-import { SectionCard } from 'Components/Common/SectionCard';
-import { ReactComponent as UpstreamGroupIcon } from 'assets/upstream-group-icon.svg';
-import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
-import { colors } from 'Styles/colors';
-import Tooltip from 'antd/lib/tooltip';
-import { useParams, useNavigate } from 'react-router';
-import { useListUpstreamGroups, useIsGlooFedEnabled } from 'API/hooks';
-import { Loading } from 'Components/Common/Loading';
-import { objectMetasAreEqual } from 'API/helpers';
-import { UpstreamGroup } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
-import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
-import { SimpleLinkProps, RenderSimpleLink } from 'Components/Common/SoloLink';
-import { glooResourceApi } from 'API/gloo-resource';
 import { doDownload } from 'download-helper';
-import { DataError } from 'Components/Common/DataError';
+import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
+import { UpstreamGroup } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { colors } from 'Styles/colors';
 
 const UpstreamGroupIconHolder = styled.div`
   display: flex;
@@ -48,10 +46,6 @@ const TableHolder = styled.div<TableHolderProps>`
 type Props = {
   statusFilter?: UpstreamStatus.StateMap[keyof UpstreamStatus.StateMap];
   nameFilter?: string;
-  glooInstanceFilter?: {
-    name: string;
-    namespace: string;
-  };
 };
 export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
   const { name, namespace } = useParams();
@@ -70,68 +64,55 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
     }[]
   >([]);
 
-  const { data: upstreamGroups, error: upstreamGroupsError } =
+  const [offset, setOffset] = useState(0);
+  const [limit, setLimit] = useState(5);
+  const { data: ugResponse, error: upstreamGroupsError } =
     useListUpstreamGroups(
       !!name && !!namespace
         ? {
             name,
             namespace,
           }
-        : undefined
+        : undefined,
+      { limit, offset },
+      props.nameFilter,
+      props.statusFilter
     );
+  const upstreamGroups = ugResponse?.upstreamGroupsList;
+  const total = ugResponse?.total ?? 0;
 
   const { data: glooFedCheckResponse, error: glooFedCheckError } =
     useIsGlooFedEnabled();
   const isGlooFedEnabled = glooFedCheckResponse?.enabled;
 
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    setPage(1);
+  }, [props.nameFilter, props.statusFilter, isGlooFedEnabled]);
+  useEffect(() => {
+    setOffset(limit * (page - 1));
+  }, [page]);
+
   useEffect(() => {
     if (upstreamGroups) {
       setTableData(
-        upstreamGroups
-          .filter(
-            group =>
-              group.metadata?.name.includes(props.nameFilter ?? '') &&
-              (props.statusFilter === undefined ||
-                group.status?.state === props.statusFilter) &&
-              (!props.glooInstanceFilter ||
-                objectMetasAreEqual(
-                  {
-                    name: group.glooInstance?.name ?? '',
-                    namespace: group.glooInstance?.namespace ?? '',
-                  },
-                  props.glooInstanceFilter
-                ))
-          )
-          .sort(
-            (gA, gB) =>
-              (gA.metadata?.name ?? '').localeCompare(
-                gB.metadata?.name ?? ''
-              ) ||
-              (!props.wholePage
-                ? 0
-                : (gA.glooInstance?.name ?? '').localeCompare(
-                    gB.glooInstance?.name ?? ''
-                  ))
-          )
-          .map(group => {
-            return {
-              key: group.metadata?.uid ?? 'An group was provided with no UID',
-              name: {
-                displayElement: group.metadata?.name ?? '',
-                link: group.metadata
-                  ? isGlooFedEnabled
-                    ? `/gloo-instances/${group.glooInstance?.namespace}/${group.glooInstance?.name}/upstream-groups/${group.metadata.clusterName}/${group.metadata.namespace}/${group.metadata.name}/`
-                    : `/gloo-instances/${group.glooInstance?.namespace}/${group.glooInstance?.name}/upstream-groups/${group.metadata.namespace}/${group.metadata.name}/`
-                  : '',
-              },
-              namespace: group.metadata?.namespace ?? '',
-              glooInstance: group.glooInstance,
-              cluster: group.metadata?.clusterName ?? '',
-              upstreamGroupsCount: group.spec?.destinationsList.length ?? 0,
-              status: group.status?.state ?? UpstreamStatus.State.PENDING,
-              actions: group,
-            };
-          })
+        upstreamGroups.map(group => ({
+          key: group.metadata?.uid ?? 'An group was provided with no UID',
+          name: {
+            displayElement: group.metadata?.name ?? '',
+            link: group.metadata
+              ? isGlooFedEnabled
+                ? `/gloo-instances/${group.glooInstance?.namespace}/${group.glooInstance?.name}/upstream-groups/${group.metadata.clusterName}/${group.metadata.namespace}/${group.metadata.name}/`
+                : `/gloo-instances/${group.glooInstance?.namespace}/${group.glooInstance?.name}/upstream-groups/${group.metadata.namespace}/${group.metadata.name}/`
+              : '',
+          },
+          namespace: group.metadata?.namespace ?? '',
+          glooInstance: group.glooInstance,
+          cluster: group.metadata?.clusterName ?? '',
+          upstreamGroupsCount: group.spec?.destinationsList.length ?? 0,
+          status: group.status?.state ?? UpstreamStatus.State.PENDING,
+          actions: group,
+        }))
       );
     } else {
       setTableData([]);
@@ -140,15 +121,12 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
     upstreamGroups,
     props.nameFilter,
     props.statusFilter,
-    props.glooInstanceFilter,
     isGlooFedEnabled,
     props.wholePage,
   ]);
 
   if (!!upstreamGroupsError) {
     return <DataError error={upstreamGroupsError} />;
-  } else if (!upstreamGroups) {
-    return <Loading message={'Retrieving upstream groups...'} />;
   }
 
   const onDownloadUpstream = (group: UpstreamGroup.AsObject) => {
@@ -236,9 +214,19 @@ export const UpstreamGroupsTable = (props: Props & TableHolderProps) => {
   return (
     <TableHolder wholePage={props.wholePage}>
       <SoloTable
+        loading={ugResponse === undefined}
+        pagination={{
+          total,
+          pageSize: limit,
+          onShowSizeChange: (_page, size) => {
+            setLimit(size);
+            setPage(1);
+          },
+          current: page,
+          onChange: newPage => setPage(newPage),
+        }}
         columns={columns}
         dataSource={tableData}
-        removePaging
         removeShadows
         curved={props.wholePage}
       />

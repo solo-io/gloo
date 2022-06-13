@@ -86,7 +86,7 @@ export const GlooAdminSettings = () => {
 
     if (setting.metadata && !swaggerContentByUid[setting.metadata!.uid]) {
       glooResourceApi
-        .getSettingYAML({
+        .getSettingsYAML({
           name: setting.metadata.name,
           namespace: setting.metadata.namespace,
           clusterName: setting.metadata.clusterName,
@@ -102,7 +102,7 @@ export const GlooAdminSettings = () => {
   const onDownloadSetting = (setting: Settings.AsObject) => {
     if (setting.metadata && !swaggerContentByUid[setting.metadata.uid]) {
       glooResourceApi
-        .getSettingYAML({
+        .getSettingsYAML({
           name: setting.metadata.name,
           namespace: setting.metadata.namespace,
           clusterName: setting.metadata.clusterName,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import styled from '@emotion/styled';
 import Table, { TableProps } from 'antd/lib/table';
 import { colors, hslToHSLA } from 'Styles/colors';
@@ -369,31 +369,42 @@ const classNameGenerator = (record: any) => {
   return record?.name?.displayElement ?? '';
 };
 
+const tablePageSizeOptions = ['5', '10', '20', '50', '100'];
+export const defaultPageSize = 10;
+
 export const SoloTable = (props: SoloTableProps) => {
   const components = {
     body: {
       row: EditableRow,
     },
   };
-  const newProps = { ...props };
-  if (newProps.pagination) delete newProps.pagination;
+
+  const pagination = useMemo(() => {
+    // Removes pagination controls if the number shown is less than
+    // or equal to the minimum page size.
+    if (
+      props.removePaging === true ||
+      (!!props.pagination &&
+        props.pagination?.total !== undefined &&
+        props.pagination?.total <= 5)
+    )
+      return false;
+    return {
+      position: ['bottomRight'],
+      showSizeChanger: true,
+      pageSizeOptions: tablePageSizeOptions,
+      ...(props.pagination ?? {}),
+    } as SoloTableProps['pagination'];
+  }, [props]);
 
   return (
     <TableContainer className={props.containerClassName}>
       <Table
         rowClassName={classNameGenerator}
-        pagination={
-          newProps.removePaging
-            ? false
-            : {
-                position: ['bottomRight'],
-                simple: true,
-                ...(props.pagination ?? {}),
-              }
-        }
         showHeader={!props.hideHeader}
         components={components}
-        {...newProps}
+        {...props}
+        pagination={pagination}
       />
     </TableContainer>
   );
