@@ -385,7 +385,7 @@ var _ = Describe("Build Rest Client", func() {
 		Expect(err).To(Equal(grafana.IncompleteGrafanaCredentials))
 	})
 
-	It("requires a CA cert if an HTTPS URL given ", func() {
+	It("Do not require a CA cert if an HTTPS URL is given", func() {
 		err := os.Setenv(grafanaUsername, "username")
 		Expect(err).NotTo(HaveOccurred())
 		err = os.Setenv(grafanaPassword, "password")
@@ -393,7 +393,7 @@ var _ = Describe("Build Rest Client", func() {
 		err = os.Unsetenv(grafanaCaCrt)
 		Expect(err).NotTo(HaveOccurred())
 		_, err = buildRestClient(context.Background(), "https://test.com")
-		Expect(err).To(Equal(grafana.MissingGrafanaCredentials))
+		Expect(err).NotTo(HaveOccurred())
 	})
 })
 

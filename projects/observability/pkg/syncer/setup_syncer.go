@@ -190,28 +190,28 @@ func buildRestClient(ctx context.Context, grafanaApiUrl string) (grafana.RestCli
 		return nil, err
 	}
 
+	logger.Info("Setting up HTTPS connection to grafana")
+
 	if strings.HasPrefix(grafanaApiUrl, "https") {
-		if caCrtEnvValue == "" {
-			return nil, grafana.MissingGrafanaCredentials
-		}
-		logger.Info("Setting up HTTPS connection to grafana")
-		// Leaving this prior behavior which attempted to use the helm value as a filename
-		// for backwards compatibility.
-		caCert, err := ioutil.ReadFile(caCrtEnvValue)
-		if err != nil {
-			caCert = []byte(caCrtEnvValue)
-			caCrtEnvValue = "customGrafana.caBundle"
-		}
-		pool := x509.NewCertPool()
-		if ok := pool.AppendCertsFromPEM(caCert); !ok {
-			return nil, errors.Errorf("Unable to parse PEM encoded certificate in %s", caCrtEnvValue)
-		}
-		httpClient := &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					RootCAs: pool,
+		httpClient := &http.Client{}
+
+		if caCrtEnvValue != "" {
+			pool := x509.NewCertPool()
+			caCert, err := ioutil.ReadFile(caCrtEnvValue)
+			if err != nil {
+				caCert = []byte(caCrtEnvValue)
+				caCrtEnvValue = "customGrafana.caBundle"
+			}
+			if ok := pool.AppendCertsFromPEM(caCert); !ok {
+				return nil, errors.Errorf("Unable to parse PEM encoded certificate in %s", caCrtEnvValue)
+			}
+			httpClient = &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						RootCAs: pool,
+					},
 				},
-			},
+			}
 		}
 		return grafana.NewRestClient(grafanaApiUrl, httpClient, creds), nil
 	}

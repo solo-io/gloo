@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: |
+      CA not required for Observability when using a custom Grafana.
+    issueLink: https://github.com/solo-io/gloo/issues/6514
