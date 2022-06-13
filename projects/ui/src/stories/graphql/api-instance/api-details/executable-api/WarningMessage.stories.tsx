@@ -8,7 +8,6 @@ export default {
 } as unknown as ComponentMeta<typeof WarningMessage>;
 
 const Template: ComponentStory<typeof WarningMessage> = args => (
-  // @ts-ignore
   <WarningMessage {...args} />
 );
 

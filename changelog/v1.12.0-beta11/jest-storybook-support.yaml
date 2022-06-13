@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Enables overloading of React hooks with Jest in storybook.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3718
+    resolvesIssue: true
+  - type: NON_USER_FACING
+    description: Enables storybook in full.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3681
+    resolvesIssue: true

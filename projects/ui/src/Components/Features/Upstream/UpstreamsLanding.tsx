@@ -6,9 +6,7 @@ import { colors } from 'Styles/colors';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
-import {
-  SoloCheckbox,
-} from 'Components/Common/SoloCheckbox';
+import { SoloCheckbox } from 'Components/Common/SoloCheckbox';
 
 const UpstreamLandingContainer = styled.div`
   display: grid;

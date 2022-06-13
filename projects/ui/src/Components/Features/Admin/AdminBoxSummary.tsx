@@ -2,6 +2,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { SoloLink, SimpleLinkProps } from 'Components/Common/SoloLink';
 import { CountBox } from 'Components/Common/CountBox';
+import { di } from 'react-magnetic-di/macro';
 import {
   CardSubsectionWrapper,
   CardSubsectionContent,
@@ -88,6 +89,7 @@ type BoxProps = {
   loading: boolean;
   description: string;
   congratulationsText: string;
+  testId?: string;
 };
 
 const AdminBoxSummary = ({
@@ -101,9 +103,10 @@ const AdminBoxSummary = ({
   loading,
   description,
   congratulationsText,
+  testId,
 }: BoxProps) => {
   return (
-    <SmallContentSubsection>
+    <SmallContentSubsection data-testid={testId}>
       <BoxSummaryTitle>
         <VerticalCenterer>
           {title} {logo}
@@ -173,6 +176,15 @@ const LogoRecolorHolder = styled(LogoHolder)`
 `;
 
 export const AdminFederatedResourcesBox = () => {
+  di(
+    useListFederatedVirtualServices,
+    useListFederatedRouteTables,
+    useListFederatedUpstreams,
+    useListFederatedUpstreamGroups,
+    useListFederatedAuthConfigs,
+    useListFederatedGateways,
+    useListFederatedSettings
+  );
   const { data: fedVirtualServices, error: fedVsError } =
     useListFederatedVirtualServices();
   const { data: fedRouteTables, error: fedRtError } =
@@ -268,6 +280,7 @@ export const AdminFederatedResourcesBox = () => {
 
   return (
     <AdminBoxSummary
+      testId='admin-box-summary'
       title={'Federated Resources'}
       logo={
         <LogoRecolorHolder>
@@ -312,6 +325,7 @@ export const AdminFederatedResourcesBox = () => {
 };
 
 export const AdminClustersBox = () => {
+  di(useListClusterDetails);
   const { data: clusterDets, error: cError } = useListClusterDetails();
 
   if (!!cError) {
@@ -322,6 +336,7 @@ export const AdminClustersBox = () => {
 
   return (
     <AdminBoxSummary
+      testId='admin-box-summary'
       title={'Cluster'}
       logo={
         <LogoHolder>

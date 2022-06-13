@@ -10,7 +10,6 @@ export default {
 } as unknown as ComponentMeta<typeof GraphqlEditApiButton>;
 
 const Template: ComponentStory<typeof GraphqlEditApiButton> = args => (
-  // @ts-ignore
   <MemoryRouter>
     <GraphqlEditApiButton {...args} />
   </MemoryRouter>

@@ -95,7 +95,10 @@ export const DataError = ({ center = true, error }: ErrorProps) => {
   }, []);
 
   return (
-    <DataErrorContainer center={center} loadingComplete={gracefulStartComplete}>
+    <DataErrorContainer
+      data-testid='data-error'
+      center={center}
+      loadingComplete={gracefulStartComplete}>
       {error.code === 2 || error.code === 14 || error.code === 15 ? (
         <>
           <ImageHolder calm={true}>

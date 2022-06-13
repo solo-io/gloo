@@ -1,11 +1,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { colors } from 'Styles/colors';
-import {
-  Card,
-  CardSubsectionContent,
-  CardSubsectionWrapper,
-} from 'Components/Common/Card';
+import { CardSubsectionContent } from 'Components/Common/Card';
+import { di } from 'react-magnetic-di/macro';
 import { useListGlooInstances, useListGateways } from 'API/hooks';
 import { objectMetasAreEqual } from 'API/helpers';
 import { SoloLink } from 'Components/Common/SoloLink';
@@ -145,6 +142,7 @@ const AdminSettingsLink = styled.div`
 `;
 
 export const AdminGlooInstancesTable = () => {
+  di(useListGlooInstances, useListGateways);
   const { data: glooInstances, error: instancesError } = useListGlooInstances();
   const { data: gateways, error: gatewaysError } = useListGateways();
 
@@ -159,7 +157,7 @@ export const AdminGlooInstancesTable = () => {
   }
 
   return (
-    <div>
+    <div data-testid='admin-gloo-instances-table'>
       <Title>Gloo Instances</Title>
       {glooInstances.map(glooInstance => {
         const gatewaysForInstance = gateways?.filter(gateway =>

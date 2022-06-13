@@ -10,8 +10,7 @@ export default {
 
 const Template: ComponentStory<typeof AdminInnerPagesWrapper> = args => (
   <MemoryRouter>
-    {/* @ts-ignore */}
-    <AdminInnerPagesWrapper {...args} />
+    <AdminInnerPagesWrapper />
   </MemoryRouter>
 );
 

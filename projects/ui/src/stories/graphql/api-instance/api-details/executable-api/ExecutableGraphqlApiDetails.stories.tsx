@@ -10,7 +10,6 @@ export default {
 } as unknown as ComponentMeta<typeof ExecutableGraphqlApiDetails>;
 
 const Template: ComponentStory<typeof ExecutableGraphqlApiDetails> = args => (
-  // @ts-ignore
   <MemoryRouter>
     <ExecutableGraphqlApiDetails {...args} />
   </MemoryRouter>

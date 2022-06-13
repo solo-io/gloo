@@ -61,6 +61,7 @@
     "react-dom": "17.0.2",
     "react-hot-loader": "^4.13.0",
     "react-hot-toast": "^2.2.0",
+    "react-magnetic-di": "^2.2.8",
     "react-router": "^6.0.0-alpha.4",
     "react-router-dom": "^6.0.0-alpha.4",
     "react-scripts": "5.0.0",
@@ -108,12 +109,16 @@
     }
   },
   "devDependencies": {
+    "@alenon/grpc-mock-server": "^3.0.7",
     "@emotion/eslint-plugin": "^11.7.0",
+    "@faker-js/faker": "^7.2.0",
     "@storybook/addon-actions": "^6.5.5",
     "@storybook/addon-essentials": "^6.5.5",
     "@storybook/addon-interactions": "^6.5.5",
+    "@storybook/addon-jest": "^6.5.8",
     "@storybook/addon-links": "^6.5.5",
     "@storybook/builder-webpack5": "^6.5.5",
+    "@storybook/jest": "^0.0.10",
     "@storybook/manager-webpack5": "^6.5.5",
     "@storybook/node-logger": "^6.5.5",
     "@storybook/preset-create-react-app": "^4.1.1",
@@ -138,6 +143,8 @@
     "jest-snapshot": "^28.1.0",
     "jest-watch-typeahead": "^1.1.0",
     "lint-staged": "^10.2.11",
+    "msw": "^0.42.1",
+    "msw-storybook-addon": "^1.6.3",
     "postcss": "^8.4.5",
     "postcss-import": "^14.1.0",
     "prettier": "^2.5.1",
@@ -169,5 +176,8 @@
         }
       }
     ]
+  },
+  "msw": {
+    "workerDirectory": "public"
   }
 }

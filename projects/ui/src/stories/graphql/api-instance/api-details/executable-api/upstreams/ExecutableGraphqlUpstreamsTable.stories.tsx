@@ -12,7 +12,6 @@ export default {
 const Template: ComponentStory<
   typeof ExecutableGraphqlUpstreamsTable
 > = args => (
-  // @ts-ignore
   <MemoryRouter>
     <ExecutableGraphqlUpstreamsTable {...args} />
   </MemoryRouter>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ComponentStory, ComponentMeta } from '@storybook/react';
 import { GlooInstanceAdministration } from '../../../Components/Features/GlooInstance/Admin/GlooInstanceAdministration';
+import { MemoryRouter } from 'react-router';
 
 export default {
   title: `GlooInstance / Admin / ${GlooInstanceAdministration.name}`,
@@ -8,8 +9,7 @@ export default {
 } as unknown as ComponentMeta<typeof GlooInstanceAdministration>;
 
 const Template: ComponentStory<typeof GlooInstanceAdministration> = args => (
-  // @ts-ignore
-  <GlooInstanceAdministration {...args} />
+  <MemoryRouter><GlooInstanceAdministration /></MemoryRouter>
 );
 
 export const Primary = Template.bind({});

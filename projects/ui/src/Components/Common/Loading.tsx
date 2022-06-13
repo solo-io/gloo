@@ -45,6 +45,7 @@ export const Loading = ({ center = true, message }: LoadingProps) => {
 
   return (
     <div
+      data-testid='loading'
       style={{
         display: 'flex',
         flexDirection: 'column',
