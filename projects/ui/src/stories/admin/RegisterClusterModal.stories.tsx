@@ -4,9 +4,9 @@ import { RegisterClusterModal } from '../../Components/Features/Admin/RegisterCl
 
 // TODO:  Add in mock from jest
 export default {
-  title: `Admin / ${RegisterClusterModal.name}`,
+  title: 'Admin / RegisterClusterModal',
   component: RegisterClusterModal,
-} as unknown as ComponentMeta<typeof RegisterClusterModal>;
+} as ComponentMeta<typeof RegisterClusterModal>;
 
 const Template: ComponentStory<typeof RegisterClusterModal> = args => (
   // @ts-ignore

@@ -3,9 +3,9 @@ import { ComponentStory, ComponentMeta } from '@storybook/react';
 import { GlooInstanceRouteTables } from '../../Components/Features/GlooInstance/GlooInstanceRouteTables';
 
 export default {
-  title: `GlooInstance / ${GlooInstanceRouteTables.name}`,
+  title: 'GlooInstance / GlooInstanceRouteTables',
   component: GlooInstanceRouteTables,
-} as unknown as ComponentMeta<typeof GlooInstanceRouteTables>;
+} as ComponentMeta<typeof GlooInstanceRouteTables>;
 
 const Template: ComponentStory<typeof GlooInstanceRouteTables> = args => (
   // @ts-ignore

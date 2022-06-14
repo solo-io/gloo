@@ -3,9 +3,9 @@ import { ComponentStory, ComponentMeta } from '@storybook/react';
 import { GlooAdminSecrets } from '../../../Components/Features/GlooInstance/Admin/GlooAdminSecrets';
 
 export default {
-  title: `GlooInstance / Admin / ${GlooAdminSecrets.name}`,
+  title: 'GlooInstance / Admin / GlooAdminSecrets',
   component: GlooAdminSecrets,
-} as unknown as ComponentMeta<typeof GlooAdminSecrets>;
+} as ComponentMeta<typeof GlooAdminSecrets>;
 
 const Template: ComponentStory<typeof GlooAdminSecrets> = args => (
   // @ts-ignore

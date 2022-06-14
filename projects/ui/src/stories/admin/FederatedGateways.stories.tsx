@@ -4,9 +4,9 @@ import { FederatedGateways } from '../../Components/Features/Admin/FederatedGate
 
 // TODO:  Add in mock from jest
 export default {
-  title: `Admin / ${FederatedGateways.name}`,
+  title: 'Admin / FederatedGateways',
   component: FederatedGateways,
-} as unknown as ComponentMeta<typeof FederatedGateways>;
+} as ComponentMeta<typeof FederatedGateways>;
 
 const Template: ComponentStory<typeof FederatedGateways> = args => (
   // @ts-ignore

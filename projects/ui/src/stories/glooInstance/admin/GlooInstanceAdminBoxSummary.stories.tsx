@@ -4,9 +4,9 @@ import { GlooAdminGatewaysBox } from '../../../Components/Features/GlooInstance/
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `GlooInstance / Admin / ${GlooAdminGatewaysBox.name}`,
+  title: 'GlooInstance / Admin / GlooAdminGatewaysBox',
   component: GlooAdminGatewaysBox,
-} as unknown as ComponentMeta<typeof GlooAdminGatewaysBox>;
+} as ComponentMeta<typeof GlooAdminGatewaysBox>;
 
 const Template: ComponentStory<typeof GlooAdminGatewaysBox> = args => (
   // @ts-ignore

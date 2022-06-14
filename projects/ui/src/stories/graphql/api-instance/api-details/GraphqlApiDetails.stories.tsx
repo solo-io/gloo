@@ -4,9 +4,9 @@ import GraphqlApiDetails from '../../../../Components/Features/Graphql/api-insta
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Graphql / api-instance / api-details / ${GraphqlApiDetails.name}`,
+  title: 'Graphql / api-instance / api-details / GraphqlApiDetails',
   component: GraphqlApiDetails,
-} as unknown as ComponentMeta<typeof GraphqlApiDetails>;
+} as ComponentMeta<typeof GraphqlApiDetails>;
 
 const Template: ComponentStory<typeof GraphqlApiDetails> = args => (
   <MemoryRouter>

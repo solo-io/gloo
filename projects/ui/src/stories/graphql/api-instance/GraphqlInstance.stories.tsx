@@ -4,9 +4,9 @@ import { GraphqlInstance } from '../../../Components/Features/Graphql/api-instan
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Graphql / api-instance / ${GraphqlInstance.name}`,
+  title: 'Graphql / api-instance / GraphqlInstance',
   component: GraphqlInstance,
-} as unknown as ComponentMeta<typeof GraphqlInstance>;
+} as ComponentMeta<typeof GraphqlInstance>;
 
 const Template: ComponentStory<typeof GraphqlInstance> = args => (
   // @ts-ignore

@@ -4,9 +4,9 @@ import { GlooInstanceUpstreams } from '../../Components/Features/GlooInstance/Gl
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `GlooInstance / ${GlooInstanceUpstreams.name}`,
+  title: 'GlooInstance / GlooInstanceUpstreams',
   component: GlooInstanceUpstreams,
-} as unknown as ComponentMeta<typeof GlooInstanceUpstreams>;
+} as ComponentMeta<typeof GlooInstanceUpstreams>;
 
 const Template: ComponentStory<typeof GlooInstanceUpstreams> = args => (
   <MemoryRouter>

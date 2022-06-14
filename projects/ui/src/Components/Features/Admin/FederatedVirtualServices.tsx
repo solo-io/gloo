@@ -20,6 +20,7 @@ import { FederatedVirtualService } from 'proto/github.com/solo-io/solo-projects/
 import { federatedGatewayResourceApi } from 'API/federated-gateway';
 import { doDownload } from 'download-helper';
 import { DataError } from 'Components/Common/DataError';
+import { di } from 'react-magnetic-di/macro';
 
 const GlooIconHolder = styled.div`
   display: flex;
@@ -45,6 +46,7 @@ type Props = {
   nameFilter?: string;
 };
 export const FederatedVirtualServices = (props: Props) => {
+  di(useListFederatedVirtualServices);
   const [tableData, setTableData] = React.useState<VirtualServiceTableFields[]>(
     []
   );

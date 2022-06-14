@@ -5,9 +5,10 @@ import SchemaDefinitionContent from '../../../../../Components/Features/Graphql/
 import { mockEnumDefinitions } from 'Components/Features/Graphql/api-instance/api-details/schema/mockData';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / ${SchemaDefinitionContent.name}`,
+  title:
+    'Graphql / api-instance / api-details / schema / SchemaDefinitionContent',
   component: SchemaDefinitionContent,
-} as unknown as ComponentMeta<typeof SchemaDefinitionContent>;
+} as ComponentMeta<typeof SchemaDefinitionContent>;
 
 const Template: ComponentStory<typeof SchemaDefinitionContent> = args => (
   <SchemaDefinitionContent {...args} />

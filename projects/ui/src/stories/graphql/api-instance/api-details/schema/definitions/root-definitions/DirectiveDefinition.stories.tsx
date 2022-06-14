@@ -4,9 +4,10 @@ import DirectiveDefinition from '../../../../../../../Components/Features/Graphq
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / definitions / root-definitions / ${DirectiveDefinition.name}`,
+  title:
+    'Graphql / api-instance / api-details / schema / definitions / root-definitions / DirectiveDefinition',
   component: DirectiveDefinition,
-} as unknown as ComponentMeta<typeof DirectiveDefinition>;
+} as ComponentMeta<typeof DirectiveDefinition>;
 
 const Template: ComponentStory<typeof DirectiveDefinition> = args => (
   <DirectiveDefinition {...args} />

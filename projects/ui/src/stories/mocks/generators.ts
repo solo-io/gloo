@@ -5,6 +5,7 @@ import {
   UInt32Value,
 } from 'google-protobuf/google/protobuf/wrappers_pb';
 import { Placement } from 'proto/github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/multicluster/v1alpha1/multicluster_pb';
+import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import {
   GatewaySpec,
   TcpGateway,
@@ -781,5 +782,15 @@ export const createGateway = (
     spec: meta.spec ?? createGatewaySpec(),
     status: meta.status ?? undefined,
     glooInstance: meta.glooInstance ?? undefined,
+  };
+};
+
+export const createClusterObjectRef = (
+  meta: Partial<ClusterObjectRef.AsObject> = {}
+): ClusterObjectRef.AsObject => {
+  return {
+    name: meta.name ?? faker.random.word(),
+    namespace: meta.namespace ?? faker.random.word(),
+    clusterName: meta.clusterName ?? faker.random.word(),
   };
 };

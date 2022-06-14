@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Enables the use of arguments in storybook to change hook behavior.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3760
+    resolvesIssue: false

@@ -4,12 +4,14 @@ import { GlooInstancesLanding } from '../../Components/Features/GlooInstance/Glo
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `GlooInstance / ${GlooInstancesLanding.name}`,
+  title: 'GlooInstance / GlooInstancesLanding',
   component: GlooInstancesLanding,
-} as unknown as ComponentMeta<typeof GlooInstancesLanding>;
+} as ComponentMeta<typeof GlooInstancesLanding>;
 
 const Template: ComponentStory<typeof GlooInstancesLanding> = args => (
-  <MemoryRouter><GlooInstancesLanding /></MemoryRouter>
+  <MemoryRouter>
+    <GlooInstancesLanding />
+  </MemoryRouter>
 );
 
 export const Primary = Template.bind({});

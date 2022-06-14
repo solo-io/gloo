@@ -4,12 +4,14 @@ import { GraphqlLanding } from '../../Components/Features/Graphql/GraphqlLanding
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Graphql / ${GraphqlLanding.name}`,
+  title: 'Graphql / GraphqlLanding',
   component: GraphqlLanding,
-} as unknown as ComponentMeta<typeof GraphqlLanding>;
+} as ComponentMeta<typeof GraphqlLanding>;
 
 const Template: ComponentStory<typeof GraphqlLanding> = args => (
-  <MemoryRouter><GraphqlLanding /></MemoryRouter>
+  <MemoryRouter>
+    <GraphqlLanding />
+  </MemoryRouter>
 );
 
 export const Primary = Template.bind({});

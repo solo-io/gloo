@@ -4,9 +4,9 @@ import { FederatedVirtualServices } from '../../Components/Features/Admin/Federa
 
 // TODO:  Add in mock from jest
 export default {
-  title: `Admin / ${FederatedVirtualServices.name}`,
+  title: 'Admin / FederatedVirtualServices',
   component: FederatedVirtualServices,
-} as unknown as ComponentMeta<typeof FederatedVirtualServices>;
+} as ComponentMeta<typeof FederatedVirtualServices>;
 
 const Template: ComponentStory<typeof FederatedVirtualServices> = args => (
   // @ts-ignore

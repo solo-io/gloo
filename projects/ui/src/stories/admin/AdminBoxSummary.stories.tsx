@@ -9,26 +9,34 @@ import { within } from '@storybook/testing-library';
 import { createClusterDetailsObj } from 'stories/mocks/generators';
 import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb_service';
 import { grpc } from '@improbable-eng/grpc-web';
+import { ClusterDetails } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 
 export default {
-  title: `Admin / ${AdminClustersBox.name}`,
+  // Dynamic name modules generates errors when you run this in a test.
+  // title: 'Admin / AdminClustersBox',
   component: AdminClustersBox,
-} as unknown as ComponentMeta<typeof AdminClustersBox>;
+} as ComponentMeta<typeof AdminClustersBox>;
 
-const Template: ComponentStory<typeof AdminClustersBox> = args => {
-  const useQueryDi = injectable(Apis.useListClusterDetails, () => {
-    const details = Array.from({ length: 1 }).map(() => {
-      return createClusterDetailsObj();
-    });
+interface TemplateType {
+  clusterDetails?: ClusterDetails.AsObject[];
+  error?: ServiceError;
+  mutate?: any;
+  isValidating?: boolean;
+}
+
+const Template: ComponentStory<typeof AdminClustersBox> = (
+  args: TemplateType | any
+) => {
+  const useListClusterDetailsDi = injectable(Apis.useListClusterDetails, () => {
     return {
-      data: details,
-      error: undefined,
-      mutate: jest.fn(),
-      isValidating: false,
+      data: args.clusterDetails,
+      error: args.error,
+      mutate: args.mutate,
+      isValidating: args.isValidating,
     };
   });
   return (
-    <DiProvider use={[useQueryDi]}>
+    <DiProvider use={[useListClusterDetailsDi]}>
       <MemoryRouter>
         <AdminClustersBox />
       </MemoryRouter>
@@ -37,7 +45,15 @@ const Template: ComponentStory<typeof AdminClustersBox> = args => {
 };
 
 export const OneCluster = Template.bind({});
-OneCluster.args = {} as Partial<typeof AdminClustersBox>;
+const clusterDetailsOne = Array.from({ length: 1 }).map(() => {
+  return createClusterDetailsObj();
+});
+OneCluster.args = {
+  clusterDetails: clusterDetailsOne,
+  error: undefined,
+  mutate: jest.fn(),
+  isValidating: false,
+} as Partial<typeof AdminClustersBox>;
 OneCluster.parameters = {};
 OneCluster.play = async ({ canvasElement }) => {
   const canvas = within(canvasElement);
@@ -45,30 +61,37 @@ OneCluster.play = async ({ canvasElement }) => {
   expect(summary).not.toBeNull();
 };
 
-const TemplateTwo: ComponentStory<typeof AdminClustersBox> = args => {
-  const useQueryDi = injectable(Apis.useListClusterDetails, () => {
-    const details = Array.from({ length: 2 }).map(() => {
-      return createClusterDetailsObj();
-    });
+const TemplateTwo: ComponentStory<typeof AdminClustersBox> = (
+  args: TemplateType | any
+) => {
+  const useListClusterDetailsDi = injectable(Apis.useListClusterDetails, () => {
     return {
-      data: details,
-      error: undefined,
-      mutate: jest.fn(),
-      isValidating: false,
+      data: args.clusterDetails,
+      error: args.error,
+      mutate: args.mutate,
+      isValidating: args.isValidating,
     };
   });
   return (
-    <DiProvider use={[useQueryDi]}>
+    <DiProvider use={[useListClusterDetailsDi]}>
       <MemoryRouter>
-        {/* @ts-ignore */}
-        <AdminClustersBox {...args} />
+        <AdminClustersBox />
       </MemoryRouter>
     </DiProvider>
   );
 };
 export const TwoCluster = TemplateTwo.bind({});
 
-TwoCluster.args = {} as Partial<typeof AdminClustersBox>;
+const clusterDetailsTwo = Array.from({ length: 2 }).map(() => {
+  return createClusterDetailsObj();
+});
+
+TwoCluster.args = {
+  clusterDetails: clusterDetailsTwo,
+  error: undefined,
+  mutate: jest.fn(),
+  isValidating: false,
+} as Partial<typeof AdminClustersBox>;
 TwoCluster.play = async ({ canvasElement }) => {
   const canvas = within(canvasElement);
   const summary = await canvas.getByTestId('admin-box-summary');
@@ -80,27 +103,41 @@ TwoCluster.parameters = {
   },
 };
 
-const TemplateError: ComponentStory<typeof AdminClustersBox> = args => {
-  const useQueryDi = injectable(Apis.useListClusterDetails, () => {
-    const meta = new grpc.Metadata();
-    meta.append('thing-happened', 'A bad thing happened')!;
-    const error: ServiceError = {
-      message: 'Some Error Happened!',
-      code: 1,
-      metadata: meta,
+const TemplateError: ComponentStory<typeof AdminClustersBox> = (
+  args: TemplateType | any
+) => {
+  const useListClusterDetailsDi = injectable(Apis.useListClusterDetails, () => {
+    return {
+      data: args.detailsCluster,
+      error: args.error,
+      mutate: args.mutate,
+      isValidating: args.isValidating,
     };
-    return { data: [], error, mutate: jest.fn(), isValidating: false };
   });
   return (
-    <DiProvider use={[useQueryDi]}>
+    <DiProvider use={[useListClusterDetailsDi]}>
       <MemoryRouter>
         <AdminClustersBox />
       </MemoryRouter>
     </DiProvider>
   );
 };
+
+const meta = new grpc.Metadata();
+meta.append('thing-happened', 'A bad thing happened')!;
+const error: ServiceError = {
+  message: 'Some Error Happened!',
+  code: 1,
+  metadata: meta,
+};
+
 export const ErrorCluster = TemplateError.bind({});
-ErrorCluster.args = {} as Partial<typeof AdminClustersBox>;
+ErrorCluster.args = {
+  clusterDetails: [],
+  error,
+  isValidating: false,
+  mutate: jest.fn(),
+} as Partial<typeof AdminClustersBox>;
 ErrorCluster.play = async ({ canvasElement }) => {
   const canvas = within(canvasElement);
   const dataError = await canvas.getByTestId('data-error');
@@ -113,17 +150,22 @@ ErrorCluster.parameters = {
   },
 };
 
-const TemplateLoading: ComponentStory<typeof AdminClustersBox> = args => {
-  const useQueryDi = injectable(Apis.useListClusterDetails, () => {
-    return {
-      data: undefined,
-      error: undefined,
-      isValidating: true,
-      mutate: jest.fn(),
-    };
-  });
+const TemplateLoading: ComponentStory<typeof AdminClustersBox> = (
+  args: TemplateType | any
+) => {
+  const useListClusterDetailsData = injectable(
+    Apis.useListClusterDetails,
+    () => {
+      return {
+        data: args.clusterDetails,
+        error: args.error,
+        isValidating: args.isValidating,
+        mutate: args.mutate,
+      };
+    }
+  );
   return (
-    <DiProvider use={[useQueryDi]}>
+    <DiProvider use={[useListClusterDetailsData]}>
       <MemoryRouter>
         <AdminClustersBox />
       </MemoryRouter>
@@ -133,7 +175,10 @@ const TemplateLoading: ComponentStory<typeof AdminClustersBox> = args => {
 
 export const LoadingCluster = TemplateLoading.bind({});
 LoadingCluster.args = {
-  handler: {},
+  clusterDetails: undefined,
+  error: undefined,
+  isValidating: true,
+  mutate: jest.fn(),
 } as Partial<typeof AdminClustersBox>;
 LoadingCluster.play = async ({ canvasElement }) => {
   const canvas = within(canvasElement);

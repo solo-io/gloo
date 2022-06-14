@@ -5,9 +5,9 @@ import { MemoryRouter } from 'react-router';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 export default {
-  title: `Graphql / api-instance / api-details / ${GraphqlApiConfigurationHeader.name}`,
+  title: 'Graphql / api-instance / api-details / GraphqlApiConfigurationHeader',
   component: GraphqlApiConfigurationHeader,
-} as unknown as ComponentMeta<typeof GraphqlApiConfigurationHeader>;
+} as ComponentMeta<typeof GraphqlApiConfigurationHeader>;
 
 const Template: ComponentStory<typeof GraphqlApiConfigurationHeader> = args => (
   // @ts-ignore

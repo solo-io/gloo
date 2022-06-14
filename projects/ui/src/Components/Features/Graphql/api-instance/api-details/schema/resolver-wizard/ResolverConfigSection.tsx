@@ -5,6 +5,7 @@ import VisualEditor from 'Components/Common/VisualEditor';
 import { FormikProps, useFormikContext } from 'formik';
 import * as React from 'react';
 import { useMemo, useState } from 'react';
+import { di } from 'react-magnetic-di/macro';
 import {
   SoloButtonStyledComponent,
   SoloCancelButton,
@@ -60,11 +61,18 @@ export const getDefaultConfigFromType = (
   );
 };
 
-export const ResolverConfigSection: React.FC<{
+export interface ResolverConfigSectionProps {
   onCancel(): void;
   globalWarningMessage: string;
   formik: FormikProps<ResolverWizardFormProps>;
-}> = ({ onCancel, formik, globalWarningMessage }) => {
+}
+
+export const ResolverConfigSection = ({
+  onCancel,
+  formik,
+  globalWarningMessage,
+}: ResolverConfigSectionProps) => {
+  di(useGetConsoleOptions);
   const { readonly } = useGetConsoleOptions();
   const { setFieldValue, values, dirty, handleSubmit } =
     useFormikContext<ResolverWizardFormProps>();

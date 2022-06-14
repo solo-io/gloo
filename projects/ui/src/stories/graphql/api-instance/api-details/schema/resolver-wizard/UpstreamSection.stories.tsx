@@ -6,9 +6,10 @@ import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core
 import { mockEnumDefinitions } from 'Components/Features/Graphql/api-instance/api-details/schema/mockData';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / resolver-wizard / ${UpstreamSection.name}`,
+  title:
+    'Graphql / api-instance / api-details / schema / resolver-wizard / UpstreamSection',
   component: UpstreamSection,
-} as unknown as ComponentMeta<typeof UpstreamSection>;
+} as ComponentMeta<typeof UpstreamSection>;
 
 const Template: ComponentStory<typeof UpstreamSection> = args => (
   <Formik

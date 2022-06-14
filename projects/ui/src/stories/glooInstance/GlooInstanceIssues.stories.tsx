@@ -5,9 +5,9 @@ import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/ap
 import { ObjectMeta } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
 
 export default {
-  title: `GlooInstance / ${GlooInstanceIssues.name}`,
+  title: 'GlooInstance / GlooInstanceIssues',
   component: GlooInstanceIssues,
-} as unknown as ComponentMeta<typeof GlooInstanceIssues>;
+} as ComponentMeta<typeof GlooInstanceIssues>;
 
 const instance = new GlooInstance();
 const meta = new ObjectMeta();

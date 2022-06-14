@@ -1,6 +1,7 @@
 import * as React from 'react';
 import styled from '@emotion/styled/macro';
 import AceEditor, { IAceEditorProps } from 'react-ace';
+import { di } from 'react-magnetic-di/macro';
 /*
   These imports are needed for syntax highlighting and snippets. DO NOT REMOVE.
 */
@@ -58,6 +59,7 @@ export interface SoloFormVisualEditorProps extends IAceEditorProps {
 }
 
 const VisualEditor = (props: SoloFormVisualEditorProps) => {
+  di(useAppSettings);
   const { name, title, value, ...rest } = props;
   const { appSettings, onAppSettingsChange } = useAppSettings();
   const { keyboardHandler } = appSettings;

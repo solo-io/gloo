@@ -4,9 +4,9 @@ import { EnableGraphqlFeature } from '../../Components/Features/Graphql/EnableGr
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Graphql / ${EnableGraphqlFeature.name}`,
+  title: 'Graphql / EnableGraphqlFeature',
   component: EnableGraphqlFeature,
-} as unknown as ComponentMeta<typeof EnableGraphqlFeature>;
+} as ComponentMeta<typeof EnableGraphqlFeature>;
 
 const Template: ComponentStory<typeof EnableGraphqlFeature> = args => (
   // @ts-ignore

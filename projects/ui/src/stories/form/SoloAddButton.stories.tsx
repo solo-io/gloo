@@ -6,7 +6,7 @@ import { default as SoloAddButton } from '../../Components/Common/SoloAddButton'
 
 // More on default export: https://storybook.js.org/docs/react/writing-stories/introduction#default-export
 export default {
-  title: `Form / ${SoloAddButton.name}`,
+  title: 'Form / SoloAddButton',
   component: SoloAddButton,
   // More on argTypes: https://storybook.js.org/docs/react/api/argtypes
 } as ComponentMeta<typeof SoloAddButton>;

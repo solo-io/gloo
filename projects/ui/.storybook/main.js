@@ -1,7 +1,7 @@
 module.exports = {
   "stories": [
-    "../src/**/*.stories.mdx",
-    "../src/**/*.stories.@(js|jsx|ts|tsx)"
+    // "../src/**/*.stories.mdx",
+    "../src/stories/**/*.stories.@(js|jsx|ts|tsx|mdx)"
   ],
   "addons": [
     "@storybook/addon-links",
@@ -14,6 +14,9 @@ module.exports = {
     "builder": "@storybook/builder-webpack5"
   },
   features: {
+    breakingChangesV7: true,
     interactionsDebugger: true,
+    // storybook test seems to use this setting to `true`, so it's a useful config for testing
+    storyStoreV7: false,
   },
 }

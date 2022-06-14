@@ -4,9 +4,9 @@ import Field from '../../../../../../Components/Features/Graphql/api-instance/ap
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / definitions / ${Field.name}`,
+  title: 'Graphql / api-instance / api-details / schema / definitions / Field',
   component: Field,
-} as unknown as ComponentMeta<typeof Field>;
+} as ComponentMeta<typeof Field>;
 
 const Template: ComponentStory<typeof Field> = args => <Field {...args} />;
 

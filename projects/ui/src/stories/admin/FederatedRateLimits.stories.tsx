@@ -4,9 +4,9 @@ import { FederatedRateLimits } from '../../Components/Features/Admin/FederatedRa
 
 // TODO:  Add in mock from jest
 export default {
-  title: `Admin / ${FederatedRateLimits.name}`,
+  title: 'Admin / FederatedRateLimits',
   component: FederatedRateLimits,
-} as unknown as ComponentMeta<typeof FederatedRateLimits>;
+} as ComponentMeta<typeof FederatedRateLimits>;
 
 const Template: ComponentStory<typeof FederatedRateLimits> = args => (
   // @ts-ignore

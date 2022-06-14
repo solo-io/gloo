@@ -8,9 +8,9 @@ import { Formik } from 'formik';
 import { SelectValue } from 'antd/lib/select';
 
 export default {
-  title: `Form / ${SoloFormDropdown.name}`,
+  title: 'Form / SoloFormDropdown',
   component: SoloFormDropdown,
-} as unknown as ComponentMeta<typeof SoloFormDropdown>;
+} as ComponentMeta<typeof SoloFormDropdown>;
 
 const options = [
   {

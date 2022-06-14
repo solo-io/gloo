@@ -5,7 +5,8 @@
     "react-hooks"
   ],
   "extends": [
-    "plugin:react-hooks/recommended"
+    "plugin:react-hooks/recommended",
+    "plugin:storybook/recommended"
   ],
   "rules": {
     "react-hooks/rules-of-hooks": "error",

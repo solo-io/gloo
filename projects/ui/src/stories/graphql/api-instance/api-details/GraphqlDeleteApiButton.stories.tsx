@@ -5,9 +5,9 @@ import { MemoryRouter } from 'react-router';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 export default {
-  title: `Graphql / api-instance / api-details / ${GraphqlDeleteApiButton.name}`,
+  title: 'Graphql / api-instance / api-details / GraphqlDeleteApiButton',
   component: GraphqlDeleteApiButton,
-} as unknown as ComponentMeta<typeof GraphqlDeleteApiButton>;
+} as ComponentMeta<typeof GraphqlDeleteApiButton>;
 
 const apiRef = new ClusterObjectRef();
 

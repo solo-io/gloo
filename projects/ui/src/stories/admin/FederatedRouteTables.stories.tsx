@@ -4,9 +4,9 @@ import { FederatedRouteTables } from '../../Components/Features/Admin/FederatedR
 
 // TODO:  Add in mock from jest
 export default {
-  title: `Admin / ${FederatedRouteTables.name}`,
+  title: 'Admin / FederatedRouteTables',
   component: FederatedRouteTables,
-} as unknown as ComponentMeta<typeof FederatedRouteTables>;
+} as ComponentMeta<typeof FederatedRouteTables>;
 
 const Template: ComponentStory<typeof FederatedRouteTables> = args => (
   // @ts-ignore

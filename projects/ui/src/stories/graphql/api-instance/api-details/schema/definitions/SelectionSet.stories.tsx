@@ -5,9 +5,10 @@ import { MemoryRouter } from 'react-router';
 import { Kind } from 'graphql';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / definitions / ${SelectionSet.name}`,
+  title:
+    'Graphql / api-instance / api-details / schema / definitions / SelectionSet',
   component: SelectionSet,
-} as unknown as ComponentMeta<typeof SelectionSet>;
+} as ComponentMeta<typeof SelectionSet>;
 
 const Template: ComponentStory<typeof SelectionSet> = args => (
   <SelectionSet {...args} />

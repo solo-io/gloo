@@ -4,9 +4,10 @@ import DirectiveList from '../../../../../../Components/Features/Graphql/api-ins
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / definitions / ${DirectiveList.name}`,
+  title:
+    'Graphql / api-instance / api-details / schema / definitions / DirectiveList',
   component: DirectiveList,
-} as unknown as ComponentMeta<typeof DirectiveList>;
+} as ComponentMeta<typeof DirectiveList>;
 
 const Template: ComponentStory<typeof DirectiveList> = args => (
   <DirectiveList {...args} />

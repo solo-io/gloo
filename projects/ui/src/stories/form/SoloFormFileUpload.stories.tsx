@@ -7,9 +7,9 @@ import {
 import { Formik } from 'formik';
 
 export default {
-  title: `Form / ${SoloFormFileUpload.name}`,
+  title: 'Form / SoloFormFileUpload',
   component: SoloFormFileUpload,
-} as unknown as ComponentMeta<typeof SoloFormFileUpload>;
+} as ComponentMeta<typeof SoloFormFileUpload>;
 
 const Template: ComponentStory<typeof SoloFormFileUpload> = args => (
   <Formik

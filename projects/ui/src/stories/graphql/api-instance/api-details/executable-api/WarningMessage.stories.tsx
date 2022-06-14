@@ -3,9 +3,10 @@ import { ComponentStory, ComponentMeta } from '@storybook/react';
 import WarningMessage from '../../../../../Components/Features/Graphql/api-instance/api-details/executable-api/WarningMessage';
 
 export default {
-  title: `Graphql / api-instance / api-details / executable-api / ${WarningMessage.name}`,
+  title:
+    'Graphql / api-instance / api-details / executable-api / WarningMessage',
   component: WarningMessage,
-} as unknown as ComponentMeta<typeof WarningMessage>;
+} as ComponentMeta<typeof WarningMessage>;
 
 const Template: ComponentStory<typeof WarningMessage> = args => (
   <WarningMessage {...args} />

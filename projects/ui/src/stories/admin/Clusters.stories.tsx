@@ -4,12 +4,14 @@ import { Clusters } from '../../Components/Features/Admin/Clusters';
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Admin / ${Clusters.name}`,
+  title: 'Admin / Clusters',
   component: Clusters,
-} as unknown as ComponentMeta<typeof Clusters>;
+} as ComponentMeta<typeof Clusters>;
 
 const Template: ComponentStory<typeof Clusters> = args => (
-  <MemoryRouter><Clusters /></MemoryRouter>
+  <MemoryRouter>
+    <Clusters />
+  </MemoryRouter>
 );
 
 export const Primary = Template.bind({});

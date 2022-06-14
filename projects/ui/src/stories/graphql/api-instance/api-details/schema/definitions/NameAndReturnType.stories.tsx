@@ -5,9 +5,10 @@ import { MemoryRouter } from 'react-router';
 import { Kind } from 'graphql';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / definitions / ${NameAndReturnType.name}`,
+  title:
+    'Graphql / api-instance / api-details / schema / definitions / NameAndReturnType',
   component: NameAndReturnType,
-} as unknown as ComponentMeta<typeof NameAndReturnType>;
+} as ComponentMeta<typeof NameAndReturnType>;
 
 const Template: ComponentStory<typeof NameAndReturnType> = args => (
   <NameAndReturnType {...args} />

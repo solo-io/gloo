@@ -3,9 +3,9 @@ import { ComponentStory, ComponentMeta } from '@storybook/react';
 import { GlooAdminWatchedNamespaces } from '../../../Components/Features/GlooInstance/Admin/GlooAdminWatchNamespaces';
 
 export default {
-  title: `GlooInstance / Admin / ${GlooAdminWatchedNamespaces.name}`,
+  title: 'GlooInstance / Admin / GlooAdminWatchedNamespaces',
   component: GlooAdminWatchedNamespaces,
-} as unknown as ComponentMeta<typeof GlooAdminWatchedNamespaces>;
+} as ComponentMeta<typeof GlooAdminWatchedNamespaces>;
 
 const Template: ComponentStory<typeof GlooAdminWatchedNamespaces> = args => (
   // @ts-ignore

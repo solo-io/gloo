@@ -4,16 +4,13 @@ import { FederatedAuthorizedConfigurations } from '../../Components/Features/Adm
 
 // TODO:  Add in mock from jest
 export default {
-  title: `Admin / ${FederatedAuthorizedConfigurations.name}`,
+  title: 'Admin / FederatedAuthorizedConfigurations',
   component: FederatedAuthorizedConfigurations,
-} as unknown as ComponentMeta<typeof FederatedAuthorizedConfigurations>;
+} as ComponentMeta<typeof FederatedAuthorizedConfigurations>;
 
 const Template: ComponentStory<
   typeof FederatedAuthorizedConfigurations
-> = args => (
-  // @ts-ignore
-  <FederatedAuthorizedConfigurations {...args} />
-);
+> = args => <FederatedAuthorizedConfigurations />;
 
 export const Primary = Template.bind({});
 Primary.args = {} as Partial<typeof FederatedAuthorizedConfigurations>;

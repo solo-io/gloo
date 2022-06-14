@@ -4,9 +4,10 @@ import Description from '../../../../../../Components/Features/Graphql/api-insta
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / definitions / ${Description.name}`,
+  title:
+    'Graphql / api-instance / api-details / schema / definitions / Description',
   component: Description,
-} as unknown as ComponentMeta<typeof Description>;
+} as ComponentMeta<typeof Description>;
 
 const Template: ComponentStory<typeof Description> = args => (
   <Description {...args} />

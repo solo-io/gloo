@@ -4,9 +4,9 @@ import { GlooInstanceVirtualServices } from '../../Components/Features/GlooInsta
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `GlooInstance / ${GlooInstanceVirtualServices.name}`,
+  title: 'GlooInstance / GlooInstanceVirtualServices',
   component: GlooInstanceVirtualServices,
-} as unknown as ComponentMeta<typeof GlooInstanceVirtualServices>;
+} as ComponentMeta<typeof GlooInstanceVirtualServices>;
 
 const Template: ComponentStory<typeof GlooInstanceVirtualServices> = args => (
   <MemoryRouter>

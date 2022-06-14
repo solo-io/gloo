@@ -5,9 +5,10 @@ import { MemoryRouter } from 'react-router';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 export default {
-  title: `Graphql / api-instance / api-details / executable-api / upstreams / ${ExecutableGraphqlUpstreamsTable.name}`,
+  title:
+    'Graphql / api-instance / api-details / executable-api / upstreams / ExecutableGraphqlUpstreamsTable',
   component: ExecutableGraphqlUpstreamsTable,
-} as unknown as ComponentMeta<typeof ExecutableGraphqlUpstreamsTable>;
+} as ComponentMeta<typeof ExecutableGraphqlUpstreamsTable>;
 
 const Template: ComponentStory<
   typeof ExecutableGraphqlUpstreamsTable

@@ -4,9 +4,10 @@ import { GrpcProtoCheck } from '../../../../../../../Components/Features/Graphql
 import { Formik } from 'formik';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / resolver-wizard / grpcProtoCheck / ${GrpcProtoCheck.name}`,
+  title:
+    'Graphql / api-instance / api-details / schema / resolver-wizard / grpcProtoCheck / GrpcProtoCheck',
   component: GrpcProtoCheck,
-} as unknown as ComponentMeta<typeof GrpcProtoCheck>;
+} as ComponentMeta<typeof GrpcProtoCheck>;
 
 const Template: ComponentStory<typeof GrpcProtoCheck> = args => (
   <Formik

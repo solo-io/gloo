@@ -4,9 +4,9 @@ import ResolverButton from '../../../../../Components/Features/Graphql/api-insta
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / ${ResolverButton.name}`,
+  title: 'Graphql / api-instance / api-details / schema / ResolverButton',
   component: ResolverButton,
-} as unknown as ComponentMeta<typeof ResolverButton>;
+} as ComponentMeta<typeof ResolverButton>;
 
 const Template: ComponentStory<typeof ResolverButton> = args => (
   <ResolverButton {...args} />

@@ -5,9 +5,9 @@ import { MemoryRouter } from 'react-router';
 
 // TODO:  Add in mock from jest
 export default {
-  title: `GlooInstance / Admin / ${GlooAdminInnerPagesWrapper.name}`,
+  title: 'GlooInstance / Admin / GlooAdminInnerPagesWrapper',
   component: GlooAdminInnerPagesWrapper,
-} as unknown as ComponentMeta<typeof GlooAdminInnerPagesWrapper>;
+} as ComponentMeta<typeof GlooAdminInnerPagesWrapper>;
 
 const Template: ComponentStory<typeof GlooAdminInnerPagesWrapper> = args => (
   <MemoryRouter>

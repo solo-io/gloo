@@ -5,9 +5,9 @@ import { MemoryRouter } from 'react-router';
 import { mockEnumDefinitions } from 'Components/Features/Graphql/api-instance/api-details/schema/mockData';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / ${FieldTypeValue.name}`,
+  title: 'Graphql / api-instance / api-details / schema / FieldTypeValue',
   component: FieldTypeValue,
-} as unknown as ComponentMeta<typeof FieldTypeValue>;
+} as ComponentMeta<typeof FieldTypeValue>;
 
 const Template: ComponentStory<typeof FieldTypeValue> = args => (
   <MemoryRouter>

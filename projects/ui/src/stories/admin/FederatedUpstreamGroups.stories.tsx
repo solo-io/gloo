@@ -4,9 +4,9 @@ import { FederatedUpstreamGroups } from '../../Components/Features/Admin/Federat
 
 // TODO:  Add in mock from jest
 export default {
-  title: `Admin / ${FederatedUpstreamGroups.name}`,
+  title: 'Admin / FederatedUpstreamGroups',
   component: FederatedUpstreamGroups,
-} as unknown as ComponentMeta<typeof FederatedUpstreamGroups>;
+} as ComponentMeta<typeof FederatedUpstreamGroups>;
 
 const Template: ComponentStory<typeof FederatedUpstreamGroups> = args => (
   // @ts-ignore

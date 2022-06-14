@@ -3,7 +3,7 @@ import { ISchemaDefinitionRecursiveItem } from '../SchemaDefinitionContent.type'
 import NameAndReturnType from './NameAndReturnType';
 import { SchemaStyles } from './SchemaStyles.style';
 
-const VariableDefinitions: React.FC<ISchemaDefinitionRecursiveItem> = props => {
+const VariableDefinitions = (props: ISchemaDefinitionRecursiveItem) => {
   const { node } = props;
   if (!node.variableDefinitions.length) return null;
   return (

@@ -5,9 +5,10 @@ import { MemoryRouter } from 'react-router';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 export default {
-  title: `Graphql / api-instance / api-details / executable-api / ${GraphqlEditApiButton.name}`,
+  title:
+    'Graphql / api-instance / api-details / executable-api / GraphqlEditApiButton',
   component: GraphqlEditApiButton,
-} as unknown as ComponentMeta<typeof GraphqlEditApiButton>;
+} as ComponentMeta<typeof GraphqlEditApiButton>;
 
 const Template: ComponentStory<typeof GraphqlEditApiButton> = args => (
   <MemoryRouter>

@@ -4,12 +4,14 @@ import { GlooInstanceAdministration } from '../../../Components/Features/GlooIns
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `GlooInstance / Admin / ${GlooInstanceAdministration.name}`,
+  title: 'GlooInstance / Admin / GlooInstanceAdministration',
   component: GlooInstanceAdministration,
-} as unknown as ComponentMeta<typeof GlooInstanceAdministration>;
+} as ComponentMeta<typeof GlooInstanceAdministration>;
 
 const Template: ComponentStory<typeof GlooInstanceAdministration> = args => (
-  <MemoryRouter><GlooInstanceAdministration /></MemoryRouter>
+  <MemoryRouter>
+    <GlooInstanceAdministration />
+  </MemoryRouter>
 );
 
 export const Primary = Template.bind({});

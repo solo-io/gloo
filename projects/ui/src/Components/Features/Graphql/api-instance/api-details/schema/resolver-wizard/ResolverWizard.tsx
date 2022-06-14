@@ -9,6 +9,7 @@ import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import { ValidateSchemaDefinitionRequest } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import React, { useEffect, useMemo } from 'react';
+import { di } from 'react-magnetic-di/macro';
 import toast from 'react-hot-toast';
 import { colors } from 'Styles/colors';
 import {
@@ -95,15 +96,23 @@ export const resolverFormIsValid = (
   resolverConfigIsValid(formik) &&
   protoFileIsValid(formik);
 
-//
-// --- COMPONENT --- //
-//
-export const ResolverWizard: React.FC<{
+export interface ResolverWizardProps {
   apiRef: ClusterObjectRef.AsObject;
   field: FieldDefinitionNode | null;
   objectType: string;
   onClose: () => void;
-}> = ({ apiRef, field, objectType, onClose }) => {
+}
+
+//
+// --- COMPONENT --- //
+//
+export const ResolverWizard = ({
+  apiRef,
+  field,
+  objectType,
+  onClose,
+}: ResolverWizardProps) => {
+  di(useGetGraphqlApiDetails, useGetConsoleOptions, useConfirm);
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
   const { readonly } = useGetConsoleOptions();
   const confirm = useConfirm();

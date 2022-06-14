@@ -4,9 +4,9 @@ import { GraphqlOverview } from '../../Components/Features/Graphql/GraphqlOvervi
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Graphql / ${GraphqlOverview.name}`,
+  title: 'Graphql / GraphqlOverview',
   component: GraphqlOverview,
-} as unknown as ComponentMeta<typeof GraphqlOverview>;
+} as ComponentMeta<typeof GraphqlOverview>;
 
 const Template: ComponentStory<typeof GraphqlOverview> = args => (
   <MemoryRouter>

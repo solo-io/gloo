@@ -6,9 +6,9 @@ import { mockEnumDefinitions } from 'Components/Features/Graphql/api-instance/ap
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / ${SchemaDefinitions.name}`,
+  title: 'Graphql / api-instance / api-details / schema / SchemaDefinitions',
   component: SchemaDefinitions,
-} as unknown as ComponentMeta<typeof SchemaDefinitions>;
+} as ComponentMeta<typeof SchemaDefinitions>;
 
 const Template: ComponentStory<typeof SchemaDefinitions> = args => (
   <SchemaDefinitions {...args} />

@@ -19,9 +19,9 @@ const radioOptions: SoloFormRadioOption[] = [
 ];
 
 export default {
-  title: `Form / ${SoloFormRadio.name}`,
+  title: 'Form / SoloFormRadio',
   component: SoloFormRadio,
-} as unknown as ComponentMeta<typeof SoloFormRadio>;
+} as ComponentMeta<typeof SoloFormRadio>;
 
 const Template: ComponentStory<typeof SoloFormRadio> = args => (
   <Formik

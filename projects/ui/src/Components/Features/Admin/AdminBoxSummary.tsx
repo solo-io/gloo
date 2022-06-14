@@ -281,7 +281,7 @@ export const AdminFederatedResourcesBox = () => {
   return (
     <AdminBoxSummary
       testId='admin-box-summary'
-      title={'Federated Resources'}
+      title={'Federated Resource'}
       logo={
         <LogoRecolorHolder>
           <FedResourcesIcon />

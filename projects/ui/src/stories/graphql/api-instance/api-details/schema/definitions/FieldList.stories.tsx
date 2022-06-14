@@ -4,9 +4,10 @@ import FieldList from '../../../../../../Components/Features/Graphql/api-instanc
 import { MemoryRouter } from 'react-router';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / definitions / ${FieldList.name}`,
+  title:
+    'Graphql / api-instance / api-details / schema / definitions / FieldList',
   component: FieldList,
-} as unknown as ComponentMeta<typeof FieldList>;
+} as ComponentMeta<typeof FieldList>;
 
 const Template: ComponentStory<typeof FieldList> = args => (
   <FieldList {...args} />

@@ -4,13 +4,12 @@ import { FederatedSettingsTable } from '../../Components/Features/Admin/Federate
 
 // TODO:  Add in mock from jest
 export default {
-  title: `Admin / ${FederatedSettingsTable.name}`,
+  title: 'Admin / FederatedSettingsTable',
   component: FederatedSettingsTable,
-} as unknown as ComponentMeta<typeof FederatedSettingsTable>;
+} as ComponentMeta<typeof FederatedSettingsTable>;
 
 const Template: ComponentStory<typeof FederatedSettingsTable> = args => (
-  // @ts-ignore
-  <FederatedSettingsTable {...args} />
+  <FederatedSettingsTable />
 );
 
 export const Primary = Template.bind({});

@@ -4,9 +4,9 @@ import { GlooAdminEnvoy } from '../../../Components/Features/GlooInstance/Admin/
 
 // TODO:  Add in mock from jest
 export default {
-  title: `GlooInstance / Admin / ${GlooAdminEnvoy.name}`,
+  title: 'GlooInstance / Admin / GlooAdminEnvoy',
   component: GlooAdminEnvoy,
-} as unknown as ComponentMeta<typeof GlooAdminEnvoy>;
+} as ComponentMeta<typeof GlooAdminEnvoy>;
 
 const Template: ComponentStory<typeof GlooAdminEnvoy> = args => (
   // @ts-ignore

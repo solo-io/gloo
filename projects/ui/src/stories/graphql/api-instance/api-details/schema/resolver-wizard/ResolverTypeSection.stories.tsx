@@ -4,9 +4,10 @@ import { ResolverTypeSection } from '../../../../../../Components/Features/Graph
 import { Formik } from 'formik';
 
 export default {
-  title: `Graphql / api-instance / api-details / schema / resolver-wizard / ${ResolverTypeSection.name}`,
+  title:
+    'Graphql / api-instance / api-details / schema / resolver-wizard / ResolverTypeSection',
   component: ResolverTypeSection,
-} as unknown as ComponentMeta<typeof ResolverTypeSection>;
+} as ComponentMeta<typeof ResolverTypeSection>;
 
 const Template: ComponentStory<typeof ResolverTypeSection> = args => (
   <Formik

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate, Routes, Route } from 'react-router';
 import { colors } from 'Styles/colors';
+import { di } from 'react-magnetic-di/macro';
 import styled from '@emotion/styled';
 import { SoloRadioGroup } from 'Components/Common/SoloRadioGroup';
 import { FederatedVirtualServices } from './FederatedVirtualServices';
@@ -57,6 +58,7 @@ const pageOptions: {
 ];
 
 export const AdminInnerPagesWrapper = () => {
+  di(useParams, useNavigate);
   const { adminPage } = useParams();
   const navigate = useNavigate();
 
@@ -71,7 +73,7 @@ export const AdminInnerPagesWrapper = () => {
   };
 
   return (
-    <AdminInnerPagesContainer>
+    <AdminInnerPagesContainer data-testid='admin-inner-pages-wrapper'>
       <SoloRadioGroup
         options={pageOptions}
         currentSelection={adminPage}

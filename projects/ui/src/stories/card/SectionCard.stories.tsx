@@ -6,9 +6,9 @@ import {
 } from '../../Components/Common/SectionCard';
 
 export default {
-  title: `Card / ${SectionCard.name}`,
+  title: 'Card / SectionCard',
   component: SectionCard,
-} as unknown as ComponentMeta<typeof SectionCard>;
+} as ComponentMeta<typeof SectionCard>;
 
 const Template: ComponentStory<typeof SectionCard> = args => (
   <SectionCard {...args} />

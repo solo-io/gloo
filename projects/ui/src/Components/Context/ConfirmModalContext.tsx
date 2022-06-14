@@ -4,7 +4,7 @@ import React, { useState, useCallback, createContext, useContext } from 'react';
 //
 // TYPES
 //
-type ConfirmOptions = {
+export type ConfirmOptions = {
   confirmPrompt: string;
   confirmButtonText: string;
   isNegative?: boolean;
