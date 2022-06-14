@@ -744,6 +744,8 @@ export class UpstreamOptions extends jspb.Message {
   getSslParameters(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslParameters | undefined;
   setSslParameters(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslParameters): void;
 
+  getGlobalAnnotationsMap(): jspb.Map<string, string>;
+  clearGlobalAnnotationsMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamOptions.AsObject;
   static toObject(includeInstance: boolean, msg: UpstreamOptions): UpstreamOptions.AsObject;
@@ -757,6 +759,7 @@ export class UpstreamOptions extends jspb.Message {
 export namespace UpstreamOptions {
   export type AsObject = {
     sslParameters?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslParameters.AsObject,
+    globalAnnotationsMap: Array<[string, string]>,
   }
 }
 

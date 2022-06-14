@@ -125,6 +125,8 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 				Action: envoycfgauthz.RBAC_ALLOW,
 			},
 		}
+	} else {
+		cfg = &envoyauthz.RBAC{}
 	}
 
 	stagedFilter, err := plugins.NewStagedFilterWithConfig(FilterName, cfg, filterStage)

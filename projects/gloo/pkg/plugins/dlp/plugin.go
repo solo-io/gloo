@@ -163,6 +163,8 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		dlpConfig = &transformation_ee.FilterTransformations{
 			Transformations: transformationRules,
 		}
+	} else {
+		dlpConfig = &transformation_ee.FilterTransformations{}
 	}
 
 	stagedFilter, err := plugins.NewStagedFilterWithConfig(FilterName, dlpConfig, filterStage)

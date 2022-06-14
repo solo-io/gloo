@@ -5096,7 +5096,8 @@ proto.gloo.solo.io.UpstreamOptions.prototype.toObject = function(opt_includeInst
  */
 proto.gloo.solo.io.UpstreamOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
-    sslParameters: (f = msg.getSslParameters()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslParameters.toObject(includeInstance, f)
+    sslParameters: (f = msg.getSslParameters()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslParameters.toObject(includeInstance, f),
+    globalAnnotationsMap: (f = msg.getGlobalAnnotationsMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -5138,6 +5139,12 @@ proto.gloo.solo.io.UpstreamOptions.deserializeBinaryFromReader = function(msg, r
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslParameters.deserializeBinaryFromReader);
       msg.setSslParameters(value);
       break;
+    case 2:
+      var value = msg.getGlobalAnnotationsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
     default:
       reader.skipField();
       break;
@@ -5175,6 +5182,10 @@ proto.gloo.solo.io.UpstreamOptions.serializeBinaryToWriter = function(message, w
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslParameters.serializeBinaryToWriter
     );
   }
+  f = message.getGlobalAnnotationsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
 };
 
 
@@ -5205,6 +5216,24 @@ proto.gloo.solo.io.UpstreamOptions.prototype.clearSslParameters = function() {
  */
 proto.gloo.solo.io.UpstreamOptions.prototype.hasSslParameters = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * map<string, string> global_annotations = 2;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.gloo.solo.io.UpstreamOptions.prototype.getGlobalAnnotationsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
+      null));
+};
+
+
+proto.gloo.solo.io.UpstreamOptions.prototype.clearGlobalAnnotationsMap = function() {
+  this.getGlobalAnnotationsMap().clear();
 };
 
 

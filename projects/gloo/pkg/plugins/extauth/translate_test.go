@@ -178,7 +178,7 @@ var _ = Describe("Translate", func() {
 		// most likely needs to change.
 
 		Expect(reflect.TypeOf(extauth.ExtAuthConfig_OidcAuthorizationCodeConfig{}).NumField()).To(
-			Equal(20),
+			Equal(21),
 			"wrong number of fields found",
 		)
 	})

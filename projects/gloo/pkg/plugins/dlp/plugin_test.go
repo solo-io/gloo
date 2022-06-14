@@ -226,7 +226,8 @@ var _ = Describe("dlp plugin", func() {
 				Expect(dlpFilter.HttpFilter.Name).To(Equal(FilterName))
 				Expect(dlpFilter.Stage).To(Equal(plugins.BeforeStage(plugins.WafStage)))
 				st := dlpFilter.HttpFilter.GetTypedConfig()
-				Expect(st).To(BeNil())
+				Expect(st).ToNot(BeNil())
+				Expect(st.TypeUrl).To(BeIdenticalTo("type.googleapis.com/envoy.config.filter.http.transformation_ee.v2.FilterTransformations"))
 			})
 		})
 

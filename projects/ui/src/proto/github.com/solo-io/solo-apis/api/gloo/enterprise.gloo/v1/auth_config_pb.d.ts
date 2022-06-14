@@ -929,6 +929,26 @@ export namespace JwksOnDemandCacheRefreshPolicy {
   }
 }
 
+export class AutoMapFromMetadata extends jspb.Message {
+  getNamespace(): string;
+  setNamespace(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AutoMapFromMetadata.AsObject;
+  static toObject(includeInstance: boolean, msg: AutoMapFromMetadata): AutoMapFromMetadata.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AutoMapFromMetadata, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AutoMapFromMetadata;
+  static deserializeBinaryFromReader(message: AutoMapFromMetadata, reader: jspb.BinaryReader): AutoMapFromMetadata;
+}
+
+export namespace AutoMapFromMetadata {
+  export type AsObject = {
+    namespace: string,
+  }
+}
+
 export class OidcAuthorizationCode extends jspb.Message {
   getClientId(): string;
   setClientId(value: string): void;
@@ -993,6 +1013,11 @@ export class OidcAuthorizationCode extends jspb.Message {
   getParseCallbackPathAsRegex(): boolean;
   setParseCallbackPathAsRegex(value: boolean): void;
 
+  hasAutoMapFromMetadata(): boolean;
+  clearAutoMapFromMetadata(): void;
+  getAutoMapFromMetadata(): AutoMapFromMetadata | undefined;
+  setAutoMapFromMetadata(value?: AutoMapFromMetadata): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -1022,6 +1047,7 @@ export namespace OidcAuthorizationCode {
     jwksCacheRefreshPolicy?: JwksOnDemandCacheRefreshPolicy.AsObject,
     sessionIdHeaderName: string,
     parseCallbackPathAsRegex: boolean,
+    autoMapFromMetadata?: AutoMapFromMetadata.AsObject,
   }
 }
 
@@ -1775,6 +1801,11 @@ export namespace ExtAuthConfig {
     getParseCallbackPathAsRegex(): boolean;
     setParseCallbackPathAsRegex(value: boolean): void;
 
+    hasAutoMapFromMetadata(): boolean;
+    clearAutoMapFromMetadata(): void;
+    getAutoMapFromMetadata(): AutoMapFromMetadata | undefined;
+    setAutoMapFromMetadata(value?: AutoMapFromMetadata): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
@@ -1804,6 +1835,7 @@ export namespace ExtAuthConfig {
       jwksCacheRefreshPolicy?: JwksOnDemandCacheRefreshPolicy.AsObject,
       sessionIdHeaderName: string,
       parseCallbackPathAsRegex: boolean,
+      autoMapFromMetadata?: AutoMapFromMetadata.AsObject,
     }
   }
 
