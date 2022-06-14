@@ -3,6 +3,7 @@ package validation_test
 import (
 	"context"
 	"net"
+	"net/http"
 	"sync"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	ratelimit "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	validationgrpc "github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloo_matcher "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	enterprise_gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -37,12 +39,13 @@ import (
 
 var _ = Describe("ValidationOpts Server", func() {
 	var (
-		ctrl              *gomock.Controller
-		settings          *v1.Settings
-		translator        Translator
-		params            plugins.Params
-		registeredPlugins []plugins.Plugin
-		xdsSanitizer      sanitizer.XdsSanitizers
+		ctrl                                 *gomock.Controller
+		settings                             *v1.Settings
+		translator                           Translator
+		params                               plugins.Params
+		registeredPlugins                    []plugins.Plugin
+		xdsSanitizer                         sanitizer.XdsSanitizers
+		xdsSanitizerRouteSanitizationEnabled sanitizer.XdsSanitizers
 	)
 
 	BeforeEach(func() {
@@ -73,6 +76,19 @@ var _ = Describe("ValidationOpts Server", func() {
 			sanitizer.NewUpstreamRemovingSanitizer(),
 			routeReplacingSanitizer,
 		}
+
+		enabledRouteReplacingSanitizer, _ := sanitizer.NewRouteReplacingSanitizer(
+			&v1.GlooOptions_InvalidConfigPolicy{
+				ReplaceInvalidRoutes:     true,
+				InvalidRouteResponseCode: http.StatusTeapot,
+				InvalidRouteResponseBody: "out of coffee T_T",
+			},
+		)
+
+		xdsSanitizerRouteSanitizationEnabled = sanitizer.XdsSanitizers{
+			sanitizer.NewUpstreamRemovingSanitizer(),
+			enabledRouteReplacingSanitizer,
+		}
 	})
 
 	JustBeforeEach(func() {
@@ -99,7 +115,8 @@ var _ = Describe("ValidationOpts Server", func() {
 				},
 			}))
 		})
-		It("updates the proxy report when sanitization causes a change", func() {
+		//TODO: Fix this test now that it actually sanitizes routes
+		FIt("updates the proxy report when sanitization causes a change", func() {
 			proxy := params.Snapshot.Proxies[0]
 			// Update proxy so that it includes an invalid definition - the nil destination type should
 			// raise an error since the destination type is not specified
@@ -115,7 +132,7 @@ var _ = Describe("ValidationOpts Server", func() {
 			proxy.GetListeners()[0].GetHttpListener().GetVirtualHosts()[0].GetRoutes()[0].Action = errorRouteAction
 			proxy.GetListeners()[2].GetHybridListener().GetMatchedListeners()[0].GetHttpListener().GetVirtualHosts()[0].GetRoutes()[0].Action = errorRouteAction
 
-			s := NewValidator(context.TODO(), translator, xdsSanitizer)
+			s := NewValidator(context.TODO(), translator, xdsSanitizerRouteSanitizationEnabled)
 			_ = s.Sync(context.TODO(), params.Snapshot)
 			rpt, err := s.Validate(context.TODO(), &validationgrpc.GlooValidationServiceRequest{Proxy: proxy})
 			Expect(err).NotTo(HaveOccurred())
@@ -164,7 +181,7 @@ var _ = Describe("ValidationOpts Server", func() {
 			Expect(validation.GetProxyWarning(report2.GetProxyReport())).To(BeEmpty())
 			Expect(validation.GetProxyError(report2.GetProxyReport())).NotTo(HaveOccurred())
 		})
-		It("upstream validation fails", func() {
+		It("incorrect modification to upstream - validation fails", func() {
 			// having no upstreams in the snapshot should cause translation to fail due to a proxy from the snapshot
 			// referencing the "test" upstream. this should cause any new upstreams we try to apply to be rejected
 			params.Snapshot.Upstreams = v1.UpstreamList{}
@@ -190,6 +207,111 @@ var _ = Describe("ValidationOpts Server", func() {
 			errors := validation.GetProxyError(proxyReport)
 			Expect(warnings).To(HaveLen(2)) // one each for http and hybrid
 			Expect(errors).To(HaveOccurred())
+		})
+		It("incorrect route action specification - no weights on weighted destination - validation fails", func() {
+			matcher := &gloo_matcher.Matcher{
+				PathSpecifier: &gloo_matcher.Matcher_Prefix{
+					Prefix: "/",
+				},
+			}
+			proxy := params.Snapshot.Proxies[0]
+			proxy.Listeners[0].GetHttpListener().GetVirtualHosts()[0].Routes = []*v1.Route{
+				{
+					Name:     "testMultiRouteName",
+					Matchers: []*gloo_matcher.Matcher{matcher},
+					Action: &v1.Route_RouteAction{
+						RouteAction: &v1.RouteAction{
+							Destination: &v1.RouteAction_Multi{
+								Multi: &v1.MultiDestination{
+									Destinations: []*v1.WeightedDestination{
+										{
+											Weight: 0,
+											Destination: &v1.Destination{
+												DestinationType: &v1.Destination_Upstream{
+													Upstream: &core.ResourceRef{
+														Name:      "test",
+														Namespace: "gloo-system",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			//sanitize code to be removed
+			s := NewValidator(context.TODO(), translator, xdsSanitizer)
+			_ = s.Sync(context.TODO(), params.Snapshot)
+			_, err := s.Validate(context.TODO(), &validationgrpc.GlooValidationServiceRequest{Proxy: proxy})
+			Expect(err).NotTo(HaveOccurred())
+
+			// http
+			//routeError := rpt.GetValidationReports()[0].GetProxyReport().GetListenerReports()[0].GetHttpListenerReport().GetVirtualHostReports()[0].GetRouteReports()[0].GetErrors()
+			//routeWarning := rpt.GetValidationReports()[0].GetProxyReport().GetListenerReports()[0].GetHttpListenerReport().GetVirtualHostReports()[0].GetRouteReports()[0].GetWarnings()
+			//Expect(routeError).To(BeEmpty())
+			//Expect(routeWarning[0].Reason).To(Equal("no destination type specified"))
+			//
+			//// hybrid
+			//routeError = rpt.GetValidationReports()[0].GetProxyReport().GetListenerReports()[2].GetHybridListenerReport().GetMatchedListenerReports()[utils.MatchedRouteConfigName(proxy.GetListeners()[2], proxy.GetListeners()[2].GetHybridListener().GetMatchedListeners()[0].GetMatcher())].GetHttpListenerReport().GetVirtualHostReports()[0].GetRouteReports()[0].GetErrors()
+			//routeWarning = rpt.GetValidationReports()[0].GetProxyReport().GetListenerReports()[2].GetHybridListenerReport().GetMatchedListenerReports()[utils.MatchedRouteConfigName(proxy.GetListeners()[2], proxy.GetListeners()[2].GetHybridListener().GetMatchedListeners()[0].GetMatcher())].GetHttpListenerReport().GetVirtualHostReports()[0].GetRouteReports()[0].GetWarnings()
+			//Expect(routeError).To(BeEmpty())
+			//Expect(routeWarning[0].Reason).To(Equal("no destination type specified"))
+
+			//error check code
+			//Expect(err).NotTo(HaveOccurred())
+			//
+			//Expect(resp.ValidationReports).To(HaveLen(1))
+			//proxyReport := resp.ValidationReports[0].GetProxyReport()
+			//warnings := validation.GetProxyWarning(proxyReport)
+			//errors := validation.GetProxyError(proxyReport)
+			//Expect(warnings).To(HaveLen(2)) // one each for http and hybrid
+			//Expect(errors).To(HaveOccurred())
+		})
+
+		It("incorrect route action specification - no weights on weighted destination - sanitized routes - validation succeeds", func() {
+			matcher := &gloo_matcher.Matcher{
+				PathSpecifier: &gloo_matcher.Matcher_Prefix{
+					Prefix: "/",
+				},
+			}
+			proxy := params.Snapshot.Proxies[0]
+			proxy.Listeners[0].GetHttpListener().GetVirtualHosts()[0].Routes = []*v1.Route{
+				{
+					Name:     "testMultiRouteName",
+					Matchers: []*gloo_matcher.Matcher{matcher},
+					Action: &v1.Route_RouteAction{
+						RouteAction: &v1.RouteAction{
+							Destination: &v1.RouteAction_Multi{
+								Multi: &v1.MultiDestination{
+									Destinations: []*v1.WeightedDestination{
+										{
+											Weight: 0,
+											Destination: &v1.Destination{
+												DestinationType: &v1.Destination_Upstream{
+													Upstream: &core.ResourceRef{
+														Name:      "test",
+														Namespace: "gloo-system",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			//Use the sanitizer with route sanitization turned on
+			s := NewValidator(context.TODO(), translator, xdsSanitizerRouteSanitizationEnabled)
+			_ = s.Sync(context.TODO(), params.Snapshot)
+			_, err := s.Validate(context.TODO(), &validationgrpc.GlooValidationServiceRequest{Proxy: proxy})
+			Expect(err).NotTo(HaveOccurred())
 		})
 		It("upstream deletion validation succeeds", func() {
 			// deleting an upstream that is not being used should succeed

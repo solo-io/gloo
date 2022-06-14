@@ -192,13 +192,23 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 	for _, proxy := range proxiesToValidate {
 		xdsSnapshot, resourceReports, proxyReport, err := s.translator.Translate(params, proxy)
 		if err != nil {
-			logger.Errorw("failed to validate proxy", zap.Error(err))
+			logger.Errorw("translation loop failed", zap.Error(err))
 			return nil, err
 		}
 
+		logger.Infof("Errors from initial translation - before sanitization: %s", resourceReports.ValidateStrict().Error())
+
 		// Sanitize routes before sending report to gateway
+
+		//error in the route reports of proxy
 		s.xdsSanitizer.SanitizeSnapshot(ctx, &snapCopy, xdsSnapshot, resourceReports)
+
+		//removing errors from the proxy report that it should not remove
+
+		//TODO: add an if to disable if sanitization is on
 		routeErrorToWarnings(resourceReports, proxyReport)
+
+		logger.Infof("Errors from initial translation - after sanitization: %s", resourceReports.ValidateStrict().Error())
 
 		validationReports = append(validationReports, convertToValidationReport(proxyReport, resourceReports, proxy))
 	}
@@ -234,6 +244,8 @@ func convertToValidationReport(proxyReport *validation.ProxyReport, resourceRepo
 
 	for resource, report := range resourceReports {
 		switch sk_resources.Kind(resource) {
+
+		//current assumption - this is the only non gloo resource - other resources should report errors in the proxy report
 		case "*v1.Upstream":
 			upstreamReports = append(upstreamReports, &validation.ResourceReport{
 				ResourceRef: resource.GetMetadata().Ref(),
@@ -266,9 +278,9 @@ func getErrors(err error) []string {
 	return []string{err.Error()}
 }
 
-// Update the validation report so that route errors that were changed into warnings during sanitization
-// are also switched in the report results
-func routeErrorToWarnings(resourceReport reporter.ResourceReports, validationReport *validation.ProxyReport) {
+// Update the proxy report so that route errors that were changed into warnings during sanitization
+// are also switched in the final proxy report results
+func routeErrorToWarnings(resourceReport reporter.ResourceReports, proxyReport *validation.ProxyReport) {
 	// Only proxy reports are needed
 	resourceReport = resourceReport.FilterByKind("*v1.Proxy")
 	resourceReportErrors := make(map[string]struct{})
@@ -285,23 +297,32 @@ func routeErrorToWarnings(resourceReport reporter.ResourceReports, validationRep
 		}
 	}
 
-	for _, listenerReport := range validationReport.GetListenerReports() {
+	//3 reports
+	// - HttpListenerReport
+	// - TCPListenerReport
+	// - HybridListenerReport
+	for _, listenerReport := range proxyReport.GetListenerReports() {
 		virtualHostReports := utils.GetVhostReportsFromListenerReport(listenerReport)
 
 		for _, virtualHostReport := range virtualHostReports {
 			for _, routeReport := range virtualHostReport.GetRouteReports() {
 				modifiedErrors := make([]*validation.RouteReport_Error, 0)
+
+				//For all errors check to see if there is a matching warning - if so
 				for _, rError := range routeReport.GetErrors() {
-					if _, inErrors := resourceReportErrors[rError.String()]; !inErrors {
+
+					//this will never match the warning string in resourceReportWarnings
+					errString := rError.String()
+					if _, inErrors := resourceReportErrors[errString]; !inErrors {
 						if _, inWarnings := resourceReportWarnings[rError.String()]; inWarnings {
 							warning := &validation.RouteReport_Warning{
 								Type:   validation.RouteReport_Warning_Type(rError.GetType()),
 								Reason: rError.GetReason(),
 							}
 							routeReport.Warnings = append(routeReport.GetWarnings(), warning)
+						} else {
+							modifiedErrors = append(modifiedErrors, rError)
 						}
-					} else {
-						modifiedErrors = append(modifiedErrors, rError)
 					}
 				}
 				routeReport.Errors = modifiedErrors
