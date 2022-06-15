@@ -48,7 +48,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.20.4
 	github.com/solo-io/external-apis v0.1.11
-	github.com/solo-io/gloo v1.12.0-beta20
+	github.com/solo-io/gloo v1.12.0-beta21
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.21.26
 	github.com/solo-io/k8s-utils v0.1.0
@@ -58,8 +58,8 @@ require (
 	github.com/solo-io/rate-limiter v0.6.2
 	github.com/solo-io/skv2 v0.22.15
 	github.com/solo-io/skv2-enterprise v0.2.8
-	github.com/solo-io/solo-apis v0.0.0-20220614162448-e5925ac52dcd
-	github.com/solo-io/solo-kit v0.27.2
+	github.com/solo-io/solo-apis v0.0.0-20220614190507-6c00659dc866
+	github.com/solo-io/solo-kit v0.28.0
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spf13/cobra v1.2.1
@@ -312,7 +312,7 @@ require (
 	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20220422013727-9388b58f7150 // indirect
+	golang.org/x/sys v0.0.0-20220608164250-635b8c9b7f68 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect

@@ -8,7 +8,7 @@ import (
 	envoy_service_discovery_v3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/resource"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/types"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/nack_detector"
 )
 
@@ -142,7 +142,7 @@ var _ = Describe("nackDetector", func() {
 				req := &envoy_service_discovery_v3.DiscoveryRequest{
 					VersionInfo:   "",
 					ResponseNonce: "",
-					TypeUrl:       resource.ClusterTypeV3,
+					TypeUrl:       types.ClusterTypeV3,
 					Node:          &envoy_config_core_v3.Node{Id: "1"},
 				}
 				nd.OnStreamRequest(1, req)
@@ -150,7 +150,7 @@ var _ = Describe("nackDetector", func() {
 				req = &envoy_service_discovery_v3.DiscoveryRequest{
 					VersionInfo:   "",
 					ResponseNonce: "",
-					TypeUrl:       resource.ListenerTypeV3,
+					TypeUrl:       types.ListenerTypeV3,
 					Node:          &envoy_config_core_v3.Node{Id: "1"},
 				}
 				nd.OnStreamRequest(1, req)
@@ -158,18 +158,18 @@ var _ = Describe("nackDetector", func() {
 				resp := &envoy_service_discovery_v3.DiscoveryResponse{
 					Nonce:       "1",
 					VersionInfo: "1",
-					TypeUrl:     resource.ClusterTypeV3,
+					TypeUrl:     types.ClusterTypeV3,
 				}
 				nd.OnStreamResponse(1, req, resp)
 
 				resp = &envoy_service_discovery_v3.DiscoveryResponse{
 					Nonce:       "2",
 					VersionInfo: "1",
-					TypeUrl:     resource.ListenerTypeV3,
+					TypeUrl:     types.ListenerTypeV3,
 				}
 				nd.OnStreamResponse(1, req, resp)
 
-				req = &envoy_service_discovery_v3.DiscoveryRequest{VersionInfo: "1", ResponseNonce: "1", TypeUrl: resource.ClusterTypeV3, Node: &envoy_config_core_v3.Node{Id: "1"}}
+				req = &envoy_service_discovery_v3.DiscoveryRequest{VersionInfo: "1", ResponseNonce: "1", TypeUrl: types.ClusterTypeV3, Node: &envoy_config_core_v3.Node{Id: "1"}}
 				nd.OnStreamRequest(1, req)
 
 				req = &envoy_service_discovery_v3.DiscoveryRequest{VersionInfo: "1", ResponseNonce: "2", TypeUrl: "type.googleapis.com/envoy.api.v2.Listeners", Node: &envoy_config_core_v3.Node{Id: "1"}}
@@ -210,7 +210,7 @@ var _ = Describe("nackDetector", func() {
 				req := &envoy_service_discovery_v3.DiscoveryRequest{
 					VersionInfo:   "",
 					ResponseNonce: "",
-					TypeUrl:       resource.ClusterTypeV3,
+					TypeUrl:       types.ClusterTypeV3,
 					Node:          &envoy_config_core_v3.Node{Id: "1"},
 				}
 				nd.OnStreamRequest(1, req)
@@ -218,14 +218,14 @@ var _ = Describe("nackDetector", func() {
 				resp := &envoy_service_discovery_v3.DiscoveryResponse{
 					Nonce:       "1",
 					VersionInfo: "1",
-					TypeUrl:     resource.ClusterTypeV3,
+					TypeUrl:     types.ClusterTypeV3,
 				}
 				nd.OnStreamResponse(1, req, resp)
 
 				req = &envoy_service_discovery_v3.DiscoveryRequest{
 					VersionInfo:   "1",
 					ResponseNonce: "1",
-					TypeUrl:       resource.ClusterTypeV3,
+					TypeUrl:       types.ClusterTypeV3,
 					Node:          &envoy_config_core_v3.Node{Id: "1"}}
 				nd.OnStreamRequest(1, req)
 
@@ -233,14 +233,14 @@ var _ = Describe("nackDetector", func() {
 				resp = &envoy_service_discovery_v3.DiscoveryResponse{
 					Nonce:       "2",
 					VersionInfo: "2",
-					TypeUrl:     resource.ClusterTypeV3,
+					TypeUrl:     types.ClusterTypeV3,
 				}
 				nd.OnStreamResponse(1, req, resp)
 
 				req = &envoy_service_discovery_v3.DiscoveryRequest{
 					VersionInfo:   "2",
 					ResponseNonce: "2",
-					TypeUrl:       resource.ClusterTypeV3,
+					TypeUrl:       types.ClusterTypeV3,
 					Node:          &envoy_config_core_v3.Node{Id: "1"},
 				}
 				nd.OnStreamRequest(1, req)
