@@ -40,6 +40,7 @@ import {
   FederatedUpstream,
   FederatedUpstreamGroup,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_gloo_resources_pb';
+import { FederatedRateLimitConfig } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_ratelimit_resources_pb';
 import {
   ObjectMeta,
   Time,
@@ -57,6 +58,7 @@ import { FederatedVirtualServiceSpec } from 'proto/github.com/solo-io/solo-proje
 import { FederatedSettingsSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/settings_pb';
 import { FederatedUpstreamGroupSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/upstream_group_pb';
 import { FederatedUpstreamSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/upstream_pb';
+import { FederatedRateLimitConfigSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.ratelimit/v1alpha1/rate_limit_config_pb';
 import {
   PlacementStatus,
   TemplateMetadata,
@@ -792,5 +794,24 @@ export const createClusterObjectRef = (
     name: meta.name ?? faker.random.word(),
     namespace: meta.namespace ?? faker.random.word(),
     clusterName: meta.clusterName ?? faker.random.word(),
+  };
+};
+
+export const createFederatedRateLimitConfigSpec = (
+  meta: Partial<FederatedRateLimitConfigSpec.AsObject> = {}
+): FederatedRateLimitConfigSpec.AsObject => {
+  return {
+    template: meta.template,
+    placement: createPlacement(),
+  };
+};
+
+export const createFederatedRateLimitConfig = (
+  meta: Partial<FederatedRateLimitConfig.AsObject> = {}
+): FederatedRateLimitConfig.AsObject => {
+  return {
+    metadata: meta.metadata ?? createObjMeta(),
+    spec: meta.spec ?? createFederatedRateLimitConfigSpec(),
+    status: meta.status ?? undefined,
   };
 };

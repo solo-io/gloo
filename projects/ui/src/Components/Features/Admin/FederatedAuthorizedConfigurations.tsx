@@ -11,7 +11,7 @@ import {
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as CloudIcon } from 'assets/auth-cloud-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
-import { useNavigate } from 'react-router';
+import { di } from 'react-magnetic-di/macro';
 import { useListFederatedAuthConfigs } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
 import { doDownload } from 'download-helper';
@@ -33,7 +33,7 @@ type AuthConfigTableFields = {
 
 export const FederatedAuthorizedConfigurations = () => {
   const [tableData, setTableData] = React.useState<AuthConfigTableFields[]>([]);
-
+  di(useListFederatedAuthConfigs);
   const { data: authConfigs, error: fedACError } =
     useListFederatedAuthConfigs();
 

@@ -8,6 +8,7 @@ import {
   RenderClustersList,
   RenderExpandableNamesList,
 } from 'Components/Common/SoloTable';
+import { di } from 'react-magnetic-di/macro';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import Tooltip from 'antd/lib/tooltip';
@@ -34,7 +35,7 @@ type RateLimitTableFields = {
 
 export const FederatedRateLimits = () => {
   const [tableData, setTableData] = React.useState<RateLimitTableFields[]>([]);
-
+  di(useListFederatedRateLimits);
   const { data: rateLimits, error: fedRLError } = useListFederatedRateLimits();
 
   useEffect(() => {

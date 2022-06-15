@@ -8,6 +8,7 @@ import {
   RenderClustersList,
   RenderExpandableNamesList,
 } from 'Components/Common/SoloTable';
+import { di } from 'react-magnetic-di/macro';
 import Tooltip from 'antd/lib/tooltip';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as GatewayIcon } from 'assets/gateway.svg';
@@ -50,8 +51,8 @@ type GatewayTableFields = {
 
 // Named uniquely from the others  to avoid conflict with GRPC Class
 export const FederatedGateways = () => {
+  di(useListFederatedGateways);
   const [tableData, setTableData] = React.useState<GatewayTableFields[]>([]);
-
   const { data: gateways, error: fedGError } = useListFederatedGateways();
 
   useEffect(() => {

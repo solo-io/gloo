@@ -86,6 +86,7 @@
     "e2e": "jest --verbose --config ./e2e/jest.config.ts ./e2e",
     "screenshots-to-gif": "ffmpeg -y -framerate 1 -pattern_type glob -i './e2e/tests/screenshots/*.jpeg' -r 15 ./e2e/tests/screenshots/out.gif",
     "storybook": "start-storybook -p 6006 -s public",
+    "test-storybook:ci": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"NODE_ENV=test yarn build-storybook --quiet && npx http-server storybook-static --port 6006 --silent\" \"wait-on tcp:6006 && yarn test-storybook --maxWorkers=3\" ",
     "build-storybook": "build-storybook -s public",
     "test-storybook": "test-storybook --maxWorkers=3",
     "build:tailwind": "npx tailwindcss -i ./src/Styles/precompile.css -o ./src/Styles/styles.css",
@@ -136,10 +137,12 @@
     "autoprefixer": "^10.4.2",
     "babel-jest": "^28.1.0",
     "babel-plugin-named-exports-order": "^0.0.2",
+    "concurrently": "^7.2.2",
     "customize-cra": "^1.0.0",
     "eslint-plugin-react-hooks": "^4.3.0",
     "eslint-plugin-storybook": "^0.5.12",
     "file-loader": "^6.2.0",
+    "http-server": "^14.1.1",
     "husky": "4",
     "jest-image-snapshot": "^4.5.1",
     "jest-puppeteer": "^6.1.0",
@@ -156,6 +159,7 @@
     "react-app-rewired": "^2.1.8",
     "tailwindcss": "^3.0.15",
     "ts-jest": "^27.1.4",
+    "wait": "^0.4.2",
     "webpack": "^5.72.1"
   },
   "husky": {

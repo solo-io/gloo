@@ -18,5 +18,6 @@ module.exports = {
     interactionsDebugger: true,
     // storybook test seems to use this setting to `true`, so it's a useful config for testing
     storyStoreV7: false,
+    babelModeV7: true,
   },
 }
