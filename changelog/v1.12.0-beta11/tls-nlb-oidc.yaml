@@ -1,0 +1,5 @@
+changelog:
+- type: NON_USER_FACING
+  description: Add tests to validate tls termination behavior introduced in ext-auth-service v0.20.2.
+  issueLink: https://github.com/solo-io/gloo/issues/4759
+  resolvesIssue: false

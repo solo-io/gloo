@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math/big"
 	"net/http"
 	"net/http/cookiejar"
@@ -22,6 +23,10 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	gwtranslator "github.com/solo-io/gloo/projects/gateway/pkg/translator"
 
 	"github.com/solo-io/gloo/test/helpers"
 
@@ -53,6 +58,7 @@ import (
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	gloohelpers "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -993,6 +999,138 @@ var _ = Describe("External auth", func() {
 							"StatusCode": Equal(http.StatusFound),
 							"Header":     HaveKeyWithValue("Location", []string{finalpage}),
 						}))
+					})
+					Context("oidc + tls is already terminated", func() {
+						Context("listener is http, appUrl is https", func() {
+							BeforeEach(func() {
+								oauth2 := getOidcAuthCodeConfig(envoyPort, secret.Metadata.Ref())
+								oauth2.OidcAuthorizationCode.AppUrl = strings.Replace(oauth2.OidcAuthorizationCode.AppUrl,
+									"http:",
+									"https:",
+									1)
+								authConfig.Configs = []*extauth.AuthConfig_Config{{
+									AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+										Oauth2: &extauth.OAuth2{
+											OauthType: oauth2,
+										},
+									},
+								}}
+							})
+							It("should prefer appUrl scheme to http request scheme", func() {
+								client := &http.Client{
+									CheckRedirect: func(req *http.Request, via []*http.Request) error {
+										return http.ErrUseLastResponse
+									},
+								}
+								req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/", "localhost", envoyPort), nil)
+								Expect(err).NotTo(HaveOccurred())
+
+								resp, err := client.Do(req)
+								Expect(err).NotTo(HaveOccurred())
+								defer resp.Body.Close()
+								locHdr := resp.Header.Get("Location")
+								Expect(locHdr).NotTo(BeEmpty())
+								locUrl, err := url.Parse(locHdr)
+								Expect(err).NotTo(HaveOccurred())
+
+								stateVals := locUrl.Query().Get("state")
+								Expect(stateVals).NotTo(BeEmpty())
+
+								var stateClaim struct {
+									jwt.StandardClaims
+									State string
+								}
+								_, err = jwt.ParseWithClaims(stateVals,
+									&stateClaim,
+									func(*jwt.Token) (interface{}, error) {
+										return nil, nil
+									},
+								)
+
+								// state URI has been upgraded to https:
+								log.Println(stateClaim.State)
+								Expect(stateClaim.State).To(ContainSubstring("https://"))
+							})
+						})
+						Context("listener is https, appUrl is http", func() {
+							BeforeEach(func() {
+								gw := gatewaydefaults.DefaultSslGateway(proxy.Metadata.Namespace)
+								translator := gwtranslator.NewDefaultTranslator(gwtranslator.Opts{
+									GlooNamespace:  proxy.Metadata.Namespace,
+									WriteNamespace: proxy.Metadata.Namespace,
+								})
+								tlsSecret := &gloov1.Secret{
+									Metadata: &core.Metadata{
+										Name:      "tls-secret",
+										Namespace: "default",
+									},
+									Kind: &gloov1.Secret_Tls{
+										Tls: &gloov1.TlsSecret{
+											CertChain:  gloohelpers.Certificate(),
+											PrivateKey: gloohelpers.PrivateKey(),
+										},
+									},
+								}
+								_, err := testClients.SecretClient.Write(tlsSecret, clients.WriteOpts{})
+								Expect(err).NotTo(HaveOccurred())
+								vs := getVirtualServiceToUpstream(testUpstream.Upstream.Metadata.Ref(), &gloov1.SslConfig{
+									SslSecrets: &gloov1.SslConfig_SecretRef{
+										SecretRef: tlsSecret.Metadata.Ref(),
+									},
+								})
+								p, _ := translator.Translate(ctx, proxy.Metadata.Name, &gatewayv1.ApiSnapshot{
+									VirtualServices:    gatewayv1.VirtualServiceList{vs},
+									RouteTables:        gatewayv1.RouteTableList{},
+									Gateways:           gatewayv1.GatewayList{},
+									VirtualHostOptions: gatewayv1.VirtualHostOptionList{},
+									RouteOptions:       gatewayv1.RouteOptionList{},
+									HttpGateways:       gatewayv1.MatchableHttpGatewayList{},
+								}, []*gatewayv1.Gateway{gw})
+
+								Expect(len(p.GetListeners())).To(BeNumerically(">", 0))
+								l := p.Listeners[0]
+								l.GetHttpListener().VirtualHosts = proxy.GetListeners()[0].GetHttpListener().GetVirtualHosts()
+								l.BindAddress = "0.0.0.0"
+
+								proxy.Listeners = append(proxy.Listeners, p.Listeners...)
+							})
+							It("should prefer https scheme when appUrl scheme is a downgrade", func() {
+								client, err := getHttpClient(gloohelpers.Certificate(), nil)
+								client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+									return http.ErrUseLastResponse
+								}
+
+								req, err := http.NewRequest("GET", fmt.Sprintf("https://%s:%d/", "localhost", 8443), nil)
+								Expect(err).NotTo(HaveOccurred())
+
+								resp, err := client.Do(req)
+								Expect(err).NotTo(HaveOccurred())
+								defer resp.Body.Close()
+								locHdr := resp.Header.Get("Location")
+								Expect(locHdr).NotTo(BeEmpty())
+								locUrl, err := url.Parse(locHdr)
+								Expect(err).NotTo(HaveOccurred())
+
+								stateVals := locUrl.Query().Get("state")
+								Expect(stateVals).NotTo(BeEmpty())
+
+								var stateClaim struct {
+									jwt.StandardClaims
+									State string
+								}
+								_, err = jwt.ParseWithClaims(stateVals,
+									&stateClaim,
+									func(*jwt.Token) (interface{}, error) {
+										return nil, nil
+									},
+								)
+
+								// state URI has not been downgraded to http:
+								log.Println(stateClaim.State)
+								Expect(stateClaim.State).To(ContainSubstring("https://"))
+							})
+
+						})
 					})
 
 					Context("oidc + opa sanity", func() {
