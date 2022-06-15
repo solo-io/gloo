@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Fix the automation used to add new issues to project boards.
+    issueLink: https://github.com/solo-io/gloo/issues/6305
+    resolvesIssue: true
