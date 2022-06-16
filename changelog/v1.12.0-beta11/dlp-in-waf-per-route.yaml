@@ -1,0 +1,9 @@
+changelog:
+- dependencyOwner: solo-io
+  dependencyRepo: envoy-gloo-ee
+  dependencyTag: v1.21.3-patch2
+  type: DEPENDENCY_BUMP
+- issueLink: https://github.com/solo-io/envoy-gloo-ee/issues/345
+  description: DLP within WAF now honors route- and vhost-level config.
+  type: FIX
+  resolvesIssue: true

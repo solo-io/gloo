@@ -53,12 +53,20 @@ func (p *plugin) Init(params plugins.InitParams) error {
 // Process virtual host plugin
 func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {
 	wafConfig := in.GetOptions().GetWaf()
+	dlpActions := dlp_plugin.GetRelevantActions(context.Background(), in.GetOptions().GetDlp().GetActions())
 	if wafConfig == nil {
-		// no config found, nothing to do here
-		return nil
+		if len(dlpActions) == 0 {
+			// no waf or dlp config found, nothing to do here
+			return nil
+		} else {
+			// since we have dlp actions to apply, we need to check for listener-level waf and copy it explicitly
+			// here so the vhost-level dlp will work.
+			if wafConfig = params.HttpListener.GetOptions().GetWaf(); wafConfig == nil {
+				return nil
+			}
+		}
 	}
 
-	dlpActions := dlp_plugin.GetRelevantActions(context.Background(), in.GetOptions().GetDlp().GetActions())
 	// fallback to listener dlp just in case it exists
 	if len(dlpActions) == 0 {
 		dlpActions = dlpActionsForListener(params.HttpListener)
@@ -97,19 +105,29 @@ func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 // Process route plugin
 func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	wafConfig := in.GetOptions().GetWaf()
+	dlpActions := dlp_plugin.GetRelevantActions(context.Background(), in.GetOptions().GetDlp().GetActions())
 	if wafConfig == nil {
-		// no config found, nothing to do here
-		return nil
+		if len(dlpActions) == 0 {
+			// no waf or dlp config found, nothing to do here
+			return nil
+		} else {
+			// since we have dlp actions to apply, we need to check for listener-level waf and copy it explicitly
+			// here so the route-level dlp will work.
+			if wafConfig = params.VirtualHostParams.HttpListener.GetOptions().GetWaf(); wafConfig == nil {
+				return nil
+			}
+		}
+	}
+
+	// fallback to virtual host, then listener dlp just in case it exists
+	if len(dlpActions) == 0 {
+		if dlpActions = dlp_plugin.GetRelevantActions(context.Background(), params.VirtualHost.GetOptions().GetDlp().GetActions()); dlpActions != nil && len(dlpActions) > 0 {
+			dlpActions = dlpActionsForListener(params.VirtualHostParams.HttpListener)
+		}
 	}
 
 	// filterRequiredForListener should be instantiated at plugin init
 	p.filterRequiredForListener[params.HttpListener] = struct{}{}
-
-	dlpActions := dlp_plugin.GetRelevantActions(context.Background(), in.GetOptions().GetDlp().GetActions())
-	// fallback to listener dlp just in case it exists
-	if len(dlpActions) == 0 {
-		dlpActions = dlpActionsForListener(params.VirtualHostParams.HttpListener)
-	}
 
 	perRouteCfg := &ModSecurityPerRoute{
 		Disabled:                  wafConfig.GetDisabled(),
@@ -196,7 +214,6 @@ func dlpActionsForListener(listener *v1.HttpListener) []*transformation_ee.Actio
 		dlpActions = append(dlpActions, dlp_plugin.GetRelevantActions(context.Background(), rule.GetActions())...)
 	}
 	return dlpActions
-
 }
 
 func getCoreRuleSet(crs *waf.CoreRuleSet) []*RuleSet {
