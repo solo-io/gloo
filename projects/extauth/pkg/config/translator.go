@@ -149,6 +149,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			DefaultOIDCDiscoveryPollInterval,
 			jwks.NewNilKeySourceFactory(),
 			false,
+			nil, // not supported in deprecated API, net-new feature
 		)
 
 		if err != nil {
@@ -189,6 +190,11 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				discoveryPollInterval = ptypes.DurationProto(DefaultOIDCDiscoveryPollInterval)
 			}
 
+			autoMapFromMetadata := ToAutoMapFromMetadata(oidcCfg.GetAutoMapFromMetadata())
+			if autoMapFromMetadata == nil {
+				autoMapFromMetadata = &oidc.AutoMapFromMetadata{}
+			}
+
 			jwksOnDemandCacheRefreshPolicy := ToOnDemandCacheRefreshPolicy(oidcCfg.GetJwksCacheRefreshPolicy())
 
 			authService, err := t.serviceFactory.NewOidcAuthorizationCodeAuthService(
@@ -210,6 +216,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				discoveryPollInterval.AsDuration(),
 				jwksOnDemandCacheRefreshPolicy,
 				oidcCfg.GetParseCallbackPathAsRegex(),
+				autoMapFromMetadata,
 			)
 
 			if err != nil {
@@ -591,4 +598,8 @@ func ToOnDemandCacheRefreshPolicy(policy *extauthv1.JwksOnDemandCacheRefreshPoli
 	// The default case is Never refresh
 	return jwks.NewNilKeySourceFactory()
 
+}
+
+func ToAutoMapFromMetadata(autoMapFromMetadata *extauthv1.AutoMapFromMetadata) *oidc.AutoMapFromMetadata {
+	return oidc.NewAutoMapFromMetadata(autoMapFromMetadata.GetNamespace())
 }

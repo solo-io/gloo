@@ -218,6 +218,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				config.DefaultOIDCDiscoveryPollInterval,
 				jwks.NewNilKeySourceFactory(),
 				false,
+				nil,
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, authCfg)
@@ -633,6 +634,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				config.DefaultOIDCDiscoveryPollInterval,
 				jwks.NewNilKeySourceFactory(),
 				false,
+				config.ToAutoMapFromMetadata(nil),
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, oAuthConfig)
@@ -663,6 +665,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				oneMinute.AsDuration(),
 				jwks.NewNilKeySourceFactory(),
 				false,
+				config.ToAutoMapFromMetadata(nil),
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, oAuthConfig)
@@ -692,6 +695,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 											CallbackPath:             "/callback",
 											Scopes:                   []string{"foo", "bar"},
 											JwksCacheRefreshPolicy:   policyConfig,
+											AutoMapFromMetadata:      &extauthv1.AutoMapFromMetadata{Namespace: "test"},
 										},
 									},
 								},
@@ -719,6 +723,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 					config.DefaultOIDCDiscoveryPollInterval,
 					expectedCacheRefreshPolicy,
 					false,
+					config.ToAutoMapFromMetadata(&extauthv1.AutoMapFromMetadata{Namespace: "test"}),
 				).Return(authServiceMock, nil)
 
 				authService, err := translator.Translate(ctx, oAuthConfig)

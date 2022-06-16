@@ -1,0 +1,17 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/6056
+    resolvesIssue: false
+    description: >
+      Adds AutoMapFromMetadata to the OIDC IssuerConfig struct.
+      When configured, dynamic metadata values in the specified namespace
+      will be mapped to query params on requests made to the OIDC auth
+      endpoint and the OIDC token endpoint. 
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.20.5
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/6501
+    resolvesIssue: false
+    description: Fix issue due to "Authorization" access token header not being sent with the "Bearer" schema.
