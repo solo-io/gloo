@@ -24,6 +24,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gwtranslator "github.com/solo-io/gloo/projects/gateway/pkg/translator"
@@ -567,8 +569,9 @@ var _ = Describe("External auth", func() {
 					BeforeEach(func() {
 						// update the config to use redis
 						oauth2.OidcAuthorizationCode.Headers = &extauth.HeaderConfiguration{
-							IdTokenHeader:     "foo",
-							AccessTokenHeader: "Authorization",
+							IdTokenHeader:                   "foo",
+							AccessTokenHeader:               "Authorization",
+							UseBearerSchemaForAuthorization: &wrappers.BoolValue{Value: true},
 						}
 					})
 
@@ -585,6 +588,29 @@ var _ = Describe("External auth", func() {
 					})
 				})
 
+				Context("does NOT forward header token with Bearer schema if not enabled", func() {
+					BeforeEach(func() {
+						// update the config to use redis
+						oauth2.OidcAuthorizationCode.Headers = &extauth.HeaderConfiguration{
+							IdTokenHeader:                   "foo",
+							AccessTokenHeader:               "Authorization",
+							UseBearerSchemaForAuthorization: &wrappers.BoolValue{Value: false},
+						}
+					})
+
+					It("should not use Bearer schema", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {})
+
+						select {
+						case r := <-testUpstream.C:
+							Expect(r.Headers.Get("foo")).To(Equal(discoveryServer.token))
+							Expect(r.Headers.Get("Authorization")).To(Equal("SlAV32hkKG"))
+						case <-time.After(time.Second):
+							Fail("timedout")
+						}
+					})
+				})
+
 				Context("forward id token", func() {
 
 					BeforeEach(func() {
@@ -592,6 +618,29 @@ var _ = Describe("External auth", func() {
 						oauth2.OidcAuthorizationCode.Headers = &extauth.HeaderConfiguration{
 							IdTokenHeader:     "foo",
 							AccessTokenHeader: "bar",
+						}
+					})
+
+					It("should work", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {})
+
+						select {
+						case r := <-testUpstream.C:
+							Expect(r.Headers.Get("foo")).To(Equal(discoveryServer.token))
+							Expect(r.Headers.Get("bar")).To(Equal("SlAV32hkKG"))
+						case <-time.After(time.Second):
+							Fail("timedout")
+						}
+					})
+				})
+
+				Context("forward id token normally even if bearer addition enabled", func() {
+					BeforeEach(func() {
+						// update the config to use redis
+						oauth2.OidcAuthorizationCode.Headers = &extauth.HeaderConfiguration{
+							IdTokenHeader:                   "foo",
+							AccessTokenHeader:               "bar",
+							UseBearerSchemaForAuthorization: &wrappers.BoolValue{Value: true},
 						}
 					})
 
@@ -1100,7 +1149,7 @@ var _ = Describe("External auth", func() {
 										SecretRef: tlsSecret.Metadata.Ref(),
 									},
 								})
-								p, _ := translator.Translate(ctx, proxy.Metadata.Name, &gatewayv1.ApiSnapshot{
+								p, _ := translator.Translate(ctx, proxy.Metadata.Name, &gloov1snap.ApiSnapshot{
 									VirtualServices:    gatewayv1.VirtualServiceList{vs},
 									RouteTables:        gatewayv1.RouteTableList{},
 									Gateways:           gatewayv1.GatewayList{},
