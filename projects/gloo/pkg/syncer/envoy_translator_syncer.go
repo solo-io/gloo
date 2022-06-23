@@ -7,7 +7,7 @@ import (
 
 	syncerstats "github.com/solo-io/gloo/projects/gloo/pkg/syncer/stats"
 	"github.com/solo-io/go-utils/hashutils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/resource"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/types"
 
 	"github.com/gorilla/mux"
 	"github.com/rotisserie/eris"
@@ -160,10 +160,10 @@ func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1.ApiSnapshot, 
 		}
 
 		// Record some metrics
-		clustersLen := len(xdsSnapshot.GetResources(resource.ClusterTypeV3).Items)
-		listenersLen := len(xdsSnapshot.GetResources(resource.ListenerTypeV3).Items)
-		routesLen := len(xdsSnapshot.GetResources(resource.RouteTypeV3).Items)
-		endpointsLen := len(xdsSnapshot.GetResources(resource.EndpointTypeV3).Items)
+		clustersLen := len(xdsSnapshot.GetResources(types.ClusterTypeV3).Items)
+		listenersLen := len(xdsSnapshot.GetResources(types.ListenerTypeV3).Items)
+		routesLen := len(xdsSnapshot.GetResources(types.RouteTypeV3).Items)
+		endpointsLen := len(xdsSnapshot.GetResources(types.EndpointTypeV3).Items)
 
 		measureResource(proxyCtx, "clusters", clustersLen)
 		measureResource(proxyCtx, "listeners", listenersLen)
@@ -209,17 +209,17 @@ func (s *translatorSyncer) updateEndpointsOnly(snapshotKey string, current envoy
 	if err != nil {
 		// if no previous snapshot exists
 		newSnapshot = xds.NewEndpointsSnapshotFromResources(
-			current.GetResources(resource.EndpointTypeV3),
-			current.GetResources(resource.ClusterTypeV3),
+			current.GetResources(types.EndpointTypeV3),
+			current.GetResources(types.ClusterTypeV3),
 		)
 	} else {
 		newSnapshot = xds.NewSnapshotFromResources(
 			// Set endpoints and clusters calculated during this sync
-			current.GetResources(resource.EndpointTypeV3),
-			current.GetResources(resource.ClusterTypeV3),
+			current.GetResources(types.EndpointTypeV3),
+			current.GetResources(types.ClusterTypeV3),
 			// Keep other resources from previous snapshot
-			previous.GetResources(resource.RouteTypeV3),
-			previous.GetResources(resource.ListenerTypeV3),
+			previous.GetResources(types.RouteTypeV3),
+			previous.GetResources(types.ListenerTypeV3),
 		)
 	}
 
