@@ -5191,7 +5191,8 @@ proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.toObject = function(
 proto.enterprise.gloo.solo.io.HeaderConfiguration.toObject = function(includeInstance, msg) {
   var f, obj = {
     idTokenHeader: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    accessTokenHeader: jspb.Message.getFieldWithDefault(msg, 2, "")
+    accessTokenHeader: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    useBearerSchemaForAuthorization: (f = msg.getUseBearerSchemaForAuthorization()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5236,6 +5237,11 @@ proto.enterprise.gloo.solo.io.HeaderConfiguration.deserializeBinaryFromReader = 
       var value = /** @type {string} */ (reader.readString());
       msg.setAccessTokenHeader(value);
       break;
+    case 3:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setUseBearerSchemaForAuthorization(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5279,6 +5285,14 @@ proto.enterprise.gloo.solo.io.HeaderConfiguration.serializeBinaryToWriter = func
       f
     );
   }
+  f = message.getUseBearerSchemaForAuthorization();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -5309,6 +5323,36 @@ proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.getAccessTokenHeader
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.setAccessTokenHeader = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue use_bearer_schema_for_authorization = 3;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.getUseBearerSchemaForAuthorization = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 3));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.setUseBearerSchemaForAuthorization = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.clearUseBearerSchemaForAuthorization = function() {
+  this.setUseBearerSchemaForAuthorization(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.HeaderConfiguration.prototype.hasUseBearerSchemaForAuthorization = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

@@ -744,6 +744,11 @@ export class HeaderConfiguration extends jspb.Message {
   getAccessTokenHeader(): string;
   setAccessTokenHeader(value: string): void;
 
+  hasUseBearerSchemaForAuthorization(): boolean;
+  clearUseBearerSchemaForAuthorization(): void;
+  getUseBearerSchemaForAuthorization(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setUseBearerSchemaForAuthorization(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HeaderConfiguration.AsObject;
   static toObject(includeInstance: boolean, msg: HeaderConfiguration): HeaderConfiguration.AsObject;
@@ -758,6 +763,7 @@ export namespace HeaderConfiguration {
   export type AsObject = {
     idTokenHeader: string,
     accessTokenHeader: string,
+    useBearerSchemaForAuthorization?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 }
 
