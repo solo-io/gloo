@@ -8,6 +8,7 @@ import { ReactComponent as DocumentsIcon } from 'assets/document.svg';
 import { Loading } from 'Components/Common/Loading';
 import { useGetConfigDumps } from 'API/hooks';
 import { doDownload } from 'download-helper';
+import { di } from 'react-magnetic-di/macro';
 import YamlDisplayer from 'Components/Common/YamlDisplayer';
 import { IconHolder } from 'Styles/StyledComponents/icons';
 import { DataError } from 'Components/Common/DataError';
@@ -40,6 +41,7 @@ const Actionables = styled.div`
 `;
 
 export const GlooAdminEnvoy = () => {
+  di(useParams, useGetConfigDumps);
   const { name, namespace } = useParams();
 
   const { data: configsList, error: configsListError } = useGetConfigDumps({

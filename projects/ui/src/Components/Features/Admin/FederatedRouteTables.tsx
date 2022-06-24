@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router';
 import { useListFederatedRouteTables } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
 import { doDownload } from 'download-helper';
+import { di } from 'react-magnetic-di/macro';
 import { IconHolder } from 'Styles/StyledComponents/icons';
 import { colors } from 'Styles/colors';
 import { FederatedRouteTable } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_gateway_resources_pb';
@@ -48,6 +49,7 @@ type RouteTableTableFields = {
 };
 
 export const FederatedRouteTables = () => {
+  di(useListFederatedRouteTables);
   const [tableData, setTableData] = React.useState<RouteTableTableFields[]>([]);
 
   const { data: routeTables, error: fedRTError } =

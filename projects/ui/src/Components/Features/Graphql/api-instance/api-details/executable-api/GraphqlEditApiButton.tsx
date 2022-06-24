@@ -3,10 +3,14 @@ import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core
 import React from 'react';
 import { SoloButtonStyledComponent } from 'Styles/StyledComponents/button';
 import { UpdateApiModal } from '../../../update-api-modal/UpdateApiModal';
+import { di } from 'react-magnetic-di/macro';
+
+const { getGraphqlApi } = graphqlConfigApi;
 
 const GraphqlEditApiButton: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
 }> = ({ apiRef }) => {
+  di(getGraphqlApi);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [schemaString, setSchemaString] = React.useState('');
 
@@ -15,11 +19,11 @@ const GraphqlEditApiButton: React.FC<{
   };
 
   React.useEffect(() => {
-    graphqlConfigApi.getGraphqlApi(apiRef).then(res => {
+    getGraphqlApi(apiRef).then(res => {
       const schemaDef = res.spec!.executableSchema!.schemaDefinition!;
       setSchemaString(schemaDef);
     });
-  }, [graphqlConfigApi.getGraphqlApi, apiRef]);
+  }, [getGraphqlApi, apiRef]);
 
   return (
     <>

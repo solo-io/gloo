@@ -3,10 +3,12 @@ import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core
 import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { di } from 'react-magnetic-di/macro';
 
 const ExecutableGraphqlUpstreamsTable: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
 }> = ({ apiRef }) => {
+  di(useNavigate, useGetGraphqlApiDetails, useListUpstreams);
   const navigate = useNavigate();
 
   // api hooks

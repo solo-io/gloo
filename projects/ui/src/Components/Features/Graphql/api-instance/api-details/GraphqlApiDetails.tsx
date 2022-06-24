@@ -5,8 +5,10 @@ import GraphqlDefineResolversPrompt from '../api-policies/GraphqlDefineResolvers
 import { ExecutableGraphqlApiDetails } from './executable-api/ExecutableGraphqlApiDetails';
 import GraphqlApiConfigurationHeader from './GraphqlApiConfigurationHeader';
 import { StitchedGraphqlApiDetails } from './stitched-api/StitchedGraphqlApiDetails';
+import { di } from 'react-magnetic-di/macro';
 
 const GraphqlApiDetails = () => {
+  di(usePageApiRef, useGetGraphqlApiDetails);
   const apiRef = usePageApiRef();
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
 

@@ -15,6 +15,9 @@ import YamlDisplayer from 'Components/Common/YamlDisplayer';
 import { IconHolder } from 'Styles/StyledComponents/icons';
 import { HealthNotificationBox } from 'Components/Common/HealthNotificationBox';
 import { DataError } from 'Components/Common/DataError';
+import { di } from 'react-magnetic-di/macro';
+
+const { getProxyYAML } = glooResourceApi;
 
 const TitleRow = styled.div`
   display: flex;
@@ -42,6 +45,7 @@ const Actionables = styled.div`
 `;
 
 export const GlooAdminProxy = () => {
+  di(useParams, useListProxies, getProxyYAML);
   const { name = '', namespace = '' } = useParams();
 
   const { data: proxies, error: pError } = useListProxies({ name, namespace });
@@ -84,35 +88,31 @@ export const GlooAdminProxy = () => {
     setYamlsOpen(viewables);
 
     if (proxy.metadata && !swaggerContentByUid[proxy.metadata!.uid]) {
-      glooResourceApi
-        .getProxyYAML({
-          name: proxy.metadata.name,
-          namespace: proxy.metadata.namespace,
-          clusterName: proxy.metadata.clusterName,
-        })
-        .then(proxyYaml => {
-          let swaggers = { ...swaggerContentByUid };
-          swaggers[proxy.metadata!.uid] = proxyYaml;
-          setSwaggerContentByUid(swaggers);
-        });
+      getProxyYAML({
+        name: proxy.metadata.name,
+        namespace: proxy.metadata.namespace,
+        clusterName: proxy.metadata.clusterName,
+      }).then(proxyYaml => {
+        let swaggers = { ...swaggerContentByUid };
+        swaggers[proxy.metadata!.uid] = proxyYaml;
+        setSwaggerContentByUid(swaggers);
+      });
     }
   };
 
   const onDownloadProxy = (proxy: Proxy.AsObject) => {
     if (proxy.metadata && !swaggerContentByUid[proxy.metadata.uid]) {
-      glooResourceApi
-        .getProxyYAML({
-          name: proxy.metadata.name,
-          namespace: proxy.metadata.namespace,
-          clusterName: proxy.metadata.clusterName,
-        })
-        .then(proxyYaml => {
-          doDownload(proxyYaml, proxy.metadata?.name + '.yaml');
+      getProxyYAML({
+        name: proxy.metadata.name,
+        namespace: proxy.metadata.namespace,
+        clusterName: proxy.metadata.clusterName,
+      }).then(proxyYaml => {
+        doDownload(proxyYaml, proxy.metadata?.name + '.yaml');
 
-          let swaggers = { ...swaggerContentByUid };
-          swaggers[proxy.metadata!.uid] = proxyYaml;
-          setSwaggerContentByUid(swaggers);
-        });
+        let swaggers = { ...swaggerContentByUid };
+        swaggers[proxy.metadata!.uid] = proxyYaml;
+        setSwaggerContentByUid(swaggers);
+      });
     } else {
       doDownload(
         swaggerContentByUid[proxy.metadata!.uid],

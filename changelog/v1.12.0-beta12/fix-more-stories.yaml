@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Fixes more stories to use mocked data.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3767

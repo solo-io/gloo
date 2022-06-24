@@ -13,7 +13,7 @@ import Tooltip from 'antd/lib/tooltip';
 import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import { ReactComponent as FailoverIcon } from 'assets/GlooFed-Specific/failover-icon.svg';
-import { useNavigate } from 'react-router';
+import { di } from 'react-magnetic-di/macro';
 import { useListFederatedUpstreams } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
 import { FederatedUpstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_gloo_resources_pb';
@@ -45,6 +45,7 @@ type UpstreamTableFields = {
 };
 
 export const FederatedUpstreams = () => {
+  di(useListFederatedUpstreams);
   const [tableData, setTableData] = React.useState<UpstreamTableFields[]>([]);
 
   const { data: upstreams, error: fedUError } = useListFederatedUpstreams();

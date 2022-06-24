@@ -26,7 +26,18 @@ import {
   HttpListenerOptions,
   ListenerOptions,
 } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb';
-import { TcpHost } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb';
+import {
+  Listener,
+  ProxySpec,
+  TcpHost,
+} from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb';
+import { SslConfig } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb';
+import {
+  ExecutableSchema,
+  GraphQLApiSpec,
+  GraphQLApiStatus,
+  StitchedSchema,
+} from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import { SocketOption } from 'proto/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/socket_option_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { FederatedAuthConfig } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/fed.rpc/v1/federated_enterprise_gloo_resources_pb';
@@ -49,8 +60,11 @@ import { Gateway } from 'proto/github.com/solo-io/solo-projects/projects/apiserv
 
 import {
   ClusterDetails,
+  ConfigDump,
   GlooInstance,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
+import { Proxy } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
+import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import { FederatedAuthConfigSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.enterprise.gloo/v1/auth_config_pb';
 import { FederatedGatewaySpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/gateway_pb';
 import { FederatedRouteTableSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/route_table_pb';
@@ -813,5 +827,174 @@ export const createFederatedRateLimitConfig = (
     metadata: meta.metadata ?? createObjMeta(),
     spec: meta.spec ?? createFederatedRateLimitConfigSpec(),
     status: meta.status ?? undefined,
+  };
+};
+
+export const createConfigDump = (
+  meta: Partial<ConfigDump.AsObject> = {}
+): ConfigDump.AsObject => {
+  return {
+    name: meta.name ?? faker.random.word(),
+    raw: meta.raw ?? faker.random.word(),
+    error: meta.error ?? faker.random.word(),
+  };
+};
+
+export const createSslConfigurations = (
+  meta: Partial<SslConfig.AsObject> = {}
+): SslConfig.AsObject => {
+  return {
+    secretRef: meta.secretRef,
+    sslFiles: meta.sslFiles,
+    sds: meta.sds,
+    sniDomainsList:
+      meta.sniDomainsList ??
+      Array.from({ length: 1 }).map(() => {
+        return faker.random.word();
+      }),
+    verifySubjectAltNameList:
+      meta.verifySubjectAltNameList ??
+      Array.from({ length: 1 }).map(() => {
+        return faker.random.word();
+      }),
+    parameters: meta.parameters,
+    alpnProtocolsList:
+      meta.alpnProtocolsList ??
+      Array.from({ length: 1 }).map(() => {
+        return faker.random.word();
+      }),
+    oneWayTls: meta.oneWayTls,
+    disableTlsSessionResumption: meta.disableTlsSessionResumption,
+    transportSocketConnectTimeout: meta.transportSocketConnectTimeout,
+  };
+};
+
+export const createListener = (
+  meta: Partial<Listener.AsObject> = {}
+): Listener.AsObject => {
+  return {
+    ...meta,
+    name: meta.name ?? faker.random.word(),
+    bindAddress: meta.bindAddress ?? faker.internet.ipv4(),
+    bindPort: meta.bindPort ?? faker.datatype.number(1000),
+    httpListener: meta.httpListener,
+    tcpListener: meta.tcpListener,
+    sslConfigurationsList:
+      meta.sslConfigurationsList ??
+      Array.from({ length: 1 }).map(() => {
+        return createSslConfigurations();
+      }),
+  };
+};
+
+export const createProxySpec = (
+  meta: Partial<ProxySpec.AsObject> = {}
+): ProxySpec.AsObject => {
+  return {
+    compressedspec: meta.compressedspec ?? faker.random.word(),
+    listenersList: Array.from({ length: 1 }).map(() => {
+      return createListener();
+    }),
+  };
+};
+
+export const createProxy = (
+  meta: Partial<Proxy.AsObject> = {}
+): Proxy.AsObject => {
+  return {
+    metadata: meta.metadata ?? createObjMeta(),
+    spec: meta.spec ?? createProxySpec(),
+  };
+};
+
+export const createExecutableSchema = (
+  meta: Partial<ExecutableSchema.AsObject> = {}
+): ExecutableSchema.AsObject => {
+  return {
+    ...meta,
+    schemaDefinition:
+      meta.schemaDefinition ?? faker.random.words(faker.datatype.number(12)),
+  };
+};
+
+export const createStitchedSchemaSubschemaConfigTypeMergeConfig = (
+  meta: Partial<StitchedSchema.SubschemaConfig.TypeMergeConfig.AsObject> = {}
+): StitchedSchema.SubschemaConfig.TypeMergeConfig.AsObject => {
+  return {
+    selectionSet: meta.selectionSet ?? faker.random.word(),
+    queryName: meta.queryName ?? faker.random.word(),
+    argsMap:
+      meta.argsMap ??
+      Array.from({ length: 2 }).map(() => {
+        return [faker.random.word(), faker.random.word()];
+      }),
+  };
+};
+
+export const createStitchedSchemaSubschemaConfig = (
+  meta: Partial<StitchedSchema.SubschemaConfig.AsObject> = {}
+): StitchedSchema.SubschemaConfig.AsObject => {
+  return {
+    name: meta.name ?? faker.random.word(),
+    namespace: meta.namespace ?? faker.random.word(),
+    typeMergeMap:
+      meta.typeMergeMap ??
+      Array.from({ length: 2 }).map(() => {
+        return [
+          faker.random.word(),
+          createStitchedSchemaSubschemaConfigTypeMergeConfig(),
+        ];
+      }),
+  };
+};
+
+export const createStitchedSchema = (
+  meta: Partial<StitchedSchema.AsObject> = {}
+): StitchedSchema.AsObject => {
+  return {
+    subschemasList:
+      meta.subschemasList ??
+      Array.from({ length: 2 }).map(() => {
+        return createStitchedSchemaSubschemaConfig();
+      }),
+  };
+};
+
+// TODO:  Add in more pieces.
+export const createGraphqlApiSpec = (
+  meta: Partial<GraphQLApiSpec.AsObject> = {}
+): GraphQLApiSpec.AsObject => {
+  return {
+    executableSchema: meta.executableSchema ?? createExecutableSchema(),
+    stitchedSchema: meta.stitchedSchema ?? createStitchedSchema(),
+    allowedQueryHashesList:
+      meta.allowedQueryHashesList ??
+      Array.from({ length: 1 }).map(() => {
+        return faker.random.word();
+      }),
+  };
+};
+
+export const createGraphQLApiStatus = (
+  meta: Partial<GraphQLApiStatus.AsObject> = {}
+): GraphQLApiStatus.AsObject => {
+  return {
+    state: meta.state ?? faker.helpers.arrayElement([0, 1, 2, 3]),
+    reason: meta.reason ?? faker.random.word(),
+    reportedBy: meta.reportedBy ?? faker.internet.userName(),
+    subresourceStatusesMap: meta.subresourceStatusesMap ?? [],
+    details: meta.details,
+  };
+};
+
+export const createGraphqlApi = (
+  meta: Partial<GraphqlApi.AsObject> = {}
+): GraphqlApi.AsObject => {
+  return {
+    ...meta,
+    metadata: meta.metadata ?? createObjMeta(),
+    spec: meta.spec ?? createGraphqlApiSpec(),
+    status: meta.status ?? createGraphQLApiStatus(),
+    glooInstance: meta.glooInstance ?? createObjRef(),
   };
 };

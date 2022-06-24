@@ -11,6 +11,7 @@ import { Loading } from 'Components/Common/Loading';
 import { GlooAdminEnvoy } from './GlooAdminEnvoy';
 import { GlooAdminWatchedNamespaces } from './GlooAdminWatchNamespaces';
 import { GlooAdminSecrets } from './GlooAdminSecrets';
+import { di } from 'react-magnetic-di/macro';
 
 const GlooAdminInnerPagesContainer = styled.div`
   display: grid;
@@ -53,6 +54,7 @@ const pageOptions: {
 ];
 
 export const GlooAdminInnerPagesWrapper = () => {
+  di(useParams, useNavigate, usePageGlooInstance);
   const { adminPage, name } = useParams();
   const navigate = useNavigate();
 
@@ -79,7 +81,7 @@ export const GlooAdminInnerPagesWrapper = () => {
       />
       <div>
         {
-          /* We could use React Router here, but I don't think we get anything out 
+          /* We could use React Router here, but I don't think we get anything out
             of it. We could do in <Content />, but then lose the slickness for Radio above. */
           adminPage === 'gateways' ? (
             <GlooAdminGateways />

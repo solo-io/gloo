@@ -22,6 +22,10 @@ import {
   ValidateSchemaDefinitionRequest,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import ReactDiffViewer from 'react-diff-viewer';
+import { di } from 'react-magnetic-di/macro';
+
+const { getGraphqlApiYaml, getGraphqlApi, validateSchema, updateGraphqlApi } =
+  graphqlConfigApi;
 
 const StyledFooter = styled(Footer)`
   margin-top: 20px;
@@ -32,6 +36,13 @@ const StyledFooter = styled(Footer)`
 const GraphqlApiConfigurationHeader: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
 }> = ({ apiRef }) => {
+  di(
+    useGetGraphqlApiYaml,
+    getGraphqlApiYaml,
+    getGraphqlApi,
+    validateSchema,
+    updateGraphqlApi
+  );
   const { data: graphqlApiYaml } = useGetGraphqlApiYaml(apiRef);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [graphqlSchema, setGraphqlSchema] = React.useState('');
@@ -42,7 +53,7 @@ const GraphqlApiConfigurationHeader: React.FC<{
   const loadYaml = async () => {
     if (!apiRef.name || !apiRef.namespace) return '';
     try {
-      const yaml = await graphqlConfigApi.getGraphqlApiYaml(apiRef);
+      const yaml = await getGraphqlApiYaml(apiRef);
       const parsedYaml = YAML.parse(yaml);
       const schemaDef = parsedYaml.spec.executableSchema.schemaDefinition;
       setGraphqlSchema(schemaDef);
@@ -77,7 +88,7 @@ const GraphqlApiConfigurationHeader: React.FC<{
   };
 
   const handleSubmit = async () => {
-    let schema = await graphqlConfigApi.getGraphqlApi(apiRef);
+    let schema = await getGraphqlApi(apiRef);
     schema.spec!.executableSchema!.schemaDefinition = graphqlSchema;
 
     const request = new UpdateGraphqlApiRequest();
@@ -90,10 +101,9 @@ const GraphqlApiConfigurationHeader: React.FC<{
       ...requestObj,
     };
 
-    await graphqlConfigApi
-      .validateSchema(validateRequest)
+    await validateSchema(validateRequest)
       .then(() => {
-        return graphqlConfigApi.updateGraphqlApi(requestObj).then(_res => {
+        return updateGraphqlApi(requestObj).then(_res => {
           onClose();
         });
       })

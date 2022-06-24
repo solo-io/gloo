@@ -12,7 +12,7 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as GearIcon } from 'assets/gear-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import Tooltip from 'antd/lib/tooltip';
-import { useNavigate } from 'react-router';
+import { di } from 'react-magnetic-di/macro';
 import { useListFederatedSettings } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
 import { federatedGlooResourceApi } from 'API/federated-gloo';
@@ -34,6 +34,7 @@ type SettingTableFields = {
 
 // Named uniquely from the others  to avoid conflict with GRPC Class
 export const FederatedSettingsTable = () => {
+  di(useListFederatedSettings);
   const [tableData, setTableData] = React.useState<SettingTableFields[]>([]);
 
   const { data: settings, error: sError } = useListFederatedSettings();

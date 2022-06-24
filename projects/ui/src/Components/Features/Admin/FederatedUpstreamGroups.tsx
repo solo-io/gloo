@@ -13,7 +13,7 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { ReactComponent as UpstreamGroupIcon } from 'assets/upstream-group-icon.svg';
 import { ReactComponent as DownloadIcon } from 'assets/download-icon.svg';
 import Tooltip from 'antd/lib/tooltip';
-import { useNavigate } from 'react-router';
+import { di } from 'react-magnetic-di/macro';
 import { useListFederatedUpstreamGroups } from 'API/hooks';
 import { Loading } from 'Components/Common/Loading';
 import { federatedGlooResourceApi } from 'API/federated-gloo';
@@ -33,6 +33,7 @@ type UpstreamGroupsTableFields = {
 };
 
 export const FederatedUpstreamGroups = () => {
+  di(useListFederatedUpstreamGroups);
   const [tableData, setTableData] = React.useState<UpstreamGroupsTableFields[]>(
     []
   );

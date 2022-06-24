@@ -14,6 +14,9 @@ import YamlDisplayer from 'Components/Common/YamlDisplayer';
 import { doDownload } from 'download-helper';
 import { HealthNotificationBox } from 'Components/Common/HealthNotificationBox';
 import { DataError } from 'Components/Common/DataError';
+import { di } from 'react-magnetic-di/macro';
+
+const { getGatewayYAML } = gatewayResourceApi;
 
 const GatewayIconHolder = styled.div`
   display: flex;
@@ -56,6 +59,7 @@ const Actionables = styled.div`
 `;
 
 export const GlooAdminGateways = () => {
+  di(useParams, useListGateways, getGatewayYAML);
   const { name = '', namespace = '' } = useParams();
 
   const { data: gateways, error: gError } = useListGateways({
@@ -101,36 +105,32 @@ export const GlooAdminGateways = () => {
     setYamlsOpen(viewables);
 
     if (gateway.metadata && !swaggerContentByUid[gateway.metadata.uid]) {
-      gatewayResourceApi
-        .getGatewayYAML({
-          name: gateway.metadata.name,
-          namespace: gateway.metadata.namespace,
-          clusterName: gateway.metadata.clusterName,
-        })
-        .then(gatewayYaml => {
-          let swaggers = { ...swaggerContentByUid };
-          swaggers[gateway.metadata!.uid] = gatewayYaml;
-          setSwaggerContentByUid(swaggers);
-        });
+      getGatewayYAML({
+        name: gateway.metadata.name,
+        namespace: gateway.metadata.namespace,
+        clusterName: gateway.metadata.clusterName,
+      }).then(gatewayYaml => {
+        let swaggers = { ...swaggerContentByUid };
+        swaggers[gateway.metadata!.uid] = gatewayYaml;
+        setSwaggerContentByUid(swaggers);
+      });
     }
   };
 
   const onDownloadGateway = (gateway: Gateway.AsObject) => {
     // meta should always be there, so really the test is for the 2nd check
     if (gateway.metadata && !swaggerContentByUid[gateway.metadata.uid]) {
-      gatewayResourceApi
-        .getGatewayYAML({
-          name: gateway.metadata.name,
-          namespace: gateway.metadata.namespace,
-          clusterName: gateway.metadata.clusterName,
-        })
-        .then(gatewayYaml => {
-          doDownload(gatewayYaml, gateway.metadata?.name + '.yaml');
+      getGatewayYAML({
+        name: gateway.metadata.name,
+        namespace: gateway.metadata.namespace,
+        clusterName: gateway.metadata.clusterName,
+      }).then(gatewayYaml => {
+        doDownload(gatewayYaml, gateway.metadata?.name + '.yaml');
 
-          let swaggers = { ...swaggerContentByUid };
-          swaggers[gateway.metadata!.uid] = gatewayYaml;
-          setSwaggerContentByUid(swaggers);
-        });
+        let swaggers = { ...swaggerContentByUid };
+        swaggers[gateway.metadata!.uid] = gatewayYaml;
+        setSwaggerContentByUid(swaggers);
+      });
     } else {
       doDownload(
         swaggerContentByUid[gateway.metadata!.uid],

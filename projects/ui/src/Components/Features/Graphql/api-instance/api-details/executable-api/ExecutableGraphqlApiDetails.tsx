@@ -7,6 +7,7 @@ import GraphqlDeleteApiButton from '../GraphqlDeleteApiButton';
 import GraphqlEditApiButton from './GraphqlEditApiButton';
 import { useGetConsoleOptions, useGetGraphqlApiDetails } from 'API/hooks';
 import { getParsedExecutableApiSchema } from 'utils/graphql-helpers';
+import { di } from 'react-magnetic-di/macro';
 
 const ButtonContainer = styled.div`
   button {
@@ -17,6 +18,7 @@ const ButtonContainer = styled.div`
 export const ExecutableGraphqlApiDetails: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
 }> = ({ apiRef }) => {
+  di(useGetGraphqlApiDetails, useGetConsoleOptions);
   const { readonly } = useGetConsoleOptions();
 
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);

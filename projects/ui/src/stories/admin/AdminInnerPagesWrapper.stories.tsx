@@ -33,7 +33,6 @@ const Template: ComponentStory<typeof AdminInnerPagesWrapper> = (args: any) => {
       adminPage: ADMIN_PAGE.VIRTUAL_SERVICES,
     };
   });
-  const useNavigateDi = injectable(useNavigate, jest.fn());
 
   const useListFederatedVirtualServicesDi = injectable(
     Apis.useListFederatedVirtualServices,
@@ -47,8 +46,7 @@ const Template: ComponentStory<typeof AdminInnerPagesWrapper> = (args: any) => {
     }
   );
   return (
-    <DiProvider
-      use={[useParamsDi, useNavigateDi, useListFederatedVirtualServicesDi]}>
+    <DiProvider use={[useParamsDi, useListFederatedVirtualServicesDi]}>
       <MemoryRouter>
         <AdminInnerPagesWrapper />
       </MemoryRouter>
