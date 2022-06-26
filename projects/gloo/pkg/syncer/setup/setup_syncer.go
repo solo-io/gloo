@@ -478,6 +478,14 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions, apiEmitte
 		return err
 	}
 
+	matchableHttpGatewayClient, err := gateway.NewMatchableHttpGatewayClient(watchOpts.Ctx, opts.MatchableHttpGateways)
+	if err != nil {
+		return err
+	}
+	if err := matchableHttpGatewayClient.Register(); err != nil {
+		return err
+	}
+
 	// Register grpc endpoints to the grpc server
 	xds.SetupEnvoyXds(opts.ControlPlane.GrpcServer, opts.ControlPlane.XDSServer, opts.ControlPlane.SnapshotCache)
 	xdsHasher := xds.NewNodeHasher()
@@ -550,6 +558,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions, apiEmitte
 		gatewayClient,
 		virtualHostOptionClient,
 		routeOptionClient,
+		matchableHttpGatewayClient,
 		graphqlApiClient,
 		apiEmitterChan,
 	)
@@ -855,21 +864,27 @@ func constructOpts(ctx context.Context, clientset *kubernetes.Interface, kubeCac
 		return bootstrap.Opts{}, err
 	}
 
+	matchableHttpGatewayFactory, err := bootstrap.ConfigFactoryForSettings(params, gateway.MatchableHttpGatewayCrd)
+	if err != nil {
+		return bootstrap.Opts{}, err
+	}
+
 	return bootstrap.Opts{
-		Upstreams:          upstreamFactory,
-		KubeServiceClient:  kubeServiceClient,
-		Proxies:            proxyFactory,
-		UpstreamGroups:     upstreamGroupFactory,
-		Secrets:            secretFactory,
-		Artifacts:          artifactFactory,
-		AuthConfigs:        authConfigFactory,
-		RateLimitConfigs:   rateLimitConfigFactory,
-		GraphQLApis:        graphqlApiFactory,
-		VirtualServices:    virtualServiceFactory,
-		RouteTables:        routeTableFactory,
-		VirtualHostOptions: virtualHostOptionFactory,
-		RouteOptions:       routeOptionFactory,
-		Gateways:           gatewayFactory,
-		KubeCoreCache:      kubeCoreCache,
+		Upstreams:             upstreamFactory,
+		KubeServiceClient:     kubeServiceClient,
+		Proxies:               proxyFactory,
+		UpstreamGroups:        upstreamGroupFactory,
+		Secrets:               secretFactory,
+		Artifacts:             artifactFactory,
+		AuthConfigs:           authConfigFactory,
+		RateLimitConfigs:      rateLimitConfigFactory,
+		GraphQLApis:           graphqlApiFactory,
+		VirtualServices:       virtualServiceFactory,
+		RouteTables:           routeTableFactory,
+		VirtualHostOptions:    virtualHostOptionFactory,
+		RouteOptions:          routeOptionFactory,
+		Gateways:              gatewayFactory,
+		MatchableHttpGateways: matchableHttpGatewayFactory,
+		KubeCoreCache:         kubeCoreCache,
 	}, nil
 }

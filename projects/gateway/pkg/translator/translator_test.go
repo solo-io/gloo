@@ -3,6 +3,8 @@ package translator_test
 import (
 	"context"
 
+	"github.com/onsi/ginkgo/extensions/table"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -32,7 +34,9 @@ var _ = Describe("Translator", func() {
 	Context("default translator", func() {
 
 		BeforeEach(func() {
-			translator = NewDefaultTranslator(Opts{})
+			translator = NewDefaultTranslator(Opts{
+				WriteNamespace: ns,
+			})
 			snap = &v1.ApiSnapshot{
 				Gateways: v1.GatewayList{
 					{
@@ -99,7 +103,7 @@ var _ = Describe("Translator", func() {
 		})
 
 		It("should translate proxy with default name", func() {
-			proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, ns, snap, snap.Gateways)
+			proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, snap, snap.Gateways)
 
 			Expect(errs).To(HaveLen(4))
 			Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
@@ -133,7 +137,7 @@ var _ = Describe("Translator", func() {
 				Waf: waf,
 			}
 
-			proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, ns, snap, snap.Gateways)
+			proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, snap, snap.Gateways)
 
 			Expect(errs).To(HaveLen(4))
 			Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
@@ -172,7 +176,7 @@ var _ = Describe("Translator", func() {
 				},
 			)
 
-			proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, ns, snap, snap.Gateways)
+			proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, snap, snap.Gateways)
 
 			Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
 			Expect(proxy.Metadata.Name).To(Equal(defaults.GatewayProxyName))
@@ -191,7 +195,7 @@ var _ = Describe("Translator", func() {
 				},
 			)
 
-			proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, ns, snap, snap.Gateways)
+			proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, snap, snap.Gateways)
 
 			Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
 			Expect(proxy.Metadata.Name).To(Equal(defaults.GatewayProxyName))
@@ -206,7 +210,7 @@ var _ = Describe("Translator", func() {
 			}
 			snap.Gateways = append(snap.Gateways, &dupeGateway)
 
-			_, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, ns, snap, snap.Gateways)
+			_, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, snap, snap.Gateways)
 			err := errs.ValidateStrict()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("bind-address :2 is not unique in a proxy. gateways: gloo-system.name,gloo-system.name2"))
@@ -232,7 +236,7 @@ var _ = Describe("Translator", func() {
 			rt := snap.RouteTables[0]
 			rt.Routes = append(rt.Routes, badRoute)
 
-			_, reports := translator.Translate(context.Background(), defaults.GatewayProxyName, ns, snap, snap.Gateways)
+			_, reports := translator.Translate(context.Background(), defaults.GatewayProxyName, snap, snap.Gateways)
 			err := reports.Validate()
 			Expect(err).NotTo(HaveOccurred())
 			err = reports.ValidateStrict()
@@ -243,6 +247,7 @@ var _ = Describe("Translator", func() {
 		Context("when the gateway CRDs don't clash", func() {
 			BeforeEach(func() {
 				translator = NewDefaultTranslator(Opts{
+					WriteNamespace:                ns,
 					ReadGatewaysFromAllNamespaces: true,
 				})
 				snap = &v1.ApiSnapshot{
@@ -308,7 +313,7 @@ var _ = Describe("Translator", func() {
 			})
 
 			It("should have the same number of listeners as gateways in the cluster", func() {
-				proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, ns, snap, snap.Gateways)
+				proxy, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, snap, snap.Gateways)
 
 				Expect(errs).To(HaveLen(4))
 				Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
@@ -327,11 +332,165 @@ var _ = Describe("Translator", func() {
 			}
 			snap.Gateways = []*v1.Gateway{gatewayWithoutType}
 
-			_, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, ns, snap, snap.Gateways)
+			_, errs := translator.Translate(context.Background(), defaults.GatewayProxyName, snap, snap.Gateways)
 			err := errs.ValidateStrict()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(MissingGatewayTypeErr.Error()))
 		})
+
+		Context("TranslatorOpts", func() {
+
+			var (
+				httpGateway = &v1.Gateway{
+					Metadata: &core.Metadata{
+						Name:      "http-gateway",
+						Namespace: ns,
+					},
+					GatewayType: &v1.Gateway_HttpGateway{
+						HttpGateway: &v1.HttpGateway{},
+					},
+				}
+
+				tcpGateway = &v1.Gateway{
+					Metadata: &core.Metadata{
+						Name:      "tcp-gateway",
+						Namespace: ns,
+					},
+					GatewayType: &v1.Gateway_TcpGateway{
+						TcpGateway: &v1.TcpGateway{},
+					},
+				}
+
+				hybridGateway = &v1.Gateway{
+					Metadata: &core.Metadata{
+						Name:      "hybrid-gateway",
+						Namespace: ns,
+					},
+					GatewayType: &v1.Gateway_HybridGateway{
+						HybridGateway: &v1.HybridGateway{
+							MatchedGateways: []*v1.MatchedGateway{
+								{
+									GatewayType: &v1.MatchedGateway_HttpGateway{
+										HttpGateway: &v1.HttpGateway{},
+									},
+								},
+							},
+						},
+					},
+					BindPort: 3,
+				}
+			)
+
+			type listenerValidator func(l *gloov1.Listener)
+
+			table.DescribeTable("IsolateVirtualHostsBySslConfig",
+				func(gateway *v1.Gateway, globalSetting bool, annotation string, listenerValidator listenerValidator) {
+					gwTranslator := NewDefaultTranslator(Opts{
+						IsolateVirtualHostsBySslConfig: globalSetting,
+						WriteNamespace:                 ns,
+					})
+
+					// Apply the annotation, if provided
+					annotatedGateway := gateway
+					if annotation != "" {
+						annotatedGateway.Metadata.Annotations = map[string]string{
+							IsolateVirtualHostsAnnotation: annotation,
+						}
+					}
+
+					snap.Gateways = v1.GatewayList{annotatedGateway}
+
+					proxy, errs := gwTranslator.Translate(
+						context.Background(),
+						defaults.GatewayProxyName,
+						snap,
+						v1.GatewayList{annotatedGateway})
+
+					Expect(errs.ValidateStrict()).NotTo(HaveOccurred())
+					Expect(proxy.GetListeners()).To(HaveLen(1))
+					listenerValidator(proxy.GetListeners()[0])
+				},
+
+				// HttpGateways
+				table.Entry(
+					"HttpGateway - false,no annotation", httpGateway, false, "",
+					func(l *gloov1.Listener) {
+						Expect(l.GetHttpListener()).NotTo(BeNil())
+					},
+				),
+				table.Entry(
+					"HttpGateway - true,no annotation", httpGateway, true, "",
+					func(l *gloov1.Listener) {
+						Expect(l.GetAggregateListener()).NotTo(BeNil())
+					},
+				),
+				table.Entry(
+					"HttpGateway - false,annotation override", httpGateway, false, "true",
+					func(l *gloov1.Listener) {
+						Expect(l.GetAggregateListener()).NotTo(BeNil())
+					},
+				),
+				table.Entry(
+					"HttpGateway - true,annotation override", httpGateway, true, "false",
+					func(l *gloov1.Listener) {
+						Expect(l.GetHttpListener()).NotTo(BeNil())
+					},
+				),
+
+				// TcpGateway
+				table.Entry(
+					"TcpGateway - false,no annotation", tcpGateway, false, "",
+					func(l *gloov1.Listener) {
+						Expect(l.GetTcpListener()).NotTo(BeNil())
+					},
+				),
+				table.Entry(
+					"TcpGateway - true,no annotation", tcpGateway, true, "",
+					func(l *gloov1.Listener) {
+						Expect(l.GetTcpListener()).NotTo(BeNil())
+					},
+				),
+				table.Entry(
+					"TcpGateway - false,annotation override", tcpGateway, false, "true",
+					func(l *gloov1.Listener) {
+						Expect(l.GetTcpListener()).NotTo(BeNil())
+					},
+				),
+				table.Entry(
+					"TcpGateway - true,annotation override", tcpGateway, true, "false",
+					func(l *gloov1.Listener) {
+						Expect(l.GetTcpListener()).NotTo(BeNil())
+					},
+				),
+
+				// HybridGateways
+				table.Entry(
+					"HybridGateway - false,no annotation", hybridGateway, false, "",
+					func(l *gloov1.Listener) {
+						Expect(l.GetHybridListener()).NotTo(BeNil())
+					},
+				),
+				table.Entry(
+					"HybridGateway - true,no annotation", hybridGateway, true, "",
+					func(l *gloov1.Listener) {
+						Expect(l.GetAggregateListener()).NotTo(BeNil())
+					},
+				),
+				table.Entry(
+					"HybridGateway - false,annotation override", hybridGateway, false, "true",
+					func(l *gloov1.Listener) {
+						Expect(l.GetAggregateListener()).NotTo(BeNil())
+					},
+				),
+				table.Entry(
+					"HybridGateway - true,annotation override", hybridGateway, true, "false",
+					func(l *gloov1.Listener) {
+						Expect(l.GetHybridListener()).NotTo(BeNil())
+					},
+				),
+			)
+		})
+
 	})
 
 })

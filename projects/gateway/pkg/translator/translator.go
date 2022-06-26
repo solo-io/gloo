@@ -3,6 +3,7 @@ package translator
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -15,25 +16,32 @@ import (
 )
 
 //go:generate mockgen -destination mocks/mock_translator.go -package mocks github.com/solo-io/gloo/projects/gateway/pkg/translator Translator
+
+// Translator converts a set of Gateways into a Proxy, with the provided proxyName
 type Translator interface {
-	Translate(ctx context.Context, proxyName, namespace string, snap *v1.ApiSnapshot, filteredGateways v1.GatewayList) (*gloov1.Proxy, reporter.ResourceReports)
+	Translate(ctx context.Context, proxyName string, snap *v1.ApiSnapshot, filteredGateways v1.GatewayList) (*gloov1.Proxy, reporter.ResourceReports)
 }
+
+// IsolateVirtualHostsAnnotation is the annotation that can be applied to a Gateway resource to determine
+// how a Gateway will be converted into a Listener
+// All truthy values are accepted, using `strconv.ParseBool` to determine the value
+// If the value of this annotation is invalid or not provided, the behavior will fallback to
+// the global configuration that is defined in Settings (gateway.isolateVirtualHostsBySslConfig)
+const IsolateVirtualHostsAnnotation = "gateway.solo.io/isolate_vhost"
 
 type translator struct {
+	// listenerTranslators is the set of available translators that convert Gloo Gateways into Listeners
 	listenerTranslators map[string]ListenerTranslator
-	opts                Opts
-}
 
-func NewTranslator(listenerTranslators []ListenerTranslator, opts Opts) *translator {
-	translatorsByName := make(map[string]ListenerTranslator)
-	for _, t := range listenerTranslators {
-		translatorsByName[t.Name()] = t
-	}
+	// writeNamespace is the namespace that all Proxy CRs will be written to
+	writeNamespace string
 
-	return &translator{
-		listenerTranslators: translatorsByName,
-		opts:                opts,
-	}
+	// predicate is used to determine which Gateways to process during translation
+	predicate Predicate
+
+	// isolateVirtualHostsBySslConfig is the global setting to determine how a Gateway should be translated into a Listener
+	// an individual Gateway may override this field by setting a value for the IsolateVirtualHostsAnnotation
+	isolateVirtualHostsBySslConfig bool
 }
 
 func NewDefaultTranslator(opts Opts) *translator {
@@ -41,20 +49,44 @@ func NewDefaultTranslator(opts Opts) *translator {
 	if opts.Validation != nil {
 		warnOnRouteShortCircuiting = opts.Validation.WarnOnRouteShortCircuiting
 	}
-
-	httpTranslator := &HttpTranslator{
+	virtualServiceTranslator := &VirtualServiceTranslator{
 		WarnOnRouteShortCircuiting: warnOnRouteShortCircuiting,
+	}
+
+	// Define the available translators which convert a Gateway into a Listener
+	//	- httpTranslator produces an HttpListener
+	//	- tcpTranslator produces a TcpListener
+	//	- hybridTranslator produces a HybridListener
+	//	- aggregateTranslator produces an AggregateListener
+	httpTranslator := &HttpTranslator{
+		VirtualServiceTranslator: virtualServiceTranslator,
 	}
 	tcpTranslator := &TcpTranslator{}
 	hybridTranslator := &HybridTranslator{
-		HttpTranslator: httpTranslator,
-		TcpTranslator:  tcpTranslator,
+		VirtualServiceTranslator: virtualServiceTranslator,
+		TcpTranslator:            tcpTranslator,
+	}
+	aggregateTranslator := &AggregateTranslator{
+		VirtualServiceTranslator: virtualServiceTranslator,
 	}
 
-	return NewTranslator([]ListenerTranslator{httpTranslator, tcpTranslator, hybridTranslator}, opts)
+	translatorsByName := map[string]ListenerTranslator{
+		HttpTranslatorName:      httpTranslator,
+		TcpTranslatorName:       tcpTranslator,
+		HybridTranslatorName:    hybridTranslator,
+		AggregateTranslatorName: aggregateTranslator,
+	}
+
+	return &translator{
+		listenerTranslators:            translatorsByName,
+		writeNamespace:                 opts.WriteNamespace,
+		predicate:                      GetPredicate(opts.WriteNamespace, opts.ReadGatewaysFromAllNamespaces),
+		isolateVirtualHostsBySslConfig: opts.IsolateVirtualHostsBySslConfig,
+	}
 }
 
-func (t *translator) Translate(ctx context.Context, proxyName, namespace string, snap *v1.ApiSnapshot, gatewaysByProxy v1.GatewayList) (*gloov1.Proxy, reporter.ResourceReports) {
+// Translate converts a set of Gateways into a Proxy, with the provided proxyNamek
+func (t *translator) Translate(ctx context.Context, proxyName string, snap *v1.ApiSnapshot, gateways v1.GatewayList) (*gloov1.Proxy, reporter.ResourceReports) {
 	logger := contextutils.LoggerFrom(ctx)
 
 	reports := make(reporter.ResourceReports)
@@ -62,10 +94,13 @@ func (t *translator) Translate(ctx context.Context, proxyName, namespace string,
 	reports.Accept(snap.VirtualServices.AsInputResources()...)
 	reports.Accept(snap.RouteTables.AsInputResources()...)
 
-	filteredGateways := t.filterGateways(gatewaysByProxy, namespace)
+	// NOTE: At the moment the predicate is applied once per Proxy, but we could
+	//	optimize this by moving it out of the Translator and into the Syncer, ensuring
+	//	it runs once per translation run instead.
+	filteredGateways := FilterGateways(gateways, t.predicate)
 	if len(filteredGateways) == 0 {
 		snapHash := hashutils.MustHash(snap)
-		logger.Infof("%v had no gateways", snapHash)
+		logger.Infof("Snapshot %v had no gateways for proxyName=%v", snapHash, proxyName)
 		return nil, reports
 	}
 
@@ -88,24 +123,37 @@ func (t *translator) Translate(ctx context.Context, proxyName, namespace string,
 	return &gloov1.Proxy{
 		Metadata: &core.Metadata{
 			Name:      proxyName,
-			Namespace: namespace,
+			Namespace: t.writeNamespace,
 		},
 		Listeners: listeners,
 	}, reports
 }
 
+// getListenerTranslatorForGateway returns the translator responsible for converting the Gloo Gateway
+// into a Listener. If there is no available translator for the Gateway type, return
+// a placeholder translator that produces a MissingGatewayTypeErr
 func (t *translator) getListenerTranslatorForGateway(gateway *v1.Gateway) ListenerTranslator {
 	var listenerTranslatorImpl ListenerTranslator
 
+	shouldIsolateVirtualHosts := t.shouldIsolateVirtualHostsForGateway(gateway)
+
 	switch gateway.GetGatewayType().(type) {
 	case *v1.Gateway_HttpGateway:
-		listenerTranslatorImpl = t.listenerTranslators[HttpTranslatorName]
+		if shouldIsolateVirtualHosts {
+			listenerTranslatorImpl = t.listenerTranslators[AggregateTranslatorName]
+		} else {
+			listenerTranslatorImpl = t.listenerTranslators[HttpTranslatorName]
+		}
 
 	case *v1.Gateway_TcpGateway:
 		listenerTranslatorImpl = t.listenerTranslators[TcpTranslatorName]
 
 	case *v1.Gateway_HybridGateway:
-		listenerTranslatorImpl = t.listenerTranslators[HybridTranslatorName]
+		if shouldIsolateVirtualHosts {
+			listenerTranslatorImpl = t.listenerTranslators[AggregateTranslatorName]
+		} else {
+			listenerTranslatorImpl = t.listenerTranslators[HybridTranslatorName]
+		}
 	}
 
 	if listenerTranslatorImpl == nil {
@@ -114,6 +162,25 @@ func (t *translator) getListenerTranslatorForGateway(gateway *v1.Gateway) Listen
 	}
 
 	return listenerTranslatorImpl
+}
+
+// shouldIsolateVirtualHostsForGateway returns true if the Gateway should be converted into
+// a Listener with distinct VirtualHosts for unique Ssl configurations.
+// It makes a decision in the following order:
+//  1. Prefer the Gateway annotation, if defined and valid
+//  2. Fallback to the global setting
+func (t *translator) shouldIsolateVirtualHostsForGateway(gateway *v1.Gateway) bool {
+	gatewayAnnotation := gateway.GetMetadata().GetAnnotations()
+	if isolateVhostsVal, ok := gatewayAnnotation[IsolateVirtualHostsAnnotation]; ok {
+		boolValue, err := strconv.ParseBool(isolateVhostsVal)
+		// in the case where a non-truthy string was provided, this will return an error
+		// in that case, we ignore the annotation
+		if err == nil {
+			return boolValue
+		}
+	}
+
+	return t.isolateVirtualHostsBySslConfig
 }
 
 func makeListener(gateway *v1.Gateway) *gloov1.Listener {
@@ -131,6 +198,11 @@ func ListenerName(gateway *v1.Gateway) string {
 	return fmt.Sprintf("listener-%s-%d", gateway.GetBindAddress(), gateway.GetBindPort())
 }
 
+// validateGateways validates a set of Gateways that will be aggregated on a Proxy
+// and writes errors to the ResourceReports.
+// Gateways must meet the following criteria:
+//	1. All bind addresses are unique
+//	2. All VirtualServices that are referenced by a Gateway are available in the API Snapshot
 func validateGateways(gateways v1.GatewayList, virtualServices v1.VirtualServiceList, reports reporter.ResourceReports) {
 	bindAddresses := map[string]v1.GatewayList{}
 	// if two gateway (=listener) that belong to the same proxy share the same bind address,
@@ -173,18 +245,4 @@ func gatewaysRefsToString(gateways v1.GatewayList) []string {
 		ret = append(ret, gw.GetMetadata().Ref().Key())
 	}
 	return ret
-}
-
-// Get the gateways that should be processed in this sync execution
-func (t *translator) filterGateways(gateways v1.GatewayList, namespace string) v1.GatewayList {
-	var filteredGateways v1.GatewayList
-	for _, gateway := range gateways {
-		// Normally, Gloo should only pay attention to Gateways it creates, i.e. in its write
-		// namespace, to support handling multiple gloo installations. However, we may want to
-		// configure the controller to read all the Gateway CRDs it can find.
-		if t.opts.ReadGatewaysFromAllNamespaces || gateway.GetMetadata().GetNamespace() == namespace {
-			filteredGateways = append(filteredGateways, gateway)
-		}
-	}
-	return filteredGateways
 }
