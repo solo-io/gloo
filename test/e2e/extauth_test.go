@@ -83,12 +83,13 @@ var (
 var _ = Describe("External auth", func() {
 
 	var (
-		ctx          context.Context
-		cancel       context.CancelFunc
-		testClients  services.TestClients
-		settings     extauthrunner.Settings
-		glooSettings *gloov1.Settings
-		cache        memory.InMemoryResourceCache
+		ctx           context.Context
+		cancel        context.CancelFunc
+		testClients   services.TestClients
+		settings      extauthrunner.Settings
+		glooSettings  *gloov1.Settings
+		cache         memory.InMemoryResourceCache
+		extAuthServer *gloov1.Upstream
 	)
 
 	BeforeEach(func() {
@@ -109,9 +110,9 @@ var _ = Describe("External auth", func() {
 			extauthAddr = "host.docker.internal"
 		}
 
-		extAuthServer := &gloov1.Upstream{
+		extAuthServer = &gloov1.Upstream{
 			Metadata: &core.Metadata{
-				Name:      "extauth-server",
+				Name:      fmt.Sprintf("extauth-server-%d", extAuthPort),
 				Namespace: "default",
 			},
 			UseHttp2: &wrappers.BoolValue{Value: true},
@@ -124,7 +125,7 @@ var _ = Describe("External auth", func() {
 				},
 			},
 		}
-
+		logger.Info(fmt.Sprintf("Expect to see extauth as upstream named %s", extAuthServer.Metadata.Name))
 		_, err := testClients.UpstreamClient.Write(extAuthServer, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -145,7 +146,7 @@ var _ = Describe("External auth", func() {
 				ServerPort:             int(extAuthPort),
 				SigningKey:             "hello",
 				UserIdHeader:           "X-User-Id",
-				HealthCheckFailTimeout: 2, // seconds
+				HealthCheckFailTimeout: 1,
 				HealthCheckHttpPort:    int(extAuthHealthPort),
 				HealthCheckHttpPath:    "/healthcheck",
 				LogSettings: server.LogSettings{
@@ -180,6 +181,10 @@ var _ = Describe("External auth", func() {
 	})
 
 	waitForHealthyExtauthService := func() {
+		// First make sure gloo has found the extauth upstream
+		gloohelpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+			return testClients.UpstreamClient.Read(extAuthServer.Metadata.Namespace, extAuthServer.Metadata.Name, clients.ReadOpts{})
+		})
 		extAuthHealthServerAddr := "localhost:" + strconv.Itoa(settings.ExtAuthSettings.ServerPort)
 		conn, err := grpc.Dial(extAuthHealthServerAddr, grpc.WithInsecure())
 		Expect(err).ToNot(HaveOccurred())
@@ -217,7 +222,9 @@ var _ = Describe("External auth", func() {
 			up := testUpstream.Upstream
 			_, err = testClients.UpstreamClient.Write(up, opts)
 			Expect(err).NotTo(HaveOccurred())
-
+			gloohelpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				return testClients.UpstreamClient.Read(testUpstream.Upstream.Metadata.Namespace, testUpstream.Upstream.Metadata.Name, clients.ReadOpts{})
+			})
 		})
 
 		AfterEach(func() {

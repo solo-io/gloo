@@ -141,7 +141,7 @@ var _ = Describe("Staged JWT + extauth ", func() {
 				ServerPort:             int(extAuthPort),
 				SigningKey:             "hello",
 				UserIdHeader:           "X-User-Id",
-				HealthCheckFailTimeout: 2, // seconds
+				HealthCheckFailTimeout: 0, // there will not be any requests in progress that need to be handled before the server is shut down
 				HealthCheckHttpPort:    int(extAuthHealthPort),
 				HealthCheckHttpPath:    "/healthcheck",
 				LogSettings: server.LogSettings{
