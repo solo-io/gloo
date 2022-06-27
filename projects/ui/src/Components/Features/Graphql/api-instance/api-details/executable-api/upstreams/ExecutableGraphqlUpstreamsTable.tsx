@@ -1,74 +1,59 @@
 import { useGetGraphqlApiDetails, useListUpstreams } from 'API/hooks';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import React, { useMemo } from 'react';
-import { useNavigate } from 'react-router';
 import { di } from 'react-magnetic-di/macro';
+import { useNavigate } from 'react-router';
+import { Spacer } from 'Styles/StyledComponents/spacer';
 
 const ExecutableGraphqlUpstreamsTable: React.FC<{
   apiRef: ClusterObjectRef.AsObject;
 }> = ({ apiRef }) => {
   di(useNavigate, useGetGraphqlApiDetails, useListUpstreams);
   const navigate = useNavigate();
-
-  // api hooks
   const { data: graphqlApi } = useGetGraphqlApiDetails(apiRef);
-  // TODO: The referenced upstreams should be returned as part of the graphql details response.
-  const maxUpstreams = 500;
-  const { data: upstreamsResponse } = useListUpstreams(undefined, {
-    limit: maxUpstreams,
-    offset: 0,
-  });
-  const upstreams = upstreamsResponse?.upstreamsList;
 
-  const resolverUpstreams = useMemo<Upstream.AsObject[]>(() => {
-    let resUpstreams =
-      graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap
-        .filter(
-          ([_rName, r], index, arr) =>
-            index ===
-            arr?.findIndex(
-              ([_n, rr]) =>
-                rr?.restResolver?.upstreamRef?.name ===
-                r.restResolver?.upstreamRef?.name
-            )
-        )
-        .map(([_resolveName, resolver]) => resolver.restResolver?.upstreamRef);
-    let fullUpstreams = upstreams?.filter(
-      upstream =>
-        !!resUpstreams?.find(
-          rU =>
-            rU?.name === upstream.metadata?.name &&
-            rU?.namespace === upstream.metadata?.namespace
-        )
-    );
-    return !!fullUpstreams ? fullUpstreams : [];
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [
-    !!graphqlApi,
-    !!upstreams,
-    graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap?.length,
-  ]);
+  // The set of upstream resourceRefs that this GraphQL API's spec references.
+  const resolverUpstreams = useMemo(() => {
+    //
+    // Gets the resolutions map from the spec.
+    const resolutionsMap =
+      graphqlApi?.spec?.executableSchema?.executor?.local?.resolutionsMap;
+    if (!resolutionsMap) return [];
+    //
+    // Gets the resolver upstream references from the map.
+    return resolutionsMap
+      .map(([_resolveName, resolver]) => resolver.restResolver?.upstreamRef)
+      .filter(upRef => upRef !== undefined)
+      .reduce((accum, cur) => {
+        if (cur === undefined) return accum;
+        const existingUpstream = accum.find(
+          u => u.name === cur.name && u.namespace === cur.namespace
+        );
+        if (!existingUpstream) accum.push(cur);
+        return accum;
+      }, [] as ResourceRef.AsObject[]);
+  }, [graphqlApi]);
 
   return (
     <div className='mb-8'>
-      {resolverUpstreams?.map(resolverUpstream => {
-        const glooInstNamespace = resolverUpstream.glooInstance?.namespace;
-        const glooInstName = resolverUpstream.glooInstance?.name;
-        const upstreamCluster = resolverUpstream.metadata?.clusterName ?? '';
-        const upstreamNamespace = resolverUpstream.metadata?.namespace ?? '';
-        const upstreamName = resolverUpstream.metadata?.name ?? '';
-        const link = !!upstreamCluster
-          ? `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upstreamCluster}/${upstreamNamespace}/${upstreamName}`
-          : `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upstreamNamespace}/${upstreamName}`;
+      {resolverUpstreams?.map(upstream => {
+        const upNamespace = upstream.namespace ?? '';
+        const upName = upstream.name ?? '';
+        const upCluster = graphqlApi?.metadata?.clusterName ?? '';
+        const glooInstNamespace = graphqlApi?.glooInstance?.namespace;
+        const glooInstName = graphqlApi?.glooInstance?.name;
+        const upstreamDetailsUrl = !!upCluster
+          ? `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upCluster}/${upNamespace}/${upName}`
+          : `/gloo-instances/${glooInstNamespace}/${glooInstName}/upstreams/${upNamespace}/${upName}`;
         return (
-          <div key={link} className='mb-2'>
+          <Spacer mb={2} key={upstream.name + '::' + upstream.namespace}>
             <a
               className={'cursor-pointer text-blue-500gloo text-base'}
-              onClick={() => navigate(link)}>
-              {upstreamName}
+              onClick={() => navigate(upstreamDetailsUrl)}>
+              {upName}
             </a>
-          </div>
+          </Spacer>
         );
       })}
     </div>

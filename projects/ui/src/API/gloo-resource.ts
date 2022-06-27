@@ -275,7 +275,7 @@ function getSettingsYAML(
   });
 }
 
-function getUpstreamDetails(
+export function getUpstreamDetails(
   upstreamObjectRef: ClusterObjectRef.AsObject
 ): Promise<GetUpstreamDetailsResponse.AsObject> {
   let request = new GetUpstreamDetailsRequest();

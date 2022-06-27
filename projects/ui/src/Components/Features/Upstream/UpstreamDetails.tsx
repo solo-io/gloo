@@ -1,29 +1,27 @@
-import React from 'react';
-import { useParams } from 'react-router';
 import styled from '@emotion/styled/macro';
-import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
-import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 import { glooResourceApi } from 'API/gloo-resource';
-import {
-  useGetUpstreamDetails,
-  useGetUpstreamYaml,
-  useIsGlooFedEnabled,
-} from 'API/hooks';
-import { getUpstreamType } from 'utils/upstream-helpers';
-import { SectionCard } from 'Components/Common/SectionCard';
+import { useGetUpstreamDetails, useIsGlooFedEnabled } from 'API/hooks';
+import { ReactComponent as UpstreamIcon } from 'assets/upstream-icon.svg';
 import AreaHeader from 'Components/Common/AreaHeader';
+import { DataError } from 'Components/Common/DataError';
 import { HealthNotificationBox } from 'Components/Common/HealthNotificationBox';
+import { Loading } from 'Components/Common/Loading';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
+import React from 'react';
+import { di } from 'react-magnetic-di/macro';
+import { useParams } from 'react-router';
 import { IconHolder } from 'Styles/StyledComponents/icons';
+import { getUpstreamType } from 'utils/upstream-helpers';
 import UpstreamConfiguration from './UpstreamConfiguration';
 import UpstreamFailoverGroups from './UpstreamFailoverGroups';
-import { DataError } from 'Components/Common/DataError';
-import { Loading } from 'Components/Common/Loading';
 
 const ConfigArea = styled.div`
   margin-bottom: 20px;
 `;
 
 export const UpstreamDetails = () => {
+  di(useParams, useIsGlooFedEnabled, useGetUpstreamDetails);
   const {
     name = '',
     upstreamName = '',
@@ -98,13 +96,7 @@ export const UpstreamDetails = () => {
           <UpstreamConfiguration upstream={upstream} />
         </ConfigArea>
 
-        {isGlooFedEnabled && (
-          <UpstreamFailoverGroups
-            upstreamName={upstreamName}
-            upstreamNamespace={upstreamNamespace}
-            upstreamClusterName={upstreamClusterName}
-          />
-        )}
+        {isGlooFedEnabled && <UpstreamFailoverGroups upstream={upstream} />}
       </>
     </SectionCard>
   );

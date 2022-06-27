@@ -33,6 +33,10 @@ import {
 } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb';
 import { SslConfig } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb';
 import {
+  UpstreamSpec,
+  UpstreamStatus,
+} from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
+import {
   ExecutableSchema,
   GraphQLApiSpec,
   GraphQLApiStatus,
@@ -63,7 +67,10 @@ import {
   ConfigDump,
   GlooInstance,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
-import { Proxy } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
+import {
+  Proxy,
+  Upstream,
+} from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
 import { FederatedAuthConfigSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.enterprise.gloo/v1/auth_config_pb';
 import { FederatedGatewaySpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/gateway_pb';
@@ -808,6 +815,37 @@ export const createClusterObjectRef = (
     name: meta.name ?? faker.random.word(),
     namespace: meta.namespace ?? faker.random.word(),
     clusterName: meta.clusterName ?? faker.random.word(),
+  };
+};
+
+export const createUpstreamStatus = (
+  meta: Partial<UpstreamStatus.AsObject> = {}
+): UpstreamStatus.AsObject => {
+  return {
+    reason: 'Some reason',
+    reportedBy: 'Fake status generator',
+    state: UpstreamStatus.State.ACCEPTED,
+    subresourceStatusesMap: [],
+  };
+};
+
+export const createUpstreamSpec = (
+  meta: Partial<UpstreamSpec.AsObject> = {}
+): UpstreamSpec.AsObject => {
+  return {
+    healthChecksList: [],
+    ...meta,
+  };
+};
+
+export const createUpstream = (
+  meta: Partial<Upstream.AsObject> = {}
+): Upstream.AsObject => {
+  return {
+    metadata: meta.metadata ?? createObjMeta(),
+    spec: meta.spec ?? createUpstreamSpec(),
+    glooInstance: meta.glooInstance ?? undefined,
+    status: meta.status ?? createUpstreamStatus(),
   };
 };
 

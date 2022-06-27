@@ -1,14 +1,16 @@
-import React from 'react';
 import styled from '@emotion/styled/macro';
-import { FailoverSchemeStatus } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/failover_pb';
-import { useGetFailoverScheme, useGetFailoverSchemeYaml } from 'API/hooks';
 import { failoverSchemeApi } from 'API/failover-scheme';
-import { AreaTitle } from 'Styles/StyledComponents/headings';
+import { useGetFailoverScheme } from 'API/hooks';
 import AreaHeader from 'Components/Common/AreaHeader';
 import { CardSubsectionWrapper } from 'Components/Common/Card';
+import { DataError } from 'Components/Common/DataError';
+import { Upstream } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
+import { FailoverSchemeStatus } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/failover_pb';
+import React from 'react';
+import { di } from 'react-magnetic-di/macro';
+import { AreaTitle } from 'Styles/StyledComponents/headings';
 import { StatusType } from 'utils/health-status';
 import UpstreamFailoverGroup from './UpstreamFailoverGroup';
-import { DataError } from 'Components/Common/DataError';
 
 const NoFailoverWrapper = styled(CardSubsectionWrapper)`
   text-align: center;
@@ -21,27 +23,19 @@ const FailoverGroupsContainer = styled.div`
 `;
 
 type Props = {
-  upstreamName: string;
-  upstreamNamespace: string;
-  upstreamClusterName: string;
+  upstream: Upstream.AsObject;
 };
 
-const UpstreamFailoverGroups = ({
-  upstreamName,
-  upstreamNamespace,
-  upstreamClusterName,
-}: Props) => {
+const UpstreamFailoverGroups = ({ upstream }: Props) => {
+  di(useGetFailoverScheme);
+  const upstreamName = upstream.metadata?.name ?? '';
+  const upstreamNamespace = upstream.metadata?.namespace ?? '';
+  const upstreamClusterName = upstream.metadata?.clusterName ?? '';
   const { data: failoverScheme, error: failoverError } = useGetFailoverScheme({
     name: upstreamName,
     namespace: upstreamNamespace,
     clusterName: upstreamClusterName,
   });
-
-  const { data: failoverSchemeYaml, error: failoverYamlError } =
-    useGetFailoverSchemeYaml({
-      name: upstreamName,
-      namespace: upstreamNamespace,
-    });
 
   if (failoverError) {
     return <DataError error={failoverError} />;

@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    description: Improves upstream resource scaling performance on the GraphQL API details page.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3740
+    resolvesIssue: true
+  - type: FIX
+    description: Improves upstream resource scaling performance on the upstream failover group table.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3738
+    resolvesIssue: true

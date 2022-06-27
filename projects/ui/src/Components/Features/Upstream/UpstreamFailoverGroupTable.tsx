@@ -1,17 +1,13 @@
-import React, { useEffect } from 'react';
 import styled from '@emotion/styled/macro';
+import { getUpstreamDetails } from 'API/gloo-resource';
+import { RenderSimpleLink } from 'Components/Common/SoloLink';
+import { RenderCluster, SoloTable } from 'Components/Common/SoloTable';
+import { GetUpstreamDetailsResponse } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gloo_resources_pb';
 import { FailoverSchemeSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/failover_pb';
-import { useListUpstreams } from 'API/hooks';
+import React, { useEffect } from 'react';
+import { di } from 'react-magnetic-di/macro';
 import { colors } from 'Styles/colors';
 import { WeightPercentageBlock } from 'Styles/StyledComponents/weight-block';
-import { SoloTable, RenderCluster } from 'Components/Common/SoloTable';
-import { RenderSimpleLink } from 'Components/Common/SoloLink';
-import {
-  ObjectRef,
-  ClusterObjectRef,
-} from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
-import { Loading } from 'Components/Common/Loading';
-import { DataError } from 'Components/Common/DataError';
 
 const ROW_HEIGHT = 40;
 
@@ -154,71 +150,84 @@ const COLUMNS: any = [
 ];
 
 const UpstreamFailoverGroupTable = ({ group, isWeighted }: Props) => {
+  di(getUpstreamDetails);
   const [tableData, setTableData] = React.useState<RowData[]>([]);
 
-  // TODO: This will not scale well with a large amount of upstreams, see below TODO.
-  const { data: upstreamsResponse, error: upstreamResponseError } =
-    useListUpstreams();
-  const allUpstreams = upstreamsResponse?.upstreamsList;
-
   useEffect(() => {
-    const getGlooInstance = (
-      upstreamRef: ClusterObjectRef.AsObject
-    ): ObjectRef.AsObject | undefined => {
-      const match = allUpstreams?.find(
-        upstream =>
-          upstream.metadata?.clusterName === upstreamRef.clusterName &&
-          upstream.metadata?.name === upstreamRef.name &&
-          upstream.metadata?.namespace === upstreamRef.namespace
-      );
-      return match?.glooInstance;
-    };
-
-    const tableData: RowData[] = [];
-    const totalWeight = group.priorityGroupList
-      ?.map(pgl => pgl.localityWeight?.value ?? 0)
-      .reduce((sum, w) => sum + w, 0);
-    group.priorityGroupList?.forEach((priorityGroup, pgIdx) => {
-      tableData.push({
-        key: `cluster-${pgIdx}`,
-        rowType: RowType.CLUSTER,
-        cluster: priorityGroup.cluster,
-        rawWeight: isWeighted
-          ? priorityGroup.localityWeight?.value ?? 0
-          : undefined,
-        weightPercentage: isWeighted
-          ? ((priorityGroup.localityWeight?.value ?? 0) * 100) / totalWeight
-          : undefined,
-      });
-      priorityGroup.upstreamsList.forEach((upstream, uIdx) => {
-        // TODO: Make a bunch of parallel requests to get all the details for these upstreams.
-        const glooInstance = getGlooInstance({
-          clusterName: priorityGroup.cluster,
-          name: upstream.name,
-          namespace: upstream.namespace,
+    (async () => {
+      //
+      // This makes a bunch of parallel requests to get the details for each referenced upstream.
+      //
+      // - First level is this group's priorityGroupList index
+      // - Second level is that priorityGroupList's upstreamsList index
+      //
+      // So allUpstreamDetailsRequests[1][2] is the details request
+      // for `group.priorityGroupList[1].upstreamList[2];`
+      //
+      const allUpstreamDetailsPromises =
+        [] as Promise<GetUpstreamDetailsResponse.AsObject>[][];
+      group.priorityGroupList.forEach(priorityGroup => {
+        const pgUpstreamsDetailsPromises =
+          [] as Promise<GetUpstreamDetailsResponse.AsObject>[];
+        priorityGroup.upstreamsList.forEach(upstream => {
+          pgUpstreamsDetailsPromises.push(
+            getUpstreamDetails({
+              clusterName: priorityGroup.cluster,
+              name: upstream.name,
+              namespace: upstream.namespace,
+            })
+          );
         });
+        allUpstreamDetailsPromises.push(pgUpstreamsDetailsPromises);
+      });
+      //
+      // Wait for the responses, (stored in the same way).
+      const allUpstreamDetailsResponses =
+        [] as GetUpstreamDetailsResponse.AsObject[][];
+      for (let pgIdx = 0; pgIdx < group.priorityGroupList.length; pgIdx++) {
+        allUpstreamDetailsResponses.push(
+          await Promise.all(allUpstreamDetailsPromises[pgIdx])
+        );
+      }
+      //
+      // Prepare the table data.
+      const tableData: RowData[] = [];
+      const totalWeight = group.priorityGroupList
+        ?.map(pgl => pgl.localityWeight?.value ?? 0)
+        .reduce((sum, w) => sum + w, 0);
+      group.priorityGroupList.forEach((priorityGroup, pgIdx) => {
         tableData.push({
-          key: `cluster-${pgIdx}-upstream-${uIdx}`,
-          rowType: RowType.UPSTREAM,
-          upstreamIndex: uIdx,
-          upstream: {
-            name: upstream.name,
-            namespace: upstream.namespace,
-            cluster: priorityGroup.cluster,
-            glooInstanceName: glooInstance?.name,
-            glooInstanceNamespace: glooInstance?.namespace,
-          },
+          key: `cluster-${pgIdx}`,
+          rowType: RowType.CLUSTER,
+          cluster: priorityGroup.cluster,
+          rawWeight: isWeighted
+            ? priorityGroup.localityWeight?.value ?? 0
+            : undefined,
+          weightPercentage: isWeighted
+            ? ((priorityGroup.localityWeight?.value ?? 0) * 100) / totalWeight
+            : undefined,
+        });
+        priorityGroup.upstreamsList.forEach((upstream, uIdx) => {
+          const upstreamDetails =
+            allUpstreamDetailsResponses[pgIdx][uIdx].upstream;
+          tableData.push({
+            key: `cluster-${pgIdx}-upstream-${uIdx}`,
+            rowType: RowType.UPSTREAM,
+            upstreamIndex: uIdx,
+            upstream: {
+              name: upstream.name,
+              namespace: upstream.namespace,
+              cluster: priorityGroup.cluster,
+              glooInstanceName: upstreamDetails?.glooInstance?.name ?? '',
+              glooInstanceNamespace:
+                upstreamDetails?.glooInstance?.namespace ?? '',
+            },
+          });
         });
       });
-    });
-    setTableData(tableData);
-  }, [group, allUpstreams, isWeighted]);
-
-  if (!!upstreamResponseError) {
-    return <DataError error={upstreamResponseError} />;
-  } else if (!allUpstreams) {
-    return <Loading message={'Retrieving upstreams...'} />;
-  }
+      setTableData(tableData);
+    })();
+  }, [group, isWeighted]);
 
   return (
     <TableHolder>
