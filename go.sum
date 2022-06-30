@@ -1623,8 +1623,8 @@ github.com/solo-io/envoy-operator v0.1.4 h1:haffsWSfiDtQrOHVaAuTL48LUVBvSYsv9nqJ
 github.com/solo-io/envoy-operator v0.1.4/go.mod h1:RX7+5zmyZs0SM4K9q9bkaqPMx4XzoQJVi/zBl3NNsG0=
 github.com/solo-io/ext-auth-plugins v0.2.1 h1:8ZkQx9DnTUE3z4vK029l1F2GHbDjNphkewR4opYwvFc=
 github.com/solo-io/ext-auth-plugins v0.2.1/go.mod h1:bVOJ1BvrBQC6CyYa+DtGU+vJ0asUu3Xa0CSSp9l97fA=
-github.com/solo-io/ext-auth-service v0.19.11-patch1 h1:/SRix8/6fUw/OfIItW833JGqd5daFlGFg4l0rKBs2e8=
-github.com/solo-io/ext-auth-service v0.19.11-patch1/go.mod h1:xfV/QQ0EJhoVICm14EoFfW+9V9m0JhsM5oBF/9xMLvk=
+github.com/solo-io/ext-auth-service v0.19.11-patch3 h1:vNAgcJU1tR4ooHM2e0e+mJ8+ADF4K/4D+yuCczU7b4I=
+github.com/solo-io/ext-auth-service v0.19.11-patch3/go.mod h1:Tuw7R8XqNwgBdJCPx3gFs/W3S50dpnhKT9XjHiP/L80=
 github.com/solo-io/external-apis v0.1.4 h1:OEZ8+3puweHeS0ltDlcbCgL89LLaIEraw+x4e9mQPuM=
 github.com/solo-io/external-apis v0.1.4/go.mod h1:3vyADtIZj8hCD5cBUwGuA60hd8O5faQKvfUl400brLY=
 github.com/solo-io/gloo v1.9.18 h1:PHqssy1tshiTQ9QWvJRig8SohvNrpH/N+LE1ccuLU90=
@@ -1670,7 +1670,7 @@ github.com/solo-io/skv2-enterprise v0.0.8 h1:kr1gtzKb4YjUi9yzCmt4jUjYmn8Qev42Q/8
 github.com/solo-io/skv2-enterprise v0.0.8/go.mod h1:QrJECcP3yyRL8ESdqjxAVHRzHmN8/W3hiPajTQ42oyA=
 github.com/solo-io/solo-apis v0.0.0-20210119160956-e52ac14025d3/go.mod h1:9tB/zzr7cGk308Y7tqwWRkccG8N4rSslS6s8mlKXd5s=
 github.com/solo-io/solo-apis v0.0.0-20210922150112-505473b2e66c/go.mod h1:4HQsQO4Cy/4V7ZZxWncvnMvIq7pYnb66jAT5hvDJBgQ=
-github.com/solo-io/solo-apis v0.0.0-20211123222304-edf1a4a29f44/go.mod h1:LNnG7CKbdBQaWE7ZxYHdo6uyJDEjWZjaKOIoSX1MNqM=
+github.com/solo-io/solo-apis v0.0.0-20220623184726-09b24b9347ae/go.mod h1:aKrzzFcdVshy+ftHdZQ+Pu4WJc6OIL5AeP/1phCBqjI=
 github.com/solo-io/solo-apis v0.0.0-20220624011007-fcce2935fc5c h1:tiE0syuwhhzxKgOLZ2o65IAjxC1Uw1GLuYihkWKuQiU=
 github.com/solo-io/solo-apis v0.0.0-20220624011007-fcce2935fc5c/go.mod h1:aKrzzFcdVshy+ftHdZQ+Pu4WJc6OIL5AeP/1phCBqjI=
 github.com/solo-io/solo-kit v0.6.3/go.mod h1:oBaQ6tOwuO97u7w+s3TeI08YLHcbiWemInx0XkDfKFw=

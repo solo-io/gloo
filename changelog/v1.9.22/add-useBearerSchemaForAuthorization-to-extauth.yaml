@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    description: | 
+      Added UseBearerSchemaForAuthorization header field to add "Bearer" prefix to access token "Authorization"s.
+    issueLink: https://github.com/solo-io/gloo/issues/6501
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.19.11-patch3

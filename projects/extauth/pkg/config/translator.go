@@ -46,6 +46,8 @@ type extAuthConfigTranslator struct {
 	serviceFactory config.AuthServiceFactory
 }
 
+const defaultUseBearerSchemaForAuthorization = false
+
 type ExtAuthConfigTranslator interface {
 	Translate(ctx context.Context, resource *extauthv1.ExtAuthConfig) (svc api.AuthService, err error)
 }
@@ -518,9 +520,15 @@ func cookieConfigToSessionOptions(cookieOptions *extauthv1.UserSession_CookieOpt
 func ToHeaderConfig(hc *extauthv1.HeaderConfiguration) *oidc.HeaderConfig {
 	var headersConfig *oidc.HeaderConfig
 	if hc != nil {
+		useBearerSchemaForAuthorization := defaultUseBearerSchemaForAuthorization
+		if bearerSchemaWrapper := hc.GetUseBearerSchemaForAuthorization(); bearerSchemaWrapper != nil {
+			useBearerSchemaForAuthorization = bearerSchemaWrapper.GetValue()
+		}
+
 		headersConfig = &oidc.HeaderConfig{
-			IdTokenHeader:     hc.GetIdTokenHeader(),
-			AccessTokenHeader: hc.GetAccessTokenHeader(),
+			IdTokenHeader:                   hc.GetIdTokenHeader(),
+			AccessTokenHeader:               hc.GetAccessTokenHeader(),
+			UseBearerSchemaForAuthorization: useBearerSchemaForAuthorization,
 		}
 	}
 	return headersConfig

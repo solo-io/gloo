@@ -520,6 +520,52 @@ var _ = Describe("External auth", func() {
 					// add context with refresh; get an expired token going and make sure it was refreshed.
 				})
 
+				Context("forward header token with Bearer schema", func() {
+					BeforeEach(func() {
+						// update the config to use redis
+						oauth2.OidcAuthorizationCode.Headers = &extauth.HeaderConfiguration{
+							IdTokenHeader:                   "foo",
+							AccessTokenHeader:               "Authorization",
+							UseBearerSchemaForAuthorization: &wrappers.BoolValue{Value: true},
+						}
+					})
+
+					It("should use Bearer schema if using Authorization access token header", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {})
+
+						select {
+						case r := <-testUpstream.C:
+							Expect(r.Headers.Get("foo")).To(Equal(discoveryServer.token))
+							Expect(r.Headers.Get("Authorization")).To(Equal("Bearer SlAV32hkKG"))
+						case <-time.After(time.Second):
+							Fail("timedout")
+						}
+					})
+				})
+
+				Context("does NOT forward header token with Bearer schema if not enabled", func() {
+					BeforeEach(func() {
+						// update the config to use redis
+						oauth2.OidcAuthorizationCode.Headers = &extauth.HeaderConfiguration{
+							IdTokenHeader:                   "foo",
+							AccessTokenHeader:               "Authorization",
+							UseBearerSchemaForAuthorization: &wrappers.BoolValue{Value: false},
+						}
+					})
+
+					It("should not use Bearer schema", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {})
+
+						select {
+						case r := <-testUpstream.C:
+							Expect(r.Headers.Get("foo")).To(Equal(discoveryServer.token))
+							Expect(r.Headers.Get("Authorization")).To(Equal("SlAV32hkKG"))
+						case <-time.After(time.Second):
+							Fail("timedout")
+						}
+					})
+				})
+
 				Context("forward id token", func() {
 
 					BeforeEach(func() {
@@ -527,6 +573,29 @@ var _ = Describe("External auth", func() {
 						oauth2.OidcAuthorizationCode.Headers = &extauth.HeaderConfiguration{
 							IdTokenHeader:     "foo",
 							AccessTokenHeader: "bar",
+						}
+					})
+
+					It("should work", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {})
+
+						select {
+						case r := <-testUpstream.C:
+							Expect(r.Headers.Get("foo")).To(Equal(discoveryServer.token))
+							Expect(r.Headers.Get("bar")).To(Equal("SlAV32hkKG"))
+						case <-time.After(time.Second):
+							Fail("timedout")
+						}
+					})
+				})
+
+				Context("forward id token normally even if bearer addition enabled", func() {
+					BeforeEach(func() {
+						// update the config to use redis
+						oauth2.OidcAuthorizationCode.Headers = &extauth.HeaderConfiguration{
+							IdTokenHeader:                   "foo",
+							AccessTokenHeader:               "bar",
+							UseBearerSchemaForAuthorization: &wrappers.BoolValue{Value: true},
 						}
 					})
 
