@@ -9,7 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"log"
 	"math/big"
 	"net/http"
 	"net/http/cookiejar"
@@ -22,8 +23,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/solo-io/gloo/test/helpers"
 
 	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"github.com/fgrosse/zaptest"
@@ -46,6 +45,9 @@ import (
 	passthrough_test_utils "github.com/solo-io/ext-auth-service/pkg/config/passthrough/test_utils"
 	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
 	"github.com/solo-io/ext-auth-service/pkg/server"
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	gatewaydefaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
+	gwtranslator "github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/trace/v3"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -53,6 +55,7 @@ import (
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -171,6 +174,22 @@ var _ = Describe("External auth", func() {
 		cancel()
 	})
 
+	waitForHealthyExtauthService := func() {
+		extAuthHealthServerAddr := "localhost:" + strconv.Itoa(settings.ExtAuthSettings.ServerPort)
+		conn, err := grpc.Dial(extAuthHealthServerAddr, grpc.WithInsecure())
+		Expect(err).ToNot(HaveOccurred())
+
+		// make sure that extauth is up and serving
+		healthClient := grpc_health_v1.NewHealthClient(conn)
+		var header metadata.MD
+		Eventually(func() (grpc_health_v1.HealthCheckResponse_ServingStatus, error) {
+			resp, err := healthClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
+				Service: settings.ExtAuthSettings.ServiceName,
+			}, grpc.Header(&header))
+			return resp.GetStatus(), err
+		}, "10s", ".1s").Should(Equal(grpc_health_v1.HealthCheckResponse_SERVING))
+	}
+
 	Context("With envoy", func() {
 
 		var (
@@ -240,6 +259,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
 				})
@@ -250,6 +271,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 				})
@@ -260,6 +283,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
 				})
@@ -280,6 +305,7 @@ var _ = Describe("External auth", func() {
 				)
 
 				BeforeEach(func() {
+					cookies = nil
 					handlerStats = make(map[string]int)
 					discoveryServer = fakeDiscoveryServer{
 						handlerStats: handlerStats,
@@ -332,24 +358,28 @@ var _ = Describe("External auth", func() {
 					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 						return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 					})
+					waitForHealthyExtauthService()
 				})
 
 				AfterEach(func() {
 					discoveryServer.Stop()
 				})
 
-				makeSingleRequest := func(client *http.Client) (http.Response, error) {
+				makeSingleRequest := func(client *http.Client) (int, error) {
 					req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/success?foo=bar", "localhost", envoyPort), nil)
-					Expect(err).NotTo(HaveOccurred())
+					if err != nil {
+						return 0, err
+					}
 					r, err := client.Do(req)
 					if err != nil {
-						return http.Response{}, err
+						return 0, err
 					}
-
-					return *r, err
+					defer r.Body.Close()
+					_, _ = io.ReadAll(r.Body)
+					return r.StatusCode, nil
 				}
 
-				ExpectHappyPathToWork := func(makeSingleRequest func(client *http.Client) (http.Response, error), loginSuccessExpectation func()) {
+				ExpectHappyPathToWork := func(makeSingleRequest func(client *http.Client) (int, error), loginSuccessExpectation func()) {
 					// do auth flow and make sure we have a cookie named cookie:
 					appPage, err := url.Parse(fmt.Sprintf("http://%s:%d/", "localhost", envoyPort))
 					Expect(err).NotTo(HaveOccurred())
@@ -357,8 +387,9 @@ var _ = Describe("External auth", func() {
 					var finalurl *url.URL
 					jar, err := cookiejar.New(nil)
 					Expect(err).NotTo(HaveOccurred())
+					cookieJar := &unsecureCookieJar{CookieJar: jar}
 					client := &http.Client{
-						Jar: &unsecureCookieJar{CookieJar: jar},
+						Jar: cookieJar,
 						CheckRedirect: func(req *http.Request, via []*http.Request) error {
 							finalurl = req.URL
 							if len(via) > 10 {
@@ -368,11 +399,9 @@ var _ = Describe("External auth", func() {
 						},
 					}
 
-					Eventually(func() (http.Response, error) {
+					Eventually(func() (int, error) {
 						return makeSingleRequest(client)
-					}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
-						"StatusCode": Equal(http.StatusOK),
-					}))
+					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
 					Expect(finalurl).NotTo(BeNil())
 					Expect(finalurl.Path).To(Equal("/success"))
@@ -380,8 +409,14 @@ var _ = Describe("External auth", func() {
 					Expect(finalurl.RawQuery).To(Equal("foo=bar"))
 
 					// check the cookie jar
-					cookies = jar.Cookies(appPage)
-					Expect(cookies).NotTo(BeEmpty())
+					tmpCookies := jar.Cookies(appPage)
+					Expect(tmpCookies).NotTo(BeEmpty())
+
+					// grab the original cookies for these cookies, as jar.Cookies doesn't return
+					// all the properties of the cookies
+					for _, c := range tmpCookies {
+						cookies = append(cookies, cookieJar.OriginalCookies[c.Name])
+					}
 
 					// make sure login is successful
 					loginSuccessExpectation()
@@ -393,8 +428,10 @@ var _ = Describe("External auth", func() {
 					Expect(err).NotTo(HaveOccurred())
 					resp, err := client.Do(req)
 					Expect(err).NotTo(HaveOccurred())
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					Expect(resp.StatusCode).To(Equal(http.StatusOK))
-					// Verify that the logout resulted in a redirect to the defaul url
+					// Verify that the logout resulted in a redirect to the default url
 					Expect(finalurl).NotTo(BeNil())
 					Expect(finalurl.Path).To(Equal("/"))
 				}
@@ -454,7 +491,7 @@ var _ = Describe("External auth", func() {
 					})
 
 					It("should auth successfully after refreshing token", func() {
-						forceTokenRefresh := func(client *http.Client) (http.Response, error) {
+						forceTokenRefresh := func(client *http.Client) (int, error) {
 							// Create token that will expire in 1 second
 							discoveryServer.createNearlyExpiredToken = true
 							discoveryServer.updateToken("")
@@ -462,26 +499,24 @@ var _ = Describe("External auth", func() {
 							Expect(handlerStats["/token"]).To(BeEquivalentTo(0))
 
 							// execute first request.
-							Eventually(func() (http.Response, error) {
+							Eventually(func() (int, error) {
 								return makeSingleRequest(client)
-							}, "10s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
-								"StatusCode": Equal(http.StatusOK),
-							}))
+							}, "10s", "0.5s").Should(Equal(http.StatusOK))
 
 							// sleep for 1 second, so the token expires
 							time.Sleep(time.Second)
 
 							// execute second request.
-							r, err := makeSingleRequest(client)
+							statusCode, err := makeSingleRequest(client)
 							Expect(err).NotTo(HaveOccurred())
 
 							// execute third request. We should not hit the /token handler, because the refreshed token should be in the store.
 							baseRefreshes := handlerStats["/token"]
-							r, err = makeSingleRequest(client)
+							statusCode, err = makeSingleRequest(client)
 							Expect(err).NotTo(HaveOccurred())
 							Expect(handlerStats["/token"]).To(BeNumerically("==", baseRefreshes))
 
-							return r, err
+							return statusCode, err
 						}
 
 						ExpectHappyPathToWork(forceTokenRefresh, func() {
@@ -510,8 +545,13 @@ var _ = Describe("External auth", func() {
 							Eventually(func() error {
 								req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/success?foo=bar", "localhost", envoyPort), nil)
 								Expect(err).NotTo(HaveOccurred())
-								_, err = client.Do(req)
-								return err
+								resp, err := client.Do(req)
+								if err != nil {
+									return err
+								}
+								defer resp.Body.Close()
+								_, _ = io.ReadAll(resp.Body)
+								return nil
 							}, "5s", "0.5s").Should(MatchError(ContainSubstring("stopped after 10 redirects")))
 							Expect(discoveryServer.lastGrant).To(Equal(""))
 						})
@@ -638,7 +678,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return "", err
 							}
-							body, err := ioutil.ReadAll(resp.Body)
+							defer resp.Body.Close()
+							body, err := io.ReadAll(resp.Body)
 							if err != nil {
 								return "", err
 							}
@@ -664,12 +705,17 @@ var _ = Describe("External auth", func() {
 					expectRequestWithTokenSucceeds := func(offset int, token string) {
 						EventuallyWithOffset(offset+1, func() (int, error) {
 							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							if err != nil {
+								return 0, err
+							}
 							req.Header.Add("Authorization", "Bearer "+token)
 
 							resp, err := http.DefaultClient.Do(req)
 							if err != nil {
 								return 0, err
 							}
+							defer resp.Body.Close()
+							_, _ = io.ReadAll(resp.Body)
 							return resp.StatusCode, nil
 						}, "5s", "0.5s").Should(Equal(http.StatusOK))
 					}
@@ -694,7 +740,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return "", err
 							}
-							body, err := ioutil.ReadAll(resp.Body)
+							defer resp.Body.Close()
+							body, err := io.ReadAll(resp.Body)
 							if err != nil {
 								return "", err
 							}
@@ -869,6 +916,7 @@ var _ = Describe("External auth", func() {
 							var cookienames []string
 							for _, c := range cookies {
 								cookienames = append(cookienames, c.Name)
+								Expect(c.HttpOnly).To(BeTrue())
 							}
 							Expect(cookienames).To(ConsistOf("id_token", "access_token"))
 						})
@@ -893,7 +941,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return "", err
 							}
-							body, err := ioutil.ReadAll(resp.Body)
+							defer resp.Body.Close()
+							body, err := io.ReadAll(resp.Body)
 							if err != nil {
 								return "", err
 							}
@@ -916,7 +965,9 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return http.Response{}, err
 							}
-							return *r, err
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
 						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
 							"StatusCode": Equal(http.StatusFound),
 							"Header":     HaveKeyWithValue("Location", ContainElement(ContainSubstring("email"))),
@@ -942,11 +993,144 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return http.Response{}, err
 							}
-							return *r, err
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
 						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
 							"StatusCode": Equal(http.StatusFound),
 							"Header":     HaveKeyWithValue("Location", []string{finalpage}),
 						}))
+					})
+					Context("oidc + tls is already terminated", func() {
+						Context("listener is http, appUrl is https", func() {
+							BeforeEach(func() {
+								oauth2 := getOidcAuthCodeConfig(envoyPort, secret.Metadata.Ref())
+								oauth2.OidcAuthorizationCode.AppUrl = strings.Replace(oauth2.OidcAuthorizationCode.AppUrl,
+									"http:",
+									"https:",
+									1)
+								authConfig.Configs = []*extauth.AuthConfig_Config{{
+									AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+										Oauth2: &extauth.OAuth2{
+											OauthType: oauth2,
+										},
+									},
+								}}
+							})
+							It("should prefer appUrl scheme to http request scheme", func() {
+								client := &http.Client{
+									CheckRedirect: func(req *http.Request, via []*http.Request) error {
+										return http.ErrUseLastResponse
+									},
+								}
+								req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/", "localhost", envoyPort), nil)
+								Expect(err).NotTo(HaveOccurred())
+
+								resp, err := client.Do(req)
+								Expect(err).NotTo(HaveOccurred())
+								defer resp.Body.Close()
+								locHdr := resp.Header.Get("Location")
+								Expect(locHdr).NotTo(BeEmpty())
+								locUrl, err := url.Parse(locHdr)
+								Expect(err).NotTo(HaveOccurred())
+
+								stateVals := locUrl.Query().Get("state")
+								Expect(stateVals).NotTo(BeEmpty())
+
+								var stateClaim struct {
+									jwt.StandardClaims
+									State string
+								}
+								_, err = jwt.ParseWithClaims(stateVals,
+									&stateClaim,
+									func(*jwt.Token) (interface{}, error) {
+										return nil, nil
+									},
+								)
+
+								// state URI has been upgraded to https:
+								log.Println(stateClaim.State)
+								Expect(stateClaim.State).To(ContainSubstring("https://"))
+							})
+						})
+						Context("listener is https, appUrl is http", func() {
+							BeforeEach(func() {
+								gw := gatewaydefaults.DefaultSslGateway(proxy.Metadata.Namespace)
+								translator := gwtranslator.NewDefaultTranslator(gwtranslator.Opts{
+									GlooNamespace:  proxy.Metadata.Namespace,
+									WriteNamespace: proxy.Metadata.Namespace,
+								})
+								tlsSecret := &gloov1.Secret{
+									Metadata: &core.Metadata{
+										Name:      "tls-secret",
+										Namespace: "default",
+									},
+									Kind: &gloov1.Secret_Tls{
+										Tls: &gloov1.TlsSecret{
+											CertChain:  helpers.Certificate(),
+											PrivateKey: helpers.PrivateKey(),
+										},
+									},
+								}
+								_, err := testClients.SecretClient.Write(tlsSecret, clients.WriteOpts{})
+								Expect(err).NotTo(HaveOccurred())
+								vs := getVirtualServiceToUpstream(testUpstream.Upstream.Metadata.Ref(), &gloov1.SslConfig{
+									SslSecrets: &gloov1.SslConfig_SecretRef{
+										SecretRef: tlsSecret.Metadata.Ref(),
+									},
+								})
+								p, _ := translator.Translate(ctx, proxy.Metadata.Name, proxy.Metadata.Namespace, &gatewayv1.ApiSnapshot{
+									VirtualServices:    gatewayv1.VirtualServiceList{vs},
+									RouteTables:        gatewayv1.RouteTableList{},
+									Gateways:           gatewayv1.GatewayList{},
+									VirtualHostOptions: gatewayv1.VirtualHostOptionList{},
+									RouteOptions:       gatewayv1.RouteOptionList{},
+								}, []*gatewayv1.Gateway{gw})
+
+								Expect(len(p.GetListeners())).To(BeNumerically(">", 0))
+								l := p.Listeners[0]
+								l.GetHttpListener().VirtualHosts = proxy.GetListeners()[0].GetHttpListener().GetVirtualHosts()
+								l.BindAddress = "0.0.0.0"
+
+								proxy.Listeners = append(proxy.Listeners, p.Listeners...)
+							})
+							It("should prefer https scheme when appUrl scheme is a downgrade", func() {
+								client, err := getHttpClient(helpers.Certificate(), nil)
+								client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+									return http.ErrUseLastResponse
+								}
+
+								req, err := http.NewRequest("GET", fmt.Sprintf("https://%s:%d/", "localhost", 8443), nil)
+								Expect(err).NotTo(HaveOccurred())
+
+								resp, err := client.Do(req)
+								Expect(err).NotTo(HaveOccurred())
+								defer resp.Body.Close()
+								locHdr := resp.Header.Get("Location")
+								Expect(locHdr).NotTo(BeEmpty())
+								locUrl, err := url.Parse(locHdr)
+								Expect(err).NotTo(HaveOccurred())
+
+								stateVals := locUrl.Query().Get("state")
+								Expect(stateVals).NotTo(BeEmpty())
+
+								var stateClaim struct {
+									jwt.StandardClaims
+									State string
+								}
+								_, err = jwt.ParseWithClaims(stateVals,
+									&stateClaim,
+									func(*jwt.Token) (interface{}, error) {
+										return nil, nil
+									},
+								)
+
+								// state URI has not been downgraded to http:
+								log.Println(stateClaim.State)
+								Expect(stateClaim.State).To(ContainSubstring("https://"))
+							})
+
+						})
 					})
 
 					Context("oidc + opa sanity", func() {
@@ -1006,6 +1190,8 @@ var _ = Describe("External auth", func() {
 								if err != nil {
 									return 0, err
 								}
+								defer resp.Body.Close()
+								_, _ = io.ReadAll(resp.Body)
 								return resp.StatusCode, nil
 							}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
 
@@ -1023,6 +1209,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
@@ -1113,11 +1301,12 @@ var _ = Describe("External auth", func() {
 							return http.ErrUseLastResponse
 						},
 					}
-					var resp *http.Response
-					resp, err = client.Do(getReq)
+					resp, err := client.Do(getReq)
 					if err != nil {
 						return 0, err
 					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
 					return resp.StatusCode, nil
 				}
 
@@ -1467,6 +1656,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
 				})
@@ -1476,10 +1667,11 @@ var _ = Describe("External auth", func() {
 						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
 						req.Header.Add("api-key", "badApiKey")
 						resp, err := http.DefaultClient.Do(req)
-
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
 				})
@@ -1489,10 +1681,11 @@ var _ = Describe("External auth", func() {
 						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
 						req.Header.Add("api-key", "secretApiKey1")
 						resp, err := http.DefaultClient.Do(req)
-
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 				})
@@ -1502,10 +1695,11 @@ var _ = Describe("External auth", func() {
 						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
 						req.Header.Add("api-key", "secretApiKey2")
 						resp, err := http.DefaultClient.Do(req)
-
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 				})
@@ -1513,39 +1707,36 @@ var _ = Describe("External auth", func() {
 
 			Context("http passthrough", func() {
 
-				expectStatusCodeWithHeaders := func(responseCode int, reqHeadersToAdd map[string][]string, responseHeadersToExpect map[string]string) *http.Response {
-					var resp *http.Response
+				expectStatusCodeWithHeaders := func(responseCode int, reqHeadersToAdd map[string][]string, responseHeadersToExpect map[string]string) {
 					EventuallyWithOffset(1, func() (int, error) {
 						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
 						if err != nil {
 							return 0, err
 						}
 						req.Header = reqHeadersToAdd
-						resp, err = http.DefaultClient.Do(req)
+						resp, err := http.DefaultClient.Do(req)
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						for headerName, headerValue := range responseHeadersToExpect {
 							ExpectWithOffset(2, resp.Header.Get(headerName)).To(Equal(headerValue))
 						}
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(responseCode))
-					return resp
 				}
 
-				expectStatusCodeWithBody := func(responseCode int, body string) *http.Response {
-					var (
-						resp *http.Response
-						err  error
-					)
+				expectStatusCodeWithBody := func(responseCode int, body string) {
 					EventuallyWithOffset(1, func() (int, error) {
-						resp, err = http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "text/plain", strings.NewReader(body))
+						resp, err := http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "text/plain", strings.NewReader(body))
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}).Should(Equal(responseCode))
-					return resp
 				}
 
 				Context("passthrough sanity", func() {
@@ -1595,6 +1786,13 @@ var _ = Describe("External auth", func() {
 								},
 							}},
 						}
+
+						// paranoia check if its already deleted thats fine as we just check that its gone
+						_ = testClients.AuthConfigClient.Delete(ac.Metadata.Namespace, ac.Metadata.Name, clients.DeleteOpts{})
+						helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
+							return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
+						})
+
 						_, err = testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
 						Expect(err).NotTo(HaveOccurred())
 
@@ -1605,11 +1803,14 @@ var _ = Describe("External auth", func() {
 
 						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref(), false)
 						_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-
+						Expect(err).ToNot(HaveOccurred())
 						// ensure proxy is accepted
 						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						})
+
+						waitForHealthyExtauthService()
+
 					})
 
 					It("works", func() {
@@ -1911,19 +2112,16 @@ var _ = Describe("External auth", func() {
 						})
 					})
 
-					_ = func(responseCode int, body string) *http.Response {
-						var (
-							resp *http.Response
-							err  error
-						)
+					_ = func(responseCode int, body string) {
 						EventuallyWithOffset(1, func() (int, error) {
-							resp, err = http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "text/plain", strings.NewReader(body))
+							resp, err := http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "text/plain", strings.NewReader(body))
 							if err != nil {
 								return 0, err
 							}
+							defer resp.Body.Close()
+							_, _ = io.ReadAll(resp.Body)
 							return resp.StatusCode, nil
 						}).Should(Equal(responseCode))
-						return resp
 					}
 
 					It("works", func() {
@@ -2001,6 +2199,13 @@ var _ = Describe("External auth", func() {
 								},
 							}},
 						}
+
+						// paranoia check if its already deleted thats fine as we just check that its gone
+						_ = testClients.AuthConfigClient.Delete(ac.Metadata.Namespace, ac.Metadata.Name, clients.DeleteOpts{})
+						helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
+							return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
+						})
+
 						_, err = testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
 						Expect(err).NotTo(HaveOccurred())
 
@@ -2056,7 +2261,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return 0, err
 							}
-
+							defer resp.Body.Close()
+							_, _ = io.ReadAll(resp.Body)
 							return resp.StatusCode, nil
 						}, "5s", "0.5s").Should(Equal(responseCode))
 					}
@@ -2224,7 +2430,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return 0, err
 							}
-
+							defer resp.Body.Close()
+							_, _ = io.ReadAll(resp.Body)
 							return resp.StatusCode, nil
 						}, "5s", "0.5s").Should(Equal(responseCode))
 					}
@@ -2368,7 +2575,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return 0, err
 							}
-
+							defer resp.Body.Close()
+							_, _ = io.ReadAll(resp.Body)
 							return resp.StatusCode, nil
 						}, "5s", "0.5s").Should(Equal(responseCode))
 					}
@@ -2488,7 +2696,7 @@ var _ = Describe("External auth", func() {
 					_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
-					_, err = testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+					ac := &extauth.AuthConfig{
 						Metadata: &core.Metadata{
 							Name:      getOidcExtAuthExtension().GetConfigRef().Name,
 							Namespace: getOidcExtAuthExtension().GetConfigRef().Namespace,
@@ -2498,12 +2706,22 @@ var _ = Describe("External auth", func() {
 								Oauth: getOauthConfig(envoyPort, secret.Metadata.Ref()),
 							},
 						}},
-					}, clients.WriteOpts{Ctx: ctx})
+					}
+					// paranoia check if its already deleted thats fine as we just check that its gone
+					_ = testClients.AuthConfigClient.Delete(ac.Metadata.Namespace, ac.Metadata.Name, clients.DeleteOpts{})
+					helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
+						return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
+					})
+
+					_, err = testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
 
 					proxy = getProxyExtAuthOIDC(envoyPort, testUpstream.Upstream.Metadata.Ref())
 
 					token = createIdTokenWithKid(discoveryServer.getValidKeyId())
+
+					waitForHealthyExtauthService()
+
 				})
 
 				JustBeforeEach(func() {
@@ -2537,7 +2755,8 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return "", err
 							}
-							body, err := ioutil.ReadAll(resp.Body)
+							defer resp.Body.Close()
+							body, err := io.ReadAll(resp.Body)
 							if err != nil {
 								return "", err
 							}
@@ -2559,7 +2778,9 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return http.Response{}, err
 							}
-							return *r, err
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
 						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
 							"StatusCode": Equal(http.StatusFound),
 							"Header":     HaveKeyWithValue("Location", ContainElement(ContainSubstring("email"))),
@@ -2585,7 +2806,9 @@ var _ = Describe("External auth", func() {
 							if err != nil {
 								return http.Response{}, err
 							}
-							return *r, err
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
 						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
 							"StatusCode": Equal(http.StatusFound),
 							"Header":     HaveKeyWithValue("Location", []string{finalpage}),
@@ -2647,6 +2870,8 @@ var _ = Describe("External auth", func() {
 								if err != nil {
 									return 0, err
 								}
+								defer resp.Body.Close()
+								_, _ = io.ReadAll(resp.Body)
 								return resp.StatusCode, nil
 							}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
 
@@ -2664,6 +2889,8 @@ var _ = Describe("External auth", func() {
 						if err != nil {
 							return 0, err
 						}
+						defer resp.Body.Close()
+						_, _ = io.ReadAll(resp.Body)
 						return resp.StatusCode, nil
 					}, "5s", "0.5s").Should(Equal(http.StatusOK))
 
@@ -2941,6 +3168,7 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 			"issuer": "http://localhost:5556",
 			"authorization_endpoint": "http://localhost:5556/auth",
 			"token_endpoint": "http://localhost:5556/token",
+			"revocation_endpoint": "http://localhost:5556/revoke",
 			"jwks_uri": "http://localhost:5556/keys",
 			"response_types_supported": [
 			  "code"
@@ -2996,6 +3224,21 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 			}
 			`
 			_, _ = rw.Write([]byte(keysResponse))
+		case "/revoke":
+			r.ParseForm()
+			tokenTypeHint := r.Form.Get("token_type_hint")
+
+			httpReply := ""
+			if tokenTypeHint != "refresh_token" && tokenTypeHint != "access_token" {
+				httpReply = `
+                {
+                	"error":"unsupported_token_type"
+				}
+                `
+			}
+
+			rw.WriteHeader(http.StatusOK)
+			_, _ = rw.Write([]byte(httpReply))
 		}
 	})
 
@@ -3293,12 +3536,20 @@ func getProxyExtAuth(envoyPort uint32, upstream *core.ResourceRef, extauthCfg *e
 
 type unsecureCookieJar struct {
 	http.CookieJar
+	OriginalCookies map[string]*http.Cookie
 }
 
 func (j *unsecureCookieJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
+	if j.OriginalCookies == nil {
+		j.OriginalCookies = make(map[string]*http.Cookie)
+	}
 	for _, c := range cookies {
 		// hack to work around go client impl that doesn't consider localhost secure.
 		c.Secure = false
+		// the Cookies() method from the cookie jar removes the properties of the original cookie.
+		j.OriginalCookies[c.Name] = c
 	}
+
 	j.CookieJar.SetCookies(u, cookies)
+
 }
