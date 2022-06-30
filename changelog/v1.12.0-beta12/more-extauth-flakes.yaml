@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Add checks to ensure that the authconfigs used in the extauth tests are accepted.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3617
+  - type: NON_USER_FACING
+    description: In the check to ensure that the key service is up and running, ensure that requests return 200.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3784

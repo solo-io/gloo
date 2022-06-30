@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	errors "github.com/rotisserie/eris"
+
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
@@ -104,7 +106,7 @@ func getMapToken(claims jwt.MapClaims, key *rsa.PrivateKey) string {
 	return s
 }
 
-var _ = Describe("JWT + RBAC", func() {
+var _ = Describe("JWT_RBAC", func() {
 
 	var (
 		ctx            context.Context
@@ -311,15 +313,7 @@ var _ = Describe("JWT + RBAC", func() {
 			})
 
 			// wait for key service to start
-			Eventually(func() error {
-				resp, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
-				if err != nil {
-					return err
-				}
-				defer resp.Body.Close()
-				_, _ = io.ReadAll(resp.Body)
-				return nil
-			}, "5s", "0.5s").ShouldNot(HaveOccurred())
+			waitForKeyService(jwksPort)
 		})
 
 		Context("forward token", func() {
@@ -455,15 +449,7 @@ var _ = Describe("JWT + RBAC", func() {
 			})
 
 			// wait for key service to start
-			Eventually(func() error {
-				resp, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
-				if err != nil {
-					return err
-				}
-				defer resp.Body.Close()
-				_, _ = io.ReadAll(resp.Body)
-				return nil
-			}, "5s", "0.5s").ShouldNot(HaveOccurred())
+			waitForKeyService(jwksPort)
 
 		})
 
@@ -525,18 +511,8 @@ var _ = Describe("JWT + RBAC", func() {
 			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 				return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 			})
-
 			// wait for key service to start
-			Eventually(func() error {
-				resp, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
-				if err != nil {
-					return err
-				}
-				defer resp.Body.Close()
-				_, _ = io.ReadAll(resp.Body)
-				return nil
-			}, "5s", "0.5s").ShouldNot(HaveOccurred())
-
+			waitForKeyService(jwksPort)
 		})
 
 		Context("non admin user", func() {
@@ -998,4 +974,22 @@ func getDisabledRbac() *rbac.ExtensionSettings {
 	return &rbac.ExtensionSettings{
 		Disable: true,
 	}
+}
+
+func waitForKeyService(jwksPort uint32) {
+	Eventually(func() error {
+		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/", jwksPort))
+		if err != nil {
+			return err
+		}
+		if resp == nil {
+			return errors.New("Expected non-nil response from key service")
+		}
+		defer resp.Body.Close()
+		_, _ = io.ReadAll(resp.Body)
+		if resp.StatusCode != 200 {
+			return errors.New(fmt.Sprintf("Unexpected status code from key server: %d", resp.StatusCode))
+		}
+		return nil
+	}, "5s", "0.5s").ShouldNot(HaveOccurred())
 }

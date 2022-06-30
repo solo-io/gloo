@@ -182,6 +182,7 @@ var _ = Describe("External auth", func() {
 
 	waitForHealthyExtauthService := func() {
 		// First make sure gloo has found the extauth upstream
+		// TODO: I think that our check to see whether the proxy is accepted covers this but it can't hurt to have
 		gloohelpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 			return testClients.UpstreamClient.Read(extAuthServer.Metadata.Namespace, extAuthServer.Metadata.Name, clients.ReadOpts{})
 		})
@@ -363,7 +364,9 @@ var _ = Describe("External auth", func() {
 				JustBeforeEach(func() {
 					_, err := testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
-
+					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						return testClients.AuthConfigClient.Read(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.ReadOpts{})
+					})
 					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -2352,7 +2355,7 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// write auth configuration
-						_, err = testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+						ac := &extauth.AuthConfig{
 							Metadata: &core.Metadata{
 								Name:      GetPassThroughExtAuthExtension().GetConfigRef().Name,
 								Namespace: GetPassThroughExtAuthExtension().GetConfigRef().Namespace,
@@ -2362,9 +2365,14 @@ var _ = Describe("External auth", func() {
 									PassThroughAuth: getPassThroughAuthConfig(authServer.GetAddress()),
 								},
 							}},
-						}, clients.WriteOpts{Ctx: ctx})
+						}
+						_, err = testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
 						Expect(err).NotTo(HaveOccurred())
 
+						// ensure auth config is accepted
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+							return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
+						})
 						// get proxy with pass through auth extension
 						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref(), zipkinTracing)
 
@@ -2524,7 +2532,7 @@ var _ = Describe("External auth", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						// write auth configuration
-						_, err = testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+						ac := &extauth.AuthConfig{
 							Metadata: &core.Metadata{
 								Name:      GetPassThroughExtAuthExtension().GetConfigRef().Name,
 								Namespace: GetPassThroughExtAuthExtension().GetConfigRef().Namespace,
@@ -2542,9 +2550,13 @@ var _ = Describe("External auth", func() {
 									},
 								},
 							},
-						}, clients.WriteOpts{Ctx: ctx})
+						}
+						_, err = testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
 						Expect(err).NotTo(HaveOccurred())
-
+						// ensure auth config is accepted
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+							return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
+						})
 						// get proxy with pass through auth extension
 						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref(), false)
 
@@ -2698,7 +2710,10 @@ var _ = Describe("External auth", func() {
 						// write auth configuration
 						_, err = testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
 						Expect(err).NotTo(HaveOccurred())
-
+						// ensure auth config is accepted
+						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+							return testClients.AuthConfigClient.Read(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.ReadOpts{})
+						})
 						// get proxy with pass through auth extension
 						proxy = getProxyExtAuthPassThroughAuth(envoyPort, testUpstream.Upstream.Metadata.Ref(), false)
 
@@ -2737,6 +2752,7 @@ var _ = Describe("External auth", func() {
 					discoveryServer fakeDiscoveryServer
 					secret          *gloov1.Secret
 					proxy           *gloov1.Proxy
+					authConfig      *extauth.AuthConfig
 					token           string
 				)
 
@@ -2775,7 +2791,7 @@ var _ = Describe("External auth", func() {
 					_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
-					ac := &extauth.AuthConfig{
+					authConfig = &extauth.AuthConfig{
 						Metadata: &core.Metadata{
 							Name:      getOidcExtAuthExtension().GetConfigRef().Name,
 							Namespace: getOidcExtAuthExtension().GetConfigRef().Namespace,
@@ -2787,12 +2803,12 @@ var _ = Describe("External auth", func() {
 						}},
 					}
 					// paranoia check if its already deleted thats fine as we just check that its gone
-					_ = testClients.AuthConfigClient.Delete(ac.Metadata.Namespace, ac.Metadata.Name, clients.DeleteOpts{})
+					_ = testClients.AuthConfigClient.Delete(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.DeleteOpts{})
 					helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
-						return testClients.AuthConfigClient.Read(ac.Metadata.Namespace, ac.Metadata.Name, clients.ReadOpts{})
+						return testClients.AuthConfigClient.Read(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.ReadOpts{})
 					})
-
-					_, err = testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
+					// the accepted check is in JustBeforeEach
+					_, err = testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
 
 					proxy = getProxyExtAuthOIDC(envoyPort, testUpstream.Upstream.Metadata.Ref())
@@ -2804,6 +2820,9 @@ var _ = Describe("External auth", func() {
 				})
 
 				JustBeforeEach(func() {
+					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						return testClients.AuthConfigClient.Read(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.ReadOpts{})
+					})
 					_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -2913,8 +2932,8 @@ var _ = Describe("External auth", func() {
 				`}}
 							modules := []*core.ResourceRef{{Name: policy.Metadata.Name}}
 							options := &extauth.OpaAuthOptions{FastInputConversion: true}
-
-							_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+							//Check for accepted is in JustBeforeEach
+							authConfig = &extauth.AuthConfig{
 								Metadata: &core.Metadata{
 									Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,
 									Namespace: getOidcAndOpaExtAuthExtension().GetConfigRef().Namespace,
@@ -2931,7 +2950,8 @@ var _ = Describe("External auth", func() {
 										},
 									},
 								},
-							}, clients.WriteOpts{Ctx: ctx})
+							}
+							_, err := testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
 							Expect(err).NotTo(HaveOccurred())
 
 							proxy = getProxyExtAuthOIDCAndOpa(envoyPort, secret.Metadata.Ref(), testUpstream.Upstream.Metadata.Ref(), modules)
@@ -3007,8 +3027,7 @@ var _ = Describe("External auth", func() {
 			`}}
 						modules := []*core.ResourceRef{{Name: policy.Metadata.Name, Namespace: policy.Metadata.Namespace}}
 						options := &extauth.OpaAuthOptions{FastInputConversion: true}
-
-						_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+						ac := &extauth.AuthConfig{
 							Metadata: &core.Metadata{
 								Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,
 								Namespace: getOidcAndOpaExtAuthExtension().GetConfigRef().Namespace,
@@ -3025,7 +3044,8 @@ var _ = Describe("External auth", func() {
 									},
 								},
 							},
-						}, clients.WriteOpts{Ctx: ctx})
+						}
+						_, err := testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
 						Expect(err).NotTo(HaveOccurred())
 						proxy = getProxyExtAuthOIDCAndOpa(envoyPort, secret.Metadata.Ref(), testUpstream.Upstream.Metadata.Ref(), modules)
 
