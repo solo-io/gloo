@@ -619,6 +619,9 @@ export class RedisOptions extends jspb.Message {
   getPoolSize(): number;
   setPoolSize(value: number): void;
 
+  getSocketType(): RedisOptions.SocketTypeMap[keyof RedisOptions.SocketTypeMap];
+  setSocketType(value: RedisOptions.SocketTypeMap[keyof RedisOptions.SocketTypeMap]): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RedisOptions.AsObject;
   static toObject(includeInstance: boolean, msg: RedisOptions): RedisOptions.AsObject;
@@ -634,7 +637,15 @@ export namespace RedisOptions {
     host: string,
     db: number,
     poolSize: number,
+    socketType: RedisOptions.SocketTypeMap[keyof RedisOptions.SocketTypeMap],
   }
+
+  export interface SocketTypeMap {
+    TCP: 0;
+    TLS: 1;
+  }
+
+  export const SocketType: SocketTypeMap;
 }
 
 export class UserSession extends jspb.Message {

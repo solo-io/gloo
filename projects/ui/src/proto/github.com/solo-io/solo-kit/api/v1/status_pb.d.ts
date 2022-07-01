@@ -42,6 +42,11 @@ export class Status extends jspb.Message {
   getDetails(): google_protobuf_struct_pb.Struct | undefined;
   setDetails(value?: google_protobuf_struct_pb.Struct): void;
 
+  clearMessagesList(): void;
+  getMessagesList(): Array<string>;
+  setMessagesList(value: Array<string>): void;
+  addMessages(value: string, index?: number): string;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Status.AsObject;
   static toObject(includeInstance: boolean, msg: Status): Status.AsObject;
@@ -59,6 +64,7 @@ export namespace Status {
     reportedBy: string,
     subresourceStatusesMap: Array<[string, Status.AsObject]>,
     details?: google_protobuf_struct_pb.Struct.AsObject,
+    messagesList: Array<string>,
   }
 
   export interface StateMap {

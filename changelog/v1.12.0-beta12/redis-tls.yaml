@@ -1,0 +1,18 @@
+changelog:
+  - type: NEW_FEATURE
+    description: | 
+      Redis TLS connection enabled
+    issueLink: https://github.com/solo-io/gloo/issues/6496
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.12.0-beta26
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.12.0-beta26
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.20.7

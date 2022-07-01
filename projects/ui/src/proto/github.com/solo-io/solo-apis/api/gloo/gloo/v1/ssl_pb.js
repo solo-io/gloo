@@ -887,7 +887,8 @@ proto.gloo.solo.io.UpstreamSslConfig.toObject = function(includeInstance, msg) {
     sni: jspb.Message.getFieldWithDefault(msg, 3, ""),
     verifySubjectAltNameList: jspb.Message.getRepeatedField(msg, 5),
     parameters: (f = msg.getParameters()) && proto.gloo.solo.io.SslParameters.toObject(includeInstance, f),
-    alpnProtocolsList: jspb.Message.getRepeatedField(msg, 8)
+    alpnProtocolsList: jspb.Message.getRepeatedField(msg, 8),
+    allowRenegotiation: (f = msg.getAllowRenegotiation()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -955,6 +956,11 @@ proto.gloo.solo.io.UpstreamSslConfig.deserializeBinaryFromReader = function(msg,
     case 8:
       var value = /** @type {string} */ (reader.readString());
       msg.addAlpnProtocols(value);
+      break;
+    case 10:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setAllowRenegotiation(value);
       break;
     default:
       reader.skipField();
@@ -1036,6 +1042,14 @@ proto.gloo.solo.io.UpstreamSslConfig.serializeBinaryToWriter = function(message,
     writer.writeRepeatedString(
       8,
       f
+    );
+  }
+  f = message.getAllowRenegotiation();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -1231,6 +1245,36 @@ proto.gloo.solo.io.UpstreamSslConfig.prototype.addAlpnProtocols = function(value
 
 proto.gloo.solo.io.UpstreamSslConfig.prototype.clearAlpnProtocolsList = function() {
   this.setAlpnProtocolsList([]);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue allow_renegotiation = 10;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.UpstreamSslConfig.prototype.getAllowRenegotiation = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 10));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.UpstreamSslConfig.prototype.setAllowRenegotiation = function(value) {
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.gloo.solo.io.UpstreamSslConfig.prototype.clearAllowRenegotiation = function() {
+  this.setAllowRenegotiation(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSslConfig.prototype.hasAllowRenegotiation = function() {
+  return jspb.Message.getField(this, 10) != null;
 };
 
 

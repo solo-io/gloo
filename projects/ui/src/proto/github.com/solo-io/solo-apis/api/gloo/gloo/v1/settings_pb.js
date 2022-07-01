@@ -6656,7 +6656,8 @@ proto.gloo.solo.io.GatewayOptions.toObject = function(includeInstance, msg) {
     compressedProxySpec: jspb.Message.getFieldWithDefault(msg, 6, false),
     virtualServiceOptions: (f = msg.getVirtualServiceOptions()) && proto.gloo.solo.io.VirtualServiceOptions.toObject(includeInstance, f),
     persistProxySpec: (f = msg.getPersistProxySpec()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    enableGatewayController: (f = msg.getEnableGatewayController()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    enableGatewayController: (f = msg.getEnableGatewayController()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    isolateVirtualHostsBySslConfig: (f = msg.getIsolateVirtualHostsBySslConfig()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -6728,6 +6729,11 @@ proto.gloo.solo.io.GatewayOptions.deserializeBinaryFromReader = function(msg, re
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setEnableGatewayController(value);
+      break;
+    case 10:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setIsolateVirtualHostsBySslConfig(value);
       break;
     default:
       reader.skipField();
@@ -6814,6 +6820,14 @@ proto.gloo.solo.io.GatewayOptions.serializeBinaryToWriter = function(message, wr
   if (f != null) {
     writer.writeMessage(
       9,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getIsolateVirtualHostsBySslConfig();
+  if (f != null) {
+    writer.writeMessage(
+      10,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
@@ -7449,6 +7463,36 @@ proto.gloo.solo.io.GatewayOptions.prototype.clearEnableGatewayController = funct
  */
 proto.gloo.solo.io.GatewayOptions.prototype.hasEnableGatewayController = function() {
   return jspb.Message.getField(this, 9) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue isolate_virtual_hosts_by_ssl_config = 10;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.getIsolateVirtualHostsBySslConfig = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 10));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GatewayOptions.prototype.setIsolateVirtualHostsBySslConfig = function(value) {
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.gloo.solo.io.GatewayOptions.prototype.clearIsolateVirtualHostsBySslConfig = function() {
+  this.setIsolateVirtualHostsBySslConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GatewayOptions.prototype.hasIsolateVirtualHostsBySslConfig = function() {
+  return jspb.Message.getField(this, 10) != null;
 };
 
 

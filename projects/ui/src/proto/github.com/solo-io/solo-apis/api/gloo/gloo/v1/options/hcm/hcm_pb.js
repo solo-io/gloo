@@ -116,6 +116,7 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     idleTimeout: (f = msg.getIdleTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     maxRequestHeadersKb: (f = msg.getMaxRequestHeadersKb()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     requestTimeout: (f = msg.getRequestTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    requestHeadersTimeout: (f = msg.getRequestHeadersTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     drainTimeout: (f = msg.getDrainTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     delayedCloseTimeout: (f = msg.getDelayedCloseTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     serverName: jspb.Message.getFieldWithDefault(msg, 14, ""),
@@ -224,6 +225,11 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setRequestTimeout(value);
+      break;
+    case 11:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setRequestHeadersTimeout(value);
       break;
     case 12:
       var value = new google_protobuf_duration_pb.Duration;
@@ -441,6 +447,14 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
   if (f != null) {
     writer.writeMessage(
       10,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getRequestHeadersTimeout();
+  if (f != null) {
+    writer.writeMessage(
+      11,
       f,
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
@@ -1409,6 +1423,36 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearRequ
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasRequestTimeout = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration request_headers_timeout = 11;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getRequestHeadersTimeout = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 11));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setRequestHeadersTimeout = function(value) {
+  jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearRequestHeadersTimeout = function() {
+  this.setRequestHeadersTimeout(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasRequestHeadersTimeout = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 

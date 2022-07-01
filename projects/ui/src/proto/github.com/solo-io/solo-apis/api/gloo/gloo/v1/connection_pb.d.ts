@@ -146,6 +146,11 @@ export namespace ConnectionConfig {
     getPreserveCaseHeaderKeyFormat(): boolean;
     setPreserveCaseHeaderKeyFormat(value: boolean): void;
 
+    hasOverrideStreamErrorOnInvalidHttpMessage(): boolean;
+    clearOverrideStreamErrorOnInvalidHttpMessage(): void;
+    getOverrideStreamErrorOnInvalidHttpMessage(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setOverrideStreamErrorOnInvalidHttpMessage(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
     getHeaderFormatCase(): Http1ProtocolOptions.HeaderFormatCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Http1ProtocolOptions.AsObject;
@@ -162,6 +167,7 @@ export namespace ConnectionConfig {
       enableTrailers: boolean,
       properCaseHeaderKeyFormat: boolean,
       preserveCaseHeaderKeyFormat: boolean,
+      overrideStreamErrorOnInvalidHttpMessage?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     }
 
     export enum HeaderFormatCase {

@@ -788,7 +788,8 @@ proto.gloo.solo.io.ConnectionConfig.Http1ProtocolOptions.toObject = function(inc
   var f, obj = {
     enableTrailers: jspb.Message.getFieldWithDefault(msg, 1, false),
     properCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 22, false),
-    preserveCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 31, false)
+    preserveCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 31, false),
+    overrideStreamErrorOnInvalidHttpMessage: (f = msg.getOverrideStreamErrorOnInvalidHttpMessage()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -836,6 +837,11 @@ proto.gloo.solo.io.ConnectionConfig.Http1ProtocolOptions.deserializeBinaryFromRe
     case 31:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setPreserveCaseHeaderKeyFormat(value);
+      break;
+    case 2:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setOverrideStreamErrorOnInvalidHttpMessage(value);
       break;
     default:
       reader.skipField();
@@ -885,6 +891,14 @@ proto.gloo.solo.io.ConnectionConfig.Http1ProtocolOptions.serializeBinaryToWriter
     writer.writeBool(
       31,
       f
+    );
+  }
+  f = message.getOverrideStreamErrorOnInvalidHttpMessage();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -966,6 +980,36 @@ proto.gloo.solo.io.ConnectionConfig.Http1ProtocolOptions.prototype.clearPreserve
  */
 proto.gloo.solo.io.ConnectionConfig.Http1ProtocolOptions.prototype.hasPreserveCaseHeaderKeyFormat = function() {
   return jspb.Message.getField(this, 31) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue override_stream_error_on_invalid_http_message = 2;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.ConnectionConfig.Http1ProtocolOptions.prototype.getOverrideStreamErrorOnInvalidHttpMessage = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 2));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.ConnectionConfig.Http1ProtocolOptions.prototype.setOverrideStreamErrorOnInvalidHttpMessage = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.gloo.solo.io.ConnectionConfig.Http1ProtocolOptions.prototype.clearOverrideStreamErrorOnInvalidHttpMessage = function() {
+  this.setOverrideStreamErrorOnInvalidHttpMessage(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.ConnectionConfig.Http1ProtocolOptions.prototype.hasOverrideStreamErrorOnInvalidHttpMessage = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

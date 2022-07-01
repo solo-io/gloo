@@ -68,6 +68,11 @@ export class Listener extends jspb.Message {
   getHybridListener(): HybridListener | undefined;
   setHybridListener(value?: HybridListener): void;
 
+  hasAggregateListener(): boolean;
+  clearAggregateListener(): void;
+  getAggregateListener(): AggregateListener | undefined;
+  setAggregateListener(value?: AggregateListener): void;
+
   clearSslConfigurationsList(): void;
   getSslConfigurationsList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig>;
   setSslConfigurationsList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig>): void;
@@ -118,6 +123,7 @@ export namespace Listener {
     httpListener?: HttpListener.AsObject,
     tcpListener?: TcpListener.AsObject,
     hybridListener?: HybridListener.AsObject,
+    aggregateListener?: AggregateListener.AsObject,
     sslConfigurationsList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject>,
     useProxyProto?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.ListenerOptions.AsObject,
@@ -131,6 +137,7 @@ export namespace Listener {
     HTTP_LISTENER = 4,
     TCP_LISTENER = 5,
     HYBRID_LISTENER = 11,
+    AGGREGATE_LISTENER = 13,
   }
 
   export enum OpaqueMetadataCase {
@@ -379,6 +386,88 @@ export namespace Matcher {
   export type AsObject = {
     sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject,
     sourcePrefixRangesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.AsObject>,
+  }
+}
+
+export class AggregateListener extends jspb.Message {
+  hasHttpResources(): boolean;
+  clearHttpResources(): void;
+  getHttpResources(): AggregateListener.HttpResources | undefined;
+  setHttpResources(value?: AggregateListener.HttpResources): void;
+
+  clearHttpFilterChainsList(): void;
+  getHttpFilterChainsList(): Array<AggregateListener.HttpFilterChain>;
+  setHttpFilterChainsList(value: Array<AggregateListener.HttpFilterChain>): void;
+  addHttpFilterChains(value?: AggregateListener.HttpFilterChain, index?: number): AggregateListener.HttpFilterChain;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AggregateListener.AsObject;
+  static toObject(includeInstance: boolean, msg: AggregateListener): AggregateListener.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AggregateListener, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AggregateListener;
+  static deserializeBinaryFromReader(message: AggregateListener, reader: jspb.BinaryReader): AggregateListener;
+}
+
+export namespace AggregateListener {
+  export type AsObject = {
+    httpResources?: AggregateListener.HttpResources.AsObject,
+    httpFilterChainsList: Array<AggregateListener.HttpFilterChain.AsObject>,
+  }
+
+  export class HttpResources extends jspb.Message {
+    getVirtualHostsMap(): jspb.Map<string, VirtualHost>;
+    clearVirtualHostsMap(): void;
+    getHttpOptionsMap(): jspb.Map<string, github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.HttpListenerOptions>;
+    clearHttpOptionsMap(): void;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): HttpResources.AsObject;
+    static toObject(includeInstance: boolean, msg: HttpResources): HttpResources.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: HttpResources, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): HttpResources;
+    static deserializeBinaryFromReader(message: HttpResources, reader: jspb.BinaryReader): HttpResources;
+  }
+
+  export namespace HttpResources {
+    export type AsObject = {
+      virtualHostsMap: Array<[string, VirtualHost.AsObject]>,
+      httpOptionsMap: Array<[string, github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.HttpListenerOptions.AsObject]>,
+    }
+  }
+
+  export class HttpFilterChain extends jspb.Message {
+    hasMatcher(): boolean;
+    clearMatcher(): void;
+    getMatcher(): Matcher | undefined;
+    setMatcher(value?: Matcher): void;
+
+    getHttpOptionsRef(): string;
+    setHttpOptionsRef(value: string): void;
+
+    clearVirtualHostRefsList(): void;
+    getVirtualHostRefsList(): Array<string>;
+    setVirtualHostRefsList(value: Array<string>): void;
+    addVirtualHostRefs(value: string, index?: number): string;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): HttpFilterChain.AsObject;
+    static toObject(includeInstance: boolean, msg: HttpFilterChain): HttpFilterChain.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: HttpFilterChain, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): HttpFilterChain;
+    static deserializeBinaryFromReader(message: HttpFilterChain, reader: jspb.BinaryReader): HttpFilterChain;
+  }
+
+  export namespace HttpFilterChain {
+    export type AsObject = {
+      matcher?: Matcher.AsObject,
+      httpOptionsRef: string,
+      virtualHostRefsList: Array<string>,
+    }
   }
 }
 

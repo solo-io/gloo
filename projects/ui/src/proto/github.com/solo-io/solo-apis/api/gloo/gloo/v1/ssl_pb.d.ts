@@ -154,6 +154,11 @@ export class UpstreamSslConfig extends jspb.Message {
   setAlpnProtocolsList(value: Array<string>): void;
   addAlpnProtocols(value: string, index?: number): string;
 
+  hasAllowRenegotiation(): boolean;
+  clearAllowRenegotiation(): void;
+  getAllowRenegotiation(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setAllowRenegotiation(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   getSslSecretsCase(): UpstreamSslConfig.SslSecretsCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSslConfig.AsObject;
@@ -174,6 +179,7 @@ export namespace UpstreamSslConfig {
     verifySubjectAltNameList: Array<string>,
     parameters?: SslParameters.AsObject,
     alpnProtocolsList: Array<string>,
+    allowRenegotiation?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
   export enum SslSecretsCase {

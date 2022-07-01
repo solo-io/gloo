@@ -1,4 +1,5 @@
 ####################################################################################################
+# update-all-deps - should be used to update go modules and node js packages
 # generated-code -B - this will generate the Protocs
 # install-go-tools - will install Go dependencies
 # run-tests - runs non kubernetes tests

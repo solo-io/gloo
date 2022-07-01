@@ -9,6 +9,7 @@ import { MemoryRouter, useParams } from 'react-router';
 import { createUpstream } from 'stories/mocks/generators';
 import { jest } from '@storybook/jest';
 import { faker } from '@faker-js/faker';
+import { UpstreamSpec } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
 
 export default {
   title: 'Upstream / UpstreamDetails',
@@ -38,6 +39,8 @@ const getMockUpstream = (args: any) => {
   const upstream = createUpstream({
     spec: {
       healthChecksList: [],
+      protocolSelection:
+        UpstreamSpec.ClusterProtocolSelection.USE_CONFIGURED_PROTOCOL,
       aws: {
         lambdaFunctionsList: [
           {

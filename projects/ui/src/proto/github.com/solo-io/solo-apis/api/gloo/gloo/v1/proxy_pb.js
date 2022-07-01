@@ -25,6 +25,9 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_matchers_matchers_pb = re
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/dynamic_forward_proxy/dynamic_forward_proxy_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/matcher/v3/regex_pb.js');
+goog.exportSymbol('proto.gloo.solo.io.AggregateListener', null, global);
+goog.exportSymbol('proto.gloo.solo.io.AggregateListener.HttpFilterChain', null, global);
+goog.exportSymbol('proto.gloo.solo.io.AggregateListener.HttpResources', null, global);
 goog.exportSymbol('proto.gloo.solo.io.ConsulServiceDestination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Destination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.DirectResponseAction', null, global);
@@ -282,7 +285,7 @@ proto.gloo.solo.io.Listener.repeatedFields_ = [6];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.Listener.oneofGroups_ = [[4,5,11],[9,12]];
+proto.gloo.solo.io.Listener.oneofGroups_ = [[4,5,11,13],[9,12]];
 
 /**
  * @enum {number}
@@ -291,7 +294,8 @@ proto.gloo.solo.io.Listener.ListenertypeCase = {
   LISTENERTYPE_NOT_SET: 0,
   HTTP_LISTENER: 4,
   TCP_LISTENER: 5,
-  HYBRID_LISTENER: 11
+  HYBRID_LISTENER: 11,
+  AGGREGATE_LISTENER: 13
 };
 
 /**
@@ -352,6 +356,7 @@ proto.gloo.solo.io.Listener.toObject = function(includeInstance, msg) {
     httpListener: (f = msg.getHttpListener()) && proto.gloo.solo.io.HttpListener.toObject(includeInstance, f),
     tcpListener: (f = msg.getTcpListener()) && proto.gloo.solo.io.TcpListener.toObject(includeInstance, f),
     hybridListener: (f = msg.getHybridListener()) && proto.gloo.solo.io.HybridListener.toObject(includeInstance, f),
+    aggregateListener: (f = msg.getAggregateListener()) && proto.gloo.solo.io.AggregateListener.toObject(includeInstance, f),
     sslConfigurationsList: jspb.Message.toObjectList(msg.getSslConfigurationsList(),
     github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.toObject, includeInstance),
     useProxyProto: (f = msg.getUseProxyProto()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
@@ -421,6 +426,11 @@ proto.gloo.solo.io.Listener.deserializeBinaryFromReader = function(msg, reader) 
       var value = new proto.gloo.solo.io.HybridListener;
       reader.readMessage(value,proto.gloo.solo.io.HybridListener.deserializeBinaryFromReader);
       msg.setHybridListener(value);
+      break;
+    case 13:
+      var value = new proto.gloo.solo.io.AggregateListener;
+      reader.readMessage(value,proto.gloo.solo.io.AggregateListener.deserializeBinaryFromReader);
+      msg.setAggregateListener(value);
       break;
     case 6:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig;
@@ -524,6 +534,14 @@ proto.gloo.solo.io.Listener.serializeBinaryToWriter = function(message, writer) 
       11,
       f,
       proto.gloo.solo.io.HybridListener.serializeBinaryToWriter
+    );
+  }
+  f = message.getAggregateListener();
+  if (f != null) {
+    writer.writeMessage(
+      13,
+      f,
+      proto.gloo.solo.io.AggregateListener.serializeBinaryToWriter
     );
   }
   f = message.getSslConfigurationsList();
@@ -709,6 +727,36 @@ proto.gloo.solo.io.Listener.prototype.clearHybridListener = function() {
  */
 proto.gloo.solo.io.Listener.prototype.hasHybridListener = function() {
   return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional AggregateListener aggregate_listener = 13;
+ * @return {?proto.gloo.solo.io.AggregateListener}
+ */
+proto.gloo.solo.io.Listener.prototype.getAggregateListener = function() {
+  return /** @type{?proto.gloo.solo.io.AggregateListener} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.AggregateListener, 13));
+};
+
+
+/** @param {?proto.gloo.solo.io.AggregateListener|undefined} value */
+proto.gloo.solo.io.Listener.prototype.setAggregateListener = function(value) {
+  jspb.Message.setOneofWrapperField(this, 13, proto.gloo.solo.io.Listener.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.Listener.prototype.clearAggregateListener = function() {
+  this.setAggregateListener(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Listener.prototype.hasAggregateListener = function() {
+  return jspb.Message.getField(this, 13) != null;
 };
 
 
@@ -2623,6 +2671,625 @@ proto.gloo.solo.io.Matcher.prototype.addSourcePrefixRanges = function(opt_value,
 
 proto.gloo.solo.io.Matcher.prototype.clearSourcePrefixRangesList = function() {
   this.setSourcePrefixRangesList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.AggregateListener = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.AggregateListener.repeatedFields_, null);
+};
+goog.inherits(proto.gloo.solo.io.AggregateListener, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.AggregateListener.displayName = 'proto.gloo.solo.io.AggregateListener';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gloo.solo.io.AggregateListener.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.AggregateListener.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.AggregateListener.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.AggregateListener} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.AggregateListener.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    httpResources: (f = msg.getHttpResources()) && proto.gloo.solo.io.AggregateListener.HttpResources.toObject(includeInstance, f),
+    httpFilterChainsList: jspb.Message.toObjectList(msg.getHttpFilterChainsList(),
+    proto.gloo.solo.io.AggregateListener.HttpFilterChain.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.AggregateListener}
+ */
+proto.gloo.solo.io.AggregateListener.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.AggregateListener;
+  return proto.gloo.solo.io.AggregateListener.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.AggregateListener} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.AggregateListener}
+ */
+proto.gloo.solo.io.AggregateListener.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.gloo.solo.io.AggregateListener.HttpResources;
+      reader.readMessage(value,proto.gloo.solo.io.AggregateListener.HttpResources.deserializeBinaryFromReader);
+      msg.setHttpResources(value);
+      break;
+    case 2:
+      var value = new proto.gloo.solo.io.AggregateListener.HttpFilterChain;
+      reader.readMessage(value,proto.gloo.solo.io.AggregateListener.HttpFilterChain.deserializeBinaryFromReader);
+      msg.addHttpFilterChains(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.AggregateListener.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.AggregateListener.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.AggregateListener} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.AggregateListener.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getHttpResources();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.gloo.solo.io.AggregateListener.HttpResources.serializeBinaryToWriter
+    );
+  }
+  f = message.getHttpFilterChainsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.gloo.solo.io.AggregateListener.HttpFilterChain.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.AggregateListener.HttpResources = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.AggregateListener.HttpResources, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.AggregateListener.HttpResources.displayName = 'proto.gloo.solo.io.AggregateListener.HttpResources';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.AggregateListener.HttpResources.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.AggregateListener.HttpResources.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.AggregateListener.HttpResources} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.AggregateListener.HttpResources.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    virtualHostsMap: (f = msg.getVirtualHostsMap()) ? f.toObject(includeInstance, proto.gloo.solo.io.VirtualHost.toObject) : [],
+    httpOptionsMap: (f = msg.getHttpOptionsMap()) ? f.toObject(includeInstance, proto.gloo.solo.io.HttpListenerOptions.toObject) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.AggregateListener.HttpResources}
+ */
+proto.gloo.solo.io.AggregateListener.HttpResources.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.AggregateListener.HttpResources;
+  return proto.gloo.solo.io.AggregateListener.HttpResources.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.AggregateListener.HttpResources} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.AggregateListener.HttpResources}
+ */
+proto.gloo.solo.io.AggregateListener.HttpResources.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = msg.getVirtualHostsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.gloo.solo.io.VirtualHost.deserializeBinaryFromReader, "");
+         });
+      break;
+    case 2:
+      var value = msg.getHttpOptionsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.gloo.solo.io.HttpListenerOptions.deserializeBinaryFromReader, "");
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.AggregateListener.HttpResources.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.AggregateListener.HttpResources.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.AggregateListener.HttpResources} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.AggregateListener.HttpResources.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getVirtualHostsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.gloo.solo.io.VirtualHost.serializeBinaryToWriter);
+  }
+  f = message.getHttpOptionsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.gloo.solo.io.HttpListenerOptions.serializeBinaryToWriter);
+  }
+};
+
+
+/**
+ * map<string, VirtualHost> virtual_hosts = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.gloo.solo.io.VirtualHost>}
+ */
+proto.gloo.solo.io.AggregateListener.HttpResources.prototype.getVirtualHostsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.gloo.solo.io.VirtualHost>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      proto.gloo.solo.io.VirtualHost));
+};
+
+
+proto.gloo.solo.io.AggregateListener.HttpResources.prototype.clearVirtualHostsMap = function() {
+  this.getVirtualHostsMap().clear();
+};
+
+
+/**
+ * map<string, HttpListenerOptions> http_options = 2;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.gloo.solo.io.HttpListenerOptions>}
+ */
+proto.gloo.solo.io.AggregateListener.HttpResources.prototype.getHttpOptionsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.gloo.solo.io.HttpListenerOptions>} */ (
+      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
+      proto.gloo.solo.io.HttpListenerOptions));
+};
+
+
+proto.gloo.solo.io.AggregateListener.HttpResources.prototype.clearHttpOptionsMap = function() {
+  this.getHttpOptionsMap().clear();
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.AggregateListener.HttpFilterChain.repeatedFields_, null);
+};
+goog.inherits(proto.gloo.solo.io.AggregateListener.HttpFilterChain, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.AggregateListener.HttpFilterChain.displayName = 'proto.gloo.solo.io.AggregateListener.HttpFilterChain';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.repeatedFields_ = [3];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.AggregateListener.HttpFilterChain.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.AggregateListener.HttpFilterChain} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    matcher: (f = msg.getMatcher()) && proto.gloo.solo.io.Matcher.toObject(includeInstance, f),
+    httpOptionsRef: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    virtualHostRefsList: jspb.Message.getRepeatedField(msg, 3)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.AggregateListener.HttpFilterChain}
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.AggregateListener.HttpFilterChain;
+  return proto.gloo.solo.io.AggregateListener.HttpFilterChain.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.AggregateListener.HttpFilterChain} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.AggregateListener.HttpFilterChain}
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.gloo.solo.io.Matcher;
+      reader.readMessage(value,proto.gloo.solo.io.Matcher.deserializeBinaryFromReader);
+      msg.setMatcher(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setHttpOptionsRef(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addVirtualHostRefs(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.AggregateListener.HttpFilterChain.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.AggregateListener.HttpFilterChain} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getMatcher();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      proto.gloo.solo.io.Matcher.serializeBinaryToWriter
+    );
+  }
+  f = message.getHttpOptionsRef();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getVirtualHostRefsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional Matcher matcher = 1;
+ * @return {?proto.gloo.solo.io.Matcher}
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.getMatcher = function() {
+  return /** @type{?proto.gloo.solo.io.Matcher} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.Matcher, 1));
+};
+
+
+/** @param {?proto.gloo.solo.io.Matcher|undefined} value */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.setMatcher = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.clearMatcher = function() {
+  this.setMatcher(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.hasMatcher = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string http_options_ref = 2;
+ * @return {string}
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.getHttpOptionsRef = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.setHttpOptionsRef = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * repeated string virtual_host_refs = 3;
+ * @return {!Array<string>}
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.getVirtualHostRefsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/** @param {!Array<string>} value */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.setVirtualHostRefsList = function(value) {
+  jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.addVirtualHostRefs = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+proto.gloo.solo.io.AggregateListener.HttpFilterChain.prototype.clearVirtualHostRefsList = function() {
+  this.setVirtualHostRefsList([]);
+};
+
+
+/**
+ * optional HttpResources http_resources = 1;
+ * @return {?proto.gloo.solo.io.AggregateListener.HttpResources}
+ */
+proto.gloo.solo.io.AggregateListener.prototype.getHttpResources = function() {
+  return /** @type{?proto.gloo.solo.io.AggregateListener.HttpResources} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.AggregateListener.HttpResources, 1));
+};
+
+
+/** @param {?proto.gloo.solo.io.AggregateListener.HttpResources|undefined} value */
+proto.gloo.solo.io.AggregateListener.prototype.setHttpResources = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.gloo.solo.io.AggregateListener.prototype.clearHttpResources = function() {
+  this.setHttpResources(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.AggregateListener.prototype.hasHttpResources = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * repeated HttpFilterChain http_filter_chains = 2;
+ * @return {!Array<!proto.gloo.solo.io.AggregateListener.HttpFilterChain>}
+ */
+proto.gloo.solo.io.AggregateListener.prototype.getHttpFilterChainsList = function() {
+  return /** @type{!Array<!proto.gloo.solo.io.AggregateListener.HttpFilterChain>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.gloo.solo.io.AggregateListener.HttpFilterChain, 2));
+};
+
+
+/** @param {!Array<!proto.gloo.solo.io.AggregateListener.HttpFilterChain>} value */
+proto.gloo.solo.io.AggregateListener.prototype.setHttpFilterChainsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.gloo.solo.io.AggregateListener.HttpFilterChain=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.gloo.solo.io.AggregateListener.HttpFilterChain}
+ */
+proto.gloo.solo.io.AggregateListener.prototype.addHttpFilterChains = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.gloo.solo.io.AggregateListener.HttpFilterChain, opt_index);
+};
+
+
+proto.gloo.solo.io.AggregateListener.prototype.clearHttpFilterChainsList = function() {
+  this.setHttpFilterChainsList([]);
 };
 
 

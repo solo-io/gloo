@@ -43,11 +43,6 @@ export class UpstreamSpec extends jspb.Message {
   getLoadBalancerConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_load_balancer_pb.LoadBalancerConfig | undefined;
   setLoadBalancerConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_load_balancer_pb.LoadBalancerConfig): void;
 
-  hasConnectionConfig(): boolean;
-  clearConnectionConfig(): void;
-  getConnectionConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig | undefined;
-  setConnectionConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig): void;
-
   clearHealthChecksList(): void;
   getHealthChecksList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_api_v2_core_health_check_pb.HealthCheck>;
   setHealthChecksList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_api_v2_core_health_check_pb.HealthCheck>): void;
@@ -57,11 +52,6 @@ export class UpstreamSpec extends jspb.Message {
   clearOutlierDetection(): void;
   getOutlierDetection(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection | undefined;
   setOutlierDetection(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection): void;
-
-  hasUseHttp2(): boolean;
-  clearUseHttp2(): void;
-  getUseHttp2(): google_protobuf_wrappers_pb.BoolValue | undefined;
-  setUseHttp2(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasKube(): boolean;
   clearKube(): void;
@@ -103,6 +93,19 @@ export class UpstreamSpec extends jspb.Message {
   getFailover(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_failover_pb.Failover | undefined;
   setFailover(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_failover_pb.Failover): void;
 
+  hasConnectionConfig(): boolean;
+  clearConnectionConfig(): void;
+  getConnectionConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig | undefined;
+  setConnectionConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig): void;
+
+  getProtocolSelection(): UpstreamSpec.ClusterProtocolSelectionMap[keyof UpstreamSpec.ClusterProtocolSelectionMap];
+  setProtocolSelection(value: UpstreamSpec.ClusterProtocolSelectionMap[keyof UpstreamSpec.ClusterProtocolSelectionMap]): void;
+
+  hasUseHttp2(): boolean;
+  clearUseHttp2(): void;
+  getUseHttp2(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setUseHttp2(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
   hasInitialStreamWindowSize(): boolean;
   clearInitialStreamWindowSize(): void;
   getInitialStreamWindowSize(): google_protobuf_wrappers_pb.UInt32Value | undefined;
@@ -117,6 +120,11 @@ export class UpstreamSpec extends jspb.Message {
   clearMaxConcurrentStreams(): void;
   getMaxConcurrentStreams(): google_protobuf_wrappers_pb.UInt32Value | undefined;
   setMaxConcurrentStreams(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
+  hasOverrideStreamErrorOnInvalidHttpMessage(): boolean;
+  clearOverrideStreamErrorOnInvalidHttpMessage(): void;
+  getOverrideStreamErrorOnInvalidHttpMessage(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setOverrideStreamErrorOnInvalidHttpMessage(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasHttpProxyHostname(): boolean;
   clearHttpProxyHostname(): void;
@@ -145,10 +153,8 @@ export namespace UpstreamSpec {
     sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.AsObject,
     circuitBreakers?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
     loadBalancerConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_load_balancer_pb.LoadBalancerConfig.AsObject,
-    connectionConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig.AsObject,
     healthChecksList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_api_v2_core_health_check_pb.HealthCheck.AsObject>,
     outlierDetection?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection.AsObject,
-    useHttp2?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     kube?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_kubernetes_kubernetes_pb.UpstreamSpec.AsObject,
     pb_static?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_static_static_pb.UpstreamSpec.AsObject,
     pipe?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pipe_pipe_pb.UpstreamSpec.AsObject,
@@ -157,12 +163,23 @@ export namespace UpstreamSpec {
     consul?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_consul_pb.UpstreamSpec.AsObject,
     awsEc2?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.AsObject,
     failover?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_failover_pb.Failover.AsObject,
+    connectionConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig.AsObject,
+    protocolSelection: UpstreamSpec.ClusterProtocolSelectionMap[keyof UpstreamSpec.ClusterProtocolSelectionMap],
+    useHttp2?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     initialStreamWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     initialConnectionWindowSize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     maxConcurrentStreams?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    overrideStreamErrorOnInvalidHttpMessage?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     httpProxyHostname?: google_protobuf_wrappers_pb.StringValue.AsObject,
     ignoreHealthOnHostRemoval?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
+
+  export interface ClusterProtocolSelectionMap {
+    USE_CONFIGURED_PROTOCOL: 0;
+    USE_DOWNSTREAM_PROTOCOL: 1;
+  }
+
+  export const ClusterProtocolSelection: ClusterProtocolSelectionMap;
 
   export enum UpstreamTypeCase {
     UPSTREAM_TYPE_NOT_SET = 0,

@@ -78,6 +78,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughHttp', null, global)
 goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughHttp.Request', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughHttp.Response', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.RedisOptions', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.RedisOptions.SocketType', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings.ApiVersion', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.UserSession', null, global);
@@ -4274,7 +4275,8 @@ proto.enterprise.gloo.solo.io.RedisOptions.toObject = function(includeInstance, 
   var f, obj = {
     host: jspb.Message.getFieldWithDefault(msg, 1, ""),
     db: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    poolSize: jspb.Message.getFieldWithDefault(msg, 3, 0)
+    poolSize: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    socketType: jspb.Message.getFieldWithDefault(msg, 5, 0)
   };
 
   if (includeInstance) {
@@ -4322,6 +4324,10 @@ proto.enterprise.gloo.solo.io.RedisOptions.deserializeBinaryFromReader = functio
     case 3:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setPoolSize(value);
+      break;
+    case 5:
+      var value = /** @type {!proto.enterprise.gloo.solo.io.RedisOptions.SocketType} */ (reader.readEnum());
+      msg.setSocketType(value);
       break;
     default:
       reader.skipField();
@@ -4373,8 +4379,23 @@ proto.enterprise.gloo.solo.io.RedisOptions.serializeBinaryToWriter = function(me
       f
     );
   }
+  f = message.getSocketType();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      5,
+      f
+    );
+  }
 };
 
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.RedisOptions.SocketType = {
+  TCP: 0,
+  TLS: 1
+};
 
 /**
  * optional string host = 1;
@@ -4418,6 +4439,21 @@ proto.enterprise.gloo.solo.io.RedisOptions.prototype.getPoolSize = function() {
 /** @param {number} value */
 proto.enterprise.gloo.solo.io.RedisOptions.prototype.setPoolSize = function(value) {
   jspb.Message.setProto3IntField(this, 3, value);
+};
+
+
+/**
+ * optional SocketType socket_type = 5;
+ * @return {!proto.enterprise.gloo.solo.io.RedisOptions.SocketType}
+ */
+proto.enterprise.gloo.solo.io.RedisOptions.prototype.getSocketType = function() {
+  return /** @type {!proto.enterprise.gloo.solo.io.RedisOptions.SocketType} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
+};
+
+
+/** @param {!proto.enterprise.gloo.solo.io.RedisOptions.SocketType} value */
+proto.enterprise.gloo.solo.io.RedisOptions.prototype.setSocketType = function(value) {
+  jspb.Message.setProto3EnumField(this, 5, value);
 };
 
 

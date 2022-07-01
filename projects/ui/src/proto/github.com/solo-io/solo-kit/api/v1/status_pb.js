@@ -173,12 +173,19 @@ proto.core.solo.io.NamespacedStatuses.prototype.clearStatusesMap = function() {
  * @constructor
  */
 proto.core.solo.io.Status = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.core.solo.io.Status.repeatedFields_, null);
 };
 goog.inherits(proto.core.solo.io.Status, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.core.solo.io.Status.displayName = 'proto.core.solo.io.Status';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.core.solo.io.Status.repeatedFields_ = [6];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -212,7 +219,8 @@ proto.core.solo.io.Status.toObject = function(includeInstance, msg) {
     reason: jspb.Message.getFieldWithDefault(msg, 2, ""),
     reportedBy: jspb.Message.getFieldWithDefault(msg, 3, ""),
     subresourceStatusesMap: (f = msg.getSubresourceStatusesMap()) ? f.toObject(includeInstance, proto.core.solo.io.Status.toObject) : [],
-    details: (f = msg.getDetails()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
+    details: (f = msg.getDetails()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
+    messagesList: jspb.Message.getRepeatedField(msg, 6)
   };
 
   if (includeInstance) {
@@ -271,6 +279,10 @@ proto.core.solo.io.Status.deserializeBinaryFromReader = function(msg, reader) {
       var value = new google_protobuf_struct_pb.Struct;
       reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
       msg.setDetails(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addMessages(value);
       break;
     default:
       reader.skipField();
@@ -332,6 +344,13 @@ proto.core.solo.io.Status.serializeBinaryToWriter = function(message, writer) {
       5,
       f,
       google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+    );
+  }
+  f = message.getMessagesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      6,
+      f
     );
   }
 };
@@ -437,6 +456,35 @@ proto.core.solo.io.Status.prototype.clearDetails = function() {
  */
 proto.core.solo.io.Status.prototype.hasDetails = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * repeated string Messages = 6;
+ * @return {!Array<string>}
+ */
+proto.core.solo.io.Status.prototype.getMessagesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 6));
+};
+
+
+/** @param {!Array<string>} value */
+proto.core.solo.io.Status.prototype.setMessagesList = function(value) {
+  jspb.Message.setField(this, 6, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.core.solo.io.Status.prototype.addMessages = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 6, value, opt_index);
+};
+
+
+proto.core.solo.io.Status.prototype.clearMessagesList = function() {
+  this.setMessagesList([]);
 };
 
 

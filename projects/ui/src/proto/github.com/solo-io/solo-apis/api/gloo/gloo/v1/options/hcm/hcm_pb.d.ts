@@ -53,6 +53,11 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getRequestTimeout(): google_protobuf_duration_pb.Duration | undefined;
   setRequestTimeout(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasRequestHeadersTimeout(): boolean;
+  clearRequestHeadersTimeout(): void;
+  getRequestHeadersTimeout(): google_protobuf_duration_pb.Duration | undefined;
+  setRequestHeadersTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
   hasDrainTimeout(): boolean;
   clearDrainTimeout(): void;
   getDrainTimeout(): google_protobuf_duration_pb.Duration | undefined;
@@ -180,6 +185,7 @@ export namespace HttpConnectionManagerSettings {
     idleTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     maxRequestHeadersKb?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     requestTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+    requestHeadersTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     drainTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     delayedCloseTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     serverName: string,

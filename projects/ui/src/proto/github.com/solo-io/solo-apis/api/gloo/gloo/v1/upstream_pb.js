@@ -33,6 +33,7 @@ var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrapp
 goog.exportSymbol('proto.gloo.solo.io.DiscoveryMetadata', null, global);
 goog.exportSymbol('proto.gloo.solo.io.UpstreamNamespacedStatuses', null, global);
 goog.exportSymbol('proto.gloo.solo.io.UpstreamSpec', null, global);
+goog.exportSymbol('proto.gloo.solo.io.UpstreamSpec.ClusterProtocolSelection', null, global);
 goog.exportSymbol('proto.gloo.solo.io.UpstreamStatus', null, global);
 goog.exportSymbol('proto.gloo.solo.io.UpstreamStatus.State', null, global);
 
@@ -124,11 +125,9 @@ proto.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance, msg) {
     sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.toObject(includeInstance, f),
     circuitBreakers: (f = msg.getCircuitBreakers()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_circuit_breaker_pb.CircuitBreakerConfig.toObject(includeInstance, f),
     loadBalancerConfig: (f = msg.getLoadBalancerConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_load_balancer_pb.LoadBalancerConfig.toObject(includeInstance, f),
-    connectionConfig: (f = msg.getConnectionConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig.toObject(includeInstance, f),
     healthChecksList: jspb.Message.toObjectList(msg.getHealthChecksList(),
     github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_api_v2_core_health_check_pb.HealthCheck.toObject, includeInstance),
     outlierDetection: (f = msg.getOutlierDetection()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection.toObject(includeInstance, f),
-    useHttp2: (f = msg.getUseHttp2()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     kube: (f = msg.getKube()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_kubernetes_kubernetes_pb.UpstreamSpec.toObject(includeInstance, f),
     pb_static: (f = msg.getStatic()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_static_static_pb.UpstreamSpec.toObject(includeInstance, f),
     pipe: (f = msg.getPipe()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pipe_pipe_pb.UpstreamSpec.toObject(includeInstance, f),
@@ -137,9 +136,13 @@ proto.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance, msg) {
     consul: (f = msg.getConsul()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_consul_pb.UpstreamSpec.toObject(includeInstance, f),
     awsEc2: (f = msg.getAwsEc2()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_aws_ec2_aws_ec2_pb.UpstreamSpec.toObject(includeInstance, f),
     failover: (f = msg.getFailover()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_failover_pb.Failover.toObject(includeInstance, f),
+    connectionConfig: (f = msg.getConnectionConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig.toObject(includeInstance, f),
+    protocolSelection: jspb.Message.getFieldWithDefault(msg, 25, 0),
+    useHttp2: (f = msg.getUseHttp2()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     initialStreamWindowSize: (f = msg.getInitialStreamWindowSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     initialConnectionWindowSize: (f = msg.getInitialConnectionWindowSize()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     maxConcurrentStreams: (f = msg.getMaxConcurrentStreams()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    overrideStreamErrorOnInvalidHttpMessage: (f = msg.getOverrideStreamErrorOnInvalidHttpMessage()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     httpProxyHostname: (f = msg.getHttpProxyHostname()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
     ignoreHealthOnHostRemoval: (f = msg.getIgnoreHealthOnHostRemoval()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
@@ -198,11 +201,6 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_load_balancer_pb.LoadBalancerConfig.deserializeBinaryFromReader);
       msg.setLoadBalancerConfig(value);
       break;
-    case 7:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig.deserializeBinaryFromReader);
-      msg.setConnectionConfig(value);
-      break;
     case 8:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_api_v2_core_health_check_pb.HealthCheck;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_api_v2_core_health_check_pb.HealthCheck.deserializeBinaryFromReader);
@@ -212,11 +210,6 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection.deserializeBinaryFromReader);
       msg.setOutlierDetection(value);
-      break;
-    case 10:
-      var value = new google_protobuf_wrappers_pb.BoolValue;
-      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
-      msg.setUseHttp2(value);
       break;
     case 11:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_kubernetes_kubernetes_pb.UpstreamSpec;
@@ -258,6 +251,20 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_failover_pb.Failover.deserializeBinaryFromReader);
       msg.setFailover(value);
       break;
+    case 7:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig.deserializeBinaryFromReader);
+      msg.setConnectionConfig(value);
+      break;
+    case 25:
+      var value = /** @type {!proto.gloo.solo.io.UpstreamSpec.ClusterProtocolSelection} */ (reader.readEnum());
+      msg.setProtocolSelection(value);
+      break;
+    case 10:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setUseHttp2(value);
+      break;
     case 19:
       var value = new google_protobuf_wrappers_pb.UInt32Value;
       reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
@@ -272,6 +279,11 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       var value = new google_protobuf_wrappers_pb.UInt32Value;
       reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setMaxConcurrentStreams(value);
+      break;
+    case 26:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setOverrideStreamErrorOnInvalidHttpMessage(value);
       break;
     case 21:
       var value = new google_protobuf_wrappers_pb.StringValue;
@@ -344,14 +356,6 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_load_balancer_pb.LoadBalancerConfig.serializeBinaryToWriter
     );
   }
-  f = message.getConnectionConfig();
-  if (f != null) {
-    writer.writeMessage(
-      7,
-      f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig.serializeBinaryToWriter
-    );
-  }
   f = message.getHealthChecksList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
@@ -366,14 +370,6 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
       9,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_api_v2_cluster_outlier_detection_pb.OutlierDetection.serializeBinaryToWriter
-    );
-  }
-  f = message.getUseHttp2();
-  if (f != null) {
-    writer.writeMessage(
-      10,
-      f,
-      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getKube();
@@ -440,6 +436,29 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_failover_pb.Failover.serializeBinaryToWriter
     );
   }
+  f = message.getConnectionConfig();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getProtocolSelection();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      25,
+      f
+    );
+  }
+  f = message.getUseHttp2();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
   f = message.getInitialStreamWindowSize();
   if (f != null) {
     writer.writeMessage(
@@ -464,6 +483,14 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
       google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
+  f = message.getOverrideStreamErrorOnInvalidHttpMessage();
+  if (f != null) {
+    writer.writeMessage(
+      26,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
   f = message.getHttpProxyHostname();
   if (f != null) {
     writer.writeMessage(
@@ -482,6 +509,14 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
   }
 };
 
+
+/**
+ * @enum {number}
+ */
+proto.gloo.solo.io.UpstreamSpec.ClusterProtocolSelection = {
+  USE_CONFIGURED_PROTOCOL: 0,
+  USE_DOWNSTREAM_PROTOCOL: 1
+};
 
 /**
  * optional DiscoveryMetadata discovery_metadata = 3;
@@ -604,36 +639,6 @@ proto.gloo.solo.io.UpstreamSpec.prototype.hasLoadBalancerConfig = function() {
 
 
 /**
- * optional ConnectionConfig connection_config = 7;
- * @return {?proto.gloo.solo.io.ConnectionConfig}
- */
-proto.gloo.solo.io.UpstreamSpec.prototype.getConnectionConfig = function() {
-  return /** @type{?proto.gloo.solo.io.ConnectionConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig, 7));
-};
-
-
-/** @param {?proto.gloo.solo.io.ConnectionConfig|undefined} value */
-proto.gloo.solo.io.UpstreamSpec.prototype.setConnectionConfig = function(value) {
-  jspb.Message.setWrapperField(this, 7, value);
-};
-
-
-proto.gloo.solo.io.UpstreamSpec.prototype.clearConnectionConfig = function() {
-  this.setConnectionConfig(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.gloo.solo.io.UpstreamSpec.prototype.hasConnectionConfig = function() {
-  return jspb.Message.getField(this, 7) != null;
-};
-
-
-/**
  * repeated solo.io.envoy.api.v2.core.HealthCheck health_checks = 8;
  * @return {!Array<!proto.solo.io.envoy.api.v2.core.HealthCheck>}
  */
@@ -691,36 +696,6 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearOutlierDetection = function() {
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasOutlierDetection = function() {
   return jspb.Message.getField(this, 9) != null;
-};
-
-
-/**
- * optional google.protobuf.BoolValue use_http2 = 10;
- * @return {?proto.google.protobuf.BoolValue}
- */
-proto.gloo.solo.io.UpstreamSpec.prototype.getUseHttp2 = function() {
-  return /** @type{?proto.google.protobuf.BoolValue} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 10));
-};
-
-
-/** @param {?proto.google.protobuf.BoolValue|undefined} value */
-proto.gloo.solo.io.UpstreamSpec.prototype.setUseHttp2 = function(value) {
-  jspb.Message.setWrapperField(this, 10, value);
-};
-
-
-proto.gloo.solo.io.UpstreamSpec.prototype.clearUseHttp2 = function() {
-  this.setUseHttp2(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.gloo.solo.io.UpstreamSpec.prototype.hasUseHttp2 = function() {
-  return jspb.Message.getField(this, 10) != null;
 };
 
 
@@ -965,6 +940,81 @@ proto.gloo.solo.io.UpstreamSpec.prototype.hasFailover = function() {
 
 
 /**
+ * optional ConnectionConfig connection_config = 7;
+ * @return {?proto.gloo.solo.io.ConnectionConfig}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getConnectionConfig = function() {
+  return /** @type{?proto.gloo.solo.io.ConnectionConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_connection_pb.ConnectionConfig, 7));
+};
+
+
+/** @param {?proto.gloo.solo.io.ConnectionConfig|undefined} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setConnectionConfig = function(value) {
+  jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearConnectionConfig = function() {
+  this.setConnectionConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.hasConnectionConfig = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional ClusterProtocolSelection protocol_selection = 25;
+ * @return {!proto.gloo.solo.io.UpstreamSpec.ClusterProtocolSelection}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getProtocolSelection = function() {
+  return /** @type {!proto.gloo.solo.io.UpstreamSpec.ClusterProtocolSelection} */ (jspb.Message.getFieldWithDefault(this, 25, 0));
+};
+
+
+/** @param {!proto.gloo.solo.io.UpstreamSpec.ClusterProtocolSelection} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setProtocolSelection = function(value) {
+  jspb.Message.setProto3EnumField(this, 25, value);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue use_http2 = 10;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getUseHttp2 = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 10));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setUseHttp2 = function(value) {
+  jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearUseHttp2 = function() {
+  this.setUseHttp2(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.hasUseHttp2 = function() {
+  return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
  * optional google.protobuf.UInt32Value initial_stream_window_size = 19;
  * @return {?proto.google.protobuf.UInt32Value}
  */
@@ -1051,6 +1101,36 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearMaxConcurrentStreams = function()
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasMaxConcurrentStreams = function() {
   return jspb.Message.getField(this, 24) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue override_stream_error_on_invalid_http_message = 26;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getOverrideStreamErrorOnInvalidHttpMessage = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 26));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setOverrideStreamErrorOnInvalidHttpMessage = function(value) {
+  jspb.Message.setWrapperField(this, 26, value);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearOverrideStreamErrorOnInvalidHttpMessage = function() {
+  this.setOverrideStreamErrorOnInvalidHttpMessage(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.hasOverrideStreamErrorOnInvalidHttpMessage = function() {
+  return jspb.Message.getField(this, 26) != null;
 };
 
 
