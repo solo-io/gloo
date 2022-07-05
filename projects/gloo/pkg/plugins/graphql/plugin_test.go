@@ -144,6 +144,8 @@ var _ = Describe("Graphql plugin", func() {
 				},
 			},
 		}
+		messages := (make(map[*core.ResourceRef][]string))
+		params.Messages = messages
 		vhostParams = plugins.VirtualHostParams{
 			Params:   params,
 			Proxy:    proxy,

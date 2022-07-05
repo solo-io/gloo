@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
@@ -92,6 +94,27 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 
 	if err != nil {
 		return eris.Wrapf(err, "unable to translate graphql api control plane config to data plane config")
+	}
+
+	// If the GraphQlApi resource has a stitched schema definition, we want to get the generated schema definition from `routeConf` and write that to the status field
+	if gql.GetStitchedSchema() != nil {
+		ref := params.Messages
+
+		//This error occurs only due to developer error, ensure that params is not malformed
+		if ref == nil {
+			return eris.Wrapf(err, "Stitched/complete schema cannot be written to uninitialized params.virtualHostParams.Params.Messages")
+		}
+
+		schemaString := routeConf.GetExecutableSchema().GetSchemaDefinition().GetInlineString()
+		if pxStatusSizeEnv := os.Getenv("PROXY_STATUS_MAX_SIZE_BYTES"); pxStatusSizeEnv != "" {
+			proxyStatusMaxSizeBits, err := strconv.Atoi(pxStatusSizeEnv)
+			if err != nil || proxyStatusMaxSizeBits < 0 {
+				return eris.Wrapf(err, "PROXY_STATUS_MAX_SIZE_BYTES is not an integer value greater than 0")
+			}
+			ref[gqlRef] = append(ref[gqlRef], schemaString[:(int)(proxyStatusMaxSizeBits)]+"...")
+		} else {
+			ref[gqlRef] = append(ref[gqlRef], schemaString)
+		}
 	}
 
 	return pluginutils.SetRoutePerFilterConfig(out, FilterName, routeConf)

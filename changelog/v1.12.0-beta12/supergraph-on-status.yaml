@@ -1,0 +1,13 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/3338
+    description: >
+      Add messages to status proto for users to check basic info about the plugins on their gloo deployment. 
+      The only plugin currently using this feature is the GraphQL plugin which reports the stringified schema to
+      the Gateway resource if schema stitching is used.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.12.0-beta24
+    description: >
+      Update to the latest gloo beta version to get the changes on the status proto
