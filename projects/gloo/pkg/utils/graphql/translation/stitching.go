@@ -148,6 +148,7 @@ func getGraphQlApiSchemaDefinition(graphQLApi *gloov1beta1.GraphQLApi, gqlApis t
 }
 
 func processStitchingInfo(schemas *enterprisev1.GraphQLToolsStitchingInput) (*enterprisev1.GraphQLToolsStitchingOutput, error) {
+
 	schemasBytes, err := proto.Marshal(schemas)
 	if err != nil {
 		return nil, eris.Wrapf(err, "error marshaling to binary data")
@@ -213,6 +214,8 @@ func translateStitchedSchema(artifacts types.ArtifactList, upstreams types.Upstr
 	if err != nil {
 		return nil, err
 	}
+
+	//resolutions generated here
 	var resolutions []*gloov2.Resolution
 	for _, def := range gatewaySchema.Definitions {
 		if objDef, ok := def.(*ast.ObjectDefinition); ok && objDef.Name.Value == "Query" {
@@ -238,7 +241,6 @@ func translateStitchedSchema(artifacts types.ArtifactList, upstreams types.Upstr
 			}
 		}
 	}
-
 	// GraphQLToolsStitchingOutput uses the solo-apis version of the envoy apis. we need to convert the fields back to
 	// the gloo version of the envoy apis here
 	glooFieldNodesByType, err := toGlooFieldNodesByType(stitchingInfoOut.GetFieldNodesByType())

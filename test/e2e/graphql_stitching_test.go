@@ -44,6 +44,9 @@ var _ = Describe("graphql stitching", func() {
 
 	var getStitchedGqlApi = func() *v1beta1.GraphQLApi {
 		return &v1beta1.GraphQLApi{
+			Options: &v1beta1.GraphQLApi_GraphQLApiOptions{
+				LogSensitiveInfo: true,
+			},
 			Metadata: &core.Metadata{
 				Name:      "stitched-gql",
 				Namespace: "gloo-system",
@@ -91,6 +94,9 @@ type Query {
 }
 `
 		return &v1beta1.GraphQLApi{
+			Options: &v1beta1.GraphQLApi_GraphQLApiOptions{
+				LogSensitiveInfo: true,
+			},
 			Metadata: &core.Metadata{
 				Name:      "product-gql",
 				Namespace: "gloo-system",
@@ -129,7 +135,7 @@ type User {
 }
 
 type Query {
-  user: User @resolve(name: "user_resolver")
+  user: User
 }
 `
 		executor := &v1beta1.Executor{
@@ -140,6 +146,17 @@ type Query {
 			},
 		}
 		if remoteUsRef == nil {
+			userSchemaDef = `
+type User {
+	username: String
+	firstName: String
+	lastName: String
+}
+
+type Query {
+  user: User @resolve(name: "user_resolver")
+}
+`
 			executor = &v1beta1.Executor{
 				Executor: &v1beta1.Executor_Local_{
 					Local: &v1beta1.Executor_Local{
@@ -159,6 +176,9 @@ type Query {
 				}}
 		}
 		return &v1beta1.GraphQLApi{
+			Options: &v1beta1.GraphQLApi_GraphQLApiOptions{
+				LogSensitiveInfo: true,
+			},
 			Metadata: &core.Metadata{
 				Name:      "users-gql",
 				Namespace: "gloo-system",
@@ -253,10 +273,11 @@ type Query {
 	})
 	Context("With envoy", func() {
 		var (
-			envoyInstance *services.EnvoyInstance
-			envoyPort     = uint32(8080)
-			query         string
-			proxy         *gloov1.Proxy
+			envoyInstance     *services.EnvoyInstance
+			envoyPort         = uint32(8080)
+			query             string
+			proxy             *gloov1.Proxy
+			testingRemoteExec bool
 		)
 
 		var testRequest = func(result string) {
@@ -264,7 +285,7 @@ type Query {
 			EventuallyWithOffset(1, func() (int, error) {
 				client := http.DefaultClient
 				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/testroute", "localhost", envoyPort))
-				ExpectWithOffset(1, err).NotTo(HaveOccurred())
+				ExpectWithOffset(2, err).NotTo(HaveOccurred())
 				resp, err := client.Do(&http.Request{
 					Method: http.MethodPost,
 					URL:    reqUrl,
@@ -312,7 +333,7 @@ type Query {
 
 		})
 		JustBeforeEach(func() {
-			var remoteUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), `{"username": "user1", "firstName": "User", "lastName": "One"}`)
+			var remoteUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), `{"data": {"user":{"username": "user1", "firstName": "User", "lastName": "One"}}}`)
 			_, err := testClients.UpstreamClient.Write(remoteUpstream.Upstream, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 			helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
@@ -321,7 +342,11 @@ type Query {
 			})
 
 			//To test with remote executor, pass in getUserGqlApi(remoteUpstream.Upstream.Metadata.Ref()) instead
-			_, err = testClients.GraphQLApiClient.Write(getUserGqlApi(nil), clients.WriteOpts{})
+			remUsRef := remoteUpstream.Upstream.Metadata.Ref()
+			if !testingRemoteExec {
+				remUsRef = nil
+			}
+			_, err = testClients.GraphQLApiClient.Write(getUserGqlApi(remUsRef), clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = testClients.GraphQLApiClient.Write(getProductGqlApi(), clients.WriteOpts{})
@@ -343,12 +368,20 @@ type Query {
 		})
 
 		Context("request to stitched schema", func() {
+			BeforeEach(func() {
+				testingRemoteExec = false
+			})
 			It("stitches delegated responses from subschemas to a stitched response", func() {
 				testRequest(`{"data":{"products":{"id":1,"seller":{"username":"user1","firstName":"User","lastName":"One"}}}}`)
 			})
 		})
 		Context("request to stitched schema with remote executor(s)", func() {
-			//TODO: Add test when https://github.com/solo-io/envoy-gloo-ee/issues/304#issuecomment-1128963614 is resolved
+			BeforeEach(func() {
+				testingRemoteExec = true
+			})
+			It("stitches delegated responses from subschemas to a stitched response", func() {
+				testRequest(`{"data":{"products":{"id":1,"seller":{"username":"user1","firstName":"User","lastName":"One"}}}}`)
+			})
 		})
 	})
 })
