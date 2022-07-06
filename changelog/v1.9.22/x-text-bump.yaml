@@ -1,0 +1,7 @@
+changelog:
+  - dependencyOwner: solo-io
+    dependencyRepo: solo-projects
+    dependencyTag: v0.3.7
+    description: Update x/text to version 0.3.7.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3813
+    type: DEPENDENCY_BUMP

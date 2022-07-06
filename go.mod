@@ -67,7 +67,7 @@ require (
 	go.opencensus.io v0.23.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/mod v0.4.2
-	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
+	golang.org/x/net v0.0.0-20220630215102-69896b714898
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/tools v0.1.5
 	google.golang.org/grpc v1.36.0
@@ -107,13 +107,15 @@ replace (
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
 	// pin to fix CVE-2022-27191
-	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
+	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 
 	// Lock sys package to fix darwin upgrade issue
 	// https://github.com/helm/chart-releaser/pull/82/files#diff-33ef32bf6c23acb95f5902d7097b7a1d5128ca061167ec0716715b0b9eeaa5f6R41
 	// no longer needed, was able to build locally on MacOS with go 1.16.3
 	// golang.org/x/sys => golang.org/x/sys v0.0.0-20200826173525-f9321e4c35a6
 	golang.org/x/tools => golang.org/x/tools v0.0.0-20210106214847-113979e3529a
+	// x/crypto uses x/text v0.3.6 so we need to bump it manually
+	golang/x/text => golang/x/text v0.3.7
 	k8s.io/api => k8s.io/api v0.19.6
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.19.6
 	k8s.io/apimachinery => k8s.io/apimachinery v0.19.6
