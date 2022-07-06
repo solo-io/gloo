@@ -230,7 +230,7 @@ var _ = Describe("Helm Test", func() {
 				observabilityDeployment.Spec.Selector.MatchLabels = selector
 				observabilityDeployment.Spec.Template.ObjectMeta.Labels = selector
 				annotations := map[string]string{
-					"checksum/observability-config": "4b3e700416549fed9c90eb2c3bcab330f8a1f672672d5561645076f7f2720b63", // observability config checksum
+					"checksum/observability-config": "9d91255a98e28f9b0bfb5d685673e5810fc475d2fe6f9738aae7dd67c8ac5c8d", // observability config checksum
 					"checksum/grafana-dashboards":   "1e927634c33379005380b99e746c141d0fa241bf42246305bf9eb6ea29ca6383", // grafana dashboards checksum
 				}
 				for key, val := range normalPromAnnotations { // deep copy map
@@ -969,29 +969,34 @@ gloo:
 						valuesArgs: []string{"gloo.gatewayProxies.gatewayProxy.disabled=false"},
 					})
 					Expect(err).NotTo(HaveOccurred())
+					// upstreams are rendered by the rollout job
+					job := getJob(testManifest, namespace, "gloo-ee-resource-rollout")
 
 					assertExpectedResourcesForProxy := func(proxyName string) {
+						// RateLimit
 						gatewayProxyRateLimitResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 							return unstructured.GetLabels()["gloo"] == fmt.Sprintf("rate-limit-%s", proxyName)
 						})
+						// Deployment and Service
+						Expect(gatewayProxyRateLimitResources.NumResources()).To(Equal(2), fmt.Sprintf("%s: Expecting RateLimit Deployment and Service", proxyName))
+						// Upstream
+						Expect(strings.Count(job.Spec.Template.Spec.Containers[0].Command[2], "gloo: "+fmt.Sprintf("rate-limit-%s", proxyName))).To(Equal(1), fmt.Sprintf("%s: Expecting RateLimit Upstream", proxyName))
 
-						// Deployment, Service, Upstream
-						Expect(gatewayProxyRateLimitResources.NumResources()).To(Equal(3), fmt.Sprintf("%s: Expecting RateLimit Deployment, Service, and Upstream", proxyName))
-
+						// Redis
 						gatewayProxyRedisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 							return unstructured.GetLabels()["gloo"] == fmt.Sprintf("redis-%s", proxyName)
 						})
-
-						// Deployment, Service
+						// Deployment and Service
 						Expect(gatewayProxyRedisResources.NumResources()).To(Equal(2), fmt.Sprintf("%s: Expecting Redis Deployment and Service", proxyName))
 
+						// ExtAuth
 						gatewayProxyExtAuthResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 							return unstructured.GetLabels()["gloo"] == fmt.Sprintf("extauth-%s", proxyName)
 						})
-
-						// Deployment, Service, Upstream
-						Expect(gatewayProxyExtAuthResources.NumResources()).To(Equal(3), fmt.Sprintf("%s: Expecting Extauth Deployment, Service, and Upstream", proxyName))
-
+						// Deployment and Service
+						Expect(gatewayProxyExtAuthResources.NumResources()).To(Equal(2), fmt.Sprintf("%s: Expecting Extauth Deployment and Service", proxyName))
+						// Upstream
+						Expect(strings.Count(job.Spec.Template.Spec.Containers[0].Command[2], "gloo: "+fmt.Sprintf("extauth-%s", proxyName))).To(Equal(1), fmt.Sprintf("%s: Expecting Extauth Upstream", proxyName))
 					}
 
 					assertExpectedResourcesForProxy("gateway-proxy")
@@ -1347,11 +1352,14 @@ gloo:
 						valuesFile: tmpFile.Name(),
 					})
 					Expect(err).NotTo(HaveOccurred())
+					// upstreams are rendered by the rollout job
+					job := getJob(testManifest, namespace, "gloo-ee-resource-rollout")
 
 					rateLimitResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 						return unstructured.GetLabels()["gloo"] == "rate-limit"
 					})
-					Expect(rateLimitResources.NumResources()).To(Equal(4), "Expecting RateLimit Deployment, Service, Upstream and ServiceAccount")
+					Expect(rateLimitResources.NumResources()).To(Equal(3), "Expecting RateLimit Deployment, Service, and ServiceAccount")
+					Expect(strings.Count(job.Spec.Template.Spec.Containers[0].Command[2], "gloo: rate-limit")).To(Equal(1), "Expecting RateLimit Upstream")
 
 					redisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 						return unstructured.GetLabels()["gloo"] == "redis"
@@ -1361,7 +1369,8 @@ gloo:
 					extAuthResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
 						return unstructured.GetLabels()["gloo"] == "extauth"
 					})
-					Expect(extAuthResources.NumResources()).To(Equal(5), "Expecting ExtAuth Deployment, Service, Upstream, ServiceAccount, and Secret")
+					Expect(extAuthResources.NumResources()).To(Equal(4), "Expecting ExtAuth Deployment, Service, ServiceAccount, and Secret")
+					Expect(strings.Count(job.Spec.Template.Spec.Containers[0].Command[2], "gloo: extauth")).To(Equal(1), "Expecting ExtAuth Upstream")
 				})
 			})
 
@@ -4544,7 +4553,12 @@ spec:
 				resources := testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
 					return resource.GetLabels()["overriddenLabel"] == "label" && resource.GetKind() != ""
 				})
-				Expect(resources.NumResources()).To(Equal(1))
+				// some resources are contained directly in the manifest, and custom resources (upstreams) are
+				// applied by the rollout job, so we need to get the total from both places
+				countFromResources := resources.NumResources()
+				job := getJob(testManifest, namespace, "gloo-ee-resource-rollout")
+				countFromJob := strings.Count(job.Spec.Template.Spec.Containers[0].Command[2], "overriddenLabel: label")
+				Expect(countFromResources + countFromJob).To(Equal(1))
 			},
 				Entry("0-redis-service", "redis.service.kubeResourceOverride"),
 				Entry("1-redis-deployment", "redis.deployment.kubeResourceOverride"),
@@ -4563,201 +4577,82 @@ spec:
 
 		Context("custom resource lifecycles", func() {
 
-			It("upstreams should have custom hook annotations when failurePolicy=Fail", func() {
-				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{
-						"gloo.gateway.validation.failurePolicy=Fail",
-						"global.extensions.extAuth.envoySidecar=true",
-					},
-				})
+			It("creates migration, rollout, and cleanup jobs", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{})
 				Expect(err).NotTo(HaveOccurred())
 
-				// when gateway validation is enabled and failurePolicy is Fail, the upstreams should have a
-				// post-install/post-upgrade annotation
-				extauthUpstream := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Upstream
-metadata:
-  name: extauth
-  namespace: ` + namespace + `
-  labels:
-    app: gloo
-    gloo: extauth
-    created_by: gloo-install
-    app.kubernetes.io/managed-by: Helm
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "10"
-    meta.helm.sh/release-name: glooe
-    meta.helm.sh/release-namespace: ` + namespace + `
-spec:
-  healthChecks:
-  - grpcHealthCheck:
-      serviceName: ext-auth
-    healthyThreshold: 3
-    interval: 10s
-    timeout: 5s
-    unhealthyThreshold: 3
-  kube:
-    serviceName: extauth
-    serviceNamespace: ` + namespace + `
-    servicePort: 8083
-    serviceSpec:
-      grpc: {}
-  useHttp2: true
-`)
-				extauthSidecarUpstream := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Upstream
-metadata:
-  name: extauth-sidecar
-  namespace: ` + namespace + `
-  labels:
-    app: gloo
-    gloo: extauth
-    created_by: gloo-install
-    app.kubernetes.io/managed-by: Helm
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "10"
-    meta.helm.sh/release-name: glooe
-    meta.helm.sh/release-namespace: ` + namespace + `
-spec:
-  pipe:
-    path: /usr/share/shared-data/.sock
-  useHttp2: true
-`)
-				ratelimitUpstream := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
-kind: Upstream
-metadata:
-  name: rate-limit
-  namespace: ` + namespace + `
-  labels:
-    app: gloo
-    gloo: rate-limit
-    created_by: gloo-install
-    app.kubernetes.io/managed-by: Helm
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "10"
-    meta.helm.sh/release-name: glooe
-    meta.helm.sh/release-namespace: ` + namespace + `
-spec:
-  healthChecks:
-  - grpcHealthCheck:
-      serviceName: ratelimit
-    healthyThreshold: 5
-    interval: 1m
-    timeout: 5s
-    unhealthyThreshold: 5
-  kube:
-    serviceName: rate-limit
-    serviceNamespace: ` + namespace + `
-    servicePort: 18081
-    serviceSpec:
-      grpc: {}
-`)
+				// getJob will fail if the job doesn't exist
+				_ = getJob(testManifest, namespace, "gloo-resource-migration")
+				_ = getJob(testManifest, namespace, "gloo-resource-rollout")
+				_ = getJob(testManifest, namespace, "gloo-ee-resource-rollout")
+				_ = getJob(testManifest, namespace, "gloo-resource-cleanup")
 
-				testManifest.ExpectUnstructured(extauthUpstream.GetKind(), extauthUpstream.GetNamespace(), extauthUpstream.GetName()).To(BeEquivalentTo(extauthUpstream))
-				testManifest.ExpectUnstructured(extauthSidecarUpstream.GetKind(), extauthSidecarUpstream.GetNamespace(), extauthSidecarUpstream.GetName()).To(BeEquivalentTo(extauthSidecarUpstream))
-				testManifest.ExpectUnstructured(ratelimitUpstream.GetKind(), ratelimitUpstream.GetNamespace(), ratelimitUpstream.GetName()).To(BeEquivalentTo(ratelimitUpstream))
 			})
 
-			It("upstreams should not have custom hook annotations when failurePolicy=Ignore", func() {
+			It("applies extauth and ratelimit upstreams", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						"gloo.gateway.validation.failurePolicy=Ignore",
 						"global.extensions.extAuth.envoySidecar=true",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
-
-				// the upstreams should not have the helm hook annotations because they don't need to be applied in a specific order
-				// in relation to the validation service
-				extauthUpstream := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
+				job := getJob(testManifest, namespace, "gloo-ee-resource-rollout")
+				Expect(job.Spec.Template.Spec.Containers[0].Command[2]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: extauth
-  namespace: ` + namespace + `
-  labels:
-    app: gloo
-    gloo: extauth
-spec:
-  healthChecks:
-  - grpcHealthCheck:
-      serviceName: ext-auth
-    healthyThreshold: 3
-    interval: 10s
-    timeout: 5s
-    unhealthyThreshold: 3
-  kube:
-    serviceName: extauth
-    serviceNamespace: ` + namespace + `
-    servicePort: 8083
-    serviceSpec:
-      grpc: {}
-  useHttp2: true
-`)
-				extauthSidecarUpstream := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
+  namespace: ` + namespace))
+				Expect(job.Spec.Template.Spec.Containers[0].Command[2]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: extauth-sidecar
-  namespace: ` + namespace + `
-  labels:
-    app: gloo
-    gloo: extauth
-spec:
-  pipe:
-    path: /usr/share/shared-data/.sock
-  useHttp2: true
-`)
-				ratelimitUpstream := makeUnstructured(`
-apiVersion: gloo.solo.io/v1
+  namespace: ` + namespace))
+				Expect(job.Spec.Template.Spec.Containers[0].Command[2]).To(ContainSubstring(`apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: rate-limit
-  namespace: ` + namespace + `
-  labels:
-    app: gloo
-    gloo: rate-limit
-spec:
-  healthChecks:
-  - grpcHealthCheck:
-      serviceName: ratelimit
-    healthyThreshold: 5
-    interval: 1m
-    timeout: 5s
-    unhealthyThreshold: 5
-  kube:
-    serviceName: rate-limit
-    serviceNamespace: ` + namespace + `
-    servicePort: 18081
-    serviceSpec:
-      grpc: {}
-`)
+  namespace: ` + namespace))
+			})
 
-				testManifest.ExpectUnstructured(extauthUpstream.GetKind(), extauthUpstream.GetNamespace(), extauthUpstream.GetName()).To(BeEquivalentTo(extauthUpstream))
-				testManifest.ExpectUnstructured(extauthSidecarUpstream.GetKind(), extauthSidecarUpstream.GetNamespace(), extauthSidecarUpstream.GetName()).To(BeEquivalentTo(extauthSidecarUpstream))
-				testManifest.ExpectUnstructured(ratelimitUpstream.GetKind(), ratelimitUpstream.GetNamespace(), ratelimitUpstream.GetName()).To(BeEquivalentTo(ratelimitUpstream))
+			It("does not call kubectl apply when extauth and ratelimit upstreams are disabled", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"global.extensions.extAuth.enabled=false",
+						"global.extensions.rateLimit.enabled=false",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				job := getJob(testManifest, namespace, "gloo-ee-resource-rollout")
+				Expect(job.Spec.Template.Spec.Containers[0].Command[2]).NotTo(ContainSubstring("kubectl apply"))
+				Expect(job.Spec.Template.Spec.Containers[0].Command[2]).To(ContainSubstring("no custom resources to apply"))
 			})
 		})
 
 		// Lines ending with whitespace causes malformatted config map (https://github.com/solo-io/gloo/issues/4645)
-		It("Should not containing trailing whitespace", func() {
+		It("Should not contain trailing whitespace", func() {
 			out, err := exec.Command("helm", "template", "../helm/gloo-ee").CombinedOutput()
 			Expect(err).NotTo(HaveOccurred(), string(out))
 
 			lines := strings.Split(string(out), "\n")
 			// more descriptive fail message that prints out the manifest that includes the trailing whitespace
 			manifestStartingLine := 0
+			skip := false
 			for idx, line := range lines {
 				if strings.Contains(line, "---") {
 					manifestStartingLine = idx
+					continue
 				}
-				if strings.TrimRightFunc(line, unicode.IsSpace) != line {
+				// skip all the content within kubectl apply commands (used in the rollout job)
+				// since there is extra whitespace that can't be removed
+				if strings.Contains(line, "kubectl apply -f - <<EOF") {
+					skip = true
+					continue
+				}
+				if strings.TrimSpace(line) == "EOF" {
+					skip = false
+					continue
+				}
+				if !skip && strings.TrimRightFunc(line, unicode.IsSpace) != line {
 					// Ensure that we are only checking this for Gloo charts, and not our subcharts
 					manifest := strings.Join(lines[manifestStartingLine:idx+1], "\n")
 					if strings.Contains(manifest, "# Source: gloo-ee/templates") {
@@ -4787,4 +4682,12 @@ func getFieldFromUnstructured(uns *unstructured.Unstructured, fieldPath ...strin
 		obj = obj.(map[string]interface{})[field]
 	}
 	return obj
+}
+
+func getJob(testManifest TestManifest, jobNamespace string, jobName string) *jobsv1.Job {
+	jobUns := testManifest.ExpectCustomResource("Job", jobNamespace, jobName)
+	jobObj, err := kuberesource.ConvertUnstructured(jobUns)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(jobObj).To(BeAssignableToTypeOf(&jobsv1.Job{}))
+	return jobObj.(*jobsv1.Job)
 }

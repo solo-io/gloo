@@ -17,6 +17,7 @@ var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/durat
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tracing_tracing_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/tracing/tracing_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/protocol_upgrade/protocol_upgrade_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/protocol/protocol_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CodecType', null, global);
@@ -143,7 +144,8 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     codecType: jspb.Message.getFieldWithDefault(msg, 28, 0),
     mergeSlashes: jspb.Message.getFieldWithDefault(msg, 29, false),
     normalizePath: (f = msg.getNormalizePath()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    uuidRequestIdConfig: (f = msg.getUuidRequestIdConfig()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.UuidRequestIdConfigSettings.toObject(includeInstance, f)
+    uuidRequestIdConfig: (f = msg.getUuidRequestIdConfig()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.UuidRequestIdConfigSettings.toObject(includeInstance, f),
+    http2ProtocolOptions: (f = msg.getHttp2ProtocolOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -345,6 +347,11 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       var value = new proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.UuidRequestIdConfigSettings;
       reader.readMessage(value,proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.UuidRequestIdConfigSettings.deserializeBinaryFromReader);
       msg.setUuidRequestIdConfig(value);
+      break;
+    case 39:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions.deserializeBinaryFromReader);
+      msg.setHttp2ProtocolOptions(value);
       break;
     default:
       reader.skipField();
@@ -650,6 +657,14 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
       37,
       f,
       proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.UuidRequestIdConfigSettings.serializeBinaryToWriter
+    );
+  }
+  f = message.getHttp2ProtocolOptions();
+  if (f != null) {
+    writer.writeMessage(
+      39,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions.serializeBinaryToWriter
     );
   }
 };
@@ -2053,6 +2068,36 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearUuid
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasUuidRequestIdConfig = function() {
   return jspb.Message.getField(this, 37) != null;
+};
+
+
+/**
+ * optional protocol.options.gloo.solo.io.Http2ProtocolOptions http2_protocol_options = 39;
+ * @return {?proto.protocol.options.gloo.solo.io.Http2ProtocolOptions}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getHttp2ProtocolOptions = function() {
+  return /** @type{?proto.protocol.options.gloo.solo.io.Http2ProtocolOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions, 39));
+};
+
+
+/** @param {?proto.protocol.options.gloo.solo.io.Http2ProtocolOptions|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setHttp2ProtocolOptions = function(value) {
+  jspb.Message.setWrapperField(this, 39, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearHttp2ProtocolOptions = function() {
+  this.setHttp2ProtocolOptions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasHttp2ProtocolOptions = function() {
+  return jspb.Message.getField(this, 39) != null;
 };
 
 

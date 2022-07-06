@@ -1,0 +1,48 @@
+{{- $image := .Values.gloo.gateway.rolloutJob.image }}
+{{- if .Values.global }}
+{{- $image = merge .Values.gloo.gateway.rolloutJob.image .Values.global.image }}
+{{- end }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: gloo
+    gloo: resource-rollout
+  name: gloo-ee-resource-rollout
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10" # run this job after the gloo rollout job completes
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed,before-hook-creation
+spec:
+  template:
+    metadata:
+      labels:
+        gloo: resource-rollout
+    spec:
+      {{- include "gloo.pullSecret" $image | nindent 6 -}}
+      serviceAccountName: gloo-resource-rollout
+      containers:
+        - name: kubectl
+          image: {{template "gloo.image" $image}}
+          imagePullPolicy: {{ $image.pullPolicy }}
+          securityContext:
+            runAsNonRoot: true
+            {{- if not .Values.gloo.gateway.rolloutJob.floatingUserId }}
+            runAsUser: {{ printf "%.0f" (float64 .Values.gloo.gateway.rolloutJob.runAsUser) -}}
+            {{- end }}
+          command:
+          - /bin/sh
+          - -c
+          - |
+            {{- $cr := include "glooe.customResources" . | indent 12 -}}
+            {{- if contains "kind:" $cr -}}{{/* only render if not empty */}}
+            # apply Gloo Edge Enterprise custom resources
+            kubectl apply -f - <<EOF || exit $?
+            {{- $cr -}}
+            EOF
+            {{- else }}
+            echo "no custom resources to apply"
+            {{- end }}
+      restartPolicy: OnFailure
+  ttlSecondsAfterFinished: 0

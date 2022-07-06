@@ -1,16 +1,17 @@
+{{- define "glooe.customResources.extauthUpstreams" -}}
 {{- if .Values.global.extensions.extAuth.enabled }}
 {{- $extAuth := .Values.global.extensions.extAuth }}
 {{- $extAuthName := $extAuth.service.name }}
 
 {{- if $extAuth.envoySidecar }}
-{{ $labels := dict "gloo" $extAuthName }}
-{{ $data := dict "release" $.Release "values" $.Values.gloo "labels" $labels }}
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: {{ $extAuthName }}-sidecar
   namespace: {{ $.Release.Namespace }}
-{{- include "gloo.customResourceLabelsAndAnnotations" $data }}
+  labels:
+    app: gloo
+    gloo: {{ $extAuthName }}
 spec:
   useHttp2: true
   pipe:
@@ -24,14 +25,14 @@ spec:
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{- $extAuthName = printf "%s-%s" $extAuth.service.name ($name | kebabcase) }}
 {{- end }}
-{{ $labels := dict "gloo" $extAuthName }}
-{{ $data := dict "release" $.Release "values" $.Values.gloo "labels" $labels }}
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: {{ $extAuthName }}
   namespace: {{ $.Release.Namespace }}
-{{- include "gloo.customResourceLabelsAndAnnotations" $data }}
+  labels:
+    app: gloo
+    gloo: {{ $extAuthName }}
 spec:
   useHttp2: true
   healthChecks:
@@ -54,7 +55,8 @@ spec:
       namespace: {{ $.Release.Namespace }}
   {{- end }}
 ---
-{{- end }} {{/* if not $spec.disabled */}}
-{{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
-{{- end }} {{/* $extAuth.standaloneDeployment */}}
-{{- end }} {{/* .Values.global.extensions.extAuth.enabled */}}
+{{- end }}{{/* if not $spec.disabled */}}
+{{- end }}{{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
+{{- end }}{{/* $extAuth.standaloneDeployment */}}
+{{- end }}{{/* .Values.global.extensions.extAuth.enabled */}}
+{{- end }}{{/* define "glooe.customResources.extauthUpstreams" */}}

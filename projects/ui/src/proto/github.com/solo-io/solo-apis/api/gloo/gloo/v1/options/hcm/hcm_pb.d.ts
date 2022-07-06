@@ -8,6 +8,7 @@ import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/du
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_tracing_tracing_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/tracing/tracing_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/protocol_upgrade/protocol_upgrade_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_protocol_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/protocol/protocol_pb";
 import * as extproto_ext_pb from "../../../../../../../../../extproto/ext_pb";
 
 export class HttpConnectionManagerSettings extends jspb.Message {
@@ -162,6 +163,11 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getUuidRequestIdConfig(): HttpConnectionManagerSettings.UuidRequestIdConfigSettings | undefined;
   setUuidRequestIdConfig(value?: HttpConnectionManagerSettings.UuidRequestIdConfigSettings): void;
 
+  hasHttp2ProtocolOptions(): boolean;
+  clearHttp2ProtocolOptions(): void;
+  getHttp2ProtocolOptions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions | undefined;
+  setHttp2ProtocolOptions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions): void;
+
   getHeaderFormatCase(): HttpConnectionManagerSettings.HeaderFormatCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
@@ -212,6 +218,7 @@ export namespace HttpConnectionManagerSettings {
     mergeSlashes: boolean,
     normalizePath?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     uuidRequestIdConfig?: HttpConnectionManagerSettings.UuidRequestIdConfigSettings.AsObject,
+    http2ProtocolOptions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions.AsObject,
   }
 
   export class SetCurrentClientCertDetails extends jspb.Message {

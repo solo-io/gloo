@@ -4,15 +4,15 @@
 {{- $rateLimitName := .Values.global.extensions.rateLimit.service.name }}
 {{- if .Values.global.extensions.dataplanePerProxy }}
 {{- $rateLimitName = printf "%s-%s" $rateLimitName ($name | kebabcase) }}
-{{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
-{{ $labels := dict "gloo" $rateLimitName }}
-{{ $data := dict "release" .Release "values" .Values.gloo "labels" $labels }}
+{{- end }}{{/* .Values.global.extensions.dataplanePerProxy */}}
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
   name: {{ $rateLimitName }}
   namespace: {{ .Release.Namespace }}
-{{- include "gloo.customResourceLabelsAndAnnotations" $data }}
+  labels:
+    app: gloo
+    gloo: {{ $rateLimitName }}
 spec:
   healthChecks:
   - timeout: 5s
@@ -28,9 +28,10 @@ spec:
     serviceSpec:
       grpc: {}
 ---
-{{- end }} {{/* with (first .) */}}
+{{- end }}{{/* with (first .) */}}
 {{- end }}{{/* define "ratelimit.upstreamSpec" */}}
 
+{{- define "glooe.customResources.ratelimitUpstreams" -}}
 {{- if .Values.global.extensions.rateLimit.enabled }}
 {{- include "gloo.dataplaneperproxyhelper" $ }}
 {{- $override := dict -}}
@@ -41,6 +42,7 @@ spec:
 {{- if not $spec.disabled}}
 {{- $ctx := (list $ $name $spec)}}
 {{- include "gloo.util.merge" (list $ctx $override "ratelimit.upstreamSpec") -}}
-{{- end }} {{/* if not $spec.disabled */}}
-{{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
-{{- end }} {{/* .Values.global.extensions.rateLimit.enabled */}}
+{{- end }}{{/* if not $spec.disabled */}}
+{{- end }}{{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
+{{- end }}{{/* .Values.global.extensions.rateLimit.enabled */}}
+{{- end }}{{/* define "glooe.customResources.ratelimitUpstreams" */}}
