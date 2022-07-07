@@ -1,0 +1,8 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    issueLink: https://github.com/solo-io/solo-projects/issues/3790
+    resolvesIssue: false
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.20.8
+    description: Update to 0.20.8 to include ext-auth-service malformed inspectionUrl crash fix.

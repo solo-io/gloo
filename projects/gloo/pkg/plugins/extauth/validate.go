@@ -2,6 +2,7 @@ package extauth
 
 import (
 	"fmt"
+	url2 "net/url"
 
 	errors "github.com/rotisserie/eris"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -11,6 +12,7 @@ import (
 
 var (
 	OAuth2EmtpyIntrospectionUrlErr              = errors.New("oauth2: introspection URL cannot be empty")
+	OAuth2InvalidIntrospectionUrlErr            = errors.New("oauth2: introspection URL is invalid. Make sure it follows the form [scheme:][//[userinfo@]host][/]path[?query][#fragment] if an absolute path")
 	OAuth2IncompleteIntrospectionCredentialsErr = errors.New("oauth2: all of the following attributes must be provided: clientId, clientSecret")
 	OAuth2EmtpyRemoteJwksUrlErr                 = errors.New("oauth2: remote JWKS URL cannot be empty")
 	OAuth2EmtpyLocalJwksErr                     = errors.New("oauth2: must provide inline JWKS string")
@@ -31,6 +33,16 @@ func NewInvalidAuthConfigError(cfgType string, ref *core.ResourceRef) error {
 		cfgType: cfgType,
 		ref:     ref,
 	}
+}
+
+func IsIntrospectionUrlParsable(url string) bool {
+	// Using the parsing done on introspection urls
+	_, err := url2.Parse(url)
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports) {
@@ -63,13 +75,20 @@ func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports
 			case *extauth.OAuth2_AccessTokenValidation:
 				switch validation := oauthCfg.AccessTokenValidation.ValidationType.(type) {
 				case *extauth.AccessTokenValidation_IntrospectionUrl:
-					if validation.IntrospectionUrl == "" {
+					introspectionUrl := validation.IntrospectionUrl
+					if introspectionUrl == "" {
 						reports.AddError(ac, OAuth2EmtpyIntrospectionUrlErr)
+					} else if !IsIntrospectionUrlParsable(introspectionUrl) {
+						reports.AddError(ac, OAuth2InvalidIntrospectionUrlErr)
 					}
 				case *extauth.AccessTokenValidation_Introspection:
-					if validation.Introspection.GetIntrospectionUrl() == "" {
+					introspectionUrl := validation.Introspection.GetIntrospectionUrl()
+					if introspectionUrl == "" {
 						reports.AddError(ac, OAuth2EmtpyIntrospectionUrlErr)
+					} else if !IsIntrospectionUrlParsable(introspectionUrl) {
+						reports.AddError(ac, OAuth2InvalidIntrospectionUrlErr)
 					}
+
 					// XOR clientId and clientSecretRef
 					clientIdExists := validation.Introspection.GetClientId() != ""
 					clientSecretExists := validation.Introspection.GetClientSecretRef() != nil
