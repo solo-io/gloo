@@ -248,6 +248,15 @@ var _ = Describe("ValidateAuthConfig", func() {
 				},
 			},
 		}, OAuth2EmtpyIntrospectionUrlErr),
+		Entry("IntrospectionUrl: invalid introspection URL", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_AccessTokenValidation{
+				AccessTokenValidation: &extauth.AccessTokenValidation{
+					ValidationType: &extauth.AccessTokenValidation_IntrospectionUrl{
+						IntrospectionUrl: "127.0.0.1:8080/path",
+					},
+				},
+			},
+		}, OAuth2InvalidIntrospectionUrlErr),
 		Entry("Introspection: empty introspection URL", &extauth.OAuth2{
 			OauthType: &extauth.OAuth2_AccessTokenValidation{
 				AccessTokenValidation: &extauth.AccessTokenValidation{
@@ -257,6 +266,17 @@ var _ = Describe("ValidateAuthConfig", func() {
 				},
 			},
 		}, OAuth2EmtpyIntrospectionUrlErr),
+		Entry("Introspection: invalid introspection URL", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_AccessTokenValidation{
+				AccessTokenValidation: &extauth.AccessTokenValidation{
+					ValidationType: &extauth.AccessTokenValidation_Introspection{
+						Introspection: &extauth.AccessTokenValidation_IntrospectionValidation{
+							IntrospectionUrl: "127.0.0.1:8080/path",
+						},
+					},
+				},
+			},
+		}, OAuth2InvalidIntrospectionUrlErr),
 		Entry("Introspection: provided client id but empty client secret ref", &extauth.OAuth2{
 			OauthType: &extauth.OAuth2_AccessTokenValidation{
 				AccessTokenValidation: &extauth.AccessTokenValidation{
