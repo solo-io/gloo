@@ -138,6 +138,7 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 	var initialUpstreamList gloo_solo_io.UpstreamList
 
 	currentSnapshot := DashboardsSnapshot{}
+	upstreamsByNamespace := make(map[string]gloo_solo_io.UpstreamList)
 
 	for _, namespace := range watchNamespaces {
 		/* Setup namespaced watch for Upstream */
@@ -147,6 +148,7 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 				return nil, nil, errors.Wrapf(err, "initial Upstream list")
 			}
 			initialUpstreamList = append(initialUpstreamList, upstreams...)
+			upstreamsByNamespace[namespace] = upstreams
 		}
 		upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, opts)
 		if err != nil {
@@ -211,7 +213,7 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 				stats.Record(ctx, mDashboardsSnapshotMissed.M(1))
 			}
 		}
-		upstreamsByNamespace := make(map[string]gloo_solo_io.UpstreamList)
+
 		defer func() {
 			close(snapshots)
 			// we must wait for done before closing the error chan,
