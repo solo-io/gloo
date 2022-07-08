@@ -45,7 +45,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.11-patch4
 	github.com/solo-io/external-apis v0.1.4
-	github.com/solo-io/gloo v1.9.18
+	github.com/solo-io/gloo v1.9.19
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.21.24
 	github.com/solo-io/k8s-utils v0.1.0
@@ -57,8 +57,8 @@ require (
 	github.com/solo-io/skv2 v0.17.19
 	github.com/solo-io/skv2-enterprise v0.0.8
 	// Corresponds to gloo-v1.9.6
-	github.com/solo-io/solo-apis v0.0.0-20220624011007-fcce2935fc5c
-	github.com/solo-io/solo-kit v0.24.5
+	github.com/solo-io/solo-apis v0.0.0-20220707203718-9bbcb80ebbef
+	github.com/solo-io/solo-kit v0.24.6
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spf13/cobra v1.1.3
@@ -66,10 +66,10 @@ require (
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.23.0
 	go.uber.org/zap v1.16.0
-	golang.org/x/mod v0.4.2
+	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
 	golang.org/x/net v0.0.0-20220630215102-69896b714898
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/tools v0.1.5
+	golang.org/x/tools v0.1.11
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/square/go-jose.v2 v2.5.1
