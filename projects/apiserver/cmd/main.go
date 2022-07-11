@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 
 	apps_v1 "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
 	core_v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
@@ -77,7 +78,11 @@ func main() {
 		mgr = fed_bootstrap.MustLocalManagerFromConfig(rootCtx, cfg)
 		initializeGlooFed(rootCtx, mgr, apiserverSettings, licensedFeatureProvider)
 	} else {
-		mgr = fed_bootstrap.MustSingleClusterManagerFromConfig(rootCtx, cfg)
+		if os.Getenv("NAMESPACE_RESTRICTED_MODE") == "true" {
+			mgr = fed_bootstrap.MustSingleClusterManagerFromConfig(rootCtx, cfg, apiserverutils.GetInstallNamespace())
+		} else {
+			mgr = fed_bootstrap.MustSingleClusterManagerFromConfig(rootCtx, cfg, "")
+		}
 		initializeSingleClusterGloo(rootCtx, mgr, apiserverSettings, licensedFeatureProvider)
 	}
 

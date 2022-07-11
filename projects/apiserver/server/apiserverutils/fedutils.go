@@ -2,6 +2,7 @@ package apiserverutils
 
 import (
 	"context"
+	"os"
 
 	apps_v1 "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -12,6 +13,10 @@ import (
 // Determines whether Gloo Fed is enabled in the current Gloo installation by checking for the existence
 // of the Gloo Fed deployment.
 func IsGlooFedEnabled(ctx context.Context, config *rest.Config) (bool, error) {
+	if os.Getenv("NAMESPACE_RESTRICTED_MODE") == "true" {
+		return false, nil
+	}
+
 	kubeClient, err := client.New(config, client.Options{})
 	if err != nil {
 		return false, err

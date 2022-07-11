@@ -34,6 +34,34 @@ var _ = Describe("RBAC Test", func() {
 				testManifest.ExpectPermissions(permissions)
 			})
 
+			It("correctly assigns permissions for gloo-fed.glooFedApiserver.namespaceRestrictedMode=true", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"gloo.settings.singleNamespace=true",
+						"gloo-fed.enabled=false",
+						"gloo-fed.glooFedApiserver.namespaceRestrictedMode=true"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.Expect("RoleBinding", namespace, "gloo-console")
+				testManifest.Expect("RoleBinding", namespace, "gloo-console-envoy")
+				testManifest.Expect("Role", namespace, "gloo-console")
+				testManifest.Expect("Role", namespace, "gloo-console-envoy")
+			})
+
+			It("correctly assigns permissions for gloo-fed.glooFedApiserver.namespaceRestrictedMode=false", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						"gloo.settings.singleNamespace=true",
+						"gloo-fed.enabled=false",
+						"gloo-fed.glooFedApiserver.namespaceRestrictedMode=false"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				testManifest.Expect("ClusterRoleBinding", namespace, "gloo-console")
+				testManifest.Expect("RoleBinding", namespace, "gloo-console")
+				testManifest.Expect("ClusterRole", namespace, "gloo-console")
+				testManifest.Expect("Role", namespace, "gloo-console")
+			})
+
 			It("creates no permissions when rbac is disabled", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{

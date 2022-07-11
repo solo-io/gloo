@@ -3,10 +3,17 @@
 {{- if not .Values.enabled }}
 {{- if .Values.glooFedApiserver.enable }}
 {{- if .Values.rbac.create }}
+{{- if .Values.glooFedApiserver.namespaceRestrictedMode }}
+kind: Role
+{{- else }}
 kind: ClusterRole
+{{- end }}{{/* .Values.glooFedApiserver.namespaceRestrictedMode */}}
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: gloo-console
+  {{- if .Values.glooFedApiserver.namespaceRestrictedMode }}
+  namespace: {{ .Release.Namespace }}
+  {{- end }}{{/* .Values.glooFedApiserver.namespaceRestrictedMode */}}
   labels:
     app: gloo
 rules:
@@ -60,6 +67,7 @@ rules:
   - get
   - list
   - watch
+{{- if not .Values.glooFedApiserver.namespaceRestrictedMode }}
 - apiGroups:
   - apps
   resources:
@@ -79,13 +87,21 @@ rules:
   - get
   - list
   - watch
+{{- end }}{{/* not .Values.glooFedApiserver.namespaceRestrictedMode */}}
 
 ---
 
+{{- if .Values.glooFedApiserver.namespaceRestrictedMode }}
+kind: RoleBinding
+{{- else }}
 kind: ClusterRoleBinding
+{{- end }}{{/* .Values.glooFedApiserver.namespaceRestrictedMode */}}
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: gloo-console
+  {{- if .Values.glooFedApiserver.namespaceRestrictedMode }}
+  namespace: {{ .Release.Namespace }}
+  {{- end }}{{/* .Values.glooFedApiserver.namespaceRestrictedMode */}}
   labels:
     app: gloo
 subjects:
@@ -93,7 +109,11 @@ subjects:
   name: gloo-fed-console
   namespace: {{ .Release.Namespace }}
 roleRef:
+  {{- if .Values.glooFedApiserver.namespaceRestrictedMode }}
+  kind: Role
+  {{- else }}
   kind: ClusterRole
+  {{- end }}{{/* .Values.glooFedApiserver.namespaceRestrictedMode */}}
   name: gloo-console
   apiGroup: rbac.authorization.k8s.io
 
@@ -103,7 +123,7 @@ roleRef:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-console
+  name: gloo-console-envoy
   namespace: {{ .Release.Namespace }}
 rules:
 - apiGroups:
@@ -118,11 +138,11 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-console
+  name: gloo-console-envoy
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: gloo-console
+  name: gloo-console-envoy
   apiGroup: rbac.authorization.k8s.io
 subjects:
 - kind: ServiceAccount

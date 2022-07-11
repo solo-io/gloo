@@ -27,17 +27,18 @@ type GlooFedDeployment struct {
 }
 
 type ApiServerDeployment struct {
-	Enable          *bool                         `json:"enable,omitempty"`
-	Replicas        *int                          `json:"replicas,omitempty"`
-	Image           *glooGen.Image                `json:"image,omitempty"`
-	Port            *int                          `json:"port,omitempty"`
-	HealthCheckPort *int                          `json:"healthCheckPort,omitempty"`
-	Resources       *glooGen.ResourceRequirements `json:"resources,omitempty"`
-	Stats           *glooGen.Stats                `json:"stats,omitempty"`
-	FloatingUserId  *bool                         `json:"floatingUserId,omitempty"`
-	RunAsUser       *float64                      `json:"runAsUser,omitempty"`
-	Console         *ConsoleContainer             `json:"console,omitempty"`
-	Envoy           *EnvoyContainer               `json:"envoy,omitempty"`
+	Enable                  *bool                         `json:"enable,omitempty"`
+	Replicas                *int                          `json:"replicas,omitempty"`
+	Image                   *glooGen.Image                `json:"image,omitempty"`
+	Port                    *int                          `json:"port,omitempty"`
+	HealthCheckPort         *int                          `json:"healthCheckPort,omitempty"`
+	Resources               *glooGen.ResourceRequirements `json:"resources,omitempty"`
+	Stats                   *glooGen.Stats                `json:"stats,omitempty"`
+	FloatingUserId          *bool                         `json:"floatingUserId,omitempty"`
+	RunAsUser               *float64                      `json:"runAsUser,omitempty"`
+	Console                 *ConsoleContainer             `json:"console,omitempty"`
+	Envoy                   *EnvoyContainer               `json:"envoy,omitempty"`
+	NamespaceRestrictedMode *bool                         `json:"namespaceRestrictedMode,omitempty" desc:"If true:  Convert the ClusterRole used in apiserver to Role.  Useful in single-namespace deployments of gloo-ee where permissions can be more restrictive--recommended to not set in a multi-cluster deployment.  Default is false."`
 }
 
 type ConsoleContainer struct {

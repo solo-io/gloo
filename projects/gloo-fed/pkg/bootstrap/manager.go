@@ -46,12 +46,12 @@ var singleClusterSchemes = runtime.SchemeBuilder{
 
 // MustSingleClusterManagerFromConfig creates a new manager from a config, adds single-cluster Gloo resources to the
 // scheme, and returns the manager.
-func MustSingleClusterManagerFromConfig(ctx context.Context, cfg *rest.Config) manager.Manager {
+func MustSingleClusterManagerFromConfig(ctx context.Context, cfg *rest.Config, namespace string) manager.Manager {
 	die := func(err error) {
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting single cluster manager", zap.Error(err))
 	}
 
-	mgr := MustManager(cfg, die)
+	mgr := MustManager(cfg, die, namespace)
 	if err := singleClusterSchemes.AddToScheme(mgr.GetScheme()); err != nil {
 		die(err)
 	}
@@ -66,7 +66,7 @@ func MustLocalManagerFromConfig(ctx context.Context, cfg *rest.Config) manager.M
 		contextutils.LoggerFrom(ctx).Fatalw("A fatal error occurred while getting local manager", zap.Error(err))
 	}
 
-	mgr := MustManager(cfg, die)
+	mgr := MustManager(cfg, die, "")
 	if err := fedSchemes.AddToScheme(mgr.GetScheme()); err != nil {
 		die(err)
 	}
@@ -84,7 +84,7 @@ func MustLocalManager(ctx context.Context) manager.Manager {
 	return MustLocalManagerFromConfig(ctx, cfg)
 }
 
-func MustManager(cfg *rest.Config, onError func(err error)) manager.Manager {
+func MustManager(cfg *rest.Config, onError func(err error), namespace string) manager.Manager {
 	// Replaces the stats server functionality used by other control plane components:
 	//	stats.ConditionallyStartStatsServer()
 	// We use the same env variable as other control plane components
@@ -93,9 +93,20 @@ func MustManager(cfg *rest.Config, onError func(err error)) manager.Manager {
 		metricsBindAddress = "0"
 	}
 
-	mgr, err := manager.New(cfg, manager.Options{
-		MetricsBindAddress: metricsBindAddress,
-	})
+	var mgr manager.Manager
+	var err error
+
+	if namespace != "" {
+		mgr, err = manager.New(cfg, manager.Options{
+			MetricsBindAddress: metricsBindAddress,
+			Namespace:          namespace,
+		})
+	} else {
+		mgr, err = manager.New(cfg, manager.Options{
+			MetricsBindAddress: metricsBindAddress,
+		})
+	}
+
 	if err != nil {
 		onError(err)
 	}

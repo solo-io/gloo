@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/6293
+    resolvesIssue: false
+    description: |
+      Convert ClusterRole-->Role object for `apiserver` when specifying `glooFedApiserver.namespaceRestrictedMode` helm Value

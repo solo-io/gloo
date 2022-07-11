@@ -1226,6 +1226,7 @@
 |gloo-fed.glooFedApiserver.envoy.resources.requests.memory|string||amount of memory|
 |gloo-fed.glooFedApiserver.envoy.resources.requests.cpu|string||amount of CPUs|
 |gloo-fed.glooFedApiserver.envoy.bootstrapConfig.configMapName|string|||
+|gloo-fed.glooFedApiserver.namespaceRestrictedMode|bool||If true:  Convert the ClusterRole used in apiserver to Role.  Useful in single-namespace deployments of gloo-ee where permissions can be more restrictive--recommended to not set in a multi-cluster deployment.  Default is false.|
 |gloo-fed.glooFed.replicas|int|||
 |gloo-fed.glooFed.resources.limits.memory|string||amount of memory|
 |gloo-fed.glooFed.resources.limits.cpu|string||amount of CPUs|

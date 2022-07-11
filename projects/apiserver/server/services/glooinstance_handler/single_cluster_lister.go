@@ -2,6 +2,7 @@ package glooinstance_handler
 
 import (
 	"context"
+	"os"
 
 	"github.com/rotisserie/eris"
 	apps_v1 "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
@@ -15,6 +16,7 @@ import (
 	enterprise_gloo_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	gateway_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	types "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	ratelimit_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	enterprise_gloo_resource_handler "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/enterprise.gloo.solo.io/v1/handler"
 	gateway_resource_handler "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/gateway.solo.io/v1/handler"
@@ -84,7 +86,8 @@ func (l *singleClusterGlooInstanceLister) ListGlooInstances(ctx context.Context)
 	installNamespace := apiserverutils.GetInstallNamespace()
 
 	// if we only want the Gloo instance in the current install namespace, we can get it directly
-	if SingleInstanceOnly {
+	// in the event that a use has requested limited RBAC restrictions, we have only a single gloo instance
+	if SingleInstanceOnly || os.Getenv("NAMESPACE_RESTRICTED_MODE") == "true" {
 		instance, err := l.GetGlooInstance(ctx, &skv2_v1.ObjectRef{
 			Name:      images.ControlPlaneDeploymentName,
 			Namespace: installNamespace,
@@ -136,6 +139,14 @@ func (l *singleClusterGlooInstanceLister) ListGlooInstances(ctx context.Context)
 }
 
 func (l *singleClusterGlooInstanceLister) GetGlooInstance(ctx context.Context, glooInstanceRef *skv2_v1.ObjectRef) (*rpc_edge_v1.GlooInstance, error) {
+	if os.Getenv("NAMESPACE_RESTRICTED_MODE") == "true" {
+		glooInstance, err := l.buildGlooInstanceFromInstanceRef(ctx, glooInstanceRef)
+		if err != nil {
+			return nil, err
+		}
+		return glooInstance, nil
+	}
+
 	// get the deployment with the same name/namespace as the glooInstanceRef
 	deployment, err := l.appsClientset.Deployments().GetDeployment(ctx, ezkube.MakeClientObjectKey(glooInstanceRef))
 	if err != nil {
@@ -171,6 +182,34 @@ func (l *singleClusterGlooInstanceLister) GetGlooInstance(ctx context.Context, g
 	return glooInstance, nil
 }
 
+func (l *singleClusterGlooInstanceLister) buildGlooInstanceFromInstanceRef(ctx context.Context, glooInstanceRef *skv2_v1.ObjectRef) (*rpc_edge_v1.GlooInstance, error) {
+	settingsClient, watchedNamespaces, err := l.getSettingsClient(ctx, glooInstanceRef.Namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	instance := &rpc_edge_v1.GlooInstance{
+		Metadata: &rpc_edge_v1.ObjectMeta{
+			Name:      glooInstanceRef.Name,
+			Namespace: glooInstanceRef.Namespace,
+		},
+		Spec: &rpc_edge_v1.GlooInstance_GlooInstanceSpec{
+			Cluster:      ClusterName,
+			IsEnterprise: true,
+			ControlPlane: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_ControlPlane{
+				Version:           "indeterminable version",
+				Namespace:         glooInstanceRef.Namespace,
+				WatchedNamespaces: watchedNamespaces,
+			},
+			Region: "indeterminable region",
+			Check:  &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check{},
+		},
+	}
+
+	l.addCrdSummaries(ctx, instance, watchedNamespaces, settingsClient)
+	return instance, nil
+}
+
 func (l *singleClusterGlooInstanceLister) buildGlooInstanceFromDeployment(
 	ctx context.Context,
 	deployment *k8s_apps_types.Deployment,
@@ -193,15 +232,10 @@ func (l *singleClusterGlooInstanceLister) buildGlooInstanceFromDeployment(
 	}
 
 	// get the watched namespaces from this Gloo instance's settings
-	settingsClient := l.glooClientset.Settings()
-	settings, err := settingsClient.GetSettings(ctx, client.ObjectKey{
-		Namespace: deployment.GetNamespace(),
-		Name:      defaults.SettingsName,
-	})
+	settingsClient, watchedNamespaces, err := l.getSettingsClient(ctx, deployment.GetNamespace())
 	if err != nil {
 		return nil, err
 	}
-	watchedNamespaces := settings.Spec.GetWatchNamespaces()
 
 	instance := &rpc_edge_v1.GlooInstance{
 		Metadata: &rpc_edge_v1.ObjectMeta{
@@ -233,6 +267,27 @@ func (l *singleClusterGlooInstanceLister) buildGlooInstanceFromDeployment(
 	instance.Spec.Check.Pods = convertSummary(checker.GetPodsSummary(ctx, podSet, instance.Spec.ControlPlane.GetNamespace(), ""))
 	instance.Spec.Check.Deployments = convertSummary(checker.GetDeploymentsSummary(ctx, deploymentSet, instance.Spec.ControlPlane.GetNamespace(), ""))
 
+	l.addCrdSummaries(ctx, instance, watchedNamespaces, settingsClient)
+
+	return instance, nil
+}
+
+func (l *singleClusterGlooInstanceLister) getSettingsClient(ctx context.Context, namespace string) (types.SettingsClient, []string, error) {
+	settingsClient := l.glooClientset.Settings()
+	settings, err := settingsClient.GetSettings(ctx, client.ObjectKey{
+		Namespace: namespace,
+		Name:      defaults.SettingsName,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	// get the watched namespaces from this Gloo instance's settings
+	watchedNamespaces := settings.Spec.GetWatchNamespaces()
+
+	return settingsClient, watchedNamespaces, nil
+}
+
+func (l *singleClusterGlooInstanceLister) addCrdSummaries(ctx context.Context, instance *rpc_edge_v1.GlooInstance, watchedNamespaces []string, settingsClient types.SettingsClient) {
 	// gloo resource summaries
 	instance.Spec.Check.Settings = gloo_resource_handler.GetSettingsSummary(ctx, settingsClient, watchedNamespaces)
 	instance.Spec.Check.Upstreams = gloo_resource_handler.GetUpstreamSummary(ctx, l.glooClientset.Upstreams(), watchedNamespaces)
@@ -246,8 +301,6 @@ func (l *singleClusterGlooInstanceLister) buildGlooInstanceFromDeployment(
 	instance.Spec.Check.VirtualServices = gateway_resource_handler.GetVirtualServiceSummary(ctx, l.gatewayClientset.VirtualServices(), watchedNamespaces)
 	instance.Spec.Check.RouteTables = gateway_resource_handler.GetRouteTableSummary(ctx, l.gatewayClientset.RouteTables(), watchedNamespaces)
 	instance.Spec.Check.MatchableHttpGateways = gateway_resource_handler.GetMatchableHttpGatewaySummary(ctx, l.gatewayClientset.MatchableHttpGateways(), watchedNamespaces)
-
-	return instance, nil
 }
 
 // Convert from the generic structs to the GlooEE apiserver types

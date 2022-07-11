@@ -63,6 +63,10 @@ spec:
         - name: START_STATS_SERVER
           value: "true"
         {{- end }}
+        {{- if .Values.glooFedApiserver.namespaceRestrictedMode }}
+        - name: NAMESPACE_RESTRICTED_MODE
+          value: "true"
+        {{- end }}{{/* .Values.glooFedApiserver.namespaceRestrictedMode */}}
         imagePullPolicy: {{ $glooFedApiserverImage.pullPolicy }}
         name: apiserver
         volumeMounts:
