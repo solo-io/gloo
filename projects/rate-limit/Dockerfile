@@ -15,6 +15,8 @@ ARG GCFLAGS
 ARG GITHUB_TOKEN
 ARG LDFLAGS
 ARG USE_APK
+ARG DOCKER_GOARCH
+ARG DOCKER_CGO_ENABLED=0
 
 # Fail if VERSION is not set
 RUN if [[ ! $VERSION ]]; then echo "Required VERSION build argument not set" && exit 1; fi
@@ -30,12 +32,13 @@ RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https
 RUN go env -w GOPRIVATE=github.com/solo-io
 
 # Build rate-limit server with CGO enabled
-RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
+RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=${DOCKER_GOARCH} GOOS=linux go build \
     -gcflags="$GCFLAGS" \
     -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION $LDFLAGS" \
-    -o rate-limit-linux-amd64 \
+    -o rate-limit-linux-${DOCKER_GOARCH} \
     projects/rate-limit/cmd/main.go
 
 
 FROM alpine:3.13.10
-COPY --from=build-env /go/src/github.com/solo-io/solo-projects/rate-limit-linux-amd64 /
+ARG DOCKER_GOARCH
+COPY --from=build-env /go/src/github.com/solo-io/solo-projects/rate-limit-linux-${DOCKER_GOARCH} /

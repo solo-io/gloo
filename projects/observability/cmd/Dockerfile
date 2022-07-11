@@ -1,7 +1,8 @@
 FROM alpine:3.13.10
+ARG DOCKER_GOARCH
 
 RUN apk -U upgrade
-COPY observability-linux-amd64 /usr/local/bin/observability
+COPY observability-linux-${DOCKER_GOARCH} /usr/local/bin/observability
 
 USER 10101
 

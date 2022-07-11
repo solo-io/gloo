@@ -5,23 +5,31 @@
 CLI_PLUGINS_DIR=projects/glooctl-plugins
 WASM_CLI_PLUGIN_DIR=$(CLI_PLUGINS_DIR)/wasm
 
-.PHONY: glooctl-wasm-linux-amd64
-glooctl-wasm-linux-amd64: $(OUTPUT_DIR)/glooctl-wasm-linux-amd64
-$(OUTPUT_DIR)/glooctl-wasm-linux-amd64: $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(WASM_CLI_PLUGIN_DIR)/cmd/main.go
+UNAME_M ?=$(shell uname -m)
+GOARCH=amd64
+ifeq ($(UNAME_M),aarch64)
+	GOARCH=arm64
+else ifeq ($(UNAME_M),arm64)
+	GOARCH=arm64
+endif
 
-.PHONY: glooctl-wasm-darwin-amd64
-glooctl-wasm-darwin-amd64: $(OUTPUT_DIR)/glooctl-wasm-darwin-amd64
-$(OUTPUT_DIR)/glooctl-wasm-darwin-amd64: $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(WASM_CLI_PLUGIN_DIR)/cmd/main.go
+.PHONY: glooctl-wasm-linux-$(GOARCH)
+glooctl-wasm-linux-$(GOARCH): $(OUTPUT_DIR)/glooctl-wasm-linux-$(GOARCH)
+$(OUTPUT_DIR)/glooctl-wasm-linux-$(GOARCH): $(SOURCES)
+	CGO_ENABLED=0 GOARCH=$(GOARCH) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(WASM_CLI_PLUGIN_DIR)/cmd/main.go
 
-.PHONY: glooctl-wasm-windows-amd64
-glooctl-wasm-windows-amd64: $(OUTPUT_DIR)/glooctl-wasm-windows-amd64.exe
-$(OUTPUT_DIR)/glooctl-wasm-windows-amd64.exe: $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=windows go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(WASM_CLI_PLUGIN_DIR)/cmd/main.go
+.PHONY: glooctl-wasm-darwin-$(GOARCH)
+glooctl-wasm-darwin-$(GOARCH): $(OUTPUT_DIR)/glooctl-wasm-darwin-$(GOARCH)
+$(OUTPUT_DIR)/glooctl-wasm-darwin-$(GOARCH): $(SOURCES)
+	CGO_ENABLED=0 GOARCH=$(GOARCH) GOOS=darwin go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(WASM_CLI_PLUGIN_DIR)/cmd/main.go
+
+.PHONY: glooctl-wasm-windows-$(GOARCH)
+glooctl-wasm-windows-$(GOARCH): $(OUTPUT_DIR)/glooctl-wasm-windows-$(GOARCH).exe
+$(OUTPUT_DIR)/glooctl-wasm-windows-$(GOARCH).exe: $(SOURCES)
+	CGO_ENABLED=0 GOARCH=$(GOARCH) GOOS=windows go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(WASM_CLI_PLUGIN_DIR)/cmd/main.go
 
 .PHONY: build-wasm-cli
-build-wasm-cli: install-go-tools glooctl-wasm-linux-amd64 glooctl-wasm-darwin-amd64 glooctl-wasm-windows-amd64
+build-wasm-cli: install-go-tools glooctl-wasm-linux-$(GOARCH) glooctl-wasm-darwin-$(GOARCH) glooctl-wasm-windows-$(GOARCH)
 
 .PHONY: install-wasm-cli
 install-wasm-cli:
@@ -33,23 +41,23 @@ install-wasm-cli:
 CLI_PLUGINS_DIR=projects/glooctl-plugins
 FED_CLI_PLUGIN_DIR=$(CLI_PLUGINS_DIR)/fed
 
-.PHONY: glooctl-fed-linux-amd64
-glooctl-fed-linux-amd64: $(OUTPUT_DIR)/glooctl-fed-linux-amd64
-$(OUTPUT_DIR)/glooctl-fed-linux-amd64: $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(FED_CLI_PLUGIN_DIR)/cmd/main.go
+.PHONY: glooctl-fed-linux-$(GOARCH)
+glooctl-fed-linux-$(GOARCH): $(OUTPUT_DIR)/glooctl-fed-linux-$(GOARCH)
+$(OUTPUT_DIR)/glooctl-fed-linux-$(GOARCH): $(SOURCES)
+	CGO_ENABLED=0 GOARCH=$(GOARCH) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(FED_CLI_PLUGIN_DIR)/cmd/main.go
 
-.PHONY: glooctl-fed-darwin-amd64
-glooctl-fed-darwin-amd64: $(OUTPUT_DIR)/glooctl-fed-darwin-amd64
-$(OUTPUT_DIR)/glooctl-fed-darwin-amd64: $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(FED_CLI_PLUGIN_DIR)/cmd/main.go
+.PHONY: glooctl-fed-darwin-$(GOARCH)
+glooctl-fed-darwin-$(GOARCH): $(OUTPUT_DIR)/glooctl-fed-darwin-$(GOARCH)
+$(OUTPUT_DIR)/glooctl-fed-darwin-$(GOARCH): $(SOURCES)
+	CGO_ENABLED=0 GOARCH=$(GOARCH) GOOS=darwin go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(FED_CLI_PLUGIN_DIR)/cmd/main.go
 
-.PHONY: glooctl-fed-windows-amd64
-glooctl-fed-windows-amd64: $(OUTPUT_DIR)/glooctl-fed-windows-amd64.exe
-$(OUTPUT_DIR)/glooctl-fed-windows-amd64.exe: $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=windows go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(FED_CLI_PLUGIN_DIR)/cmd/main.go
+.PHONY: glooctl-fed-windows-$(GOARCH)
+glooctl-fed-windows-$(GOARCH): $(OUTPUT_DIR)/glooctl-fed-windows-$(GOARCH).exe
+$(OUTPUT_DIR)/glooctl-fed-windows-$(GOARCH).exe: $(SOURCES)
+	CGO_ENABLED=0 GOARCH=$(GOARCH) GOOS=windows go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(FED_CLI_PLUGIN_DIR)/cmd/main.go
 
 .PHONY: build-fed-cli
-build-fed-cli: install-go-tools glooctl-fed-linux-amd64 glooctl-fed-darwin-amd64 glooctl-fed-windows-amd64
+build-fed-cli: install-go-tools glooctl-fed-linux-$(GOARCH) glooctl-fed-darwin-$(GOARCH) glooctl-fed-windows-$(GOARCH)
 
 .PHONY: install-fed-cli
 install-fed-cli:
@@ -71,14 +79,14 @@ build-and-upload-gcs-release-assets: check-gsutil build-wasm-cli build-fed-cli
 # Only push assets if RELEASE is set to true
 ifeq ($(RELEASE), "true")
 	gsutil -m cp \
-	$(OUTPUT_DIR)/glooctl-wasm-linux-amd64 \
-	$(OUTPUT_DIR)/glooctl-wasm-darwin-amd64 \
-	$(OUTPUT_DIR)/glooctl-wasm-windows-amd64.exe \
+	$(OUTPUT_DIR)/glooctl-wasm-linux-$(GOARCH) \
+	$(OUTPUT_DIR)/glooctl-wasm-darwin-$(GOARCH) \
+	$(OUTPUT_DIR)/glooctl-wasm-windows-$(GOARCH).exe \
 	gs://$(GCS_BUCKET)/$(WASM_GCS_PATH)/$(VERSION)/
 	gsutil -m cp \
-	$(OUTPUT_DIR)/glooctl-fed-linux-amd64 \
-	$(OUTPUT_DIR)/glooctl-fed-darwin-amd64 \
-	$(OUTPUT_DIR)/glooctl-fed-windows-amd64.exe \
+	$(OUTPUT_DIR)/glooctl-fed-linux-$(GOARCH) \
+	$(OUTPUT_DIR)/glooctl-fed-darwin-$(GOARCH) \
+	$(OUTPUT_DIR)/glooctl-fed-windows-$(GOARCH).exe \
 	gs://$(GCS_BUCKET)/$(FED_GCS_PATH)/$(VERSION)/
 ifeq ($(ON_DEFAULT_BRANCH), "true")
 	# We're on latest default git branch, so push /latest and updated install script

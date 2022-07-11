@@ -11,3 +11,5 @@
 /_output
 !/_output/extauth/verify-plugins-linux-amd64
 !/_output/extauth_fips/verify-plugins-linux-amd64
+!/_output/extauth/verify-plugins-linux-arm64
+!/_output/extauth_fips/verify-plugins-linux-arm64

@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-projects/test/regressions"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -124,7 +125,7 @@ var _ = Describe("Kube2e: wasm", func() {
 			}
 
 			// Should still have a successful response
-			testHelper.CurlEventuallyShouldRespond(co, helper.SimpleHttpResponse, 1, 60*time.Second, 1*time.Second)
+			testHelper.CurlEventuallyShouldRespond(co, regressions.GetSimpleTestRunnerHttpResponse(), 1, 60*time.Second, 1*time.Second)
 
 			// Check for the header added by the wasm filter
 			testHelper.CurlEventuallyShouldOutput(co, wasmHeader, 1, 60*time.Second, 1*time.Second)

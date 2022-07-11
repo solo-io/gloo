@@ -86,7 +86,7 @@ var _ = Describe("Installing gloo with mtls enabled & scaled redis", func() {
 			Service:           defaults.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		}, helper.SimpleHttpResponse, 1, time.Minute*5)
+		}, regressions.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*5)
 	})
 
 })

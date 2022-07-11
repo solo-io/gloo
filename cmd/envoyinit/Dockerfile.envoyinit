@@ -1,7 +1,7 @@
 ARG ENVOY_IMAGE
 FROM $ENVOY_IMAGE
-
-COPY envoyinit-linux-amd64 /usr/local/bin/envoyinit
+ARG DOCKER_GOARCH
+COPY envoyinit-linux-${DOCKER_GOARCH} /usr/local/bin/envoyinit
 COPY docker-entrypoint.sh /
 
 ARG COMMIT=v3.2.0

@@ -171,7 +171,7 @@ steps:
   waitFor: ["docker-login", "yarn-build"]
   id: "push-docker-images"
 
-# go-make is produced from https://github.com/solo-io/cloud-builders/go-make
+# go-make is produced from https://github.com/solo-io/cloud-builders/tree/master/go-mod-make
 - name: "gcr.io/$PROJECT_ID/go-mod-make:0.4.9"
   args:
     [

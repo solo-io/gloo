@@ -7,6 +7,7 @@ ARG GC_FLAGS
 ARG VERIFY_SCRIPT
 ARG GITHUB_TOKEN
 ARG USE_APK
+ARG DOCKER_GOARCH
 
 # Fail if VERIFY_SCRIPT not set
 RUN if [[ ! $VERIFY_SCRIPT ]]; then echo "Required VERIFY_SCRIPT build argument not set" && exit 1; fi
@@ -21,7 +22,7 @@ RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https
 RUN go env -w GOPRIVATE=github.com/solo-io/ext-auth-service
 
 # Build plugins with CGO enabled
-RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags="$GC_FLAGS" \
+RUN CGO_ENABLED=1 GOARCH=${DOCKER_GOARCH} GOOS=linux go build -buildmode=plugin -gcflags="$GC_FLAGS" \
     -o projects/extauth/compiled-plugins/RequiredHeader.so projects/extauth/plugins/required_header/plugin.go
 
 # Verify that plugins can be loaded by GlooE
