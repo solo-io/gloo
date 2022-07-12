@@ -1,0 +1,17 @@
+changelog:
+  - dependencyOwner: curl
+    dependencyRepo: libcurl
+    dependencyTag: 7.79.0-r2
+    description: Updated libcurl to non-vulnerable version 7.79.0-r2
+    issueLink: https://github.com/solo-io/solo-projects/issues/3814
+    resolvesIssue: false
+    type: DEPENDENCY_BUMP
+  - dependencyOwner: curl
+    dependencyRepo: curl
+    dependencyTag: 7.79.0-r2
+    description: Updated curl to non-vulnerable version 7.79.0-r2
+    issueLink: https://github.com/solo-io/solo-projects/issues/3814
+    type: DEPENDENCY_BUMP
+    resolvesIssue: false
+
+

@@ -1,6 +1,9 @@
 FROM nginx:1.19.8-alpine
 
-RUN apk -U upgrade
+RUN apk -U upgrade \
+    && apk add --update-cache --upgrade --no-cache 'libcurl>=7.79.0-r2' \
+    && apk add --update-cache --upgrade --no-cache 'curl>=7.79.0-r2' \
+
 # Replace existing NGINX configuration
 RUN rm -rf /etc/nginx/conf.d /etc/nginx/nginx.conf
 COPY ./conf /etc/nginx
