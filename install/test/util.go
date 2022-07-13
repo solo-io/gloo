@@ -396,6 +396,11 @@ func ApplyPermissionsForGlooFedServiceAccounts(permissions *manifesttestutils.Se
 		[]string{"get", "list", "watch"})
 	permissions.AddExpectedPermission("gloo-system.gloo-fed",
 		"",
+		[]string{"gloo.solo.io"},
+		[]string{"settings"},
+		[]string{"get", "list", "watch"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed",
+		"",
 		[]string{"fed.enterprise.gloo.solo.io"},
 		[]string{"federatedauthconfigs", "federatedauthconfigs/status"},
 		[]string{"*"})
@@ -464,6 +469,11 @@ func ApplyPermissionsForGlooFedConsoleServiceAccounts(permissions *manifesttestu
 		"",
 		[]string{"apps"},
 		[]string{"deployments"},
+		[]string{"get", "list", "watch"})
+	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
+		"",
+		[]string{"gloo.solo.io"},
+		[]string{"settings"},
 		[]string{"get", "list", "watch"})
 	permissions.AddExpectedPermission("gloo-system.gloo-fed-console",
 		"",

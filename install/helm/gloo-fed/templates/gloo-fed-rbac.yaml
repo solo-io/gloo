@@ -8,6 +8,14 @@ metadata:
     app: gloo-fed
 rules:
 - apiGroups:
+  - gloo.solo.io
+  resources:
+  - settings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - fed.solo.io
   resources:
   - glooinstances
