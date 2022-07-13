@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	envoy_service_discovery_v3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
+	discoveryv3 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	gomock "github.com/golang/mock/gomock"
 	cache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 )
@@ -49,7 +49,7 @@ func (mr *MockSnapshotCacheMockRecorder) ClearSnapshot(arg0 interface{}) *gomock
 }
 
 // CreateWatch mocks base method.
-func (m *MockSnapshotCache) CreateWatch(arg0 envoy_service_discovery_v3.DiscoveryRequest) (chan cache.Response, func()) {
+func (m *MockSnapshotCache) CreateWatch(arg0 discoveryv3.DiscoveryRequest) (chan cache.Response, func()) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateWatch", arg0)
 	ret0, _ := ret[0].(chan cache.Response)
@@ -64,7 +64,7 @@ func (mr *MockSnapshotCacheMockRecorder) CreateWatch(arg0 interface{}) *gomock.C
 }
 
 // Fetch mocks base method.
-func (m *MockSnapshotCache) Fetch(arg0 context.Context, arg1 envoy_service_discovery_v3.DiscoveryRequest) (*cache.Response, error) {
+func (m *MockSnapshotCache) Fetch(arg0 context.Context, arg1 discoveryv3.DiscoveryRequest) (*cache.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Fetch", arg0, arg1)
 	ret0, _ := ret[0].(*cache.Response)
