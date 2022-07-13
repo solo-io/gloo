@@ -619,6 +619,9 @@ export class RedisOptions extends jspb.Message {
   getPoolSize(): number;
   setPoolSize(value: number): void;
 
+  getTlsCertMountPath(): string;
+  setTlsCertMountPath(value: string): void;
+
   getSocketType(): RedisOptions.SocketTypeMap[keyof RedisOptions.SocketTypeMap];
   setSocketType(value: RedisOptions.SocketTypeMap[keyof RedisOptions.SocketTypeMap]): void;
 
@@ -637,6 +640,7 @@ export namespace RedisOptions {
     host: string,
     db: number,
     poolSize: number,
+    tlsCertMountPath: string,
     socketType: RedisOptions.SocketTypeMap[keyof RedisOptions.SocketTypeMap],
   }
 

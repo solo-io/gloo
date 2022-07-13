@@ -360,7 +360,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.deployment.image.tag|string|1.12.0-beta29|The image tag for the container.|
+|gloo.gateway.deployment.image.tag|string|1.12.0-beta30|The image tag for the container.|
 |gloo.gateway.deployment.image.repository|string||The image repository (name) for the container.|
 |gloo.gateway.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
@@ -413,7 +413,7 @@
 |gloo.gateway.deployment.resources.requests.memory|string||amount of memory|
 |gloo.gateway.deployment.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.certGenJob.image.tag|string|1.12.0-beta29|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.12.0-beta30|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string||The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
@@ -1277,7 +1277,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.12.0-beta29|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.12.0-beta30|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string||The image repository (name) for the container.|
 |global.glooMtls.sds.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |global.glooMtls.sds.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
@@ -1353,6 +1353,8 @@
 |global.extensions.extAuth.deployment.extraVolumeMount[].NAME|interface||custom defined yaml for allowing extra volume mounts on the extauth container|
 |global.extensions.extAuth.deployment.podDisruptionBudget.minAvailable|int32||An eviction is allowed if at least "minAvailable" pods selected by "selector" will still be available after the eviction, i.e. even in the absence of the evicted pod. So for example you can prevent all voluntary evictions by specifying "100%".|
 |global.extensions.extAuth.deployment.podDisruptionBudget.maxUnavailable|int32||An eviction is allowed if at most "maxUnavailable" pods selected by "selector" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with "minAvailable".|
+|global.extensions.extAuth.deployment.redis.certs[].secretName|string||This is the name to the Opaque kubernetes secret containing the cert. The secret data key names should be 'ca.crt', 'tls.crt', and 'tls.key'.|
+|global.extensions.extAuth.deployment.redis.certs[].mountPath|string||Path used to mount the secret. This should be a unique path, for each secret.|
 |global.extensions.extAuth.deployment.replicas|int||number of instances to deploy|
 |global.extensions.extAuth.deployment.customEnv[].name|string|||
 |global.extensions.extAuth.deployment.customEnv[].value|string|||

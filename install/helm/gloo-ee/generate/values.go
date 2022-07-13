@@ -115,6 +115,11 @@ type Redis struct {
 	AclPrefix                 *string          `json:"aclPrefix,omitempty" desc:"The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password."`
 }
 
+type RedisMountCert struct {
+	SecretName string `json:"secretName" desc:"This is the name to the Opaque kubernetes secret containing the cert. The secret data key names should be 'ca.crt', 'tls.crt', and 'tls.key'."`
+	MountPath  string `json:"mountPath" desc:"Path used to mount the secret. This should be a unique path, for each secret."`
+}
+
 type RedisInitContainer struct {
 	Image *glooGen.Image `json:"image,omitempty"`
 }
@@ -220,8 +225,13 @@ type ExtAuthDeployment struct {
 	ExtraVolume         []map[string]interface{} `json:"extraVolume,omitempty" desc:"custom defined yaml for allowing extra volume on the extauth container"`
 	ExtraVolumeMount    []map[string]interface{} `json:"extraVolumeMount,omitempty" desc:"custom defined yaml for allowing extra volume mounts on the extauth container"`
 	PodDisruptionBudget *PodDisruptionBudget     `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the ExtAuth pods"`
+	Redis               *ExtAuthRedisConfig      `json:"redis,omitempty" desc:"this is the redis configurations."`
 	*glooGen.DeploymentSpec
 	*glooGen.KubeResourceOverride
+}
+
+type ExtAuthRedisConfig struct {
+	Certs *[]RedisMountCert `json:"certs,omitempty" desc:"Secrets that contain the TLS certificates."`
 }
 
 type ExtAuthService struct {

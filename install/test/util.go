@@ -7,6 +7,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+// ExpectContainer is used for helm containers. This will help with finding and expecting args and environments
 type ExpectContainer struct {
 	Containers []v1.Container
 	Name       string
@@ -20,24 +21,64 @@ func (c *ExpectContainer) ExpectToHaveEnv(envName, envValue, errorMsg string) {
 	Expect(c.hasEnvVar(envName, envValue)).To(BeTrue(), errorMsg)
 }
 
-func (ec *ExpectContainer) hasArgument(arg string) bool {
+func (ec *ExpectContainer) ExpectToHaveVolumeMount(name string) *v1.VolumeMount {
+	vm := ec.getVolumeMount(name)
+	Expect(vm).NotTo(BeNil())
+	return vm
+}
+
+func (ec *ExpectContainer) getContainer() *v1.Container {
 	for _, c := range ec.Containers {
 		if c.Name == ec.Name {
-			Expect(c.Args).To(ContainElement(arg))
-			return true
+			return &c
 		}
 	}
-	return false
+	return nil
+}
+
+func (ec *ExpectContainer) getVolumeMount(name string) *v1.VolumeMount {
+	c := ec.getContainer()
+	for _, vm := range c.VolumeMounts {
+		if vm.Name == name {
+			return &vm
+		}
+	}
+	return nil
+}
+
+func (ec *ExpectContainer) hasArgument(arg string) bool {
+	c := ec.getContainer()
+	if c == nil {
+		return false
+	}
+	Expect(c.Args).To(ContainElement(arg))
+	return true
 }
 
 func (ec *ExpectContainer) hasEnvVar(env, value string) bool {
-	for _, c := range ec.Containers {
-		if c.Name == ec.Name {
-			Expect(c.Env).To(ContainElement(v1.EnvVar{Name: env, Value: value}))
-			return true
+	c := ec.getContainer()
+	if c == nil {
+		return false
+	}
+	Expect(c.Env).To(ContainElement(v1.EnvVar{Name: env, Value: value}))
+	return true
+}
+
+type ExpectVolume struct {
+	Volumes []v1.Volume
+}
+
+func (ev *ExpectVolume) ExpectHasName(name string) {
+	Expect(ev.getByName(name)).ToNot(BeNil())
+}
+
+func (ev *ExpectVolume) getByName(name string) *v1.Volume {
+	for _, v := range ev.Volumes {
+		if v.Name == name {
+			return &v
 		}
 	}
-	return false
+	return nil
 }
 
 func GetGlooEServiceAccountPermissions(namespace string) *manifesttestutils.ServiceAccountPermissions {

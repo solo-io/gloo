@@ -4276,6 +4276,7 @@ proto.enterprise.gloo.solo.io.RedisOptions.toObject = function(includeInstance, 
     host: jspb.Message.getFieldWithDefault(msg, 1, ""),
     db: jspb.Message.getFieldWithDefault(msg, 2, 0),
     poolSize: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    tlsCertMountPath: jspb.Message.getFieldWithDefault(msg, 4, ""),
     socketType: jspb.Message.getFieldWithDefault(msg, 5, 0)
   };
 
@@ -4324,6 +4325,10 @@ proto.enterprise.gloo.solo.io.RedisOptions.deserializeBinaryFromReader = functio
     case 3:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setPoolSize(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTlsCertMountPath(value);
       break;
     case 5:
       var value = /** @type {!proto.enterprise.gloo.solo.io.RedisOptions.SocketType} */ (reader.readEnum());
@@ -4376,6 +4381,13 @@ proto.enterprise.gloo.solo.io.RedisOptions.serializeBinaryToWriter = function(me
   if (f !== 0) {
     writer.writeInt32(
       3,
+      f
+    );
+  }
+  f = message.getTlsCertMountPath();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -4439,6 +4451,21 @@ proto.enterprise.gloo.solo.io.RedisOptions.prototype.getPoolSize = function() {
 /** @param {number} value */
 proto.enterprise.gloo.solo.io.RedisOptions.prototype.setPoolSize = function(value) {
   jspb.Message.setProto3IntField(this, 3, value);
+};
+
+
+/**
+ * optional string tls_cert_mount_path = 4;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.RedisOptions.prototype.getTlsCertMountPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.RedisOptions.prototype.setTlsCertMountPath = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
 };
 
 

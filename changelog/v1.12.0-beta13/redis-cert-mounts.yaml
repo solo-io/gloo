@@ -1,0 +1,27 @@
+changelog:
+  - type: NEW_FEATURE
+    description: |
+      Redis TLS connection enabled with OAuth API redis options SocketType set to 
+      TLS, and added certificates "ca.crt", "tls.crt", and "tls.key"
+      to the TlsCertMountPath. As stated for client certificate authentication 
+      [here in the redis setup manual](https://redis.io/docs/manual/security/encryption/#client-certificate-authentication).
+      Setting the helm values for "global.extensions.extAuth.deployment.redis.certs"
+      both the "secretName" and "mountPath", will mount the secret to the ext-auth deployment.
+      The secret needs to contain at least "ca.crt" for enabling the RootCA.
+      Add "tls.crt", and "key.crt" files for adding the certificate.
+      In addition the mountPath has to be added to the API OAuth Redis Options
+      under the "TlsCertMountPath" option.
+    issueLink: https://github.com/solo-io/gloo/issues/6496
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.12.0-beta30
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.12.0-beta30
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.20.9

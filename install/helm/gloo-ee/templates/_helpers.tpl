@@ -184,7 +184,7 @@ Expand the name of the chart.
     - name: http-monitoring
       containerPort: 9091
   {{- end }}
-{{- if or $extAuth.deployment.extraVolumeMount (or $extAuth.plugins (eq $extAuthMode "sidecar")) }}
+{{- if or $extAuth.deployment.extraVolumeMount (or $extAuth.plugins (or (eq $extAuthMode "sidecar") (($extAuth.deployment.redis).certs))) }}
   volumeMounts:
   {{- if $extAuth.deployment.extraVolumeMount }}
    {{- toYaml $extAuth.deployment.extraVolumeMount | nindent 2 }}
@@ -197,8 +197,14 @@ Expand the name of the chart.
   - name: auth-plugins
     mountPath: /auth-plugins
   {{- end }}
-  {{- end }}
-{{- end }}
+  {{- if (($extAuth.deployment.redis).certs) }}
+  {{- range $extAuth.deployment.redis.certs }}
+  - mountPath: {{ .mountPath }}
+    name: user-session-cert-{{ .secretName }}
+  {{- end }}{{/* range $extAuth.deployment.redis.certs */}}
+  {{- end }}{{/* $extAuth.deployment.redis */}}   
+  {{- end }}{{/* if or volumeMounts */}}
+{{- end }}{{/* define "gloo.extauthcontainer" */}}
 
 {{/* Helper used to properly set the ProxiesToCreateDataplaneFor value at the top scope.
      This exists because we need to iterate over the provided proxies if the `dataplanePerProxy`

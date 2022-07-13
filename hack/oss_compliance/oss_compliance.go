@@ -9,6 +9,11 @@ import (
 
 func main() {
 	// dependencies for this package which are used on mac, and will not be present in linux CI
+	// if having problems run `go -e list ./...` this should output values
+	// you may have to use `go mod tidy`
+	// you may also have to reinstall the packages in the node modules
+	// `make install-node-packages`
+	// `yarn --cwd projects/ui install`
 	macOnlyDependencies := []string{
 		"github.com/mitchellh/go-homedir",
 		"github.com/containerd/continuity",

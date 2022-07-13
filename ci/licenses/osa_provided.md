@@ -17,7 +17,6 @@ Name|Version|License
 [go-logr/zapr](https://github.com/go-logr/zapr)|v0.4.0|Apache License 2.0
 [go-openapi/inflect](https://github.com/go-openapi/inflect)|v0.19.0|MIT License
 [go-openapi/swag](https://github.com/go-openapi/swag)|v0.19.15|Apache License 2.0
-[redis/v8](https://github.com/go-redis/redis)|v8.11.4|BSD 2-clause "Simplified" License
 [go-test/deep](https://github.com/go-test/deep)|v1.0.7|MIT License
 [gobuffalo/packr](https://github.com/gobuffalo/packr)|v1.30.1|MIT License
 [golang/protobuf](https://github.com/golang/protobuf)|v1.5.2|BSD 3-clause "New" or "Revised" License

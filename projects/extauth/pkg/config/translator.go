@@ -12,11 +12,9 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/duration"
+	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
 	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
 
-	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
-
-	"github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	errors "github.com/rotisserie/eris"
@@ -32,10 +30,12 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/opa"
 	grpcPassthrough "github.com/solo-io/ext-auth-service/pkg/config/passthrough/grpc"
 	httpPassthrough "github.com/solo-io/ext-auth-service/pkg/config/passthrough/http"
+	extRedis "github.com/solo-io/ext-auth-service/pkg/redis"
 	"github.com/solo-io/ext-auth-service/pkg/session"
 	redissession "github.com/solo-io/ext-auth-service/pkg/session/redis"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/go-utils/contextutils"
+	extauthSoloApis "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	"go.uber.org/zap"
 )
 
@@ -479,15 +479,11 @@ func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, time
 		return nil, false, 0, nil
 	case *extauthv1.UserSession_Redis:
 		options := s.Redis.GetOptions()
-		opts := &redis.UniversalOptions{
-			Addrs:    []string{options.GetHost()},
-			DB:       int(options.GetDb()),
-			PoolSize: int(options.GetPoolSize()),
-			Password: os.Getenv("REDIS_PASSWORD"),
+		client, err := extRedis.NewRedisUniversalClient(getSoloApisRedisOptions(options))
+		// there is an error creating the TLS Config
+		if err != nil {
+			return nil, false, 0, err
 		}
-
-		client := redis.NewUniversalClient(opts)
-
 		rs := redissession.NewRedisSession(client, s.Redis.CookieName, s.Redis.KeyPrefix)
 
 		allowRefreshing := true
@@ -610,4 +606,17 @@ func ToOnDemandCacheRefreshPolicy(policy *extauthv1.JwksOnDemandCacheRefreshPoli
 
 func ToAutoMapFromMetadata(autoMapFromMetadata *extauthv1.AutoMapFromMetadata) *oidc.AutoMapFromMetadata {
 	return oidc.NewAutoMapFromMetadata(autoMapFromMetadata.GetNamespace())
+}
+
+func getSoloApisRedisOptions(options *extauthv1.RedisOptions) *extauthSoloApis.RedisOptions {
+	if options == nil {
+		return nil
+	}
+	return &extauthSoloApis.RedisOptions{
+		Host:             options.GetHost(),
+		Db:               options.GetDb(),
+		PoolSize:         options.GetPoolSize(),
+		TlsCertMountPath: options.GetTlsCertMountPath(),
+		SocketType:       extauthSoloApis.RedisOptions_SocketType(options.GetSocketType()),
+	}
 }

@@ -45,7 +45,7 @@ spec:
       {{- end }}{{/* $extAuth.deployment.stats */}}
     spec:
       serviceAccountName: {{ $extAuth.service.name }}
-      {{- if or $extAuth.deployment.extraVolume (or $extAuth.plugins .Values.global.glooMtls.enabled)}}
+      {{- if or $extAuth.deployment.extraVolume (or $extAuth.plugins (or .Values.global.glooMtls.enabled (($extAuth.deployment.redis).certs)))}}
       volumes:
       {{- if $extAuth.deployment.extraVolume }}
         {{- toYaml $extAuth.deployment.extraVolume | nindent 6 }}
@@ -59,6 +59,14 @@ spec:
         configMap:
           name: extauth-sidecar-config
       {{- end }} {{/* .Values.global.glooMtls.enabled */}}
+      {{- if (($extAuth.deployment.redis).certs) }}
+      {{- range $extAuth.deployment.redis.certs }}
+      - name: user-session-cert-{{ .secretName }}
+        secret:
+          secretName: {{ .secretName | quote }}
+          defaultMode: 420
+      {{- end }}{{/* range $extAuth.deployment.redis.certs */}}
+      {{- end }}
       {{- if $extAuth.plugins }}
       {{- include "gloo.extauthpluginvolume" . | nindent 6 }}
       initContainers:
@@ -109,7 +117,7 @@ spec:
         resources:
 {{ toYaml .Values.global.glooMtls.sdsResources | indent 10}}
         {{- end}}
-      {{- end }}
+      {{- end }}{{/* if .Values.global.glooMtls.enabled */}}
       securityContext:
         runAsNonRoot: true
         {{- if not $extAuth.deployment.floatingUserId }}
