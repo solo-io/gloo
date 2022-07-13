@@ -7,13 +7,13 @@ require (
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.36.30
 	github.com/deislabs/oras v0.10.0
-	github.com/envoyproxy/go-control-plane v0.9.9-0.20210511190911-87d352569d55
+	github.com/envoyproxy/go-control-plane v0.10.2-0.20220325020618-49ff273808a1
 	github.com/envoyproxy/protoc-gen-validate v0.6.1
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
 	github.com/gertd/go-pluralize v0.1.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
-	github.com/go-logr/logr v0.4.0
+	github.com/go-logr/logr v1.2.3
 	github.com/go-logr/zapr v0.2.0
 	github.com/go-redis/redis/v8 v8.2.3
 	github.com/go-test/deep v1.0.7
@@ -33,7 +33,7 @@ require (
 	github.com/onsi/gomega v1.10.5
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.9.0
+	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/radovskyb/watcher v1.0.7 // indirect
@@ -61,17 +61,17 @@ require (
 	github.com/solo-io/solo-kit v0.24.6
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
-	github.com/spf13/cobra v1.1.3
+	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/tredoe/osutil v0.0.0-20191018075336-e272fdda81c8 // indirect
 	go.opencensus.io v0.23.0
-	go.uber.org/zap v1.16.0
+	go.uber.org/zap v1.17.0
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
 	golang.org/x/net v0.0.0-20220630215102-69896b714898
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/tools v0.1.11
-	google.golang.org/grpc v1.36.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/grpc v1.46.0
+	google.golang.org/protobuf v1.28.0
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	helm.sh/helm/v3 v3.4.2
@@ -99,13 +99,20 @@ replace (
 	// used by github.com/deislabs/oras v0.10.0
 	github.com/docker/distribution => github.com/docker/distribution v2.7.0-rc.0+incompatible
 	github.com/docker/docker => github.com/moby/moby v20.10.14+incompatible
+	github.com/envoyproxy/go-control-plane => github.com/envoyproxy/go-control-plane v0.9.9-0.20210511190911-87d352569d55
+
+	//Pin to fix OP v0.29.4 vulnerability
+	github.com/go-logr/logr => github.com/go-logr/logr v0.4.0
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 	// needed by gloo
 	github.com/google/go-github/v32 => github.com/google/go-github/v32 v32.0.0
+	github.com/open-policy-agent/opa => github.com/open-policy-agent/opa v0.40.0
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.0-rc1
+	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.9.0
 	// skv2 uses a newer version than the imported solo-kit version which causes issues. Replaces the version with the solo-kit version
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
+	go.opentelemetry.io/otel => go.opentelemetry.io/otel v0.11.0
 	// pin to fix CVE-2022-27191
 	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 

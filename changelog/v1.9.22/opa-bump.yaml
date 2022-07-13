@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: open-policy-agent
+    dependencyRepo: opa
+    dependencyTag: v0.40.0
+    issueLink: https://github.com/solo-io/solo-projects/issues/3814
