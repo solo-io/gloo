@@ -16,12 +16,17 @@ const (
 	apiExplorerEnabledDefault = true
 )
 
-// Returns the console (UI) options from the current Gloo Edge installation's settings.
-func GetConsoleOptions(ctx context.Context, settingsClient gloo_v1.SettingsClient) (*rpc_edge_v1.ConsoleOptions, error) {
-	settings, err := settingsClient.GetSettings(ctx, client.ObjectKey{
+// Returns the Settings from the current Gloo Edge installation.
+func GetSettings(ctx context.Context, settingsClient gloo_v1.SettingsClient) (*gloo_v1.Settings, error) {
+	return settingsClient.GetSettings(ctx, client.ObjectKey{
 		Namespace: GetInstallNamespace(),
 		Name:      defaults.SettingsName,
 	})
+}
+
+// Returns the console (UI) options from the current Gloo Edge installation's settings.
+func GetConsoleOptions(ctx context.Context, settingsClient gloo_v1.SettingsClient) (*rpc_edge_v1.ConsoleOptions, error) {
+	settings, err := GetSettings(ctx, settingsClient)
 	if err != nil {
 		return nil, err
 	}

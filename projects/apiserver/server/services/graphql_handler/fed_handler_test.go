@@ -2,7 +2,7 @@ package graphql_handler_test
 
 import (
 	"context"
-	"io/ioutil"
+	"os"
 
 	"github.com/ghodss/yaml"
 	"github.com/golang/mock/gomock"
@@ -87,7 +87,7 @@ var _ = Describe("fed graphql handler", func() {
 
 	Context("GetGraphqlApi", func() {
 		It("can get graphql api by ref", func() {
-			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
+			petstoreYaml, err := os.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
 			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
@@ -116,7 +116,7 @@ var _ = Describe("fed graphql handler", func() {
 
 	Context("GetGraphqlApiYaml", func() {
 		It("can get graphql api yaml", func() {
-			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
+			petstoreYaml, err := os.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
 			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
@@ -138,19 +138,19 @@ var _ = Describe("fed graphql handler", func() {
 
 	Context("ListGraphqlApis", func() {
 		It("can list graphql apis", func() {
-			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
+			petstoreYaml, err := os.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
 			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
-			bookinfoYaml, err := ioutil.ReadFile("graphql_test_data/bookinfo.yaml")
+			bookinfoYaml, err := os.ReadFile("graphql_test_data/bookinfo.yaml")
 			Expect(err).NotTo(HaveOccurred())
 			bookinfoGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(bookinfoYaml, bookinfoGraphqlApi)
 			Expect(err).NotTo(HaveOccurred())
 
-			stitchedYaml, err := ioutil.ReadFile("graphql_test_data/stitched.yaml")
+			stitchedYaml, err := os.ReadFile("graphql_test_data/stitched.yaml")
 			Expect(err).NotTo(HaveOccurred())
 			stitchedGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(stitchedYaml, stitchedGraphqlApi)
@@ -211,7 +211,7 @@ var _ = Describe("fed graphql handler", func() {
 
 	Context("CreateGraphqlApi", func() {
 		It("can create a graphqlapi", func() {
-			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
+			petstoreYaml, err := os.ReadFile("graphql_test_data/petstore.yaml")
 			Expect(err).NotTo(HaveOccurred())
 			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
 			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
@@ -257,21 +257,20 @@ var _ = Describe("fed graphql handler", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Cannot perform update: UI is read-only."))
 		})
-	})
-
-	Context("UpdateGraphqlApi", func() {
-		It("can update a graphqlapi", func() {
-			petstoreYaml, err := ioutil.ReadFile("graphql_test_data/petstore.yaml")
-			Expect(err).NotTo(HaveOccurred())
-			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
-			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
-			Expect(err).NotTo(HaveOccurred())
-
-			bookinfoYaml, err := ioutil.ReadFile("graphql_test_data/bookinfo.yaml")
-			Expect(err).NotTo(HaveOccurred())
-			bookinfoGraphqlApi := &graphql_v1beta1.GraphQLApi{}
-			err = yaml.Unmarshal(bookinfoYaml, bookinfoGraphqlApi)
-			Expect(err).NotTo(HaveOccurred())
+		It("cannot create graphqlapi if validation fails", func() {
+			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{
+				Spec: graphql_v1beta1.GraphQLApiSpec{
+					Schema: &graphql_v1beta1.GraphQLApiSpec_ExecutableSchema{
+						ExecutableSchema: &graphql_v1beta1.ExecutableSchema{
+							SchemaDefinition: `
+	type Query {
+		productsForHome: asdfas[Product]
+	}
+`,
+						},
+					},
+				},
+			}
 
 			mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
 				Spec: gloo_v1.SettingsSpec{
@@ -280,6 +279,48 @@ var _ = Describe("fed graphql handler", func() {
 					},
 				},
 			}, nil)
+
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
+			_, err := handler.CreateGraphqlApi(ctx, &rpc_edge_v1.CreateGraphqlApiRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
+				Spec:          &petstoreGraphqlApi.Spec,
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("unable to parse graphql schema"))
+		})
+	})
+
+	Context("UpdateGraphqlApi", func() {
+		It("can update a graphqlapi", func() {
+			petstoreYaml, err := os.ReadFile("graphql_test_data/petstore.yaml")
+			Expect(err).NotTo(HaveOccurred())
+			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
+			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
+			Expect(err).NotTo(HaveOccurred())
+
+			updatedPetstoreGraphqlApi := petstoreGraphqlApi.DeepCopy()
+			updatedPetstoreGraphqlApi.Spec.GetExecutableSchema().SchemaDefinition = `
+      type Query {
+        productsForHome: [Product]
+      }
+
+      type Product {
+        "this is an id description"
+        id: String
+        "this is an author description"
+        author: String
+		"this is a new field"
+		newField: String
+      }
+`
+
+			mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
+				Spec: gloo_v1.SettingsSpec{
+					ConsoleOptions: &gloo_v1.ConsoleOptions{
+						ReadOnly: &wrappers.BoolValue{Value: false},
+					},
+				},
+			}, nil).AnyTimes()
 			mockGraphqlApiClient1.EXPECT().GetGraphQLApi(ctx, gomock.Any()).Return(petstoreGraphqlApi, nil)
 			mockGraphqlApiClient1.EXPECT().UpdateGraphQLApi(ctx, gomock.Any()).Return(nil)
 
@@ -287,14 +328,14 @@ var _ = Describe("fed graphql handler", func() {
 			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
 			resp, err := handler.UpdateGraphqlApi(ctx, &rpc_edge_v1.UpdateGraphqlApiRequest{
 				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
-				Spec:          &bookinfoGraphqlApi.Spec,
+				Spec:          &updatedPetstoreGraphqlApi.Spec,
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp).To(Equal(&rpc_edge_v1.UpdateGraphqlApiResponse{
 				GraphqlApi: &rpc_edge_v1.GraphqlApi{
 					Metadata:     &rpc_edge_v1.ObjectMeta{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
-					Spec:         &bookinfoGraphqlApi.Spec,
-					Status:       &petstoreGraphqlApi.Status,
+					Spec:         &updatedPetstoreGraphqlApi.Spec,
+					Status:       &updatedPetstoreGraphqlApi.Status,
 					GlooInstance: &skv2_v1.ObjectRef{Name: "local-test", Namespace: "gloo-system"},
 				},
 			}))
@@ -332,6 +373,89 @@ var _ = Describe("fed graphql handler", func() {
 			})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Cannot edit a graphqlapi that does not exist: not found!"))
+		})
+		It("cannot update graphqlapi if validation fails", func() {
+			petstoreYaml, err := os.ReadFile("graphql_test_data/petstore.yaml")
+			Expect(err).NotTo(HaveOccurred())
+			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
+			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
+			Expect(err).NotTo(HaveOccurred())
+
+			updatedPetstoreGraphqlApi := petstoreGraphqlApi.DeepCopy()
+			updatedPetstoreGraphqlApi.Spec.GetExecutableSchema().SchemaDefinition = `
+      type Query {
+        productsForHome: asdfasdf[Product]
+      }
+
+      type Product {
+        "this is an id description"
+        id: String
+        "this is an author description"
+        author: String
+      }
+`
+
+			mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
+				Spec: gloo_v1.SettingsSpec{
+					ConsoleOptions: &gloo_v1.ConsoleOptions{
+						ReadOnly: &wrappers.BoolValue{Value: false},
+					},
+				},
+			}, nil)
+			mockGraphqlApiClient1.EXPECT().GetGraphQLApi(ctx, gomock.Any()).Return(petstoreGraphqlApi, nil)
+
+			// change spec
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
+			_, err = handler.UpdateGraphqlApi(ctx, &rpc_edge_v1.UpdateGraphqlApiRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
+				Spec:          &updatedPetstoreGraphqlApi.Spec,
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("unable to parse graphql schema"))
+		})
+		It("cannot update graphqlapi with breaking changes", func() {
+			petstoreYaml, err := os.ReadFile("graphql_test_data/petstore.yaml")
+			Expect(err).NotTo(HaveOccurred())
+			petstoreGraphqlApi := &graphql_v1beta1.GraphQLApi{}
+			err = yaml.Unmarshal(petstoreYaml, petstoreGraphqlApi)
+			Expect(err).NotTo(HaveOccurred())
+
+			updatedPetstoreGraphqlApi := petstoreGraphqlApi.DeepCopy()
+			// a field was removed from Product, which is a breaking change
+			updatedPetstoreGraphqlApi.Spec.GetExecutableSchema().SchemaDefinition = `
+      type Query {
+        productsForHome: [Product]
+      }
+
+      type Product {
+        "this is an id description"
+        id: String
+      }
+`
+			mockSettingsClient.EXPECT().GetSettings(ctx, gomock.Any()).Return(&gloo_v1.Settings{
+				Spec: gloo_v1.SettingsSpec{
+					ConsoleOptions: &gloo_v1.ConsoleOptions{
+						ReadOnly: &wrappers.BoolValue{Value: false},
+					},
+					GraphqlOptions: &gloo_v1.GraphqlOptions{
+						SchemaChangeValidationOptions: &gloo_v1.GraphqlOptions_SchemaChangeValidationOptions{
+							RejectBreakingChanges: &wrappers.BoolValue{
+								Value: true,
+							},
+						},
+					},
+				},
+			}, nil).AnyTimes()
+			mockGraphqlApiClient1.EXPECT().GetGraphQLApi(ctx, gomock.Any()).Return(petstoreGraphqlApi, nil)
+
+			// change spec
+			handler := graphql_handler.NewFedGraphqlHandler(mockGlooInstanceClient, mockSettingsClient, mockMCClientset)
+			_, err = handler.UpdateGraphqlApi(ctx, &rpc_edge_v1.UpdateGraphqlApiRequest{
+				GraphqlApiRef: &skv2_v1.ClusterObjectRef{Name: "petstore", Namespace: "ns", ClusterName: "local-cluster"},
+				Spec:          &updatedPetstoreGraphqlApi.Spec,
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Rejected graphqlapi update due to validation error"))
 		})
 	})
 

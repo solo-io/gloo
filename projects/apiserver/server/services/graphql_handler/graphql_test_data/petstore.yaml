@@ -35,5 +35,15 @@ spec:
               upstreamRef:
                 name: upstream3
                 namespace: gloo-system
-    schemaDefinition: "this is my schemadef"
+    schemaDefinition: |
+      type Query {
+        productsForHome: [Product]
+      }
+
+      type Product {
+        "this is an id description"
+        id: String
+        "this is an author description"
+        author: String
+      }
 status: {}

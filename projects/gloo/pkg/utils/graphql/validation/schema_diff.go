@@ -1,4 +1,4 @@
-package translation
+package validation
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/rotisserie/eris"
 	enterprisev1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/enterprise/graphql/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
 )
 
 func GetSchemaDiff(input *enterprisev1.GraphQLInspectorDiffInput) (*enterprisev1.GraphQLInspectorDiffOutput, error) {
@@ -16,14 +17,14 @@ func GetSchemaDiff(input *enterprisev1.GraphQLInspectorDiffInput) (*enterprisev1
 	if err != nil {
 		return nil, eris.Wrapf(err, "error marshaling to binary data")
 	}
-	jsPath := GetGraphqlJsRoot()
+	jsPath := translation.GetGraphqlJsRoot()
 	cmd := exec.Command("node", jsPath+"schema-diff.js", base64.StdEncoding.EncodeToString(inputBytes))
 
-	protoPath, err := GetGraphqlProtoRoot()
+	protoPath, err := translation.GetGraphqlProtoRoot()
 	if err != nil {
 		return nil, err
 	}
-	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", GraphqlProtoRootEnvVar, protoPath))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", translation.GraphqlProtoRootEnvVar, protoPath))
 	stdOutBuf := bytes.NewBufferString("")
 	stdErrBuf := bytes.NewBufferString("")
 	cmd.Stdout = stdOutBuf

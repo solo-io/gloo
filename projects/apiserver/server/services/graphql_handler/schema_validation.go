@@ -1,12 +1,45 @@
 package graphql_handler
 
 import (
+	"context"
+
 	"github.com/graphql-go/graphql/language/parser"
 	"github.com/rotisserie/eris"
+	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	graphql_v1beta1 "github.com/solo-io/solo-apis/pkg/api/graphql.gloo.solo.io/v1beta1"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
+	"github.com/solo-io/solo-projects/projects/apiserver/server/apiserverutils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/directives"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/validation"
 )
+
+// Validates that the new schema definition is valid, and that there are no breaking changes between the old
+// and new schema (unless settings policy allows breaking changes)
+func ValidateGraphqlApiUpdate(
+	ctx context.Context,
+	settingsClient gloo_v1.SettingsClient,
+	oldGraphqlApi *graphql_v1beta1.GraphQLApi,
+	newSpec *graphql_v1beta1.GraphQLApiSpec) error {
+
+	// validate the new schema def
+	err := ValidateSchemaDefinition(&rpc_edge_v1.ValidateSchemaDefinitionRequest{
+		Input: &rpc_edge_v1.ValidateSchemaDefinitionRequest_Spec{
+			Spec: newSpec,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	// validate that the change is not breaking
+	oldSchemaDef := oldGraphqlApi.Spec.GetExecutableSchema().GetSchemaDefinition()
+	newSchemaDef := newSpec.GetExecutableSchema().GetSchemaDefinition()
+	settings, err := apiserverutils.GetSettings(ctx, settingsClient)
+	if err != nil {
+		return err
+	}
+	return validation.ValidateSchemaUpdate(oldSchemaDef, newSchemaDef, settings)
+}
 
 func ValidateSchemaDefinition(req *rpc_edge_v1.ValidateSchemaDefinitionRequest) error {
 	switch req.GetInput().(type) {

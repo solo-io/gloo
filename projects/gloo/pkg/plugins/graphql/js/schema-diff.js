@@ -1,6 +1,6 @@
 #!/usr/local/bin/node
 
-const { diff, CriticalityLevel } = require('@graphql-inspector/core');
+const { diff, DiffRule, CriticalityLevel } = require('@graphql-inspector/core');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { msgToBase64String, base64StringToMsg } = require('./conversion');
 
@@ -36,6 +36,8 @@ const {
   GraphQLInspectorDiffOutput,
 } = require(protoImportPath +
   'github.com/solo-io/solo-projects/projects/gloo/api/enterprise/graphql/v1/diff_pb');
+const { GraphqlOptions } = require(protoImportPath +
+  'github.com/solo-io/solo-apis/api/gloo/gloo/v1/settings_pb');
 
 // the input to this script should be deserializable into a GraphQLInspectorDiffInput message
 const input = process.argv[2];
@@ -45,15 +47,18 @@ const inMsg = base64StringToMsg(
 );
 const oldSchemaStr = directiveDefinitions + inMsg.getOldSchema();
 const newSchemaStr = directiveDefinitions + inMsg.getNewSchema();
+const ruleEnums = inMsg.getRulesList();
 
+// convert to diff function input
 const oldSchema = makeExecutableSchema({
   typeDefs: oldSchemaStr,
 });
 const newSchema = makeExecutableSchema({
   typeDefs: newSchemaStr,
 });
+const rules = ruleEnums?.length ? ruleEnums.map(convertRuleFromMsg) : [];
 
-diff(oldSchema, newSchema)
+diff(oldSchema, newSchema, rules)
   .then(changes => {
     // sort by criticality level (breaking -> non-dangerous -> breaking), then by path, then by change type
     changes.sort((change1, change2) => {
@@ -81,9 +86,31 @@ diff(oldSchema, newSchema)
     // This is the stdout output that the control plane reads to get the GraphQLInspectorDiffOutput message
     console.log(msgToBase64String(output));
   })
-  .catch(err => console.error(err));
+  .catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
 
 // message conversion functions
+function convertRuleFromMsg(ruleMsg) {
+  switch (ruleMsg) {
+    case GraphqlOptions.SchemaChangeValidationOptions.ProcessingRule
+      .RULE_DANGEROUS_TO_BREAKING:
+      return DiffRule.dangerousBreaking;
+    case GraphqlOptions.SchemaChangeValidationOptions.ProcessingRule
+      .RULE_DEPRECATED_FIELD_REMOVAL_DANGEROUS:
+      return DiffRule.suppressRemovalOfDeprecatedField;
+    case GraphqlOptions.SchemaChangeValidationOptions.ProcessingRule
+      .RULE_IGNORE_DESCRIPTION_CHANGES:
+      return DiffRule.ignoreDescriptionChanges;
+    // TODO support RULE_IGNORE_UNREACHABLE -> safeUnreachable when https://github.com/kamilkisiela/graphql-inspector/issues/2063 is fixed
+    // tracking issue here https://github.com/solo-io/solo-projects/issues/3853
+    default:
+      console.error('unexpected rule: ' + ruleMsg);
+      process.exit(1);
+  }
+}
+
 function convertChangeToMsg(change) {
   const changeMsg = new GraphQLInspectorDiffOutput.Change();
   changeMsg.setMessage(change.message);

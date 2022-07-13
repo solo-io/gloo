@@ -1,0 +1,5 @@
+changelog:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/solo-projects/issues/3431
+  description: Validate GraphQL schema updates using graphql settings.
+  resolvesIssue: false

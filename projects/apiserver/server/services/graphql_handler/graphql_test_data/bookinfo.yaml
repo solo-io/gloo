@@ -76,5 +76,5 @@ spec:
               upstreamRef:
                 name: default-details-9080
                 namespace: gloo-system
-    schema_definition: bookinfo schema def
+    schemaDefinition: bookinfo schema def
 status: {}

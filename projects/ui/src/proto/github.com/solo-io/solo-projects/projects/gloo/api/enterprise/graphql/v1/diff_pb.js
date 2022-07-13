@@ -12,6 +12,7 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_settings_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/settings_pb.js');
 goog.exportSymbol('proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput', null, global);
 goog.exportSymbol('proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffOutput', null, global);
 goog.exportSymbol('proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffOutput.Change', null, global);
@@ -29,12 +30,19 @@ goog.exportSymbol('proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffOut
  * @constructor
  */
 proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.repeatedFields_, null);
 };
 goog.inherits(proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.displayName = 'proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.repeatedFields_ = [3];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -65,7 +73,8 @@ proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.prototype.toObje
 proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.toObject = function(includeInstance, msg) {
   var f, obj = {
     oldSchema: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    newSchema: jspb.Message.getFieldWithDefault(msg, 2, "")
+    newSchema: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    rulesList: jspb.Message.getRepeatedField(msg, 3)
   };
 
   if (includeInstance) {
@@ -110,6 +119,10 @@ proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.deserializeBinar
       var value = /** @type {string} */ (reader.readString());
       msg.setNewSchema(value);
       break;
+    case 3:
+      var value = /** @type {!Array<!proto.gloo.solo.io.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRule>} */ (reader.readPackedEnum());
+      msg.setRulesList(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -153,6 +166,13 @@ proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.serializeBinaryT
       f
     );
   }
+  f = message.getRulesList();
+  if (f.length > 0) {
+    writer.writePackedEnum(
+      3,
+      f
+    );
+  }
 };
 
 
@@ -183,6 +203,35 @@ proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.prototype.getNew
 /** @param {string} value */
 proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.prototype.setNewSchema = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * repeated gloo.solo.io.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRule rules = 3;
+ * @return {!Array<!proto.gloo.solo.io.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRule>}
+ */
+proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.prototype.getRulesList = function() {
+  return /** @type {!Array<!proto.gloo.solo.io.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRule>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/** @param {!Array<!proto.gloo.solo.io.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRule>} value */
+proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.prototype.setRulesList = function(value) {
+  jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!proto.gloo.solo.io.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRule} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.prototype.addRules = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+proto.enterprise.graphql.gloo.solo.io.GraphQLInspectorDiffInput.prototype.clearRulesList = function() {
+  this.setRulesList([]);
 };
 
 

@@ -223,6 +223,18 @@ func (h *singleClusterGraphqlHandler) CreateGraphqlApi(ctx context.Context, requ
 		return nil, eris.Errorf("graphqlapi spec missing from request: %v", request)
 	}
 
+	// make sure the schema definition is valid before we save anything
+	err = ValidateSchemaDefinition(&rpc_edge_v1.ValidateSchemaDefinitionRequest{
+		Input: &rpc_edge_v1.ValidateSchemaDefinitionRequest_SchemaDefinition{
+			SchemaDefinition: request.GetSpec().GetExecutableSchema().GetSchemaDefinition(),
+		},
+	})
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Rejected graphqlapi creation due to validation error")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
 	graphqlApi := &graphql_v1beta1.GraphQLApi{
 		ObjectMeta: apiserverutils.RefToObjectMeta(*request.GetGraphqlApiRef()),
 		Spec:       *request.GetSpec(),
@@ -277,6 +289,15 @@ func (h *singleClusterGraphqlHandler) UpdateGraphqlApi(ctx context.Context, requ
 		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
+
+	// make sure the new schema definition is valid before we save anything
+	err = ValidateGraphqlApiUpdate(ctx, h.settingsClient, graphqlApi, request.GetSpec())
+	if err != nil {
+		wrapped := eris.Wrapf(err, "Rejected graphqlapi update due to validation error")
+		contextutils.LoggerFrom(ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+
 	// apply the changes to its spec
 	graphqlApi.Spec = *request.GetSpec()
 
@@ -341,7 +362,7 @@ func (h *singleClusterGraphqlHandler) ValidateResolverYaml(_ context.Context, re
 	return &rpc_edge_v1.ValidateResolverYamlResponse{}, nil
 }
 
-func (h *singleClusterGraphqlHandler) ValidateSchemaDefinition(ctx context.Context, request *rpc_edge_v1.ValidateSchemaDefinitionRequest) (*rpc_edge_v1.ValidateSchemaDefinitionResponse, error) {
+func (h *singleClusterGraphqlHandler) ValidateSchemaDefinition(_ context.Context, request *rpc_edge_v1.ValidateSchemaDefinitionRequest) (*rpc_edge_v1.ValidateSchemaDefinitionResponse, error) {
 	err := ValidateSchemaDefinition(request)
 	if err != nil {
 		return nil, err
@@ -360,6 +381,6 @@ func (h *singleClusterGraphqlHandler) GetStitchedSchemaDefinition(ctx context.Co
 	return GetStitchedSchemaDefinition(ctx, h.graphqlClientset.GraphQLApis(), request)
 }
 
-func (h *singleClusterGraphqlHandler) GetSchemaDiff(ctx context.Context, request *rpc_edge_v1.GetSchemaDiffRequest) (*rpc_edge_v1.GetSchemaDiffResponse, error) {
+func (h *singleClusterGraphqlHandler) GetSchemaDiff(_ context.Context, request *rpc_edge_v1.GetSchemaDiffRequest) (*rpc_edge_v1.GetSchemaDiffResponse, error) {
 	return GetSchemaDiff(request)
 }

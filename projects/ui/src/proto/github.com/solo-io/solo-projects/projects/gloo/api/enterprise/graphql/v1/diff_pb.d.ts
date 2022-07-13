@@ -3,6 +3,7 @@
 // file: github.com/solo-io/solo-projects/projects/gloo/api/enterprise/graphql/v1/diff.proto
 
 import * as jspb from "google-protobuf";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_settings_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/settings_pb";
 
 export class GraphQLInspectorDiffInput extends jspb.Message {
   getOldSchema(): string;
@@ -10,6 +11,11 @@ export class GraphQLInspectorDiffInput extends jspb.Message {
 
   getNewSchema(): string;
   setNewSchema(value: string): void;
+
+  clearRulesList(): void;
+  getRulesList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_settings_pb.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_settings_pb.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap]>;
+  setRulesList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_settings_pb.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_settings_pb.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap]>): void;
+  addRules(value: github_com_solo_io_solo_apis_api_gloo_gloo_v1_settings_pb.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_settings_pb.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap], index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_v1_settings_pb.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_settings_pb.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap];
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GraphQLInspectorDiffInput.AsObject;
@@ -25,6 +31,7 @@ export namespace GraphQLInspectorDiffInput {
   export type AsObject = {
     oldSchema: string,
     newSchema: string,
+    rulesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_settings_pb.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_settings_pb.GraphqlOptions.SchemaChangeValidationOptions.ProcessingRuleMap]>,
   }
 }
 
