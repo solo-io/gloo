@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Updates envoy configs to work with 1.22.
+    issueLink: https://github.com/solo-io/solo-projects/issues/3881
