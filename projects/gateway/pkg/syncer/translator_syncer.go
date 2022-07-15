@@ -6,9 +6,7 @@ import (
 	"os"
 	"sort"
 	"sync"
-	"time"
 
-	"github.com/solo-io/gloo/projects/gateway/pkg/utils/metrics"
 	gloo_translator "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"go.uber.org/zap/zapcore"
@@ -62,18 +60,17 @@ var (
 	}
 )
 
-func NewTranslatorSyncer(ctx context.Context, writeNamespace string, proxyWatcher gloov1.ProxyClient, proxyReconciler reconciler.ProxyReconciler, reporter reporter.StatusReporter, translator translator.Translator, statusClient resources.StatusClient, statusMetrics metrics.ConfigStatusMetrics) *TranslatorSyncer {
+func NewTranslatorSyncer(ctx context.Context, writeNamespace string, proxyWatcher gloov1.ProxyClient, proxyReconciler reconciler.ProxyReconciler, reporter reporter.StatusReporter, translator translator.Translator, statusClient resources.StatusClient) *TranslatorSyncer {
 	t := &TranslatorSyncer{
 		writeNamespace:  writeNamespace,
 		reporter:        reporter,
 		proxyReconciler: proxyReconciler,
 		translator:      translator,
-		statusSyncer:    newStatusSyncer(writeNamespace, proxyWatcher, reporter, statusClient, statusMetrics),
+		statusSyncer:    newStatusSyncer(writeNamespace, proxyWatcher, reporter, statusClient),
 	}
 	if pxStatusSizeEnv := os.Getenv("PROXY_STATUS_MAX_SIZE_BYTES"); pxStatusSizeEnv != "" {
 		t.proxyStatusMaxSize = pxStatusSizeEnv
 	}
-	go t.statusSyncer.syncStatusOnEmit(ctx)
 	return t
 }
 
@@ -149,8 +146,7 @@ func (s *TranslatorSyncer) reconcile(ctx context.Context, desiredProxies reconci
 
 	// repeat for all resources
 	s.statusSyncer.setCurrentProxies(desiredProxies, invalidProxies)
-	s.statusSyncer.forceSync()
-	return nil
+	return s.statusSyncer.syncStatus(ctx)
 }
 
 type reportsAndStatus struct {
@@ -167,12 +163,10 @@ type statusSyncer struct {
 	proxyClient             gloov1.ProxyClient
 	writeNamespace          string
 	statusClient            resources.StatusClient
-	statusMetrics           metrics.ConfigStatusMetrics
-	syncNeeded              chan struct{}
 	previousProxyStatusHash uint64
 }
 
-func newStatusSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter reporter.StatusReporter, statusClient resources.StatusClient, statusMetrics metrics.ConfigStatusMetrics) statusSyncer {
+func newStatusSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter reporter.StatusReporter, statusClient resources.StatusClient) statusSyncer {
 	return statusSyncer{
 		proxyToLastStatus:       map[string]reportsAndStatus{},
 		currentGeneratedProxies: nil,
@@ -180,8 +174,6 @@ func newStatusSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, repo
 		proxyClient:             proxyClient,
 		writeNamespace:          writeNamespace,
 		statusClient:            statusClient,
-		statusMetrics:           statusMetrics,
-		syncNeeded:              make(chan struct{}, 1),
 	}
 }
 
@@ -256,7 +248,9 @@ func (s *statusSyncer) handleUpdatedProxies(ctx context.Context) {
 		logger.Debugw("proxy list updated", "len(proxyList)", len(proxyList), "currentHash", currentHash, "previousProxyStatusHash", s.previousProxyStatusHash)
 		s.previousProxyStatusHash = currentHash
 		s.setStatuses(proxyList)
-		s.forceSync()
+		if err := s.syncStatus(ctx); err != nil {
+			logger.Errorw("error syncing statuses", err)
+		}
 	}
 }
 
@@ -287,49 +281,14 @@ func (s *statusSyncer) setStatuses(list gloov1.ProxyList) {
 	}
 }
 
-func (s *statusSyncer) forceSync() {
-	select {
-	case s.syncNeeded <- struct{}{}:
-	default:
-	}
-}
-
-func (s *statusSyncer) syncStatusOnEmit(ctx context.Context) error {
-	var retryChan <-chan time.Time
-
-	sync := func() {
-		err := s.syncStatus(ctx)
-		if err != nil {
-			contextutils.LoggerFrom(ctx).Debugw("failed to sync status; will try again shortly.", "error", err)
-			retryChan = time.After(time.Second)
-		} else {
-			retryChan = nil
-		}
-	}
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-retryChan:
-			sync()
-		case <-s.syncNeeded:
-			sync()
-		}
-	}
-}
-
 // extractCurrentReports massages several asynchronously set `statusSyncer` variables into formats consumable by `syncStatus`
-func (s *statusSyncer) extractCurrentReports() (reporter.ResourceReports, map[resources.InputResource]map[string]*core.Status, map[resources.InputResource]*core.Status) {
+func (s *statusSyncer) extractCurrentReports() (reporter.ResourceReports, map[resources.InputResource]map[string]*core.Status) {
 	var nilProxy *gloov1.Proxy
 	allReports := reporter.ResourceReports{}
 	inputResourceBySubresourceStatuses := map[resources.InputResource]map[string]*core.Status{}
-	var localInputResourceLastStatus map[resources.InputResource]*core.Status
 
 	s.mapLock.RLock()
 	defer s.mapLock.RUnlock()
-	// grab a local copy of the map. it only updated here, and the variable is cleared under the lock; so is safe.
-	localInputResourceLastStatus = s.inputResourceLastStatus
 
 	var refKeys []string
 	for _, ref := range s.currentGeneratedProxies {
@@ -370,34 +329,32 @@ func (s *statusSyncer) extractCurrentReports() (reporter.ResourceReports, map[re
 		}
 	}
 
-	return allReports, inputResourceBySubresourceStatuses, localInputResourceLastStatus
+	return allReports, inputResourceBySubresourceStatuses
 }
 
 func (s *statusSyncer) syncStatus(ctx context.Context) error {
-	allReports, inputResourceBySubresourceStatuses, localInputResourceLastStatus := s.extractCurrentReports()
+	allReports, inputResourceBySubresourceStatuses := s.extractCurrentReports()
 
-	var errs error
-	for inputResource, subresourceStatuses := range allReports {
+	subResoruceStatuses := make(reporter.SubResourceStatuses)
+	reportCopy := make(reporter.ResourceReports)
+	for inputResource, subresourceStatus := range allReports {
 		// write reports may update the status, so clone the object
 		clonedInputResource := resources.Clone(inputResource).(resources.InputResource)
 		// set the last known status on the input resource.
 		// this may be different than the status on the snapshot, as the snapshot doesn't get updated
 		// on status changes.
-		if status, ok := localInputResourceLastStatus[inputResource]; ok {
+		if status, ok := s.inputResourceLastStatus[inputResource]; ok {
 			s.statusClient.SetStatus(clonedInputResource, status)
 		}
 
-		reports := reporter.ResourceReports{clonedInputResource: subresourceStatuses}
 		currentStatuses := inputResourceBySubresourceStatuses[inputResource]
-		if err := s.reporter.WriteReports(ctx, reports, currentStatuses); err != nil {
-			errs = multierror.Append(errs, err)
-		} else {
-			// The inputResource's status was successfully written, update the cache and metric with that status
-			status := s.reporter.StatusFromReport(subresourceStatuses, currentStatuses)
-			localInputResourceLastStatus[inputResource] = status
-		}
-		status := s.reporter.StatusFromReport(subresourceStatuses, currentStatuses)
-		s.statusMetrics.SetResourceStatus(ctx, inputResource, status)
+		subResoruceStatuses[clonedInputResource] = currentStatuses
+		reportCopy[inputResource] = subresourceStatus
+
+		// The inputResource's status was successfully written, update the cache and metric with that status
+		status := s.reporter.StatusFromReport(subresourceStatus, currentStatuses)
+		s.inputResourceLastStatus[inputResource] = status
 	}
-	return errs
+
+	return s.reporter.WriteReports(ctx, reportCopy, subResoruceStatuses)
 }

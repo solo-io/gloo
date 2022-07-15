@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
-	"github.com/solo-io/gloo/projects/gateway/pkg/utils/metrics"
-
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
 	. "github.com/onsi/ginkgo"
@@ -70,17 +68,16 @@ var _ = Describe("TranslatorSyncer integration test", func() {
 		}
 
 		statusClient = statusutils.GetStatusClientFromEnvOrDefault(defaults.GlooSystem)
-		statusMetrics, err := metrics.NewConfigStatusMetrics(metrics.GetDefaultConfigStatusOptions())
-		Expect(err).NotTo(HaveOccurred())
-
 		proxyClient, err = gloov1.NewProxyClient(ctx, memFactory)
 		Expect(err).NotTo(HaveOccurred())
 		proxyReconciler := reconciler.NewProxyReconciler(nil, proxyClient, statusClient)
-		rpt := reporter.NewReporter("gateway", statusClient, gatewayClient.BaseClient(), virtualServiceClient.BaseClient(), routeTableClient.BaseClient())
+		builder := reporter.NewStatusBuilder("gateway")
+		kubeRpt := reporter.NewKubeReporter(builder, statusClient, gatewayClient.BaseClient(), virtualServiceClient.BaseClient(), routeTableClient.BaseClient())
+		rpt := reporter.NewMultiReporter(builder, kubeRpt)
 		xlator := translator.NewDefaultTranslator(translator.Opts{
 			WriteNamespace: defaults.GlooSystem,
 		})
-		ts = NewTranslatorSyncer(ctx, defaults.GlooSystem, proxyClient, proxyReconciler, rpt, xlator, statusClient, statusMetrics)
+		ts = NewTranslatorSyncer(ctx, defaults.GlooSystem, proxyClient, proxyReconciler, rpt, xlator, statusClient)
 
 		vs = &v1.VirtualService{
 			Metadata: &core.Metadata{

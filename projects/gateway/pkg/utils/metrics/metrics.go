@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -40,10 +41,23 @@ var descriptions = map[schema.GroupVersionKind]string{
 	gloov1.UpstreamGroupGVK: "The health status of upstream group resources in the system. A value of 0 indicates that there are no issues.",
 }
 
-// ConfigStatusMetrics is a collection of metrics, each of which records if the configuration for
+// ConfigMetricReporter is a collection of metrics, each of which records if the configuration for
 // a particular resource type is valid
-type ConfigStatusMetrics struct {
+type ConfigMetricReporter struct {
 	metrics map[schema.GroupVersionKind]*resourceMetric
+	statusBuilder reporter.StatusBuilder
+}
+
+func (c *ConfigMetricReporter) WriteReports(
+	ctx context.Context,
+	errs reporter.ResourceReports,
+	subresourceStatuses reporter.SubResourceStatuses,
+) error {
+	for resource, report := range errs {
+		status := c.statusBuilder.StatusFromReport(report, subresourceStatuses[resource])
+		c.SetResourceStatus(ctx, resource, status)
+	}
+	return nil
 }
 
 // resourceMetric is a wrapper around a gauge. In addition to a gauge itself, it stores information
@@ -57,20 +71,21 @@ func GetDefaultConfigStatusOptions() map[string]*Labels {
 	return make(map[string]*Labels)
 }
 
-// NewConfigStatusMetrics creates and returns a ConfigStatusMetrics from the specified options.
+// NewConfigMetricReporter creates and returns a ConfigMetricReporter from the specified options.
 // If the options are invalid, an error is returned.
-func NewConfigStatusMetrics(opts map[string]*Labels) (ConfigStatusMetrics, error) {
-	configMetrics := ConfigStatusMetrics{
+func NewConfigMetricReporter(opts map[string]*Labels, statusBuilder reporter.StatusBuilder) (ConfigMetricReporter, error) {
+	configMetrics := ConfigMetricReporter{
 		metrics: make(map[schema.GroupVersionKind]*resourceMetric),
+		statusBuilder: statusBuilder,
 	}
 	for gvkString, labels := range opts {
 		gvk, err := parseGroupVersionKind(gvkString)
 		if err != nil {
-			return ConfigStatusMetrics{}, err
+			return ConfigMetricReporter{}, err
 		}
 		metric, err := newResourceMetric(gvk, labels.GetLabelToPath())
 		if err != nil {
-			return ConfigStatusMetrics{}, err
+			return ConfigMetricReporter{}, err
 		}
 		configMetrics.insertMetric(gvk, metric)
 	}
@@ -111,53 +126,53 @@ func resourceToGVK(resource resources.Resource) (schema.GroupVersionKind, error)
 	}
 }
 
-func (m *ConfigStatusMetrics) SetResourceStatus(ctx context.Context, resource resources.Resource, status *core.Status) {
+func (c *ConfigMetricReporter) SetResourceStatus(ctx context.Context, resource resources.Resource, status *core.Status) {
 	if status.GetState() == core.Status_Warning || status.GetState() == core.Status_Rejected {
-		m.SetResourceInvalid(ctx, resource)
+		c.SetResourceInvalid(ctx, resource)
 		return
 	}
 	// Don't bother setting the metric while pending, we'll set it momentarily when it transitions
 	if status.GetState() == core.Status_Accepted {
-		m.SetResourceValid(ctx, resource)
+		c.SetResourceValid(ctx, resource)
 	}
 }
 
-func (m *ConfigStatusMetrics) SetResourceValid(ctx context.Context, resource resources.Resource) {
+func (c *ConfigMetricReporter) SetResourceValid(ctx context.Context, resource resources.Resource) {
 	log := contextutils.LoggerFrom(ctx)
 	gvk, err := resourceToGVK(resource)
 	if err != nil {
 		log.Debugf(err.Error())
 		return
 	}
-	if m.metrics[gvk] != nil {
+	if c.metrics[gvk] != nil {
 		log.Debugf("Setting '%s' config metric valid", resource.GetMetadata().Ref())
-		mutators, err := getMutators(m.metrics[gvk], resource)
+		mutators, err := getMutators(c.metrics[gvk], resource)
 		if err != nil {
 			log.Errorf("Error setting labels on %s: %s", Names[gvk], err.Error())
 		}
-		utils.MeasureZero(ctx, m.metrics[gvk].gauge, mutators...)
+		utils.MeasureZero(ctx, c.metrics[gvk].gauge, mutators...)
 	}
 }
 
-func (m *ConfigStatusMetrics) SetResourceInvalid(ctx context.Context, resource resources.Resource) {
+func (c *ConfigMetricReporter) SetResourceInvalid(ctx context.Context, resource resources.Resource) {
 	log := contextutils.LoggerFrom(ctx)
 	gvk, err := resourceToGVK(resource)
 	if err != nil {
 		log.Debugf(err.Error())
 		return
 	}
-	if m.metrics[gvk] != nil {
+	if c.metrics[gvk] != nil {
 		log.Debugf("Setting '%s' config metric invalid", resource.GetMetadata().Ref())
-		mutators, err := getMutators(m.metrics[gvk], resource)
+		mutators, err := getMutators(c.metrics[gvk], resource)
 		if err != nil {
 			log.Errorf("Error setting labels on %s: %s", Names[gvk], err.Error())
 		}
-		utils.MeasureOne(ctx, m.metrics[gvk].gauge, mutators...)
+		utils.MeasureOne(ctx, c.metrics[gvk].gauge, mutators...)
 	}
 }
 
-func (m *ConfigStatusMetrics) insertMetric(gvk schema.GroupVersionKind, metric *resourceMetric) {
-	m.metrics[gvk] = metric
+func (c *ConfigMetricReporter) insertMetric(gvk schema.GroupVersionKind, metric *resourceMetric) {
+	c.metrics[gvk] = metric
 }
 
 func getMutators(metric *resourceMetric, resource resources.Resource) ([]tag.Mutator, error) {
@@ -181,7 +196,7 @@ func getMutators(metric *resourceMetric, resource resources.Resource) ([]tag.Mut
 
 // Grab the value at the specified json path from the resource
 func extractValueFromResource(resource resources.Resource, jsonPath string) (string, error) {
-	j := jsonpath.New("ConfigStatusMetrics")
+	j := jsonpath.New("ConfigMetricReporter")
 	// Parse the template
 	err := j.Parse(jsonPath)
 	if err != nil {

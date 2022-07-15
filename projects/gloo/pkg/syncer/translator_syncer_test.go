@@ -40,7 +40,7 @@ var _ = Describe("Translate Proxy", func() {
 		ns             = "any-ns"
 		ref            = "syncer-test"
 		statusClient   resources.StatusClient
-		statusMetrics  metrics.ConfigStatusMetrics
+		statusMetrics  metrics.ConfigMetricReporter
 	)
 
 	BeforeEach(func() {
@@ -68,13 +68,14 @@ var _ = Describe("Translate Proxy", func() {
 		settings = &v1.Settings{}
 
 		statusClient = statusutils.GetStatusClientFromEnvOrDefault(ns)
-		statusMetrics, err = metrics.NewConfigStatusMetrics(metrics.GetDefaultConfigStatusOptions())
+		statusMetrics, err = metrics.NewConfigMetricReporter(metrics.GetDefaultConfigStatusOptions())
 		Expect(err).NotTo(HaveOccurred())
 
-		rep := reporter.NewReporter(ref, statusClient, proxyClient.BaseClient(), upstreamClient)
-
+		builder := reporter.NewStatusBuilder(ref)
+		rep := reporter.NewKubeReporter(builder, statusClient, proxyClient.BaseClient(), upstreamClient)
+		multi := reporter.NewMultiReporter(builder, rep)
 		xdsHasher := xds.NewNodeRoleHasher()
-		syncer = NewTranslatorSyncer(&mockTranslator{true, false, nil}, xdsCache, xdsHasher, sanitizer, rep, false, nil, settings, statusMetrics, nil, proxyClient, "")
+		syncer = NewTranslatorSyncer(&mockTranslator{true, false, nil}, xdsCache, xdsHasher, sanitizer, multi, false, nil, settings, statusMetrics, nil, proxyClient, "")
 		snap = &v1snap.ApiSnapshot{
 			Proxies: v1.ProxyList{
 				proxy,
@@ -103,7 +104,7 @@ var _ = Describe("Translate Proxy", func() {
 		Expect(err).NotTo(HaveOccurred())
 		snap.Proxies[0] = p1
 
-		syncer = NewTranslatorSyncer(&mockTranslator{false, false, nil}, xdsCache, xdsHasher, sanitizer, rep, false, nil, settings, statusMetrics, nil, proxyClient, "")
+		syncer = NewTranslatorSyncer(&mockTranslator{false, false, nil}, xdsCache, xdsHasher, sanitizer, multi, false, nil, settings, statusMetrics, nil, proxyClient, "")
 
 		err = syncer.Sync(context.Background(), snap)
 		Expect(err).NotTo(HaveOccurred())
@@ -150,7 +151,7 @@ var _ = Describe("Translate multiple proxies with errors", func() {
 		ns             = "any-ns"
 		ref            = "syncer-test"
 		statusClient   resources.StatusClient
-		statusMetrics  metrics.ConfigStatusMetrics
+		statusMetrics  metrics.ConfigMetricReporter
 	)
 
 	proxiesShouldHaveErrors := func(proxies v1.ProxyList, numProxies int) {
@@ -220,13 +221,15 @@ var _ = Describe("Translate multiple proxies with errors", func() {
 		settings = &v1.Settings{}
 
 		statusClient = statusutils.GetStatusClientFromEnvOrDefault(ns)
-		statusMetrics, err = metrics.NewConfigStatusMetrics(metrics.GetDefaultConfigStatusOptions())
+		statusMetrics, err = metrics.NewConfigMetricReporter(metrics.GetDefaultConfigStatusOptions())
 		Expect(err).NotTo(HaveOccurred())
 
-		rep := reporter.NewReporter(ref, statusClient, proxyClient.BaseClient(), usClient)
+		builder := reporter.NewStatusBuilder(ref)
+		rep := reporter.NewKubeReporter(builder, statusClient, proxyClient.BaseClient(), usClient)
+		multi := reporter.NewMultiReporter(builder, rep)
 
 		xdsHasher := xds.NewNodeRoleHasher()
-		syncer = NewTranslatorSyncer(&mockTranslator{true, true, nil}, xdsCache, xdsHasher, sanitizer, rep, false, nil, settings, statusMetrics, nil, proxyClient, "")
+		syncer = NewTranslatorSyncer(&mockTranslator{true, true, nil}, xdsCache, xdsHasher, sanitizer, multi, false, nil, settings, statusMetrics, nil, proxyClient, "")
 		snap = &v1snap.ApiSnapshot{
 			Proxies: v1.ProxyList{
 				proxy1,

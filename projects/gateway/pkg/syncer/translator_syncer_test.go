@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/solo-io/gloo/pkg/utils/statusutils"
-	"github.com/solo-io/gloo/projects/gateway/pkg/utils/metrics"
-
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
+	"github.com/solo-io/gloo/pkg/utils/statusutils"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/reconciler"
 	gatewaymocks "github.com/solo-io/gloo/projects/gateway/pkg/translator/mocks"
@@ -41,9 +39,7 @@ var _ = Describe("TranslatorSyncer", func() {
 		ctrl := gomock.NewController(GinkgoT())
 		fakeProxyClient = gloomocks.NewMockProxyClient(ctrl)
 		statusClient = statusutils.GetStatusClientFromEnvOrDefault(defaults.GlooSystem)
-		statusMetrics, err := metrics.NewConfigStatusMetrics(metrics.GetDefaultConfigStatusOptions())
-		Expect(err).NotTo(HaveOccurred())
-		curSyncer := newStatusSyncer(defaults.GlooSystem, fakeProxyClient, mockReporter, statusClient, statusMetrics)
+		curSyncer := newStatusSyncer(defaults.GlooSystem, fakeProxyClient, mockReporter, statusClient)
 		syncer = &curSyncer
 	})
 
@@ -170,7 +166,6 @@ var _ = Describe("TranslatorSyncer", func() {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		go syncer.syncStatusOnEmit(ctx)
 
 		syncer.setCurrentProxies(desiredProxies, make(reconciler.InvalidProxies))
 
@@ -209,7 +204,6 @@ var _ = Describe("TranslatorSyncer", func() {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		go syncer.syncStatusOnEmit(ctx)
 
 		syncer.setCurrentProxies(desiredProxies, make(reconciler.InvalidProxies))
 		fakeProxyClient.EXPECT().List("gloo-system", gomock.Any()).Return(gloov1.ProxyList{acceptedProxy}, nil).Times(1)
@@ -440,7 +434,11 @@ func (f *fakeReporter) Statuses() map[string]map[string]*core.Status {
 	return f.statuses
 }
 
-func (f *fakeReporter) WriteReports(ctx context.Context, errs reporter.ResourceReports, subresourceStatuses map[string]*core.Status) error {
+func (f *fakeReporter) WriteReports(
+	ctx interface{},
+	errs reporter.ResourceReports,
+	subresourceStatuses map[resources.InputResource]map[string]*interface{},
+) error {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 	fmt.Fprintf(GinkgoWriter, "WriteReports: %#v %#v", errs, subresourceStatuses)

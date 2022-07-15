@@ -9,12 +9,12 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"os"
+	"strings"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
-
 	"github.com/ghodss/yaml"
-
+	"github.com/hashicorp/go-multierror"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -52,8 +52,14 @@ var (
 	resourceTypeKey, _ = tag.NewKey("resource_type")
 	resourceRefKey, _  = tag.NewKey("resource_ref")
 
-	mGatewayResourcesAccepted = utils.MakeSumCounter("validation.gateway.solo.io/resources_accepted", "The number of resources accepted")
-	mGatewayResourcesRejected = utils.MakeSumCounter("validation.gateway.solo.io/resources_rejected", "The number of resources rejected")
+	mGatewayResourcesAccepted = utils.MakeSumCounter(
+		"validation.gateway.solo.io/resources_accepted",
+		"The number of resources accepted",
+	)
+	mGatewayResourcesRejected = utils.MakeSumCounter(
+		"validation.gateway.solo.io/resources_rejected",
+		"The number of resources rejected",
+	)
 
 	unmarshalErrMsg     = "could not unmarshal raw object"
 	UnmarshalErr        = errors.New(unmarshalErrMsg)
@@ -99,7 +105,15 @@ type WebhookConfig struct {
 	webhookNamespace              string
 }
 
-func NewWebhookConfig(ctx context.Context, validator validation.Validator, watchNamespaces []string, port int, serverCertPath, serverKeyPath string, alwaysAccept, readGatewaysFromAllNamespaces bool, webhookNamespace string) WebhookConfig {
+func NewWebhookConfig(
+	ctx context.Context,
+	validator validation.Validator,
+	watchNamespaces []string,
+	port int,
+	serverCertPath, serverKeyPath string,
+	alwaysAccept, readGatewaysFromAllNamespaces bool,
+	webhookNamespace string,
+) WebhookConfig {
 	return WebhookConfig{
 		ctx:                           ctx,
 		validator:                     validator,
@@ -109,7 +123,8 @@ func NewWebhookConfig(ctx context.Context, validator validation.Validator, watch
 		serverKeyPath:                 serverKeyPath,
 		alwaysAccept:                  alwaysAccept,
 		readGatewaysFromAllNamespaces: readGatewaysFromAllNamespaces,
-		webhookNamespace:              webhookNamespace}
+		webhookNamespace:              webhookNamespace,
+	}
 }
 
 func NewGatewayValidatingWebhook(cfg WebhookConfig) (*http.Server, error) {
@@ -123,7 +138,13 @@ func NewGatewayValidatingWebhook(cfg WebhookConfig) (*http.Server, error) {
 	readGatewaysFromAllNamespaces := cfg.readGatewaysFromAllNamespaces
 	webhookNamespace := cfg.webhookNamespace
 
-	certProvider, err := NewCertificateProvider(serverCertPath, serverKeyPath, log.New(&debugLogger{ctx: ctx}, "validation-webhook-certificate-watcher", log.LstdFlags), ctx, 10*time.Second)
+	certProvider, err := NewCertificateProvider(
+		serverCertPath,
+		serverKeyPath,
+		log.New(&debugLogger{ctx: ctx}, "validation-webhook-certificate-watcher", log.LstdFlags),
+		ctx,
+		10*time.Second,
+	)
 	if err != nil {
 		return nil, errors.Wrapf(err, "loading TLS certificate provider")
 	}
@@ -180,13 +201,22 @@ type AdmissionResponseWithProxies struct {
 	Proxies []*gloov1.Proxy `json:"proxies,omitempty"`
 }
 
-func NewGatewayValidationHandler(ctx context.Context, validator validation.Validator, watchNamespaces []string, alwaysAccept bool, readGatewaysFromAllNamespaces bool, webhookNamespace string) *gatewayValidationWebhook {
-	return &gatewayValidationWebhook{ctx: ctx,
+func NewGatewayValidationHandler(
+	ctx context.Context,
+	validator validation.Validator,
+	watchNamespaces []string,
+	alwaysAccept bool,
+	readGatewaysFromAllNamespaces bool,
+	webhookNamespace string,
+) *gatewayValidationWebhook {
+	return &gatewayValidationWebhook{
+		ctx:                           ctx,
 		validator:                     validator,
 		watchNamespaces:               watchNamespaces,
 		alwaysAccept:                  alwaysAccept,
 		readGatewaysFromAllNamespaces: readGatewaysFromAllNamespaces,
-		webhookNamespace:              webhookNamespace}
+		webhookNamespace:              webhookNamespace,
+	}
 }
 
 func (wh *gatewayValidationWebhook) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -268,13 +298,49 @@ func (wh *gatewayValidationWebhook) ServeHTTP(w http.ResponseWriter, r *http.Req
 	logger.Debugf("responded with review: %s", resp)
 }
 
-func (wh *gatewayValidationWebhook) makeAdmissionResponse(ctx context.Context, review *AdmissionReviewWithProxies) *AdmissionResponseWithProxies {
+const (
+	podNamespace       = "POD_NAMESPACE"
+	serviceAccountName = "SERVICE_ACCOUNT_NAME"
+)
+
+func getPodNamespace() string {
+	if ns := os.Getenv(podNamespace); ns != "" {
+		return ns
+	}
+	return "gloo-system"
+}
+
+func getServiceAccountName() string {
+	if ns := os.Getenv(serviceAccountName); ns != "" {
+		return ns
+	}
+	return "gloo"
+}
+
+func (wh *gatewayValidationWebhook) makeAdmissionResponse(
+	ctx context.Context,
+	review *AdmissionReviewWithProxies,
+) *AdmissionResponseWithProxies {
 	logger := contextutils.LoggerFrom(ctx)
 
 	req := review.Request
 
-	logger.Debugf("AdmissionReview for Kind=%v, Namespace=%v Name=%v UID=%v patchOperation=%v UserInfo=%v",
-		req.Kind, req.Namespace, req.Name, req.UID, req.Operation, req.UserInfo)
+	logger.Debugf(
+		"AdmissionReview for Kind=%v, Namespace=%v Name=%v UID=%v patchOperation=%v UserInfo=%v",
+		req.Kind, req.Namespace, req.Name, req.UID, req.Operation, req.UserInfo,
+	)
+
+	// Check to see if Gloo isupdating this resource.
+	sa := strings.Join([]string{"system:serviceaccount", getPodNamespace(), getServiceAccountName()}, ":")
+	logger.Debugf("ServiceAccount: %s", sa)
+	if req.UserInfo.Username == sa {
+		logger.Debugf("Gloo is updating this resource, ignoring")
+		return &AdmissionResponseWithProxies{
+			AdmissionResponse: &v1beta1.AdmissionResponse{
+				Allowed: true,
+			},
+		}
+	}
 
 	gvk := schema.GroupVersionKind{
 		Group:   req.Kind.Group,
@@ -373,9 +439,11 @@ func (wh *gatewayValidationWebhook) makeAdmissionResponse(ctx context.Context, r
 func getFailureCauses(validationErr *multierror.Error) []metav1.StatusCause {
 	var causes []metav1.StatusCause
 	for _, e := range validationErr.Errors {
-		causes = append(causes, metav1.StatusCause{
-			Message: fmt.Sprintf("Error %v", e.Error()),
-		})
+		causes = append(
+			causes, metav1.StatusCause{
+				Message: fmt.Sprintf("Error %v", e.Error()),
+			},
+		)
 	}
 	return causes
 }
@@ -435,7 +503,10 @@ func (wh *gatewayValidationWebhook) validate(
 	return &validation.Reports{}, nil
 }
 
-func (wh *gatewayValidationWebhook) validateList(ctx context.Context, rawJson []byte, dryRun bool) (*validation.Reports, *multierror.Error) {
+func (wh *gatewayValidationWebhook) validateList(ctx context.Context, rawJson []byte, dryRun bool) (
+	*validation.Reports,
+	*multierror.Error,
+) {
 	var (
 		ul      unstructured.UnstructuredList
 		reports *validation.Reports
@@ -451,7 +522,11 @@ func (wh *gatewayValidationWebhook) validateList(ctx context.Context, rawJson []
 	return reports, nil
 }
 
-func (wh *gatewayValidationWebhook) validateGateway(ctx context.Context, rawJson []byte, dryRun bool) (*validation.Reports, *multierror.Error) {
+func (wh *gatewayValidationWebhook) validateGateway(
+	ctx context.Context,
+	rawJson []byte,
+	dryRun bool,
+) (*validation.Reports, *multierror.Error) {
 	var (
 		gw      gwv1.Gateway
 		reports *validation.Reports
@@ -469,7 +544,11 @@ func (wh *gatewayValidationWebhook) validateGateway(ctx context.Context, rawJson
 	return reports, nil
 }
 
-func (wh *gatewayValidationWebhook) validateVirtualService(ctx context.Context, rawJson []byte, dryRun bool) (*validation.Reports, *multierror.Error) {
+func (wh *gatewayValidationWebhook) validateVirtualService(
+	ctx context.Context,
+	rawJson []byte,
+	dryRun bool,
+) (*validation.Reports, *multierror.Error) {
 	var (
 		vs      gwv1.VirtualService
 		reports *validation.Reports
@@ -487,7 +566,11 @@ func (wh *gatewayValidationWebhook) validateVirtualService(ctx context.Context, 
 	return reports, nil
 }
 
-func (wh *gatewayValidationWebhook) validateRouteTable(ctx context.Context, rawJson []byte, dryRun bool) (*validation.Reports, *multierror.Error) {
+func (wh *gatewayValidationWebhook) validateRouteTable(
+	ctx context.Context,
+	rawJson []byte,
+	dryRun bool,
+) (*validation.Reports, *multierror.Error) {
 	var (
 		rt      gwv1.RouteTable
 		reports *validation.Reports
@@ -505,7 +588,11 @@ func (wh *gatewayValidationWebhook) validateRouteTable(ctx context.Context, rawJ
 	return reports, nil
 }
 
-func (wh *gatewayValidationWebhook) validateUpstream(ctx context.Context, rawJson []byte, dryRun bool) (*validation.Reports, *multierror.Error) {
+func (wh *gatewayValidationWebhook) validateUpstream(
+	ctx context.Context,
+	rawJson []byte,
+	dryRun bool,
+) (*validation.Reports, *multierror.Error) {
 	var (
 		us      gloov1.Upstream
 		reports *validation.Reports

@@ -7,7 +7,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
-var _ = Describe("ConfigStatusMetrics Internal Test", func() {
+var _ = Describe("ConfigMetricReporter Internal Test", func() {
 
 	Context("extractValueFromResource", func() {
 		It("Should return the value when the path is valid", func() {

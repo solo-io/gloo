@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/debug"
+	"github.com/solo-io/gloo/projects/gloo/pkg/utils/statuses"
 
 	"github.com/solo-io/gloo/projects/gateway/pkg/services/k8sadmission"
 
@@ -619,7 +620,8 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions, apiEmitte
 		apiEmitterChan,
 	)
 
-	rpt := reporter.NewReporter("gloo",
+	builder := reporter.NewStatusBuilder("gloo")
+	reporter.NewKubeReporter(builder,
 		statusClient,
 		hybridUsClient.BaseClient(),
 		proxyClient.BaseClient(),
@@ -633,10 +635,32 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions, apiEmitte
 		routeOptionClient.BaseClient(),
 		rlReporterClient,
 	)
-	statusMetrics, err := metrics.NewConfigStatusMetrics(opts.Settings.GetObservabilityOptions().GetConfigStatusMetricLabels())
+
+	statusMetrics, err := metrics.NewConfigMetricReporter(
+		opts.Settings.GetObservabilityOptions().GetConfigStatusMetricLabels(),
+		builder,
+	)
 	if err != nil {
 		return err
 	}
+
+	httpReporter := statuses.NewHTTPReporter(builder, statusClient)
+
+	var rpt reporter.StatusReporter
+	rpt = reporter.NewMultiReporter(builder, httpReporter, &statusMetrics)
+
+
+	list, err := net.Listen("tcp", ":9090")
+	if err != nil {
+		return err
+	}
+	mux := http.NewServeMux()
+	mux.Handle("/status", httpReporter)
+	go func() {
+		if err := http.Serve(list, mux); err != nil {
+			logger.Errorf("failed to serve status endpoint")
+		}
+	}()
 	//The validation grpc server is available for custom controllers
 	if opts.ValidationServer.StartGrpcServer {
 		validationServer := opts.ValidationServer
@@ -748,7 +772,8 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions, apiEmitte
 		logger.Debugf("Setting up gateway translator")
 		gatewayTranslator = gwtranslator.NewDefaultTranslator(gwOpts)
 		proxyReconciler := gwreconciler.NewProxyReconciler(validator.Validate, proxyClient, statusClient)
-		gwTranslatorSyncer = gwsyncer.NewTranslatorSyncer(opts.WatchOpts.Ctx, opts.WriteNamespace, proxyClient, proxyReconciler, rpt, gatewayTranslator, statusClient, statusMetrics)
+		gwTranslatorSyncer = gwsyncer.NewTranslatorSyncer(opts.WatchOpts.Ctx, opts.WriteNamespace, proxyClient, proxyReconciler,
+			rpt, gatewayTranslator, statusClient)
 	} else {
 		logger.Debugf("Gateway translation is disabled. Proxies are provided from another source")
 	}
@@ -782,7 +807,8 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions, apiEmitte
 	}
 	syncerExtensions = reconcileUpgradedTranslatorSyncerExtensions(syncerExtensions, upgradedExtensions)
 
-	translationSync := syncer.NewTranslatorSyncer(t, opts.ControlPlane.SnapshotCache, xdsHasher, xdsSanitizer, rpt, opts.DevMode, syncerExtensions, opts.Settings, statusMetrics, gwTranslatorSyncer, proxyClient, opts.WriteNamespace)
+	translationSync := syncer.NewTranslatorSyncer(t, opts.ControlPlane.SnapshotCache, xdsHasher, xdsSanitizer,
+		rpt, opts.DevMode, syncerExtensions, opts.Settings, gwTranslatorSyncer, proxyClient, opts.WriteNamespace)
 
 	syncers := v1snap.ApiSyncers{
 		validator,

@@ -81,7 +81,7 @@ func makeProxy(nameSuffix string) resources.Resource {
 	}
 }
 
-var _ = Describe("ConfigStatusMetrics Test", func() {
+var _ = Describe("ConfigMetricReporter Test", func() {
 	DescribeTable("SetResource[Invalid|Valid] works as expected",
 		func(gvk string, metricName string, makeResource func(nameSuffix string) resources.Resource) {
 			opts := map[string]*metrics.Labels{
@@ -91,7 +91,7 @@ var _ = Describe("ConfigStatusMetrics Test", func() {
 					},
 				},
 			}
-			c, err := metrics.NewConfigStatusMetrics(opts)
+			c, err := metrics.NewConfigMetricReporter(opts)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(c).NotTo(BeNil())
 
