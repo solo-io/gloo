@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 
 	errors "github.com/rotisserie/eris"
 	gwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -19,20 +20,22 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-func NewHTTPReporter(statusBuilder reporter.StatusBuilder, statusClient resources.StatusClient) *httpReporter {
+func NewHTTPReporter(
+	statusBuilder reporter.StatusBuilder,
+	statusClient resources.StatusClient,
+	statusChan StatusReportChan,
+) *httpReporter {
 	return &httpReporter{
 		statusBuilder: statusBuilder,
-		statuses:      make(map[string]map[string]*core.Status),
 		statusClient:  statusClient,
+		statusChan:    statusChan,
 	}
 }
 
 type httpReporter struct {
 	statusBuilder reporter.StatusBuilder
 
-	lock sync.RWMutex
-	// map of KIND -> namespace.name -> *core.Status
-	statuses map[string]map[string]*core.Status
+	statusChan StatusReportChan
 
 	statusClient resources.StatusClient
 }
@@ -42,7 +45,7 @@ func (m *httpReporter) WriteReports(
 	errs reporter.ResourceReports,
 	subresourceStatuses reporter.SubResourceStatuses,
 ) error {
-	resourceByKind := make(map[string]map[string]*core.Status)
+	resourceByKind := make(StatusReports)
 	for resource, report := range errs {
 		status := m.statusBuilder.StatusFromReport(report, subresourceStatuses[resource])
 		gvk, err := resourceToGVK(resource)
@@ -50,26 +53,67 @@ func (m *httpReporter) WriteReports(
 			contextutils.LoggerFrom(ctx).Error(err)
 			continue
 		}
-		kind := m.gvkToString(gvk)
+		kind := gvkToString(gvk)
 		if _, ok := resourceByKind[kind]; !ok {
 			resourceByKind[kind] = make(map[string]*core.Status)
 		}
 		resourceByKind[kind][m.buildKey(resource)] = status
 	}
 
-	m.lock.Lock()
-	defer m.lock.Unlock()
-	for kind, statuses := range resourceByKind {
-		m.statuses[kind] = statuses
+	select {
+	case <-ctx.Done():
+		return nil
+	case <-time.After(time.Millisecond * 100):
+		return nil
+	case m.statusChan <- resourceByKind:
+		return nil
 	}
-	return nil
 }
 
 func (m *httpReporter) buildKey(resource resources.InputResource) string {
 	return fmt.Sprintf("%s.%s", resource.GetMetadata().GetNamespace(), resource.GetMetadata().GetName())
 }
 
-func (m *httpReporter) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+type StatusReports map[string]map[string]*core.Status
+type StatusReportChan chan StatusReports
+
+func NewStatusHandler(ctx context.Context) (*statusHandler, StatusReportChan) {
+	statusChan := make(StatusReportChan, 5)
+	handler := &statusHandler{
+		statuses:   StatusReports{},
+		statusChan: statusChan,
+	}
+	go handler.receiveStatusesForever(ctx)
+	return handler, statusChan
+
+}
+
+type statusHandler struct {
+	lock sync.RWMutex
+	// map of KIND -> namespace.name -> *core.Status
+	statuses map[string]map[string]*core.Status
+	// Chan used to send data to this handler to display
+	statusChan StatusReportChan
+}
+
+func (m *statusHandler) receiveStatusesForever(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+		case newMap, ok := <-m.statusChan:
+			if !ok {
+				return
+			}
+			m.lock.Lock()
+			for key, val := range newMap {
+				m.statuses[key] = val
+			}
+			m.lock.Unlock()
+		}
+	}
+}
+
+func (m *statusHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	byt, err := m.getData(request.Context(), request.URL.Query())
 	if err != nil {
 		writer.Write([]byte(err.Error()))
@@ -78,15 +122,15 @@ func (m *httpReporter) ServeHTTP(writer http.ResponseWriter, request *http.Reque
 	writer.Write(byt)
 }
 
-func (m *httpReporter) getData(ctx context.Context, data url.Values) ([]byte, error) {
+func (m *statusHandler) getData(ctx context.Context, data url.Values) ([]byte, error) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
-	contextutils.LoggerFrom(ctx).Infof("url values %+v", data)
+	contextutils.LoggerFrom(ctx).Debugf("url values %+v", data)
 	if !data.Has("gvk") {
 		return json.Marshal(m.statuses)
 	}
 
-	gvkParam := data.Get("gvk")
+	gvkParam := strings.ToLower(data.Get("gvk"))
 
 	gvkData, ok := m.statuses[gvkParam]
 	if !ok {
@@ -109,24 +153,9 @@ func (m *httpReporter) getData(ctx context.Context, data url.Values) ([]byte, er
 	return json.Marshal(result)
 }
 
-func (m *httpReporter) gvkToString(kind schema.GroupVersionKind) string {
+func gvkToString(kind schema.GroupVersionKind) string {
 	return fmt.Sprintf("%s.%s", strings.ToLower(kind.Kind), kind.GroupVersion().String())
 }
-
-func (m *httpReporter) stringToGvk(kind string) (schema.GroupVersionKind, error) {
-	split := strings.Split(kind, "/")
-	if len(split) != 2 {
-		return schema.GroupVersionKind{}, errors.New("Improperly formatted")
-	}
-
-	gk := schema.ParseGroupKind(split[0])
-	return schema.GroupVersionKind{
-		Group:   gk.Group,
-		Version: split[1],
-		Kind:    gk.Kind,
-	}, nil
-}
-
 
 func resourceToGVK(resource resources.Resource) (schema.GroupVersionKind, error) {
 	switch resource.(type) {

@@ -401,6 +401,7 @@ type Extensions struct {
 	PluginRegistryFactory plugins.PluginRegistryFactory
 	SyncerExtensions      []syncer.TranslatorSyncerExtensionFactory
 	XdsCallbacks          xdsserver.Callbacks
+	StatusReporter statuses.StatusReportChan
 }
 
 func RunGloo(opts bootstrap.Opts) error {
@@ -415,7 +416,11 @@ func RunGloo(opts bootstrap.Opts) error {
 	)
 }
 
-func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions, apiEmitterChan chan struct{}) error {
+func RunGlooWithExtensions(
+	opts bootstrap.Opts,
+	extensions Extensions,
+	apiEmitterChan chan struct{},
+	) error {
 	watchOpts := opts.WatchOpts.WithDefaults()
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gloo")
 
@@ -644,23 +649,27 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions, apiEmitte
 		return err
 	}
 
-	httpReporter := statuses.NewHTTPReporter(builder, statusClient)
+	if extensions.StatusReporter == nil {
+
+		extensions.StatusReporter = make(statuses.StatusReportChan, 1)
+
+		go func() {
+			for {
+				select {
+				case <-watchOpts.Ctx.Done():
+					return
+					case <-extensions.StatusReporter:
+						// Throw away
+						return
+				}
+			}
+		}()
+	}
+
+	httpReporter := statuses.NewHTTPReporter(builder, statusClient, extensions.StatusReporter)
 
 	var rpt reporter.StatusReporter
 	rpt = reporter.NewMultiReporter(builder, httpReporter, &statusMetrics)
-
-
-	list, err := net.Listen("tcp", ":9090")
-	if err != nil {
-		return err
-	}
-	mux := http.NewServeMux()
-	mux.Handle("/status", httpReporter)
-	go func() {
-		if err := http.Serve(list, mux); err != nil {
-			logger.Errorf("failed to serve status endpoint")
-		}
-	}()
 	//The validation grpc server is available for custom controllers
 	if opts.ValidationServer.StartGrpcServer {
 		validationServer := opts.ValidationServer
