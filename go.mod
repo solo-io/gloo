@@ -370,7 +370,7 @@ replace (
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
 
 	// Gloo-fed code currently relies on older skv2: https://github.com/solo-io/solo-projects/issues/3540
-	github.com/solo-io/skv2 => github.com/solo-io/skv2 v0.21.6
+	github.com/solo-io/skv2 => github.com/solo-io/skv2 v0.21.7
 	go.opentelemetry.io/otel => go.opentelemetry.io/otel v0.11.0
 
 	// Lock sys package to fix issue https://github.com/golang/go/issues/49219
