@@ -29,7 +29,7 @@ require (
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/onsi/ginkgo v1.15.0
+	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.10.5
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/pkg/errors v0.9.1
@@ -45,9 +45,9 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.11-patch4
 	github.com/solo-io/external-apis v0.1.4
-	github.com/solo-io/gloo v1.9.19
+	github.com/solo-io/gloo v1.9.20
 	github.com/solo-io/go-list-licenses v0.1.4
-	github.com/solo-io/go-utils v0.21.24
+	github.com/solo-io/go-utils v0.21.25
 	github.com/solo-io/k8s-utils v0.1.0
 	github.com/solo-io/licensing v0.1.20
 	github.com/solo-io/protoc-gen-ext v0.0.16
@@ -57,7 +57,7 @@ require (
 	github.com/solo-io/skv2 v0.17.19
 	github.com/solo-io/skv2-enterprise v0.0.8
 	// Corresponds to gloo-v1.9.6
-	github.com/solo-io/solo-apis v0.0.0-20220707203718-9bbcb80ebbef
+	github.com/solo-io/solo-apis v0.0.0-20220718173822-f3ef36b2c212
 	github.com/solo-io/solo-kit v0.24.6
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3

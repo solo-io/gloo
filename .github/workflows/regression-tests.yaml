@@ -78,7 +78,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
       - name: Run tests
         run: |
-          GOPATH=$HOME go install github.com/onsi/ginkgo/ginkgo
+          GOPATH=$HOME go get github.com/onsi/ginkgo/ginkgo
           PATH=$HOME/bin:$PATH REMOTE_CLUSTER_CONTEXT=kind-remote LOCAL_CLUSTER_CONTEXT=kind-local ginkgo -r ./test/gloo-fed-e2e/...
       - name: Debug Info
         if: failure()
