@@ -6,6 +6,7 @@ import (
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -153,7 +154,7 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 				Upstream: extAuthServerUpstream.Metadata.Ref(),
 			},
 		},
-		Weight:  1,
+		Weight:  &wrappers.UInt32Value{Value: 1},
 		Options: &gloov1.WeightedDestinationOptions{},
 	}
 
@@ -177,7 +178,7 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 										Upstream: extAuthServerUpstream.Metadata.Ref(),
 									},
 								},
-								Weight: 1,
+								Weight: &wrappers.UInt32Value{Value: 1},
 							},
 						},
 					},

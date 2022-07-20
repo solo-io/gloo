@@ -144,6 +144,7 @@ proto.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance, msg) {
     maxConcurrentStreams: (f = msg.getMaxConcurrentStreams()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     overrideStreamErrorOnInvalidHttpMessage: (f = msg.getOverrideStreamErrorOnInvalidHttpMessage()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     httpProxyHostname: (f = msg.getHttpProxyHostname()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    httpConnectSslConfig: (f = msg.getHttpConnectSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.toObject(includeInstance, f),
     ignoreHealthOnHostRemoval: (f = msg.getIgnoreHealthOnHostRemoval()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
@@ -289,6 +290,11 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       var value = new google_protobuf_wrappers_pb.StringValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setHttpProxyHostname(value);
+      break;
+    case 27:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.deserializeBinaryFromReader);
+      msg.setHttpConnectSslConfig(value);
       break;
     case 22:
       var value = new google_protobuf_wrappers_pb.BoolValue;
@@ -497,6 +503,14 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
       21,
       f,
       google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getHttpConnectSslConfig();
+  if (f != null) {
+    writer.writeMessage(
+      27,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.serializeBinaryToWriter
     );
   }
   f = message.getIgnoreHealthOnHostRemoval();
@@ -1161,6 +1175,36 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearHttpProxyHostname = function() {
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasHttpProxyHostname = function() {
   return jspb.Message.getField(this, 21) != null;
+};
+
+
+/**
+ * optional UpstreamSslConfig http_connect_ssl_config = 27;
+ * @return {?proto.gloo.solo.io.UpstreamSslConfig}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getHttpConnectSslConfig = function() {
+  return /** @type{?proto.gloo.solo.io.UpstreamSslConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig, 27));
+};
+
+
+/** @param {?proto.gloo.solo.io.UpstreamSslConfig|undefined} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setHttpConnectSslConfig = function(value) {
+  jspb.Message.setWrapperField(this, 27, value);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearHttpConnectSslConfig = function() {
+  this.setHttpConnectSslConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.hasHttpConnectSslConfig = function() {
+  return jspb.Message.getField(this, 27) != null;
 };
 
 

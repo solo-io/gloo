@@ -201,7 +201,8 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 			filterDomain,
 			rateLimitStage,
 			serverSettings.GetRequestTimeout(),
-			serverSettings.GetDenyOnFail())
+			serverSettings.GetDenyOnFail(),
+			serverSettings.GetEnableXRatelimitHeaders())
 
 		stagedFilter, err := plugins.NewStagedFilterWithConfig(wellknown.HTTPRateLimit, rateLimitFilter, filterStage)
 		if err != nil {

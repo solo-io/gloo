@@ -131,6 +131,11 @@ export class UpstreamSpec extends jspb.Message {
   getHttpProxyHostname(): google_protobuf_wrappers_pb.StringValue | undefined;
   setHttpProxyHostname(value?: google_protobuf_wrappers_pb.StringValue): void;
 
+  hasHttpConnectSslConfig(): boolean;
+  clearHttpConnectSslConfig(): void;
+  getHttpConnectSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig | undefined;
+  setHttpConnectSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig): void;
+
   hasIgnoreHealthOnHostRemoval(): boolean;
   clearIgnoreHealthOnHostRemoval(): void;
   getIgnoreHealthOnHostRemoval(): google_protobuf_wrappers_pb.BoolValue | undefined;
@@ -171,6 +176,7 @@ export namespace UpstreamSpec {
     maxConcurrentStreams?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     overrideStreamErrorOnInvalidHttpMessage?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     httpProxyHostname?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    httpConnectSslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.AsObject,
     ignoreHealthOnHostRemoval?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 

@@ -51,6 +51,9 @@ export class Settings extends jspb.Message {
   getDenyOnFail(): boolean;
   setDenyOnFail(value: boolean): void;
 
+  getEnableXRatelimitHeaders(): boolean;
+  setEnableXRatelimitHeaders(value: boolean): void;
+
   getRateLimitBeforeAuth(): boolean;
   setRateLimitBeforeAuth(value: boolean): void;
 
@@ -69,6 +72,7 @@ export namespace Settings {
     ratelimitServerRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     requestTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     denyOnFail: boolean,
+    enableXRatelimitHeaders: boolean,
     rateLimitBeforeAuth: boolean,
   }
 }

@@ -5758,7 +5758,7 @@ proto.gloo.solo.io.WeightedDestination.prototype.toObject = function(opt_include
 proto.gloo.solo.io.WeightedDestination.toObject = function(includeInstance, msg) {
   var f, obj = {
     destination: (f = msg.getDestination()) && proto.gloo.solo.io.Destination.toObject(includeInstance, f),
-    weight: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    weight: (f = msg.getWeight()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     options: (f = msg.getOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb.WeightedDestinationOptions.toObject(includeInstance, f)
   };
 
@@ -5802,7 +5802,8 @@ proto.gloo.solo.io.WeightedDestination.deserializeBinaryFromReader = function(ms
       msg.setDestination(value);
       break;
     case 2:
-      var value = /** @type {number} */ (reader.readUint32());
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setWeight(value);
       break;
     case 3:
@@ -5848,10 +5849,11 @@ proto.gloo.solo.io.WeightedDestination.serializeBinaryToWriter = function(messag
     );
   }
   f = message.getWeight();
-  if (f !== 0) {
-    writer.writeUint32(
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
   f = message.getOptions();
@@ -5896,17 +5898,32 @@ proto.gloo.solo.io.WeightedDestination.prototype.hasDestination = function() {
 
 
 /**
- * optional uint32 weight = 2;
- * @return {number}
+ * optional google.protobuf.UInt32Value weight = 2;
+ * @return {?proto.google.protobuf.UInt32Value}
  */
 proto.gloo.solo.io.WeightedDestination.prototype.getWeight = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 2));
 };
 
 
-/** @param {number} value */
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
 proto.gloo.solo.io.WeightedDestination.prototype.setWeight = function(value) {
-  jspb.Message.setProto3IntField(this, 2, value);
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.gloo.solo.io.WeightedDestination.prototype.clearWeight = function() {
+  this.setWeight(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.WeightedDestination.prototype.hasWeight = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

@@ -344,7 +344,7 @@ install-graphql-js:
 
 .PHONY: run-apiserver
 run-apiserver: checkprogram-protoc install-graphql-js checkenv-GLOO_LICENSE_KEY
-# Todo: This should check that /etc/hosts includes the following line: 
+# Todo: This should check that /etc/hosts includes the following line:
 # 127.0.0.1 docker.internal
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn \
 	GRPC_PORT=$(GRPC_PORT) \
@@ -1230,9 +1230,9 @@ ifneq ($(GOARCH), arm64)
 endif
 endif
 
-docker-push-fips: 
+docker-push-fips:
 .PHONY: docker-push-fips
-docker-push-fips: 
+docker-push-fips:
 ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) && \
@@ -1390,9 +1390,9 @@ load-kind-images-fips: kind-load-observability-ee # observability
 load-kind-images-fips: kind-load-discovery-ee # discovery
 
 # arm local development requires work around to deploy to docker registry instead of kind load docker-image
-docker-push-local-arm: 
+docker-push-local-arm:
 .PHONY: docker-push-local-arm
-# set release because we will be pushing docker images to image repo 
+# set release because we will be pushing docker images to image repo
 docker-push-local-arm:
 ifeq ($(USE_FIPS),true)
 docker-push-local-arm: build-kind-images-fips docker-push-fips

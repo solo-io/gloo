@@ -830,8 +830,10 @@ export class WeightedDestination extends jspb.Message {
   getDestination(): Destination | undefined;
   setDestination(value?: Destination): void;
 
-  getWeight(): number;
-  setWeight(value: number): void;
+  hasWeight(): boolean;
+  clearWeight(): void;
+  getWeight(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setWeight(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
   hasOptions(): boolean;
   clearOptions(): void;
@@ -851,7 +853,7 @@ export class WeightedDestination extends jspb.Message {
 export namespace WeightedDestination {
   export type AsObject = {
     destination?: Destination.AsObject,
-    weight: number,
+    weight?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.WeightedDestinationOptions.AsObject,
   }
 }

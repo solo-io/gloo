@@ -8,7 +8,9 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/golang/mock/gomock"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	"github.com/solo-io/skv2/test/matchers"
 	gateway_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	mock_gateway_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1/mocks"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
@@ -207,12 +209,12 @@ spec:
 		Expect(rtA[0].MatchType).To(Equal("PREFIX"))
 		multiDest := rtA[1].GetRouteAction().GetMulti().GetDestinations()
 		Expect(len(multiDest)).To(Equal(3))
-		Expect(multiDest[0].GetWeight()).To(Equal(uint32(7)))
+		Expect(multiDest[0].GetWeight()).To(matchers.MatchProto(&wrappers.UInt32Value{Value: 7}))
 		Expect(multiDest[0].GetDestination().GetUpstream().GetName()).To(Equal("multi-upstream-1"))
-		Expect(multiDest[1].GetWeight()).To(Equal(uint32(2)))
+		Expect(multiDest[1].GetWeight()).To(matchers.MatchProto(&wrappers.UInt32Value{Value: 2}))
 		kubeRef := multiDest[1].GetDestination().GetKube().GetRef()
 		Expect(kubeRef.GetName()).To(Equal("kube-1"))
-		Expect(multiDest[2].GetWeight()).To(Equal(uint32(1)))
+		Expect(multiDest[2].GetWeight()).To(matchers.MatchProto(&wrappers.UInt32Value{Value: 1}))
 		Expect(multiDest[2].GetDestination().GetConsul().GetServiceName()).To(Equal("consul-service"))
 		Expect(rtA[1].Matcher).To(Equal("/a/2"))
 		Expect(rtA[1].MatchType).To(Equal("PREFIX"))

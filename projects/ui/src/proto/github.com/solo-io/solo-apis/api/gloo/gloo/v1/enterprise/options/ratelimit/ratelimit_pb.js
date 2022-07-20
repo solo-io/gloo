@@ -277,6 +277,7 @@ proto.ratelimit.options.gloo.solo.io.Settings.toObject = function(includeInstanc
     ratelimitServerRef: (f = msg.getRatelimitServerRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     requestTimeout: (f = msg.getRequestTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     denyOnFail: jspb.Message.getFieldWithDefault(msg, 3, false),
+    enableXRatelimitHeaders: jspb.Message.getFieldWithDefault(msg, 4, false),
     rateLimitBeforeAuth: jspb.Message.getFieldWithDefault(msg, 9, false)
   };
 
@@ -327,6 +328,10 @@ proto.ratelimit.options.gloo.solo.io.Settings.deserializeBinaryFromReader = func
     case 3:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setDenyOnFail(value);
+      break;
+    case 4:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setEnableXRatelimitHeaders(value);
       break;
     case 9:
       var value = /** @type {boolean} */ (reader.readBool());
@@ -381,6 +386,13 @@ proto.ratelimit.options.gloo.solo.io.Settings.serializeBinaryToWriter = function
   if (f) {
     writer.writeBool(
       3,
+      f
+    );
+  }
+  f = message.getEnableXRatelimitHeaders();
+  if (f) {
+    writer.writeBool(
+      4,
       f
     );
   }
@@ -468,6 +480,23 @@ proto.ratelimit.options.gloo.solo.io.Settings.prototype.getDenyOnFail = function
 /** @param {boolean} value */
 proto.ratelimit.options.gloo.solo.io.Settings.prototype.setDenyOnFail = function(value) {
   jspb.Message.setProto3BooleanField(this, 3, value);
+};
+
+
+/**
+ * optional bool enable_x_ratelimit_headers = 4;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.ratelimit.options.gloo.solo.io.Settings.prototype.getEnableXRatelimitHeaders = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 4, false));
+};
+
+
+/** @param {boolean} value */
+proto.ratelimit.options.gloo.solo.io.Settings.prototype.setEnableXRatelimitHeaders = function(value) {
+  jspb.Message.setProto3BooleanField(this, 4, value);
 };
 
 

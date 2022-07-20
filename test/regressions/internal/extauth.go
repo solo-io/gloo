@@ -46,6 +46,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"k8s.io/client-go/rest"
 
+	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -680,7 +681,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 												Multi: &gloov1.MultiDestination{
 													Destinations: []*gloov1.WeightedDestination{
 														{
-															Weight: 50,
+															Weight: &wrappers.UInt32Value{Value: 50},
 															Destination: &gloov1.Destination{
 																DestinationType: &gloov1.Destination_Kube{
 																	Kube: &gloov1.KubernetesServiceDestination{
@@ -695,7 +696,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 															Options: pluginsForDest1,
 														},
 														{
-															Weight: 50,
+															Weight: &wrappers.UInt32Value{Value: 50},
 															Destination: &gloov1.Destination{
 																DestinationType: &gloov1.Destination_Kube{
 																	Kube: &gloov1.KubernetesServiceDestination{

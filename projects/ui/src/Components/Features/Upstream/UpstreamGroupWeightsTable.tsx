@@ -75,7 +75,7 @@ export const UpstreamGroupWeightsTable = ({ destinations }: Props) => {
               wd.destination?.kube?.ref?.name ??
               wd.destination?.consul?.serviceName ??
               'A destination was provided with no name',
-            weight: wd.weight,
+            weight: wd.weight?.value ?? 0,
             name:
               wd.destination?.upstream?.name ??
               wd.destination?.kube?.ref?.name ??
@@ -100,7 +100,7 @@ export const UpstreamGroupWeightsTable = ({ destinations }: Props) => {
 
   const renderWeight = (weight: number) => {
     const percentage = Math.round(
-      (100 * weight) / destinations.reduce((acc, wd) => acc + wd.weight, 0)
+      (100 * weight) / destinations.reduce((acc, wd) => acc + (wd.weight?.value ?? 0), 0)
     );
     return (
       <WeightPercentageBlock percentage={percentage} width='75px'>
