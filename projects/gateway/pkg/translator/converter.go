@@ -329,6 +329,7 @@ func (rv *routeVisitor) visit(
 					}
 				}
 			}
+			// TODO-JAKE this is where the error for the action occurs, and rejects this route
 			glooRoute, err := convertSimpleAction(routeClone)
 			if err != nil {
 				reporterHelper.addError(resource.InputResource(), err)
@@ -405,6 +406,8 @@ func convertSimpleAction(simpleRoute *gatewayv1.Route) (*gloov1.Route, error) {
 		Name:     simpleRoute.GetName(),
 	}
 
+	// TODO-Jake will need to add validation for Actions as well, such that actions
+	// can be rejected in the gateway, and not in the Gloo Pod
 	switch action := simpleRoute.GetAction().(type) {
 	case *gatewayv1.Route_RedirectAction:
 		glooRoute.Action = &gloov1.Route_RedirectAction{
@@ -415,9 +418,12 @@ func convertSimpleAction(simpleRoute *gatewayv1.Route) (*gloov1.Route, error) {
 			DirectResponseAction: action.DirectResponseAction,
 		}
 	case *gatewayv1.Route_RouteAction:
-		glooRoute.Action = &gloov1.Route_RouteAction{
-			RouteAction: action.RouteAction,
+		routeAction, err := convertRouteAction(action.RouteAction)
+		if err != nil {
+			return nil, err
 		}
+		glooRoute.Action = routeAction
+		// TODO need to check that the route is valid.
 	case *gatewayv1.Route_DelegateAction:
 		// Should never happen
 		return nil, errors.New("internal error: expected simple route action but found delegation!")
@@ -430,6 +436,13 @@ func convertSimpleAction(simpleRoute *gatewayv1.Route) (*gloov1.Route, error) {
 	}
 
 	return glooRoute, nil
+}
+
+func convertRouteAction(routeAction *gloov1.RouteAction) (*gloov1.Route_RouteAction, error) {
+	// TODO check that the routeAction validation occurs here.
+	return &gloov1.Route_RouteAction{
+		RouteAction: routeAction,
+	}, nil
 }
 
 // If any of the matching route tables has already been visited, then we have a delegation cycle.
