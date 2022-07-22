@@ -1,0 +1,19 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.12.0-rc2
+  - type: NEW_FEATURE
+    description: >
+      Introduce enterprise API to support configuring a new per route option
+      on lambda invocation to act as if it was an AWS API Gateway.
+      This is an enterprise only feature that is intended to be used to ease
+      migration from using AWS API Gateway for lambda invocation to Gloo.
+      To opt into the feature, configure `unwrap_as_api_gateway` on the AWS DestinationSpec.
+      Create a new enterprise AWS Lambda plugin, which supports new API Gateway functionality
+    issueLink: https://github.com/solo-io/gloo/issues/6143
+    resolvesIssue: false
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/6729
+    resolvesIssue: false
+    description: Fix ArgoCD hanging on job during install/upgrade.

@@ -37,7 +37,7 @@ func (p *plugin) Init(params plugins.InitParams) error {
 func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	var filters []plugins.StagedHttpFilter
 	if pl := listener.GetOptions().GetProxyLatency(); pl != nil {
-		stagedFilter, err := plugins.NewStagedFilterWithConfig(FilterName, pl, FilterStage)
+		stagedFilter, err := plugins.NewStagedFilter(FilterName, pl, FilterStage)
 		if err != nil {
 			return nil, err
 		}

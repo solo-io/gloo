@@ -11,6 +11,7 @@ import (
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/aws"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/cors"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/hcm"
@@ -128,7 +129,7 @@ var _ = Describe("PluginRegistryFactory", func() {
 			Expect(isSubset(pluginRegistry.GetPlugins(), enterprisePlugins)).To(BeTrue())
 		})
 
-		It("enterprise plugin overrides open source plugin", func() {
+		It("enterprise plugins override open source plugins", func() {
 			plugins := pluginRegistry.GetPlugins()
 
 			extAuthPluginName := extauth.ExtensionName
@@ -138,10 +139,21 @@ var _ = Describe("PluginRegistryFactory", func() {
 					extAuthPlugins += 1
 				}
 			}
-
 			// we define an open source and enterprise plugin
 			// validate the only a single one has been loaded into the registry
 			Expect(extAuthPlugins).To(Equal(1))
+
+			awsPluginName := aws.ExtensionName
+			awsPlugins := 0
+			for _, plugin := range plugins {
+				if plugin.Name() == awsPluginName {
+					awsPlugins += 1
+				}
+			}
+
+			// we define an open source and enterprise plugin
+			// validate the only a single one has been loaded into the registry
+			Expect(awsPlugins).To(Equal(1))
 		})
 
 		It("does not register graphql plugins", func() {

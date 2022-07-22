@@ -45,4 +45,4 @@ spec:
             echo "no custom resources to apply"
             {{- end }}
       restartPolicy: OnFailure
-  ttlSecondsAfterFinished: 0
+  ttlSecondsAfterFinished: {{ .Values.gloo.gateway.rolloutJob.ttlSecondsAfterFinished }}

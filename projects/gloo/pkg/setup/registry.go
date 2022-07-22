@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/advanced_http"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/aws"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
@@ -75,6 +76,7 @@ func getEnterprisePlugins(apiEmitterChan chan struct{}) []plugins.Plugin {
 		jwt.NewPlugin(),
 		waf.NewPlugin(),
 		dlp.NewPlugin(),
+		aws.NewPlugin(),
 		proxylatency.NewPlugin(),
 		failover.NewFailoverPlugin(
 			utils.NewSslConfigTranslator(),

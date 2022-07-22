@@ -1,0 +1,334 @@
+package e2e_test
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+
+	"github.com/aws/aws-sdk-go/aws/credentials"
+
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
+
+	"github.com/solo-io/solo-projects/test/services"
+)
+
+const (
+	region               = "us-east-1"
+	webIdentityTokenFile = "AWS_WEB_IDENTITY_TOKEN_FILE"
+	jwtPrivateKey        = "JWT_PRIVATE_KEY"
+	awsRoleArnSts        = "AWS_ROLE_ARN_STS"
+	awsRoleArn           = "AWS_ROLE_ARN"
+)
+
+var _ = Describe("AWS Lambda ", func() {
+
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+
+		testClients   services.TestClients
+		envoyInstance *services.EnvoyInstance
+		secret        *gloov1.Secret
+		upstream      *gloov1.Upstream
+		envoyPort     uint32
+	)
+
+	setupEnvoy := func() {
+		ctx, cancel = context.WithCancel(context.Background())
+		cache := memory.NewInMemoryResourceCache()
+
+		testClients = services.GetTestClients(ctx, cache)
+		testClients.GlooPort = int(services.AllocateGlooPort())
+
+		var err error
+		envoyInstance, err = envoyFactory.NewEnvoyInstance()
+		Expect(err).NotTo(HaveOccurred())
+
+		settings := &gloov1.Settings{}
+
+		what := services.What{
+			DisableGateway: true,
+			DisableUds:     true,
+			DisableFds:     false,
+		}
+
+		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: settings})
+
+		err = envoyInstance.Run(testClients.GlooPort)
+		Expect(err).NotTo(HaveOccurred())
+
+		envoyPort = defaults.HttpPort
+	}
+
+	addBasicCredentials := func() {
+
+		// Look in ~/.aws/credentials for local AWS credentials
+		// see the gloo OSS e2e test README for more information about configuring credentials for AWS e2e tests
+		// https://github.com/solo-io/gloo/blob/master/test/e2e/README.md
+		localAwsCredentials := credentials.NewSharedCredentials("", "")
+		v, err := localAwsCredentials.Get()
+		if err != nil {
+			Fail("no AWS creds available")
+		}
+		var opts clients.WriteOpts
+
+		accesskey := v.AccessKeyID
+		secretkey := v.SecretAccessKey
+
+		secret = &gloov1.Secret{
+			Metadata: &core.Metadata{
+				Namespace: "default",
+				Name:      region,
+			},
+			Kind: &gloov1.Secret_Aws{
+				Aws: &gloov1.AwsSecret{
+					AccessKey: accesskey,
+					SecretKey: secretkey,
+				},
+			},
+		}
+
+		_, err = testClients.SecretClient.Write(secret, opts)
+		Expect(err).NotTo(HaveOccurred())
+	}
+
+	validateLambda := func(offset int, envoyPort uint32, substring string) {
+		body := []byte("\"solo.io\"")
+
+		EventuallyWithOffset(offset, func() (string, error) {
+			// send a request with a body
+			var buf bytes.Buffer
+			buf.Write(body)
+
+			url := fmt.Sprintf("http://%s:%d/1?param_a=value_1&param_b=value_b", "localhost", envoyPort)
+			res, err := http.Post(url, "application/octet-stream", &buf)
+			if err != nil {
+				fmt.Printf("error with post reqeust: %v\n", err)
+				return "", err
+			}
+			defer res.Body.Close()
+			if res.StatusCode != http.StatusOK {
+				return "", errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
+			}
+
+			body, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				return "", err
+			}
+
+			return string(body), nil
+		}, "10s", "1s").Should(ContainSubstring(substring))
+	}
+
+	validateLambdaUppercase := func(envoyPort uint32) {
+		validateLambda(2, envoyPort, "SOLO.IO")
+	}
+
+	addUpstream := func() {
+		upstream = &gloov1.Upstream{
+			Metadata: &core.Metadata{
+				Namespace: "default",
+				Name:      region,
+			},
+			UpstreamType: &gloov1.Upstream_Aws{
+				Aws: &aws.UpstreamSpec{
+					Region:    region,
+					SecretRef: secret.Metadata.Ref(),
+				},
+			},
+		}
+
+		var opts clients.WriteOpts
+		_, err := testClients.UpstreamClient.Write(upstream, opts)
+		Expect(err).NotTo(HaveOccurred())
+
+		Eventually(func() []*aws.LambdaFunctionSpec {
+			us, err := testClients.UpstreamClient.Read(
+				upstream.GetMetadata().Namespace,
+				upstream.GetMetadata().Name,
+				clients.ReadOpts{},
+			)
+			if err != nil {
+				return nil
+			}
+			fmt.Printf("Logging lambda functions: %v\n", us.GetAws().GetLambdaFunctions())
+			return us.GetAws().GetLambdaFunctions()
+		}, "15s", "1s").ShouldNot(BeEmpty())
+	}
+
+	testProxy := func() {
+		proxy := &gloov1.Proxy{
+			Metadata: &core.Metadata{
+				Name:      "proxy",
+				Namespace: "default",
+			},
+			Listeners: []*gloov1.Listener{{
+				Name:        "listener",
+				BindAddress: "::",
+				BindPort:    envoyPort,
+				ListenerType: &gloov1.Listener_HttpListener{
+					HttpListener: &gloov1.HttpListener{
+						VirtualHosts: []*gloov1.VirtualHost{{
+							Name:    "virt1",
+							Domains: []string{"*"},
+							Routes: []*gloov1.Route{{
+								Action: &gloov1.Route_RouteAction{
+									RouteAction: &gloov1.RouteAction{
+										Destination: &gloov1.RouteAction_Single{
+											Single: &gloov1.Destination{
+												DestinationType: &gloov1.Destination_Upstream{
+													Upstream: upstream.Metadata.Ref(),
+												},
+												DestinationSpec: &gloov1.DestinationSpec{
+													DestinationType: &gloov1.DestinationSpec_Aws{
+														Aws: &aws.DestinationSpec{
+															LogicalName: "uppercase",
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							}},
+						}},
+					},
+				},
+			}},
+		}
+
+		var opts clients.WriteOpts
+		_, err := testClients.ProxyClient.Write(proxy, opts)
+		Expect(err).NotTo(HaveOccurred())
+
+		validateLambdaUppercase(defaults.HttpPort)
+	}
+
+	createEchoProxy := func() {
+		proxy := &gloov1.Proxy{
+			Metadata: &core.Metadata{
+				Name:      "proxy",
+				Namespace: "default",
+			},
+			Listeners: []*gloov1.Listener{{
+				Name:        "listener",
+				BindAddress: "::",
+				BindPort:    envoyPort,
+				ListenerType: &gloov1.Listener_HttpListener{
+					HttpListener: &gloov1.HttpListener{
+						VirtualHosts: []*gloov1.VirtualHost{{
+							Name:    "virt1",
+							Domains: []string{"*"},
+							Routes: []*gloov1.Route{{
+								Action: &gloov1.Route_RouteAction{
+									RouteAction: &gloov1.RouteAction{
+										Destination: &gloov1.RouteAction_Single{
+											Single: &gloov1.Destination{
+												DestinationType: &gloov1.Destination_Upstream{
+													Upstream: upstream.Metadata.Ref(),
+												},
+												DestinationSpec: &gloov1.DestinationSpec{
+													DestinationType: &gloov1.DestinationSpec_Aws{
+														Aws: &aws.DestinationSpec{
+															LogicalName:        "echo",
+															UnwrapAsApiGateway: true,
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							}},
+						},
+						},
+					},
+				},
+			}},
+		}
+
+		var opts clients.WriteOpts
+		_, err := testClients.ProxyClient.Write(proxy, opts)
+		Expect(err).NotTo(HaveOccurred())
+	}
+
+	Context("Enterprise Lambda plugin", func() {
+
+		BeforeEach(func() {
+			setupEnvoy()
+			addBasicCredentials()
+			addUpstream()
+		})
+
+		AfterEach(func() {
+			envoyInstance.Clean()
+			cancel()
+		})
+
+		It("Can configure simple Lambda upstream", func() {
+			testProxy()
+		})
+
+		It("Can configure Lambda upstream with enterprise-specific functionality", func() {
+			createEchoProxy()
+
+			// format API gateway response.
+			bodyString := "test"
+			statusCode := 200
+			headers := map[string]string{"Foo": "bar"}
+			jsonHeaderStr, err := json.Marshal(headers)
+			Expect(err).NotTo(HaveOccurred())
+			apiGatewayResponse := fmt.Sprintf("{\"body\": \"%s\", \"statusCode\": %d, \"headers\":%s}", bodyString, statusCode, string(jsonHeaderStr))
+
+			// send request to echo lambda, mimicking a service that generates an API gateway response.
+			body := []byte(apiGatewayResponse)
+			expectResponse := func(response *http.Response, body string, statusCode int, headers map[string]string) {
+				Expect(response.StatusCode).To(Equal(statusCode))
+
+				defer response.Body.Close()
+				responseBody, err := ioutil.ReadAll(response.Body)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(responseBody)).To(Equal(body))
+				for k, v := range headers {
+					Expect(response.Header.Get(k)).To(Equal(v))
+				}
+			}
+
+			// expect that the response is transformed appropriately.
+			var res *http.Response
+			EventuallyWithOffset(2, func() error {
+				// send a request with a body
+				var err error
+				var buf bytes.Buffer
+				buf.Write(body)
+
+				url := fmt.Sprintf("http://%s:%d/1?param_a=value_1&param_b=value_b", "localhost", defaults.HttpPort)
+				res, err = http.Post(url, "application/octet-stream", &buf)
+				if err != nil {
+					return err
+				}
+
+				if res.StatusCode != 200 {
+					return fmt.Errorf("expected status code 200, got %d", res.StatusCode)
+				}
+
+				return nil
+
+			}, "15s", "1s").Should(Succeed())
+			expectResponse(res, bodyString, statusCode, headers)
+		})
+	})
+})

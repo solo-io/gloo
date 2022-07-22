@@ -335,6 +335,10 @@ func (ei *EnvoyInstance) UseDocker() bool {
 }
 
 func (ei *EnvoyInstance) Clean() error {
+	if ei == nil {
+		return nil
+	}
+
 	postResp, err := http.Post(fmt.Sprintf("http://localhost:%d/quitquitquit", ei.AdminPort), "", nil)
 	if err != nil {
 		fmt.Fprintf(ginkgo.GinkgoWriter, "Error posting to quitquitquit (%s). continuing anyway.", err)

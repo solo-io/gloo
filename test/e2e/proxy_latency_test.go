@@ -9,6 +9,8 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
+	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/router/v3"
+
 	envoy_admin_v3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	envoy_listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/router/v3"
@@ -98,13 +100,10 @@ var _ = Describe("Proxy latency", func() {
 			up := testUpstream.Upstream
 			_, err = testClients.UpstreamClient.Write(up, opts)
 			Expect(err).NotTo(HaveOccurred())
-
 		})
 
 		AfterEach(func() {
-			if envoyInstance != nil {
-				_ = envoyInstance.Clean()
-			}
+			_ = envoyInstance.Clean()
 		})
 
 		Context("proxy latency", func() {

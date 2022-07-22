@@ -37,10 +37,8 @@ GCS_BUCKET := glooctl-plugins
 WASM_GCS_PATH := glooctl-wasm
 FED_GCS_PATH := glooctl-fed
 
-
-ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.23.0-patch2
-ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.23.0-patch2 
-
+ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.23.0-patch3
+ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.23.0-patch3
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
@@ -159,19 +157,19 @@ endif
 # command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
 .PHONY: run-ci-regression-tests
-run-ci-regression-tests: update-all-deps
+run-ci-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn RUNNING_REGRESSION_TESTS=true $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/$(KUBE2E_TESTS)/...
 
 .PHONE: run-ci-gloo-fed-regression-tests
-run-ci-gloo-fed-regression-tests: update-all-deps
+run-ci-gloo-fed-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
 	MANAGEMENT_CLUSTER_CONTEXT=$(MANAGEMENT_CLUSTER_CONTEXT) RUNNING_REGRESSION_TESTS=true REMOTE_CLUSTER_CONTEXT=$(REMOTE_CLUSTER_CONTEXT) $(DEPSGOBIN)/ginkgo -r ./test/gloo-fed-e2e/...
 
 # command to run e2e tests
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
 .PHONY: run-e2e-tests
-run-e2e-tests: update-all-deps
+run-e2e-tests: install-go-tools
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
 
 .PHONY: update-ui-deps
