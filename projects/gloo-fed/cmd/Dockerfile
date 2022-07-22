@@ -1,4 +1,4 @@
-FROM alpine:3.15.4
+FROM alpine:3.15.5
 
 RUN apk -U upgrade
 COPY gloo-fed-linux-amd64 /usr/local/bin/gloo-fed
