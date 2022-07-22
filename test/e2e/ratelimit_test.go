@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -1704,7 +1705,7 @@ func (b *rateLimitingProxyBuilder) build() *gloov1.Proxy {
 		Listeners: []*gloov1.Listener{
 			{
 				Name:        "e2e-test-listener",
-				BindAddress: "0.0.0.0",
+				BindAddress: net.IPv4zero.String(),
 				BindPort:    b.port,
 				ListenerType: &gloov1.Listener_HttpListener{
 					HttpListener: &gloov1.HttpListener{

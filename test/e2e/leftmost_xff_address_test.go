@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -175,7 +176,7 @@ func getProxy(envoyPort uint32, leftmostXffAddress bool, accessLogPath string) *
 		},
 		Listeners: []*gloov1.Listener{{
 			Name:        "listener",
-			BindAddress: "0.0.0.0",
+			BindAddress: net.IPv4zero.String(),
 			BindPort:    envoyPort,
 			Options: &gloov1.ListenerOptions{
 				AccessLoggingService: &als.AccessLoggingService{

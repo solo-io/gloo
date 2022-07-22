@@ -300,15 +300,15 @@ func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 			RefreshRate: time.Second / 10,
 		},
 		ControlPlane: syncer_setup.NewControlPlane(ctx, grpcServer, &net.TCPAddr{
-			IP:   net.ParseIP("0.0.0.0"),
+			IP:   net.IPv4zero,
 			Port: 8081,
 		}, nil, true),
 		ValidationServer: syncer_setup.NewValidationServer(ctx, grpcServerValidation, &net.TCPAddr{
-			IP:   net.ParseIP("0.0.0.0"),
+			IP:   net.IPv4zero,
 			Port: 8081,
 		}, true),
 		ProxyDebugServer: syncer_setup.NewProxyDebugServer(ctx, grpcServerValidation, &net.TCPAddr{
-			IP:   net.ParseIP("0.0.0.0"),
+			IP:   net.IPv4zero,
 			Port: 8081,
 		}, false),
 		KubeClient: kubeclient,

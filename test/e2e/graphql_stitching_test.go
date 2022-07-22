@@ -4,6 +4,7 @@ import (
 	"context"
 	json2 "encoding/json"
 	"fmt"
+	"net"
 
 	"github.com/solo-io/gloo/test/v1helpers"
 
@@ -235,7 +236,7 @@ type Query {
 			},
 			Listeners: []*gloov1.Listener{{
 				Name:        "listener",
-				BindAddress: "0.0.0.0",
+				BindAddress: net.IPv4zero.String(),
 				BindPort:    envoyPort,
 				ListenerType: &gloov1.Listener_HttpListener{
 					HttpListener: &gloov1.HttpListener{

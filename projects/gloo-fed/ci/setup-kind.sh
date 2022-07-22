@@ -190,7 +190,6 @@ rm remote-helm-values.yaml
 kubectl -n gloo-system rollout status deployment gloo --timeout=2m || true
 kubectl -n gloo-system rollout status deployment discovery --timeout=2m || true
 kubectl -n gloo-system rollout status deployment gateway-proxy --timeout=2m || true
-kubectl -n gloo-system rollout status deployment gateway --timeout=2m || true
 kubectl patch settings -n gloo-system default --type=merge -p '{"spec":{"watchNamespaces":["gloo-system", "default"]}}'
 
 # 8. Generate certs and keys
@@ -347,7 +346,7 @@ spec:
             - "1"
             - --file-flush-interval-msec
             - "10"
-          image: envoyproxy/envoy:v1.14.2
+          image: envoyproxy/envoy:v1.22.0
           imagePullPolicy: IfNotPresent
           name: envoy
           resources: {}
@@ -483,7 +482,7 @@ spec:
             - "1"
             - --file-flush-interval-msec
             - "10"
-          image: envoyproxy/envoy:v1.14.2
+          image: envoyproxy/envoy:v1.22.0
           imagePullPolicy: IfNotPresent
           name: envoy
           resources: {}

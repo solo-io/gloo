@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"time"
@@ -69,7 +70,7 @@ var _ = Describe("Failover", func() {
 				},
 				Listeners: []*gloov1.Listener{{
 					Name:        "listener",
-					BindAddress: "0.0.0.0",
+					BindAddress: net.IPv4zero.String(),
 					BindPort:    envoyPort,
 					ListenerType: &gloov1.Listener_HttpListener{
 						HttpListener: &gloov1.HttpListener{

@@ -59,6 +59,8 @@ func StartTestHelper() {
 		defaults.Verbose = true
 		return defaults
 	})
+
+	skhelpers.RegisterPreFailHandler(helpers.KubeDumpOnFail(GinkgoWriter, testHelper.InstallNamespace))
 	Expect(err).NotTo(HaveOccurred())
 
 	valueOverrideFile, cleanupFunc := getHelmaWasmValuesOverrideFile()

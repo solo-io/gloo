@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	"net"
 	"time"
 
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
@@ -328,7 +329,7 @@ func getSimpleProxy(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy 
 		},
 		Listeners: []*gloov1.Listener{{
 			Name:        "listener",
-			BindAddress: "0.0.0.0",
+			BindAddress: net.IPv4zero.String(),
 			BindPort:    envoyPort,
 			ListenerType: &gloov1.Listener_HttpListener{
 				HttpListener: &gloov1.HttpListener{

@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/solo-io/gloo/test/helpers"
@@ -10,6 +11,7 @@ import (
 
 	envoy_admin_v3 "github.com/envoyproxy/go-control-plane/envoy/admin/v3"
 	envoy_listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/router/v3"
 	envoy_hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/fgrosse/zaptest"
 	"github.com/golang/protobuf/jsonpb"
@@ -225,7 +227,7 @@ func getProxyLatencyProxy(envoyPort uint32, upstream *core.ResourceRef) *gloov1.
 		},
 		Listeners: []*gloov1.Listener{{
 			Name:        "listener",
-			BindAddress: "0.0.0.0",
+			BindAddress: net.IPv4zero.String(),
 			BindPort:    envoyPort,
 			ListenerType: &gloov1.Listener_HttpListener{
 				HttpListener: &gloov1.HttpListener{

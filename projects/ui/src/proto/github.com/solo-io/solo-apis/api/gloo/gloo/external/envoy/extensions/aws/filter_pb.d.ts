@@ -7,6 +7,7 @@ import * as extproto_ext_pb from "../../../../../../../../../../extproto/ext_pb"
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as validate_validate_pb from "../../../../../../../../../../validate/validate_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/extension_pb";
 
 export class AWSLambdaPerRoute extends jspb.Message {
   getName(): string;
@@ -26,6 +27,11 @@ export class AWSLambdaPerRoute extends jspb.Message {
   getUnwrapAsAlb(): boolean;
   setUnwrapAsAlb(value: boolean): void;
 
+  hasTransformerConfig(): boolean;
+  clearTransformerConfig(): void;
+  getTransformerConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig | undefined;
+  setTransformerConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AWSLambdaPerRoute.AsObject;
   static toObject(includeInstance: boolean, msg: AWSLambdaPerRoute): AWSLambdaPerRoute.AsObject;
@@ -43,6 +49,7 @@ export namespace AWSLambdaPerRoute {
     async: boolean,
     emptyBodyOverride?: google_protobuf_wrappers_pb.StringValue.AsObject,
     unwrapAsAlb: boolean,
+    transformerConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.AsObject,
   }
 }
 
@@ -158,5 +165,21 @@ export namespace AWSLambdaConfig {
     CREDENTIALS_FETCHER_NOT_SET = 0,
     USE_DEFAULT_CREDENTIALS = 1,
     SERVICE_ACCOUNT_CREDENTIALS = 2,
+  }
+}
+
+export class ApiGatewayTransformation extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiGatewayTransformation.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiGatewayTransformation): ApiGatewayTransformation.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiGatewayTransformation, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiGatewayTransformation;
+  static deserializeBinaryFromReader(message: ApiGatewayTransformation, reader: jspb.BinaryReader): ApiGatewayTransformation;
+}
+
+export namespace ApiGatewayTransformation {
+  export type AsObject = {
   }
 }

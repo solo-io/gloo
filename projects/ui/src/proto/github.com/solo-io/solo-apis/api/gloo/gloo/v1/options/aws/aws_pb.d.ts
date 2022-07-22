@@ -86,6 +86,9 @@ export class DestinationSpec extends jspb.Message {
   getUnwrapAsAlb(): boolean;
   setUnwrapAsAlb(value: boolean): void;
 
+  getUnwrapAsApiGateway(): boolean;
+  setUnwrapAsApiGateway(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DestinationSpec.AsObject;
   static toObject(includeInstance: boolean, msg: DestinationSpec): DestinationSpec.AsObject;
@@ -103,6 +106,7 @@ export namespace DestinationSpec {
     requestTransformation: boolean,
     responseTransformation: boolean,
     unwrapAsAlb: boolean,
+    unwrapAsApiGateway: boolean,
   }
 
   export interface InvocationStyleMap {

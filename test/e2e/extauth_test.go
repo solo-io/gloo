@@ -12,6 +12,7 @@ import (
 	"io"
 	"log"
 	"math/big"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -1171,7 +1172,7 @@ var _ = Describe("External auth", func() {
 								Expect(len(p.GetListeners())).To(BeNumerically(">", 0))
 								l := p.Listeners[0]
 								l.GetHttpListener().VirtualHosts = proxy.GetListeners()[0].GetHttpListener().GetVirtualHosts()
-								l.BindAddress = "0.0.0.0"
+								l.BindAddress = net.IPv4zero.String()
 
 								proxy.Listeners = append(proxy.Listeners, p.Listeners...)
 							})
@@ -3589,7 +3590,7 @@ func getProxyExtAuth(envoyPort uint32, upstream *core.ResourceRef, extauthCfg *e
 		},
 		Listeners: []*gloov1.Listener{{
 			Name:        "listener",
-			BindAddress: "0.0.0.0",
+			BindAddress: net.IPv4zero.String(),
 			BindPort:    envoyPort,
 			ListenerType: &gloov1.Listener_HttpListener{
 				HttpListener: &gloov1.HttpListener{
@@ -3602,7 +3603,7 @@ func getProxyExtAuth(envoyPort uint32, upstream *core.ResourceRef, extauthCfg *e
 	if zipkinTracing {
 		p.Listeners[0] = &gloov1.Listener{
 			Name:        "listener",
-			BindAddress: "0.0.0.0",
+			BindAddress: net.IPv4zero.String(),
 			BindPort:    envoyPort,
 			ListenerType: &gloov1.Listener_HttpListener{
 				HttpListener: &gloov1.HttpListener{

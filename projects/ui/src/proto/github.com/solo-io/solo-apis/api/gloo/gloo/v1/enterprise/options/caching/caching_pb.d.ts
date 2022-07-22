@@ -20,6 +20,16 @@ export class Settings extends jspb.Message {
   setAllowedVaryHeadersList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher>): void;
   addAllowedVaryHeaders(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher, index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher;
 
+  hasTimeout(): boolean;
+  clearTimeout(): void;
+  getTimeout(): google_protobuf_duration_pb.Duration | undefined;
+  setTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
+  hasMaxPayloadSize(): boolean;
+  clearMaxPayloadSize(): void;
+  getMaxPayloadSize(): google_protobuf_wrappers_pb.UInt64Value | undefined;
+  setMaxPayloadSize(value?: google_protobuf_wrappers_pb.UInt64Value): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Settings.AsObject;
   static toObject(includeInstance: boolean, msg: Settings): Settings.AsObject;
@@ -34,5 +44,7 @@ export namespace Settings {
   export type AsObject = {
     cachingServiceRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     allowedVaryHeadersList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher.AsObject>,
+    timeout?: google_protobuf_duration_pb.Duration.AsObject,
+    maxPayloadSize?: google_protobuf_wrappers_pb.UInt64Value.AsObject,
   }
 }

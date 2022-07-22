@@ -76,15 +76,18 @@ var _ = BeforeSuite(func() {
 	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values))
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() error {
+		ctx, cancel := context.WithCancel(context.Background())
 		opts := &options.Options{
 			Top: options.Top{
-				Ctx: context.Background(),
+				Ctx: ctx,
 			},
 			Metadata: core.Metadata{
 				Namespace: testHelper.InstallNamespace,
 			},
 		}
-		return check.CheckResources(opts)
+		errs := check.CheckResources(opts)
+		cancel()
+		return errs
 	}, 2*time.Minute, "5s").Should(BeNil())
 
 	// Print out the versions of CLI and server components

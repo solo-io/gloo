@@ -74,7 +74,9 @@ proto.caching.options.gloo.solo.io.Settings.toObject = function(includeInstance,
   var f, obj = {
     cachingServiceRef: (f = msg.getCachingServiceRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     allowedVaryHeadersList: jspb.Message.toObjectList(msg.getAllowedVaryHeadersList(),
-    github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher.toObject, includeInstance)
+    github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher.toObject, includeInstance),
+    timeout: (f = msg.getTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    maxPayloadSize: (f = msg.getMaxPayloadSize()) && google_protobuf_wrappers_pb.UInt64Value.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -121,6 +123,16 @@ proto.caching.options.gloo.solo.io.Settings.deserializeBinaryFromReader = functi
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher.deserializeBinaryFromReader);
       msg.addAllowedVaryHeaders(value);
       break;
+    case 3:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setTimeout(value);
+      break;
+    case 4:
+      var value = new google_protobuf_wrappers_pb.UInt64Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt64Value.deserializeBinaryFromReader);
+      msg.setMaxPayloadSize(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -164,6 +176,22 @@ proto.caching.options.gloo.solo.io.Settings.serializeBinaryToWriter = function(m
       2,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_string_pb.StringMatcher.serializeBinaryToWriter
+    );
+  }
+  f = message.getTimeout();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getMaxPayloadSize();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      google_protobuf_wrappers_pb.UInt64Value.serializeBinaryToWriter
     );
   }
 };
@@ -227,6 +255,66 @@ proto.caching.options.gloo.solo.io.Settings.prototype.addAllowedVaryHeaders = fu
 
 proto.caching.options.gloo.solo.io.Settings.prototype.clearAllowedVaryHeadersList = function() {
   this.setAllowedVaryHeadersList([]);
+};
+
+
+/**
+ * optional google.protobuf.Duration timeout = 3;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.caching.options.gloo.solo.io.Settings.prototype.getTimeout = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 3));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.caching.options.gloo.solo.io.Settings.prototype.setTimeout = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.caching.options.gloo.solo.io.Settings.prototype.clearTimeout = function() {
+  this.setTimeout(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.caching.options.gloo.solo.io.Settings.prototype.hasTimeout = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional google.protobuf.UInt64Value max_payload_size = 4;
+ * @return {?proto.google.protobuf.UInt64Value}
+ */
+proto.caching.options.gloo.solo.io.Settings.prototype.getMaxPayloadSize = function() {
+  return /** @type{?proto.google.protobuf.UInt64Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt64Value, 4));
+};
+
+
+/** @param {?proto.google.protobuf.UInt64Value|undefined} value */
+proto.caching.options.gloo.solo.io.Settings.prototype.setMaxPayloadSize = function(value) {
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.caching.options.gloo.solo.io.Settings.prototype.clearMaxPayloadSize = function() {
+  this.setMaxPayloadSize(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.caching.options.gloo.solo.io.Settings.prototype.hasMaxPayloadSize = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
