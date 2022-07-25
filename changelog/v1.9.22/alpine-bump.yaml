@@ -1,0 +1,10 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: linux
+    dependencyRepo: alpine
+    dependencyTag: 3.13.11
+    description: Fix for CVE-2022-2097
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyTag: v1.20.4-patch2

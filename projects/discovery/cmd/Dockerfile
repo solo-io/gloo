@@ -1,4 +1,4 @@
-FROM alpine:3.13.10
+FROM alpine:3.13.11
 
 ARG DOCKER_GOARCH
 
