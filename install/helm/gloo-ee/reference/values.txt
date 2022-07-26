@@ -245,6 +245,7 @@
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
+|gloo.gloo.deployment.ossImageTag|string|1.12.0-rc3|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
 |gloo.gloo.deployment.replicas|int||number of instances to deploy|
 |gloo.gloo.deployment.customEnv[].name|string|||
 |gloo.gloo.deployment.customEnv[].value|string|||
@@ -364,61 +365,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.deployment.image.tag|string|1.12.0-rc2|The image tag for the container.|
-|gloo.gateway.deployment.image.repository|string||The image repository (name) for the container.|
-|gloo.gateway.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
-|gloo.gateway.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
-|gloo.gateway.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
-|gloo.gateway.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
-|gloo.gateway.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
-|gloo.gateway.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|gloo.gateway.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
-|gloo.gateway.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
-|gloo.gateway.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
-|gloo.gateway.deployment.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
-|gloo.gateway.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
-|gloo.gateway.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
-|gloo.gateway.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
-|gloo.gateway.deployment.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
-|gloo.gateway.deployment.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
-|gloo.gateway.deployment.extraGatewayLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge gateway deployment.|
-|gloo.gateway.deployment.extraGatewayAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the gloo edge gateway deployment.|
-|gloo.gateway.deployment.replicas|int||number of instances to deploy|
-|gloo.gateway.deployment.customEnv[].name|string|||
-|gloo.gateway.deployment.customEnv[].value|string|||
-|gloo.gateway.deployment.customEnv[].valueFrom.fieldRef.apiVersion|string|||
-|gloo.gateway.deployment.customEnv[].valueFrom.fieldRef.fieldPath|string|||
-|gloo.gateway.deployment.customEnv[].valueFrom.resourceFieldRef.containerName|string|||
-|gloo.gateway.deployment.customEnv[].valueFrom.resourceFieldRef.resource|string|||
-|gloo.gateway.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|int64|||
-|gloo.gateway.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|int32|||
-|gloo.gateway.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|bool|||
-|gloo.gateway.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|uint|||
-|gloo.gateway.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|int32|||
-|gloo.gateway.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
-|gloo.gateway.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
-|gloo.gateway.deployment.customEnv[].valueFrom.configMapKeyRef.name|string|||
-|gloo.gateway.deployment.customEnv[].valueFrom.configMapKeyRef.key|string|||
-|gloo.gateway.deployment.customEnv[].valueFrom.configMapKeyRef.optional|bool|||
-|gloo.gateway.deployment.customEnv[].valueFrom.secretKeyRef.name|string|||
-|gloo.gateway.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
-|gloo.gateway.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
-|gloo.gateway.deployment.restartPolicy|string||restart policy to use when the pod exits|
-|gloo.gateway.deployment.nodeName|string||name of node to run on|
-|gloo.gateway.deployment.nodeSelector.NAME|string||label selector for nodes|
-|gloo.gateway.deployment.tolerations[].key|string|||
-|gloo.gateway.deployment.tolerations[].operator|string|||
-|gloo.gateway.deployment.tolerations[].value|string|||
-|gloo.gateway.deployment.tolerations[].effect|string|||
-|gloo.gateway.deployment.tolerations[].tolerationSeconds|int64|||
-|gloo.gateway.deployment.affinity.NAME|interface|||
-|gloo.gateway.deployment.hostAliases[]|interface|||
-|gloo.gateway.deployment.resources.limits.memory|string||amount of memory|
-|gloo.gateway.deployment.resources.limits.cpu|string||amount of CPUs|
-|gloo.gateway.deployment.resources.requests.memory|string||amount of memory|
-|gloo.gateway.deployment.resources.requests.cpu|string||amount of CPUs|
-|gloo.gateway.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.certGenJob.image.tag|string|1.12.0-rc2|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.12.0-rc3|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string||The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.certGenJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
@@ -477,9 +424,6 @@
 |gloo.gateway.proxyServiceAccount.extraAnnotations.NAME|string||extra annotations to add to the service account|
 |gloo.gateway.proxyServiceAccount.disableAutomount|bool||disable automounting the service account to the gateway proxy. not mounting the token hardens the proxy container, but may interfere with service mesh integrations|
 |gloo.gateway.proxyServiceAccount.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|gloo.gateway.serviceAccount.extraAnnotations.NAME|string||extra annotations to add to the service account|
-|gloo.gateway.serviceAccount.disableAutomount|bool||disable automounting the service account to the gateway proxy. not mounting the token hardens the proxy container, but may interfere with service mesh integrations|
-|gloo.gateway.serviceAccount.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.readGatewaysFromAllNamespaces|bool||if true, read Gateway custom resources from all watched namespaces rather than just the namespace of the Gateway controller|
 |gloo.gateway.compressedProxySpec|bool||if true, enables compression for the Proxy CRD spec|
 |gloo.gateway.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
@@ -1301,7 +1245,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.12.0-rc2|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.12.0-rc3|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string||The image repository (name) for the container.|
 |global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |global.glooMtls.sds.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
