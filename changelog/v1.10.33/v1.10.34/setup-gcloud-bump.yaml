@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: > 
+      In the trivy analysis github workflow, use google-github-actions/setup-gcloud@v0
+      instead of google-github-actions/setup-gcloud@master, as the latter does not currently exist.
