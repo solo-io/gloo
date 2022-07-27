@@ -1,0 +1,19 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang.org
+    dependencyRepo: x/net
+    dependencyTag: v0.0.0-20211209124913-491a49abca63
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: prometheus
+    dependencyRepo: client_golang
+    dependencyTag: v1.11.1
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: linux
+    dependencyRepo: alpine
+    dependencyTag: 3.15.4
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo.io
+    dependencyRepo: envoy-gloo
+    dependencyTag: 1.20.4-patch2
+  - type: NON_USER_FACING
+    description: Bump cloudbuild's e2e-go-mod-ginkgo to 0.4.15 to user a newer version of go.
