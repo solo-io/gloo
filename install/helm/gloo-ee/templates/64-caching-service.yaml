@@ -1,0 +1,44 @@
+{{- define "caching.serviceSpec" -}}
+{{- $name := (index . 1) }}
+{{- with (first .) }}
+{{- $statsConfig := coalesce .Values.global.extensions.caching.deployment.stats .Values.global.glooStats }}
+{{- $cachingName := .Values.global.extensions.caching.name }}
+{{- if .Values.global.extensions.dataplanePerProxy }}
+{{- $cachingName = printf "%s-%s" $cachingName ($name | kebabcase) }}
+{{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gloo
+    gloo: {{ $cachingName }}
+  name: {{ $cachingName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+  - name: grpc
+    port: {{ .Values.global.extensions.caching.service.httpPort }}
+    protocol: TCP
+    {{- if $statsConfig.serviceMonitorEnabled }}
+    - name: http-monitoring
+      port: 9091
+    {{- end }}
+  selector:
+    gloo: {{ $cachingName }}
+---
+{{- end }} {{/* with (first .) */}}
+{{- end }}{{/* define "caching.serviceSpec" */}}
+
+{{- if .Values.global.extensions.caching.enabled }}
+{{- include "gloo.dataplaneperproxyhelper" $ }}
+{{- $override := dict }}
+{{- if .Values.global.extensions.caching.service}}
+{{- $override = .Values.global.extensions.caching.service.kubeResourceOverride}}
+{{- end }}
+{{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
+{{- if not $spec.disabled}}
+{{- $ctx := (list $ $name $spec)}}
+{{- include "gloo.util.merge" (list $ctx $override "caching.serviceSpec") -}}
+{{- end }} {{/* if not $spec.disabled */}}
+{{- end }} {{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
+{{- end }} {{/* .Values.global.extensions.caching.enabled */}}

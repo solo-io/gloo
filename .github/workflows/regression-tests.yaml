@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        kube-e2e-test-type: ['gateway', 'gloo-mtls', 'helm', 'redis-clientside-sharding', 'wasm']
+        kube-e2e-test-type: [ 'gateway', 'gloo-mtls', 'helm', 'redis-clientside-sharding', 'wasm', 'caching']
         use-fips: ['false']
         include:
           - kube-e2e-test-type: 'gateway'

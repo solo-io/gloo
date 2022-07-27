@@ -1,4 +1,4 @@
-package clientside_sharding_test
+package cachinggrpc
 
 import (
 	"context"
@@ -29,9 +29,9 @@ import (
 )
 
 func TestGateway(t *testing.T) {
-	if os.Getenv("KUBE2E_TESTS") != "redis-clientside-sharding" {
+	if os.Getenv("KUBE2E_TESTS") != "caching" {
 		log.Warnf("This test is disabled. " +
-			"To enable, set KUBE2E_TESTS to 'redis-clientside-sharding' in your env.")
+			"To enable, set KUBE2E_TESTS to 'caching' in your env.")
 		return
 	}
 	skhelpers.RegisterCommonFailHandlers()
@@ -39,7 +39,7 @@ func TestGateway(t *testing.T) {
 	_ = os.Remove(cliutil.GetLogsPath())
 	skhelpers.RegisterPreFailHandler(regressions.PrintGlooDebugLogs)
 	junitReporter := reporters.NewJUnitReporter("junit.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "Gloo clientside sharding Suite", []Reporter{junitReporter})
+	RunSpecsWithDefaultAndCustomReporters(t, "Gloo caching via grpc Suite", []Reporter{junitReporter})
 }
 
 var (
@@ -76,15 +76,18 @@ var _ = BeforeSuite(func() {
 	err = testHelper.InstallGloo(ctx, helper.GATEWAY, 5*time.Minute, helper.ExtraArgs("--values", values))
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(func() error {
+		ctx, cancel := context.WithCancel(context.Background())
 		opts := &options.Options{
 			Top: options.Top{
-				Ctx: context.Background(),
+				Ctx: ctx,
 			},
 			Metadata: core.Metadata{
 				Namespace: testHelper.InstallNamespace,
 			},
 		}
-		return check.CheckResources(opts)
+		errs := check.CheckResources(opts)
+		cancel()
+		return errs
 	}, 2*time.Minute, "5s").Should(BeNil())
 
 	// Print out the versions of CLI and server components
@@ -93,9 +96,6 @@ var _ = BeforeSuite(func() {
 		"version", "-n", testHelper.InstallNamespace}
 	_, err = exec.RunCommandOutput(testHelper.RootDir, true, glooctlVersionCommand...)
 	Expect(err).NotTo(HaveOccurred())
-
-	// TODO(marco): explicitly enable strict validation, this can be removed once we enable validation by default
-	// See https://github.com/solo-io/gloo/issues/1374
 	regressions.EnableStrictValidation(testHelper)
 
 })
@@ -123,43 +123,7 @@ func getHelmOverrides() (filename string, cleanup func()) {
 	values, err := ioutil.TempFile("", "*.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	// Set up gloo with mTLS enabled, clientSideSharding enabled, and redis scaled to 2
-	_, err = values.Write([]byte(`
-gloo:
-  gatewayProxies:
-    gatewayProxy:
-      healthyPanicThreshold: 0
-  gateway:
-    persistProxySpec: true
-  rbac:
-    namespaced: true
-    nameSuffix: e2e-test-rbac-suffix
-settings:
-  singleNamespace: true
-  create: true
-prometheus:
-  podSecurityPolicy:
-    enabled: true
-grafana:
-  testFramework:
-    enabled: false
-global:
-  glooMtls:
-    enabled: true
-gloo-fed:
-  enabled: false
-  glooFedApiserver:
-    enable: false
-redis:
-  clientSideShardingEnabled: true
-  deployment:
-    replicas: 2
-rateLimit:
-  enabled: true
-ratelimitServer:
-  ratelimitServerRef:
-    name: rate-limit
-    namespace: gloo-system
-`))
+	_, err = values.Write([]byte(overrideYaml))
 	Expect(err).NotTo(HaveOccurred())
 	err = values.Close()
 	Expect(err).NotTo(HaveOccurred())

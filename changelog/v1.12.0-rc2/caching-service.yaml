@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add caching filter configuration for envoy
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/caching-service/issues/1

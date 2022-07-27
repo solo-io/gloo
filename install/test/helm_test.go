@@ -55,9 +55,9 @@ var _ = Describe("Helm Test", func() {
 		backtick = "`"
 
 		normalPromAnnotations = map[string]string{
-			"prometheus.io/path":   "/metrics",
 			"prometheus.io/port":   "9091",
 			"prometheus.io/scrape": "true",
+			"prometheus.io/path":   "/metrics",
 		}
 
 		statsEnvVar = v1.EnvVar{
@@ -3672,6 +3672,125 @@ spec:
 
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
+		})
+
+		Context("caching deployment", func() {
+
+			var expectedDeployment *appsv1.Deployment
+
+			BeforeEach(func() {
+				labels = map[string]string{
+					"app":  "gloo",
+					"gloo": "caching-service",
+				}
+				selector = map[string]string{
+					"gloo": "caching-service",
+				}
+
+				rb := ResourceBuilder{
+					Namespace: namespace,
+					Name:      "caching-service",
+					Labels:    labels,
+				}
+
+				nonRootUser := int64(10101)
+				nonRoot := true
+
+				nonRootSC := &v1.PodSecurityContext{
+					RunAsUser:    &nonRootUser,
+					RunAsNonRoot: &nonRoot,
+				}
+
+				expectedDeployment = rb.GetDeploymentAppsv1()
+
+				expectedDeployment.Spec.Replicas = aws.Int32(1)
+				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{
+					{
+						Name:            "caching-service",
+						Image:           "quay.io/solo-io/caching-ee:" + version,
+						ImagePullPolicy: getPullPolicy(),
+						Env: []v1.EnvVar{
+							{
+								Name: "POD_NAMESPACE",
+								ValueFrom: &v1.EnvVarSource{
+									FieldRef: &v1.ObjectFieldSelector{
+										FieldPath: "metadata.namespace",
+									},
+								},
+							},
+							{
+								Name:  "REDIS_URL",
+								Value: "redis:6379",
+							},
+							{
+								Name:  "REDIS_SOCKET_TYPE",
+								Value: "tcp",
+							},
+							{
+								Name: "REDIS_PASSWORD",
+								ValueFrom: &v1.EnvVarSource{SecretKeyRef: &v1.SecretKeySelector{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: "redis",
+									},
+									Key: "redis-password",
+								}},
+							},
+							{
+								Name:  "START_STATS_SERVER",
+								Value: "true",
+							},
+							{
+								Name:  "READY_PORT",
+								Value: "18080",
+							},
+							{
+								Name:  "READY_PATH",
+								Value: "/ready",
+							},
+						},
+						ReadinessProbe: &v1.Probe{
+							Handler: v1.Handler{
+								HTTPGet: &v1.HTTPGetAction{
+									Path: "/ready",
+									Port: intstr.IntOrString{
+										Type:   0,
+										IntVal: 18080,
+									},
+								},
+							},
+							InitialDelaySeconds: 2,
+							PeriodSeconds:       5,
+							FailureThreshold:    2,
+							SuccessThreshold:    1,
+						},
+						Resources: v1.ResourceRequirements{},
+					},
+				}
+				expectedDeployment.Spec.Strategy = appsv1.DeploymentStrategy{}
+				expectedDeployment.Spec.Selector.MatchLabels = selector
+				expectedDeployment.Spec.Template.ObjectMeta.Labels = selector
+				expectedDeployment.Spec.Template.ObjectMeta.Annotations = normalPromAnnotations
+
+				expectedDeployment.Spec.Template.Spec.SecurityContext = nonRootSC
+
+				expectedDeployment.Spec.Template.Spec.ServiceAccountName = "caching-service"
+
+				expectedDeployment.Spec.Replicas = nil // GetDeploymentAppsv1 explicitly sets it to 1, which we don't want
+			})
+
+			It("produces expected default deployment", func() {
+				//TODO: once rc3 oss is out pull that in so this succeeds in ci
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace,
+					helmValues{valuesArgs: []string{"global.extensions.caching.enabled=true"}})
+				Expect(err).NotTo(HaveOccurred())
+
+				actualDeployment := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+					return unstructured.GetKind() == "Deployment" && unstructured.GetLabels()["gloo"] == "caching-service"
+				})
+
+				actualDeployment.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
 		})
 
 		Context("gloo-fed apiserver deployment", func() {

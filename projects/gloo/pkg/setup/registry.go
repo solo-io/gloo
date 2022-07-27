@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/advanced_http"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/aws"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/caching"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
@@ -71,6 +72,7 @@ func getEnterprisePlugins(apiEmitterChan chan struct{}) []plugins.Plugin {
 	return []plugins.Plugin{
 		ratelimit.NewPlugin(),
 		extauth.NewPlugin(),
+		caching.NewPlugin(),
 		sanitize_cluster_header.NewPlugin(),
 		rbac.NewPlugin(),
 		jwt.NewPlugin(),

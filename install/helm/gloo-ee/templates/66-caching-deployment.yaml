@@ -1,0 +1,176 @@
+{{- define "cachingServer.deploymentSpec" -}}
+{{- $name := (index . 1) }}
+{{- with (first .) }}
+{{- $statsConfig := coalesce .Values.global.extensions.caching.deployment.stats .Values.global.glooStats -}}
+{{- $image := merge .Values.global.extensions.caching.deployment.image .Values.global.image }}
+{{- $cachingName := .Values.global.extensions.caching.deployment.name }}
+{{- $redisName := .Values.redis.service.name }}
+{{- if .Values.global.extensions.dataplanePerProxy }}
+{{- $cachingName = printf "%s-%s" $cachingName ($name | kebabcase) }}
+{{- $redisName = printf "%s-%s" $redisName ($name | kebabcase) }}
+{{- end }} {{/* .Values.global.extensions.dataplanePerProxy */}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    gloo: {{ $cachingName }}
+    app: gloo 
+  name: {{ $cachingName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+{{- if not (kindIs "invalid" .Values.global.extensions.caching.deployment.replicas) }}
+  replicas: {{ .Values.global.extensions.caching.deployment.replicas }}
+{{- end }}{{/* if not (kindIs "invalid" .Values.global.extensions.caching.deployment.replicas) */}}
+  selector:
+    matchLabels:
+      gloo: {{ $cachingName }}
+  template:
+    metadata:
+      labels:
+        gloo: {{ $cachingName }}
+        {{- if .Values.global.extensions.caching.deployment.extraCachingLabels }}
+        {{- range $key, $value :=  .Values.global.extensions.caching.deployment.extraCachingLabels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+      {{- if or $statsConfig.enabled .Values.global.istioIntegration.disableAutoinjection }}
+      annotations:
+        {{- if $statsConfig.enabled }}
+        prometheus.io/port: "9091"
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        {{- end}}{{/* $statsConfig.enabled */}}
+        {{- if .Values.global.istioIntegration.disableAutoinjection }}
+        sidecar.istio.io/inject: "false"
+        {{- end }}
+      {{- end }}
+    spec:
+      {{- include "gloo.podSpecStandardFields" .Values.global.extensions.caching.deployment | nindent 6 -}}
+      serviceAccountName: {{ .Values.global.extensions.caching.name }}
+      containers:
+        - image: {{ template "gloo.image" $image}}
+          imagePullPolicy: {{ $image.pullPolicy }}
+          name: caching-service
+          {{- if .Values.global.extensions.caching.deployment.resources }}
+          resources:
+{{ toYaml .Values.global.extensions.caching.deployment.resources | indent 12}}
+          {{- end}}{{/* .Values.global.extensions.caching.deployment.resources */}}
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: REDIS_URL
+              value: {{ printf "%s:%v" $redisName .Values.redis.service.port }}
+            {{- if .Values.redis.cert.enabled }}
+            - name: REDIS_CA_CERT
+              value: /etc/tls/ca.crt
+            - name: REDIS_SOCKET_TYPE
+              value: tls
+            {{- else }}
+            - name: REDIS_SOCKET_TYPE
+              value: tcp
+            {{- end }}{{/* .Values.redis.cert.enabled */}}
+            {{- if .Values.global.extensions.glooRedis.enableAcl }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis
+                  key: redis-password
+            {{- end }}
+            {{- if $statsConfig.enabled }}
+            - name: START_STATS_SERVER
+              value: "true"
+            {{- end}}
+            - name: READY_PORT
+              value: "18080"
+            - name: READY_PATH
+              value: "/ready"
+            {{- if .Values.global.extensions.caching.deployment.customEnv }}
+{{ toYaml .Values.global.extensions.caching.deployment.customEnv | indent 12 }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              port: 18080
+              path: "/ready"
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 2
+            successThreshold: 1
+          {{- if $statsConfig.podMonitorEnabled }}
+          ports:
+            - name: http-monitoring
+              containerPort: 9091
+          {{- end }}
+          {{- if .Values.redis.cert.enabled }}
+          volumeMounts:
+            - mountPath: /etc/tls/
+              name: ca-cert-volume
+          {{- end }}
+        {{- if .Values.global.glooMtls.enabled }}
+        {{- $sdsImage := merge .Values.global.glooMtls.sds.image .Values.global.image }}
+        - name: sds
+          image: {{ template "gloo.image" $sdsImage }}
+          imagePullPolicy: {{ $sdsImage.pullPolicy }}
+          env:
+            - name: GLOO_MTLS_SDS_ENABLED
+              value: "true"
+          volumeMounts:
+            - mountPath: /etc/envoy/ssl
+              name: gloo-mtls-certs
+              readOnly: true
+          {{- if .Values.global.glooMtls.sdsResources }}
+          resources:
+{{ toYaml .Values.global.glooMtls.sdsResources | indent 12}}
+          {{- end }}
+        {{- end }}{{/* End SDS container */}}
+      securityContext:
+        runAsNonRoot: true
+        {{- /* set floatingUserId to true in the helm install to let the pod be assigned a dynamic user ID */ -}}
+        {{- /* see https://github.com/helm/helm/issues/1707#issuecomment-520357573 */ -}}
+        {{- /* the user id may be set quite high -- openshift wants userids that may get printed as scientific notation */}}
+        {{- if not .Values.global.extensions.caching.deployment.floatingUserId }}
+        runAsUser: {{ printf "%.0f" (float64 .Values.global.extensions.caching.deployment.runAsUser) -}}
+        {{- end }}
+      {{ if or (.Values.global.extensions.caching.antiAffinity) (.Values.global.extensions.caching.affinity) }}
+      affinity:
+      {{- end}}
+      {{- if .Values.global.extensions.caching.affinity }}
+        {{ toYaml .Values.global.extensions.caching.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.global.extensions.caching.antiAffinity }}
+        {{ toYaml .Values.global.extensions.caching.antiAffinity | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.global.glooMtls.enabled .Values.redis.cert.enabled }}
+      volumes:
+        {{- if .Values.global.glooMtls.enabled }}
+        - name: gloo-mtls-certs
+          secret:
+            defaultMode: 420
+            secretName: gloo-mtls-certs
+        {{- end }}
+        {{- if .Values.redis.cert.enabled }}
+        - name: ca-cert-volume
+          secret:
+            secretName: {{.Release.Name}}-redis-ca-cert-secret
+            defaultMode: 420
+        {{- end }}
+      {{- end }}{{/* .Values.global.glooMtls.enabled || .Values.redis.cert.enabled */}}
+{{- include "gloo.pullSecret" $image | nindent 6}}
+---
+{{- end }}{{/* with (first .) */}}
+{{- end }}{{/* define "caching.deploymentSpec" */}}
+
+{{- if .Values.global.extensions.caching.enabled }}
+{{- include "gloo.dataplaneperproxyhelper" $ }}
+{{- $override := dict -}}
+{{- if .Values.global.extensions.caching.deployment }}
+{{- $override = .Values.global.extensions.caching.deployment.kubeResourceOverride}}
+{{- end }}{{/* if .Values.global.extensions.caching.deployment */}}
+{{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
+{{- if not $spec.disabled}}
+{{- $ctx := (list $ $name $spec)}}
+{{- include "gloo.util.merge" (list $ctx $override "cachingServer.deploymentSpec") -}}
+{{- end }}{{/* if not $spec.disabled */}}
+{{- end }}{{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
+{{- end }}{{/* .Values.global.extensions.caching.enabled */}}

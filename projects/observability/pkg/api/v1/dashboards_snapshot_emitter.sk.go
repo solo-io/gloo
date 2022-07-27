@@ -23,25 +23,25 @@ import (
 
 var (
 	// Deprecated. See mDashboardsResourcesIn
-	mDashboardsSnapshotIn = stats.Int64("dashboards.observability.solo.io/emitter/snap_in", "Deprecated. Use dashboards.observability.solo.io/emitter/resources_in. The number of snapshots in", "1")
+	mDashboardsSnapshotIn = stats.Int64("dashboards_observability_solo_io/emitter/snap_in", "Deprecated. Use dashboards_observability_solo_io/emitter/resources_in. The number of snapshots in", "1")
 
 	// metrics for emitter
-	mDashboardsResourcesIn    = stats.Int64("dashboards.observability.solo.io/emitter/resources_in", "The number of resource lists received on open watch channels", "1")
-	mDashboardsSnapshotOut    = stats.Int64("dashboards.observability.solo.io/emitter/snap_out", "The number of snapshots out", "1")
-	mDashboardsSnapshotMissed = stats.Int64("dashboards.observability.solo.io/emitter/snap_missed", "The number of snapshots missed", "1")
+	mDashboardsResourcesIn    = stats.Int64("dashboards_observability_solo_io/emitter/resources_in", "The number of resource lists received on open watch channels", "1")
+	mDashboardsSnapshotOut    = stats.Int64("dashboards_observability_solo_io/emitter/snap_out", "The number of snapshots out", "1")
+	mDashboardsSnapshotMissed = stats.Int64("dashboards_observability_solo_io/emitter/snap_missed", "The number of snapshots missed", "1")
 
 	// views for emitter
 	// deprecated: see dashboardsResourcesInView
 	dashboardssnapshotInView = &view.View{
-		Name:        "dashboards.observability.solo.io/emitter/snap_in",
+		Name:        "dashboards_observability_solo_io/emitter/snap_in",
 		Measure:     mDashboardsSnapshotIn,
-		Description: "Deprecated. Use dashboards.observability.solo.io/emitter/resources_in. The number of snapshots updates coming in.",
+		Description: "Deprecated. Use dashboards_observability_solo_io/emitter/resources_in. The number of snapshots updates coming in.",
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{},
 	}
 
 	dashboardsResourcesInView = &view.View{
-		Name:        "dashboards.observability.solo.io/emitter/resources_in",
+		Name:        "dashboards_observability_solo_io/emitter/resources_in",
 		Measure:     mDashboardsResourcesIn,
 		Description: "The number of resource lists received on open watch channels",
 		Aggregation: view.Count(),
@@ -51,14 +51,14 @@ var (
 		},
 	}
 	dashboardssnapshotOutView = &view.View{
-		Name:        "dashboards.observability.solo.io/emitter/snap_out",
+		Name:        "dashboards_observability_solo_io/emitter/snap_out",
 		Measure:     mDashboardsSnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{},
 	}
 	dashboardssnapshotMissedView = &view.View{
-		Name:        "dashboards.observability.solo.io/emitter/snap_missed",
+		Name:        "dashboards_observability_solo_io/emitter/snap_missed",
 		Measure:     mDashboardsSnapshotMissed,
 		Description: "The number of snapshots updates going missed. this can happen in heavy load. missed snapshot will be re-tried after a second.",
 		Aggregation: view.Count(),

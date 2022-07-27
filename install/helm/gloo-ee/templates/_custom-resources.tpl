@@ -9,4 +9,5 @@ When adding a new CR to the helm chart, the template should be included here.
 {{- define "glooe.customResources" -}}
 {{- include "glooe.customResources.ratelimitUpstreams" . }}
 {{- include "glooe.customResources.extauthUpstreams" . }}
+{{- include "glooe.customResources.cachingUpstreams" . }}
 {{ end }}

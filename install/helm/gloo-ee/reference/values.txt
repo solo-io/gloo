@@ -1467,6 +1467,75 @@
 |global.extensions.rateLimit.beforeAuth|bool|false|If true, rate limiting checks occur before auth (default false).|
 |global.extensions.rateLimit.affinity.NAME|interface||Affinity rules to be applied|
 |global.extensions.rateLimit.antiAffinity.NAME|interface||Anti-affinity rules to be applied|
+|global.extensions.caching.enabled|bool|false|if true, deploy caching service (default false)|
+|global.extensions.caching.name|string|caching-service|name for the service,omitempty|
+|global.extensions.caching.deployment.name|string|caching-service||
+|global.extensions.caching.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
+|global.extensions.caching.deployment.image.repository|string|caching-ee|The image repository (name) for the container.|
+|global.extensions.caching.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|global.extensions.caching.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|global.extensions.caching.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|global.extensions.caching.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|global.extensions.caching.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|global.extensions.caching.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|global.extensions.caching.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
+|global.extensions.caching.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
+|global.extensions.caching.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
+|global.extensions.caching.deployment.stats.enableStatsRoute|bool||Enables an additional route to the stats cluster defaulting to /stats|
+|global.extensions.caching.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
+|global.extensions.caching.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
+|global.extensions.caching.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
+|global.extensions.caching.deployment.glooAddress|string|gloo||
+|global.extensions.caching.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|global.extensions.caching.deployment.floatingUserId|bool||set to true to allow the cluster to dynamically assign a user ID|
+|global.extensions.caching.deployment.affinity.NAME|interface||Affinity rules to be applied|
+|global.extensions.caching.deployment.antiAffinity.NAME|interface||Anti-affinity rules to be applied|
+|global.extensions.caching.deployment.extraCachingLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the Caching deployment.|
+|global.extensions.caching.deployment.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
+|global.extensions.caching.deployment.podDisruptionBudget.minAvailable|int32||An eviction is allowed if at least "minAvailable" pods selected by "selector" will still be available after the eviction, i.e. even in the absence of the evicted pod. So for example you can prevent all voluntary evictions by specifying "100%".|
+|global.extensions.caching.deployment.podDisruptionBudget.maxUnavailable|int32||An eviction is allowed if at most "maxUnavailable" pods selected by "selector" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with "minAvailable".|
+|global.extensions.caching.deployment.replicas|int||number of instances to deploy|
+|global.extensions.caching.deployment.customEnv[].name|string|||
+|global.extensions.caching.deployment.customEnv[].value|string|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.fieldRef.apiVersion|string|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.fieldRef.fieldPath|string|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.resourceFieldRef.containerName|string|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.resourceFieldRef.resource|string|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|int64|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|int32|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.resourceFieldRef.divisor|bool|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|uint|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|int32|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.resourceFieldRef.divisor[]|string|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.configMapKeyRef.name|string|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.configMapKeyRef.key|string|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.configMapKeyRef.optional|bool|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.secretKeyRef.name|string|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
+|global.extensions.caching.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
+|global.extensions.caching.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|global.extensions.caching.deployment.nodeName|string||name of node to run on|
+|global.extensions.caching.deployment.nodeSelector.NAME|string||label selector for nodes|
+|global.extensions.caching.deployment.tolerations[].key|string|||
+|global.extensions.caching.deployment.tolerations[].operator|string|||
+|global.extensions.caching.deployment.tolerations[].value|string|||
+|global.extensions.caching.deployment.tolerations[].effect|string|||
+|global.extensions.caching.deployment.tolerations[].tolerationSeconds|int64|||
+|global.extensions.caching.deployment.affinity.NAME|interface|||
+|global.extensions.caching.deployment.hostAliases[]|interface|||
+|global.extensions.caching.deployment.resources.limits.memory|string||amount of memory|
+|global.extensions.caching.deployment.resources.limits.cpu|string||amount of CPUs|
+|global.extensions.caching.deployment.resources.requests.memory|string||amount of memory|
+|global.extensions.caching.deployment.resources.requests.cpu|string||amount of CPUs|
+|global.extensions.caching.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.caching.upstream.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.caching.service.type|string||K8s service type|
+|global.extensions.caching.service.extraAnnotations.NAME|string||extra annotations to add to the service|
+|global.extensions.caching.service.loadBalancerIP|string||IP address of the load balancer|
+|global.extensions.caching.service.httpPort|int|8085|HTTP port for the knative/ingress proxy service|
+|global.extensions.caching.service.httpsPort|int||HTTPS port for the knative/ingress proxy service|
+|global.extensions.caching.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |global.extensions.glooRedis.enableAcl|bool|true|Whether to include the ACL policy on redis install. Defaults to true.|
 |global.extensions.dataPlanePerProxy|bool|||
 |global.graphql.changeValidation.rejectBreaking|bool|false|Whether to reject breaking GraphQL schema updates (default false).|

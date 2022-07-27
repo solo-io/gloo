@@ -47,6 +47,7 @@ type Rbac struct {
 type GlooEeExtensions struct {
 	ExtAuth           *ExtAuth   `json:"extAuth,omitempty"`
 	RateLimit         *RateLimit `json:"rateLimit,omitempty"`
+	Caching           *Caching   `json:"caching,omitempty"`
 	GlooRedis         *GlooRedis `json:"glooRedis,omitempty"`
 	DataPlanePerProxy *bool      `json:"dataPlanePerProxy,omitempty"`
 }
@@ -74,6 +75,29 @@ type RateLimit struct {
 	BeforeAuth      bool                          `json:"beforeAuth,omitempty" desc:"If true, rate limiting checks occur before auth (default false)."`
 	Affinity        map[string]interface{}        `json:"affinity,omitempty" desc:"Affinity rules to be applied"`
 	AntiAffinity    map[string]interface{}        `json:"antiAffinity,omitempty" desc:"Anti-affinity rules to be applied"`
+}
+
+type Caching struct {
+	Enabled    *bool                         `json:"enabled,omitempty" desc:"if true, deploy caching service (default false)"`
+	Name       string                        `json:"name" desc:"name for the service,omitempty"`
+	Deployment *CachingDeployment            `json:"deployment,omitempty"`
+	Upstream   *glooGen.KubeResourceOverride `json:"upstream,omitempty"`
+	*glooGen.ServiceSpec
+}
+
+type CachingDeployment struct {
+	Name                string                 `json:"name"`
+	Image               *glooGen.Image         `json:"image,omitempty"`
+	Stats               *glooGen.Stats         `json:"stats"`
+	GlooAddress         string                 `json:"glooAddress"`
+	RunAsUser           *float64               `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
+	FloatingUserId      *bool                  `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
+	Affinity            map[string]interface{} `json:"affinity,omitempty" desc:"Affinity rules to be applied"`
+	AntiAffinity        map[string]interface{} `json:"antiAffinity,omitempty" desc:"Anti-affinity rules to be applied"`
+	ExtraCachingLabels  map[string]string      `json:"extraCachingLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the Caching deployment."`
+	LogLevel            *string                `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info"`
+	PodDisruptionBudget *PodDisruptionBudget   `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the caching service pods."`
+	*glooGen.DeploymentSpec
 }
 
 type DynamoDb struct {

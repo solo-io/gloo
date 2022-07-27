@@ -7,7 +7,7 @@
 # install-graphql-js - NOTE node and yarn are required.
 # install-node-packages - calls both update-ui-deps and install graphql js. NOTE node and yarn are required.
 # run-ci-regression-tests - Set KUBE2E_TESTS to the test you would like to test. run ci/setup_kind.sh before running this to create images and helm chart in _test folder.
-#		KUBE2E_TESTS can be set to wasm, gateway, gloo-mtls, and redis-clientside-sharding
+#		KUBE2E_TESTS can be set to wasm, gateway, helm, gloo-mtls, redis-clientside-sharding, or caching
 # run-ci-gloo-fed-regression-tests - Set KUBE2E_TESTS to run test. run ci/setup_kind.sh before running this to create images and helm chart in _test folder.
 # run-e2e-tests - set the ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run.
 # glooctl - creates glooctl
@@ -242,6 +242,8 @@ generate-gloo-fed-code: clean-fed
 generate-helm-docs:
 	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/install/helm/gloo-ee/generate.go $(VERSION) --generate-helm-docs # Generate Helm Documentation
 
+
+
 #################
 #     Build     #
 #################
@@ -251,7 +253,7 @@ generate-helm-docs:
 #----------------------------------------------------------------------------------
 # helper for testing
 .PHONY: allprojects
-allprojects: gloo-fed-apiserver gloo extauth extauth-fips rate-limit rate-limit-fips observability
+allprojects: gloo-fed-apiserver gloo extauth extauth-fips rate-limit rate-limit-fips observability caching
 
 #----------------------------------------------------------------------------------
 # Gloo Fed
@@ -881,6 +883,30 @@ $(OBS_OUT_DIR)/.observability-ee-docker: $(OBS_OUT_DIR)/observability-linux-$(GO
 	touch $@
 
 #----------------------------------------------------------------------------------
+# Caching
+#----------------------------------------------------------------------------------
+
+CACHING_DIR=projects/caching
+CACHING_SOURCES=$(shell find $(CACHING_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+CACHE_OUT_DIR=$(OUTPUT_DIR)/caching
+
+$(CACHE_OUT_DIR)/caching-linux-amd64: $(CACHING_SOURCES)
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CACHING_DIR)/cmd/main.go
+
+.PHONY: caching
+caching: $(CACHE_OUT_DIR)/caching-linux-amd64
+
+$(CACHE_OUT_DIR)/Dockerfile: $(CACHING_DIR)/cmd/Dockerfile
+	cp $< $@
+
+.PHONY: caching-ee-docker
+caching-ee-docker: $(CACHE_OUT_DIR)/.caching-ee-docker
+
+$(CACHE_OUT_DIR)/.caching-ee-docker: $(CACHE_OUT_DIR)/caching-linux-amd64 $(CACHE_OUT_DIR)/Dockerfile
+	docker build -t $(IMAGE_REPO)/caching-ee:$(VERSION) $(call get_test_tag_option,caching-ee) $(CACHE_OUT_DIR)
+	touch $@
+	
+#----------------------------------------------------------------------------------
 # Gloo
 #----------------------------------------------------------------------------------
 
@@ -1202,7 +1228,7 @@ endif
 .PHONY: docker docker-push
  docker: rate-limit-ee-docker rate-limit-ee-fips-docker extauth-ee-docker \
        extauth-ee-fips-docker gloo-ee-docker gloo-fips-ee-docker gloo-ee-envoy-wrapper-docker discovery-ee-docker\
-       gloo-ee-envoy-wrapper-fips-docker observability-ee-docker ext-auth-plugins-docker ext-auth-plugins-fips-docker \
+       gloo-ee-envoy-wrapper-fips-docker observability-ee-docker caching-ee-docker ext-auth-plugins-docker ext-auth-plugins-fips-docker \
        gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker gloo-federation-console-docker gloo-fed-rbac-validating-webhook-docker
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
@@ -1221,6 +1247,7 @@ ifeq ($(RELEASE), "true")
 	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/caching-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/discovery-ee:$(VERSION)
 ifneq ($(GOARCH), arm64)
@@ -1267,6 +1294,7 @@ ifeq ($(RELEASE),"true")
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION) $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION) $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/observability-ee:$(VERSION) $(IMAGE_REPO)/observability-ee:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REGISTRY)/caching-ee:$(VERSION) $(IMAGE_REPO)/caching-ee:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/extauth-ee:$(VERSION) $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/extauth-ee-fips:$(VERSION) $(IMAGE_REPO)/extauth-ee-fips:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/discovery-ee:$(VERSION) $(IMAGE_REPO)/discovery-ee:$(VERSION) && \
@@ -1284,6 +1312,7 @@ ifeq ($(RELEASE),"true")
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION)-extended $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-extended && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION)-extended $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-extended && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/observability-ee:$(VERSION)-extended $(IMAGE_REPO)/observability-ee:$(VERSION)-extended && \
+	docker tag $(RETAG_IMAGE_REGISTRY)/caching-ee:$(VERSION)-extended $(IMAGE_REPO)/caching-ee:$(VERSION)-extended && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/extauth-ee:$(VERSION)-extended $(IMAGE_REPO)/extauth-ee:$(VERSION)-extended && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/extauth-ee-fips:$(VERSION)-extended $(IMAGE_REPO)/extauth-ee-fips:$(VERSION)-extended && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed:$(VERSION)-extended $(IMAGE_REPO)/gloo-fed:$(VERSION)-extended && \
@@ -1299,6 +1328,7 @@ ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/caching-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/discovery-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee-fips:$(VERSION) && \
@@ -1316,6 +1346,7 @@ ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-extended && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-extended && \
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION)-extended && \
+	docker push $(IMAGE_REPO)/caching-ee:$(VERSION)-extended && \
 	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION)-extended && \
 	docker push $(IMAGE_REPO)/extauth-ee-fips:$(VERSION)-extended && \
 	docker push $(IMAGE_REPO)/gloo-fed:$(VERSION)-extended && \
@@ -1351,6 +1382,7 @@ ifneq ($(GOARCH), arm64)
 build-kind-images-non-fips: ext-auth-plugins-docker
 endif
 build-kind-images-non-fips: observability-ee-docker
+build-kind-images-non-fips: caching-ee-docker
 build-kind-images-non-fips: discovery-ee-docker
 
 .PHONY: load-kind-images-non-fips
@@ -1362,6 +1394,7 @@ ifneq ($(GOARCH), arm64)
 load-kind-images-non-fips: kind-load-ext-auth-plugins # ext auth plugins
 endif
 load-kind-images-non-fips: kind-load-observability-ee # observability
+load-kind-images-non-fips: kind-load-caching-ee # caching
 load-kind-images-non-fips: kind-load-discovery-ee # discovery
 
 # Build and load images for a fips compliant (data plane) installation of Gloo Edge
@@ -1376,6 +1409,7 @@ build-kind-images-fips: rate-limit-ee-fips-docker # rate limit
 build-kind-images-fips: extauth-ee-fips-docker # ext auth
 build-kind-images-fips: ext-auth-plugins-fips-docker # ext auth plugins
 build-kind-images-fips: observability-ee-docker # observability
+build-kind-images-fips: caching-ee-docker # caching
 build-kind-images-fips: discovery-ee-docker # discovery
 
 .PHONY: load-kind-images-fips
@@ -1385,6 +1419,7 @@ load-kind-images-fips: kind-load-rate-limit-ee-fips # rate limit
 load-kind-images-fips: kind-load-extauth-ee-fips # ext auth
 load-kind-images-fips: kind-load-ext-auth-plugins-fips # ext auth plugins
 load-kind-images-fips: kind-load-observability-ee # observability
+load-kind-images-fips: kind-load-caching-ee # caching
 load-kind-images-fips: kind-load-discovery-ee # discovery
 
 # arm local development requires work around to deploy to docker registry instead of kind load docker-image
@@ -1401,7 +1436,7 @@ endif
 .PHONY: build-kind-assets
 build-kind-assets: push-kind-images build-test-chart
 
-TEST_DOCKER_TARGETS := gloo-federation-console-docker-test apiserver-envoy-docker-test gloo-fed-apiserver-docker-test rate-limit-ee-docker-test extauth-ee-docker-test observability-ee-docker-test gloo-ee-docker-test gloo-ee-envoy-wrapper-docker-test
+TEST_DOCKER_TARGETS := gloo-federation-console-docker-test apiserver-envoy-docker-test gloo-fed-apiserver-docker-test rate-limit-ee-docker-test extauth-ee-docker-test observability-ee-docker-test caching-ee-docker-test gloo-ee-docker-test gloo-ee-envoy-wrapper-docker-test
 
 push-test-images: $(TEST_DOCKER_TARGETS)
 
@@ -1422,6 +1457,9 @@ extauth-ee-docker-test: $(EXTAUTH_OUT_DIR)/extauth-linux-$(GOARCH) $(EXTAUTH_OUT
 
 observability-ee-docker-test: $(OBS_OUT_DIR)/observability-linux-$(GOARCH) $(OBS_OUT_DIR)/Dockerfile
 	docker push $(call get_test_tag,observability-ee)
+
+caching-ee-docker-test: $(OBS_OUT_DIR)/caching-linux-$(GOARCH) $(OBS_OUT_DIR)/Dockerfile
+	docker push $(call get_test_tag,caching-ee)
 
 gloo-ee-docker-test: gloo-ee-docker
 	docker push $(call get_test_tag,gloo-ee)

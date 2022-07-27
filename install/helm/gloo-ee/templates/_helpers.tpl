@@ -271,6 +271,12 @@ Injection point for enterprise-exclusive settings into the settings manifest
       name: rate-limit
       namespace: {{ .Release.Namespace }}
 {{- end }} {{/* if $.Values.global.extensions.rateLimit.enabled */}}
+{{- if $.Values.global.extensions.caching.enabled }}
+  cachingServer:
+    cachingServiceRef:
+      name: caching-server
+      namespace: {{ .Release.Namespace }}
+{{- end }} {{/* if $.Values.global.extensions.caching.enabled */}}
 {{- $consoleOpts := $.Values.global.console | default dict }}
   consoleOptions:
     readOnly: {{ hasKey $consoleOpts "readOnly" | ternary $consoleOpts.readOnly false }}

@@ -122,6 +122,24 @@ global:
         name: rate-limit
     ########################################################################
     ###                                                                  ###
+    ###                        Caching                                   ###
+    ###                                                                  ###
+    ########################################################################
+    caching:
+      enabled: false
+      name: caching-service
+      deployment:
+        name: "caching-service"
+        image:
+          repository: caching-ee
+        glooAddress: gloo
+        glooPort: 9977
+        runAsUser: 10101
+      service:
+        httpPort: 8085
+
+    ########################################################################
+    ###                                                                  ###
     ###                           Extauth                                ###
     ###                                                                  ###
     ########################################################################

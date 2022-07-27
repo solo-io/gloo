@@ -223,7 +223,6 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 						regressions.WriteVirtualService(ctx, testHelper, virtualServiceClient, virtualHostPlugins, nil, nil)
 
 						defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
-						// wait for default gateway to be created
 						Eventually(func() (*gatewayv2.Gateway, error) {
 							return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
 						}, "15s", "0.5s").Should(Not(BeNil()))

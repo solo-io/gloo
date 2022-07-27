@@ -312,4 +312,7 @@ func updateExtensionsImageVersionAndPullPolicy(config HelmConfig, pullPolicy str
 
 	config.Global.Extensions.RateLimit.Deployment.Image.Tag = version
 	config.Global.Extensions.RateLimit.Deployment.Image.PullPolicy = &pullPolicy
+
+	config.Global.Extensions.Caching.Deployment.Image.Tag = version
+	config.Global.Extensions.Caching.Deployment.Image.PullPolicy = &pullPolicy
 }
