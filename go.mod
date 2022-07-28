@@ -45,9 +45,9 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.19.11-patch4
 	github.com/solo-io/external-apis v0.1.4
-	github.com/solo-io/gloo v1.9.20
+	github.com/solo-io/gloo v1.9.21
 	github.com/solo-io/go-list-licenses v0.1.4
-	github.com/solo-io/go-utils v0.21.25
+	github.com/solo-io/go-utils v0.22.0
 	github.com/solo-io/k8s-utils v0.1.0
 	github.com/solo-io/licensing v0.1.20
 	github.com/solo-io/protoc-gen-ext v0.0.16
@@ -57,7 +57,7 @@ require (
 	github.com/solo-io/skv2 v0.17.19
 	github.com/solo-io/skv2-enterprise v0.0.8
 	// Corresponds to gloo-v1.9.6
-	github.com/solo-io/solo-apis v0.0.0-20220718173822-f3ef36b2c212
+	github.com/solo-io/solo-apis v0.0.0-20220728135541-f2157312627d
 	github.com/solo-io/solo-kit v0.24.6
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -108,7 +108,7 @@ replace (
 	github.com/google/go-github/v32 => github.com/google/go-github/v32 v32.0.0
 	github.com/open-policy-agent/opa => github.com/open-policy-agent/opa v0.40.0
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.0-rc1
-	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.9.0
+	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.11.1
 	// skv2 uses a newer version than the imported solo-kit version which causes issues. Replaces the version with the solo-kit version
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
