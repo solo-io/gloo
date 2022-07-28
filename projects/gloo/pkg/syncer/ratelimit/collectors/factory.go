@@ -13,6 +13,8 @@ var UnknownCollectorTypeErr = func(typ CollectorType) error {
 	return eris.Errorf("unknown rate limit config collector type [%v]", typ)
 }
 
+var _ ConfigCollectorFactory = new(collectorFactory)
+
 type collectorFactory struct {
 	settings                *ratelimit.ServiceSettings
 	globalTranslator        shims.GlobalRateLimitTranslator
@@ -34,15 +36,16 @@ func NewCollectorFactory(
 	}
 }
 
-func (f collectorFactory) MakeInstance(typ CollectorType, snapshot *gloov1snap.ApiSnapshot, logger *zap.SugaredLogger) (ConfigCollector, error) {
+func (f collectorFactory) MakeInstance(typ CollectorType, snapshot *gloov1snap.ApiSnapshot, logger *zap.SugaredLogger) ConfigCollector {
 	switch typ {
 	case Global:
-		return NewGlobalConfigCollector(f.settings, logger, f.globalTranslator), nil
+		return NewGlobalConfigCollector(f.settings, logger, f.globalTranslator)
 	case Basic:
-		return NewBasicConfigCollector(f.ingressConfigTranslator), nil
+		return NewBasicConfigCollector(f.ingressConfigTranslator)
 	case Crd:
-		return NewCrdConfigCollector(snapshot, f.crdTranslator), nil
+		return NewCrdConfigCollector(snapshot, f.crdTranslator)
 	default:
-		return nil, UnknownCollectorTypeErr(typ)
+		logger.DPanicw("Invalid CollectorType supplied", zap.Error(UnknownCollectorTypeErr(typ)))
+		return nil
 	}
 }

@@ -183,8 +183,7 @@ var _ = Describe("Graphql plugin", func() {
 
 		BeforeEach(func() {
 			plugin = schemas.NewPlugin()
-			err := plugin.Init(plugins.InitParams{})
-			Expect(err).NotTo(HaveOccurred())
+			plugin.Init(plugins.InitParams{})
 		})
 
 		Context("empty extensions", func() {

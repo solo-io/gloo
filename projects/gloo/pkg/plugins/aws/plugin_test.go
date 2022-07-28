@@ -120,10 +120,9 @@ var _ = Describe("Plugin", func() {
 		}
 		vhostParams = plugins.VirtualHostParams{Params: params}
 
-		err := awsPlugin.Init(plugins.InitParams{
+		awsPlugin.Init(plugins.InitParams{
 			Ctx: ctx,
 		})
-		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {

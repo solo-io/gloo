@@ -23,7 +23,7 @@ import (
 type StagedRateLimits map[uint32][]*envoy_config_route_v3.RateLimit
 
 type StagedTranslator interface {
-	Init(params plugins.InitParams) error
+	Init(params plugins.InitParams)
 	GetVirtualHostRateLimitsByStage(params plugins.VirtualHostParams, virtualHost *v1.VirtualHost) (StagedRateLimits, error)
 	GetRouteRateLimitsByStage(params plugins.RouteParams, route *v1.Route) (StagedRateLimits, error)
 }
@@ -60,13 +60,10 @@ type hybridTranslator struct {
 	stagedTranslators []StagedTranslator
 }
 
-func (h *hybridTranslator) Init(params plugins.InitParams) error {
+func (h *hybridTranslator) Init(params plugins.InitParams) {
 	for _, t := range h.stagedTranslators {
-		if err := t.Init(params); err != nil {
-			return err
-		}
+		t.Init(params)
 	}
-	return nil
 }
 
 func (h *hybridTranslator) GetVirtualHostRateLimitsByStage(params plugins.VirtualHostParams, virtualHost *v1.VirtualHost) (StagedRateLimits, error) {
@@ -112,15 +109,13 @@ type ingressTranslator struct {
 	rateLimitBeforeAuth           bool
 }
 
-func (i *ingressTranslator) Init(params plugins.InitParams) error {
+func (i *ingressTranslator) Init(params plugins.InitParams) {
 	authSettings := params.Settings.GetExtauth()
 	i.authUserIdHeader = extauth.GetAuthHeader(authSettings)
 	i.basicRatelimitDescriptorNames = make(map[string]struct{})
 	if rlServer := params.Settings.GetRatelimitServer(); rlServer != nil {
 		i.rateLimitBeforeAuth = rlServer.RateLimitBeforeAuth
 	}
-
-	return nil
 }
 
 func (i *ingressTranslator) GetVirtualHostRateLimitsByStage(params plugins.VirtualHostParams, virtualHost *v1.VirtualHost) (StagedRateLimits, error) {
@@ -170,11 +165,10 @@ type crdTranslator struct {
 	rateLimitBeforeAuth bool
 }
 
-func (c *crdTranslator) Init(params plugins.InitParams) error {
+func (c *crdTranslator) Init(params plugins.InitParams) {
 	if rlServer := params.Settings.GetRatelimitServer(); rlServer != nil {
 		c.rateLimitBeforeAuth = rlServer.RateLimitBeforeAuth
 	}
-	return nil
 }
 
 func (c *crdTranslator) GetVirtualHostRateLimitsByStage(params plugins.VirtualHostParams, virtualHost *v1.VirtualHost) (StagedRateLimits, error) {
@@ -293,8 +287,7 @@ type setActionTranslator struct {
 	rateLimitBeforeAuth bool
 }
 
-func (s *setActionTranslator) Init(params plugins.InitParams) error {
-	return nil
+func (s *setActionTranslator) Init(_ plugins.InitParams) {
 }
 
 func (s *setActionTranslator) GetVirtualHostRateLimitsByStage(params plugins.VirtualHostParams, virtualHost *v1.VirtualHost) (StagedRateLimits, error) {

@@ -40,8 +40,7 @@ var _ = Describe("Plugin", func() {
 
 	BeforeEach(func() {
 		plugin = NewPlugin()
-		err := plugin.Init(plugins.InitParams{})
-		Expect(err).ToNot(HaveOccurred())
+		plugin.Init(plugins.InitParams{})
 
 		defaultExtAuthUpstream = &v1.Upstream{
 			Metadata: &core.Metadata{
@@ -212,12 +211,11 @@ var _ = Describe("Plugin", func() {
 		})
 
 		JustBeforeEach(func() {
-			err := plugin.Init(plugins.InitParams{
+			plugin.Init(plugins.InitParams{
 				Settings: &v1.Settings{
 					Extauth: extAuthSettings,
 				},
 			})
-			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should provide sanitize filter with listener overriding global", func() {
@@ -314,7 +312,7 @@ var _ = Describe("Plugin", func() {
 		})
 
 		JustBeforeEach(func() {
-			err := plugin.Init(plugins.InitParams{
+			plugin.Init(plugins.InitParams{
 				Settings: &v1.Settings{
 					Extauth: defaultExtAuthSettings,
 					NamedExtauth: map[string]*extauthv1.Settings{
@@ -322,7 +320,6 @@ var _ = Describe("Plugin", func() {
 					},
 				},
 			})
-			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should provide sanitize filter with nil listener", func() {

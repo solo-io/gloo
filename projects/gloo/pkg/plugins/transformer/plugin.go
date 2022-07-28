@@ -38,16 +38,12 @@ func (p *plugin) Name() string {
 	return osTransformation.ExtensionName
 }
 
-func (p *plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Init(params plugins.InitParams) {
 	if p.plugin == nil {
 		p.plugin = osTransformation.NewPlugin()
 	}
-	err := p.plugin.Init(params)
-	if err != nil {
-		return err
-	}
+	p.plugin.Init(params)
 	p.plugin.TranslateTransformation = translateTransformation
-	return nil
 }
 
 func (p *plugin) ProcessVirtualHost(

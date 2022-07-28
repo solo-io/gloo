@@ -61,7 +61,7 @@ func (p *plugin) Name() string {
 	return extauth.ExtensionName
 }
 
-func (p *plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Init(params plugins.InitParams) {
 	p.userIdHeader = ""
 
 	settings := params.Settings.GetExtauth()
@@ -69,7 +69,6 @@ func (p *plugin) Init(params plugins.InitParams) error {
 
 	p.namedExtAuthSettings = params.Settings.GetNamedExtauth()
 	p.extAuthzConfigGenerator = getEnterpriseConfigGenerator(settings, p.namedExtAuthSettings)
-	return nil
 }
 
 func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {

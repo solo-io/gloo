@@ -87,8 +87,7 @@ var _ = Describe("RateLimit Plugin", func() {
 
 	JustBeforeEach(func() {
 		initParams.Settings.RatelimitServer = serverSettings
-		err := rlPlugin.Init(initParams)
-		Expect(err).NotTo(HaveOccurred())
+		rlPlugin.Init(initParams)
 	})
 
 	Context("Server Settings", func() {
@@ -262,8 +261,7 @@ var _ = Describe("RateLimit Plugin", func() {
 			}
 
 			extAuthPlugin = extauth.NewPlugin()
-			err := extAuthPlugin.Init(initParams)
-			Expect(err).NotTo(HaveOccurred())
+			extAuthPlugin.Init(initParams)
 		})
 
 		It("should create different http filters", func() {

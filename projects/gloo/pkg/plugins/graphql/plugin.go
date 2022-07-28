@@ -48,10 +48,9 @@ func (p *plugin) Name() string {
 }
 
 // Init resets the plugin and creates the maps within the structure.
-func (p *plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Init(params plugins.InitParams) {
 	p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
 	p.filterRequiredForListener = make(map[*v1.HttpListener]struct{})
-	return nil
 }
 
 // HttpFilters sets up the filters for envoy if it is needed.

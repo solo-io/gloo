@@ -45,8 +45,7 @@ var _ = Describe("Rate Limit Plugin Config Processing", func() {
 
 		testErr = eris.New("test error")
 
-		err := plugin.Init(plugins.InitParams{Settings: &gloov1.Settings{}})
-		Expect(err).NotTo(HaveOccurred())
+		plugin.Init(plugins.InitParams{Settings: &gloov1.Settings{}})
 	})
 
 	AfterEach(func() {

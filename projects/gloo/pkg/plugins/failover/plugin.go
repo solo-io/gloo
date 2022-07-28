@@ -81,7 +81,7 @@ func (f *failoverPluginImpl) Name() string {
 	return ExtensionName
 }
 
-func (f *failoverPluginImpl) Init(params plugins.InitParams) error {
+func (f *failoverPluginImpl) Init(params plugins.InitParams) {
 	f.settings = params.Settings
 	f.watchedAddresses = nil
 
@@ -94,8 +94,6 @@ func (f *failoverPluginImpl) Init(params plugins.InitParams) error {
 	// Start a go routine that will force emit Gloo if there is a change in DNS resolution for the
 	// EDS endpoints
 	go f.startDnsSyncLoop(syncLoopCtx)
-
-	return nil
 }
 
 func (f *failoverPluginImpl) ProcessUpstream(

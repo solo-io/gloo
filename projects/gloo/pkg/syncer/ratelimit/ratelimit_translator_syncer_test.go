@@ -3,6 +3,8 @@ package ratelimit_test
 import (
 	"context"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/xds"
 
 	rlPluginOS "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
@@ -74,7 +76,8 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 		domainGenerator = mock_shims.NewMockRateLimitDomainGenerator(ctrl)
 		reports = make(skreporter.ResourceReports)
 
-		syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator)
+		syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, translator.MustEnvoyCacheResourcesListToFnvHash)
+		Expect(syncer.ID()).To(Equal(xds.ServerRole))
 
 		apiSnapshot = &gloov1snap.ApiSnapshot{
 			Proxies: []*gloov1.Proxy{proxy},
@@ -83,9 +86,9 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 		testErr = eris.New("test error")
 
-		collectorFactory.EXPECT().MakeInstance(collectors.Global, apiSnapshot, gomock.Any()).Return(global, nil)
-		collectorFactory.EXPECT().MakeInstance(collectors.Basic, apiSnapshot, gomock.Any()).Return(basic, nil)
-		collectorFactory.EXPECT().MakeInstance(collectors.Crd, apiSnapshot, gomock.Any()).Return(crd, nil)
+		collectorFactory.EXPECT().MakeInstance(collectors.Global, apiSnapshot, gomock.Any()).Return(global)
+		collectorFactory.EXPECT().MakeInstance(collectors.Basic, apiSnapshot, gomock.Any()).Return(basic)
+		collectorFactory.EXPECT().MakeInstance(collectors.Crd, apiSnapshot, gomock.Any()).Return(crd)
 	})
 
 	AfterEach(func() {
@@ -290,9 +293,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 
 				Expect(reports).To(HaveLen(0))
 
-				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(role).To(Equal(xds.ServerRole))
+				syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
 
 				// Check that we have added the report, and that there are no errors or warnings
 				Expect(reports).To(HaveLen(1), "should pick up the listener")
@@ -322,12 +323,12 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 						SetDescriptors: config3.SetDescriptors,
 					}).Return(nil, nil)
 
+				// Failures should still result in a snapshot being updated
+				cache.EXPECT().SetSnapshot(xds.ServerRole, gomock.Any())
+
 				Expect(reports).To(HaveLen(0))
 
-				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
-				Expect(role).To(Equal(xds.ServerRole))
+				syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
 
 				// Check that we have added the report, and that there are no errors or warnings
 				Expect(reports).To(HaveLen(1), "should pick up the listener")
@@ -361,12 +362,12 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 						SetDescriptors: config3.SetDescriptors,
 					}).Return(nil, nil)
 
+				// Failures should still result in a snapshot being updated
+				cache.EXPECT().SetSnapshot(xds.ServerRole, gomock.Any())
+
 				Expect(reports).To(HaveLen(0))
 
-				role, err := syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring(testErr.Error())))
-				Expect(role).To(Equal(xds.ServerRole))
+				syncer.Sync(ctx, apiSnapshot, settings, cache, reports)
 
 				// Check that we have added the report, and that there are no errors or warnings
 				Expect(reports).To(HaveLen(1), "should pick up the listener")
@@ -426,7 +427,7 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 				shims.NewRateLimitConfigTranslator(),
 				translation.NewBasicRateLimitTranslator())
 
-			syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator)
+			syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, translator.MustEnvoyCacheResourcesListToFnvHash)
 		})
 
 		It("returns the expected error", func() {
@@ -437,13 +438,12 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 			domainGenerator.EXPECT().NewRateLimitDomain(ctxWithLogger, rlPlugin.ConfigCrdDomain, rlPlugin.ConfigCrdDomain,
 				&v1alpha1.RateLimitConfigSpec_Raw{}).Return(nil, nil)
 
+			// Failures should still result in a snapshot being updated
+			cache.EXPECT().SetSnapshot(xds.ServerRole, gomock.Any())
+
 			Expect(reports).To(HaveLen(0))
 
-			role, err := syncer.Sync(ctx, &gloov1snap.ApiSnapshot{}, &gloov1.Settings{}, cache, make(skreporter.ResourceReports))
-			Expect(err).To(HaveOccurred())
-			Expect(err).To(MatchError(ContainSubstring(IllegalDescriptorsErr.Error())))
-			Expect(role).To(Equal(xds.ServerRole))
-
+			syncer.Sync(ctx, &gloov1snap.ApiSnapshot{}, &gloov1.Settings{}, cache, make(skreporter.ResourceReports))
 			Expect(reports).To(HaveLen(0), "should have nothing in the APISnapshot to write a report for")
 		})
 	})

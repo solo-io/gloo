@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	glooRateLimitSyncer "github.com/solo-io/gloo/projects/gloo/pkg/syncer/ratelimit"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/xds"
 
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
-	"github.com/mitchellh/hashstructure"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
@@ -37,8 +35,7 @@ import (
 
 // Compile-time assertion
 var (
-	_ syncer.TranslatorSyncerExtension            = new(translatorSyncerExtension)
-	_ syncer.UpgradeableTranslatorSyncerExtension = new(translatorSyncerExtension)
+	_ syncer.TranslatorSyncerExtension = new(translatorSyncerExtension)
 )
 
 var (
@@ -74,9 +71,10 @@ func init() {
 type translatorSyncerExtension struct {
 	collectorFactory collectors.ConfigCollectorFactory
 	domainGenerator  rate_limiter_shims.RateLimitDomainGenerator
+	hasher           func(resources []envoycache.Resource) uint64
 }
 
-func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
+func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyncerExtensionParams) syncer.TranslatorSyncerExtension {
 	var settings ratelimit.ServiceSettings
 
 	if params.RateLimitServiceSettings.GetDescriptors() != nil {
@@ -94,26 +92,33 @@ func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyn
 			translation.NewBasicRateLimitTranslator(),
 		),
 		rate_limiter_shims.NewRateLimitDomainGenerator(),
-	), nil
+		params.Hasher,
+	)
 }
 
 func NewTranslatorSyncer(
 	collectorFactory collectors.ConfigCollectorFactory,
 	domainGenerator rate_limiter_shims.RateLimitDomainGenerator,
+	hasher func(resources []envoycache.Resource) uint64,
 ) syncer.TranslatorSyncerExtension {
 	return &translatorSyncerExtension{
 		collectorFactory: collectorFactory,
 		domainGenerator:  domainGenerator,
+		hasher:           hasher,
 	}
+}
+
+func (s *translatorSyncerExtension) ID() string {
+	return xds.ServerRole
 }
 
 func (s *translatorSyncerExtension) Sync(
 	ctx context.Context,
 	snap *gloov1snap.ApiSnapshot,
-	settings *gloov1.Settings,
-	xdsCache envoycache.SnapshotCache,
+	_ *gloov1.Settings,
+	snapshotSetter syncer.SnapshotSetter,
 	reports reporter.ResourceReports,
-) (string, error) {
+) {
 	ctx = contextutils.WithLogger(ctx, "rateLimitTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	snapHash := hashutils.MustHash(snap)
@@ -123,20 +128,13 @@ func (s *translatorSyncerExtension) Sync(
 	reports.Accept(snap.Proxies.AsInputResources()...)
 	reports.Accept(snap.Ratelimitconfigs.AsInputResources()...)
 
-	configCollectors, err := newCollectorSet(s.collectorFactory, snap, reports, logger)
-	if err != nil {
-		return syncerError(ctx, err)
-	}
+	configCollectors := newCollectorSet(s.collectorFactory, snap, reports, logger)
 
 	for _, proxy := range snap.Proxies {
 		for _, listener := range proxy.Listeners {
-			httpListener, ok := listener.ListenerType.(*gloov1.Listener_HttpListener)
-			if !ok {
-				// Rate limiting is currently supported only on HTTP listeners
-				continue
-			}
+			virtualHosts := glooutils.GetVirtualHostsForListener(listener)
 
-			for _, virtualHost := range httpListener.HttpListener.VirtualHosts {
+			for _, virtualHost := range virtualHosts {
 
 				// Sanitize the name of the virtual host
 				virtualHostClone := proto.Clone(virtualHost).(*gloov1.VirtualHost)
@@ -171,7 +169,11 @@ func (s *translatorSyncerExtension) Sync(
 		snapshotResources = append(snapshotResources, v1.NewRateLimitConfigXdsResourceWrapper(cfg))
 	}
 	if err := errs.ErrorOrNil(); err != nil {
-		return syncerError(ctx, err)
+		// This means that one or more rate limit configs could not be translated into the appropriate xDS format
+		// Historically, we would error the syncer here
+		// In the future, we should assign these errors to the status of the individual resource
+		// For now, we will loudly log the error and continue
+		logger.Warnf("Encountered errors during sync: %+v", err)
 	}
 
 	var rateLimitSnapshot envoycache.Snapshot
@@ -187,33 +189,12 @@ func (s *translatorSyncerExtension) Sync(
 		// so that ratelimiit picks up the empty config, and becomes healthy
 		rateLimitSnapshot = envoycache.NewGenericSnapshot(emptyTypedResources)
 	} else {
-		h, err := hashstructure.Hash(snapshotResources, nil)
-		if err != nil {
-			contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing rate limit")
-			return syncerError(ctx, err)
-		}
-		rateLimitSnapshot = envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), snapshotResources)
+		snapshotVersion := fmt.Sprintf("%d", s.hasher(snapshotResources))
+		rateLimitSnapshot = envoycache.NewEasyGenericSnapshot(snapshotVersion, snapshotResources)
 	}
 
-	xdsCache.SetSnapshot(xds.ServerRole, rateLimitSnapshot)
-
+	snapshotSetter.SetSnapshot(s.ID(), rateLimitSnapshot)
 	stats.Record(ctx, rlConnectedState.M(int64(1)))
-
-	return xds.ServerRole, nil
-}
-
-func (s *translatorSyncerExtension) ExtensionName() string {
-	// The ExtensionName matches the Open Source Extension Name so that it overrides the functionality
-	return glooRateLimitSyncer.Name
-}
-
-func (s *translatorSyncerExtension) IsUpgrade() bool {
-	return true
-}
-
-func syncerError(ctx context.Context, err error) (string, error) {
-	stats.Record(ctx, rlConnectedState.M(int64(0)))
-	return xds.ServerRole, err
 }
 
 // Helper object to reduce boilerplate.
@@ -226,7 +207,7 @@ func newCollectorSet(
 	snapshot *gloov1snap.ApiSnapshot,
 	reports reporter.ResourceReports,
 	logger *zap.SugaredLogger,
-) (configCollectorSet, error) {
+) configCollectorSet {
 	set := configCollectorSet{}
 
 	for _, collectorType := range []collectors.CollectorType{
@@ -234,13 +215,10 @@ func newCollectorSet(
 		collectors.Basic,
 		collectors.Crd,
 	} {
-		collector, err := collectorFactory.MakeInstance(collectorType, snapshot, logger)
-		if err != nil {
-			return configCollectorSet{}, err
-		}
+		collector := collectorFactory.MakeInstance(collectorType, snapshot, logger)
 		set.collectors = append(set.collectors, collector)
 	}
-	return set, nil
+	return set
 }
 
 func (c configCollectorSet) processVirtualHost(

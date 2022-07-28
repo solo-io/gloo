@@ -85,15 +85,14 @@ var _ = Describe("Failover", func() {
 			cluster *envoy_config_cluster_v3.Cluster,
 			endpoints *envoy_config_endpoint_v3.ClusterLoadAssignment,
 		) error {
-			err := plugin.Init(plugins.InitParams{Ctx: ctx, Settings: &gloov1.Settings{Gloo: &gloov1.GlooOptions{
+			plugin.Init(plugins.InitParams{Ctx: ctx, Settings: &gloov1.Settings{Gloo: &gloov1.GlooOptions{
 				FailoverUpstreamDnsPollingInterval: &durationpb.Duration{
 					Seconds: 1,
 				},
 			}}})
-			Expect(err).NotTo(HaveOccurred())
 			ups, ok := plugin.(plugins.UpstreamPlugin)
 			Expect(ok).To(BeTrue())
-			err = ups.ProcessUpstream(params, upstream, cluster)
+			err := ups.ProcessUpstream(params, upstream, cluster)
 			if err != nil {
 				return err
 			}

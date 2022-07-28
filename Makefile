@@ -1568,16 +1568,16 @@ checkenv-%:
 		exit 1; \
 	fi
 
-SCAN_DIR ?= $(OUTPUT_DIR)/scans
-SCAN_BUCKET ?= solo-gloo-security-scans/glooe
-
-.PHONY: publish-security-scan
-publish-security-scan:
-ifeq ($(RELEASE),"true")
-	gsutil cp -r $(SCAN_DIR)/$(VERSION)/$(SCAN_FILE) gs://$(SCAN_BUCKET)/$(VERSION)/$(SCAN_FILE)
-endif
-
 _local/redis.key:
 	mkdir -p _local
 	openssl req -new -x509 -newkey rsa:2048 -sha256 -nodes -keyout _local/redis.key -days 3560 -out _local/redis.crt -config - < _local/cert.conf
 
+#----------------------------------------------------------------------------------
+# Security Scanning utility
+#	Scanning for solo-projects is performed by the open source Gloo Edge repo
+#	These utilities make it easier for developers to perform equivalent scans
+#----------------------------------------------------------------------------------
+
+.PHONY: scan-version
+scan-version:
+	PATH=$(DEPSGOBIN):$$PATH go run ./hack/trivy/cli/main.go scan -v "$(VERSION)"

@@ -84,7 +84,7 @@ func (p *plugin) Name() string {
 	return fmt.Sprintf("%s_ee", rlplugin.ExtensionName)
 }
 
-func (p *plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Init(params plugins.InitParams) {
 	if rlServer := params.Settings.GetRatelimitServer(); rlServer != nil {
 		p.serverSettings = rlServer
 	}
@@ -92,7 +92,7 @@ func (p *plugin) Init(params plugins.InitParams) error {
 	p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
 	p.configuredStages = make(map[uint32]struct{})
 
-	return p.stagedTranslator.Init(params)
+	p.stagedTranslator.Init(params)
 }
 
 func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {

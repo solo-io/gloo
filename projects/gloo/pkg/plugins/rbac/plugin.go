@@ -53,11 +53,10 @@ func (p *plugin) Name() string {
 }
 
 // Init resets the plugin and creates the maps within the structure.
-func (p *plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Init(params plugins.InitParams) {
 	p.settings = params.Settings.GetRbac()
 	p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
 	p.filterRequiredForListener = make(map[*v1.HttpListener]struct{})
-	return nil
 }
 
 func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {

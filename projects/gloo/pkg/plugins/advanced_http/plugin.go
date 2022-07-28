@@ -31,8 +31,7 @@ func NewPlugin() *plugin {
 	return &plugin{}
 }
 
-func (p *plugin) Init(_ plugins.InitParams) error {
-	return nil
+func (p *plugin) Init(_ plugins.InitParams) {
 }
 
 func (p *plugin) Name() string {

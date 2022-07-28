@@ -1,0 +1,33 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.12.0-rc4
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-kit
+    dependencyTag: v0.30.2
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: go-utils
+    dependencyTag: v0.22.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: nginx
+    dependencyRepo: nginx
+    dependencyTag: 1.23.0-alpine
+    description: Update the base image for the gloo-federation-console to resolve CVEs
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/6114
+    description: Gloo translation loop always completes and updates internal xds snapshot
+    resolvesIssue: false
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5795
+    description: Ensure that gloo translation is resilient to pod restarts.
+    resolvesIssue: false
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/3364
+    resolvesIssue: false
+    description: |
+      Ensure that Ext-Auth and Rate-Limit configuration defined on VirtualHosts
+      within a HybridGateway are processed. Previously, only VirtualHosts defined on
+      HttpGateways were translated.

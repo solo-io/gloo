@@ -4,6 +4,10 @@ import (
 	"context"
 	"os"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
+	ossextauth "github.com/solo-io/gloo/projects/gloo/pkg/syncer/extauth"
+	ossratelimit "github.com/solo-io/gloo/projects/gloo/pkg/syncer/ratelimit"
+
 	"github.com/solo-io/go-utils/contextutils"
 
 	"github.com/solo-io/solo-projects/pkg/license"
@@ -14,8 +18,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/setup"
 	"github.com/solo-io/solo-projects/pkg/version"
 	nackdetector "github.com/solo-io/solo-projects/projects/gloo/pkg/nack_detector"
-	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
-	ratelimitExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
 )
 
 func Main() error {
@@ -39,14 +43,11 @@ func NewSetupFuncWithRestControlPlaneAndExtensions(cancellableCtx context.Contex
 
 	// 2. Prepare Enterprise extensions based on the state of the license
 	// These are evaluated by the RunFun
-	extensions := GetGlooEExtensions(cancellableCtx, licensedFeatureProvider)
+	extensions := GetGlooEExtensions(cancellableCtx, licensedFeatureProvider, apiEmitterChan)
 
+	// 3. Define the RunFunc, which will be executed each time bootstrap opts change (ie Settings are modified)
 	runFunc := func(opts bootstrap.Opts) error {
-		// 3. Reload the PluginRegistryFactory as it may change, based on the bootstrap opts
-		extensions.PluginRegistryFactory = GetPluginRegistryFactory(opts, apiEmitterChan, licensedFeatureProvider)
-
-		// 4. Run Gloo with Enterprise extensions
-		return setup.RunGlooWithExtensions(opts, extensions, apiEmitterChan)
+		return setup.RunGlooWithExtensions(opts, extensions)
 	}
 
 	// This function accepts a RunFunc and Extensions
@@ -57,7 +58,7 @@ func NewSetupFuncWithRestControlPlaneAndExtensions(cancellableCtx context.Contex
 	return setup.NewSetupFuncWithRunAndExtensions(runFunc, &extensions)
 }
 
-func GetGlooEExtensions(ctx context.Context, licensedFeatureProvider *license.LicensedFeatureProvider) setup.Extensions {
+func GetGlooEExtensions(ctx context.Context, licensedFeatureProvider *license.LicensedFeatureProvider, apiEmitterChan chan struct{}) setup.Extensions {
 	// We include this log line purely for UX reasons
 	// An expired license will allow Gloo Edge to operate normally
 	// but we want to notify the user that their license is expired
@@ -69,18 +70,23 @@ func GetGlooEExtensions(ctx context.Context, licensedFeatureProvider *license.Li
 	// If the Enterprise feature is not enabled, do not configure any enterprise extensions
 	if !enterpriseFeature.Enabled {
 		return setup.Extensions{
-			XdsCallbacks:     nil,
-			SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{},
+			XdsCallbacks: nil,
+			SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
+				ossextauth.NewTranslatorSyncerExtension,
+				ossratelimit.NewTranslatorSyncerExtension,
+			},
+			PluginRegistryFactory: registry.GetPluginRegistryFactory(),
+			ApiEmitterChannel:     apiEmitterChan,
 		}
 	}
 
 	return setup.Extensions{
-		XdsCallbacks: nackdetector.NewNackDetector(ctx, nackdetector.NewStatsGen()),
+		PluginRegistryFactory: GetPluginRegistryFactory(apiEmitterChan, licensedFeatureProvider),
+		XdsCallbacks:          nackdetector.NewNackDetector(ctx, nackdetector.NewStatsGen()),
 		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
-			ratelimitExt.NewTranslatorSyncerExtension,
-			func(ctx context.Context, _ syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
-				return extauthExt.NewTranslatorSyncerExtension(), nil
-			},
+			ratelimit.NewTranslatorSyncerExtension,
+			extauth.NewTranslatorSyncerExtension,
 		},
+		ApiEmitterChannel: apiEmitterChan,
 	}
 }

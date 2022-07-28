@@ -102,12 +102,11 @@ func (m *MockConfigCollectorFactory) EXPECT() *MockConfigCollectorFactoryMockRec
 }
 
 // MakeInstance mocks base method.
-func (m *MockConfigCollectorFactory) MakeInstance(typ collectors.CollectorType, snapshot *gloosnapshot.ApiSnapshot, logger *zap.SugaredLogger) (collectors.ConfigCollector, error) {
+func (m *MockConfigCollectorFactory) MakeInstance(typ collectors.CollectorType, snapshot *gloosnapshot.ApiSnapshot, logger *zap.SugaredLogger) collectors.ConfigCollector {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MakeInstance", typ, snapshot, logger)
 	ret0, _ := ret[0].(collectors.ConfigCollector)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret0
 }
 
 // MakeInstance indicates an expected call of MakeInstance.

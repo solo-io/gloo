@@ -187,10 +187,9 @@ func RunGlooGatewayUdsFdsOnPort(runOpts RunGlooGatewayOpts) {
 	licensedFeatureProvider := setupLicensedFeatureProvider(licenseState)
 
 	// Initialize the Gloo Enterprise setup extensions
-	setupExtensions := setup.GetGlooEExtensions(ctx, licensedFeatureProvider)
-	setupExtensions.PluginRegistryFactory = setup.GetPluginRegistryFactory(glooOpts, apiEmitterChan, licensedFeatureProvider)
+	setupExtensions := setup.GetGlooEExtensions(ctx, licensedFeatureProvider, apiEmitterChan)
 
-	go syncer_setup.RunGlooWithExtensions(glooOpts, setupExtensions, apiEmitterChan)
+	go syncer_setup.RunGlooWithExtensions(glooOpts, setupExtensions)
 	if !what.DisableFds {
 		go fds_syncer.RunFDSWithExtensions(glooOpts, syncer.GetFDSEnterpriseExtensions())
 	}

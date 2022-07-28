@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	translator2 "github.com/solo-io/gloo/projects/gloo/pkg/translator"
+
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
@@ -32,7 +35,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		ctx              context.Context
 		cancel           context.CancelFunc
 		proxy            *gloov1.Proxy
-		translator       *TranslatorSyncerExtension
+		translator       syncer.TranslatorSyncerExtension
 		secret           *gloov1.Secret
 		oauthAuthConfig  *extauth.AuthConfig
 		apiSnapshot      *gloov1snap.ApiSnapshot
@@ -58,7 +61,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		reports = make(reporter.ResourceReports)
-		translator = NewTranslatorSyncerExtension()
+		translator = NewTranslatorSyncerExtension(ctx, syncer.TranslatorSyncerExtensionParams{Hasher: translator2.MustEnvoyCacheResourcesListToFnvHash})
 		secret = &gloov1.Secret{
 			Metadata: &skcore.Metadata{
 				Name:      "secret",
@@ -85,10 +88,9 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 	})
 
 	translate := func() envoycache.Snapshot {
-		err := translator.SyncAndSet(context.Background(), apiSnapshot, settings, snapCache, reports)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(snapCache.Snapshots).To(HaveKey("extauth"))
-		return snapCache.Snapshots["extauth"]
+		translator.Sync(context.Background(), apiSnapshot, settings, snapCache, reports)
+		Expect(snapCache.Snapshots).To(HaveKey(translator.ID()))
+		return snapCache.Snapshots[translator.ID()]
 	}
 
 	// TODO(kdorosh) remove outer context right before merge -- leave around for PR review for easy diff
@@ -387,7 +389,7 @@ func getProxy(configFormat ConfigFormatType, authConfigRef *skcore.ResourceRef) 
 
 var (
 	// Compile-time assertion
-	_ SnapshotSetter = new(mockSetSnapshot)
+	_ syncer.SnapshotSetter = new(mockSetSnapshot)
 )
 
 type mockSetSnapshot struct {

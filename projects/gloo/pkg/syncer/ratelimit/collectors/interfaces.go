@@ -30,5 +30,5 @@ type ConfigCollector interface {
 }
 
 type ConfigCollectorFactory interface {
-	MakeInstance(typ CollectorType, snapshot *v1snap.ApiSnapshot, logger *zap.SugaredLogger) (ConfigCollector, error)
+	MakeInstance(typ CollectorType, snapshot *v1snap.ApiSnapshot, logger *zap.SugaredLogger) ConfigCollector
 }

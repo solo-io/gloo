@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"sort"
 
-	glooAuthSyncer "github.com/solo-io/gloo/projects/gloo/pkg/syncer/extauth"
+	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/mitchellh/hashstructure"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -22,18 +21,15 @@ import (
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
-	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
 	extAuthPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
-	"go.uber.org/zap"
 )
 
 // Compile-time assertion
 var (
-	_ syncer.TranslatorSyncerExtension            = new(TranslatorSyncerExtension)
-	_ syncer.UpgradeableTranslatorSyncerExtension = new(TranslatorSyncerExtension)
+	_ syncer.TranslatorSyncerExtension = new(translatorSyncerExtension)
 )
 
 var (
@@ -62,20 +58,27 @@ func init() {
 	_ = view.Register(extauthConnectedStateView)
 }
 
-type TranslatorSyncerExtension struct {
+type translatorSyncerExtension struct {
+	hasher func(resources []envoycache.Resource) uint64
 }
 
-func NewTranslatorSyncerExtension() *TranslatorSyncerExtension {
-	return &TranslatorSyncerExtension{}
+func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyncerExtensionParams) syncer.TranslatorSyncerExtension {
+	return &translatorSyncerExtension{
+		hasher: params.Hasher,
+	}
 }
 
-func (s *TranslatorSyncerExtension) Sync(
+func (s *translatorSyncerExtension) ID() string {
+	return runner.ServerRole
+}
+
+func (s *translatorSyncerExtension) Sync(
 	ctx context.Context,
 	snap *gloov1snap.ApiSnapshot,
 	settings *gloov1.Settings,
-	xdsCache envoycache.SnapshotCache,
+	snapshotSetter syncer.SnapshotSetter,
 	reports reporter.ResourceReports,
-) (string, error) {
+) {
 	ctx = contextutils.WithLogger(ctx, "extAuthTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	snapHash := hashutils.MustHash(snap)
@@ -83,42 +86,23 @@ func (s *TranslatorSyncerExtension) Sync(
 		len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs))
 	defer logger.Infof("end auth sync %v", snapHash)
 
-	return runner.ServerRole, s.SyncAndSet(ctx, snap, settings, xdsCache, reports)
+	s.SyncAndSet(ctx, snap, settings, snapshotSetter, reports)
 }
 
-func (s *TranslatorSyncerExtension) ExtensionName() string {
-	// The ExtensionName matches the Open Source Extension Name so that it overrides the functionality
-	return glooAuthSyncer.Name
-}
-
-func (s *TranslatorSyncerExtension) IsUpgrade() bool {
-	return true
-}
-
-type SnapshotSetter interface {
-	SetSnapshot(node string, snapshot envoycache.Snapshot)
-}
-
-func (s *TranslatorSyncerExtension) SyncAndSet(
+func (s *translatorSyncerExtension) SyncAndSet(
 	ctx context.Context,
 	snap *gloov1snap.ApiSnapshot,
 	settings *gloov1.Settings,
-	xdsCache SnapshotSetter,
+	snapshotSetter syncer.SnapshotSetter,
 	reports reporter.ResourceReports,
-) error {
+) {
 	helper := newHelper()
 	reports.Accept(snap.AuthConfigs.AsInputResources()...)
 	reports.Accept(snap.Proxies.AsInputResources()...)
 
 	for _, proxy := range snap.Proxies {
 		for _, listener := range proxy.Listeners {
-			httpListener, ok := listener.ListenerType.(*gloov1.Listener_HttpListener)
-			if !ok {
-				// not an http listener - skip it as currently ext auth is only supported for http
-				continue
-			}
-
-			virtualHosts := httpListener.HttpListener.VirtualHosts
+			virtualHosts := glooutils.GetVirtualHostsForListener(listener)
 
 			for _, virtualHost := range virtualHosts {
 				virtualHost = proto.Clone(virtualHost).(*gloov1.VirtualHost)
@@ -147,17 +131,17 @@ func (s *TranslatorSyncerExtension) SyncAndSet(
 		}
 	}
 
-	var resources []envoycache.Resource
+	var snapshotResources []envoycache.Resource
 	for _, cfg := range ConvertConfigMapToSortedList(helper.translatedConfigs) {
 		resource := extauth.NewExtAuthConfigXdsResourceWrapper(cfg)
-		resources = append(resources, resource)
+		snapshotResources = append(snapshotResources, resource)
 	}
 
 	var extAuthSnapshot envoycache.Snapshot
-	if resources == nil {
+	if snapshotResources == nil {
 		// If there are no auth configs, use an empty configuration
 		//
-		// The SnapshotCache can now differentiate between nil and empty resources in a snapshot.
+		// The SnapshotCache can now differentiate between nil and empty snapshotResources in a snapshot.
 		// This was introduced with: https://github.com/solo-io/solo-kit/pull/410
 		// A nil resource is not updated, whereas an empty resource is intended to be modified.
 		//
@@ -166,24 +150,12 @@ func (s *TranslatorSyncerExtension) SyncAndSet(
 		// so that extauth picks up the empty config, and becomes healthy
 		extAuthSnapshot = envoycache.NewGenericSnapshot(emptyTypedResources)
 	} else {
-		h, err := hashstructure.Hash(resources, nil)
-		if err != nil {
-			contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing ext auth")
-			return syncerError(ctx, err)
-		}
-		extAuthSnapshot = envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
+		snapshotVersion := fmt.Sprintf("%d", s.hasher(snapshotResources))
+		extAuthSnapshot = envoycache.NewEasyGenericSnapshot(snapshotVersion, snapshotResources)
 	}
 
-	xdsCache.SetSnapshot(runner.ServerRole, extAuthSnapshot)
-
+	snapshotSetter.SetSnapshot(s.ID(), extAuthSnapshot)
 	stats.Record(ctx, extauthConnectedState.M(int64(1)))
-
-	return nil
-}
-
-func syncerError(ctx context.Context, err error) error {
-	stats.Record(ctx, extauthConnectedState.M(int64(0)))
-	return err
 }
 
 // This translation helper contains a map where each key is the unique identifier of an AuthConfig and the corresponding

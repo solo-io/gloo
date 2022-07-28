@@ -51,11 +51,10 @@ func (p *plugin) Name() string {
 }
 
 // Init is called once when the plugin is first loaded.
-func (p *plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Init(params plugins.InitParams) {
 	if cacheServer := params.Settings.GetCachingServer(); cacheServer != nil {
 		p.serverSettings = cacheServer
 	}
-	return nil
 }
 
 // HttpFilters is called for every http listener.

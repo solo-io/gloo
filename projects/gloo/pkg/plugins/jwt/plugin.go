@@ -78,7 +78,7 @@ func (p *plugin) Name() string {
 }
 
 // Init resets the plugin and creates the maps within the structure.
-func (p *plugin) Init(params plugins.InitParams) error {
+func (p *plugin) Init(params plugins.InitParams) {
 	p.perVhostProviders = map[uint32]map[*v1.VirtualHost][]string{
 		BeforeExtAuthStage: make(map[*v1.VirtualHost][]string),
 		AfterExtAuthStage:  make(map[*v1.VirtualHost][]string),
@@ -94,7 +94,6 @@ func (p *plugin) Init(params plugins.InitParams) error {
 	p.requireJwtBeforeExtauthFilter = false
 	p.removeUnused = params.Settings.GetGloo().GetRemoveUnusedFilters().GetValue()
 	p.filterRequiredForListener = make(map[*v1.HttpListener]struct{})
-	return nil
 }
 
 // ProcessRoute aplying any needed configurations related to jwt.

@@ -1,4 +1,4 @@
-FROM nginx:1.19.8-alpine
+FROM nginx:1.23.0-alpine
 
 RUN apk -U upgrade
 # Replace existing NGINX configuration

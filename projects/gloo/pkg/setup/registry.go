@@ -33,11 +33,10 @@ import (
 )
 
 func GetPluginRegistryFactory(
-	opts bootstrap.Opts,
 	apiEmitterChan chan struct{},
 	licensedFeatureProvider *license.LicensedFeatureProvider,
-) plugins.PluginRegistryFactory {
-	return func(ctx context.Context) plugins.PluginRegistry {
+) registry.PluginRegistryFactory {
+	return func(ctx context.Context, opts bootstrap.Opts) plugins.PluginRegistry {
 		// Start with open source plugins
 		availablePlugins := getOpenSourcePlugins(opts)
 

@@ -55,8 +55,8 @@ var _ = Describe("Plugin", func() {
 				},
 			},
 		}
-		var err error
-		healthCheck, err := api_conversion.ToEnvoyHealthCheck(check, nil)
+
+		healthCheck, _ := api_conversion.ToEnvoyHealthCheck(check, nil)
 		baseHealthCheck = healthCheck.GetHttpHealthCheck()
 
 		out.HealthChecks = []*envoy_config_core_v3.HealthCheck{
@@ -67,8 +67,7 @@ var _ = Describe("Plugin", func() {
 			},
 		}
 
-		err = p.Init(plugins.InitParams{})
-		Expect(err).NotTo(HaveOccurred())
+		p.Init(plugins.InitParams{})
 		upstreamSpec = &v1static.UpstreamSpec{
 			Hosts: []*v1static.Host{{
 				Addr: "localhost",

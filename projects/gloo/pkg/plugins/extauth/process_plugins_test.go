@@ -266,8 +266,7 @@ func getPluginContext(authOnVirtualHost, authOnRoute, authOnWeightedDest ConfigS
 	plugin := NewPlugin()
 	settings := buildExtAuthSettings(extAuthServerUpstream)
 	initParams := plugins.InitParams{Ctx: ctx, Settings: &gloov1.Settings{Extauth: settings}}
-	err := plugin.Init(initParams)
-	ExpectWithOffset(1, err).ToNot(HaveOccurred())
+	plugin.Init(initParams)
 
 	return &pluginContext{
 		PluginInstance:      plugin,
