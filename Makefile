@@ -34,8 +34,8 @@ GCS_BUCKET := glooctl-plugins
 WASM_GCS_PATH := glooctl-wasm
 FED_GCS_PATH := glooctl-fed
 
-ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.20.4-patch2
-ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.20.4-patch2
+ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.20.4-patch4
+ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.20.4-patch4
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
@@ -228,7 +228,7 @@ generate-gloo-fed-code: clean-fed
 	PATH=$(DEPSGOBIN):$$PATH go mod tidy
 
 .PHONY: generate-helm-docs
-generate-helm-docs: 
+generate-helm-docs:
 	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/install/helm/gloo-ee/generate.go $(VERSION) --generate-helm-docs # Generate Helm Documentation
 
 #################
@@ -1151,9 +1151,9 @@ ifneq ($(GOARCH), arm64)
 endif
 endif
 
-docker-push-fips: 
+docker-push-fips:
 .PHONY: docker-push-fips
-docker-push-fips: 
+docker-push-fips:
 ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) && \
@@ -1306,9 +1306,9 @@ load-kind-images-fips: kind-load-ext-auth-plugins-fips # ext auth plugins
 load-kind-images-fips: kind-load-observability-ee # observability
 
 # arm local development requires work around to deploy to docker registry instead of kind load docker-image
-docker-push-local-arm: 
+docker-push-local-arm:
 .PHONY: docker-push-local-arm
-# set release because we will be pushing docker images to image repo 
+# set release because we will be pushing docker images to image repo
 docker-push-local-arm:
 ifeq ($(USE_FIPS),true)
 docker-push-local-arm: build-kind-images-fips docker-push-fips

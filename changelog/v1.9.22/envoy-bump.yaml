@@ -1,0 +1,8 @@
+CHANGELOG:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: envoy-gloo-ee
+  dependencyTag: v1.20.4-patch4
+  description: |
+    Brings in fix for ModSecurity filter failing to parse audit logs for
+    requests with duplicate headers.
