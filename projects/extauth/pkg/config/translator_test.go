@@ -488,7 +488,20 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				Session: &extauthv1.UserSession_Cookie{},
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(params.Store).To(BeNil())
+			Expect(params.Store).To(HaveField("StoreRefreshToken", false))
+			Expect(params.Store).To(HaveField("KeyPrefix", ""))
+		})
+		It("should translate CookieSessionStore - creating a store for the cookie KeyPrefix", func() {
+			params, err := config.ToSessionParameters(&extauthv1.UserSession{
+				Session: &extauthv1.UserSession_Cookie{
+					Cookie: &extauthv1.UserSession_InternalSession{
+						KeyPrefix: "prefix",
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(params.Store).ToNot(BeNil())
+			Expect(params.Store).To(HaveField("KeyPrefix", "prefix"))
 		})
 		It("should translate RedisSessionStore", func() {
 			params, err := config.ToSessionParameters(&extauthv1.UserSession{
@@ -579,7 +592,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			// If a new field is added to DiscoveryOverride, this test should fail,
 			// signaling that we need to modify the ToDiscoveryDataOverride implementation
 			Expect(reflect.TypeOf(extauthv1.DiscoveryOverride{}).NumField()).To(
-				Equal(13),
+				Equal(14),
 				"wrong number of fields found",
 			)
 		})

@@ -39,6 +39,8 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.BasicAuth.Apr.SaltedHashedPassw
 goog.exportSymbol('proto.enterprise.gloo.solo.io.BufferSettings', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.CustomAuth', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.DiscoveryOverride', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.EndSessionProperties', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.EndSessionProperties.MethodType', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.IntrospectionValidation', null, global);
@@ -4726,7 +4728,8 @@ proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.toObject = f
  */
 proto.enterprise.gloo.solo.io.UserSession.InternalSession.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    allowRefreshing: (f = msg.getAllowRefreshing()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    keyPrefix: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -4763,6 +4766,15 @@ proto.enterprise.gloo.solo.io.UserSession.InternalSession.deserializeBinaryFromR
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setAllowRefreshing(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyPrefix(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4792,6 +4804,66 @@ proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.serializeBin
  */
 proto.enterprise.gloo.solo.io.UserSession.InternalSession.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getAllowRefreshing();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getKeyPrefix();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional google.protobuf.BoolValue allow_refreshing = 1;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.getAllowRefreshing = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 1));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.setAllowRefreshing = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.clearAllowRefreshing = function() {
+  this.setAllowRefreshing(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.hasAllowRefreshing = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string key_prefix = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.getKeyPrefix = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.setKeyPrefix = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
@@ -5819,7 +5891,8 @@ proto.enterprise.gloo.solo.io.DiscoveryOverride.toObject = function(includeInsta
     idTokenAlgsList: jspb.Message.getRepeatedField(msg, 7),
     authMethodsList: jspb.Message.getRepeatedField(msg, 8),
     claimsList: jspb.Message.getRepeatedField(msg, 9),
-    revocationEndpoint: jspb.Message.getFieldWithDefault(msg, 10, "")
+    revocationEndpoint: jspb.Message.getFieldWithDefault(msg, 10, ""),
+    endSessionEndpoint: jspb.Message.getFieldWithDefault(msg, 11, "")
   };
 
   if (includeInstance) {
@@ -5895,6 +5968,10 @@ proto.enterprise.gloo.solo.io.DiscoveryOverride.deserializeBinaryFromReader = fu
     case 10:
       var value = /** @type {string} */ (reader.readString());
       msg.setRevocationEndpoint(value);
+      break;
+    case 11:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setEndSessionEndpoint(value);
       break;
     default:
       reader.skipField();
@@ -5992,6 +6069,13 @@ proto.enterprise.gloo.solo.io.DiscoveryOverride.serializeBinaryToWriter = functi
   if (f.length > 0) {
     writer.writeString(
       10,
+      f
+    );
+  }
+  f = message.getEndSessionEndpoint();
+  if (f.length > 0) {
+    writer.writeString(
+      11,
       f
     );
   }
@@ -6229,6 +6313,21 @@ proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getRevocationEndpoint 
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setRevocationEndpoint = function(value) {
   jspb.Message.setProto3StringField(this, 10, value);
+};
+
+
+/**
+ * optional string end_session_endpoint = 11;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.getEndSessionEndpoint = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 11, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.DiscoveryOverride.prototype.setEndSessionEndpoint = function(value) {
+  jspb.Message.setProto3StringField(this, 11, value);
 };
 
 
@@ -6656,6 +6755,156 @@ proto.enterprise.gloo.solo.io.AutoMapFromMetadata.prototype.setNamespace = funct
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.EndSessionProperties = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.EndSessionProperties, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.EndSessionProperties.displayName = 'proto.enterprise.gloo.solo.io.EndSessionProperties';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.EndSessionProperties.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.EndSessionProperties.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.EndSessionProperties} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.EndSessionProperties.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    methodtype: jspb.Message.getFieldWithDefault(msg, 1, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.EndSessionProperties}
+ */
+proto.enterprise.gloo.solo.io.EndSessionProperties.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.EndSessionProperties;
+  return proto.enterprise.gloo.solo.io.EndSessionProperties.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.EndSessionProperties} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.EndSessionProperties}
+ */
+proto.enterprise.gloo.solo.io.EndSessionProperties.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {!proto.enterprise.gloo.solo.io.EndSessionProperties.MethodType} */ (reader.readEnum());
+      msg.setMethodtype(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.EndSessionProperties.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.EndSessionProperties.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.EndSessionProperties} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.EndSessionProperties.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getMethodtype();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.EndSessionProperties.MethodType = {
+  GETMETHOD: 0,
+  POSTMETHOD: 1
+};
+
+/**
+ * optional MethodType methodType = 1;
+ * @return {!proto.enterprise.gloo.solo.io.EndSessionProperties.MethodType}
+ */
+proto.enterprise.gloo.solo.io.EndSessionProperties.prototype.getMethodtype = function() {
+  return /** @type {!proto.enterprise.gloo.solo.io.EndSessionProperties.MethodType} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+};
+
+
+/** @param {!proto.enterprise.gloo.solo.io.EndSessionProperties.MethodType} value */
+proto.enterprise.gloo.solo.io.EndSessionProperties.prototype.setMethodtype = function(value) {
+  jspb.Message.setProto3EnumField(this, 1, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.OidcAuthorizationCode.repeatedFields_, null);
 };
@@ -6716,7 +6965,8 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.toObject = function(includeI
     jwksCacheRefreshPolicy: (f = msg.getJwksCacheRefreshPolicy()) && proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject(includeInstance, f),
     sessionIdHeaderName: jspb.Message.getFieldWithDefault(msg, 16, ""),
     parseCallbackPathAsRegex: jspb.Message.getFieldWithDefault(msg, 17, false),
-    autoMapFromMetadata: (f = msg.getAutoMapFromMetadata()) && proto.enterprise.gloo.solo.io.AutoMapFromMetadata.toObject(includeInstance, f)
+    autoMapFromMetadata: (f = msg.getAutoMapFromMetadata()) && proto.enterprise.gloo.solo.io.AutoMapFromMetadata.toObject(includeInstance, f),
+    endSessionProperties: (f = msg.getEndSessionProperties()) && proto.enterprise.gloo.solo.io.EndSessionProperties.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -6835,6 +7085,11 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.deserializeBinaryFromReader 
       var value = new proto.enterprise.gloo.solo.io.AutoMapFromMetadata;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.AutoMapFromMetadata.deserializeBinaryFromReader);
       msg.setAutoMapFromMetadata(value);
+      break;
+    case 19:
+      var value = new proto.enterprise.gloo.solo.io.EndSessionProperties;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.EndSessionProperties.deserializeBinaryFromReader);
+      msg.setEndSessionProperties(value);
       break;
     default:
       reader.skipField();
@@ -6990,6 +7245,14 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.serializeBinaryToWriter = fu
       18,
       f,
       proto.enterprise.gloo.solo.io.AutoMapFromMetadata.serializeBinaryToWriter
+    );
+  }
+  f = message.getEndSessionProperties();
+  if (f != null) {
+    writer.writeMessage(
+      19,
+      f,
+      proto.enterprise.gloo.solo.io.EndSessionProperties.serializeBinaryToWriter
     );
   }
 };
@@ -7389,6 +7652,36 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearAutoMapFromMe
  */
 proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasAutoMapFromMetadata = function() {
   return jspb.Message.getField(this, 18) != null;
+};
+
+
+/**
+ * optional EndSessionProperties end_session_properties = 19;
+ * @return {?proto.enterprise.gloo.solo.io.EndSessionProperties}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.getEndSessionProperties = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.EndSessionProperties} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.EndSessionProperties, 19));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.EndSessionProperties|undefined} value */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.setEndSessionProperties = function(value) {
+  jspb.Message.setWrapperField(this, 19, value);
+};
+
+
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.clearEndSessionProperties = function() {
+  this.setEndSessionProperties(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasEndSessionProperties = function() {
+  return jspb.Message.getField(this, 19) != null;
 };
 
 
@@ -12301,7 +12594,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.toObject
     jwksCacheRefreshPolicy: (f = msg.getJwksCacheRefreshPolicy()) && proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy.toObject(includeInstance, f),
     sessionIdHeaderName: jspb.Message.getFieldWithDefault(msg, 16, ""),
     parseCallbackPathAsRegex: jspb.Message.getFieldWithDefault(msg, 17, false),
-    autoMapFromMetadata: (f = msg.getAutoMapFromMetadata()) && proto.enterprise.gloo.solo.io.AutoMapFromMetadata.toObject(includeInstance, f)
+    autoMapFromMetadata: (f = msg.getAutoMapFromMetadata()) && proto.enterprise.gloo.solo.io.AutoMapFromMetadata.toObject(includeInstance, f),
+    endSessionProperties: (f = msg.getEndSessionProperties()) && proto.enterprise.gloo.solo.io.EndSessionProperties.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -12419,6 +12713,11 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.deserial
       var value = new proto.enterprise.gloo.solo.io.AutoMapFromMetadata;
       reader.readMessage(value,proto.enterprise.gloo.solo.io.AutoMapFromMetadata.deserializeBinaryFromReader);
       msg.setAutoMapFromMetadata(value);
+      break;
+    case 19:
+      var value = new proto.enterprise.gloo.solo.io.EndSessionProperties;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.EndSessionProperties.deserializeBinaryFromReader);
+      msg.setEndSessionProperties(value);
       break;
     default:
       reader.skipField();
@@ -12573,6 +12872,14 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.serializ
       18,
       f,
       proto.enterprise.gloo.solo.io.AutoMapFromMetadata.serializeBinaryToWriter
+    );
+  }
+  f = message.getEndSessionProperties();
+  if (f != null) {
+    writer.writeMessage(
+      19,
+      f,
+      proto.enterprise.gloo.solo.io.EndSessionProperties.serializeBinaryToWriter
     );
   }
 };
@@ -12957,6 +13264,36 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototyp
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.hasAutoMapFromMetadata = function() {
   return jspb.Message.getField(this, 18) != null;
+};
+
+
+/**
+ * optional EndSessionProperties end_session_properties = 19;
+ * @return {?proto.enterprise.gloo.solo.io.EndSessionProperties}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.getEndSessionProperties = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.EndSessionProperties} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.EndSessionProperties, 19));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.EndSessionProperties|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.setEndSessionProperties = function(value) {
+  jspb.Message.setWrapperField(this, 19, value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.clearEndSessionProperties = function() {
+  this.setEndSessionProperties(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.prototype.hasEndSessionProperties = function() {
+  return jspb.Message.getField(this, 19) != null;
 };
 
 

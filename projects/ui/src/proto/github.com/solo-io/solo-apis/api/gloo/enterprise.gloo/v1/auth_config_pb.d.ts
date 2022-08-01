@@ -691,6 +691,14 @@ export namespace UserSession {
   }
 
   export class InternalSession extends jspb.Message {
+    hasAllowRefreshing(): boolean;
+    clearAllowRefreshing(): void;
+    getAllowRefreshing(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setAllowRefreshing(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+    getKeyPrefix(): string;
+    setKeyPrefix(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): InternalSession.AsObject;
     static toObject(includeInstance: boolean, msg: InternalSession): InternalSession.AsObject;
@@ -703,6 +711,8 @@ export namespace UserSession {
 
   export namespace InternalSession {
     export type AsObject = {
+      allowRefreshing?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      keyPrefix: string,
     }
   }
 
@@ -883,6 +893,9 @@ export class DiscoveryOverride extends jspb.Message {
   getRevocationEndpoint(): string;
   setRevocationEndpoint(value: string): void;
 
+  getEndSessionEndpoint(): string;
+  setEndSessionEndpoint(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DiscoveryOverride.AsObject;
   static toObject(includeInstance: boolean, msg: DiscoveryOverride): DiscoveryOverride.AsObject;
@@ -905,6 +918,7 @@ export namespace DiscoveryOverride {
     authMethodsList: Array<string>,
     claimsList: Array<string>,
     revocationEndpoint: string,
+    endSessionEndpoint: string,
   }
 }
 
@@ -968,6 +982,33 @@ export namespace AutoMapFromMetadata {
   export type AsObject = {
     namespace: string,
   }
+}
+
+export class EndSessionProperties extends jspb.Message {
+  getMethodtype(): EndSessionProperties.MethodTypeMap[keyof EndSessionProperties.MethodTypeMap];
+  setMethodtype(value: EndSessionProperties.MethodTypeMap[keyof EndSessionProperties.MethodTypeMap]): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EndSessionProperties.AsObject;
+  static toObject(includeInstance: boolean, msg: EndSessionProperties): EndSessionProperties.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EndSessionProperties, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EndSessionProperties;
+  static deserializeBinaryFromReader(message: EndSessionProperties, reader: jspb.BinaryReader): EndSessionProperties;
+}
+
+export namespace EndSessionProperties {
+  export type AsObject = {
+    methodtype: EndSessionProperties.MethodTypeMap[keyof EndSessionProperties.MethodTypeMap],
+  }
+
+  export interface MethodTypeMap {
+    GETMETHOD: 0;
+    POSTMETHOD: 1;
+  }
+
+  export const MethodType: MethodTypeMap;
 }
 
 export class OidcAuthorizationCode extends jspb.Message {
@@ -1039,6 +1080,11 @@ export class OidcAuthorizationCode extends jspb.Message {
   getAutoMapFromMetadata(): AutoMapFromMetadata | undefined;
   setAutoMapFromMetadata(value?: AutoMapFromMetadata): void;
 
+  hasEndSessionProperties(): boolean;
+  clearEndSessionProperties(): void;
+  getEndSessionProperties(): EndSessionProperties | undefined;
+  setEndSessionProperties(value?: EndSessionProperties): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OidcAuthorizationCode.AsObject;
   static toObject(includeInstance: boolean, msg: OidcAuthorizationCode): OidcAuthorizationCode.AsObject;
@@ -1069,6 +1115,7 @@ export namespace OidcAuthorizationCode {
     sessionIdHeaderName: string,
     parseCallbackPathAsRegex: boolean,
     autoMapFromMetadata?: AutoMapFromMetadata.AsObject,
+    endSessionProperties?: EndSessionProperties.AsObject,
   }
 }
 
@@ -1827,6 +1874,11 @@ export namespace ExtAuthConfig {
     getAutoMapFromMetadata(): AutoMapFromMetadata | undefined;
     setAutoMapFromMetadata(value?: AutoMapFromMetadata): void;
 
+    hasEndSessionProperties(): boolean;
+    clearEndSessionProperties(): void;
+    getEndSessionProperties(): EndSessionProperties | undefined;
+    setEndSessionProperties(value?: EndSessionProperties): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): OidcAuthorizationCodeConfig.AsObject;
     static toObject(includeInstance: boolean, msg: OidcAuthorizationCodeConfig): OidcAuthorizationCodeConfig.AsObject;
@@ -1857,6 +1909,7 @@ export namespace ExtAuthConfig {
       sessionIdHeaderName: string,
       parseCallbackPathAsRegex: boolean,
       autoMapFromMetadata?: AutoMapFromMetadata.AsObject,
+      endSessionProperties?: EndSessionProperties.AsObject,
     }
   }
 
