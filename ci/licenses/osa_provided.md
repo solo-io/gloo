@@ -55,6 +55,7 @@ Name|Version|License
 [k8s.io/apimachinery](https://k8s.io/apimachinery)|v0.22.4|Apache License 2.0
 [k8s.io/client-go](https://k8s.io/client-go)|v0.22.4|Apache License 2.0
 [k8s.io/code-generator](https://k8s.io/code-generator)|v0.22.4|Apache License 2.0
+[k8s.io/utils](https://k8s.io/utils)|v0.0.0-20220210201930-3a6ce19ff2f9|Apache License 2.0
 [sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.9.7|Apache License 2.0
 [sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.3.0|MIT License
 [cmd/goimports](https://golang.org/x/tools/cmd/goimports)|latest|MIT License

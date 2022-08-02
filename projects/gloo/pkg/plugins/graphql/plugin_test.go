@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"k8s.io/utils/lru"
+
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -548,7 +550,7 @@ var _ = Describe("Graphql plugin", func() {
 							},
 						},
 					}
-					api, err := translation.CreateGraphQlApi(&MockArtifactsList{}, upstreams, nil, gqlApiSpec)
+					api, err := translation.CreateGraphQlApi(translation.CreateGraphQLApiParams{&MockArtifactsList{}, upstreams, nil, gqlApiSpec, lru.New(1024)})
 					Expect(err).ToNot(HaveOccurred())
 					translatedExecutor := api.GetExecutor().GetRemote()
 					Expect(translatedExecutor.GetSpanName()).To(Equal("TestSpanName"))
@@ -596,7 +598,7 @@ var _ = Describe("Graphql plugin", func() {
 							},
 						},
 					}
-					_, err := translation.CreateGraphQlApi(&MockArtifactsList{}, upstreams, nil, gqlApiSpec)
+					_, err := translation.CreateGraphQlApi(translation.CreateGraphQLApiParams{&MockArtifactsList{}, upstreams, nil, gqlApiSpec, nil})
 					Expect(err).To(MatchError(ContainSubstring("Malformed value for dynamic metadata zoo: {$metadata.}")))
 
 				})

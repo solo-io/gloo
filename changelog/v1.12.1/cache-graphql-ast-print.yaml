@@ -1,0 +1,5 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/gloo/issues/6834
+  description: >
+    Reduces CPU usage of gloo pod when creating and serving GraphQL config.

@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
-
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/rotisserie/eris"
 	v2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/filters/http/graphql/v2"
@@ -14,6 +12,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
+	"k8s.io/utils/lru"
 )
 
 var (
@@ -35,11 +35,14 @@ var (
 type plugin struct {
 	removeUnused              bool
 	filterRequiredForListener map[*v1.HttpListener]struct{}
+	processedSchemaLruCache   *lru.Cache
 }
 
 // NewPlugin creates the basic graphql plugin structure.
 func NewPlugin() *plugin {
-	return &plugin{}
+	return &plugin{
+		processedSchemaLruCache: lru.New(1024),
+	}
 }
 
 // Name returns the ExtensionName for overwriting purposes.
@@ -89,7 +92,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	}
 
 	p.filterRequiredForListener[params.HttpListener] = struct{}{} // Set here as user is at least attempting to use graphql at this point so might as well place it in the filterchain.
-	routeConf, err := translateGraphQlApiToRouteConf(params, in, gql)
+	routeConf, err := p.translateGraphQlApiToRouteConf(params, in, gql)
 
 	if err != nil {
 		return eris.Wrapf(err, "unable to translate graphql api control plane config to data plane config")
@@ -110,7 +113,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 			if err != nil || proxyStatusMaxSizeBits < 0 {
 				return eris.Wrapf(err, "PROXY_STATUS_MAX_SIZE_BYTES is not an integer value greater than 0")
 			}
-			ref[gqlRef] = append(ref[gqlRef], schemaString[:(int)(proxyStatusMaxSizeBits)]+"...")
+			ref[gqlRef] = append(ref[gqlRef], schemaString[:proxyStatusMaxSizeBits]+"...")
 		} else {
 			ref[gqlRef] = append(ref[gqlRef], schemaString)
 		}
@@ -119,8 +122,16 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	return pluginutils.SetRoutePerFilterConfig(out, FilterName, routeConf)
 }
 
-func translateGraphQlApiToRouteConf(params plugins.RouteParams, in *v1.Route, api *v1beta1.GraphQLApi) (*v2.GraphQLRouteConfig, error) {
-	execSchema, err := translation.CreateGraphQlApi(params.Snapshot.Artifacts, params.Snapshot.Upstreams, params.Snapshot.GraphqlApis, api)
+func (p *plugin) translateGraphQlApiToRouteConf(params plugins.RouteParams, in *v1.Route, api *v1beta1.GraphQLApi) (*v2.GraphQLRouteConfig, error) {
+	execSchema, err := translation.CreateGraphQlApi(
+		translation.CreateGraphQLApiParams{
+			Artifacts:            params.Snapshot.Artifacts,
+			Upstreams:            params.Snapshot.Upstreams,
+			Graphqlapis:          params.Snapshot.GraphqlApis,
+			Graphqlapi:           api,
+			ProcessedSchemaCache: p.processedSchemaLruCache,
+		},
+	)
 	if err != nil {
 		return nil, eris.Wrap(err, "error creating executable schema")
 	}

@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"k8s.io/utils/lru"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/graphql-go/graphql/language/ast"
@@ -26,7 +28,7 @@ import (
 // The resolver info per subschema name
 type ResolverInfoPerSubschema map[string]*gloov2.ResolverInfo
 
-func getStitchingInfo(schema *gloov1beta1.StitchedSchema, graphqlApis types.GraphQLApiList) (*enterprisev1.GraphQLToolsStitchingOutput, map[string]ResolverInfoPerSubschema, map[string]string, []*gloov1beta1.GraphQLApi, error) {
+func getStitchingInfo(schema *gloov1beta1.StitchedSchema, graphqlApis types.GraphQLApiList, schemaCache *lru.Cache) (*enterprisev1.GraphQLToolsStitchingOutput, map[string]ResolverInfoPerSubschema, map[string]string, []*gloov1beta1.GraphQLApi, error) {
 	schemas := &enterprisev1.GraphQLToolsStitchingInput{}
 	// map of types -> map of subschema names -> resolver info
 	argMap := map[string]ResolverInfoPerSubschema{}
@@ -47,7 +49,7 @@ func getStitchingInfo(schema *gloov1beta1.StitchedSchema, graphqlApis types.Grap
 		subschemaGraphqlApis = append(subschemaGraphqlApis, gqlSchema)
 
 		subschemaName := generateSubschemaName(gqlSchema.GetMetadata().Ref())
-		schemaDef, err := getGraphQlApiSchemaDefinition(gqlSchema, graphqlApis)
+		schemaDef, err := getGraphQlApiSchemaDefinition(gqlSchema, graphqlApis, schemaCache)
 		if err != nil {
 			return nil, nil, nil, nil, err
 		}
@@ -109,7 +111,7 @@ func createStitchingScriptSubschema(subschema *gloov1beta1.StitchedSchema_Subsch
 }
 
 func GetStitchedSchemaDefinition(stitchedSchema *gloov1beta1.StitchedSchema, gqlApis types.GraphQLApiList) (string, error) {
-	stitchedSchemaOut, _, _, _, err := getStitchingInfo(stitchedSchema, gqlApis)
+	stitchedSchemaOut, _, _, _, err := getStitchingInfo(stitchedSchema, gqlApis, nil)
 	if err != nil {
 		return "", err
 	}
@@ -138,9 +140,11 @@ func (l *MockArtifactsList) Find(namespace, name string) (*gloov1.Artifact, erro
 	}, nil
 }
 
-// Gets only the schema definition without validating upstreams, hence the use of the MockUpstreamList
-func getGraphQlApiSchemaDefinition(graphQLApi *gloov1beta1.GraphQLApi, gqlApis types.GraphQLApiList) (string, error) {
-	v2ApiSchema, err := CreateGraphQlApi(&MockArtifactsList{}, &MockUpstreamsList{}, gqlApis, graphQLApi)
+// Gets only the schema definition without validating Upstreams, hence the use of the MockUpstreamList
+func getGraphQlApiSchemaDefinition(graphQLApi *gloov1beta1.GraphQLApi, gqlApis types.GraphQLApiList, schemaCache *lru.Cache) (string, error) {
+	v2ApiSchema, err := CreateGraphQlApi(
+		CreateGraphQLApiParams{&MockArtifactsList{}, &MockUpstreamsList{}, gqlApis, graphQLApi, schemaCache},
+	)
 	if err != nil {
 		return "", eris.Wrapf(err, "error getting schema definition for GraphQLApi %s.%s", graphQLApi.GetMetadata().GetNamespace(), graphQLApi.GetMetadata().GetName())
 	}
@@ -205,8 +209,8 @@ func addSubschemaNameResolverInfo(mergeTypes map[string]*gloov2.MergedTypeConfig
 	}
 }
 
-func translateStitchedSchema(artifacts types.ArtifactList, upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, schema *gloov1beta1.StitchedSchema) (*gloov2.ExecutableSchema, error) {
-	stitchingInfoOut, argMap, queryFieldMap, subschemaGqls, err := getStitchingInfo(schema, graphqlapis)
+func translateStitchedSchema(params CreateGraphQLApiParams, schema *gloov1beta1.StitchedSchema) (*gloov2.ExecutableSchema, error) {
+	stitchingInfoOut, argMap, queryFieldMap, subschemaGqls, err := getStitchingInfo(schema, params.Graphqlapis, params.ProcessedSchemaCache)
 	if err != nil {
 		return nil, err
 	}
@@ -260,7 +264,9 @@ func translateStitchedSchema(artifacts types.ArtifactList, upstreams types.Upstr
 	subschemaNameToExecutableSchema := map[string]*gloov2.StitchingInfo_SubschemaConfig{}
 	for _, subschemaGql := range subschemaGqls {
 		subschemaRef := subschemaGql.GetMetadata().Ref()
-		execSchema, err := CreateGraphQlApi(artifacts, upstreams, graphqlapis, subschemaGql)
+		subschemaParams := params
+		subschemaParams.Graphqlapi = subschemaGql
+		execSchema, err := CreateGraphQlApi(subschemaParams)
 		if err != nil {
 			return nil, eris.Wrapf(err, "unable to create configuration for subschema %s.%s", subschemaGql.GetMetadata().GetNamespace(), subschemaGql.GetMetadata().GetName())
 		}

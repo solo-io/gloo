@@ -2,8 +2,10 @@ package translation
 
 import (
 	"encoding/base64"
-	"fmt"
+	"hash/fnv"
 	"strings"
+
+	"k8s.io/utils/lru"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/dot_notation"
 	resolver_utils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/utils"
@@ -32,28 +34,37 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/types"
 )
 
-func CreateGraphQlApi(artifacts types.ArtifactList, upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
-	executableSchema, err := translateSchema(artifacts, upstreams, graphqlapis, graphQLApi)
+type CreateGraphQLApiParams struct {
+	Artifacts   types.ArtifactList
+	Upstreams   types.UpstreamList
+	Graphqlapis types.GraphQLApiList
+	Graphqlapi  *v1beta1.GraphQLApi
+
+	ProcessedSchemaCache *lru.Cache
+}
+
+func CreateGraphQlApi(params CreateGraphQLApiParams) (*v2.ExecutableSchema, error) {
+	executableSchema, err := translateSchema(params)
 	if err != nil {
 		return nil, err
 	}
-	executableSchema.LogRequestResponseInfo = graphQLApi.GetOptions().GetLogSensitiveInfo()
+	executableSchema.LogRequestResponseInfo = params.Graphqlapi.GetOptions().GetLogSensitiveInfo()
 	return executableSchema, nil
 }
 
-func translateSchema(artifacts types.ArtifactList, upstreams types.UpstreamList, graphqlapis types.GraphQLApiList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
-	switch schema := graphQLApi.GetSchema().(type) {
+func translateSchema(params CreateGraphQLApiParams) (*v2.ExecutableSchema, error) {
+	switch schema := params.Graphqlapi.GetSchema().(type) {
 	case *v1beta1.GraphQLApi_StitchedSchema:
 		{
-			return translateStitchedSchema(artifacts, upstreams, graphqlapis, schema.StitchedSchema)
+			return translateStitchedSchema(params, schema.StitchedSchema)
 		}
 	case *v1beta1.GraphQLApi_ExecutableSchema:
 		{
-			return translateExecutableSchema(artifacts, upstreams, graphQLApi)
+			return translateExecutableSchema(params)
 		}
 	default:
 		{
-			return nil, eris.Errorf("unknown schema type %T", graphQLApi.GetSchema())
+			return nil, eris.Errorf("unknown schema type %T", params.Graphqlapi.GetSchema())
 		}
 	}
 }
@@ -113,15 +124,16 @@ func glooToEnvoyTranslation(namedExtractions map[string]string) (map[string]*v2.
 	return output, nil
 }
 
-func translateExecutableSchema(artifacts types.ArtifactList, upstreams types.UpstreamList, graphQLApi *v1beta1.GraphQLApi) (*v2.ExecutableSchema, error) {
-	extensions, err := TranslateExtensions(artifacts, graphQLApi)
+func translateExecutableSchema(params CreateGraphQLApiParams) (*v2.ExecutableSchema, error) {
+	graphqlApi := params.Graphqlapi
+	extensions, err := TranslateExtensions(params.Artifacts, graphqlApi)
 	if err != nil {
 		return nil, err
 	}
-	switch typedExecutor := graphQLApi.GetExecutableSchema().Executor.Executor.(type) {
+	switch typedExecutor := params.Graphqlapi.GetExecutableSchema().Executor.Executor.(type) {
 	case *v1beta1.Executor_Local_:
-		schemaStr := graphQLApi.GetExecutableSchema().GetSchemaDefinition()
-		_, resolutions, processedSchema, err := processGraphqlSchema(upstreams, schemaStr, typedExecutor.Local.GetResolutions())
+		schemaStr := graphqlApi.GetExecutableSchema().GetSchemaDefinition()
+		_, resolutions, processedSchema, err := processGraphqlSchema(params.Upstreams, schemaStr, typedExecutor.Local.GetResolutions(), params.ProcessedSchemaCache)
 		if err != nil {
 			return nil, err
 		}
@@ -149,7 +161,7 @@ func translateExecutableSchema(artifacts types.ArtifactList, upstreams types.Ups
 		if err != nil {
 			return nil, err
 		}
-		upstream, err := upstreams.Find(remoteExecutor.GetUpstreamRef().GetNamespace(), remoteExecutor.GetUpstreamRef().GetName())
+		upstream, err := params.Upstreams.Find(remoteExecutor.GetUpstreamRef().GetNamespace(), remoteExecutor.GetUpstreamRef().GetName())
 		if err != nil {
 			return nil, eris.Errorf(
 				"No upstream found on cluster with namespace.name: %s.%s",
@@ -180,7 +192,7 @@ func translateExecutableSchema(artifacts types.ArtifactList, upstreams types.Ups
 			},
 			SchemaDefinition: &v3.DataSource{
 				Specifier: &v3.DataSource_InlineString{
-					InlineString: graphQLApi.GetExecutableSchema().GetSchemaDefinition(),
+					InlineString: params.Graphqlapi.GetExecutableSchema().GetSchemaDefinition(),
 				},
 			},
 		}, nil
@@ -259,7 +271,10 @@ func TranslateExtensions(artifacts types.ArtifactList, api *v1beta1.GraphQLApi) 
 	return extensions, nil
 }
 
-func processGraphqlSchema(upstreams types.UpstreamList, schema string, resolutions map[string]*v1beta1.Resolution) (*ast.Document, []*v2.Resolution, string, error) {
+func processGraphqlSchema(upstreams types.UpstreamList, schema string, resolutions map[string]*v1beta1.Resolution, schemaCache *lru.Cache) (*ast.Document, []*v2.Resolution, string, error) {
+	// NOTE:
+	// If we add any new inputs to `ParseGraphQLSchema` that affect the output `doc` ast,
+	// they must be cached in the schemaCache. Else we risk having false cache hits.
 	doc, err := ParseGraphQLSchema(schema)
 	if err != nil {
 		return nil, nil, "", err
@@ -277,7 +292,33 @@ func processGraphqlSchema(upstreams types.UpstreamList, schema string, resolutio
 	if err != nil {
 		return nil, nil, "", err
 	}
-	return doc, result, fmt.Sprintf("%s", printer.Print(doc)), nil
+	algorithm := fnv.New64a()
+	_, err = algorithm.Write([]byte(schema))
+	if err != nil {
+		return nil, nil, "", err
+	}
+	if schemaCache == nil {
+		// if no schema cache, print out the ast and return
+		printedSchema := printer.Print(doc)
+		printedSchemaStr, ok := printedSchema.(string)
+		if !ok {
+			return nil, nil, "", eris.Errorf("cannot convert %v of type %T to string", printedSchemaStr, printedSchemaStr)
+		}
+		return doc, result, printedSchemaStr, nil
+	} else {
+		schemaHash := algorithm.Sum64()
+		printedSchema, ok := schemaCache.Get(schemaHash)
+		if !ok {
+			printedSchema = printer.Print(doc)
+			schemaCache.Add(schemaHash, printedSchema)
+		}
+		printedSchemaStr, ok := printedSchema.(string)
+		if !ok {
+			return nil, nil, "", eris.Errorf("cannot convert %v of type %T to string", printedSchemaStr, printedSchemaStr)
+		}
+		return doc, result, printedSchemaStr, nil
+	}
+
 }
 
 func ParseGraphQLSchema(schema string) (*ast.Document, error) {
