@@ -479,6 +479,11 @@ func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
+	err = binary.Write(hasher, binary.LittleEndian, m.GetDisableKubernetesStatuses())
+	if err != nil {
+		return 0, err
+	}
+
 	switch m.ConfigSource.(type) {
 
 	case *Settings_KubernetesConfigSource:

@@ -443,6 +443,14 @@ message Settings {
 
     // Enterprise-only: GraphQL settings
     GraphqlOptions graphql_options = 37;
+
+    // An advanced option used to turn off writing resource statuses to kubernetes. This setting
+    // can help when running Gloo at very large scale. More specifically it can reduce CPU usage,
+    // and translation time. These statuses will still be available via the admin endpoint at the "/statuses"
+    // path.
+    // Please note that these differences only start to become apparent in environments with greater than
+    // 2500 Virtual Services, and 5000 Upstreams.
+    bool disable_kubernetes_statuses = 38;
 }
 
 // Default configuration to use for upstreams, when not provided by a specific upstream

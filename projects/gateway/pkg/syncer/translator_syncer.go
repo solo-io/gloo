@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"sync"
+	"time"
 
 	gloo_translator "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -71,6 +72,7 @@ func NewTranslatorSyncer(ctx context.Context, writeNamespace string, proxyWatche
 	if pxStatusSizeEnv := os.Getenv("PROXY_STATUS_MAX_SIZE_BYTES"); pxStatusSizeEnv != "" {
 		t.proxyStatusMaxSize = pxStatusSizeEnv
 	}
+	go t.statusSyncer.syncStatusOnEmit(ctx)
 	return t
 }
 
@@ -101,6 +103,7 @@ func (s *TranslatorSyncer) Sync(ctx context.Context, snap *gloov1snap.ApiSnapsho
 func (s *TranslatorSyncer) UpdateProxies(ctx context.Context) {
 	s.statusSyncer.handleUpdatedProxies(ctx)
 }
+
 func (s *TranslatorSyncer) GeneratedDesiredProxies(ctx context.Context, snap *gloov1snap.ApiSnapshot) (reconciler.GeneratedProxies, reconciler.InvalidProxies) {
 	logger := contextutils.LoggerFrom(ctx)
 	gatewaysByProxyName := utils.GatewaysByProxyName(snap.Gateways)
@@ -146,7 +149,8 @@ func (s *TranslatorSyncer) reconcile(ctx context.Context, desiredProxies reconci
 
 	// repeat for all resources
 	s.statusSyncer.setCurrentProxies(desiredProxies, invalidProxies)
-	return s.statusSyncer.syncStatus(ctx)
+	s.statusSyncer.forceSync()
+	return nil
 }
 
 type reportsAndStatus struct {
@@ -163,6 +167,7 @@ type statusSyncer struct {
 	proxyClient             gloov1.ProxyClient
 	writeNamespace          string
 	statusClient            resources.StatusClient
+	syncNeeded              chan struct{}
 	previousProxyStatusHash uint64
 }
 
@@ -174,6 +179,7 @@ func newStatusSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, repo
 		proxyClient:             proxyClient,
 		writeNamespace:          writeNamespace,
 		statusClient:            statusClient,
+		syncNeeded:              make(chan struct{}, 1),
 	}
 }
 
@@ -248,9 +254,7 @@ func (s *statusSyncer) handleUpdatedProxies(ctx context.Context) {
 		logger.Debugw("proxy list updated", "len(proxyList)", len(proxyList), "currentHash", currentHash, "previousProxyStatusHash", s.previousProxyStatusHash)
 		s.previousProxyStatusHash = currentHash
 		s.setStatuses(proxyList)
-		if err := s.syncStatus(ctx); err != nil {
-			logger.Errorw("error syncing statuses", err)
-		}
+		s.forceSync()
 	}
 }
 
@@ -277,6 +281,38 @@ func (s *statusSyncer) setStatuses(list gloov1.ProxyList) {
 			s.proxyToLastStatus[refKey] = reportsAndStatus{
 				Status: status,
 			}
+		}
+	}
+}
+
+func (s *statusSyncer) forceSync() {
+	select {
+	case s.syncNeeded <- struct{}{}:
+	default:
+	}
+}
+
+func (s *statusSyncer) syncStatusOnEmit(ctx context.Context) error {
+	var retryChan <-chan time.Time
+
+	sync := func() {
+		err := s.syncStatus(ctx)
+		if err != nil {
+			contextutils.LoggerFrom(ctx).Debugw("failed to sync status; will try again shortly.", "error", err)
+			retryChan = time.After(time.Second)
+		} else {
+			retryChan = nil
+		}
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-retryChan:
+			sync()
+		case <-s.syncNeeded:
+			sync()
 		}
 	}
 }
@@ -348,12 +384,13 @@ func (s *statusSyncer) syncStatus(ctx context.Context) error {
 		}
 
 		currentStatuses := inputResourceBySubresourceStatuses[inputResource]
-		subResoruceStatuses[clonedInputResource] = currentStatuses
-		reportCopy[inputResource] = subresourceStatus
 
 		// The inputResource's status was successfully written, update the cache and metric with that status
 		status := s.reporter.StatusFromReport(subresourceStatus, currentStatuses)
 		s.inputResourceLastStatus[inputResource] = status
+
+		// copy the report to a new map, so we can modify it without affecting the original
+		reportCopy[inputResource] = subresourceStatus
 	}
 
 	return s.reporter.WriteReports(ctx, reportCopy, subResoruceStatuses)

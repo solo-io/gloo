@@ -10,10 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gateway/pkg/services/k8sadmission"
 	"github.com/solo-io/gloo/projects/gloo/pkg/debug"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils/statuses"
-
-	"github.com/solo-io/gloo/projects/gateway/pkg/services/k8sadmission"
 
 	gwreconciler "github.com/solo-io/gloo/projects/gateway/pkg/reconciler"
 	gwsyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
@@ -401,7 +400,7 @@ type Extensions struct {
 	PluginRegistryFactory plugins.PluginRegistryFactory
 	SyncerExtensions      []syncer.TranslatorSyncerExtensionFactory
 	XdsCallbacks          xdsserver.Callbacks
-	StatusReporter statuses.StatusReportChan
+	StatusReporter        statuses.StatusReportChan
 }
 
 func RunGloo(opts bootstrap.Opts) error {
@@ -420,7 +419,7 @@ func RunGlooWithExtensions(
 	opts bootstrap.Opts,
 	extensions Extensions,
 	apiEmitterChan chan struct{},
-	) error {
+) error {
 	watchOpts := opts.WatchOpts.WithDefaults()
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gloo")
 
@@ -626,7 +625,7 @@ func RunGlooWithExtensions(
 	)
 
 	builder := reporter.NewStatusBuilder("gloo")
-	reporter.NewKubeReporter(builder,
+	kubeRpt := reporter.NewKubeReporter(builder,
 		statusClient,
 		hybridUsClient.BaseClient(),
 		proxyClient.BaseClient(),
@@ -658,9 +657,9 @@ func RunGlooWithExtensions(
 				select {
 				case <-watchOpts.Ctx.Done():
 					return
-					case <-extensions.StatusReporter:
-						// Throw away
-						return
+				case <-extensions.StatusReporter:
+					// Throw away
+					return
 				}
 			}
 		}()
@@ -669,7 +668,12 @@ func RunGlooWithExtensions(
 	httpReporter := statuses.NewHTTPReporter(builder, statusClient, extensions.StatusReporter)
 
 	var rpt reporter.StatusReporter
-	rpt = reporter.NewMultiReporter(builder, httpReporter, &statusMetrics)
+	subReporters := []reporter.Reporter{httpReporter, &statusMetrics}
+	if !opts.Settings.GetDisableKubernetesStatuses() {
+		subReporters = append(subReporters, kubeRpt)
+	}
+	rpt = reporter.NewMultiReporter(builder, subReporters...)
+
 	//The validation grpc server is available for custom controllers
 	if opts.ValidationServer.StartGrpcServer {
 		validationServer := opts.ValidationServer

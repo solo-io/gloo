@@ -44,7 +44,7 @@ var descriptions = map[schema.GroupVersionKind]string{
 // ConfigMetricReporter is a collection of metrics, each of which records if the configuration for
 // a particular resource type is valid
 type ConfigMetricReporter struct {
-	metrics map[schema.GroupVersionKind]*resourceMetric
+	metrics       map[schema.GroupVersionKind]*resourceMetric
 	statusBuilder reporter.StatusBuilder
 }
 
@@ -75,7 +75,7 @@ func GetDefaultConfigStatusOptions() map[string]*Labels {
 // If the options are invalid, an error is returned.
 func NewConfigMetricReporter(opts map[string]*Labels, statusBuilder reporter.StatusBuilder) (ConfigMetricReporter, error) {
 	configMetrics := ConfigMetricReporter{
-		metrics: make(map[schema.GroupVersionKind]*resourceMetric),
+		metrics:       make(map[schema.GroupVersionKind]*resourceMetric),
 		statusBuilder: statusBuilder,
 	}
 	for gvkString, labels := range opts {

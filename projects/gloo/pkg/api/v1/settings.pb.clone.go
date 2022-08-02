@@ -197,6 +197,8 @@ func (m *Settings) Clone() proto.Message {
 		target.GraphqlOptions = proto.Clone(m.GetGraphqlOptions()).(*GraphqlOptions)
 	}
 
+	target.DisableKubernetesStatuses = m.GetDisableKubernetesStatuses()
+
 	switch m.ConfigSource.(type) {
 
 	case *Settings_KubernetesConfigSource:

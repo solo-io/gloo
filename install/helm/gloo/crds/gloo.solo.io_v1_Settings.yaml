@@ -154,6 +154,8 @@ spec:
                   directory:
                     type: string
                 type: object
+              disableKubernetesStatuses:
+                type: boolean
               discovery:
                 properties:
                   fdsMode:

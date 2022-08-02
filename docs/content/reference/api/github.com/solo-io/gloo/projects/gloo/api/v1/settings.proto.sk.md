@@ -93,6 +93,7 @@ Represents global settings for all the Gloo components.
 "upstreamOptions": .gloo.solo.io.UpstreamOptions
 "consoleOptions": .gloo.solo.io.ConsoleOptions
 "graphqlOptions": .gloo.solo.io.GraphqlOptions
+"disableKubernetesStatuses": bool
 
 ```
 
@@ -132,6 +133,7 @@ Represents global settings for all the Gloo components.
 | `upstreamOptions` | [.gloo.solo.io.UpstreamOptions](../settings.proto.sk/#upstreamoptions) | Default configuration to use for upstreams, when not provided by specific upstream When these properties are defined on an upstream, this configuration will be ignored. |
 | `consoleOptions` | [.gloo.solo.io.ConsoleOptions](../settings.proto.sk/#consoleoptions) | Enterprise-only: Settings for the Gloo Edge Enterprise Console (UI). |
 | `graphqlOptions` | [.gloo.solo.io.GraphqlOptions](../settings.proto.sk/#graphqloptions) | Enterprise-only: GraphQL settings. |
+| `disableKubernetesStatuses` | `bool` | An advanced option used to turn off writing resource statuses to kubernetes. This setting can help when running Gloo at very large scale. More specifically it can reduce CPU usage, and translation time. These statuses will still be available via the admin endpoint at the "/statuses" path. Please note that these differences only start to become apparent in environments with greater than 2500 Virtual Services, and 5000 Upstreams. |
 
 
 

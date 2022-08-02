@@ -286,6 +286,10 @@ func (m *Settings) Equal(that interface{}) bool {
 		}
 	}
 
+	if m.GetDisableKubernetesStatuses() != target.GetDisableKubernetesStatuses() {
+		return false
+	}
+
 	switch m.ConfigSource.(type) {
 
 	case *Settings_KubernetesConfigSource:
