@@ -219,6 +219,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				jwks.NewNilKeySourceFactory(),
 				false,
 				nil,
+				nil,
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, authCfg)
@@ -554,6 +555,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				AuthEndpoint:       "auth.url/",
 				TokenEndpoint:      "token.url/",
 				RevocationEndpoint: "revoke.url/",
+				EndSessionEndpoint: "logout.url/",
 				JwksUri:            "keys",
 				ResponseTypes:      []string{"code"},
 				Subjects:           []string{"public"},
@@ -567,6 +569,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				AuthEndpoint:       "auth.url/",
 				TokenEndpoint:      "token.url/",
 				RevocationEndpoint: "revoke.url/",
+				EndSessionEndpoint: "logout.url/",
 				KeysUri:            "keys",
 				ResponseTypes:      []string{"code"},
 				Subjects:           []string{"public"},
@@ -585,7 +588,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			// If a new field is added to DiscoveryData, this test should fail,
 			// signaling that we need to modify the ToDiscoveryDataOverride implementation
 			Expect(reflect.TypeOf(oidc.DiscoveryData{}).NumField()).To(
-				Equal(11),
+				Equal(12),
 				"wrong number of fields found",
 			)
 
@@ -648,6 +651,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				jwks.NewNilKeySourceFactory(),
 				false,
 				config.ToAutoMapFromMetadata(nil),
+				config.ToEndSessionEndpointProperties(nil),
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, oAuthConfig)
@@ -679,6 +683,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				jwks.NewNilKeySourceFactory(),
 				false,
 				config.ToAutoMapFromMetadata(nil),
+				config.ToEndSessionEndpointProperties(nil),
 			).Return(authServiceMock, nil)
 
 			authService, err := translator.Translate(ctx, oAuthConfig)
@@ -709,6 +714,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 											Scopes:                   []string{"foo", "bar"},
 											JwksCacheRefreshPolicy:   policyConfig,
 											AutoMapFromMetadata:      &extauthv1.AutoMapFromMetadata{Namespace: "test"},
+											EndSessionProperties:     &extauthv1.EndSessionProperties{MethodType: extauthv1.EndSessionProperties_PostMethod},
 										},
 									},
 								},
@@ -737,6 +743,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 					expectedCacheRefreshPolicy,
 					false,
 					config.ToAutoMapFromMetadata(&extauthv1.AutoMapFromMetadata{Namespace: "test"}),
+					config.ToEndSessionEndpointProperties(&extauthv1.EndSessionProperties{MethodType: extauthv1.EndSessionProperties_PostMethod}),
 				).Return(authServiceMock, nil)
 
 				authService, err := translator.Translate(ctx, oAuthConfig)

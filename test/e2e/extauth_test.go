@@ -3263,12 +3263,15 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 
 			_, _ = rw.Write([]byte(`alternate-auth`))
 		case "/.well-known/openid-configuration":
+			// the following get called when a OAuth Logout Path request has been made
+			// revocation_endpoint, end_session_endpoint
 			_, _ = rw.Write([]byte(`
 		{
 			"issuer": "http://localhost:5556",
 			"authorization_endpoint": "http://localhost:5556/auth",
 			"token_endpoint": "http://localhost:5556/token",
 			"revocation_endpoint": "http://localhost:5556/revoke",
+			"end_session_endpoint": "http://localhost:5556/logout",
 			"jwks_uri": "http://localhost:5556/keys",
 			"response_types_supported": [
 			  "code"
@@ -3339,6 +3342,23 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 
 			rw.WriteHeader(http.StatusOK)
 			_, _ = rw.Write([]byte(httpReply))
+		case "/logout": // this should match the end_session_endpoint path noted
+			// in the /.well-known/openid-configuration above.
+			// This should be invoked by the Ext-Auth service when the client
+			// calls the logoutPath on the OAuth Configuration, and has a session.
+			// with the current setting a GET request should be made by the Ext-Auth
+			// service. A GET request will add the client_id and the id_token_hint
+			// onto the query parameters. A POST request will add them to the
+			// request's Form.
+			queryParams := r.URL.Query()
+			clientId := queryParams.Get("client_id")
+			token := queryParams.Get("id_token_hint")
+
+			// "test-clientid"
+			Expect(len(clientId)).Should(BeNumerically(">", 0))
+			Expect(len(token)).Should(BeNumerically(">", 0))
+			rw.WriteHeader(http.StatusOK)
+			_, _ = rw.Write([]byte(""))
 		}
 	})
 

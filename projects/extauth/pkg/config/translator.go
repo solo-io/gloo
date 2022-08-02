@@ -152,6 +152,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			jwks.NewNilKeySourceFactory(),
 			false,
 			nil, // not supported in deprecated API, net-new feature
+			nil, // not supported in deprecated API, net-new feature
 		)
 
 		if err != nil {
@@ -197,6 +198,8 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				autoMapFromMetadata = &oidc.AutoMapFromMetadata{}
 			}
 
+			endSessionProperties := ToEndSessionEndpointProperties(oidcCfg.GetEndSessionProperties())
+
 			jwksOnDemandCacheRefreshPolicy := ToOnDemandCacheRefreshPolicy(oidcCfg.GetJwksCacheRefreshPolicy())
 
 			authService, err := t.serviceFactory.NewOidcAuthorizationCodeAuthService(
@@ -219,6 +222,7 @@ func (t *extAuthConfigTranslator) authConfigToService(
 				jwksOnDemandCacheRefreshPolicy,
 				oidcCfg.GetParseCallbackPathAsRegex(),
 				autoMapFromMetadata,
+				endSessionProperties,
 			)
 
 			if err != nil {
@@ -563,6 +567,7 @@ func ToDiscoveryDataOverride(discoveryOverride *extauthv1.DiscoveryOverride) *oi
 			// IssuerUrl is intentionally excluded as it cannot be overridden
 			AuthEndpoint:       discoveryOverride.GetAuthEndpoint(),
 			RevocationEndpoint: discoveryOverride.GetRevocationEndpoint(),
+			EndSessionEndpoint: discoveryOverride.GetEndSessionEndpoint(),
 			TokenEndpoint:      discoveryOverride.GetTokenEndpoint(),
 			KeysUri:            discoveryOverride.GetJwksUri(),
 			ResponseTypes:      discoveryOverride.GetResponseTypes(),
@@ -629,4 +634,9 @@ func getSoloApisRedisOptions(options *extauthv1.RedisOptions) *extauthSoloApis.R
 		TlsCertMountPath: options.GetTlsCertMountPath(),
 		SocketType:       extauthSoloApis.RedisOptions_SocketType(options.GetSocketType()),
 	}
+}
+
+// ToEndSessionEndpointProperties translates from gloo to ext-auth-service
+func ToEndSessionEndpointProperties(endSessionEndpointProperties *extauthv1.EndSessionProperties) *oidc.EndSessionProperties {
+	return oidc.NewEndSessionProperties(oidc.EndSessionMethodType(endSessionEndpointProperties.GetMethodType()))
 }

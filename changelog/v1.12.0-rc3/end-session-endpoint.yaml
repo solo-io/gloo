@@ -1,0 +1,13 @@
+changelog:
+  - type: NEW_FEATURE
+    description: |
+      Added calling the end_session_endpoint on logout of the user session. This
+      will invalidate the user's session token. There are two ways this is configured,
+      by applying the methodType to the OAuth Config API. GET and POST methodTypes
+      can be applied to the EndSessionProperties in the OAuth2 API Configurations.
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/gloo/issues/4410
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.21.0
