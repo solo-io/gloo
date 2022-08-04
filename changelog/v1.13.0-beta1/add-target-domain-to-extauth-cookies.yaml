@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/ext-auth-service/issues/314
+    description: Adds a new field `TargetDomain` - to extauth cookie to be used to validate against the request hostname.
+    resolvesIssue: false
