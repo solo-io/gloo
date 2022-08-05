@@ -637,6 +637,9 @@ export namespace UserSession {
   }
 
   export class InternalSession extends jspb.Message {
+    getKeyPrefix(): string;
+    setKeyPrefix(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): InternalSession.AsObject;
     static toObject(includeInstance: boolean, msg: InternalSession): InternalSession.AsObject;
@@ -649,6 +652,7 @@ export namespace UserSession {
 
   export namespace InternalSession {
     export type AsObject = {
+      keyPrefix: string,
     }
   }
 

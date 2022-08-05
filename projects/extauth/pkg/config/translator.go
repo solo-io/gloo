@@ -453,6 +453,11 @@ func convertAprUsers(users map[string]*extauthv1.BasicAuth_Apr_SaltedHashedPassw
 	return ret
 }
 
+// sessionToStore will create a session store based off the user session configuration.
+// If the user session is nil, it will create no store.
+// If it is redis, it will create a redis client store.
+// If it is a cookie, it will create a cookie store.
+// throws an error if the user session is unknown.
 func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, time.Duration, error) {
 	if us == nil {
 		return nil, false, 0, nil
@@ -464,7 +469,7 @@ func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, time
 
 	switch s := usersession.(type) {
 	case *extauthv1.UserSession_Cookie:
-		return nil, false, 0, nil
+		return oidc.NewCookieSessionStore(s.Cookie.GetKeyPrefix()), false, 0, nil
 	case *extauthv1.UserSession_Redis:
 		options := s.Redis.GetOptions()
 		opts := &redis.UniversalOptions{
@@ -553,6 +558,7 @@ func ToDiscoveryDataOverride(discoveryOverride *extauthv1.DiscoveryOverride) *oi
 	return discoveryDataOverride
 }
 
+// toSessionParameters sets the Session Parameters and the store
 func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParameters, error) {
 	sessionOptions := cookieConfigToSessionOptions(userSession.GetCookieOptions())
 	sessionStore, refreshIfExpired, preExpiryBuffer, err := sessionToStore(userSession)

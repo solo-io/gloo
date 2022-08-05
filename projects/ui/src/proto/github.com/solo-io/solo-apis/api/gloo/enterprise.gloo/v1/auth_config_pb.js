@@ -4407,7 +4407,7 @@ proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.toObject = f
  */
 proto.enterprise.gloo.solo.io.UserSession.InternalSession.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    keyPrefix: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -4444,6 +4444,10 @@ proto.enterprise.gloo.solo.io.UserSession.InternalSession.deserializeBinaryFromR
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyPrefix(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4473,6 +4477,28 @@ proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.serializeBin
  */
 proto.enterprise.gloo.solo.io.UserSession.InternalSession.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getKeyPrefix();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string key_prefix = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.getKeyPrefix = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.setKeyPrefix = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
