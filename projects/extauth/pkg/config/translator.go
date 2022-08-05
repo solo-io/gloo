@@ -74,7 +74,7 @@ func (t *extAuthConfigTranslator) Translate(ctx context.Context, resource *extau
 	contextutils.LoggerFrom(ctx).Debugw("Getting config for resource", zap.Any("resource", resource))
 
 	if len(resource.Configs) != 0 {
-		return t.getConfigs(ctx, resource.BooleanExpr.GetValue(), resource.Configs)
+		return t.getConfigs(ctx, resource.BooleanExpr.GetValue(), resource.Configs, resource.FailOnRedirect)
 	}
 
 	return nil, nil
@@ -84,9 +84,11 @@ func (t *extAuthConfigTranslator) getConfigs(
 	ctx context.Context,
 	boolLogic string,
 	configs []*extauthv1.ExtAuthConfig_Config,
+	failOnRedirect bool,
 ) (svc api.AuthService, err error) {
 
 	services := chain.NewAuthServiceChain()
+	services.SetFailOnRedirect(failOnRedirect)
 	for i, cfg := range configs {
 		svc, name, err := t.authConfigToService(ctx, cfg)
 		if err != nil {

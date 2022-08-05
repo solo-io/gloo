@@ -24,6 +24,9 @@ export class AuthConfigSpec extends jspb.Message {
   getBooleanExpr(): google_protobuf_wrappers_pb.StringValue | undefined;
   setBooleanExpr(value?: google_protobuf_wrappers_pb.StringValue): void;
 
+  getFailOnRedirect(): boolean;
+  setFailOnRedirect(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AuthConfigSpec.AsObject;
   static toObject(includeInstance: boolean, msg: AuthConfigSpec): AuthConfigSpec.AsObject;
@@ -38,6 +41,7 @@ export namespace AuthConfigSpec {
   export type AsObject = {
     configsList: Array<AuthConfigSpec.Config.AsObject>,
     booleanExpr?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    failOnRedirect: boolean,
   }
 
   export class Config extends jspb.Message {
@@ -1508,6 +1512,9 @@ export class Ldap extends jspb.Message {
   getSearchfilter(): string;
   setSearchfilter(value: string): void;
 
+  getDisableGroupChecking(): boolean;
+  setDisableGroupChecking(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Ldap.AsObject;
   static toObject(includeInstance: boolean, msg: Ldap): Ldap.AsObject;
@@ -1526,6 +1533,7 @@ export namespace Ldap {
     allowedgroupsList: Array<string>,
     pool?: Ldap.ConnectionPool.AsObject,
     searchfilter: string,
+    disableGroupChecking: boolean,
   }
 
   export class ConnectionPool extends jspb.Message {
@@ -1745,6 +1753,9 @@ export class ExtAuthConfig extends jspb.Message {
   getBooleanExpr(): google_protobuf_wrappers_pb.StringValue | undefined;
   setBooleanExpr(value?: google_protobuf_wrappers_pb.StringValue): void;
 
+  getFailOnRedirect(): boolean;
+  setFailOnRedirect(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ExtAuthConfig.AsObject;
   static toObject(includeInstance: boolean, msg: ExtAuthConfig): ExtAuthConfig.AsObject;
@@ -1760,6 +1771,7 @@ export namespace ExtAuthConfig {
     authConfigRefName: string,
     configsList: Array<ExtAuthConfig.Config.AsObject>,
     booleanExpr?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    failOnRedirect: boolean,
   }
 
   export class OAuthConfig extends jspb.Message {

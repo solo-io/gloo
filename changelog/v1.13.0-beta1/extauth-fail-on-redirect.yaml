@@ -1,0 +1,27 @@
+CHANGELOG:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/gloo/issues/6811
+  resolvesIssue: false
+  description: |
+    Add config to enable users to opt-in to configuring an AuthConfig to fail when
+    an OIDC provider returns a redirect instead of returning that redirect to the
+    client. When set to true, a 401 unauthorized will be returned instead of 302.
+    A user may want to configure this option when using OIDC auth flows in unconventional
+    ways such as API calls where the client is unable to handle the redirect.
+- type: FIX
+  issueLink: https://github.com/solo-io/gloo/issues/6811
+  resolvesIssue: false
+  description: |
+    Fix bug where OIDC auth service start function never returned
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: solo-apis
+  dependencyTag: gloo-v1.13.0-beta2
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-service
+  dependencyTag: v0.22.1
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.13.0-beta2

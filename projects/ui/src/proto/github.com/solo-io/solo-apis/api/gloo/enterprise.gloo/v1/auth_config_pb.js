@@ -144,7 +144,8 @@ proto.enterprise.gloo.solo.io.AuthConfigSpec.toObject = function(includeInstance
   var f, obj = {
     configsList: jspb.Message.toObjectList(msg.getConfigsList(),
     proto.enterprise.gloo.solo.io.AuthConfigSpec.Config.toObject, includeInstance),
-    booleanExpr: (f = msg.getBooleanExpr()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
+    booleanExpr: (f = msg.getBooleanExpr()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    failOnRedirect: jspb.Message.getFieldWithDefault(msg, 11, false)
   };
 
   if (includeInstance) {
@@ -191,6 +192,10 @@ proto.enterprise.gloo.solo.io.AuthConfigSpec.deserializeBinaryFromReader = funct
       reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setBooleanExpr(value);
       break;
+    case 11:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setFailOnRedirect(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -234,6 +239,13 @@ proto.enterprise.gloo.solo.io.AuthConfigSpec.serializeBinaryToWriter = function(
       10,
       f,
       google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getFailOnRedirect();
+  if (f) {
+    writer.writeBool(
+      11,
+      f
     );
   }
 };
@@ -885,6 +897,23 @@ proto.enterprise.gloo.solo.io.AuthConfigSpec.prototype.clearBooleanExpr = functi
  */
 proto.enterprise.gloo.solo.io.AuthConfigSpec.prototype.hasBooleanExpr = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional bool fail_on_redirect = 11;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.AuthConfigSpec.prototype.getFailOnRedirect = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 11, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.AuthConfigSpec.prototype.setFailOnRedirect = function(value) {
+  jspb.Message.setProto3BooleanField(this, 11, value);
 };
 
 
@@ -10329,7 +10358,8 @@ proto.enterprise.gloo.solo.io.Ldap.toObject = function(includeInstance, msg) {
     membershipattributename: jspb.Message.getFieldWithDefault(msg, 3, ""),
     allowedgroupsList: jspb.Message.getRepeatedField(msg, 4),
     pool: (f = msg.getPool()) && proto.enterprise.gloo.solo.io.Ldap.ConnectionPool.toObject(includeInstance, f),
-    searchfilter: jspb.Message.getFieldWithDefault(msg, 6, "")
+    searchfilter: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    disableGroupChecking: jspb.Message.getFieldWithDefault(msg, 7, false)
   };
 
   if (includeInstance) {
@@ -10390,6 +10420,10 @@ proto.enterprise.gloo.solo.io.Ldap.deserializeBinaryFromReader = function(msg, r
     case 6:
       var value = /** @type {string} */ (reader.readString());
       msg.setSearchfilter(value);
+      break;
+    case 7:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setDisableGroupChecking(value);
       break;
     default:
       reader.skipField();
@@ -10460,6 +10494,13 @@ proto.enterprise.gloo.solo.io.Ldap.serializeBinaryToWriter = function(message, w
   if (f.length > 0) {
     writer.writeString(
       6,
+      f
+    );
+  }
+  f = message.getDisableGroupChecking();
+  if (f) {
+    writer.writeBool(
+      7,
       f
     );
   }
@@ -10785,6 +10826,23 @@ proto.enterprise.gloo.solo.io.Ldap.prototype.getSearchfilter = function() {
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.Ldap.prototype.setSearchfilter = function(value) {
   jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * optional bool disable_group_checking = 7;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.Ldap.prototype.getDisableGroupChecking = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 7, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.Ldap.prototype.setDisableGroupChecking = function(value) {
+  jspb.Message.setProto3BooleanField(this, 7, value);
 };
 
 
@@ -12090,7 +12148,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.toObject = function(includeInstance,
     authConfigRefName: jspb.Message.getFieldWithDefault(msg, 1, ""),
     configsList: jspb.Message.toObjectList(msg.getConfigsList(),
     proto.enterprise.gloo.solo.io.ExtAuthConfig.Config.toObject, includeInstance),
-    booleanExpr: (f = msg.getBooleanExpr()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
+    booleanExpr: (f = msg.getBooleanExpr()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    failOnRedirect: jspb.Message.getFieldWithDefault(msg, 11, false)
   };
 
   if (includeInstance) {
@@ -12140,6 +12199,10 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.deserializeBinaryFromReader = functi
       var value = new google_protobuf_wrappers_pb.StringValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setBooleanExpr(value);
+      break;
+    case 11:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setFailOnRedirect(value);
       break;
     default:
       reader.skipField();
@@ -12191,6 +12254,13 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.serializeBinaryToWriter = function(m
       10,
       f,
       google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getFailOnRedirect();
+  if (f) {
+    writer.writeBool(
+      11,
+      f
     );
   }
 };
@@ -16144,6 +16214,23 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.clearBooleanExpr = functio
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.hasBooleanExpr = function() {
   return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional bool fail_on_redirect = 11;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.getFailOnRedirect = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 11, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.setFailOnRedirect = function(value) {
+  jspb.Message.setProto3BooleanField(this, 11, value);
 };
 
 

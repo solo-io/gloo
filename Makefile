@@ -905,7 +905,7 @@ caching-ee-docker: $(CACHE_OUT_DIR)/.caching-ee-docker
 $(CACHE_OUT_DIR)/.caching-ee-docker: $(CACHE_OUT_DIR)/caching-linux-amd64 $(CACHE_OUT_DIR)/Dockerfile
 	docker build -t $(IMAGE_REPO)/caching-ee:$(VERSION) $(call get_test_tag_option,caching-ee) $(CACHE_OUT_DIR)
 	touch $@
-	
+
 #----------------------------------------------------------------------------------
 # Gloo
 #----------------------------------------------------------------------------------
