@@ -232,7 +232,7 @@ var _ = Describe("Helm Test", func() {
 				observabilityDeployment.Spec.Template.ObjectMeta.Labels = selector
 				annotations := map[string]string{
 					"checksum/observability-config": "9d91255a98e28f9b0bfb5d685673e5810fc475d2fe6f9738aae7dd67c8ac5c8d", // observability config checksum
-					"checksum/grafana-dashboards":   "1e927634c33379005380b99e746c141d0fa241bf42246305bf9eb6ea29ca6383", // grafana dashboards checksum
+					"checksum/grafana-dashboards":   "0357eb81e6c8315ef439ac4f4fd123f908261578358389ab101483bef5be3300", // grafana dashboards checksum
 				}
 				for key, val := range normalPromAnnotations { // deep copy map
 					annotations[key] = val
