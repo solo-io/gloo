@@ -12,13 +12,6 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/ghodss/yaml"
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/ptypes"
-	. "github.com/solo-io/solo-kit/test/matchers"
-
-	"k8s.io/apimachinery/pkg/api/resource"
-
 	"github.com/aws/aws-sdk-go/aws"
 	bootstrapv3 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 	clusterv3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
@@ -28,24 +21,28 @@ import (
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/redis_proxy/v3"
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/health_checkers/redis/v3"
 	tlsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
-	. "github.com/onsi/ginkgo/extensions/table"
-	"github.com/onsi/gomega/format"
-
+	"github.com/ghodss/yaml"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/format"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/k8s-utils/installutils/kuberesource"
+	. "github.com/solo-io/k8s-utils/manifesttestutils"
+	. "github.com/solo-io/solo-kit/test/matchers"
 	"github.com/solo-io/solo-projects/pkg/install"
+	appsv1 "k8s.io/api/apps/v1"
 	jobsv1 "k8s.io/api/batch/v1"
+	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	k8s "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/intstr"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	. "github.com/solo-io/k8s-utils/manifesttestutils"
-	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/utils/pointer"
 )
 
 var _ = Describe("Helm Test", func() {
@@ -3779,7 +3776,6 @@ spec:
 			})
 
 			It("produces expected default deployment", func() {
-				//TODO: once rc3 oss is out pull that in so this succeeds in ci
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace,
 					helmValues{valuesArgs: []string{"global.extensions.caching.enabled=true"}})
 				Expect(err).NotTo(HaveOccurred())
@@ -4653,7 +4649,62 @@ spec:
 				_ = getJob(testManifest, namespace, "gloo-resource-rollout")
 				_ = getJob(testManifest, namespace, "gloo-ee-resource-rollout")
 				_ = getJob(testManifest, namespace, "gloo-resource-cleanup")
+			})
 
+			It("can override fields on the EE rollout job", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{
+						// istio
+						"global.istioIntegration.disableAutoinjection=true",
+						// image
+						"gloo.gateway.rolloutJob.image.registry=myreg",
+						"gloo.gateway.rolloutJob.image.repository=myrepo",
+						"gloo.gateway.rolloutJob.image.tag=mytag",
+						// job spec
+						"gloo.gateway.rolloutJob.activeDeadlineSeconds=23",
+						"gloo.gateway.rolloutJob.ttlSecondsAfterFinished=34",
+						// pod spec
+						"gloo.gateway.rolloutJob.nodeSelector.label=someLabel",
+						"gloo.gateway.rolloutJob.nodeName=someNodeName",
+						"gloo.gateway.rolloutJob.tolerations[0].value=someToleration",
+						"gloo.gateway.rolloutJob.hostAliases[0].ip=1.2.3.4",
+						"gloo.gateway.rolloutJob.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight=8",
+						"gloo.gateway.rolloutJob.restartPolicy=Always",
+						// security context
+						"gloo.gateway.rolloutJob.runAsUser=12345",
+						// resources
+						"gloo.gateway.rolloutJob.resources.requests.memory=100Mi",
+						"gloo.gateway.rolloutJob.resources.requests.cpu=200m",
+						"gloo.gateway.rolloutJob.resources.limits.memory=300Mi",
+						"gloo.gateway.rolloutJob.resources.limits.cpu=400m",
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				job := getJob(testManifest, namespace, "gloo-ee-resource-rollout")
+
+				// istio
+				inject, ok := job.Spec.Template.ObjectMeta.Labels["sidecar.istio.io/inject"]
+				Expect(ok).To(BeTrue())
+				Expect(inject).To(Equal("false"))
+				// image
+				Expect(job.Spec.Template.Spec.Containers[0].Image).To(Equal("myreg/myrepo:mytag"))
+				// job spec
+				Expect(job.Spec.ActiveDeadlineSeconds).To(Equal(pointer.Int64Ptr(23)))
+				Expect(job.Spec.TTLSecondsAfterFinished).To(Equal(pointer.Int32Ptr(34)))
+				// pod spec
+				Expect(job.Spec.Template.Spec.NodeSelector).To(Equal(map[string]string{"label": "someLabel"}))
+				Expect(job.Spec.Template.Spec.NodeName).To(Equal("someNodeName"))
+				Expect(job.Spec.Template.Spec.Tolerations[0].Value).To(Equal("someToleration"))
+				Expect(job.Spec.Template.Spec.HostAliases[0].IP).To(Equal("1.2.3.4"))
+				Expect(job.Spec.Template.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution[0].Weight).To(Equal(int32(8)))
+				Expect(job.Spec.Template.Spec.RestartPolicy).To(Equal(v1.RestartPolicyAlways))
+				// security context
+				Expect(job.Spec.Template.Spec.Containers[0].SecurityContext.RunAsUser).To(Equal(pointer.Int64Ptr(12345)))
+				// resources
+				Expect(job.Spec.Template.Spec.Containers[0].Resources.Requests.Memory().String()).To(Equal("100Mi"))
+				Expect(job.Spec.Template.Spec.Containers[0].Resources.Requests.Cpu().String()).To(Equal("200m"))
+				Expect(job.Spec.Template.Spec.Containers[0].Resources.Limits.Memory().String()).To(Equal("300Mi"))
+				Expect(job.Spec.Template.Spec.Containers[0].Resources.Limits.Cpu().String()).To(Equal("400m"))
 			})
 
 			It("applies extauth and ratelimit upstreams", func() {

@@ -240,6 +240,22 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 	}
 	config.Gloo.Gateway.CertGenJob.Image.Tag = tag
 
+	if config.Gloo.Gateway.RolloutJob == nil {
+		config.Gloo.Gateway.RolloutJob = &generate.RolloutJob{}
+	}
+	if config.Gloo.Gateway.RolloutJob.Image == nil {
+		config.Gloo.Gateway.RolloutJob.Image = &generate.Image{}
+	}
+	config.Gloo.Gateway.RolloutJob.Image.Tag = tag
+
+	if config.Gloo.Gateway.CleanupJob == nil {
+		config.Gloo.Gateway.CleanupJob = &generate.CleanupJob{}
+	}
+	if config.Gloo.Gateway.CleanupJob.Image == nil {
+		config.Gloo.Gateway.CleanupJob.Image = &generate.Image{}
+	}
+	config.Gloo.Gateway.CleanupJob.Image.Tag = tag
+
 	config.Observability.Deployment.Image.Tag = version
 
 	if config.Global.GlooMtls.Sds.Image == nil {
@@ -260,6 +276,8 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 	config.Gloo.Settings.Integrations.Knative.Proxy.Image.PullPolicy = &pullPolicy
 	config.Gloo.Discovery.Deployment.Image.PullPolicy = &pullPolicy
 	config.Gloo.Gateway.CertGenJob.Image.PullPolicy = &pullPolicy
+	config.Gloo.Gateway.RolloutJob.Image.PullPolicy = &pullPolicy
+	config.Gloo.Gateway.CleanupJob.Image.PullPolicy = &pullPolicy
 	config.Observability.Deployment.Image.PullPolicy = &pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = &pullPolicy
 
@@ -274,6 +292,8 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 		gtw := config.Gloo.Gateway
 		dir := defaultImageRegistry
 		gtw.CertGenJob.Image.Registry = &dir
+		gtw.RolloutJob.Image.Registry = &dir
+		gtw.CleanupJob.Image.Registry = &dir
 		config.Global.GlooMtls.Sds.Image.Registry = &dir
 	}
 	return &config, nil

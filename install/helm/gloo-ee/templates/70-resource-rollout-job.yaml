@@ -1,3 +1,4 @@
+{{- if .Values.gloo.gateway.rolloutJob.enabled }}
 {{- $image := .Values.gloo.gateway.rolloutJob.image }}
 {{- if .Values.global }}
 {{- $image = merge .Values.gloo.gateway.rolloutJob.image .Values.global.image }}
@@ -13,15 +14,20 @@ metadata:
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "10" # run this job after the gloo rollout job completes
-    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed,before-hook-creation
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
+  activeDeadlineSeconds: {{ .Values.gloo.gateway.rolloutJob.activeDeadlineSeconds }}
   template:
     metadata:
       labels:
         gloo: resource-rollout
+        {{- if .Values.global.istioIntegration.disableAutoinjection }}
+        sidecar.istio.io/inject: "false"
+        {{- end }}
     spec:
       {{- include "gloo.pullSecret" $image | nindent 6 -}}
       serviceAccountName: gloo-resource-rollout
+      {{- include "gloo.podSpecStandardFields" .Values.gloo.gateway.rolloutJob | nindent 6 -}}
       containers:
         - name: kubectl
           image: {{template "gloo.image" $image}}
@@ -31,6 +37,9 @@ spec:
             {{- if not .Values.gloo.gateway.rolloutJob.floatingUserId }}
             runAsUser: {{ printf "%.0f" (float64 .Values.gloo.gateway.rolloutJob.runAsUser) -}}
             {{- end }}
+          {{- with .Values.gloo.gateway.rolloutJob.resources }}
+          resources: {{ toYaml . | nindent 12}}
+          {{- end }}
           command:
           - /bin/sh
           - -c
@@ -44,5 +53,5 @@ spec:
             {{- else }}
             echo "no custom resources to apply"
             {{- end }}
-      restartPolicy: OnFailure
   ttlSecondsAfterFinished: {{ .Values.gloo.gateway.rolloutJob.ttlSecondsAfterFinished }}
+{{- end }}{{/* if .Values.gloo.gateway.rolloutJob.enabled  */}}

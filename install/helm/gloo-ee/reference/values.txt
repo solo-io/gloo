@@ -245,7 +245,7 @@
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
-|gloo.gloo.deployment.ossImageTag|string|1.13.0-beta2|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
+|gloo.gloo.deployment.ossImageTag|string|1.13.0-beta3|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
 |gloo.gloo.deployment.replicas|int||number of instances to deploy|
 |gloo.gloo.deployment.customEnv[].name|string|||
 |gloo.gloo.deployment.customEnv[].value|string|||
@@ -365,7 +365,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.certGenJob.image.tag|string|1.13.0-beta2|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.13.0-beta3|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string||The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.certGenJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
@@ -383,11 +383,12 @@
 |gloo.gateway.certGenJob.tolerations[].tolerationSeconds|int64|||
 |gloo.gateway.certGenJob.affinity.NAME|interface|||
 |gloo.gateway.certGenJob.hostAliases[]|interface|||
+|gloo.gateway.certGenJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
+|gloo.gateway.certGenJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.certGenJob.kubeResourceOverride.NAME|interface||override fields in the gateway-certgen job.|
 |gloo.gateway.certGenJob.mtlsKubeResourceOverride.NAME|interface||override fields in the gloo-mtls-certgen job.|
 |gloo.gateway.certGenJob.enabled|bool||enable the job that generates the certificates for the validating webhook at install time (default true)|
-|gloo.gateway.certGenJob.setTtlAfterFinished|bool||Set ttlSecondsAfterFinished (a k8s feature in Alpha) on the job. Defaults to true|
-|gloo.gateway.certGenJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
+|gloo.gateway.certGenJob.setTtlAfterFinished|bool||Set ttlSecondsAfterFinished on the job. Defaults to true|
 |gloo.gateway.certGenJob.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
 |gloo.gateway.certGenJob.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |gloo.gateway.certGenJob.resources.limits.memory|string||amount of memory|
@@ -395,34 +396,63 @@
 |gloo.gateway.certGenJob.resources.requests.memory|string||amount of memory|
 |gloo.gateway.certGenJob.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.certGenJob.runOnUpdate|bool||enable to run the job also on pre-upgrade|
-|gloo.gateway.certGenJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.certGenJob.cron.enabled|bool||enable the cronjob|
 |gloo.gateway.certGenJob.cron.schedule|string||Cron job scheduling|
 |gloo.gateway.certGenJob.cron.mtlsKubeResourceOverride.NAME|interface||override fields in the gloo-mtls-certgen cronjob.|
-|gloo.gateway.rolloutJob.image.tag|string||The image tag for the container.|
+|gloo.gateway.rolloutJob.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.gateway.rolloutJob.nodeName|string||name of node to run on|
+|gloo.gateway.rolloutJob.nodeSelector.NAME|string||label selector for nodes|
+|gloo.gateway.rolloutJob.tolerations[].key|string|||
+|gloo.gateway.rolloutJob.tolerations[].operator|string|||
+|gloo.gateway.rolloutJob.tolerations[].value|string|||
+|gloo.gateway.rolloutJob.tolerations[].effect|string|||
+|gloo.gateway.rolloutJob.tolerations[].tolerationSeconds|int64|||
+|gloo.gateway.rolloutJob.affinity.NAME|interface|||
+|gloo.gateway.rolloutJob.hostAliases[]|interface|||
+|gloo.gateway.rolloutJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
+|gloo.gateway.rolloutJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
+|gloo.gateway.rolloutJob.enabled|bool||Enable the job that applies default Gloo Edge custom resources at install and upgrade time (default true).|
+|gloo.gateway.rolloutJob.image.tag|string|1.13.0-beta3|The image tag for the container.|
 |gloo.gateway.rolloutJob.image.repository|string||The image repository (name) for the container.|
 |gloo.gateway.rolloutJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.rolloutJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
-|gloo.gateway.rolloutJob.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.gateway.rolloutJob.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.gateway.rolloutJob.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |gloo.gateway.rolloutJob.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |gloo.gateway.rolloutJob.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|gloo.gateway.rolloutJob.resources.limits.memory|string||amount of memory|
+|gloo.gateway.rolloutJob.resources.limits.cpu|string||amount of CPUs|
+|gloo.gateway.rolloutJob.resources.requests.memory|string||amount of memory|
+|gloo.gateway.rolloutJob.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.rolloutJob.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
 |gloo.gateway.rolloutJob.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
-|gloo.gateway.rolloutJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
-|gloo.gateway.rolloutJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
-|gloo.gateway.cleanupJob.image.tag|string||The image tag for the container.|
+|gloo.gateway.cleanupJob.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.gateway.cleanupJob.nodeName|string||name of node to run on|
+|gloo.gateway.cleanupJob.nodeSelector.NAME|string||label selector for nodes|
+|gloo.gateway.cleanupJob.tolerations[].key|string|||
+|gloo.gateway.cleanupJob.tolerations[].operator|string|||
+|gloo.gateway.cleanupJob.tolerations[].value|string|||
+|gloo.gateway.cleanupJob.tolerations[].effect|string|||
+|gloo.gateway.cleanupJob.tolerations[].tolerationSeconds|int64|||
+|gloo.gateway.cleanupJob.affinity.NAME|interface|||
+|gloo.gateway.cleanupJob.hostAliases[]|interface|||
+|gloo.gateway.cleanupJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
+|gloo.gateway.cleanupJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
+|gloo.gateway.cleanupJob.enabled|bool||Enable the job that removes Gloo Edge custom resources when Gloo Edge is uninstalled (default true).|
+|gloo.gateway.cleanupJob.image.tag|string|1.13.0-beta3|The image tag for the container.|
 |gloo.gateway.cleanupJob.image.repository|string||The image repository (name) for the container.|
 |gloo.gateway.cleanupJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.cleanupJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
-|gloo.gateway.cleanupJob.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|gloo.gateway.cleanupJob.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.gateway.cleanupJob.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |gloo.gateway.cleanupJob.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |gloo.gateway.cleanupJob.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|gloo.gateway.cleanupJob.resources.limits.memory|string||amount of memory|
+|gloo.gateway.cleanupJob.resources.limits.cpu|string||amount of CPUs|
+|gloo.gateway.cleanupJob.resources.requests.memory|string||amount of memory|
+|gloo.gateway.cleanupJob.resources.requests.cpu|string||amount of CPUs|
 |gloo.gateway.cleanupJob.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
 |gloo.gateway.cleanupJob.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
-|gloo.gateway.cleanupJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
-|gloo.gateway.cleanupJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.updateValues|bool|true|if true, will use a provided helm helper 'gloo.updatevalues' to update values during template render - useful for plugins/extensions|
 |gloo.gateway.proxyServiceAccount.extraAnnotations.NAME|string||extra annotations to add to the service account|
 |gloo.gateway.proxyServiceAccount.disableAutomount|bool||disable automounting the service account to the gateway proxy. not mounting the token hardens the proxy container, but may interfere with service mesh integrations|
@@ -1248,7 +1278,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.13.0-beta2|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.13.0-beta3|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string||The image repository (name) for the container.|
 |global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |global.glooMtls.sds.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|

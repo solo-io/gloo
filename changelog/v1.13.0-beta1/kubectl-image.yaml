@@ -1,0 +1,14 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/6858
+    description: Enterprise changes to use custom kubectl image.
+    resolvesIssue: false
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/6847
+    description: Enterprise changes for helm customizations for jobs.
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.13.0-beta3
+    description: Bump OSS gloo version to pick up custom kubectl image and helm customizations for rollout/cleanup jobs.
