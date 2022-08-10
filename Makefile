@@ -270,7 +270,7 @@ gloo-fed: $(OUTPUT_DIR)/gloo-fed-linux-$(GOARCH)
 
 .PHONY: gloo-fed-docker
 gloo-fed-docker: $(OUTPUT_DIR)/gloo-fed-linux-$(GOARCH)
-	docker build -t $(IMAGE_REPO)/gloo-fed:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_DIR)/cmd/Dockerfile;
+	docker build -t $(IMAGE_REPO)/gloo-fed:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_DIR)/cmd/Dockerfile --build-arg GOARCH=$(GOARCH);
 
 .PHONY: kind-load-gloo-fed
 kind-load-gloo-fed: gloo-fed-docker
@@ -305,7 +305,7 @@ gloo-fed-apiserver: $(OUTPUT_DIR)/gloo-fed-apiserver-linux-$(GOARCH)
 
 .PHONY: gloo-fed-apiserver-docker
 gloo-fed-apiserver-docker: $(OUTPUT_DIR)/gloo-fed-apiserver-linux-$(GOARCH)
-	docker build -t $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_APISERVER_DIR)/cmd/Dockerfile;
+	docker build -t $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_APISERVER_DIR)/cmd/Dockerfile --build-arg GOARCH=$(GOARCH);
 
 .PHONY: kind-load-gloo-fed-apiserver
 kind-load-gloo-fed-apiserver: gloo-fed-apiserver-docker
@@ -382,7 +382,7 @@ gloo-fed-rbac-validating-webhook: $(OUTPUT_DIR)/gloo-fed-rbac-validating-webhook
 
 .PHONY: gloo-fed-rbac-validating-webhook-docker
 gloo-fed-rbac-validating-webhook-docker: $(OUTPUT_DIR)/gloo-fed-rbac-validating-webhook-linux-$(GOARCH)
-	docker build -t $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_RBAC_WEBHOOK_DIR)/cmd/Dockerfile;
+	docker build -t $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_RBAC_WEBHOOK_DIR)/cmd/Dockerfile --build-arg GOARCH=$(GOARCH);
 
 .PHONY: kind-load-gloo-fed-rbac-validating-webhook
 kind-load-gloo-fed-rbac-validating-webhook: gloo-fed-rbac-validating-webhook-docker
