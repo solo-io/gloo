@@ -3,6 +3,9 @@ package extauth
 import (
 	"fmt"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ext_authz/v3"
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	extauthservice "github.com/solo-io/ext-auth-service/pkg/service"
@@ -28,7 +31,6 @@ func getEnterpriseConfigGenerator(defaultSettings *extauthv1.Settings, namedSett
 	if namedSettings == nil {
 		return NewEnterpriseDefaultConfigGenerator(defaultSettings)
 	}
-
 	return NewEnterpriseMultiConfigGenerator(defaultSettings, namedSettings)
 }
 
@@ -50,7 +52,9 @@ func (d *EnterpriseDefaultConfigGenerator) IsMulti() bool {
 }
 
 func (d *EnterpriseDefaultConfigGenerator) GenerateListenerExtAuthzConfig(listener *v1.HttpListener, upstreams v1.UpstreamList) ([]*envoyauth.ExtAuthz, error) {
-	return d.openSourceGenerator.GenerateListenerExtAuthzConfig(listener, upstreams)
+	authConfigs, err := d.openSourceGenerator.GenerateListenerExtAuthzConfig(listener, upstreams)
+	addMetaDataNamespacesToAuthConfigs(listener, authConfigs)
+	return authConfigs, err
 }
 
 func (d *EnterpriseDefaultConfigGenerator) GenerateVirtualHostExtAuthzConfig(virtualHost *v1.VirtualHost, params plugins.VirtualHostParams) (*envoyauth.ExtAuthzPerRoute, error) {
@@ -174,7 +178,7 @@ func (m *EnterpriseMultiConfigGenerator) GenerateListenerExtAuthzConfig(listener
 		// This ensures that the generated filter will only be enabled if the sanitize filter emits dynamic
 		// metadata with the following value:
 		// 	custom_auth_server_name: [AUTH_SERVICE_NAME]
-		//
+
 		// If the sanitize filter emits dynamic metadata with a different value, this filter will not be enabled
 		authConfig.FilterEnabledMetadata = &envoymatcher.MetadataMatcher{
 			Filter: SanitizeFilterName,
@@ -199,6 +203,8 @@ func (m *EnterpriseMultiConfigGenerator) GenerateListenerExtAuthzConfig(listener
 		authConfigurations = append(authConfigurations, authConfig)
 	}
 
+	addMetaDataNamespacesToAuthConfigs(listener, authConfigurations)
+
 	return authConfigurations, nil
 }
 
@@ -212,4 +218,42 @@ func (m *EnterpriseMultiConfigGenerator) GenerateRouteExtAuthzConfig(route *v1.R
 
 func (m *EnterpriseMultiConfigGenerator) GenerateWeightedDestinationExtAuthzConfig(weightedDestination *v1.WeightedDestination) (*envoyauth.ExtAuthzPerRoute, error) {
 	return m.enterpriseDefaultGenerator.GenerateWeightedDestinationExtAuthzConfig(weightedDestination)
+}
+
+//helper function that adds all DynamicMetaData namespaces to authz configs so that ext auth has access to them
+func addMetaDataNamespacesToAuthConfigs(listener *v1.HttpListener, authConfigs []*envoyauth.ExtAuthz) {
+	metaDataNamespaces := getMetaDataNamespacesFromTransforms(listener)
+	for _, config := range authConfigs {
+		config.MetadataContextNamespaces = append(config.MetadataContextNamespaces, metaDataNamespaces...)
+	}
+}
+
+// helper function that gets all namespaces on transforms
+func getMetaDataNamespacesFromTransforms(listener *v1.HttpListener) []string {
+	namespaces := sets.NewString()
+	for _, host := range listener.GetVirtualHosts() {
+		var requestMatches []*transformation.RequestMatch
+		//
+		if host.GetOptions().GetStagedTransformations().GetEarly().GetRequestTransforms() != nil {
+			requestMatches = append(requestMatches, host.GetOptions().GetStagedTransformations().GetEarly().GetRequestTransforms()...)
+		}
+
+		if host.GetOptions().GetStagedTransformations().GetRegular().GetRequestTransforms() != nil {
+			requestMatches = append(requestMatches, host.GetOptions().GetStagedTransformations().GetRegular().GetRequestTransforms()...)
+		}
+
+		for _, requestMatch := range requestMatches {
+			if requestMatch.GetRequestTransformation() != nil {
+				for _, metaData := range requestMatch.GetRequestTransformation().GetTransformationTemplate().GetDynamicMetadataValues() {
+					namespace := metaData.GetMetadataNamespace()
+					if namespace != "" {
+						if !namespaces.Has(namespace) {
+							namespaces.Insert(namespace)
+						}
+					}
+				}
+			}
+		}
+	}
+	return namespaces.UnsortedList()
 }

@@ -1225,7 +1225,7 @@ var _ = Describe("External auth", func() {
 								},
 								Data: map[string]string{
 									"jwt.rego": `package test
-	
+
 				default allow = false
 				allow {
 					[header, payload, signature] = io.jwt.decode(input.state.jwt)
@@ -2924,7 +2924,7 @@ var _ = Describe("External auth", func() {
 								},
 								Data: map[string]string{
 									"jwt.rego": `package test
-	
+
 				default allow = false
 				allow {
 					[header, payload, signature] = io.jwt.decode(input.state.jwt)
@@ -3334,10 +3334,10 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 			httpReply := ""
 			if tokenTypeHint != "refresh_token" && tokenTypeHint != "access_token" {
 				httpReply = `
-                {
-                	"error":"unsupported_token_type"
+              {
+              	"error":"unsupported_token_type"
 				}
-                `
+              `
 			}
 
 			rw.WriteHeader(http.StatusOK)

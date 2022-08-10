@@ -26,7 +26,6 @@ RUN if [[ $USE_APK ]]; then apk add --no-cache gcc musl-dev git; fi
 
 ADD . /go/src/github.com/solo-io/solo-projects
 WORKDIR /go/src/github.com/solo-io/solo-projects
-
 RUN git config --global url."https://$GITHUB_TOKEN:@github.com/".insteadOf https://github.com/
 
 RUN go env -w GOPRIVATE=github.com/solo-io

@@ -349,6 +349,7 @@ func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.Oi
 		DiscoveryPollInterval:    config.GetDiscoveryPollInterval(),
 		JwksCacheRefreshPolicy:   config.GetJwksCacheRefreshPolicy(),
 		ParseCallbackPathAsRegex: config.ParseCallbackPathAsRegex,
+		AutoMapFromMetadata:      config.AutoMapFromMetadata,
 	}, nil
 }
 

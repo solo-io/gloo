@@ -131,7 +131,7 @@ fi
 # 2. Make all the docker images and load them to the kind cluster
 if [[ $ARCH == 'arm64' ]]; then
   # if using arm64, push to the docker registry container, instead of kind
-  VERSION=$VERSION IMAGE_REPO=${IMAGE_REPO:-} USE_FIPS=$USE_FIPS PUSH_TESTS_ARM=true make docker-push-local-arm
+  VERSION=$VERSION IMAGE_REPO=${IMAGE_REPO:-} USE_FIPS=$USE_FIPS PUSH_TESTS_ARM=true make docker-push-local-arm -B
 else
   VERSION=$VERSION CLUSTER_NAME=$CLUSTER_NAME USE_FIPS=$USE_FIPS make push-kind-images -B
 fi

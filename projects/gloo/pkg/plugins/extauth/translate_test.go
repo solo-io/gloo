@@ -107,6 +107,9 @@ var _ = Describe("Translate", func() {
 								TokenEndpointQueryParams: map[string]string{"test": "additional_token_query_params"},
 								AppUrl:                   "AppUrl",
 								CallbackPath:             "CallbackPath",
+								AutoMapFromMetadata: &extauth.AutoMapFromMetadata{
+									Namespace: "test_namespace",
+								},
 							},
 						},
 					},
@@ -170,6 +173,7 @@ var _ = Describe("Translate", func() {
 		Expect(actual.GetOidcAuthorizationCode().ClientSecret).To(Equal(clientSecret.ClientSecret))
 		Expect(actual.GetOidcAuthorizationCode().AppUrl).To(Equal(expected.GetOidcAuthorizationCode().AppUrl))
 		Expect(actual.GetOidcAuthorizationCode().CallbackPath).To(Equal(expected.GetOidcAuthorizationCode().CallbackPath))
+		Expect(actual.GetOidcAuthorizationCode().AutoMapFromMetadata.Namespace).To(Equal("test_namespace"))
 	})
 
 	It("will fail if the oidc auth proto has a new top level field", func() {

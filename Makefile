@@ -159,7 +159,7 @@ endif
 .PHONY: run-ci-regression-tests
 run-ci-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn RUNNING_REGRESSION_TESTS=true $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/regressions/$(KUBE2E_TESTS)/...
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn RUNNING_REGRESSION_TESTS=true $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/kube2e/$(KUBE2E_TESTS)/...
 
 .PHONE: run-ci-gloo-fed-regression-tests
 run-ci-gloo-fed-regression-tests: install-go-tools
