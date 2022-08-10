@@ -162,6 +162,15 @@ func (m *Settings) Clone() proto.Message {
 
 	target.StatPrefix = m.GetStatPrefix()
 
+	if m.GetHeadersToRemove() != nil {
+		target.HeadersToRemove = make([]string, len(m.GetHeadersToRemove()))
+		for idx, v := range m.GetHeadersToRemove() {
+
+			target.HeadersToRemove[idx] = v
+
+		}
+	}
+
 	switch m.ServiceType.(type) {
 
 	case *Settings_HttpService:

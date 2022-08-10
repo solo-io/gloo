@@ -359,6 +359,10 @@ spec:
                               authority:
                                 type: string
                             type: object
+                          headersToRemove:
+                            items:
+                              type: string
+                            type: array
                           httpService:
                             properties:
                               pathPrefix:
@@ -1543,6 +1547,10 @@ spec:
                                         authority:
                                           type: string
                                       type: object
+                                    headersToRemove:
+                                      items:
+                                        type: string
+                                      type: array
                                     httpService:
                                       properties:
                                         pathPrefix:

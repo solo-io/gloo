@@ -247,6 +247,17 @@ func (m *Settings) Equal(that interface{}) bool {
 		return false
 	}
 
+	if len(m.GetHeadersToRemove()) != len(target.GetHeadersToRemove()) {
+		return false
+	}
+	for idx, v := range m.GetHeadersToRemove() {
+
+		if strings.Compare(v, target.GetHeadersToRemove()[idx]) != 0 {
+			return false
+		}
+
+	}
+
 	switch m.ServiceType.(type) {
 
 	case *Settings_HttpService:

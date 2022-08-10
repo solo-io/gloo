@@ -282,6 +282,14 @@ func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
 		return 0, err
 	}
 
+	for _, v := range m.GetHeadersToRemove() {
+
+		if _, err = hasher.Write([]byte(v)); err != nil {
+			return 0, err
+		}
+
+	}
+
 	switch m.ServiceType.(type) {
 
 	case *Settings_HttpService:
