@@ -43,8 +43,8 @@ var _ = Describe("PluginRegistryFactory", func() {
 
 		licensedFeatureProvider.SetValidatedLicense(validatedLicense)
 
-		pluginRegistryFactory := setup.GetPluginRegistryFactory(apiEmitterChan, licensedFeatureProvider)
-		pluginRegistry = pluginRegistryFactory(context.TODO(), opts)
+		pluginRegistryFactory := setup.GetPluginRegistryFactory(opts, apiEmitterChan, licensedFeatureProvider)
+		pluginRegistry = pluginRegistryFactory(context.TODO())
 	})
 
 	isSubset := func(set []plugins.Plugin, pluginNamesSubset []string) bool {

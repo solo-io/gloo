@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
 	ossextauth "github.com/solo-io/gloo/projects/gloo/pkg/syncer/extauth"
 	ossratelimit "github.com/solo-io/gloo/projects/gloo/pkg/syncer/ratelimit"
 
@@ -47,6 +46,7 @@ func NewSetupFuncWithRestControlPlaneAndExtensions(cancellableCtx context.Contex
 
 	// 3. Define the RunFunc, which will be executed each time bootstrap opts change (ie Settings are modified)
 	runFunc := func(opts bootstrap.Opts) error {
+		extensions.PluginRegistryFactory = GetPluginRegistryFactory(opts, apiEmitterChan, licensedFeatureProvider)
 		return setup.RunGlooWithExtensions(opts, extensions)
 	}
 
@@ -75,14 +75,12 @@ func GetGlooEExtensions(ctx context.Context, licensedFeatureProvider *license.Li
 				ossextauth.NewTranslatorSyncerExtension,
 				ossratelimit.NewTranslatorSyncerExtension,
 			},
-			PluginRegistryFactory: registry.GetPluginRegistryFactory(),
-			ApiEmitterChannel:     apiEmitterChan,
+			ApiEmitterChannel: apiEmitterChan,
 		}
 	}
 
 	return setup.Extensions{
-		PluginRegistryFactory: GetPluginRegistryFactory(apiEmitterChan, licensedFeatureProvider),
-		XdsCallbacks:          nackdetector.NewNackDetector(ctx, nackdetector.NewStatsGen()),
+		XdsCallbacks: nackdetector.NewNackDetector(ctx, nackdetector.NewStatsGen()),
 		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
 			ratelimit.NewTranslatorSyncerExtension,
 			extauth.NewTranslatorSyncerExtension,
