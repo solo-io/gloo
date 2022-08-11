@@ -1,13 +1,16 @@
 package als_test
 
 import (
+	"fmt"
 	envoyalfile "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
+	envoygrpc "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
 	envoy_extensions_filters_network_http_connection_manager_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -16,8 +19,6 @@ import (
 
 	. "github.com/solo-io/gloo/projects/gloo/pkg/plugins/als"
 	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
-
-	envoygrpc "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
 )
 
 var _ = Describe("Plugin", func() {
@@ -25,7 +26,6 @@ var _ = Describe("Plugin", func() {
 	Context("ProcessAccessLogPlugins", func() {
 
 		var (
-			plugin       plugins.HttpConnectionManagerPlugin
 			pluginParams plugins.Params
 
 			alsSettings *als.AccessLoggingService
@@ -41,53 +41,126 @@ var _ = Describe("Plugin", func() {
 			)
 
 			BeforeEach(func() {
-				plugin = NewPlugin()
-				pluginParams = plugins.Params{}
 				logName = "test"
 				extraHeaders = []string{"test"}
 				usRef = &core.ResourceRef{
 					Name:      "default",
 					Namespace: "default",
 				}
-				alsSettings = &als.AccessLoggingService{
-					AccessLog: []*als.AccessLog{
-						{
-							OutputDestination: &als.AccessLog_GrpcService{
-								GrpcService: &als.GrpcService{
-									LogName: logName,
-									ServiceRef: &als.GrpcService_StaticClusterName{
-										StaticClusterName: translatorutil.UpstreamToClusterName(usRef),
+			})
+
+			Context("static cluster", func() {
+				BeforeEach(func() {
+					pluginParams = plugins.Params{}
+					alsSettings = &als.AccessLoggingService{
+						AccessLog: []*als.AccessLog{
+							{
+								OutputDestination: &als.AccessLog_GrpcService{
+									GrpcService: &als.GrpcService{
+										LogName: logName,
+										ServiceRef: &als.GrpcService_StaticClusterName{
+											StaticClusterName: translatorutil.UpstreamToClusterName(usRef),
+										},
+										AdditionalRequestHeadersToLog:   extraHeaders,
+										AdditionalResponseHeadersToLog:  extraHeaders,
+										AdditionalResponseTrailersToLog: extraHeaders,
 									},
-									AdditionalRequestHeadersToLog:   extraHeaders,
-									AdditionalResponseHeadersToLog:  extraHeaders,
-									AdditionalResponseTrailersToLog: extraHeaders,
 								},
 							},
 						},
-					},
-				}
+					}
+				})
+
+				It("works", func() {
+					accessLogConfigs, err := ProcessAccessLogPlugins(pluginParams, alsSettings, nil)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(accessLogConfigs).To(HaveLen(1))
+					alConfig := accessLogConfigs[0]
+
+					Expect(alConfig.Name).To(Equal(wellknown.HTTPGRPCAccessLog))
+					var falCfg envoygrpc.HttpGrpcAccessLogConfig
+					err = translatorutil.ParseTypedConfig(alConfig, &falCfg)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(falCfg.AdditionalResponseTrailersToLog).To(Equal(extraHeaders))
+					Expect(falCfg.AdditionalResponseTrailersToLog).To(Equal(extraHeaders))
+					Expect(falCfg.AdditionalResponseTrailersToLog).To(Equal(extraHeaders))
+					Expect(falCfg.CommonConfig.LogName).To(Equal(logName))
+					envoyGrpc := falCfg.CommonConfig.GetGrpcService().GetEnvoyGrpc()
+					Expect(envoyGrpc).NotTo(BeNil())
+					Expect(envoyGrpc.ClusterName).To(Equal(translatorutil.UpstreamToClusterName(usRef)))
+				})
 			})
 
-			It("works", func() {
-				accessLogConfigs, err := ProcessAccessLogPlugins(pluginParams, alsSettings, nil)
-				Expect(err).NotTo(HaveOccurred())
+			Context("upstream ref", func() {
+				BeforeEach(func() {
+					pluginParams = plugins.Params{}
+					alsSettings = &als.AccessLoggingService{
+						AccessLog: []*als.AccessLog{
+							{
+								OutputDestination: &als.AccessLog_GrpcService{
+									GrpcService: &als.GrpcService{
+										LogName: logName,
+										ServiceRef: &als.GrpcService_UpstreamRef{
+											UpstreamRef: usRef,
+										},
+										AdditionalRequestHeadersToLog:   extraHeaders,
+										AdditionalResponseHeadersToLog:  extraHeaders,
+										AdditionalResponseTrailersToLog: extraHeaders,
+									},
+								},
+							},
+						},
+					}
+				})
 
-				Expect(accessLogConfigs).To(HaveLen(1))
-				alConfig := accessLogConfigs[0]
+				It("works when upstream exists", func() {
+					pluginParams = plugins.Params{
+						Snapshot: &v1snap.ApiSnapshot{
+							Upstreams: v1.UpstreamList{
+								v1.NewUpstream("default", "default"),
+								v1.NewUpstream("default", "test"),
+							},
+						},
+					}
+					accessLogConfigs, err := ProcessAccessLogPlugins(pluginParams, alsSettings, nil)
+					Expect(err).NotTo(HaveOccurred())
 
-				Expect(alConfig.Name).To(Equal(wellknown.HTTPGRPCAccessLog))
-				var falCfg envoygrpc.HttpGrpcAccessLogConfig
-				err = translatorutil.ParseTypedConfig(alConfig, &falCfg)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(falCfg.AdditionalResponseTrailersToLog).To(Equal(extraHeaders))
-				Expect(falCfg.AdditionalResponseTrailersToLog).To(Equal(extraHeaders))
-				Expect(falCfg.AdditionalResponseTrailersToLog).To(Equal(extraHeaders))
-				Expect(falCfg.CommonConfig.LogName).To(Equal(logName))
-				envoyGrpc := falCfg.CommonConfig.GetGrpcService().GetEnvoyGrpc()
-				Expect(envoyGrpc).NotTo(BeNil())
-				Expect(envoyGrpc.ClusterName).To(Equal(translatorutil.UpstreamToClusterName(usRef)))
+					Expect(accessLogConfigs).To(HaveLen(1))
+					alConfig := accessLogConfigs[0]
+
+					Expect(alConfig.Name).To(Equal(wellknown.HTTPGRPCAccessLog))
+					var falCfg envoygrpc.HttpGrpcAccessLogConfig
+					err = translatorutil.ParseTypedConfig(alConfig, &falCfg)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(falCfg.AdditionalResponseTrailersToLog).To(Equal(extraHeaders))
+					Expect(falCfg.AdditionalResponseTrailersToLog).To(Equal(extraHeaders))
+					Expect(falCfg.AdditionalResponseTrailersToLog).To(Equal(extraHeaders))
+					Expect(falCfg.CommonConfig.LogName).To(Equal(logName))
+					envoyGrpc := falCfg.CommonConfig.GetGrpcService().GetEnvoyGrpc()
+					Expect(envoyGrpc).NotTo(BeNil())
+					Expect(envoyGrpc.ClusterName).To(Equal(translatorutil.UpstreamToClusterName(usRef)))
+				})
+
+				It("fails when snapshot doesn't exist", func() {
+					_, err := ProcessAccessLogPlugins(pluginParams, alsSettings, nil)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("Invalid Snapshot (nil provided)"))
+				})
+
+				It("fails when upstream doesn't exist", func() {
+					pluginParams = plugins.Params{
+						Snapshot: &v1snap.ApiSnapshot{
+							Upstreams: v1.UpstreamList{
+								// no upstreams exist
+							},
+						},
+					}
+					_, err := ProcessAccessLogPlugins(pluginParams, alsSettings, nil)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal(fmt.Sprintf("Invalid UpstreamRef (no upstream found for ref %v)", usRef)))
+				})
 			})
-
 		})
 
 		Context("file", func() {
