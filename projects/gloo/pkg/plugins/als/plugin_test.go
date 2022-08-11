@@ -25,6 +25,9 @@ var _ = Describe("Plugin", func() {
 	Context("ProcessAccessLogPlugins", func() {
 
 		var (
+			plugin       plugins.HttpConnectionManagerPlugin
+			pluginParams plugins.Params
+
 			alsSettings *als.AccessLoggingService
 		)
 
@@ -38,6 +41,8 @@ var _ = Describe("Plugin", func() {
 			)
 
 			BeforeEach(func() {
+				plugin = NewPlugin()
+				pluginParams = plugins.Params{}
 				logName = "test"
 				extraHeaders = []string{"test"}
 				usRef = &core.ResourceRef{
@@ -64,7 +69,7 @@ var _ = Describe("Plugin", func() {
 			})
 
 			It("works", func() {
-				accessLogConfigs, err := ProcessAccessLogPlugins(alsSettings, nil)
+				accessLogConfigs, err := ProcessAccessLogPlugins(pluginParams, alsSettings, nil)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(accessLogConfigs).To(HaveLen(1))
@@ -125,7 +130,7 @@ var _ = Describe("Plugin", func() {
 				})
 
 				It("works", func() {
-					accessLogConfigs, err := ProcessAccessLogPlugins(alsSettings, nil)
+					accessLogConfigs, err := ProcessAccessLogPlugins(pluginParams, alsSettings, nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(accessLogConfigs).To(HaveLen(1))
@@ -160,7 +165,7 @@ var _ = Describe("Plugin", func() {
 				})
 
 				It("works", func() {
-					accessLogConfigs, err := ProcessAccessLogPlugins(alsSettings, nil)
+					accessLogConfigs, err := ProcessAccessLogPlugins(pluginParams, alsSettings, nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(accessLogConfigs).To(HaveLen(1))

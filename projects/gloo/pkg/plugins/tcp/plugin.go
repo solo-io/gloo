@@ -167,7 +167,7 @@ func (p *plugin) tcpProxyFilters(
 		return nil, NoDestinationTypeError(host)
 	}
 
-	tcpAccessLogConfig, err := als.ProcessAccessLogPlugins(alsSettings, cfg.GetAccessLog())
+	tcpAccessLogConfig, err := als.ProcessAccessLogPlugins(params, alsSettings, cfg.GetAccessLog())
 	if err != nil {
 		return nil, err
 	}

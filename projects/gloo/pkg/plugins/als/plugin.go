@@ -10,6 +10,7 @@ import (
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/rotisserie/eris"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -51,7 +52,7 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parentListener *
 	}
 
 	var err error
-	out.AccessLog, err = ProcessAccessLogPlugins(alsSettings, out.GetAccessLog())
+	out.AccessLog, err = ProcessAccessLogPlugins(params, alsSettings, out.GetAccessLog())
 	return err
 }
 
@@ -60,7 +61,7 @@ func (p *plugin) ProcessHcmNetworkFilter(params plugins.Params, parentListener *
 // fine grained configuration of the HCM across multiple plugins. However, the TCP proxy is still configured
 // by the TCP plugin only. To keep our access logging translation in a single place, we expose this function
 // and the Tcp plugin calls out to it.
-func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoyal.AccessLog) ([]*envoyal.AccessLog, error) {
+func ProcessAccessLogPlugins(params plugins.Params, service *als.AccessLoggingService, logCfg []*envoyal.AccessLog) ([]*envoyal.AccessLog, error) {
 	results := make([]*envoyal.AccessLog, 0, len(service.GetAccessLog()))
 	for _, al := range service.GetAccessLog() {
 		switch cfgType := al.GetOutputDestination().(type) {
@@ -76,7 +77,7 @@ func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoya
 			results = append(results, &newAlsCfg)
 		case *als.AccessLog_GrpcService:
 			var cfg envoygrpc.HttpGrpcAccessLogConfig
-			if err := copyGrpcSettings(&cfg, cfgType); err != nil {
+			if err := copyGrpcSettings(&cfg, cfgType, params.Snapshot); err != nil {
 				return nil, err
 			}
 			newAlsCfg, err := translatorutil.NewAccessLogWithConfig(wellknown.HTTPGRPCAccessLog, &cfg)
@@ -90,15 +91,38 @@ func ProcessAccessLogPlugins(service *als.AccessLoggingService, logCfg []*envoya
 	return logCfg, nil
 }
 
-func copyGrpcSettings(cfg *envoygrpc.HttpGrpcAccessLogConfig, alsSettings *als.AccessLog_GrpcService) error {
+func copyGrpcSettings(cfg *envoygrpc.HttpGrpcAccessLogConfig, alsSettings *als.AccessLog_GrpcService, snapshot *v1snap.ApiSnapshot) error {
 	if alsSettings.GrpcService == nil {
 		return eris.New("grpc service object cannot be nil")
+	}
+
+	clusterName := ""
+	switch ref := alsSettings.GrpcService.GetServiceRef().(type) {
+	case *als.GrpcService_UpstreamRef:
+		upstreamRef := ref.UpstreamRef
+
+		if snapshot == nil {
+			return eris.Errorf("Invalid Snapshot (nil provided)")
+		}
+
+		if upstreamRef == nil {
+			return eris.Errorf("Invalid UpstreamRef (nil ref provided)")
+		}
+
+		_, err := snapshot.Upstreams.Find(upstreamRef.GetNamespace(), upstreamRef.GetName())
+		if err != nil {
+			return eris.Errorf("Invalid UpstreamRef (no upstream found for ref %v)", upstreamRef)
+		}
+
+		clusterName = translatorutil.UpstreamToClusterName(upstreamRef)
+	case *als.GrpcService_StaticClusterName:
+		clusterName = ref.StaticClusterName
 	}
 
 	svc := &envoycore.GrpcService{
 		TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
 			EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-				ClusterName: alsSettings.GrpcService.GetStaticClusterName(),
+				ClusterName: clusterName,
 			},
 		},
 	}
