@@ -109,6 +109,7 @@ func copyGrpcSettings(cfg *envoygrpc.HttpGrpcAccessLogConfig, alsSettings *als.A
 			return eris.Errorf("Invalid UpstreamRef (nil ref provided)")
 		}
 
+		// check if the upstream exists
 		_, err := snapshot.Upstreams.Find(upstreamRef.GetNamespace(), upstreamRef.GetName())
 		if err != nil {
 			return eris.Errorf("Invalid UpstreamRef (no upstream found for ref %v)", upstreamRef)
@@ -117,6 +118,8 @@ func copyGrpcSettings(cfg *envoygrpc.HttpGrpcAccessLogConfig, alsSettings *als.A
 		clusterName = translatorutil.UpstreamToClusterName(upstreamRef)
 	case *als.GrpcService_StaticClusterName:
 		clusterName = ref.StaticClusterName
+	default:
+		return eris.Errorf("Invalid ServiceRef (no service ref given. set an upstream or static cluster.)")
 	}
 
 	svc := &envoycore.GrpcService{
