@@ -110,8 +110,7 @@ func copyGrpcSettings(cfg *envoygrpc.HttpGrpcAccessLogConfig, alsSettings *als.A
 		}
 
 		// check if the upstream exists
-		_, err := snapshot.Upstreams.Find(upstreamRef.GetNamespace(), upstreamRef.GetName())
-		if err != nil {
+		if _, err := snapshot.Upstreams.Find(upstreamRef.GetNamespace(), upstreamRef.GetName()); err != nil {
 			return eris.Errorf("Invalid UpstreamRef (no upstream found for ref %v)", upstreamRef)
 		}
 
