@@ -251,7 +251,8 @@ var _ = Describe("Ext Auth Config Translator", func() {
 										Value: uint32(0), // Set to 0, otherwise it will try to connect to the dummy address
 									},
 								},
-								SearchFilter: "(objectClass=*)",
+								SearchFilter:         "(objectClass=*)",
+								DisableGroupChecking: false,
 							},
 						},
 					},

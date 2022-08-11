@@ -1004,6 +1004,7 @@ var _ = Describe("External auth", func() {
 						}))
 					})
 				})
+
 				Context("Oidc tests that don't forward to upstream", func() {
 					It("should redirect to auth page", func() {
 						client := &http.Client{

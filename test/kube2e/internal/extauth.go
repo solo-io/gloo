@@ -186,14 +186,16 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			Describe("authenticate requests via LDAP", func() {
 
 				var (
-					extAuthConfigProto *extauthapi.ExtAuthExtension
-					ldapConfig         = func(namespace string) *extauthapi.Ldap {
+					extAuthConfigProto   *extauthapi.ExtAuthExtension
+					disableGroupChecking bool
+					ldapConfig           = func(namespace string, disableGroupChecking bool) *extauthapi.Ldap {
 						return &extauthapi.Ldap{
 							Address:        fmt.Sprintf("ldap.%s.svc.cluster.local:389", namespace),
 							UserDnTemplate: "uid=%s,ou=people,dc=solo,dc=io",
 							AllowedGroups: []string{
 								"cn=managers,ou=groups,dc=solo,dc=io",
 							},
+							DisableGroupChecking: disableGroupChecking,
 						}
 					}
 				)
@@ -232,7 +234,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 					kube2e.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
 				})
 
-				allTests := func() {
+				allTests := func(groupCheckingDisabled bool) {
 					It("works as expected ", func() {
 						By("returns 401 if no authentication header is provided", func() {
 							curlAndAssertResponse(kube2e.TestMatcherPrefix, nil, response401)
@@ -246,9 +248,15 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 							curlAndAssertResponse(kube2e.TestMatcherPrefix, buildAuthHeader("rick:rickpwd"), response200)
 						})
 
-						By("returns 403 if the user does not belong to the allowed groups", func() {
-							curlAndAssertResponse(kube2e.TestMatcherPrefix, buildAuthHeader("marco:marcopwd"), response403)
-						})
+						if groupCheckingDisabled {
+							By("returns 200 if the user does not belong to the allowed groups but group checking is disabled", func() {
+								curlAndAssertResponse(kube2e.TestMatcherPrefix, buildAuthHeader("marco:marcopwd"), response200)
+							})
+						} else {
+							By("returns 403 if the user does not belong to the allowed groups", func() {
+								curlAndAssertResponse(kube2e.TestMatcherPrefix, buildAuthHeader("marco:marcopwd"), response403)
+							})
+						}
 					})
 				}
 
@@ -260,7 +268,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 						},
 						Configs: []*extauthapi.AuthConfig_Config{{
 							AuthConfig: &extauthapi.AuthConfig_Config_Ldap{
-								Ldap: ldapConfig(testHelper.InstallNamespace),
+								Ldap: ldapConfig(testHelper.InstallNamespace, disableGroupChecking),
 							},
 						}},
 					}, clients.WriteOpts{Ctx: ctx})
@@ -281,7 +289,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 
 				Context("as a standalone deployment", func() {
 					// no extra setup to do, just run the tests
-					allTests()
+					allTests(false)
 				})
 
 				Context("as a sidecar", func() {
@@ -302,7 +310,17 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 						Expect(err).NotTo(HaveOccurred(), "Should be able to write new ext auth settings")
 					})
 
-					allTests()
+					allTests(false)
+				})
+
+				Context("With DisableGroupChecking", func() {
+					BeforeEach(func() {
+						disableGroupChecking = true
+					})
+
+					It("works as expected ", func() {
+						allTests(true)
+					})
 				})
 
 			})
