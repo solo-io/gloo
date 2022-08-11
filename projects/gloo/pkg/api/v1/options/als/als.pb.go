@@ -12,7 +12,7 @@ import (
 
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
-	_ "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
@@ -259,10 +259,9 @@ type GrpcService struct {
 
 	// name of log stream
 	LogName string `protobuf:"bytes,1,opt,name=log_name,json=logName,proto3" json:"log_name,omitempty"`
-	// The static cluster defined in bootstrap config to route to
-	//
 	// Types that are assignable to ServiceRef:
 	//	*GrpcService_StaticClusterName
+	//	*GrpcService_UpstreamRef
 	ServiceRef                      isGrpcService_ServiceRef `protobuf_oneof:"service_ref"`
 	AdditionalRequestHeadersToLog   []string                 `protobuf:"bytes,4,rep,name=additional_request_headers_to_log,json=additionalRequestHeadersToLog,proto3" json:"additional_request_headers_to_log,omitempty"`
 	AdditionalResponseHeadersToLog  []string                 `protobuf:"bytes,5,rep,name=additional_response_headers_to_log,json=additionalResponseHeadersToLog,proto3" json:"additional_response_headers_to_log,omitempty"`
@@ -322,6 +321,13 @@ func (x *GrpcService) GetStaticClusterName() string {
 	return ""
 }
 
+func (x *GrpcService) GetUpstreamRef() *core.ResourceRef {
+	if x, ok := x.GetServiceRef().(*GrpcService_UpstreamRef); ok {
+		return x.UpstreamRef
+	}
+	return nil
+}
+
 func (x *GrpcService) GetAdditionalRequestHeadersToLog() []string {
 	if x != nil {
 		return x.AdditionalRequestHeadersToLog
@@ -348,10 +354,18 @@ type isGrpcService_ServiceRef interface {
 }
 
 type GrpcService_StaticClusterName struct {
+	// The static cluster defined in bootstrap config
 	StaticClusterName string `protobuf:"bytes,2,opt,name=static_cluster_name,json=staticClusterName,proto3,oneof"`
 }
 
+type GrpcService_UpstreamRef struct {
+	// The upstream
+	UpstreamRef *core.ResourceRef `protobuf:"bytes,3,opt,name=upstream_ref,json=upstreamRef,proto3,oneof"`
+}
+
 func (*GrpcService_StaticClusterName) isGrpcService_ServiceRef() {}
+
+func (*GrpcService_UpstreamRef) isGrpcService_ServiceRef() {}
 
 var File_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto protoreflect.FileDescriptor
 
@@ -394,12 +408,16 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_rawD
 	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x75,
 	0x63, 0x74, 0x48, 0x00, 0x52, 0x0a, 0x6a, 0x73, 0x6f, 0x6e, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74,
 	0x42, 0x0f, 0x0a, 0x0d, 0x6f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x5f, 0x66, 0x6f, 0x72, 0x6d, 0x61,
-	0x74, 0x22, 0xcd, 0x02, 0x0a, 0x0b, 0x47, 0x72, 0x70, 0x63, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x74, 0x22, 0x8d, 0x03, 0x0a, 0x0b, 0x47, 0x72, 0x70, 0x63, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
 	0x65, 0x12, 0x19, 0x0a, 0x08, 0x6c, 0x6f, 0x67, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x09, 0x52, 0x07, 0x6c, 0x6f, 0x67, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x30, 0x0a, 0x13,
 	0x73, 0x74, 0x61, 0x74, 0x69, 0x63, 0x5f, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x6e,
 	0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x11, 0x73, 0x74, 0x61,
-	0x74, 0x69, 0x63, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x48,
+	0x74, 0x69, 0x63, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x3e,
+	0x0a, 0x0c, 0x75, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x5f, 0x72, 0x65, 0x66, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x73, 0x6f, 0x6c, 0x6f,
+	0x2e, 0x69, 0x6f, 0x2e, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x65, 0x66, 0x48,
+	0x00, 0x52, 0x0b, 0x75, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x66, 0x12, 0x48,
 	0x0a, 0x21, 0x61, 0x64, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c, 0x5f, 0x72, 0x65, 0x71,
 	0x75, 0x65, 0x73, 0x74, 0x5f, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x5f, 0x74, 0x6f, 0x5f,
 	0x6c, 0x6f, 0x67, 0x18, 0x04, 0x20, 0x03, 0x28, 0x09, 0x52, 0x1d, 0x61, 0x64, 0x64, 0x69, 0x74,
@@ -442,17 +460,19 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_goTy
 	(*FileSink)(nil),             // 2: als.options.gloo.solo.io.FileSink
 	(*GrpcService)(nil),          // 3: als.options.gloo.solo.io.GrpcService
 	(*_struct.Struct)(nil),       // 4: google.protobuf.Struct
+	(*core.ResourceRef)(nil),     // 5: core.solo.io.ResourceRef
 }
 var file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_depIdxs = []int32{
 	1, // 0: als.options.gloo.solo.io.AccessLoggingService.access_log:type_name -> als.options.gloo.solo.io.AccessLog
 	2, // 1: als.options.gloo.solo.io.AccessLog.file_sink:type_name -> als.options.gloo.solo.io.FileSink
 	3, // 2: als.options.gloo.solo.io.AccessLog.grpc_service:type_name -> als.options.gloo.solo.io.GrpcService
 	4, // 3: als.options.gloo.solo.io.FileSink.json_format:type_name -> google.protobuf.Struct
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	5, // 4: als.options.gloo.solo.io.GrpcService.upstream_ref:type_name -> core.solo.io.ResourceRef
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_init() }
@@ -520,6 +540,7 @@ func file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_ini
 	}
 	file_github_com_solo_io_gloo_projects_gloo_api_v1_options_als_als_proto_msgTypes[3].OneofWrappers = []interface{}{
 		(*GrpcService_StaticClusterName)(nil),
+		(*GrpcService_UpstreamRef)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

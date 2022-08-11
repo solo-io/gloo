@@ -3650,6 +3650,13 @@ spec:
                                   type: string
                                 staticClusterName:
                                   type: string
+                                upstreamRef:
+                                  properties:
+                                    name:
+                                      type: string
+                                    namespace:
+                                      type: string
+                                  type: object
                               type: object
                           type: object
                         type: array

@@ -92,6 +92,7 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 ```yaml
 "logName": string
 "staticClusterName": string
+"upstreamRef": .core.solo.io.ResourceRef
 "additionalRequestHeadersToLog": []string
 "additionalResponseHeadersToLog": []string
 "additionalResponseTrailersToLog": []string
@@ -101,7 +102,8 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `logName` | `string` | name of log stream. |
-| `staticClusterName` | `string` |  |
+| `staticClusterName` | `string` | The static cluster defined in bootstrap config. Only one of `staticClusterName` or `upstreamRef` can be set. |
+| `upstreamRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk/#resourceref) | The upstream. Only one of `upstreamRef` or `staticClusterName` can be set. |
 | `additionalRequestHeadersToLog` | `[]string` |  |
 | `additionalResponseHeadersToLog` | `[]string` |  |
 | `additionalResponseTrailersToLog` | `[]string` |  |

@@ -14,6 +14,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	github_com_golang_protobuf_ptypes_struct "github.com/golang/protobuf/ptypes/struct"
+
+	github_com_solo_io_solo_kit_pkg_api_v1_resources_core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 // ensure the imports are used
@@ -168,6 +170,18 @@ func (m *GrpcService) Clone() proto.Message {
 
 		target.ServiceRef = &GrpcService_StaticClusterName{
 			StaticClusterName: m.GetStaticClusterName(),
+		}
+
+	case *GrpcService_UpstreamRef:
+
+		if h, ok := interface{}(m.GetUpstreamRef()).(clone.Cloner); ok {
+			target.ServiceRef = &GrpcService_UpstreamRef{
+				UpstreamRef: h.Clone().(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
+			}
+		} else {
+			target.ServiceRef = &GrpcService_UpstreamRef{
+				UpstreamRef: proto.Clone(m.GetUpstreamRef()).(*github_com_solo_io_solo_kit_pkg_api_v1_resources_core.ResourceRef),
+			}
 		}
 
 	}

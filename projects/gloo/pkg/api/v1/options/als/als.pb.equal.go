@@ -259,6 +259,21 @@ func (m *GrpcService) Equal(that interface{}) bool {
 			return false
 		}
 
+	case *GrpcService_UpstreamRef:
+		if _, ok := target.ServiceRef.(*GrpcService_UpstreamRef); !ok {
+			return false
+		}
+
+		if h, ok := interface{}(m.GetUpstreamRef()).(equality.Equalizer); ok {
+			if !h.Equal(target.GetUpstreamRef()) {
+				return false
+			}
+		} else {
+			if !proto.Equal(m.GetUpstreamRef(), target.GetUpstreamRef()) {
+				return false
+			}
+		}
+
 	default:
 		// m is nil but target is not nil
 		if m.ServiceRef != target.ServiceRef {
