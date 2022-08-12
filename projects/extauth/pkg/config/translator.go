@@ -347,6 +347,7 @@ func getLdapAuthService(ctx context.Context, ldapCfg *extauthv1.Ldap) (api.AuthS
 		UserDnTemplate:          ldapCfg.UserDnTemplate,
 		MembershipAttributeName: ldapCfg.MembershipAttributeName,
 		AllowedGroups:           ldapCfg.AllowedGroups,
+		DisableGroupChecking:    ldapCfg.DisableGroupChecking,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create LDAP auth service")

@@ -17,5 +17,5 @@ The `run-e2e-tests` make target runs ginkgo with a set of useful flags. The `ENV
 
 Example:
 ```bash
-ENVOY_IMAGE_TAG=solo-test-image make run-e2e-tests
+ENVOY_IMAGE_TAG=<version-name> make run-e2e-tests
 ```

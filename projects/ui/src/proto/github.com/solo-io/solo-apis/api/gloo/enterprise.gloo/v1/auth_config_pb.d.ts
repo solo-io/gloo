@@ -1355,6 +1355,9 @@ export class Ldap extends jspb.Message {
   getPool(): Ldap.ConnectionPool | undefined;
   setPool(value?: Ldap.ConnectionPool): void;
 
+  getDisableGroupChecking(): boolean;
+  setDisableGroupChecking(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Ldap.AsObject;
   static toObject(includeInstance: boolean, msg: Ldap): Ldap.AsObject;
@@ -1372,6 +1375,7 @@ export namespace Ldap {
     membershipattributename: string,
     allowedgroupsList: Array<string>,
     pool?: Ldap.ConnectionPool.AsObject,
+    disableGroupChecking: boolean,
   }
 
   export class ConnectionPool extends jspb.Message {
