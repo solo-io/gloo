@@ -490,7 +490,6 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				Session: &extauthv1.UserSession_Cookie{},
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(params.Store).To(HaveField("StoreRefreshToken", false))
 			Expect(params.Store).To(HaveField("KeyPrefix", ""))
 		})
 		It("should translate CookieSessionStore - creating a store for the cookie KeyPrefix", func() {

@@ -1,0 +1,17 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Updates the use of oidc.NewCookieSessionStore to align with a breaking change in a ext-auth-service upgrade.
+    issueLink: https://github.com/solo-io/ext-auth-service/issues/314
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.23.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.13.0-beta5
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: gloo-v1.13.0-beta5

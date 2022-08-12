@@ -703,6 +703,9 @@ export namespace UserSession {
     getKeyPrefix(): string;
     setKeyPrefix(value: string): void;
 
+    getTargetDomain(): string;
+    setTargetDomain(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): InternalSession.AsObject;
     static toObject(includeInstance: boolean, msg: InternalSession): InternalSession.AsObject;
@@ -717,6 +720,7 @@ export namespace UserSession {
     export type AsObject = {
       allowRefreshing?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       keyPrefix: string,
+      targetDomain: string,
     }
   }
 
@@ -742,6 +746,9 @@ export namespace UserSession {
     getPreExpiryBuffer(): google_protobuf_duration_pb.Duration | undefined;
     setPreExpiryBuffer(value?: google_protobuf_duration_pb.Duration): void;
 
+    getTargetDomain(): string;
+    setTargetDomain(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): RedisSession.AsObject;
     static toObject(includeInstance: boolean, msg: RedisSession): RedisSession.AsObject;
@@ -759,6 +766,7 @@ export namespace UserSession {
       cookieName: string,
       allowRefreshing?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       preExpiryBuffer?: google_protobuf_duration_pb.Duration.AsObject,
+      targetDomain: string,
     }
   }
 

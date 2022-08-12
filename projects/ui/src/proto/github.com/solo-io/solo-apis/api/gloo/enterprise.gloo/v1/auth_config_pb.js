@@ -4758,7 +4758,8 @@ proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.toObject = f
 proto.enterprise.gloo.solo.io.UserSession.InternalSession.toObject = function(includeInstance, msg) {
   var f, obj = {
     allowRefreshing: (f = msg.getAllowRefreshing()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    keyPrefix: jspb.Message.getFieldWithDefault(msg, 2, "")
+    keyPrefix: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    targetDomain: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -4804,6 +4805,10 @@ proto.enterprise.gloo.solo.io.UserSession.InternalSession.deserializeBinaryFromR
       var value = /** @type {string} */ (reader.readString());
       msg.setKeyPrefix(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTargetDomain(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4845,6 +4850,13 @@ proto.enterprise.gloo.solo.io.UserSession.InternalSession.serializeBinaryToWrite
   if (f.length > 0) {
     writer.writeString(
       2,
+      f
+    );
+  }
+  f = message.getTargetDomain();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
       f
     );
   }
@@ -4893,6 +4905,21 @@ proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.getKeyPrefix
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.setKeyPrefix = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string target_domain = 3;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.getTargetDomain = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.UserSession.InternalSession.prototype.setTargetDomain = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
@@ -4947,7 +4974,8 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.toObject = function(inclu
     keyPrefix: jspb.Message.getFieldWithDefault(msg, 2, ""),
     cookieName: jspb.Message.getFieldWithDefault(msg, 3, ""),
     allowRefreshing: (f = msg.getAllowRefreshing()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    preExpiryBuffer: (f = msg.getPreExpiryBuffer()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+    preExpiryBuffer: (f = msg.getPreExpiryBuffer()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    targetDomain: jspb.Message.getFieldWithDefault(msg, 6, "")
   };
 
   if (includeInstance) {
@@ -5006,6 +5034,10 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.deserializeBinaryFromRead
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setPreExpiryBuffer(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTargetDomain(value);
       break;
     default:
       reader.skipField();
@@ -5072,6 +5104,13 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.serializeBinaryToWriter =
       5,
       f,
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getTargetDomain();
+  if (f.length > 0) {
+    writer.writeString(
+      6,
+      f
     );
   }
 };
@@ -5194,6 +5233,21 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.clearPreExpiryB
  */
 proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.hasPreExpiryBuffer = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional string target_domain = 6;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.getTargetDomain = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.setTargetDomain = function(value) {
+  jspb.Message.setProto3StringField(this, 6, value);
 };
 
 

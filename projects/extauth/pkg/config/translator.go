@@ -492,7 +492,7 @@ func sessionToStore(us *extauthv1.UserSession) (session.SessionStore, bool, time
 		if allowRefreshSetting := s.Cookie.GetAllowRefreshing(); allowRefreshSetting != nil {
 			allowRefreshing = allowRefreshSetting.Value
 		}
-		return oidc.NewCookieSessionStore(allowRefreshing, s.Cookie.GetKeyPrefix()), allowRefreshing, 0, nil
+		return oidc.NewCookieSessionStore(s.Cookie.GetKeyPrefix()), allowRefreshing, 0, nil
 	case *extauthv1.UserSession_Redis:
 		options := s.Redis.GetOptions()
 		client, err := extRedis.NewRedisUniversalClient(getSoloApisRedisOptions(options))
