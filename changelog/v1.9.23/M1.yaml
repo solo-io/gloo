@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Fixes for building gloo-fed images on M1/ARM
+    issueLink: https://github.com/solo-io/solo-projects/issues/3956

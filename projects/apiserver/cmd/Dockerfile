@@ -1,7 +1,8 @@
 FROM alpine:3.13.11
+ARG GOARCH
 
 RUN apk -U upgrade
-COPY gloo-fed-apiserver-linux-amd64 /usr/local/bin/gloo-fed-apiserver
+COPY gloo-fed-apiserver-linux-${GOARCH} /usr/local/bin/gloo-fed-apiserver
 
 USER 10101
 
