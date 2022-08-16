@@ -1,0 +1,8 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: open-policy-agent
+    dependencyRepo: opa
+    dependencyTag: v0.42.0
+    description: Update opa to fix CVE-2022-33082
+    issueLink: https://github.com/solo-io/solo-projects/issues/3977
+    resolvesIssue: false
