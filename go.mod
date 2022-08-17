@@ -48,7 +48,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.23.0
 	github.com/solo-io/external-apis v0.1.11
-	github.com/solo-io/gloo v1.13.0-beta5
+	github.com/solo-io/gloo v1.13.0-beta6
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.22.1
 	github.com/solo-io/k8s-utils v0.1.0
@@ -58,7 +58,7 @@ require (
 	github.com/solo-io/rate-limiter v0.7.0
 	github.com/solo-io/skv2 v0.22.15
 	github.com/solo-io/skv2-enterprise v0.2.8
-	github.com/solo-io/solo-apis v0.0.0-20220811200918-d23d18281e54
+	github.com/solo-io/solo-apis v0.0.0-20220817141307-067919ad917b
 	github.com/solo-io/solo-kit v0.30.2
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -120,6 +120,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/aws/aws-app-mesh-controller-for-k8s v1.1.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/bshuster-repo/logrus-logstash-hook v1.0.2 // indirect
 	github.com/bugsnag/bugsnag-go v1.5.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
@@ -379,9 +380,9 @@ replace (
 	// Lock sys package to fix issue https://github.com/golang/go/issues/49219
 	golang.org/x/sys => golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
 	golang.org/x/tools => golang.org/x/tools v0.0.0-20210106214847-113979e3529a
-	// Pinning helm v3.6.0 because helm 3.7+ depends on containerd/containerd v1.5+, which introduces a breaking change
+	// Pinning helm v3.6.x because helm 3.7+ depends on containerd/containerd v1.5+, which introduces a breaking change
 	// that breaks our other dependencies.
-	helm.sh/helm/v3 => helm.sh/helm/v3 v3.6.0
+	helm.sh/helm/v3 => helm.sh/helm/v3 v3.6.3
 
 	k8s.io/api => k8s.io/api v0.22.4
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.22.4

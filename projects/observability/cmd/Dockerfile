@@ -1,4 +1,4 @@
-FROM alpine:3.15.5
+FROM alpine:3.15.6
 ARG DOCKER_GOARCH
 
 RUN apk -U upgrade

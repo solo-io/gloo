@@ -37,5 +37,5 @@ RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
     projects/caching/cmd/main.go
 
 
-FROM alpine:3.15.5
+FROM alpine:3.15.6
 COPY --from=build-env /go/src/github.com/solo-io/solo-projects/caching-linux-amd64 /

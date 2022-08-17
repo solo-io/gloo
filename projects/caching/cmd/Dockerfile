@@ -1,4 +1,4 @@
-FROM alpine:3.15.5
+FROM alpine:3.15.6
 ARG EXTRA_PACKAGES
 
 RUN apk -U upgrade && apk add ca-certificates $EXTRA_PACKAGES && rm -rf /var/cache/apk/*

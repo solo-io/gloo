@@ -4,6 +4,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector/singlereplica"
+
 	license2 "github.com/solo-io/solo-projects/pkg/license"
 
 	"github.com/solo-io/licensing/pkg/model"
@@ -312,5 +314,6 @@ func defaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 		}, false),
 		KubeClient: kubeclient,
 		DevMode:    true,
+		Identity:   singlereplica.Identity(),
 	}
 }

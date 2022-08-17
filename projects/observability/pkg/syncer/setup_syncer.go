@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
+
 	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template"
 
 	"github.com/golang/protobuf/ptypes"
@@ -52,7 +54,7 @@ func Main() error {
 	})
 }
 
-func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory.InMemoryResourceCache, settings *gloov1.Settings) error {
+func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory.InMemoryResourceCache, settings *gloov1.Settings, _ leaderelector.Identity) error {
 	var (
 		cfg *rest.Config
 	)

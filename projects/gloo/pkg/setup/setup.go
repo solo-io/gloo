@@ -4,6 +4,9 @@ import (
 	"context"
 	"os"
 
+	"github.com/solo-io/gloo/pkg/bootstrap/leaderelector"
+	"github.com/solo-io/gloo/pkg/utils"
+
 	ossextauth "github.com/solo-io/gloo/projects/gloo/pkg/syncer/extauth"
 	ossratelimit "github.com/solo-io/gloo/projects/gloo/pkg/syncer/ratelimit"
 
@@ -30,6 +33,22 @@ func Main() error {
 		LoggerName:  "gloo-ee",
 		Version:     version.Version,
 		CustomCtx:   cancellableCtx,
+
+		ElectionConfig: &leaderelector.ElectionConfig{
+			Id:        "gloo-ee",
+			Namespace: utils.GetPodNamespace(),
+			OnStartedLeading: func(c context.Context) {
+				contextutils.LoggerFrom(c).Info("starting leadership")
+			},
+			OnNewLeader: func(leaderId string) {
+				contextutils.LoggerFrom(cancellableCtx).Infof("new leader elected with ID: %s", leaderId)
+			},
+			OnStoppedLeading: func() {
+				// Kill app if we lose leadership, we need to be VERY sure we don't continue
+				// any leader election processes.
+				contextutils.LoggerFrom(cancellableCtx).Fatalf("lost leadership, quitting app")
+			},
+		},
 	})
 }
 

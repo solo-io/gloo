@@ -43,6 +43,7 @@
 |settings.integrations.knative.proxy.customEnv[].valueFrom.secretKeyRef.key|string|||
 |settings.integrations.knative.proxy.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |settings.integrations.knative.proxy.restartPolicy|string||restart policy to use when the pod exits|
+|settings.integrations.knative.proxy.priorityClassName|string||name of a defined priority class|
 |settings.integrations.knative.proxy.nodeName|string||name of node to run on|
 |settings.integrations.knative.proxy.nodeSelector.NAME|string||label selector for nodes|
 |settings.integrations.knative.proxy.tolerations[].key|string|||
@@ -155,6 +156,7 @@
 |gloo.settings.integrations.knative.proxy.customEnv[].valueFrom.secretKeyRef.key|string|||
 |gloo.settings.integrations.knative.proxy.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |gloo.settings.integrations.knative.proxy.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.settings.integrations.knative.proxy.priorityClassName|string||name of a defined priority class|
 |gloo.settings.integrations.knative.proxy.nodeName|string||name of node to run on|
 |gloo.settings.integrations.knative.proxy.nodeSelector.NAME|string||label selector for nodes|
 |gloo.settings.integrations.knative.proxy.tolerations[].key|string|||
@@ -245,7 +247,7 @@
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
-|gloo.gloo.deployment.ossImageTag|string|1.13.0-beta5|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
+|gloo.gloo.deployment.ossImageTag|string|1.13.0-beta6|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
 |gloo.gloo.deployment.replicas|int||number of instances to deploy|
 |gloo.gloo.deployment.customEnv[].name|string|||
 |gloo.gloo.deployment.customEnv[].value|string|||
@@ -267,6 +269,7 @@
 |gloo.gloo.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |gloo.gloo.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |gloo.gloo.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.gloo.deployment.priorityClassName|string||name of a defined priority class|
 |gloo.gloo.deployment.nodeName|string||name of node to run on|
 |gloo.gloo.deployment.nodeSelector.NAME|string||label selector for nodes|
 |gloo.gloo.deployment.tolerations[].key|string|||
@@ -329,6 +332,7 @@
 |gloo.discovery.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |gloo.discovery.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |gloo.discovery.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.discovery.deployment.priorityClassName|string||name of a defined priority class|
 |gloo.discovery.deployment.nodeName|string||name of node to run on|
 |gloo.discovery.deployment.nodeSelector.NAME|string||label selector for nodes|
 |gloo.discovery.deployment.tolerations[].key|string|||
@@ -365,7 +369,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.certGenJob.image.tag|string|1.13.0-beta5|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.13.0-beta6|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string||The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.certGenJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
@@ -374,6 +378,7 @@
 |gloo.gateway.certGenJob.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |gloo.gateway.certGenJob.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |gloo.gateway.certGenJob.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.gateway.certGenJob.priorityClassName|string||name of a defined priority class|
 |gloo.gateway.certGenJob.nodeName|string||name of node to run on|
 |gloo.gateway.certGenJob.nodeSelector.NAME|string||label selector for nodes|
 |gloo.gateway.certGenJob.tolerations[].key|string|||
@@ -400,6 +405,7 @@
 |gloo.gateway.certGenJob.cron.schedule|string||Cron job scheduling|
 |gloo.gateway.certGenJob.cron.mtlsKubeResourceOverride.NAME|interface||override fields in the gloo-mtls-certgen cronjob.|
 |gloo.gateway.rolloutJob.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.gateway.rolloutJob.priorityClassName|string||name of a defined priority class|
 |gloo.gateway.rolloutJob.nodeName|string||name of node to run on|
 |gloo.gateway.rolloutJob.nodeSelector.NAME|string||label selector for nodes|
 |gloo.gateway.rolloutJob.tolerations[].key|string|||
@@ -412,7 +418,7 @@
 |gloo.gateway.rolloutJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.rolloutJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.rolloutJob.enabled|bool||Enable the job that applies default Gloo Edge custom resources at install and upgrade time (default true).|
-|gloo.gateway.rolloutJob.image.tag|string|1.13.0-beta5|The image tag for the container.|
+|gloo.gateway.rolloutJob.image.tag|string|1.13.0-beta6|The image tag for the container.|
 |gloo.gateway.rolloutJob.image.repository|string||The image repository (name) for the container.|
 |gloo.gateway.rolloutJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.rolloutJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
@@ -427,6 +433,7 @@
 |gloo.gateway.rolloutJob.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
 |gloo.gateway.rolloutJob.runAsUser|float64||Explicitly set the user ID for the processes in the container to run as. Default is 10101.|
 |gloo.gateway.cleanupJob.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.gateway.cleanupJob.priorityClassName|string||name of a defined priority class|
 |gloo.gateway.cleanupJob.nodeName|string||name of node to run on|
 |gloo.gateway.cleanupJob.nodeSelector.NAME|string||label selector for nodes|
 |gloo.gateway.cleanupJob.tolerations[].key|string|||
@@ -439,7 +446,7 @@
 |gloo.gateway.cleanupJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.cleanupJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.cleanupJob.enabled|bool||Enable the job that removes Gloo Edge custom resources when Gloo Edge is uninstalled (default true).|
-|gloo.gateway.cleanupJob.image.tag|string|1.13.0-beta5|The image tag for the container.|
+|gloo.gateway.cleanupJob.image.tag|string|1.13.0-beta6|The image tag for the container.|
 |gloo.gateway.cleanupJob.image.repository|string||The image repository (name) for the container.|
 |gloo.gateway.cleanupJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.cleanupJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
@@ -483,6 +490,7 @@
 |gloo.gatewayProxies.NAME.kind.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |gloo.gatewayProxies.NAME.kind.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |gloo.gatewayProxies.NAME.kind.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.gatewayProxies.NAME.kind.deployment.priorityClassName|string||name of a defined priority class|
 |gloo.gatewayProxies.NAME.kind.deployment.nodeName|string||name of node to run on|
 |gloo.gatewayProxies.NAME.kind.deployment.nodeSelector.NAME|string||label selector for nodes|
 |gloo.gatewayProxies.NAME.kind.deployment.tolerations[].key|string|||
@@ -675,6 +683,7 @@
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.gatewayProxies.gatewayProxy.kind.deployment.priorityClassName|string||name of a defined priority class|
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.nodeName|string||name of node to run on|
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.nodeSelector.NAME|string||label selector for nodes|
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.tolerations[].key|string|||
@@ -884,6 +893,7 @@
 |gloo.ingress.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |gloo.ingress.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |gloo.ingress.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.ingress.deployment.priorityClassName|string||name of a defined priority class|
 |gloo.ingress.deployment.nodeName|string||name of node to run on|
 |gloo.ingress.deployment.nodeSelector.NAME|string||label selector for nodes|
 |gloo.ingress.deployment.tolerations[].key|string|||
@@ -937,6 +947,7 @@
 |gloo.ingressProxy.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |gloo.ingressProxy.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |gloo.ingressProxy.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.ingressProxy.deployment.priorityClassName|string||name of a defined priority class|
 |gloo.ingressProxy.deployment.nodeName|string||name of node to run on|
 |gloo.ingressProxy.deployment.nodeSelector.NAME|string||label selector for nodes|
 |gloo.ingressProxy.deployment.tolerations[].key|string|||
@@ -1008,6 +1019,7 @@
 |gloo.accessLogger.customEnv[].valueFrom.secretKeyRef.key|string|||
 |gloo.accessLogger.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |gloo.accessLogger.restartPolicy|string||restart policy to use when the pod exits|
+|gloo.accessLogger.priorityClassName|string||name of a defined priority class|
 |gloo.accessLogger.nodeName|string||name of node to run on|
 |gloo.accessLogger.nodeSelector.NAME|string||label selector for nodes|
 |gloo.accessLogger.tolerations[].key|string|||
@@ -1067,6 +1079,7 @@
 |redis.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |redis.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |redis.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|redis.deployment.priorityClassName|string||name of a defined priority class|
 |redis.deployment.nodeName|string||name of node to run on|
 |redis.deployment.nodeSelector.NAME|string||label selector for nodes|
 |redis.deployment.tolerations[].key|string|||
@@ -1134,6 +1147,7 @@
 |observability.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |observability.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |observability.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|observability.deployment.priorityClassName|string||name of a defined priority class|
 |observability.deployment.nodeName|string||name of node to run on|
 |observability.deployment.nodeSelector.NAME|string||label selector for nodes|
 |observability.deployment.tolerations[].key|string|||
@@ -1278,7 +1292,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.13.0-beta5|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.13.0-beta6|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string||The image repository (name) for the container.|
 |global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |global.glooMtls.sds.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
@@ -1381,6 +1395,7 @@
 |global.extensions.extAuth.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |global.extensions.extAuth.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |global.extensions.extAuth.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|global.extensions.extAuth.deployment.priorityClassName|string||name of a defined priority class|
 |global.extensions.extAuth.deployment.nodeName|string||name of node to run on|
 |global.extensions.extAuth.deployment.nodeSelector.NAME|string||label selector for nodes|
 |global.extensions.extAuth.deployment.tolerations[].key|string|||
@@ -1478,6 +1493,7 @@
 |global.extensions.rateLimit.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |global.extensions.rateLimit.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |global.extensions.rateLimit.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|global.extensions.rateLimit.deployment.priorityClassName|string||name of a defined priority class|
 |global.extensions.rateLimit.deployment.nodeName|string||name of node to run on|
 |global.extensions.rateLimit.deployment.nodeSelector.NAME|string||label selector for nodes|
 |global.extensions.rateLimit.deployment.tolerations[].key|string|||
@@ -1548,6 +1564,7 @@
 |global.extensions.caching.deployment.customEnv[].valueFrom.secretKeyRef.key|string|||
 |global.extensions.caching.deployment.customEnv[].valueFrom.secretKeyRef.optional|bool|||
 |global.extensions.caching.deployment.restartPolicy|string||restart policy to use when the pod exits|
+|global.extensions.caching.deployment.priorityClassName|string||name of a defined priority class|
 |global.extensions.caching.deployment.nodeName|string||name of node to run on|
 |global.extensions.caching.deployment.nodeSelector.NAME|string||label selector for nodes|
 |global.extensions.caching.deployment.tolerations[].key|string|||

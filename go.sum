@@ -269,6 +269,7 @@ github.com/bits-and-blooms/bitset v1.2.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edY
 github.com/bketelsen/crypt v0.0.3-0.20200106085610-5cbc8cc4026c/go.mod h1:MKsuJmJgSg28kpZDP6UIiPt0e0Oz0kqKNGyRaWEPv84=
 github.com/bketelsen/crypt v0.0.4/go.mod h1:aI6NrJ0pMGgvZKL1iVgXLnfIFJtfV+bKCoqOes/6LfM=
 github.com/blang/semver v3.1.0+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
+github.com/blang/semver v3.5.1+incompatible h1:cQNTCjp13qL8KC3Nbxr/y2Bqb63oX6wdnnjpJbkM4JQ=
 github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
 github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2yvyW5YoQ=
 github.com/blendle/zapdriver v1.3.1/go.mod h1:mdXfREi6u5MArG4j9fewC+FGnXaBR+T4Ox4J2u4eHCc=
@@ -1673,8 +1674,8 @@ github.com/solo-io/external-apis v0.1.4/go.mod h1:3vyADtIZj8hCD5cBUwGuA60hd8O5fa
 github.com/solo-io/external-apis v0.1.7/go.mod h1:rzyuYEanRLvRfKK9GG/Mb/H//0A8DNvhxrEP+iTToTY=
 github.com/solo-io/external-apis v0.1.11 h1:7ow9GPXDRIwP9UV2JUkLDPOgp1rV7hjn82o7RI65lLs=
 github.com/solo-io/external-apis v0.1.11/go.mod h1:hGvyrVXsGfS46lY9YEvHO2dlrv9PHChWum27GDqz8wY=
-github.com/solo-io/gloo v1.13.0-beta5 h1:NeJ9cC3Wwi5zr8C/X0zIW42PfAhBdzgsJ07LHhBFCEQ=
-github.com/solo-io/gloo v1.13.0-beta5/go.mod h1:a2YuF6H5lYhezeDEijYQyYUi8W3TYXKnncccy80ZIRU=
+github.com/solo-io/gloo v1.13.0-beta6 h1:LeYf/TP3v/FRDLQjlwDlvEm98xy2jL8VpSd9awSE1qw=
+github.com/solo-io/gloo v1.13.0-beta6/go.mod h1:tmwSLT7ASogbmGP61mw/6gRDZrX5hNLRgbyRSgpgzd8=
 github.com/solo-io/go-list-licenses v0.0.4/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-list-licenses v0.1.0/go.mod h1:x6LSp/NrYgVXwNum7ZOiaAYTpg6B3F6TrWYfcdHVroA=
 github.com/solo-io/go-list-licenses v0.1.4 h1:u4xh1OUORT4iSWuAp3Q4NsfHcDaeUV8QRDH8ACQqbxw=
@@ -1710,8 +1711,9 @@ github.com/solo-io/skv2 v0.21.7/go.mod h1:8jNcMWuAkBxdGhlRFMSgsK94q/jZGPEas8VHTr
 github.com/solo-io/skv2-enterprise v0.2.8 h1:WdqUIauXXC2qYrC912obJ7zskiBPqlvO96bpnFhtWdw=
 github.com/solo-io/skv2-enterprise v0.2.8/go.mod h1:xjPmB/iLhqz0Dip3YMvjyHCccHxHv8+7d+qRPAxJJ88=
 github.com/solo-io/solo-apis v0.0.0-20210119160956-e52ac14025d3/go.mod h1:9tB/zzr7cGk308Y7tqwWRkccG8N4rSslS6s8mlKXd5s=
-github.com/solo-io/solo-apis v0.0.0-20220811200918-d23d18281e54 h1:s3hdRK6jSGFxBRPrH2BtzPlCJfKR0LrypLrNfgLE8RE=
 github.com/solo-io/solo-apis v0.0.0-20220811200918-d23d18281e54/go.mod h1:MvK57OAO6Rfz6Ae63Lm36AejEWk5g+o47Tcs4lLhEN0=
+github.com/solo-io/solo-apis v0.0.0-20220817141307-067919ad917b h1:N7RAZy3EmmuavdZ63N4nHJUvIFRNb9ox5/GN7omFd80=
+github.com/solo-io/solo-apis v0.0.0-20220817141307-067919ad917b/go.mod h1:MvK57OAO6Rfz6Ae63Lm36AejEWk5g+o47Tcs4lLhEN0=
 github.com/solo-io/solo-kit v0.16.0/go.mod h1:zf+vof9HAavbFKRgL80jJ24SeE9PvoB8ooQ7DACtK8I=
 github.com/solo-io/solo-kit v0.17.1/go.mod h1:3p9X8edqLS4KokXBZ+4txX+cxGJqtZlBqFEdDD/x1HQ=
 github.com/solo-io/solo-kit v0.24.0/go.mod h1:uCOi8RQ3MetHXsRFvVKPzafYySUvFuPxB+gvo7ScRR8=
@@ -2496,8 +2498,8 @@ gotest.tools v2.2.0+incompatible/go.mod h1:DsYFclhRJ6vuDpmuTbkuFWG+y2sxOXAzmJt81
 gotest.tools/v3 v3.0.2/go.mod h1:3SzNCllyD9/Y+b5r9JIKQ474KzkZyqLqEfYqMsX94Bk=
 gotest.tools/v3 v3.0.3 h1:4AuOwCGf4lLR9u3YOe2awrHygurzhO/HeQ6laiA6Sx0=
 gotest.tools/v3 v3.0.3/go.mod h1:Z7Lb0S5l+klDB31fvDQX8ss/FlKDxtlFlw3Oa8Ymbl8=
-helm.sh/helm/v3 v3.6.0 h1:/9IMxJ2lXJHbvTMHcW1AO71lXQHqDC+3bcpGp7yCsb8=
-helm.sh/helm/v3 v3.6.0/go.mod h1:mIIus8EOqj+obtycw3sidsR4ORr2aFDmXMSI3k+oeVY=
+helm.sh/helm/v3 v3.6.3 h1:0nKDyXJr23nI3JrcP7HH7NcR+CYRvro/52Dvr1KhGO0=
+helm.sh/helm/v3 v3.6.3/go.mod h1:mIIus8EOqj+obtycw3sidsR4ORr2aFDmXMSI3k+oeVY=
 honnef.co/go/tools v0.0.0-20180728063816-88497007e858/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190106161140-3f1c8253044a/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=

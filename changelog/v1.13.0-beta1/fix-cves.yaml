@@ -1,0 +1,24 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: linux
+  dependencyRepo: alpine
+  dependencyTag: 3.15.6
+  description: Bump alpine to fix CVE-2022-37434
+  issueLink: https://github.com/solo-io/gloo/issues/6901
+  resolvesIssue: false
+- type: DEPENDENCY_BUMP
+  dependencyOwner: helm
+  dependencyRepo: helm
+  dependencyTag: v3.6.3
+  description: Upgrade helm to fix CVE-2021-32690
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.13.0-beta6
+- type: NEW_FEATURE
+  issuelink: https://github.com/solo-io/gloo/issues/5795
+  resolvesIssue: false
+  description: |
+    Allow the Gloo component of the ControlPlane to be scaled when running in Kubernetes.
+    Using https://github.com/kubernetes/client-go/tree/master/tools/leaderelection,
+    leader election will take place automatically.

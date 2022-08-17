@@ -16,7 +16,9 @@ metadata:
     "helm.sh/hook-weight": "10" # run this job after the gloo rollout job completes
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
-  activeDeadlineSeconds: {{ .Values.gloo.gateway.rolloutJob.activeDeadlineSeconds }}
+  {{- with .Values.gloo.gateway.rolloutJob.activeDeadlineSeconds }}
+  activeDeadlineSeconds: {{ . }}
+  {{- end }}
   template:
     metadata:
       labels:

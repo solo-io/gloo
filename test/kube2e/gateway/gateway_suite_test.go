@@ -147,6 +147,10 @@ func getHelmOverrides(fips bool) (filename string, cleanup func()) {
       healthyPanicThreshold: 0
   gateway:
     persistProxySpec: true
+  gloo:
+    deployment:
+      # TODO change to 2 once we figure out leader election flakes
+      replicas: 1
   rbac:    
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix
