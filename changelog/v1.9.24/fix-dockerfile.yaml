@@ -1,0 +1,4 @@
+changelog:
+- type: FIX
+  description: Fix the gloo-federation-console dockerfile
+  issueLink: https://github.com/solo-io/solo-projects/issues/3989
