@@ -1,7 +1,7 @@
 Name|Version|License
 ---|---|---
 [avast/retry-go](https://github.com/avast/retry-go)|v2.4.3+incompatible|MIT License
-[aws/aws-sdk-go](https://github.com/aws/aws-sdk-go)|v1.36.30|Apache License 2.0
+[aws/aws-sdk-go](https://github.com/aws/aws-sdk-go)|v1.43.16|Apache License 2.0
 [deislabs/oras](https://github.com/deislabs/oras)|v0.10.0|MIT License
 [envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.9.9-0.20210511190911-87d352569d55|Apache License 2.0
 [envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v0.6.1|Apache License 2.0
@@ -29,15 +29,15 @@ Name|Version|License
 [prometheus/prometheus](https://github.com/prometheus/prometheus)|v2.5.0+incompatible|Apache License 2.0
 [rotisserie/eris](https://github.com/rotisserie/eris)|v0.5.0|MIT License
 [sirupsen/logrus](https://github.com/sirupsen/logrus)|v1.8.1|MIT License
-[spf13/cobra](https://github.com/spf13/cobra)|v1.4.0|Apache License 2.0
+[spf13/cobra](https://github.com/spf13/cobra)|v1.5.0|Apache License 2.0
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.5|BSD 3-clause "New" or "Revised" License
 [go.opencensus.io](https://go.opencensus.io)|v0.23.0|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.17.0|MIT License
 [x/mod](https://golang.org/x/mod)|v0.6.0-dev.0.20220419223038-86c51ed26bb4|BSD 3-clause "New" or "Revised" License
 [x/net](https://golang.org/x/net)|v0.0.0-20220630215102-69896b714898|BSD 3-clause "New" or "Revised" License
-[x/sync](https://golang.org/x/sync)|v0.0.0-20210220032951-036812b2e83c|BSD 3-clause "New" or "Revised" License
+[x/sync](https://golang.org/x/sync)|v0.0.0-20220601150217-0de741cfad7f|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
-[google.golang.org/grpc](https://google.golang.org/grpc)|v1.46.0|Apache License 2.0
+[google.golang.org/grpc](https://google.golang.org/grpc)|v1.47.0|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.28.0|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.5.1|Apache License 2.0
 [helm/v3](https://helm.sh/helm/v3)|v3.4.2|Apache License 2.0
