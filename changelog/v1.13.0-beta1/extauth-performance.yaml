@@ -1,0 +1,13 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/3994
+    description: |
+      Fix a problem where the translation of ExtAuth configuration consumed too much RAM
+      in larger environments.
+    resolvesIssue: false
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/6782
+    description: |
+      Ensure that data written to dynamic metadata by route transformations is available to the ext auth service.
+      Previously, only VirtualHost transformations were respected.
+    resolvesIssue: false

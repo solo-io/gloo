@@ -6,11 +6,9 @@ import (
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	envoytransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
-	glooTransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
 	extauthgloo "github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -160,41 +158,6 @@ var _ = Describe("ExtAuthzConfigGenerator", func() {
 					}))
 				})
 
-				It("converts default extauth settings to ext_authz filter with namespaces added from listener ", func() {
-					filters, err := extAuthzConfigGenerator.GenerateListenerExtAuthzConfig(createListener(), upstreams)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(filters).To(HaveLen(2)) // 1 in default settings, 1 in named settings
-
-					//MetaDataNameSpaces
-					for _, filter := range filters {
-						Expect(len(filter.MetadataContextNamespaces)).To(Equal(5))
-						Expect(filter.MetadataContextNamespaces).To(ContainElements("envoy.filters.http.jwt_authn", "io.solo.filters.http.sanitize", "namespace1", "namespace2", "namespace3"))
-					}
-
-					defaultFilterConfig := getExtAuthzWithStatPrefix(filters, "extauth-default")
-
-					Expect(defaultFilterConfig.MetadataContextNamespaces).Should(ContainElement(extauth.SanitizeFilterName))
-					Expect(defaultFilterConfig.FilterEnabledMetadata).To(matchers.MatchProto(&envoymatcher.MetadataMatcher{
-						Filter: extauth.SanitizeFilterName,
-						Path: []*envoymatcher.MetadataMatcher_PathSegment{
-							{
-								Segment: &envoymatcher.MetadataMatcher_PathSegment_Key{
-									Key: extauth.CustomAuthServerNameMetadataKey,
-								},
-							},
-						},
-						Value: &envoymatcher.ValueMatcher{
-							MatchPattern: &envoymatcher.ValueMatcher_StringMatch{
-								StringMatch: &envoymatcher.StringMatcher{
-									MatchPattern: &envoymatcher.StringMatcher_Exact{
-										Exact: extauth.DefaultAuthServiceName,
-									},
-								},
-							},
-						},
-					}))
-				})
-
 				It("converts named extauth settings to ext_authz filter", func() {
 					filters, err := extAuthzConfigGenerator.GenerateListenerExtAuthzConfig(nil, upstreams)
 					Expect(err).NotTo(HaveOccurred())
@@ -252,63 +215,5 @@ func createExtAuthSettings(upstream *gloov1.Upstream) *extauthv1.Settings {
 	return &extauthv1.Settings{
 		ExtauthzServerRef: upstream.Metadata.Ref(),
 		StatPrefix:        upstream.Metadata.Name,
-	}
-}
-
-func createListener() *gloov1.HttpListener {
-	return &gloov1.HttpListener{
-		VirtualHosts: []*gloov1.VirtualHost{
-			{
-				Domains: []string{
-					"*",
-				},
-				Options: &gloov1.VirtualHostOptions{
-					StagedTransformations: &glooTransformation.TransformationStages{
-						Early: &glooTransformation.RequestResponseTransformations{
-							RequestTransforms: []*glooTransformation.RequestMatch{
-								{
-									RequestTransformation: &glooTransformation.Transformation{
-										TransformationType: &glooTransformation.Transformation_TransformationTemplate{
-											TransformationTemplate: &envoytransformation.TransformationTemplate{
-												DynamicMetadataValues: []*envoytransformation.TransformationTemplate_DynamicMetadataValue{
-													{
-														Key:               "key1",
-														MetadataNamespace: "namespace1",
-														Value: &envoytransformation.InjaTemplate{
-															Text: "test1",
-														},
-													},
-													{
-														Key:               "key2",
-														MetadataNamespace: "namespace2",
-														Value: &envoytransformation.InjaTemplate{
-															Text: "test2",
-														},
-													},
-													{
-														Key:               "Key3",
-														MetadataNamespace: "namespace3",
-														Value: &envoytransformation.InjaTemplate{
-															Text: "test3",
-														},
-													},
-													{
-														Key:               "Key4",
-														MetadataNamespace: "namespace3", //duplicate to make sure dupes are removed
-														Value: &envoytransformation.InjaTemplate{
-															Text: "test4",
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							}, // reqTransform
-						}, // regular
-					}, // stagedTransform
-				},
-			},
-		},
 	}
 }

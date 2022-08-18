@@ -3,6 +3,10 @@ package extauth_test
 import (
 	"time"
 
+	envoytransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
+	glooTransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
+	extauth2 "github.com/solo-io/gloo/projects/gloo/pkg/plugins/extauth"
+
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ext_authz/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
@@ -172,18 +176,27 @@ var _ = Describe("Plugin", func() {
 		}
 	})
 
-	getOnlySanitizeFilters := func(original plugins.StagedHttpFilterList) plugins.StagedHttpFilterList {
+	onlyHttpFiltersWithName := func(original plugins.StagedHttpFilterList, name string) plugins.StagedHttpFilterList {
 		var filters plugins.StagedHttpFilterList
 		for _, f := range original {
-			if f.HttpFilter.GetName() == SanitizeFilterName {
+			if f.HttpFilter.GetName() == name {
 				filters = append(filters, f)
 			}
 		}
 		return filters
 	}
 
+	getOnlySanitizeFilters := func(original plugins.StagedHttpFilterList) plugins.StagedHttpFilterList {
+		return onlyHttpFiltersWithName(original, SanitizeFilterName)
+	}
+
 	Context("no extauth settings", func() {
 		It("should provide sanitize filter", func() {
+			// It's important that we ProcessVirtualHost first, since that is responsible for generating the http filter
+			var out envoy_config_route_v3.VirtualHost
+			err := plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &out)
+			Expect(err).NotTo(HaveOccurred())
+
 			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filters).To(HaveLen(1))
@@ -222,6 +235,11 @@ var _ = Describe("Plugin", func() {
 			// The enterprise plugin is now responsible for creating the ext_authz and sanitize filter
 			// This test is just verifying the behavior of the sanitize filter
 
+			// It's important that we ProcessVirtualHost first, since that is responsible for generating the http filter
+			var out envoy_config_route_v3.VirtualHost
+			err := plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &out)
+			Expect(err).NotTo(HaveOccurred())
+
 			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filters).To(HaveLen(2))
@@ -242,7 +260,11 @@ var _ = Describe("Plugin", func() {
 				VirtualHosts: []*v1.VirtualHost{virtualHost},
 				Options:      &v1.HttpListenerOptions{Extauth: extAuthSettings},
 			}
+			vhostParams.HttpListener = listener
 
+			// It's important that we ProcessVirtualHost first, since that is responsible for generating the http filter
+			err = plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &out)
+			Expect(err).NotTo(HaveOccurred())
 			filters, err = plugin.(plugins.HttpFilterPlugin).HttpFilters(params, listener)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filters).To(HaveLen(2))
@@ -293,6 +315,170 @@ var _ = Describe("Plugin", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(IsDisabled(&out)).To(BeFalse())
 		})
+
+		It("includes metadata namespaces in filter derived from virtual host", func() {
+			virtualHost.Options = &v1.VirtualHostOptions{
+				StagedTransformations: &glooTransformation.TransformationStages{
+					Early: &glooTransformation.RequestResponseTransformations{
+						RequestTransforms: []*glooTransformation.RequestMatch{
+							{
+								RequestTransformation: &glooTransformation.Transformation{
+									TransformationType: &glooTransformation.Transformation_TransformationTemplate{
+										TransformationTemplate: &envoytransformation.TransformationTemplate{
+											DynamicMetadataValues: []*envoytransformation.TransformationTemplate_DynamicMetadataValue{
+												{
+													Key:               "key1",
+													MetadataNamespace: "zNamespace", // ensure that the final value is sorted
+													Value: &envoytransformation.InjaTemplate{
+														Text: "testZ",
+													},
+												},
+												{
+													Key:               "key1",
+													MetadataNamespace: "namespace1",
+													Value: &envoytransformation.InjaTemplate{
+														Text: "test1",
+													},
+												},
+												{
+													Key:               "key2",
+													MetadataNamespace: "namespace2",
+													Value: &envoytransformation.InjaTemplate{
+														Text: "test2",
+													},
+												},
+												{
+													Key:               "Key3",
+													MetadataNamespace: "namespace3",
+													Value: &envoytransformation.InjaTemplate{
+														Text: "test3",
+													},
+												},
+												{
+													Key:               "Key4",
+													MetadataNamespace: "namespace3", //duplicate to make sure dupes are removed
+													Value: &envoytransformation.InjaTemplate{
+														Text: "test4",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						}, // reqTransform
+					}, // regular
+				}, // stagedTransform
+			}
+
+			var out envoy_config_route_v3.VirtualHost
+			err := plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &out)
+			Expect(err).NotTo(HaveOccurred())
+
+			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(2))
+
+			extAuthFilters := onlyHttpFiltersWithName(filters, wellknown.HTTPExternalAuthorization)
+			Expect(extAuthFilters).To(HaveLen(1))
+
+			extAuthTypedConfig := extAuthFilters[0].HttpFilter.GetTypedConfig()
+			Expect(extAuthTypedConfig).NotTo(BeNil())
+			var extAuthCfg envoyauth.ExtAuthz
+			err = ptypes.UnmarshalAny(extAuthTypedConfig, &extAuthCfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(extAuthCfg.MetadataContextNamespaces).To(Equal([]string{
+				extauth2.JWTFilterName,
+				"namespace1",
+				"namespace2",
+				"namespace3",
+				"zNamespace",
+			}))
+
+		})
+
+		It("includes metadata namespaces in filter derived from route", func() {
+			defaultExtAuthRoute.Options = &v1.RouteOptions{
+				StagedTransformations: &glooTransformation.TransformationStages{
+					Early: &glooTransformation.RequestResponseTransformations{
+						RequestTransforms: []*glooTransformation.RequestMatch{
+							{
+								RequestTransformation: &glooTransformation.Transformation{
+									TransformationType: &glooTransformation.Transformation_TransformationTemplate{
+										TransformationTemplate: &envoytransformation.TransformationTemplate{
+											DynamicMetadataValues: []*envoytransformation.TransformationTemplate_DynamicMetadataValue{
+												{
+													Key:               "key1",
+													MetadataNamespace: "zNamespace", // ensure that the final value is sorted
+													Value: &envoytransformation.InjaTemplate{
+														Text: "testZ",
+													},
+												},
+												{
+													Key:               "key1",
+													MetadataNamespace: "namespace1",
+													Value: &envoytransformation.InjaTemplate{
+														Text: "test1",
+													},
+												},
+												{
+													Key:               "key2",
+													MetadataNamespace: "namespace2",
+													Value: &envoytransformation.InjaTemplate{
+														Text: "test2",
+													},
+												},
+												{
+													Key:               "Key3",
+													MetadataNamespace: "namespace3",
+													Value: &envoytransformation.InjaTemplate{
+														Text: "test3",
+													},
+												},
+												{
+													Key:               "Key4",
+													MetadataNamespace: "namespace3", //duplicate to make sure dupes are removed
+													Value: &envoytransformation.InjaTemplate{
+														Text: "test4",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						}, // reqTransform
+					}, // regular
+				}, // stagedTransform
+			}
+
+			var out envoy_config_route_v3.Route
+			err := plugin.(plugins.RoutePlugin).ProcessRoute(routeParams, defaultExtAuthRoute, &out)
+			Expect(err).NotTo(HaveOccurred())
+
+			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(2))
+
+			extAuthFilters := onlyHttpFiltersWithName(filters, wellknown.HTTPExternalAuthorization)
+			Expect(extAuthFilters).To(HaveLen(1))
+
+			extAuthTypedConfig := extAuthFilters[0].HttpFilter.GetTypedConfig()
+			Expect(extAuthTypedConfig).NotTo(BeNil())
+			var extAuthCfg envoyauth.ExtAuthz
+			err = ptypes.UnmarshalAny(extAuthTypedConfig, &extAuthCfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(extAuthCfg.MetadataContextNamespaces).To(Equal([]string{
+				extauth2.JWTFilterName,
+				"namespace1",
+				"namespace2",
+				"namespace3",
+				"zNamespace",
+			}))
+
+		})
 	})
 
 	Context("with multiple extauth servers (1 default, 1 named)", func() {
@@ -323,6 +509,11 @@ var _ = Describe("Plugin", func() {
 		})
 
 		It("should provide sanitize filter with nil listener", func() {
+			// It's important that we ProcessVirtualHost first, since that is responsible for generating the http filter
+			var out envoy_config_route_v3.VirtualHost
+			err := plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &out)
+			Expect(err).NotTo(HaveOccurred())
+
 			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filters).To(HaveLen(3)) // sanitize, 2 ext_authz
@@ -351,6 +542,12 @@ var _ = Describe("Plugin", func() {
 					Extauth: defaultExtAuthSettings,
 				},
 			}
+			vhostParams.HttpListener = listener
+
+			// It's important that we ProcessVirtualHost first, since that is responsible for generating the http filter
+			var out envoy_config_route_v3.VirtualHost
+			err := plugin.(plugins.VirtualHostPlugin).ProcessVirtualHost(vhostParams, virtualHost, &out)
+			Expect(err).NotTo(HaveOccurred())
 
 			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, listener)
 			Expect(err).NotTo(HaveOccurred())
