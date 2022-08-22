@@ -30,7 +30,7 @@ require (
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-openapi/loads v0.19.4
 	github.com/go-openapi/spec v0.19.6
-	github.com/go-openapi/swag v0.19.7
+	github.com/go-openapi/swag v0.19.14
 	github.com/go-swagger/go-swagger v0.21.0
 	github.com/go-test/deep v1.0.7 // indirect
 	github.com/gogo/googleapis v1.3.2
@@ -41,7 +41,7 @@ require (
 	github.com/google/go-github/v32 v32.0.0
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/mux v1.8.0
-	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
+	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
@@ -63,7 +63,6 @@ require (
 	github.com/mitchellh/copystructure v1.1.1 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
-	github.com/moby/term v0.0.0-20200915141129-7f0af18e79f2 // indirect
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.10.5
@@ -74,10 +73,11 @@ require (
 	github.com/prometheus/client_golang v1.11.1
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/rotisserie/eris v0.4.0
+	github.com/rs/dnscache v0.0.0-20190621150935-06bb5526f76b // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/saiskee/gettercheck v0.0.0-20210820204958-38443d06ebe0
+	github.com/sam-heilbron/protoc-gen-openapi v0.0.0-20210826234431-905e0eb8fa8e // indirect
 	github.com/sergi/go-diff v1.1.0
-	github.com/sirupsen/logrus v1.8.0 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/solo-io/anyvendor v0.0.4 // indirect
 	github.com/solo-io/go-list-licenses v0.1.0
@@ -86,8 +86,6 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.16
 	github.com/solo-io/protoc-gen-openapi v0.0.1
 	github.com/solo-io/skv2 v0.17.17
-	// Pinned to the `gloo-namespaced-statuses` tag of solo-apis
-	github.com/solo-io/solo-apis v0.0.0-20210922150112-505473b2e66c
 	github.com/solo-io/solo-kit v0.24.6
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spf13/afero v1.6.0
@@ -96,31 +94,30 @@ require (
 	github.com/spf13/viper v1.7.1
 	go.opencensus.io v0.23.0
 	go.uber.org/multierr v1.6.0
-	go.uber.org/zap v1.16.0
+	go.uber.org/zap v1.17.0
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/tools v0.1.11
-	google.golang.org/genproto v0.0.0-20210312152112-fc591d9ea70f
-	google.golang.org/grpc v1.36.0
+	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c
+	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7
 	gopkg.in/ini.v1 v1.56.0 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	helm.sh/helm/v3 v3.4.2
-	k8s.io/api v0.19.6
-	k8s.io/apiextensions-apiserver v0.19.6
-	k8s.io/apimachinery v0.19.6
-	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
-	k8s.io/code-generator v0.19.6
-	k8s.io/kubectl v0.19.6
-	k8s.io/kubernetes v1.19.6
-	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
-	knative.dev/networking v0.0.0-20201103163404-b9f80f4537af
+	istio.io/tools v0.0.0-20200918020118-6d0a0e49b5d3 // indirect
+	k8s.io/api v0.22.4
+	k8s.io/apiextensions-apiserver v0.22.4
+	k8s.io/apimachinery v0.22.4
+	k8s.io/client-go v0.22.4
+	k8s.io/code-generator v0.22.4
+	k8s.io/kubectl v0.22.4
+	k8s.io/utils v0.0.0-20211208161948-7d6a63dca704
 	knative.dev/pkg v0.0.0-20201104085304-8224d1a794f2
 	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/controller-runtime v0.7.0
-	sigs.k8s.io/yaml v1.2.0
+	sigs.k8s.io/yaml v1.3.0
 	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
 )
 
@@ -144,37 +141,4 @@ replace (
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 => golang.org/x/net v0.0.0-20211209124913-491a49abca63
 
 	golang/x/text => golang/x/text v0.3.7
-
-	// kube 0.19: redirects needed for most k8s.io dependencies because
-	// k8s.io/kubernetes tries to import v0.0.0 of everything.
-	k8s.io/api => k8s.io/api v0.19.6
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.19.6
-	k8s.io/apimachinery => k8s.io/apimachinery v0.19.6
-	k8s.io/apiserver => k8s.io/apiserver v0.19.6
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.19.6
-	k8s.io/client-go => k8s.io/client-go v0.19.6
-	k8s.io/cloud-provider => k8s.io/cloud-provider v0.19.6
-	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.19.6
-	k8s.io/code-generator => k8s.io/code-generator v0.19.6
-	k8s.io/component-base => k8s.io/component-base v0.19.6
-	k8s.io/cri-api => k8s.io/cri-api v0.19.6
-	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.19.6
-	k8s.io/gengo => k8s.io/gengo v0.0.0-20190822140433-26a664648505
-	k8s.io/heapster => k8s.io/heapster v1.2.0-beta.1
-	k8s.io/klog => github.com/stefanprodan/klog v0.0.0-20190418165334-9cbb78b20423
-	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.19.6
-	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.19.6
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20200805222855-6aeccd4b50c6
-	k8s.io/kube-proxy => k8s.io/kube-proxy v0.19.6
-	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.19.6
-	k8s.io/kubectl => k8s.io/kubectl v0.19.6
-	k8s.io/kubelet => k8s.io/kubelet v0.19.6
-	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.19.6
-	k8s.io/metrics => k8s.io/metrics v0.19.6
-	k8s.io/node-api => k8s.io/node-api v0.19.6
-	k8s.io/repo-infra => k8s.io/repo-infra v0.0.0-20181204233714-00fe14e3d1a3
-	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.19.6
-	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.19.6
-	k8s.io/sample-controller => k8s.io/sample-controller v0.19.6
-	k8s.io/utils => k8s.io/utils v0.0.0-20200729134348-d5654de09c73
 )
