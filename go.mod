@@ -325,6 +325,7 @@ replace (
 	// version upgrade to 1.40.2 fails a specific unit test
 	// see https://github.com/solo-io/gloo/issues/5719
 	google.golang.org/grpc => google.golang.org/grpc v1.40.0
+	// Codegen failed when the version was bumped to v1.28.0 when a lot of the generated files still had v1.27 in the header.
 	google.golang.org/protobuf => google.golang.org/protobuf v1.27.1
 
 	// klog is likely unused, but if it is we want to use this fork
