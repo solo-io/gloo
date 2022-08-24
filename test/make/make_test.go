@@ -119,7 +119,6 @@ var _ = Describe("Make", func() {
 
 			expectedVersion := "0.0.0-fork"
 			remoteUrl := string(out)
-			fmt.Printf("checking to see if we're running on a fork %s", remoteUrl)
 			if strings.Contains(remoteUrl, "git@github.com:solo-io/gloo.git") {
 				out, err := exec.Command("git", "describe", "--tags", "--abbrev=0").CombinedOutput()
 				Expect(err).NotTo(HaveOccurred())
