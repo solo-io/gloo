@@ -6,26 +6,20 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/golang/protobuf/ptypes"
 	envoycore_sk "github.com/solo-io/solo-kit/pkg/api/external/envoy/api/v2/core"
 
 	"knative.dev/networking/pkg/apis/networking"
 	"knative.dev/pkg/network"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	v1alpha1 "github.com/solo-io/gloo/projects/knative/pkg/api/external/knative"
-	"github.com/solo-io/go-utils/contextutils"
-
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/headers"
+	v1alpha1 "github.com/solo-io/gloo/projects/knative/pkg/api/external/knative"
 
 	errors "github.com/rotisserie/eris"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries"
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	knativev1alpha1 "knative.dev/networking/pkg/apis/networking/v1alpha1"
@@ -133,17 +127,6 @@ func routingConfig(ctx context.Context, ingresses map[*core.Metadata]knativev1al
 
 		for _, tls := range spec.TLS {
 
-			// todo (mholland) use non-peprecated solutions now that we're using k8s 18.
-			if tls.DeprecatedServerCertificate != "" && tls.DeprecatedServerCertificate != v1.TLSCertKey {
-				contextutils.LoggerFrom(ctx).Warn("Custom ServerCertificate filenames are not currently supported by Gloo")
-				continue
-			}
-
-			if tls.DeprecatedPrivateKey != "" && tls.DeprecatedPrivateKey != v1.TLSPrivateKeyKey {
-				contextutils.LoggerFrom(ctx).Warn("Custom PrivateKey filenames are not currently supported by Gloo")
-				continue
-			}
-
 			secretNamespace := tls.SecretNamespace
 			if secretNamespace == "" {
 				// default to namespace shared with ingress
@@ -183,22 +166,6 @@ func routingConfig(ctx context.Context, ingresses map[*core.Metadata]knativev1al
 					pathRegex = ".*"
 				}
 
-				var timeout time.Duration
-				if route.DeprecatedTimeout != nil {
-					timeout = route.DeprecatedTimeout.Duration
-				}
-				var retryPolicy *retries.RetryPolicy
-				if route.DeprecatedRetries != nil {
-					var perTryTimeout time.Duration
-					if route.DeprecatedRetries.PerTryTimeout != nil {
-						perTryTimeout = route.DeprecatedRetries.PerTryTimeout.Duration
-					}
-					retryPolicy = &retries.RetryPolicy{
-						NumRetries:    uint32(route.DeprecatedRetries.Attempts),
-						PerTryTimeout: ptypes.DurationProto(perTryTimeout),
-					}
-				}
-
 				action, err := routeActionFromSplits(route.Splits)
 				if err != nil {
 					return nil, nil, nil, errors.Wrapf(err, "")
@@ -215,8 +182,6 @@ func routingConfig(ctx context.Context, ingresses map[*core.Metadata]knativev1al
 					},
 					Options: &gloov1.RouteOptions{
 						HeaderManipulation: getHeaderManipulation(route.AppendHeaders),
-						Timeout:            ptypes.DurationProto(timeout),
-						Retries:            retryPolicy,
 					},
 				}
 				routes = append(routes, route)

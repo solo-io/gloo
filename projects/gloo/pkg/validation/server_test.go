@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/grpc/status"
+
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -28,6 +30,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/test/matchers"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 )
 
 var _ = Describe("Validation Server", func() {
@@ -264,18 +267,20 @@ var _ = Describe("Validation Server", func() {
 
 			var notifications []*validationgrpc.NotifyOnResyncResponse
 			var l sync.Mutex
-			var desiredErr string
+			var desiredErrCode codes.Code
 
 			// watch notifications
 			go func() {
 				defer GinkgoRecover()
 				for {
 					notification, err := stream.Recv()
-					if desiredErr == "" {
+					if desiredErrCode == 0 {
 						Expect(err).To(BeNil())
 					} else {
 						Expect(err).NotTo(BeNil())
-						Expect(err.Error()).To(ContainSubstring(desiredErr))
+						st, ok := status.FromError(err)
+						Expect(ok).To(BeTrue())
+						Expect(st.Code()).To(Equal(desiredErrCode))
 						continue
 					}
 					l.Lock()
@@ -322,7 +327,7 @@ var _ = Describe("Validation Server", func() {
 			Eventually(getNotifications, time.Second).Should(HaveLen(5))
 
 			// test close
-			desiredErr = "transport is closing"
+			desiredErrCode = codes.Unavailable
 			srv.Stop()
 
 			// create jitter by changing upstreams
