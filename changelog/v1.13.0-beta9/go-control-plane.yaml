@@ -1,0 +1,8 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: envoyproxy
+    dependencyRepo: github.com/envoyproxy/go-control-plane
+    dependencyTag: v0.10.3
+    description: >
+      Pull in the latest envoy go-control-plane to allow us to support new Envoy features including the 
+      X-forwarded-host header.
