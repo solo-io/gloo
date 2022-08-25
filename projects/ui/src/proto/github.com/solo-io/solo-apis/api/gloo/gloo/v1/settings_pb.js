@@ -3056,12 +3056,19 @@ proto.gloo.solo.io.SettingsSpec.ConsulConfiguration.prototype.hasDnsPollingInter
  * @constructor
  */
 proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.repeatedFields_, null);
 };
 goog.inherits(proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.displayName = 'proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.repeatedFields_ = [22];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -3096,7 +3103,8 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.toObject = 
     rootca: (f = msg.getRootca()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     splittlsservices: jspb.Message.getFieldWithDefault(msg, 19, false),
     consistencymode: jspb.Message.getFieldWithDefault(msg, 20, 0),
-    queryOptions: (f = msg.getQueryOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.toObject(includeInstance, f)
+    queryOptions: (f = msg.getQueryOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.toObject(includeInstance, f),
+    serviceTagsAllowlistList: jspb.Message.getRepeatedField(msg, 22)
   };
 
   if (includeInstance) {
@@ -3158,6 +3166,10 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.deserialize
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.deserializeBinaryFromReader);
       msg.setQueryOptions(value);
+      break;
+    case 22:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addServiceTagsAllowlist(value);
       break;
     default:
       reader.skipField();
@@ -3230,6 +3242,13 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.serializeBi
       21,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.serializeBinaryToWriter
+    );
+  }
+  f = message.getServiceTagsAllowlistList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      22,
+      f
     );
   }
 };
@@ -3356,6 +3375,35 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.c
  */
 proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.hasQueryOptions = function() {
   return jspb.Message.getField(this, 21) != null;
+};
+
+
+/**
+ * repeated string service_tags_allowlist = 22;
+ * @return {!Array<string>}
+ */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.getServiceTagsAllowlistList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 22));
+};
+
+
+/** @param {!Array<string>} value */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.setServiceTagsAllowlistList = function(value) {
+  jspb.Message.setField(this, 22, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.addServiceTagsAllowlist = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 22, value, opt_index);
+};
+
+
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.clearServiceTagsAllowlistList = function() {
+  this.setServiceTagsAllowlistList([]);
 };
 
 

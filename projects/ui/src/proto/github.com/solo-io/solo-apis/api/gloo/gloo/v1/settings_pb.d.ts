@@ -582,6 +582,11 @@ export namespace SettingsSpec {
     getQueryOptions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions | undefined;
     setQueryOptions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions): void;
 
+    clearServiceTagsAllowlistList(): void;
+    getServiceTagsAllowlistList(): Array<string>;
+    setServiceTagsAllowlistList(value: Array<string>): void;
+    addServiceTagsAllowlist(value: string, index?: number): string;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ConsulUpstreamDiscoveryConfiguration.AsObject;
     static toObject(includeInstance: boolean, msg: ConsulUpstreamDiscoveryConfiguration): ConsulUpstreamDiscoveryConfiguration.AsObject;
@@ -600,6 +605,7 @@ export namespace SettingsSpec {
       splittlsservices: boolean,
       consistencymode: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap],
       queryOptions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.AsObject,
+      serviceTagsAllowlistList: Array<string>,
     }
   }
 

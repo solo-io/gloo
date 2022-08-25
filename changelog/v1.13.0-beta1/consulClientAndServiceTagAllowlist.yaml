@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.13.0-beta8
+    description: >
+      Bump Gloo OSS version to pick up Consul Service Tags Allowlist feature
