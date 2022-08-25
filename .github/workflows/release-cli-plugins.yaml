@@ -14,7 +14,7 @@ on:
 jobs:
   release-cli-plugins:
     name: Release CLI Plugins
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     env:
       PLUGINS_ROOT: projects/glooctl-plugins
       INDEX_DIR: ci/index

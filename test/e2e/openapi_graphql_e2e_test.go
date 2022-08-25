@@ -233,20 +233,21 @@ var _ = Describe("Graphql E2E test", func() {
 
 					By("Basic Query", func() {
 						// Queries existing pet
-						basicQuery := `{"query":"query {  getPetById(petId: 1) {tags {name } name status}}","variables":{}}`
+						basicQuery := `{"query":"query {  getPetById(petId: 1) {tags {name } name}}","variables":{}}`
 						resBody := doQuery(basicQuery)
-						Expect(resBody).To(Equal(`{"data":{"getPetById":{"tags":[{"name":"Tag 2"},{"name":"Tag 2"}],"name":"Pet 2","status":"pending"}}}`))
+						Expect(resBody).To(Equal(`{"data":{"getPetById":{"tags":[{"name":"Tag 2"},{"name":"Tag 2"}],"name":"Pet 2"}}}`))
 					})
 
 					By("Basic Mutation", func() {
 						// Creates Pet 3 via mutation and reads created pet's name
-						basicQuery := `{"query":"mutation Mutation {  addPet(petInput: {name: \"Pet 3\", id: 3, photoUrls:[\"url1\", \"url2\"] }){ name id }}","variables":{},"operationName":"Mutation"}`
+						graphqlQuery := `mutation Mutation {  addPet(petInput: {name: \"Pet 3\", id: 3, photoUrls:[\"url1\", \"url2\"], tags: []}){ name id }}`
+						basicQuery := fmt.Sprintf(`{"query":"%s","variables":{},"operationName":"Mutation"}`, graphqlQuery)
 						resBody := doQuery(basicQuery)
 						Expect(resBody).To(Equal(`{"data":{"addPet":{"name":"Pet 3","id":3}}}`))
 					})
 
 					By("Update Pet with mutation", func() {
-						updateMutation := `{"query":"mutation Mutation { updatePet(petInput: {id: 3, name: \"Cat 3\", photoUrls:[\"hi\"] })}"}`
+						updateMutation := `{"query":"mutation Mutation { updatePet(petInput: {id: 3, name: \"Cat 3\", photoUrls:[\"hi\"], tags: []})}"}`
 						doQuery(updateMutation)
 						basicQuery := `{"query":"query {  getPetById(petId: 3) { name photoUrls }}","variables":{}}`
 						resBody := doQuery(basicQuery)
@@ -284,7 +285,7 @@ func NewOpenapiBackend() http.Handler {
 			p := NewPet()
 			err := json.Unmarshal(body, p)
 			if err != nil {
-				c.String(405, "Invalid Pet JSON")
+				c.String(405, "Invalid Pet JSON: %s", err)
 				return
 			}
 			data.Pets[strconv.Itoa(p.ID)] = p
@@ -302,9 +303,6 @@ func NewOpenapiBackend() http.Handler {
 				c.String(405, "Cannot update pet with id %d because it does not exist", petUpdateMsg.ID)
 			}
 			if petUpdateMsg.Name != "" {
-				p.Name = petUpdateMsg.Name
-			}
-			if petUpdateMsg.Status != "" {
 				p.Name = petUpdateMsg.Name
 			}
 			if petUpdateMsg.PhotoURLs != nil {
@@ -333,7 +331,6 @@ func NewData() *Data {
 				ID:        0,
 				Name:      "Pet 0",
 				PhotoURLs: []string{"pet 0 url"},
-				Status:    "available",
 				Tags: []Tag{{
 					ID:   0,
 					Name: "Tag 1",
@@ -347,7 +344,6 @@ func NewData() *Data {
 				ID:        1,
 				Name:      "Pet 2",
 				PhotoURLs: []string{"pet 1 url"},
-				Status:    "pending",
 				Tags: []Tag{{
 					ID:   0,
 					Name: "Tag 2",
@@ -372,6 +368,5 @@ type Pet struct {
 	ID        int      `json:"id"`
 	Name      string   `json:"name"`
 	PhotoURLs []string `json:"photoUrls,omitempty"`
-	Status    string   `json:"status,omitempty"`
 	Tags      []Tag    `json:"tags,omitempty"`
 }

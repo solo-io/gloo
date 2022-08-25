@@ -23,6 +23,12 @@ export class UpstreamSpec extends jspb.Message {
   getRoleArn(): string;
   setRoleArn(value: string): void;
 
+  getAwsAccountId(): string;
+  setAwsAccountId(value: string): void;
+
+  getDisableRoleChaining(): boolean;
+  setDisableRoleChaining(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSpec.AsObject;
   static toObject(includeInstance: boolean, msg: UpstreamSpec): UpstreamSpec.AsObject;
@@ -39,6 +45,8 @@ export namespace UpstreamSpec {
     secretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     lambdaFunctionsList: Array<LambdaFunctionSpec.AsObject>,
     roleArn: string,
+    awsAccountId: string,
+    disableRoleChaining: boolean,
   }
 }
 

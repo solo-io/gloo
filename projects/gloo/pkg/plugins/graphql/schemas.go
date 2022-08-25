@@ -497,13 +497,6 @@ components:
         shipDate:
           type: string
           format: date-time
-        status:
-          type: string
-          description: Order Status
-          enum:
-          - placed
-          - approved
-          - delivered
         complete:
           type: boolean
           default: false
@@ -594,13 +587,6 @@ components:
             wrapped: true
           items:
             "$ref": "#/components/schemas/Tag"
-        status:
-          type: string
-          description: pet status in the store
-          enum:
-          - available
-          - pending
-          - sold
       description: A pet for sale in the pet store
       example:
         photoUrls:

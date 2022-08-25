@@ -136,6 +136,11 @@ export class UpstreamSpec extends jspb.Message {
   getHttpConnectSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig | undefined;
   setHttpConnectSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig): void;
 
+  clearHttpConnectHeadersList(): void;
+  getHttpConnectHeadersList(): Array<HeaderValue>;
+  setHttpConnectHeadersList(value: Array<HeaderValue>): void;
+  addHttpConnectHeaders(value?: HeaderValue, index?: number): HeaderValue;
+
   hasIgnoreHealthOnHostRemoval(): boolean;
   clearIgnoreHealthOnHostRemoval(): void;
   getIgnoreHealthOnHostRemoval(): google_protobuf_wrappers_pb.BoolValue | undefined;
@@ -177,6 +182,7 @@ export namespace UpstreamSpec {
     overrideStreamErrorOnInvalidHttpMessage?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     httpProxyHostname?: google_protobuf_wrappers_pb.StringValue.AsObject,
     httpConnectSslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.AsObject,
+    httpConnectHeadersList: Array<HeaderValue.AsObject>,
     ignoreHealthOnHostRemoval?: google_protobuf_wrappers_pb.BoolValue.AsObject,
   }
 
@@ -215,6 +221,30 @@ export class DiscoveryMetadata extends jspb.Message {
 export namespace DiscoveryMetadata {
   export type AsObject = {
     labelsMap: Array<[string, string]>,
+  }
+}
+
+export class HeaderValue extends jspb.Message {
+  getKey(): string;
+  setKey(value: string): void;
+
+  getValue(): string;
+  setValue(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HeaderValue.AsObject;
+  static toObject(includeInstance: boolean, msg: HeaderValue): HeaderValue.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HeaderValue, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HeaderValue;
+  static deserializeBinaryFromReader(message: HeaderValue, reader: jspb.BinaryReader): HeaderValue;
+}
+
+export namespace HeaderValue {
+  export type AsObject = {
+    key: string,
+    value: string,
   }
 }
 

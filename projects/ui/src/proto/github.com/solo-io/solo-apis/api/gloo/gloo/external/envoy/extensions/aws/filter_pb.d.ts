@@ -72,6 +72,9 @@ export class AWSLambdaProtocolExtension extends jspb.Message {
   getRoleArn(): string;
   setRoleArn(value: string): void;
 
+  getDisableRoleChaining(): boolean;
+  setDisableRoleChaining(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AWSLambdaProtocolExtension.AsObject;
   static toObject(includeInstance: boolean, msg: AWSLambdaProtocolExtension): AWSLambdaProtocolExtension.AsObject;
@@ -90,6 +93,7 @@ export namespace AWSLambdaProtocolExtension {
     secretKey: string,
     sessionToken: string,
     roleArn: string,
+    disableRoleChaining: boolean,
   }
 }
 

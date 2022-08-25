@@ -399,6 +399,11 @@ export class TransformationTemplate extends jspb.Message {
   setHeadersToAppendList(value: Array<TransformationTemplate.HeaderToAppend>): void;
   addHeadersToAppend(value?: TransformationTemplate.HeaderToAppend, index?: number): TransformationTemplate.HeaderToAppend;
 
+  clearHeadersToRemoveList(): void;
+  getHeadersToRemoveList(): Array<string>;
+  setHeadersToRemoveList(value: Array<string>): void;
+  addHeadersToRemove(value: string, index?: number): string;
+
   hasBody(): boolean;
   clearBody(): void;
   getBody(): InjaTemplate | undefined;
@@ -442,6 +447,7 @@ export namespace TransformationTemplate {
     extractorsMap: Array<[string, Extraction.AsObject]>,
     headersMap: Array<[string, InjaTemplate.AsObject]>,
     headersToAppendList: Array<TransformationTemplate.HeaderToAppend.AsObject>,
+    headersToRemoveList: Array<string>,
     body?: InjaTemplate.AsObject,
     passthrough?: Passthrough.AsObject,
     mergeExtractorsToBody?: MergeExtractorsToBody.AsObject,

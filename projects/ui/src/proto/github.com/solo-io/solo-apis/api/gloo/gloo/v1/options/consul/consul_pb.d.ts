@@ -5,6 +5,7 @@
 import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_service_spec_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/service_spec_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/consul/query_options_pb";
 
 export class UpstreamSpec extends jspb.Message {
   getServiceName(): string;
@@ -35,8 +36,13 @@ export class UpstreamSpec extends jspb.Message {
   getServiceSpec(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_service_spec_pb.ServiceSpec | undefined;
   setServiceSpec(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_service_spec_pb.ServiceSpec): void;
 
-  getConsistencymode(): UpstreamSpec.ConsulConsistencyModesMap[keyof UpstreamSpec.ConsulConsistencyModesMap];
-  setConsistencymode(value: UpstreamSpec.ConsulConsistencyModesMap[keyof UpstreamSpec.ConsulConsistencyModesMap]): void;
+  getConsistencymode(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap];
+  setConsistencymode(value: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap]): void;
+
+  hasQueryOptions(): boolean;
+  clearQueryOptions(): void;
+  getQueryOptions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions | undefined;
+  setQueryOptions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions): void;
 
   getConnectEnabled(): boolean;
   setConnectEnabled(value: boolean): void;
@@ -64,16 +70,9 @@ export namespace UpstreamSpec {
     instanceTagsList: Array<string>,
     instanceBlacklistTagsList: Array<string>,
     serviceSpec?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_service_spec_pb.ServiceSpec.AsObject,
-    consistencymode: UpstreamSpec.ConsulConsistencyModesMap[keyof UpstreamSpec.ConsulConsistencyModesMap],
+    consistencymode: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap],
+    queryOptions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.AsObject,
     connectEnabled: boolean,
     dataCentersList: Array<string>,
   }
-
-  export interface ConsulConsistencyModesMap {
-    CONSISTENTMODE: 0;
-    DEFAULTMODE: 2;
-    STALEMODE: 1;
-  }
-
-  export const ConsulConsistencyModes: ConsulConsistencyModesMap;
 }

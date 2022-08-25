@@ -389,7 +389,8 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.toObject
     accessKey: jspb.Message.getFieldWithDefault(msg, 3, ""),
     secretKey: jspb.Message.getFieldWithDefault(msg, 4, ""),
     sessionToken: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    roleArn: jspb.Message.getFieldWithDefault(msg, 6, "")
+    roleArn: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    disableRoleChaining: jspb.Message.getFieldWithDefault(msg, 7, false)
   };
 
   if (includeInstance) {
@@ -449,6 +450,10 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.deserial
     case 6:
       var value = /** @type {string} */ (reader.readString());
       msg.setRoleArn(value);
+      break;
+    case 7:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setDisableRoleChaining(value);
       break;
     default:
       reader.skipField();
@@ -518,6 +523,13 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.serializ
   if (f.length > 0) {
     writer.writeString(
       6,
+      f
+    );
+  }
+  f = message.getDisableRoleChaining();
+  if (f) {
+    writer.writeBool(
+      7,
       f
     );
   }
@@ -611,6 +623,23 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.prototyp
 /** @param {string} value */
 proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.prototype.setRoleArn = function(value) {
   jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * optional bool disable_role_chaining = 7;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.prototype.getDisableRoleChaining = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 7, false));
+};
+
+
+/** @param {boolean} value */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaProtocolExtension.prototype.setDisableRoleChaining = function(value) {
+  jspb.Message.setProto3BooleanField(this, 7, value);
 };
 
 

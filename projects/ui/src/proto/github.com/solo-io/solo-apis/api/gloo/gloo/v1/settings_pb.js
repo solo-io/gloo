@@ -24,6 +24,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_p
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_circuit_breaker_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/circuit_breaker_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_aws_filter_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/aws/filter_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/consul/query_options_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.ConsoleOptions', null, global);
@@ -41,7 +42,6 @@ goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ConsulConfiguration', null, g
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ConsulConfiguration.ServiceDiscoveryOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ConsulKv', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration', null, global);
-goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.Directory', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.DiscoveryOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.DiscoveryOptions.FdsMode', null, global);
@@ -3095,7 +3095,8 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.toObject = 
     tlstagname: jspb.Message.getFieldWithDefault(msg, 17, ""),
     rootca: (f = msg.getRootca()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     splittlsservices: jspb.Message.getFieldWithDefault(msg, 19, false),
-    consistencymode: jspb.Message.getFieldWithDefault(msg, 20, 0)
+    consistencymode: jspb.Message.getFieldWithDefault(msg, 20, 0),
+    queryOptions: (f = msg.getQueryOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3150,8 +3151,13 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.deserialize
       msg.setSplittlsservices(value);
       break;
     case 20:
-      var value = /** @type {!proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes} */ (reader.readEnum());
+      var value = /** @type {!proto.consul.options.gloo.solo.io.ConsulConsistencyModes} */ (reader.readEnum());
       msg.setConsistencymode(value);
+      break;
+    case 21:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.deserializeBinaryFromReader);
+      msg.setQueryOptions(value);
       break;
     default:
       reader.skipField();
@@ -3218,17 +3224,16 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.serializeBi
       f
     );
   }
+  f = message.getQueryOptions();
+  if (f != null) {
+    writer.writeMessage(
+      21,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.serializeBinaryToWriter
+    );
+  }
 };
 
-
-/**
- * @enum {number}
- */
-proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes = {
-  CONSISTENTMODE: 0,
-  DEFAULTMODE: 2,
-  STALEMODE: 1
-};
 
 /**
  * optional bool useTlsTagging = 16;
@@ -3310,17 +3315,47 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.s
 
 
 /**
- * optional ConsulConsistencyModes consistencyMode = 20;
- * @return {!proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes}
+ * optional consul.options.gloo.solo.io.ConsulConsistencyModes consistencyMode = 20;
+ * @return {!proto.consul.options.gloo.solo.io.ConsulConsistencyModes}
  */
 proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.getConsistencymode = function() {
-  return /** @type {!proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes} */ (jspb.Message.getFieldWithDefault(this, 20, 0));
+  return /** @type {!proto.consul.options.gloo.solo.io.ConsulConsistencyModes} */ (jspb.Message.getFieldWithDefault(this, 20, 0));
 };
 
 
-/** @param {!proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModes} value */
+/** @param {!proto.consul.options.gloo.solo.io.ConsulConsistencyModes} value */
 proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.setConsistencymode = function(value) {
   jspb.Message.setProto3EnumField(this, 20, value);
+};
+
+
+/**
+ * optional consul.options.gloo.solo.io.QueryOptions query_options = 21;
+ * @return {?proto.consul.options.gloo.solo.io.QueryOptions}
+ */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.getQueryOptions = function() {
+  return /** @type{?proto.consul.options.gloo.solo.io.QueryOptions} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions, 21));
+};
+
+
+/** @param {?proto.consul.options.gloo.solo.io.QueryOptions|undefined} value */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.setQueryOptions = function(value) {
+  jspb.Message.setWrapperField(this, 21, value);
+};
+
+
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.clearQueryOptions = function() {
+  this.setQueryOptions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.hasQueryOptions = function() {
+  return jspb.Message.getField(this, 21) != null;
 };
 
 

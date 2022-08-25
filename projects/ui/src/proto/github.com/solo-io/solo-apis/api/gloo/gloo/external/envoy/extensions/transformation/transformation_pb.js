@@ -2723,7 +2723,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.envoy.api.v2.filter.http.TransformationTemplate.repeatedFields_ = [10,9];
+proto.envoy.api.v2.filter.http.TransformationTemplate.repeatedFields_ = [10,11,9];
 
 /**
  * Oneof group definitions for this message. Each group defines the field
@@ -2786,6 +2786,7 @@ proto.envoy.api.v2.filter.http.TransformationTemplate.toObject = function(includ
     headersMap: (f = msg.getHeadersMap()) ? f.toObject(includeInstance, proto.envoy.api.v2.filter.http.InjaTemplate.toObject) : [],
     headersToAppendList: jspb.Message.toObjectList(msg.getHeadersToAppendList(),
     proto.envoy.api.v2.filter.http.TransformationTemplate.HeaderToAppend.toObject, includeInstance),
+    headersToRemoveList: jspb.Message.getRepeatedField(msg, 11),
     body: (f = msg.getBody()) && proto.envoy.api.v2.filter.http.InjaTemplate.toObject(includeInstance, f),
     passthrough: (f = msg.getPassthrough()) && proto.envoy.api.v2.filter.http.Passthrough.toObject(includeInstance, f),
     mergeExtractorsToBody: (f = msg.getMergeExtractorsToBody()) && proto.envoy.api.v2.filter.http.MergeExtractorsToBody.toObject(includeInstance, f),
@@ -2849,6 +2850,10 @@ proto.envoy.api.v2.filter.http.TransformationTemplate.deserializeBinaryFromReade
       var value = new proto.envoy.api.v2.filter.http.TransformationTemplate.HeaderToAppend;
       reader.readMessage(value,proto.envoy.api.v2.filter.http.TransformationTemplate.HeaderToAppend.deserializeBinaryFromReader);
       msg.addHeadersToAppend(value);
+      break;
+    case 11:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addHeadersToRemove(value);
       break;
     case 4:
       var value = new proto.envoy.api.v2.filter.http.InjaTemplate;
@@ -2928,6 +2933,13 @@ proto.envoy.api.v2.filter.http.TransformationTemplate.serializeBinaryToWriter = 
       10,
       f,
       proto.envoy.api.v2.filter.http.TransformationTemplate.HeaderToAppend.serializeBinaryToWriter
+    );
+  }
+  f = message.getHeadersToRemoveList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      11,
+      f
     );
   }
   f = message.getBody();
@@ -3467,6 +3479,35 @@ proto.envoy.api.v2.filter.http.TransformationTemplate.prototype.addHeadersToAppe
 
 proto.envoy.api.v2.filter.http.TransformationTemplate.prototype.clearHeadersToAppendList = function() {
   this.setHeadersToAppendList([]);
+};
+
+
+/**
+ * repeated string headers_to_remove = 11;
+ * @return {!Array<string>}
+ */
+proto.envoy.api.v2.filter.http.TransformationTemplate.prototype.getHeadersToRemoveList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 11));
+};
+
+
+/** @param {!Array<string>} value */
+proto.envoy.api.v2.filter.http.TransformationTemplate.prototype.setHeadersToRemoveList = function(value) {
+  jspb.Message.setField(this, 11, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.envoy.api.v2.filter.http.TransformationTemplate.prototype.addHeadersToRemove = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 11, value, opt_index);
+};
+
+
+proto.envoy.api.v2.filter.http.TransformationTemplate.prototype.clearHeadersToRemoveList = function() {
+  this.setHeadersToRemoveList([]);
 };
 
 

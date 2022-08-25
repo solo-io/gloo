@@ -39,6 +39,7 @@ const getMockUpstream = (args: any) => {
   const upstream = createUpstream({
     spec: {
       healthChecksList: [],
+      httpConnectHeadersList: [],
       protocolSelection:
         UpstreamSpec.ClusterProtocolSelection.USE_CONFIGURED_PROTOCOL,
       aws: {
@@ -55,6 +56,8 @@ const getMockUpstream = (args: any) => {
           name: 'test-secret',
           namespace: 'test-secret-namespace',
         },
+        awsAccountId: "",
+        disableRoleChaining: false,
       },
       sslConfig: {
         alpnProtocolsList: [],

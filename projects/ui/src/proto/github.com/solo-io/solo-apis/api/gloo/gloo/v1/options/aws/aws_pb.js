@@ -76,7 +76,9 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance,
     secretRef: (f = msg.getSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     lambdaFunctionsList: jspb.Message.toObjectList(msg.getLambdaFunctionsList(),
     proto.aws.options.gloo.solo.io.LambdaFunctionSpec.toObject, includeInstance),
-    roleArn: jspb.Message.getFieldWithDefault(msg, 4, "")
+    roleArn: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    awsAccountId: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    disableRoleChaining: jspb.Message.getFieldWithDefault(msg, 6, false)
   };
 
   if (includeInstance) {
@@ -130,6 +132,14 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = functi
     case 4:
       var value = /** @type {string} */ (reader.readString());
       msg.setRoleArn(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAwsAccountId(value);
+      break;
+    case 6:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setDisableRoleChaining(value);
       break;
     default:
       reader.skipField();
@@ -187,6 +197,20 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(m
   if (f.length > 0) {
     writer.writeString(
       4,
+      f
+    );
+  }
+  f = message.getAwsAccountId();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = message.getDisableRoleChaining();
+  if (f) {
+    writer.writeBool(
+      6,
       f
     );
   }
@@ -281,6 +305,38 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.getRoleArn = function() {
 /** @param {string} value */
 proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.setRoleArn = function(value) {
   jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional string aws_account_id = 5;
+ * @return {string}
+ */
+proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.getAwsAccountId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/** @param {string} value */
+proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.setAwsAccountId = function(value) {
+  jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * optional bool disable_role_chaining = 6;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.getDisableRoleChaining = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
+};
+
+
+/** @param {boolean} value */
+proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.setDisableRoleChaining = function(value) {
+  jspb.Message.setProto3BooleanField(this, 6, value);
 };
 
 

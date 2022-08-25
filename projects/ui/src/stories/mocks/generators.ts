@@ -834,6 +834,7 @@ export const createUpstreamSpec = (
 ): UpstreamSpec.AsObject => {
   return {
     healthChecksList: [],
+    httpConnectHeadersList: [],
     protocolSelection:
       UpstreamSpec.ClusterProtocolSelection.USE_CONFIGURED_PROTOCOL,
     ...meta,

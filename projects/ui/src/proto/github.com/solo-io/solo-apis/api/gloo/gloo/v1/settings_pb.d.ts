@@ -15,6 +15,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rba
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_circuit_breaker_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/circuit_breaker_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_aws_filter_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/aws/filter_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/consul/query_options_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
@@ -573,8 +574,13 @@ export namespace SettingsSpec {
     getSplittlsservices(): boolean;
     setSplittlsservices(value: boolean): void;
 
-    getConsistencymode(): SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap[keyof SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap];
-    setConsistencymode(value: SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap[keyof SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap]): void;
+    getConsistencymode(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap];
+    setConsistencymode(value: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap]): void;
+
+    hasQueryOptions(): boolean;
+    clearQueryOptions(): void;
+    getQueryOptions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions | undefined;
+    setQueryOptions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ConsulUpstreamDiscoveryConfiguration.AsObject;
@@ -592,16 +598,9 @@ export namespace SettingsSpec {
       tlstagname: string,
       rootca?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
       splittlsservices: boolean,
-      consistencymode: SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap[keyof SettingsSpec.ConsulUpstreamDiscoveryConfiguration.ConsulConsistencyModesMap],
+      consistencymode: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap],
+      queryOptions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.AsObject,
     }
-
-    export interface ConsulConsistencyModesMap {
-      CONSISTENTMODE: 0;
-      DEFAULTMODE: 2;
-      STALEMODE: 1;
-    }
-
-    export const ConsulConsistencyModes: ConsulConsistencyModesMap;
   }
 
   export class KubernetesConfiguration extends jspb.Message {
