@@ -5,8 +5,8 @@ Name|Version|License
 [aws/aws-sdk-go](https://github.com/aws/aws-sdk-go)|v1.43.16|Apache License 2.0
 [deislabs/oras](https://github.com/deislabs/oras)|v0.11.1|MIT License
 [docker/distribution](https://github.com/docker/distribution)|v2.7.1+incompatible|Apache License 2.0
-[envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.10.2-0.20220325020618-49ff273808a1|Apache License 2.0
-[envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v0.6.2|Apache License 2.0
+[envoyproxy/go-control-plane](https://github.com/envoyproxy/go-control-plane)|v0.10.3|Apache License 2.0
+[envoyproxy/protoc-gen-validate](https://github.com/envoyproxy/protoc-gen-validate)|v0.6.7|Apache License 2.0
 [fgrosse/zaptest](https://github.com/fgrosse/zaptest)|v1.1.0|MIT License
 [form3tech-oss/jwt-go](https://github.com/form3tech-oss/jwt-go)|v3.2.3+incompatible|MIT License
 [gertd/go-pluralize](https://github.com/gertd/go-pluralize)|v0.1.1|MIT License

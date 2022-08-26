@@ -8,8 +8,8 @@ require (
 	github.com/aws/aws-sdk-go v1.43.16
 	github.com/deislabs/oras v0.11.1
 	github.com/docker/distribution v2.7.1+incompatible
-	github.com/envoyproxy/go-control-plane v0.10.2-0.20220325020618-49ff273808a1
-	github.com/envoyproxy/protoc-gen-validate v0.6.2
+	github.com/envoyproxy/go-control-plane v0.10.3
+	github.com/envoyproxy/protoc-gen-validate v0.6.7
 	github.com/fgrosse/zaptest v1.1.0
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
 	github.com/gertd/go-pluralize v0.1.1
@@ -47,8 +47,8 @@ require (
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.23.0
-	github.com/solo-io/external-apis v0.1.11
-	github.com/solo-io/gloo v1.13.0-beta8
+	github.com/solo-io/external-apis v0.1.12-0.20220818213511-97f5ab3a6898
+	github.com/solo-io/gloo v1.13.0-beta9
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.22.1
 	github.com/solo-io/k8s-utils v0.1.0
@@ -58,7 +58,7 @@ require (
 	github.com/solo-io/rate-limiter v0.7.2
 	github.com/solo-io/skv2 v0.22.15
 	github.com/solo-io/skv2-enterprise v0.2.8
-	github.com/solo-io/solo-apis v0.0.0-20220825200524-5483d9a2fac0
+	github.com/solo-io/solo-apis v0.0.0-20220826152447-99bd85e22283
 	github.com/solo-io/solo-kit v0.30.2
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -119,7 +119,6 @@ require (
 	github.com/agnivade/levenshtein v1.0.1 // indirect
 	github.com/armon/go-metrics v0.3.11 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
-	github.com/aws/aws-app-mesh-controller-for-k8s v1.1.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/bshuster-repo/logrus-logstash-hook v1.0.2 // indirect
@@ -133,6 +132,7 @@ require (
 	github.com/cockroachdb/apd/v2 v2.0.1 // indirect
 	github.com/containerd/cgroups v1.0.2 // indirect
 	github.com/containerd/containerd v1.6.6 // indirect
+	github.com/containerd/continuity v0.1.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/daviddengcn/go-colortext v0.0.0-20160507010035-511bcaf42ccd // indirect
@@ -290,7 +290,6 @@ require (
 	github.com/sahilm/fuzzy v0.1.0 // indirect
 	github.com/schollz/progressbar/v3 v3.7.4 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
-	github.com/servicemeshinterface/smi-sdk-go v0.4.1 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/solo-io/cue v0.4.3 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
@@ -340,7 +339,6 @@ require (
 	istio.io/api v0.0.0-20211130000055-e9d1de18c118 // indirect
 	istio.io/client-go v1.12.0-alpha.5.0.20211124144007-2c98ed70c967 // indirect
 	istio.io/gogo-genproto v0.0.0-20211111171331-7926fce33bb3 // indirect
-	istio.io/istio v0.0.0-20211130191315-d9963eecf782 // indirect
 	k8s.io/apiserver v0.22.4 // indirect
 	k8s.io/cli-runtime v0.22.4 // indirect
 	k8s.io/component-base v0.23.5 // indirect
@@ -370,7 +368,6 @@ replace (
 	github.com/go-logr/logr => github.com/go-logr/logr v0.4.0
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 	github.com/open-policy-agent/opa => github.com/open-policy-agent/opa v0.42.0
-
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.0-rc1
 	// skv2 uses a newer version than the imported solo-kit version which causes issues. Replaces the version with the solo-kit version
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0

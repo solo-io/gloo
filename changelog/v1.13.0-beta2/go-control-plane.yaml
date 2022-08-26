@@ -1,0 +1,22 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.13.0-beta9
+    description: >
+      Bump Gloo OSS version to pick up recent changes, including a fix to rewrite hosts for destinations that are part of the 
+      service mesh when running with Istio sidecars.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: external-apis
+    dependencyTag: gloo-v0.1.12
+    issueLink: https://github.com/solo-io/solo-projects/issues/3946
+    resolvesIssue: true
+    description: >
+      Move to the edge-specific branch of external-apis to avoid conflicting dependencies.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: envoyproxy
+    dependencyRepo: go-control-plane
+    dependencyTag: v0.10.3
+    description: >
+      Pull in the latest envoy go-control-plane to allow us to support new Envoy features including the X-forwarded-host header.
