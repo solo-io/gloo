@@ -147,11 +147,12 @@ func (f *federatedUpstreamReconciler) ensureCluster(cluster string, statusBuilde
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to get clientset", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToCreateClientForCluster(cluster),
 		})
-		return nil
+		return err
 	}
 
 	upstreamClient := clientset.Upstreams()
@@ -163,11 +164,12 @@ func (f *federatedUpstreamReconciler) ensureCluster(cluster string, statusBuilde
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list upstreams", zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("upstream", cluster),
 		})
-		return nil
+		return err
 	}
 
 	existing := gloo_solo_io_v1_sets.NewUpstreamSet()
@@ -365,11 +367,12 @@ func (f *federatedUpstreamGroupReconciler) ensureCluster(cluster string, statusB
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to get clientset", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToCreateClientForCluster(cluster),
 		})
-		return nil
+		return err
 	}
 
 	upstreamGroupClient := clientset.UpstreamGroups()
@@ -381,11 +384,12 @@ func (f *federatedUpstreamGroupReconciler) ensureCluster(cluster string, statusB
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list upstreamGroups", zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("upstreamGroup", cluster),
 		})
-		return nil
+		return err
 	}
 
 	existing := gloo_solo_io_v1_sets.NewUpstreamGroupSet()
@@ -583,11 +587,12 @@ func (f *federatedSettingsReconciler) ensureCluster(cluster string, statusBuilde
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to get clientset", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToCreateClientForCluster(cluster),
 		})
-		return nil
+		return err
 	}
 
 	settingsClient := clientset.Settings()
@@ -599,11 +604,12 @@ func (f *federatedSettingsReconciler) ensureCluster(cluster string, statusBuilde
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list settingss", zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("settings", cluster),
 		})
-		return nil
+		return err
 	}
 
 	existing := gloo_solo_io_v1_sets.NewSettingsSet()

@@ -155,11 +155,12 @@ func (f *{{ $kindLowerCamel }}Reconciler) ensureCluster(cluster string, statusBu
             namespaces = append(namespaces, obj.GetNamespace())
         }
 
+        contextutils.LoggerFrom(f.ctx).Errorw("Failed to get clientset", zap.String("cluster", cluster), zap.Error(err))
         statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
             State:   mc_types.PlacementStatus_FAILED,
             Message: placement.FailedToCreateClientForCluster(cluster),
         })
-        return nil
+        return err
     }
 
     {{ $baseKindLowerCamel }}Client := clientset.{{ pluralize $baseKind }}()
@@ -171,11 +172,12 @@ func (f *{{ $kindLowerCamel }}Reconciler) ensureCluster(cluster string, statusBu
             namespaces = append(namespaces, obj.GetNamespace())
         }
 
+        contextutils.LoggerFrom(f.ctx).Errorw("Failed to list {{ $baseKindLowerCamel }}s", zap.Error(err))
         statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
             State:   mc_types.PlacementStatus_FAILED,
             Message: placement.FailedToListResource("{{ $baseKindLowerCamel }}", cluster),
         })
-        return nil
+        return err
     }
 
     existing := {{ $base_import_prefix }}_sets.New{{ $baseKind }}Set()
