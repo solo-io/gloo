@@ -55,7 +55,7 @@ require (
 	github.com/solo-io/licensing v0.2.0
 	github.com/solo-io/protoc-gen-ext v0.0.16
 	github.com/solo-io/protoc-gen-openapi v0.1.0
-	github.com/solo-io/rate-limiter v0.7.0
+	github.com/solo-io/rate-limiter v0.7.2
 	github.com/solo-io/skv2 v0.22.15
 	github.com/solo-io/skv2-enterprise v0.2.8
 	github.com/solo-io/solo-apis v0.0.0-20220825200524-5483d9a2fac0
@@ -115,6 +115,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
+	github.com/aerospike/aerospike-client-go v4.5.2+incompatible // indirect
 	github.com/agnivade/levenshtein v1.0.1 // indirect
 	github.com/armon/go-metrics v0.3.11 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
@@ -307,6 +308,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca // indirect
 	github.com/yashtewari/glob-intersection v0.1.0 // indirect
+	github.com/yuin/gopher-lua v0.0.0-20220504180219-658193537a64 // indirect
 	github.com/yvasiyarov/newrelic_platform_go v0.0.0-20160601141957-9c099fbc30e9 // indirect
 	go.mongodb.org/mongo-driver v1.8.2 // indirect
 	go.opentelemetry.io/proto/otlp v0.16.0 // indirect
