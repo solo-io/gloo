@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7024
+    description: Add more logging on Gloo Fed reconcile errors, and ensure it retries on failures.
+    resolvesIssue: false

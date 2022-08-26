@@ -147,11 +147,12 @@ func (f *federatedRateLimitConfigReconciler) ensureCluster(cluster string, statu
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to get clientset", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToCreateClientForCluster(cluster),
 		})
-		return nil
+		return err
 	}
 
 	rateLimitConfigClient := clientset.RateLimitConfigs()
@@ -163,11 +164,12 @@ func (f *federatedRateLimitConfigReconciler) ensureCluster(cluster string, statu
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list rateLimitConfigs", zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("rateLimitConfig", cluster),
 		})
-		return nil
+		return err
 	}
 
 	existing := ratelimit_solo_io_v1alpha1_sets.NewRateLimitConfigSet()

@@ -147,11 +147,12 @@ func (f *federatedGatewayReconciler) ensureCluster(cluster string, statusBuilder
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to get clientset", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToCreateClientForCluster(cluster),
 		})
-		return nil
+		return err
 	}
 
 	gatewayClient := clientset.Gateways()
@@ -163,11 +164,12 @@ func (f *federatedGatewayReconciler) ensureCluster(cluster string, statusBuilder
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list gateways", zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("gateway", cluster),
 		})
-		return nil
+		return err
 	}
 
 	existing := gateway_solo_io_v1_sets.NewGatewaySet()
@@ -366,11 +368,12 @@ func (f *federatedMatchableHttpGatewayReconciler) ensureCluster(cluster string, 
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to get clientset", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToCreateClientForCluster(cluster),
 		})
-		return nil
+		return err
 	}
 
 	matchableHttpGatewayClient := clientset.MatchableHttpGateways()
@@ -382,11 +385,12 @@ func (f *federatedMatchableHttpGatewayReconciler) ensureCluster(cluster string, 
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list matchableHttpGateways", zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("matchableHttpGateway", cluster),
 		})
-		return nil
+		return err
 	}
 
 	existing := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
@@ -585,11 +589,12 @@ func (f *federatedVirtualServiceReconciler) ensureCluster(cluster string, status
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to get clientset", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToCreateClientForCluster(cluster),
 		})
-		return nil
+		return err
 	}
 
 	virtualServiceClient := clientset.VirtualServices()
@@ -601,11 +606,12 @@ func (f *federatedVirtualServiceReconciler) ensureCluster(cluster string, status
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list virtualServices", zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("virtualService", cluster),
 		})
-		return nil
+		return err
 	}
 
 	existing := gateway_solo_io_v1_sets.NewVirtualServiceSet()
@@ -804,11 +810,12 @@ func (f *federatedRouteTableReconciler) ensureCluster(cluster string, statusBuil
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to get clientset", zap.String("cluster", cluster), zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToCreateClientForCluster(cluster),
 		})
-		return nil
+		return err
 	}
 
 	routeTableClient := clientset.RouteTables()
@@ -820,11 +827,12 @@ func (f *federatedRouteTableReconciler) ensureCluster(cluster string, statusBuil
 			namespaces = append(namespaces, obj.GetNamespace())
 		}
 
+		contextutils.LoggerFrom(f.ctx).Errorw("Failed to list routeTables", zap.Error(err))
 		statusBuilder.AddDestinations([]string{cluster}, namespaces, mc_types.PlacementStatus_Namespace{
 			State:   mc_types.PlacementStatus_FAILED,
 			Message: placement.FailedToListResource("routeTable", cluster),
 		})
-		return nil
+		return err
 	}
 
 	existing := gateway_solo_io_v1_sets.NewRouteTableSet()
