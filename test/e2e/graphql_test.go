@@ -300,7 +300,7 @@ var _ = Describe("graphql", func() {
 			err = envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
-			query = `{"query":"{f:field1(intArg: 2, boolArg: true, floatArg: 9.99993, stringArg: \"this is a string arg\", mapArg: {a: 9}, listArg: [21,22,23]){simple}}","variables":{}}`
+			query = `{"query":"{ f:field1(intArg:2,boolArg:true,floatArg:9.99993,stringArg:\"this is a string arg\",mapArg:{a: 9},listArg:[21, 22, 23]){ simple } }","variables":{}}`
 
 			restUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "{\"simple\":\"foo\"}")
 			_, err = testClients.UpstreamClient.Write(restUpstream.Upstream, clients.WriteOpts{})
@@ -536,7 +536,7 @@ var _ = Describe("graphql", func() {
 			Context("allowlist", func() {
 				Context("allowed", func() {
 					BeforeEach(func() {
-						graphqlApi.AllowedQueryHashes = []string{"075f4c9392a098f9b6d4e45fa87551d461edc7eedbc67b604bedc1cb9c854692"}
+						graphqlApi.AllowedQueryHashes = []string{"e8e63b05d9abdda2c41e94596b08d54090e0c5f16e56cf51e4a9348a64df48bf"}
 					})
 
 					It("resolves allowed graphql queries", func() {
@@ -553,7 +553,7 @@ var _ = Describe("graphql", func() {
 						graphqlApi.AllowedQueryHashes = []string{"hashnotfound"}
 					})
 					It("denies disallowed query hashes", func() {
-						testRequest(`{"errors":[{"message":"hash 075f4c9392a098f9b6d4e45fa87551d461edc7eedbc67b604bedc1cb9c854692 not found in allowlist for query: '{f:field1(intArg: 2, boolArg: true, floatArg: 9.99993, stringArg: \"this is a string arg\", mapArg: {a: 9}, listArg: [21,22,23]){simple}}'"}]}`)
+						testRequest(`{"errors":[{"message":"hash e8e63b05d9abdda2c41e94596b08d54090e0c5f16e56cf51e4a9348a64df48bf not found in allowlist for query: '{ f:field1(intArg:2,boolArg:true,floatArg:9.99993,stringArg:\"this is a string arg\",mapArg:{a: 9},listArg:[21, 22, 23]){ simple } }'"}]}`)
 					})
 				})
 			})

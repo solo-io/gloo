@@ -1,0 +1,11 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: envoy-gloo-ee
+    dependencyRepo: solo-io
+    dependencyTag: v1.23.0-patch7
+  - type: FIX
+    description: |
+     Upgrade envoy-gloo version to fix https://github.com/solo-io/gloo/issues/7023
+     and lambda sts hardening.
+
+    issueLink: https://github.com/solo-io/gloo/issues/6912
