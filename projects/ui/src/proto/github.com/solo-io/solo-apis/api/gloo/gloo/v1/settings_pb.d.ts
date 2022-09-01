@@ -587,6 +587,11 @@ export namespace SettingsSpec {
     setServiceTagsAllowlistList(value: Array<string>): void;
     addServiceTagsAllowlist(value: string, index?: number): string;
 
+    hasEdsBlockingQueries(): boolean;
+    clearEdsBlockingQueries(): void;
+    getEdsBlockingQueries(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setEdsBlockingQueries(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ConsulUpstreamDiscoveryConfiguration.AsObject;
     static toObject(includeInstance: boolean, msg: ConsulUpstreamDiscoveryConfiguration): ConsulUpstreamDiscoveryConfiguration.AsObject;
@@ -606,6 +611,7 @@ export namespace SettingsSpec {
       consistencymode: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.ConsulConsistencyModesMap],
       queryOptions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.AsObject,
       serviceTagsAllowlistList: Array<string>,
+      edsBlockingQueries?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     }
   }
 

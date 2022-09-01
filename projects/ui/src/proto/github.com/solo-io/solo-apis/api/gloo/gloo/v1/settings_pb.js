@@ -3104,7 +3104,8 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.toObject = 
     splittlsservices: jspb.Message.getFieldWithDefault(msg, 19, false),
     consistencymode: jspb.Message.getFieldWithDefault(msg, 20, 0),
     queryOptions: (f = msg.getQueryOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb.QueryOptions.toObject(includeInstance, f),
-    serviceTagsAllowlistList: jspb.Message.getRepeatedField(msg, 22)
+    serviceTagsAllowlistList: jspb.Message.getRepeatedField(msg, 22),
+    edsBlockingQueries: (f = msg.getEdsBlockingQueries()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3170,6 +3171,11 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.deserialize
     case 22:
       var value = /** @type {string} */ (reader.readString());
       msg.addServiceTagsAllowlist(value);
+      break;
+    case 23:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setEdsBlockingQueries(value);
       break;
     default:
       reader.skipField();
@@ -3249,6 +3255,14 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.serializeBi
     writer.writeRepeatedString(
       22,
       f
+    );
+  }
+  f = message.getEdsBlockingQueries();
+  if (f != null) {
+    writer.writeMessage(
+      23,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -3404,6 +3418,36 @@ proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.a
 
 proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.clearServiceTagsAllowlistList = function() {
   this.setServiceTagsAllowlistList([]);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue eds_blocking_queries = 23;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.getEdsBlockingQueries = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 23));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.setEdsBlockingQueries = function(value) {
+  jspb.Message.setWrapperField(this, 23, value);
+};
+
+
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.clearEdsBlockingQueries = function() {
+  this.setEdsBlockingQueries(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SettingsSpec.ConsulUpstreamDiscoveryConfiguration.prototype.hasEdsBlockingQueries = function() {
+  return jspb.Message.getField(this, 23) != null;
 };
 
 

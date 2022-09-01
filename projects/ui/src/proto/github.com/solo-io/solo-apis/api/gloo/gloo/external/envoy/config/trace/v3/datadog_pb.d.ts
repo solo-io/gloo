@@ -3,6 +3,7 @@
 // file: github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/trace/v3/datadog.proto
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as udpa_annotations_migrate_pb from "../../../../../../../../../../../udpa/annotations/migrate_pb";
 import * as udpa_annotations_status_pb from "../../../../../../../../../../../udpa/annotations/status_pb";
 import * as udpa_annotations_versioning_pb from "../../../../../../../../../../../udpa/annotations/versioning_pb";
@@ -21,8 +22,10 @@ export class DatadogConfig extends jspb.Message {
   getClusterName(): string;
   setClusterName(value: string): void;
 
-  getServiceName(): string;
-  setServiceName(value: string): void;
+  hasServiceName(): boolean;
+  clearServiceName(): void;
+  getServiceName(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setServiceName(value?: google_protobuf_wrappers_pb.StringValue): void;
 
   getCollectorClusterCase(): DatadogConfig.CollectorClusterCase;
   serializeBinary(): Uint8Array;
@@ -39,7 +42,7 @@ export namespace DatadogConfig {
   export type AsObject = {
     collectorUpstreamRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     clusterName: string,
-    serviceName: string,
+    serviceName?: google_protobuf_wrappers_pb.StringValue.AsObject,
   }
 
   export enum CollectorClusterCase {

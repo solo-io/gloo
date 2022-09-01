@@ -12,12 +12,14 @@ import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../..
 
 export class ListenerTracingSettings extends jspb.Message {
   clearRequestHeadersForTagsList(): void;
-  getRequestHeadersForTagsList(): Array<string>;
-  setRequestHeadersForTagsList(value: Array<string>): void;
-  addRequestHeadersForTags(value: string, index?: number): string;
+  getRequestHeadersForTagsList(): Array<google_protobuf_wrappers_pb.StringValue>;
+  setRequestHeadersForTagsList(value: Array<google_protobuf_wrappers_pb.StringValue>): void;
+  addRequestHeadersForTags(value?: google_protobuf_wrappers_pb.StringValue, index?: number): google_protobuf_wrappers_pb.StringValue;
 
-  getVerbose(): boolean;
-  setVerbose(value: boolean): void;
+  hasVerbose(): boolean;
+  clearVerbose(): void;
+  getVerbose(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setVerbose(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasTracePercentages(): boolean;
   clearTracePercentages(): void;
@@ -57,8 +59,8 @@ export class ListenerTracingSettings extends jspb.Message {
 
 export namespace ListenerTracingSettings {
   export type AsObject = {
-    requestHeadersForTagsList: Array<string>,
-    verbose: boolean,
+    requestHeadersForTagsList: Array<google_protobuf_wrappers_pb.StringValue.AsObject>,
+    verbose?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     tracePercentages?: TracePercentages.AsObject,
     zipkinConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig.AsObject,
     datadogConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_datadog_pb.DatadogConfig.AsObject,
@@ -140,14 +142,20 @@ export namespace TracePercentages {
 }
 
 export class TracingTagEnvironmentVariable extends jspb.Message {
-  getTag(): string;
-  setTag(value: string): void;
+  hasTag(): boolean;
+  clearTag(): void;
+  getTag(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setTag(value?: google_protobuf_wrappers_pb.StringValue): void;
 
-  getName(): string;
-  setName(value: string): void;
+  hasName(): boolean;
+  clearName(): void;
+  getName(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setName(value?: google_protobuf_wrappers_pb.StringValue): void;
 
-  getDefaultValue(): string;
-  setDefaultValue(value: string): void;
+  hasDefaultValue(): boolean;
+  clearDefaultValue(): void;
+  getDefaultValue(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setDefaultValue(value?: google_protobuf_wrappers_pb.StringValue): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TracingTagEnvironmentVariable.AsObject;
@@ -161,18 +169,22 @@ export class TracingTagEnvironmentVariable extends jspb.Message {
 
 export namespace TracingTagEnvironmentVariable {
   export type AsObject = {
-    tag: string,
-    name: string,
-    defaultValue: string,
+    tag?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    name?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    defaultValue?: google_protobuf_wrappers_pb.StringValue.AsObject,
   }
 }
 
 export class TracingTagLiteral extends jspb.Message {
-  getTag(): string;
-  setTag(value: string): void;
+  hasTag(): boolean;
+  clearTag(): void;
+  getTag(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setTag(value?: google_protobuf_wrappers_pb.StringValue): void;
 
-  getValue(): string;
-  setValue(value: string): void;
+  hasValue(): boolean;
+  clearValue(): void;
+  getValue(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setValue(value?: google_protobuf_wrappers_pb.StringValue): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): TracingTagLiteral.AsObject;
@@ -186,7 +198,7 @@ export class TracingTagLiteral extends jspb.Message {
 
 export namespace TracingTagLiteral {
   export type AsObject = {
-    tag: string,
-    value: string,
+    tag?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    value?: google_protobuf_wrappers_pb.StringValue.AsObject,
   }
 }

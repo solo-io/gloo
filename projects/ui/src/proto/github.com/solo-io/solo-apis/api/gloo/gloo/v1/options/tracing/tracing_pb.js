@@ -103,8 +103,9 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.toObject = 
  */
 proto.tracing.options.gloo.solo.io.ListenerTracingSettings.toObject = function(includeInstance, msg) {
   var f, obj = {
-    requestHeadersForTagsList: jspb.Message.getRepeatedField(msg, 1),
-    verbose: jspb.Message.getFieldWithDefault(msg, 2, false),
+    requestHeadersForTagsList: jspb.Message.toObjectList(msg.getRequestHeadersForTagsList(),
+    google_protobuf_wrappers_pb.StringValue.toObject, includeInstance),
+    verbose: (f = msg.getVerbose()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     tracePercentages: (f = msg.getTracePercentages()) && proto.tracing.options.gloo.solo.io.TracePercentages.toObject(includeInstance, f),
     zipkinConfig: (f = msg.getZipkinConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig.toObject(includeInstance, f),
     datadogConfig: (f = msg.getDatadogConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_datadog_pb.DatadogConfig.toObject(includeInstance, f),
@@ -149,11 +150,13 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.deserializeBinaryFrom
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.addRequestHeadersForTags(value);
       break;
     case 2:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setVerbose(value);
       break;
     case 3:
@@ -212,16 +215,18 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.serializeBinaryToWrit
   var f = undefined;
   f = message.getRequestHeadersForTagsList();
   if (f.length > 0) {
-    writer.writeRepeatedString(
+    writer.writeRepeatedMessage(
       1,
-      f
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
   f = message.getVerbose();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getTracePercentages();
@@ -268,26 +273,28 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.serializeBinaryToWrit
 
 
 /**
- * repeated string request_headers_for_tags = 1;
- * @return {!Array<string>}
+ * repeated google.protobuf.StringValue request_headers_for_tags = 1;
+ * @return {!Array<!proto.google.protobuf.StringValue>}
  */
 proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.getRequestHeadersForTagsList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
+  return /** @type{!Array<!proto.google.protobuf.StringValue>} */ (
+    jspb.Message.getRepeatedWrapperField(this, google_protobuf_wrappers_pb.StringValue, 1));
 };
 
 
-/** @param {!Array<string>} value */
+/** @param {!Array<!proto.google.protobuf.StringValue>} value */
 proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.setRequestHeadersForTagsList = function(value) {
-  jspb.Message.setField(this, 1, value || []);
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
 
 /**
- * @param {!string} value
+ * @param {!proto.google.protobuf.StringValue=} opt_value
  * @param {number=} opt_index
+ * @return {!proto.google.protobuf.StringValue}
  */
-proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.addRequestHeadersForTags = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 1, value, opt_index);
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.addRequestHeadersForTags = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.google.protobuf.StringValue, opt_index);
 };
 
 
@@ -297,19 +304,32 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.clearReques
 
 
 /**
- * optional bool verbose = 2;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * optional google.protobuf.BoolValue verbose = 2;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.getVerbose = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 2, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 2));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.setVerbose = function(value) {
-  jspb.Message.setProto3BooleanField(this, 2, value);
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.clearVerbose = function() {
+  this.setVerbose(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.hasVerbose = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -989,9 +1009,9 @@ proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.toObj
  */
 proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.toObject = function(includeInstance, msg) {
   var f, obj = {
-    tag: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    name: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    defaultValue: jspb.Message.getFieldWithDefault(msg, 3, "")
+    tag: (f = msg.getTag()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    name: (f = msg.getName()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    defaultValue: (f = msg.getDefaultValue()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1029,15 +1049,18 @@ proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.deserializeBina
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setTag(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setName(value);
       break;
     case 3:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setDefaultValue(value);
       break;
     default:
@@ -1070,71 +1093,119 @@ proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.seria
 proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getTag();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       1,
-      f
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
   f = message.getName();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
   f = message.getDefaultValue();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       3,
-      f
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional string tag = 1;
- * @return {string}
+ * optional google.protobuf.StringValue tag = 1;
+ * @return {?proto.google.protobuf.StringValue}
  */
 proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.getTag = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 1));
 };
 
 
-/** @param {string} value */
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
 proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.setTag = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.clearTag = function() {
+  this.setTag(undefined);
 };
 
 
 /**
- * optional string name = 2;
- * @return {string}
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.hasTag = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional google.protobuf.StringValue name = 2;
+ * @return {?proto.google.protobuf.StringValue}
  */
 proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.getName = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 2));
 };
 
 
-/** @param {string} value */
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
 proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.setName = function(value) {
-  jspb.Message.setProto3StringField(this, 2, value);
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.clearName = function() {
+  this.setName(undefined);
 };
 
 
 /**
- * optional string default_value = 3;
- * @return {string}
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.getDefaultValue = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.hasName = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
-/** @param {string} value */
+/**
+ * optional google.protobuf.StringValue default_value = 3;
+ * @return {?proto.google.protobuf.StringValue}
+ */
+proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.getDefaultValue = function() {
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 3));
+};
+
+
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
 proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.setDefaultValue = function(value) {
-  jspb.Message.setProto3StringField(this, 3, value);
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.clearDefaultValue = function() {
+  this.setDefaultValue(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.prototype.hasDefaultValue = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -1185,8 +1256,8 @@ proto.tracing.options.gloo.solo.io.TracingTagLiteral.prototype.toObject = functi
  */
 proto.tracing.options.gloo.solo.io.TracingTagLiteral.toObject = function(includeInstance, msg) {
   var f, obj = {
-    tag: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    value: jspb.Message.getFieldWithDefault(msg, 2, "")
+    tag: (f = msg.getTag()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    value: (f = msg.getValue()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1224,11 +1295,13 @@ proto.tracing.options.gloo.solo.io.TracingTagLiteral.deserializeBinaryFromReader
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setTag(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setValue(value);
       break;
     default:
@@ -1261,49 +1334,81 @@ proto.tracing.options.gloo.solo.io.TracingTagLiteral.prototype.serializeBinary =
 proto.tracing.options.gloo.solo.io.TracingTagLiteral.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getTag();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       1,
-      f
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
   f = message.getValue();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional string tag = 1;
- * @return {string}
+ * optional google.protobuf.StringValue tag = 1;
+ * @return {?proto.google.protobuf.StringValue}
  */
 proto.tracing.options.gloo.solo.io.TracingTagLiteral.prototype.getTag = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 1));
 };
 
 
-/** @param {string} value */
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
 proto.tracing.options.gloo.solo.io.TracingTagLiteral.prototype.setTag = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.tracing.options.gloo.solo.io.TracingTagLiteral.prototype.clearTag = function() {
+  this.setTag(undefined);
 };
 
 
 /**
- * optional string value = 2;
- * @return {string}
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.tracing.options.gloo.solo.io.TracingTagLiteral.prototype.getValue = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+proto.tracing.options.gloo.solo.io.TracingTagLiteral.prototype.hasTag = function() {
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
-/** @param {string} value */
+/**
+ * optional google.protobuf.StringValue value = 2;
+ * @return {?proto.google.protobuf.StringValue}
+ */
+proto.tracing.options.gloo.solo.io.TracingTagLiteral.prototype.getValue = function() {
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 2));
+};
+
+
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
 proto.tracing.options.gloo.solo.io.TracingTagLiteral.prototype.setValue = function(value) {
-  jspb.Message.setProto3StringField(this, 2, value);
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.tracing.options.gloo.solo.io.TracingTagLiteral.prototype.clearValue = function() {
+  this.setValue(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.tracing.options.gloo.solo.io.TracingTagLiteral.prototype.hasValue = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

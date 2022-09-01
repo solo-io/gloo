@@ -20,9 +20,11 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_upgrade_proto
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/protocol/protocol_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings', null, global);
+goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CodecType', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ForwardClientCertDetails', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.HeadersWithUnderscoreAction', null, global);
+goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.PathWithEscapedSlashesAction', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.ServerHeaderTransformation', null, global);
 goog.exportSymbol('proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails', null, global);
@@ -107,12 +109,12 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.toObject 
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function(includeInstance, msg) {
   var f, obj = {
-    skipXffAppend: jspb.Message.getFieldWithDefault(msg, 1, false),
-    via: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    xffNumTrustedHops: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    skipXffAppend: (f = msg.getSkipXffAppend()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    via: (f = msg.getVia()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    xffNumTrustedHops: (f = msg.getXffNumTrustedHops()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     useRemoteAddress: (f = msg.getUseRemoteAddress()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     generateRequestId: (f = msg.getGenerateRequestId()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    proxy100Continue: jspb.Message.getFieldWithDefault(msg, 6, false),
+    proxy100Continue: (f = msg.getProxy100Continue()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     streamIdleTimeout: (f = msg.getStreamIdleTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     idleTimeout: (f = msg.getIdleTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     maxRequestHeadersKb: (f = msg.getMaxRequestHeadersKb()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
@@ -120,18 +122,18 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     requestHeadersTimeout: (f = msg.getRequestHeadersTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     drainTimeout: (f = msg.getDrainTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     delayedCloseTimeout: (f = msg.getDelayedCloseTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    serverName: jspb.Message.getFieldWithDefault(msg, 14, ""),
-    stripAnyHostPort: jspb.Message.getFieldWithDefault(msg, 36, false),
-    acceptHttp10: jspb.Message.getFieldWithDefault(msg, 15, false),
-    defaultHostForHttp10: jspb.Message.getFieldWithDefault(msg, 16, ""),
-    allowChunkedLength: jspb.Message.getFieldWithDefault(msg, 34, false),
-    enableTrailers: jspb.Message.getFieldWithDefault(msg, 35, false),
-    properCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 22, false),
-    preserveCaseHeaderKeyFormat: jspb.Message.getFieldWithDefault(msg, 31, false),
+    serverName: (f = msg.getServerName()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    stripAnyHostPort: (f = msg.getStripAnyHostPort()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    acceptHttp10: (f = msg.getAcceptHttp10()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    defaultHostForHttp10: (f = msg.getDefaultHostForHttp10()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
+    allowChunkedLength: (f = msg.getAllowChunkedLength()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    enableTrailers: (f = msg.getEnableTrailers()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    properCaseHeaderKeyFormat: (f = msg.getProperCaseHeaderKeyFormat()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    preserveCaseHeaderKeyFormat: (f = msg.getPreserveCaseHeaderKeyFormat()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     tracing: (f = msg.getTracing()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_tracing_tracing_pb.ListenerTracingSettings.toObject(includeInstance, f),
     forwardClientCertDetails: jspb.Message.getFieldWithDefault(msg, 18, 0),
     setCurrentClientCertDetails: (f = msg.getSetCurrentClientCertDetails()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.toObject(includeInstance, f),
-    preserveExternalRequestId: jspb.Message.getFieldWithDefault(msg, 20, false),
+    preserveExternalRequestId: (f = msg.getPreserveExternalRequestId()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     upgradesList: jspb.Message.toObjectList(msg.getUpgradesList(),
     github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.toObject, includeInstance),
     maxConnectionDuration: (f = msg.getMaxConnectionDuration()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
@@ -142,10 +144,11 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     serverHeaderTransformation: jspb.Message.getFieldWithDefault(msg, 25, 0),
     pathWithEscapedSlashesAction: jspb.Message.getFieldWithDefault(msg, 26, 0),
     codecType: jspb.Message.getFieldWithDefault(msg, 28, 0),
-    mergeSlashes: jspb.Message.getFieldWithDefault(msg, 29, false),
+    mergeSlashes: (f = msg.getMergeSlashes()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     normalizePath: (f = msg.getNormalizePath()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     uuidRequestIdConfig: (f = msg.getUuidRequestIdConfig()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.UuidRequestIdConfigSettings.toObject(includeInstance, f),
-    http2ProtocolOptions: (f = msg.getHttp2ProtocolOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions.toObject(includeInstance, f)
+    http2ProtocolOptions: (f = msg.getHttp2ProtocolOptions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions.toObject(includeInstance, f),
+    internalAddressConfig: (f = msg.getInternalAddressConfig()) && proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -183,15 +186,18 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setSkipXffAppend(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setVia(value);
       break;
     case 3:
-      var value = /** @type {number} */ (reader.readUint32());
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
       msg.setXffNumTrustedHops(value);
       break;
     case 4:
@@ -205,7 +211,8 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       msg.setGenerateRequestId(value);
       break;
     case 6:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setProxy100Continue(value);
       break;
     case 7:
@@ -244,35 +251,43 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       msg.setDelayedCloseTimeout(value);
       break;
     case 14:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setServerName(value);
       break;
     case 36:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setStripAnyHostPort(value);
       break;
     case 15:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setAcceptHttp10(value);
       break;
     case 16:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setDefaultHostForHttp10(value);
       break;
     case 34:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setAllowChunkedLength(value);
       break;
     case 35:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setEnableTrailers(value);
       break;
     case 22:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setProperCaseHeaderKeyFormat(value);
       break;
     case 31:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setPreserveCaseHeaderKeyFormat(value);
       break;
     case 17:
@@ -290,7 +305,8 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       msg.setSetCurrentClientCertDetails(value);
       break;
     case 20:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setPreserveExternalRequestId(value);
       break;
     case 21:
@@ -335,7 +351,8 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       msg.setCodecType(value);
       break;
     case 29:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setMergeSlashes(value);
       break;
     case 30:
@@ -352,6 +369,11 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions.deserializeBinaryFromReader);
       msg.setHttp2ProtocolOptions(value);
+      break;
+    case 38:
+      var value = new proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig;
+      reader.readMessage(value,proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.deserializeBinaryFromReader);
+      msg.setInternalAddressConfig(value);
       break;
     default:
       reader.skipField();
@@ -383,24 +405,27 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.serialize
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getSkipXffAppend();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       1,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getVia();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
   f = message.getXffNumTrustedHops();
-  if (f !== 0) {
-    writer.writeUint32(
+  if (f != null) {
+    writer.writeMessage(
       3,
-      f
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
   f = message.getUseRemoteAddress();
@@ -420,10 +445,11 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
     );
   }
   f = message.getProxy100Continue();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       6,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getStreamIdleTimeout();
@@ -483,59 +509,67 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
     );
   }
   f = message.getServerName();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       14,
-      f
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
   f = message.getStripAnyHostPort();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       36,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getAcceptHttp10();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       15,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getDefaultHostForHttp10();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       16,
-      f
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
   f = message.getAllowChunkedLength();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       34,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getEnableTrailers();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       35,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
-  f = /** @type {boolean} */ (jspb.Message.getField(message, 22));
+  f = message.getProperCaseHeaderKeyFormat();
   if (f != null) {
-    writer.writeBool(
+    writer.writeMessage(
       22,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
-  f = /** @type {boolean} */ (jspb.Message.getField(message, 31));
+  f = message.getPreserveCaseHeaderKeyFormat();
   if (f != null) {
-    writer.writeBool(
+    writer.writeMessage(
       31,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getTracing();
@@ -562,10 +596,11 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
     );
   }
   f = message.getPreserveExternalRequestId();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       20,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getUpgradesList();
@@ -637,10 +672,11 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
     );
   }
   f = message.getMergeSlashes();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       29,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getNormalizePath();
@@ -665,6 +701,14 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
       39,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions.serializeBinaryToWriter
+    );
+  }
+  f = message.getInternalAddressConfig();
+  if (f != null) {
+    writer.writeMessage(
+      38,
+      f,
+      proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.serializeBinaryToWriter
     );
   }
 };
@@ -767,10 +811,10 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCer
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.toObject = function(includeInstance, msg) {
   var f, obj = {
     subject: (f = msg.getSubject()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    cert: jspb.Message.getFieldWithDefault(msg, 2, false),
-    chain: jspb.Message.getFieldWithDefault(msg, 3, false),
-    dns: jspb.Message.getFieldWithDefault(msg, 4, false),
-    uri: jspb.Message.getFieldWithDefault(msg, 5, false)
+    cert: (f = msg.getCert()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    chain: (f = msg.getChain()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    dns: (f = msg.getDns()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    uri: (f = msg.getUri()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -813,19 +857,23 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCer
       msg.setSubject(value);
       break;
     case 2:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setCert(value);
       break;
     case 3:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setChain(value);
       break;
     case 4:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setDns(value);
       break;
     case 5:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setUri(value);
       break;
     default:
@@ -866,31 +914,35 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCer
     );
   }
   f = message.getCert();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getChain();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       3,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getDns();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       4,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getUri();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       5,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -927,70 +979,122 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCer
 
 
 /**
- * optional bool cert = 2;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * optional google.protobuf.BoolValue cert = 2;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.getCert = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 2, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 2));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.setCert = function(value) {
-  jspb.Message.setProto3BooleanField(this, 2, value);
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.clearCert = function() {
+  this.setCert(undefined);
 };
 
 
 /**
- * optional bool chain = 3;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.hasCert = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue chain = 3;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.getChain = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 3, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 3));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.setChain = function(value) {
-  jspb.Message.setProto3BooleanField(this, 3, value);
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.clearChain = function() {
+  this.setChain(undefined);
 };
 
 
 /**
- * optional bool dns = 4;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.hasChain = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue dns = 4;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.getDns = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 4, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 4));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.setDns = function(value) {
-  jspb.Message.setProto3BooleanField(this, 4, value);
+  jspb.Message.setWrapperField(this, 4, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.clearDns = function() {
+  this.setDns(undefined);
 };
 
 
 /**
- * optional bool uri = 5;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.getUri = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.hasDns = function() {
+  return jspb.Message.getField(this, 4) != null;
 };
 
 
-/** @param {boolean} value */
+/**
+ * optional google.protobuf.BoolValue uri = 5;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.getUri = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 5));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.setUri = function(value) {
-  jspb.Message.setProto3BooleanField(this, 5, value);
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.clearUri = function() {
+  this.setUri(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.SetCurrentClientCertDetails.prototype.hasUri = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 
@@ -1197,50 +1301,491 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.UuidRequestIdConfig
 };
 
 
+
 /**
- * optional bool skip_xff_append = 1;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
  */
-proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getSkipXffAppend = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 1, false));
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
+goog.inherits(proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.displayName = 'proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange';
+}
 
 
-/** @param {boolean} value */
-proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setSkipXffAppend = function(value) {
-  jspb.Message.setProto3BooleanField(this, 1, value);
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.prototype.toObject = function(opt_includeInstance) {
+  return proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.toObject(opt_includeInstance, this);
 };
 
 
 /**
- * optional string via = 2;
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    addressPrefix: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    prefixLen: (f = msg.getPrefixLen()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange;
+  return proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAddressPrefix(value);
+      break;
+    case 2:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setPrefixLen(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getAddressPrefix();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getPrefixLen();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string address_prefix = 1;
  * @return {string}
  */
-proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getVia = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.prototype.getAddressPrefix = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /** @param {string} value */
-proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setVia = function(value) {
-  jspb.Message.setProto3StringField(this, 2, value);
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.prototype.setAddressPrefix = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional uint32 xff_num_trusted_hops = 3;
- * @return {number}
+ * optional google.protobuf.UInt32Value prefix_len = 2;
+ * @return {?proto.google.protobuf.UInt32Value}
  */
-proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getXffNumTrustedHops = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.prototype.getPrefixLen = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 2));
 };
 
 
-/** @param {number} value */
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.prototype.setPrefixLen = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.prototype.clearPrefixLen = function() {
+  this.setPrefixLen(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.prototype.hasPrefixLen = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.repeatedFields_, null);
+};
+goog.inherits(proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.displayName = 'proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.prototype.toObject = function(opt_includeInstance) {
+  return proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    unixSockets: (f = msg.getUnixSockets()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    cidrRangesList: jspb.Message.toObjectList(msg.getCidrRangesList(),
+    proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig;
+  return proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setUnixSockets(value);
+      break;
+    case 2:
+      var value = new proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange;
+      reader.readMessage(value,proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.deserializeBinaryFromReader);
+      msg.addCidrRanges(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getUnixSockets();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getCidrRangesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional google.protobuf.BoolValue unix_sockets = 1;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.prototype.getUnixSockets = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 1));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.prototype.setUnixSockets = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.prototype.clearUnixSockets = function() {
+  this.setUnixSockets(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.prototype.hasUnixSockets = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * repeated CidrRange cidr_ranges = 2;
+ * @return {!Array<!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange>}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.prototype.getCidrRangesList = function() {
+  return /** @type{!Array<!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange, 2));
+};
+
+
+/** @param {!Array<!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange>} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.prototype.setCidrRangesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.prototype.addCidrRanges = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.CidrRange, opt_index);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig.prototype.clearCidrRangesList = function() {
+  this.setCidrRangesList([]);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue skip_xff_append = 1;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getSkipXffAppend = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 1));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setSkipXffAppend = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearSkipXffAppend = function() {
+  this.setSkipXffAppend(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasSkipXffAppend = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional google.protobuf.StringValue via = 2;
+ * @return {?proto.google.protobuf.StringValue}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getVia = function() {
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 2));
+};
+
+
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setVia = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearVia = function() {
+  this.setVia(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasVia = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value xff_num_trusted_hops = 3;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getXffNumTrustedHops = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 3));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setXffNumTrustedHops = function(value) {
-  jspb.Message.setProto3IntField(this, 3, value);
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearXffNumTrustedHops = function() {
+  this.setXffNumTrustedHops(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasXffNumTrustedHops = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -1305,19 +1850,32 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasGenera
 
 
 /**
- * optional bool proxy_100_continue = 6;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * optional google.protobuf.BoolValue proxy_100_continue = 6;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getProxy100Continue = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 6));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setProxy100Continue = function(value) {
-  jspb.Message.setProto3BooleanField(this, 6, value);
+  jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearProxy100Continue = function() {
+  this.setProxy100Continue(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasProxy100Continue = function() {
+  return jspb.Message.getField(this, 6) != null;
 };
 
 
@@ -1532,122 +2090,203 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasDelaye
 
 
 /**
- * optional string server_name = 14;
- * @return {string}
+ * optional google.protobuf.StringValue server_name = 14;
+ * @return {?proto.google.protobuf.StringValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getServerName = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 14, ""));
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 14));
 };
 
 
-/** @param {string} value */
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setServerName = function(value) {
-  jspb.Message.setProto3StringField(this, 14, value);
+  jspb.Message.setWrapperField(this, 14, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearServerName = function() {
+  this.setServerName(undefined);
 };
 
 
 /**
- * optional bool strip_any_host_port = 36;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasServerName = function() {
+  return jspb.Message.getField(this, 14) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue strip_any_host_port = 36;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getStripAnyHostPort = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 36, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 36));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setStripAnyHostPort = function(value) {
-  jspb.Message.setProto3BooleanField(this, 36, value);
+  jspb.Message.setWrapperField(this, 36, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearStripAnyHostPort = function() {
+  this.setStripAnyHostPort(undefined);
 };
 
 
 /**
- * optional bool accept_http_10 = 15;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasStripAnyHostPort = function() {
+  return jspb.Message.getField(this, 36) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue accept_http_10 = 15;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getAcceptHttp10 = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 15, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 15));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setAcceptHttp10 = function(value) {
-  jspb.Message.setProto3BooleanField(this, 15, value);
+  jspb.Message.setWrapperField(this, 15, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearAcceptHttp10 = function() {
+  this.setAcceptHttp10(undefined);
 };
 
 
 /**
- * optional string default_host_for_http_10 = 16;
- * @return {string}
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasAcceptHttp10 = function() {
+  return jspb.Message.getField(this, 15) != null;
+};
+
+
+/**
+ * optional google.protobuf.StringValue default_host_for_http_10 = 16;
+ * @return {?proto.google.protobuf.StringValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getDefaultHostForHttp10 = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 16, ""));
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 16));
 };
 
 
-/** @param {string} value */
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setDefaultHostForHttp10 = function(value) {
-  jspb.Message.setProto3StringField(this, 16, value);
+  jspb.Message.setWrapperField(this, 16, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearDefaultHostForHttp10 = function() {
+  this.setDefaultHostForHttp10(undefined);
 };
 
 
 /**
- * optional bool allow_chunked_length = 34;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasDefaultHostForHttp10 = function() {
+  return jspb.Message.getField(this, 16) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue allow_chunked_length = 34;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getAllowChunkedLength = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 34, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 34));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setAllowChunkedLength = function(value) {
-  jspb.Message.setProto3BooleanField(this, 34, value);
+  jspb.Message.setWrapperField(this, 34, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearAllowChunkedLength = function() {
+  this.setAllowChunkedLength(undefined);
 };
 
 
 /**
- * optional bool enable_trailers = 35;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasAllowChunkedLength = function() {
+  return jspb.Message.getField(this, 34) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue enable_trailers = 35;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getEnableTrailers = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 35, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 35));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setEnableTrailers = function(value) {
-  jspb.Message.setProto3BooleanField(this, 35, value);
+  jspb.Message.setWrapperField(this, 35, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearEnableTrailers = function() {
+  this.setEnableTrailers(undefined);
 };
 
 
 /**
- * optional bool proper_case_header_key_format = 22;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getProperCaseHeaderKeyFormat = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 22, false));
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasEnableTrailers = function() {
+  return jspb.Message.getField(this, 35) != null;
 };
 
 
-/** @param {boolean} value */
+/**
+ * optional google.protobuf.BoolValue proper_case_header_key_format = 22;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getProperCaseHeaderKeyFormat = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 22));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setProperCaseHeaderKeyFormat = function(value) {
-  jspb.Message.setOneofField(this, 22, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 22, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_[0], value);
 };
 
 
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearProperCaseHeaderKeyFormat = function() {
-  jspb.Message.setOneofField(this, 22, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_[0], undefined);
+  this.setProperCaseHeaderKeyFormat(undefined);
 };
 
 
@@ -1661,24 +2300,23 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasProper
 
 
 /**
- * optional bool preserve_case_header_key_format = 31;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * optional google.protobuf.BoolValue preserve_case_header_key_format = 31;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getPreserveCaseHeaderKeyFormat = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 31, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 31));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setPreserveCaseHeaderKeyFormat = function(value) {
-  jspb.Message.setOneofField(this, 31, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 31, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_[0], value);
 };
 
 
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearPreserveCaseHeaderKeyFormat = function() {
-  jspb.Message.setOneofField(this, 31, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.oneofGroups_[0], undefined);
+  this.setPreserveCaseHeaderKeyFormat(undefined);
 };
 
 
@@ -1767,19 +2405,32 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasSetCur
 
 
 /**
- * optional bool preserve_external_request_id = 20;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * optional google.protobuf.BoolValue preserve_external_request_id = 20;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getPreserveExternalRequestId = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 20, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 20));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setPreserveExternalRequestId = function(value) {
-  jspb.Message.setProto3BooleanField(this, 20, value);
+  jspb.Message.setWrapperField(this, 20, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearPreserveExternalRequestId = function() {
+  this.setPreserveExternalRequestId(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasPreserveExternalRequestId = function() {
+  return jspb.Message.getField(this, 20) != null;
 };
 
 
@@ -1995,19 +2646,32 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setCodecT
 
 
 /**
- * optional bool merge_slashes = 29;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * optional google.protobuf.BoolValue merge_slashes = 29;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getMergeSlashes = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 29, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 29));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setMergeSlashes = function(value) {
-  jspb.Message.setProto3BooleanField(this, 29, value);
+  jspb.Message.setWrapperField(this, 29, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearMergeSlashes = function() {
+  this.setMergeSlashes(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasMergeSlashes = function() {
+  return jspb.Message.getField(this, 29) != null;
 };
 
 
@@ -2098,6 +2762,36 @@ proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearHttp
  */
 proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasHttp2ProtocolOptions = function() {
   return jspb.Message.getField(this, 39) != null;
+};
+
+
+/**
+ * optional InternalAddressConfig internal_address_config = 38;
+ * @return {?proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.getInternalAddressConfig = function() {
+  return /** @type{?proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig} */ (
+    jspb.Message.getWrapperField(this, proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig, 38));
+};
+
+
+/** @param {?proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.InternalAddressConfig|undefined} value */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.setInternalAddressConfig = function(value) {
+  jspb.Message.setWrapperField(this, 38, value);
+};
+
+
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearInternalAddressConfig = function() {
+  this.setInternalAddressConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.options.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasInternalAddressConfig = function() {
+  return jspb.Message.getField(this, 38) != null;
 };
 
 

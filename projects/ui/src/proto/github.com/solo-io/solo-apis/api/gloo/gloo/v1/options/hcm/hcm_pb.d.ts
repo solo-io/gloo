@@ -12,14 +12,20 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_proto
 import * as extproto_ext_pb from "../../../../../../../../../extproto/ext_pb";
 
 export class HttpConnectionManagerSettings extends jspb.Message {
-  getSkipXffAppend(): boolean;
-  setSkipXffAppend(value: boolean): void;
+  hasSkipXffAppend(): boolean;
+  clearSkipXffAppend(): void;
+  getSkipXffAppend(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setSkipXffAppend(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
-  getVia(): string;
-  setVia(value: string): void;
+  hasVia(): boolean;
+  clearVia(): void;
+  getVia(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setVia(value?: google_protobuf_wrappers_pb.StringValue): void;
 
-  getXffNumTrustedHops(): number;
-  setXffNumTrustedHops(value: number): void;
+  hasXffNumTrustedHops(): boolean;
+  clearXffNumTrustedHops(): void;
+  getXffNumTrustedHops(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setXffNumTrustedHops(value?: google_protobuf_wrappers_pb.UInt32Value): void;
 
   hasUseRemoteAddress(): boolean;
   clearUseRemoteAddress(): void;
@@ -31,8 +37,10 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getGenerateRequestId(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setGenerateRequestId(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
-  getProxy100Continue(): boolean;
-  setProxy100Continue(value: boolean): void;
+  hasProxy100Continue(): boolean;
+  clearProxy100Continue(): void;
+  getProxy100Continue(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setProxy100Continue(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasStreamIdleTimeout(): boolean;
   clearStreamIdleTimeout(): void;
@@ -69,33 +77,45 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getDelayedCloseTimeout(): google_protobuf_duration_pb.Duration | undefined;
   setDelayedCloseTimeout(value?: google_protobuf_duration_pb.Duration): void;
 
-  getServerName(): string;
-  setServerName(value: string): void;
+  hasServerName(): boolean;
+  clearServerName(): void;
+  getServerName(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setServerName(value?: google_protobuf_wrappers_pb.StringValue): void;
 
-  getStripAnyHostPort(): boolean;
-  setStripAnyHostPort(value: boolean): void;
+  hasStripAnyHostPort(): boolean;
+  clearStripAnyHostPort(): void;
+  getStripAnyHostPort(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setStripAnyHostPort(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
-  getAcceptHttp10(): boolean;
-  setAcceptHttp10(value: boolean): void;
+  hasAcceptHttp10(): boolean;
+  clearAcceptHttp10(): void;
+  getAcceptHttp10(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setAcceptHttp10(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
-  getDefaultHostForHttp10(): string;
-  setDefaultHostForHttp10(value: string): void;
+  hasDefaultHostForHttp10(): boolean;
+  clearDefaultHostForHttp10(): void;
+  getDefaultHostForHttp10(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setDefaultHostForHttp10(value?: google_protobuf_wrappers_pb.StringValue): void;
 
-  getAllowChunkedLength(): boolean;
-  setAllowChunkedLength(value: boolean): void;
+  hasAllowChunkedLength(): boolean;
+  clearAllowChunkedLength(): void;
+  getAllowChunkedLength(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setAllowChunkedLength(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
-  getEnableTrailers(): boolean;
-  setEnableTrailers(value: boolean): void;
+  hasEnableTrailers(): boolean;
+  clearEnableTrailers(): void;
+  getEnableTrailers(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setEnableTrailers(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasProperCaseHeaderKeyFormat(): boolean;
   clearProperCaseHeaderKeyFormat(): void;
-  getProperCaseHeaderKeyFormat(): boolean;
-  setProperCaseHeaderKeyFormat(value: boolean): void;
+  getProperCaseHeaderKeyFormat(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setProperCaseHeaderKeyFormat(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasPreserveCaseHeaderKeyFormat(): boolean;
   clearPreserveCaseHeaderKeyFormat(): void;
-  getPreserveCaseHeaderKeyFormat(): boolean;
-  setPreserveCaseHeaderKeyFormat(value: boolean): void;
+  getPreserveCaseHeaderKeyFormat(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setPreserveCaseHeaderKeyFormat(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasTracing(): boolean;
   clearTracing(): void;
@@ -110,8 +130,10 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getSetCurrentClientCertDetails(): HttpConnectionManagerSettings.SetCurrentClientCertDetails | undefined;
   setSetCurrentClientCertDetails(value?: HttpConnectionManagerSettings.SetCurrentClientCertDetails): void;
 
-  getPreserveExternalRequestId(): boolean;
-  setPreserveExternalRequestId(value: boolean): void;
+  hasPreserveExternalRequestId(): boolean;
+  clearPreserveExternalRequestId(): void;
+  getPreserveExternalRequestId(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setPreserveExternalRequestId(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   clearUpgradesList(): void;
   getUpgradesList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig>;
@@ -150,8 +172,10 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getCodecType(): HttpConnectionManagerSettings.CodecTypeMap[keyof HttpConnectionManagerSettings.CodecTypeMap];
   setCodecType(value: HttpConnectionManagerSettings.CodecTypeMap[keyof HttpConnectionManagerSettings.CodecTypeMap]): void;
 
-  getMergeSlashes(): boolean;
-  setMergeSlashes(value: boolean): void;
+  hasMergeSlashes(): boolean;
+  clearMergeSlashes(): void;
+  getMergeSlashes(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setMergeSlashes(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasNormalizePath(): boolean;
   clearNormalizePath(): void;
@@ -168,6 +192,11 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getHttp2ProtocolOptions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions | undefined;
   setHttp2ProtocolOptions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions): void;
 
+  hasInternalAddressConfig(): boolean;
+  clearInternalAddressConfig(): void;
+  getInternalAddressConfig(): HttpConnectionManagerSettings.InternalAddressConfig | undefined;
+  setInternalAddressConfig(value?: HttpConnectionManagerSettings.InternalAddressConfig): void;
+
   getHeaderFormatCase(): HttpConnectionManagerSettings.HeaderFormatCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
@@ -181,12 +210,12 @@ export class HttpConnectionManagerSettings extends jspb.Message {
 
 export namespace HttpConnectionManagerSettings {
   export type AsObject = {
-    skipXffAppend: boolean,
-    via: string,
-    xffNumTrustedHops: number,
+    skipXffAppend?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    via?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    xffNumTrustedHops?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     useRemoteAddress?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     generateRequestId?: google_protobuf_wrappers_pb.BoolValue.AsObject,
-    proxy100Continue: boolean,
+    proxy100Continue?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     streamIdleTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     idleTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     maxRequestHeadersKb?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
@@ -194,18 +223,18 @@ export namespace HttpConnectionManagerSettings {
     requestHeadersTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     drainTimeout?: google_protobuf_duration_pb.Duration.AsObject,
     delayedCloseTimeout?: google_protobuf_duration_pb.Duration.AsObject,
-    serverName: string,
-    stripAnyHostPort: boolean,
-    acceptHttp10: boolean,
-    defaultHostForHttp10: string,
-    allowChunkedLength: boolean,
-    enableTrailers: boolean,
-    properCaseHeaderKeyFormat: boolean,
-    preserveCaseHeaderKeyFormat: boolean,
+    serverName?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    stripAnyHostPort?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    acceptHttp10?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    defaultHostForHttp10?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    allowChunkedLength?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    enableTrailers?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    properCaseHeaderKeyFormat?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    preserveCaseHeaderKeyFormat?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     tracing?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_tracing_tracing_pb.ListenerTracingSettings.AsObject,
     forwardClientCertDetails: HttpConnectionManagerSettings.ForwardClientCertDetailsMap[keyof HttpConnectionManagerSettings.ForwardClientCertDetailsMap],
     setCurrentClientCertDetails?: HttpConnectionManagerSettings.SetCurrentClientCertDetails.AsObject,
-    preserveExternalRequestId: boolean,
+    preserveExternalRequestId?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     upgradesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.AsObject>,
     maxConnectionDuration?: google_protobuf_duration_pb.Duration.AsObject,
     maxStreamDuration?: google_protobuf_duration_pb.Duration.AsObject,
@@ -215,10 +244,11 @@ export namespace HttpConnectionManagerSettings {
     serverHeaderTransformation: HttpConnectionManagerSettings.ServerHeaderTransformationMap[keyof HttpConnectionManagerSettings.ServerHeaderTransformationMap],
     pathWithEscapedSlashesAction: HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap[keyof HttpConnectionManagerSettings.PathWithEscapedSlashesActionMap],
     codecType: HttpConnectionManagerSettings.CodecTypeMap[keyof HttpConnectionManagerSettings.CodecTypeMap],
-    mergeSlashes: boolean,
+    mergeSlashes?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     normalizePath?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     uuidRequestIdConfig?: HttpConnectionManagerSettings.UuidRequestIdConfigSettings.AsObject,
     http2ProtocolOptions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_protocol_pb.Http2ProtocolOptions.AsObject,
+    internalAddressConfig?: HttpConnectionManagerSettings.InternalAddressConfig.AsObject,
   }
 
   export class SetCurrentClientCertDetails extends jspb.Message {
@@ -227,17 +257,25 @@ export namespace HttpConnectionManagerSettings {
     getSubject(): google_protobuf_wrappers_pb.BoolValue | undefined;
     setSubject(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
-    getCert(): boolean;
-    setCert(value: boolean): void;
+    hasCert(): boolean;
+    clearCert(): void;
+    getCert(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setCert(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
-    getChain(): boolean;
-    setChain(value: boolean): void;
+    hasChain(): boolean;
+    clearChain(): void;
+    getChain(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setChain(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
-    getDns(): boolean;
-    setDns(value: boolean): void;
+    hasDns(): boolean;
+    clearDns(): void;
+    getDns(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setDns(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
-    getUri(): boolean;
-    setUri(value: boolean): void;
+    hasUri(): boolean;
+    clearUri(): void;
+    getUri(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setUri(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): SetCurrentClientCertDetails.AsObject;
@@ -252,10 +290,10 @@ export namespace HttpConnectionManagerSettings {
   export namespace SetCurrentClientCertDetails {
     export type AsObject = {
       subject?: google_protobuf_wrappers_pb.BoolValue.AsObject,
-      cert: boolean,
-      chain: boolean,
-      dns: boolean,
-      uri: boolean,
+      cert?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      chain?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      dns?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      uri?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     }
   }
 
@@ -284,6 +322,60 @@ export namespace HttpConnectionManagerSettings {
     export type AsObject = {
       packTraceReason?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       useRequestIdForTraceSampling?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    }
+  }
+
+  export class CidrRange extends jspb.Message {
+    getAddressPrefix(): string;
+    setAddressPrefix(value: string): void;
+
+    hasPrefixLen(): boolean;
+    clearPrefixLen(): void;
+    getPrefixLen(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+    setPrefixLen(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): CidrRange.AsObject;
+    static toObject(includeInstance: boolean, msg: CidrRange): CidrRange.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: CidrRange, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): CidrRange;
+    static deserializeBinaryFromReader(message: CidrRange, reader: jspb.BinaryReader): CidrRange;
+  }
+
+  export namespace CidrRange {
+    export type AsObject = {
+      addressPrefix: string,
+      prefixLen?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    }
+  }
+
+  export class InternalAddressConfig extends jspb.Message {
+    hasUnixSockets(): boolean;
+    clearUnixSockets(): void;
+    getUnixSockets(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setUnixSockets(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+    clearCidrRangesList(): void;
+    getCidrRangesList(): Array<HttpConnectionManagerSettings.CidrRange>;
+    setCidrRangesList(value: Array<HttpConnectionManagerSettings.CidrRange>): void;
+    addCidrRanges(value?: HttpConnectionManagerSettings.CidrRange, index?: number): HttpConnectionManagerSettings.CidrRange;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): InternalAddressConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: InternalAddressConfig): InternalAddressConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: InternalAddressConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): InternalAddressConfig;
+    static deserializeBinaryFromReader(message: InternalAddressConfig, reader: jspb.BinaryReader): InternalAddressConfig;
+  }
+
+  export namespace InternalAddressConfig {
+    export type AsObject = {
+      unixSockets?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      cidrRangesList: Array<HttpConnectionManagerSettings.CidrRange.AsObject>,
     }
   }
 

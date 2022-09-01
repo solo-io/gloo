@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.13.0-beta11
+    description: >
+      Bump Gloo OSS version to pick up hcm 0-value-overrides bugfix.  With this, we are able to specify values in a DelegatedHttpGateway, have it be inherited by any number of matchable http gateways, AND allow said matchable http gateways to overwrite with a 0-value.

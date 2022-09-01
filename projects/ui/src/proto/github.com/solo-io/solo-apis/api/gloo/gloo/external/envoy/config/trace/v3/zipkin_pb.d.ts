@@ -26,8 +26,10 @@ export class ZipkinConfig extends jspb.Message {
   getCollectorEndpoint(): string;
   setCollectorEndpoint(value: string): void;
 
-  getTraceId128bit(): boolean;
-  setTraceId128bit(value: boolean): void;
+  hasTraceId128bit(): boolean;
+  clearTraceId128bit(): void;
+  getTraceId128bit(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setTraceId128bit(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
   hasSharedSpanContext(): boolean;
   clearSharedSpanContext(): void;
@@ -53,7 +55,7 @@ export namespace ZipkinConfig {
     collectorUpstreamRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     clusterName: string,
     collectorEndpoint: string,
-    traceId128bit: boolean,
+    traceId128bit?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     sharedSpanContext?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     collectorEndpointVersion: ZipkinConfig.CollectorEndpointVersionMap[keyof ZipkinConfig.CollectorEndpointVersionMap],
   }

@@ -12,6 +12,7 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var udpa_annotations_migrate_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/udpa/annotations/migrate_pb.js');
 var udpa_annotations_status_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/udpa/annotations/status_pb.js');
 var udpa_annotations_versioning_pb = require('../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/udpa/annotations/versioning_pb.js');
@@ -94,7 +95,7 @@ proto.solo.io.envoy.config.trace.v3.DatadogConfig.toObject = function(includeIns
   var f, obj = {
     collectorUpstreamRef: (f = msg.getCollectorUpstreamRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     clusterName: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    serviceName: jspb.Message.getFieldWithDefault(msg, 2, "")
+    serviceName: (f = msg.getServiceName()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -141,7 +142,8 @@ proto.solo.io.envoy.config.trace.v3.DatadogConfig.deserializeBinaryFromReader = 
       msg.setClusterName(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
+      var value = new google_protobuf_wrappers_pb.StringValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.StringValue.deserializeBinaryFromReader);
       msg.setServiceName(value);
       break;
     default:
@@ -189,10 +191,11 @@ proto.solo.io.envoy.config.trace.v3.DatadogConfig.serializeBinaryToWriter = func
     );
   }
   f = message.getServiceName();
-  if (f.length > 0) {
-    writer.writeString(
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
+      f,
+      google_protobuf_wrappers_pb.StringValue.serializeBinaryToWriter
     );
   }
 };
@@ -258,17 +261,32 @@ proto.solo.io.envoy.config.trace.v3.DatadogConfig.prototype.hasClusterName = fun
 
 
 /**
- * optional string service_name = 2;
- * @return {string}
+ * optional google.protobuf.StringValue service_name = 2;
+ * @return {?proto.google.protobuf.StringValue}
  */
 proto.solo.io.envoy.config.trace.v3.DatadogConfig.prototype.getServiceName = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+  return /** @type{?proto.google.protobuf.StringValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.StringValue, 2));
 };
 
 
-/** @param {string} value */
+/** @param {?proto.google.protobuf.StringValue|undefined} value */
 proto.solo.io.envoy.config.trace.v3.DatadogConfig.prototype.setServiceName = function(value) {
-  jspb.Message.setProto3StringField(this, 2, value);
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.solo.io.envoy.config.trace.v3.DatadogConfig.prototype.clearServiceName = function() {
+  this.setServiceName(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.solo.io.envoy.config.trace.v3.DatadogConfig.prototype.hasServiceName = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

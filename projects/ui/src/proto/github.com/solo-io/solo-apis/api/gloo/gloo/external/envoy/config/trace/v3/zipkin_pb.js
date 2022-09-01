@@ -98,7 +98,7 @@ proto.solo.io.envoy.config.trace.v3.ZipkinConfig.toObject = function(includeInst
     collectorUpstreamRef: (f = msg.getCollectorUpstreamRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     clusterName: jspb.Message.getFieldWithDefault(msg, 6, ""),
     collectorEndpoint: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    traceId128bit: jspb.Message.getFieldWithDefault(msg, 3, false),
+    traceId128bit: (f = msg.getTraceId128bit()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     sharedSpanContext: (f = msg.getSharedSpanContext()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     collectorEndpointVersion: jspb.Message.getFieldWithDefault(msg, 5, 0)
   };
@@ -151,7 +151,8 @@ proto.solo.io.envoy.config.trace.v3.ZipkinConfig.deserializeBinaryFromReader = f
       msg.setCollectorEndpoint(value);
       break;
     case 3:
-      var value = /** @type {boolean} */ (reader.readBool());
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setTraceId128bit(value);
       break;
     case 4:
@@ -215,10 +216,11 @@ proto.solo.io.envoy.config.trace.v3.ZipkinConfig.serializeBinaryToWriter = funct
     );
   }
   f = message.getTraceId128bit();
-  if (f) {
-    writer.writeBool(
+  if (f != null) {
+    writer.writeMessage(
       3,
-      f
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
   f = message.getSharedSpanContext();
@@ -323,19 +325,32 @@ proto.solo.io.envoy.config.trace.v3.ZipkinConfig.prototype.setCollectorEndpoint 
 
 
 /**
- * optional bool trace_id_128bit = 3;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * optional google.protobuf.BoolValue trace_id_128bit = 3;
+ * @return {?proto.google.protobuf.BoolValue}
  */
 proto.solo.io.envoy.config.trace.v3.ZipkinConfig.prototype.getTraceId128bit = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 3, false));
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 3));
 };
 
 
-/** @param {boolean} value */
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.solo.io.envoy.config.trace.v3.ZipkinConfig.prototype.setTraceId128bit = function(value) {
-  jspb.Message.setProto3BooleanField(this, 3, value);
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.solo.io.envoy.config.trace.v3.ZipkinConfig.prototype.clearTraceId128bit = function() {
+  this.setTraceId128bit(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.solo.io.envoy.config.trace.v3.ZipkinConfig.prototype.hasTraceId128bit = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
