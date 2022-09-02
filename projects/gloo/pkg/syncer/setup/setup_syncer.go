@@ -738,7 +738,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
   resourceHasher := translator.MustEnvoyCacheResourcesListToFnvHash
 
   t := translator.NewTranslatorWithHasher(sslutils.NewSslConfigTranslator(), opts.Settings, extensions.PluginRegistryFactory(watchOpts.Ctx, opts), resourceHasher)
-  validationtranslator := translator.NewTranslatorWithHasher(sslutils.NewSslConfigTranslator(), opts.Settings, extensions.PluginRegistryFactory(watchOpts.Ctx, opts), resourceHasher)
+  //validationtranslator := translator.NewTranslatorWithHasher(sslutils.NewSslConfigTranslator(), opts.Settings, extensions.PluginRegistryFactory(watchOpts.Ctx, opts), resourceHasher)
 
   routeReplacingSanitizer, err := sanitizer.NewRouteReplacingSanitizer(opts.Settings.GetGloo().GetInvalidConfigPolicy())
   if err != nil {
@@ -749,7 +749,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
     sanitizer.NewUpstreamRemovingSanitizer(),
     routeReplacingSanitizer,
   }
-  validator := validation.NewValidator(watchOpts.Ctx, validationtranslator, xdsSanitizer)
+  validator := validation.NewValidator(watchOpts.Ctx, t, xdsSanitizer)
   if opts.ValidationServer.Server != nil {
     opts.ValidationServer.Server.SetValidator(validator)
   }
