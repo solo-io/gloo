@@ -1,0 +1,4 @@
+changelog:
+  - type: HELM
+    description: Exposed a value (redis.clustered) to allow setting clustered mode in solo-projects deployments of rate-limiter
+    issueLink: https://github.com/solo-io/gloo/issues/6577

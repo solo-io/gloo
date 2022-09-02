@@ -136,6 +136,7 @@ type Redis struct {
 	Cert                      *RedisCert       `json:"cert,omitempty"`
 	ClientSideShardingEnabled bool             `json:"clientSideShardingEnabled" desc:"If set to true, Envoy will be used as a Redis proxy and load balance requests between redis instances scaled via replicas. Default is false."`
 	Disabled                  bool             `json:"disabled" desc:"If set to true, Redis service creation will be blocked. Default is false."`
+	Clustered                 bool             `json:"clustered" desc:"If true, we create the correct client to handle clustered redis. Default is false"`
 	AclPrefix                 *string          `json:"aclPrefix,omitempty" desc:"The ACL policy for the default redis user. This is the prefix only, and if overridden, should end with < to signal the password."`
 }
 

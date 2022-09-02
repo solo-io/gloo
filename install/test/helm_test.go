@@ -3341,6 +3341,10 @@ spec:
 								Value: "tcp",
 							},
 							{
+								Name:  "REDIS_CLUSTERED_MODE",
+								Value: "false",
+							},
+							{
 								Name: "REDIS_PASSWORD",
 								ValueFrom: &v1.EnvVarSource{SecretKeyRef: &v1.SecretKeySelector{
 									LocalObjectReference: v1.LocalObjectReference{
@@ -3413,6 +3417,81 @@ spec:
 					}
 				}
 
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			It("should create clustered mode instance and sets corresponding env variable", func() {
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: []string{"redis.clustered=true"},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				expectedDeployment.Spec.Template.Spec.Containers = []v1.Container{
+					{
+						Name:            "rate-limit",
+						Image:           "quay.io/solo-io/rate-limit-ee:" + version,
+						ImagePullPolicy: getPullPolicy(),
+						Env: []v1.EnvVar{
+							{
+								Name: "POD_NAMESPACE",
+								ValueFrom: &v1.EnvVarSource{
+									FieldRef: &v1.ObjectFieldSelector{
+										FieldPath: "metadata.namespace",
+									},
+								},
+							},
+							{
+								Name:  "GLOO_ADDRESS",
+								Value: "gloo:9977",
+							},
+							statsEnvVar,
+							{
+								Name:  "REDIS_URL",
+								Value: "redis:6379",
+							},
+							{
+								Name:  "REDIS_SOCKET_TYPE",
+								Value: "tcp",
+							},
+							{
+								Name:  "REDIS_CLUSTERED_MODE",
+								Value: "true",
+							},
+							{
+								Name: "REDIS_PASSWORD",
+								ValueFrom: &v1.EnvVarSource{SecretKeyRef: &v1.SecretKeySelector{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: "redis",
+									},
+									Key: "redis-password",
+								}},
+							},
+							{
+								Name:  "READY_PORT_HTTP",
+								Value: "18080",
+							},
+							{
+								Name:  "READY_PATH_HTTP",
+								Value: "/ready",
+							},
+						},
+						ReadinessProbe: &v1.Probe{
+							Handler: v1.Handler{
+								HTTPGet: &v1.HTTPGetAction{
+									Path: "/ready",
+									Port: intstr.IntOrString{
+										Type:   0,
+										IntVal: 18080,
+									},
+								},
+							},
+							InitialDelaySeconds: 2,
+							PeriodSeconds:       5,
+							FailureThreshold:    2,
+							SuccessThreshold:    1,
+						},
+						Resources: v1.ResourceRequirements{},
+					},
+				}
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 

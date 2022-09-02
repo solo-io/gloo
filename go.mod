@@ -55,7 +55,7 @@ require (
 	github.com/solo-io/licensing v0.2.0
 	github.com/solo-io/protoc-gen-ext v0.0.16
 	github.com/solo-io/protoc-gen-openapi v0.1.0
-	github.com/solo-io/rate-limiter v0.7.2
+	github.com/solo-io/rate-limiter v0.7.3
 	github.com/solo-io/skv2 v0.22.15
 	github.com/solo-io/skv2-enterprise v0.2.8
 	github.com/solo-io/solo-apis v0.0.0-20220831170556-ae69fa6eec93

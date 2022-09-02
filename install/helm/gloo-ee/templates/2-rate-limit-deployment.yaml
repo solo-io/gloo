@@ -106,6 +106,8 @@ spec:
             - name: REDIS_SOCKET_TYPE
               value: tcp
             {{- end }}{{/* .Values.redis.cert.enabled */}}
+            - name: REDIS_CLUSTERED_MODE
+              value: {{ .Values.redis.clustered | quote }}
             {{- end }}{{/* .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
             {{- if .Values.global.extensions.glooRedis.enableAcl }}
             - name: REDIS_PASSWORD

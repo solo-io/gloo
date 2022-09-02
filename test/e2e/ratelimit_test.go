@@ -68,6 +68,11 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		rlAddr           string
 		isServerHealthy  func() (bool, error)
 		rlServerSettings ratelimitserver.Settings
+		envoyInstance    *services.EnvoyInstance
+		testUpstream     *v1helpers.TestUpstream
+		envoyPort        = uint32(8080)
+
+		anonymousLimits, authorizedLimits *ratelimit.IngressRateLimit
 	)
 
 	const (
@@ -89,18 +94,54 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		rlServerSettings.DynamoDbSettings = dynamodb.Settings{}
 	})
 
+	runClusteredTest := func() {
+		BeforeEach(func() {
+			var err error
+			envoyInstance, err = envoyFactory.NewEnvoyInstance()
+			Expect(err).NotTo(HaveOccurred())
+
+			envoyInstance.RatelimitAddr = rateLimitAddr
+			envoyInstance.RatelimitPort = uint32(rlServerSettings.RateLimitPort)
+			rlAddr = envoyInstance.LocalAddr()
+
+			err = envoyInstance.Run(testClients.GlooPort)
+			Expect(err).NotTo(HaveOccurred())
+
+			testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
+			var opts clients.WriteOpts
+			up := testUpstream.Upstream
+			_, err = testClients.UpstreamClient.Write(up, opts)
+			Expect(err).NotTo(HaveOccurred())
+
+			anonymousLimits = &ratelimit.IngressRateLimit{
+				AnonymousLimits: &rlv1alpha1.RateLimit{
+					RequestsPerUnit: 1,
+					Unit:            rlv1alpha1.RateLimit_SECOND,
+				},
+			}
+		})
+
+		AfterEach(func() {
+			if envoyInstance != nil {
+				_ = envoyInstance.Clean()
+			}
+		})
+
+		It("should error when using clustered redis where unclustered redis shold be used", func() {
+			proxy := newRateLimitingProxyBuilder(envoyPort, testUpstream.Upstream.Metadata.Ref()).
+				withVirtualHost("host1", virtualHostConfig{rateLimitConfig: anonymousLimits}).
+				build()
+
+			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(isServerHealthy, "5s").Should(BeTrue())
+			testStatus("host1", envoyPort, nil, http.StatusInternalServerError, 2, false)
+		})
+	}
+
 	runAllTests := func() {
-
 		Context("With envoy", func() {
-
-			var (
-				envoyInstance *services.EnvoyInstance
-				testUpstream  *v1helpers.TestUpstream
-				envoyPort     = uint32(8080)
-
-				anonymousLimits, authorizedLimits *ratelimit.IngressRateLimit
-			)
-
 			BeforeEach(func() {
 				var err error
 				envoyInstance, err = envoyFactory.NewEnvoyInstance()
@@ -1269,7 +1310,6 @@ var _ = Describe("Rate Limit Local E2E", func() {
 				})
 
 			})
-
 		})
 	}
 
@@ -1313,13 +1353,13 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		services.RunGlooGatewayUdsFdsOnPort(services.RunGlooGatewayOpts{Ctx: ctx, Cache: cache, LocalGlooPort: int32(testClients.GlooPort), What: what, Namespace: defaults.GlooSystem, Settings: glooSettings})
 	}
 
-	Context("Redis-backed rate limiting", func() {
-
+	runRedisTests := func(clustered bool) {
 		BeforeEach(func() {
 			var err error
 			rlServerSettings.RedisSettings = redis.NewSettings()
 			rlServerSettings.RedisSettings.Url = fmt.Sprintf("%s:%d", redisAddr, redisPort)
 			rlServerSettings.RedisSettings.SocketType = "tcp"
+			rlServerSettings.RedisSettings.Clustered = clustered
 
 			command := exec.Command(getRedisPath(), "--port", "6379")
 			redisSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -1341,8 +1381,18 @@ var _ = Describe("Rate Limit Local E2E", func() {
 			redisSession.Kill()
 			cancel()
 		})
+		if clustered {
+			runClusteredTest()
+		} else {
+			runAllTests()
+		}
+	}
+	Context("Redis-backed rate limiting", func() {
+		runRedisTests(false)
+	})
 
-		runAllTests()
+	Context("Clustered redis backed rate limiting", func() {
+		runRedisTests(true)
 	})
 
 	Context("DynamoDb-backed rate limiting", func() {
