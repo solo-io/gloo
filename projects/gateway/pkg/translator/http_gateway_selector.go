@@ -2,10 +2,10 @@ package translator
 
 import (
 	errors "github.com/rotisserie/eris"
+	"github.com/solo-io/gloo/pkg/utils"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/selectors"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/selection"
 )
 
 type HttpGatewaySelector interface {
@@ -14,17 +14,6 @@ type HttpGatewaySelector interface {
 
 var (
 	SelectorInvalidExpressionWarning = errors.New("the selector expression is invalid")
-	SelectorExpressionOperatorValues = map[selectors.Selector_Expression_Operator]selection.Operator{
-		selectors.Selector_Expression_Equals:       selection.Equals,
-		selectors.Selector_Expression_DoubleEquals: selection.DoubleEquals,
-		selectors.Selector_Expression_NotEquals:    selection.NotEquals,
-		selectors.Selector_Expression_In:           selection.In,
-		selectors.Selector_Expression_NotIn:        selection.NotIn,
-		selectors.Selector_Expression_Exists:       selection.Exists,
-		selectors.Selector_Expression_DoesNotExist: selection.DoesNotExist,
-		selectors.Selector_Expression_GreaterThan:  selection.GreaterThan,
-		selectors.Selector_Expression_LessThan:     selection.LessThan,
-	}
 )
 
 type gatewaySelector struct {
@@ -113,7 +102,7 @@ func matchExpressions(gatewayLabelSet labels.Set, expressions []*selectors.Selec
 
 	var requirements labels.Requirements
 	for _, expression := range expressions {
-		operator := SelectorExpressionOperatorValues[expression.GetOperator()]
+		operator := utils.SelectorExpressionOperatorValues[expression.GetOperator()]
 		r, err := labels.NewRequirement(expression.GetKey(), operator, expression.GetValues())
 		if err != nil {
 			return false, errors.Wrap(SelectorInvalidExpressionWarning, err.Error())

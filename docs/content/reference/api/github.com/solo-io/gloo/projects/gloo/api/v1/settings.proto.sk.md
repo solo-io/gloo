@@ -60,6 +60,7 @@ Represents global settings for all the Gloo components.
 ```yaml
 "discoveryNamespace": string
 "watchNamespaces": []string
+"watchNamespacesSelectors": []selectors.core.gloo.solo.io.Selector.Expression
 "kubernetesConfigSource": .gloo.solo.io.Settings.KubernetesCrds
 "directoryConfigSource": .gloo.solo.io.Settings.Directory
 "consulKvSource": .gloo.solo.io.Settings.ConsulKv
@@ -99,6 +100,7 @@ Represents global settings for all the Gloo components.
 | ----- | ---- | ----------- | 
 | `discoveryNamespace` | `string` | This is the namespace to which Gloo controllers will write their own resources, e.g. discovered Upstreams or default Gateways. If empty, this will default to "gloo-system". |
 | `watchNamespaces` | `[]string` | Use this setting to restrict the namespaces that Gloo controllers take into consideration when watching for resources.In a usual production scenario, RBAC policies will limit the namespaces that Gloo has access to. If `watch_namespaces` contains namespaces outside of this whitelist, Gloo will fail to start. If not set, this defaults to all available namespaces. Please note that, the `discovery_namespace` will always be included in this list. |
+| `watchNamespacesSelectors` | [[]selectors.core.gloo.solo.io.Selector.Expression](../core/selectors/selectors.proto.sk/#expression) | Use this to add label set and equality filters to the resources that Gloo is watching. This will be useful. |
 | `kubernetesConfigSource` | [.gloo.solo.io.Settings.KubernetesCrds](../settings.proto.sk/#kubernetescrds) |  Only one of `kubernetesConfigSource`, `directoryConfigSource`, or `consulKvSource` can be set. |
 | `directoryConfigSource` | [.gloo.solo.io.Settings.Directory](../settings.proto.sk/#directory) |  Only one of `directoryConfigSource`, `kubernetesConfigSource`, or `consulKvSource` can be set. |
 | `consulKvSource` | [.gloo.solo.io.Settings.ConsulKv](../settings.proto.sk/#consulkv) |  Only one of `consulKvSource`, `kubernetesConfigSource`, or `directoryConfigSource` can be set. |

@@ -62,6 +62,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/errutils"
+	"github.com/solo-io/solo-kit/pkg/api/external/kubernetes/namespace"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -250,7 +251,10 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 		writeNamespace = defaults.GlooSystem
 	}
 	watchNamespaces := utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
-
+	expressionSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesSelectors())
+	if err != nil {
+		return errors.Wrapf(err, "parsing watch namespaces selectors")
+	}
 	// process grpcserver options to understand if any servers will need a restart
 
 	maxGrpcRecvSize := -1
@@ -361,6 +365,8 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	opts.WriteNamespace = writeNamespace
 	opts.StatusReporterNamespace = gloostatusutils.GetStatusReporterNamespaceOrDefault(writeNamespace)
 	opts.WatchNamespaces = watchNamespaces
+	opts.WatchSelectors = expressionSelectors
+
 	opts.WatchOpts = clients.WatchOpts{
 		Ctx:         ctx,
 		RefreshRate: refreshRate,
@@ -430,6 +436,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	watchOpts := opts.WatchOpts.WithDefaults()
+	watchOpts.ExpressionSelector = opts.WatchSelectors
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gloo")
 
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")
@@ -578,10 +585,13 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	errs := make(chan error)
 
 	statusClient := gloostatusutils.GetStatusClientForNamespace(opts.StatusReporterNamespace)
-	disc := discovery.NewEndpointDiscovery(opts.WatchNamespaces, opts.WriteNamespace, endpointClient, statusClient, discoveryPlugins)
+	resourceNamespaceLister := namespace.NewKubeClientCacheResourceNamespaceLister(opts.KubeClient, opts.KubeCoreCache)
+
+	disc := discovery.NewEndpointDiscovery(opts.WatchNamespaces, opts.WatchSelectors, opts.WriteNamespace, endpointClient, statusClient, discoveryPlugins)
 	edsSync := discovery.NewEdsSyncer(disc, discovery.Opts{}, watchOpts.RefreshRate)
-	discoveryCache := v1.NewEdsEmitter(hybridUsClient)
+	discoveryCache := v1.NewEdsEmitter(hybridUsClient, resourceNamespaceLister)
 	edsEventLoop := v1.NewEdsEventLoop(discoveryCache, edsSync)
+	// TODO-JAKE might have to test that this is working.
 	edsErrs, err := edsEventLoop.Run(opts.WatchNamespaces, watchOpts)
 	if err != nil {
 		return err
@@ -626,6 +636,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		routeOptionClient,
 		matchableHttpGatewayClient,
 		graphqlApiClient,
+		resourceNamespaceLister,
 		extensions.ApiEmitterChannel,
 	)
 

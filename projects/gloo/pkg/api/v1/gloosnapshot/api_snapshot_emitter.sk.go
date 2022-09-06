@@ -18,6 +18,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	skstats "github.com/solo-io/solo-kit/pkg/stats"
 
@@ -103,28 +104,29 @@ type ApiEmitter interface {
 	GraphQLApi() graphql_gloo_solo_io.GraphQLApiClient
 }
 
-func NewApiEmitter(artifactClient gloo_solo_io.ArtifactClient, endpointClient gloo_solo_io.EndpointClient, proxyClient gloo_solo_io.ProxyClient, upstreamGroupClient gloo_solo_io.UpstreamGroupClient, secretClient gloo_solo_io.SecretClient, upstreamClient gloo_solo_io.UpstreamClient, authConfigClient enterprise_gloo_solo_io.AuthConfigClient, rateLimitConfigClient github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigClient, virtualServiceClient gateway_solo_io.VirtualServiceClient, routeTableClient gateway_solo_io.RouteTableClient, gatewayClient gateway_solo_io.GatewayClient, virtualHostOptionClient gateway_solo_io.VirtualHostOptionClient, routeOptionClient gateway_solo_io.RouteOptionClient, matchableHttpGatewayClient gateway_solo_io.MatchableHttpGatewayClient, graphQLApiClient graphql_gloo_solo_io.GraphQLApiClient) ApiEmitter {
-	return NewApiEmitterWithEmit(artifactClient, endpointClient, proxyClient, upstreamGroupClient, secretClient, upstreamClient, authConfigClient, rateLimitConfigClient, virtualServiceClient, routeTableClient, gatewayClient, virtualHostOptionClient, routeOptionClient, matchableHttpGatewayClient, graphQLApiClient, make(chan struct{}))
+func NewApiEmitter(artifactClient gloo_solo_io.ArtifactClient, endpointClient gloo_solo_io.EndpointClient, proxyClient gloo_solo_io.ProxyClient, upstreamGroupClient gloo_solo_io.UpstreamGroupClient, secretClient gloo_solo_io.SecretClient, upstreamClient gloo_solo_io.UpstreamClient, authConfigClient enterprise_gloo_solo_io.AuthConfigClient, rateLimitConfigClient github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigClient, virtualServiceClient gateway_solo_io.VirtualServiceClient, routeTableClient gateway_solo_io.RouteTableClient, gatewayClient gateway_solo_io.GatewayClient, virtualHostOptionClient gateway_solo_io.VirtualHostOptionClient, routeOptionClient gateway_solo_io.RouteOptionClient, matchableHttpGatewayClient gateway_solo_io.MatchableHttpGatewayClient, graphQLApiClient graphql_gloo_solo_io.GraphQLApiClient, resourceNamespaceLister resources.ResourceNamespaceLister) ApiEmitter {
+	return NewApiEmitterWithEmit(artifactClient, endpointClient, proxyClient, upstreamGroupClient, secretClient, upstreamClient, authConfigClient, rateLimitConfigClient, virtualServiceClient, routeTableClient, gatewayClient, virtualHostOptionClient, routeOptionClient, matchableHttpGatewayClient, graphQLApiClient, resourceNamespaceLister, make(chan struct{}))
 }
 
-func NewApiEmitterWithEmit(artifactClient gloo_solo_io.ArtifactClient, endpointClient gloo_solo_io.EndpointClient, proxyClient gloo_solo_io.ProxyClient, upstreamGroupClient gloo_solo_io.UpstreamGroupClient, secretClient gloo_solo_io.SecretClient, upstreamClient gloo_solo_io.UpstreamClient, authConfigClient enterprise_gloo_solo_io.AuthConfigClient, rateLimitConfigClient github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigClient, virtualServiceClient gateway_solo_io.VirtualServiceClient, routeTableClient gateway_solo_io.RouteTableClient, gatewayClient gateway_solo_io.GatewayClient, virtualHostOptionClient gateway_solo_io.VirtualHostOptionClient, routeOptionClient gateway_solo_io.RouteOptionClient, matchableHttpGatewayClient gateway_solo_io.MatchableHttpGatewayClient, graphQLApiClient graphql_gloo_solo_io.GraphQLApiClient, emit <-chan struct{}) ApiEmitter {
+func NewApiEmitterWithEmit(artifactClient gloo_solo_io.ArtifactClient, endpointClient gloo_solo_io.EndpointClient, proxyClient gloo_solo_io.ProxyClient, upstreamGroupClient gloo_solo_io.UpstreamGroupClient, secretClient gloo_solo_io.SecretClient, upstreamClient gloo_solo_io.UpstreamClient, authConfigClient enterprise_gloo_solo_io.AuthConfigClient, rateLimitConfigClient github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigClient, virtualServiceClient gateway_solo_io.VirtualServiceClient, routeTableClient gateway_solo_io.RouteTableClient, gatewayClient gateway_solo_io.GatewayClient, virtualHostOptionClient gateway_solo_io.VirtualHostOptionClient, routeOptionClient gateway_solo_io.RouteOptionClient, matchableHttpGatewayClient gateway_solo_io.MatchableHttpGatewayClient, graphQLApiClient graphql_gloo_solo_io.GraphQLApiClient, resourceNamespaceLister resources.ResourceNamespaceLister, emit <-chan struct{}) ApiEmitter {
 	return &apiEmitter{
-		artifact:             artifactClient,
-		endpoint:             endpointClient,
-		proxy:                proxyClient,
-		upstreamGroup:        upstreamGroupClient,
-		secret:               secretClient,
-		upstream:             upstreamClient,
-		authConfig:           authConfigClient,
-		rateLimitConfig:      rateLimitConfigClient,
-		virtualService:       virtualServiceClient,
-		routeTable:           routeTableClient,
-		gateway:              gatewayClient,
-		virtualHostOption:    virtualHostOptionClient,
-		routeOption:          routeOptionClient,
-		matchableHttpGateway: matchableHttpGatewayClient,
-		graphQLApi:           graphQLApiClient,
-		forceEmit:            emit,
+		artifact:                artifactClient,
+		endpoint:                endpointClient,
+		proxy:                   proxyClient,
+		upstreamGroup:           upstreamGroupClient,
+		secret:                  secretClient,
+		upstream:                upstreamClient,
+		authConfig:              authConfigClient,
+		rateLimitConfig:         rateLimitConfigClient,
+		virtualService:          virtualServiceClient,
+		routeTable:              routeTableClient,
+		gateway:                 gatewayClient,
+		virtualHostOption:       virtualHostOptionClient,
+		routeOption:             routeOptionClient,
+		matchableHttpGateway:    matchableHttpGatewayClient,
+		graphQLApi:              graphQLApiClient,
+		resourceNamespaceLister: resourceNamespaceLister,
+		forceEmit:               emit,
 	}
 }
 
@@ -145,6 +147,14 @@ type apiEmitter struct {
 	routeOption          gateway_solo_io.RouteOptionClient
 	matchableHttpGateway gateway_solo_io.MatchableHttpGatewayClient
 	graphQLApi           graphql_gloo_solo_io.GraphQLApiClient
+	// resourceNamespaceLister is used to watch for new namespaces when they are created.
+	// It is used when Expression Selector is in the Watch Opts set in Snapshot().
+	resourceNamespaceLister resources.ResourceNamespaceLister
+	// namespacesWatching is the set of namespaces that we are watching. This is helpful
+	// when Expression Selector is set on the Watch Opts in Snapshot().
+	namespacesWatching sync.Map
+	// updateNamespaces is used to perform locks and unlocks when watches on namespaces are being updated/created
+	updateNamespaces sync.Mutex
 }
 
 func (c *apiEmitter) Register() error {
@@ -256,6 +266,13 @@ func (c *apiEmitter) GraphQLApi() graphql_gloo_solo_io.GraphQLApiClient {
 	return c.graphQLApi
 }
 
+// Snapshots will return a channel that can be used to receive snapshots of the
+// state of the resources it is watching
+// when watching resources, you can set the watchNamespaces, and you can set the
+// ExpressionSelector of the WatchOpts.  Setting watchNamespaces will watch for all resources
+// that are in the specified namespaces. In addition if ExpressionSelector of the WatchOpts is
+// set, then all namespaces that meet the label criteria of the ExpressionSelector will
+// also be watched.
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
 
 	if len(watchNamespaces) == 0 {
@@ -270,15 +287,20 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	}
 
 	errs := make(chan error)
+	hasWatchedNamespaces := len(watchNamespaces) > 1 || (len(watchNamespaces) == 1 && watchNamespaces[0] != "")
+	watchingLabeledNamespaces := !(opts.ExpressionSelector == "")
 	var done sync.WaitGroup
 	ctx := opts.Ctx
+
+	// setting up the options for both listing and watching resources in namespaces
+	watchedNamespacesListOptions := clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector}
+	watchedNamespacesWatchOptions := clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector}
 	/* Create channel for Artifact */
 	type artifactListWithNamespace struct {
 		list      gloo_solo_io.ArtifactList
 		namespace string
 	}
 	artifactChan := make(chan artifactListWithNamespace)
-
 	var initialArtifactList gloo_solo_io.ArtifactList
 	/* Create channel for Endpoint */
 	type endpointListWithNamespace struct {
@@ -286,7 +308,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	endpointChan := make(chan endpointListWithNamespace)
-
 	var initialEndpointList gloo_solo_io.EndpointList
 	/* Create channel for Proxy */
 	type proxyListWithNamespace struct {
@@ -294,7 +315,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	proxyChan := make(chan proxyListWithNamespace)
-
 	var initialProxyList gloo_solo_io.ProxyList
 	/* Create channel for UpstreamGroup */
 	type upstreamGroupListWithNamespace struct {
@@ -302,7 +322,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	upstreamGroupChan := make(chan upstreamGroupListWithNamespace)
-
 	var initialUpstreamGroupList gloo_solo_io.UpstreamGroupList
 	/* Create channel for Secret */
 	type secretListWithNamespace struct {
@@ -310,7 +329,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	secretChan := make(chan secretListWithNamespace)
-
 	var initialSecretList gloo_solo_io.SecretList
 	/* Create channel for Upstream */
 	type upstreamListWithNamespace struct {
@@ -318,7 +336,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	upstreamChan := make(chan upstreamListWithNamespace)
-
 	var initialUpstreamList gloo_solo_io.UpstreamList
 	/* Create channel for AuthConfig */
 	type authConfigListWithNamespace struct {
@@ -326,7 +343,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	authConfigChan := make(chan authConfigListWithNamespace)
-
 	var initialAuthConfigList enterprise_gloo_solo_io.AuthConfigList
 	/* Create channel for RateLimitConfig */
 	type rateLimitConfigListWithNamespace struct {
@@ -334,7 +350,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	rateLimitConfigChan := make(chan rateLimitConfigListWithNamespace)
-
 	var initialRateLimitConfigList github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList
 	/* Create channel for VirtualService */
 	type virtualServiceListWithNamespace struct {
@@ -342,7 +357,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	virtualServiceChan := make(chan virtualServiceListWithNamespace)
-
 	var initialVirtualServiceList gateway_solo_io.VirtualServiceList
 	/* Create channel for RouteTable */
 	type routeTableListWithNamespace struct {
@@ -350,7 +364,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	routeTableChan := make(chan routeTableListWithNamespace)
-
 	var initialRouteTableList gateway_solo_io.RouteTableList
 	/* Create channel for Gateway */
 	type gatewayListWithNamespace struct {
@@ -358,7 +371,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	gatewayChan := make(chan gatewayListWithNamespace)
-
 	var initialGatewayList gateway_solo_io.GatewayList
 	/* Create channel for VirtualHostOption */
 	type virtualHostOptionListWithNamespace struct {
@@ -366,7 +378,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	virtualHostOptionChan := make(chan virtualHostOptionListWithNamespace)
-
 	var initialVirtualHostOptionList gateway_solo_io.VirtualHostOptionList
 	/* Create channel for RouteOption */
 	type routeOptionListWithNamespace struct {
@@ -374,7 +385,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	routeOptionChan := make(chan routeOptionListWithNamespace)
-
 	var initialRouteOptionList gateway_solo_io.RouteOptionList
 	/* Create channel for MatchableHttpGateway */
 	type matchableHttpGatewayListWithNamespace struct {
@@ -382,7 +392,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	matchableHttpGatewayChan := make(chan matchableHttpGatewayListWithNamespace)
-
 	var initialMatchableHttpGatewayList gateway_solo_io.MatchableHttpGatewayList
 	/* Create channel for GraphQLApi */
 	type graphQLApiListWithNamespace struct {
@@ -390,457 +399,1466 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		namespace string
 	}
 	graphQLApiChan := make(chan graphQLApiListWithNamespace)
-
 	var initialGraphQLApiList graphql_gloo_solo_io.GraphQLApiList
 
 	currentSnapshot := ApiSnapshot{}
-	artifactsByNamespace := make(map[string]gloo_solo_io.ArtifactList)
-	endpointsByNamespace := make(map[string]gloo_solo_io.EndpointList)
-	proxiesByNamespace := make(map[string]gloo_solo_io.ProxyList)
-	upstreamGroupsByNamespace := make(map[string]gloo_solo_io.UpstreamGroupList)
-	secretsByNamespace := make(map[string]gloo_solo_io.SecretList)
-	upstreamsByNamespace := make(map[string]gloo_solo_io.UpstreamList)
-	authConfigsByNamespace := make(map[string]enterprise_gloo_solo_io.AuthConfigList)
-	ratelimitconfigsByNamespace := make(map[string]github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList)
-	virtualServicesByNamespace := make(map[string]gateway_solo_io.VirtualServiceList)
-	routeTablesByNamespace := make(map[string]gateway_solo_io.RouteTableList)
-	gatewaysByNamespace := make(map[string]gateway_solo_io.GatewayList)
-	virtualHostOptionsByNamespace := make(map[string]gateway_solo_io.VirtualHostOptionList)
-	routeOptionsByNamespace := make(map[string]gateway_solo_io.RouteOptionList)
-	httpGatewaysByNamespace := make(map[string]gateway_solo_io.MatchableHttpGatewayList)
-	graphqlApisByNamespace := make(map[string]graphql_gloo_solo_io.GraphQLApiList)
+	artifactsByNamespace := sync.Map{}
+	endpointsByNamespace := sync.Map{}
+	proxiesByNamespace := sync.Map{}
+	upstreamGroupsByNamespace := sync.Map{}
+	secretsByNamespace := sync.Map{}
+	upstreamsByNamespace := sync.Map{}
+	authConfigsByNamespace := sync.Map{}
+	ratelimitconfigsByNamespace := sync.Map{}
+	virtualServicesByNamespace := sync.Map{}
+	routeTablesByNamespace := sync.Map{}
+	gatewaysByNamespace := sync.Map{}
+	virtualHostOptionsByNamespace := sync.Map{}
+	routeOptionsByNamespace := sync.Map{}
+	httpGatewaysByNamespace := sync.Map{}
+	graphqlApisByNamespace := sync.Map{}
+	if hasWatchedNamespaces || !watchingLabeledNamespaces {
+		// then watch all resources on watch Namespaces
 
-	for _, namespace := range watchNamespaces {
-		/* Setup namespaced watch for Artifact */
-		{
-			artifacts, err := c.artifact.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
-			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial Artifact list")
+		// watched namespaces
+		for _, namespace := range watchNamespaces {
+			/* Setup namespaced watch for Artifact */
+			{
+				artifacts, err := c.artifact.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Artifact list")
+				}
+				initialArtifactList = append(initialArtifactList, artifacts...)
+				artifactsByNamespace.Store(namespace, artifacts)
 			}
-			initialArtifactList = append(initialArtifactList, artifacts...)
-			artifactsByNamespace[namespace] = artifacts
-		}
-		artifactNamespacesChan, artifactErrs, err := c.artifact.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting Artifact watch")
-		}
-
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, artifactErrs, namespace+"-artifacts")
-		}(namespace)
-		/* Setup namespaced watch for Endpoint */
-		{
-			endpoints, err := c.endpoint.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			artifactNamespacesChan, artifactErrs, err := c.artifact.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial Endpoint list")
+				return nil, nil, errors.Wrapf(err, "starting Artifact watch")
 			}
-			initialEndpointList = append(initialEndpointList, endpoints...)
-			endpointsByNamespace[namespace] = endpoints
-		}
-		endpointNamespacesChan, endpointErrs, err := c.endpoint.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting Endpoint watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, endpointErrs, namespace+"-endpoints")
-		}(namespace)
-		/* Setup namespaced watch for Proxy */
-		{
-			proxies, err := c.proxy.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, artifactErrs, namespace+"-artifacts")
+			}(namespace)
+			/* Setup namespaced watch for Endpoint */
+			{
+				endpoints, err := c.endpoint.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Endpoint list")
+				}
+				initialEndpointList = append(initialEndpointList, endpoints...)
+				endpointsByNamespace.Store(namespace, endpoints)
+			}
+			endpointNamespacesChan, endpointErrs, err := c.endpoint.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial Proxy list")
+				return nil, nil, errors.Wrapf(err, "starting Endpoint watch")
 			}
-			initialProxyList = append(initialProxyList, proxies...)
-			proxiesByNamespace[namespace] = proxies
-		}
-		proxyNamespacesChan, proxyErrs, err := c.proxy.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting Proxy watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, proxyErrs, namespace+"-proxies")
-		}(namespace)
-		/* Setup namespaced watch for UpstreamGroup */
-		{
-			upstreamGroups, err := c.upstreamGroup.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, endpointErrs, namespace+"-endpoints")
+			}(namespace)
+			/* Setup namespaced watch for Proxy */
+			{
+				proxies, err := c.proxy.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Proxy list")
+				}
+				initialProxyList = append(initialProxyList, proxies...)
+				proxiesByNamespace.Store(namespace, proxies)
+			}
+			proxyNamespacesChan, proxyErrs, err := c.proxy.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial UpstreamGroup list")
+				return nil, nil, errors.Wrapf(err, "starting Proxy watch")
 			}
-			initialUpstreamGroupList = append(initialUpstreamGroupList, upstreamGroups...)
-			upstreamGroupsByNamespace[namespace] = upstreamGroups
-		}
-		upstreamGroupNamespacesChan, upstreamGroupErrs, err := c.upstreamGroup.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting UpstreamGroup watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, upstreamGroupErrs, namespace+"-upstreamGroups")
-		}(namespace)
-		/* Setup namespaced watch for Secret */
-		{
-			secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, proxyErrs, namespace+"-proxies")
+			}(namespace)
+			/* Setup namespaced watch for UpstreamGroup */
+			{
+				upstreamGroups, err := c.upstreamGroup.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial UpstreamGroup list")
+				}
+				initialUpstreamGroupList = append(initialUpstreamGroupList, upstreamGroups...)
+				upstreamGroupsByNamespace.Store(namespace, upstreamGroups)
+			}
+			upstreamGroupNamespacesChan, upstreamGroupErrs, err := c.upstreamGroup.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial Secret list")
+				return nil, nil, errors.Wrapf(err, "starting UpstreamGroup watch")
 			}
-			initialSecretList = append(initialSecretList, secrets...)
-			secretsByNamespace[namespace] = secrets
-		}
-		secretNamespacesChan, secretErrs, err := c.secret.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting Secret watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-secrets")
-		}(namespace)
-		/* Setup namespaced watch for Upstream */
-		{
-			upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, upstreamGroupErrs, namespace+"-upstreamGroups")
+			}(namespace)
+			/* Setup namespaced watch for Secret */
+			{
+				secrets, err := c.secret.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Secret list")
+				}
+				initialSecretList = append(initialSecretList, secrets...)
+				secretsByNamespace.Store(namespace, secrets)
+			}
+			secretNamespacesChan, secretErrs, err := c.secret.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial Upstream list")
+				return nil, nil, errors.Wrapf(err, "starting Secret watch")
 			}
-			initialUpstreamList = append(initialUpstreamList, upstreams...)
-			upstreamsByNamespace[namespace] = upstreams
-		}
-		upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting Upstream watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
-		}(namespace)
-		/* Setup namespaced watch for AuthConfig */
-		{
-			authConfigs, err := c.authConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-secrets")
+			}(namespace)
+			/* Setup namespaced watch for Upstream */
+			{
+				upstreams, err := c.upstream.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Upstream list")
+				}
+				initialUpstreamList = append(initialUpstreamList, upstreams...)
+				upstreamsByNamespace.Store(namespace, upstreams)
+			}
+			upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial AuthConfig list")
+				return nil, nil, errors.Wrapf(err, "starting Upstream watch")
 			}
-			initialAuthConfigList = append(initialAuthConfigList, authConfigs...)
-			authConfigsByNamespace[namespace] = authConfigs
-		}
-		authConfigNamespacesChan, authConfigErrs, err := c.authConfig.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting AuthConfig watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, authConfigErrs, namespace+"-authConfigs")
-		}(namespace)
-		/* Setup namespaced watch for RateLimitConfig */
-		{
-			ratelimitconfigs, err := c.rateLimitConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
+			}(namespace)
+			/* Setup namespaced watch for AuthConfig */
+			{
+				authConfigs, err := c.authConfig.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial AuthConfig list")
+				}
+				initialAuthConfigList = append(initialAuthConfigList, authConfigs...)
+				authConfigsByNamespace.Store(namespace, authConfigs)
+			}
+			authConfigNamespacesChan, authConfigErrs, err := c.authConfig.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial RateLimitConfig list")
+				return nil, nil, errors.Wrapf(err, "starting AuthConfig watch")
 			}
-			initialRateLimitConfigList = append(initialRateLimitConfigList, ratelimitconfigs...)
-			ratelimitconfigsByNamespace[namespace] = ratelimitconfigs
-		}
-		rateLimitConfigNamespacesChan, rateLimitConfigErrs, err := c.rateLimitConfig.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting RateLimitConfig watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, rateLimitConfigErrs, namespace+"-ratelimitconfigs")
-		}(namespace)
-		/* Setup namespaced watch for VirtualService */
-		{
-			virtualServices, err := c.virtualService.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, authConfigErrs, namespace+"-authConfigs")
+			}(namespace)
+			/* Setup namespaced watch for RateLimitConfig */
+			{
+				ratelimitconfigs, err := c.rateLimitConfig.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial RateLimitConfig list")
+				}
+				initialRateLimitConfigList = append(initialRateLimitConfigList, ratelimitconfigs...)
+				ratelimitconfigsByNamespace.Store(namespace, ratelimitconfigs)
+			}
+			rateLimitConfigNamespacesChan, rateLimitConfigErrs, err := c.rateLimitConfig.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial VirtualService list")
+				return nil, nil, errors.Wrapf(err, "starting RateLimitConfig watch")
 			}
-			initialVirtualServiceList = append(initialVirtualServiceList, virtualServices...)
-			virtualServicesByNamespace[namespace] = virtualServices
-		}
-		virtualServiceNamespacesChan, virtualServiceErrs, err := c.virtualService.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting VirtualService watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
-		}(namespace)
-		/* Setup namespaced watch for RouteTable */
-		{
-			routeTables, err := c.routeTable.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, rateLimitConfigErrs, namespace+"-ratelimitconfigs")
+			}(namespace)
+			/* Setup namespaced watch for VirtualService */
+			{
+				virtualServices, err := c.virtualService.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial VirtualService list")
+				}
+				initialVirtualServiceList = append(initialVirtualServiceList, virtualServices...)
+				virtualServicesByNamespace.Store(namespace, virtualServices)
+			}
+			virtualServiceNamespacesChan, virtualServiceErrs, err := c.virtualService.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial RouteTable list")
+				return nil, nil, errors.Wrapf(err, "starting VirtualService watch")
 			}
-			initialRouteTableList = append(initialRouteTableList, routeTables...)
-			routeTablesByNamespace[namespace] = routeTables
-		}
-		routeTableNamespacesChan, routeTableErrs, err := c.routeTable.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting RouteTable watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, routeTableErrs, namespace+"-routeTables")
-		}(namespace)
-		/* Setup namespaced watch for Gateway */
-		{
-			gateways, err := c.gateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
+			}(namespace)
+			/* Setup namespaced watch for RouteTable */
+			{
+				routeTables, err := c.routeTable.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial RouteTable list")
+				}
+				initialRouteTableList = append(initialRouteTableList, routeTables...)
+				routeTablesByNamespace.Store(namespace, routeTables)
+			}
+			routeTableNamespacesChan, routeTableErrs, err := c.routeTable.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial Gateway list")
+				return nil, nil, errors.Wrapf(err, "starting RouteTable watch")
 			}
-			initialGatewayList = append(initialGatewayList, gateways...)
-			gatewaysByNamespace[namespace] = gateways
-		}
-		gatewayNamespacesChan, gatewayErrs, err := c.gateway.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting Gateway watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, gatewayErrs, namespace+"-gateways")
-		}(namespace)
-		/* Setup namespaced watch for VirtualHostOption */
-		{
-			virtualHostOptions, err := c.virtualHostOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, routeTableErrs, namespace+"-routeTables")
+			}(namespace)
+			/* Setup namespaced watch for Gateway */
+			{
+				gateways, err := c.gateway.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Gateway list")
+				}
+				initialGatewayList = append(initialGatewayList, gateways...)
+				gatewaysByNamespace.Store(namespace, gateways)
+			}
+			gatewayNamespacesChan, gatewayErrs, err := c.gateway.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial VirtualHostOption list")
+				return nil, nil, errors.Wrapf(err, "starting Gateway watch")
 			}
-			initialVirtualHostOptionList = append(initialVirtualHostOptionList, virtualHostOptions...)
-			virtualHostOptionsByNamespace[namespace] = virtualHostOptions
-		}
-		virtualHostOptionNamespacesChan, virtualHostOptionErrs, err := c.virtualHostOption.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting VirtualHostOption watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, virtualHostOptionErrs, namespace+"-virtualHostOptions")
-		}(namespace)
-		/* Setup namespaced watch for RouteOption */
-		{
-			routeOptions, err := c.routeOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, gatewayErrs, namespace+"-gateways")
+			}(namespace)
+			/* Setup namespaced watch for VirtualHostOption */
+			{
+				virtualHostOptions, err := c.virtualHostOption.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial VirtualHostOption list")
+				}
+				initialVirtualHostOptionList = append(initialVirtualHostOptionList, virtualHostOptions...)
+				virtualHostOptionsByNamespace.Store(namespace, virtualHostOptions)
+			}
+			virtualHostOptionNamespacesChan, virtualHostOptionErrs, err := c.virtualHostOption.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial RouteOption list")
+				return nil, nil, errors.Wrapf(err, "starting VirtualHostOption watch")
 			}
-			initialRouteOptionList = append(initialRouteOptionList, routeOptions...)
-			routeOptionsByNamespace[namespace] = routeOptions
-		}
-		routeOptionNamespacesChan, routeOptionErrs, err := c.routeOption.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting RouteOption watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, routeOptionErrs, namespace+"-routeOptions")
-		}(namespace)
-		/* Setup namespaced watch for MatchableHttpGateway */
-		{
-			httpGateways, err := c.matchableHttpGateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, virtualHostOptionErrs, namespace+"-virtualHostOptions")
+			}(namespace)
+			/* Setup namespaced watch for RouteOption */
+			{
+				routeOptions, err := c.routeOption.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial RouteOption list")
+				}
+				initialRouteOptionList = append(initialRouteOptionList, routeOptions...)
+				routeOptionsByNamespace.Store(namespace, routeOptions)
+			}
+			routeOptionNamespacesChan, routeOptionErrs, err := c.routeOption.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial MatchableHttpGateway list")
+				return nil, nil, errors.Wrapf(err, "starting RouteOption watch")
 			}
-			initialMatchableHttpGatewayList = append(initialMatchableHttpGatewayList, httpGateways...)
-			httpGatewaysByNamespace[namespace] = httpGateways
-		}
-		matchableHttpGatewayNamespacesChan, matchableHttpGatewayErrs, err := c.matchableHttpGateway.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting MatchableHttpGateway watch")
-		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, matchableHttpGatewayErrs, namespace+"-httpGateways")
-		}(namespace)
-		/* Setup namespaced watch for GraphQLApi */
-		{
-			graphqlApis, err := c.graphQLApi.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, routeOptionErrs, namespace+"-routeOptions")
+			}(namespace)
+			/* Setup namespaced watch for MatchableHttpGateway */
+			{
+				httpGateways, err := c.matchableHttpGateway.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial MatchableHttpGateway list")
+				}
+				initialMatchableHttpGatewayList = append(initialMatchableHttpGatewayList, httpGateways...)
+				httpGatewaysByNamespace.Store(namespace, httpGateways)
+			}
+			matchableHttpGatewayNamespacesChan, matchableHttpGatewayErrs, err := c.matchableHttpGateway.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial GraphQLApi list")
+				return nil, nil, errors.Wrapf(err, "starting MatchableHttpGateway watch")
 			}
-			initialGraphQLApiList = append(initialGraphQLApiList, graphqlApis...)
-			graphqlApisByNamespace[namespace] = graphqlApis
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, matchableHttpGatewayErrs, namespace+"-httpGateways")
+			}(namespace)
+			/* Setup namespaced watch for GraphQLApi */
+			{
+				graphqlApis, err := c.graphQLApi.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial GraphQLApi list")
+				}
+				initialGraphQLApiList = append(initialGraphQLApiList, graphqlApis...)
+				graphqlApisByNamespace.Store(namespace, graphqlApis)
+			}
+			graphQLApiNamespacesChan, graphQLApiErrs, err := c.graphQLApi.Watch(namespace, watchedNamespacesWatchOptions)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting GraphQLApi watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, graphQLApiErrs, namespace+"-graphqlApis")
+			}(namespace)
+			/* Watch for changes and update snapshot */
+			go func(namespace string) {
+				defer func() {
+					c.namespacesWatching.Delete(namespace)
+				}()
+				c.namespacesWatching.Store(namespace, true)
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case artifactList, ok := <-artifactNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case artifactChan <- artifactListWithNamespace{list: artifactList, namespace: namespace}:
+						}
+					case endpointList, ok := <-endpointNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case endpointChan <- endpointListWithNamespace{list: endpointList, namespace: namespace}:
+						}
+					case proxyList, ok := <-proxyNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case proxyChan <- proxyListWithNamespace{list: proxyList, namespace: namespace}:
+						}
+					case upstreamGroupList, ok := <-upstreamGroupNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case upstreamGroupChan <- upstreamGroupListWithNamespace{list: upstreamGroupList, namespace: namespace}:
+						}
+					case secretList, ok := <-secretNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case secretChan <- secretListWithNamespace{list: secretList, namespace: namespace}:
+						}
+					case upstreamList, ok := <-upstreamNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
+						}
+					case authConfigList, ok := <-authConfigNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case authConfigChan <- authConfigListWithNamespace{list: authConfigList, namespace: namespace}:
+						}
+					case rateLimitConfigList, ok := <-rateLimitConfigNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case rateLimitConfigChan <- rateLimitConfigListWithNamespace{list: rateLimitConfigList, namespace: namespace}:
+						}
+					case virtualServiceList, ok := <-virtualServiceNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case virtualServiceChan <- virtualServiceListWithNamespace{list: virtualServiceList, namespace: namespace}:
+						}
+					case routeTableList, ok := <-routeTableNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case routeTableChan <- routeTableListWithNamespace{list: routeTableList, namespace: namespace}:
+						}
+					case gatewayList, ok := <-gatewayNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case gatewayChan <- gatewayListWithNamespace{list: gatewayList, namespace: namespace}:
+						}
+					case virtualHostOptionList, ok := <-virtualHostOptionNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case virtualHostOptionChan <- virtualHostOptionListWithNamespace{list: virtualHostOptionList, namespace: namespace}:
+						}
+					case routeOptionList, ok := <-routeOptionNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case routeOptionChan <- routeOptionListWithNamespace{list: routeOptionList, namespace: namespace}:
+						}
+					case matchableHttpGatewayList, ok := <-matchableHttpGatewayNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case matchableHttpGatewayChan <- matchableHttpGatewayListWithNamespace{list: matchableHttpGatewayList, namespace: namespace}:
+						}
+					case graphQLApiList, ok := <-graphQLApiNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case graphQLApiChan <- graphQLApiListWithNamespace{list: graphQLApiList, namespace: namespace}:
+						}
+					}
+				}
+			}(namespace)
 		}
-		graphQLApiNamespacesChan, graphQLApiErrs, err := c.graphQLApi.Watch(namespace, opts)
+	}
+	// watch all other namespaces that are labeled and fit the Expression Selector
+	if opts.ExpressionSelector != "" {
+		// watch resources of non-watched namespaces that fit the expression selectors
+		namespaceListOptions := resources.ResourceNamespaceListOptions{
+			Ctx:                opts.Ctx,
+			ExpressionSelector: opts.ExpressionSelector,
+		}
+		namespaceWatchOptions := resources.ResourceNamespaceWatchOptions{
+			Ctx:                opts.Ctx,
+			ExpressionSelector: opts.ExpressionSelector,
+		}
+
+		filterNamespaces := resources.ResourceNamespaceList{}
+		for _, ns := range watchNamespaces {
+			// we do not want to filter out "" which equals all namespaces
+			if ns != "" {
+				filterNamespaces = append(filterNamespaces, resources.ResourceNamespace{Name: ns})
+			}
+		}
+		namespacesResources, err := c.resourceNamespaceLister.GetResourceNamespaceList(namespaceListOptions, filterNamespaces)
 		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting GraphQLApi watch")
+			return nil, nil, err
+		}
+		// non watched namespaces that are labeled
+		for _, resourceNamespace := range namespacesResources {
+			namespace := resourceNamespace.Name
+			/* Setup namespaced watch for Artifact */
+			{
+				artifacts, err := c.artifact.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Artifact list")
+				}
+				initialArtifactList = append(initialArtifactList, artifacts...)
+				artifactsByNamespace.Store(namespace, artifacts)
+			}
+			artifactNamespacesChan, artifactErrs, err := c.artifact.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Artifact watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, artifactErrs, namespace+"-artifacts")
+			}(namespace)
+			/* Setup namespaced watch for Endpoint */
+			{
+				endpoints, err := c.endpoint.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Endpoint list")
+				}
+				initialEndpointList = append(initialEndpointList, endpoints...)
+				endpointsByNamespace.Store(namespace, endpoints)
+			}
+			endpointNamespacesChan, endpointErrs, err := c.endpoint.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Endpoint watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, endpointErrs, namespace+"-endpoints")
+			}(namespace)
+			/* Setup namespaced watch for Proxy */
+			{
+				proxies, err := c.proxy.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Proxy list")
+				}
+				initialProxyList = append(initialProxyList, proxies...)
+				proxiesByNamespace.Store(namespace, proxies)
+			}
+			proxyNamespacesChan, proxyErrs, err := c.proxy.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Proxy watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, proxyErrs, namespace+"-proxies")
+			}(namespace)
+			/* Setup namespaced watch for UpstreamGroup */
+			{
+				upstreamGroups, err := c.upstreamGroup.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial UpstreamGroup list")
+				}
+				initialUpstreamGroupList = append(initialUpstreamGroupList, upstreamGroups...)
+				upstreamGroupsByNamespace.Store(namespace, upstreamGroups)
+			}
+			upstreamGroupNamespacesChan, upstreamGroupErrs, err := c.upstreamGroup.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting UpstreamGroup watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, upstreamGroupErrs, namespace+"-upstreamGroups")
+			}(namespace)
+			/* Setup namespaced watch for Secret */
+			{
+				secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Secret list")
+				}
+				initialSecretList = append(initialSecretList, secrets...)
+				secretsByNamespace.Store(namespace, secrets)
+			}
+			secretNamespacesChan, secretErrs, err := c.secret.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Secret watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-secrets")
+			}(namespace)
+			/* Setup namespaced watch for Upstream */
+			{
+				upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Upstream list")
+				}
+				initialUpstreamList = append(initialUpstreamList, upstreams...)
+				upstreamsByNamespace.Store(namespace, upstreams)
+			}
+			upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Upstream watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
+			}(namespace)
+			/* Setup namespaced watch for AuthConfig */
+			{
+				authConfigs, err := c.authConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial AuthConfig list")
+				}
+				initialAuthConfigList = append(initialAuthConfigList, authConfigs...)
+				authConfigsByNamespace.Store(namespace, authConfigs)
+			}
+			authConfigNamespacesChan, authConfigErrs, err := c.authConfig.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting AuthConfig watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, authConfigErrs, namespace+"-authConfigs")
+			}(namespace)
+			/* Setup namespaced watch for RateLimitConfig */
+			{
+				ratelimitconfigs, err := c.rateLimitConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial RateLimitConfig list")
+				}
+				initialRateLimitConfigList = append(initialRateLimitConfigList, ratelimitconfigs...)
+				ratelimitconfigsByNamespace.Store(namespace, ratelimitconfigs)
+			}
+			rateLimitConfigNamespacesChan, rateLimitConfigErrs, err := c.rateLimitConfig.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting RateLimitConfig watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, rateLimitConfigErrs, namespace+"-ratelimitconfigs")
+			}(namespace)
+			/* Setup namespaced watch for VirtualService */
+			{
+				virtualServices, err := c.virtualService.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial VirtualService list")
+				}
+				initialVirtualServiceList = append(initialVirtualServiceList, virtualServices...)
+				virtualServicesByNamespace.Store(namespace, virtualServices)
+			}
+			virtualServiceNamespacesChan, virtualServiceErrs, err := c.virtualService.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting VirtualService watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
+			}(namespace)
+			/* Setup namespaced watch for RouteTable */
+			{
+				routeTables, err := c.routeTable.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial RouteTable list")
+				}
+				initialRouteTableList = append(initialRouteTableList, routeTables...)
+				routeTablesByNamespace.Store(namespace, routeTables)
+			}
+			routeTableNamespacesChan, routeTableErrs, err := c.routeTable.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting RouteTable watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, routeTableErrs, namespace+"-routeTables")
+			}(namespace)
+			/* Setup namespaced watch for Gateway */
+			{
+				gateways, err := c.gateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Gateway list")
+				}
+				initialGatewayList = append(initialGatewayList, gateways...)
+				gatewaysByNamespace.Store(namespace, gateways)
+			}
+			gatewayNamespacesChan, gatewayErrs, err := c.gateway.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Gateway watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, gatewayErrs, namespace+"-gateways")
+			}(namespace)
+			/* Setup namespaced watch for VirtualHostOption */
+			{
+				virtualHostOptions, err := c.virtualHostOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial VirtualHostOption list")
+				}
+				initialVirtualHostOptionList = append(initialVirtualHostOptionList, virtualHostOptions...)
+				virtualHostOptionsByNamespace.Store(namespace, virtualHostOptions)
+			}
+			virtualHostOptionNamespacesChan, virtualHostOptionErrs, err := c.virtualHostOption.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting VirtualHostOption watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, virtualHostOptionErrs, namespace+"-virtualHostOptions")
+			}(namespace)
+			/* Setup namespaced watch for RouteOption */
+			{
+				routeOptions, err := c.routeOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial RouteOption list")
+				}
+				initialRouteOptionList = append(initialRouteOptionList, routeOptions...)
+				routeOptionsByNamespace.Store(namespace, routeOptions)
+			}
+			routeOptionNamespacesChan, routeOptionErrs, err := c.routeOption.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting RouteOption watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, routeOptionErrs, namespace+"-routeOptions")
+			}(namespace)
+			/* Setup namespaced watch for MatchableHttpGateway */
+			{
+				httpGateways, err := c.matchableHttpGateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial MatchableHttpGateway list")
+				}
+				initialMatchableHttpGatewayList = append(initialMatchableHttpGatewayList, httpGateways...)
+				httpGatewaysByNamespace.Store(namespace, httpGateways)
+			}
+			matchableHttpGatewayNamespacesChan, matchableHttpGatewayErrs, err := c.matchableHttpGateway.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting MatchableHttpGateway watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, matchableHttpGatewayErrs, namespace+"-httpGateways")
+			}(namespace)
+			/* Setup namespaced watch for GraphQLApi */
+			{
+				graphqlApis, err := c.graphQLApi.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial GraphQLApi list")
+				}
+				initialGraphQLApiList = append(initialGraphQLApiList, graphqlApis...)
+				graphqlApisByNamespace.Store(namespace, graphqlApis)
+			}
+			graphQLApiNamespacesChan, graphQLApiErrs, err := c.graphQLApi.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting GraphQLApi watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, graphQLApiErrs, namespace+"-graphqlApis")
+			}(namespace)
+			/* Watch for changes and update snapshot */
+			go func(namespace string) {
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case artifactList, ok := <-artifactNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case artifactChan <- artifactListWithNamespace{list: artifactList, namespace: namespace}:
+						}
+					case endpointList, ok := <-endpointNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case endpointChan <- endpointListWithNamespace{list: endpointList, namespace: namespace}:
+						}
+					case proxyList, ok := <-proxyNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case proxyChan <- proxyListWithNamespace{list: proxyList, namespace: namespace}:
+						}
+					case upstreamGroupList, ok := <-upstreamGroupNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case upstreamGroupChan <- upstreamGroupListWithNamespace{list: upstreamGroupList, namespace: namespace}:
+						}
+					case secretList, ok := <-secretNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case secretChan <- secretListWithNamespace{list: secretList, namespace: namespace}:
+						}
+					case upstreamList, ok := <-upstreamNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
+						}
+					case authConfigList, ok := <-authConfigNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case authConfigChan <- authConfigListWithNamespace{list: authConfigList, namespace: namespace}:
+						}
+					case rateLimitConfigList, ok := <-rateLimitConfigNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case rateLimitConfigChan <- rateLimitConfigListWithNamespace{list: rateLimitConfigList, namespace: namespace}:
+						}
+					case virtualServiceList, ok := <-virtualServiceNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case virtualServiceChan <- virtualServiceListWithNamespace{list: virtualServiceList, namespace: namespace}:
+						}
+					case routeTableList, ok := <-routeTableNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case routeTableChan <- routeTableListWithNamespace{list: routeTableList, namespace: namespace}:
+						}
+					case gatewayList, ok := <-gatewayNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case gatewayChan <- gatewayListWithNamespace{list: gatewayList, namespace: namespace}:
+						}
+					case virtualHostOptionList, ok := <-virtualHostOptionNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case virtualHostOptionChan <- virtualHostOptionListWithNamespace{list: virtualHostOptionList, namespace: namespace}:
+						}
+					case routeOptionList, ok := <-routeOptionNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case routeOptionChan <- routeOptionListWithNamespace{list: routeOptionList, namespace: namespace}:
+						}
+					case matchableHttpGatewayList, ok := <-matchableHttpGatewayNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case matchableHttpGatewayChan <- matchableHttpGatewayListWithNamespace{list: matchableHttpGatewayList, namespace: namespace}:
+						}
+					case graphQLApiList, ok := <-graphQLApiNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case graphQLApiChan <- graphQLApiListWithNamespace{list: graphQLApiList, namespace: namespace}:
+						}
+					}
+				}
+			}(namespace)
+		}
+		// create watch on all namespaces, so that we can add all resources from new namespaces
+		// we will be watching namespaces that meet the Expression Selector filter
+
+		namespaceWatch, errsReceiver, err := c.resourceNamespaceLister.GetResourceNamespaceWatch(namespaceWatchOptions, filterNamespaces)
+		if err != nil {
+			return nil, nil, err
+		}
+		if errsReceiver != nil {
+			go func() {
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case err = <-errsReceiver:
+						errs <- errors.Wrapf(err, "received error from watch on resource namespaces")
+					}
+				}
+			}()
 		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, graphQLApiErrs, namespace+"-graphqlApis")
-		}(namespace)
-
-		/* Watch for changes and update snapshot */
-		go func(namespace string) {
+		go func() {
 			for {
 				select {
 				case <-ctx.Done():
 					return
-				case artifactList, ok := <-artifactNamespacesChan:
+				case resourceNamespaces, ok := <-namespaceWatch:
 					if !ok {
 						return
 					}
-					select {
-					case <-ctx.Done():
-						return
-					case artifactChan <- artifactListWithNamespace{list: artifactList, namespace: namespace}:
+					// get the list of new namespaces, if there is a new namespace
+					// get the list of resources from that namespace, and add
+					// a watch for new resources created/deleted on that namespace
+					c.updateNamespaces.Lock()
+
+					// get the new namespaces, and get a map of the namespaces
+					mapOfResourceNamespaces := make(map[string]bool, len(resourceNamespaces))
+					newNamespaces := []string{}
+					for _, ns := range resourceNamespaces {
+						if _, hit := c.namespacesWatching.Load(ns.Name); !hit {
+							newNamespaces = append(newNamespaces, ns.Name)
+						}
+						mapOfResourceNamespaces[ns.Name] = true
 					}
-				case endpointList, ok := <-endpointNamespacesChan:
-					if !ok {
-						return
+
+					for _, ns := range watchNamespaces {
+						mapOfResourceNamespaces[ns] = true
 					}
-					select {
-					case <-ctx.Done():
-						return
-					case endpointChan <- endpointListWithNamespace{list: endpointList, namespace: namespace}:
+
+					missingNamespaces := []string{}
+					// use the map of namespace resources to find missing/deleted namespaces
+					c.namespacesWatching.Range(func(key interface{}, value interface{}) bool {
+						name := key.(string)
+						if _, hit := mapOfResourceNamespaces[name]; !hit {
+							missingNamespaces = append(missingNamespaces, name)
+						}
+						return true
+					})
+
+					for _, ns := range missingNamespaces {
+						// c.namespacesWatching.Delete(ns)
+						artifactChan <- artifactListWithNamespace{list: gloo_solo_io.ArtifactList{}, namespace: ns}
+						// artifactsByNamespace.Delete(ns)
+						endpointChan <- endpointListWithNamespace{list: gloo_solo_io.EndpointList{}, namespace: ns}
+						// endpointsByNamespace.Delete(ns)
+						proxyChan <- proxyListWithNamespace{list: gloo_solo_io.ProxyList{}, namespace: ns}
+						// proxiesByNamespace.Delete(ns)
+						upstreamGroupChan <- upstreamGroupListWithNamespace{list: gloo_solo_io.UpstreamGroupList{}, namespace: ns}
+						// upstreamGroupsByNamespace.Delete(ns)
+						secretChan <- secretListWithNamespace{list: gloo_solo_io.SecretList{}, namespace: ns}
+						// secretsByNamespace.Delete(ns)
+						upstreamChan <- upstreamListWithNamespace{list: gloo_solo_io.UpstreamList{}, namespace: ns}
+						// upstreamsByNamespace.Delete(ns)
+						authConfigChan <- authConfigListWithNamespace{list: enterprise_gloo_solo_io.AuthConfigList{}, namespace: ns}
+						// authConfigsByNamespace.Delete(ns)
+						rateLimitConfigChan <- rateLimitConfigListWithNamespace{list: github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList{}, namespace: ns}
+						// ratelimitconfigsByNamespace.Delete(ns)
+						virtualServiceChan <- virtualServiceListWithNamespace{list: gateway_solo_io.VirtualServiceList{}, namespace: ns}
+						// virtualServicesByNamespace.Delete(ns)
+						routeTableChan <- routeTableListWithNamespace{list: gateway_solo_io.RouteTableList{}, namespace: ns}
+						// routeTablesByNamespace.Delete(ns)
+						gatewayChan <- gatewayListWithNamespace{list: gateway_solo_io.GatewayList{}, namespace: ns}
+						// gatewaysByNamespace.Delete(ns)
+						virtualHostOptionChan <- virtualHostOptionListWithNamespace{list: gateway_solo_io.VirtualHostOptionList{}, namespace: ns}
+						// virtualHostOptionsByNamespace.Delete(ns)
+						routeOptionChan <- routeOptionListWithNamespace{list: gateway_solo_io.RouteOptionList{}, namespace: ns}
+						// routeOptionsByNamespace.Delete(ns)
+						matchableHttpGatewayChan <- matchableHttpGatewayListWithNamespace{list: gateway_solo_io.MatchableHttpGatewayList{}, namespace: ns}
+						// httpGatewaysByNamespace.Delete(ns)
+						graphQLApiChan <- graphQLApiListWithNamespace{list: graphql_gloo_solo_io.GraphQLApiList{}, namespace: ns}
+						// graphqlApisByNamespace.Delete(ns)
 					}
-				case proxyList, ok := <-proxyNamespacesChan:
-					if !ok {
-						return
+
+					for _, namespace := range newNamespaces {
+						/* Setup namespaced watch for Artifact for new namespace */
+						{
+							artifacts, err := c.artifact.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace Artifact list")
+								continue
+							}
+							artifactsByNamespace.Store(namespace, artifacts)
+						}
+						artifactNamespacesChan, artifactErrs, err := c.artifact.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace Artifact watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, artifactErrs, namespace+"-new-namespace-artifacts")
+						}(namespace)
+						/* Setup namespaced watch for Endpoint for new namespace */
+						{
+							endpoints, err := c.endpoint.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace Endpoint list")
+								continue
+							}
+							endpointsByNamespace.Store(namespace, endpoints)
+						}
+						endpointNamespacesChan, endpointErrs, err := c.endpoint.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace Endpoint watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, endpointErrs, namespace+"-new-namespace-endpoints")
+						}(namespace)
+						/* Setup namespaced watch for Proxy for new namespace */
+						{
+							proxies, err := c.proxy.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace Proxy list")
+								continue
+							}
+							proxiesByNamespace.Store(namespace, proxies)
+						}
+						proxyNamespacesChan, proxyErrs, err := c.proxy.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace Proxy watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, proxyErrs, namespace+"-new-namespace-proxies")
+						}(namespace)
+						/* Setup namespaced watch for UpstreamGroup for new namespace */
+						{
+							upstreamGroups, err := c.upstreamGroup.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace UpstreamGroup list")
+								continue
+							}
+							upstreamGroupsByNamespace.Store(namespace, upstreamGroups)
+						}
+						upstreamGroupNamespacesChan, upstreamGroupErrs, err := c.upstreamGroup.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace UpstreamGroup watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, upstreamGroupErrs, namespace+"-new-namespace-upstreamGroups")
+						}(namespace)
+						/* Setup namespaced watch for Secret for new namespace */
+						{
+							secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace Secret list")
+								continue
+							}
+							secretsByNamespace.Store(namespace, secrets)
+						}
+						secretNamespacesChan, secretErrs, err := c.secret.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace Secret watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-new-namespace-secrets")
+						}(namespace)
+						/* Setup namespaced watch for Upstream for new namespace */
+						{
+							upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace Upstream list")
+								continue
+							}
+							upstreamsByNamespace.Store(namespace, upstreams)
+						}
+						upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace Upstream watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-new-namespace-upstreams")
+						}(namespace)
+						/* Setup namespaced watch for AuthConfig for new namespace */
+						{
+							authConfigs, err := c.authConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace AuthConfig list")
+								continue
+							}
+							authConfigsByNamespace.Store(namespace, authConfigs)
+						}
+						authConfigNamespacesChan, authConfigErrs, err := c.authConfig.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace AuthConfig watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, authConfigErrs, namespace+"-new-namespace-authConfigs")
+						}(namespace)
+						/* Setup namespaced watch for RateLimitConfig for new namespace */
+						{
+							ratelimitconfigs, err := c.rateLimitConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace RateLimitConfig list")
+								continue
+							}
+							ratelimitconfigsByNamespace.Store(namespace, ratelimitconfigs)
+						}
+						rateLimitConfigNamespacesChan, rateLimitConfigErrs, err := c.rateLimitConfig.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace RateLimitConfig watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, rateLimitConfigErrs, namespace+"-new-namespace-ratelimitconfigs")
+						}(namespace)
+						/* Setup namespaced watch for VirtualService for new namespace */
+						{
+							virtualServices, err := c.virtualService.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace VirtualService list")
+								continue
+							}
+							virtualServicesByNamespace.Store(namespace, virtualServices)
+						}
+						virtualServiceNamespacesChan, virtualServiceErrs, err := c.virtualService.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace VirtualService watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, virtualServiceErrs, namespace+"-new-namespace-virtualServices")
+						}(namespace)
+						/* Setup namespaced watch for RouteTable for new namespace */
+						{
+							routeTables, err := c.routeTable.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace RouteTable list")
+								continue
+							}
+							routeTablesByNamespace.Store(namespace, routeTables)
+						}
+						routeTableNamespacesChan, routeTableErrs, err := c.routeTable.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace RouteTable watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, routeTableErrs, namespace+"-new-namespace-routeTables")
+						}(namespace)
+						/* Setup namespaced watch for Gateway for new namespace */
+						{
+							gateways, err := c.gateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace Gateway list")
+								continue
+							}
+							gatewaysByNamespace.Store(namespace, gateways)
+						}
+						gatewayNamespacesChan, gatewayErrs, err := c.gateway.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace Gateway watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, gatewayErrs, namespace+"-new-namespace-gateways")
+						}(namespace)
+						/* Setup namespaced watch for VirtualHostOption for new namespace */
+						{
+							virtualHostOptions, err := c.virtualHostOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace VirtualHostOption list")
+								continue
+							}
+							virtualHostOptionsByNamespace.Store(namespace, virtualHostOptions)
+						}
+						virtualHostOptionNamespacesChan, virtualHostOptionErrs, err := c.virtualHostOption.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace VirtualHostOption watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, virtualHostOptionErrs, namespace+"-new-namespace-virtualHostOptions")
+						}(namespace)
+						/* Setup namespaced watch for RouteOption for new namespace */
+						{
+							routeOptions, err := c.routeOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace RouteOption list")
+								continue
+							}
+							routeOptionsByNamespace.Store(namespace, routeOptions)
+						}
+						routeOptionNamespacesChan, routeOptionErrs, err := c.routeOption.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace RouteOption watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, routeOptionErrs, namespace+"-new-namespace-routeOptions")
+						}(namespace)
+						/* Setup namespaced watch for MatchableHttpGateway for new namespace */
+						{
+							httpGateways, err := c.matchableHttpGateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace MatchableHttpGateway list")
+								continue
+							}
+							httpGatewaysByNamespace.Store(namespace, httpGateways)
+						}
+						matchableHttpGatewayNamespacesChan, matchableHttpGatewayErrs, err := c.matchableHttpGateway.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace MatchableHttpGateway watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, matchableHttpGatewayErrs, namespace+"-new-namespace-httpGateways")
+						}(namespace)
+						/* Setup namespaced watch for GraphQLApi for new namespace */
+						{
+							graphqlApis, err := c.graphQLApi.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace GraphQLApi list")
+								continue
+							}
+							graphqlApisByNamespace.Store(namespace, graphqlApis)
+						}
+						graphQLApiNamespacesChan, graphQLApiErrs, err := c.graphQLApi.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace GraphQLApi watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, graphQLApiErrs, namespace+"-new-namespace-graphqlApis")
+						}(namespace)
+						/* Watch for changes and update snapshot */
+						go func(namespace string) {
+							defer func() {
+								c.namespacesWatching.Delete(namespace)
+							}()
+							c.namespacesWatching.Store(namespace, true)
+							for {
+								select {
+								case <-ctx.Done():
+									return
+								case artifactList, ok := <-artifactNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case artifactChan <- artifactListWithNamespace{list: artifactList, namespace: namespace}:
+									}
+								case endpointList, ok := <-endpointNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case endpointChan <- endpointListWithNamespace{list: endpointList, namespace: namespace}:
+									}
+								case proxyList, ok := <-proxyNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case proxyChan <- proxyListWithNamespace{list: proxyList, namespace: namespace}:
+									}
+								case upstreamGroupList, ok := <-upstreamGroupNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case upstreamGroupChan <- upstreamGroupListWithNamespace{list: upstreamGroupList, namespace: namespace}:
+									}
+								case secretList, ok := <-secretNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case secretChan <- secretListWithNamespace{list: secretList, namespace: namespace}:
+									}
+								case upstreamList, ok := <-upstreamNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
+									}
+								case authConfigList, ok := <-authConfigNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case authConfigChan <- authConfigListWithNamespace{list: authConfigList, namespace: namespace}:
+									}
+								case rateLimitConfigList, ok := <-rateLimitConfigNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case rateLimitConfigChan <- rateLimitConfigListWithNamespace{list: rateLimitConfigList, namespace: namespace}:
+									}
+								case virtualServiceList, ok := <-virtualServiceNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case virtualServiceChan <- virtualServiceListWithNamespace{list: virtualServiceList, namespace: namespace}:
+									}
+								case routeTableList, ok := <-routeTableNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case routeTableChan <- routeTableListWithNamespace{list: routeTableList, namespace: namespace}:
+									}
+								case gatewayList, ok := <-gatewayNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case gatewayChan <- gatewayListWithNamespace{list: gatewayList, namespace: namespace}:
+									}
+								case virtualHostOptionList, ok := <-virtualHostOptionNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case virtualHostOptionChan <- virtualHostOptionListWithNamespace{list: virtualHostOptionList, namespace: namespace}:
+									}
+								case routeOptionList, ok := <-routeOptionNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case routeOptionChan <- routeOptionListWithNamespace{list: routeOptionList, namespace: namespace}:
+									}
+								case matchableHttpGatewayList, ok := <-matchableHttpGatewayNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case matchableHttpGatewayChan <- matchableHttpGatewayListWithNamespace{list: matchableHttpGatewayList, namespace: namespace}:
+									}
+								case graphQLApiList, ok := <-graphQLApiNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case graphQLApiChan <- graphQLApiListWithNamespace{list: graphQLApiList, namespace: namespace}:
+									}
+								}
+							}
+						}(namespace)
 					}
-					select {
-					case <-ctx.Done():
-						return
-					case proxyChan <- proxyListWithNamespace{list: proxyList, namespace: namespace}:
-					}
-				case upstreamGroupList, ok := <-upstreamGroupNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case upstreamGroupChan <- upstreamGroupListWithNamespace{list: upstreamGroupList, namespace: namespace}:
-					}
-				case secretList, ok := <-secretNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case secretChan <- secretListWithNamespace{list: secretList, namespace: namespace}:
-					}
-				case upstreamList, ok := <-upstreamNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
-					}
-				case authConfigList, ok := <-authConfigNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case authConfigChan <- authConfigListWithNamespace{list: authConfigList, namespace: namespace}:
-					}
-				case rateLimitConfigList, ok := <-rateLimitConfigNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case rateLimitConfigChan <- rateLimitConfigListWithNamespace{list: rateLimitConfigList, namespace: namespace}:
-					}
-				case virtualServiceList, ok := <-virtualServiceNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case virtualServiceChan <- virtualServiceListWithNamespace{list: virtualServiceList, namespace: namespace}:
-					}
-				case routeTableList, ok := <-routeTableNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case routeTableChan <- routeTableListWithNamespace{list: routeTableList, namespace: namespace}:
-					}
-				case gatewayList, ok := <-gatewayNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case gatewayChan <- gatewayListWithNamespace{list: gatewayList, namespace: namespace}:
-					}
-				case virtualHostOptionList, ok := <-virtualHostOptionNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case virtualHostOptionChan <- virtualHostOptionListWithNamespace{list: virtualHostOptionList, namespace: namespace}:
-					}
-				case routeOptionList, ok := <-routeOptionNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case routeOptionChan <- routeOptionListWithNamespace{list: routeOptionList, namespace: namespace}:
-					}
-				case matchableHttpGatewayList, ok := <-matchableHttpGatewayNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case matchableHttpGatewayChan <- matchableHttpGatewayListWithNamespace{list: matchableHttpGatewayList, namespace: namespace}:
-					}
-				case graphQLApiList, ok := <-graphQLApiNamespacesChan:
-					if !ok {
-						return
-					}
-					select {
-					case <-ctx.Done():
-						return
-					case graphQLApiChan <- graphQLApiListWithNamespace{list: graphQLApiList, namespace: namespace}:
-					}
+					c.updateNamespaces.Unlock()
 				}
 			}
-		}(namespace)
+		}()
 	}
 	/* Initialize snapshot for Artifacts */
 	currentSnapshot.Artifacts = initialArtifactList.Sort()
@@ -938,11 +1956,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				artifactsByNamespace[namespace] = artifactNamespacedList.list
+				artifactsByNamespace.Store(namespace, artifactNamespacedList.list)
 				var artifactList gloo_solo_io.ArtifactList
-				for _, artifacts := range artifactsByNamespace {
-					artifactList = append(artifactList, artifacts...)
-				}
+				artifactsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gloo_solo_io.ArtifactList)
+					artifactList = append(artifactList, mocks...)
+					return true
+				})
 				currentSnapshot.Artifacts = artifactList.Sort()
 			case endpointNamespacedList, ok := <-endpointChan:
 				if !ok {
@@ -960,11 +1980,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				endpointsByNamespace[namespace] = endpointNamespacedList.list
+				endpointsByNamespace.Store(namespace, endpointNamespacedList.list)
 				var endpointList gloo_solo_io.EndpointList
-				for _, endpoints := range endpointsByNamespace {
-					endpointList = append(endpointList, endpoints...)
-				}
+				endpointsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gloo_solo_io.EndpointList)
+					endpointList = append(endpointList, mocks...)
+					return true
+				})
 				currentSnapshot.Endpoints = endpointList.Sort()
 			case proxyNamespacedList, ok := <-proxyChan:
 				if !ok {
@@ -982,11 +2004,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				proxiesByNamespace[namespace] = proxyNamespacedList.list
+				proxiesByNamespace.Store(namespace, proxyNamespacedList.list)
 				var proxyList gloo_solo_io.ProxyList
-				for _, proxies := range proxiesByNamespace {
-					proxyList = append(proxyList, proxies...)
-				}
+				proxiesByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gloo_solo_io.ProxyList)
+					proxyList = append(proxyList, mocks...)
+					return true
+				})
 				currentSnapshot.Proxies = proxyList.Sort()
 			case upstreamGroupNamespacedList, ok := <-upstreamGroupChan:
 				if !ok {
@@ -1004,11 +2028,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				upstreamGroupsByNamespace[namespace] = upstreamGroupNamespacedList.list
+				upstreamGroupsByNamespace.Store(namespace, upstreamGroupNamespacedList.list)
 				var upstreamGroupList gloo_solo_io.UpstreamGroupList
-				for _, upstreamGroups := range upstreamGroupsByNamespace {
-					upstreamGroupList = append(upstreamGroupList, upstreamGroups...)
-				}
+				upstreamGroupsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gloo_solo_io.UpstreamGroupList)
+					upstreamGroupList = append(upstreamGroupList, mocks...)
+					return true
+				})
 				currentSnapshot.UpstreamGroups = upstreamGroupList.Sort()
 			case secretNamespacedList, ok := <-secretChan:
 				if !ok {
@@ -1026,11 +2052,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				secretsByNamespace[namespace] = secretNamespacedList.list
+				secretsByNamespace.Store(namespace, secretNamespacedList.list)
 				var secretList gloo_solo_io.SecretList
-				for _, secrets := range secretsByNamespace {
-					secretList = append(secretList, secrets...)
-				}
+				secretsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gloo_solo_io.SecretList)
+					secretList = append(secretList, mocks...)
+					return true
+				})
 				currentSnapshot.Secrets = secretList.Sort()
 			case upstreamNamespacedList, ok := <-upstreamChan:
 				if !ok {
@@ -1048,11 +2076,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				upstreamsByNamespace[namespace] = upstreamNamespacedList.list
+				upstreamsByNamespace.Store(namespace, upstreamNamespacedList.list)
 				var upstreamList gloo_solo_io.UpstreamList
-				for _, upstreams := range upstreamsByNamespace {
-					upstreamList = append(upstreamList, upstreams...)
-				}
+				upstreamsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gloo_solo_io.UpstreamList)
+					upstreamList = append(upstreamList, mocks...)
+					return true
+				})
 				currentSnapshot.Upstreams = upstreamList.Sort()
 			case authConfigNamespacedList, ok := <-authConfigChan:
 				if !ok {
@@ -1070,11 +2100,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				authConfigsByNamespace[namespace] = authConfigNamespacedList.list
+				authConfigsByNamespace.Store(namespace, authConfigNamespacedList.list)
 				var authConfigList enterprise_gloo_solo_io.AuthConfigList
-				for _, authConfigs := range authConfigsByNamespace {
-					authConfigList = append(authConfigList, authConfigs...)
-				}
+				authConfigsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(enterprise_gloo_solo_io.AuthConfigList)
+					authConfigList = append(authConfigList, mocks...)
+					return true
+				})
 				currentSnapshot.AuthConfigs = authConfigList.Sort()
 			case rateLimitConfigNamespacedList, ok := <-rateLimitConfigChan:
 				if !ok {
@@ -1092,11 +2124,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				ratelimitconfigsByNamespace[namespace] = rateLimitConfigNamespacedList.list
+				ratelimitconfigsByNamespace.Store(namespace, rateLimitConfigNamespacedList.list)
 				var rateLimitConfigList github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList
-				for _, ratelimitconfigs := range ratelimitconfigsByNamespace {
-					rateLimitConfigList = append(rateLimitConfigList, ratelimitconfigs...)
-				}
+				ratelimitconfigsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList)
+					rateLimitConfigList = append(rateLimitConfigList, mocks...)
+					return true
+				})
 				currentSnapshot.Ratelimitconfigs = rateLimitConfigList.Sort()
 			case virtualServiceNamespacedList, ok := <-virtualServiceChan:
 				if !ok {
@@ -1114,11 +2148,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				virtualServicesByNamespace[namespace] = virtualServiceNamespacedList.list
+				virtualServicesByNamespace.Store(namespace, virtualServiceNamespacedList.list)
 				var virtualServiceList gateway_solo_io.VirtualServiceList
-				for _, virtualServices := range virtualServicesByNamespace {
-					virtualServiceList = append(virtualServiceList, virtualServices...)
-				}
+				virtualServicesByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gateway_solo_io.VirtualServiceList)
+					virtualServiceList = append(virtualServiceList, mocks...)
+					return true
+				})
 				currentSnapshot.VirtualServices = virtualServiceList.Sort()
 			case routeTableNamespacedList, ok := <-routeTableChan:
 				if !ok {
@@ -1136,11 +2172,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				routeTablesByNamespace[namespace] = routeTableNamespacedList.list
+				routeTablesByNamespace.Store(namespace, routeTableNamespacedList.list)
 				var routeTableList gateway_solo_io.RouteTableList
-				for _, routeTables := range routeTablesByNamespace {
-					routeTableList = append(routeTableList, routeTables...)
-				}
+				routeTablesByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gateway_solo_io.RouteTableList)
+					routeTableList = append(routeTableList, mocks...)
+					return true
+				})
 				currentSnapshot.RouteTables = routeTableList.Sort()
 			case gatewayNamespacedList, ok := <-gatewayChan:
 				if !ok {
@@ -1158,11 +2196,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				gatewaysByNamespace[namespace] = gatewayNamespacedList.list
+				gatewaysByNamespace.Store(namespace, gatewayNamespacedList.list)
 				var gatewayList gateway_solo_io.GatewayList
-				for _, gateways := range gatewaysByNamespace {
-					gatewayList = append(gatewayList, gateways...)
-				}
+				gatewaysByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gateway_solo_io.GatewayList)
+					gatewayList = append(gatewayList, mocks...)
+					return true
+				})
 				currentSnapshot.Gateways = gatewayList.Sort()
 			case virtualHostOptionNamespacedList, ok := <-virtualHostOptionChan:
 				if !ok {
@@ -1180,11 +2220,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				virtualHostOptionsByNamespace[namespace] = virtualHostOptionNamespacedList.list
+				virtualHostOptionsByNamespace.Store(namespace, virtualHostOptionNamespacedList.list)
 				var virtualHostOptionList gateway_solo_io.VirtualHostOptionList
-				for _, virtualHostOptions := range virtualHostOptionsByNamespace {
-					virtualHostOptionList = append(virtualHostOptionList, virtualHostOptions...)
-				}
+				virtualHostOptionsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gateway_solo_io.VirtualHostOptionList)
+					virtualHostOptionList = append(virtualHostOptionList, mocks...)
+					return true
+				})
 				currentSnapshot.VirtualHostOptions = virtualHostOptionList.Sort()
 			case routeOptionNamespacedList, ok := <-routeOptionChan:
 				if !ok {
@@ -1202,11 +2244,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				routeOptionsByNamespace[namespace] = routeOptionNamespacedList.list
+				routeOptionsByNamespace.Store(namespace, routeOptionNamespacedList.list)
 				var routeOptionList gateway_solo_io.RouteOptionList
-				for _, routeOptions := range routeOptionsByNamespace {
-					routeOptionList = append(routeOptionList, routeOptions...)
-				}
+				routeOptionsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gateway_solo_io.RouteOptionList)
+					routeOptionList = append(routeOptionList, mocks...)
+					return true
+				})
 				currentSnapshot.RouteOptions = routeOptionList.Sort()
 			case matchableHttpGatewayNamespacedList, ok := <-matchableHttpGatewayChan:
 				if !ok {
@@ -1224,11 +2268,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				httpGatewaysByNamespace[namespace] = matchableHttpGatewayNamespacedList.list
+				httpGatewaysByNamespace.Store(namespace, matchableHttpGatewayNamespacedList.list)
 				var matchableHttpGatewayList gateway_solo_io.MatchableHttpGatewayList
-				for _, httpGateways := range httpGatewaysByNamespace {
-					matchableHttpGatewayList = append(matchableHttpGatewayList, httpGateways...)
-				}
+				httpGatewaysByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(gateway_solo_io.MatchableHttpGatewayList)
+					matchableHttpGatewayList = append(matchableHttpGatewayList, mocks...)
+					return true
+				})
 				currentSnapshot.HttpGateways = matchableHttpGatewayList.Sort()
 			case graphQLApiNamespacedList, ok := <-graphQLApiChan:
 				if !ok {
@@ -1246,11 +2292,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				)
 
 				// merge lists by namespace
-				graphqlApisByNamespace[namespace] = graphQLApiNamespacedList.list
+				graphqlApisByNamespace.Store(namespace, graphQLApiNamespacedList.list)
 				var graphQLApiList graphql_gloo_solo_io.GraphQLApiList
-				for _, graphqlApis := range graphqlApisByNamespace {
-					graphQLApiList = append(graphQLApiList, graphqlApis...)
-				}
+				graphqlApisByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(graphql_gloo_solo_io.GraphQLApiList)
+					graphQLApiList = append(graphQLApiList, mocks...)
+					return true
+				})
 				currentSnapshot.GraphqlApis = graphQLApiList.Sort()
 			}
 		}

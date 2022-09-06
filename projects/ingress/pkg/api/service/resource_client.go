@@ -213,6 +213,8 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resourc
 	return resourceList, nil
 }
 
+// TODO-JAKE we need to mimic this functionality for watching namespaces
+// same reason to hybrid_client, we probably do not need to watch this.
 func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan resources.ResourceList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	watch, err := rc.kube.CoreV1().Services(namespace).Watch(opts.Ctx, metav1.ListOptions{

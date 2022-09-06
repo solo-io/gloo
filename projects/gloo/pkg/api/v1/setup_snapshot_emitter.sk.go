@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	skstats "github.com/solo-io/solo-kit/pkg/stats"
 
@@ -83,20 +84,29 @@ type SetupEmitter interface {
 	Settings() SettingsClient
 }
 
-func NewSetupEmitter(settingsClient SettingsClient) SetupEmitter {
-	return NewSetupEmitterWithEmit(settingsClient, make(chan struct{}))
+func NewSetupEmitter(settingsClient SettingsClient, resourceNamespaceLister resources.ResourceNamespaceLister) SetupEmitter {
+	return NewSetupEmitterWithEmit(settingsClient, resourceNamespaceLister, make(chan struct{}))
 }
 
-func NewSetupEmitterWithEmit(settingsClient SettingsClient, emit <-chan struct{}) SetupEmitter {
+func NewSetupEmitterWithEmit(settingsClient SettingsClient, resourceNamespaceLister resources.ResourceNamespaceLister, emit <-chan struct{}) SetupEmitter {
 	return &setupEmitter{
-		settings:  settingsClient,
-		forceEmit: emit,
+		settings:                settingsClient,
+		resourceNamespaceLister: resourceNamespaceLister,
+		forceEmit:               emit,
 	}
 }
 
 type setupEmitter struct {
 	forceEmit <-chan struct{}
 	settings  SettingsClient
+	// resourceNamespaceLister is used to watch for new namespaces when they are created.
+	// It is used when Expression Selector is in the Watch Opts set in Snapshot().
+	resourceNamespaceLister resources.ResourceNamespaceLister
+	// namespacesWatching is the set of namespaces that we are watching. This is helpful
+	// when Expression Selector is set on the Watch Opts in Snapshot().
+	namespacesWatching sync.Map
+	// updateNamespaces is used to perform locks and unlocks when watches on namespaces are being updated/created
+	updateNamespaces sync.Mutex
 }
 
 func (c *setupEmitter) Register() error {
@@ -110,6 +120,13 @@ func (c *setupEmitter) Settings() SettingsClient {
 	return c.settings
 }
 
+// Snapshots will return a channel that can be used to receive snapshots of the
+// state of the resources it is watching
+// when watching resources, you can set the watchNamespaces, and you can set the
+// ExpressionSelector of the WatchOpts.  Setting watchNamespaces will watch for all resources
+// that are in the specified namespaces. In addition if ExpressionSelector of the WatchOpts is
+// set, then all namespaces that meet the label criteria of the ExpressionSelector will
+// also be watched.
 func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *SetupSnapshot, <-chan error, error) {
 
 	if len(watchNamespaces) == 0 {
@@ -124,59 +141,248 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 	}
 
 	errs := make(chan error)
+	hasWatchedNamespaces := len(watchNamespaces) > 1 || (len(watchNamespaces) == 1 && watchNamespaces[0] != "")
+	watchingLabeledNamespaces := !(opts.ExpressionSelector == "")
 	var done sync.WaitGroup
 	ctx := opts.Ctx
+
+	// setting up the options for both listing and watching resources in namespaces
+	watchedNamespacesListOptions := clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector}
+	watchedNamespacesWatchOptions := clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector}
 	/* Create channel for Settings */
 	type settingsListWithNamespace struct {
 		list      SettingsList
 		namespace string
 	}
 	settingsChan := make(chan settingsListWithNamespace)
-
 	var initialSettingsList SettingsList
 
 	currentSnapshot := SetupSnapshot{}
-	settingsByNamespace := make(map[string]SettingsList)
+	settingsByNamespace := sync.Map{}
+	if hasWatchedNamespaces || !watchingLabeledNamespaces {
+		// then watch all resources on watch Namespaces
 
-	for _, namespace := range watchNamespaces {
-		/* Setup namespaced watch for Settings */
-		{
-			settings, err := c.settings.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
-			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial Settings list")
+		// watched namespaces
+		for _, namespace := range watchNamespaces {
+			/* Setup namespaced watch for Settings */
+			{
+				settings, err := c.settings.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Settings list")
+				}
+				initialSettingsList = append(initialSettingsList, settings...)
+				settingsByNamespace.Store(namespace, settings)
 			}
-			initialSettingsList = append(initialSettingsList, settings...)
-			settingsByNamespace[namespace] = settings
+			settingsNamespacesChan, settingsErrs, err := c.settings.Watch(namespace, watchedNamespacesWatchOptions)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Settings watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, settingsErrs, namespace+"-settings")
+			}(namespace)
+			/* Watch for changes and update snapshot */
+			go func(namespace string) {
+				defer func() {
+					c.namespacesWatching.Delete(namespace)
+				}()
+				c.namespacesWatching.Store(namespace, true)
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case settingsList, ok := <-settingsNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case settingsChan <- settingsListWithNamespace{list: settingsList, namespace: namespace}:
+						}
+					}
+				}
+			}(namespace)
 		}
-		settingsNamespacesChan, settingsErrs, err := c.settings.Watch(namespace, opts)
+	}
+	// watch all other namespaces that are labeled and fit the Expression Selector
+	if opts.ExpressionSelector != "" {
+		// watch resources of non-watched namespaces that fit the expression selectors
+		namespaceListOptions := resources.ResourceNamespaceListOptions{
+			Ctx:                opts.Ctx,
+			ExpressionSelector: opts.ExpressionSelector,
+		}
+		namespaceWatchOptions := resources.ResourceNamespaceWatchOptions{
+			Ctx:                opts.Ctx,
+			ExpressionSelector: opts.ExpressionSelector,
+		}
+
+		filterNamespaces := resources.ResourceNamespaceList{}
+		for _, ns := range watchNamespaces {
+			// we do not want to filter out "" which equals all namespaces
+			if ns != "" {
+				filterNamespaces = append(filterNamespaces, resources.ResourceNamespace{Name: ns})
+			}
+		}
+		namespacesResources, err := c.resourceNamespaceLister.GetResourceNamespaceList(namespaceListOptions, filterNamespaces)
 		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting Settings watch")
+			return nil, nil, err
+		}
+		// non watched namespaces that are labeled
+		for _, resourceNamespace := range namespacesResources {
+			namespace := resourceNamespace.Name
+			/* Setup namespaced watch for Settings */
+			{
+				settings, err := c.settings.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Settings list")
+				}
+				initialSettingsList = append(initialSettingsList, settings...)
+				settingsByNamespace.Store(namespace, settings)
+			}
+			settingsNamespacesChan, settingsErrs, err := c.settings.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Settings watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, settingsErrs, namespace+"-settings")
+			}(namespace)
+			/* Watch for changes and update snapshot */
+			go func(namespace string) {
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case settingsList, ok := <-settingsNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case settingsChan <- settingsListWithNamespace{list: settingsList, namespace: namespace}:
+						}
+					}
+				}
+			}(namespace)
+		}
+		// create watch on all namespaces, so that we can add all resources from new namespaces
+		// we will be watching namespaces that meet the Expression Selector filter
+
+		namespaceWatch, errsReceiver, err := c.resourceNamespaceLister.GetResourceNamespaceWatch(namespaceWatchOptions, filterNamespaces)
+		if err != nil {
+			return nil, nil, err
+		}
+		if errsReceiver != nil {
+			go func() {
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case err = <-errsReceiver:
+						errs <- errors.Wrapf(err, "received error from watch on resource namespaces")
+					}
+				}
+			}()
 		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, settingsErrs, namespace+"-settings")
-		}(namespace)
-
-		/* Watch for changes and update snapshot */
-		go func(namespace string) {
+		go func() {
 			for {
 				select {
 				case <-ctx.Done():
 					return
-				case settingsList, ok := <-settingsNamespacesChan:
+				case resourceNamespaces, ok := <-namespaceWatch:
 					if !ok {
 						return
 					}
-					select {
-					case <-ctx.Done():
-						return
-					case settingsChan <- settingsListWithNamespace{list: settingsList, namespace: namespace}:
+					// get the list of new namespaces, if there is a new namespace
+					// get the list of resources from that namespace, and add
+					// a watch for new resources created/deleted on that namespace
+					c.updateNamespaces.Lock()
+
+					// get the new namespaces, and get a map of the namespaces
+					mapOfResourceNamespaces := make(map[string]bool, len(resourceNamespaces))
+					newNamespaces := []string{}
+					for _, ns := range resourceNamespaces {
+						if _, hit := c.namespacesWatching.Load(ns.Name); !hit {
+							newNamespaces = append(newNamespaces, ns.Name)
+						}
+						mapOfResourceNamespaces[ns.Name] = true
 					}
+
+					for _, ns := range watchNamespaces {
+						mapOfResourceNamespaces[ns] = true
+					}
+
+					missingNamespaces := []string{}
+					// use the map of namespace resources to find missing/deleted namespaces
+					c.namespacesWatching.Range(func(key interface{}, value interface{}) bool {
+						name := key.(string)
+						if _, hit := mapOfResourceNamespaces[name]; !hit {
+							missingNamespaces = append(missingNamespaces, name)
+						}
+						return true
+					})
+
+					for _, ns := range missingNamespaces {
+						// c.namespacesWatching.Delete(ns)
+						settingsChan <- settingsListWithNamespace{list: SettingsList{}, namespace: ns}
+						// settingsByNamespace.Delete(ns)
+					}
+
+					for _, namespace := range newNamespaces {
+						/* Setup namespaced watch for Settings for new namespace */
+						{
+							settings, err := c.settings.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace Settings list")
+								continue
+							}
+							settingsByNamespace.Store(namespace, settings)
+						}
+						settingsNamespacesChan, settingsErrs, err := c.settings.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace Settings watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, settingsErrs, namespace+"-new-namespace-settings")
+						}(namespace)
+						/* Watch for changes and update snapshot */
+						go func(namespace string) {
+							defer func() {
+								c.namespacesWatching.Delete(namespace)
+							}()
+							c.namespacesWatching.Store(namespace, true)
+							for {
+								select {
+								case <-ctx.Done():
+									return
+								case settingsList, ok := <-settingsNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case settingsChan <- settingsListWithNamespace{list: settingsList, namespace: namespace}:
+									}
+								}
+							}
+						}(namespace)
+					}
+					c.updateNamespaces.Unlock()
 				}
 			}
-		}(namespace)
+		}()
 	}
 	/* Initialize snapshot for Settings */
 	currentSnapshot.Settings = initialSettingsList.Sort()
@@ -246,11 +452,13 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 				)
 
 				// merge lists by namespace
-				settingsByNamespace[namespace] = settingsNamespacedList.list
+				settingsByNamespace.Store(namespace, settingsNamespacedList.list)
 				var settingsList SettingsList
-				for _, settings := range settingsByNamespace {
-					settingsList = append(settingsList, settings...)
-				}
+				settingsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(SettingsList)
+					settingsList = append(settingsList, mocks...)
+					return true
+				})
 				currentSnapshot.Settings = settingsList.Sort()
 			}
 		}

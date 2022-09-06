@@ -13,11 +13,13 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/k8s-utils/kubeutils"
+	"github.com/solo-io/solo-kit/pkg/api/external/kubernetes/namespace"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
+	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
@@ -41,6 +43,10 @@ type SetupOpts struct {
 
 var once sync.Once
 
+// there is a setup event loop that will sync with a setup function
+// the setup function is usually a setup_syncer. The setup_syner Setup() function
+// is called by the event_loop to setup up the environment.  This should contain
+// the Gloo Settings.
 // Main is the main entrypoint for running Gloo Edge components
 // It works by performing the following:
 //	1. Initialize a SettingsClient backed either by Kubernetes or a File
@@ -78,7 +84,10 @@ func Main(opts SetupOpts) error {
 
 	// settings come from the ResourceClient in the settingsClient
 	// the eventLoop will Watch the emitter's settingsClient to recieve settings from the ResourceClient
-	emitter := v1.NewSetupEmitter(settingsClient)
+	emitter, err := snapshotEmitter(settingsClient)
+	if err != nil {
+		return err
+	}
 	settingsRef := &core.ResourceRef{Namespace: setupNamespace, Name: setupName}
 	eventLoop := v1.NewSetupEventLoop(emitter, NewSetupSyncer(settingsRef, opts.SetupFunc, identity))
 	errs, err := eventLoop.Run([]string{setupNamespace}, clients.WatchOpts{
@@ -127,4 +136,18 @@ func startLeaderElection(ctx context.Context, settingsDir string, electionConfig
 		return nil, err
 	}
 	return kube2.NewElectionFactory(cfg).StartElection(ctx, electionConfig)
+}
+
+func snapshotEmitter(settingsClient v1.SettingsClient) (v1.SetupEmitter, error) {
+	cfg, err := kubeutils.GetConfig("", "")
+	if err != nil {
+		return nil, err
+	}
+	kube, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+	resourceNamespaceLister := namespace.NewKubeClientResourceNamespaceLister(kube)
+	emitter := v1.NewSetupEmitter(settingsClient, resourceNamespaceLister)
+	return emitter, nil
 }

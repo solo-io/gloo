@@ -18,6 +18,7 @@ import (
 
 // EDS API
 // start the EDS watch which sends a new list of endpoints on any change
+// TODO-JAKE not sure if I will need to add anything here or not
 func (p *plugin) WatchEndpoints(writeNamespace string, unfilteredUpstreams v1.UpstreamList, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
 	contextutils.LoggerFrom(opts.Ctx).Debugw("calling WatchEndpoints on EC2")
 	var ec2Upstreams v1.UpstreamList
@@ -43,6 +44,7 @@ func newEndpointsWatcher(watchCtx context.Context, writeNamespace string, upstre
 	var namespaces []string
 
 	// We either watch all namespaces, or create individual watchers for each namespace we watch
+	// TODO-JAKE might want to add the selectors here. Will come back to this later.
 	settings := settingsutil.FromContext(watchCtx)
 	if settingsutil.IsAllNamespacesFromSettings(settings) {
 		namespaces = []string{metav1.NamespaceAll}
@@ -90,6 +92,8 @@ func getRefreshRate(parentRefreshRate time.Duration) time.Duration {
 func (c *edsWatcher) updateEndpointsList(endpointsChan chan v1.EndpointList, errs chan error) {
 	var secrets v1.SecretList
 	for _, ns := range c.secretNamespaces {
+		// TODO-JAKE might need to pass down those selectors here from, not sure since most of this implementation
+		// has to deal with AWS
 		nsSecrets, err := c.secretClient.List(ns, clients.ListOpts{Ctx: c.watchContext})
 		if err != nil {
 			errs <- err

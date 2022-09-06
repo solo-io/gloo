@@ -27,26 +27,36 @@ import (
 )
 
 type Opts struct {
-	WriteNamespace               string
-	StatusReporterNamespace      string
-	WatchNamespaces              []string
-	Upstreams                    factory.ResourceClientFactory
-	KubeServiceClient            skkube.ServiceClient
-	UpstreamGroups               factory.ResourceClientFactory
-	Proxies                      factory.ResourceClientFactory
-	Secrets                      factory.ResourceClientFactory
-	Artifacts                    factory.ResourceClientFactory
-	AuthConfigs                  factory.ResourceClientFactory
-	RateLimitConfigs             factory.ResourceClientFactory
-	GraphQLApis                  factory.ResourceClientFactory
-	VirtualServices              factory.ResourceClientFactory
-	RouteTables                  factory.ResourceClientFactory
-	Gateways                     factory.ResourceClientFactory
-	MatchableHttpGateways        factory.ResourceClientFactory
-	VirtualHostOptions           factory.ResourceClientFactory
-	RouteOptions                 factory.ResourceClientFactory
-	KubeClient                   kubernetes.Interface
-	Consul                       Consul
+	WriteNamespace          string
+	StatusReporterNamespace string
+	// CONTINUE-JAKE need to go after GetWatchNamespaces as well..
+	// WatchNamespaces is the list of namespaces to watch
+	// Completed setup_syncer.go   pkg/syncer/setup
+	// Completed setup_syncer.go pkg/fds/syncer
+	// TODO pkg/uds/syncer
+	// TODO gatweay.go test/services
+	WatchNamespaces []string
+	// WatchSelectors is a string representation of Selector Expressions. It is
+	// string representing both set and equality based label selectors.
+	WatchSelectors        string
+	Upstreams             factory.ResourceClientFactory
+	KubeServiceClient     skkube.ServiceClient
+	UpstreamGroups        factory.ResourceClientFactory
+	Proxies               factory.ResourceClientFactory
+	Secrets               factory.ResourceClientFactory
+	Artifacts             factory.ResourceClientFactory
+	AuthConfigs           factory.ResourceClientFactory
+	RateLimitConfigs      factory.ResourceClientFactory
+	GraphQLApis           factory.ResourceClientFactory
+	VirtualServices       factory.ResourceClientFactory
+	RouteTables           factory.ResourceClientFactory
+	Gateways              factory.ResourceClientFactory
+	MatchableHttpGateways factory.ResourceClientFactory
+	VirtualHostOptions    factory.ResourceClientFactory
+	RouteOptions          factory.ResourceClientFactory
+	KubeClient            kubernetes.Interface
+	Consul                Consul
+	// CONTINUE-JAKE
 	WatchOpts                    clients.WatchOpts
 	DevMode                      bool
 	ControlPlane                 ControlPlane

@@ -65,6 +65,23 @@ func (m *Settings) Equal(that interface{}) bool {
 
 	}
 
+	if len(m.GetWatchNamespacesSelectors()) != len(target.GetWatchNamespacesSelectors()) {
+		return false
+	}
+	for idx, v := range m.GetWatchNamespacesSelectors() {
+
+		if h, ok := interface{}(v).(equality.Equalizer); ok {
+			if !h.Equal(target.GetWatchNamespacesSelectors()[idx]) {
+				return false
+			}
+		} else {
+			if !proto.Equal(v, target.GetWatchNamespacesSelectors()[idx]) {
+				return false
+			}
+		}
+
+	}
+
 	if h, ok := interface{}(m.GetRefreshRate()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetRefreshRate()) {
 			return false

@@ -19,6 +19,8 @@ import (
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_external_envoy_extensions_aws "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/aws"
 
+	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_core_selectors "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/selectors"
+
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_caching "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/caching"
 
 	github_com_solo_io_gloo_projects_gloo_pkg_api_v1_enterprise_options_extauth_v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -58,6 +60,19 @@ func (m *Settings) Clone() proto.Message {
 		for idx, v := range m.GetWatchNamespaces() {
 
 			target.WatchNamespaces[idx] = v
+
+		}
+	}
+
+	if m.GetWatchNamespacesSelectors() != nil {
+		target.WatchNamespacesSelectors = make([]*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_core_selectors.Selector_Expression, len(m.GetWatchNamespacesSelectors()))
+		for idx, v := range m.GetWatchNamespacesSelectors() {
+
+			if h, ok := interface{}(v).(clone.Cloner); ok {
+				target.WatchNamespacesSelectors[idx] = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_core_selectors.Selector_Expression)
+			} else {
+				target.WatchNamespacesSelectors[idx] = proto.Clone(v).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_core_selectors.Selector_Expression)
+			}
 
 		}
 	}

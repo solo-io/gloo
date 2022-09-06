@@ -53,6 +53,7 @@ func RunFDSWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	watchOpts := opts.WatchOpts.WithDefaults()
+	watchOpts.ExpressionSelector = opts.WatchSelectors
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "fds")
 
 	upstreamClient, err := v1.NewUpstreamClient(watchOpts.Ctx, opts.Upstreams)
@@ -84,7 +85,8 @@ func RunFDSWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		nsClient = &FakeKubeNamespaceWatcher{}
 	}
 
-	cache := v1.NewDiscoveryEmitter(upstreamClient, nsClient, secretClient)
+	resourceNamespaceLister := namespace.NewKubeClientCacheResourceNamespaceLister(opts.KubeClient, opts.KubeCoreCache)
+	cache := v1.NewDiscoveryEmitter(upstreamClient, nsClient, secretClient, resourceNamespaceLister)
 
 	var resolvers fds.Resolvers
 	for _, plug := range registry.Plugins(opts) {

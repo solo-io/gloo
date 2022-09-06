@@ -13,7 +13,9 @@ import (
 	v1 "github.com/solo-io/gloo/projects/ingress/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/ingress/pkg/status"
 	"github.com/solo-io/k8s-utils/kubeutils"
+	sknamespace "github.com/solo-io/solo-kit/pkg/api/external/kubernetes/namespace"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/setup"
 	kubev1 "k8s.io/api/core/v1"
@@ -67,7 +69,12 @@ var _ = Describe("StatusSyncer", func() {
 			kubeServiceClient = service.NewClientWithSelector(kubeServiceClient, map[string]string{
 				"gloo": "ingress-proxy",
 			})
-			statusEmitter := v1.NewStatusEmitter(kubeServiceClient, ingressClient)
+
+			kubeCache, err := cache.NewKubeCoreCache(ctx, kube)
+			Expect(err).ToNot(HaveOccurred())
+			resourceNamespaceLister := sknamespace.NewKubeClientCacheResourceNamespaceLister(kube, kubeCache)
+
+			statusEmitter := v1.NewStatusEmitter(kubeServiceClient, ingressClient, resourceNamespaceLister)
 			statusSync := status.NewSyncer(ingressClient)
 			statusEventLoop := v1.NewStatusEventLoop(statusEmitter, statusSync)
 			statusEventLoopErrs, err := statusEventLoop.Run([]string{namespace}, clients.WatchOpts{Ctx: context.TODO()})
@@ -227,7 +234,12 @@ var _ = Describe("StatusSyncer", func() {
 			kubeServiceClient = service.NewClientWithSelector(kubeServiceClient, map[string]string{
 				"gloo": "ingress-proxy",
 			})
-			statusEmitter := v1.NewStatusEmitter(kubeServiceClient, ingressClient)
+
+			kubeCache, err := cache.NewKubeCoreCache(ctx, kubeClientset)
+			Expect(err).ToNot(HaveOccurred())
+			resourceNamespaceLister := sknamespace.NewKubeClientCacheResourceNamespaceLister(kubeClientset, kubeCache)
+
+			statusEmitter := v1.NewStatusEmitter(kubeServiceClient, ingressClient, resourceNamespaceLister)
 			statusSync := status.NewSyncer(ingressClient)
 			statusEventLoop := v1.NewStatusEventLoop(statusEmitter, statusSync)
 			statusEventLoopErrs, err := statusEventLoop.Run([]string{namespace}, clients.WatchOpts{Ctx: context.TODO()})
@@ -363,7 +375,12 @@ var _ = Describe("StatusSyncer", func() {
 			kubeServiceClient = service.NewClientWithSelector(kubeServiceClient, map[string]string{
 				"gloo": "ingress-proxy",
 			})
-			statusEmitter := v1.NewStatusEmitter(kubeServiceClient, ingressClient)
+
+			kubeCache, err := cache.NewKubeCoreCache(ctx, kubeClientset)
+			Expect(err).ToNot(HaveOccurred())
+			resourceNamespaceLister := sknamespace.NewKubeClientCacheResourceNamespaceLister(kubeClientset, kubeCache)
+
+			statusEmitter := v1.NewStatusEmitter(kubeServiceClient, ingressClient, resourceNamespaceLister)
 			statusSync := status.NewSyncer(ingressClient)
 			statusEventLoop := v1.NewStatusEventLoop(statusEmitter, statusSync)
 			statusEventLoopErrs, err := statusEventLoop.Run([]string{namespace}, clients.WatchOpts{Ctx: context.TODO()})

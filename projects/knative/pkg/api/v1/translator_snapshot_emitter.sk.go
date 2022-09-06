@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	skstats "github.com/solo-io/solo-kit/pkg/stats"
 
@@ -85,20 +86,29 @@ type TranslatorEmitter interface {
 	Ingress() github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressClient
 }
 
-func NewTranslatorEmitter(ingressClient github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressClient) TranslatorEmitter {
-	return NewTranslatorEmitterWithEmit(ingressClient, make(chan struct{}))
+func NewTranslatorEmitter(ingressClient github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressClient, resourceNamespaceLister resources.ResourceNamespaceLister) TranslatorEmitter {
+	return NewTranslatorEmitterWithEmit(ingressClient, resourceNamespaceLister, make(chan struct{}))
 }
 
-func NewTranslatorEmitterWithEmit(ingressClient github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressClient, emit <-chan struct{}) TranslatorEmitter {
+func NewTranslatorEmitterWithEmit(ingressClient github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressClient, resourceNamespaceLister resources.ResourceNamespaceLister, emit <-chan struct{}) TranslatorEmitter {
 	return &translatorEmitter{
-		ingress:   ingressClient,
-		forceEmit: emit,
+		ingress:                 ingressClient,
+		resourceNamespaceLister: resourceNamespaceLister,
+		forceEmit:               emit,
 	}
 }
 
 type translatorEmitter struct {
 	forceEmit <-chan struct{}
 	ingress   github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressClient
+	// resourceNamespaceLister is used to watch for new namespaces when they are created.
+	// It is used when Expression Selector is in the Watch Opts set in Snapshot().
+	resourceNamespaceLister resources.ResourceNamespaceLister
+	// namespacesWatching is the set of namespaces that we are watching. This is helpful
+	// when Expression Selector is set on the Watch Opts in Snapshot().
+	namespacesWatching sync.Map
+	// updateNamespaces is used to perform locks and unlocks when watches on namespaces are being updated/created
+	updateNamespaces sync.Mutex
 }
 
 func (c *translatorEmitter) Register() error {
@@ -112,6 +122,13 @@ func (c *translatorEmitter) Ingress() github_com_solo_io_gloo_projects_knative_p
 	return c.ingress
 }
 
+// Snapshots will return a channel that can be used to receive snapshots of the
+// state of the resources it is watching
+// when watching resources, you can set the watchNamespaces, and you can set the
+// ExpressionSelector of the WatchOpts.  Setting watchNamespaces will watch for all resources
+// that are in the specified namespaces. In addition if ExpressionSelector of the WatchOpts is
+// set, then all namespaces that meet the label criteria of the ExpressionSelector will
+// also be watched.
 func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *TranslatorSnapshot, <-chan error, error) {
 
 	if len(watchNamespaces) == 0 {
@@ -126,59 +143,248 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 	}
 
 	errs := make(chan error)
+	hasWatchedNamespaces := len(watchNamespaces) > 1 || (len(watchNamespaces) == 1 && watchNamespaces[0] != "")
+	watchingLabeledNamespaces := !(opts.ExpressionSelector == "")
 	var done sync.WaitGroup
 	ctx := opts.Ctx
+
+	// setting up the options for both listing and watching resources in namespaces
+	watchedNamespacesListOptions := clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector}
+	watchedNamespacesWatchOptions := clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector}
 	/* Create channel for Ingress */
 	type ingressListWithNamespace struct {
 		list      github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressList
 		namespace string
 	}
 	ingressChan := make(chan ingressListWithNamespace)
-
 	var initialIngressList github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressList
 
 	currentSnapshot := TranslatorSnapshot{}
-	ingressesByNamespace := make(map[string]github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressList)
+	ingressesByNamespace := sync.Map{}
+	if hasWatchedNamespaces || !watchingLabeledNamespaces {
+		// then watch all resources on watch Namespaces
 
-	for _, namespace := range watchNamespaces {
-		/* Setup namespaced watch for Ingress */
-		{
-			ingresses, err := c.ingress.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
-			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial Ingress list")
+		// watched namespaces
+		for _, namespace := range watchNamespaces {
+			/* Setup namespaced watch for Ingress */
+			{
+				ingresses, err := c.ingress.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Ingress list")
+				}
+				initialIngressList = append(initialIngressList, ingresses...)
+				ingressesByNamespace.Store(namespace, ingresses)
 			}
-			initialIngressList = append(initialIngressList, ingresses...)
-			ingressesByNamespace[namespace] = ingresses
+			ingressNamespacesChan, ingressErrs, err := c.ingress.Watch(namespace, watchedNamespacesWatchOptions)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Ingress watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, ingressErrs, namespace+"-ingresses")
+			}(namespace)
+			/* Watch for changes and update snapshot */
+			go func(namespace string) {
+				defer func() {
+					c.namespacesWatching.Delete(namespace)
+				}()
+				c.namespacesWatching.Store(namespace, true)
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case ingressList, ok := <-ingressNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case ingressChan <- ingressListWithNamespace{list: ingressList, namespace: namespace}:
+						}
+					}
+				}
+			}(namespace)
 		}
-		ingressNamespacesChan, ingressErrs, err := c.ingress.Watch(namespace, opts)
+	}
+	// watch all other namespaces that are labeled and fit the Expression Selector
+	if opts.ExpressionSelector != "" {
+		// watch resources of non-watched namespaces that fit the expression selectors
+		namespaceListOptions := resources.ResourceNamespaceListOptions{
+			Ctx:                opts.Ctx,
+			ExpressionSelector: opts.ExpressionSelector,
+		}
+		namespaceWatchOptions := resources.ResourceNamespaceWatchOptions{
+			Ctx:                opts.Ctx,
+			ExpressionSelector: opts.ExpressionSelector,
+		}
+
+		filterNamespaces := resources.ResourceNamespaceList{}
+		for _, ns := range watchNamespaces {
+			// we do not want to filter out "" which equals all namespaces
+			if ns != "" {
+				filterNamespaces = append(filterNamespaces, resources.ResourceNamespace{Name: ns})
+			}
+		}
+		namespacesResources, err := c.resourceNamespaceLister.GetResourceNamespaceList(namespaceListOptions, filterNamespaces)
 		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting Ingress watch")
+			return nil, nil, err
+		}
+		// non watched namespaces that are labeled
+		for _, resourceNamespace := range namespacesResources {
+			namespace := resourceNamespace.Name
+			/* Setup namespaced watch for Ingress */
+			{
+				ingresses, err := c.ingress.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Ingress list")
+				}
+				initialIngressList = append(initialIngressList, ingresses...)
+				ingressesByNamespace.Store(namespace, ingresses)
+			}
+			ingressNamespacesChan, ingressErrs, err := c.ingress.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Ingress watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, ingressErrs, namespace+"-ingresses")
+			}(namespace)
+			/* Watch for changes and update snapshot */
+			go func(namespace string) {
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case ingressList, ok := <-ingressNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case ingressChan <- ingressListWithNamespace{list: ingressList, namespace: namespace}:
+						}
+					}
+				}
+			}(namespace)
+		}
+		// create watch on all namespaces, so that we can add all resources from new namespaces
+		// we will be watching namespaces that meet the Expression Selector filter
+
+		namespaceWatch, errsReceiver, err := c.resourceNamespaceLister.GetResourceNamespaceWatch(namespaceWatchOptions, filterNamespaces)
+		if err != nil {
+			return nil, nil, err
+		}
+		if errsReceiver != nil {
+			go func() {
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case err = <-errsReceiver:
+						errs <- errors.Wrapf(err, "received error from watch on resource namespaces")
+					}
+				}
+			}()
 		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, ingressErrs, namespace+"-ingresses")
-		}(namespace)
-
-		/* Watch for changes and update snapshot */
-		go func(namespace string) {
+		go func() {
 			for {
 				select {
 				case <-ctx.Done():
 					return
-				case ingressList, ok := <-ingressNamespacesChan:
+				case resourceNamespaces, ok := <-namespaceWatch:
 					if !ok {
 						return
 					}
-					select {
-					case <-ctx.Done():
-						return
-					case ingressChan <- ingressListWithNamespace{list: ingressList, namespace: namespace}:
+					// get the list of new namespaces, if there is a new namespace
+					// get the list of resources from that namespace, and add
+					// a watch for new resources created/deleted on that namespace
+					c.updateNamespaces.Lock()
+
+					// get the new namespaces, and get a map of the namespaces
+					mapOfResourceNamespaces := make(map[string]bool, len(resourceNamespaces))
+					newNamespaces := []string{}
+					for _, ns := range resourceNamespaces {
+						if _, hit := c.namespacesWatching.Load(ns.Name); !hit {
+							newNamespaces = append(newNamespaces, ns.Name)
+						}
+						mapOfResourceNamespaces[ns.Name] = true
 					}
+
+					for _, ns := range watchNamespaces {
+						mapOfResourceNamespaces[ns] = true
+					}
+
+					missingNamespaces := []string{}
+					// use the map of namespace resources to find missing/deleted namespaces
+					c.namespacesWatching.Range(func(key interface{}, value interface{}) bool {
+						name := key.(string)
+						if _, hit := mapOfResourceNamespaces[name]; !hit {
+							missingNamespaces = append(missingNamespaces, name)
+						}
+						return true
+					})
+
+					for _, ns := range missingNamespaces {
+						// c.namespacesWatching.Delete(ns)
+						ingressChan <- ingressListWithNamespace{list: github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressList{}, namespace: ns}
+						// ingressesByNamespace.Delete(ns)
+					}
+
+					for _, namespace := range newNamespaces {
+						/* Setup namespaced watch for Ingress for new namespace */
+						{
+							ingresses, err := c.ingress.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace Ingress list")
+								continue
+							}
+							ingressesByNamespace.Store(namespace, ingresses)
+						}
+						ingressNamespacesChan, ingressErrs, err := c.ingress.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace Ingress watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, ingressErrs, namespace+"-new-namespace-ingresses")
+						}(namespace)
+						/* Watch for changes and update snapshot */
+						go func(namespace string) {
+							defer func() {
+								c.namespacesWatching.Delete(namespace)
+							}()
+							c.namespacesWatching.Store(namespace, true)
+							for {
+								select {
+								case <-ctx.Done():
+									return
+								case ingressList, ok := <-ingressNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case ingressChan <- ingressListWithNamespace{list: ingressList, namespace: namespace}:
+									}
+								}
+							}
+						}(namespace)
+					}
+					c.updateNamespaces.Unlock()
 				}
 			}
-		}(namespace)
+		}()
 	}
 	/* Initialize snapshot for Ingresses */
 	currentSnapshot.Ingresses = initialIngressList.Sort()
@@ -248,11 +454,13 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 				)
 
 				// merge lists by namespace
-				ingressesByNamespace[namespace] = ingressNamespacedList.list
+				ingressesByNamespace.Store(namespace, ingressNamespacedList.list)
 				var ingressList github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressList
-				for _, ingresses := range ingressesByNamespace {
-					ingressList = append(ingressList, ingresses...)
-				}
+				ingressesByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressList)
+					ingressList = append(ingressList, mocks...)
+					return true
+				})
 				currentSnapshot.Ingresses = ingressList.Sort()
 			}
 		}

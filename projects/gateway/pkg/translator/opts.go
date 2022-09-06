@@ -7,17 +7,18 @@ import (
 )
 
 type Opts struct {
-	GlooNamespace                  string
-	WriteNamespace                 string
-	StatusReporterNamespace        string
-	WatchNamespaces                []string
-	Gateways                       factory.ResourceClientFactory
-	MatchableHttpGateways          factory.ResourceClientFactory
-	VirtualServices                factory.ResourceClientFactory
-	RouteTables                    factory.ResourceClientFactory
-	Proxies                        factory.ResourceClientFactory
-	RouteOptions                   factory.ResourceClientFactory
-	VirtualHostOptions             factory.ResourceClientFactory
+	GlooNamespace           string
+	WriteNamespace          string
+	StatusReporterNamespace string
+	WatchNamespaces         []string
+	Gateways                factory.ResourceClientFactory
+	MatchableHttpGateways   factory.ResourceClientFactory
+	VirtualServices         factory.ResourceClientFactory
+	RouteTables             factory.ResourceClientFactory
+	Proxies                 factory.ResourceClientFactory
+	RouteOptions            factory.ResourceClientFactory
+	VirtualHostOptions      factory.ResourceClientFactory
+	// CONTINUE-JAKE this is not used....
 	WatchOpts                      clients.WatchOpts
 	ValidationServerAddress        string
 	DevMode                        bool

@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	skstats "github.com/solo-io/solo-kit/pkg/stats"
 
@@ -87,16 +88,17 @@ type DiscoveryEmitter interface {
 	Secret() SecretClient
 }
 
-func NewDiscoveryEmitter(upstreamClient UpstreamClient, kubeNamespaceClient github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceClient, secretClient SecretClient) DiscoveryEmitter {
-	return NewDiscoveryEmitterWithEmit(upstreamClient, kubeNamespaceClient, secretClient, make(chan struct{}))
+func NewDiscoveryEmitter(upstreamClient UpstreamClient, kubeNamespaceClient github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceClient, secretClient SecretClient, resourceNamespaceLister resources.ResourceNamespaceLister) DiscoveryEmitter {
+	return NewDiscoveryEmitterWithEmit(upstreamClient, kubeNamespaceClient, secretClient, resourceNamespaceLister, make(chan struct{}))
 }
 
-func NewDiscoveryEmitterWithEmit(upstreamClient UpstreamClient, kubeNamespaceClient github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceClient, secretClient SecretClient, emit <-chan struct{}) DiscoveryEmitter {
+func NewDiscoveryEmitterWithEmit(upstreamClient UpstreamClient, kubeNamespaceClient github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceClient, secretClient SecretClient, resourceNamespaceLister resources.ResourceNamespaceLister, emit <-chan struct{}) DiscoveryEmitter {
 	return &discoveryEmitter{
-		upstream:      upstreamClient,
-		kubeNamespace: kubeNamespaceClient,
-		secret:        secretClient,
-		forceEmit:     emit,
+		upstream:                upstreamClient,
+		kubeNamespace:           kubeNamespaceClient,
+		secret:                  secretClient,
+		resourceNamespaceLister: resourceNamespaceLister,
+		forceEmit:               emit,
 	}
 }
 
@@ -105,6 +107,14 @@ type discoveryEmitter struct {
 	upstream      UpstreamClient
 	kubeNamespace github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceClient
 	secret        SecretClient
+	// resourceNamespaceLister is used to watch for new namespaces when they are created.
+	// It is used when Expression Selector is in the Watch Opts set in Snapshot().
+	resourceNamespaceLister resources.ResourceNamespaceLister
+	// namespacesWatching is the set of namespaces that we are watching. This is helpful
+	// when Expression Selector is set on the Watch Opts in Snapshot().
+	namespacesWatching sync.Map
+	// updateNamespaces is used to perform locks and unlocks when watches on namespaces are being updated/created
+	updateNamespaces sync.Mutex
 }
 
 func (c *discoveryEmitter) Register() error {
@@ -132,6 +142,13 @@ func (c *discoveryEmitter) Secret() SecretClient {
 	return c.secret
 }
 
+// Snapshots will return a channel that can be used to receive snapshots of the
+// state of the resources it is watching
+// when watching resources, you can set the watchNamespaces, and you can set the
+// ExpressionSelector of the WatchOpts.  Setting watchNamespaces will watch for all resources
+// that are in the specified namespaces. In addition if ExpressionSelector of the WatchOpts is
+// set, then all namespaces that meet the label criteria of the ExpressionSelector will
+// also be watched.
 func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *DiscoverySnapshot, <-chan error, error) {
 
 	if len(watchNamespaces) == 0 {
@@ -146,15 +163,20 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 	}
 
 	errs := make(chan error)
+	hasWatchedNamespaces := len(watchNamespaces) > 1 || (len(watchNamespaces) == 1 && watchNamespaces[0] != "")
+	watchingLabeledNamespaces := !(opts.ExpressionSelector == "")
 	var done sync.WaitGroup
 	ctx := opts.Ctx
+
+	// setting up the options for both listing and watching resources in namespaces
+	watchedNamespacesListOptions := clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector}
+	watchedNamespacesWatchOptions := clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector}
 	/* Create channel for Upstream */
 	type upstreamListWithNamespace struct {
 		list      UpstreamList
 		namespace string
 	}
 	upstreamChan := make(chan upstreamListWithNamespace)
-
 	var initialUpstreamList UpstreamList
 	/* Create channel for KubeNamespace */
 	/* Create channel for Secret */
@@ -163,80 +185,322 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 		namespace string
 	}
 	secretChan := make(chan secretListWithNamespace)
-
 	var initialSecretList SecretList
 
 	currentSnapshot := DiscoverySnapshot{}
-	upstreamsByNamespace := make(map[string]UpstreamList)
-	secretsByNamespace := make(map[string]SecretList)
+	upstreamsByNamespace := sync.Map{}
+	secretsByNamespace := sync.Map{}
+	if hasWatchedNamespaces || !watchingLabeledNamespaces {
+		// then watch all resources on watch Namespaces
 
-	for _, namespace := range watchNamespaces {
-		/* Setup namespaced watch for Upstream */
-		{
-			upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
-			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial Upstream list")
+		// watched namespaces
+		for _, namespace := range watchNamespaces {
+			/* Setup namespaced watch for Upstream */
+			{
+				upstreams, err := c.upstream.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Upstream list")
+				}
+				initialUpstreamList = append(initialUpstreamList, upstreams...)
+				upstreamsByNamespace.Store(namespace, upstreams)
 			}
-			initialUpstreamList = append(initialUpstreamList, upstreams...)
-			upstreamsByNamespace[namespace] = upstreams
-		}
-		upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting Upstream watch")
-		}
-
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
-		}(namespace)
-		/* Setup namespaced watch for Secret */
-		{
-			secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, watchedNamespacesWatchOptions)
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "initial Secret list")
+				return nil, nil, errors.Wrapf(err, "starting Upstream watch")
 			}
-			initialSecretList = append(initialSecretList, secrets...)
-			secretsByNamespace[namespace] = secrets
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
+			}(namespace)
+			/* Setup namespaced watch for Secret */
+			{
+				secrets, err := c.secret.List(namespace, watchedNamespacesListOptions)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Secret list")
+				}
+				initialSecretList = append(initialSecretList, secrets...)
+				secretsByNamespace.Store(namespace, secrets)
+			}
+			secretNamespacesChan, secretErrs, err := c.secret.Watch(namespace, watchedNamespacesWatchOptions)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Secret watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-secrets")
+			}(namespace)
+			/* Watch for changes and update snapshot */
+			go func(namespace string) {
+				defer func() {
+					c.namespacesWatching.Delete(namespace)
+				}()
+				c.namespacesWatching.Store(namespace, true)
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case upstreamList, ok := <-upstreamNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
+						}
+					case secretList, ok := <-secretNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case secretChan <- secretListWithNamespace{list: secretList, namespace: namespace}:
+						}
+					}
+				}
+			}(namespace)
 		}
-		secretNamespacesChan, secretErrs, err := c.secret.Watch(namespace, opts)
+	}
+	// watch all other namespaces that are labeled and fit the Expression Selector
+	if opts.ExpressionSelector != "" {
+		// watch resources of non-watched namespaces that fit the expression selectors
+		namespaceListOptions := resources.ResourceNamespaceListOptions{
+			Ctx:                opts.Ctx,
+			ExpressionSelector: opts.ExpressionSelector,
+		}
+		namespaceWatchOptions := resources.ResourceNamespaceWatchOptions{
+			Ctx:                opts.Ctx,
+			ExpressionSelector: opts.ExpressionSelector,
+		}
+
+		filterNamespaces := resources.ResourceNamespaceList{}
+		for _, ns := range watchNamespaces {
+			// we do not want to filter out "" which equals all namespaces
+			if ns != "" {
+				filterNamespaces = append(filterNamespaces, resources.ResourceNamespace{Name: ns})
+			}
+		}
+		namespacesResources, err := c.resourceNamespaceLister.GetResourceNamespaceList(namespaceListOptions, filterNamespaces)
 		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting Secret watch")
+			return nil, nil, err
+		}
+		// non watched namespaces that are labeled
+		for _, resourceNamespace := range namespacesResources {
+			namespace := resourceNamespace.Name
+			/* Setup namespaced watch for Upstream */
+			{
+				upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Upstream list")
+				}
+				initialUpstreamList = append(initialUpstreamList, upstreams...)
+				upstreamsByNamespace.Store(namespace, upstreams)
+			}
+			upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Upstream watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
+			}(namespace)
+			/* Setup namespaced watch for Secret */
+			{
+				secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "initial Secret list")
+				}
+				initialSecretList = append(initialSecretList, secrets...)
+				secretsByNamespace.Store(namespace, secrets)
+			}
+			secretNamespacesChan, secretErrs, err := c.secret.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "starting Secret watch")
+			}
+
+			done.Add(1)
+			go func(namespace string) {
+				defer done.Done()
+				errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-secrets")
+			}(namespace)
+			/* Watch for changes and update snapshot */
+			go func(namespace string) {
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case upstreamList, ok := <-upstreamNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
+						}
+					case secretList, ok := <-secretNamespacesChan:
+						if !ok {
+							return
+						}
+						select {
+						case <-ctx.Done():
+							return
+						case secretChan <- secretListWithNamespace{list: secretList, namespace: namespace}:
+						}
+					}
+				}
+			}(namespace)
+		}
+		// create watch on all namespaces, so that we can add all resources from new namespaces
+		// we will be watching namespaces that meet the Expression Selector filter
+
+		namespaceWatch, errsReceiver, err := c.resourceNamespaceLister.GetResourceNamespaceWatch(namespaceWatchOptions, filterNamespaces)
+		if err != nil {
+			return nil, nil, err
+		}
+		if errsReceiver != nil {
+			go func() {
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case err = <-errsReceiver:
+						errs <- errors.Wrapf(err, "received error from watch on resource namespaces")
+					}
+				}
+			}()
 		}
 
-		done.Add(1)
-		go func(namespace string) {
-			defer done.Done()
-			errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-secrets")
-		}(namespace)
-
-		/* Watch for changes and update snapshot */
-		go func(namespace string) {
+		go func() {
 			for {
 				select {
 				case <-ctx.Done():
 					return
-				case upstreamList, ok := <-upstreamNamespacesChan:
+				case resourceNamespaces, ok := <-namespaceWatch:
 					if !ok {
 						return
 					}
-					select {
-					case <-ctx.Done():
-						return
-					case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
+					// get the list of new namespaces, if there is a new namespace
+					// get the list of resources from that namespace, and add
+					// a watch for new resources created/deleted on that namespace
+					c.updateNamespaces.Lock()
+
+					// get the new namespaces, and get a map of the namespaces
+					mapOfResourceNamespaces := make(map[string]bool, len(resourceNamespaces))
+					newNamespaces := []string{}
+					for _, ns := range resourceNamespaces {
+						if _, hit := c.namespacesWatching.Load(ns.Name); !hit {
+							newNamespaces = append(newNamespaces, ns.Name)
+						}
+						mapOfResourceNamespaces[ns.Name] = true
 					}
-				case secretList, ok := <-secretNamespacesChan:
-					if !ok {
-						return
+
+					for _, ns := range watchNamespaces {
+						mapOfResourceNamespaces[ns] = true
 					}
-					select {
-					case <-ctx.Done():
-						return
-					case secretChan <- secretListWithNamespace{list: secretList, namespace: namespace}:
+
+					missingNamespaces := []string{}
+					// use the map of namespace resources to find missing/deleted namespaces
+					c.namespacesWatching.Range(func(key interface{}, value interface{}) bool {
+						name := key.(string)
+						if _, hit := mapOfResourceNamespaces[name]; !hit {
+							missingNamespaces = append(missingNamespaces, name)
+						}
+						return true
+					})
+
+					for _, ns := range missingNamespaces {
+						// c.namespacesWatching.Delete(ns)
+						upstreamChan <- upstreamListWithNamespace{list: UpstreamList{}, namespace: ns}
+						// upstreamsByNamespace.Delete(ns)
+						secretChan <- secretListWithNamespace{list: SecretList{}, namespace: ns}
+						// secretsByNamespace.Delete(ns)
 					}
+
+					for _, namespace := range newNamespaces {
+						/* Setup namespaced watch for Upstream for new namespace */
+						{
+							upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace Upstream list")
+								continue
+							}
+							upstreamsByNamespace.Store(namespace, upstreams)
+						}
+						upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace Upstream watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-new-namespace-upstreams")
+						}(namespace)
+						/* Setup namespaced watch for Secret for new namespace */
+						{
+							secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+							if err != nil {
+								errs <- errors.Wrapf(err, "initial new namespace Secret list")
+								continue
+							}
+							secretsByNamespace.Store(namespace, secrets)
+						}
+						secretNamespacesChan, secretErrs, err := c.secret.Watch(namespace, clients.WatchOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+						if err != nil {
+							errs <- errors.Wrapf(err, "starting new namespace Secret watch")
+							continue
+						}
+
+						done.Add(1)
+						go func(namespace string) {
+							defer done.Done()
+							errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-new-namespace-secrets")
+						}(namespace)
+						/* Watch for changes and update snapshot */
+						go func(namespace string) {
+							defer func() {
+								c.namespacesWatching.Delete(namespace)
+							}()
+							c.namespacesWatching.Store(namespace, true)
+							for {
+								select {
+								case <-ctx.Done():
+									return
+								case upstreamList, ok := <-upstreamNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
+									}
+								case secretList, ok := <-secretNamespacesChan:
+									if !ok {
+										return
+									}
+									select {
+									case <-ctx.Done():
+										return
+									case secretChan <- secretListWithNamespace{list: secretList, namespace: namespace}:
+									}
+								}
+							}
+						}(namespace)
+					}
+					c.updateNamespaces.Unlock()
 				}
 			}
-		}(namespace)
+		}()
 	}
 	/* Initialize snapshot for Upstreams */
 	currentSnapshot.Upstreams = initialUpstreamList.Sort()
@@ -246,7 +510,11 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "initial KubeNamespace list")
 	}
-	kubeNamespaceChan, kubeNamespaceErrs, err := c.kubeNamespace.Watch(opts)
+	// for Cluster scoped resources, we do not use Expression Selectors
+	kubeNamespaceChan, kubeNamespaceErrs, err := c.kubeNamespace.Watch(clients.WatchOpts{
+		Ctx:      opts.Ctx,
+		Selector: opts.Selector,
+	})
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "starting KubeNamespace watch")
 	}
@@ -323,11 +591,13 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 				)
 
 				// merge lists by namespace
-				upstreamsByNamespace[namespace] = upstreamNamespacedList.list
+				upstreamsByNamespace.Store(namespace, upstreamNamespacedList.list)
 				var upstreamList UpstreamList
-				for _, upstreams := range upstreamsByNamespace {
-					upstreamList = append(upstreamList, upstreams...)
-				}
+				upstreamsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(UpstreamList)
+					upstreamList = append(upstreamList, mocks...)
+					return true
+				})
 				currentSnapshot.Upstreams = upstreamList.Sort()
 			case kubeNamespaceList, ok := <-kubeNamespaceChan:
 				if !ok {
@@ -359,11 +629,13 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 				)
 
 				// merge lists by namespace
-				secretsByNamespace[namespace] = secretNamespacedList.list
+				secretsByNamespace.Store(namespace, secretNamespacedList.list)
 				var secretList SecretList
-				for _, secrets := range secretsByNamespace {
-					secretList = append(secretList, secrets...)
-				}
+				secretsByNamespace.Range(func(key interface{}, value interface{}) bool {
+					mocks := value.(SecretList)
+					secretList = append(secretList, mocks...)
+					return true
+				})
 				currentSnapshot.Secrets = secretList.Sort()
 			}
 		}

@@ -45,6 +45,12 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.EdsSnapshot) error {
 		Ctx:         ctx,
 		RefreshRate: s.refreshRate,
 	}
+	// NOTE-JAKE not sure that we will need this here or not.
+	// do we want it here or in StartEds?
+	// NOTE-JAKE what is the difference between the edsSimpleEventLoop and the
+	// the original eds_event_loop? the original one takes in the opts and uses
+	// a snapshot emitter to get the snapshot values to from it.
+	opts.ExpressionSelector = s.eds.watchSelectors
 
 	udsErrs, err := s.eds.StartEds(snap.Upstreams, opts)
 	if err != nil {

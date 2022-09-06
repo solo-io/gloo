@@ -31,6 +31,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/errutils"
 	"github.com/solo-io/k8s-utils/kubeutils"
+	"github.com/solo-io/solo-kit/pkg/api/external/kubernetes/namespace"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
@@ -98,6 +99,10 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 	statusReporterNamespace := statusutils.GetStatusReporterNamespaceOrDefault(writeNamespace)
 
 	watchNamespaces := utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
+	watchSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesSelectors())
+	if err != nil {
+		return errors.Wrapf(err, "parsing watch namespace selectors")
+	}
 
 	envTrue := func(name string) bool {
 		return os.Getenv(name) == "true" || os.Getenv(name) == "1"
@@ -136,12 +141,14 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 		WriteNamespace:              writeNamespace,
 		StatusReporterNamespace:     statusReporterNamespace,
 		WatchNamespaces:             watchNamespaces,
+		WatchSelectors:              watchSelectors,
 		Proxies:                     proxyFactory,
 		Upstreams:                   upstreamFactory,
 		Secrets:                     secretFactory,
 		WatchOpts: clients.WatchOpts{
-			Ctx:         ctx,
-			RefreshRate: refreshRate,
+			Ctx:                ctx,
+			RefreshRate:        refreshRate,
+			ExpressionSelector: watchSelectors,
 		},
 		EnableKnative:       enableKnative,
 		KnativeVersion:      knativeVersion,
@@ -156,6 +163,7 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 
 func RunIngress(opts Opts) error {
 	opts.WatchOpts = opts.WatchOpts.WithDefaults()
+	opts.WatchOpts.ExpressionSelector = opts.WatchSelectors
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "ingress")
 
 	if opts.DisableKubeIngress && !opts.EnableKnative {
@@ -191,13 +199,19 @@ func RunIngress(opts Opts) error {
 			return err
 		}
 
+		kubeCoreCache, err := cache.NewKubeCoreCache(opts.WatchOpts.Ctx, kube)
+		if err != nil {
+			return err
+		}
+		resourceNamespaceLister := namespace.NewKubeClientCacheResourceNamespaceLister(kube, kubeCoreCache)
+
 		baseIngressClient := ingress.NewResourceClient(kube, &v1.Ingress{})
 		ingressClient := v1.NewIngressClientWithBase(baseIngressClient)
 
 		baseKubeServiceClient := service.NewResourceClient(kube, &v1.KubeService{})
 		kubeServiceClient := v1.NewKubeServiceClientWithBase(baseKubeServiceClient)
 
-		translatorEmitter := v1.NewTranslatorEmitter(upstreamClient, kubeServiceClient, ingressClient)
+		translatorEmitter := v1.NewTranslatorEmitter(upstreamClient, kubeServiceClient, ingressClient, resourceNamespaceLister)
 		statusClient := statusutils.GetStatusClientForNamespace(opts.StatusReporterNamespace)
 		translatorSync := translator.NewSyncer(
 			opts.WriteNamespace,
@@ -219,7 +233,7 @@ func RunIngress(opts Opts) error {
 		ingressServiceClient := service.NewClientWithSelector(kubeServiceClient, map[string]string{
 			"gloo": opts.IngressProxyLabel,
 		})
-		statusEmitter := v1.NewStatusEmitter(ingressServiceClient, ingressClient)
+		statusEmitter := v1.NewStatusEmitter(ingressServiceClient, ingressClient, resourceNamespaceLister)
 		statusSync := status.NewSyncer(ingressClient)
 		statusEventLoop := v1.NewStatusEventLoop(statusEmitter, statusSync)
 		statusEventLoopErrs, err := statusEventLoop.Run(opts.WatchNamespaces, opts.WatchOpts)
@@ -237,6 +251,8 @@ func RunIngress(opts Opts) error {
 			return errors.Wrapf(err, "creating knative clientset")
 		}
 
+		knativeResourceNamespaceLister := clusteringressclient.KnativeResourceNamespaceLister()
+
 		// if the version of the target knative is < 0.8.0 (or version not provided), use clusteringress
 		// else, use the new knative ingress object
 		if pre080knativeVersion(opts.KnativeVersion) {
@@ -245,9 +261,10 @@ func RunIngress(opts Opts) error {
 			if err != nil {
 				return errors.Wrapf(err, "creating knative cache")
 			}
+
 			baseClient := clusteringressclient.NewResourceClient(knative, knativeCache)
 			ingressClient := clusteringressv1alpha1.NewClusterIngressClientWithBase(baseClient)
-			clusterIngTranslatorEmitter := clusteringressv1.NewTranslatorEmitter(ingressClient)
+			clusterIngTranslatorEmitter := clusteringressv1.NewTranslatorEmitter(ingressClient, knativeResourceNamespaceLister)
 			statusClient := statusutils.GetStatusClientForNamespace(opts.StatusReporterNamespace)
 			clusterIngTranslatorSync := clusteringresstranslator.NewSyncer(
 				opts.ClusterIngressProxyAddress,
@@ -271,7 +288,7 @@ func RunIngress(opts Opts) error {
 			}
 			baseClient := knativeclient.NewResourceClient(knative, knativeCache)
 			ingressClient := knativev1alpha1.NewIngressClientWithBase(baseClient)
-			knativeTranslatorEmitter := knativev1.NewTranslatorEmitter(ingressClient)
+			knativeTranslatorEmitter := knativev1.NewTranslatorEmitter(ingressClient, knativeResourceNamespaceLister)
 			statusClient := statusutils.GetStatusClientForNamespace(opts.StatusReporterNamespace)
 			knativeTranslatorSync := knativetranslator.NewSyncer(
 				opts.KnativeExternalProxyAddress,

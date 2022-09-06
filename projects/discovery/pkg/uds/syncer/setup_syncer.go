@@ -63,9 +63,9 @@ func RunUDS(opts bootstrap.Opts) error {
 			return err
 		}
 	}
-
+	resourceNamespaceLister := namespace.NewKubeClientCacheResourceNamespaceLister(opts.KubeClient, opts.KubeCoreCache)
 	emit := make(chan struct{})
-	emitter := v1.NewDiscoveryEmitterWithEmit(upstreamClient, nsClient, secretClient, emit)
+	emitter := v1.NewDiscoveryEmitterWithEmit(upstreamClient, nsClient, secretClient, resourceNamespaceLister, emit)
 
 	// jumpstart all the watches
 	go func() {
@@ -88,7 +88,7 @@ func RunUDS(opts bootstrap.Opts) error {
 
 	statusClient := gloostatusutils.GetStatusClientForNamespace(opts.StatusReporterNamespace)
 
-	uds := discovery.NewUpstreamDiscovery(watchNamespaces, opts.WriteNamespace, upstreamClient, statusClient, discoveryPlugins)
+	uds := discovery.NewUpstreamDiscovery(watchNamespaces, opts.WatchSelectors, opts.WriteNamespace, upstreamClient, statusClient, discoveryPlugins)
 	// TODO(ilackarms) expose discovery options
 	udsErrs, err := uds.StartUds(watchOpts, discovery.Opts{})
 	if err != nil {

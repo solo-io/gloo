@@ -676,6 +676,20 @@ spec:
                 items:
                   type: string
                 type: array
+              watchNamespacesSelectors:
+                items:
+                  properties:
+                    key:
+                      type: string
+                    operator:
+                      type: string
+                      x-kubernetes-int-or-string: true
+                    values:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                type: array
             type: object
           status:
             type: object
