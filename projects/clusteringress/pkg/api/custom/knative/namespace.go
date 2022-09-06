@@ -6,7 +6,6 @@ import (
 
 var _ resources.ResourceNamespaceLister = &knativeResourceNamespaceLister{}
 
-// implemented accordingly.
 func KnativeResourceNamespaceLister() resources.ResourceNamespaceLister {
 	return &knativeResourceNamespaceLister{}
 }

@@ -18,6 +18,9 @@ var (
 		selectors.Selector_Expression_In:           selection.In,
 		selectors.Selector_Expression_NotIn:        selection.NotIn,
 		selectors.Selector_Expression_Exists:       selection.Exists,
+		selectors.Selector_Expression_DoesNotExist: selection.DoesNotExist,
+		selectors.Selector_Expression_GreaterThan:  selection.GreaterThan,
+		selectors.Selector_Expression_LessThan:     selection.LessThan,
 	}
 )
 
@@ -63,6 +66,9 @@ func ConvertExpressionSelectorToString(expressionSelectors []*selectors.Selector
 		op := sel.GetOperator()
 		key := sel.GetKey()
 		values := sel.GetValues()
+		if op == selectors.Selector_Expression_DoesNotExist || op == selectors.Selector_Expression_GreaterThan || op == selectors.Selector_Expression_LessThan {
+			return "", errors.New("cannot select !, <, or > as operators for expression selectors")
+		}
 		switch op {
 		case selectors.Selector_Expression_Exists, selectors.Selector_Expression_In,
 			selectors.Selector_Expression_NotIn:
