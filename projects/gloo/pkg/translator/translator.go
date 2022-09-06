@@ -3,6 +3,7 @@ package translator
 import (
 	"fmt"
 	"hash/fnv"
+	"time"
 
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
@@ -67,6 +68,7 @@ func (t *translatorInstance) Translate(
 	params plugins.Params,
 	proxy *v1.Proxy,
 ) (envoycache.Snapshot, reporter.ResourceReports, *validationapi.ProxyReport) {
+	fmt.Println(time.Now(), "Start translate")
 	// setup tracing, logging
 	ctx, span := trace.StartSpan(params.Ctx, "gloo.translator.Translate")
 	defer span.End()
@@ -89,6 +91,8 @@ func (t *translatorInstance) Translate(
 	// during these translations, params.messages is side effected for the reports to use later in this loop
 	clusters, endpoints := t.translateClusterSubsystemComponents(params, proxy, reports)
 	routeConfigs, listeners := t.translateListenerSubsystemComponents(params, proxy, proxyReport)
+
+	fmt.Println(time.Now(), "Finish translate listener components")
 
 	// run Resource Generator Plugins
 	for _, plugin := range t.pluginRegistry.GetResourceGeneratorPlugins() {
