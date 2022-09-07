@@ -54,7 +54,7 @@ func (m *Settings) Hash(hasher hash.Hash64) (uint64, error) {
 
 	}
 
-	for _, v := range m.GetWatchNamespacesSelectors() {
+	for _, v := range m.GetWatchNamespacesLabelSelectors() {
 
 		if h, ok := interface{}(v).(safe_hasher.SafeHasher); ok {
 			if _, err = hasher.Write([]byte("")); err != nil {

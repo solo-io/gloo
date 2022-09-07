@@ -64,14 +64,14 @@ func (m *Settings) Clone() proto.Message {
 		}
 	}
 
-	if m.GetWatchNamespacesSelectors() != nil {
-		target.WatchNamespacesSelectors = make([]*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_core_selectors.Selector_Expression, len(m.GetWatchNamespacesSelectors()))
-		for idx, v := range m.GetWatchNamespacesSelectors() {
+	if m.GetWatchNamespacesLabelSelectors() != nil {
+		target.WatchNamespacesLabelSelectors = make([]*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_core_selectors.Selector_Expression, len(m.GetWatchNamespacesLabelSelectors()))
+		for idx, v := range m.GetWatchNamespacesLabelSelectors() {
 
 			if h, ok := interface{}(v).(clone.Cloner); ok {
-				target.WatchNamespacesSelectors[idx] = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_core_selectors.Selector_Expression)
+				target.WatchNamespacesLabelSelectors[idx] = h.Clone().(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_core_selectors.Selector_Expression)
 			} else {
-				target.WatchNamespacesSelectors[idx] = proto.Clone(v).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_core_selectors.Selector_Expression)
+				target.WatchNamespacesLabelSelectors[idx] = proto.Clone(v).(*github_com_solo_io_gloo_projects_gloo_pkg_api_v1_core_selectors.Selector_Expression)
 			}
 
 		}

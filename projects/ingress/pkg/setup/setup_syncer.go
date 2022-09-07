@@ -99,7 +99,7 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 	statusReporterNamespace := statusutils.GetStatusReporterNamespaceOrDefault(writeNamespace)
 
 	watchNamespaces := utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
-	watchSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesSelectors())
+	watchSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesLabelSelectors())
 	if err != nil {
 		return errors.Wrapf(err, "parsing watch namespace selectors")
 	}

@@ -40,23 +40,24 @@ type DiscoveryPlugin interface {
 type UpstreamDiscovery struct {
 	// watchNamespaces are the namespaces to watch. If empty watch all namespaces
 	watchNamespaces []string
-	// watchSelectors is a string representation of set and equality based label
-	// selectors
-	watchSelectors         string
-	writeNamespace         string
-	upstreamReconciler     v1.UpstreamReconciler
-	discoveryPlugins       []DiscoveryPlugin
-	lock                   sync.Mutex
-	latestDesiredUpstreams map[DiscoveryPlugin]v1.UpstreamList
-	extraSelectorLabels    map[string]string
+	// watchNamespaceLabelSelectors is a string representation of set and equality based label
+	// selectors. For more information look [here](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#equality-based-requirement)
+	watchNamespaceLabelSelectors string
+	writeNamespace               string
+	upstreamReconciler           v1.UpstreamReconciler
+	discoveryPlugins             []DiscoveryPlugin
+	lock                         sync.Mutex
+	latestDesiredUpstreams       map[DiscoveryPlugin]v1.UpstreamList
+	extraSelectorLabels          map[string]string
 }
 
 type EndpointDiscovery struct {
 	// watchNamespaces are the namespaces to watch. If empty watch all namespaces
 	watchNamespaces []string
-	// watchSelectors is a string representation of set and equality based label
+	// watchNamespaceLabelSelectors is a string representation of set and equality based label
 	// selectors
-	watchSelectors     string
+	watchNamespaceLabelSelectors string
+	// writeNamespace is the namespace that the endpoint discovery service will write resources to that it maintains.
 	writeNamespace     string
 	endpointReconciler v1.EndpointReconciler
 	discoveryPlugins   []DiscoveryPlugin
@@ -69,21 +70,21 @@ type EndpointDiscovery struct {
 
 func NewEndpointDiscovery(
 	watchNamespaces []string,
-	watchSelectors string,
+	watchNamespaceLabelSelectors string,
 	writeNamespace string,
 	endpointsClient v1.EndpointClient,
 	statusSetter resources.StatusSetter,
 	discoveryPlugins []DiscoveryPlugin) *EndpointDiscovery {
 
 	return &EndpointDiscovery{
-		watchNamespaces:    watchNamespaces,
-		watchSelectors:     watchSelectors,
-		writeNamespace:     writeNamespace,
-		endpointReconciler: v1.NewEndpointReconciler(endpointsClient, statusSetter),
-		discoveryPlugins:   discoveryPlugins,
-		ready:              make(chan struct{}),
-		endpointsByEds:     make(map[DiscoveryPlugin]v1.EndpointList),
-		lock:               sync.Mutex{},
+		watchNamespaces:              watchNamespaces,
+		watchNamespaceLabelSelectors: watchNamespaceLabelSelectors,
+		writeNamespace:               writeNamespace,
+		endpointReconciler:           v1.NewEndpointReconciler(endpointsClient, statusSetter),
+		discoveryPlugins:             discoveryPlugins,
+		ready:                        make(chan struct{}),
+		endpointsByEds:               make(map[DiscoveryPlugin]v1.EndpointList),
+		lock:                         sync.Mutex{},
 	}
 }
 
@@ -95,12 +96,12 @@ func NewUpstreamDiscovery(
 	statusSetter resources.StatusSetter,
 	discoveryPlugins []DiscoveryPlugin) *UpstreamDiscovery {
 	return &UpstreamDiscovery{
-		watchNamespaces:        watchNamespaces,
-		watchSelectors:         watchSelectors,
-		writeNamespace:         writeNamespace,
-		upstreamReconciler:     v1.NewUpstreamReconciler(upstreamClient, statusSetter),
-		discoveryPlugins:       discoveryPlugins,
-		latestDesiredUpstreams: make(map[DiscoveryPlugin]v1.UpstreamList),
+		watchNamespaces:              watchNamespaces,
+		watchNamespaceLabelSelectors: watchSelectors,
+		writeNamespace:               writeNamespace,
+		upstreamReconciler:           v1.NewUpstreamReconciler(upstreamClient, statusSetter),
+		discoveryPlugins:             discoveryPlugins,
+		latestDesiredUpstreams:       make(map[DiscoveryPlugin]v1.UpstreamList),
 	}
 }
 
@@ -109,7 +110,6 @@ func (d *UpstreamDiscovery) StartUds(opts clients.WatchOpts, discOpts Opts) (cha
 	aggregatedErrs := make(chan error)
 	d.extraSelectorLabels = opts.Selector
 	for _, uds := range d.discoveryPlugins {
-		// TODO-JAKE add some logic for the opts here.... d.watchSelectors
 		upstreams, errs, err := uds.DiscoverUpstreams(d.watchNamespaces, d.writeNamespace, opts, discOpts)
 		if err != nil {
 			contextutils.LoggerFrom(opts.Ctx).Warnw("initializing UDS plugin failed", "plugin", reflect.TypeOf(uds).String(), "error", err)
@@ -152,7 +152,8 @@ func (d *UpstreamDiscovery) Resync(ctx context.Context) error {
 		selector := map[string]string{
 			"discovered_by": udsName,
 		}
-		// INFO-JAKE this is where the selectors are set and aggregated
+		// TODO-JAKE-ACTION may have to do something with Sync and Resync, if discovery and EDS are to also
+		// work with selectors.
 		for k, v := range d.extraSelectorLabels {
 			selector[k] = v
 		}
@@ -184,13 +185,13 @@ func setLabels(udsName string, upstreamList v1.UpstreamList) v1.UpstreamList {
 }
 
 // launch a goroutine for all the UDS plugins with a single cancel to close them all
-// TODO what are the upstreamsToTrack?
 func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (chan error, error) {
 	aggregatedErrs := make(chan error)
 	logger := contextutils.LoggerFrom(opts.Ctx)
-	// TODO-JAKE used here
-	opts.ExpressionSelector = d.watchSelectors
+	opts.ExpressionSelector = d.watchNamespaceLabelSelectors
 	for _, eds := range d.discoveryPlugins {
+		// TODO-JAKE-ACTION Kubernetes, aws, and consul eds do not have implementations for discovering
+		// resources on watched or namesapces that meet the watchedNamespaceLabelSelectors.
 		endpoints, errs, err := eds.WatchEndpoints(d.writeNamespace, upstreamsToTrack, opts)
 		if err != nil {
 			logger.Errorw("initializing EDS plugin failed", "plugin", reflect.TypeOf(eds).String(), "error", err)

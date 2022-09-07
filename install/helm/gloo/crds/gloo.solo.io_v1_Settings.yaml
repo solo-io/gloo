@@ -676,7 +676,7 @@ spec:
                 items:
                   type: string
                 type: array
-              watchNamespacesSelectors:
+              watchNamespacesLabelSelectors:
                 items:
                   properties:
                     key:

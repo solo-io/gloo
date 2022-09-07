@@ -251,7 +251,7 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 		writeNamespace = defaults.GlooSystem
 	}
 	watchNamespaces := utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
-	expressionSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesSelectors())
+	expressionSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesLabelSelectors())
 	if err != nil {
 		return errors.Wrapf(err, "parsing watch namespaces selectors")
 	}
@@ -365,7 +365,7 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	opts.WriteNamespace = writeNamespace
 	opts.StatusReporterNamespace = gloostatusutils.GetStatusReporterNamespaceOrDefault(writeNamespace)
 	opts.WatchNamespaces = watchNamespaces
-	opts.WatchSelectors = expressionSelectors
+	opts.WatchNamespaceLabelSelectors = expressionSelectors
 
 	opts.WatchOpts = clients.WatchOpts{
 		Ctx:         ctx,
@@ -436,7 +436,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	watchOpts := opts.WatchOpts.WithDefaults()
-	watchOpts.ExpressionSelector = opts.WatchSelectors
+	watchOpts.ExpressionSelector = opts.WatchNamespaceLabelSelectors
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gloo")
 
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")
@@ -587,11 +587,10 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	statusClient := gloostatusutils.GetStatusClientForNamespace(opts.StatusReporterNamespace)
 	resourceNamespaceLister := namespace.NewKubeClientCacheResourceNamespaceLister(opts.KubeClient, opts.KubeCoreCache)
 
-	disc := discovery.NewEndpointDiscovery(opts.WatchNamespaces, opts.WatchSelectors, opts.WriteNamespace, endpointClient, statusClient, discoveryPlugins)
+	disc := discovery.NewEndpointDiscovery(opts.WatchNamespaces, opts.WatchNamespaceLabelSelectors, opts.WriteNamespace, endpointClient, statusClient, discoveryPlugins)
 	edsSync := discovery.NewEdsSyncer(disc, discovery.Opts{}, watchOpts.RefreshRate)
 	discoveryCache := v1.NewEdsEmitter(hybridUsClient, resourceNamespaceLister)
 	edsEventLoop := v1.NewEdsEventLoop(discoveryCache, edsSync)
-	// TODO-JAKE might have to test that this is working.
 	edsErrs, err := edsEventLoop.Run(opts.WatchNamespaces, watchOpts)
 	if err != nil {
 		return err

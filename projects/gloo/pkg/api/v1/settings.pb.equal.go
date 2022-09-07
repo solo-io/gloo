@@ -65,17 +65,17 @@ func (m *Settings) Equal(that interface{}) bool {
 
 	}
 
-	if len(m.GetWatchNamespacesSelectors()) != len(target.GetWatchNamespacesSelectors()) {
+	if len(m.GetWatchNamespacesLabelSelectors()) != len(target.GetWatchNamespacesLabelSelectors()) {
 		return false
 	}
-	for idx, v := range m.GetWatchNamespacesSelectors() {
+	for idx, v := range m.GetWatchNamespacesLabelSelectors() {
 
 		if h, ok := interface{}(v).(equality.Equalizer); ok {
-			if !h.Equal(target.GetWatchNamespacesSelectors()[idx]) {
+			if !h.Equal(target.GetWatchNamespacesLabelSelectors()[idx]) {
 				return false
 			}
 		} else {
-			if !proto.Equal(v, target.GetWatchNamespacesSelectors()[idx]) {
+			if !proto.Equal(v, target.GetWatchNamespacesLabelSelectors()[idx]) {
 				return false
 			}
 		}

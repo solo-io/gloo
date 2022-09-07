@@ -36,16 +36,25 @@ message Settings {
     // If empty, this will default to "gloo-system".
     string discovery_namespace = 1;
 
-    // Use this setting to restrict the namespaces that Gloo controllers take into consideration when watching for resources.In a
-    // usual production scenario, RBAC policies will limit the namespaces that Gloo has access to. If `watch_namespaces`
+    // Use this setting to restrict the namespaces that Gloo controllers take into consideration when watching for resources.
+    // In addition you can restrict namespaces using the `watchNamespacesLabelSelectors`. In a
+    // usual production scenario, RBAC policies will limit the namespaces that Gloo has access to. If `watchNamespaces`
     // contains namespaces outside of this whitelist, Gloo will fail to start.
     //
-    // If not set, this defaults to all available namespaces. Please note that, the `discovery_namespace` will always
+    // If not set, this defaults to all available namespaces. Please note that, the `discoveryNamespace` will always
     // be included in this list.
     repeated string watch_namespaces = 2;
-    // Use this to add label set and equality filters to the resources that Gloo is watching.
-    // This will be useful
-    repeated selectors.core.gloo.solo.io.Selector.Expression watch_namespaces_selectors = 3;
+    // Adding these label filters will restrict the namespaces that Gloo controllers take into consideration
+    // when watching for resources. Namespaces that meet the label filter criteria
+    // will be added to the list of namespaces to watch.  This includes any namespaces
+    // added with `watchNamespaces`. In a
+    // usual production scenario, RBAC policies will limit the namespaces that Gloo has access to.
+    // If the namespaces that fit the filtering criteria are outside of this whitelist, Gloo will fail to start.
+    // Please look at
+    // [set based labels filtering](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement)
+    // and [equity based label filtering](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#equality-based-requirement)
+    // both of which can be used to construct the selector filtering. 
+    repeated selectors.core.gloo.solo.io.Selector.Expression watch_namespaces_label_selectors = 3;
 
     // This setting determines where Gloo controllers will store its resources
     oneof config_source {

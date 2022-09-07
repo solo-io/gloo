@@ -102,12 +102,6 @@ type upstreamsWithSource struct {
 	upstreams v1.UpstreamList
 }
 
-// TODO-JAKE we might want to change the logic here for the Snapshots. this also is generated code
-// shapshot_emitters have to be changed to support the expression Selectors as well.
-// I will have to set up the logic for this in a later segment.
-// TODO-JAKE if we are to watch a namespace, then this is correct and there is no need for more work.
-// the reason is because the emitter snapshot will watch the namespaces, and send the namespace to watch
-// calling this function.
 func (c *hybridUpstreamClient) Watch(namespace string, opts clients.WatchOpts) (<-chan v1.UpstreamList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	ctx := contextutils.WithLogger(opts.Ctx, "hybrid upstream client")

@@ -99,6 +99,7 @@ func (c *edsWatcher) List(writeNamespace string, opts clients.ListOpts) (v1.Endp
 	ctx := contextutils.WithLogger(opts.Ctx, "kubernetes_eds")
 	var warnsToLog []string
 
+	// TODO-JAKE-ACTION need to clarify that we are going to add watch naemspace label selectors here as well.
 	for _, ns := range c.namespaces {
 		if c.kubeCoreCache.NamespacedServiceLister(ns) == nil {
 			// this namespace is not watched, ignore it.

@@ -65,7 +65,6 @@ var _ = Describe("Discovery", func() {
 		redEdsPlugin, redChan := makeEdsPlugin()
 		blueEdsPlugin, blueChan := makeEdsPlugin()
 
-		// TEST-JAKE might want to look at testing this.
 		eds := NewEndpointDiscovery(nil, "", ns,
 			endpointClient,
 			statusClient,
