@@ -84,7 +84,7 @@ func Main(opts SetupOpts) error {
 
 	// settings come from the ResourceClient in the settingsClient
 	// the eventLoop will Watch the emitter's settingsClient to recieve settings from the ResourceClient
-	emitter, err := snapshotEmitter(settingsClient)
+	emitter, err := snapshotEmitter(ctx, settingsClient)
 	if err != nil {
 		return err
 	}
@@ -131,6 +131,7 @@ func startLeaderElection(ctx context.Context, settingsDir string, electionConfig
 		return singlereplica.NewElectionFactory().StartElection(ctx, electionConfig)
 	}
 
+	// TODO-JAKE not sure about this one
 	cfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
 		return nil, err
@@ -138,14 +139,17 @@ func startLeaderElection(ctx context.Context, settingsDir string, electionConfig
 	return kube2.NewElectionFactory(cfg).StartElection(ctx, electionConfig)
 }
 
-func snapshotEmitter(settingsClient v1.SettingsClient) (v1.SetupEmitter, error) {
+func snapshotEmitter(ctx context.Context, settingsClient v1.SettingsClient) (v1.SetupEmitter, error) {
+	var kube kubernetes.Interface
 	cfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
-		return nil, err
-	}
-	kube, err := kubernetes.NewForConfig(cfg)
-	if err != nil {
-		return nil, err
+		// it is not neccessary to have the config because this will occur at set up
+		contextutils.LoggerFrom(ctx).Warnf("setup of kube client config: %v", err)
+	} else {
+		kube, err = kubernetes.NewForConfig(cfg)
+		if err != nil {
+			return nil, err
+		}
 	}
 	resourceNamespaceLister := namespace.NewKubeClientResourceNamespaceLister(kube)
 	emitter := v1.NewSetupEmitter(settingsClient, resourceNamespaceLister)

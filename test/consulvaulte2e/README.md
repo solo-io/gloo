@@ -10,5 +10,15 @@ If you have made changes to the setup loop and these tests are suddenly failing,
 changes here:
 https://github.com/solo-io/gloo/blob/61d35b0d4ce3b2b28ed47c7be06d9acaadf37074/test/services/gateway.go#L249
 
-## TODO: Instructions for running locally 
+## Instructions for running locally 
+You can install Consul and Vault on your localhost and that should be enough to run locally.
 
+```bash
+brew install consul
+brew tap hashicorp/tap
+brew install hashicorp/tap/vault
+```
+
+For information on [Consul look here](https://www.consul.io/downloads)
+
+For information on [Vault look here](https://www.vaultproject.io/downloads)
