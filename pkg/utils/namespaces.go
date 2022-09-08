@@ -66,11 +66,9 @@ func ConvertExpressionSelectorToString(expressionSelectors []*selectors.Selector
 		op := sel.GetOperator()
 		key := sel.GetKey()
 		values := sel.GetValues()
-		// TODO-JAKE might need to get rid of these selectors, and change the hybrid selectors used.
-		if op == selectors.Selector_Expression_DoesNotExist || op == selectors.Selector_Expression_GreaterThan || op == selectors.Selector_Expression_LessThan {
-			return "", errors.New("cannot select !, <, or > as operators for expression selectors")
-		}
 		switch op {
+		case selectors.Selector_Expression_DoesNotExist, selectors.Selector_Expression_LessThan, selectors.Selector_Expression_GreaterThan:
+			return "", errors.New("cannot select !, <, or > as operators for expression selectors")
 		case selectors.Selector_Expression_Exists, selectors.Selector_Expression_In,
 			selectors.Selector_Expression_NotIn:
 			buffer.WriteString(key)

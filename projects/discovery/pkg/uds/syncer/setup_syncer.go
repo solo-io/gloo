@@ -31,9 +31,6 @@ func RunUDS(opts bootstrap.Opts) error {
 	}
 	watchOpts := opts.WatchOpts.WithDefaults()
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "uds")
-	// TODO-JAKE-ACTION should we add in the watch namespace selectors here, and deprecate these selectors?
-	// or should we look at adding some comments in the guide to tell the user that they
-	// can have one or the other? this will follow down with the call to `StartUds()`
 	watchOpts.Selector = syncerutils.GetWatchLabels(opts.Settings)
 
 	upstreamClient, err := v1.NewUpstreamClient(watchOpts.Ctx, opts.Upstreams)
@@ -91,7 +88,7 @@ func RunUDS(opts bootstrap.Opts) error {
 
 	statusClient := gloostatusutils.GetStatusClientForNamespace(opts.StatusReporterNamespace)
 
-	uds := discovery.NewUpstreamDiscovery(watchNamespaces, opts.WatchNamespaceLabelSelectors, opts.WriteNamespace, upstreamClient, statusClient, discoveryPlugins)
+	uds := discovery.NewUpstreamDiscovery(watchNamespaces, opts.WriteNamespace, upstreamClient, statusClient, discoveryPlugins)
 	// TODO(ilackarms) expose discovery options
 	udsErrs, err := uds.StartUds(watchOpts, discovery.Opts{})
 	if err != nil {

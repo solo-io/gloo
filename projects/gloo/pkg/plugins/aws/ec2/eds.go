@@ -44,8 +44,6 @@ func newEndpointsWatcher(watchCtx context.Context, writeNamespace string, upstre
 
 	// We either watch all namespaces, or create individual watchers for each namespace we watch
 	settings := settingsutil.FromContext(watchCtx)
-	// TODO-JAKE-ACTION might want to also query for the list of namespaces that match the current watchNamespaceLabelSelectors.
-	// not sure what type of secret Client is used from here https://github.com/solo-io/gloo/blob/v1.11.28/projects/gloo/pkg/bootstrap/utils.go#L166
 	if settingsutil.IsAllNamespacesFromSettings(settings) {
 		namespaces = []string{metav1.NamespaceAll}
 	} else {

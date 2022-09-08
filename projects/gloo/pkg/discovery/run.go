@@ -42,9 +42,8 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.EdsSnapshot) error {
 	}
 
 	opts := clients.WatchOpts{
-		Ctx:                ctx,
-		RefreshRate:        s.refreshRate,
-		ExpressionSelector: s.eds.watchNamespaceLabelSelectors,
+		Ctx:         ctx,
+		RefreshRate: s.refreshRate,
 	}
 
 	udsErrs, err := s.eds.StartEds(snap.Upstreams, opts)

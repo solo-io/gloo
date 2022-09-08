@@ -401,7 +401,6 @@ func defaultGlooOpts(ctx context.Context, runOptions *RunOptions) bootstrap.Opts
 		}
 		validationOpts.AlwaysAcceptResources = runOptions.Settings.GetGateway().GetValidation().GetAlwaysAccept().GetValue()
 	}
-	// TODO-JAKE I suppose we could add a test here
 	return bootstrap.Opts{
 		Settings:                runOptions.Settings,
 		WriteNamespace:          runOptions.NsToWrite,
@@ -422,7 +421,6 @@ func defaultGlooOpts(ctx context.Context, runOptions *RunOptions) bootstrap.Opts
 		VirtualHostOptions:      f,
 		KubeServiceClient:       newServiceClient(ctx, f, runOptions),
 		WatchNamespaces:         runOptions.NsToWatch,
-		// TODO-JAKE might want to test out the namespaceSelectors
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,

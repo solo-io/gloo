@@ -251,9 +251,9 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 		writeNamespace = defaults.GlooSystem
 	}
 	watchNamespaces := utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
-	expressionSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesLabelSelectors())
+	namespaceLabelSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesLabelSelectors())
 	if err != nil {
-		return errors.Wrapf(err, "parsing watch namespaces selectors")
+		return errors.Wrapf(err, "parsing watch namespace label selectors")
 	}
 	// process grpcserver options to understand if any servers will need a restart
 
@@ -365,7 +365,7 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	opts.WriteNamespace = writeNamespace
 	opts.StatusReporterNamespace = gloostatusutils.GetStatusReporterNamespaceOrDefault(writeNamespace)
 	opts.WatchNamespaces = watchNamespaces
-	opts.WatchNamespaceLabelSelectors = expressionSelectors
+	opts.WatchNamespaceLabelSelectors = namespaceLabelSelectors
 
 	opts.WatchOpts = clients.WatchOpts{
 		Ctx:         ctx,
@@ -587,7 +587,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	statusClient := gloostatusutils.GetStatusClientForNamespace(opts.StatusReporterNamespace)
 	resourceNamespaceLister := namespace.NewKubeClientCacheResourceNamespaceLister(opts.KubeClient, opts.KubeCoreCache)
 
-	disc := discovery.NewEndpointDiscovery(opts.WatchNamespaces, opts.WatchNamespaceLabelSelectors, opts.WriteNamespace, endpointClient, statusClient, discoveryPlugins)
+	disc := discovery.NewEndpointDiscovery(opts.WatchNamespaces, opts.WriteNamespace, endpointClient, statusClient, discoveryPlugins)
 	edsSync := discovery.NewEdsSyncer(disc, discovery.Opts{}, watchOpts.RefreshRate)
 	discoveryCache := v1.NewEdsEmitter(hybridUsClient, resourceNamespaceLister)
 	edsEventLoop := v1.NewEdsEventLoop(discoveryCache, edsSync)

@@ -65,7 +65,7 @@ var _ = Describe("Discovery", func() {
 		redEdsPlugin, redChan := makeEdsPlugin()
 		blueEdsPlugin, blueChan := makeEdsPlugin()
 
-		eds := NewEndpointDiscovery(nil, "", ns,
+		eds := NewEndpointDiscovery(nil, ns,
 			endpointClient,
 			statusClient,
 			[]DiscoveryPlugin{
