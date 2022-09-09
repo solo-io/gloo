@@ -1905,6 +1905,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -1978,6 +1979,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -2046,6 +2048,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -2114,6 +2117,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -2187,6 +2191,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -2263,6 +2268,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -3530,6 +3536,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -4323,6 +4330,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -4391,6 +4399,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -4459,6 +4468,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -4528,6 +4538,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -4599,6 +4610,7 @@ spec:
   gateway:
     enableGatewayController: true
     readGatewaysFromAllNamespaces: false
+    isolateVirtualHostsBySslConfig: false
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
@@ -4733,8 +4745,6 @@ spec:
 			It("can override fields on the EE rollout job", func() {
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 					valuesArgs: []string{
-						// istio
-						"global.istioIntegration.disableAutoinjection=true",
 						// image
 						"gloo.gateway.rolloutJob.image.registry=myreg",
 						"gloo.gateway.rolloutJob.image.repository=myrepo",
@@ -4761,7 +4771,7 @@ spec:
 				Expect(err).NotTo(HaveOccurred())
 				job := getJob(testManifest, namespace, "gloo-ee-resource-rollout")
 
-				// istio
+				// istio injection should always be disabled
 				inject, ok := job.Spec.Template.ObjectMeta.Labels["sidecar.istio.io/inject"]
 				Expect(ok).To(BeTrue())
 				Expect(inject).To(Equal("false"))

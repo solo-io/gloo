@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7081
+    resolvesIssue: false
+    description: Enterprise changes for disabling istio sidecar injection on Jobs and CronJobs.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.13.0-beta12
