@@ -18,14 +18,14 @@ type GlobalConfig struct {
 }
 
 type GlooConfig struct {
-	LicenseSecretName string `json:"license_secret_name"`
+	LicenseSecretName string `json:"license_secret_name" desc:"The name of a secret that contains your Gloo Edge license key. Set 'create_license_key' to 'false' to disable use of the default license secret."`
 	*glooGen.Config
 }
 
 type Config struct {
 	Settings            *glooGen.Settings      `json:"settings,omitempty"`
-	LicenseKey          string                 `json:"license_key,omitempty"`
-	CreateLicenseSecret bool                   `json:"create_license_secret"`
+	LicenseKey          string                 `json:"license_key,omitempty" desc:"Your Gloo Edge license key."`
+	CreateLicenseSecret bool                   `json:"create_license_secret" desc:"Create a secret for the license specified in 'license_key'. Set to 'false' if you use 'license_secret_name' instead."`
 	Gloo                *GlooConfig            `json:"gloo,omitempty"`
 	Redis               *Redis                 `json:"redis,omitempty"`
 	Observability       *Observability         `json:"observability,omitempty"`

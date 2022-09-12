@@ -5,9 +5,9 @@ import glooGen "github.com/solo-io/gloo/install/helm/gloo/generate"
 type HelmConfig struct {
 	Global                 *GlobalConfig        `json:"global,omitempty"`
 	Enabled                *bool                `json:"enabled,omitempty" desc:"If true, deploy federation service (default true)."`
-	CreateLicenseSecret    *bool                `json:"create_license_secret,omitempty"`
-	LicenseSecretName      *string              `json:"license_secret_name,omitempty"`
-	LicenseKey             *string              `json:"license_key,omitempty"`
+	CreateLicenseSecret    *bool                `json:"create_license_secret,omitempty" desc:"Create a secret for the license specified in 'license_key'. Set to 'false' if you use 'license_secret_name' instead."`
+	LicenseSecretName      *string              `json:"license_secret_name,omitempty" desc:"The name of a secret that contains your Gloo Edge license key. Set 'create_license_key' to 'false' to disable use of the default license secret."`
+	LicenseKey             *string              `json:"license_key,omitempty" desc:"Your Gloo Edge license key."`
 	EnableMultiClusterRbac *bool                `json:"enableMultiClusterRbac,omitempty"`
 	GlooFedApiServer       *ApiServerDeployment `json:"glooFedApiserver,omitempty"`
 	GlooFed                *GlooFedDeployment   `json:"glooFed,omitempty"`

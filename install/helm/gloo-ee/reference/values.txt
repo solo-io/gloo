@@ -109,9 +109,9 @@
 |settings.rateLimit|interface||Partial config for Gloo Edge Enterprise’s rate-limiting service, based on Envoy’s rate-limit service; supports Envoy’s rate-limit service API. (reference here: https://github.com/lyft/ratelimit#configuration) Configure rate-limit descriptors here, which define the limits for requests based on their descriptors. Configure rate-limits (composed of actions, which define how request characteristics get translated into descriptors) on the VirtualHost or its routes.|
 |settings.enableRestEds|bool||Whether or not to use rest xds for all EDS by default. Defaults to false.|
 |settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|license_key|string|||
-|create_license_secret|bool|true||
-|gloo.license_secret_name|string|license||
+|license_key|string||Your Gloo Edge license key.|
+|create_license_secret|bool|true|Create a secret for the license specified in 'license_key'. Set to 'false' if you use 'license_secret_name' instead.|
+|gloo.license_secret_name|string|license|The name of a secret that contains your Gloo Edge license key. Set 'create_license_key' to 'false' to disable use of the default license secret.|
 |gloo.namespace.create|bool||create the installation namespace|
 |gloo.settings.watchNamespaces[]|string||whitelist of namespaces for Gloo Edge to watch for services and CRDs. Empty list means all namespaces|
 |gloo.settings.writeNamespace|string||namespace where intermediary CRDs will be written to, e.g. Upstreams written by Gloo Edge Discovery.|
@@ -1185,9 +1185,9 @@
 |gloo-fed.global.console.readOnly|bool||If true, then custom resources can only be viewed in read-only mode in the UI. If false, then resources can be created, updated, and deleted via the UI (default false).|
 |gloo-fed.global.console.apiExplorerEnabled|bool||Whether the GraphQL API Explorer is enabled (default true).|
 |gloo-fed.enabled|bool||If true, deploy federation service (default true).|
-|gloo-fed.create_license_secret|bool|false||
-|gloo-fed.license_secret_name|string|||
-|gloo-fed.license_key|string|||
+|gloo-fed.create_license_secret|bool|false|Create a secret for the license specified in 'license_key'. Set to 'false' if you use 'license_secret_name' instead.|
+|gloo-fed.license_secret_name|string||The name of a secret that contains your Gloo Edge license key. Set 'create_license_key' to 'false' to disable use of the default license secret.|
+|gloo-fed.license_key|string||Your Gloo Edge license key.|
 |gloo-fed.enableMultiClusterRbac|bool|||
 |gloo-fed.glooFedApiserver.enable|bool|||
 |gloo-fed.glooFedApiserver.replicas|int|||
