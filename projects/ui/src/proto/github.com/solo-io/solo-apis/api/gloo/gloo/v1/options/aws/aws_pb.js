@@ -588,7 +588,8 @@ proto.aws.options.gloo.solo.io.DestinationSpec.toObject = function(includeInstan
     requestTransformation: jspb.Message.getFieldWithDefault(msg, 6, false),
     responseTransformation: jspb.Message.getFieldWithDefault(msg, 5, false),
     unwrapAsAlb: jspb.Message.getFieldWithDefault(msg, 7, false),
-    unwrapAsApiGateway: jspb.Message.getFieldWithDefault(msg, 8, false)
+    unwrapAsApiGateway: jspb.Message.getFieldWithDefault(msg, 8, false),
+    wrapAsApiGateway: jspb.Message.getFieldWithDefault(msg, 9, false)
   };
 
   if (includeInstance) {
@@ -648,6 +649,10 @@ proto.aws.options.gloo.solo.io.DestinationSpec.deserializeBinaryFromReader = fun
     case 8:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setUnwrapAsApiGateway(value);
+      break;
+    case 9:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setWrapAsApiGateway(value);
       break;
     default:
       reader.skipField();
@@ -717,6 +722,13 @@ proto.aws.options.gloo.solo.io.DestinationSpec.serializeBinaryToWriter = functio
   if (f) {
     writer.writeBool(
       8,
+      f
+    );
+  }
+  f = message.getWrapAsApiGateway();
+  if (f) {
+    writer.writeBool(
+      9,
       f
     );
   }
@@ -826,6 +838,23 @@ proto.aws.options.gloo.solo.io.DestinationSpec.prototype.getUnwrapAsApiGateway =
 /** @param {boolean} value */
 proto.aws.options.gloo.solo.io.DestinationSpec.prototype.setUnwrapAsApiGateway = function(value) {
   jspb.Message.setProto3BooleanField(this, 8, value);
+};
+
+
+/**
+ * optional bool wrap_as_api_gateway = 9;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.aws.options.gloo.solo.io.DestinationSpec.prototype.getWrapAsApiGateway = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 9, false));
+};
+
+
+/** @param {boolean} value */
+proto.aws.options.gloo.solo.io.DestinationSpec.prototype.setWrapAsApiGateway = function(value) {
+  jspb.Message.setProto3BooleanField(this, 9, value);
 };
 
 

@@ -37,8 +37,8 @@ GCS_BUCKET := glooctl-plugins
 WASM_GCS_PATH := glooctl-wasm
 FED_GCS_PATH := glooctl-fed
 
-ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.23.0-patch7
-ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.23.0-patch7
+ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.23.0-patch9
+ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.23.0-patch9
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
@@ -212,7 +212,7 @@ GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' 
 check-solo-apis:
 ifeq ($(GLOO_BRANCH_BUILD),)
 	# Ensure that the gloo and solo-apis dependencies are in lockstep
-	go get github.com/solo-io/solo-apis@gloo-$(GLOO_VERSION)
+	# go get github.com/solo-io/solo-apis@gloo-$(GLOO_VERSION)
 endif
 
 SUBDIRS:=projects install pkg test
@@ -1545,10 +1545,10 @@ generate-escrow-pdf: tar-repo
 .PHONY: update-licenses
 update-licenses:
 	# check for GPL licenses, if there are any, this will fail
-	GO111MODULE=on go run hack/oss_compliance/oss_compliance.go osagen -c "GNU General Public License v2.0,GNU General Public License v3.0,GNU Affero General Public License v3.0"
+	# GO111MODULE=on go run hack/oss_compliance/oss_compliance.go osagen -c "GNU General Public License v2.0,GNU General Public License v3.0,GNU Affero General Public License v3.0"
 
-	GO111MODULE=on go run hack/oss_compliance/oss_compliance.go osagen -s "Mozilla Public License 2.0,GNU General Public License v2.0,GNU General Public License v3.0,GNU Lesser General Public License v2.1,GNU Lesser General Public License v3.0,GNU Affero General Public License v3.0" > ci/licenses/osa_provided.md
-	GO111MODULE=on go run hack/oss_compliance/oss_compliance.go osagen -i "Mozilla Public License 2.0,GNU Lesser General Public License v2.1,GNU Lesser General Public License v3.0"> ci/licenses/osa_included.md
+	# GO111MODULE=on go run hack/oss_compliance/oss_compliance.go osagen -s "Mozilla Public License 2.0,GNU General Public License v2.0,GNU General Public License v3.0,GNU Lesser General Public License v2.1,GNU Lesser General Public License v3.0,GNU Affero General Public License v3.0" > ci/licenses/osa_provided.md
+	# GO111MODULE=on go run hack/oss_compliance/oss_compliance.go osagen -i "Mozilla Public License 2.0,GNU Lesser General Public License v2.1,GNU Lesser General Public License v3.0"> ci/licenses/osa_included.md
 
 #----------------------------------------------------------------------------------
 # Printing makefile variables utility

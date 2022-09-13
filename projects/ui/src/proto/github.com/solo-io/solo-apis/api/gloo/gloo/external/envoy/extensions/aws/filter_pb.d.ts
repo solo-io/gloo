@@ -32,6 +32,11 @@ export class AWSLambdaPerRoute extends jspb.Message {
   getTransformerConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig | undefined;
   setTransformerConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig): void;
 
+  hasRequestTransformerConfig(): boolean;
+  clearRequestTransformerConfig(): void;
+  getRequestTransformerConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig | undefined;
+  setRequestTransformerConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AWSLambdaPerRoute.AsObject;
   static toObject(includeInstance: boolean, msg: AWSLambdaPerRoute): AWSLambdaPerRoute.AsObject;
@@ -50,6 +55,7 @@ export namespace AWSLambdaPerRoute {
     emptyBodyOverride?: google_protobuf_wrappers_pb.StringValue.AsObject,
     unwrapAsAlb: boolean,
     transformerConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.AsObject,
+    requestTransformerConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.AsObject,
   }
 }
 

@@ -17,8 +17,10 @@ var (
 )
 
 const (
-	FilterName    = "io.solo.api_gateway.api_gateway_transformer"
-	FilterTypeUrl = "type.googleapis.com/envoy.config.transformer.aws_lambda.v2.ApiGatewayTransformation"
+	ResponseTransformationName    = "io.solo.api_gateway.api_gateway_transformer"
+	ResponseTransformationTypeUrl = "type.googleapis.com/envoy.config.transformer.aws_lambda.v2.ApiGatewayTransformation"
+	RequestTransformationName     = "io.solo.api_gateway.api_gateway_request_transformer"
+	RequestTransformationTypeUrl  = "type.googleapis.com/envoy.config.transformer.aws_lambda.v2.ApiGatewayRequestTransformation"
 )
 
 type plugin struct {
@@ -38,16 +40,26 @@ func GenerateEnterpriseAWSLambdaRouteConfig(destination *aws.DestinationSpec, up
 	}
 
 	var transformerConfig *v3.TypedExtensionConfig
-
 	if destination.GetUnwrapAsApiGateway() && !destination.GetUnwrapAsAlb() {
 		transformerConfig = &v3.TypedExtensionConfig{
-			Name: FilterName,
+			Name: ResponseTransformationName,
 			TypedConfig: &any.Any{
-				TypeUrl: FilterTypeUrl,
+				TypeUrl: ResponseTransformationTypeUrl,
+			},
+		}
+	}
+
+	var requestTransformerConfig *v3.TypedExtensionConfig
+	if destination.GetWrapAsApiGateway() {
+		requestTransformerConfig = &v3.TypedExtensionConfig{
+			Name: RequestTransformationName,
+			TypedConfig: &any.Any{
+				TypeUrl: RequestTransformationTypeUrl,
 			},
 		}
 	}
 
 	lambdaPerRoute.TransformerConfig = transformerConfig
+	lambdaPerRoute.RequestTransformerConfig = requestTransformerConfig
 	return lambdaPerRoute, nil
 }

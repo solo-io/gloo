@@ -74,7 +74,8 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.toObject = functi
     async: jspb.Message.getFieldWithDefault(msg, 3, false),
     emptyBodyOverride: (f = msg.getEmptyBodyOverride()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
     unwrapAsAlb: jspb.Message.getFieldWithDefault(msg, 5, false),
-    transformerConfig: (f = msg.getTransformerConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.toObject(includeInstance, f)
+    transformerConfig: (f = msg.getTransformerConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.toObject(includeInstance, f),
+    requestTransformerConfig: (f = msg.getRequestTransformerConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -136,6 +137,11 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.deserializeBinary
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.deserializeBinaryFromReader);
       msg.setTransformerConfig(value);
+      break;
+    case 7:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.deserializeBinaryFromReader);
+      msg.setRequestTransformerConfig(value);
       break;
     default:
       reader.skipField();
@@ -206,6 +212,14 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.serializeBinaryTo
   if (f != null) {
     writer.writeMessage(
       6,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getRequestTransformerConfig();
+  if (f != null) {
+    writer.writeMessage(
+      7,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig.serializeBinaryToWriter
     );
@@ -334,6 +348,36 @@ proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.prototype.clearTr
  */
 proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.prototype.hasTransformerConfig = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional solo.io.envoy.config.core.v3.TypedExtensionConfig request_transformer_config = 7;
+ * @return {?proto.solo.io.envoy.config.core.v3.TypedExtensionConfig}
+ */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.prototype.getRequestTransformerConfig = function() {
+  return /** @type{?proto.solo.io.envoy.config.core.v3.TypedExtensionConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_extension_pb.TypedExtensionConfig, 7));
+};
+
+
+/** @param {?proto.solo.io.envoy.config.core.v3.TypedExtensionConfig|undefined} value */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.prototype.setRequestTransformerConfig = function(value) {
+  jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.prototype.clearRequestTransformerConfig = function() {
+  this.setRequestTransformerConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.envoy.config.filter.http.aws_lambda.v2.AWSLambdaPerRoute.prototype.hasRequestTransformerConfig = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 

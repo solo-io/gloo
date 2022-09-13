@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -108,29 +108,22 @@ var _ = Describe("AWS Lambda ", func() {
 	validateLambda := func(offset int, envoyPort uint32, substring string) {
 		body := []byte("\"solo.io\"")
 
-		EventuallyWithOffset(offset, func() (string, error) {
+		Eventually(func(g Gomega) {
 			// send a request with a body
 			var buf bytes.Buffer
 			buf.Write(body)
 
 			url := fmt.Sprintf("http://%s:%d/1?param_a=value_1&param_b=value_b", "localhost", envoyPort)
 			res, err := http.Post(url, "application/octet-stream", &buf)
-			if err != nil {
-				fmt.Printf("error with post reqeust: %v\n", err)
-				return "", err
-			}
+			g.Expect(err).NotTo(HaveOccurred())
 			defer res.Body.Close()
-			if res.StatusCode != http.StatusOK {
-				return "", errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
-			}
+			g.Expect(res.StatusCode).To(Equal(http.StatusOK))
 
 			body, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				return "", err
-			}
+			g.Expect(err).NotTo(HaveOccurred())
 
-			return string(body), nil
-		}, "10s", "1s").Should(ContainSubstring(substring))
+			g.Expect(string(body)).To(ContainSubstring(substring))
+		}, "10s", "1s")
 	}
 
 	validateLambdaUppercase := func(envoyPort uint32) {
@@ -164,7 +157,6 @@ var _ = Describe("AWS Lambda ", func() {
 			if err != nil {
 				return nil
 			}
-			fmt.Printf("Logging lambda functions: %v\n", us.GetAws().GetLambdaFunctions())
 			return us.GetAws().GetLambdaFunctions()
 		}, "15s", "1s").ShouldNot(BeEmpty())
 	}
@@ -217,7 +209,7 @@ var _ = Describe("AWS Lambda ", func() {
 		validateLambdaUppercase(defaults.HttpPort)
 	}
 
-	createEchoProxy := func() {
+	createEchoProxy := func(unwrapAsApiGateway bool, wrapAsApiGateway bool) {
 		proxy := &gloov1.Proxy{
 			Metadata: &core.Metadata{
 				Name:      "proxy",
@@ -244,7 +236,8 @@ var _ = Describe("AWS Lambda ", func() {
 													DestinationType: &gloov1.DestinationSpec_Aws{
 														Aws: &aws.DestinationSpec{
 															LogicalName:        "echo",
-															UnwrapAsApiGateway: true,
+															UnwrapAsApiGateway: unwrapAsApiGateway,
+															WrapAsApiGateway:   wrapAsApiGateway,
 														},
 													},
 												},
@@ -282,53 +275,107 @@ var _ = Describe("AWS Lambda ", func() {
 			testProxy()
 		})
 
-		It("Can configure Lambda upstream with enterprise-specific functionality", func() {
-			createEchoProxy()
+		Context("Enterprise-specific functionality", func() {
+			It("Can configure unwrapAsApiGateway", func() {
+				createEchoProxy(true, false)
 
-			// format API gateway response.
-			bodyString := "test"
-			statusCode := 200
-			headers := map[string]string{"Foo": "bar"}
-			jsonHeaderStr, err := json.Marshal(headers)
-			Expect(err).NotTo(HaveOccurred())
-			apiGatewayResponse := fmt.Sprintf("{\"body\": \"%s\", \"statusCode\": %d, \"headers\":%s}", bodyString, statusCode, string(jsonHeaderStr))
-
-			// send request to echo lambda, mimicking a service that generates an API gateway response.
-			body := []byte(apiGatewayResponse)
-			expectResponse := func(response *http.Response, body string, statusCode int, headers map[string]string) {
-				Expect(response.StatusCode).To(Equal(statusCode))
-
-				defer response.Body.Close()
-				responseBody, err := ioutil.ReadAll(response.Body)
+				// format API gateway response.
+				bodyString := "test"
+				statusCode := 200
+				headers := map[string]string{"Foo": "bar"}
+				jsonHeaderStr, err := json.Marshal(headers)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(string(responseBody)).To(Equal(body))
-				for k, v := range headers {
-					Expect(response.Header.Get(k)).To(Equal(v))
-				}
-			}
+				apiGatewayResponse := fmt.Sprintf("{\"body\": \"%s\", \"statusCode\": %d, \"headers\":%s}", bodyString, statusCode, string(jsonHeaderStr))
 
-			// expect that the response is transformed appropriately.
-			var res *http.Response
-			EventuallyWithOffset(2, func() error {
-				// send a request with a body
-				var err error
-				var buf bytes.Buffer
-				buf.Write(body)
+				body := []byte(apiGatewayResponse)
+				expectResponse := func(response *http.Response, body string, statusCode int, headers map[string]string) {
+					Expect(response.StatusCode).To(Equal(statusCode))
 
-				url := fmt.Sprintf("http://%s:%d/1?param_a=value_1&param_b=value_b", "localhost", defaults.HttpPort)
-				res, err = http.Post(url, "application/octet-stream", &buf)
-				if err != nil {
-					return err
+					defer response.Body.Close()
+					responseBody, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(responseBody)).To(Equal(body))
+					for k, v := range headers {
+						Expect(response.Header.Get(k)).To(Equal(v))
+					}
 				}
 
-				if res.StatusCode != 200 {
-					return fmt.Errorf("expected status code 200, got %d", res.StatusCode)
+				Eventually(func(g Gomega) {
+					// send a request with a body
+					var err error
+					var buf bytes.Buffer
+					buf.Write(body)
+
+					// send request to echo lambda, mimicking a service that generates an API gateway response.
+					url := fmt.Sprintf("http://%s:%d/1?param_a=value_1&param_b=value_b", "localhost", defaults.HttpPort)
+					res, err := http.Post(url, "application/octet-stream", &buf)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(res.StatusCode).To(Equal(200))
+					expectResponse(res, bodyString, statusCode, headers)
+				}, "5s", "1s")
+			})
+
+			It("Can configure wrapAsApiGateway", func() {
+				createEchoProxy(false, true)
+
+				// format API gateway request.
+				bodyString := "test"
+				body := []byte(bodyString)
+				headers := map[string][]string{
+					"single-value-header": {"value"},
+					"multi-value-header":  {"value1", "value2"},
 				}
 
-				return nil
+				// expect that the response (which is identical to the payload sent to the lambda) is transformed appropriately.
+				expectResponse := func(response *http.Response, body string, statusCode int, headers map[string][]string) {
+					Expect(response.StatusCode).To(Equal(statusCode))
 
-			}, "15s", "1s").Should(Succeed())
-			expectResponse(res, bodyString, statusCode, headers)
+					defer response.Body.Close()
+					responseBody, err := ioutil.ReadAll(response.Body)
+					Expect(err).NotTo(HaveOccurred())
+
+					jsonResponseBody := make(map[string]interface{})
+					err = json.Unmarshal(responseBody, &jsonResponseBody)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(jsonResponseBody["body"]).To(Equal(bodyString))
+					Expect(jsonResponseBody["httpMethod"]).To(Equal("POST"))
+
+					responseHeaders := jsonResponseBody["headers"].(map[string]interface{})
+					Expect(responseHeaders["single-value-header"]).To(Equal(headers["single-value-header"][0]))
+
+					responseMultiValueHeaders := jsonResponseBody["multiValueHeaders"].(map[string]interface{})
+					responseMultiValueHeader := responseMultiValueHeaders["multi-value-header"].([]interface{})
+					Expect(len(responseMultiValueHeader)).To(Equal(len(headers["multi-value-header"])))
+					for i, v := range responseMultiValueHeader {
+						Expect(v).To(Equal(headers["multi-value-header"][i]))
+					}
+				}
+
+				Eventually(func(g Gomega) {
+					var buf bytes.Buffer
+					buf.Write(body)
+
+					client := http.DefaultClient
+					var err error
+					// send request to echo lambda, mimicking a service that generates an API gateway response.
+					res, err := client.Do(&http.Request{
+						Method: "POST",
+						URL: &url.URL{
+							Scheme:   "http",
+							Host:     fmt.Sprintf("localhost:%d", defaults.HttpPort),
+							Path:     "/1",
+							RawQuery: "param_a=value_1&param_b=value_b&param_b=value_2",
+						},
+						Body:   ioutil.NopCloser(&buf),
+						Header: headers,
+					})
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(res.StatusCode).To(Equal(200))
+					expectResponse(res, bodyString, 200, headers)
+				}, "5s", "1s")
+			})
 		})
+
 	})
 })

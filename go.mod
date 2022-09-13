@@ -35,7 +35,7 @@ require (
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.19.0
+	github.com/onsi/gomega v1.20.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.2
@@ -48,7 +48,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.23.2
 	github.com/solo-io/external-apis v0.1.12-0.20220818213511-97f5ab3a6898
-	github.com/solo-io/gloo v1.13.0-beta12
+	github.com/solo-io/gloo v1.13.0-beta13
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.22.1
 	github.com/solo-io/k8s-utils v0.1.0
@@ -58,7 +58,7 @@ require (
 	github.com/solo-io/rate-limiter v0.7.4
 	github.com/solo-io/skv2 v0.22.15
 	github.com/solo-io/skv2-enterprise v0.2.8
-	github.com/solo-io/solo-apis v0.0.0-20220908141603-ee7812f2d41c
+	github.com/solo-io/solo-apis v0.0.0-20220913203824-9114a613abfa
 	github.com/solo-io/solo-kit v0.30.2
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -67,7 +67,7 @@ require (
 	go.opencensus.io v0.23.0
 	go.uber.org/zap v1.19.1
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
+	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	golang.org/x/tools v0.1.10
 	google.golang.org/grpc v1.47.0
@@ -183,7 +183,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/btree v1.0.1 // indirect
-	github.com/google/go-cmp v0.5.7 // indirect
+	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-github/v32 v32.0.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect

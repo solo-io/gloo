@@ -1,0 +1,20 @@
+changelog:
+  - type: NEW_FEATURE
+    issuelink: https://github.com/solo-io/gloo/issues/6162
+    resolvesIssue: false
+    description: |
+      Update the AWS Lambda plugin to support the enterprise-only wrapAsApiGateway boolean.
+      When set, requests to lambda upstreams will be transformed into the AWS API Gateway
+      event format before being forwarded to the upstream.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyTag: v1.23.0-patch9
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.13.0-beta13
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.13.0-beta13

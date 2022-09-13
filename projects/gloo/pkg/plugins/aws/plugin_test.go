@@ -212,6 +212,22 @@ var _ = Describe("Plugin", func() {
 			Expect(cfg.TransformerConfig).To(BeNil())
 		})
 
+		It("should set request transformer when wrapAsApiGateway=True", func() {
+			route.Action.(*v1.Route_RouteAction).RouteAction.Destination.(*v1.RouteAction_Single).Single.DestinationSpec.DestinationType = &v1.DestinationSpec_Aws{
+				Aws: &awsapi.DestinationSpec{
+					WrapAsApiGateway: true,
+					LogicalName:      "foo",
+				},
+			}
+			err := awsPlugin.(plugins.RoutePlugin).ProcessRoute(plugins.RouteParams{VirtualHostParams: vhostParams}, route, envoyRoute)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(envoyRoute.TypedPerFilterConfig).To(HaveKey(FilterName))
+			cfg := &envoyaws.AWSLambdaPerRoute{}
+			err = ptypes.UnmarshalAny(envoyRoute.TypedPerFilterConfig[FilterName], cfg)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cfg.RequestTransformerConfig).ToNot(BeNil())
+		})
+
 	})
 
 })
