@@ -167,6 +167,8 @@ Expand the name of the chart.
       value: "8082"
     - name: HEALTH_HTTP_PATH
       value: "/healthcheck"
+    - name: ALIVE_HTTP_PATH
+      value: "/alivecheck"
     {{- if $extAuth.headersToRedact }}
     - name: HEADERS_TO_REDACT
       value: {{ $extAuth.headersToRedact | quote }}
@@ -179,6 +181,16 @@ Expand the name of the chart.
     periodSeconds: 5
     failureThreshold: 2
     successThreshold: 1
+  {{- if $extAuth.deployment.livenessProbeEnabled }}
+  livenessProbe:
+    httpGet:
+      port: 8082
+      path: "/alivecheck"
+    initialDelaySeconds: 3
+    periodSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+  {{- end }}
   {{- if $statsConfig.podMonitorEnabled }}
   ports:
     - name: http-monitoring

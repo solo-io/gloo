@@ -159,7 +159,7 @@ endif
 .PHONY: run-ci-regression-tests
 run-ci-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn RUNNING_REGRESSION_TESTS=true $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/kube2e/$(KUBE2E_TESTS)/...
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore RUNNING_REGRESSION_TESTS=true $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/kube2e/$(KUBE2E_TESTS)/...
 
 .PHONE: run-ci-gloo-fed-regression-tests
 run-ci-gloo-fed-regression-tests: install-go-tools
@@ -170,7 +170,7 @@ run-ci-gloo-fed-regression-tests: install-go-tools
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
 .PHONY: run-e2e-tests
 run-e2e-tests: install-go-tools
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
+	ENVOY_IMAGE_TAG=test GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
 
 .PHONY: update-ui-deps
 update-ui-deps:
@@ -346,7 +346,7 @@ install-graphql-js:
 run-apiserver: checkprogram-protoc install-graphql-js checkenv-GLOO_LICENSE_KEY
 # Todo: This should check that /etc/hosts includes the following line:
 # 127.0.0.1 docker.internal
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn \
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore \
 	GRPC_PORT=$(GRPC_PORT) \
 	POD_NAMESPACE=gloo-system \
 	GRAPHQL_JS_ROOT="./projects/gloo/pkg/plugins/graphql/js/" \

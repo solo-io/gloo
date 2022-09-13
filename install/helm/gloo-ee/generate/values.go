@@ -116,6 +116,7 @@ type RateLimitDeployment struct {
 	Image                *glooGen.Image       `json:"image,omitempty"`
 	Stats                *glooGen.Stats       `json:"stats"`
 	RunAsUser            float64              `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
+	LivenessProbeEnabled *bool                `json:"livenessProbeEnabled,omitempty" desc:"Set to true to enable a liveness probe for RateLimit (default is false)."`
 	FloatingUserId       bool                 `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
 	ExtraRateLimitLabels map[string]string    `json:"extraRateLimitLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment."`
 	LogLevel             *string              `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info"`
@@ -237,20 +238,21 @@ type ExtAuth struct {
 }
 
 type ExtAuthDeployment struct {
-	Name                string                   `json:"name"`
-	GlooAddress         string                   `json:"glooAddress,omitempty"`
-	GlooPort            uint                     `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
-	Port                uint                     `json:"port"`
-	Image               *glooGen.Image           `json:"image,omitempty"`
-	Stats               *glooGen.Stats           `json:"stats"`
-	RunAsUser           float64                  `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
-	FsGroup             float64                  `json:"fsGroup" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
-	FloatingUserId      bool                     `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
-	ExtraExtAuthLabels  map[string]string        `json:"extraExtAuthLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ExtAuth deployment."`
-	ExtraVolume         []map[string]interface{} `json:"extraVolume,omitempty" desc:"custom defined yaml for allowing extra volume on the extauth container"`
-	ExtraVolumeMount    []map[string]interface{} `json:"extraVolumeMount,omitempty" desc:"custom defined yaml for allowing extra volume mounts on the extauth container"`
-	PodDisruptionBudget *PodDisruptionBudget     `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the ExtAuth pods"`
-	Redis               *ExtAuthRedisConfig      `json:"redis,omitempty" desc:"this is the redis configurations."`
+	Name                 string                   `json:"name"`
+	GlooAddress          string                   `json:"glooAddress,omitempty"`
+	GlooPort             uint                     `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
+	Port                 uint                     `json:"port"`
+	Image                *glooGen.Image           `json:"image,omitempty"`
+	Stats                *glooGen.Stats           `json:"stats"`
+	RunAsUser            float64                  `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
+	LivenessProbeEnabled *bool                    `json:"livenessProbeEnabled,omitempty" desc:"Set to true to enable a liveness probe for ExtAuth (default is false)."`
+	FsGroup              float64                  `json:"fsGroup" desc:"Explicitly set the group ID for volume ownership. Default is 10101"`
+	FloatingUserId       bool                     `json:"floatingUserId" desc:"set to true to allow the cluster to dynamically assign a user ID"`
+	ExtraExtAuthLabels   map[string]string        `json:"extraExtAuthLabels,omitempty" desc:"Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ExtAuth deployment."`
+	ExtraVolume          []map[string]interface{} `json:"extraVolume,omitempty" desc:"custom defined yaml for allowing extra volume on the extauth container"`
+	ExtraVolumeMount     []map[string]interface{} `json:"extraVolumeMount,omitempty" desc:"custom defined yaml for allowing extra volume mounts on the extauth container"`
+	PodDisruptionBudget  *PodDisruptionBudget     `json:"podDisruptionBudget,omitempty" desc:"PodDisruptionBudget is an object to define the max disruption that can be caused to the ExtAuth pods"`
+	Redis                *ExtAuthRedisConfig      `json:"redis,omitempty" desc:"this is the redis configurations."`
 	*glooGen.DeploymentSpec
 	*glooGen.KubeResourceOverride
 }

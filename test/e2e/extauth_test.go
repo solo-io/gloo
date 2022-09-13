@@ -140,16 +140,18 @@ var _ = Describe("External auth", func() {
 			},
 		}
 
+		s := extauthrunner.NewSettings()
 		settings = extauthrunner.Settings{
 			GlooAddress: fmt.Sprintf("localhost:%d", testClients.GlooPort),
 			ExtAuthSettings: server.Settings{
-				DebugPort:              0,
-				ServerPort:             int(extAuthPort),
-				SigningKey:             "hello",
-				UserIdHeader:           "X-User-Id",
-				HealthCheckFailTimeout: 1,
-				HealthCheckHttpPort:    int(extAuthHealthPort),
-				HealthCheckHttpPath:    "/healthcheck",
+				DebugPort:                   0,
+				ServerPort:                  int(extAuthPort),
+				SigningKey:                  "hello",
+				UserIdHeader:                "X-User-Id",
+				HealthCheckFailTimeout:      1,
+				HealthCheckHttpPort:         int(extAuthHealthPort),
+				HealthCheckHttpPath:         s.ExtAuthSettings.HealthCheckHttpPath,
+				HealthLivenessCheckHttpPath: s.ExtAuthSettings.HealthLivenessCheckHttpPath,
 				LogSettings: server.LogSettings{
 					// Note(yuval-k): Disable debug logs as they are noisy. If you are writing new
 					// tests, uncomment this while developing to increase verbosity. I couldn't find

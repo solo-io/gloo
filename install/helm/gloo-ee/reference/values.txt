@@ -1368,6 +1368,7 @@
 |global.extensions.extAuth.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.extensions.extAuth.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.extensions.extAuth.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|global.extensions.extAuth.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for ExtAuth (default is false).|
 |global.extensions.extAuth.deployment.fsGroup|float64||Explicitly set the group ID for volume ownership. Default is 10101|
 |global.extensions.extAuth.deployment.floatingUserId|bool|false|set to true to allow the cluster to dynamically assign a user ID|
 |global.extensions.extAuth.deployment.extraExtAuthLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the ExtAuth deployment.|
@@ -1469,6 +1470,7 @@
 |global.extensions.rateLimit.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.extensions.rateLimit.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.extensions.rateLimit.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|global.extensions.rateLimit.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for RateLimit (default is false).|
 |global.extensions.rateLimit.deployment.floatingUserId|bool|false|set to true to allow the cluster to dynamically assign a user ID|
 |global.extensions.rateLimit.deployment.extraRateLimitLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment.|
 |global.extensions.rateLimit.deployment.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|

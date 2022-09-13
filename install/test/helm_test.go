@@ -644,6 +644,11 @@ var _ = Describe("Helm Test", func() {
 								Name:  "HEALTH_HTTP_PATH",
 								Value: "/healthcheck",
 							},
+							{
+								Name:      "ALIVE_HTTP_PATH",
+								Value:     "/alivecheck",
+								ValueFrom: nil,
+							},
 						},
 						ReadinessProbe: &v1.Probe{
 							Handler: v1.Handler{
@@ -2483,6 +2488,11 @@ spec:
 								Name:  "HEALTH_HTTP_PATH",
 								Value: "/healthcheck",
 							},
+							{
+								Name:      "ALIVE_HTTP_PATH",
+								Value:     "/alivecheck",
+								ValueFrom: nil,
+							},
 						},
 						VolumeMounts: []v1.VolumeMount{
 							{
@@ -2605,6 +2615,11 @@ spec:
 							{
 								Name:  "HEALTH_HTTP_PATH",
 								Value: "/healthcheck",
+							},
+							{
+								Name:      "ALIVE_HTTP_PATH",
+								Value:     "/alivecheck",
+								ValueFrom: nil,
 							},
 						},
 						VolumeMounts: []v1.VolumeMount{
@@ -3367,6 +3382,10 @@ spec:
 								Name:  "READY_PATH_HTTP",
 								Value: "/ready",
 							},
+							{
+								Name:  "ALIVE_PATH_HTTP",
+								Value: "/alive",
+							},
 						},
 						ReadinessProbe: &v1.Probe{
 							Handler: v1.Handler{
@@ -3478,6 +3497,10 @@ spec:
 							{
 								Name:  "READY_PATH_HTTP",
 								Value: "/ready",
+							},
+							{
+								Name:  "ALIVE_PATH_HTTP",
+								Value: "/alive",
 							},
 						},
 						ReadinessProbe: &v1.Probe{

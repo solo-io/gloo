@@ -124,6 +124,8 @@ spec:
               value: "18080"
             - name: READY_PATH_HTTP
               value: "/ready"
+            - name: ALIVE_PATH_HTTP
+              value: "/alive"
             {{- if .Values.global.extensions.rateLimit.deployment.customEnv }}
 {{ toYaml .Values.global.extensions.rateLimit.deployment.customEnv | indent 12 }}
             {{- end }}
@@ -135,6 +137,16 @@ spec:
             periodSeconds: 5
             failureThreshold: 2
             successThreshold: 1
+          {{- if .Values.global.extensions.rateLimit.deployment.livenessProbeEnabled }}
+          livenessProbe:
+            httpGet:
+              port: 18080
+              path: "/alive"
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            failureThreshold: 3
+            successThreshold: 1
+          {{- end }}
           {{- if $statsConfig.podMonitorEnabled }}
           ports:
             - name: http-monitoring

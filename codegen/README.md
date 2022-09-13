@@ -29,7 +29,7 @@ an error like this will appear:
 ```
 If you are having problems running locally because the above warning is a panic for you, please set the following environment variable.
 ```bash
-export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn
+export GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
 ```
 
 A consequence of this is that no solo-kit types may be used in these binaries:

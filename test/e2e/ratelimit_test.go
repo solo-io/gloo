@@ -12,6 +12,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/fgrosse/zaptest"
+
 	"github.com/onsi/ginkgo/config"
 
 	"github.com/solo-io/rate-limiter/pkg/cache/dynamodb"
@@ -71,13 +73,13 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		envoyInstance    *services.EnvoyInstance
 		testUpstream     *v1helpers.TestUpstream
 		envoyPort        = uint32(8080)
+		redisPort        = uint32(6379)
 
 		anonymousLimits, authorizedLimits *ratelimit.IngressRateLimit
 	)
 
 	const (
 		redisAddr     = "127.0.0.1"
-		redisPort     = uint32(6379)
 		rateLimitAddr = "127.0.0.1"
 	)
 
@@ -1354,14 +1356,18 @@ var _ = Describe("Rate Limit Local E2E", func() {
 	}
 
 	runRedisTests := func(clustered bool) {
+		logger := zaptest.LoggerWriter(GinkgoWriter)
+
 		BeforeEach(func() {
+			redisPort++
+
 			var err error
 			rlServerSettings.RedisSettings = redis.NewSettings()
 			rlServerSettings.RedisSettings.Url = fmt.Sprintf("%s:%d", redisAddr, redisPort)
 			rlServerSettings.RedisSettings.SocketType = "tcp"
 			rlServerSettings.RedisSettings.Clustered = clustered
 
-			command := exec.Command(getRedisPath(), "--port", "6379")
+			command := exec.Command(getRedisPath(), "--port", fmt.Sprintf("%d", redisPort))
 			redisSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -1373,14 +1379,17 @@ var _ = Describe("Rate Limit Local E2E", func() {
 
 			testClients = services.GetTestClients(ctx, cache)
 			testClients.GlooPort = int(services.AllocateGlooPort())
+			logger.Info("Redis instance successfully created")
 		})
 
 		JustBeforeEach(justBeforeEach)
 
 		AfterEach(func() {
-			redisSession.Kill()
+			redisSession.Terminate().Wait("5s")
 			cancel()
+			logger.Info("Redis instance successfully destroyed")
 		})
+
 		if clustered {
 			runClusteredTest()
 		} else {
@@ -1391,7 +1400,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		runRedisTests(false)
 	})
 
-	Context("Clustered redis backed rate limiting", func() {
+	Context("Clustered Redis-backed rate limiting", func() {
 		runRedisTests(true)
 	})
 
