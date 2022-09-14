@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/5608
+    resolvesIssue: false
+    description: Removed hardcoded ENVOY_IMAGE_TAG=test from makefile
