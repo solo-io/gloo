@@ -10,6 +10,9 @@ changelog:
     dependencyOwner: solo-io
     dependencyRepo: envoy-gloo-ee
     dependencyTag: v1.23.0-patch9
+    description: | 
+      Provide support for lambda aws wrap as well.
+      Additionally fix credentials issue when using lambda and transformations
   - type: DEPENDENCY_BUMP
     dependencyOwner: solo-io
     dependencyRepo: gloo
