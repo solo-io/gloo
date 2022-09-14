@@ -107,6 +107,10 @@ func (rc *ResourceClient) Register() error {
 	return nil
 }
 
+func (rc *ResourceClient) RegisterNamespace(ns string) error {
+	return nil
+}
+
 func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (resources.Resource, error) {
 	if err := resources.ValidateName(name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")

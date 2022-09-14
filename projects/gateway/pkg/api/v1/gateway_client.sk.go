@@ -19,6 +19,7 @@ type GatewayWatcher interface {
 type GatewayClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*Gateway, error)
 	Write(resource *Gateway, opts clients.WriteOpts) (*Gateway, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *gatewayClient) BaseClient() clients.ResourceClient {
 
 func (client *gatewayClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *gatewayClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *gatewayClient) Read(namespace, name string, opts clients.ReadOpts) (*Gateway, error) {

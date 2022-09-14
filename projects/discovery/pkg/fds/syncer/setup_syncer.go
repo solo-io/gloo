@@ -158,6 +158,11 @@ func (f *FakeKubeNamespaceWatcher) BaseClient() clients.ResourceClient {
 func (f *FakeKubeNamespaceWatcher) Register() error {
 	return nil
 }
+
+func (rc *FakeKubeNamespaceWatcher) RegisterNamespace(namespace string) error {
+	return nil
+}
+
 func (f *FakeKubeNamespaceWatcher) Read(name string, opts clients.ReadOpts) (*skkube.KubeNamespace, error) {
 	return nil, nil
 }

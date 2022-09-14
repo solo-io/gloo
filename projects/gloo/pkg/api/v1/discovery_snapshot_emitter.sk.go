@@ -281,6 +281,9 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 		filterNamespaces := resources.ResourceNamespaceList{}
 		for _, ns := range watchNamespaces {
 			// we do not want to filter out "" which equals all namespaces
+			// the reason is because we will never create a watch on ""(all namespaces) because
+			// doing so means we watch all resources regardless of namespace. Our intent is to
+			// watch only certain namespaces.
 			if ns != "" {
 				filterNamespaces = append(filterNamespaces, resources.ResourceNamespace{Name: ns})
 			}
@@ -292,6 +295,7 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 		// non watched namespaces that are labeled
 		for _, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
+			c.upstream.RegisterNamespace(namespace)
 			/* Setup namespaced watch for Upstream */
 			{
 				upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -311,6 +315,7 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
 			}(namespace)
+			c.secret.RegisterNamespace(namespace)
 			/* Setup namespaced watch for Secret */
 			{
 				secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -417,14 +422,12 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 					})
 
 					for _, ns := range missingNamespaces {
-						// c.namespacesWatching.Delete(ns)
 						upstreamChan <- upstreamListWithNamespace{list: UpstreamList{}, namespace: ns}
-						// upstreamsByNamespace.Delete(ns)
 						secretChan <- secretListWithNamespace{list: SecretList{}, namespace: ns}
-						// secretsByNamespace.Delete(ns)
 					}
 
 					for _, namespace := range newNamespaces {
+						c.upstream.RegisterNamespace(namespace)
 						/* Setup namespaced watch for Upstream for new namespace */
 						{
 							upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -445,6 +448,7 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-new-namespace-upstreams")
 						}(namespace)
+						c.secret.RegisterNamespace(namespace)
 						/* Setup namespaced watch for Secret for new namespace */
 						{
 							secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})

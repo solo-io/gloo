@@ -145,6 +145,20 @@ func (mr *MockKubeCoreCacheMockRecorder) PodLister() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PodLister", reflect.TypeOf((*MockKubeCoreCache)(nil).PodLister))
 }
 
+// RegisterNewNamespaceCache mocks base method.
+func (m *MockKubeCoreCache) RegisterNewNamespaceCache(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegisterNewNamespaceCache", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RegisterNewNamespaceCache indicates an expected call of RegisterNewNamespaceCache.
+func (mr *MockKubeCoreCacheMockRecorder) RegisterNewNamespaceCache(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterNewNamespaceCache", reflect.TypeOf((*MockKubeCoreCache)(nil).RegisterNewNamespaceCache), arg0)
+}
+
 // SecretLister mocks base method.
 func (m *MockKubeCoreCache) SecretLister() v1.SecretLister {
 	m.ctrl.T.Helper()

@@ -29,6 +29,10 @@ func (c *kubernetesUpstreamClient) Register() error {
 	return nil
 }
 
+func (rc *kubernetesUpstreamClient) RegisterNamespace(namespace string) error {
+	return rc.serviceClient.RegisterNamespace(namespace)
+}
+
 func (c *kubernetesUpstreamClient) Read(namespace, name string, opts skclients.ReadOpts) (*v1.Upstream, error) {
 	panic(notImplementedErrMsg)
 }

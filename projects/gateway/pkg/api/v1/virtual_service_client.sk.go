@@ -19,6 +19,7 @@ type VirtualServiceWatcher interface {
 type VirtualServiceClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*VirtualService, error)
 	Write(resource *VirtualService, opts clients.WriteOpts) (*VirtualService, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *virtualServiceClient) BaseClient() clients.ResourceClient {
 
 func (client *virtualServiceClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *virtualServiceClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *virtualServiceClient) Read(namespace, name string, opts clients.ReadOpts) (*VirtualService, error) {

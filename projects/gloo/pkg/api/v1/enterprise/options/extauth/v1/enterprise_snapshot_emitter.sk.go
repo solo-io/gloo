@@ -222,6 +222,9 @@ func (c *enterpriseEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 		filterNamespaces := resources.ResourceNamespaceList{}
 		for _, ns := range watchNamespaces {
 			// we do not want to filter out "" which equals all namespaces
+			// the reason is because we will never create a watch on ""(all namespaces) because
+			// doing so means we watch all resources regardless of namespace. Our intent is to
+			// watch only certain namespaces.
 			if ns != "" {
 				filterNamespaces = append(filterNamespaces, resources.ResourceNamespace{Name: ns})
 			}
@@ -233,6 +236,7 @@ func (c *enterpriseEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 		// non watched namespaces that are labeled
 		for _, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
+			c.authConfig.RegisterNamespace(namespace)
 			/* Setup namespaced watch for AuthConfig */
 			{
 				authConfigs, err := c.authConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -330,12 +334,11 @@ func (c *enterpriseEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 					})
 
 					for _, ns := range missingNamespaces {
-						// c.namespacesWatching.Delete(ns)
 						authConfigChan <- authConfigListWithNamespace{list: AuthConfigList{}, namespace: ns}
-						// authConfigsByNamespace.Delete(ns)
 					}
 
 					for _, namespace := range newNamespaces {
+						c.authConfig.RegisterNamespace(namespace)
 						/* Setup namespaced watch for AuthConfig for new namespace */
 						{
 							authConfigs, err := c.authConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})

@@ -19,6 +19,7 @@ type GraphQLApiWatcher interface {
 type GraphQLApiClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*GraphQLApi, error)
 	Write(resource *GraphQLApi, opts clients.WriteOpts) (*GraphQLApi, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *graphQLApiClient) BaseClient() clients.ResourceClient {
 
 func (client *graphQLApiClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *graphQLApiClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *graphQLApiClient) Read(namespace, name string, opts clients.ReadOpts) (*GraphQLApi, error) {

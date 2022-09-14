@@ -19,6 +19,7 @@ type RouteOptionWatcher interface {
 type RouteOptionClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*RouteOption, error)
 	Write(resource *RouteOption, opts clients.WriteOpts) (*RouteOption, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *routeOptionClient) BaseClient() clients.ResourceClient {
 
 func (client *routeOptionClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *routeOptionClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *routeOptionClient) Read(namespace, name string, opts clients.ReadOpts) (*RouteOption, error) {

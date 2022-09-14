@@ -19,6 +19,7 @@ type SecretWatcher interface {
 type SecretClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*Secret, error)
 	Write(resource *Secret, opts clients.WriteOpts) (*Secret, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *secretClient) BaseClient() clients.ResourceClient {
 
 func (client *secretClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *secretClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *secretClient) Read(namespace, name string, opts clients.ReadOpts) (*Secret, error) {

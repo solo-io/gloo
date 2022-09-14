@@ -6,6 +6,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 )
 
+var _ clients.ResourceClient = &readOnlyUpstreamBaseClient{}
+
 // This client implements only the `Kind` `Read` and `Write` functions and panics on all the other functions.
 // It is meant to be used in the API event loop reporter, which calls only those two functions.
 type readOnlyUpstreamBaseClient struct {
@@ -28,6 +30,10 @@ func (c *readOnlyUpstreamBaseClient) NewResource() resources.Resource {
 
 func (c *readOnlyUpstreamBaseClient) Register() error {
 	return nil
+}
+
+func (c *readOnlyUpstreamBaseClient) RegisterNamespace(namespace string) error {
+	return c.rc.RegisterNamespace(namespace)
 }
 
 func (c *readOnlyUpstreamBaseClient) Read(namespace, name string, opts clients.ReadOpts) (resources.Resource, error) {

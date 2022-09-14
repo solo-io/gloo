@@ -19,6 +19,7 @@ type ArtifactWatcher interface {
 type ArtifactClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*Artifact, error)
 	Write(resource *Artifact, opts clients.WriteOpts) (*Artifact, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *artifactClient) BaseClient() clients.ResourceClient {
 
 func (client *artifactClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *artifactClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *artifactClient) Read(namespace, name string, opts clients.ReadOpts) (*Artifact, error) {

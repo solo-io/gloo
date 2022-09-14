@@ -69,6 +69,14 @@ func (c *hybridUpstreamClient) Register() error {
 	return err.ErrorOrNil()
 }
 
+func (c *hybridUpstreamClient) RegisterNamespace(namespace string) error {
+	var err *multierror.Error
+	for _, client := range c.clientMap {
+		err = multierror.Append(err, client.RegisterNamespace(namespace))
+	}
+	return err.ErrorOrNil()
+}
+
 func (c *hybridUpstreamClient) Read(namespace, name string, opts clients.ReadOpts) (*v1.Upstream, error) {
 	panic(notImplementedErrMsg)
 }

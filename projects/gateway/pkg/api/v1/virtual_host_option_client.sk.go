@@ -19,6 +19,7 @@ type VirtualHostOptionWatcher interface {
 type VirtualHostOptionClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*VirtualHostOption, error)
 	Write(resource *VirtualHostOption, opts clients.WriteOpts) (*VirtualHostOption, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *virtualHostOptionClient) BaseClient() clients.ResourceClient {
 
 func (client *virtualHostOptionClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *virtualHostOptionClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *virtualHostOptionClient) Read(namespace, name string, opts clients.ReadOpts) (*VirtualHostOption, error) {

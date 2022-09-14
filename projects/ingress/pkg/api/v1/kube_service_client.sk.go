@@ -19,6 +19,7 @@ type KubeServiceWatcher interface {
 type KubeServiceClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*KubeService, error)
 	Write(resource *KubeService, opts clients.WriteOpts) (*KubeService, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *kubeServiceClient) BaseClient() clients.ResourceClient {
 
 func (client *kubeServiceClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *kubeServiceClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *kubeServiceClient) Read(namespace, name string, opts clients.ReadOpts) (*KubeService, error) {

@@ -63,6 +63,10 @@ func (rc *ResourceClient) Register() error {
 	return nil
 }
 
+func (rc *ResourceClient) RegisterNamespace(namespace string) error {
+	return nil
+}
+
 func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (resources.Resource, error) {
 	panic("this client does not support read operations")
 }

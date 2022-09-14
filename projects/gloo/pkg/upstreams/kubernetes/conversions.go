@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	kubeplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/kubernetes"
 	skkube "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes"
@@ -40,7 +39,7 @@ func KubeServicesToUpstreams(ctx context.Context, services skkube.ServiceList) v
 	return result
 }
 
-func serviceToUpstream(ctx context.Context, svc *kubev1.Service, port kubev1.ServicePort) *gloov1.Upstream {
+func serviceToUpstream(ctx context.Context, svc *kubev1.Service, port kubev1.ServicePort) *v1.Upstream {
 	us := kubeplugin.DefaultUpstreamConverter().CreateUpstream(ctx, svc, port)
 
 	us.GetMetadata().Name = fakeUpstreamName(svc.Name, svc.Namespace, port.Port)

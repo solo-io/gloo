@@ -19,6 +19,7 @@ type MatchableHttpGatewayWatcher interface {
 type MatchableHttpGatewayClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*MatchableHttpGateway, error)
 	Write(resource *MatchableHttpGateway, opts clients.WriteOpts) (*MatchableHttpGateway, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *matchableHttpGatewayClient) BaseClient() clients.ResourceClient {
 
 func (client *matchableHttpGatewayClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *matchableHttpGatewayClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *matchableHttpGatewayClient) Read(namespace, name string, opts clients.ReadOpts) (*MatchableHttpGateway, error) {

@@ -872,6 +872,9 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		filterNamespaces := resources.ResourceNamespaceList{}
 		for _, ns := range watchNamespaces {
 			// we do not want to filter out "" which equals all namespaces
+			// the reason is because we will never create a watch on ""(all namespaces) because
+			// doing so means we watch all resources regardless of namespace. Our intent is to
+			// watch only certain namespaces.
 			if ns != "" {
 				filterNamespaces = append(filterNamespaces, resources.ResourceNamespace{Name: ns})
 			}
@@ -883,6 +886,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		// non watched namespaces that are labeled
 		for _, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
+			c.artifact.RegisterNamespace(namespace)
 			/* Setup namespaced watch for Artifact */
 			{
 				artifacts, err := c.artifact.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -902,6 +906,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, artifactErrs, namespace+"-artifacts")
 			}(namespace)
+			c.endpoint.RegisterNamespace(namespace)
 			/* Setup namespaced watch for Endpoint */
 			{
 				endpoints, err := c.endpoint.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -921,6 +926,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, endpointErrs, namespace+"-endpoints")
 			}(namespace)
+			c.proxy.RegisterNamespace(namespace)
 			/* Setup namespaced watch for Proxy */
 			{
 				proxies, err := c.proxy.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -940,6 +946,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, proxyErrs, namespace+"-proxies")
 			}(namespace)
+			c.upstreamGroup.RegisterNamespace(namespace)
 			/* Setup namespaced watch for UpstreamGroup */
 			{
 				upstreamGroups, err := c.upstreamGroup.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -959,6 +966,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, upstreamGroupErrs, namespace+"-upstreamGroups")
 			}(namespace)
+			c.secret.RegisterNamespace(namespace)
 			/* Setup namespaced watch for Secret */
 			{
 				secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -978,6 +986,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-secrets")
 			}(namespace)
+			c.upstream.RegisterNamespace(namespace)
 			/* Setup namespaced watch for Upstream */
 			{
 				upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -997,6 +1006,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
 			}(namespace)
+			c.authConfig.RegisterNamespace(namespace)
 			/* Setup namespaced watch for AuthConfig */
 			{
 				authConfigs, err := c.authConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -1016,6 +1026,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, authConfigErrs, namespace+"-authConfigs")
 			}(namespace)
+			c.rateLimitConfig.RegisterNamespace(namespace)
 			/* Setup namespaced watch for RateLimitConfig */
 			{
 				ratelimitconfigs, err := c.rateLimitConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -1035,6 +1046,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, rateLimitConfigErrs, namespace+"-ratelimitconfigs")
 			}(namespace)
+			c.virtualService.RegisterNamespace(namespace)
 			/* Setup namespaced watch for VirtualService */
 			{
 				virtualServices, err := c.virtualService.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -1054,6 +1066,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
 			}(namespace)
+			c.routeTable.RegisterNamespace(namespace)
 			/* Setup namespaced watch for RouteTable */
 			{
 				routeTables, err := c.routeTable.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -1073,6 +1086,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, routeTableErrs, namespace+"-routeTables")
 			}(namespace)
+			c.gateway.RegisterNamespace(namespace)
 			/* Setup namespaced watch for Gateway */
 			{
 				gateways, err := c.gateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -1092,6 +1106,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, gatewayErrs, namespace+"-gateways")
 			}(namespace)
+			c.virtualHostOption.RegisterNamespace(namespace)
 			/* Setup namespaced watch for VirtualHostOption */
 			{
 				virtualHostOptions, err := c.virtualHostOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -1111,6 +1126,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, virtualHostOptionErrs, namespace+"-virtualHostOptions")
 			}(namespace)
+			c.routeOption.RegisterNamespace(namespace)
 			/* Setup namespaced watch for RouteOption */
 			{
 				routeOptions, err := c.routeOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -1130,6 +1146,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, routeOptionErrs, namespace+"-routeOptions")
 			}(namespace)
+			c.matchableHttpGateway.RegisterNamespace(namespace)
 			/* Setup namespaced watch for MatchableHttpGateway */
 			{
 				httpGateways, err := c.matchableHttpGateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -1149,6 +1166,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, matchableHttpGatewayErrs, namespace+"-httpGateways")
 			}(namespace)
+			c.graphQLApi.RegisterNamespace(namespace)
 			/* Setup namespaced watch for GraphQLApi */
 			{
 				graphqlApis, err := c.graphQLApi.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -1372,40 +1390,25 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 					})
 
 					for _, ns := range missingNamespaces {
-						// c.namespacesWatching.Delete(ns)
 						artifactChan <- artifactListWithNamespace{list: gloo_solo_io.ArtifactList{}, namespace: ns}
-						// artifactsByNamespace.Delete(ns)
 						endpointChan <- endpointListWithNamespace{list: gloo_solo_io.EndpointList{}, namespace: ns}
-						// endpointsByNamespace.Delete(ns)
 						proxyChan <- proxyListWithNamespace{list: gloo_solo_io.ProxyList{}, namespace: ns}
-						// proxiesByNamespace.Delete(ns)
 						upstreamGroupChan <- upstreamGroupListWithNamespace{list: gloo_solo_io.UpstreamGroupList{}, namespace: ns}
-						// upstreamGroupsByNamespace.Delete(ns)
 						secretChan <- secretListWithNamespace{list: gloo_solo_io.SecretList{}, namespace: ns}
-						// secretsByNamespace.Delete(ns)
 						upstreamChan <- upstreamListWithNamespace{list: gloo_solo_io.UpstreamList{}, namespace: ns}
-						// upstreamsByNamespace.Delete(ns)
 						authConfigChan <- authConfigListWithNamespace{list: enterprise_gloo_solo_io.AuthConfigList{}, namespace: ns}
-						// authConfigsByNamespace.Delete(ns)
 						rateLimitConfigChan <- rateLimitConfigListWithNamespace{list: github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList{}, namespace: ns}
-						// ratelimitconfigsByNamespace.Delete(ns)
 						virtualServiceChan <- virtualServiceListWithNamespace{list: gateway_solo_io.VirtualServiceList{}, namespace: ns}
-						// virtualServicesByNamespace.Delete(ns)
 						routeTableChan <- routeTableListWithNamespace{list: gateway_solo_io.RouteTableList{}, namespace: ns}
-						// routeTablesByNamespace.Delete(ns)
 						gatewayChan <- gatewayListWithNamespace{list: gateway_solo_io.GatewayList{}, namespace: ns}
-						// gatewaysByNamespace.Delete(ns)
 						virtualHostOptionChan <- virtualHostOptionListWithNamespace{list: gateway_solo_io.VirtualHostOptionList{}, namespace: ns}
-						// virtualHostOptionsByNamespace.Delete(ns)
 						routeOptionChan <- routeOptionListWithNamespace{list: gateway_solo_io.RouteOptionList{}, namespace: ns}
-						// routeOptionsByNamespace.Delete(ns)
 						matchableHttpGatewayChan <- matchableHttpGatewayListWithNamespace{list: gateway_solo_io.MatchableHttpGatewayList{}, namespace: ns}
-						// httpGatewaysByNamespace.Delete(ns)
 						graphQLApiChan <- graphQLApiListWithNamespace{list: graphql_gloo_solo_io.GraphQLApiList{}, namespace: ns}
-						// graphqlApisByNamespace.Delete(ns)
 					}
 
 					for _, namespace := range newNamespaces {
+						c.artifact.RegisterNamespace(namespace)
 						/* Setup namespaced watch for Artifact for new namespace */
 						{
 							artifacts, err := c.artifact.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1426,6 +1429,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, artifactErrs, namespace+"-new-namespace-artifacts")
 						}(namespace)
+						c.endpoint.RegisterNamespace(namespace)
 						/* Setup namespaced watch for Endpoint for new namespace */
 						{
 							endpoints, err := c.endpoint.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1446,6 +1450,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, endpointErrs, namespace+"-new-namespace-endpoints")
 						}(namespace)
+						c.proxy.RegisterNamespace(namespace)
 						/* Setup namespaced watch for Proxy for new namespace */
 						{
 							proxies, err := c.proxy.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1466,6 +1471,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, proxyErrs, namespace+"-new-namespace-proxies")
 						}(namespace)
+						c.upstreamGroup.RegisterNamespace(namespace)
 						/* Setup namespaced watch for UpstreamGroup for new namespace */
 						{
 							upstreamGroups, err := c.upstreamGroup.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1486,6 +1492,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, upstreamGroupErrs, namespace+"-new-namespace-upstreamGroups")
 						}(namespace)
+						c.secret.RegisterNamespace(namespace)
 						/* Setup namespaced watch for Secret for new namespace */
 						{
 							secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1506,6 +1513,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-new-namespace-secrets")
 						}(namespace)
+						c.upstream.RegisterNamespace(namespace)
 						/* Setup namespaced watch for Upstream for new namespace */
 						{
 							upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1526,6 +1534,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-new-namespace-upstreams")
 						}(namespace)
+						c.authConfig.RegisterNamespace(namespace)
 						/* Setup namespaced watch for AuthConfig for new namespace */
 						{
 							authConfigs, err := c.authConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1546,6 +1555,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, authConfigErrs, namespace+"-new-namespace-authConfigs")
 						}(namespace)
+						c.rateLimitConfig.RegisterNamespace(namespace)
 						/* Setup namespaced watch for RateLimitConfig for new namespace */
 						{
 							ratelimitconfigs, err := c.rateLimitConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1566,6 +1576,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, rateLimitConfigErrs, namespace+"-new-namespace-ratelimitconfigs")
 						}(namespace)
+						c.virtualService.RegisterNamespace(namespace)
 						/* Setup namespaced watch for VirtualService for new namespace */
 						{
 							virtualServices, err := c.virtualService.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1586,6 +1597,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, virtualServiceErrs, namespace+"-new-namespace-virtualServices")
 						}(namespace)
+						c.routeTable.RegisterNamespace(namespace)
 						/* Setup namespaced watch for RouteTable for new namespace */
 						{
 							routeTables, err := c.routeTable.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1606,6 +1618,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, routeTableErrs, namespace+"-new-namespace-routeTables")
 						}(namespace)
+						c.gateway.RegisterNamespace(namespace)
 						/* Setup namespaced watch for Gateway for new namespace */
 						{
 							gateways, err := c.gateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1626,6 +1639,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, gatewayErrs, namespace+"-new-namespace-gateways")
 						}(namespace)
+						c.virtualHostOption.RegisterNamespace(namespace)
 						/* Setup namespaced watch for VirtualHostOption for new namespace */
 						{
 							virtualHostOptions, err := c.virtualHostOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1646,6 +1660,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, virtualHostOptionErrs, namespace+"-new-namespace-virtualHostOptions")
 						}(namespace)
+						c.routeOption.RegisterNamespace(namespace)
 						/* Setup namespaced watch for RouteOption for new namespace */
 						{
 							routeOptions, err := c.routeOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1666,6 +1681,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, routeOptionErrs, namespace+"-new-namespace-routeOptions")
 						}(namespace)
+						c.matchableHttpGateway.RegisterNamespace(namespace)
 						/* Setup namespaced watch for MatchableHttpGateway for new namespace */
 						{
 							httpGateways, err := c.matchableHttpGateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -1686,6 +1702,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, matchableHttpGatewayErrs, namespace+"-new-namespace-httpGateways")
 						}(namespace)
+						c.graphQLApi.RegisterNamespace(namespace)
 						/* Setup namespaced watch for GraphQLApi for new namespace */
 						{
 							graphqlApis, err := c.graphQLApi.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})

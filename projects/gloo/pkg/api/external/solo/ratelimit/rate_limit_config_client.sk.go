@@ -19,6 +19,7 @@ type RateLimitConfigWatcher interface {
 type RateLimitConfigClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*RateLimitConfig, error)
 	Write(resource *RateLimitConfig, opts clients.WriteOpts) (*RateLimitConfig, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *rateLimitConfigClient) BaseClient() clients.ResourceClient {
 
 func (client *rateLimitConfigClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *rateLimitConfigClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *rateLimitConfigClient) Read(namespace, name string, opts clients.ReadOpts) (*RateLimitConfig, error) {

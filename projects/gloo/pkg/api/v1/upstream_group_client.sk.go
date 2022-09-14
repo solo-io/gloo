@@ -19,6 +19,7 @@ type UpstreamGroupWatcher interface {
 type UpstreamGroupClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*UpstreamGroup, error)
 	Write(resource *UpstreamGroup, opts clients.WriteOpts) (*UpstreamGroup, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *upstreamGroupClient) BaseClient() clients.ResourceClient {
 
 func (client *upstreamGroupClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *upstreamGroupClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *upstreamGroupClient) Read(namespace, name string, opts clients.ReadOpts) (*UpstreamGroup, error) {

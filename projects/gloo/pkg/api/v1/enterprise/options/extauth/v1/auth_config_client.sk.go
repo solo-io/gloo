@@ -19,6 +19,7 @@ type AuthConfigWatcher interface {
 type AuthConfigClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
+	RegisterNamespace(namespace string) error
 	Read(namespace, name string, opts clients.ReadOpts) (*AuthConfig, error)
 	Write(resource *AuthConfig, opts clients.WriteOpts) (*AuthConfig, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
@@ -57,6 +58,10 @@ func (client *authConfigClient) BaseClient() clients.ResourceClient {
 
 func (client *authConfigClient) Register() error {
 	return client.rc.Register()
+}
+
+func (client *authConfigClient) RegisterNamespace(namespace string) error {
+	return client.rc.RegisterNamespace(namespace)
 }
 
 func (client *authConfigClient) Read(namespace, name string, opts clients.ReadOpts) (*AuthConfig, error) {

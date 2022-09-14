@@ -29,6 +29,10 @@ func (*consulUpstreamClient) Register() error {
 	panic(notImplementedErrMsg)
 }
 
+func (*consulUpstreamClient) RegisterNamespace(namespace string) error {
+	panic(notImplementedErrMsg)
+}
+
 func (*consulUpstreamClient) Read(namespace, name string, opts skclients.ReadOpts) (*v1.Upstream, error) {
 	panic(notImplementedErrMsg)
 }

@@ -224,6 +224,9 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 		filterNamespaces := resources.ResourceNamespaceList{}
 		for _, ns := range watchNamespaces {
 			// we do not want to filter out "" which equals all namespaces
+			// the reason is because we will never create a watch on ""(all namespaces) because
+			// doing so means we watch all resources regardless of namespace. Our intent is to
+			// watch only certain namespaces.
 			if ns != "" {
 				filterNamespaces = append(filterNamespaces, resources.ResourceNamespace{Name: ns})
 			}
@@ -235,6 +238,7 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 		// non watched namespaces that are labeled
 		for _, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
+			c.clusterIngress.RegisterNamespace(namespace)
 			/* Setup namespaced watch for ClusterIngress */
 			{
 				clusteringresses, err := c.clusterIngress.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -332,12 +336,11 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 					})
 
 					for _, ns := range missingNamespaces {
-						// c.namespacesWatching.Delete(ns)
 						clusterIngressChan <- clusterIngressListWithNamespace{list: github_com_solo_io_gloo_projects_clusteringress_pkg_api_external_knative.ClusterIngressList{}, namespace: ns}
-						// clusteringressesByNamespace.Delete(ns)
 					}
 
 					for _, namespace := range newNamespaces {
+						c.clusterIngress.RegisterNamespace(namespace)
 						/* Setup namespaced watch for ClusterIngress for new namespace */
 						{
 							clusteringresses, err := c.clusterIngress.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})

@@ -268,6 +268,9 @@ func (c *statusEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOp
 		filterNamespaces := resources.ResourceNamespaceList{}
 		for _, ns := range watchNamespaces {
 			// we do not want to filter out "" which equals all namespaces
+			// the reason is because we will never create a watch on ""(all namespaces) because
+			// doing so means we watch all resources regardless of namespace. Our intent is to
+			// watch only certain namespaces.
 			if ns != "" {
 				filterNamespaces = append(filterNamespaces, resources.ResourceNamespace{Name: ns})
 			}
@@ -279,6 +282,7 @@ func (c *statusEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOp
 		// non watched namespaces that are labeled
 		for _, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
+			c.kubeService.RegisterNamespace(namespace)
 			/* Setup namespaced watch for KubeService */
 			{
 				services, err := c.kubeService.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -298,6 +302,7 @@ func (c *statusEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOp
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, kubeServiceErrs, namespace+"-services")
 			}(namespace)
+			c.ingress.RegisterNamespace(namespace)
 			/* Setup namespaced watch for Ingress */
 			{
 				ingresses, err := c.ingress.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
@@ -404,14 +409,12 @@ func (c *statusEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOp
 					})
 
 					for _, ns := range missingNamespaces {
-						// c.namespacesWatching.Delete(ns)
 						kubeServiceChan <- kubeServiceListWithNamespace{list: KubeServiceList{}, namespace: ns}
-						// servicesByNamespace.Delete(ns)
 						ingressChan <- ingressListWithNamespace{list: IngressList{}, namespace: ns}
-						// ingressesByNamespace.Delete(ns)
 					}
 
 					for _, namespace := range newNamespaces {
+						c.kubeService.RegisterNamespace(namespace)
 						/* Setup namespaced watch for KubeService for new namespace */
 						{
 							services, err := c.kubeService.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
@@ -432,6 +435,7 @@ func (c *statusEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOp
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, kubeServiceErrs, namespace+"-new-namespace-services")
 						}(namespace)
+						c.ingress.RegisterNamespace(namespace)
 						/* Setup namespaced watch for Ingress for new namespace */
 						{
 							ingresses, err := c.ingress.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
