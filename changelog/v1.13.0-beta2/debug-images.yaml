@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/5779
+    resolvesIssue: false
+    description: make '-debug' gloo-ee-envoy-wrapper images available on release

@@ -38,7 +38,9 @@ WASM_GCS_PATH := glooctl-wasm
 FED_GCS_PATH := glooctl-fed
 
 ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.23.0-patch9
+ENVOY_GLOO_DEBUG_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-debug:1.23.0-patch9
 ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.23.0-patch9
+ENVOY_GLOO_FIPS_DEBUG_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips-debug:1.23.0-patch9
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)
@@ -1064,6 +1066,16 @@ $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(ENVOYINIT_OUT_DIR)/envoyin
 		-f $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit
 	touch $@
 
+.PHONY: gloo-ee-envoy-wrapper-debug-docker
+gloo-ee-envoy-wrapper-debug-docker: $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-debug-docker
+
+$(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-debug-docker: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-$(GOARCH) $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_OUT_DIR)/docker-entrypoint.sh
+	docker build $(call get_test_tag_option,gloo-ee-envoy-wrapper-debug) $(ENVOYINIT_OUT_DIR) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_DEBUG_IMAGE) $(DOCKER_BUILD_ARGS) \
+		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug \
+		-f $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit
+	touch $@
+
 #----------------------------------------------------------------------------------
 # Fips Envoy init (BASE/SIDECAR)
 #----------------------------------------------------------------------------------
@@ -1091,6 +1103,17 @@ $(ENVOYINIT_FIPS_OUT_DIR)/.gloo-ee-envoy-wrapper-fips-docker: $(ENVOYINIT_FIPS_O
 		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) \
 		-f $(ENVOYINIT_FIPS_OUT_DIR)/Dockerfile.envoyinit
 	touch $@
+
+.PHONY: gloo-ee-envoy-wrapper-fips-debug-docker
+gloo-ee-envoy-wrapper-fips-debug-docker: $(ENVOYINIT_FIPS_OUT_DIR)/.gloo-ee-envoy-wrapper-fips-debug-docker
+
+$(ENVOYINIT_FIPS_OUT_DIR)/.gloo-ee-envoy-wrapper-fips-debug-docker: $(ENVOYINIT_FIPS_OUT_DIR)/envoyinit-linux-$(GOARCH) $(ENVOYINIT_FIPS_OUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_FIPS_OUT_DIR)/docker-entrypoint.sh
+	docker build $(call get_test_tag_option,gloo-ee-envoy-wrapper-fips-debug) $(ENVOYINIT_FIPS_OUT_DIR) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_FIPS_DEBUG_IMAGE) $(DOCKER_BUILD_ARGS) \
+		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug \
+		-f $(ENVOYINIT_FIPS_OUT_DIR)/Dockerfile.envoyinit
+	touch $@
+
 #----------------------------------------------------------------------------------
 # Deployment Manifests / Helm
 #----------------------------------------------------------------------------------
@@ -1227,8 +1250,8 @@ endif
 
 .PHONY: docker docker-push
  docker: rate-limit-ee-docker rate-limit-ee-fips-docker extauth-ee-docker \
-       extauth-ee-fips-docker gloo-ee-docker gloo-fips-ee-docker gloo-ee-envoy-wrapper-docker discovery-ee-docker\
-       gloo-ee-envoy-wrapper-fips-docker observability-ee-docker caching-ee-docker ext-auth-plugins-docker ext-auth-plugins-fips-docker \
+       extauth-ee-fips-docker gloo-ee-docker gloo-fips-ee-docker gloo-ee-envoy-wrapper-docker gloo-ee-envoy-wrapper-debug-docker discovery-ee-docker\
+       gloo-ee-envoy-wrapper-fips-docker gloo-ee-envoy-wrapper-fips-debug-docker observability-ee-docker caching-ee-docker ext-auth-plugins-docker ext-auth-plugins-fips-docker \
        gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker gloo-federation-console-docker gloo-fed-rbac-validating-webhook-docker
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
@@ -1246,6 +1269,7 @@ ifeq ($(RELEASE), "true")
 	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug && \
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/caching-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
@@ -1262,6 +1286,7 @@ ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug && \
 	docker push $(IMAGE_REPO)/extauth-ee-fips:$(VERSION) && \
 	docker push $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION)
 endif
@@ -1292,7 +1317,9 @@ ifeq ($(RELEASE),"true")
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee:$(VERSION) $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-fips:$(VERSION) $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION) $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION)-debug $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION) $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/observability-ee:$(VERSION) $(IMAGE_REPO)/observability-ee:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/caching-ee:$(VERSION) $(IMAGE_REPO)/caching-ee:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/extauth-ee:$(VERSION) $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
@@ -1326,7 +1353,9 @@ ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug && \
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/caching-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
