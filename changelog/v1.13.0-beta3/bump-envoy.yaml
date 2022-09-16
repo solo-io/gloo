@@ -1,0 +1,9 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: envoy-gloo-ee
+    dependencyRepo: solo-io
+    dependencyTag: v1.23.0-patch10
+  - type: FIX
+    description: |
+     Upgrade envoy-gloo-ee version to fix a crash from DLP 
+    issueLink: https://github.com/solo-io/envoy-gloo-ee/issues/361
