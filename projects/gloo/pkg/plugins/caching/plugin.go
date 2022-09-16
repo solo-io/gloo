@@ -50,11 +50,9 @@ func (p *plugin) Name() string {
 	return ExtensionName
 }
 
-// Init is called once when the plugin is first loaded.
+// Init is used to re-initialize plugins and is executed for each translation loop
 func (p *plugin) Init(params plugins.InitParams) {
-	if cacheServer := params.Settings.GetCachingServer(); cacheServer != nil {
-		p.serverSettings = cacheServer
-	}
+	p.serverSettings = params.Settings.GetCachingServer()
 }
 
 // HttpFilters is called for every http listener.

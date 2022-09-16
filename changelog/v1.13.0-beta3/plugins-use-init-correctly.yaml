@@ -1,0 +1,3 @@
+changelog:
+- type: NON_USER_FACING
+  description: Make sure plugins use the `Init()` method of the interface correctly and reset all transient fields during Init.
