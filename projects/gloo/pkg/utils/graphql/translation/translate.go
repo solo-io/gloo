@@ -5,16 +5,10 @@ import (
 	"hash/fnv"
 	"strings"
 
-	"k8s.io/utils/lru"
-
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/dot_notation"
-	resolver_utils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/utils"
-
-	"github.com/golang/protobuf/ptypes/duration"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/parser"
 	"github.com/graphql-go/graphql/language/printer"
@@ -25,13 +19,16 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/dot_notation"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/grpc"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/mock"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/rest"
 	jsonUtils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/utils"
+	resolver_utils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/resolvers/utils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/directives"
 	printer2 "github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/printer"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/types"
+	"k8s.io/utils/lru"
 )
 
 type CreateGraphQLApiParams struct {
@@ -41,6 +38,7 @@ type CreateGraphQLApiParams struct {
 	Graphqlapi  *v1beta1.GraphQLApi
 
 	ProcessedSchemaCache *lru.Cache
+	StitchingInfoCache   *lru.Cache
 }
 
 func CreateGraphQlApi(params CreateGraphQLApiParams) (*v2.ExecutableSchema, error) {

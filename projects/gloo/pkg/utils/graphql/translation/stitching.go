@@ -2,6 +2,7 @@ package translation
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"os/exec"
@@ -28,7 +29,7 @@ import (
 // The resolver info per subschema name
 type ResolverInfoPerSubschema map[string]*gloov2.ResolverInfo
 
-func getStitchingInfo(schema *gloov1beta1.StitchedSchema, graphqlApis types.GraphQLApiList, schemaCache *lru.Cache) (*enterprisev1.GraphQLToolsStitchingOutput, map[string]ResolverInfoPerSubschema, map[string]string, []*gloov1beta1.GraphQLApi, error) {
+func getStitchingInfo(schema *gloov1beta1.StitchedSchema, graphqlApis types.GraphQLApiList, schemaCache *lru.Cache, stitchingInfoCache *lru.Cache) (*enterprisev1.GraphQLToolsStitchingOutput, map[string]ResolverInfoPerSubschema, map[string]string, []*gloov1beta1.GraphQLApi, error) {
 	schemas := &enterprisev1.GraphQLToolsStitchingInput{}
 	// map of types -> map of subschema names -> resolver info
 	argMap := map[string]ResolverInfoPerSubschema{}
@@ -49,7 +50,7 @@ func getStitchingInfo(schema *gloov1beta1.StitchedSchema, graphqlApis types.Grap
 		subschemaGraphqlApis = append(subschemaGraphqlApis, gqlSchema)
 
 		subschemaName := generateSubschemaName(gqlSchema.GetMetadata().Ref())
-		schemaDef, err := getGraphQlApiSchemaDefinition(gqlSchema, graphqlApis, schemaCache)
+		schemaDef, err := getGraphQlApiSchemaDefinition(gqlSchema, graphqlApis, schemaCache, stitchingInfoCache)
 		if err != nil {
 			return nil, nil, nil, nil, err
 		}
@@ -69,11 +70,10 @@ func getStitchingInfo(schema *gloov1beta1.StitchedSchema, graphqlApis types.Grap
 				}
 			}
 		}
-
 		stitchingScriptSubschema := createStitchingScriptSubschema(subschema, subschemaName, schemaDef, argMap)
 		schemas.Subschemas = append(schemas.Subschemas, stitchingScriptSubschema)
 	}
-	stitchingInfoOut, err := processStitchingInfo(schemas)
+	stitchingInfoOut, err := processStitchingInfo(schemas, stitchingInfoCache)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -110,8 +110,9 @@ func createStitchingScriptSubschema(subschema *gloov1beta1.StitchedSchema_Subsch
 	return stitchingScriptSchema
 }
 
+// only used by apiserver, so cache is not available here as we don't have any way of persisting state in the apiserver.
 func GetStitchedSchemaDefinition(stitchedSchema *gloov1beta1.StitchedSchema, gqlApis types.GraphQLApiList) (string, error) {
-	stitchedSchemaOut, _, _, _, err := getStitchingInfo(stitchedSchema, gqlApis, nil)
+	stitchedSchemaOut, _, _, _, err := getStitchingInfo(stitchedSchema, gqlApis, nil, nil)
 	if err != nil {
 		return "", err
 	}
@@ -141,9 +142,9 @@ func (l *MockArtifactsList) Find(namespace, name string) (*gloov1.Artifact, erro
 }
 
 // Gets only the schema definition without validating Upstreams, hence the use of the MockUpstreamList
-func getGraphQlApiSchemaDefinition(graphQLApi *gloov1beta1.GraphQLApi, gqlApis types.GraphQLApiList, schemaCache *lru.Cache) (string, error) {
+func getGraphQlApiSchemaDefinition(graphQLApi *gloov1beta1.GraphQLApi, gqlApis types.GraphQLApiList, schemaCache, stitchingInfoCache *lru.Cache) (string, error) {
 	v2ApiSchema, err := CreateGraphQlApi(
-		CreateGraphQLApiParams{&MockArtifactsList{}, &MockUpstreamsList{}, gqlApis, graphQLApi, schemaCache},
+		CreateGraphQLApiParams{&MockArtifactsList{}, &MockUpstreamsList{}, gqlApis, graphQLApi, schemaCache, stitchingInfoCache},
 	)
 	if err != nil {
 		return "", eris.Wrapf(err, "error getting schema definition for GraphQLApi %s.%s", graphQLApi.GetMetadata().GetNamespace(), graphQLApi.GetMetadata().GetName())
@@ -151,12 +152,24 @@ func getGraphQlApiSchemaDefinition(graphQLApi *gloov1beta1.GraphQLApi, gqlApis t
 	return v2ApiSchema.GetSchemaDefinition().GetInlineString(), nil
 }
 
-func processStitchingInfo(schemas *enterprisev1.GraphQLToolsStitchingInput) (*enterprisev1.GraphQLToolsStitchingOutput, error) {
+func processStitchingInfo(schemas *enterprisev1.GraphQLToolsStitchingInput, stitchingInfoCache *lru.Cache) (*enterprisev1.GraphQLToolsStitchingOutput, error) {
 
 	schemasBytes, err := proto.Marshal(schemas)
 	if err != nil {
 		return nil, eris.Wrapf(err, "error marshaling to binary data")
 	}
+	// hash schemaBytes to get a unique key for the cache
+	schemasBytesHash := sha256.Sum256(schemasBytes)
+	// We cache the stitching info so that we don't have to recompute it every time
+	// the key is the base64 encoded protobuf of the stitching info input
+	// the value is the protobuf message of the stitching info output
+	if stitchingInfoCache != nil {
+		stitchingInfo, ok := stitchingInfoCache.Get(schemasBytesHash)
+		if ok {
+			return stitchingInfo.(*enterprisev1.GraphQLToolsStitchingOutput), nil
+		}
+	}
+
 	stitchingPath := GetGraphqlJsRoot()
 	cmd := exec.Command("node", stitchingPath+"stitching.js", base64.StdEncoding.EncodeToString(schemasBytes))
 
@@ -186,6 +199,9 @@ func processStitchingInfo(schemas *enterprisev1.GraphQLToolsStitchingInput) (*en
 	if err != nil {
 		return nil, eris.Wrap(err, "unable to unmarshal graphql tools output to Go type")
 	}
+	if stitchingInfoCache != nil {
+		stitchingInfoCache.Add(schemasBytesHash, stitchingInfoOut)
+	}
 	return stitchingInfoOut, nil
 }
 
@@ -210,11 +226,12 @@ func addSubschemaNameResolverInfo(mergeTypes map[string]*gloov2.MergedTypeConfig
 }
 
 func translateStitchedSchema(params CreateGraphQLApiParams, schema *gloov1beta1.StitchedSchema) (*gloov2.ExecutableSchema, error) {
-	stitchingInfoOut, argMap, queryFieldMap, subschemaGqls, err := getStitchingInfo(schema, params.Graphqlapis, params.ProcessedSchemaCache)
+	stitchingInfoOut, argMap, queryFieldMap, subschemaGqls, err := getStitchingInfo(schema, params.Graphqlapis, params.ProcessedSchemaCache, params.StitchingInfoCache)
 	if err != nil {
 		return nil, err
 	}
 	gatewaySchema, err := ParseGraphQLSchema(stitchingInfoOut.GetStitchedSchema())
+
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +298,6 @@ func translateStitchedSchema(params CreateGraphQLApiParams, schema *gloov1beta1.
 		MergedTypes:                    glooMergedTypes,
 		SubschemaNameToSubschemaConfig: subschemaNameToExecutableSchema,
 	}
-
 	return &gloov2.ExecutableSchema{
 		SchemaDefinition: &gloov3.DataSource{
 			Specifier: &gloov3.DataSource_InlineString{

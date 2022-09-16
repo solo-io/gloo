@@ -35,13 +35,17 @@ var (
 type plugin struct {
 	removeUnused              bool
 	filterRequiredForListener map[*v1.HttpListener]struct{}
-	processedSchemaLruCache   *lru.Cache
+	// This cache prevents us from re-printing the same stitched schema on every translation loop, which can be expensive
+	processedSchemaLruCache *lru.Cache
+	// This cache prevents us from rerunning the stitching info JS script on every translation loop, which can be expensive
+	stitchingInfoLruCache *lru.Cache
 }
 
 // NewPlugin creates the basic graphql plugin structure.
 func NewPlugin() *plugin {
 	return &plugin{
 		processedSchemaLruCache: lru.New(1024),
+		stitchingInfoLruCache:   lru.New(1024),
 	}
 }
 
@@ -130,6 +134,7 @@ func (p *plugin) translateGraphQlApiToRouteConf(params plugins.RouteParams, in *
 			Graphqlapis:          params.Snapshot.GraphqlApis,
 			Graphqlapi:           api,
 			ProcessedSchemaCache: p.processedSchemaLruCache,
+			StitchingInfoCache:   p.stitchingInfoLruCache,
 		},
 	)
 	if err != nil {

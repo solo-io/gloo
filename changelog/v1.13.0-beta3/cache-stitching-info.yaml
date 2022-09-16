@@ -1,0 +1,5 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/4063
+  description: >
+    Decreases the computational overhead of running the stitching script in GraphQL by using a cache.
