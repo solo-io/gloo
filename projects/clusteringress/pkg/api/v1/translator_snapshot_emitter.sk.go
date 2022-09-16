@@ -235,15 +235,20 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 		if err != nil {
 			return nil, nil, err
 		}
+		newlyRegisteredNamespaces := make([]string, len(namespacesResources))
 		// non watched namespaces that are labeled
-		for _, resourceNamespace := range namespacesResources {
+		for i, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
-			c.clusterIngress.RegisterNamespace(namespace)
+			newlyRegisteredNamespaces[i] = namespace
+			err = c.clusterIngress.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the clusterIngress")
+			}
 			/* Setup namespaced watch for ClusterIngress */
 			{
 				clusteringresses, err := c.clusterIngress.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial ClusterIngress list")
+					return nil, nil, errors.Wrapf(err, "initial ClusterIngress list with new namespace")
 				}
 				initialClusterIngressList = append(initialClusterIngressList, clusteringresses...)
 				clusteringressesByNamespace.Store(namespace, clusteringresses)
@@ -277,6 +282,10 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 				}
 			}(namespace)
 		}
+		if len(newlyRegisteredNamespaces) > 0 {
+			contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newlyRegisteredNamespaces)
+		}
+
 		// create watch on all namespaces, so that we can add all resources from new namespaces
 		// we will be watching namespaces that meet the Expression Selector filter
 
@@ -340,12 +349,17 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 					}
 
 					for _, namespace := range newNamespaces {
-						c.clusterIngress.RegisterNamespace(namespace)
+						var err error
+						err = c.clusterIngress.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the clusterIngress")
+							continue
+						}
 						/* Setup namespaced watch for ClusterIngress for new namespace */
 						{
 							clusteringresses, err := c.clusterIngress.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace ClusterIngress list")
+								errs <- errors.Wrapf(err, "initial new namespace ClusterIngress list in namespace watch")
 								continue
 							}
 							clusteringressesByNamespace.Store(namespace, clusteringresses)
@@ -384,7 +398,10 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 							}
 						}(namespace)
 					}
-					c.updateNamespaces.Unlock()
+					if len(newNamespaces) > 0 {
+						contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newNamespaces)
+						c.updateNamespaces.Unlock()
+					}
 				}
 			}
 		}()

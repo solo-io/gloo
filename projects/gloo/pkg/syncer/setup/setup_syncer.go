@@ -126,6 +126,8 @@ func NewSetupFuncWithRunAndExtensions(runFunc RunFunc, extensions *Extensions) s
 		},
 		runFunc: runFunc,
 	}
+	// here is one location where this method gets called.
+	// https://github.com/solo-io/gloo/blob/master/pkg/utils/setuputils/setup_syncer.go#L60
 	return s.Setup
 }
 
@@ -138,7 +140,8 @@ type grpcServer struct {
 }
 
 type setupSyncer struct {
-	extensions               *Extensions
+	extensions *Extensions
+	// runFunc gets called in the Setup()
 	runFunc                  RunFunc
 	makeGrpcServer           func(ctx context.Context, options ...grpc.ServerOption) *grpc.Server
 	previousXdsServer        grpcServer
@@ -436,7 +439,9 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	watchOpts := opts.WatchOpts.WithDefaults()
+	// JAKE-CRASH
 	watchOpts.ExpressionSelector = opts.WatchNamespaceLabelSelectors
+	// watchOpts.ExpressionSelector = opts.WatchNamespaceLabelSelectors
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gloo")
 
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")

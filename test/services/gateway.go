@@ -254,13 +254,15 @@ func RunGlooGatewayUdsFds(ctx context.Context, runOptions *RunOptions) TestClien
 	if !runOptions.WhatToRun.DisableFds {
 		go func() {
 			defer GinkgoRecover()
-			fds_syncer.RunFDS(glooOpts)
+			err := fds_syncer.RunFDS(glooOpts)
+			Expect(err).NotTo(HaveOccurred())
 		}()
 	}
 	if !runOptions.WhatToRun.DisableUds {
 		go func() {
 			defer GinkgoRecover()
-			uds_syncer.RunUDS(glooOpts)
+			err := uds_syncer.RunUDS(glooOpts)
+			Expect(err).NotTo(HaveOccurred())
 		}()
 	}
 

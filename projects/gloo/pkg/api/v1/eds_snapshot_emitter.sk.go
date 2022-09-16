@@ -233,15 +233,20 @@ func (c *edsEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		if err != nil {
 			return nil, nil, err
 		}
+		newlyRegisteredNamespaces := make([]string, len(namespacesResources))
 		// non watched namespaces that are labeled
-		for _, resourceNamespace := range namespacesResources {
+		for i, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
-			c.upstream.RegisterNamespace(namespace)
+			newlyRegisteredNamespaces[i] = namespace
+			err = c.upstream.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the upstream")
+			}
 			/* Setup namespaced watch for Upstream */
 			{
 				upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial Upstream list")
+					return nil, nil, errors.Wrapf(err, "initial Upstream list with new namespace")
 				}
 				initialUpstreamList = append(initialUpstreamList, upstreams...)
 				upstreamsByNamespace.Store(namespace, upstreams)
@@ -275,6 +280,10 @@ func (c *edsEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				}
 			}(namespace)
 		}
+		if len(newlyRegisteredNamespaces) > 0 {
+			contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newlyRegisteredNamespaces)
+		}
+
 		// create watch on all namespaces, so that we can add all resources from new namespaces
 		// we will be watching namespaces that meet the Expression Selector filter
 
@@ -338,12 +347,17 @@ func (c *edsEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 					}
 
 					for _, namespace := range newNamespaces {
-						c.upstream.RegisterNamespace(namespace)
+						var err error
+						err = c.upstream.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the upstream")
+							continue
+						}
 						/* Setup namespaced watch for Upstream for new namespace */
 						{
 							upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace Upstream list")
+								errs <- errors.Wrapf(err, "initial new namespace Upstream list in namespace watch")
 								continue
 							}
 							upstreamsByNamespace.Store(namespace, upstreams)
@@ -382,7 +396,10 @@ func (c *edsEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							}
 						}(namespace)
 					}
-					c.updateNamespaces.Unlock()
+					if len(newNamespaces) > 0 {
+						contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newNamespaces)
+						c.updateNamespaces.Unlock()
+					}
 				}
 			}
 		}()

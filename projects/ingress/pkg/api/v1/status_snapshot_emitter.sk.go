@@ -279,15 +279,20 @@ func (c *statusEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOp
 		if err != nil {
 			return nil, nil, err
 		}
+		newlyRegisteredNamespaces := make([]string, len(namespacesResources))
 		// non watched namespaces that are labeled
-		for _, resourceNamespace := range namespacesResources {
+		for i, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
-			c.kubeService.RegisterNamespace(namespace)
+			newlyRegisteredNamespaces[i] = namespace
+			err = c.kubeService.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the kubeService")
+			}
 			/* Setup namespaced watch for KubeService */
 			{
 				services, err := c.kubeService.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial KubeService list")
+					return nil, nil, errors.Wrapf(err, "initial KubeService list with new namespace")
 				}
 				initialKubeServiceList = append(initialKubeServiceList, services...)
 				servicesByNamespace.Store(namespace, services)
@@ -302,12 +307,15 @@ func (c *statusEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOp
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, kubeServiceErrs, namespace+"-services")
 			}(namespace)
-			c.ingress.RegisterNamespace(namespace)
+			err = c.ingress.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the ingress")
+			}
 			/* Setup namespaced watch for Ingress */
 			{
 				ingresses, err := c.ingress.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial Ingress list")
+					return nil, nil, errors.Wrapf(err, "initial Ingress list with new namespace")
 				}
 				initialIngressList = append(initialIngressList, ingresses...)
 				ingressesByNamespace.Store(namespace, ingresses)
@@ -350,6 +358,10 @@ func (c *statusEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOp
 				}
 			}(namespace)
 		}
+		if len(newlyRegisteredNamespaces) > 0 {
+			contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newlyRegisteredNamespaces)
+		}
+
 		// create watch on all namespaces, so that we can add all resources from new namespaces
 		// we will be watching namespaces that meet the Expression Selector filter
 
@@ -414,12 +426,17 @@ func (c *statusEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOp
 					}
 
 					for _, namespace := range newNamespaces {
-						c.kubeService.RegisterNamespace(namespace)
+						var err error
+						err = c.kubeService.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the kubeService")
+							continue
+						}
 						/* Setup namespaced watch for KubeService for new namespace */
 						{
 							services, err := c.kubeService.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace KubeService list")
+								errs <- errors.Wrapf(err, "initial new namespace KubeService list in namespace watch")
 								continue
 							}
 							servicesByNamespace.Store(namespace, services)
@@ -435,12 +452,16 @@ func (c *statusEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOp
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, kubeServiceErrs, namespace+"-new-namespace-services")
 						}(namespace)
-						c.ingress.RegisterNamespace(namespace)
+						err = c.ingress.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the ingress")
+							continue
+						}
 						/* Setup namespaced watch for Ingress for new namespace */
 						{
 							ingresses, err := c.ingress.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace Ingress list")
+								errs <- errors.Wrapf(err, "initial new namespace Ingress list in namespace watch")
 								continue
 							}
 							ingressesByNamespace.Store(namespace, ingresses)
@@ -488,7 +509,10 @@ func (c *statusEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOp
 							}
 						}(namespace)
 					}
-					c.updateNamespaces.Unlock()
+					if len(newNamespaces) > 0 {
+						contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newNamespaces)
+						c.updateNamespaces.Unlock()
+					}
 				}
 			}
 		}()

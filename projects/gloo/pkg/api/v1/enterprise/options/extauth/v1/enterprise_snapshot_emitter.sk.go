@@ -233,15 +233,20 @@ func (c *enterpriseEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 		if err != nil {
 			return nil, nil, err
 		}
+		newlyRegisteredNamespaces := make([]string, len(namespacesResources))
 		// non watched namespaces that are labeled
-		for _, resourceNamespace := range namespacesResources {
+		for i, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
-			c.authConfig.RegisterNamespace(namespace)
+			newlyRegisteredNamespaces[i] = namespace
+			err = c.authConfig.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the authConfig")
+			}
 			/* Setup namespaced watch for AuthConfig */
 			{
 				authConfigs, err := c.authConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial AuthConfig list")
+					return nil, nil, errors.Wrapf(err, "initial AuthConfig list with new namespace")
 				}
 				initialAuthConfigList = append(initialAuthConfigList, authConfigs...)
 				authConfigsByNamespace.Store(namespace, authConfigs)
@@ -275,6 +280,10 @@ func (c *enterpriseEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 				}
 			}(namespace)
 		}
+		if len(newlyRegisteredNamespaces) > 0 {
+			contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newlyRegisteredNamespaces)
+		}
+
 		// create watch on all namespaces, so that we can add all resources from new namespaces
 		// we will be watching namespaces that meet the Expression Selector filter
 
@@ -338,12 +347,17 @@ func (c *enterpriseEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 					}
 
 					for _, namespace := range newNamespaces {
-						c.authConfig.RegisterNamespace(namespace)
+						var err error
+						err = c.authConfig.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the authConfig")
+							continue
+						}
 						/* Setup namespaced watch for AuthConfig for new namespace */
 						{
 							authConfigs, err := c.authConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace AuthConfig list")
+								errs <- errors.Wrapf(err, "initial new namespace AuthConfig list in namespace watch")
 								continue
 							}
 							authConfigsByNamespace.Store(namespace, authConfigs)
@@ -382,7 +396,10 @@ func (c *enterpriseEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 							}
 						}(namespace)
 					}
-					c.updateNamespaces.Unlock()
+					if len(newNamespaces) > 0 {
+						contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newNamespaces)
+						c.updateNamespaces.Unlock()
+					}
 				}
 			}
 		}()

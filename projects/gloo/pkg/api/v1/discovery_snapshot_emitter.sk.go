@@ -292,15 +292,20 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 		if err != nil {
 			return nil, nil, err
 		}
+		newlyRegisteredNamespaces := make([]string, len(namespacesResources))
 		// non watched namespaces that are labeled
-		for _, resourceNamespace := range namespacesResources {
+		for i, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
-			c.upstream.RegisterNamespace(namespace)
+			newlyRegisteredNamespaces[i] = namespace
+			err = c.upstream.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the upstream")
+			}
 			/* Setup namespaced watch for Upstream */
 			{
 				upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial Upstream list")
+					return nil, nil, errors.Wrapf(err, "initial Upstream list with new namespace")
 				}
 				initialUpstreamList = append(initialUpstreamList, upstreams...)
 				upstreamsByNamespace.Store(namespace, upstreams)
@@ -315,12 +320,15 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
 			}(namespace)
-			c.secret.RegisterNamespace(namespace)
+			err = c.secret.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the secret")
+			}
 			/* Setup namespaced watch for Secret */
 			{
 				secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial Secret list")
+					return nil, nil, errors.Wrapf(err, "initial Secret list with new namespace")
 				}
 				initialSecretList = append(initialSecretList, secrets...)
 				secretsByNamespace.Store(namespace, secrets)
@@ -363,6 +371,10 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 				}
 			}(namespace)
 		}
+		if len(newlyRegisteredNamespaces) > 0 {
+			contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newlyRegisteredNamespaces)
+		}
+
 		// create watch on all namespaces, so that we can add all resources from new namespaces
 		// we will be watching namespaces that meet the Expression Selector filter
 
@@ -427,12 +439,17 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 					}
 
 					for _, namespace := range newNamespaces {
-						c.upstream.RegisterNamespace(namespace)
+						var err error
+						err = c.upstream.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the upstream")
+							continue
+						}
 						/* Setup namespaced watch for Upstream for new namespace */
 						{
 							upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace Upstream list")
+								errs <- errors.Wrapf(err, "initial new namespace Upstream list in namespace watch")
 								continue
 							}
 							upstreamsByNamespace.Store(namespace, upstreams)
@@ -448,12 +465,16 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-new-namespace-upstreams")
 						}(namespace)
-						c.secret.RegisterNamespace(namespace)
+						err = c.secret.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the secret")
+							continue
+						}
 						/* Setup namespaced watch for Secret for new namespace */
 						{
 							secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace Secret list")
+								errs <- errors.Wrapf(err, "initial new namespace Secret list in namespace watch")
 								continue
 							}
 							secretsByNamespace.Store(namespace, secrets)
@@ -501,7 +522,10 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 							}
 						}(namespace)
 					}
-					c.updateNamespaces.Unlock()
+					if len(newNamespaces) > 0 {
+						contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newNamespaces)
+						c.updateNamespaces.Unlock()
+					}
 				}
 			}
 		}()

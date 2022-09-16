@@ -883,15 +883,20 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		if err != nil {
 			return nil, nil, err
 		}
+		newlyRegisteredNamespaces := make([]string, len(namespacesResources))
 		// non watched namespaces that are labeled
-		for _, resourceNamespace := range namespacesResources {
+		for i, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
-			c.artifact.RegisterNamespace(namespace)
+			newlyRegisteredNamespaces[i] = namespace
+			err = c.artifact.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the artifact")
+			}
 			/* Setup namespaced watch for Artifact */
 			{
 				artifacts, err := c.artifact.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial Artifact list")
+					return nil, nil, errors.Wrapf(err, "initial Artifact list with new namespace")
 				}
 				initialArtifactList = append(initialArtifactList, artifacts...)
 				artifactsByNamespace.Store(namespace, artifacts)
@@ -906,12 +911,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, artifactErrs, namespace+"-artifacts")
 			}(namespace)
-			c.endpoint.RegisterNamespace(namespace)
+			err = c.endpoint.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the endpoint")
+			}
 			/* Setup namespaced watch for Endpoint */
 			{
 				endpoints, err := c.endpoint.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial Endpoint list")
+					return nil, nil, errors.Wrapf(err, "initial Endpoint list with new namespace")
 				}
 				initialEndpointList = append(initialEndpointList, endpoints...)
 				endpointsByNamespace.Store(namespace, endpoints)
@@ -926,12 +934,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, endpointErrs, namespace+"-endpoints")
 			}(namespace)
-			c.proxy.RegisterNamespace(namespace)
+			err = c.proxy.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the proxy")
+			}
 			/* Setup namespaced watch for Proxy */
 			{
 				proxies, err := c.proxy.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial Proxy list")
+					return nil, nil, errors.Wrapf(err, "initial Proxy list with new namespace")
 				}
 				initialProxyList = append(initialProxyList, proxies...)
 				proxiesByNamespace.Store(namespace, proxies)
@@ -946,12 +957,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, proxyErrs, namespace+"-proxies")
 			}(namespace)
-			c.upstreamGroup.RegisterNamespace(namespace)
+			err = c.upstreamGroup.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the upstreamGroup")
+			}
 			/* Setup namespaced watch for UpstreamGroup */
 			{
 				upstreamGroups, err := c.upstreamGroup.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial UpstreamGroup list")
+					return nil, nil, errors.Wrapf(err, "initial UpstreamGroup list with new namespace")
 				}
 				initialUpstreamGroupList = append(initialUpstreamGroupList, upstreamGroups...)
 				upstreamGroupsByNamespace.Store(namespace, upstreamGroups)
@@ -966,12 +980,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, upstreamGroupErrs, namespace+"-upstreamGroups")
 			}(namespace)
-			c.secret.RegisterNamespace(namespace)
+			err = c.secret.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the secret")
+			}
 			/* Setup namespaced watch for Secret */
 			{
 				secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial Secret list")
+					return nil, nil, errors.Wrapf(err, "initial Secret list with new namespace")
 				}
 				initialSecretList = append(initialSecretList, secrets...)
 				secretsByNamespace.Store(namespace, secrets)
@@ -986,12 +1003,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-secrets")
 			}(namespace)
-			c.upstream.RegisterNamespace(namespace)
+			err = c.upstream.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the upstream")
+			}
 			/* Setup namespaced watch for Upstream */
 			{
 				upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial Upstream list")
+					return nil, nil, errors.Wrapf(err, "initial Upstream list with new namespace")
 				}
 				initialUpstreamList = append(initialUpstreamList, upstreams...)
 				upstreamsByNamespace.Store(namespace, upstreams)
@@ -1006,12 +1026,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
 			}(namespace)
-			c.authConfig.RegisterNamespace(namespace)
+			err = c.authConfig.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the authConfig")
+			}
 			/* Setup namespaced watch for AuthConfig */
 			{
 				authConfigs, err := c.authConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial AuthConfig list")
+					return nil, nil, errors.Wrapf(err, "initial AuthConfig list with new namespace")
 				}
 				initialAuthConfigList = append(initialAuthConfigList, authConfigs...)
 				authConfigsByNamespace.Store(namespace, authConfigs)
@@ -1026,12 +1049,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, authConfigErrs, namespace+"-authConfigs")
 			}(namespace)
-			c.rateLimitConfig.RegisterNamespace(namespace)
+			err = c.rateLimitConfig.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the rateLimitConfig")
+			}
 			/* Setup namespaced watch for RateLimitConfig */
 			{
 				ratelimitconfigs, err := c.rateLimitConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial RateLimitConfig list")
+					return nil, nil, errors.Wrapf(err, "initial RateLimitConfig list with new namespace")
 				}
 				initialRateLimitConfigList = append(initialRateLimitConfigList, ratelimitconfigs...)
 				ratelimitconfigsByNamespace.Store(namespace, ratelimitconfigs)
@@ -1046,12 +1072,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, rateLimitConfigErrs, namespace+"-ratelimitconfigs")
 			}(namespace)
-			c.virtualService.RegisterNamespace(namespace)
+			err = c.virtualService.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the virtualService")
+			}
 			/* Setup namespaced watch for VirtualService */
 			{
 				virtualServices, err := c.virtualService.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial VirtualService list")
+					return nil, nil, errors.Wrapf(err, "initial VirtualService list with new namespace")
 				}
 				initialVirtualServiceList = append(initialVirtualServiceList, virtualServices...)
 				virtualServicesByNamespace.Store(namespace, virtualServices)
@@ -1066,12 +1095,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
 			}(namespace)
-			c.routeTable.RegisterNamespace(namespace)
+			err = c.routeTable.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the routeTable")
+			}
 			/* Setup namespaced watch for RouteTable */
 			{
 				routeTables, err := c.routeTable.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial RouteTable list")
+					return nil, nil, errors.Wrapf(err, "initial RouteTable list with new namespace")
 				}
 				initialRouteTableList = append(initialRouteTableList, routeTables...)
 				routeTablesByNamespace.Store(namespace, routeTables)
@@ -1086,12 +1118,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, routeTableErrs, namespace+"-routeTables")
 			}(namespace)
-			c.gateway.RegisterNamespace(namespace)
+			err = c.gateway.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the gateway")
+			}
 			/* Setup namespaced watch for Gateway */
 			{
 				gateways, err := c.gateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial Gateway list")
+					return nil, nil, errors.Wrapf(err, "initial Gateway list with new namespace")
 				}
 				initialGatewayList = append(initialGatewayList, gateways...)
 				gatewaysByNamespace.Store(namespace, gateways)
@@ -1106,12 +1141,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, gatewayErrs, namespace+"-gateways")
 			}(namespace)
-			c.virtualHostOption.RegisterNamespace(namespace)
+			err = c.virtualHostOption.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the virtualHostOption")
+			}
 			/* Setup namespaced watch for VirtualHostOption */
 			{
 				virtualHostOptions, err := c.virtualHostOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial VirtualHostOption list")
+					return nil, nil, errors.Wrapf(err, "initial VirtualHostOption list with new namespace")
 				}
 				initialVirtualHostOptionList = append(initialVirtualHostOptionList, virtualHostOptions...)
 				virtualHostOptionsByNamespace.Store(namespace, virtualHostOptions)
@@ -1126,12 +1164,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, virtualHostOptionErrs, namespace+"-virtualHostOptions")
 			}(namespace)
-			c.routeOption.RegisterNamespace(namespace)
+			err = c.routeOption.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the routeOption")
+			}
 			/* Setup namespaced watch for RouteOption */
 			{
 				routeOptions, err := c.routeOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial RouteOption list")
+					return nil, nil, errors.Wrapf(err, "initial RouteOption list with new namespace")
 				}
 				initialRouteOptionList = append(initialRouteOptionList, routeOptions...)
 				routeOptionsByNamespace.Store(namespace, routeOptions)
@@ -1146,12 +1187,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, routeOptionErrs, namespace+"-routeOptions")
 			}(namespace)
-			c.matchableHttpGateway.RegisterNamespace(namespace)
+			err = c.matchableHttpGateway.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the matchableHttpGateway")
+			}
 			/* Setup namespaced watch for MatchableHttpGateway */
 			{
 				httpGateways, err := c.matchableHttpGateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial MatchableHttpGateway list")
+					return nil, nil, errors.Wrapf(err, "initial MatchableHttpGateway list with new namespace")
 				}
 				initialMatchableHttpGatewayList = append(initialMatchableHttpGatewayList, httpGateways...)
 				httpGatewaysByNamespace.Store(namespace, httpGateways)
@@ -1166,12 +1210,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				defer done.Done()
 				errutils.AggregateErrs(ctx, errs, matchableHttpGatewayErrs, namespace+"-httpGateways")
 			}(namespace)
-			c.graphQLApi.RegisterNamespace(namespace)
+			err = c.graphQLApi.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the graphQLApi")
+			}
 			/* Setup namespaced watch for GraphQLApi */
 			{
 				graphqlApis, err := c.graphQLApi.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial GraphQLApi list")
+					return nil, nil, errors.Wrapf(err, "initial GraphQLApi list with new namespace")
 				}
 				initialGraphQLApiList = append(initialGraphQLApiList, graphqlApis...)
 				graphqlApisByNamespace.Store(namespace, graphqlApis)
@@ -1331,6 +1378,10 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				}
 			}(namespace)
 		}
+		if len(newlyRegisteredNamespaces) > 0 {
+			contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newlyRegisteredNamespaces)
+		}
+
 		// create watch on all namespaces, so that we can add all resources from new namespaces
 		// we will be watching namespaces that meet the Expression Selector filter
 
@@ -1408,12 +1459,17 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 					}
 
 					for _, namespace := range newNamespaces {
-						c.artifact.RegisterNamespace(namespace)
+						var err error
+						err = c.artifact.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the artifact")
+							continue
+						}
 						/* Setup namespaced watch for Artifact for new namespace */
 						{
 							artifacts, err := c.artifact.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace Artifact list")
+								errs <- errors.Wrapf(err, "initial new namespace Artifact list in namespace watch")
 								continue
 							}
 							artifactsByNamespace.Store(namespace, artifacts)
@@ -1429,12 +1485,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, artifactErrs, namespace+"-new-namespace-artifacts")
 						}(namespace)
-						c.endpoint.RegisterNamespace(namespace)
+						err = c.endpoint.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the endpoint")
+							continue
+						}
 						/* Setup namespaced watch for Endpoint for new namespace */
 						{
 							endpoints, err := c.endpoint.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace Endpoint list")
+								errs <- errors.Wrapf(err, "initial new namespace Endpoint list in namespace watch")
 								continue
 							}
 							endpointsByNamespace.Store(namespace, endpoints)
@@ -1450,12 +1510,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, endpointErrs, namespace+"-new-namespace-endpoints")
 						}(namespace)
-						c.proxy.RegisterNamespace(namespace)
+						err = c.proxy.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the proxy")
+							continue
+						}
 						/* Setup namespaced watch for Proxy for new namespace */
 						{
 							proxies, err := c.proxy.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace Proxy list")
+								errs <- errors.Wrapf(err, "initial new namespace Proxy list in namespace watch")
 								continue
 							}
 							proxiesByNamespace.Store(namespace, proxies)
@@ -1471,12 +1535,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, proxyErrs, namespace+"-new-namespace-proxies")
 						}(namespace)
-						c.upstreamGroup.RegisterNamespace(namespace)
+						err = c.upstreamGroup.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the upstreamGroup")
+							continue
+						}
 						/* Setup namespaced watch for UpstreamGroup for new namespace */
 						{
 							upstreamGroups, err := c.upstreamGroup.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace UpstreamGroup list")
+								errs <- errors.Wrapf(err, "initial new namespace UpstreamGroup list in namespace watch")
 								continue
 							}
 							upstreamGroupsByNamespace.Store(namespace, upstreamGroups)
@@ -1492,12 +1560,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, upstreamGroupErrs, namespace+"-new-namespace-upstreamGroups")
 						}(namespace)
-						c.secret.RegisterNamespace(namespace)
+						err = c.secret.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the secret")
+							continue
+						}
 						/* Setup namespaced watch for Secret for new namespace */
 						{
 							secrets, err := c.secret.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace Secret list")
+								errs <- errors.Wrapf(err, "initial new namespace Secret list in namespace watch")
 								continue
 							}
 							secretsByNamespace.Store(namespace, secrets)
@@ -1513,12 +1585,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-new-namespace-secrets")
 						}(namespace)
-						c.upstream.RegisterNamespace(namespace)
+						err = c.upstream.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the upstream")
+							continue
+						}
 						/* Setup namespaced watch for Upstream for new namespace */
 						{
 							upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace Upstream list")
+								errs <- errors.Wrapf(err, "initial new namespace Upstream list in namespace watch")
 								continue
 							}
 							upstreamsByNamespace.Store(namespace, upstreams)
@@ -1534,12 +1610,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-new-namespace-upstreams")
 						}(namespace)
-						c.authConfig.RegisterNamespace(namespace)
+						err = c.authConfig.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the authConfig")
+							continue
+						}
 						/* Setup namespaced watch for AuthConfig for new namespace */
 						{
 							authConfigs, err := c.authConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace AuthConfig list")
+								errs <- errors.Wrapf(err, "initial new namespace AuthConfig list in namespace watch")
 								continue
 							}
 							authConfigsByNamespace.Store(namespace, authConfigs)
@@ -1555,12 +1635,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, authConfigErrs, namespace+"-new-namespace-authConfigs")
 						}(namespace)
-						c.rateLimitConfig.RegisterNamespace(namespace)
+						err = c.rateLimitConfig.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the rateLimitConfig")
+							continue
+						}
 						/* Setup namespaced watch for RateLimitConfig for new namespace */
 						{
 							ratelimitconfigs, err := c.rateLimitConfig.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace RateLimitConfig list")
+								errs <- errors.Wrapf(err, "initial new namespace RateLimitConfig list in namespace watch")
 								continue
 							}
 							ratelimitconfigsByNamespace.Store(namespace, ratelimitconfigs)
@@ -1576,12 +1660,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, rateLimitConfigErrs, namespace+"-new-namespace-ratelimitconfigs")
 						}(namespace)
-						c.virtualService.RegisterNamespace(namespace)
+						err = c.virtualService.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the virtualService")
+							continue
+						}
 						/* Setup namespaced watch for VirtualService for new namespace */
 						{
 							virtualServices, err := c.virtualService.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace VirtualService list")
+								errs <- errors.Wrapf(err, "initial new namespace VirtualService list in namespace watch")
 								continue
 							}
 							virtualServicesByNamespace.Store(namespace, virtualServices)
@@ -1597,12 +1685,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, virtualServiceErrs, namespace+"-new-namespace-virtualServices")
 						}(namespace)
-						c.routeTable.RegisterNamespace(namespace)
+						err = c.routeTable.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the routeTable")
+							continue
+						}
 						/* Setup namespaced watch for RouteTable for new namespace */
 						{
 							routeTables, err := c.routeTable.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace RouteTable list")
+								errs <- errors.Wrapf(err, "initial new namespace RouteTable list in namespace watch")
 								continue
 							}
 							routeTablesByNamespace.Store(namespace, routeTables)
@@ -1618,12 +1710,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, routeTableErrs, namespace+"-new-namespace-routeTables")
 						}(namespace)
-						c.gateway.RegisterNamespace(namespace)
+						err = c.gateway.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the gateway")
+							continue
+						}
 						/* Setup namespaced watch for Gateway for new namespace */
 						{
 							gateways, err := c.gateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace Gateway list")
+								errs <- errors.Wrapf(err, "initial new namespace Gateway list in namespace watch")
 								continue
 							}
 							gatewaysByNamespace.Store(namespace, gateways)
@@ -1639,12 +1735,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, gatewayErrs, namespace+"-new-namespace-gateways")
 						}(namespace)
-						c.virtualHostOption.RegisterNamespace(namespace)
+						err = c.virtualHostOption.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the virtualHostOption")
+							continue
+						}
 						/* Setup namespaced watch for VirtualHostOption for new namespace */
 						{
 							virtualHostOptions, err := c.virtualHostOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace VirtualHostOption list")
+								errs <- errors.Wrapf(err, "initial new namespace VirtualHostOption list in namespace watch")
 								continue
 							}
 							virtualHostOptionsByNamespace.Store(namespace, virtualHostOptions)
@@ -1660,12 +1760,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, virtualHostOptionErrs, namespace+"-new-namespace-virtualHostOptions")
 						}(namespace)
-						c.routeOption.RegisterNamespace(namespace)
+						err = c.routeOption.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the routeOption")
+							continue
+						}
 						/* Setup namespaced watch for RouteOption for new namespace */
 						{
 							routeOptions, err := c.routeOption.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace RouteOption list")
+								errs <- errors.Wrapf(err, "initial new namespace RouteOption list in namespace watch")
 								continue
 							}
 							routeOptionsByNamespace.Store(namespace, routeOptions)
@@ -1681,12 +1785,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, routeOptionErrs, namespace+"-new-namespace-routeOptions")
 						}(namespace)
-						c.matchableHttpGateway.RegisterNamespace(namespace)
+						err = c.matchableHttpGateway.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the matchableHttpGateway")
+							continue
+						}
 						/* Setup namespaced watch for MatchableHttpGateway for new namespace */
 						{
 							httpGateways, err := c.matchableHttpGateway.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace MatchableHttpGateway list")
+								errs <- errors.Wrapf(err, "initial new namespace MatchableHttpGateway list in namespace watch")
 								continue
 							}
 							httpGatewaysByNamespace.Store(namespace, httpGateways)
@@ -1702,12 +1810,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							defer done.Done()
 							errutils.AggregateErrs(ctx, errs, matchableHttpGatewayErrs, namespace+"-new-namespace-httpGateways")
 						}(namespace)
-						c.graphQLApi.RegisterNamespace(namespace)
+						err = c.graphQLApi.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the graphQLApi")
+							continue
+						}
 						/* Setup namespaced watch for GraphQLApi for new namespace */
 						{
 							graphqlApis, err := c.graphQLApi.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace GraphQLApi list")
+								errs <- errors.Wrapf(err, "initial new namespace GraphQLApi list in namespace watch")
 								continue
 							}
 							graphqlApisByNamespace.Store(namespace, graphqlApis)
@@ -1872,7 +1984,10 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 							}
 						}(namespace)
 					}
-					c.updateNamespaces.Unlock()
+					if len(newNamespaces) > 0 {
+						contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newNamespaces)
+						c.updateNamespaces.Unlock()
+					}
 				}
 			}
 		}()

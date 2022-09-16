@@ -233,15 +233,20 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 		if err != nil {
 			return nil, nil, err
 		}
+		newlyRegisteredNamespaces := make([]string, len(namespacesResources))
 		// non watched namespaces that are labeled
-		for _, resourceNamespace := range namespacesResources {
+		for i, resourceNamespace := range namespacesResources {
 			namespace := resourceNamespace.Name
-			c.settings.RegisterNamespace(namespace)
+			newlyRegisteredNamespaces[i] = namespace
+			err = c.settings.RegisterNamespace(namespace)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "there was an error registering the namespace to the settings")
+			}
 			/* Setup namespaced watch for Settings */
 			{
 				settings, err := c.settings.List(namespace, clients.ListOpts{Ctx: opts.Ctx})
 				if err != nil {
-					return nil, nil, errors.Wrapf(err, "initial Settings list")
+					return nil, nil, errors.Wrapf(err, "initial Settings list with new namespace")
 				}
 				initialSettingsList = append(initialSettingsList, settings...)
 				settingsByNamespace.Store(namespace, settings)
@@ -275,6 +280,10 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 				}
 			}(namespace)
 		}
+		if len(newlyRegisteredNamespaces) > 0 {
+			contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newlyRegisteredNamespaces)
+		}
+
 		// create watch on all namespaces, so that we can add all resources from new namespaces
 		// we will be watching namespaces that meet the Expression Selector filter
 
@@ -338,12 +347,17 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 					}
 
 					for _, namespace := range newNamespaces {
-						c.settings.RegisterNamespace(namespace)
+						var err error
+						err = c.settings.RegisterNamespace(namespace)
+						if err != nil {
+							errs <- errors.Wrapf(err, "there was an error registering the namespace to the settings")
+							continue
+						}
 						/* Setup namespaced watch for Settings for new namespace */
 						{
 							settings, err := c.settings.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
 							if err != nil {
-								errs <- errors.Wrapf(err, "initial new namespace Settings list")
+								errs <- errors.Wrapf(err, "initial new namespace Settings list in namespace watch")
 								continue
 							}
 							settingsByNamespace.Store(namespace, settings)
@@ -382,7 +396,10 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 							}
 						}(namespace)
 					}
-					c.updateNamespaces.Unlock()
+					if len(newNamespaces) > 0 {
+						contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newNamespaces)
+						c.updateNamespaces.Unlock()
+					}
 				}
 			}
 		}()
