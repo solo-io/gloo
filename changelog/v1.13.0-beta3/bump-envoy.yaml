@@ -1,7 +1,7 @@
 changelog:
   - type: DEPENDENCY_BUMP
-    dependencyOwner: envoy-gloo-ee
-    dependencyRepo: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyOwner: solo-io
     dependencyTag: v1.23.0-patch10
   - type: FIX
     description: |
