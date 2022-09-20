@@ -145,7 +145,7 @@ type Upstream struct {
 	// (UInt32Value) Similar to initial_stream_window_size, but for connection-level flow-control window.
 	// Currently, this has the same minimum/maximum/default as initial_stream_window_size.
 	// Requires UseHttp2 to be true to be acknowledged.
-	InitialConnectionWindowSize *wrappers.UInt32Value `protobuf:"bytes,20,opt,name=initial_connection_window_size,json=initialConnectionWindowSize,proto3" json:"initial_connection_window_size,omitempty"`
+	InitialConnectionWindowSize *wrappers.StringValue `protobuf:"bytes,20,opt,name=initial_connection_window_size,json=initialConnectionWindowSize,proto3" json:"initial_connection_window_size,omitempty"`
 	// (UInt32Value) Maximum concurrent streams allowed for peer on one HTTP/2 connection.
 	// Valid values range from 1 to 2147483647 (2^31 - 1) and defaults to 2147483647.
 	// Requires UseHttp2 to be true to be acknowledged.
@@ -364,7 +364,7 @@ func (x *Upstream) GetInitialStreamWindowSize() *wrappers.UInt32Value {
 	return nil
 }
 
-func (x *Upstream) GetInitialConnectionWindowSize() *wrappers.UInt32Value {
+func (x *Upstream) GetInitialConnectionWindowSize() *wrappers.StringValue {
 	if x != nil {
 		return x.InitialConnectionWindowSize
 	}
@@ -745,7 +745,7 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_rawDesc = [
 	0x1e, 0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x6c, 0x5f, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74,
 	0x69, 0x6f, 0x6e, 0x5f, 0x77, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x5f, 0x73, 0x69, 0x7a, 0x65, 0x18,
 	0x14, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x55, 0x49, 0x6e, 0x74, 0x33, 0x32, 0x56, 0x61,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61,
 	0x6c, 0x75, 0x65, 0x52, 0x1b, 0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x6c, 0x43, 0x6f, 0x6e, 0x6e,
 	0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x53, 0x69, 0x7a, 0x65,
 	0x12, 0x52, 0x0a, 0x16, 0x6d, 0x61, 0x78, 0x5f, 0x63, 0x6f, 0x6e, 0x63, 0x75, 0x72, 0x72, 0x65,
@@ -871,7 +871,7 @@ var file_github_com_solo_io_gloo_projects_gloo_api_v1_upstream_proto_depIdxs = [
 	0,  // 17: gloo.solo.io.Upstream.protocol_selection:type_name -> gloo.solo.io.Upstream.ClusterProtocolSelection
 	21, // 18: gloo.solo.io.Upstream.use_http2:type_name -> google.protobuf.BoolValue
 	22, // 19: gloo.solo.io.Upstream.initial_stream_window_size:type_name -> google.protobuf.UInt32Value
-	22, // 20: gloo.solo.io.Upstream.initial_connection_window_size:type_name -> google.protobuf.UInt32Value
+	23, // 20: gloo.solo.io.Upstream.initial_connection_window_size:type_name -> google.protobuf.StringValue
 	22, // 21: gloo.solo.io.Upstream.max_concurrent_streams:type_name -> google.protobuf.UInt32Value
 	21, // 22: gloo.solo.io.Upstream.override_stream_error_on_invalid_http_message:type_name -> google.protobuf.BoolValue
 	23, // 23: gloo.solo.io.Upstream.http_proxy_hostname:type_name -> google.protobuf.StringValue

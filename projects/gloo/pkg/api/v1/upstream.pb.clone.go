@@ -137,9 +137,9 @@ func (m *Upstream) Clone() proto.Message {
 	}
 
 	if h, ok := interface{}(m.GetInitialConnectionWindowSize()).(clone.Cloner); ok {
-		target.InitialConnectionWindowSize = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.UInt32Value)
+		target.InitialConnectionWindowSize = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.StringValue)
 	} else {
-		target.InitialConnectionWindowSize = proto.Clone(m.GetInitialConnectionWindowSize()).(*github_com_golang_protobuf_ptypes_wrappers.UInt32Value)
+		target.InitialConnectionWindowSize = proto.Clone(m.GetInitialConnectionWindowSize()).(*github_com_golang_protobuf_ptypes_wrappers.StringValue)
 	}
 
 	if h, ok := interface{}(m.GetMaxConcurrentStreams()).(clone.Cloner); ok {

@@ -63,14 +63,14 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		}
 	}
 
-	cws := in.GetInitialConnectionWindowSize()
-	if cws != nil {
-		if !httpprotocolvalidation.ValidateWindowSize(cws.GetValue()) {
-			return errors.Errorf("Invalid Initial Connection Window Size: %d", cws.GetValue())
-		} else {
-			cws = &wrappers.UInt32Value{Value: cws.GetValue()}
-		}
-	}
+	// cws := in.GetInitialConnectionWindowSize()
+	// if cws != nil {
+	// 	if !httpprotocolvalidation.ValidateWindowSize(cws.GetValue()) {
+	// 		return errors.Errorf("Invalid Initial Connection Window Size: %d", cws.GetValue())
+	// 	} else {
+	cws := &wrappers.UInt32Value{Value: 12345}
+	// 	}
+	// }
 
 	mcs := in.GetMaxConcurrentStreams()
 	if mcs != nil {

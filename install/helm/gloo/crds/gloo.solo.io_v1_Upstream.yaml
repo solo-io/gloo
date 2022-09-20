@@ -696,10 +696,8 @@ spec:
                 nullable: true
                 type: boolean
               initialConnectionWindowSize:
-                maximum: 4294967295
-                minimum: 0
                 nullable: true
-                type: integer
+                type: string
               initialStreamWindowSize:
                 maximum: 4294967295
                 minimum: 0
