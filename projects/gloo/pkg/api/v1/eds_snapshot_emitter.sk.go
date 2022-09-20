@@ -236,6 +236,7 @@ func (c *edsEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		newlyRegisteredNamespaces := make([]string, len(namespacesResources))
 		// non watched namespaces that are labeled
 		for i, resourceNamespace := range namespacesResources {
+			c.namespacesWatching.Load(resourceNamespace)
 			namespace := resourceNamespace.Name
 			newlyRegisteredNamespaces[i] = namespace
 			err = c.upstream.RegisterNamespace(namespace)
@@ -398,8 +399,8 @@ func (c *edsEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 					}
 					if len(newNamespaces) > 0 {
 						contextutils.LoggerFrom(ctx).Infof("registered the new namespace %v", newNamespaces)
-						c.updateNamespaces.Unlock()
 					}
+					c.updateNamespaces.Unlock()
 				}
 			}
 		}()
