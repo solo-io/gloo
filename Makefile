@@ -258,6 +258,9 @@ MOCK_RESOURCE_INFO := \
 	gateway:virtual_service:VirtualServiceClient\
 	gateway:route_table:RouteTableClient\
 
+MOCK_RESOURCE_INFO_V1 := \
+	gateway:virtual_service:VirtualServiceClient\
+
 # Use gomock (https://github.com/golang/mock) to generate mocks for our resource clients.
 .PHONY: generate-client-mocks
 generate-client-mocks:
@@ -265,6 +268,13 @@ generate-client-mocks:
 		echo Generating mock for $(word 3,$(subst :, , $(INFO)))...; \
 		GOBIN=$(DEPSGOBIN) $(DEPSGOBIN)/mockgen -destination=projects/$(word 1,$(subst :, , $(INFO)))/pkg/mocks/mock_$(word 2,$(subst :, , $(INFO)))_client.go \
 		-package=mocks \
+		github.com/solo-io/gloo/projects/$(word 1,$(subst :, , $(INFO)))/pkg/api/v1 \
+		$(word 3,$(subst :, , $(INFO))) \
+	;)
+	@$(foreach INFO, $(MOCK_RESOURCE_INFO_V1), \
+		echo Generating V1 mock for $(word 3,$(subst :, , $(INFO)))...; \
+		GOBIN=$(DEPSGOBIN) $(DEPSGOBIN)/mockgen -destination=projects/$(word 1,$(subst :, , $(INFO)))/pkg/mocks/mock_v1/mock_$(word 2,$(subst :, , $(INFO)))_client.go \
+		-package=mock_v1 \
 		github.com/solo-io/gloo/projects/$(word 1,$(subst :, , $(INFO)))/pkg/api/v1 \
 		$(word 3,$(subst :, , $(INFO))) \
 	;)

@@ -107,6 +107,20 @@ func (mr *MockRouteTableClientMockRecorder) Register() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockRouteTableClient)(nil).Register))
 }
 
+// RegisterNamespace mocks base method
+func (m *MockRouteTableClient) RegisterNamespace(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegisterNamespace", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RegisterNamespace indicates an expected call of RegisterNamespace
+func (mr *MockRouteTableClientMockRecorder) RegisterNamespace(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterNamespace", reflect.TypeOf((*MockRouteTableClient)(nil).RegisterNamespace), arg0)
+}
+
 // Watch mocks base method
 func (m *MockRouteTableClient) Watch(arg0 string, arg1 clients.WatchOpts) (<-chan v1.RouteTableList, <-chan error, error) {
 	m.ctrl.T.Helper()

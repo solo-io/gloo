@@ -107,6 +107,20 @@ func (mr *MockProxyClientMockRecorder) Register() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockProxyClient)(nil).Register))
 }
 
+// RegisterNamespace mocks base method
+func (m *MockProxyClient) RegisterNamespace(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegisterNamespace", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RegisterNamespace indicates an expected call of RegisterNamespace
+func (mr *MockProxyClientMockRecorder) RegisterNamespace(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterNamespace", reflect.TypeOf((*MockProxyClient)(nil).RegisterNamespace), arg0)
+}
+
 // Watch mocks base method
 func (m *MockProxyClient) Watch(arg0 string, arg1 clients.WatchOpts) (<-chan v1.ProxyList, <-chan error, error) {
 	m.ctrl.T.Helper()
