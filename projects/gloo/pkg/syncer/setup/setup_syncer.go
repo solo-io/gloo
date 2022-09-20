@@ -762,7 +762,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
   if opts.GatewayControllerEnabled {
     logger.Debugf("Setting up gateway translator")
     gatewayTranslator = gwtranslator.NewDefaultTranslator(gwOpts)
-    proxyReconciler := gwreconciler.NewProxyReconciler(validation.NewValidator(watchOpts.Ctx, translator.NewTranslatorWithHasher(sslutils.NewSslConfigTranslator(), opts.Settings, extensions.PluginRegistryFactory(watchOpts.Ctx), resourceHasher), xdsSanitizer).Validate, proxyClient, statusClient)
+    proxyReconciler := gwreconciler.NewProxyReconciler(validation.NewValidator(watchOpts.Ctx, validationTranslator, xdsSanitizer).Validate, proxyClient, statusClient)
     gwTranslatorSyncer = gwsyncer.NewTranslatorSyncer(
       opts.WatchOpts.Ctx,
       opts.WriteNamespace,
