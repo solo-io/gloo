@@ -146,7 +146,7 @@ func KubeServiceClientForSettings(ctx context.Context,
 	// We are running in kubernetes
 	switch settings.GetConfigSource().(type) {
 	case *v1.Settings_KubernetesConfigSource:
-		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache, settings.GetRefreshRate(), settings.GetWatchNamespaces()); err != nil {
+		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache, settings.GetRefreshRate(), settings.GetWatchNamespaces(), len(settings.GetWatchNamespacesLabelSelectors())); err != nil {
 			return nil, errors.Wrapf(err, "initializing kube cfg clientset and core cache")
 		}
 		return service.NewServiceClient(*clientset, *kubeCoreCache), nil
@@ -186,7 +186,7 @@ func SecretFactoryForSettings(ctx context.Context,
 
 	switch source := settings.GetSecretSource().(type) {
 	case *v1.Settings_KubernetesSecretSource:
-		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache, settings.GetRefreshRate(), settings.GetWatchNamespaces()); err != nil {
+		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache, settings.GetRefreshRate(), settings.GetWatchNamespaces(), len(settings.GetWatchNamespacesLabelSelectors())); err != nil {
 			return nil, errors.Wrapf(err, "initializing kube cfg clientset and core cache")
 		}
 		return &factory.KubeSecretClientFactory{
@@ -232,7 +232,7 @@ func ArtifactFactoryForSettings(ctx context.Context,
 
 	switch source := settings.GetArtifactSource().(type) {
 	case *v1.Settings_KubernetesArtifactSource:
-		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache, settings.GetRefreshRate(), settings.GetWatchNamespaces()); err != nil {
+		if err := initializeForKube(ctx, cfg, clientset, kubeCoreCache, settings.GetRefreshRate(), settings.GetWatchNamespaces(), len(settings.GetWatchNamespacesLabelSelectors())); err != nil {
 			return nil, errors.Wrapf(err, "initializing kube cfg clientset and core cache")
 		}
 		return &factory.KubeConfigMapClientFactory{
@@ -264,6 +264,7 @@ func initializeForKube(ctx context.Context,
 	kubeCoreCache *cache.KubeCoreCache,
 	refreshRate *duration.Duration,
 	nsToWatch []string,
+	numberOfNamespaceSelectors int,
 ) error {
 	if cfg == nil {
 		c, err := kubeutils.GetConfig("", "")
@@ -286,7 +287,9 @@ func initializeForKube(ctx context.Context,
 		if refreshRate != nil {
 			duration = prototime.DurationFromProto(refreshRate)
 		}
-		coreCache, err := cache.NewKubeCoreCacheWithOptions(ctx, *clientset, duration, nsToWatch)
+		nsToWatchIsEmpty := len(nsToWatch) == 1 && nsToWatch[0] == ""
+		enableNamespaceSelector := numberOfNamespaceSelectors > 0 || nsToWatchIsEmpty
+		coreCache, err := cache.NewKubeCoreCacheWithOptions(ctx, *clientset, duration, nsToWatch, enableNamespaceSelector)
 		if err != nil {
 			return err
 		}

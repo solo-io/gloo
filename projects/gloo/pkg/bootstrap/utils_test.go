@@ -92,7 +92,7 @@ var _ = Describe("Utils", func() {
 				},
 			}, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
-			kubeCoreCache, err = corecache.NewKubeCoreCacheWithOptions(ctx, kube, time.Hour, []string{namespace})
+			kubeCoreCache, err = corecache.NewKubeCoreCacheWithOptions(ctx, kube, time.Hour, []string{namespace}, false)
 			Expect(err).NotTo(HaveOccurred())
 
 		})

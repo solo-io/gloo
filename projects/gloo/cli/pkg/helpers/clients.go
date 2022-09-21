@@ -500,18 +500,18 @@ func SettingsClient(ctx context.Context, namespaces []string) (v1.SettingsClient
 }
 
 func MustSecretClient(ctx context.Context) v1.SecretClient {
-	return MustSecretClientWithOptions(ctx, 0, nil)
+	return MustSecretClientWithOptions(ctx, 0, nil, false)
 }
 
-func MustSecretClientWithOptions(ctx context.Context, timeout time.Duration, namespaces []string) v1.SecretClient {
-	client, err := GetSecretClient(ctx, timeout, namespaces)
+func MustSecretClientWithOptions(ctx context.Context, timeout time.Duration, namespaces []string, enableNamespaceLister bool) v1.SecretClient {
+	client, err := GetSecretClient(ctx, timeout, namespaces, enableNamespaceLister)
 	if err != nil {
 		log.Fatalf("failed to create Secret client: %v", err)
 	}
 	return client
 }
 
-func GetSecretClient(ctx context.Context, timeout time.Duration, namespaces []string) (v1.SecretClient, error) {
+func GetSecretClient(ctx context.Context, timeout time.Duration, namespaces []string, enabledNamespaceLister bool) (v1.SecretClient, error) {
 	customFactory := getSecretClientFactory()
 	if customFactory != nil {
 		return v1.NewSecretClient(ctx, customFactory)
@@ -521,7 +521,7 @@ func GetSecretClient(ctx context.Context, timeout time.Duration, namespaces []st
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting kube config")
 	}
-	coreCache, err := cache.NewKubeCoreCacheWithOptions(context.TODO(), clientset, 12*time.Hour, namespaces)
+	coreCache, err := cache.NewKubeCoreCacheWithOptions(context.TODO(), clientset, 12*time.Hour, namespaces, enabledNamespaceLister)
 	if err != nil {
 		return nil, err
 	}

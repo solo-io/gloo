@@ -123,6 +123,7 @@ func CheckResources(opts *options.Options) error {
 	}
 
 	namespaces, err := getNamespaces(opts.Top.Ctx, settings)
+	numberOfNamespaceSelectors := len(settings.WatchNamespacesLabelSelectors)
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 	}
@@ -169,7 +170,8 @@ func CheckResources(opts *options.Options) error {
 	}
 
 	if included := doesNotContain(opts.Top.CheckName, "secrets"); included {
-		err := checkSecrets(opts, namespaces)
+		enableNamespaceLister := numberOfNamespaceSelectors > 0
+		err := checkSecrets(opts, namespaces, enableNamespaceLister)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
 		}
@@ -857,10 +859,11 @@ func checkProxies(opts *options.Options, namespaces []string, glooNamespace stri
 	return nil
 }
 
-func checkSecrets(opts *options.Options, namespaces []string) error {
+func checkSecrets(opts *options.Options, namespaces []string, enableNamespaceLister bool) error {
+	// TODO-JAKE should we be checking all the namespaces, even the ones that are set with the WatchSelectors
 	printer.AppendCheck("Checking secrets... ")
 	var multiErr *multierror.Error
-	client, err := helpers.GetSecretClient(opts.Top.Ctx, opts.Check.SecretClientTimeout, namespaces)
+	client, err := helpers.GetSecretClient(opts.Top.Ctx, opts.Check.SecretClientTimeout, namespaces, enableNamespaceLister)
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 		printer.AppendStatus("secrets", fmt.Sprintf("%v Errors!", multiErr.Len()))

@@ -381,7 +381,8 @@ func defaultGlooOpts(ctx context.Context, runOptions *RunOptions) bootstrap.Opts
 	var kubeCoreCache corecache.KubeCoreCache
 	if runOptions.KubeClient != nil {
 		var err error
-		kubeCoreCache, err = cache.NewKubeCoreCacheWithOptions(ctx, runOptions.KubeClient, time.Hour, runOptions.NsToWatch)
+		nsToWatchIsEmpty := len(runOptions.NsToWatch) == 1 && runOptions.NsToWatch[0] == ""
+		kubeCoreCache, err = cache.NewKubeCoreCacheWithOptions(ctx, runOptions.KubeClient, time.Hour, runOptions.NsToWatch, nsToWatchIsEmpty)
 		Expect(err).NotTo(HaveOccurred())
 	}
 	var validationOpts *translator.ValidationOpts
