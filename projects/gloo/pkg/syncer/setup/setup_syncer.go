@@ -740,7 +740,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	resourceHasher := translator.MustEnvoyCacheResourcesListToFnvHash
 
 	t := translator.NewTranslatorWithHasher(sslutils.NewSslConfigTranslator(), opts.Settings, extensions.PluginRegistryFactory(watchOpts.Ctx), resourceHasher)
-	validationTranslator := translator.NewTranslatorWithHasher(sslutils.NewSslConfigTranslator(), opts.Settings, extensions.PluginRegistryFactory(watchOpts.Ctx), resourceHasher)
 	routeReplacingSanitizer, err := sanitizer.NewRouteReplacingSanitizer(opts.Settings.GetGloo().GetInvalidConfigPolicy())
 	if err != nil {
 		return err
@@ -750,8 +749,9 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		sanitizer.NewUpstreamRemovingSanitizer(),
 		routeReplacingSanitizer,
 	}
-	validator := validation.NewValidator(watchOpts.Ctx, validationTranslator, xdsSanitizer)
 	if opts.ValidationServer.Server != nil {
+		validationTranslator := translator.NewTranslatorWithHasher(sslutils.NewSslConfigTranslator(), opts.Settings, extensions.PluginRegistryFactory(watchOpts.Ctx), resourceHasher)
+		validator := validation.NewValidator(watchOpts.Ctx, validationTranslator, xdsSanitizer)
 		opts.ValidationServer.Server.SetValidator(validator)
 	}
 
@@ -762,6 +762,8 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	if opts.GatewayControllerEnabled {
 		logger.Debugf("Setting up gateway translator")
 		gatewayTranslator = gwtranslator.NewDefaultTranslator(gwOpts)
+		validationTranslator := translator.NewTranslatorWithHasher(sslutils.NewSslConfigTranslator(), opts.Settings, extensions.PluginRegistryFactory(watchOpts.Ctx), resourceHasher)
+		validator := validation.NewValidator(watchOpts.Ctx, validationTranslator, xdsSanitizer)
 		proxyReconciler := gwreconciler.NewProxyReconciler(validator.Validate, proxyClient, statusClient)
 		gwTranslatorSyncer = gwsyncer.NewTranslatorSyncer(
 			opts.WatchOpts.Ctx,
@@ -776,6 +778,8 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	} else {
 		logger.Debugf("Gateway translation is disabled. Proxies are provided from another source")
 	}
+	validationTranslator := translator.NewTranslatorWithHasher(sslutils.NewSslConfigTranslator(), opts.Settings, extensions.PluginRegistryFactory(watchOpts.Ctx), resourceHasher)
+	validator := validation.NewValidator(watchOpts.Ctx, validationTranslator, xdsSanitizer)
 	gwValidationSyncer := gwvalidation.NewValidator(gwvalidation.NewValidatorConfig(
 		gatewayTranslator,
 		validator.Validate,
