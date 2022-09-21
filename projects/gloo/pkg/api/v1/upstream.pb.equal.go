@@ -254,6 +254,20 @@ func (m *Upstream) Equal(that interface{}) bool {
 		}
 	}
 
+	if h, ok := interface{}(m.GetCoolNewField()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetCoolNewField()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetCoolNewField(), target.GetCoolNewField()) {
+			return false
+		}
+	}
+
+	if strings.Compare(m.GetNonNullableNewField(), target.GetNonNullableNewField()) != 0 {
+		return false
+	}
+
 	switch m.UpstreamType.(type) {
 
 	case *Upstream_Kube:

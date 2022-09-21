@@ -185,6 +185,14 @@ func (m *Upstream) Clone() proto.Message {
 		target.IgnoreHealthOnHostRemoval = proto.Clone(m.GetIgnoreHealthOnHostRemoval()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
 	}
 
+	if h, ok := interface{}(m.GetCoolNewField()).(clone.Cloner); ok {
+		target.CoolNewField = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.StringValue)
+	} else {
+		target.CoolNewField = proto.Clone(m.GetCoolNewField()).(*github_com_golang_protobuf_ptypes_wrappers.StringValue)
+	}
+
+	target.NonNullableNewField = m.GetNonNullableNewField()
+
 	switch m.UpstreamType.(type) {
 
 	case *Upstream_Kube:

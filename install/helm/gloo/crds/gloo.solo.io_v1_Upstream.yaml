@@ -319,6 +319,9 @@ spec:
                       type: string
                     type: array
                 type: object
+              coolNewField:
+                nullable: true
+                type: string
               discoveryMetadata:
                 properties:
                   labels:
@@ -896,6 +899,8 @@ spec:
                       x-kubernetes-preserve-unknown-fields: true
                     type: object
                 type: object
+              nonNullableNewField:
+                type: string
               outlierDetection:
                 properties:
                   baseEjectionTime:
