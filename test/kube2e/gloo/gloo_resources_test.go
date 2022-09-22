@@ -19,6 +19,7 @@ import (
 	kubev1 "k8s.io/api/core/v1"
 
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -30,6 +31,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -45,7 +47,10 @@ var _ = Describe("GlooResourcesTest", func() {
 		testRunnerVs          *gatewayv1.VirtualService
 
 		newlyRegisteredNamespace = "ns-new-registered"
+		outsideNamespace         = "outside-ns"
 		glooResources            *gloosnapshot.ApiSnapshot
+		key                      = "foo"
+		value                    = "bar"
 	)
 
 	JustBeforeEach(func() {
@@ -96,9 +101,138 @@ var _ = Describe("GlooResourcesTest", func() {
 		}
 	}
 
-	Describe("Watched Resources", func() {
+	resetSettingsToEmpty := func() {
+		kube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
+			Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
+			settings.WatchNamespaces = []string{}
+		}, testHelper.InstallNamespace)
+	}
+
+	createRegisteredNamespaceEnvironment := func() {
+		_, err := resourceClientset.KubeClients().CoreV1().Namespaces().Create(ctx, &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: newlyRegisteredNamespace,
+				Labels: map[string]string{
+					key: value,
+				},
+			},
+		}, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
+		setupVirtualService(newlyRegisteredNamespace)
+	}
+
+	deleteNamespace := func(ns string) {
+		err := resourceClientset.KubeClients().CoreV1().Namespaces().Delete(ctx, ns, metav1.DeleteOptions{})
+		Expect(err).NotTo(HaveOccurred())
+		Eventually(func() bool {
+			_, err := resourceClientset.KubeClients().CoreV1().Namespaces().Get(ctx, ns, metav1.GetOptions{})
+			return apierrors.IsNotFound(err)
+		}, 15*time.Second, 1*time.Second).Should(BeTrue())
+	}
+
+	createOutsideNamespaceEnvironment := func() {
+		_, err := resourceClientset.KubeClients().CoreV1().Namespaces().Create(ctx, &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: outsideNamespace,
+				Labels: map[string]string{
+					"someKey": "someValue",
+				},
+			},
+		}, metav1.CreateOptions{})
+		Expect(err).ToNot(HaveOccurred())
+		setupVirtualService(outsideNamespace)
+	}
+
+	curl := func() {
+		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
+			Protocol:          "http",
+			Path:              "/",
+			Method:            "GET",
+			Host:              helper.TestrunnerName,
+			Service:           gatewayProxy,
+			Port:              gatewayPort,
+			ConnectionTimeout: 1, // this is important, as sometimes curl hangs
+			WithoutStats:      true,
+		}, kube2e.GetSimpleTestRunnerHttpResponse(), 1, 60*time.Second, 1*time.Second)
+	}
+
+	consistentlyWillNotCurl := func() {
+		curlOpts := helper.CurlOpts{
+			Protocol:          "http",
+			Path:              "/",
+			Method:            "GET",
+			Host:              helper.TestrunnerName,
+			Service:           gatewayProxy,
+			Port:              gatewayPort,
+			ConnectionTimeout: 1, // this is important, as sometimes curl hangs
+			WithoutStats:      true,
+		}
+		timeout := 60 * time.Second
+		interval := 1 * time.Second
+		Consistently(func() bool {
+			_, err := testHelper.Curl(curlOpts)
+			if err != nil {
+				gomega.Expect(err.Error()).NotTo(gomega.ContainSubstring(`pods "testrunner" not found`))
+				return true
+			}
+			return false
+		}, timeout, interval).Should(gomega.BeTrue())
+	}
+
+	Describe("No Watched Namespaces", func() {
 		BeforeEach(func() {
 			setupVirtualService(testHelper.InstallNamespace)
+		})
+
+		FContext("namespace selectors to watch labeled namespaces", func() {
+			BeforeEach(func() {
+				createRegisteredNamespaceEnvironment()
+			})
+
+			AfterEach(func() {
+				deleteNamespace(newlyRegisteredNamespace)
+			})
+
+			JustBeforeEach(func() {
+				kube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
+					Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
+					settings.WatchNamespacesLabelSelectors = []*selectors.Selector_Expression{
+						{
+							Key:      key,
+							Operator: selectors.Selector_Expression_In,
+							Values:   []string{value},
+						},
+					}
+				}, testHelper.InstallNamespace)
+				// have to sleep for the settings to take place, else the curl could connect when we don't want it to
+				time.Sleep(100 * time.Millisecond)
+			})
+
+			JustAfterEach(func() {
+				resetSettingsToEmpty()
+			})
+
+			// TODO-JAKE have to add installed namespace when watched namespaces is set to empty and watchNamespaceSelectors is set
+			// not sure if we want this to be the default behavior or not...
+			// It("Should be able to watch namespaces that are labeled", func() {
+			// 	curl()
+			// })
+
+			Describe("resources outside of label set", func() {
+
+				BeforeEach(func() {
+					createOutsideNamespaceEnvironment()
+				})
+
+				AfterEach(func() {
+					deleteNamespace(outsideNamespace)
+				})
+
+				It("Should not be able to curl a response from a virtual service hosted on a namespace that has namespace labels outside the filter", func() {
+					consistentlyWillNotCurl()
+				})
+
+			})
 		})
 
 		Context("rotating secrets on upstream sslConfig", func() {
@@ -215,24 +349,14 @@ var _ = Describe("GlooResourcesTest", func() {
 		})
 	})
 
-	Describe("namespace selectors", func() {
-
-		var (
-			key   = "foo"
-			value = "bar"
-		)
+	Describe("Watched Namespaces", func() {
 
 		BeforeEach(func() {
-			_, err := resourceClientset.KubeClients().CoreV1().Namespaces().Create(ctx, &corev1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: newlyRegisteredNamespace,
-					Labels: map[string]string{
-						key: value,
-					},
-				},
-			}, metav1.CreateOptions{})
-			Expect(err).ToNot(HaveOccurred())
-			setupVirtualService(newlyRegisteredNamespace)
+			createRegisteredNamespaceEnvironment()
+		})
+
+		AfterEach(func() {
+			deleteNamespace(newlyRegisteredNamespace)
 		})
 
 		JustBeforeEach(func() {
@@ -250,23 +374,28 @@ var _ = Describe("GlooResourcesTest", func() {
 		})
 
 		JustAfterEach(func() {
-			kube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
-				Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
-				settings.WatchNamespaces = []string{}
-			}, testHelper.InstallNamespace)
+			resetSettingsToEmpty()
 		})
 
-		It("Should be able to curl a response from a virtual service hosted on a namespace that has namespace labels on it", func() {
-			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-				Protocol:          "http",
-				Path:              "/",
-				Method:            "GET",
-				Host:              helper.TestrunnerName,
-				Service:           gatewayProxy,
-				Port:              gatewayPort,
-				ConnectionTimeout: 1, // this is important, as sometimes curl hangs
-				WithoutStats:      true,
-			}, kube2e.GetSimpleTestRunnerHttpResponse(), 1, 60*time.Second, 1*time.Second)
+		It("Should be able to watch namespaces that are labeled", func() {
+			curl()
+		})
+
+		Describe("resources outside of label set", func() {
+
+			BeforeEach(func() {
+				createOutsideNamespaceEnvironment()
+			})
+
+			AfterEach(func() {
+				deleteNamespace(outsideNamespace)
+			})
+
+			It("Should not be able to curl a response from a virtual service hosted on a namespace that has namespace labels outside the filter", func() {
+				consistentlyWillNotCurl()
+			})
+
 		})
 	})
+
 })

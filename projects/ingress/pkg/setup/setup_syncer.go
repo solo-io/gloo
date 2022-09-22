@@ -99,7 +99,7 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 	statusReporterNamespace := statusutils.GetStatusReporterNamespaceOrDefault(writeNamespace)
 
 	watchNamespaces := utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
-	watchSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesLabelSelectors())
+	watchNamespaceLabelSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesLabelSelectors())
 	if err != nil {
 		return errors.Wrapf(err, "parsing watch namespace selectors")
 	}
@@ -135,20 +135,20 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 	}
 
 	opts := Opts{
-		ClusterIngressProxyAddress:  clusterIngressProxyAddress,
-		KnativeExternalProxyAddress: knativeExternalProxyAddress,
-		KnativeInternalProxyAddress: knativeInternalProxyAddress,
-		WriteNamespace:              writeNamespace,
-		StatusReporterNamespace:     statusReporterNamespace,
-		WatchNamespaces:             watchNamespaces,
-		WatchSelectors:              watchSelectors,
-		Proxies:                     proxyFactory,
-		Upstreams:                   upstreamFactory,
-		Secrets:                     secretFactory,
+		ClusterIngressProxyAddress:   clusterIngressProxyAddress,
+		KnativeExternalProxyAddress:  knativeExternalProxyAddress,
+		KnativeInternalProxyAddress:  knativeInternalProxyAddress,
+		WriteNamespace:               writeNamespace,
+		StatusReporterNamespace:      statusReporterNamespace,
+		WatchNamespaces:              watchNamespaces,
+		WatchNamespaceLabelSelectors: watchNamespaceLabelSelectors,
+		Proxies:                      proxyFactory,
+		Upstreams:                    upstreamFactory,
+		Secrets:                      secretFactory,
 		WatchOpts: clients.WatchOpts{
 			Ctx:                ctx,
 			RefreshRate:        refreshRate,
-			ExpressionSelector: watchSelectors,
+			ExpressionSelector: watchNamespaceLabelSelectors,
 		},
 		EnableKnative:       enableKnative,
 		KnativeVersion:      knativeVersion,
@@ -163,7 +163,7 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 
 func RunIngress(opts Opts) error {
 	opts.WatchOpts = opts.WatchOpts.WithDefaults()
-	opts.WatchOpts.ExpressionSelector = opts.WatchSelectors
+	opts.WatchOpts.ExpressionSelector = opts.WatchNamespaceLabelSelectors
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "ingress")
 
 	if opts.DisableKubeIngress && !opts.EnableKnative {

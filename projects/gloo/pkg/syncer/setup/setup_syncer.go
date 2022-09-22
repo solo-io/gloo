@@ -254,7 +254,7 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 		writeNamespace = defaults.GlooSystem
 	}
 	watchNamespaces := utils.ProcessWatchNamespaces(settings.GetWatchNamespaces(), writeNamespace)
-	namespaceLabelSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesLabelSelectors())
+	watchNamespaceLabelSelectors, err := utils.ConvertExpressionSelectorToString(settings.GetWatchNamespacesLabelSelectors())
 	if err != nil {
 		return errors.Wrapf(err, "parsing watch namespace label selectors")
 	}
@@ -368,7 +368,7 @@ func (s *setupSyncer) Setup(ctx context.Context, kubeCache kube.SharedCache, mem
 	opts.WriteNamespace = writeNamespace
 	opts.StatusReporterNamespace = gloostatusutils.GetStatusReporterNamespaceOrDefault(writeNamespace)
 	opts.WatchNamespaces = watchNamespaces
-	opts.WatchNamespaceLabelSelectors = namespaceLabelSelectors
+	opts.WatchNamespaceLabelSelectors = watchNamespaceLabelSelectors
 
 	opts.WatchOpts = clients.WatchOpts{
 		Ctx:         ctx,
@@ -439,9 +439,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	watchOpts := opts.WatchOpts.WithDefaults()
-	// JAKE-CRASH
 	watchOpts.ExpressionSelector = opts.WatchNamespaceLabelSelectors
-	// watchOpts.ExpressionSelector = opts.WatchNamespaceLabelSelectors
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gloo")
 
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")

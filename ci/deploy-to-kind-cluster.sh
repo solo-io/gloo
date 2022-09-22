@@ -124,6 +124,9 @@ EOF
 }
 create_kind_cluster_or_skip
 
+# remove the last time it created a helm chart
+rm -rf _test
+
 # so that you can just build the kind image alone if needed
 if [[ $JUST_KIND == 'true' ]]; then
   exit

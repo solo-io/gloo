@@ -287,6 +287,8 @@ func initializeForKube(ctx context.Context,
 		if refreshRate != nil {
 			duration = prototime.DurationFromProto(refreshRate)
 		}
+		// this will enable the namespace lister which should only be enabled if we are watching for new namespaces
+		// or if the namespace setting is empty set at [""]
 		nsToWatchIsEmpty := len(nsToWatch) == 1 && nsToWatch[0] == ""
 		enableNamespaceSelector := numberOfNamespaceSelectors > 0 || nsToWatchIsEmpty
 		coreCache, err := cache.NewKubeCoreCacheWithOptions(ctx, *clientset, duration, nsToWatch, enableNamespaceSelector)

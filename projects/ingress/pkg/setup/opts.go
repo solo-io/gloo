@@ -13,16 +13,16 @@ type Opts struct {
 	StatusReporterNamespace     string
 	// WatchNamespaces are the namespaces to watch, if empty it represents all namespaces
 	WatchNamespaces []string
-	// WatchSelectors are label selectors, both equality and set based in one string
-	WatchSelectors      string
-	Proxies             factory.ResourceClientFactory
-	Upstreams           factory.ResourceClientFactory
-	Secrets             factory.ResourceClientFactory
-	WatchOpts           clients.WatchOpts
-	EnableKnative       bool
-	KnativeVersion      string
-	DisableKubeIngress  bool
-	RequireIngressClass bool
-	CustomIngressClass  string
-	IngressProxyLabel   string
+	// WatchNamespaceLabelSelectors are label selectors, both equality and set based in one string
+	WatchNamespaceLabelSelectors string
+	Proxies                      factory.ResourceClientFactory
+	Upstreams                    factory.ResourceClientFactory
+	Secrets                      factory.ResourceClientFactory
+	WatchOpts                    clients.WatchOpts
+	EnableKnative                bool
+	KnativeVersion               string
+	DisableKubeIngress           bool
+	RequireIngressClass          bool
+	CustomIngressClass           string
+	IngressProxyLabel            string
 }

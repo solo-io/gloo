@@ -2,9 +2,12 @@ changelog:
   - type: NEW_FEATURE
     issueLink: https://github.com/solo-io/gloo/issues/5868 
     description: |
-      Added the ability to watch namespaces given be Expression Selectors in the Watch Opts
-      Watched Namespaces work as normally. When Expression Selectors the snapshot
-      emitter will watch, in addition to the watched namespaces, namespaces that
-      are labeled and meet the criteria of the Expression Selector. All resource 
-      clients will watch these namespaces, if set.
+      Added the ability to watch namespaces by setting the `watchNamespacesLabelSelectors` 
+      in the settings API. `watchNamespaces` work as normally. When the selectors are set 
+      Gloo will watch, in addition to the watched namespaces, namespaces that
+      are labeled and meet the criteria of the label selectors. If `watchNamespaces` is not set
+      then it will only watch namespaces set by the `watchNamespacesLabelSelectors`, if the selectors
+      are set else all. Please look at [set based labels filtering](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement)
+      and [equity based label filtering](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#equality-based-requirement)
+      both of which can be used to construct the selector filtering.
     resolvesIssue: false

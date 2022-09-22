@@ -131,7 +131,6 @@ func startLeaderElection(ctx context.Context, settingsDir string, electionConfig
 		return singlereplica.NewElectionFactory().StartElection(ctx, electionConfig)
 	}
 
-	// TODO-JAKE not sure about this one
 	cfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
 		return nil, err
