@@ -161,7 +161,8 @@ type Settings struct {
 	// If empty, this will default to "gloo-system".
 	DiscoveryNamespace string `protobuf:"bytes,1,opt,name=discovery_namespace,json=discoveryNamespace,proto3" json:"discovery_namespace,omitempty"`
 	// Use this setting to restrict the namespaces that Gloo controllers take into consideration when watching for resources.
-	// In addition you can restrict namespaces using the `watchNamespacesLabelSelectors`. In a
+	// In addition you can restrict namespaces using the `watchNamespacesLabelSelectors`.
+	// Namespaces that meet `watchNamespacesLabelSelectors` will be watched in addition to the `watchNamespaces`. In an
 	// usual production scenario, RBAC policies will limit the namespaces that Gloo has access to. If `watchNamespaces`
 	// contains namespaces outside of this whitelist, Gloo will fail to start.
 	//
@@ -171,9 +172,10 @@ type Settings struct {
 	// Adding these label filters will restrict the namespaces that Gloo controllers take into consideration
 	// when watching for resources. Namespaces that meet the label filter criteria
 	// will be added to the list of namespaces to watch.  This includes any namespaces
-	// added with `watchNamespaces`. In a
+	// added with `watchNamespaces`. If `watchNamespaces` is set to [""](all namespaces), which is the default setting,
+	// then only those namespaces that meet the label criteria will be watched. In an
 	// usual production scenario, RBAC policies will limit the namespaces that Gloo has access to.
-	// If the namespaces that fit the filtering criteria are outside of this whitelist, Gloo will fail to start.
+	// If the namespaces that fit the filtering criteria are outside of this allowlist, Gloo will fail to start.
 	// Please look at
 	// [set based labels filtering](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement)
 	// and [equity based label filtering](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#equality-based-requirement)

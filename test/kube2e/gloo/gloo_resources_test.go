@@ -184,7 +184,7 @@ var _ = Describe("GlooResourcesTest", func() {
 			setupVirtualService(testHelper.InstallNamespace)
 		})
 
-		FContext("namespace selectors to watch labeled namespaces", func() {
+		Context("namespace selectors to watch labeled namespaces", func() {
 			BeforeEach(func() {
 				createRegisteredNamespaceEnvironment()
 			})
