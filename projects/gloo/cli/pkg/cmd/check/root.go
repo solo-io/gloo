@@ -123,7 +123,7 @@ func CheckResources(opts *options.Options) error {
 	}
 
 	namespaces, err := getNamespaces(opts.Top.Ctx, settings)
-	numberOfNamespaceSelectors := len(settings.WatchNamespacesLabelSelectors)
+	numberOfNamespaceSelectors := len(settings.GetWatchNamespacesLabelSelectors())
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 	}
