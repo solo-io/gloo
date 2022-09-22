@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    Cache rate limit configs for faster access.

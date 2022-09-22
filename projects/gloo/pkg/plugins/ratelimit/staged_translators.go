@@ -13,6 +13,7 @@ import (
 	rlplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/ratelimit"
 	solo_api_rl_types "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/rlcache"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/translation"
 )
@@ -46,6 +47,7 @@ func getStagedTranslatorForRateLimitPlugin(
 		},
 		&crdTranslator{
 			crdConfigTranslator: crd,
+			rateLimitsLruCache:  rlcache.NewRLCache(),
 		},
 		&setActionTranslator{
 			globalConfigTranslator: global,
@@ -163,6 +165,8 @@ type crdTranslator struct {
 	crdConfigTranslator shims.RateLimitConfigTranslator
 
 	rateLimitBeforeAuth bool
+
+	rateLimitsLruCache *rlcache.RLCache
 }
 
 func (c *crdTranslator) Init(params plugins.InitParams) {
@@ -243,7 +247,7 @@ func (c *crdTranslator) getCrdRateLimits(ctx context.Context, configRefs []*rate
 	for _, configRef := range configRefs {
 
 		// Check if the resource exists
-		glooApiResource, err := snap.Ratelimitconfigs.Find(configRef.GetNamespace(), configRef.GetName())
+		glooApiResource, err := c.rateLimitsLruCache.FindRateLimit(snap, configRef.GetNamespace(), configRef.GetName())
 		if err != nil {
 			errs = multierror.Append(errs, ConfigNotFoundErr(configRef.GetNamespace(), configRef.GetName()))
 			continue

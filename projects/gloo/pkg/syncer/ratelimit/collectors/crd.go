@@ -1,6 +1,8 @@
 package collectors
 
 import (
+	"github.com/pkg/errors"
+	gloo_api_rl_types "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/ratelimit"
@@ -11,11 +13,12 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	rlPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/rlcache"
 	rate_limiter_shims "github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims"
 )
 
 type crdConfigCollector struct {
-	snapshot   *gloov1snap.ApiSnapshot
+	ratelimits rlcache.RLMap
 	translator rate_limiter_shims.RateLimitConfigTranslator
 
 	resources map[string]*solo_api_rl_types.RateLimitConfigSpec_Raw
@@ -26,7 +29,7 @@ func NewCrdConfigCollector(
 	translator rate_limiter_shims.RateLimitConfigTranslator,
 ) ConfigCollector {
 	return &crdConfigCollector{
-		snapshot:   snapshot,
+		ratelimits: rlcache.CollectRateLimits(snapshot),
 		translator: translator,
 		resources:  map[string]*solo_api_rl_types.RateLimitConfigSpec_Raw{},
 	}
@@ -103,7 +106,7 @@ func (c *crdConfigCollector) processConfigRefs(
 			continue
 		}
 
-		glooApiResource, err := c.snapshot.Ratelimitconfigs.Find(resourceRef.Strings())
+		glooApiResource, err := c.FindRateLimit(resourceRef.Strings())
 		if err != nil {
 			reports.AddError(parentProxy, err)
 			continue
@@ -119,4 +122,12 @@ func (c *crdConfigCollector) processConfigRefs(
 
 		c.resources[resourceKey] = descriptors
 	}
+}
+
+func (c *crdConfigCollector) FindRateLimit(namespace, name string) (*gloo_api_rl_types.RateLimitConfig, error) {
+	rlc, ok := c.ratelimits[rlcache.RLKey{Name: name, Namespace: namespace}]
+	if !ok {
+		return nil, errors.Errorf("list did not find rateLimitConfig %v.%v", namespace, name)
+	}
+	return rlc, nil
 }
