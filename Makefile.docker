@@ -12,6 +12,7 @@ UNAME_M ?=$(shell uname -m)
 # To use dockerhub images, set the IMAGE_REPO to "soloio"
 # To use gcr images, set the IMAGE_REPO to "gcr.io/$PROJECT_NAME"
 # leave default value unset
+
 IMAGE_REPO_DEFAULT_VALUE := quay.io/solo-io
 IMAGE_REPO ?= $(IMAGE_REPO_DEFAULT_VALUE)
 
@@ -31,14 +32,23 @@ ifeq ($(PUSH_TESTS_ARM), true)
 	IMAGE_REPO ?= localhost:5000
 endif
 
-
 VERSION ?= $(shell echo $(TAGGED_VERSION) | sed -e "s/^refs\/tags\///" | cut -c 2-)
 
-GOARCH ?= amd64
+# if `GO_ARCH` is set, then it will keep its value. Else, it will be changed based off the machine's host architecture.
 ifneq ($(or	$(filter $(UNAME_M), arm64), $(filter $(UNAME_M), aarch64)), )
-	GOARCH := arm64
-	PLATFORM := --platform=linux/amd64
+	PLATFORM := --platform linux/amd64
+	ifeq ($(GOARCH), amd64)
+		GOARCH := amd64
+	else
+		GOARCH := arm64
+		PLATFORM := --platform linux/arm64
+	endif
+else
+	GOARCH ?= amd64
 endif
+
+DOCKER_BUILD_ARGS :=--build-arg DOCKER_GOARCH=$(GOARCH) $(PLATFORM)
+DOCKER_GOARCH := $(GOARCH)
 
 # enable CGO for amd64 only
 GO_ENABLE_CGO=0
@@ -46,10 +56,7 @@ ifeq ($(GOARCH), amd64)
 	GO_ENABLE_CGO=1
 endif
 
-DOCKER_BUILD_ARGS=--build-arg DOCKER_GOARCH=$(GOARCH)
-DOCKER_BUILD_ARGS_PLATFORM=$(DOCKER_BUILD_ARGS) $(PLATFORM)
-
-DOCKER_GO_BORING_ARGS=--build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1
+DOCKER_GO_BORING_ARGS=--build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1 --platform linux/amd64
 
 #----------------------------------------------------------------------------------
 # Kind Load Images
@@ -59,6 +66,9 @@ CLUSTER_NAME ?= kind
 
 kind-load-%:
 	kind load docker-image $(IMAGE_REPO)/$*:$(VERSION) --name $(CLUSTER_NAME)
+
+kind-load-%-debug:
+	kind load docker-image $(IMAGE_REPO)/$*:$(VERSION)-debug --name $(CLUSTER_NAME)
 
 kind-load-%-extended:
 	kind load docker-image $(IMAGE_REPO)/$*:$(VERSION)-extended --name $(CLUSTER_NAME)

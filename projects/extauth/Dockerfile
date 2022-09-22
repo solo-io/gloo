@@ -38,13 +38,13 @@ RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=${DOCKER_GOARCH} GOOS=linux go buil
     projects/extauth/cmd/main.go
 
 # Build script to verify if a plugin can be loaded by the ext-auth server
-RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=${DOCKER_GOARCH} GOOS=linux go build \
+RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=amd64 GOOS=linux go build \
     -gcflags="$GCFLAGS" \
     -ldflags="$LDFLAGS" \
-    -o verify-plugins-linux-${DOCKER_GOARCH} \
+    -o verify-plugins-linux-amd64 \
     projects/extauth/scripts/verify_plugins.go
 
 FROM alpine:3.15.6
 ARG DOCKER_GOARCH
 COPY --from=build-env /go/src/github.com/solo-io/solo-projects/extauth-linux-${DOCKER_GOARCH} /
-COPY --from=build-env /go/src/github.com/solo-io/solo-projects/verify-plugins-linux-${DOCKER_GOARCH} /
+COPY --from=build-env /go/src/github.com/solo-io/solo-projects/verify-plugins-linux-amd64 /
