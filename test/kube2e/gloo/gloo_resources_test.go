@@ -38,7 +38,7 @@ const (
 	gatewayPort  = int(80)
 )
 
-var _ = FDescribe("GlooResourcesTest", func() {
+var _ = Describe("GlooResourcesTest", func() {
 
 	var (
 		testRunnerDestination *gloov1.Destination
@@ -256,7 +256,7 @@ var _ = FDescribe("GlooResourcesTest", func() {
 			}, testHelper.InstallNamespace)
 		})
 
-		It("Should be able to curl a response from a virtual service hosted on a namespace that has labels on it", func() {
+		It("Should be able to curl a response from a virtual service hosted on a namespace that has namespace labels on it", func() {
 			testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 				Protocol:          "http",
 				Path:              "/",
