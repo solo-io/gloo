@@ -252,16 +252,5 @@ func convertEnvoyToGloo(httpHealth *envoy_config_core_v3.HealthCheck_HttpHealthC
 		}
 	}
 
-	// copy deprecated configs, if used
-	if httpHealth.GetHiddenEnvoyDeprecatedUseHttp2() {
-		ret.CodecClientType = envoy_type_v3.CodecClientType_HTTP2
-	}
-	if httpHealth.GetHiddenEnvoyDeprecatedServiceName() != "" {
-		ret.ServiceNameMatcher = &envoy_type_matcher_v3_solo.StringMatcher{
-			MatchPattern: &envoy_type_matcher_v3_solo.StringMatcher_Prefix{
-				Prefix: httpHealth.GetHiddenEnvoyDeprecatedServiceName(),
-			},
-		}
-	}
 	return ret
 }

@@ -1,0 +1,61 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: deislabs
+    dependencyRepo: oras
+    dependencyTag: v0.11.1
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: go-logr
+    dependencyRepo: zapr
+    dependencyTag: v0.4.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: grpc-ecosystem
+    dependencyRepo: go-grpc-middleware
+    dependencyTag: v1.3.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: onsi
+    dependencyRepo: gomega
+    dependencyTag: v1.16.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.9.28
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: go.uber.org
+    dependencyRepo: zap
+    dependencyTag: v1.19.1
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang.org
+    dependencyRepo: x/net
+    dependencyTag: v0.0.0-20220906165146-f3363e06e74c
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: api
+    dependencyTag: v0.22.4
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: helm.sh
+    dependencyRepo: helm/v3
+    dependencyTag: v3.6.3
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: apiextensions-apiserver
+    dependencyTag: v0.22.2
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: apimachinery
+    dependencyTag: v0.22.4
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: code-generator
+    dependencyTag: v0.22.4
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: k8s.io
+    dependencyRepo: controller-runtime
+    dependencyTag: v0.10.3
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: sigs.k8s.io
+    dependencyRepo: yaml
+    dependencyTag: v1.3.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: v0.0.0-20220920210643-bd4e7cf99825
