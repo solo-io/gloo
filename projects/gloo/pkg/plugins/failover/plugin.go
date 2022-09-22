@@ -82,18 +82,24 @@ func (f *failoverPluginImpl) Name() string {
 }
 
 func (f *failoverPluginImpl) Init(params plugins.InitParams) {
-	f.settings = params.Settings
-	f.watchedAddresses = nil
-
 	syncLoopCtx, cancel := context.WithCancel(params.Ctx)
 	if f.syncLoopCancel != nil {
 		f.syncLoopCancel()
 	}
 	f.syncLoopCancel = cancel
 
+	f.settings = params.Settings
+	f.watchedAddressesMutex.Lock()
+	f.watchedAddresses = nil
+	f.watchedAddressesMutex.Unlock()
+
 	// Start a go routine that will force emit Gloo if there is a change in DNS resolution for the
 	// EDS endpoints
-	go f.startDnsSyncLoop(syncLoopCtx)
+	pollingInterval := DefaultDnsPollingInterval
+	if intervalFromSettings := f.settings.GetGloo().GetFailoverUpstreamDnsPollingInterval(); intervalFromSettings != nil {
+		pollingInterval = intervalFromSettings.AsDuration()
+	}
+	go f.startDnsSyncLoop(syncLoopCtx, pollingInterval)
 }
 
 func (f *failoverPluginImpl) ProcessUpstream(
@@ -422,11 +428,9 @@ func buildLbEndpoint(
 	}
 }
 
-func (f *failoverPluginImpl) startDnsSyncLoop(ctx context.Context) {
-	pollingInterval := DefaultDnsPollingInterval
-	if intervalFromSettings := f.settings.GetGloo().GetFailoverUpstreamDnsPollingInterval(); intervalFromSettings != nil {
-		pollingInterval = intervalFromSettings.AsDuration()
-	}
+// everything in this function must either be copied and passed in or guarded by a mutex
+// on access to the plugin struct to ensure that there are no data races
+func (f *failoverPluginImpl) startDnsSyncLoop(ctx context.Context, pollingInterval time.Duration) {
 	timer := time.NewTicker(pollingInterval)
 	defer timer.Stop()
 
@@ -443,7 +447,6 @@ func (f *failoverPluginImpl) startDnsSyncLoop(ctx context.Context) {
 				return
 			}
 			currentHash := f.buildFailoverEndpointHash(ctx)
-
 			if previousHash == currentHash {
 				continue
 			}
@@ -463,6 +466,8 @@ func (f *failoverPluginImpl) startDnsSyncLoop(ctx context.Context) {
 	}
 }
 
+// everything in this function must either be copied and passed in or guarded by a mutex
+// on access to the plugin struct to ensure that there are no data races
 func (f *failoverPluginImpl) buildFailoverEndpointHash(ctx context.Context) uint64 {
 	dnsResolutions := make(map[string][]net.IPAddr)
 	f.watchedAddressesMutex.RLock()

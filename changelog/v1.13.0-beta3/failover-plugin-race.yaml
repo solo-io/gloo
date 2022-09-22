@@ -1,0 +1,7 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/4090 
+  description: >-
+    Fix a potential data race in the failover plugin where a goroutine that resolves DNS
+    may have its state updated underneath itself while executing.
+
