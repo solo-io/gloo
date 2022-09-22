@@ -56,7 +56,7 @@ ifneq ($(EMPTY_IF_NOT_DEFAULT),)
     ON_DEFAULT_BRANCH = "true"
 endif
 
-LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION) -X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn"
+LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION) -X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore"
 GCFLAGS := 'all=-N -l'
 
 GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=$(DOCKER_GOARCH)
@@ -161,7 +161,7 @@ endif
 .PHONY: run-ci-regression-tests
 run-ci-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore RUNNING_REGRESSION_TESTS=true $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/kube2e/$(KUBE2E_TESTS)/...
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn RUNNING_REGRESSION_TESTS=true $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/kube2e/$(KUBE2E_TESTS)/...
 
 .PHONE: run-ci-gloo-fed-regression-tests
 run-ci-gloo-fed-regression-tests: install-go-tools
@@ -172,7 +172,7 @@ run-ci-gloo-fed-regression-tests: install-go-tools
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
 .PHONY: run-e2e-tests
 run-e2e-tests: install-go-tools
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
 
 .PHONY: update-ui-deps
 update-ui-deps:

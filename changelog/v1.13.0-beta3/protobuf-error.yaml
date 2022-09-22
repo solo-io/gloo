@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/7196
+    resolvesIssue: false
+    description: >
+      Set GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn for builds and GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore
+      for tests.
