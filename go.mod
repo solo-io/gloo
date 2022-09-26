@@ -35,12 +35,12 @@ require (
 	github.com/onsi/gomega v1.16.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.12.2
+	github.com/prometheus/client_golang v1.13.0
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/rotisserie/eris v0.5.0
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.0
 	github.com/solo-io/anyvendor v0.0.4
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/envoy-operator v0.1.4
@@ -72,8 +72,8 @@ require (
 	golang.org/x/net v0.0.0-20220906165146-f3363e06e74c
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	golang.org/x/tools v0.1.11
-	google.golang.org/grpc v1.47.0
-	google.golang.org/protobuf v1.28.0
+	google.golang.org/grpc v1.49.0
+	google.golang.org/protobuf v1.28.1
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	helm.sh/helm/v3 v3.6.3
@@ -108,7 +108,7 @@ replace (
 	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 	// needed by gloo
 	github.com/google/go-github/v32 => github.com/google/go-github/v32 v32.0.0
-	github.com/open-policy-agent/opa => github.com/open-policy-agent/opa v0.42.0
+	github.com/open-policy-agent/opa => github.com/open-policy-agent/opa v0.44.0
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.0-rc1
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.11.1
 	github.com/prometheus/common => github.com/prometheus/common v0.26.0

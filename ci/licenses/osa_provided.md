@@ -28,7 +28,7 @@ Name|Version|License
 [prometheus/client_golang](https://github.com/prometheus/client_golang)|v1.11.1|Apache License 2.0
 [prometheus/prometheus](https://github.com/prometheus/prometheus)|v2.5.0+incompatible|Apache License 2.0
 [rotisserie/eris](https://github.com/rotisserie/eris)|v0.5.0|MIT License
-[sirupsen/logrus](https://github.com/sirupsen/logrus)|v1.8.1|MIT License
+[sirupsen/logrus](https://github.com/sirupsen/logrus)|v1.9.0|MIT License
 [spf13/cobra](https://github.com/spf13/cobra)|v1.5.0|Apache License 2.0
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.5|BSD 3-clause "New" or "Revised" License
 [go.opencensus.io](https://go.opencensus.io)|v0.23.0|Apache License 2.0
@@ -37,8 +37,8 @@ Name|Version|License
 [x/net](https://golang.org/x/net)|v0.0.0-20220906165146-f3363e06e74c|BSD 3-clause "New" or "Revised" License
 [x/sync](https://golang.org/x/sync)|v0.0.0-20220601150217-0de741cfad7f|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
-[google.golang.org/grpc](https://google.golang.org/grpc)|v1.47.0|Apache License 2.0
-[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.28.0|BSD 3-clause "New" or "Revised" License
+[google.golang.org/grpc](https://google.golang.org/grpc)|v1.49.0|Apache License 2.0
+[google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.28.1|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.5.1|Apache License 2.0
 [helm/v3](https://helm.sh/helm/v3)|v3.6.3|Apache License 2.0
 [istio.io/tools](https://istio.io/tools)|v0.0.0-20200918020118-6d0a0e49b5d3|Apache License 2.0
