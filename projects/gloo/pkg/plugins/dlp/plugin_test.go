@@ -14,6 +14,7 @@ import (
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	skv2matchers "github.com/solo-io/skv2/test/matchers"
 	envoy_type "github.com/solo-io/solo-kit/pkg/api/external/envoy/type"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
@@ -132,7 +133,10 @@ var _ = Describe("dlp plugin", func() {
 		Expect(dlpTransform).NotTo(BeNil())
 		Expect(dlpTransform.GetActions()).To(HaveLen(transformNum))
 		relevantActions := GetRelevantActions(context.Background(), actions)
-		Expect(dlpTransform.GetActions()).To(Equal(relevantActions))
+
+		for i, action := range dlpTransform.GetActions() {
+			Expect(action).To(skv2matchers.MatchProto(relevantActions[i]))
+		}
 	}
 
 	var checkAllDefaultActions = func(actions []*dlp.Action, dlpTransform *transformation_ee.DlpTransformation) {
