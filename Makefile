@@ -20,6 +20,8 @@
 # load-kind-images-fips - loads the fips images into kind
 # docker-push-local-arm - builds images and loads them into the docker registry
 # build-test-chart - builds the helm chart for testing
+# [image-name]-ee-docker build a single image (useful for iterating with an existing set up)
+# gloo-ee-race-docker build a gloo image with race detection enabled.
 ####################################################################################################
 include Makefile.docker
 
@@ -945,6 +947,50 @@ gloo-ee-docker-dev: $(GLOO_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_OUT_DIR)/
 	touch $@
 
 #----------------------------------------------------------------------------------
+# Gloo with race detection enabled.
+# This is intended to be used to aid in local debugging by swapping out this image in a running gloo instance
+#----------------------------------------------------------------------------------
+GLOO_RACE_OUT_DIR=$(OUTPUT_DIR)/gloo-race
+
+$(GLOO_RACE_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
+	mkdir -p $(GLOO_RACE_OUT_DIR)
+	cp $< $@
+
+$(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT_DIR)/Dockerfile.build
+	docker build -t $(IMAGE_REPO)/gloo-race-ee-build-container:$(VERSION) \
+		-f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
+		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg USE_APK=true \
+		--build-arg GITHUB_TOKEN \
+		$(DOCKER_BUILD_ARGS) \
+		.
+	touch $@
+# Build inside container as we need to target linux and must compile with CGO_ENABLED=1
+# We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
+$(GLOO_RACE_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH): $(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker-build
+	docker create -ti --name gloo-race-temp-container $(IMAGE_REPO)/gloo-race-ee-build-container:$(VERSION) bash
+	docker cp gloo-race-temp-container:/gloo-linux-$(DOCKER_GOARCH) $(GLOO_RACE_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH)
+	docker rm -f gloo-race-temp-container
+
+.PHONY: gloo-race
+gloo-race: $(GLOO_RACE_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH)
+
+$(GLOO_RACE_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
+	cp $< $@
+
+.PHONY: gloo-race-ee-docker
+gloo-race-ee-docker: $(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker
+$(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_RACE_OUT_DIR)/Dockerfile
+	cp -r projects/gloo/pkg/plugins/graphql/js $(GLOO_RACE_OUT_DIR)/js
+	cp -r projects/ui/src/proto $(GLOO_RACE_OUT_DIR)/js
+	docker build $(call get_test_tag_option,gloo-ee) $(GLOO_RACE_OUT_DIR) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) $(DOCKER_BUILD_ARGS) \
+		-t $(IMAGE_REPO)/gloo-ee:$(VERSION)-race
+	touch $@
+#----------------------------------------------------------------------------------
 # Gloo with FIPS Envoy
 #----------------------------------------------------------------------------------
 
@@ -1249,7 +1295,7 @@ endif
 
 .PHONY: docker docker-push
  docker: rate-limit-ee-docker rate-limit-ee-fips-docker extauth-ee-docker \
-       extauth-ee-fips-docker gloo-ee-docker gloo-fips-ee-docker gloo-ee-envoy-wrapper-docker gloo-ee-envoy-wrapper-debug-docker discovery-ee-docker\
+       extauth-ee-fips-docker gloo-ee-docker gloo-fips-ee-docker gloo-race-ee-docker gloo-ee-envoy-wrapper-docker gloo-ee-envoy-wrapper-debug-docker discovery-ee-docker\
        gloo-ee-envoy-wrapper-fips-docker gloo-ee-envoy-wrapper-fips-debug-docker observability-ee-docker caching-ee-docker ext-auth-plugins-docker ext-auth-plugins-fips-docker \
        gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker gloo-federation-console-docker gloo-fed-rbac-validating-webhook-docker
 
@@ -1267,6 +1313,7 @@ docker-push-non-fips:
 ifeq ($(RELEASE), "true")
 	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION)-race && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug && \
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
@@ -1315,6 +1362,7 @@ ifeq ($(RELEASE),"true")
 	docker tag $(RETAG_IMAGE_REGISTRY)/rate-limit-ee-fips:$(VERSION) $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee:$(VERSION) $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-fips:$(VERSION) $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) && \
+	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee:$(VERSION)-race $(IMAGE_REPO)/gloo-ee:$(VERSION)-race && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION) $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION)-debug $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION) $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \

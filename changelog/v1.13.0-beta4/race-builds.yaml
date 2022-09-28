@@ -1,0 +1,3 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Add target gloo-race-ee-docker to Makefile to build gloo in a Docker container with CGO and -race enabled.
