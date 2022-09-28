@@ -1,0 +1,20 @@
+CHANGELOG:
+- type: NEW_FEATURE
+  issueLink: https://github.com/solo-io/solo-projects/issues/3944
+  resolvesIssue: false
+  description: |
+    Add translation logic to support pluggable storage backends for API keys in ext-auth-service
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.13.0-beta17
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: ext-auth-service
+  dependencyTag: v0.25.0
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: solo-apis
+  dependencyTag: gloo-v1.13.0-beta17
+
+

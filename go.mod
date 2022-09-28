@@ -46,7 +46,7 @@ require (
 	github.com/solo-io/caching-service v0.1.5-0.20220822121333-9c5f0baac953
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
-	github.com/solo-io/ext-auth-service v0.24.1
+	github.com/solo-io/ext-auth-service v0.25.0
 	github.com/solo-io/external-apis v0.1.12-0.20220818213511-97f5ab3a6898
 	github.com/solo-io/gloo v1.13.0-beta17
 	github.com/solo-io/go-list-licenses v0.1.4
@@ -116,6 +116,7 @@ require (
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/aerospike/aerospike-client-go v4.5.2+incompatible // indirect
+	github.com/aerospike/aerospike-client-go/v6 v6.3.0 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/armon/go-metrics v0.3.11 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect

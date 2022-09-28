@@ -10,6 +10,7 @@ import (
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/onsi/ginkgo/extensions/table"
 	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/golang/mock/gomock"
@@ -148,7 +149,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 	})
 
 	Describe("translating API keys config", func() {
-		It("works as expected", func() {
+		It("translates old style config", func() {
 			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
 				AuthConfigRefName: "default.api-keys-authconfig",
 				Configs: []*extauthv1.ExtAuthConfig_Config{
@@ -169,6 +170,61 @@ var _ = Describe("Ext Auth Config Translator", func() {
 								HeaderName: "x-api-key",
 								HeadersFromKeyMetadata: map[string]string{
 									"x-user-id": "user-id",
+								},
+							},
+						},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(authService).NotTo(BeNil())
+			authServiceChain, ok := authService.(chain.AuthServiceChain)
+			Expect(ok).To(BeTrue())
+			Expect(authServiceChain).NotTo(BeNil())
+			services := authServiceChain.ListAuthServices()
+			Expect(services).To(HaveLen(1))
+		})
+		It("translates secrets config", func() {
+			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.api-keys-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_ApiKeyAuth{
+							ApiKeyAuth: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig{
+								StorageBackend: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig_K8SSecretApikeyStorage{
+									K8SSecretApikeyStorage: &extauthv1.K8SSecretApiKeyStorage{
+										LabelSelector:    map[string]string{"foo": "bar"},
+										ApiKeySecretRefs: []*core.ResourceRef{{Name: "key1", Namespace: "ns"}},
+									},
+								},
+							},
+						},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(authService).NotTo(BeNil())
+			authServiceChain, ok := authService.(chain.AuthServiceChain)
+			Expect(ok).To(BeTrue())
+			Expect(authServiceChain).NotTo(BeNil())
+			services := authServiceChain.ListAuthServices()
+			Expect(services).To(HaveLen(1))
+		})
+
+		It("translates aerospike config", func() {
+			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.api-keys-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_ApiKeyAuth{
+							ApiKeyAuth: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig{
+								StorageBackend: &extauthv1.ExtAuthConfig_ApiKeyAuthConfig_AerospikeApikeyStorage{
+									AerospikeApikeyStorage: &extauthv1.AerospikeApiKeyStorage{
+										Hostname:  "host",
+										Namespace: "ns",
+										Set:       "set",
+										Port:      3000,
+									},
 								},
 							},
 						},

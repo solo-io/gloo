@@ -908,7 +908,7 @@ gloo:
       stats:
         enabled: true
       gatewaySettings:
-        customHttpGateway: 
+        customHttpGateway:
           virtualServices:
           - name: custom-vs
             namespace: gloo-system
@@ -932,7 +932,7 @@ gloo:
               response: FIRST_INCOMING_FIRST_OUTGOING
       readConfig: true
       configMap:
-        data: 
+        data:
       antiAffinity: false
       kind:
         deployment:
@@ -1541,8 +1541,8 @@ global:
   extensions:
     extAuth:
       affinity:
-        podAffinity: 
-          preferredDuringSchedulingIgnoredDuringExecution: 
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
               labelSelector:
@@ -1592,8 +1592,8 @@ global:
   extensions:
     extAuth:
       antiAffinity:
-        podAntiAffinity: 
-          preferredDuringSchedulingIgnoredDuringExecution: 
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
               labelSelector:
@@ -2264,7 +2264,7 @@ metadata:
 spec:
   discovery:
     fdsMode: WHITELIST
-  extauth: 
+  extauth:
     transportApiVersion: V3
     extauthzServerRef:
       name: extauth
@@ -3608,8 +3608,8 @@ global:
   extensions:
     rateLimit:
       antiAffinity:
-        podAffinity: 
-          preferredDuringSchedulingIgnoredDuringExecution: 
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
               labelSelector:
@@ -3659,8 +3659,8 @@ global:
   extensions:
     rateLimit:
       antiAffinity:
-        podAntiAffinity: 
-          preferredDuringSchedulingIgnoredDuringExecution: 
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
               labelSelector:

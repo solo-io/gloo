@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/solo-io/go-utils/contextutils"
+	"go.uber.org/zap"
 
 	"github.com/hashicorp/go-multierror"
 
@@ -215,6 +216,44 @@ func translateOpaConfig(ctx context.Context, snap *v1snap.ApiSnapshot, config *e
 }
 
 func translateApiKey(ctx context.Context, snap *v1snap.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth.ExtAuthConfig_ApiKeyAuthConfig, error) {
+	switch config.GetStorageBackend().(type) {
+	case *extauth.ApiKeyAuth_K8SSecretApikeyStorage:
+		return translateSecretsApiKey(ctx, snap, config)
+	case *extauth.ApiKeyAuth_AerospikeApikeyStorage:
+		return translateAerospikeApiKey(ctx, snap, config)
+	default:
+		return translateSecretsApiKey(ctx, snap, config)
+	}
+}
+
+func translateAerospikeApiKey(ctx context.Context, snap *v1snap.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth.ExtAuthConfig_ApiKeyAuthConfig, error) {
+	if config == nil {
+		return nil, errors.New("nil settings")
+	}
+	storageConfig := config.GetAerospikeApikeyStorage()
+	if storageConfig == nil {
+		return nil, errors.New("nil storage config")
+	}
+	// Add metadata if present
+	var headersFromKeyMetadata map[string]string
+	if len(config.HeadersFromMetadata) > 0 {
+		headersFromKeyMetadata = make(map[string]string)
+		for k, v := range config.HeadersFromMetadata {
+			headersFromKeyMetadata[k] = v.GetName()
+		}
+		contextutils.LoggerFrom(ctx).Debugw("found headersFromKeyMetadata config",
+			zap.Any("headersFromKeyMetadata", headersFromKeyMetadata))
+	}
+	retConf := &extauth.ExtAuthConfig_ApiKeyAuthConfig{
+		StorageBackend: &extauth.ExtAuthConfig_ApiKeyAuthConfig_AerospikeApikeyStorage{
+			AerospikeApikeyStorage: storageConfig,
+		},
+		HeadersFromKeyMetadata: headersFromKeyMetadata,
+		HeaderName:             config.HeaderName,
+	}
+	return retConf, nil
+}
+func translateSecretsApiKey(ctx context.Context, snap *v1snap.ApiSnapshot, config *extauth.ApiKeyAuth) (*extauth.ExtAuthConfig_ApiKeyAuthConfig, error) {
 	var (
 		matchingSecrets []*v1.Secret
 		searchErrs      = &multierror.Error{}
@@ -257,11 +296,29 @@ func translateApiKey(ctx context.Context, snap *v1snap.ApiSnapshot, config *exta
 		return nil, err
 	}
 
-	var requiredSecretKeys []string
-	for _, secretKey := range config.HeadersFromMetadata {
-		if secretKey.Required {
-			requiredSecretKeys = append(requiredSecretKeys, secretKey.Name)
+	var allSecretKeys map[string]string
+	if len(config.HeadersFromMetadata) > 0 {
+		allSecretKeys = make(map[string]string)
+		for k, v := range config.HeadersFromMetadata {
+			if v.Required {
+				allSecretKeys[k] = v.GetName()
+			}
 		}
+	}
+	if len(config.HeadersFromMetadataEntry) > 0 {
+		if allSecretKeys == nil {
+			allSecretKeys = make(map[string]string)
+		}
+		for k, v := range config.HeadersFromMetadataEntry {
+			if v.Required {
+				allSecretKeys[k] = v.GetName()
+			}
+		}
+	}
+
+	var requiredSecretKeys []string
+	for _, secretKey := range allSecretKeys {
+		requiredSecretKeys = append(requiredSecretKeys, secretKey)
 	}
 
 	validApiKeys := make(map[string]*extauth.ExtAuthConfig_ApiKeyAuthConfig_KeyMetadata)
@@ -310,6 +367,14 @@ func translateApiKey(ctx context.Context, snap *v1snap.ApiSnapshot, config *exta
 	if len(config.HeadersFromMetadata) > 0 {
 		apiKeyAuthConfig.HeadersFromKeyMetadata = make(map[string]string)
 		for k, v := range config.HeadersFromMetadata {
+			apiKeyAuthConfig.HeadersFromKeyMetadata[k] = v.GetName()
+		}
+	}
+	if len(config.HeadersFromMetadataEntry) > 0 {
+		if apiKeyAuthConfig.HeadersFromKeyMetadata == nil {
+			apiKeyAuthConfig.HeadersFromKeyMetadata = make(map[string]string)
+		}
+		for k, v := range config.HeadersFromMetadataEntry {
 			apiKeyAuthConfig.HeadersFromKeyMetadata[k] = v.GetName()
 		}
 	}

@@ -197,6 +197,8 @@ github.com/acomagu/bufpipe v1.0.3 h1:fxAGrHZTgQ9w5QqVItgzwj235/uYZYgbXitB+dLupOk
 github.com/acomagu/bufpipe v1.0.3/go.mod h1:mxdxdup/WdsKVreO5GpW4+M/1CE2sMG4jeGJ2sYmHc4=
 github.com/aerospike/aerospike-client-go v4.5.2+incompatible h1:G7cGT9bbOEJwPR8sKrXNP/PotN25Y5pfd8QrLbg3eTY=
 github.com/aerospike/aerospike-client-go v4.5.2+incompatible/go.mod h1:zj8LBEnWBDOVEIJt8LvaRvDG5ARAoa5dBeHaB472NRc=
+github.com/aerospike/aerospike-client-go/v6 v6.3.0 h1:/kInl7yyDJnHfb16WA2bCti2KPTgAWfxvIO3/+jHfk4=
+github.com/aerospike/aerospike-client-go/v6 v6.3.0/go.mod h1:Tv2Y0WY69sqxy94/XSNNkNjMyW6WKyhwZIztHVBxrhw=
 github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5/go.mod h1:SkGFH1ia65gfNATL8TAiHDNxPzPdmEL5uirI2Uyuz6c=
 github.com/agnivade/levenshtein v1.1.1 h1:QY8M92nrzkmr798gCo3kmMyqXFzdQVpxLlGPRBij0P8=
 github.com/agnivade/levenshtein v1.1.1/go.mod h1:veldBMzWxcCG2ZvUTKD2kJNRdCk5hVbJomOvKkmgYbo=
@@ -1137,6 +1139,7 @@ github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213/go.mod h1:vNUNkEQ1
 github.com/k0kubun/pp v2.3.0+incompatible/go.mod h1:GWse8YhT0p8pT4ir3ZgBbfZild3tgzSScAn6HmfYukg=
 github.com/k0kubun/pp v3.0.1+incompatible h1:3tqvf7QgUnZ5tXO6pNAZlrvHgl6DvifjDrd9g2S9Z40=
 github.com/k0kubun/pp v3.0.1+incompatible/go.mod h1:GWse8YhT0p8pT4ir3ZgBbfZild3tgzSScAn6HmfYukg=
+github.com/k0kubun/pp/v3 v3.1.0/go.mod h1:vIrP5CF0n78pKHm2Ku6GVerpZBJvscg48WepUYEk2gw=
 github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 h1:iQTw/8FWTuc7uiaSepXwyf3o52HaUYcV+Tu66S3F5GA=
 github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0/go.mod h1:1NbS8ALrpOvjt0rHPNLyCIeMtbizbir8U//inJ+zuB8=
 github.com/karrick/godirwalk v1.10.12/go.mod h1:RoGL9dQei4vP9ilrpETWE8CLOZ1kiN0LhBygSwrAsHA=
@@ -1661,8 +1664,8 @@ github.com/solo-io/cue v0.4.3 h1:kCND5t/M40nccSg9zKX3xmwATfvqbGpjqFpJfzTJkLg=
 github.com/solo-io/cue v0.4.3/go.mod h1:P1tN9y6nBPAMoEK5aJxI8kn0VUcjVcRc+8esieRzQ7M=
 github.com/solo-io/ext-auth-plugins v0.2.1 h1:8ZkQx9DnTUE3z4vK029l1F2GHbDjNphkewR4opYwvFc=
 github.com/solo-io/ext-auth-plugins v0.2.1/go.mod h1:bVOJ1BvrBQC6CyYa+DtGU+vJ0asUu3Xa0CSSp9l97fA=
-github.com/solo-io/ext-auth-service v0.24.1 h1:EreYxQNGkfJ1xizWFH0XCW//w5Y+kekkU9O1jo0JkEE=
-github.com/solo-io/ext-auth-service v0.24.1/go.mod h1:K39DOvVIYNjvqN+X8t3ypFMisHSEfR73SHIC+Qxil6A=
+github.com/solo-io/ext-auth-service v0.25.0 h1:sSHOFooHiwVde1kFlj/E3G1c1GZapn63Nt/HAyUjMCU=
+github.com/solo-io/ext-auth-service v0.25.0/go.mod h1:RO8Jz+Guvic1zHP3mu/+JXSuXBbYyO+1LblMPEHont4=
 github.com/solo-io/external-apis v0.1.4/go.mod h1:3vyADtIZj8hCD5cBUwGuA60hd8O5faQKvfUl400brLY=
 github.com/solo-io/external-apis v0.1.7/go.mod h1:rzyuYEanRLvRfKK9GG/Mb/H//0A8DNvhxrEP+iTToTY=
 github.com/solo-io/external-apis v0.1.12-0.20220818213511-97f5ab3a6898 h1:i2rXuKjtC1hxXNafcDw82Q5m9jWPp1i1cGCxGOHuWNs=
@@ -1838,6 +1841,7 @@ github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d/go.mod h1:rHwXgn7Jul
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.3.3/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
+github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da/go.mod h1:E1AXubJBdNmFERAOucpDIxNzeGfLzg0mYh+UfMWdChA=
 github.com/yuin/gopher-lua v0.0.0-20220504180219-658193537a64 h1:5mLPGnFdSsevFRFc9q3yYbBkB6tsm4aCwwQV/j1JQAQ=
 github.com/yuin/gopher-lua v0.0.0-20220504180219-658193537a64/go.mod h1:GBR0iDaNXjAgGg9zfCvksxSRnQx76gclCIb7kdAd1Pw=
 github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483/go.mod h1:b4WX9W9L1sfQKXeJf1mUTLZKJ48R1S7H23Ji7oFO5Bw=
@@ -2105,6 +2109,7 @@ golang.org/x/net v0.0.0-20210503060351-7fd8e65b6420/go.mod h1:9nx3DQGgdP8bBQD5qx
 golang.org/x/net v0.0.0-20210520170846-37e1c6afe023/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.0.0-20210525063256-abc453219eb5/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.0.0-20210614182718-04defd469f4e/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
+golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.0.0-20210825183410-e898025ed96a/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.0.0-20210917221730-978cfadd31cf/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=

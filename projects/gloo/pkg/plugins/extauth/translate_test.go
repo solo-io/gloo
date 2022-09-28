@@ -383,7 +383,7 @@ var _ = Describe("Translate", func() {
 							ApiKeyAuth: &extauth.ApiKeyAuth{
 								HeaderName:       "x-api-key",
 								ApiKeySecretRefs: []*core.ResourceRef{secretRef},
-								HeadersFromMetadata: map[string]*extauth.ApiKeyAuth_SecretKey{
+								HeadersFromMetadataEntry: map[string]*extauth.ApiKeyAuth_MetadataEntry{
 									"x-user-id": {
 										Name:     "user-id",
 										Required: true,
@@ -438,7 +438,7 @@ var _ = Describe("Translate", func() {
 			When("metadata is not required", func() {
 				It("does not fail if the secret does not contain the metadata", func() {
 					secret.GetApiKey().Metadata = nil
-					authConfig.GetConfigs()[0].GetApiKeyAuth().GetHeadersFromMetadata()["x-user-id"].Required = false
+					authConfig.GetConfigs()[0].GetApiKeyAuth().GetHeadersFromMetadataEntry()["x-user-id"].Required = false
 
 					translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 					Expect(err).NotTo(HaveOccurred())
