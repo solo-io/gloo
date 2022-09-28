@@ -8,7 +8,7 @@ REMOTE_CLUSTER_NAME="${REMOTE_CLUSTER_NAME:-remote}"
 # The version of the Node Docker image to use for booting the clusters
 CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.22.4}"
 # The version used to tag images
-VERSION="${VERSION:-0.0.0-kind}"
+VERSION="${VERSION:-0.0.0-kind1}"
 # The license key used to support enterprise features
 GLOO_LICENSE_KEY="${GLOO_LICENSE_KEY:-}"
 # Automatically (lazily) determine OS type

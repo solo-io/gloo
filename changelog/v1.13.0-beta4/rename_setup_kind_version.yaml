@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      Rename the 0.0.0-kind version tag in CI setup scripts to 0.0.0-kind1,
+      corresponding with changes in the open source repo.

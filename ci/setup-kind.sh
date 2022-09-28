@@ -6,7 +6,7 @@ CLUSTER_NAME="${CLUSTER_NAME:-kind}"
 # The version of the Node Docker image to use for booting the cluster
 CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.22.4}"
 # The version used to tag images
-VERSION="${VERSION:-0.0.0-kind}"
+VERSION="${VERSION:-0.0.0-kind1}"
 # Whether or not to use fips compliant data plane images
 USE_FIPS="${USE_FIPS:-false}"
 # Automatically (lazily) determine OS type
