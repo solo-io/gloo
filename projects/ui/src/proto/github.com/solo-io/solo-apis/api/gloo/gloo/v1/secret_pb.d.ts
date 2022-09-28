@@ -32,8 +32,8 @@ export class Secret extends jspb.Message {
 
   hasApiKey(): boolean;
   clearApiKey(): void;
-  getApiKey(): github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeySecret | undefined;
-  setApiKey(value?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeySecret): void;
+  getApiKey(): github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKey | undefined;
+  setApiKey(value?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKey): void;
 
   hasHeader(): boolean;
   clearHeader(): void;
@@ -67,7 +67,7 @@ export namespace Secret {
     azure?: AzureSecret.AsObject,
     tls?: TlsSecret.AsObject,
     oauth?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.OauthSecret.AsObject,
-    apiKey?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeySecret.AsObject,
+    apiKey?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKey.AsObject,
     header?: HeaderSecret.AsObject,
     extensions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_extensions_pb.Extensions.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,

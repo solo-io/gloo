@@ -589,6 +589,11 @@ export class OAuth2 extends jspb.Message {
   getAccessTokenValidation(): AccessTokenValidation | undefined;
   setAccessTokenValidation(value?: AccessTokenValidation): void;
 
+  hasOauth2(): boolean;
+  clearOauth2(): void;
+  getOauth2(): PlainOAuth2 | undefined;
+  setOauth2(value?: PlainOAuth2): void;
+
   getOauthTypeCase(): OAuth2.OauthTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OAuth2.AsObject;
@@ -604,12 +609,14 @@ export namespace OAuth2 {
   export type AsObject = {
     oidcAuthorizationCode?: OidcAuthorizationCode.AsObject,
     accessTokenValidation?: AccessTokenValidation.AsObject,
+    oauth2?: PlainOAuth2.AsObject,
   }
 
   export enum OauthTypeCase {
     OAUTH_TYPE_NOT_SET = 0,
     OIDC_AUTHORIZATION_CODE = 1,
     ACCESS_TOKEN_VALIDATION = 2,
+    OAUTH2 = 3,
   }
 }
 
@@ -749,6 +756,9 @@ export namespace UserSession {
     getTargetDomain(): string;
     setTargetDomain(value: string): void;
 
+    getHeaderName(): string;
+    setHeaderName(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): RedisSession.AsObject;
     static toObject(includeInstance: boolean, msg: RedisSession): RedisSession.AsObject;
@@ -767,6 +777,7 @@ export namespace UserSession {
       allowRefreshing?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       preExpiryBuffer?: google_protobuf_duration_pb.Duration.AsObject,
       targetDomain: string,
+      headerName: string,
     }
   }
 
@@ -1131,6 +1142,78 @@ export namespace OidcAuthorizationCode {
   }
 }
 
+export class PlainOAuth2 extends jspb.Message {
+  getClientId(): string;
+  setClientId(value: string): void;
+
+  hasClientSecretRef(): boolean;
+  clearClientSecretRef(): void;
+  getClientSecretRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setClientSecretRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+  getAuthEndpointQueryParamsMap(): jspb.Map<string, string>;
+  clearAuthEndpointQueryParamsMap(): void;
+  getAppUrl(): string;
+  setAppUrl(value: string): void;
+
+  getCallbackPath(): string;
+  setCallbackPath(value: string): void;
+
+  clearScopesList(): void;
+  getScopesList(): Array<string>;
+  setScopesList(value: Array<string>): void;
+  addScopes(value: string, index?: number): string;
+
+  hasSession(): boolean;
+  clearSession(): void;
+  getSession(): UserSession | undefined;
+  setSession(value?: UserSession): void;
+
+  getLogoutPath(): string;
+  setLogoutPath(value: string): void;
+
+  getTokenEndpointQueryParamsMap(): jspb.Map<string, string>;
+  clearTokenEndpointQueryParamsMap(): void;
+  getAfterLogoutUrl(): string;
+  setAfterLogoutUrl(value: string): void;
+
+  getAuthEndpoint(): string;
+  setAuthEndpoint(value: string): void;
+
+  getTokenEndpoint(): string;
+  setTokenEndpoint(value: string): void;
+
+  getRevocationEndpoint(): string;
+  setRevocationEndpoint(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PlainOAuth2.AsObject;
+  static toObject(includeInstance: boolean, msg: PlainOAuth2): PlainOAuth2.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PlainOAuth2, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PlainOAuth2;
+  static deserializeBinaryFromReader(message: PlainOAuth2, reader: jspb.BinaryReader): PlainOAuth2;
+}
+
+export namespace PlainOAuth2 {
+  export type AsObject = {
+    clientId: string,
+    clientSecretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    authEndpointQueryParamsMap: Array<[string, string]>,
+    appUrl: string,
+    callbackPath: string,
+    scopesList: Array<string>,
+    session?: UserSession.AsObject,
+    logoutPath: string,
+    tokenEndpointQueryParamsMap: Array<[string, string]>,
+    afterLogoutUrl: string,
+    authEndpoint: string,
+    tokenEndpoint: string,
+    revocationEndpoint: string,
+  }
+}
+
 export class JwtValidation extends jspb.Message {
   hasRemoteJwks(): boolean;
   clearRemoteJwks(): void;
@@ -1369,6 +1452,19 @@ export class ApiKeyAuth extends jspb.Message {
 
   getHeadersFromMetadataMap(): jspb.Map<string, ApiKeyAuth.SecretKey>;
   clearHeadersFromMetadataMap(): void;
+  getHeadersFromMetadataEntryMap(): jspb.Map<string, ApiKeyAuth.MetadataEntry>;
+  clearHeadersFromMetadataEntryMap(): void;
+  hasK8sSecretApikeyStorage(): boolean;
+  clearK8sSecretApikeyStorage(): void;
+  getK8sSecretApikeyStorage(): K8sSecretApiKeyStorage | undefined;
+  setK8sSecretApikeyStorage(value?: K8sSecretApiKeyStorage): void;
+
+  hasAerospikeApikeyStorage(): boolean;
+  clearAerospikeApikeyStorage(): void;
+  getAerospikeApikeyStorage(): AerospikeApiKeyStorage | undefined;
+  setAerospikeApikeyStorage(value?: AerospikeApiKeyStorage): void;
+
+  getStorageBackendCase(): ApiKeyAuth.StorageBackendCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ApiKeyAuth.AsObject;
   static toObject(includeInstance: boolean, msg: ApiKeyAuth): ApiKeyAuth.AsObject;
@@ -1385,6 +1481,9 @@ export namespace ApiKeyAuth {
     apiKeySecretRefsList: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
     headerName: string,
     headersFromMetadataMap: Array<[string, ApiKeyAuth.SecretKey.AsObject]>,
+    headersFromMetadataEntryMap: Array<[string, ApiKeyAuth.MetadataEntry.AsObject]>,
+    k8sSecretApikeyStorage?: K8sSecretApiKeyStorage.AsObject,
+    aerospikeApikeyStorage?: AerospikeApiKeyStorage.AsObject,
   }
 
   export class SecretKey extends jspb.Message {
@@ -1410,12 +1509,323 @@ export namespace ApiKeyAuth {
       required: boolean,
     }
   }
+
+  export class MetadataEntry extends jspb.Message {
+    getName(): string;
+    setName(value: string): void;
+
+    getRequired(): boolean;
+    setRequired(value: boolean): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): MetadataEntry.AsObject;
+    static toObject(includeInstance: boolean, msg: MetadataEntry): MetadataEntry.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: MetadataEntry, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): MetadataEntry;
+    static deserializeBinaryFromReader(message: MetadataEntry, reader: jspb.BinaryReader): MetadataEntry;
+  }
+
+  export namespace MetadataEntry {
+    export type AsObject = {
+      name: string,
+      required: boolean,
+    }
+  }
+
+  export enum StorageBackendCase {
+    STORAGE_BACKEND_NOT_SET = 0,
+    K8S_SECRET_APIKEY_STORAGE = 6,
+    AEROSPIKE_APIKEY_STORAGE = 7,
+  }
+}
+
+export class K8sSecretApiKeyStorage extends jspb.Message {
+  getLabelSelectorMap(): jspb.Map<string, string>;
+  clearLabelSelectorMap(): void;
+  clearApiKeySecretRefsList(): void;
+  getApiKeySecretRefsList(): Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>;
+  setApiKeySecretRefsList(value: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef>): void;
+  addApiKeySecretRefs(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef, index?: number): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): K8sSecretApiKeyStorage.AsObject;
+  static toObject(includeInstance: boolean, msg: K8sSecretApiKeyStorage): K8sSecretApiKeyStorage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: K8sSecretApiKeyStorage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): K8sSecretApiKeyStorage;
+  static deserializeBinaryFromReader(message: K8sSecretApiKeyStorage, reader: jspb.BinaryReader): K8sSecretApiKeyStorage;
+}
+
+export namespace K8sSecretApiKeyStorage {
+  export type AsObject = {
+    labelSelectorMap: Array<[string, string]>,
+    apiKeySecretRefsList: Array<github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject>,
+  }
+}
+
+export class AerospikeApiKeyStorage extends jspb.Message {
+  getHostname(): string;
+  setHostname(value: string): void;
+
+  getNamespace(): string;
+  setNamespace(value: string): void;
+
+  getSet(): string;
+  setSet(value: string): void;
+
+  getPort(): number;
+  setPort(value: number): void;
+
+  getBatchSize(): number;
+  setBatchSize(value: number): void;
+
+  hasCommitAll(): boolean;
+  clearCommitAll(): void;
+  getCommitAll(): number;
+  setCommitAll(value: number): void;
+
+  hasCommitMaster(): boolean;
+  clearCommitMaster(): void;
+  getCommitMaster(): number;
+  setCommitMaster(value: number): void;
+
+  hasReadModeSc(): boolean;
+  clearReadModeSc(): void;
+  getReadModeSc(): AerospikeApiKeyStorage.readModeSc | undefined;
+  setReadModeSc(value?: AerospikeApiKeyStorage.readModeSc): void;
+
+  hasReadModeAp(): boolean;
+  clearReadModeAp(): void;
+  getReadModeAp(): AerospikeApiKeyStorage.readModeAp | undefined;
+  setReadModeAp(value?: AerospikeApiKeyStorage.readModeAp): void;
+
+  getNodeTlsName(): string;
+  setNodeTlsName(value: string): void;
+
+  getCertPath(): string;
+  setCertPath(value: string): void;
+
+  getKeyPath(): string;
+  setKeyPath(value: string): void;
+
+  getAllowInsecure(): boolean;
+  setAllowInsecure(value: boolean): void;
+
+  getRootCaPath(): string;
+  setRootCaPath(value: string): void;
+
+  getTlsVersion(): string;
+  setTlsVersion(value: string): void;
+
+  clearTlsCurveGroupsList(): void;
+  getTlsCurveGroupsList(): Array<AerospikeApiKeyStorage.tlsCurveID>;
+  setTlsCurveGroupsList(value: Array<AerospikeApiKeyStorage.tlsCurveID>): void;
+  addTlsCurveGroups(value?: AerospikeApiKeyStorage.tlsCurveID, index?: number): AerospikeApiKeyStorage.tlsCurveID;
+
+  getCommitLevelCase(): AerospikeApiKeyStorage.CommitLevelCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AerospikeApiKeyStorage.AsObject;
+  static toObject(includeInstance: boolean, msg: AerospikeApiKeyStorage): AerospikeApiKeyStorage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AerospikeApiKeyStorage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AerospikeApiKeyStorage;
+  static deserializeBinaryFromReader(message: AerospikeApiKeyStorage, reader: jspb.BinaryReader): AerospikeApiKeyStorage;
+}
+
+export namespace AerospikeApiKeyStorage {
+  export type AsObject = {
+    hostname: string,
+    namespace: string,
+    set: string,
+    port: number,
+    batchSize: number,
+    commitAll: number,
+    commitMaster: number,
+    readModeSc?: AerospikeApiKeyStorage.readModeSc.AsObject,
+    readModeAp?: AerospikeApiKeyStorage.readModeAp.AsObject,
+    nodeTlsName: string,
+    certPath: string,
+    keyPath: string,
+    allowInsecure: boolean,
+    rootCaPath: string,
+    tlsVersion: string,
+    tlsCurveGroupsList: Array<AerospikeApiKeyStorage.tlsCurveID.AsObject>,
+  }
+
+  export class readModeSc extends jspb.Message {
+    hasReadModeScSession(): boolean;
+    clearReadModeScSession(): void;
+    getReadModeScSession(): number;
+    setReadModeScSession(value: number): void;
+
+    hasReadModeScLinearize(): boolean;
+    clearReadModeScLinearize(): void;
+    getReadModeScLinearize(): number;
+    setReadModeScLinearize(value: number): void;
+
+    hasReadModeScReplica(): boolean;
+    clearReadModeScReplica(): void;
+    getReadModeScReplica(): number;
+    setReadModeScReplica(value: number): void;
+
+    hasReadModeScAllowUnavailable(): boolean;
+    clearReadModeScAllowUnavailable(): void;
+    getReadModeScAllowUnavailable(): number;
+    setReadModeScAllowUnavailable(value: number): void;
+
+    getReadModeScCase(): readModeSc.ReadModeScCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): readModeSc.AsObject;
+    static toObject(includeInstance: boolean, msg: readModeSc): readModeSc.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: readModeSc, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): readModeSc;
+    static deserializeBinaryFromReader(message: readModeSc, reader: jspb.BinaryReader): readModeSc;
+  }
+
+  export namespace readModeSc {
+    export type AsObject = {
+      readModeScSession: number,
+      readModeScLinearize: number,
+      readModeScReplica: number,
+      readModeScAllowUnavailable: number,
+    }
+
+    export enum ReadModeScCase {
+      READ_MODE_SC_NOT_SET = 0,
+      READ_MODE_SC_SESSION = 1,
+      READ_MODE_SC_LINEARIZE = 2,
+      READ_MODE_SC_REPLICA = 3,
+      READ_MODE_SC_ALLOW_UNAVAILABLE = 4,
+    }
+  }
+
+  export class readModeAp extends jspb.Message {
+    hasReadModeApOne(): boolean;
+    clearReadModeApOne(): void;
+    getReadModeApOne(): number;
+    setReadModeApOne(value: number): void;
+
+    hasReadModeApAll(): boolean;
+    clearReadModeApAll(): void;
+    getReadModeApAll(): number;
+    setReadModeApAll(value: number): void;
+
+    getReadModeApCase(): readModeAp.ReadModeApCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): readModeAp.AsObject;
+    static toObject(includeInstance: boolean, msg: readModeAp): readModeAp.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: readModeAp, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): readModeAp;
+    static deserializeBinaryFromReader(message: readModeAp, reader: jspb.BinaryReader): readModeAp;
+  }
+
+  export namespace readModeAp {
+    export type AsObject = {
+      readModeApOne: number,
+      readModeApAll: number,
+    }
+
+    export enum ReadModeApCase {
+      READ_MODE_AP_NOT_SET = 0,
+      READ_MODE_AP_ONE = 1,
+      READ_MODE_AP_ALL = 2,
+    }
+  }
+
+  export class tlsCurveID extends jspb.Message {
+    hasCurveP256(): boolean;
+    clearCurveP256(): void;
+    getCurveP256(): number;
+    setCurveP256(value: number): void;
+
+    hasCurveP384(): boolean;
+    clearCurveP384(): void;
+    getCurveP384(): number;
+    setCurveP384(value: number): void;
+
+    hasCurveP521(): boolean;
+    clearCurveP521(): void;
+    getCurveP521(): number;
+    setCurveP521(value: number): void;
+
+    hasX25519(): boolean;
+    clearX25519(): void;
+    getX25519(): number;
+    setX25519(value: number): void;
+
+    getCurveIdCase(): tlsCurveID.CurveIdCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): tlsCurveID.AsObject;
+    static toObject(includeInstance: boolean, msg: tlsCurveID): tlsCurveID.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: tlsCurveID, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): tlsCurveID;
+    static deserializeBinaryFromReader(message: tlsCurveID, reader: jspb.BinaryReader): tlsCurveID;
+  }
+
+  export namespace tlsCurveID {
+    export type AsObject = {
+      curveP256: number,
+      curveP384: number,
+      curveP521: number,
+      x25519: number,
+    }
+
+    export enum CurveIdCase {
+      CURVE_ID_NOT_SET = 0,
+      CURVE_P256 = 1,
+      CURVE_P384 = 2,
+      CURVE_P521 = 3,
+      X_25519 = 4,
+    }
+  }
+
+  export enum CommitLevelCase {
+    COMMIT_LEVEL_NOT_SET = 0,
+    COMMIT_ALL = 6,
+    COMMIT_MASTER = 7,
+  }
+}
+
+export class ApiKey extends jspb.Message {
+  getApiKey(): string;
+  setApiKey(value: string): void;
+
+  clearLabelsList(): void;
+  getLabelsList(): Array<string>;
+  setLabelsList(value: Array<string>): void;
+  addLabels(value: string, index?: number): string;
+
+  getMetadataMap(): jspb.Map<string, string>;
+  clearMetadataMap(): void;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiKey.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKey): ApiKey.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiKey, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKey;
+  static deserializeBinaryFromReader(message: ApiKey, reader: jspb.BinaryReader): ApiKey;
+}
+
+export namespace ApiKey {
+  export type AsObject = {
+    apiKey: string,
+    labelsList: Array<string>,
+    metadataMap: Array<[string, string]>,
+  }
 }
 
 export class ApiKeySecret extends jspb.Message {
-  getGenerateApiKey(): boolean;
-  setGenerateApiKey(value: boolean): void;
-
   getApiKey(): string;
   setApiKey(value: string): void;
 
@@ -1438,7 +1848,6 @@ export class ApiKeySecret extends jspb.Message {
 
 export namespace ApiKeySecret {
   export type AsObject = {
-    generateApiKey: boolean,
     apiKey: string,
     labelsList: Array<string>,
     metadataMap: Array<[string, string]>,
@@ -1589,6 +1998,9 @@ export class PassThroughAuth extends jspb.Message {
   getConfig(): google_protobuf_struct_pb.Struct | undefined;
   setConfig(value?: google_protobuf_struct_pb.Struct): void;
 
+  getFailureModeAllow(): boolean;
+  setFailureModeAllow(value: boolean): void;
+
   getProtocolCase(): PassThroughAuth.ProtocolCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PassThroughAuth.AsObject;
@@ -1605,6 +2017,7 @@ export namespace PassThroughAuth {
     grpc?: PassThroughGrpc.AsObject,
     http?: PassThroughHttp.AsObject,
     config?: google_protobuf_struct_pb.Struct.AsObject,
+    failureModeAllow: boolean,
   }
 
   export enum ProtocolCase {
@@ -2136,6 +2549,76 @@ export namespace ExtAuthConfig {
     }
   }
 
+  export class PlainOAuth2Config extends jspb.Message {
+    getClientId(): string;
+    setClientId(value: string): void;
+
+    getClientSecret(): string;
+    setClientSecret(value: string): void;
+
+    getAuthEndpointQueryParamsMap(): jspb.Map<string, string>;
+    clearAuthEndpointQueryParamsMap(): void;
+    getAppUrl(): string;
+    setAppUrl(value: string): void;
+
+    getCallbackPath(): string;
+    setCallbackPath(value: string): void;
+
+    clearScopesList(): void;
+    getScopesList(): Array<string>;
+    setScopesList(value: Array<string>): void;
+    addScopes(value: string, index?: number): string;
+
+    hasSession(): boolean;
+    clearSession(): void;
+    getSession(): UserSession | undefined;
+    setSession(value?: UserSession): void;
+
+    getLogoutPath(): string;
+    setLogoutPath(value: string): void;
+
+    getTokenEndpointQueryParamsMap(): jspb.Map<string, string>;
+    clearTokenEndpointQueryParamsMap(): void;
+    getAfterLogoutUrl(): string;
+    setAfterLogoutUrl(value: string): void;
+
+    getAuthEndpoint(): string;
+    setAuthEndpoint(value: string): void;
+
+    getTokenEndpoint(): string;
+    setTokenEndpoint(value: string): void;
+
+    getRevocationEndpoint(): string;
+    setRevocationEndpoint(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): PlainOAuth2Config.AsObject;
+    static toObject(includeInstance: boolean, msg: PlainOAuth2Config): PlainOAuth2Config.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: PlainOAuth2Config, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): PlainOAuth2Config;
+    static deserializeBinaryFromReader(message: PlainOAuth2Config, reader: jspb.BinaryReader): PlainOAuth2Config;
+  }
+
+  export namespace PlainOAuth2Config {
+    export type AsObject = {
+      clientId: string,
+      clientSecret: string,
+      authEndpointQueryParamsMap: Array<[string, string]>,
+      appUrl: string,
+      callbackPath: string,
+      scopesList: Array<string>,
+      session?: UserSession.AsObject,
+      logoutPath: string,
+      tokenEndpointQueryParamsMap: Array<[string, string]>,
+      afterLogoutUrl: string,
+      authEndpoint: string,
+      tokenEndpoint: string,
+      revocationEndpoint: string,
+    }
+  }
+
   export class OAuth2Config extends jspb.Message {
     hasOidcAuthorizationCode(): boolean;
     clearOidcAuthorizationCode(): void;
@@ -2146,6 +2629,11 @@ export namespace ExtAuthConfig {
     clearAccessTokenValidationConfig(): void;
     getAccessTokenValidationConfig(): ExtAuthConfig.AccessTokenValidationConfig | undefined;
     setAccessTokenValidationConfig(value?: ExtAuthConfig.AccessTokenValidationConfig): void;
+
+    hasOauth2Config(): boolean;
+    clearOauth2Config(): void;
+    getOauth2Config(): ExtAuthConfig.PlainOAuth2Config | undefined;
+    setOauth2Config(value?: ExtAuthConfig.PlainOAuth2Config): void;
 
     getOauthTypeCase(): OAuth2Config.OauthTypeCase;
     serializeBinary(): Uint8Array;
@@ -2162,12 +2650,14 @@ export namespace ExtAuthConfig {
     export type AsObject = {
       oidcAuthorizationCode?: ExtAuthConfig.OidcAuthorizationCodeConfig.AsObject,
       accessTokenValidationConfig?: ExtAuthConfig.AccessTokenValidationConfig.AsObject,
+      oauth2Config?: ExtAuthConfig.PlainOAuth2Config.AsObject,
     }
 
     export enum OauthTypeCase {
       OAUTH_TYPE_NOT_SET = 0,
       OIDC_AUTHORIZATION_CODE = 1,
       ACCESS_TOKEN_VALIDATION_CONFIG = 3,
+      OAUTH2_CONFIG = 4,
     }
   }
 
@@ -2179,6 +2669,17 @@ export namespace ExtAuthConfig {
 
     getHeadersFromKeyMetadataMap(): jspb.Map<string, string>;
     clearHeadersFromKeyMetadataMap(): void;
+    hasK8sSecretApikeyStorage(): boolean;
+    clearK8sSecretApikeyStorage(): void;
+    getK8sSecretApikeyStorage(): K8sSecretApiKeyStorage | undefined;
+    setK8sSecretApikeyStorage(value?: K8sSecretApiKeyStorage): void;
+
+    hasAerospikeApikeyStorage(): boolean;
+    clearAerospikeApikeyStorage(): void;
+    getAerospikeApikeyStorage(): AerospikeApiKeyStorage | undefined;
+    setAerospikeApikeyStorage(value?: AerospikeApiKeyStorage): void;
+
+    getStorageBackendCase(): ApiKeyAuthConfig.StorageBackendCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ApiKeyAuthConfig.AsObject;
     static toObject(includeInstance: boolean, msg: ApiKeyAuthConfig): ApiKeyAuthConfig.AsObject;
@@ -2194,6 +2695,8 @@ export namespace ExtAuthConfig {
       validApiKeysMap: Array<[string, ExtAuthConfig.ApiKeyAuthConfig.KeyMetadata.AsObject]>,
       headerName: string,
       headersFromKeyMetadataMap: Array<[string, string]>,
+      k8sSecretApikeyStorage?: K8sSecretApiKeyStorage.AsObject,
+      aerospikeApikeyStorage?: AerospikeApiKeyStorage.AsObject,
     }
 
     export class KeyMetadata extends jspb.Message {
@@ -2217,6 +2720,12 @@ export namespace ExtAuthConfig {
         username: string,
         metadataMap: Array<[string, string]>,
       }
+    }
+
+    export enum StorageBackendCase {
+      STORAGE_BACKEND_NOT_SET = 0,
+      K8S_SECRET_APIKEY_STORAGE = 4,
+      AEROSPIKE_APIKEY_STORAGE = 5,
     }
   }
 
@@ -2337,6 +2846,204 @@ export namespace ExtAuthConfig {
       JWT = 12,
       PASS_THROUGH_AUTH = 13,
     }
+  }
+}
+
+export class ApiKeyCreateRequest extends jspb.Message {
+  clearApiKeysList(): void;
+  getApiKeysList(): Array<ApiKey>;
+  setApiKeysList(value: Array<ApiKey>): void;
+  addApiKeys(value?: ApiKey, index?: number): ApiKey;
+
+  clearRawApiKeysList(): void;
+  getRawApiKeysList(): Array<string>;
+  setRawApiKeysList(value: Array<string>): void;
+  addRawApiKeys(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiKeyCreateRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKeyCreateRequest): ApiKeyCreateRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiKeyCreateRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKeyCreateRequest;
+  static deserializeBinaryFromReader(message: ApiKeyCreateRequest, reader: jspb.BinaryReader): ApiKeyCreateRequest;
+}
+
+export namespace ApiKeyCreateRequest {
+  export type AsObject = {
+    apiKeysList: Array<ApiKey.AsObject>,
+    rawApiKeysList: Array<string>,
+  }
+}
+
+export class ApiKeyCreateResponse extends jspb.Message {
+  clearApiKeysList(): void;
+  getApiKeysList(): Array<ApiKey>;
+  setApiKeysList(value: Array<ApiKey>): void;
+  addApiKeys(value?: ApiKey, index?: number): ApiKey;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiKeyCreateResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKeyCreateResponse): ApiKeyCreateResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiKeyCreateResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKeyCreateResponse;
+  static deserializeBinaryFromReader(message: ApiKeyCreateResponse, reader: jspb.BinaryReader): ApiKeyCreateResponse;
+}
+
+export namespace ApiKeyCreateResponse {
+  export type AsObject = {
+    apiKeysList: Array<ApiKey.AsObject>,
+  }
+}
+
+export class ApiKeyReadRequest extends jspb.Message {
+  clearRawApiKeysList(): void;
+  getRawApiKeysList(): Array<string>;
+  setRawApiKeysList(value: Array<string>): void;
+  addRawApiKeys(value: string, index?: number): string;
+
+  clearLabelsList(): void;
+  getLabelsList(): Array<string>;
+  setLabelsList(value: Array<string>): void;
+  addLabels(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiKeyReadRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKeyReadRequest): ApiKeyReadRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiKeyReadRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKeyReadRequest;
+  static deserializeBinaryFromReader(message: ApiKeyReadRequest, reader: jspb.BinaryReader): ApiKeyReadRequest;
+}
+
+export namespace ApiKeyReadRequest {
+  export type AsObject = {
+    rawApiKeysList: Array<string>,
+    labelsList: Array<string>,
+  }
+}
+
+export class ApiKeyReadResponse extends jspb.Message {
+  clearApiKeysList(): void;
+  getApiKeysList(): Array<ApiKey>;
+  setApiKeysList(value: Array<ApiKey>): void;
+  addApiKeys(value?: ApiKey, index?: number): ApiKey;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiKeyReadResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKeyReadResponse): ApiKeyReadResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiKeyReadResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKeyReadResponse;
+  static deserializeBinaryFromReader(message: ApiKeyReadResponse, reader: jspb.BinaryReader): ApiKeyReadResponse;
+}
+
+export namespace ApiKeyReadResponse {
+  export type AsObject = {
+    apiKeysList: Array<ApiKey.AsObject>,
+  }
+}
+
+export class ApiKeyUpdateRequest extends jspb.Message {
+  getUpsert(): boolean;
+  setUpsert(value: boolean): void;
+
+  clearApiKeysList(): void;
+  getApiKeysList(): Array<ApiKey>;
+  setApiKeysList(value: Array<ApiKey>): void;
+  addApiKeys(value?: ApiKey, index?: number): ApiKey;
+
+  clearRawApiKeysList(): void;
+  getRawApiKeysList(): Array<string>;
+  setRawApiKeysList(value: Array<string>): void;
+  addRawApiKeys(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiKeyUpdateRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKeyUpdateRequest): ApiKeyUpdateRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiKeyUpdateRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKeyUpdateRequest;
+  static deserializeBinaryFromReader(message: ApiKeyUpdateRequest, reader: jspb.BinaryReader): ApiKeyUpdateRequest;
+}
+
+export namespace ApiKeyUpdateRequest {
+  export type AsObject = {
+    upsert: boolean,
+    apiKeysList: Array<ApiKey.AsObject>,
+    rawApiKeysList: Array<string>,
+  }
+}
+
+export class ApiKeyUpdateResponse extends jspb.Message {
+  clearApiKeysList(): void;
+  getApiKeysList(): Array<ApiKey>;
+  setApiKeysList(value: Array<ApiKey>): void;
+  addApiKeys(value?: ApiKey, index?: number): ApiKey;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiKeyUpdateResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKeyUpdateResponse): ApiKeyUpdateResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiKeyUpdateResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKeyUpdateResponse;
+  static deserializeBinaryFromReader(message: ApiKeyUpdateResponse, reader: jspb.BinaryReader): ApiKeyUpdateResponse;
+}
+
+export namespace ApiKeyUpdateResponse {
+  export type AsObject = {
+    apiKeysList: Array<ApiKey.AsObject>,
+  }
+}
+
+export class ApiKeyDeleteRequest extends jspb.Message {
+  clearRawApiKeysList(): void;
+  getRawApiKeysList(): Array<string>;
+  setRawApiKeysList(value: Array<string>): void;
+  addRawApiKeys(value: string, index?: number): string;
+
+  clearLabelsList(): void;
+  getLabelsList(): Array<string>;
+  setLabelsList(value: Array<string>): void;
+  addLabels(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiKeyDeleteRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKeyDeleteRequest): ApiKeyDeleteRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiKeyDeleteRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKeyDeleteRequest;
+  static deserializeBinaryFromReader(message: ApiKeyDeleteRequest, reader: jspb.BinaryReader): ApiKeyDeleteRequest;
+}
+
+export namespace ApiKeyDeleteRequest {
+  export type AsObject = {
+    rawApiKeysList: Array<string>,
+    labelsList: Array<string>,
+  }
+}
+
+export class ApiKeyDeleteResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ApiKeyDeleteResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ApiKeyDeleteResponse): ApiKeyDeleteResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ApiKeyDeleteResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ApiKeyDeleteResponse;
+  static deserializeBinaryFromReader(message: ApiKeyDeleteResponse, reader: jspb.BinaryReader): ApiKeyDeleteResponse;
+}
+
+export namespace ApiKeyDeleteResponse {
+  export type AsObject = {
   }
 }
 

@@ -25,6 +25,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
+
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -49,7 +51,7 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/test_utils"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/token_validation"
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth/user_info"
-	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
+	oauth2Service "github.com/solo-io/ext-auth-service/pkg/config/oauth2"
 	grpcPassthrough "github.com/solo-io/ext-auth-service/pkg/config/passthrough/grpc"
 	passthrough_test_utils "github.com/solo-io/ext-auth-service/pkg/config/passthrough/test_utils"
 	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
@@ -1366,6 +1368,363 @@ var _ = Describe("External auth", func() {
 
 			})
 
+			Context("plain oauth2 sanity", func() {
+				var (
+					authConfig   *extauth.AuthConfig
+					oauth2Server fakeOAuth2Server
+					oauth2       *extauth.OAuth2_Oauth2
+					secret       *gloov1.Secret
+					proxy        *gloov1.Proxy
+					cookies      []*http.Cookie
+				)
+
+				BeforeEach(func() {
+					cookies = nil
+
+					oauth2Server.Start()
+
+					clientSecret := &extauth.OauthSecret{
+						ClientSecret: "test",
+					}
+
+					secret = &gloov1.Secret{
+						Metadata: &core.Metadata{
+							Name:      "secret",
+							Namespace: "default",
+						},
+						Kind: &gloov1.Secret_Oauth{
+							Oauth: clientSecret,
+						},
+					}
+					_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					oauth2 = getOAuth2Config(envoyPort, secret.Metadata.Ref())
+					authConfig = &extauth.AuthConfig{
+						Metadata: &core.Metadata{
+							Name:      getOAuth2ExtAuthExtension().GetConfigRef().Name,
+							Namespace: getOAuth2ExtAuthExtension().GetConfigRef().Namespace,
+						},
+						Configs: []*extauth.AuthConfig_Config{{
+							AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+								Oauth2: &extauth.OAuth2{
+									OauthType: oauth2,
+								},
+							},
+						}},
+					}
+
+					proxy = getProxyExtAuthOAuth2(envoyPort, testUpstream.Upstream.Metadata.Ref())
+				})
+
+				JustBeforeEach(func() {
+					_, err := testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred())
+					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						return testClients.AuthConfigClient.Read(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.ReadOpts{})
+					})
+					_, err = testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+					Expect(err).NotTo(HaveOccurred())
+
+					helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+						return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+					})
+					waitForHealthyExtauthService()
+				})
+
+				AfterEach(func() {
+					oauth2Server.Stop()
+				})
+
+				makeSingleRequest := func(client *http.Client) (int, error) {
+					req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/success?foo=bar", "localhost", envoyPort), nil)
+					if err != nil {
+						return 0, err
+					}
+					r, err := client.Do(req) // failing here due to too many redirects
+					if err != nil {
+						return 0, err
+					}
+					defer r.Body.Close()
+					_, _ = io.ReadAll(r.Body)
+					return r.StatusCode, nil
+				}
+
+				ExpectHappyPathToWork := func(makeSingleRequest func(client *http.Client) (int, error), loginSuccessExpectation func()) {
+					// do auth flow and make sure we have a cookie named cookie:
+					appPage, err := url.Parse(fmt.Sprintf("http://%s:%d/", "localhost", envoyPort))
+					Expect(err).NotTo(HaveOccurred())
+
+					var finalurl *url.URL
+					jar, err := cookiejar.New(nil)
+					Expect(err).NotTo(HaveOccurred())
+					cookieJar := &unsecureCookieJar{CookieJar: jar}
+					client := &http.Client{
+						Jar: cookieJar,
+						CheckRedirect: func(req *http.Request, via []*http.Request) error {
+							finalurl = req.URL
+							if len(via) > 10 {
+								return errors.New("stopped after 10 redirects")
+							}
+							return nil
+						},
+					}
+
+					Eventually(func() (int, error) {
+						return makeSingleRequest(client)
+					}, "5s", "0.5s").Should(Equal(http.StatusOK))
+
+					Expect(finalurl).NotTo(BeNil())
+					Expect(finalurl.Path).To(Equal("/success"))
+					// make sure query is passed through as well
+					Expect(finalurl.RawQuery).To(Equal("foo=bar"))
+
+					// check the cookie jar
+					tmpCookies := jar.Cookies(appPage)
+					Expect(tmpCookies).NotTo(BeEmpty())
+
+					// grab the original cookies for these cookies, as jar.Cookies doesn't return
+					// all the properties of the cookies
+					for _, c := range tmpCookies {
+						cookies = append(cookies, cookieJar.OriginalCookies[c.Name])
+					}
+
+					// make sure login is successful
+					loginSuccessExpectation()
+
+					// todo - implement/test logout for OAuth2
+					// try to logout:
+					//logout := fmt.Sprintf("http://%s:%d/logout", "localhost", envoyPort)
+					//req, err := http.NewRequest("GET", logout, nil)
+					//Expect(err).NotTo(HaveOccurred())
+					//resp, err := client.Do(req)
+					//Expect(err).NotTo(HaveOccurred())
+					//defer resp.Body.Close()
+					//_, _ = io.ReadAll(resp.Body)
+					//Expect(resp.StatusCode).To(Equal(http.StatusOK))
+					//// Verify that the logout resulted in a redirect to the default url
+					//Expect(finalurl).NotTo(BeNil())
+					//Expect(finalurl.Path).To(Equal("/"))
+				}
+
+				Context("redis for session store", func() {
+					const (
+						redisaddr  = "127.0.0.1"
+						redisport  = uint32(6379)
+						cookieName = "cookie"
+					)
+					var (
+						redisSession *gexec.Session
+					)
+					BeforeEach(func() {
+						// update the config to use redis
+						oauth2.Oauth2.Session = &extauth.UserSession{
+							FailOnFetchFailure: true,
+							Session: &extauth.UserSession_Redis{
+								Redis: &extauth.UserSession_RedisSession{
+									Options: &extauth.RedisOptions{
+										Host: fmt.Sprintf("%s:%d", redisaddr, redisport),
+									},
+									KeyPrefix:       "key",
+									CookieName:      cookieName,
+									AllowRefreshing: &wrappers.BoolValue{Value: true},
+									PreExpiryBuffer: &duration.Duration{Seconds: 2, Nanos: 0},
+								},
+							},
+						}
+
+						command := exec.Command(getRedisPath(), "--port", fmt.Sprintf("%d", redisport))
+						var err error
+						redisSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+						Expect(err).NotTo(HaveOccurred())
+						// give redis a chance to start
+						Eventually(redisSession.Out, "5s").Should(gbytes.Say("Ready to accept connections"))
+					})
+
+					AfterEach(func() {
+						redisSession.Kill()
+					})
+
+					It("should work", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {
+							Expect(cookies[0].Name).To(Equal(cookieName))
+						})
+					})
+				})
+
+				Context("forward access token", func() {
+					It("should work", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {})
+
+						select {
+						case r := <-testUpstream.C:
+							Expect(r.Headers.Get("Set-Cookie")).To(ContainSubstring("access_token=SlAV32hkKG"))
+						case <-time.After(time.Second):
+							Fail("timedout")
+						}
+					})
+				})
+
+				Context("happy path with default settings (no redis)", func() {
+					It("should work", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {
+							Expect(cookies).ToNot(BeEmpty())
+							var cookienames []string
+							for _, c := range cookies {
+								cookienames = append(cookienames, c.Name)
+								Expect(c.HttpOnly).To(BeTrue())
+							}
+							Expect(cookienames).To(ConsistOf("access_token", "id_token"))
+						})
+					})
+				})
+
+				Context("happy path with default settings and http only set to false", func() {
+					BeforeEach(func() {
+						oauth2.Oauth2.Session = &extauth.UserSession{
+							Session: &extauth.UserSession_Cookie{Cookie: &extauth.UserSession_InternalSession{}},
+							CookieOptions: &extauth.UserSession_CookieOptions{
+								HttpOnly: &wrappers.BoolValue{Value: false},
+							},
+						}
+					})
+
+					It("should work", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {
+							Expect(cookies).ToNot(BeEmpty())
+							var cookienames []string
+							for _, c := range cookies {
+								cookienames = append(cookienames, c.Name)
+								Expect(c.HttpOnly).To(BeFalse())
+							}
+							Expect(cookienames).To(ConsistOf("access_token", "id_token"))
+						})
+					})
+				})
+
+				Context("Oidc callbackPath test", func() {
+					BeforeEach(func() {
+						oauth2 := getOAuth2Config(envoyPort, secret.Metadata.Ref())
+						oauth2.Oauth2.CallbackPath = "/callback"
+						authConfig.Configs = []*extauth.AuthConfig_Config{{
+							AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+								Oauth2: &extauth.OAuth2{
+									OauthType: oauth2,
+								},
+							},
+						}}
+					})
+
+					It("should exchange token with callbackPath", func() {
+						finalpage := fmt.Sprintf("http://%s:%d/success", "localhost", envoyPort)
+						client := &http.Client{
+							CheckRedirect: func(req *http.Request, via []*http.Request) error {
+								return http.ErrUseLastResponse
+							},
+						}
+
+						st := oauth2Service.NewStateSigner([]byte(settings.ExtAuthSettings.SigningKey))
+						signedState, err := st.Sign(oauth2.Oauth2.GetAppUrl())
+						Expect(err).NotTo(HaveOccurred())
+						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/callback?code=1234&gloo_urlToRedirect=%s&state="+string(signedState), "localhost", envoyPort, url.QueryEscape(finalpage)), nil)
+						Expect(err).NotTo(HaveOccurred())
+
+						Eventually(func() (http.Response, error) {
+							r, err := client.Do(req)
+							if err != nil {
+								return http.Response{}, err
+							}
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
+						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
+							"StatusCode": Equal(http.StatusFound),
+							"Header":     HaveKeyWithValue("Location", []string{finalpage}),
+						}))
+					})
+				})
+
+				Context("Oidc tests that don't forward to upstream", func() {
+					It("should redirect to auth page", func() {
+						client := &http.Client{
+							CheckRedirect: func(req *http.Request, via []*http.Request) error {
+								// stop at the auth point
+								if req.Response != nil && req.Response.Header.Get("x-auth") != "" {
+									return http.ErrUseLastResponse
+								}
+								return nil
+							},
+						}
+						Eventually(func() (string, error) {
+							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							Expect(err).NotTo(HaveOccurred())
+							resp, err := client.Do(req)
+							if err != nil {
+								return "", err
+							}
+							defer resp.Body.Close()
+							body, err := io.ReadAll(resp.Body)
+							if err != nil {
+								return "", err
+							}
+							fmt.Fprintf(GinkgoWriter, "headers are %v \n", resp.Header)
+							return string(body), nil
+						}, "10s", "0.5s").Should(Equal("auth"))
+					})
+
+					It("should include email scope in url", func() {
+						client := &http.Client{
+							CheckRedirect: func(req *http.Request, via []*http.Request) error {
+								return http.ErrUseLastResponse
+							},
+						}
+						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+						Expect(err).NotTo(HaveOccurred())
+
+						Eventually(func() (http.Response, error) {
+							r, err := client.Do(req)
+							if err != nil {
+								return http.Response{}, err
+							}
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
+						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
+							"StatusCode": Equal(http.StatusFound),
+							"Header":     HaveKeyWithValue("Location", ContainElement(ContainSubstring("email"))),
+						}))
+					})
+
+					It("should exchange token", func() {
+						finalpage := fmt.Sprintf("http://%s:%d/success", "localhost", envoyPort)
+						client := &http.Client{
+							CheckRedirect: func(req *http.Request, via []*http.Request) error {
+								return http.ErrUseLastResponse
+							},
+						}
+
+						st := oidc.NewStateSigner([]byte(settings.ExtAuthSettings.SigningKey))
+						signedState, err := st.Sign(finalpage)
+						Expect(err).NotTo(HaveOccurred())
+						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/callback?code=1234&state=%s&gloo_urlToRedirect=%s", "localhost", envoyPort, string(signedState), url.QueryEscape(finalpage)), nil)
+						Expect(err).NotTo(HaveOccurred())
+
+						Eventually(func() (http.Response, error) {
+							r, err := client.Do(req)
+							if err != nil {
+								return http.Response{}, err
+							}
+							defer r.Body.Close()
+							_, _ = io.ReadAll(r.Body)
+							return *r, nil
+						}, "5s", "0.5s").Should(MatchFields(IgnoreExtras, Fields{
+							"StatusCode": Equal(http.StatusFound),
+							"Header":     HaveKeyWithValue("Location", []string{finalpage}),
+						}))
+					})
+				})
+			})
+
 			Context("oauth2 token introspection sanity", func() {
 
 				var (
@@ -1690,7 +2049,7 @@ var _ = Describe("External auth", func() {
 					}, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
 
-					apiKeySecret1 := &extauth.ApiKeySecret{
+					apiKey1 := &extauth.ApiKey{
 						ApiKey: "secretApiKey1",
 					}
 
@@ -1700,11 +2059,11 @@ var _ = Describe("External auth", func() {
 							Namespace: "default",
 						},
 						Kind: &gloov1.Secret_ApiKey{
-							ApiKey: apiKeySecret1,
+							ApiKey: apiKey1,
 						},
 					}
 
-					apiKeySecret2 := &extauth.ApiKeySecret{
+					apiKey2 := &extauth.ApiKey{
 						ApiKey: "secretApiKey2",
 					}
 
@@ -1715,7 +2074,7 @@ var _ = Describe("External auth", func() {
 							Labels:    map[string]string{"team": "infrastructure"},
 						},
 						Kind: &gloov1.Secret_ApiKey{
-							ApiKey: apiKeySecret2,
+							ApiKey: apiKey2,
 						},
 					}
 
@@ -3376,6 +3735,76 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 	return cachedPrivateKey
 }
 
+type fakeOAuth2Server struct {
+	s     http.Server
+	token string
+}
+
+func (f *fakeOAuth2Server) Stop() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	_ = f.s.Shutdown(ctx)
+}
+
+func (f *fakeOAuth2Server) Start() {
+	f.s = http.Server{
+		Addr: ":5556",
+	}
+
+	f.s.Handler = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		defer GinkgoRecover()
+		rw.Header().Set("content-type", "text/plain")
+
+		switch r.URL.Path {
+		case "/auth":
+			// redirect back immediately. This simulates a user that's already logged in by the IDP.
+			redirectUri := r.URL.Query().Get("redirect_uri")
+			state := r.URL.Query().Get("state")
+			glooUrlRedirect := r.URL.Query().Get("gloo_urlToRedirect")
+			u, err := url.Parse(redirectUri)
+			Expect(err).NotTo(HaveOccurred())
+
+			u.RawQuery = fmt.Sprintf("code=1234&state=%s&gloo_urlToRedirect=%s", state, glooUrlRedirect)
+			fmt.Fprintf(GinkgoWriter, "redirecting to %s\n", u.String())
+			rw.Header().Add("Location", u.String())
+			rw.Header().Add("x-auth", "auth")
+			rw.WriteHeader(http.StatusFound)
+
+			_, _ = rw.Write([]byte(`auth`))
+		case "/token":
+			r.ParseForm()
+			fmt.Fprintln(GinkgoWriter, "got request for token. query:", r.URL.RawQuery, r.URL.String(), "form:", r.Form.Encode())
+			f.token = "SlAV32hkKG"
+
+			// does this work as intended.
+			_, _ = rw.Write([]byte(fmt.Sprintf("access_token=%s", f.token)))
+		case "/revoke":
+			r.ParseForm()
+			tokenTypeHint := r.Form.Get("token_type_hint")
+
+			httpReply := ""
+			if tokenTypeHint != "refresh_token" && tokenTypeHint != "access_token" {
+				httpReply = `
+              {
+              	"error":"unsupported_token_type"
+				}
+              `
+			}
+
+			rw.WriteHeader(http.StatusOK)
+			_, _ = rw.Write([]byte(httpReply))
+		}
+	})
+
+	go func() {
+		defer GinkgoRecover()
+		err := f.s.ListenAndServe()
+		if err != http.ErrServerClosed {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	}()
+}
+
 func getOauthTokenIntrospectionUrlConfig() *extauth.OAuth2_AccessTokenValidation {
 	return &extauth.OAuth2_AccessTokenValidation{
 		AccessTokenValidation: &extauth.AccessTokenValidation{
@@ -3444,8 +3873,26 @@ func getOidcAuthCodeConfig(envoyPort uint32, secretRef *core.ResourceRef) *extau
 	}
 }
 
+func getOAuth2Config(envoyPort uint32, secretRef *core.ResourceRef) *extauth.OAuth2_Oauth2 {
+	return &extauth.OAuth2_Oauth2{
+		Oauth2: &extauth.PlainOAuth2{
+			ClientId:        "test-clientid",
+			ClientSecretRef: secretRef,
+			AppUrl:          fmt.Sprintf("http://localhost:%d", envoyPort), // todo: envoyPort vs 5556
+			CallbackPath:    "/callback",
+			Scopes:          []string{"email"},
+			AuthEndpoint:    fmt.Sprintf("http://localhost:%d/auth", 5556),
+			TokenEndpoint:   fmt.Sprintf("http://localhost:%d/token", 5556),
+		},
+	}
+}
+
 func getProxyExtAuthOIDC(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 	return getProxyExtAuth(envoyPort, upstream, getOidcExtAuthExtension(), false)
+}
+
+func getProxyExtAuthOAuth2(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
+	return getProxyExtAuth(envoyPort, upstream, getOAuth2ExtAuthExtension(), false)
 }
 
 func getOidcExtAuthExtension() *extauth.ExtAuthExtension {
@@ -3463,11 +3910,37 @@ func getProxyExtAuthOIDCAndOpa(envoyPort uint32, secretRef, upstream *core.Resou
 	return getProxyExtAuth(envoyPort, upstream, getOidcAndOpaExtAuthExtension(), false)
 }
 
+func getOAuth2ExtAuthExtension() *extauth.ExtAuthExtension {
+	return &extauth.ExtAuthExtension{
+		Spec: &extauth.ExtAuthExtension_ConfigRef{
+			ConfigRef: &core.ResourceRef{
+				Name:      "oauth2-auth",
+				Namespace: defaults.GlooSystem,
+			},
+		},
+	}
+}
+
+func getProxyExtAuthOAuth2AndOpa(envoyPort uint32, secretRef, upstream *core.ResourceRef, modules []*core.ResourceRef) *gloov1.Proxy {
+	return getProxyExtAuth(envoyPort, upstream, getOAuth2AndOpaExtAuthExtension(), false)
+}
+
 func getOidcAndOpaExtAuthExtension() *extauth.ExtAuthExtension {
 	return &extauth.ExtAuthExtension{
 		Spec: &extauth.ExtAuthExtension_ConfigRef{
 			ConfigRef: &core.ResourceRef{
 				Name:      "oidcand-opa-auth",
+				Namespace: defaults.GlooSystem,
+			},
+		},
+	}
+}
+
+func getOAuth2AndOpaExtAuthExtension() *extauth.ExtAuthExtension {
+	return &extauth.ExtAuthExtension{
+		Spec: &extauth.ExtAuthExtension_ConfigRef{
+			ConfigRef: &core.ResourceRef{
+				Name:      "oauth2and-opa-auth",
 				Namespace: defaults.GlooSystem,
 			},
 		},

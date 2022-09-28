@@ -33,7 +33,7 @@ var _ = Describe("Translate", func() {
 		authConfigRef    *core.ResourceRef
 		extAuthExtension *extauth.ExtAuthExtension
 		clientSecret     *extauth.OauthSecret
-		apiKeySecret     *extauth.ApiKeySecret
+		apiKey           *extauth.ApiKey
 	)
 
 	BeforeEach(func() {
@@ -71,7 +71,7 @@ var _ = Describe("Translate", func() {
 			},
 		}
 
-		apiKeySecret = &extauth.ApiKeySecret{
+		apiKey = &extauth.ApiKey{
 			ApiKey: "apiKey1",
 		}
 
@@ -187,6 +187,91 @@ var _ = Describe("Translate", func() {
 		)
 	})
 
+	Context("with plain OAuth2 extauth", func() {
+		BeforeEach(func() {
+			clientSecret = &extauth.OauthSecret{
+				ClientSecret: "1234",
+			}
+
+			secret = &v1.Secret{
+				Metadata: &core.Metadata{
+					Name:      "secret",
+					Namespace: "default",
+				},
+				Kind: &v1.Secret_Oauth{
+					Oauth: clientSecret,
+				},
+			}
+			secretRef := secret.Metadata.Ref()
+
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "oauth",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_Oauth2{
+						Oauth2: &extauth.OAuth2{
+							OauthType: &extauth.OAuth2_Oauth2{
+								Oauth2: &extauth.PlainOAuth2{
+									AppUrl:             "app.url",
+									CallbackPath:       "/callback",
+									ClientId:           "cid",
+									ClientSecretRef:    secretRef,
+									Scopes:             []string{"trust"},
+									AuthEndpoint:       "login.url/auth",
+									TokenEndpoint:      "login.url/token",
+									RevocationEndpoint: "login.url/revoke",
+								},
+							},
+						},
+					},
+				}},
+			}
+			authConfigRef = authConfig.Metadata.Ref()
+			extAuthExtension = &extauth.ExtAuthExtension{
+				Spec: &extauth.ExtAuthExtension_ConfigRef{
+					ConfigRef: authConfigRef,
+				},
+			}
+
+			params.Snapshot = &v1snap.ApiSnapshot{
+				Upstreams:   v1.UpstreamList{upstream},
+				AuthConfigs: extauth.AuthConfigList{authConfig},
+			}
+		})
+
+		// This test checks whether the plain oauth2 proto has a new field.
+		// If so, the `translatePlainOAuth2` function most likely needs to be updated
+		It("will fail if the plain oauth2 proto has a new top level field", func() {
+			Expect(reflect.TypeOf(extauth.ExtAuthConfig_PlainOAuth2Config{}).NumField()).To(
+				Equal(16),
+				"wrong number of fields found")
+		})
+
+		It("should translate plain oauth2 config", func() {
+			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.Configs).To(HaveLen(1))
+			actual := translated.Configs[0].GetOauth2()
+			actualPlainOAuth2 := actual.GetOauth2Config()
+			expected := authConfig.Configs[0].GetOauth2()
+			expectedPlainOAuth2 := expected.GetOauth2()
+
+			Expect(actualPlainOAuth2.AppUrl).To(Equal(expectedPlainOAuth2.AppUrl))
+			Expect(actualPlainOAuth2.CallbackPath).To(Equal(expectedPlainOAuth2.CallbackPath))
+			Expect(actualPlainOAuth2.ClientId).To(Equal(expectedPlainOAuth2.ClientId))
+			Expect(actualPlainOAuth2.ClientSecret).To(Equal(clientSecret.ClientSecret))
+			Expect(actualPlainOAuth2.AuthEndpointQueryParams).To(Equal(expectedPlainOAuth2.AuthEndpointQueryParams))
+			Expect(actualPlainOAuth2.TokenEndpointQueryParams).To(Equal(expectedPlainOAuth2.TokenEndpointQueryParams))
+			Expect(actualPlainOAuth2.Scopes).To(Equal(expectedPlainOAuth2.Scopes))
+			Expect(actualPlainOAuth2.AuthEndpoint).To(Equal(expectedPlainOAuth2.AuthEndpoint))
+			Expect(actualPlainOAuth2.TokenEndpoint).To(Equal(expectedPlainOAuth2.TokenEndpoint))
+			Expect(actualPlainOAuth2.RevocationEndpoint).To(Equal(expectedPlainOAuth2.RevocationEndpoint))
+		})
+	})
+
 	Context("with api key extauth", func() {
 		BeforeEach(func() {
 
@@ -197,7 +282,7 @@ var _ = Describe("Translate", func() {
 					Labels:    map[string]string{"team": "infrastructure"},
 				},
 				Kind: &v1.Secret_ApiKey{
-					ApiKey: apiKeySecret,
+					ApiKey: apiKey,
 				},
 			}
 			secretRef := secret.Metadata.Ref()
@@ -279,7 +364,7 @@ var _ = Describe("Translate", func() {
 						Labels:    map[string]string{"team": "infrastructure"},
 					},
 					Kind: &v1.Secret_ApiKey{
-						ApiKey: &extauth.ApiKeySecret{
+						ApiKey: &extauth.ApiKey{
 							ApiKey: "apiKey1",
 							Metadata: map[string]string{
 								"user-id": "123",

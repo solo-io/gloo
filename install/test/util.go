@@ -98,7 +98,7 @@ func ApplyPermissionsForGlooEServiceAccounts(namespace string, permissions *mani
 		namespace,
 		[]string{"gloo.solo.io"},
 		[]string{"settings"},
-		[]string{"create", "get", "list", "watch"})
+		[]string{"get", "list", "watch"})
 	permissions.AddExpectedPermission(
 		"gloo-system.observability",
 		namespace,

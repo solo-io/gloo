@@ -606,6 +606,11 @@ export class RouteOptions extends jspb.Message {
   getRegexRewrite(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute | undefined;
   setRegexRewrite(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute): void;
 
+  hasMaxStreamDuration(): boolean;
+  clearMaxStreamDuration(): void;
+  getMaxStreamDuration(): RouteOptions.MaxStreamDuration | undefined;
+  setMaxStreamDuration(value?: RouteOptions.MaxStreamDuration): void;
+
   getHostRewriteTypeCase(): RouteOptions.HostRewriteTypeCase;
   getRateLimitEarlyConfigTypeCase(): RouteOptions.RateLimitEarlyConfigTypeCase;
   getRateLimitConfigTypeCase(): RouteOptions.RateLimitConfigTypeCase;
@@ -655,6 +660,41 @@ export namespace RouteOptions {
     stagedTransformations?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_transformation_transformation_pb.TransformationStages.AsObject,
     envoyMetadataMap: Array<[string, google_protobuf_struct_pb.Struct.AsObject]>,
     regexRewrite?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.AsObject,
+    maxStreamDuration?: RouteOptions.MaxStreamDuration.AsObject,
+  }
+
+  export class MaxStreamDuration extends jspb.Message {
+    hasMaxStreamDuration(): boolean;
+    clearMaxStreamDuration(): void;
+    getMaxStreamDuration(): google_protobuf_duration_pb.Duration | undefined;
+    setMaxStreamDuration(value?: google_protobuf_duration_pb.Duration): void;
+
+    hasGrpcTimeoutHeaderMax(): boolean;
+    clearGrpcTimeoutHeaderMax(): void;
+    getGrpcTimeoutHeaderMax(): google_protobuf_duration_pb.Duration | undefined;
+    setGrpcTimeoutHeaderMax(value?: google_protobuf_duration_pb.Duration): void;
+
+    hasGrpcTimeoutHeaderOffset(): boolean;
+    clearGrpcTimeoutHeaderOffset(): void;
+    getGrpcTimeoutHeaderOffset(): google_protobuf_duration_pb.Duration | undefined;
+    setGrpcTimeoutHeaderOffset(value?: google_protobuf_duration_pb.Duration): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): MaxStreamDuration.AsObject;
+    static toObject(includeInstance: boolean, msg: MaxStreamDuration): MaxStreamDuration.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: MaxStreamDuration, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): MaxStreamDuration;
+    static deserializeBinaryFromReader(message: MaxStreamDuration, reader: jspb.BinaryReader): MaxStreamDuration;
+  }
+
+  export namespace MaxStreamDuration {
+    export type AsObject = {
+      maxStreamDuration?: google_protobuf_duration_pb.Duration.AsObject,
+      grpcTimeoutHeaderMax?: google_protobuf_duration_pb.Duration.AsObject,
+      grpcTimeoutHeaderOffset?: google_protobuf_duration_pb.Duration.AsObject,
+    }
   }
 
   export enum HostRewriteTypeCase {

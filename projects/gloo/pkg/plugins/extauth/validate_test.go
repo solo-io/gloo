@@ -340,6 +340,15 @@ var _ = Describe("ValidateAuthConfig", func() {
 				},
 			},
 		}, OAuth2IncompleteOIDCInfoErr),
+		Entry("incomplete Plain OAuth2 config: no app URL", &extauth.OAuth2{
+			OauthType: &extauth.OAuth2_Oauth2{
+				Oauth2: &extauth.PlainOAuth2{
+					ClientSecretRef: &core.ResourceRef{Name: "foo", Namespace: "bar"},
+					ClientId:        "0000",
+					CallbackPath:    "/callback",
+				},
+			},
+		}, OAuth2IncompletePlainInfoErr),
 		Entry("incomplete OIDC config: no client secret", &extauth.OAuth2{
 			OauthType: &extauth.OAuth2_OidcAuthorizationCode{
 				OidcAuthorizationCode: &extauth.OidcAuthorizationCode{

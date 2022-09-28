@@ -98,6 +98,7 @@ jobs:
     name: k8s regression tests
     runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
       matrix:
         kube-e2e-test-type: [ 'gateway', 'gloo-mtls', 'helm', 'redis-clientside-sharding', 'wasm', 'caching']
         use-fips: ['false']
@@ -175,8 +176,9 @@ jobs:
           USE_FIPS: ${{ matrix.use-fips }}
           CLUSTER_NAME: 'kind'
           CLUSTER_NODE_VERSION: 'v1.22.4@sha256:ca3587e6e545a96c07bf82e2c46503d9ef86fc704f44c17577fca7bcabf5f978'
+          VERSION: '0.0.0-kind'
         run: |
-          VERSION=$(./git-semver.sh) ./ci/setup-kind.sh
+          ./ci/setup-kind.sh
       - name: Testing - kube e2e regression tests
         env:
           KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type }}

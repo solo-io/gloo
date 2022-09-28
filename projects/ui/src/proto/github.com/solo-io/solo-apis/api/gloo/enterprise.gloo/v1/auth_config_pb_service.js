@@ -168,3 +168,178 @@ ExtAuthDiscoveryServiceClient.prototype.fetchExtAuthConfig = function fetchExtAu
 
 exports.ExtAuthDiscoveryServiceClient = ExtAuthDiscoveryServiceClient;
 
+var ApiKeyService = (function () {
+  function ApiKeyService() {}
+  ApiKeyService.serviceName = "enterprise.gloo.solo.io.ApiKeyService";
+  return ApiKeyService;
+}());
+
+ApiKeyService.Create = {
+  methodName: "Create",
+  service: ApiKeyService,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeyCreateRequest,
+  responseType: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeyCreateResponse
+};
+
+ApiKeyService.Read = {
+  methodName: "Read",
+  service: ApiKeyService,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeyReadRequest,
+  responseType: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeyReadResponse
+};
+
+ApiKeyService.Update = {
+  methodName: "Update",
+  service: ApiKeyService,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeyUpdateRequest,
+  responseType: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeyUpdateResponse
+};
+
+ApiKeyService.Delete = {
+  methodName: "Delete",
+  service: ApiKeyService,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeyDeleteRequest,
+  responseType: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeyDeleteResponse
+};
+
+exports.ApiKeyService = ApiKeyService;
+
+function ApiKeyServiceClient(serviceHost, options) {
+  this.serviceHost = serviceHost;
+  this.options = options || {};
+}
+
+ApiKeyServiceClient.prototype.create = function create(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(ApiKeyService.Create, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+ApiKeyServiceClient.prototype.read = function read(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(ApiKeyService.Read, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+ApiKeyServiceClient.prototype.update = function update(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(ApiKeyService.Update, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+ApiKeyServiceClient.prototype.delete = function pb_delete(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(ApiKeyService.Delete, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+exports.ApiKeyServiceClient = ApiKeyServiceClient;
+

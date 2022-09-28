@@ -155,7 +155,7 @@ clean-fed: clean-artifacts clean-generated-protos
 run-tests: install-node-packages
 ifneq ($(RELEASE), "true")
 	PATH=$(DEPSGOBIN):$$PATH go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
-	TAGGED_VERSION=$(TAGGED_VERSION) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor
+	VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor
 endif
 
 # command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
@@ -938,7 +938,7 @@ $(GLOO_OUT_DIR)/.gloo-ee-docker: $(GLOO_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(G
 	cp -r projects/gloo/pkg/plugins/graphql/js $(GLOO_OUT_DIR)/js
 	cp -r projects/ui/src/proto $(GLOO_OUT_DIR)/js
 	docker buildx build --load $(call get_test_tag_option,gloo-ee) $(GLOO_OUT_DIR) \
-		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) $(DOCKER_GO_BORING_ARGS) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) $(DOCKER_BUILD_ARGS) \
 		-t $(IMAGE_REPO)/gloo-ee:$(VERSION)
 	touch $@
 
@@ -1107,7 +1107,7 @@ gloo-ee-envoy-wrapper-docker: $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-docker
 
 $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH) $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_OUT_DIR)/docker-entrypoint.sh
 	docker buildx build --load $(call get_test_tag_option,gloo-ee-envoy-wrapper) $(ENVOYINIT_OUT_DIR) \
-		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) $(DOCKER_GO_BORING_ARGS) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) $(DOCKER_BUILD_ARGS) \
 		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) \
 		-f $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit
 	touch $@
@@ -1117,7 +1117,7 @@ gloo-ee-envoy-wrapper-debug-docker: $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-
 
 $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-debug-docker: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH) $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_OUT_DIR)/docker-entrypoint.sh
 	docker buildx build --load $(call get_test_tag_option,gloo-ee-envoy-wrapper-debug) $(ENVOYINIT_OUT_DIR) \
-		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_DEBUG_IMAGE) $(DOCKER_GO_BORING_ARGS) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_DEBUG_IMAGE) $(DOCKER_BUILD_ARGS) \
 		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug \
 		-f $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit
 	touch $@
@@ -1248,7 +1248,7 @@ package-gloo-fed-chart: gloofed-helm-template
 #----------------------------------------------------------------------------------
 
 .PHONY: upload-github-release-assets
-upload-github-release-assets: produce-manifests
+upload-github-release-assets:
 	$(GO_BUILD_FLAGS) go run ci/upload_github_release_assets.go
 
 DEPS_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)

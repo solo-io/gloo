@@ -104,7 +104,7 @@ proto.gloo.solo.io.Secret.toObject = function(includeInstance, msg) {
     azure: (f = msg.getAzure()) && proto.gloo.solo.io.AzureSecret.toObject(includeInstance, f),
     tls: (f = msg.getTls()) && proto.gloo.solo.io.TlsSecret.toObject(includeInstance, f),
     oauth: (f = msg.getOauth()) && github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.OauthSecret.toObject(includeInstance, f),
-    apiKey: (f = msg.getApiKey()) && github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeySecret.toObject(includeInstance, f),
+    apiKey: (f = msg.getApiKey()) && github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKey.toObject(includeInstance, f),
     header: (f = msg.getHeader()) && proto.gloo.solo.io.HeaderSecret.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_extensions_pb.Extensions.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f)
@@ -165,8 +165,8 @@ proto.gloo.solo.io.Secret.deserializeBinaryFromReader = function(msg, reader) {
       msg.setOauth(value);
       break;
     case 6:
-      var value = new github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeySecret;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeySecret.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKey;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKey.deserializeBinaryFromReader);
       msg.setApiKey(value);
       break;
     case 8:
@@ -250,7 +250,7 @@ proto.gloo.solo.io.Secret.serializeBinaryToWriter = function(message, writer) {
     writer.writeMessage(
       6,
       f,
-      github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeySecret.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKey.serializeBinaryToWriter
     );
   }
   f = message.getHeader();
@@ -401,16 +401,16 @@ proto.gloo.solo.io.Secret.prototype.hasOauth = function() {
 
 
 /**
- * optional enterprise.gloo.solo.io.ApiKeySecret api_key = 6;
- * @return {?proto.enterprise.gloo.solo.io.ApiKeySecret}
+ * optional enterprise.gloo.solo.io.ApiKey api_key = 6;
+ * @return {?proto.enterprise.gloo.solo.io.ApiKey}
  */
 proto.gloo.solo.io.Secret.prototype.getApiKey = function() {
-  return /** @type{?proto.enterprise.gloo.solo.io.ApiKeySecret} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKeySecret, 6));
+  return /** @type{?proto.enterprise.gloo.solo.io.ApiKey} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKey, 6));
 };
 
 
-/** @param {?proto.enterprise.gloo.solo.io.ApiKeySecret|undefined} value */
+/** @param {?proto.enterprise.gloo.solo.io.ApiKey|undefined} value */
 proto.gloo.solo.io.Secret.prototype.setApiKey = function(value) {
   jspb.Message.setOneofWrapperField(this, 6, proto.gloo.solo.io.Secret.oneofGroups_[0], value);
 };

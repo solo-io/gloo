@@ -112,6 +112,18 @@ func translateConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth
 					},
 				},
 			}
+		case *extauth.OAuth2_Oauth2:
+			plainOAuth2Config, err := translatePlainOAuth2(snap, oauthCfg.Oauth2)
+			if err != nil {
+				return nil, err
+			}
+			extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Oauth2{
+				Oauth2: &extauth.ExtAuthConfig_OAuth2Config{
+					OauthType: &extauth.ExtAuthConfig_OAuth2Config_Oauth2Config{
+						Oauth2Config: plainOAuth2Config,
+					},
+				},
+			}
 		}
 	case *extauth.AuthConfig_Config_ApiKeyAuth:
 		apiKeyConfig, err := translateApiKey(ctx, snap, config.ApiKeyAuth)
@@ -324,11 +336,43 @@ func translateOauth(snap *v1snap.ApiSnapshot, config *extauth.OAuth) (*extauth.E
 	}, nil
 }
 
+func translatePlainOAuth2(snap *v1snap.ApiSnapshot, config *extauth.PlainOAuth2) (*extauth.ExtAuthConfig_PlainOAuth2Config, error) {
+	secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
+	if err != nil {
+		return nil, err
+	}
+
+	return &extauth.ExtAuthConfig_PlainOAuth2Config{
+		AppUrl:                   config.AppUrl,
+		ClientId:                 config.ClientId,
+		ClientSecret:             secret.GetOauth().GetClientSecret(),
+		AuthEndpointQueryParams:  config.AuthEndpointQueryParams,
+		TokenEndpointQueryParams: config.TokenEndpointQueryParams,
+		CallbackPath:             config.CallbackPath,
+		AfterLogoutUrl:           config.AfterLogoutUrl,
+		LogoutPath:               config.LogoutPath,
+		Scopes:                   config.Scopes,
+		Session:                  config.Session,
+		TokenEndpoint:            config.TokenEndpoint,
+		AuthEndpoint:             config.AuthEndpoint,
+		RevocationEndpoint:       config.RevocationEndpoint,
+	}, nil
+}
+
 func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.OidcAuthorizationCode) (*extauth.ExtAuthConfig_OidcAuthorizationCodeConfig, error) {
 
 	secret, err := snap.Secrets.Find(config.GetClientSecretRef().GetNamespace(), config.GetClientSecretRef().GetName())
 	if err != nil {
 		return nil, err
+	}
+
+	sessionIdHeaderName := config.GetSessionIdHeaderName()
+	// prefer the session id header name set in redis config, if set.
+	switch session := config.GetSession().GetSession().(type) {
+	case *extauth.UserSession_Redis:
+		if headerName := session.Redis.GetHeaderName(); headerName != "" {
+			sessionIdHeaderName = headerName
+		}
 	}
 
 	return &extauth.ExtAuthConfig_OidcAuthorizationCodeConfig{
@@ -340,7 +384,7 @@ func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.Oi
 		TokenEndpointQueryParams: config.TokenEndpointQueryParams,
 		CallbackPath:             config.CallbackPath,
 		AfterLogoutUrl:           config.AfterLogoutUrl,
-		SessionIdHeaderName:      config.SessionIdHeaderName,
+		SessionIdHeaderName:      sessionIdHeaderName,
 		LogoutPath:               config.LogoutPath,
 		Scopes:                   config.Scopes,
 		Session:                  config.Session,

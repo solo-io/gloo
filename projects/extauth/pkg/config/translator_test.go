@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth2"
+
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/onsi/ginkgo/extensions/table"
 	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
@@ -432,6 +434,42 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				authService, err := translator.Translate(ctx, oAuthConfig)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(authService).NotTo(BeNil())
+			})
+		})
+	})
+
+	Context("translating PlainOAuth2 config", func() {
+		Context("session", func() {
+			path := "/foo"
+			var extAuthCookie *extauthv1.UserSession
+			BeforeEach(func() {
+				extAuthCookie = &extauthv1.UserSession{CookieOptions: &extauthv1.UserSession_CookieOptions{
+					MaxAge:    &wrappers.UInt32Value{Value: 1},
+					Domain:    "foo.com",
+					NotSecure: true,
+					Path:      &wrappers.StringValue{Value: path},
+					SameSite:  extauthv1.UserSession_CookieOptions_LaxMode,
+				}}
+			})
+
+			It("should translate nil session", func() {
+				params, err := config.ToSessionParametersOAuth2(nil)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oauth2.SessionParameters{}))
+			})
+			It("should translate CookieOptions", func() {
+				params, err := config.ToSessionParametersOAuth2(extAuthCookie)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(params).To(Equal(oauth2.SessionParameters{
+					Options: &session.Options{
+						Path:     &path,
+						Domain:   "foo.com",
+						HttpOnly: true,
+						MaxAge:   1,
+						Secure:   false,
+						SameSite: session.SameSiteLaxMode,
+					},
+				}))
 			})
 		})
 	})

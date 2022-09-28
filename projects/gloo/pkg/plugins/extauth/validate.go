@@ -17,6 +17,7 @@ var (
 	OAuth2EmtpyRemoteJwksUrlErr                 = errors.New("oauth2: remote JWKS URL cannot be empty")
 	OAuth2EmtpyLocalJwksErr                     = errors.New("oauth2: must provide inline JWKS string")
 	OAuth2IncompleteOIDCInfoErr                 = errors.New("oidc: all of the following attributes must be provided: issuerUrl, clientId, clientSecretRef, appUrl, callbackPath")
+	OAuth2IncompletePlainInfoErr                = errors.New("oauth2: all of the following attributes must be provided: issuerUrl, clientId, clientSecretRef, appUrl, callbackPath")
 )
 
 type invalidAuthConfigError struct {
@@ -106,6 +107,16 @@ func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports
 							reports.AddError(ac, OAuth2EmtpyLocalJwksErr)
 						}
 					}
+				}
+			case *extauth.OAuth2_Oauth2:
+				oauth2Cfg := oauthCfg.Oauth2
+				if oauth2Cfg.GetAppUrl() == "" ||
+					oauth2Cfg.GetClientId() == "" ||
+					oauth2Cfg.GetAuthEndpoint() == "" ||
+					oauth2Cfg.GetTokenEndpoint() == "" ||
+					oauth2Cfg.GetClientSecretRef() == nil ||
+					oauth2Cfg.GetCallbackPath() == "" {
+					reports.AddError(ac, OAuth2IncompletePlainInfoErr)
 				}
 			}
 		case *extauth.AuthConfig_Config_ApiKeyAuth:

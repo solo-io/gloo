@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/ext-auth-service/pkg/config/oauth2"
+
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
 	"github.com/solo-io/ext-auth-service/pkg/controller/translation"
@@ -283,6 +285,43 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			default:
 				return nil, config.GetName().GetValue(), errors.Errorf("Unhandled access token validation type: %+v", oauthCfg.AccessTokenValidationConfig.ValidationType)
 			}
+		case *extauthv1.ExtAuthConfig_OAuth2Config_Oauth2Config:
+			plainOAuth2Cfg := oauthCfg.Oauth2Config
+
+			cb := plainOAuth2Cfg.GetCallbackPath()
+			if cb == "" {
+				cb = DefaultCallback
+			}
+
+			sessionParameters, err := ToSessionParametersOAuth2(plainOAuth2Cfg.GetSession())
+			if err != nil {
+				return nil, config.GetName().GetValue(), err
+			}
+
+			sessionIdHeader := ""
+			if redisSession := plainOAuth2Cfg.GetSession().GetRedis(); redisSession != nil {
+				sessionIdHeader = redisSession.GetHeaderName()
+			}
+
+			authService, err := t.serviceFactory.NewPlainOAuth2AuthService(
+				ctx,
+				plainOAuth2Cfg.GetClientId(),
+				plainOAuth2Cfg.GetClientSecret(),
+				plainOAuth2Cfg.GetAppUrl(),
+				cb,
+				plainOAuth2Cfg.GetLogoutPath(),
+				plainOAuth2Cfg.GetAfterLogoutUrl(),
+				sessionIdHeader,
+				plainOAuth2Cfg.GetAuthEndpointQueryParams(),
+				plainOAuth2Cfg.GetTokenEndpointQueryParams(),
+				plainOAuth2Cfg.GetScopes(),
+				sessionParameters,
+				plainOAuth2Cfg.GetAuthEndpoint(),
+				plainOAuth2Cfg.GetTokenEndpoint(),
+				plainOAuth2Cfg.GetRevocationEndpoint(),
+			)
+
+			return authService, config.GetName().GetValue(), err
 		}
 
 	case *extauthv1.ExtAuthConfig_Config_ApiKeyAuth:
@@ -592,6 +631,21 @@ func ToSessionParameters(userSession *extauthv1.UserSession) (oidc.SessionParame
 		return oidc.SessionParameters{}, err
 	}
 	return oidc.SessionParameters{
+		ErrOnSessionFetch: userSession.GetFailOnFetchFailure(),
+		Store:             sessionStore,
+		Options:           sessionOptions,
+		RefreshIfExpired:  refreshIfExpired,
+		PreExpiryBuffer:   preExpiryBuffer,
+	}, nil
+}
+
+func ToSessionParametersOAuth2(userSession *extauthv1.UserSession) (oauth2.SessionParameters, error) {
+	sessionOptions := cookieConfigToSessionOptions(userSession.GetCookieOptions())
+	sessionStore, refreshIfExpired, preExpiryBuffer, err := sessionToStore(userSession)
+	if err != nil {
+		return oauth2.SessionParameters{}, err
+	}
+	return oauth2.SessionParameters{
 		ErrOnSessionFetch: userSession.GetFailOnFetchFailure(),
 		Store:             sessionStore,
 		Options:           sessionOptions,

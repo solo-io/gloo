@@ -23,9 +23,23 @@ var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrapp
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AccessTokenValidation.ScopeList', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKey', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyAuth', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyAuth.SecretKey', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyCreateRequest', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyCreateResponse', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyReadRequest', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyReadResponse', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeySecret', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AuthConfigNamespacedStatuses', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AuthConfigSpec', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.AuthConfigSpec.Config', null, global);
@@ -55,6 +69,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config', nu
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuthConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.OpaAuthConfig', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.ExtAuthExtension', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.GrpcService', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.HeaderConfiguration', null, global);
@@ -66,6 +81,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.JwksOnDemandCacheRefreshPolicy'
 goog.exportSymbol('proto.enterprise.gloo.solo.io.JwtValidation', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.JwtValidation.LocalJwks', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.JwtValidation.RemoteJwks', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Ldap', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Ldap.ConnectionPool', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.OAuth', null, global);
@@ -79,6 +95,7 @@ goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughGrpc', null, global)
 goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughHttp', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughHttp.Request', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.PassThroughHttp.Response', null, global);
+goog.exportSymbol('proto.enterprise.gloo.solo.io.PlainOAuth2', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.RedisOptions', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.RedisOptions.SocketType', null, global);
 goog.exportSymbol('proto.enterprise.gloo.solo.io.Settings', null, global);
@@ -4054,7 +4071,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.enterprise.gloo.solo.io.OAuth2.oneofGroups_ = [[1,2]];
+proto.enterprise.gloo.solo.io.OAuth2.oneofGroups_ = [[1,2,3]];
 
 /**
  * @enum {number}
@@ -4062,7 +4079,8 @@ proto.enterprise.gloo.solo.io.OAuth2.oneofGroups_ = [[1,2]];
 proto.enterprise.gloo.solo.io.OAuth2.OauthTypeCase = {
   OAUTH_TYPE_NOT_SET: 0,
   OIDC_AUTHORIZATION_CODE: 1,
-  ACCESS_TOKEN_VALIDATION: 2
+  ACCESS_TOKEN_VALIDATION: 2,
+  OAUTH2: 3
 };
 
 /**
@@ -4102,7 +4120,8 @@ proto.enterprise.gloo.solo.io.OAuth2.prototype.toObject = function(opt_includeIn
 proto.enterprise.gloo.solo.io.OAuth2.toObject = function(includeInstance, msg) {
   var f, obj = {
     oidcAuthorizationCode: (f = msg.getOidcAuthorizationCode()) && proto.enterprise.gloo.solo.io.OidcAuthorizationCode.toObject(includeInstance, f),
-    accessTokenValidation: (f = msg.getAccessTokenValidation()) && proto.enterprise.gloo.solo.io.AccessTokenValidation.toObject(includeInstance, f)
+    accessTokenValidation: (f = msg.getAccessTokenValidation()) && proto.enterprise.gloo.solo.io.AccessTokenValidation.toObject(includeInstance, f),
+    oauth2: (f = msg.getOauth2()) && proto.enterprise.gloo.solo.io.PlainOAuth2.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -4149,6 +4168,11 @@ proto.enterprise.gloo.solo.io.OAuth2.deserializeBinaryFromReader = function(msg,
       reader.readMessage(value,proto.enterprise.gloo.solo.io.AccessTokenValidation.deserializeBinaryFromReader);
       msg.setAccessTokenValidation(value);
       break;
+    case 3:
+      var value = new proto.enterprise.gloo.solo.io.PlainOAuth2;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.PlainOAuth2.deserializeBinaryFromReader);
+      msg.setOauth2(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4192,6 +4216,14 @@ proto.enterprise.gloo.solo.io.OAuth2.serializeBinaryToWriter = function(message,
       2,
       f,
       proto.enterprise.gloo.solo.io.AccessTokenValidation.serializeBinaryToWriter
+    );
+  }
+  f = message.getOauth2();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      proto.enterprise.gloo.solo.io.PlainOAuth2.serializeBinaryToWriter
     );
   }
 };
@@ -4254,6 +4286,36 @@ proto.enterprise.gloo.solo.io.OAuth2.prototype.clearAccessTokenValidation = func
  */
 proto.enterprise.gloo.solo.io.OAuth2.prototype.hasAccessTokenValidation = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional PlainOAuth2 oauth2 = 3;
+ * @return {?proto.enterprise.gloo.solo.io.PlainOAuth2}
+ */
+proto.enterprise.gloo.solo.io.OAuth2.prototype.getOauth2 = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.PlainOAuth2} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.PlainOAuth2, 3));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.PlainOAuth2|undefined} value */
+proto.enterprise.gloo.solo.io.OAuth2.prototype.setOauth2 = function(value) {
+  jspb.Message.setOneofWrapperField(this, 3, proto.enterprise.gloo.solo.io.OAuth2.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.OAuth2.prototype.clearOauth2 = function() {
+  this.setOauth2(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.OAuth2.prototype.hasOauth2 = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 
@@ -4975,7 +5037,8 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.toObject = function(inclu
     cookieName: jspb.Message.getFieldWithDefault(msg, 3, ""),
     allowRefreshing: (f = msg.getAllowRefreshing()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     preExpiryBuffer: (f = msg.getPreExpiryBuffer()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
-    targetDomain: jspb.Message.getFieldWithDefault(msg, 6, "")
+    targetDomain: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    headerName: jspb.Message.getFieldWithDefault(msg, 7, "")
   };
 
   if (includeInstance) {
@@ -5038,6 +5101,10 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.deserializeBinaryFromRead
     case 6:
       var value = /** @type {string} */ (reader.readString());
       msg.setTargetDomain(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setHeaderName(value);
       break;
     default:
       reader.skipField();
@@ -5110,6 +5177,13 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.serializeBinaryToWriter =
   if (f.length > 0) {
     writer.writeString(
       6,
+      f
+    );
+  }
+  f = message.getHeaderName();
+  if (f.length > 0) {
+    writer.writeString(
+      7,
       f
     );
   }
@@ -5248,6 +5322,21 @@ proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.getTargetDomain
 /** @param {string} value */
 proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.setTargetDomain = function(value) {
   jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * optional string header_name = 7;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.getHeaderName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.UserSession.RedisSession.prototype.setHeaderName = function(value) {
+  jspb.Message.setProto3StringField(this, 7, value);
 };
 
 
@@ -7779,6 +7868,531 @@ proto.enterprise.gloo.solo.io.OidcAuthorizationCode.prototype.hasEndSessionPrope
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.PlainOAuth2 = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.PlainOAuth2.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.PlainOAuth2, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.PlainOAuth2.displayName = 'proto.enterprise.gloo.solo.io.PlainOAuth2';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.repeatedFields_ = [6];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.PlainOAuth2.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.PlainOAuth2} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    clientId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    clientSecretRef: (f = msg.getClientSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    authEndpointQueryParamsMap: (f = msg.getAuthEndpointQueryParamsMap()) ? f.toObject(includeInstance, undefined) : [],
+    appUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    callbackPath: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    scopesList: jspb.Message.getRepeatedField(msg, 6),
+    session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
+    logoutPath: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    tokenEndpointQueryParamsMap: (f = msg.getTokenEndpointQueryParamsMap()) ? f.toObject(includeInstance, undefined) : [],
+    afterLogoutUrl: jspb.Message.getFieldWithDefault(msg, 10, ""),
+    authEndpoint: jspb.Message.getFieldWithDefault(msg, 11, ""),
+    tokenEndpoint: jspb.Message.getFieldWithDefault(msg, 12, ""),
+    revocationEndpoint: jspb.Message.getFieldWithDefault(msg, 13, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.PlainOAuth2}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.PlainOAuth2;
+  return proto.enterprise.gloo.solo.io.PlainOAuth2.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.PlainOAuth2} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.PlainOAuth2}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClientId(value);
+      break;
+    case 2:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setClientSecretRef(value);
+      break;
+    case 3:
+      var value = msg.getAuthEndpointQueryParamsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAppUrl(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCallbackPath(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addScopes(value);
+      break;
+    case 7:
+      var value = new proto.enterprise.gloo.solo.io.UserSession;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.UserSession.deserializeBinaryFromReader);
+      msg.setSession(value);
+      break;
+    case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setLogoutPath(value);
+      break;
+    case 9:
+      var value = msg.getTokenEndpointQueryParamsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    case 10:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAfterLogoutUrl(value);
+      break;
+    case 11:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAuthEndpoint(value);
+      break;
+    case 12:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTokenEndpoint(value);
+      break;
+    case 13:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRevocationEndpoint(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.PlainOAuth2.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.PlainOAuth2} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getClientId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getClientSecretRef();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getAuthEndpointQueryParamsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(3, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getAppUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getCallbackPath();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = message.getScopesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      6,
+      f
+    );
+  }
+  f = message.getSession();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      proto.enterprise.gloo.solo.io.UserSession.serializeBinaryToWriter
+    );
+  }
+  f = message.getLogoutPath();
+  if (f.length > 0) {
+    writer.writeString(
+      8,
+      f
+    );
+  }
+  f = message.getTokenEndpointQueryParamsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(9, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getAfterLogoutUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      10,
+      f
+    );
+  }
+  f = message.getAuthEndpoint();
+  if (f.length > 0) {
+    writer.writeString(
+      11,
+      f
+    );
+  }
+  f = message.getTokenEndpoint();
+  if (f.length > 0) {
+    writer.writeString(
+      12,
+      f
+    );
+  }
+  f = message.getRevocationEndpoint();
+  if (f.length > 0) {
+    writer.writeString(
+      13,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string client_id = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getClientId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.setClientId = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef client_secret_ref = 2;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getClientSecretRef = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 2));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.setClientSecretRef = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.clearClientSecretRef = function() {
+  this.setClientSecretRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.hasClientSecretRef = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * map<string, string> auth_endpoint_query_params = 3;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getAuthEndpointQueryParamsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 3, opt_noLazyCreate,
+      null));
+};
+
+
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.clearAuthEndpointQueryParamsMap = function() {
+  this.getAuthEndpointQueryParamsMap().clear();
+};
+
+
+/**
+ * optional string app_url = 4;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getAppUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.setAppUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional string callback_path = 5;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getCallbackPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.setCallbackPath = function(value) {
+  jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * repeated string scopes = 6;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getScopesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 6));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.setScopesList = function(value) {
+  jspb.Message.setField(this, 6, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.addScopes = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 6, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.clearScopesList = function() {
+  this.setScopesList([]);
+};
+
+
+/**
+ * optional UserSession session = 7;
+ * @return {?proto.enterprise.gloo.solo.io.UserSession}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getSession = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.UserSession} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.UserSession, 7));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.UserSession|undefined} value */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.setSession = function(value) {
+  jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.clearSession = function() {
+  this.setSession(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.hasSession = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional string logout_path = 8;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getLogoutPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.setLogoutPath = function(value) {
+  jspb.Message.setProto3StringField(this, 8, value);
+};
+
+
+/**
+ * map<string, string> token_endpoint_query_params = 9;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getTokenEndpointQueryParamsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 9, opt_noLazyCreate,
+      null));
+};
+
+
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.clearTokenEndpointQueryParamsMap = function() {
+  this.getTokenEndpointQueryParamsMap().clear();
+};
+
+
+/**
+ * optional string after_logout_url = 10;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getAfterLogoutUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 10, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.setAfterLogoutUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 10, value);
+};
+
+
+/**
+ * optional string auth_endpoint = 11;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getAuthEndpoint = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 11, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.setAuthEndpoint = function(value) {
+  jspb.Message.setProto3StringField(this, 11, value);
+};
+
+
+/**
+ * optional string token_endpoint = 12;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getTokenEndpoint = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 12, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.setTokenEndpoint = function(value) {
+  jspb.Message.setProto3StringField(this, 12, value);
+};
+
+
+/**
+ * optional string revocation_endpoint = 13;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.getRevocationEndpoint = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 13, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.PlainOAuth2.prototype.setRevocationEndpoint = function(value) {
+  jspb.Message.setProto3StringField(this, 13, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.JwtValidation = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.JwtValidation.oneofGroups_);
 };
@@ -9310,7 +9924,7 @@ proto.enterprise.gloo.solo.io.OauthSecret.prototype.setClientSecret = function(v
  * @constructor
  */
 proto.enterprise.gloo.solo.io.ApiKeyAuth = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ApiKeyAuth.repeatedFields_, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ApiKeyAuth.repeatedFields_, proto.enterprise.gloo.solo.io.ApiKeyAuth.oneofGroups_);
 };
 goog.inherits(proto.enterprise.gloo.solo.io.ApiKeyAuth, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -9322,6 +9936,32 @@ if (goog.DEBUG && !COMPILED) {
  * @const
  */
 proto.enterprise.gloo.solo.io.ApiKeyAuth.repeatedFields_ = [2];
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.oneofGroups_ = [[6,7]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.StorageBackendCase = {
+  STORAGE_BACKEND_NOT_SET: 0,
+  K8S_SECRET_APIKEY_STORAGE: 6,
+  AEROSPIKE_APIKEY_STORAGE: 7
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.ApiKeyAuth.StorageBackendCase}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.getStorageBackendCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.ApiKeyAuth.StorageBackendCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.ApiKeyAuth.oneofGroups_[0]));
+};
 
 
 
@@ -9356,7 +9996,10 @@ proto.enterprise.gloo.solo.io.ApiKeyAuth.toObject = function(includeInstance, ms
     apiKeySecretRefsList: jspb.Message.toObjectList(msg.getApiKeySecretRefsList(),
     github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject, includeInstance),
     headerName: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    headersFromMetadataMap: (f = msg.getHeadersFromMetadataMap()) ? f.toObject(includeInstance, proto.enterprise.gloo.solo.io.ApiKeyAuth.SecretKey.toObject) : []
+    headersFromMetadataMap: (f = msg.getHeadersFromMetadataMap()) ? f.toObject(includeInstance, proto.enterprise.gloo.solo.io.ApiKeyAuth.SecretKey.toObject) : [],
+    headersFromMetadataEntryMap: (f = msg.getHeadersFromMetadataEntryMap()) ? f.toObject(includeInstance, proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.toObject) : [],
+    k8sSecretApikeyStorage: (f = msg.getK8sSecretApikeyStorage()) && proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.toObject(includeInstance, f),
+    aerospikeApikeyStorage: (f = msg.getAerospikeApikeyStorage()) && proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -9414,6 +10057,22 @@ proto.enterprise.gloo.solo.io.ApiKeyAuth.deserializeBinaryFromReader = function(
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.enterprise.gloo.solo.io.ApiKeyAuth.SecretKey.deserializeBinaryFromReader, "");
          });
       break;
+    case 5:
+      var value = msg.getHeadersFromMetadataEntryMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.deserializeBinaryFromReader, "");
+         });
+      break;
+    case 6:
+      var value = new proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.deserializeBinaryFromReader);
+      msg.setK8sSecretApikeyStorage(value);
+      break;
+    case 7:
+      var value = new proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.deserializeBinaryFromReader);
+      msg.setAerospikeApikeyStorage(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -9465,6 +10124,26 @@ proto.enterprise.gloo.solo.io.ApiKeyAuth.serializeBinaryToWriter = function(mess
   f = message.getHeadersFromMetadataMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.enterprise.gloo.solo.io.ApiKeyAuth.SecretKey.serializeBinaryToWriter);
+  }
+  f = message.getHeadersFromMetadataEntryMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(5, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.serializeBinaryToWriter);
+  }
+  f = message.getK8sSecretApikeyStorage();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.serializeBinaryToWriter
+    );
+  }
+  f = message.getAerospikeApikeyStorage();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.serializeBinaryToWriter
+    );
   }
 };
 
@@ -9640,6 +10319,177 @@ proto.enterprise.gloo.solo.io.ApiKeyAuth.SecretKey.prototype.setRequired = funct
 };
 
 
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.displayName = 'proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    required: jspb.Message.getFieldWithDefault(msg, 2, false)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry;
+  return proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setRequired(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getRequired();
+  if (f) {
+    writer.writeBool(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.prototype.setName = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional bool required = 2;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.prototype.getRequired = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 2, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry.prototype.setRequired = function(value) {
+  jspb.Message.setProto3BooleanField(this, 2, value);
+};
+
+
 /**
  * map<string, string> label_selector = 1;
  * @param {boolean=} opt_noLazyCreate Do not create the map if
@@ -9722,6 +10572,2000 @@ proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.clearHeadersFromMetadataMap =
 };
 
 
+/**
+ * map<string, MetadataEntry> headers_from_metadata_entry = 5;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.getHeadersFromMetadataEntryMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry>} */ (
+      jspb.Message.getMapField(this, 5, opt_noLazyCreate,
+      proto.enterprise.gloo.solo.io.ApiKeyAuth.MetadataEntry));
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.clearHeadersFromMetadataEntryMap = function() {
+  this.getHeadersFromMetadataEntryMap().clear();
+};
+
+
+/**
+ * optional K8sSecretApiKeyStorage k8s_secret_apikey_storage = 6;
+ * @return {?proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.getK8sSecretApikeyStorage = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage, 6));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage|undefined} value */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.setK8sSecretApikeyStorage = function(value) {
+  jspb.Message.setOneofWrapperField(this, 6, proto.enterprise.gloo.solo.io.ApiKeyAuth.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.clearK8sSecretApikeyStorage = function() {
+  this.setK8sSecretApikeyStorage(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.hasK8sSecretApikeyStorage = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional AerospikeApiKeyStorage aerospike_apikey_storage = 7;
+ * @return {?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.getAerospikeApikeyStorage = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage, 7));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage|undefined} value */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.setAerospikeApikeyStorage = function(value) {
+  jspb.Message.setOneofWrapperField(this, 7, proto.enterprise.gloo.solo.io.ApiKeyAuth.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.clearAerospikeApikeyStorage = function() {
+  this.setAerospikeApikeyStorage(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyAuth.prototype.hasAerospikeApikeyStorage = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.displayName = 'proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    labelSelectorMap: (f = msg.getLabelSelectorMap()) ? f.toObject(includeInstance, undefined) : [],
+    apiKeySecretRefsList: jspb.Message.toObjectList(msg.getApiKeySecretRefsList(),
+    github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage}
+ */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage;
+  return proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage}
+ */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = msg.getLabelSelectorMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    case 2:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.addApiKeySecretRefs(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getLabelSelectorMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(1, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getApiKeySecretRefsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * map<string, string> label_selector = 1;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.prototype.getLabelSelectorMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 1, opt_noLazyCreate,
+      null));
+};
+
+
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.prototype.clearLabelSelectorMap = function() {
+  this.getLabelSelectorMap().clear();
+};
+
+
+/**
+ * repeated core.solo.io.ResourceRef api_key_secret_refs = 2;
+ * @return {!Array<!proto.core.solo.io.ResourceRef>}
+ */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.prototype.getApiKeySecretRefsList = function() {
+  return /** @type{!Array<!proto.core.solo.io.ResourceRef>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 2));
+};
+
+
+/** @param {!Array<!proto.core.solo.io.ResourceRef>} value */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.prototype.setApiKeySecretRefsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.core.solo.io.ResourceRef=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.core.solo.io.ResourceRef}
+ */
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.prototype.addApiKeySecretRefs = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.core.solo.io.ResourceRef, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.prototype.clearApiKeySecretRefsList = function() {
+  this.setApiKeySecretRefsList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.repeatedFields_, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.displayName = 'proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.repeatedFields_ = [16];
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.oneofGroups_ = [[6,7]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.CommitLevelCase = {
+  COMMIT_LEVEL_NOT_SET: 0,
+  COMMIT_ALL: 6,
+  COMMIT_MASTER: 7
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.CommitLevelCase}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getCommitLevelCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.CommitLevelCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    hostname: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    namespace: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    set: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    port: jspb.Message.getFieldWithDefault(msg, 4, 0),
+    batchSize: jspb.Message.getFieldWithDefault(msg, 5, 0),
+    commitAll: jspb.Message.getFieldWithDefault(msg, 6, 0),
+    commitMaster: jspb.Message.getFieldWithDefault(msg, 7, 0),
+    readModeSc: (f = msg.getReadModeSc()) && proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.toObject(includeInstance, f),
+    readModeAp: (f = msg.getReadModeAp()) && proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.toObject(includeInstance, f),
+    nodeTlsName: jspb.Message.getFieldWithDefault(msg, 10, ""),
+    certPath: jspb.Message.getFieldWithDefault(msg, 11, ""),
+    keyPath: jspb.Message.getFieldWithDefault(msg, 12, ""),
+    allowInsecure: jspb.Message.getFieldWithDefault(msg, 13, false),
+    rootCaPath: jspb.Message.getFieldWithDefault(msg, 14, ""),
+    tlsVersion: jspb.Message.getFieldWithDefault(msg, 15, ""),
+    tlsCurveGroupsList: jspb.Message.toObjectList(msg.getTlsCurveGroupsList(),
+    proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage;
+  return proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setHostname(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setNamespace(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSet(value);
+      break;
+    case 4:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setPort(value);
+      break;
+    case 5:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setBatchSize(value);
+      break;
+    case 6:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setCommitAll(value);
+      break;
+    case 7:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setCommitMaster(value);
+      break;
+    case 8:
+      var value = new proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.deserializeBinaryFromReader);
+      msg.setReadModeSc(value);
+      break;
+    case 9:
+      var value = new proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.deserializeBinaryFromReader);
+      msg.setReadModeAp(value);
+      break;
+    case 10:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setNodeTlsName(value);
+      break;
+    case 11:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCertPath(value);
+      break;
+    case 12:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKeyPath(value);
+      break;
+    case 13:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setAllowInsecure(value);
+      break;
+    case 14:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRootCaPath(value);
+      break;
+    case 15:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTlsVersion(value);
+      break;
+    case 16:
+      var value = new proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.deserializeBinaryFromReader);
+      msg.addTlsCurveGroups(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getHostname();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getNamespace();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getSet();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getPort();
+  if (f !== 0) {
+    writer.writeInt32(
+      4,
+      f
+    );
+  }
+  f = message.getBatchSize();
+  if (f !== 0) {
+    writer.writeInt32(
+      5,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 6));
+  if (f != null) {
+    writer.writeUint32(
+      6,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 7));
+  if (f != null) {
+    writer.writeUint32(
+      7,
+      f
+    );
+  }
+  f = message.getReadModeSc();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.serializeBinaryToWriter
+    );
+  }
+  f = message.getReadModeAp();
+  if (f != null) {
+    writer.writeMessage(
+      9,
+      f,
+      proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.serializeBinaryToWriter
+    );
+  }
+  f = message.getNodeTlsName();
+  if (f.length > 0) {
+    writer.writeString(
+      10,
+      f
+    );
+  }
+  f = message.getCertPath();
+  if (f.length > 0) {
+    writer.writeString(
+      11,
+      f
+    );
+  }
+  f = message.getKeyPath();
+  if (f.length > 0) {
+    writer.writeString(
+      12,
+      f
+    );
+  }
+  f = message.getAllowInsecure();
+  if (f) {
+    writer.writeBool(
+      13,
+      f
+    );
+  }
+  f = message.getRootCaPath();
+  if (f.length > 0) {
+    writer.writeString(
+      14,
+      f
+    );
+  }
+  f = message.getTlsVersion();
+  if (f.length > 0) {
+    writer.writeString(
+      15,
+      f
+    );
+  }
+  f = message.getTlsCurveGroupsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      16,
+      f,
+      proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.displayName = 'proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.oneofGroups_ = [[1,2,3,4]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.ReadModeScCase = {
+  READ_MODE_SC_NOT_SET: 0,
+  READ_MODE_SC_SESSION: 1,
+  READ_MODE_SC_LINEARIZE: 2,
+  READ_MODE_SC_REPLICA: 3,
+  READ_MODE_SC_ALLOW_UNAVAILABLE: 4
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.ReadModeScCase}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.getReadModeScCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.ReadModeScCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    readModeScSession: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    readModeScLinearize: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    readModeScReplica: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    readModeScAllowUnavailable: jspb.Message.getFieldWithDefault(msg, 4, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc;
+  return proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setReadModeScSession(value);
+      break;
+    case 2:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setReadModeScLinearize(value);
+      break;
+    case 3:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setReadModeScReplica(value);
+      break;
+    case 4:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setReadModeScAllowUnavailable(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {number} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeUint32(
+      1,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeUint32(
+      2,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeUint32(
+      3,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 4));
+  if (f != null) {
+    writer.writeUint32(
+      4,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional uint32 read_mode_sc_session = 1;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.getReadModeScSession = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.setReadModeScSession = function(value) {
+  jspb.Message.setOneofField(this, 1, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.clearReadModeScSession = function() {
+  jspb.Message.setOneofField(this, 1, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.hasReadModeScSession = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional uint32 read_mode_sc_linearize = 2;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.getReadModeScLinearize = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.setReadModeScLinearize = function(value) {
+  jspb.Message.setOneofField(this, 2, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.clearReadModeScLinearize = function() {
+  jspb.Message.setOneofField(this, 2, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.hasReadModeScLinearize = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional uint32 read_mode_sc_replica = 3;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.getReadModeScReplica = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.setReadModeScReplica = function(value) {
+  jspb.Message.setOneofField(this, 3, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.clearReadModeScReplica = function() {
+  jspb.Message.setOneofField(this, 3, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.hasReadModeScReplica = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional uint32 read_mode_sc_allow_unavailable = 4;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.getReadModeScAllowUnavailable = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.setReadModeScAllowUnavailable = function(value) {
+  jspb.Message.setOneofField(this, 4, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.clearReadModeScAllowUnavailable = function() {
+  jspb.Message.setOneofField(this, 4, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc.prototype.hasReadModeScAllowUnavailable = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.displayName = 'proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.oneofGroups_ = [[1,2]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.ReadModeApCase = {
+  READ_MODE_AP_NOT_SET: 0,
+  READ_MODE_AP_ONE: 1,
+  READ_MODE_AP_ALL: 2
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.ReadModeApCase}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.prototype.getReadModeApCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.ReadModeApCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    readModeApOne: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    readModeApAll: jspb.Message.getFieldWithDefault(msg, 2, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp;
+  return proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setReadModeApOne(value);
+      break;
+    case 2:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setReadModeApAll(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {number} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeUint32(
+      1,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeUint32(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional uint32 read_mode_ap_one = 1;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.prototype.getReadModeApOne = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.prototype.setReadModeApOne = function(value) {
+  jspb.Message.setOneofField(this, 1, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.prototype.clearReadModeApOne = function() {
+  jspb.Message.setOneofField(this, 1, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.prototype.hasReadModeApOne = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional uint32 read_mode_ap_all = 2;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.prototype.getReadModeApAll = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.prototype.setReadModeApAll = function(value) {
+  jspb.Message.setOneofField(this, 2, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.prototype.clearReadModeApAll = function() {
+  jspb.Message.setOneofField(this, 2, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp.prototype.hasReadModeApAll = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.oneofGroups_);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.displayName = 'proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.oneofGroups_ = [[1,2,3,4]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.CurveIdCase = {
+  CURVE_ID_NOT_SET: 0,
+  CURVE_P256: 1,
+  CURVE_P384: 2,
+  CURVE_P521: 3,
+  X_25519: 4
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.CurveIdCase}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.getCurveIdCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.CurveIdCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    curveP256: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    curveP384: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    curveP521: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    x25519: jspb.Message.getFieldWithDefault(msg, 4, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID;
+  return proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setCurveP256(value);
+      break;
+    case 2:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setCurveP384(value);
+      break;
+    case 3:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setCurveP521(value);
+      break;
+    case 4:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setX25519(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = /** @type {number} */ (jspb.Message.getField(message, 1));
+  if (f != null) {
+    writer.writeUint32(
+      1,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeUint32(
+      2,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeUint32(
+      3,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 4));
+  if (f != null) {
+    writer.writeUint32(
+      4,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional uint32 curve_p256 = 1;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.getCurveP256 = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.setCurveP256 = function(value) {
+  jspb.Message.setOneofField(this, 1, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.clearCurveP256 = function() {
+  jspb.Message.setOneofField(this, 1, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.hasCurveP256 = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional uint32 curve_p384 = 2;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.getCurveP384 = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.setCurveP384 = function(value) {
+  jspb.Message.setOneofField(this, 2, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.clearCurveP384 = function() {
+  jspb.Message.setOneofField(this, 2, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.hasCurveP384 = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional uint32 curve_p521 = 3;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.getCurveP521 = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.setCurveP521 = function(value) {
+  jspb.Message.setOneofField(this, 3, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.clearCurveP521 = function() {
+  jspb.Message.setOneofField(this, 3, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.hasCurveP521 = function() {
+  return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional uint32 x_25519 = 4;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.getX25519 = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.setX25519 = function(value) {
+  jspb.Message.setOneofField(this, 4, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.clearX25519 = function() {
+  jspb.Message.setOneofField(this, 4, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID.prototype.hasX25519 = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional string hostname = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getHostname = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setHostname = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string namespace = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getNamespace = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setNamespace = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string set = 3;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getSet = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setSet = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional int32 port = 4;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getPort = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setPort = function(value) {
+  jspb.Message.setProto3IntField(this, 4, value);
+};
+
+
+/**
+ * optional int32 batch_size = 5;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getBatchSize = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setBatchSize = function(value) {
+  jspb.Message.setProto3IntField(this, 5, value);
+};
+
+
+/**
+ * optional uint32 commit_all = 6;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getCommitAll = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 6, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setCommitAll = function(value) {
+  jspb.Message.setOneofField(this, 6, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.clearCommitAll = function() {
+  jspb.Message.setOneofField(this, 6, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.hasCommitAll = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional uint32 commit_master = 7;
+ * @return {number}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getCommitMaster = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 7, 0));
+};
+
+
+/** @param {number} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setCommitMaster = function(value) {
+  jspb.Message.setOneofField(this, 7, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.clearCommitMaster = function() {
+  jspb.Message.setOneofField(this, 7, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.hasCommitMaster = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional readModeSc read_mode_sc = 8;
+ * @return {?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getReadModeSc = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc, 8));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeSc|undefined} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setReadModeSc = function(value) {
+  jspb.Message.setWrapperField(this, 8, value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.clearReadModeSc = function() {
+  this.setReadModeSc(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.hasReadModeSc = function() {
+  return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional readModeAp read_mode_ap = 9;
+ * @return {?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getReadModeAp = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp, 9));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.readModeAp|undefined} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setReadModeAp = function(value) {
+  jspb.Message.setWrapperField(this, 9, value);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.clearReadModeAp = function() {
+  this.setReadModeAp(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.hasReadModeAp = function() {
+  return jspb.Message.getField(this, 9) != null;
+};
+
+
+/**
+ * optional string node_tls_name = 10;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getNodeTlsName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 10, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setNodeTlsName = function(value) {
+  jspb.Message.setProto3StringField(this, 10, value);
+};
+
+
+/**
+ * optional string cert_path = 11;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getCertPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 11, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setCertPath = function(value) {
+  jspb.Message.setProto3StringField(this, 11, value);
+};
+
+
+/**
+ * optional string key_path = 12;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getKeyPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 12, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setKeyPath = function(value) {
+  jspb.Message.setProto3StringField(this, 12, value);
+};
+
+
+/**
+ * optional bool allow_insecure = 13;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getAllowInsecure = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 13, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setAllowInsecure = function(value) {
+  jspb.Message.setProto3BooleanField(this, 13, value);
+};
+
+
+/**
+ * optional string root_ca_path = 14;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getRootCaPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 14, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setRootCaPath = function(value) {
+  jspb.Message.setProto3StringField(this, 14, value);
+};
+
+
+/**
+ * optional string tls_version = 15;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getTlsVersion = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 15, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setTlsVersion = function(value) {
+  jspb.Message.setProto3StringField(this, 15, value);
+};
+
+
+/**
+ * repeated tlsCurveID tls_curve_groups = 16;
+ * @return {!Array<!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID>}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.getTlsCurveGroupsList = function() {
+  return /** @type{!Array<!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID, 16));
+};
+
+
+/** @param {!Array<!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID>} value */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.setTlsCurveGroupsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 16, value);
+};
+
+
+/**
+ * @param {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID}
+ */
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.addTlsCurveGroups = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 16, opt_value, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.tlsCurveID, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.prototype.clearTlsCurveGroupsList = function() {
+  this.setTlsCurveGroupsList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ApiKey = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ApiKey.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ApiKey, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ApiKey.displayName = 'proto.enterprise.gloo.solo.io.ApiKey';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ApiKey.repeatedFields_ = [3];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ApiKey.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ApiKey.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ApiKey} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKey.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    apiKey: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    labelsList: jspb.Message.getRepeatedField(msg, 3),
+    metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKey}
+ */
+proto.enterprise.gloo.solo.io.ApiKey.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ApiKey;
+  return proto.enterprise.gloo.solo.io.ApiKey.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKey} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKey}
+ */
+proto.enterprise.gloo.solo.io.ApiKey.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setApiKey(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addLabels(value);
+      break;
+    case 4:
+      var value = msg.getMetadataMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ApiKey.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ApiKey.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKey} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKey.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getApiKey();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getLabelsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      3,
+      f
+    );
+  }
+  f = message.getMetadataMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+};
+
+
+/**
+ * optional string api_key = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ApiKey.prototype.getApiKey = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ApiKey.prototype.setApiKey = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * repeated string labels = 3;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.ApiKey.prototype.getLabelsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.ApiKey.prototype.setLabelsList = function(value) {
+  jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.ApiKey.prototype.addLabels = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKey.prototype.clearLabelsList = function() {
+  this.setLabelsList([]);
+};
+
+
+/**
+ * map<string, string> metadata = 4;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.enterprise.gloo.solo.io.ApiKey.prototype.getMetadataMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 4, opt_noLazyCreate,
+      null));
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKey.prototype.clearMetadataMap = function() {
+  this.getMetadataMap().clear();
+};
+
+
 
 /**
  * Generated by JsPbCodeGenerator.
@@ -9776,7 +12620,6 @@ proto.enterprise.gloo.solo.io.ApiKeySecret.prototype.toObject = function(opt_inc
  */
 proto.enterprise.gloo.solo.io.ApiKeySecret.toObject = function(includeInstance, msg) {
   var f, obj = {
-    generateApiKey: jspb.Message.getFieldWithDefault(msg, 1, false),
     apiKey: jspb.Message.getFieldWithDefault(msg, 2, ""),
     labelsList: jspb.Message.getRepeatedField(msg, 3),
     metadataMap: (f = msg.getMetadataMap()) ? f.toObject(includeInstance, undefined) : []
@@ -9816,10 +12659,6 @@ proto.enterprise.gloo.solo.io.ApiKeySecret.deserializeBinaryFromReader = functio
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = /** @type {boolean} */ (reader.readBool());
-      msg.setGenerateApiKey(value);
-      break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.setApiKey(value);
@@ -9863,13 +12702,6 @@ proto.enterprise.gloo.solo.io.ApiKeySecret.prototype.serializeBinary = function(
  */
 proto.enterprise.gloo.solo.io.ApiKeySecret.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getGenerateApiKey();
-  if (f) {
-    writer.writeBool(
-      1,
-      f
-    );
-  }
   f = message.getApiKey();
   if (f.length > 0) {
     writer.writeString(
@@ -9888,23 +12720,6 @@ proto.enterprise.gloo.solo.io.ApiKeySecret.serializeBinaryToWriter = function(me
   if (f && f.getLength() > 0) {
     f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
-};
-
-
-/**
- * optional bool generate_api_key = 1;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
- */
-proto.enterprise.gloo.solo.io.ApiKeySecret.prototype.getGenerateApiKey = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 1, false));
-};
-
-
-/** @param {boolean} value */
-proto.enterprise.gloo.solo.io.ApiKeySecret.prototype.setGenerateApiKey = function(value) {
-  jspb.Message.setProto3BooleanField(this, 1, value);
 };
 
 
@@ -10975,7 +13790,8 @@ proto.enterprise.gloo.solo.io.PassThroughAuth.toObject = function(includeInstanc
   var f, obj = {
     grpc: (f = msg.getGrpc()) && proto.enterprise.gloo.solo.io.PassThroughGrpc.toObject(includeInstance, f),
     http: (f = msg.getHttp()) && proto.enterprise.gloo.solo.io.PassThroughHttp.toObject(includeInstance, f),
-    config: (f = msg.getConfig()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f)
+    config: (f = msg.getConfig()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
+    failureModeAllow: jspb.Message.getFieldWithDefault(msg, 5, false)
   };
 
   if (includeInstance) {
@@ -11026,6 +13842,10 @@ proto.enterprise.gloo.solo.io.PassThroughAuth.deserializeBinaryFromReader = func
       var value = new google_protobuf_struct_pb.Struct;
       reader.readMessage(value,google_protobuf_struct_pb.Struct.deserializeBinaryFromReader);
       msg.setConfig(value);
+      break;
+    case 5:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setFailureModeAllow(value);
       break;
     default:
       reader.skipField();
@@ -11078,6 +13898,13 @@ proto.enterprise.gloo.solo.io.PassThroughAuth.serializeBinaryToWriter = function
       4,
       f,
       google_protobuf_struct_pb.Struct.serializeBinaryToWriter
+    );
+  }
+  f = message.getFailureModeAllow();
+  if (f) {
+    writer.writeBool(
+      5,
+      f
     );
   }
 };
@@ -11170,6 +13997,23 @@ proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.clearConfig = function()
  */
 proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.hasConfig = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional bool failure_mode_allow = 5;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.getFailureModeAllow = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 5, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.PassThroughAuth.prototype.setFailureModeAllow = function(value) {
+  jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 
@@ -14803,6 +17647,514 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.prototyp
  * @extends {jspb.Message}
  * @constructor
  */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.repeatedFields_ = [6];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    clientId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    clientSecret: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    authEndpointQueryParamsMap: (f = msg.getAuthEndpointQueryParamsMap()) ? f.toObject(includeInstance, undefined) : [],
+    appUrl: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    callbackPath: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    scopesList: jspb.Message.getRepeatedField(msg, 6),
+    session: (f = msg.getSession()) && proto.enterprise.gloo.solo.io.UserSession.toObject(includeInstance, f),
+    logoutPath: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    tokenEndpointQueryParamsMap: (f = msg.getTokenEndpointQueryParamsMap()) ? f.toObject(includeInstance, undefined) : [],
+    afterLogoutUrl: jspb.Message.getFieldWithDefault(msg, 10, ""),
+    authEndpoint: jspb.Message.getFieldWithDefault(msg, 11, ""),
+    tokenEndpoint: jspb.Message.getFieldWithDefault(msg, 12, ""),
+    revocationEndpoint: jspb.Message.getFieldWithDefault(msg, 13, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config;
+  return proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClientId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClientSecret(value);
+      break;
+    case 3:
+      var value = msg.getAuthEndpointQueryParamsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAppUrl(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCallbackPath(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addScopes(value);
+      break;
+    case 7:
+      var value = new proto.enterprise.gloo.solo.io.UserSession;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.UserSession.deserializeBinaryFromReader);
+      msg.setSession(value);
+      break;
+    case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setLogoutPath(value);
+      break;
+    case 9:
+      var value = msg.getTokenEndpointQueryParamsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
+      break;
+    case 10:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAfterLogoutUrl(value);
+      break;
+    case 11:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAuthEndpoint(value);
+      break;
+    case 12:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTokenEndpoint(value);
+      break;
+    case 13:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRevocationEndpoint(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getClientId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getClientSecret();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getAuthEndpointQueryParamsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(3, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getAppUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getCallbackPath();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = message.getScopesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      6,
+      f
+    );
+  }
+  f = message.getSession();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      proto.enterprise.gloo.solo.io.UserSession.serializeBinaryToWriter
+    );
+  }
+  f = message.getLogoutPath();
+  if (f.length > 0) {
+    writer.writeString(
+      8,
+      f
+    );
+  }
+  f = message.getTokenEndpointQueryParamsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(9, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getAfterLogoutUrl();
+  if (f.length > 0) {
+    writer.writeString(
+      10,
+      f
+    );
+  }
+  f = message.getAuthEndpoint();
+  if (f.length > 0) {
+    writer.writeString(
+      11,
+      f
+    );
+  }
+  f = message.getTokenEndpoint();
+  if (f.length > 0) {
+    writer.writeString(
+      12,
+      f
+    );
+  }
+  f = message.getRevocationEndpoint();
+  if (f.length > 0) {
+    writer.writeString(
+      13,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string client_id = 1;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getClientId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.setClientId = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string client_secret = 2;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getClientSecret = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.setClientSecret = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * map<string, string> auth_endpoint_query_params = 3;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getAuthEndpointQueryParamsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 3, opt_noLazyCreate,
+      null));
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.clearAuthEndpointQueryParamsMap = function() {
+  this.getAuthEndpointQueryParamsMap().clear();
+};
+
+
+/**
+ * optional string app_url = 4;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getAppUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.setAppUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional string callback_path = 5;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getCallbackPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.setCallbackPath = function(value) {
+  jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * repeated string scopes = 6;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getScopesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 6));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.setScopesList = function(value) {
+  jspb.Message.setField(this, 6, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.addScopes = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 6, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.clearScopesList = function() {
+  this.setScopesList([]);
+};
+
+
+/**
+ * optional UserSession session = 7;
+ * @return {?proto.enterprise.gloo.solo.io.UserSession}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getSession = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.UserSession} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.UserSession, 7));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.UserSession|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.setSession = function(value) {
+  jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.clearSession = function() {
+  this.setSession(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.hasSession = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional string logout_path = 8;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getLogoutPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.setLogoutPath = function(value) {
+  jspb.Message.setProto3StringField(this, 8, value);
+};
+
+
+/**
+ * map<string, string> token_endpoint_query_params = 9;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getTokenEndpointQueryParamsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 9, opt_noLazyCreate,
+      null));
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.clearTokenEndpointQueryParamsMap = function() {
+  this.getTokenEndpointQueryParamsMap().clear();
+};
+
+
+/**
+ * optional string after_logout_url = 10;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getAfterLogoutUrl = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 10, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.setAfterLogoutUrl = function(value) {
+  jspb.Message.setProto3StringField(this, 10, value);
+};
+
+
+/**
+ * optional string auth_endpoint = 11;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getAuthEndpoint = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 11, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.setAuthEndpoint = function(value) {
+  jspb.Message.setProto3StringField(this, 11, value);
+};
+
+
+/**
+ * optional string token_endpoint = 12;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getTokenEndpoint = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 12, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.setTokenEndpoint = function(value) {
+  jspb.Message.setProto3StringField(this, 12, value);
+};
+
+
+/**
+ * optional string revocation_endpoint = 13;
+ * @return {string}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.getRevocationEndpoint = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 13, ""));
+};
+
+
+/** @param {string} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.prototype.setRevocationEndpoint = function(value) {
+  jspb.Message.setProto3StringField(this, 13, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.oneofGroups_);
 };
@@ -14818,7 +18170,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.oneofGroups_ = [[1,3]];
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.oneofGroups_ = [[1,3,4]];
 
 /**
  * @enum {number}
@@ -14826,7 +18178,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.oneofGroups_ = [[1,3]];
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.OauthTypeCase = {
   OAUTH_TYPE_NOT_SET: 0,
   OIDC_AUTHORIZATION_CODE: 1,
-  ACCESS_TOKEN_VALIDATION_CONFIG: 3
+  ACCESS_TOKEN_VALIDATION_CONFIG: 3,
+  OAUTH2_CONFIG: 4
 };
 
 /**
@@ -14866,7 +18219,8 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.toObject = fu
 proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.toObject = function(includeInstance, msg) {
   var f, obj = {
     oidcAuthorizationCode: (f = msg.getOidcAuthorizationCode()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.OidcAuthorizationCodeConfig.toObject(includeInstance, f),
-    accessTokenValidationConfig: (f = msg.getAccessTokenValidationConfig()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.toObject(includeInstance, f)
+    accessTokenValidationConfig: (f = msg.getAccessTokenValidationConfig()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.toObject(includeInstance, f),
+    oauth2Config: (f = msg.getOauth2Config()) && proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -14913,6 +18267,11 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.deserializeBinaryFromRe
       reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.deserializeBinaryFromReader);
       msg.setAccessTokenValidationConfig(value);
       break;
+    case 4:
+      var value = new proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.deserializeBinaryFromReader);
+      msg.setOauth2Config(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -14956,6 +18315,14 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.serializeBinaryToWriter
       3,
       f,
       proto.enterprise.gloo.solo.io.ExtAuthConfig.AccessTokenValidationConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getOauth2Config();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config.serializeBinaryToWriter
     );
   }
 };
@@ -15021,6 +18388,36 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.hasAccessToke
 };
 
 
+/**
+ * optional PlainOAuth2Config oauth2_config = 4;
+ * @return {?proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.getOauth2Config = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config, 4));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.ExtAuthConfig.PlainOAuth2Config|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.setOauth2Config = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.clearOauth2Config = function() {
+  this.setOauth2Config(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.hasOauth2Config = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
 
 /**
  * Generated by JsPbCodeGenerator.
@@ -15033,12 +18430,38 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.OAuth2Config.prototype.hasAccessToke
  * @constructor
  */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.oneofGroups_);
 };
 goog.inherits(proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.displayName = 'proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.oneofGroups_ = [[4,5]];
+
+/**
+ * @enum {number}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.StorageBackendCase = {
+  STORAGE_BACKEND_NOT_SET: 0,
+  K8S_SECRET_APIKEY_STORAGE: 4,
+  AEROSPIKE_APIKEY_STORAGE: 5
+};
+
+/**
+ * @return {proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.StorageBackendCase}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.getStorageBackendCase = function() {
+  return /** @type {proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.StorageBackendCase} */(jspb.Message.computeOneofCase(this, proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -15070,7 +18493,9 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.toObject = function
   var f, obj = {
     validApiKeysMap: (f = msg.getValidApiKeysMap()) ? f.toObject(includeInstance, proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.KeyMetadata.toObject) : [],
     headerName: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    headersFromKeyMetadataMap: (f = msg.getHeadersFromKeyMetadataMap()) ? f.toObject(includeInstance, undefined) : []
+    headersFromKeyMetadataMap: (f = msg.getHeadersFromKeyMetadataMap()) ? f.toObject(includeInstance, undefined) : [],
+    k8sSecretApikeyStorage: (f = msg.getK8sSecretApikeyStorage()) && proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.toObject(includeInstance, f),
+    aerospikeApikeyStorage: (f = msg.getAerospikeApikeyStorage()) && proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -15123,6 +18548,16 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.deserializeBinaryFr
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
          });
       break;
+    case 4:
+      var value = new proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.deserializeBinaryFromReader);
+      msg.setK8sSecretApikeyStorage(value);
+      break;
+    case 5:
+      var value = new proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.deserializeBinaryFromReader);
+      msg.setAerospikeApikeyStorage(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -15166,6 +18601,22 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.serializeBinaryToWr
   f = message.getHeadersFromKeyMetadataMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(3, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getK8sSecretApikeyStorage();
+  if (f != null) {
+    writer.writeMessage(
+      4,
+      f,
+      proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage.serializeBinaryToWriter
+    );
+  }
+  f = message.getAerospikeApikeyStorage();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage.serializeBinaryToWriter
+    );
   }
 };
 
@@ -15389,6 +18840,66 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.getHeader
 
 proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.clearHeadersFromKeyMetadataMap = function() {
   this.getHeadersFromKeyMetadataMap().clear();
+};
+
+
+/**
+ * optional K8sSecretApiKeyStorage k8s_secret_apikey_storage = 4;
+ * @return {?proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.getK8sSecretApikeyStorage = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage, 4));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.K8sSecretApiKeyStorage|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.setK8sSecretApikeyStorage = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.clearK8sSecretApikeyStorage = function() {
+  this.setK8sSecretApikeyStorage(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.hasK8sSecretApikeyStorage = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional AerospikeApiKeyStorage aerospike_apikey_storage = 5;
+ * @return {?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.getAerospikeApikeyStorage = function() {
+  return /** @type{?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage} */ (
+    jspb.Message.getWrapperField(this, proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage, 5));
+};
+
+
+/** @param {?proto.enterprise.gloo.solo.io.AerospikeApiKeyStorage|undefined} value */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.setAerospikeApikeyStorage = function(value) {
+  jspb.Message.setOneofWrapperField(this, 5, proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.oneofGroups_[0], value);
+};
+
+
+proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.clearAerospikeApikeyStorage = function() {
+  this.setAerospikeApikeyStorage(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.enterprise.gloo.solo.io.ExtAuthConfig.ApiKeyAuthConfig.prototype.hasAerospikeApikeyStorage = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 
@@ -16285,6 +19796,1481 @@ proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.getFailOnRedirect = functi
 /** @param {boolean} value */
 proto.enterprise.gloo.solo.io.ExtAuthConfig.prototype.setFailOnRedirect = function(value) {
   jspb.Message.setProto3BooleanField(this, 11, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ApiKeyCreateRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.displayName = 'proto.enterprise.gloo.solo.io.ApiKeyCreateRequest';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.repeatedFields_ = [1,2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyCreateRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    apiKeysList: jspb.Message.toObjectList(msg.getApiKeysList(),
+    proto.enterprise.gloo.solo.io.ApiKey.toObject, includeInstance),
+    rawApiKeysList: jspb.Message.getRepeatedField(msg, 2)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyCreateRequest}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ApiKeyCreateRequest;
+  return proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyCreateRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyCreateRequest}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.ApiKey;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ApiKey.deserializeBinaryFromReader);
+      msg.addApiKeys(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addRawApiKeys(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyCreateRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getApiKeysList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.ApiKey.serializeBinaryToWriter
+    );
+  }
+  f = message.getRawApiKeysList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated ApiKey api_keys = 1;
+ * @return {!Array<!proto.enterprise.gloo.solo.io.ApiKey>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.prototype.getApiKeysList = function() {
+  return /** @type{!Array<!proto.enterprise.gloo.solo.io.ApiKey>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.enterprise.gloo.solo.io.ApiKey, 1));
+};
+
+
+/** @param {!Array<!proto.enterprise.gloo.solo.io.ApiKey>} value */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.prototype.setApiKeysList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.enterprise.gloo.solo.io.ApiKey=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.enterprise.gloo.solo.io.ApiKey}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.prototype.addApiKeys = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.enterprise.gloo.solo.io.ApiKey, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.prototype.clearApiKeysList = function() {
+  this.setApiKeysList([]);
+};
+
+
+/**
+ * repeated string raw_api_keys = 2;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.prototype.getRawApiKeysList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.prototype.setRawApiKeysList = function(value) {
+  jspb.Message.setField(this, 2, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.prototype.addRawApiKeys = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyCreateRequest.prototype.clearRawApiKeysList = function() {
+  this.setRawApiKeysList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ApiKeyCreateResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.displayName = 'proto.enterprise.gloo.solo.io.ApiKeyCreateResponse';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyCreateResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    apiKeysList: jspb.Message.toObjectList(msg.getApiKeysList(),
+    proto.enterprise.gloo.solo.io.ApiKey.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyCreateResponse}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ApiKeyCreateResponse;
+  return proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyCreateResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyCreateResponse}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.ApiKey;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ApiKey.deserializeBinaryFromReader);
+      msg.addApiKeys(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyCreateResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getApiKeysList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.ApiKey.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated ApiKey api_keys = 1;
+ * @return {!Array<!proto.enterprise.gloo.solo.io.ApiKey>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.prototype.getApiKeysList = function() {
+  return /** @type{!Array<!proto.enterprise.gloo.solo.io.ApiKey>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.enterprise.gloo.solo.io.ApiKey, 1));
+};
+
+
+/** @param {!Array<!proto.enterprise.gloo.solo.io.ApiKey>} value */
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.prototype.setApiKeysList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.enterprise.gloo.solo.io.ApiKey=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.enterprise.gloo.solo.io.ApiKey}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.prototype.addApiKeys = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.enterprise.gloo.solo.io.ApiKey, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyCreateResponse.prototype.clearApiKeysList = function() {
+  this.setApiKeysList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ApiKeyReadRequest.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ApiKeyReadRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ApiKeyReadRequest.displayName = 'proto.enterprise.gloo.solo.io.ApiKeyReadRequest';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.repeatedFields_ = [1,2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ApiKeyReadRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyReadRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    rawApiKeysList: jspb.Message.getRepeatedField(msg, 1),
+    labelsList: jspb.Message.getRepeatedField(msg, 2)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyReadRequest}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ApiKeyReadRequest;
+  return proto.enterprise.gloo.solo.io.ApiKeyReadRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyReadRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyReadRequest}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addRawApiKeys(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addLabels(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ApiKeyReadRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyReadRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRawApiKeysList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      1,
+      f
+    );
+  }
+  f = message.getLabelsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated string raw_api_keys = 1;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.prototype.getRawApiKeysList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.prototype.setRawApiKeysList = function(value) {
+  jspb.Message.setField(this, 1, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.prototype.addRawApiKeys = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 1, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.prototype.clearRawApiKeysList = function() {
+  this.setRawApiKeysList([]);
+};
+
+
+/**
+ * repeated string labels = 2;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.prototype.getLabelsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.prototype.setLabelsList = function(value) {
+  jspb.Message.setField(this, 2, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.prototype.addLabels = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyReadRequest.prototype.clearLabelsList = function() {
+  this.setLabelsList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ApiKeyReadResponse.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ApiKeyReadResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ApiKeyReadResponse.displayName = 'proto.enterprise.gloo.solo.io.ApiKeyReadResponse';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ApiKeyReadResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyReadResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    apiKeysList: jspb.Message.toObjectList(msg.getApiKeysList(),
+    proto.enterprise.gloo.solo.io.ApiKey.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyReadResponse}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ApiKeyReadResponse;
+  return proto.enterprise.gloo.solo.io.ApiKeyReadResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyReadResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyReadResponse}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.ApiKey;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ApiKey.deserializeBinaryFromReader);
+      msg.addApiKeys(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ApiKeyReadResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyReadResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getApiKeysList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.ApiKey.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated ApiKey api_keys = 1;
+ * @return {!Array<!proto.enterprise.gloo.solo.io.ApiKey>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse.prototype.getApiKeysList = function() {
+  return /** @type{!Array<!proto.enterprise.gloo.solo.io.ApiKey>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.enterprise.gloo.solo.io.ApiKey, 1));
+};
+
+
+/** @param {!Array<!proto.enterprise.gloo.solo.io.ApiKey>} value */
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse.prototype.setApiKeysList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.enterprise.gloo.solo.io.ApiKey=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.enterprise.gloo.solo.io.ApiKey}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse.prototype.addApiKeys = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.enterprise.gloo.solo.io.ApiKey, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyReadResponse.prototype.clearApiKeysList = function() {
+  this.setApiKeysList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.displayName = 'proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.repeatedFields_ = [2,3];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    upsert: jspb.Message.getFieldWithDefault(msg, 1, false),
+    apiKeysList: jspb.Message.toObjectList(msg.getApiKeysList(),
+    proto.enterprise.gloo.solo.io.ApiKey.toObject, includeInstance),
+    rawApiKeysList: jspb.Message.getRepeatedField(msg, 3)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest;
+  return proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setUpsert(value);
+      break;
+    case 2:
+      var value = new proto.enterprise.gloo.solo.io.ApiKey;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ApiKey.deserializeBinaryFromReader);
+      msg.addApiKeys(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addRawApiKeys(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getUpsert();
+  if (f) {
+    writer.writeBool(
+      1,
+      f
+    );
+  }
+  f = message.getApiKeysList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.enterprise.gloo.solo.io.ApiKey.serializeBinaryToWriter
+    );
+  }
+  f = message.getRawApiKeysList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bool upsert = 1;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.getUpsert = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 1, false));
+};
+
+
+/** @param {boolean} value */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.setUpsert = function(value) {
+  jspb.Message.setProto3BooleanField(this, 1, value);
+};
+
+
+/**
+ * repeated ApiKey api_keys = 2;
+ * @return {!Array<!proto.enterprise.gloo.solo.io.ApiKey>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.getApiKeysList = function() {
+  return /** @type{!Array<!proto.enterprise.gloo.solo.io.ApiKey>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.enterprise.gloo.solo.io.ApiKey, 2));
+};
+
+
+/** @param {!Array<!proto.enterprise.gloo.solo.io.ApiKey>} value */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.setApiKeysList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.enterprise.gloo.solo.io.ApiKey=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.enterprise.gloo.solo.io.ApiKey}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.addApiKeys = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.enterprise.gloo.solo.io.ApiKey, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.clearApiKeysList = function() {
+  this.setApiKeysList([]);
+};
+
+
+/**
+ * repeated string raw_api_keys = 3;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.getRawApiKeysList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.setRawApiKeysList = function(value) {
+  jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.addRawApiKeys = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyUpdateRequest.prototype.clearRawApiKeysList = function() {
+  this.setRawApiKeysList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.displayName = 'proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    apiKeysList: jspb.Message.toObjectList(msg.getApiKeysList(),
+    proto.enterprise.gloo.solo.io.ApiKey.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse;
+  return proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.enterprise.gloo.solo.io.ApiKey;
+      reader.readMessage(value,proto.enterprise.gloo.solo.io.ApiKey.deserializeBinaryFromReader);
+      msg.addApiKeys(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getApiKeysList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.enterprise.gloo.solo.io.ApiKey.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated ApiKey api_keys = 1;
+ * @return {!Array<!proto.enterprise.gloo.solo.io.ApiKey>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.prototype.getApiKeysList = function() {
+  return /** @type{!Array<!proto.enterprise.gloo.solo.io.ApiKey>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.enterprise.gloo.solo.io.ApiKey, 1));
+};
+
+
+/** @param {!Array<!proto.enterprise.gloo.solo.io.ApiKey>} value */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.prototype.setApiKeysList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.enterprise.gloo.solo.io.ApiKey=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.enterprise.gloo.solo.io.ApiKey}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.prototype.addApiKeys = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.enterprise.gloo.solo.io.ApiKey, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyUpdateResponse.prototype.clearApiKeysList = function() {
+  this.setApiKeysList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.repeatedFields_, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.displayName = 'proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.repeatedFields_ = [1,2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    rawApiKeysList: jspb.Message.getRepeatedField(msg, 1),
+    labelsList: jspb.Message.getRepeatedField(msg, 2)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest;
+  return proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addRawApiKeys(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addLabels(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRawApiKeysList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      1,
+      f
+    );
+  }
+  f = message.getLabelsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated string raw_api_keys = 1;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.prototype.getRawApiKeysList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.prototype.setRawApiKeysList = function(value) {
+  jspb.Message.setField(this, 1, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.prototype.addRawApiKeys = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 1, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.prototype.clearRawApiKeysList = function() {
+  this.setRawApiKeysList([]);
+};
+
+
+/**
+ * repeated string labels = 2;
+ * @return {!Array<string>}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.prototype.getLabelsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/** @param {!Array<string>} value */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.prototype.setLabelsList = function(value) {
+  jspb.Message.setField(this, 2, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.prototype.addLabels = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+proto.enterprise.gloo.solo.io.ApiKeyDeleteRequest.prototype.clearLabelsList = function() {
+  this.setLabelsList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse.displayName = 'proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse;
+  return proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.enterprise.gloo.solo.io.ApiKeyDeleteResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
 };
 
 
