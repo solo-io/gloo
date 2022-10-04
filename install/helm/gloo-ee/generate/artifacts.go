@@ -1,8 +1,12 @@
 package generate
 
 import (
+	"bytes"
 	"os"
+	"os/exec"
+	"reflect"
 	"runtime"
+	"strings"
 
 	"github.com/solo-io/gloo/install/helm/gloo/generate"
 
@@ -34,6 +38,9 @@ type GenerationArguments struct {
 	// local directory instead of the official gloo-fed-helm release repository.
 	GlooFedRepoOverride string
 	GenerateHelmDocs    bool
+
+	// specify using image digests, rather than image tags
+	UseDigests bool
 }
 
 // GenerationConfig represents all the artifact-specific config
@@ -137,6 +144,11 @@ func GetArguments(args *GenerationArguments) error {
 		"generate-helm-docs",
 		false,
 		"(Optional) if set, will generate docs for the helm values")
+	var useDigests = flag.Bool(
+		"use-digests",
+		false,
+		"(Optional) specify using image digests, rather than image tags",
+	)
 	flag.Parse()
 
 	if *repoPrefixOverride != "" {
@@ -145,8 +157,11 @@ func GetArguments(args *GenerationArguments) error {
 	if *glooFedRepoOverride != "" {
 		args.GlooFedRepoOverride = *glooFedRepoOverride
 	}
-	if *generateHelmDocs == true {
+	if *generateHelmDocs {
 		args.GenerateHelmDocs = *generateHelmDocs
+	}
+	if *useDigests {
+		args.UseDigests = *useDigests
 	}
 	return nil
 }
@@ -296,7 +311,118 @@ func (gc *GenerationConfig) generateValuesConfig(versionOverride string) (*HelmC
 		gtw.CleanupJob.Image.Registry = &dir
 		config.Global.GlooMtls.Sds.Image.Registry = &dir
 	}
+
+	if gc.Arguments.UseDigests {
+		return gc.convertAllTagsToDigests(config), nil
+	}
 	return &config, nil
+}
+
+func (gc *GenerationConfig) convertAllTagsToDigests(config HelmConfig) *HelmConfig {
+	// "intelligently" process all nested structs of structs
+	for _, imagePath := range gc.findImagePaths(config) {
+		// extract image object coresponding to imagePath
+		if !canUseFieldByIndex(reflect.ValueOf(config), imagePath) {
+			continue // fields _above_ "Image" are nil
+		}
+
+		img := reflect.ValueOf(config).FieldByIndex(imagePath).Interface().(*generate.Image)
+		if img == nil || img.Tag == nil || img.Repository == nil {
+			continue // "Image" is nil
+		}
+
+		setDigest(img, config)
+	}
+
+	// handle special cases
+	for _, v := range config.Gloo.GatewayProxies { // <--- "list of structs" != "struct of struct" assumptions
+		setDigest(v.PodTemplate.Image, config)
+	}
+
+	return &config
+}
+
+func (gc *GenerationConfig) findImagePaths(config HelmConfig) [][]int {
+	// to start, we have 2 top-level fields to search: Config and GlobalConfig
+	fieldPaths := [][]int{{0}, {1}}   // collector object; in-progress field paths stored here
+	imagePaths := [][]int{}           // collector object; matched "Image" field paths stored here
+	var curPath []int                 // currently-considered field path.  Ex:  {0,0,0} --> config.Config.Settings.WatchNamespaces
+	tConfig := reflect.TypeOf(config) // top level config type
+	var cConfig reflect.Type          // current field type
+
+	// DFS for all paths with an "Image" field
+	for len(fieldPaths) > 0 {
+		// pop oldest-added subpath
+		curPath, fieldPaths = fieldPaths[0], fieldPaths[1:]
+		cConfig = tConfig.FieldByIndex(curPath).Type
+		if cConfig.Kind() == reflect.Ptr {
+			cConfig = cConfig.Elem()
+		}
+
+		if cConfig.Name() == "Image" {
+			// found an image to overwrite
+			imagePaths = append(imagePaths, curPath)
+			continue
+		} else if cConfig.Kind() != reflect.Struct {
+			// We have delved too greedily and too deep.  Turn back
+			continue
+		}
+
+		// add newly-discovered fields to collector
+		for i := 0; i < cConfig.NumField(); i++ {
+			tmp := make([]int, len(curPath))
+			copy(tmp, curPath) // copy op needed to prevent mutation of earlier added items to fieldPaths
+			fieldPaths = append(fieldPaths, append(tmp, i))
+		}
+	}
+	return imagePaths
+}
+
+func setDigest(img *generate.Image, config HelmConfig) {
+	registry := config.Global.Image.Registry
+	if img.Registry != nil {
+		registry = img.Registry
+	}
+	imageUrl := *registry + "/" + *img.Repository + ":" + *img.Tag
+
+	digest, _, _ := shellout("docker manifest inspect " + imageUrl + " -v | jq -r \".Descriptor.digest\"")
+	digest = strings.TrimSpace(digest)
+
+	if digest != "" {
+		// notably, non-solo-produced images are ignored, here.  Though not exhaustively true, many of them
+		// don't have a _single_ digest.  Rather, they have several, on a per-platform basis.
+		img.Digest = &digest
+	}
+}
+
+func shellout(command string) (string, string, error) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd := exec.Command("bash", "-c", command)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	return stdout.String(), stderr.String(), err
+}
+
+func canUseFieldByIndex(v reflect.Value, index []int) bool {
+	// stolen/lightly modified from reflect.FieldByIndex.  For our use case, we don't want to panic
+	// on a v.IsNil().  Rather, we want to abort our computation
+	if len(index) == 1 {
+		return true
+	}
+	for i, x := range index {
+		if i > 0 {
+			if v.Kind() == reflect.Pointer {
+				if v.IsNil() {
+					return false
+				}
+				v = v.Elem()
+			}
+		}
+		v = v.Field(x)
+	}
+	return true
 }
 
 func (gc *GenerationConfig) generateValuesYamlForGlooE() error {

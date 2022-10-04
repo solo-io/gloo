@@ -35,6 +35,15 @@ gloo:
             protocol: TCP
   gateway:
     updateValues: true
+    certGenJob:
+      image:
+        repository: certgen
+    cleanupJob:
+      image:
+        repository: kubectl
+    rolloutJob:
+      image:
+        repository: kubectl
   ingressProxy:
     deployment:
       image:
@@ -171,6 +180,9 @@ global:
     envoy:
       image:
         repository: gloo-ee-envoy-wrapper
+    sds:
+      image:
+          repository: sds
   glooStats:
     enabled: true
     routePrefixRewrite: /stats/prometheus

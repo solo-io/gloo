@@ -197,7 +197,7 @@ steps:
     - "HELM_HOME=/root/.helm" # tell helm where to find data
     - "GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore"
   dir: *dir
-  waitFor: ["prepare-workspace"]
+  waitFor: ["prepare-workspace", "push-docker-images"]
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
   id: "release"
 

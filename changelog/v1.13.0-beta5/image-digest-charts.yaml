@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/6581
+    resolvesIssue: false
+    description: >
+       generate helm charts with baked in image digests

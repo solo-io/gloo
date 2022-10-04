@@ -14,6 +14,11 @@ export class Failover extends jspb.Message {
   setPrioritizedLocalitiesList(value: Array<Failover.PrioritizedLocality>): void;
   addPrioritizedLocalities(value?: Failover.PrioritizedLocality, index?: number): Failover.PrioritizedLocality;
 
+  hasPolicy(): boolean;
+  clearPolicy(): void;
+  getPolicy(): Failover.Policy | undefined;
+  setPolicy(value?: Failover.Policy): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Failover.AsObject;
   static toObject(includeInstance: boolean, msg: Failover): Failover.AsObject;
@@ -27,6 +32,7 @@ export class Failover extends jspb.Message {
 export namespace Failover {
   export type AsObject = {
     prioritizedLocalitiesList: Array<Failover.PrioritizedLocality.AsObject>,
+    policy?: Failover.Policy.AsObject,
   }
 
   export class PrioritizedLocality extends jspb.Message {
@@ -48,6 +54,28 @@ export namespace Failover {
   export namespace PrioritizedLocality {
     export type AsObject = {
       localityEndpointsList: Array<LocalityLbEndpoints.AsObject>,
+    }
+  }
+
+  export class Policy extends jspb.Message {
+    hasOverprovisioningFactor(): boolean;
+    clearOverprovisioningFactor(): void;
+    getOverprovisioningFactor(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+    setOverprovisioningFactor(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Policy.AsObject;
+    static toObject(includeInstance: boolean, msg: Policy): Policy.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Policy, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Policy;
+    static deserializeBinaryFromReader(message: Policy, reader: jspb.BinaryReader): Policy;
+  }
+
+  export namespace Policy {
+    export type AsObject = {
+      overprovisioningFactor?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     }
   }
 }

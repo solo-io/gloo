@@ -4,7 +4,7 @@ glooFed:
   image:
     pullPolicy: IfNotPresent
     repository: gloo-fed
-    tag: %version%
+    tag: %gloo-fed-version%
   resources:
     requests:
       cpu: 125m
@@ -20,7 +20,7 @@ glooFedApiserver:
   image:
     pullPolicy: IfNotPresent
     repository: gloo-fed-apiserver
-    tag: %version%
+    tag: %gloo-fed-apiserver-version%
   resources:
     requests:
       cpu: 125m
@@ -31,7 +31,7 @@ glooFedApiserver:
     image:
       pullPolicy: IfNotPresent
       repository: gloo-fed-apiserver-envoy
-      tag: %version%
+      tag: %gloo-fed-apiserver-envoy-version%
     resources:
       requests:
         cpu: 125m
@@ -41,7 +41,7 @@ glooFedApiserver:
     image:
       pullPolicy: IfNotPresent
       repository: gloo-federation-console
-      tag: %version%
+      tag: %gloo-federation-console-version%
     resources:
       requests:
         cpu: 125m
@@ -68,7 +68,7 @@ rbacWebhook:
   image:
     pullPolicy: IfNotPresent
     repository: gloo-fed-rbac-validating-webhook
-    tag: %version%
+    tag: %gloo-fed-rbac-validating-webhook-version%
   resources:
     requests:
       cpu: 125m

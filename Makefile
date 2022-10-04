@@ -244,7 +244,7 @@ generate-gloo-fed-code: clean-fed
 
 .PHONY: generate-helm-docs
 generate-helm-docs:
-	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/install/helm/gloo-ee/generate.go $(VERSION) --generate-helm-docs # Generate Helm Documentation
+	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/install/helm/gloo-ee/generate.go $(VERSION) --generate-helm-docs $(USE_DIGESTS) # Generate Helm Documentation
 
 
 
@@ -1177,11 +1177,16 @@ GLOO_FED_HELM_BUCKET := gs://gloo-fed-helm
 manifest: init-helm produce-manifests
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
+USE_DIGESTS:=""
+ifeq ($(RELEASE), "true")
+		USE_DIGESTS="--use-digests"
+endif
+
 .PHONY: helm-template
 helm-template:
 	mkdir -p $(MANIFEST_DIR)
 	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
-	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)"
+	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)" $(USE_DIGESTS)
 
 .PHONY: init-helm
 init-helm: helm-template gloofed-helm-template $(OUTPUT_DIR)/.helm-initialized
@@ -1227,13 +1232,30 @@ endif
 #----------------------------------------------------------------------------------
 # Gloo Fed Deployment Manifests / Helm
 #----------------------------------------------------------------------------------
+GLOO_FED_VERSION=$(VERSION)
+GLOO_FED_APISERVER_VERSION=$(VERSION)
+GLOO_FED_APISERVER_ENVOY_VERSION=$(VERSION)
+GLOO_FEDERATION_CONSOLE_VERSION=$(VERSION)
+GLOO_FED_RBAC_VALIDATING_WEBHOOK_VERSION=$(VERSION)
+ifeq ($(RELEASE), "true")
+		GLOO_FED_VERSION=$(shell docker manifest inspect "quay.io/solo-io/gloo-fed:$(VERSION)" -v | jq ".Descriptor.digest")
+		GLOO_FED_APISERVER_VERSION=$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-apiserver:$(VERSION)" -v | jq ".Descriptor.digest")
+		GLOO_FED_APISERVER_ENVOY_VERSION=$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-apiserver-envoy:$(VERSION)" -v | jq ".Descriptor.digest")
+		GLOO_FEDERATION_CONSOLE_VERSION=$(shell docker manifest inspect "quay.io/solo-io/gloo-federation-console:$(VERSION)" -v | jq ".Descriptor.digest")
+		GLOO_FED_RBAC_VALIDATING_WEBHOOK_VERSION=$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-rbac-validating-webhook-version:$(VERSION)" -v | jq ".Descriptor.digest")
+endif
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
 .PHONY: gloofed-helm-template
 gloofed-helm-template:
 	mkdir -p $(HELM_SYNC_DIR_GLOO_FED)
 	sed -e 's/%version%/'$(VERSION)'/' $(GLOO_FED_CHART_DIR)/Chart-template.yaml > $(GLOO_FED_CHART_DIR)/Chart.yaml
-	sed -e 's/%version%/'$(VERSION)'/' $(GLOO_FED_CHART_DIR)/values-template.yaml > $(GLOO_FED_CHART_DIR)/values.yaml
+	sed -e 's/%gloo-fed-version%/'$(GLOO_FED_VERSION)'/'\
+		-e 's/%gloo-fed-apiserver-version%/'$(GLOO_FED_APISERVER_VERSION)'/'\
+		-e 's/%gloo-fed-apiserver-envoy-version%/'$(GLOO_FED_APISERVER_ENVOY_VERSION)'/'\
+		-e 's/%gloo-federation-console-version%/'$(GLOO_FEDERATION_CONSOLE_VERSION)'/'\
+		-e 's/%gloo-fed-rbac-validating-webhook-version%/'$(GLOO_FED_RBAC_VALIDATING_WEBHOOK_VERSION)'/'\
+		$(GLOO_FED_CHART_DIR)/values-template.yaml > $(GLOO_FED_CHART_DIR)/values.yaml
 
 .PHONY: gloofed-produce-manifests
 gloofed-produce-manifests: gloofed-helm-template
@@ -1465,7 +1487,6 @@ build-kind-images-non-fips: discovery-ee-docker
 .PHONY: load-kind-images-non-fips
 load-kind-images-non-fips: kind-load-gloo-ee # gloo
 load-kind-images-non-fips: kind-load-gloo-ee-envoy-wrapper # envoy
-load-kind-images-non-fips: kind-load-gloo-ee-envoy-wrapper-debug # envoy debug
 load-kind-images-non-fips: kind-load-rate-limit-ee # rate limit
 load-kind-images-non-fips: kind-load-extauth-ee # ext auth
 ifneq ($(DOCKER_GOARCH), arm64)
@@ -1550,7 +1571,7 @@ gloo-ee-envoy-wrapper-docker-test: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-$(DOCKER
 .PHONY: build-test-chart
 build-test-chart: build-test-chart-fed
 	mkdir -p $(TEST_ASSET_DIR)
-	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)"
+	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)" $(USE_DIGESTS)
 	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
@@ -1585,7 +1606,7 @@ build-test-chart-fed: gloofed-helm-template
 .PHONY: build-chart-with-local-gloo-dev
 build-chart-with-local-gloo-dev:
 	mkdir -p $(TEST_ASSET_DIR)
-	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION)
+	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) $(USE_DIGESTS)
 	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 	helm dependency update install/helm/gloo-ee
