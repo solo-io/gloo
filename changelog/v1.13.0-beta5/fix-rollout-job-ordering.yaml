@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7047
+    resolvesIssue: false
+    description: >-
+      Make the `gloo-ee-resource-rollout` job run before the `gloo-resource-rollout` job, thus ensuring that ExtAuth and RateLimit Upstreams (if enabled) are created before the Gateways.
