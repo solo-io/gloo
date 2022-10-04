@@ -81,6 +81,7 @@ var _ Validator = &validator{}
 type Validator interface {
 	gloov1snap.ApiSyncer
 	ValidateList(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*Reports, *multierror.Error)
+	ValidateHashableInputResource(ctx context.Context, resource resources.HashableInputResource, dryRun, acquireLock bool) (*Reports, error)
 	ValidateGateway(ctx context.Context, gw *v1.Gateway, dryRun bool) (*Reports, error)
 	ValidateVirtualService(ctx context.Context, vs *v1.VirtualService, dryRun bool) (*Reports, error)
 	ValidateDeleteVirtualService(ctx context.Context, vs *core.ResourceRef, dryRun bool) error
@@ -630,6 +631,44 @@ func (v *validator) ValidateGateway(ctx context.Context, gw *v1.Gateway, dryRun 
 	return v.validateGatewayInternal(ctx, gw, dryRun, true)
 }
 
+func (v *validator) ValidateHashableInputResource(ctx context.Context, resource resources.HashableInputResource, dryRun, acquireLock bool) (*Reports, error) {
+	apply := func(snap *gloov1snap.ApiSnapshot) ([]string, resources.Resource, *core.ResourceRef) {
+		resourceRef := resource.GetMetadata().Ref()
+
+		// TODO-JAKE so many things are using reflecting or typing, could we generate a struct that could manage the operations
+		// of the type without calling typing checks so many times?
+		// TODO: move this to a function when generics become a thing
+		var isUpdate bool
+		listOfInputResources, err := snap.GetInputResourceTypeList(resource)
+		if err != nil {
+			contextutils.LoggerFrom(ctx).Error(err)
+		}
+		for i, existingResource := range listOfInputResources {
+			if existingResource.GetMetadata().Ref().Equal(resourceRef) {
+				snap.ReplaceInputResource(i, resource)
+				isUpdate = true
+				break
+			}
+		}
+		if !isUpdate {
+			snap.AddToResourceList(resource)
+		}
+
+		// TODO how to handle this part of the code?????
+		// not sure if this is the right direction
+		// it is the same for all gateway snapshot types. But how do the other
+		// gloo types work with it?
+		proxiesToConsider, err := utils.GetProxiesFromHashableInputResource(resource)
+		return proxiesToConsider, resource, resourceRef
+	}
+
+	if acquireLock {
+		return v.validateSnapshotThreadSafe(ctx, apply, dryRun)
+	} else {
+		return v.validateSnapshot(ctx, apply, dryRun)
+	}
+}
+
 func (v *validator) validateGatewayInternal(ctx context.Context, gw *v1.Gateway, dryRun, acquireLock bool) (
 	*Reports,
 	error,
@@ -803,6 +842,7 @@ func (v *validator) sendGlooValidationServiceRequest(
 	logger.Debugf("Sending request validation request modified:%s, deleted:%s",
 		req.GetModifiedResources().String(), req.GetDeletedResources().String())
 
+	// Validate() in  https://github.com/solo-io/gloo/blob/master/projects/gloo/pkg/validation/server.go#L165
 	return v.validationFunc(ctx, req)
 }
 

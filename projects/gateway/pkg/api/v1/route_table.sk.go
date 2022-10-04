@@ -17,8 +17,12 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.InputResource = new(RouteTable)
+	_ resources.HashableInputResource = new(RouteTable)
 )
+
+func NewRouteTableHashableInputResource() resources.HashableInputResource {
+	return new(RouteTable)
+}
 
 func NewRouteTable(namespace, name string) *RouteTable {
 	routetable := &RouteTable{}

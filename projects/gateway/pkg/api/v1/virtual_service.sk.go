@@ -17,8 +17,12 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.InputResource = new(VirtualService)
+	_ resources.HashableInputResource = new(VirtualService)
 )
+
+func NewVirtualServiceHashableInputResource() resources.HashableInputResource {
+	return new(VirtualService)
+}
 
 func NewVirtualService(namespace, name string) *VirtualService {
 	virtualservice := &VirtualService{}

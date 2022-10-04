@@ -5,14 +5,11 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"hash"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"time"
-
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
 	"github.com/hashicorp/go-multierror"
 
@@ -21,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
@@ -33,6 +31,7 @@ import (
 	gwv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/validation"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"k8s.io/api/admission/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -395,15 +394,103 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 	isDelete := admissionRequest.Operation == v1beta1.Delete
 	dryRun := isDryRun(admissionRequest)
 
+	validateGvk := func(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
+		var reports *validation.Reports
+		newResourceFunc := gloosnapshot.ApiGvkToHashableInputResource[gvk]
+		newResource := newResourceFunc()
+		oldResource := newResourceFunc()
+
+		shouldValidate, shouldValidateErr := wh.shouldValidateResource(ctx, admissionRequest, newResource, oldResource)
+		if shouldValidateErr != nil {
+			return nil, &multierror.Error{Errors: []error{shouldValidateErr}}
+		}
+		if !shouldValidate {
+			return nil, nil
+		}
+		if reports, err := wh.validator.ValidateHashableInputResource(ctx, newResource, isDryRun(admissionRequest), true); err != nil {
+			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", newResource)}}
+		}
+		return reports, nil
+	}
+
 	switch gvk {
 	case ListGVK:
 		return wh.validateList(ctx, admissionRequest.Object.Raw, dryRun)
+		/*
+			 	Currently having issues with the following resources as they are not Input Resources
+				// Artifacts          gloo_solo_io.ArtifactList
+				// Endpoints          gloo_solo_io.EndpointList
+				// Secrets            gloo_solo_io.SecretList
+				// Ratelimitconfigs   github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList
+
+				// will have to check out RateLimitConfigs, not sure what causes it to not be a Hashable Input Resource
+				it is a custom resource, but not sure what is causing this...
+				projects/gloo/api/external/solo/ratelimit/solo-kit.json
+
+				we can extend the code for the API_SNAPSHOT to include the list of resources that way we have or a map
+				GVKToResource map[GVK]ResourceType
+
+				GVKFromRequest
+				newResource := GVKToResource[GVKFromRequest]()
+				oldResource := GVKToResource[GVKFromRequest]()
+				var (
+					InputResource
+				)
+				shouldValidate , shouldValidateErr := shouldValidateResource(ctx, admissionRequest, &newResource, &oldResource)
+
+				// For the types that are in github.com/solo-io/gloo/projects/gateway/pkg/api/v1
+				apply := func(snap *gloov1snap.ApiSnapshot) ([]string, resources.Resource, *core.ResourceRef) {
+					resourceRef := newResource.GetMetadata().Ref()
+					var isUpdate bool
+					resourceList := snap.GetInputResourceTypeList(newResource)
+					for i, existingResource := range resourceList {
+						if existingResource.GetMetadata().Ref().Equal(resourceRef) {
+							resourceList[i] = newResource
+							isUpdate = true
+							break
+						}
+					}
+					if !isUpdate {
+						snap.AddToResourceList(newResource)
+					}
+
+					// currently the code for the apply is kinda straight forward, particular for each type...
+					// TODO have to figure out how we want to handle special case template code specific for each resource type...
+
+					// TODO look into these methods to get an idea of what needs to be done...
+					// gateways
+					proxiesToConsider := utils.GetProxyNamesForGateway(newResource)
+					// VS
+					proxiesForVirtualService(ctx, snap.Gateways, snap.HttpGateways, vs)
+					// Route Tables
+					proxiesForRouteTable(ctx, snap, rt)
+				}
+
+				So what we can do is by adding the apply functionality or at least the snap.Gateways portion...
+
+				snap.GetInputResourceTypeList(resource) {
+					switch on type of resource:
+					case gateway:
+						return this.gatewayList.AsInputResources()
+					// other resources
+				}
+
+				snap.AddToResourceList(resource) {
+					switch on type of resource:
+					case gateway:
+						snap.gateways = append(snap.gateways, resource as a gateway)
+					// other resources
+				}
+		*/
 	case gwv1.GatewayGVK:
+		// validateGvk(ctx, gvk, ref, admissionRequest)
+
 		if isDelete {
 			// we don't validate gateway deletion
 			break
 		}
-		return wh.validateGateway(ctx, admissionRequest)
+		return validateGvk(ctx, gvk, ref, admissionRequest)
+		// return wh.validateGateway(ctx, admissionRequest)
 	case gwv1.VirtualServiceGVK:
 		if isDelete {
 			err := wh.validator.ValidateDeleteVirtualService(ctx, ref, dryRun)
@@ -542,13 +629,7 @@ func (wh *gatewayValidationWebhook) validateUpstream(ctx context.Context, admiss
 	return reports, nil
 }
 
-type HashableInputResource interface {
-	resources.InputResource
-	Hash(hasher hash.Hash64) (uint64, error)
-	MustHash() uint64
-}
-
-func (wh *gatewayValidationWebhook) shouldValidateResource(ctx context.Context, admissionRequest *v1beta1.AdmissionRequest, resource, oldResource HashableInputResource) (bool, error) {
+func (wh *gatewayValidationWebhook) shouldValidateResource(ctx context.Context, admissionRequest *v1beta1.AdmissionRequest, resource, oldResource resources.HashableInputResource) (bool, error) {
 	logger := contextutils.LoggerFrom(ctx)
 
 	if err := protoutils.UnmarshalResource(admissionRequest.Object.Raw, resource); err != nil {

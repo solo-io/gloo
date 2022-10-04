@@ -17,8 +17,12 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.InputResource = new(VirtualHostOption)
+	_ resources.HashableInputResource = new(VirtualHostOption)
 )
+
+func NewVirtualHostOptionHashableInputResource() resources.HashableInputResource {
+	return new(VirtualHostOption)
+}
 
 func NewVirtualHostOption(namespace, name string) *VirtualHostOption {
 	virtualhostoption := &VirtualHostOption{}

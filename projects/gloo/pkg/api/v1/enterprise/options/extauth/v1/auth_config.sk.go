@@ -17,8 +17,12 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.InputResource = new(AuthConfig)
+	_ resources.HashableInputResource = new(AuthConfig)
 )
+
+func NewAuthConfigHashableInputResource() resources.HashableInputResource {
+	return new(AuthConfig)
+}
 
 func NewAuthConfig(namespace, name string) *AuthConfig {
 	authconfig := &AuthConfig{}

@@ -12,7 +12,9 @@ import (
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/hashutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"go.uber.org/zap"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 type DiscoverySnapshot struct {
@@ -81,6 +83,35 @@ func (s DiscoverySnapshot) HashFields() []zap.Field {
 	}
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
+func (s DiscoverySnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
+	switch resource.(type) {
+	case *Upstream:
+		return s.Upstreams.AsInputResources(), nil
+	default:
+		return []resources.InputResource{}, eris.New("did not contain the input resource type returning empty list")
+	}
+}
+
+func (s DiscoverySnapshot) AddToResourceList(resource resources.InputResource) error {
+	switch typed := resource.(type) {
+	case *Upstream:
+		s.Upstreams = append(s.Upstreams, typed)
+		s.Upstreams.Sort()
+		return nil
+	default:
+		return eris.New("did not add the input resource type because it does not exist")
+	}
+}
+
+func (s DiscoverySnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
+	switch typed := resource.(type) {
+	case *Upstream:
+		s.Upstreams[i] = typed
+	default:
+		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+	}
+	return nil
+}
 
 type DiscoverySnapshotStringer struct {
 	Version        uint64
@@ -121,4 +152,8 @@ func (s DiscoverySnapshot) Stringer() DiscoverySnapshotStringer {
 		Kubenamespaces: s.Kubenamespaces.Names(),
 		Secrets:        s.Secrets.NamespacesDotNames(),
 	}
+}
+
+var DiscoveryGvkToHashableInputResource = map[schema.GroupVersionKind]func() resources.HashableInputResource{
+	UpstreamGVK: NewUpstreamHashableInputResource,
 }

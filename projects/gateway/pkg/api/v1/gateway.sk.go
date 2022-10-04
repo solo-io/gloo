@@ -17,8 +17,12 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.InputResource = new(Gateway)
+	_ resources.HashableInputResource = new(Gateway)
 )
+
+func NewGatewayHashableInputResource() resources.HashableInputResource {
+	return new(Gateway)
+}
 
 func NewGateway(namespace, name string) *Gateway {
 	gateway := &Gateway{}

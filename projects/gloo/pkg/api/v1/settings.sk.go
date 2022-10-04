@@ -17,8 +17,12 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.InputResource = new(Settings)
+	_ resources.HashableInputResource = new(Settings)
 )
+
+func NewSettingsHashableInputResource() resources.HashableInputResource {
+	return new(Settings)
+}
 
 func NewSettings(namespace, name string) *Settings {
 	settings := &Settings{}

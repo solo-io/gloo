@@ -17,8 +17,12 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.InputResource = new(RouteOption)
+	_ resources.HashableInputResource = new(RouteOption)
 )
+
+func NewRouteOptionHashableInputResource() resources.HashableInputResource {
+	return new(RouteOption)
+}
 
 func NewRouteOption(namespace, name string) *RouteOption {
 	routeoption := &RouteOption{}
