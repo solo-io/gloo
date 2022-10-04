@@ -29,6 +29,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover"
 	mock_utils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/failover/mocks"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var _ = Describe("Failover", func() {
@@ -132,6 +133,9 @@ var _ = Describe("Failover", func() {
 		upstream = &gloov1.Upstream{
 			HealthChecks: []*core.HealthCheck{{}},
 			Failover: &gloov1.Failover{
+				Policy: &gloov1.Failover_Policy{
+					OverprovisioningFactor: wrapperspb.UInt32(123),
+				},
 				PrioritizedLocalities: []*gloov1.Failover_PrioritizedLocality{
 					{
 						LocalityEndpoints: []*gloov1.LocalityLbEndpoints{
@@ -230,6 +234,11 @@ var _ = Describe("Failover", func() {
 	It("will successfully return failover endpoints in the Cluster.ClusterLoadAssignment", func() {
 
 		expected := &envoy_config_endpoint_v3.ClusterLoadAssignment{
+			Policy: &envoy_config_endpoint_v3.ClusterLoadAssignment_Policy{
+				OverprovisioningFactor: &wrappers.UInt32Value{
+					Value: 123,
+				},
+			},
 			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
 				{
 					Locality: &envoy_config_core_v3.Locality{
@@ -319,7 +328,11 @@ var _ = Describe("Failover", func() {
 				Type: envoy_config_cluster_v3.Cluster_STRICT_DNS,
 			},
 		}
-		cluster.LoadAssignment = &envoy_config_endpoint_v3.ClusterLoadAssignment{}
+		cluster.LoadAssignment = &envoy_config_endpoint_v3.ClusterLoadAssignment{
+			Policy: &envoy_config_endpoint_v3.ClusterLoadAssignment_Policy{
+				OverprovisioningFactor: &wrappers.UInt32Value{Value: 123},
+			},
+		}
 		expectedCluster := buildExpectedCluster()
 		expectedCluster.LoadAssignment = expected
 		expectedCluster.ClusterDiscoveryType = &envoy_config_cluster_v3.Cluster_Type{
@@ -333,13 +346,18 @@ var _ = Describe("Failover", func() {
 				Secrets: secretList,
 			},
 		}
-		err := runPlugin(plugin, params, upstream, cluster, nil)
+		err := runPlugin(plugin, params, upstream, cluster, &envoy_config_endpoint_v3.ClusterLoadAssignment{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cluster).To(matchers.MatchProto(expectedCluster))
 	})
 
 	It("will successfully return failover endpoints in the EDS ClusterLoadAssignment", func() {
 		expected := &envoy_config_endpoint_v3.ClusterLoadAssignment{
+			Policy: &envoy_config_endpoint_v3.ClusterLoadAssignment_Policy{
+				OverprovisioningFactor: &wrappers.UInt32Value{
+					Value: 123,
+				},
+			},
 			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
 				{
 					Locality: &envoy_config_core_v3.Locality{
@@ -604,6 +622,11 @@ var _ = Describe("Failover", func() {
 
 		endpoints := &envoy_config_endpoint_v3.ClusterLoadAssignment{}
 		expected := &envoy_config_endpoint_v3.ClusterLoadAssignment{
+			Policy: &envoy_config_endpoint_v3.ClusterLoadAssignment_Policy{
+				OverprovisioningFactor: &wrappers.UInt32Value{
+					Value: 123,
+				},
+			},
 			Endpoints: []*envoy_config_endpoint_v3.LocalityLbEndpoints{
 				{
 					Locality: &envoy_config_core_v3.Locality{

@@ -151,6 +151,7 @@ func getHelmOverrides(fips bool) (filename string, cleanup func()) {
     deployment:
       # TODO change to 2 once we figure out leader election flakes
       replicas: 1
+      livenessProbeEnabled: true
   rbac:    
     namespaced: true
     nameSuffix: e2e-test-rbac-suffix

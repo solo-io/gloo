@@ -165,7 +165,7 @@ run-ci-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn RUNNING_REGRESSION_TESTS=true $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/kube2e/$(KUBE2E_TESTS)/...
 
-.PHONE: run-ci-gloo-fed-regression-tests
+.PHONY: run-ci-gloo-fed-regression-tests
 run-ci-gloo-fed-regression-tests: install-go-tools
 	go env -w GOPRIVATE=github.com/solo-io
 	MANAGEMENT_CLUSTER_CONTEXT=$(MANAGEMENT_CLUSTER_CONTEXT) RUNNING_REGRESSION_TESTS=true REMOTE_CLUSTER_CONTEXT=$(REMOTE_CLUSTER_CONTEXT) $(DEPSGOBIN)/ginkgo -r ./test/gloo-fed-e2e/...

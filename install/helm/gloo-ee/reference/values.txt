@@ -247,7 +247,7 @@
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
-|gloo.gloo.deployment.ossImageTag|string|1.13.0-beta19|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
+|gloo.gloo.deployment.ossImageTag|string|1.13.0-beta20|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
 |gloo.gloo.deployment.replicas|int||number of instances to deploy|
 |gloo.gloo.deployment.customEnv[].name|string|||
 |gloo.gloo.deployment.customEnv[].value|string|||
@@ -359,6 +359,7 @@
 |gloo.gateway.validation.enabled|bool||enable Gloo Edge API Gateway validation hook (default true)|
 |gloo.gateway.validation.alwaysAcceptResources|bool||unless this is set this to false in order to ensure validation webhook rejects invalid resources. by default, validation webhook will only log and report metrics for invalid resource admission without rejecting them outright.|
 |gloo.gateway.validation.allowWarnings|bool||set this to false in order to ensure validation webhook rejects resources that would have warning status or rejected status, rather than just rejected.|
+|gloo.gateway.validation.serverEnabled|bool||By providing the validation field (parent of this object) the user is implicitly opting into validation. This field allows the user to opt out of the validation server, while still configuring pre-existing fields such as warn_route_short_circuiting and disable_transformation_validation.|
 |gloo.gateway.validation.disableTransformationValidation|bool||set this to true to disable transformation validation. This may bring signifigant performance benefits if using many transformations, at the cost of possibly incorrect transformations being sent to Envoy. When using this value make sure to pre-validate transformations.|
 |gloo.gateway.validation.warnRouteShortCircuiting|bool||Write a warning to route resources if validation produced a route ordering warning (defaults to false). By setting to true, this means that Gloo Edge will start assigning warnings to resources that would result in route short-circuiting within a virtual host.|
 |gloo.gateway.validation.secretName|string||Name of the Kubernetes Secret containing TLS certificates used by the validation webhook server. This secret will be created by the certGen Job if the certGen Job is enabled.|
@@ -369,7 +370,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.certGenJob.image.tag|string|1.13.0-beta19|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.13.0-beta20|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string|certgen|The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.certGenJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
@@ -418,7 +419,7 @@
 |gloo.gateway.rolloutJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.rolloutJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.rolloutJob.enabled|bool||Enable the job that applies default Gloo Edge custom resources at install and upgrade time (default true).|
-|gloo.gateway.rolloutJob.image.tag|string|1.13.0-beta19|The image tag for the container.|
+|gloo.gateway.rolloutJob.image.tag|string|1.13.0-beta20|The image tag for the container.|
 |gloo.gateway.rolloutJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.rolloutJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.rolloutJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
@@ -446,7 +447,7 @@
 |gloo.gateway.cleanupJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.cleanupJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.cleanupJob.enabled|bool||Enable the job that removes Gloo Edge custom resources when Gloo Edge is uninstalled (default true).|
-|gloo.gateway.cleanupJob.image.tag|string|1.13.0-beta19|The image tag for the container.|
+|gloo.gateway.cleanupJob.image.tag|string|1.13.0-beta20|The image tag for the container.|
 |gloo.gateway.cleanupJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.cleanupJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.cleanupJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
@@ -1294,7 +1295,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.13.0-beta19|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.13.0-beta20|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string|sds|The image repository (name) for the container.|
 |global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |global.glooMtls.sds.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|

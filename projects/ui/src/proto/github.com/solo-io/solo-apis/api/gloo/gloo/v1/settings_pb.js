@@ -7017,7 +7017,8 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.toObject = function(includeI
     allowWarnings: (f = msg.getAllowWarnings()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     warnRouteShortCircuiting: (f = msg.getWarnRouteShortCircuiting()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     disableTransformationValidation: (f = msg.getDisableTransformationValidation()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    validationServerGrpcMaxSizeBytes: (f = msg.getValidationServerGrpcMaxSizeBytes()) && google_protobuf_wrappers_pb.Int32Value.toObject(includeInstance, f)
+    validationServerGrpcMaxSizeBytes: (f = msg.getValidationServerGrpcMaxSizeBytes()) && google_protobuf_wrappers_pb.Int32Value.toObject(includeInstance, f),
+    serverEnabled: (f = msg.getServerEnabled()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -7094,6 +7095,11 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.deserializeBinaryFromReader 
       var value = new google_protobuf_wrappers_pb.Int32Value;
       reader.readMessage(value,google_protobuf_wrappers_pb.Int32Value.deserializeBinaryFromReader);
       msg.setValidationServerGrpcMaxSizeBytes(value);
+      break;
+    case 12:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setServerEnabled(value);
       break;
     default:
       reader.skipField();
@@ -7190,6 +7196,14 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.serializeBinaryToWriter = fu
       11,
       f,
       google_protobuf_wrappers_pb.Int32Value.serializeBinaryToWriter
+    );
+  }
+  f = message.getServerEnabled();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -7404,6 +7418,36 @@ proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.clearValidationSer
  */
 proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.hasValidationServerGrpcMaxSizeBytes = function() {
   return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue server_enabled = 12;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.getServerEnabled = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 12));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.setServerEnabled = function(value) {
+  jspb.Message.setWrapperField(this, 12, value);
+};
+
+
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.clearServerEnabled = function() {
+  this.setServerEnabled(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GatewayOptions.ValidationOptions.prototype.hasServerEnabled = function() {
+  return jspb.Message.getField(this, 12) != null;
 };
 
 

@@ -1914,6 +1914,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
@@ -1988,6 +1989,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
@@ -2057,6 +2059,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
@@ -2126,6 +2129,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
@@ -2200,6 +2204,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
@@ -2277,6 +2282,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
@@ -3563,6 +3569,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
@@ -4357,6 +4364,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
@@ -4426,6 +4434,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
@@ -4495,6 +4504,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
@@ -4565,6 +4575,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false
@@ -4637,6 +4648,7 @@ spec:
     validation:
       alwaysAccept: true
       proxyValidationServerAddr: gloo:9988
+      serverEnabled: true
       disableTransformationValidation: false
       allowWarnings: true
       warnRouteShortCircuiting: false

@@ -165,6 +165,12 @@ func (f *failoverPluginImpl) ProcessEndpoints(
 		out.Endpoints = append(out.Endpoints, f.endpoints[stringRef]...)
 	}
 
+	if policy := failoverCfg.GetPolicy(); policy != nil {
+		out.Policy = &envoy_config_endpoint_v3.ClusterLoadAssignment_Policy{
+			OverprovisioningFactor: policy.GetOverprovisioningFactor(),
+		}
+	}
+
 	return nil
 }
 

@@ -32,7 +32,6 @@ require (
 	github.com/jhump/protoreflect v1.6.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/mitchellh/hashstructure v1.0.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.20.0
@@ -48,7 +47,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.25.0
 	github.com/solo-io/external-apis v0.1.12-0.20220818213511-97f5ab3a6898
-	github.com/solo-io/gloo v1.13.0-beta19
+	github.com/solo-io/gloo v1.13.0-beta20
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.22.3
 	github.com/solo-io/k8s-utils v0.1.0
@@ -58,7 +57,7 @@ require (
 	github.com/solo-io/rate-limiter v0.7.4
 	github.com/solo-io/skv2 v0.22.15
 	github.com/solo-io/skv2-enterprise v0.2.8
-	github.com/solo-io/solo-apis v0.0.0-20220930130225-a44bdbcfbc27
+	github.com/solo-io/solo-apis v0.0.0-20221004153410-d470dc62c593
 	github.com/solo-io/solo-kit v0.30.7
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
@@ -253,6 +252,7 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
+	github.com/mitchellh/hashstructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect

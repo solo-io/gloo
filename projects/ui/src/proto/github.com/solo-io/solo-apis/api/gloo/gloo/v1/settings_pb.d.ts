@@ -1066,6 +1066,11 @@ export namespace GatewayOptions {
     getValidationServerGrpcMaxSizeBytes(): google_protobuf_wrappers_pb.Int32Value | undefined;
     setValidationServerGrpcMaxSizeBytes(value?: google_protobuf_wrappers_pb.Int32Value): void;
 
+    hasServerEnabled(): boolean;
+    clearServerEnabled(): void;
+    getServerEnabled(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setServerEnabled(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ValidationOptions.AsObject;
     static toObject(includeInstance: boolean, msg: ValidationOptions): ValidationOptions.AsObject;
@@ -1087,6 +1092,7 @@ export namespace GatewayOptions {
       warnRouteShortCircuiting?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       disableTransformationValidation?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       validationServerGrpcMaxSizeBytes?: google_protobuf_wrappers_pb.Int32Value.AsObject,
+      serverEnabled?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     }
   }
 }
