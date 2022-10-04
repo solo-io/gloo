@@ -9,3 +9,4 @@ changelog:
   - type: BREAKING_CHANGE
     description: generic validation webhook
     issueLink: https://github.com/solo-io/gloo/issues/7273
+    resolvesIssue: false
