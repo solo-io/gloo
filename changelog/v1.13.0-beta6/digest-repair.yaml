@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/6581
+    resolvesIssue: false
+    description: >
+       repaired gloo-fed digest paths

@@ -1238,11 +1238,11 @@ GLOO_FED_APISERVER_ENVOY_VERSION=$(VERSION)
 GLOO_FEDERATION_CONSOLE_VERSION=$(VERSION)
 GLOO_FED_RBAC_VALIDATING_WEBHOOK_VERSION=$(VERSION)
 ifeq ($(RELEASE), "true")
-		GLOO_FED_VERSION=$(shell docker manifest inspect "quay.io/solo-io/gloo-fed:$(VERSION)" -v | jq ".Descriptor.digest")
-		GLOO_FED_APISERVER_VERSION=$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-apiserver:$(VERSION)" -v | jq ".Descriptor.digest")
-		GLOO_FED_APISERVER_ENVOY_VERSION=$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-apiserver-envoy:$(VERSION)" -v | jq ".Descriptor.digest")
-		GLOO_FEDERATION_CONSOLE_VERSION=$(shell docker manifest inspect "quay.io/solo-io/gloo-federation-console:$(VERSION)" -v | jq ".Descriptor.digest")
-		GLOO_FED_RBAC_VALIDATING_WEBHOOK_VERSION=$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-rbac-validating-webhook-version:$(VERSION)" -v | jq ".Descriptor.digest")
+		GLOO_FED_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed:$(VERSION)" -v | jq ".Descriptor.digest")
+		GLOO_FED_APISERVER_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-apiserver:$(VERSION)" -v | jq ".Descriptor.digest")
+		GLOO_FED_APISERVER_ENVOY_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-apiserver-envoy:$(VERSION)" -v | jq ".Descriptor.digest")
+		GLOO_FEDERATION_CONSOLE_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-federation-console:$(VERSION)" -v | jq ".Descriptor.digest")
+		GLOO_FED_RBAC_VALIDATING_WEBHOOK_VERSION=$(VERSION)@$(shell docker manifest inspect "quay.io/solo-io/gloo-fed-rbac-validating-webhook-version:$(VERSION)" -v | jq ".Descriptor.digest")
 endif
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
