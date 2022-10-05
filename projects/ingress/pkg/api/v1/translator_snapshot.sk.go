@@ -83,7 +83,8 @@ func (s TranslatorSnapshot) HashFields() []zap.Field {
 	}
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
-func (s TranslatorSnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
+
+func (s *TranslatorSnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
 	switch resource.(type) {
 	case *gloo_solo_io.Upstream:
 		return s.Upstreams.AsInputResources(), nil
@@ -92,7 +93,7 @@ func (s TranslatorSnapshot) GetInputResourceTypeList(resource resources.InputRes
 	}
 }
 
-func (s TranslatorSnapshot) AddToResourceList(resource resources.InputResource) error {
+func (s *TranslatorSnapshot) AddToResourceList(resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *gloo_solo_io.Upstream:
 		s.Upstreams = append(s.Upstreams, typed)
@@ -103,7 +104,7 @@ func (s TranslatorSnapshot) AddToResourceList(resource resources.InputResource) 
 	}
 }
 
-func (s TranslatorSnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
+func (s *TranslatorSnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *gloo_solo_io.Upstream:
 		s.Upstreams[i] = typed

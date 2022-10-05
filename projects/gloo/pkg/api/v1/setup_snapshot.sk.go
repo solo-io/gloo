@@ -53,7 +53,8 @@ func (s SetupSnapshot) HashFields() []zap.Field {
 	}
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
-func (s SetupSnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
+
+func (s *SetupSnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
 	switch resource.(type) {
 	case *Settings:
 		return s.Settings.AsInputResources(), nil
@@ -62,7 +63,7 @@ func (s SetupSnapshot) GetInputResourceTypeList(resource resources.InputResource
 	}
 }
 
-func (s SetupSnapshot) AddToResourceList(resource resources.InputResource) error {
+func (s *SetupSnapshot) AddToResourceList(resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *Settings:
 		s.Settings = append(s.Settings, typed)
@@ -73,7 +74,7 @@ func (s SetupSnapshot) AddToResourceList(resource resources.InputResource) error
 	}
 }
 
-func (s SetupSnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
+func (s *SetupSnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *Settings:
 		s.Settings[i] = typed

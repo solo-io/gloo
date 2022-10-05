@@ -83,7 +83,8 @@ func (s DiscoverySnapshot) HashFields() []zap.Field {
 	}
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
-func (s DiscoverySnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
+
+func (s *DiscoverySnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
 	switch resource.(type) {
 	case *Upstream:
 		return s.Upstreams.AsInputResources(), nil
@@ -92,7 +93,7 @@ func (s DiscoverySnapshot) GetInputResourceTypeList(resource resources.InputReso
 	}
 }
 
-func (s DiscoverySnapshot) AddToResourceList(resource resources.InputResource) error {
+func (s *DiscoverySnapshot) AddToResourceList(resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *Upstream:
 		s.Upstreams = append(s.Upstreams, typed)
@@ -103,7 +104,7 @@ func (s DiscoverySnapshot) AddToResourceList(resource resources.InputResource) e
 	}
 }
 
-func (s DiscoverySnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
+func (s *DiscoverySnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *Upstream:
 		s.Upstreams[i] = typed

@@ -394,6 +394,7 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 	isDelete := admissionRequest.Operation == v1beta1.Delete
 	dryRun := isDryRun(admissionRequest)
 
+	// TODO-JAKE need to refactor this method...
 	validateGvk := func(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
 		var reports *validation.Reports
 		newResourceFunc := gloosnapshot.ApiGvkToHashableInputResource[gvk]
@@ -407,7 +408,7 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 		if !shouldValidate {
 			return nil, nil
 		}
-		if reports, err := wh.validator.ValidateHashableInputResource(ctx, newResource, isDryRun(admissionRequest), true); err != nil {
+		if reports, err := wh.validator.ValidateHashableInputResource(ctx, newResource, isDryRun(admissionRequest)); err != nil {
 			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", newResource)}}
 		}
 		return reports, nil
@@ -427,32 +428,10 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 				it is a custom resource, but not sure what is causing this...
 				projects/gloo/api/external/solo/ratelimit/solo-kit.json
 
-				we can extend the code for the API_SNAPSHOT to include the list of resources that way we have or a map
-				GVKToResource map[GVK]ResourceType
-
-				GVKFromRequest
-				newResource := GVKToResource[GVKFromRequest]()
-				oldResource := GVKToResource[GVKFromRequest]()
-				var (
-					InputResource
-				)
-				shouldValidate , shouldValidateErr := shouldValidateResource(ctx, admissionRequest, &newResource, &oldResource)
 
 				// For the types that are in github.com/solo-io/gloo/projects/gateway/pkg/api/v1
 				apply := func(snap *gloov1snap.ApiSnapshot) ([]string, resources.Resource, *core.ResourceRef) {
-					resourceRef := newResource.GetMetadata().Ref()
-					var isUpdate bool
-					resourceList := snap.GetInputResourceTypeList(newResource)
-					for i, existingResource := range resourceList {
-						if existingResource.GetMetadata().Ref().Equal(resourceRef) {
-							resourceList[i] = newResource
-							isUpdate = true
-							break
-						}
-					}
-					if !isUpdate {
-						snap.AddToResourceList(newResource)
-					}
+					// ....
 
 					// currently the code for the apply is kinda straight forward, particular for each type...
 					// TODO have to figure out how we want to handle special case template code specific for each resource type...
@@ -465,32 +444,13 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 					// Route Tables
 					proxiesForRouteTable(ctx, snap, rt)
 				}
-
-				So what we can do is by adding the apply functionality or at least the snap.Gateways portion...
-
-				snap.GetInputResourceTypeList(resource) {
-					switch on type of resource:
-					case gateway:
-						return this.gatewayList.AsInputResources()
-					// other resources
-				}
-
-				snap.AddToResourceList(resource) {
-					switch on type of resource:
-					case gateway:
-						snap.gateways = append(snap.gateways, resource as a gateway)
-					// other resources
-				}
 		*/
 	case gwv1.GatewayGVK:
-		// validateGvk(ctx, gvk, ref, admissionRequest)
-
 		if isDelete {
 			// we don't validate gateway deletion
 			break
 		}
 		return validateGvk(ctx, gvk, ref, admissionRequest)
-		// return wh.validateGateway(ctx, admissionRequest)
 	case gwv1.VirtualServiceGVK:
 		if isDelete {
 			err := wh.validator.ValidateDeleteVirtualService(ctx, ref, dryRun)
@@ -498,7 +458,8 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 				return &validation.Reports{}, &multierror.Error{Errors: []error{err}}
 			}
 		} else {
-			return wh.validateVirtualService(ctx, admissionRequest)
+			return validateGvk(ctx, gvk, ref, admissionRequest)
+			// return wh.validateVirtualService(ctx, admissionRequest)
 		}
 	case gwv1.RouteTableGVK:
 		if isDelete {
@@ -507,7 +468,7 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 				return &validation.Reports{}, &multierror.Error{Errors: []error{err}}
 			}
 		} else {
-			return wh.validateRouteTable(ctx, admissionRequest)
+			return validateGvk(ctx, gvk, ref, admissionRequest)
 		}
 	case gloov1.UpstreamGVK:
 		if isDelete {
@@ -542,68 +503,6 @@ func (wh *gatewayValidationWebhook) validateList(ctx context.Context, rawJson []
 	}
 	if reports, errs = wh.validator.ValidateList(ctx, &ul, dryRun); errs != nil {
 		return reports, errs
-	}
-	return reports, nil
-}
-func (wh *gatewayValidationWebhook) validateGateway(ctx context.Context, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
-	var (
-		gw, oldGw gwv1.Gateway
-		reports   *validation.Reports
-		err       error
-	)
-
-	shouldValidate, shouldValidateErr := wh.shouldValidateResource(ctx, admissionRequest, &gw, &oldGw)
-	if shouldValidateErr != nil {
-		return nil, &multierror.Error{Errors: []error{shouldValidateErr}}
-	}
-	if !shouldValidate {
-		return nil, nil
-	}
-
-	if reports, err = wh.validator.ValidateGateway(ctx, &gw, isDryRun(admissionRequest)); err != nil {
-		return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", gw)}}
-	}
-	return reports, nil
-}
-
-func (wh *gatewayValidationWebhook) validateVirtualService(ctx context.Context, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
-	var (
-		vs, oldVs gwv1.VirtualService
-		reports   *validation.Reports
-		err       error
-	)
-
-	shouldValidate, shouldValidateErr := wh.shouldValidateResource(ctx, admissionRequest, &vs, &oldVs)
-	if shouldValidateErr != nil {
-		return nil, &multierror.Error{Errors: []error{shouldValidateErr}}
-	}
-	if !shouldValidate {
-		return nil, nil
-	}
-
-	if reports, err = wh.validator.ValidateVirtualService(ctx, &vs, isDryRun(admissionRequest)); err != nil {
-		return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", vs)}}
-	}
-	return reports, nil
-}
-
-func (wh *gatewayValidationWebhook) validateRouteTable(ctx context.Context, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
-	var (
-		rt, oldRt gwv1.RouteTable
-		reports   *validation.Reports
-		err       error
-	)
-
-	shouldValidate, shouldValidateErr := wh.shouldValidateResource(ctx, admissionRequest, &rt, &oldRt)
-	if shouldValidateErr != nil {
-		return nil, &multierror.Error{Errors: []error{shouldValidateErr}}
-	}
-	if !shouldValidate {
-		return nil, nil
-	}
-
-	if reports, err = wh.validator.ValidateRouteTable(ctx, &rt, isDryRun(admissionRequest)); err != nil {
-		return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", rt)}}
 	}
 	return reports, nil
 }

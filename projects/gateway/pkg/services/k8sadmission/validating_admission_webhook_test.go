@@ -596,12 +596,20 @@ func (v *mockValidator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) 
 	return v.fSync(ctx, snap)
 }
 
-func (v *mockValidator) ValidateHashableInputResource(ctx context.Context, resource resources.HashableInputResource, dryRun, acquireLock bool) (*validation.Reports, error) {
+func (v *mockValidator) ValidateHashableInputResource(ctx context.Context, resource resources.HashableInputResource, dryRun bool) (*validation.Reports, error) {
 	if v.fValidateGateway == nil {
 		return reports(), nil
 	}
-	// TODO-JAKE need to implement -- just to push for now
-	return v.fValidateGateway(ctx, resource.(*v1.Gateway), dryRun)
+	switch typed := resource.(type) {
+	case *v1.Gateway:
+		return v.fValidateGateway(ctx, typed, dryRun)
+	case *v1.RouteTable:
+		return v.fValidateRouteTable(ctx, typed, dryRun)
+	case *v1.VirtualService:
+		return v.fValidateVirtualService(ctx, typed, dryRun)
+	default:
+		return nil, nil
+	}
 }
 
 func (v *mockValidator) ValidateList(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*validation.Reports, *multierror.Error) {

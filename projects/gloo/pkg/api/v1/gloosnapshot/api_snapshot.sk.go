@@ -263,7 +263,8 @@ func (s ApiSnapshot) HashFields() []zap.Field {
 	}
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
-func (s ApiSnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
+
+func (s *ApiSnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
 	switch resource.(type) {
 	case *gloo_solo_io.Proxy:
 		return s.Proxies.AsInputResources(), nil
@@ -292,7 +293,7 @@ func (s ApiSnapshot) GetInputResourceTypeList(resource resources.InputResource) 
 	}
 }
 
-func (s ApiSnapshot) AddToResourceList(resource resources.InputResource) error {
+func (s *ApiSnapshot) AddToResourceList(resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *gloo_solo_io.Proxy:
 		s.Proxies = append(s.Proxies, typed)
@@ -343,7 +344,7 @@ func (s ApiSnapshot) AddToResourceList(resource resources.InputResource) error {
 	}
 }
 
-func (s ApiSnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
+func (s *ApiSnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *gloo_solo_io.Proxy:
 		s.Proxies[i] = typed
