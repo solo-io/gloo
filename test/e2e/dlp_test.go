@@ -27,6 +27,30 @@ import (
 	"github.com/solo-io/solo-projects/test/services"
 )
 
+var testRequestPath = func(path, result string, envoyPort uint32) {
+	var bodyStr string
+	Eventually(func() (int, error) {
+		client := http.DefaultClient
+		reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d%s", "localhost", envoyPort, path))
+		Expect(err).NotTo(HaveOccurred())
+		resp, err := client.Do(&http.Request{
+			Method: http.MethodGet,
+			URL:    reqUrl,
+		})
+		if err != nil {
+			return 0, err
+		}
+		defer resp.Body.Close()
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return 0, err
+		}
+		bodyStr = string(body)
+		return resp.StatusCode, nil
+	}, "5s", "0.5s").Should(Equal(http.StatusOK))
+	Expect(bodyStr).To(ContainSubstring(result))
+}
+
 var _ = Describe("dlp", func() {
 
 	var (
@@ -147,27 +171,7 @@ var _ = Describe("dlp", func() {
 		)
 
 		var testRequest = func(result string) {
-			var bodyStr string
-			Eventually(func() (int, error) {
-				client := http.DefaultClient
-				reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
-				Expect(err).NotTo(HaveOccurred())
-				resp, err := client.Do(&http.Request{
-					Method: http.MethodGet,
-					URL:    reqUrl,
-				})
-				if err != nil {
-					return 0, err
-				}
-				defer resp.Body.Close()
-				body, err := io.ReadAll(resp.Body)
-				if err != nil {
-					return 0, err
-				}
-				bodyStr = string(body)
-				return resp.StatusCode, nil
-			}, "5s", "0.5s").Should(Equal(http.StatusOK))
-			Expect(bodyStr).To(ContainSubstring(result))
+			testRequestPath("/hello/1", result, envoyPort)
 		}
 
 		var configureProxy = func() {
@@ -269,6 +273,205 @@ var _ = Describe("dlp", func() {
 					PathSpecifier: &matchers.Matcher_Exact{Exact: "/will/not/match"},
 				})
 				testRequest("hello")
+			})
+
+			Context("With VISA credit card number", func() {
+
+				Context("Matches standalone credit card number", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "4397945340344828")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS,
+						}}, nil)
+						testRequest("XXXXXXXXXXXX4828")
+					})
+				})
+
+				Context("Matches standalone credit card number with dashes", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "4397-9453-4034-4828")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS,
+						}}, nil)
+						testRequest("XXXX-XXXX-XXXX-4828")
+					})
+				})
+
+			})
+
+			Context("With Mastercard credit card number", func() {
+				Context("Matches standalone credit card number", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "5105105105105100")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS_COMBINED,
+						}}, nil)
+						testRequest("XXXXXXXXXXXX5100")
+					})
+				})
+
+				Context("Matches standalone credit card number with dashes", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "5105-1051-0510-5100")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS,
+						}}, nil)
+						testRequest("XXXX-XXXX-XXXX-5100")
+					})
+				})
+
+			})
+
+			Context("With Discover credit card number", func() {
+				Context("Matches standalone credit card number", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "6011000990139424")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS_COMBINED,
+						}}, nil)
+						testRequest("XXXXXXXXXXXX9424")
+					})
+				})
+
+				Context("Matches standalone credit card number with dashes", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "6011-0009-9013-9424")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS,
+						}}, nil)
+						testRequest("XXXX-XXXX-XXXX-9424")
+					})
+				})
+
+			})
+
+			Context("With AMEX credit card number", func() {
+				Context("Matches standalone credit card number", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "371449635398431")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS_COMBINED,
+						}}, nil)
+						testRequest("XXXXXXXXXXX8431")
+					})
+				})
+
+				Context("Matches standalone credit card number with dashes", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "3714-496353-98431")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS,
+						}}, nil)
+						testRequest("XXXX-XXXXXX-X8431")
+					})
+				})
+
+			})
+
+			Context("With JCB credit card number", func() {
+				Context("Matches standalone credit card number", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "3566002020360505")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS_COMBINED,
+						}}, nil)
+						testRequest("XXXXXXXXXXXX0505")
+					})
+				})
+
+				Context("Matches standalone credit card number with dashes", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "3566-0020-2036-0505")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS,
+						}}, nil)
+						testRequest("XXXX-XXXX-XXXX-0505")
+					})
+				})
+
+			})
+
+			Context("With Diners Club credit card number", func() {
+				Context("Matches standalone credit card number", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "30569309025904")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS_COMBINED,
+						}}, nil)
+						testRequest("XXXXXXXXXXX904")
+					})
+				})
+
+				Context("Matches standalone credit card number with dashes", func() {
+					JustBeforeEach(func() {
+						testUpstream = v1helpers.NewTestHttpUpstreamWithReply(ctx, envoyInstance.LocalAddr(), "3056-930902-5904")
+						_, err := testClients.UpstreamClient.Write(testUpstream.Upstream, clients.WriteOpts{})
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("matches if credit card number provided alone", func() {
+						configureListenerProxy([]*dlp.Action{{
+							ActionType: dlp.Action_ALL_CREDIT_CARDS,
+						}}, nil)
+						testRequest("XXXX-XXXXXX-5904")
+					})
+				})
+
 			})
 
 			Context("With SSN", func() {

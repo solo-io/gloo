@@ -827,7 +827,8 @@ proto.dlp.options.gloo.solo.io.Action.ActionType = {
   DINERS_CLUB: 7,
   CREDIT_CARD_TRACKERS: 8,
   ALL_CREDIT_CARDS: 9,
-  KEYVALUE: 10
+  KEYVALUE: 10,
+  ALL_CREDIT_CARDS_COMBINED: 11
 };
 
 /**

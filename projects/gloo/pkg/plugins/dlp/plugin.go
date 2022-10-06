@@ -196,9 +196,52 @@ func setOnStreamCompletionTransformaton(routeTransformations *transformation_ee.
 	}
 }
 
+// detect redundant DLP actions. if users specify ALL_CREDIT_CARDS_COMBINED,
+// then no other credit card actions should be present. It is not necessary to
+// do this for ALL_CREDIT_CARDS however, because those actions get removed
+// using `removeDuplicates()`
+func detectRedundantActions(dlpActions []*dlp.Action) []*dlp.Action {
+	var actionsToCheck = map[dlp.Action_ActionType]bool{
+		dlp.Action_MASTERCARD:                false,
+		dlp.Action_VISA:                      false,
+		dlp.Action_AMEX:                      false,
+		dlp.Action_DISCOVER:                  false,
+		dlp.Action_JCB:                       false,
+		dlp.Action_DINERS_CLUB:               false,
+		dlp.Action_CREDIT_CARD_TRACKERS:      false,
+		dlp.Action_ALL_CREDIT_CARDS:          false,
+		dlp.Action_ALL_CREDIT_CARDS_COMBINED: false,
+	}
+	for _, action := range dlpActions {
+		if _, exists := actionsToCheck[action.ActionType]; exists {
+			actionsToCheck[action.ActionType] = true
+		}
+	}
+	if hasAllCreditCardsCombined := actionsToCheck[dlp.Action_ALL_CREDIT_CARDS_COMBINED]; !hasAllCreditCardsCombined {
+		return nil
+	}
+	result := make([]*dlp.Action, 0, len(dlpActions))
+	for _, action := range dlpActions {
+		if action.ActionType == dlp.Action_ALL_CREDIT_CARDS_COMBINED {
+			continue
+		}
+		if present, exists := actionsToCheck[action.ActionType]; !(present || exists) {
+			continue
+		}
+		result = append(result, action)
+	}
+	return result
+}
+
 // GetRelevantActions enables the transformation from different styles of dlp.Action instances
 // to an API-compliant slice of transformation_ee.Action instances
 func GetRelevantActions(ctx context.Context, dlpActions []*dlp.Action) []*transformation_ee.Action {
+
+	redundantActions := detectRedundantActions(dlpActions)
+	for _, redundantAction := range redundantActions {
+		contextutils.LoggerFrom(ctx).Warnf("Redundant action provided: should not specify %s with ALL_CREDIT_CARDS_COMBINED", dlp.Action_ActionType_name[int32(redundantAction.ActionType)])
+	}
+
 	result := make([]*transformation_ee.Action, 0, len(dlpActions))
 	for _, dlpAction := range dlpActions {
 		var transformAction []*transformation_ee.Action

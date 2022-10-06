@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -69,7 +70,25 @@ func KillAndRemoveContainer(containerName string) error {
 	if err != nil {
 		return errors.Wrap(err, "Error stopping and removing container "+containerName)
 	}
-	return nil
+	return waitUntilContainerRemoved(containerName)
+}
+
+// poll docker for removal of the container named containerName - block until
+// successful or fail after a small number of retries
+func waitUntilContainerRemoved(containerName string) error {
+	// if this function returns nil, it means the container is still running
+	isContainerRemoved := func() bool {
+		cmd := exec.Command("docker", "inspect", containerName)
+		return cmd.Run() != nil
+	}
+	for i := 0; i < 5; i++ {
+		if isContainerRemoved() {
+			return nil
+		}
+		fmt.Println("Waiting for removal of container " + containerName)
+		time.Sleep(1 * time.Second)
+	}
+	return errors.New("Unable to delete container " + containerName)
 }
 
 func RunningInDocker() bool {

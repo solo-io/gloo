@@ -152,6 +152,7 @@ export namespace Action {
     CREDIT_CARD_TRACKERS: 8;
     ALL_CREDIT_CARDS: 9;
     KEYVALUE: 10;
+    ALL_CREDIT_CARDS_COMBINED: 11;
   }
 
   export const ActionType: ActionTypeMap;

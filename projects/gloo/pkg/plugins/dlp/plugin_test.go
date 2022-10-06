@@ -50,6 +50,21 @@ var _ = Describe("dlp plugin", func() {
 				},
 			},
 		}
+		customTestAction2 = &dlp.Action{
+			ActionType: dlp.Action_CUSTOM,
+			Shadow:     true,
+			CustomAction: &dlp.CustomAction{
+				Name:  "test",
+				Regex: []string{"regex2"},
+				Percent: &envoy_type.Percent{
+					Value: 60,
+				},
+				MaskChar: "M",
+				RegexActions: []*transformation_ee.RegexAction{
+					{Regex: "actionRegex", Subgroup: 1},
+				},
+			},
+		}
 
 		KeyValueTestAction = &dlp.Action{
 			ActionType: dlp.Action_KEYVALUE,
@@ -60,6 +75,18 @@ var _ = Describe("dlp plugin", func() {
 					Value: 75,
 				},
 				MaskChar:  "Z",
+				KeyToMask: "ssn",
+			},
+		}
+		KeyValueTestAction2 = &dlp.Action{
+			ActionType: dlp.Action_KEYVALUE,
+			Shadow:     true,
+			KeyValueAction: &dlp.KeyValueAction{
+				Name: "test2",
+				Percent: &envoy_type.Percent{
+					Value: 60,
+				},
+				MaskChar:  "M",
 				KeyToMask: "ssn",
 			},
 		}
@@ -129,6 +156,19 @@ var _ = Describe("dlp plugin", func() {
 
 	})
 
+	var createAllCCActions = func() []*dlp.Action {
+		result := make([]*dlp.Action, 0, len(transformMap))
+		for key := range transformMap {
+			if key == dlp.Action_ALL_CREDIT_CARDS_COMBINED {
+				continue
+			}
+			result = append(result, &dlp.Action{
+				ActionType: key,
+			})
+		}
+		return result
+	}
+
 	var checkAllActions = func(actions []*dlp.Action, dlpTransform *transformation_ee.DlpTransformation, transformNum int) {
 		Expect(dlpTransform).NotTo(BeNil())
 		Expect(dlpTransform.GetActions()).To(HaveLen(transformNum))
@@ -140,10 +180,14 @@ var _ = Describe("dlp plugin", func() {
 	}
 
 	var checkAllDefaultActions = func(actions []*dlp.Action, dlpTransform *transformation_ee.DlpTransformation) {
-		checkAllActions(actions, dlpTransform, len(transformMap)-1)
+		// check for all actions in transformMap except for the following:
+		// ALL_CREDIT_CARDS: these are all removed by plugin.removeDuplicates()
+		// ALL_CREDIT_CARDS_COMBINED: should not be used in conjunction with other credit card actions
+		checkAllActions(actions, dlpTransform, len(transformMap)-2)
 	}
 	var checkAllCCActions = func(actions []*dlp.Action, dlpTransform *transformation_ee.DlpTransformation) {
-		checkAllActions(actions, dlpTransform, len(transformMap)-2)
+		// same as checkAllDefaultActions, but without SSN actions as well
+		checkAllActions(actions, dlpTransform, len(transformMap)-3)
 	}
 
 	var checkCustomAction = func(dlpTransform *transformation_ee.DlpTransformation) {
@@ -282,12 +326,7 @@ var _ = Describe("dlp plugin", func() {
 						Matcher: nil,
 						Actions: nil,
 					}
-					dlpRule.Actions = make([]*dlp.Action, 0, len(transformMap))
-					for key := range transformMap {
-						dlpRule.Actions = append(dlpRule.Actions, &dlp.Action{
-							ActionType: key,
-						})
-					}
+					dlpRule.Actions = createAllCCActions()
 					dlpListener = &dlp.FilterConfig{
 						DlpRules: []*dlp.DlpRule{dlpRule},
 					}
@@ -317,12 +356,7 @@ var _ = Describe("dlp plugin", func() {
 						Matcher: matchRegex,
 						Actions: nil,
 					}
-					dlpRule.Actions = make([]*dlp.Action, 0, len(transformMap))
-					for key := range transformMap {
-						dlpRule.Actions = append(dlpRule.Actions, &dlp.Action{
-							ActionType: key,
-						})
-					}
+					dlpRule.Actions = createAllCCActions()
 					dlpListener = &dlp.FilterConfig{
 						DlpRules: []*dlp.DlpRule{dlpRule},
 					}
@@ -386,12 +420,7 @@ var _ = Describe("dlp plugin", func() {
 						Matcher: nil,
 						Actions: nil,
 					}
-					dlpRule.Actions = make([]*dlp.Action, 0, len(transformMap))
-					for key := range transformMap {
-						dlpRule.Actions = append(dlpRule.Actions, &dlp.Action{
-							ActionType: key,
-						})
-					}
+					dlpRule.Actions = createAllCCActions()
 					dlpListener = &dlp.FilterConfig{
 						DlpRules:   []*dlp.DlpRule{dlpRule},
 						EnabledFor: dlp.FilterConfig_ACCESS_LOGS,
@@ -420,12 +449,7 @@ var _ = Describe("dlp plugin", func() {
 						Matcher: nil,
 						Actions: nil,
 					}
-					dlpRule.Actions = make([]*dlp.Action, 0, len(transformMap))
-					for key := range transformMap {
-						dlpRule.Actions = append(dlpRule.Actions, &dlp.Action{
-							ActionType: key,
-						})
-					}
+					dlpRule.Actions = createAllCCActions()
 					dlpListener = &dlp.FilterConfig{
 						DlpRules:   []*dlp.DlpRule{dlpRule},
 						EnabledFor: dlp.FilterConfig_ALL,
@@ -482,14 +506,8 @@ var _ = Describe("dlp plugin", func() {
 				BeforeEach(func() {
 					dlpRoute = &dlp.Config{}
 					dlpVhost = &dlp.Config{}
-					for key := range transformMap {
-						dlpRoute.Actions = append(dlpRoute.Actions, &dlp.Action{
-							ActionType: key,
-						})
-						dlpVhost.Actions = append(dlpVhost.Actions, &dlp.Action{
-							ActionType: key,
-						})
-					}
+					dlpRoute.Actions = createAllCCActions()
+					dlpVhost.Actions = createAllCCActions()
 				})
 
 				It("sets default actions on route", func() {
@@ -606,14 +624,9 @@ var _ = Describe("dlp plugin", func() {
 				dlpRoute.EnabledFor = dlp.Config_ACCESS_LOGS
 				dlpVhost.EnabledFor = dlp.Config_ACCESS_LOGS
 
-				for key := range transformMap {
-					dlpRoute.Actions = append(dlpRoute.Actions, &dlp.Action{
-						ActionType: key,
-					})
-					dlpVhost.Actions = append(dlpVhost.Actions, &dlp.Action{
-						ActionType: key,
-					})
-				}
+				actions := createAllCCActions()
+				dlpRoute.Actions = actions
+				dlpVhost.Actions = actions
 			})
 
 			It("sets default actions on route", func() {
@@ -635,6 +648,51 @@ var _ = Describe("dlp plugin", func() {
 			})
 		})
 
+		Context("warns if redundant DLP actions are requested", func() {
+			It("should detect redundant dlp actions", func() {
+				actions := []*dlp.Action{
+					&dlp.Action{
+						ActionType: dlp.Action_ALL_CREDIT_CARDS_COMBINED,
+					}, &dlp.Action{
+						ActionType: dlp.Action_VISA,
+					},
+				}
+				redundantRoutes := detectRedundantActions(actions)
+				Expect(redundantRoutes).To(HaveLen(1))
+				Expect(redundantRoutes[0].ActionType).To(Equal(dlp.Action_VISA))
+			})
+
+			It("should detect not redundant dlp actions if ALL_CREDIT_CARDS_COMBINED not present", func() {
+				actions := []*dlp.Action{
+					&dlp.Action{
+						ActionType: dlp.Action_ALL_CREDIT_CARDS,
+					}, &dlp.Action{
+						ActionType: dlp.Action_VISA,
+					},
+				}
+				redundantRoutes := detectRedundantActions(actions)
+				Expect(redundantRoutes).To(HaveLen(0))
+			})
+
+			It("should not issue warnings on custom actions", func() {
+				actions := []*dlp.Action{customTestAction, customTestAction2}
+				actions = append(actions, &dlp.Action{
+					ActionType: dlp.Action_ALL_CREDIT_CARDS_COMBINED,
+				})
+				redundantRoutes := detectRedundantActions(actions)
+				Expect(redundantRoutes).To(HaveLen(0))
+			})
+
+			It("should not issue warnings on keyvalue actions", func() {
+				actions := []*dlp.Action{KeyValueTestAction, KeyValueTestAction2}
+				actions = append(actions, &dlp.Action{
+					ActionType: dlp.Action_ALL_CREDIT_CARDS_COMBINED,
+				})
+				redundantRoutes := detectRedundantActions(actions)
+				Expect(redundantRoutes).To(HaveLen(0))
+			})
+		})
+
 		Context("access logs and responses", func() {
 			BeforeEach(func() {
 				dlpRoute = &dlp.Config{}
@@ -643,14 +701,9 @@ var _ = Describe("dlp plugin", func() {
 				dlpRoute.EnabledFor = dlp.Config_ALL
 				dlpVhost.EnabledFor = dlp.Config_ALL
 
-				for key := range transformMap {
-					dlpRoute.Actions = append(dlpRoute.Actions, &dlp.Action{
-						ActionType: key,
-					})
-					dlpVhost.Actions = append(dlpVhost.Actions, &dlp.Action{
-						ActionType: key,
-					})
-				}
+				actions := createAllCCActions()
+				dlpRoute.Actions = actions
+				dlpVhost.Actions = actions
 			})
 
 			It("sets default actions on route", func() {
