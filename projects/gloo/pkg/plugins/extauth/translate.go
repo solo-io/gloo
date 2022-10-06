@@ -158,7 +158,8 @@ func translateConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth
 					Protocol: &extauth.PassThroughAuth_Grpc{
 						Grpc: protocolConfig.Grpc,
 					},
-					Config: config.PassThroughAuth.Config,
+					Config:           config.PassThroughAuth.Config,
+					FailureModeAllow: config.PassThroughAuth.GetFailureModeAllow(),
 				},
 			}
 		case *extauth.PassThroughAuth_Http:
@@ -167,7 +168,8 @@ func translateConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth
 					Protocol: &extauth.PassThroughAuth_Http{
 						Http: protocolConfig.Http,
 					},
-					Config: config.PassThroughAuth.Config,
+					Config:           config.PassThroughAuth.Config,
+					FailureModeAllow: config.PassThroughAuth.GetFailureModeAllow(),
 				},
 			}
 		default:

@@ -2695,24 +2695,7 @@ var _ = Describe("External auth", func() {
 						zipkinTracing  bool
 					)
 
-					expectRequestEventuallyReturnsResponseCode := func(responseCode int) {
-						EventuallyWithOffset(1, func() (int, error) {
-							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
-							if err != nil {
-								return 0, err
-							}
-
-							resp, err := http.DefaultClient.Do(req)
-							if err != nil {
-								return 0, err
-							}
-							defer resp.Body.Close()
-							_, _ = io.ReadAll(resp.Body)
-							return resp.StatusCode, nil
-						}, "5s", "0.5s").Should(Equal(responseCode))
-					}
-
-					JustBeforeEach(func() {
+					setupAuthServerWithPassthroughConfig := func(failureModeAllow bool) {
 						// start auth server
 						err := authServer.Start(authServerPort)
 						Expect(err).NotTo(HaveOccurred())
@@ -2725,7 +2708,7 @@ var _ = Describe("External auth", func() {
 							},
 							Configs: []*extauth.AuthConfig_Config{{
 								AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-									PassThroughAuth: getPassThroughAuthConfig(authServer.GetAddress()),
+									PassThroughAuth: getPassThroughAuthConfig(authServer.GetAddress(), failureModeAllow),
 								},
 							}},
 						}
@@ -2747,112 +2730,179 @@ var _ = Describe("External auth", func() {
 						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						})
-					})
+					}
 
-					AfterEach(func() {
-						authServer.Stop()
-					})
+					expectRequestEventuallyReturnsResponseCode := func(responseCode int) {
+						EventuallyWithOffset(1, func() (int, error) {
+							req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							if err != nil {
+								return 0, err
+							}
 
-					Context("when auth server returns ok response", func() {
+							resp, err := http.DefaultClient.Do(req)
+							if err != nil {
+								return 0, err
+							}
+							defer resp.Body.Close()
+							_, _ = io.ReadAll(resp.Body)
+							return resp.StatusCode, nil
+						}, "5s", "0.5s").Should(Equal(responseCode))
+					}
 
-						BeforeEach(func() {
-							authServerResponse := passthrough_test_utils.OkResponse()
-							authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+					Context("failure_mode_allow enabled", func() {
+						AfterEach(func() {
+							authServer.Stop()
 						})
 
-						It("should accept extauth passthrough", func() {
-							expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+						JustBeforeEach(func() {
+							setupAuthServerWithPassthroughConfig(true)
 						})
 
-					})
-
-					Context("when auth server returns denied response", func() {
-
-						BeforeEach(func() {
-							authServerResponse := passthrough_test_utils.DeniedResponse()
-							authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
-						})
-
-						It("should deny extauth passthrough", func() {
-							expectRequestEventuallyReturnsResponseCode(http.StatusUnauthorized)
-						})
-
-					})
-
-					Context("when auth server errors", func() {
-
-						BeforeEach(func() {
-							authServerError := errors.New("auth server internal server error")
-							authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(nil, authServerError)
-						})
-
-						It("should deny extauth passthrough", func() {
-							expectRequestEventuallyReturnsResponseCode(http.StatusForbidden)
-						})
-
-					})
-
-					Context("when auth server returns ok response with valid dynamic metadata properties", func() {
-
-						BeforeEach(func() {
-							authServerResponse := passthrough_test_utils.OkResponseWithDynamicMetadata(&structpb.Struct{
-								Fields: map[string]*structpb.Value{
-									"current-state-key": {
-										Kind: &structpb.Value_StringValue{
-											StringValue: "new-state-value",
-										},
-									},
-									"new-state-key": {
-										Kind: &structpb.Value_StringValue{
-											StringValue: "new-state-value",
-										},
-									},
-								},
+						Context("when auth server returns denied response", func() {
+							BeforeEach(func() {
+								authServerResponse := passthrough_test_utils.DeniedResponse()
+								authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
 							})
-							authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+
+							It("should deny extauth passthrough", func() {
+								expectRequestEventuallyReturnsResponseCode(http.StatusUnauthorized)
+							})
 						})
 
-						It("should accept extauth passthrough", func() {
-							expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+						Context("when auth server returns a 5XX server error", func() {
+							BeforeEach(func() {
+								resp := passthrough_test_utils.ServerErrorResponse()
+								authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(resp, nil)
+							})
+
+							It("should allow extauth passthrough", func() {
+								expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+							})
 						})
 
+						Context("when auth server has errors", func() {
+							BeforeEach(func() {
+								authServerError := errors.New("lorem ipsum, this causes a Check to return an err")
+								resp := passthrough_test_utils.ServerErrorResponse()
+								authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(resp, authServerError)
+							})
+
+							It("should allow extauth passthrough", func() {
+								expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+							})
+						})
 					})
 
-					Context("when auth server returns ok response when tracing metadata is present", func() {
+					Context("failure_mode_allow disabled", func() {
+						AfterEach(func() {
+							authServer.Stop()
+						})
 
-						BeforeEach(func() {
-							// create zipkin upstream
-							zipkinUs := &gloov1.Upstream{
-								Metadata: &core.Metadata{
-									Name:      "zipkin",
-									Namespace: "default",
-								},
-								UpstreamType: &gloov1.Upstream_Static{
-									Static: &gloov1static.UpstreamSpec{
-										Hosts: []*gloov1static.Host{
-											{
-												Addr: envoyInstance.LocalAddr(),
-												Port: 9411,
+						JustBeforeEach(func() {
+							setupAuthServerWithPassthroughConfig(false)
+						})
+
+						Context("when auth server returns ok response", func() {
+
+							BeforeEach(func() {
+								authServerResponse := passthrough_test_utils.OkResponse()
+								authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+							})
+
+							It("should accept extauth passthrough", func() {
+								expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+							})
+
+						})
+
+						Context("when auth server returns denied response", func() {
+
+							BeforeEach(func() {
+								authServerResponse := passthrough_test_utils.DeniedResponse()
+								authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+							})
+
+							It("should deny extauth passthrough", func() {
+								expectRequestEventuallyReturnsResponseCode(http.StatusUnauthorized)
+							})
+
+						})
+
+						Context("when auth server errors", func() {
+
+							BeforeEach(func() {
+								authServerError := errors.New("auth server internal server error")
+								authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(nil, authServerError)
+							})
+
+							It("should deny extauth passthrough", func() {
+								expectRequestEventuallyReturnsResponseCode(http.StatusForbidden)
+							})
+
+						})
+
+						Context("when auth server returns ok response with valid dynamic metadata properties", func() {
+
+							BeforeEach(func() {
+								authServerResponse := passthrough_test_utils.OkResponseWithDynamicMetadata(&structpb.Struct{
+									Fields: map[string]*structpb.Value{
+										"current-state-key": {
+											Kind: &structpb.Value_StringValue{
+												StringValue: "new-state-value",
+											},
+										},
+										"new-state-key": {
+											Kind: &structpb.Value_StringValue{
+												StringValue: "new-state-value",
 											},
 										},
 									},
-								},
-							}
-							_, err := testClients.UpstreamClient.Write(zipkinUs, clients.WriteOpts{})
-							Expect(err).NotTo(HaveOccurred())
+								})
+								authServer = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerResponse, nil)
+							})
 
-							zipkinTracing = true
-							authServer = passthrough_test_utils.NewGrpcAuthServerWithTracingRequired()
+							It("should accept extauth passthrough", func() {
+								expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+							})
+
 						})
 
-						AfterEach(func() {
-							zipkinTracing = false
-						})
+						Context("when auth server returns ok response when tracing metadata is present", func() {
 
-						It("should accept extauth passthrough", func() {
-							expectRequestEventuallyReturnsResponseCode(http.StatusOK)
-						})
+							BeforeEach(func() {
+								// create zipkin upstream
+								zipkinUs := &gloov1.Upstream{
+									Metadata: &core.Metadata{
+										Name:      "zipkin",
+										Namespace: "default",
+									},
+									UpstreamType: &gloov1.Upstream_Static{
+										Static: &gloov1static.UpstreamSpec{
+											Hosts: []*gloov1static.Host{
+												{
+													Addr: envoyInstance.LocalAddr(),
+													Port: 9411,
+												},
+											},
+										},
+									},
+								}
+								_, err := testClients.UpstreamClient.Write(zipkinUs, clients.WriteOpts{})
+								Expect(err).NotTo(HaveOccurred())
 
+								zipkinTracing = true
+								authServer = passthrough_test_utils.NewGrpcAuthServerWithTracingRequired()
+							})
+
+							AfterEach(func() {
+								zipkinTracing = false
+							})
+
+							It("should accept extauth passthrough", func() {
+								expectRequestEventuallyReturnsResponseCode(http.StatusOK)
+							})
+
+						})
 					})
 
 				})
@@ -2904,12 +2954,12 @@ var _ = Describe("External auth", func() {
 								{
 									// Ordering is important here, AuthServerA is listed first so it is earlier in the chain
 									AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-										PassThroughAuth: getPassThroughAuthConfig(authServerA.GetAddress()),
+										PassThroughAuth: getPassThroughAuthConfig(authServerA.GetAddress(), false),
 									},
 								},
 								{
 									AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-										PassThroughAuth: getPassThroughAuthConfig(authServerB.GetAddress()),
+										PassThroughAuth: getPassThroughAuthConfig(authServerB.GetAddress(), false),
 									},
 								},
 							},
@@ -3066,7 +3116,7 @@ var _ = Describe("External auth", func() {
 							},
 							Configs: []*extauth.AuthConfig_Config{{
 								AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-									PassThroughAuth: getPassThroughAuthWithCustomConfig(authServerA.GetAddress()),
+									PassThroughAuth: getPassThroughAuthWithCustomConfig(authServerA.GetAddress(), false),
 								},
 							}},
 						}
@@ -4028,8 +4078,8 @@ func GetPassThroughExtAuthExtension() *extauth.ExtAuthExtension {
 }
 
 // This provides PassThroughAuth AuthConfig with Custom Config
-func getPassThroughAuthWithCustomConfig(address string) *extauth.PassThroughAuth {
-	passThroughAuth := getPassThroughAuthConfig(address)
+func getPassThroughAuthWithCustomConfig(address string, failureModeAllow bool) *extauth.PassThroughAuth {
+	passThroughAuth := getPassThroughAuthConfig(address, failureModeAllow)
 	passThroughAuth.Config = &structpb.Struct{
 		Fields: map[string]*structpb.Value{
 			"customConfig1": {
@@ -4042,7 +4092,7 @@ func getPassThroughAuthWithCustomConfig(address string) *extauth.PassThroughAuth
 	return passThroughAuth
 }
 
-func getPassThroughAuthConfig(address string) *extauth.PassThroughAuth {
+func getPassThroughAuthConfig(address string, failureModeAllow bool) *extauth.PassThroughAuth {
 	return &extauth.PassThroughAuth{
 		Protocol: &extauth.PassThroughAuth_Grpc{
 			Grpc: &extauth.PassThroughGrpc{
@@ -4050,6 +4100,7 @@ func getPassThroughAuthConfig(address string) *extauth.PassThroughAuth {
 				// use default connection timeout
 			},
 		},
+		FailureModeAllow: failureModeAllow,
 	}
 }
 

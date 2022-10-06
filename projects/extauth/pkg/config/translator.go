@@ -480,13 +480,13 @@ func (t *extAuthConfigTranslator) authConfigToService(
 	case *extauthv1.ExtAuthConfig_Config_PassThroughAuth:
 		switch protocolConfig := cfg.PassThroughAuth.GetProtocol().(type) {
 		case *extauthv1.PassThroughAuth_Grpc:
-			grpcSvc, err := getPassThroughGrpcAuthService(ctx, cfg.PassThroughAuth.GetConfig(), protocolConfig.Grpc)
+			grpcSvc, err := getPassThroughGrpcAuthService(ctx, cfg.PassThroughAuth.GetConfig(), protocolConfig.Grpc, cfg.PassThroughAuth.GetFailureModeAllow())
 			if err != nil {
 				return nil, "", err
 			}
 			return grpcSvc, config.GetName().GetValue(), nil
 		case *extauthv1.PassThroughAuth_Http:
-			svc, err := getPassThroughHttpService(ctx, cfg.PassThroughAuth.GetConfig(), protocolConfig.Http)
+			svc, err := getPassThroughHttpService(ctx, cfg.PassThroughAuth.GetConfig(), protocolConfig.Http, cfg.PassThroughAuth.GetFailureModeAllow())
 			if err != nil {
 				return nil, "", err
 			}
@@ -547,7 +547,7 @@ func getLdapConnectionPoolParams(config *extauthv1.Ldap) (initCap int, maxCap in
 	return
 }
 
-func getPassThroughGrpcAuthService(ctx context.Context, passthroughAuthCfg *structpb.Struct, grpcConfig *extauthv1.PassThroughGrpc) (api.AuthService, error) {
+func getPassThroughGrpcAuthService(ctx context.Context, passthroughAuthCfg *structpb.Struct, grpcConfig *extauthv1.PassThroughGrpc, failureModeAllow bool) (api.AuthService, error) {
 
 	connectionTimeout := 5 * time.Second
 
@@ -562,6 +562,7 @@ func getPassThroughGrpcAuthService(ctx context.Context, passthroughAuthCfg *stru
 	clientManagerConfig := &grpcPassthrough.ClientManagerConfig{
 		Address:           grpcConfig.GetAddress(),
 		ConnectionTimeout: connectionTimeout,
+		FailureModeAllow:  failureModeAllow,
 	}
 
 	grpcClientManager, err := grpcPassthrough.NewGrpcClientManager(ctx, clientManagerConfig)
@@ -572,7 +573,7 @@ func getPassThroughGrpcAuthService(ctx context.Context, passthroughAuthCfg *stru
 	return grpcPassthrough.NewGrpcService(grpcClientManager, passthroughAuthCfg), nil
 }
 
-func getPassThroughHttpService(ctx context.Context, authCfgCfg *structpb.Struct, httpPassthroughConfig *extauthv1.PassThroughHttp) (api.AuthService, error) {
+func getPassThroughHttpService(ctx context.Context, authCfgCfg *structpb.Struct, httpPassthroughConfig *extauthv1.PassThroughHttp, failureModeAllow bool) (api.AuthService, error) {
 	connectionTimeout := 5 * time.Second
 	if timeout := httpPassthroughConfig.GetConnectionTimeout(); timeout != nil {
 		timeout, err := ptypes.Duration(timeout)
@@ -616,7 +617,9 @@ func getPassThroughHttpService(ctx context.Context, authCfgCfg *structpb.Struct,
 		AllowedClientHeaders:      httpPassthroughConfig.GetResponse().GetAllowedClientHeadersOnDenied(),
 		ReadStateFromResponse:     httpPassthroughConfig.GetResponse().GetReadStateFromResponse(),
 		TLSClientConfig:           tlsConfig,
+		AllowFailure:              failureModeAllow,
 	}
+
 	return httpPassthrough.NewHttpService(cfg, authCfgCfg), nil
 }
 
