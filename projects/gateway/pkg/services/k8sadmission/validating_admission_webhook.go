@@ -393,102 +393,78 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 
 	isDelete := admissionRequest.Operation == v1beta1.Delete
 	dryRun := isDryRun(admissionRequest)
+	/*
+		 	Currently having issues with the following resources as they are not Input Resources
+		// Artifacts          gloo_solo_io.ArtifactList
+		// Endpoints          gloo_solo_io.EndpointList
+		// Secrets            gloo_solo_io.SecretList
+		// Ratelimitconfigs   github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList
 
-	// TODO-JAKE need to refactor this method...
-	validateGvk := func(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
-		var reports *validation.Reports
-		newResourceFunc := gloosnapshot.ApiGvkToHashableInputResource[gvk]
-		newResource := newResourceFunc()
-		oldResource := newResourceFunc()
+		// will have to check out RateLimitConfigs, not sure what causes it to not be a Hashable Input Resource
+		it is a custom resource, but not sure what is causing this...
+		projects/gloo/api/external/solo/ratelimit/solo-kit.json
+	*/
 
-		shouldValidate, shouldValidateErr := wh.shouldValidateResource(ctx, admissionRequest, newResource, oldResource)
-		if shouldValidateErr != nil {
-			return nil, &multierror.Error{Errors: []error{shouldValidateErr}}
+	// TODO the ref is used for secrets... we don't need it
+	// TODO Secret does not interface with HashableResource, because we only use it's ref...
+	if gvk == gloov1.SecretGVK {
+		err := wh.validator.ValidateDeleteSecret(ctx, ref, dryRun)
+		if err != nil {
+			return &validation.Reports{}, &multierror.Error{Errors: []error{err}}
 		}
-		if !shouldValidate {
-			return nil, nil
-		}
-		if reports, err := wh.validator.ValidateHashableInputResource(ctx, newResource, isDryRun(admissionRequest)); err != nil {
-			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", newResource)}}
+	}
+
+	// TODO look at each of the Delete sections
+	if gvk == ListGVK {
+		return wh.validateList(ctx, admissionRequest.Object.Raw, dryRun)
+	}
+	if isDelete {
+		return wh.deleteRef(ctx, gvk, ref, admissionRequest)
+	} else {
+		return wh.validateGvk(ctx, gvk, ref, admissionRequest)
+	}
+}
+
+func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
+	// blah....
+	if gvk.Group == gloov1.UpstreamCrd.Group {
+
+		reports, err := wh.validator.ValidateGlooResourceDelete(ctx, gvk, ref)
+		if err != nil {
+			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validatin deletion of resource namespace: %s name: %s", ref.Namespace, ref.Name)}}
 		}
 		return reports, nil
+	} else {
+		err := wh.validator.ValidateDeleteRef(ctx, gvk, ref, isDryRun(admissionRequest))
+		if err != nil {
+			return nil, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validatin deletion of resource namespace: %s name: %s", ref.Namespace, ref.Name)}}
+		}
+		return nil, nil
+	}
+	// TODO-JAKE returns an error
+	return nil, nil
+}
+
+func (wh *gatewayValidationWebhook) validateGvk(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
+	var reports *validation.Reports
+	newResourceFunc := gloosnapshot.ApiGvkToHashableInputResource[gvk]
+
+	newResource := newResourceFunc()
+	oldResource := newResourceFunc()
+
+	shouldValidate, shouldValidateErr := wh.shouldValidateResource(ctx, admissionRequest, newResource, oldResource)
+	if shouldValidateErr != nil {
+		return nil, &multierror.Error{Errors: []error{shouldValidateErr}}
+	}
+	if !shouldValidate {
+		return nil, nil
 	}
 
-	switch gvk {
-	case ListGVK:
-		return wh.validateList(ctx, admissionRequest.Object.Raw, dryRun)
-		/*
-			 	Currently having issues with the following resources as they are not Input Resources
-				// Artifacts          gloo_solo_io.ArtifactList
-				// Endpoints          gloo_solo_io.EndpointList
-				// Secrets            gloo_solo_io.SecretList
-				// Ratelimitconfigs   github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList
-
-				// will have to check out RateLimitConfigs, not sure what causes it to not be a Hashable Input Resource
-				it is a custom resource, but not sure what is causing this...
-				projects/gloo/api/external/solo/ratelimit/solo-kit.json
-
-
-				// For the types that are in github.com/solo-io/gloo/projects/gateway/pkg/api/v1
-				apply := func(snap *gloov1snap.ApiSnapshot) ([]string, resources.Resource, *core.ResourceRef) {
-					// ....
-
-					// currently the code for the apply is kinda straight forward, particular for each type...
-					// TODO have to figure out how we want to handle special case template code specific for each resource type...
-
-					// TODO look into these methods to get an idea of what needs to be done...
-					// gateways
-					proxiesToConsider := utils.GetProxyNamesForGateway(newResource)
-					// VS
-					proxiesForVirtualService(ctx, snap.Gateways, snap.HttpGateways, vs)
-					// Route Tables
-					proxiesForRouteTable(ctx, snap, rt)
-				}
-		*/
-	case gwv1.GatewayGVK:
-		if isDelete {
-			// we don't validate gateway deletion
-			break
-		}
-		return validateGvk(ctx, gvk, ref, admissionRequest)
-	case gwv1.VirtualServiceGVK:
-		if isDelete {
-			err := wh.validator.ValidateDeleteVirtualService(ctx, ref, dryRun)
-			if err != nil {
-				return &validation.Reports{}, &multierror.Error{Errors: []error{err}}
-			}
-		} else {
-			return validateGvk(ctx, gvk, ref, admissionRequest)
-			// return wh.validateVirtualService(ctx, admissionRequest)
-		}
-	case gwv1.RouteTableGVK:
-		if isDelete {
-			err := wh.validator.ValidateDeleteRouteTable(ctx, ref, dryRun)
-			if err != nil {
-				return &validation.Reports{}, &multierror.Error{Errors: []error{err}}
-			}
-		} else {
-			return validateGvk(ctx, gvk, ref, admissionRequest)
-		}
-	case gloov1.UpstreamGVK:
-		if isDelete {
-			err := wh.validator.ValidateDeleteUpstream(ctx, ref, dryRun)
-			if err != nil {
-				return &validation.Reports{}, &multierror.Error{Errors: []error{err}}
-			}
-		} else {
-			return wh.validateUpstream(ctx, admissionRequest)
-		}
-	case gloov1.SecretGVK:
-		// We only support validation of secrets for DELETE operations
-		if isDelete {
-			err := wh.validator.ValidateDeleteSecret(ctx, ref, dryRun)
-			if err != nil {
-				return &validation.Reports{}, &multierror.Error{Errors: []error{err}}
-			}
-		}
+	reports, err := wh.validator.ValidateGvk(ctx, gvk, newResource, isDryRun(admissionRequest))
+	if err != nil {
+		return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", newResource)}}
 	}
-	return &validation.Reports{}, nil
+	return reports, nil
 }
 
 func (wh *gatewayValidationWebhook) validateList(ctx context.Context, rawJson []byte, dryRun bool) (*validation.Reports, *multierror.Error) {
@@ -503,27 +479,6 @@ func (wh *gatewayValidationWebhook) validateList(ctx context.Context, rawJson []
 	}
 	if reports, errs = wh.validator.ValidateList(ctx, &ul, dryRun); errs != nil {
 		return reports, errs
-	}
-	return reports, nil
-}
-
-func (wh *gatewayValidationWebhook) validateUpstream(ctx context.Context, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
-	var (
-		us, oldUs gloov1.Upstream
-		reports   *validation.Reports
-		err       error
-	)
-
-	shouldValidate, shouldValidateErr := wh.shouldValidateResource(ctx, admissionRequest, &us, &oldUs)
-	if shouldValidateErr != nil {
-		return nil, &multierror.Error{Errors: []error{shouldValidateErr}}
-	}
-	if !shouldValidate {
-		return nil, nil
-	}
-
-	if reports, err = wh.validator.ValidateUpstream(ctx, &us, isDryRun(admissionRequest)); err != nil {
-		return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", us)}}
 	}
 	return reports, nil
 }

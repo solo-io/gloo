@@ -45,7 +45,7 @@ var _ = Describe("Validator", func() {
 	})
 
 	It("returns error before sync called", func() {
-		_, err := v.ValidateHashableInputResource(nil, nil, false)
+		_, err := v.ValidateGatewayResource(nil, nil, false)
 		Expect(err).To(testutils.HaveInErrorChain(NotReadyErr))
 		err = v.Sync(context.Background(), &gloov1snap.ApiSnapshot{})
 		Expect(err).NotTo(HaveOccurred())
@@ -97,7 +97,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateUpstream(context.TODO(), us, false)
+				reports, err := v.ValidateGlooResource(context.TODO(), us)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -114,7 +114,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateUpstream(context.TODO(), us, false)
+				reports, err := v.ValidateGlooResource(context.TODO(), us)
 				Expect(err).To(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -130,7 +130,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateUpstream(context.TODO(), us, false)
+				reports, err := v.ValidateGlooResource(context.TODO(), us)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -146,7 +146,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateUpstream(context.TODO(), us, false)
+				reports, err := v.ValidateGlooResource(context.TODO(), us)
 				Expect(err).To(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -162,8 +162,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				ref := us.GetMetadata().Ref()
-				err = v.ValidateDeleteUpstream(context.TODO(), ref, false)
+				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.UpstreamGVK, us.GetMetadata().Ref())
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects an upstream deletion when validation fails", func() {
@@ -174,8 +173,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				ref := us.GetMetadata().Ref()
-				err = v.ValidateDeleteUpstream(context.TODO(), ref, false)
+				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.UpstreamGVK, us.GetMetadata().Ref())
 				Expect(err).To(HaveOccurred())
 			})
 			It("accepts an upstream deletion when there is a validation warning and allowWarnings is true", func() {
@@ -187,8 +185,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				ref := us.GetMetadata().Ref()
-				err = v.ValidateDeleteUpstream(context.TODO(), ref, false)
+				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.UpstreamGVK, us.GetMetadata().Ref())
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects an upstream deletion when there is a validation warning and allowWarnings is false", func() {
@@ -200,8 +197,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				ref := us.GetMetadata().Ref()
-				err = v.ValidateDeleteUpstream(context.TODO(), ref, false)
+				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.UpstreamGVK, us.GetMetadata().Ref())
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -279,6 +275,7 @@ var _ = Describe("Validator", func() {
 			})
 		})
 	})
+
 	Context("validating a route table", func() {
 		Context("proxy validation accepted", func() {
 			It("accepts the rt", func() {
@@ -286,7 +283,7 @@ var _ = Describe("Validator", func() {
 				snap := samples.GlooSnapshotWithDelegates(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
-				reports, err := v.ValidateHashableInputResource(context.TODO(), snap.RouteTables[0], false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), snap.RouteTables[0], false)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 			})
@@ -296,7 +293,7 @@ var _ = Describe("Validator", func() {
 				snap := samples.GlooSnapshotWithDelegates(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
-				reports, err := v.ValidateHashableInputResource(context.TODO(), snap.RouteTables[0], false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), snap.RouteTables[0], false)
 				Expect(err).NotTo(HaveOccurred())
 				proxyReports := *(reports.ProxyReports)
 				Expect(proxyReports).To(HaveLen(1))
@@ -304,7 +301,7 @@ var _ = Describe("Validator", func() {
 				Expect(reports.GetProxies()[0]).To(ContainSubstring("listener-::-8080"))
 
 				// repeat to ensure any hashing doesn't short circuit returning the proxies
-				reports, err = v.ValidateHashableInputResource(context.TODO(), snap.RouteTables[0], false)
+				reports, err = v.ValidateGatewayResource(context.TODO(), snap.RouteTables[0], false)
 				Expect(err).NotTo(HaveOccurred())
 
 				proxyReports = *(reports.ProxyReports)
@@ -324,7 +321,7 @@ var _ = Describe("Validator", func() {
 				// change something to change the hash
 				snap.RouteTables[0].Metadata.Labels = map[string]string{"change": "my mind"}
 
-				reports, err := v.ValidateHashableInputResource(context.TODO(), snap.RouteTables[0], false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), snap.RouteTables[0], false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("failed to validate Proxy with Gloo validation server"))
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
@@ -343,7 +340,7 @@ var _ = Describe("Validator", func() {
 					// change something to change the hash
 					snap.RouteTables[0].Metadata.Labels = map[string]string{"change": "my mind"}
 
-					reports, err := v.ValidateHashableInputResource(context.TODO(), snap.RouteTables[0], false)
+					reports, err := v.ValidateGatewayResource(context.TODO(), snap.RouteTables[0], false)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Route Warning: InvalidDestinationWarning. Reason: you should try harder next time"))
 					Expect(*(reports.ProxyReports)).To(HaveLen(1))
@@ -373,7 +370,7 @@ var _ = Describe("Validator", func() {
 				rt.Routes = append(rt.Routes, badRoute)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
-				reports, err := v.ValidateHashableInputResource(context.TODO(), rt, false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), rt, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
 				Expect(*(reports.ProxyReports)).To(HaveLen(0))
@@ -388,7 +385,7 @@ var _ = Describe("Validator", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				rt := samples.RouteTableWithLabelsAndPrefix("route2", ns, "/foo/2", map[string]string{"pick": "me"})
-				_, err = v.ValidateHashableInputResource(context.TODO(), rt, false)
+				_, err = v.ValidateGatewayResource(context.TODO(), rt, false)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -400,7 +397,7 @@ var _ = Describe("Validator", func() {
 
 				// the prefix doesn't start with the parent's prefix so validation will fail
 				rt := samples.RouteTableWithLabelsAndPrefix("route2", ns, "/not", map[string]string{"pick": "me"})
-				_, err = v.ValidateHashableInputResource(context.TODO(), rt, false)
+				_, err = v.ValidateGatewayResource(context.TODO(), rt, false)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -451,7 +448,7 @@ var _ = Describe("Validator", func() {
 				// change something to change the hash
 				snap.VirtualServices[0].Metadata.Labels = map[string]string{"change": "my mind"}
 
-				reports, err := v.ValidateHashableInputResource(context.TODO(), snap.VirtualServices[0], false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), snap.VirtualServices[0], false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("failed to validate Proxy with Gloo validation server"))
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
@@ -464,7 +461,7 @@ var _ = Describe("Validator", func() {
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
-				reports, err := v.ValidateHashableInputResource(context.TODO(), snap.VirtualServices[0], false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), snap.VirtualServices[0], false)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 			})
@@ -474,7 +471,7 @@ var _ = Describe("Validator", func() {
 				snap := samples.GlooSnapshotWithDelegates(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
-				reports, err := v.ValidateHashableInputResource(context.TODO(), snap.VirtualServices[0], false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), snap.VirtualServices[0], false)
 				Expect(err).NotTo(HaveOccurred())
 				proxyReports := *(reports.ProxyReports)
 				Expect(proxyReports).To(HaveLen(1))
@@ -482,7 +479,7 @@ var _ = Describe("Validator", func() {
 				Expect(reports.GetProxies()[0]).To(ContainSubstring("listener-::-8080"))
 
 				// repeat to ensure any hashing doesn't short circuit returning the proxies
-				reports, err = v.ValidateHashableInputResource(context.TODO(), snap.VirtualServices[0], false)
+				reports, err = v.ValidateGatewayResource(context.TODO(), snap.VirtualServices[0], false)
 				Expect(err).NotTo(HaveOccurred())
 				proxyReports = *(reports.ProxyReports)
 				Expect(proxyReports).To(HaveLen(1))
@@ -508,7 +505,7 @@ var _ = Describe("Validator", func() {
 				})
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
-				reports, err := v.ValidateHashableInputResource(context.TODO(), snap.VirtualServices[0], false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), snap.VirtualServices[0], false)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(0))
 			})
@@ -561,7 +558,7 @@ var _ = Describe("Validator", func() {
 
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
-				reports, err := v.ValidateHashableInputResource(context.TODO(), vs, false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), vs, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
 				Expect(*(reports.ProxyReports)).To(HaveLen(0))
@@ -579,7 +576,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateHashableInputResource(context.TODO(), snap.VirtualServices[0], false)
+				_, err = v.ValidateGatewayResource(context.TODO(), snap.VirtualServices[0], false)
 				Expect(err).NotTo(HaveOccurred())
 
 				rows, err := view.RetrieveData("validation.gateway.solo.io/valid_config")
@@ -594,7 +591,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateHashableInputResource(context.TODO(), snap.VirtualServices[0], false)
+				_, err = v.ValidateGatewayResource(context.TODO(), snap.VirtualServices[0], false)
 				Expect(err).To(HaveOccurred())
 
 				rows, err := view.RetrieveData("validation.gateway.solo.io/valid_config")
@@ -610,7 +607,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateHashableInputResource(context.TODO(), snap.VirtualServices[0], false)
+				_, err = v.ValidateGatewayResource(context.TODO(), snap.VirtualServices[0], false)
 				Expect(err).To(HaveOccurred())
 
 				rows, err := view.RetrieveData("validation.gateway.solo.io/valid_config")
@@ -626,7 +623,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateHashableInputResource(context.TODO(), snap.VirtualServices[0], false)
+				_, err = v.ValidateGatewayResource(context.TODO(), snap.VirtualServices[0], false)
 				Expect(err).NotTo(HaveOccurred())
 
 				rows, err := view.RetrieveData("validation.gateway.solo.io/valid_config")
@@ -648,7 +645,7 @@ var _ = Describe("Validator", func() {
 				Expect(rows[0].Data.(*view.LastValueData).Value).To(BeEquivalentTo(1))
 
 				// Run a failed validation
-				_, err = v.ValidateHashableInputResource(context.TODO(), snap.VirtualServices[0], true)
+				_, err = v.ValidateGatewayResource(context.TODO(), snap.VirtualServices[0], true)
 				Expect(err).To(HaveOccurred())
 
 				// The metric should still be valid, since dryRun was true
@@ -673,7 +670,7 @@ var _ = Describe("Validator", func() {
 				snap.VirtualServices[1].DeepCopyInto(vs2)
 				vs2.Metadata.Name = "vs2"
 
-				reports, err := v.ValidateHashableInputResource(context.TODO(), vs2, false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), vs2, false)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 
@@ -683,7 +680,7 @@ var _ = Describe("Validator", func() {
 				snap.VirtualServices[1].DeepCopyInto(vs3)
 				vs3.Metadata.Name = "vs3"
 
-				reports, err = v.ValidateHashableInputResource(context.TODO(), vs3, false)
+				reports, err = v.ValidateGatewayResource(context.TODO(), vs3, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
 				Expect(err.Error()).To(ContainSubstring("domain conflict: the following"))
@@ -704,7 +701,7 @@ var _ = Describe("Validator", func() {
 				snap.VirtualServices[1].DeepCopyInto(vs2)
 				vs2.Metadata.Name = "vs2"
 
-				reports, err := v.ValidateHashableInputResource(context.TODO(), vs2, true)
+				reports, err := v.ValidateGatewayResource(context.TODO(), vs2, true)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 
@@ -714,7 +711,7 @@ var _ = Describe("Validator", func() {
 				snap.VirtualServices[1].DeepCopyInto(vs3)
 				vs3.Metadata.Name = "vs3"
 
-				reports, err = v.ValidateHashableInputResource(context.TODO(), vs3, true)
+				reports, err = v.ValidateGatewayResource(context.TODO(), vs3, true)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 			})
@@ -785,7 +782,7 @@ var _ = Describe("Validator", func() {
 				// change something to change the hash
 				snap.Gateways[0].Metadata.Labels = map[string]string{"change": "my mind"}
 
-				reports, err := v.ValidateHashableInputResource(context.TODO(), snap.Gateways[0], false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), snap.Gateways[0], false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("failed to validate Proxy with Gloo validation server"))
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
@@ -797,7 +794,7 @@ var _ = Describe("Validator", func() {
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
-				reports, err := v.ValidateHashableInputResource(context.TODO(), snap.Gateways[0], false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), snap.Gateways[0], false)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 			})
@@ -807,7 +804,7 @@ var _ = Describe("Validator", func() {
 				snap := samples.GlooSnapshotWithDelegates(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
-				reports, err := v.ValidateHashableInputResource(context.TODO(), snap.Gateways[0], false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), snap.Gateways[0], false)
 				Expect(err).NotTo(HaveOccurred())
 				proxyReports := *(reports.ProxyReports)
 				Expect(proxyReports).To(HaveLen(1))
@@ -815,7 +812,7 @@ var _ = Describe("Validator", func() {
 				Expect(reports.GetProxies()[0]).To(ContainSubstring("listener-::-8080"))
 
 				// repeat to ensure any hashing doesn't short circuit returning the proxies
-				reports, err = v.ValidateHashableInputResource(context.TODO(), snap.Gateways[0], false)
+				reports, err = v.ValidateGatewayResource(context.TODO(), snap.Gateways[0], false)
 				Expect(err).NotTo(HaveOccurred())
 				proxyReports = *(reports.ProxyReports)
 				Expect(proxyReports).To(HaveLen(1))
@@ -835,7 +832,7 @@ var _ = Describe("Validator", func() {
 				gw.GatewayType.(*gatewayv1.Gateway_HttpGateway).HttpGateway.VirtualServices = append(gw.GatewayType.(*gatewayv1.Gateway_HttpGateway).HttpGateway.VirtualServices, badRef)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
-				reports, err := v.ValidateHashableInputResource(context.TODO(), gw, false)
+				reports, err := v.ValidateGatewayResource(context.TODO(), gw, false)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("could not render proxy"))
 				Expect(*(reports.ProxyReports)).To(HaveLen(0))
@@ -1101,13 +1098,13 @@ var _ = Describe("Validator", func() {
 			numberOfWorkers = 100
 		})
 
-		ValidateHashableInputResourceWorker := func(vsToDuplicate *gatewayv1.VirtualService, name string) error {
+		ValidateGatewayResourceWorker := func(vsToDuplicate *gatewayv1.VirtualService, name string) error {
 			// duplicate the vs with a different name
 			workerVirtualService := &gatewayv1.VirtualService{}
 			vsToDuplicate.DeepCopyInto(workerVirtualService)
 			workerVirtualService.Metadata.Name = "vs2-" + name
 
-			_, err := v.ValidateHashableInputResource(context.TODO(), workerVirtualService, false)
+			_, err := v.ValidateGatewayResource(context.TODO(), workerVirtualService, false)
 
 			if err != nil {
 				// worker errors are stored in the resultMap
@@ -1133,7 +1130,7 @@ var _ = Describe("Validator", func() {
 				workerName := fmt.Sprintf("worker #%d", i)
 				errorGroup.Go(func() error {
 					defer GinkgoRecover()
-					return ValidateHashableInputResourceWorker(vsToDuplicate, workerName)
+					return ValidateGatewayResourceWorker(vsToDuplicate, workerName)
 				})
 			}
 

@@ -83,11 +83,13 @@ var _ Validator = &validator{}
 type Validator interface {
 	gloov1snap.ApiSyncer
 	ValidateList(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*Reports, *multierror.Error)
-	ValidateHashableInputResource(ctx context.Context, resource resources.HashableInputResource, dryRun bool) (*Reports, error)
+	ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error
+	ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.HashableInputResource, dryRun bool) (*Reports, error)
+	ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource) (*Reports, error)
+	ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, dryRun bool) (*Reports, error)
+	ValidateGlooResourceDelete(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef) (*Reports, error)
 	ValidateDeleteVirtualService(ctx context.Context, vs *core.ResourceRef, dryRun bool) error
 	ValidateDeleteRouteTable(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
-	ValidateUpstream(ctx context.Context, us *gloov1.Upstream, dryRun bool) (*Reports, error)
-	ValidateDeleteUpstream(ctx context.Context, us *core.ResourceRef, dryRun bool) error
 	ValidateDeleteSecret(ctx context.Context, secret *core.ResourceRef, dryRun bool) error
 }
 
@@ -174,6 +176,8 @@ func (v *validator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) erro
 	}
 
 	v.latestSnapshotErr = errs
+	// TODO-JAKE call the injection steps here?????
+	// not sure we want to do that.
 	v.latestSnapshot = &snapCopy
 
 	if errs != nil {
@@ -358,6 +362,38 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 	return &Reports{ProxyReports: &proxyReports, Proxies: proxies}, nil
 }
 
+func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error {
+	switch gvk {
+	case v1.VirtualServiceGVK:
+		return v.ValidateDeleteVirtualService(ctx, ref, dryRun)
+	case v1.RouteTableGVK:
+		return v.ValidateDeleteRouteTable(ctx, ref, dryRun)
+	}
+	return errors.Errorf("error cannot delete resource ref namespace: %s name: %s", ref.Namespace, ref.Name)
+}
+
+func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.HashableInputResource, dryRun bool) (*Reports, error) {
+	var reports *Reports
+	// Gloo has two types of Groups Gateway and Gloo resource Groups. This statement is splitting the Validation based off
+	// the resource group type.
+	if gvk.Group == v1.GatewayCrd.Group {
+		reports, err := v.ValidateGatewayResource(ctx, resource, dryRun)
+		if err != nil {
+			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
+		}
+		return reports, nil
+		// using UpstreamGVK.Group because there is no constant value for gloo.solo.io
+	} else if gvk.Group == gloov1.UpstreamGVK.Group {
+		// not deleting
+		reports, err := v.ValidateGlooResource(ctx, resource)
+		if err != nil {
+			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
+		}
+		return reports, nil
+	}
+	return reports, &multierror.Error{Errors: []error{errors.Errorf("failed validating the resoruce [%T] because the group [%s] does not get validated", resource, gvk.Group)}}
+}
+
 func (v *validator) ValidateList(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (
 	*Reports,
 	*multierror.Error,
@@ -369,29 +405,29 @@ func (v *validator) ValidateList(ctx context.Context, ul *unstructured.Unstructu
 	)
 
 	v.lock.Lock()
-	defer v.lock.Unlock()
 	originalSnapshot := v.latestSnapshot.Clone()
+	v.lock.Unlock()
+
 	for _, item := range ul.Items {
 
+		// this will lock
 		var itemProxyReports, err = v.processItem(ctx, item)
 
 		errs = multierror.Append(errs, err)
 		if itemProxyReports != nil && itemProxyReports.ProxyReports != nil {
-			for _, report := range *itemProxyReports.ProxyReports {
-				// ok to return final proxy reports as the latest result includes latest proxy calculated
-				// for each resource, as we process incrementally, storing new state in memory as we go
-				proxyReports = append(proxyReports, report)
-			}
-			for _, proxy := range itemProxyReports.Proxies {
-				proxies = append(proxies, proxy)
-			}
+			// ok to return final proxy reports as the latest result includes latest proxy calculated
+			// for each resource, as we process incrementally, storing new state in memory as we go
+			proxyReports = append(proxyReports, *itemProxyReports.ProxyReports...)
+			proxies = append(proxies, itemProxyReports.Proxies...)
 		}
 	}
 
 	if dryRun {
 		// to validate the entire list of changes against one another, each item was applied to the latestSnapshot
 		// if this is a dry run, latestSnapshot needs to be reset back to its original value without any of the changes
+		v.lock.Lock()
 		v.latestSnapshot = &originalSnapshot
+		v.lock.Unlock()
 	}
 
 	return &Reports{ProxyReports: &proxyReports, Proxies: proxies}, errs
@@ -424,7 +460,7 @@ func (v *validator) processItem(ctx context.Context, item unstructured.Unstructu
 		if unmarshalErr := skprotoutils.UnmarshalResource(jsonBytes, resource); unmarshalErr != nil {
 			return &Reports{ProxyReports: &ProxyReports{}}, WrappedUnmarshalErr(unmarshalErr)
 		}
-		return v.validateHashableInputResourceInternal(ctx, resource, false, false)
+		return v.ValidateGvk(ctx, itemGvk, resource, false)
 	}
 	// TODO(mitchaman): Handle upstreams
 	// should not happen
@@ -529,81 +565,28 @@ func (v *validator) ValidateDeleteRouteTable(ctx context.Context, rtRef *core.Re
 	return nil
 }
 
-func (v *validator) ValidateHashableInputResource(ctx context.Context, resource resources.HashableInputResource, dryRun bool) (*Reports, error) {
-	// TODO-JAKE do we even need the acquire lock anymore??
-	return v.validateHashableInputResourceInternal(ctx, resource, dryRun, true)
-}
+type GetProxies func(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error)
 
-func (v *validator) validateHashableInputResourceInternal(ctx context.Context, resource resources.HashableInputResource, dryRun, acquireLock bool) (*Reports, error) {
-	apply := func(snap *gloov1snap.ApiSnapshot) ([]string, resources.Resource, *core.ResourceRef) {
-		resourceRef := resource.GetMetadata().Ref()
-
-		// TODO-JAKE so many things are using reflecting or typing, could we generate a struct that could manage the operations
-		// of the type without calling typing checks so many times?
-		// TODO: move this to a function when generics become a thing
-		var isUpdate bool
-		listOfInputResources, err := snap.GetInputResourceTypeList(resource)
-		if err != nil {
-			contextutils.LoggerFrom(ctx).Error(err)
-		}
-		for i, existingResource := range listOfInputResources {
-			if existingResource.GetMetadata().Ref().Equal(resourceRef) {
-				if err := snap.ReplaceInputResource(i, resource); err != nil {
-					contextutils.LoggerFrom(ctx).Error(err)
-				}
-				isUpdate = true
-				break
-			}
-		}
-		if !isUpdate {
-			if err := snap.AddToResourceList(resource); err != nil {
-				contextutils.LoggerFrom(ctx).Error(err)
-			}
-		}
-
-		// TODO how to handle this part of the code?????
-		// not sure if this is the right direction
-		// it is the same for all gateway snapshot types. But how do the other
-		// gloo types work with it?
-		proxiesToConsider, err := getProxiesFromHashableInputResource(ctx, resource, snap)
-		if err != nil {
-			contextutils.LoggerFrom(ctx).Error(eris.Wrapf(err, "the resource is %+v", resource.GetMetadata()))
-		}
-		return proxiesToConsider, resource, resourceRef
-	}
-
-	if acquireLock {
-		return v.validateSnapshotThreadSafe(ctx, apply, dryRun)
-	} else {
-		return v.validateSnapshot(ctx, apply, dryRun)
-	}
-}
-
-func getProxiesFromHashableInputResource(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error) {
-	switch typed := resource.(type) {
-	case *v1.Gateway:
-		return utils.GetProxyNamesForGateway(typed), nil
-	case *v1.VirtualService:
-		return proxiesForVirtualService(ctx, snap.Gateways, snap.HttpGateways, typed), nil
-	case *v1.RouteTable:
-		return proxiesForRouteTable(ctx, snap, typed), nil
-	default:
-		return nil, eris.New("the type for the resource does not exist when getting the proxies")
-	}
-}
-
-func (v *validator) ValidateUpstream(ctx context.Context, us *gloov1.Upstream, dryRun bool) (*Reports, error) {
-	v.lock.Lock()
-	defer v.lock.Unlock()
-	response, err := v.sendGlooValidationServiceRequest(ctx, &validation.GlooValidationServiceRequest{
-		// Sending a nil proxy causes the upstream to be translated with all proxies in gloo's snapshot
-		Proxy: nil,
-		Resources: &validation.GlooValidationServiceRequest_ModifiedResources{
-			ModifiedResources: &validation.ModifiedResources{
-				Upstreams: []*gloov1.Upstream{us},
+func (v *validator) ValidateGlooResourceDelete(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef) (*Reports, error) {
+	request := &validation.GlooValidationServiceRequest{}
+	switch gvk {
+	case gloov1.UpstreamGVK:
+		// TODO add deltion once we have an idea of how to cover it.
+		request.Resources = &validation.GlooValidationServiceRequest_DeletedResources{
+			DeletedResources: &validation.DeletedResources{
+				UpstreamRefs: []*core.ResourceRef{ref},
 			},
-		},
-	})
+		}
+	case *&gloov1.SecretGVK:
+		request.Resources = &validation.GlooValidationServiceRequest_DeletedResources{
+			DeletedResources: &validation.DeletedResources{
+				SecretRefs: []*core.ResourceRef{ref},
+			},
+		}
+	}
+
+	// TODO need to figure out how to set the GlooValidationServiceRequest correctly...
+	response, err := v.sendGlooValidationServiceRequest(ctx, request)
 	logger := contextutils.LoggerFrom(ctx)
 	if err != nil {
 		if v.ignoreProxyValidationFailure {
@@ -618,33 +601,48 @@ func (v *validator) ValidateUpstream(ctx context.Context, us *gloov1.Upstream, d
 	return v.getReportsFromGlooValidationResponse(response)
 }
 
-func (v *validator) ValidateDeleteUpstream(ctx context.Context, upstreamRef *core.ResourceRef, dryRun bool) error {
+// ValidateGlooResource will validate gloo group presources
+func (v *validator) ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource) (*Reports, error) {
+	return v.validateGlooResource(ctx, resource)
+}
+
+func (v *validator) validateGlooResource(ctx context.Context, resource resources.HashableInputResource) (*Reports, error) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
-	response, err := v.sendGlooValidationServiceRequest(ctx, &validation.GlooValidationServiceRequest{
-		// Sending a nil proxy causes the remaining upstreams to be translated with all proxies in gloo's snapshot
-		Proxy: nil,
-		Resources: &validation.GlooValidationServiceRequest_DeletedResources{
-			DeletedResources: &validation.DeletedResources{
-				UpstreamRefs: []*core.ResourceRef{upstreamRef},
+
+	// TODO-JAKE since this is no longer a GRPC call, we could consolidate it so that it uses only
+	// the API Snapshots as contains for the deleted or modified resources.  Then we could
+	// merge them with the real snapshot in server.go
+	request := &validation.GlooValidationServiceRequest{
+		Resources: &validation.GlooValidationServiceRequest_ModifiedResources{
+			ModifiedResources: &validation.ModifiedResources{
+				Upstreams: []*gloov1.Upstream{resource.(*gloov1.Upstream)},
 			},
 		},
-	})
+	}
+	switch typed := resource.(type) {
+	case *gloov1.Upstream:
+		request.Resources = &validation.GlooValidationServiceRequest_ModifiedResources{
+			ModifiedResources: &validation.ModifiedResources{
+				Upstreams: []*gloov1.Upstream{typed},
+			},
+		}
+	}
+
+	// TODO need to figure out how to set the GlooValidationServiceRequest correctly...
+	response, err := v.sendGlooValidationServiceRequest(ctx, request)
 	logger := contextutils.LoggerFrom(ctx)
 	if err != nil {
 		if v.ignoreProxyValidationFailure {
 			logger.Error(err)
 		} else {
-			return err
+			return &Reports{}, err
 		}
 	}
-
 	// dont log the responsse as proxies and status reports may be too large in large envs.
 	logger.Debugf("Got response from GlooValidationService with %d reports", len(response.GetValidationReports()))
 
-	_, err = v.getReportsFromGlooValidationResponse(response)
-
-	return err
+	return v.getReportsFromGlooValidationResponse(response)
 }
 
 func (v *validator) ValidateDeleteSecret(ctx context.Context, secretRef *core.ResourceRef, dryRun bool) error {
@@ -673,6 +671,62 @@ func (v *validator) ValidateDeleteSecret(ctx context.Context, secretRef *core.Re
 
 	_, err = v.getReportsFromGlooValidationResponse(response)
 	return err
+}
+
+// ValidateGatewayResource will validate gateway group resources
+func (v *validator) ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, dryRun bool) (*Reports, error) {
+	return v.validateGatewayResource(ctx, resource, dryRun, true)
+}
+
+func (v *validator) validateGatewayResource(ctx context.Context, resource resources.HashableInputResource, dryRun, acquireLock bool) (*Reports, error) {
+	apply := func(snap *gloov1snap.ApiSnapshot) ([]string, resources.Resource, *core.ResourceRef) {
+		resourceRef := resource.GetMetadata().Ref()
+
+		var isUpdate bool
+		listOfInputResources, err := snap.GetInputResourceTypeList(resource)
+		if err != nil {
+			contextutils.LoggerFrom(ctx).Error(err)
+		}
+		for i, existingResource := range listOfInputResources {
+			if existingResource.GetMetadata().Ref().Equal(resourceRef) {
+				if err := snap.ReplaceInputResource(i, resource); err != nil {
+					contextutils.LoggerFrom(ctx).Error(err)
+				}
+				isUpdate = true
+				break
+			}
+		}
+		if !isUpdate {
+			if err := snap.AddToResourceList(resource); err != nil {
+				contextutils.LoggerFrom(ctx).Error(err)
+			}
+		}
+
+		proxiesToConsider, err := getProxiesFromGatewayResource(ctx, resource, snap)
+		if err != nil {
+			contextutils.LoggerFrom(ctx).Error(eris.Wrapf(err, "the resource is %+v", resource.GetMetadata()))
+		}
+		return proxiesToConsider, resource, resourceRef
+	}
+
+	if acquireLock {
+		return v.validateSnapshotThreadSafe(ctx, apply, dryRun)
+	} else {
+		return v.validateSnapshot(ctx, apply, dryRun)
+	}
+}
+
+func getProxiesFromGatewayResource(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error) {
+	switch typed := resource.(type) {
+	case *v1.Gateway:
+		return utils.GetProxyNamesForGateway(typed), nil
+	case *v1.VirtualService:
+		return proxiesForVirtualService(ctx, snap.Gateways, snap.HttpGateways, typed), nil
+	case *v1.RouteTable:
+		return proxiesForRouteTable(ctx, snap, typed), nil
+	default:
+		return nil, eris.New("the type for the resource does not exist when getting the proxies")
+	}
 }
 
 // Converts the GlooValidationServiceResponse into Reports.
@@ -723,6 +777,7 @@ func (v *validator) getReportsFromGlooValidationResponse(validationResponse *val
 	}, errs
 }
 
+// sendGlooValidationServiceRequest this will call validator validationFunc
 func (v *validator) sendGlooValidationServiceRequest(
 	ctx context.Context,
 	req *validation.GlooValidationServiceRequest,

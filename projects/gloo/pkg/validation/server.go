@@ -173,6 +173,8 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 	s.lock.Unlock()
 
 	// update the snapshot copy with the resources from the request
+	// TODO-JAKE need to make this generic as well
+	// Using ApiSnapshot solves this problem...
 	applyRequestToSnapshot(&snapCopy, req)
 
 	ctx = contextutils.WithLogger(ctx, "proxy-validator")
@@ -182,8 +184,11 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 
 	var validationReports []*validation.ValidationReport
 	var proxiesToValidate v1.ProxyList
-	if req.GetProxy() != nil {
-		proxiesToValidate = v1.ProxyList{req.GetProxy()}
+	// TODO how does the proxy get added to the req?   there is a nil proxy sent when validation occurs.
+	// check out the following when calling sendGlooValidationServiceRequest() ->
+	// ValidateUpstream() , ValidateDeleteUpstream*(), ValidateDeleteSecret()
+	if req.Proxy != nil {
+		proxiesToValidate = v1.ProxyList{req.Proxy}
 	} else {
 		// if no proxy was passed in, call translate for all proxies in snapshot
 		proxiesToValidate = snapCopy.Proxies
@@ -220,10 +225,15 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 func applyRequestToSnapshot(snap *v1snap.ApiSnapshot, req *validation.GlooValidationServiceRequest) {
 	if req.GetModifiedResources() != nil {
 		existingUpstreams := snap.Upstreams.AsResources()
+		// NOTE-JAKE I think Modified Resources should be ApiSnapshot, basically just need to merge them
+		// with options for deleteMerge as well...
+		// snap.Merge(req.GetModifiedResources())
 		modifiedUpstreams := utils.UpstreamsToResourceList(req.GetModifiedResources().GetUpstreams())
 		mergedUpstreams := utils.MergeResourceLists(existingUpstreams, modifiedUpstreams)
 		snap.Upstreams = utils.ResourceListToUpstreamList(mergedUpstreams)
 	} else if req.GetDeletedResources() != nil {
+		// TODO add methods to Delete Resources form the snap lists as well...
+		// snap.MergeDeletedResources(req.GetDeletedResources())
 		// Upstreams
 		existingUpstreams := snap.Upstreams.AsResources()
 		deletedUpstreamRefs := req.GetDeletedResources().GetUpstreamRefs()

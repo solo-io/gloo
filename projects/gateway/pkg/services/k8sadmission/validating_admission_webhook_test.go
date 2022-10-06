@@ -138,7 +138,7 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 		mv.fValidateDeleteRouteTable = func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error {
 			return fmt.Errorf(errMsg)
 		}
-		mv.fValidateUpstream = func(ctx context.Context, us *gloov1.Upstream, dryRun bool) (*validation.Reports, error) {
+		mv.fValidateUpstream = func(ctx context.Context, us *gloov1.Upstream) (*validation.Reports, error) {
 			return reports(), fmt.Errorf(errMsg)
 		}
 		mv.fValidateDeleteUpstream = func(ctx context.Context, us *core.ResourceRef, dryRun bool) error {
@@ -193,7 +193,7 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 		mv.fValidateDeleteRouteTable = func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error {
 			return fmt.Errorf(errMsg)
 		}
-		mv.fValidateUpstream = func(ctx context.Context, us *gloov1.Upstream, dryRun bool) (*validation.Reports, error) {
+		mv.fValidateUpstream = func(ctx context.Context, us *gloov1.Upstream) (*validation.Reports, error) {
 			return reports(), fmt.Errorf(errMsg)
 		}
 		mv.fValidateDeleteUpstream = func(ctx context.Context, us *core.ResourceRef, dryRun bool) error {
@@ -299,7 +299,7 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 		mv.fValidateDeleteRouteTable = func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error {
 			return fmt.Errorf(errMsg)
 		}
-		mv.fValidateUpstream = func(ctx context.Context, us *gloov1.Upstream, dryRun bool) (*validation.Reports, error) {
+		mv.fValidateUpstream = func(ctx context.Context, us *gloov1.Upstream) (*validation.Reports, error) {
 			return reports(), fmt.Errorf(errMsg)
 		}
 		mv.fValidateDeleteUpstream = func(ctx context.Context, us *core.ResourceRef, dryRun bool) error {
@@ -584,7 +584,7 @@ type mockValidator struct {
 	fValidateDeleteVirtualService func(ctx context.Context, vs *core.ResourceRef, dryRun bool) error
 	fValidateRouteTable           func(ctx context.Context, rt *v1.RouteTable, dryRun bool) (*validation.Reports, error)
 	fValidateDeleteRouteTable     func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
-	fValidateUpstream             func(ctx context.Context, us *gloov1.Upstream, dryRun bool) (*validation.Reports, error)
+	fValidateUpstream             func(ctx context.Context, us *gloov1.Upstream) (*validation.Reports, error)
 	fValidateDeleteUpstream       func(ctx context.Context, us *core.ResourceRef, dryRun bool) error
 	fValidateDeleteSecret         func(ctx context.Context, secret *core.ResourceRef, dryRun bool) error
 }
@@ -596,7 +596,34 @@ func (v *mockValidator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) 
 	return v.fSync(ctx, snap)
 }
 
-func (v *mockValidator) ValidateHashableInputResource(ctx context.Context, resource resources.HashableInputResource, dryRun bool) (*validation.Reports, error) {
+func (v *mockValidator) ValidateGlooResourceDelete(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef) (*validation.Reports, error) {
+	if v.fValidateDeleteVirtualService == nil {
+		return nil, nil
+	}
+	return nil, v.fValidateDeleteVirtualService(ctx, ref, false)
+}
+
+func (v *mockValidator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error {
+	if v.fValidateDeleteVirtualService == nil {
+		return nil
+	}
+	return v.fValidateDeleteVirtualService(ctx, ref, dryRun)
+}
+
+func (v *mockValidator) ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource) (*validation.Reports, error) {
+	if v.fValidateGateway == nil {
+		return reports(), nil
+	}
+	// TODO-JAKE need to add in the other deletes
+	switch typed := resource.(type) {
+	case *gloov1.Upstream:
+		return v.fValidateUpstream(ctx, typed)
+	default:
+		return nil, nil
+	}
+}
+
+func (v *mockValidator) ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, dryRun bool) (*validation.Reports, error) {
 	if v.fValidateGateway == nil {
 		return reports(), nil
 	}
@@ -607,6 +634,25 @@ func (v *mockValidator) ValidateHashableInputResource(ctx context.Context, resou
 		return v.fValidateRouteTable(ctx, typed, dryRun)
 	case *v1.VirtualService:
 		return v.fValidateVirtualService(ctx, typed, dryRun)
+	default:
+		return nil, nil
+	}
+}
+
+func (v *mockValidator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.HashableInputResource, dryRun bool) (*validation.Reports, error) {
+	// TODO-not implemented
+	if v.fValidateGateway == nil {
+		return reports(), nil
+	}
+	switch typed := resource.(type) {
+	case *v1.Gateway:
+		return v.fValidateGateway(ctx, typed, dryRun)
+	case *v1.RouteTable:
+		return v.fValidateRouteTable(ctx, typed, dryRun)
+	case *v1.VirtualService:
+		return v.fValidateVirtualService(ctx, typed, dryRun)
+	case *gloov1.Upstream:
+		return v.fValidateUpstream(ctx, typed)
 	default:
 		return nil, nil
 	}
@@ -654,11 +700,11 @@ func (v *mockValidator) ValidateDeleteRouteTable(ctx context.Context, rt *core.R
 	return v.fValidateDeleteRouteTable(ctx, rt, dryRun)
 }
 
-func (v *mockValidator) ValidateUpstream(ctx context.Context, us *gloov1.Upstream, dryRun bool) (*validation.Reports, error) {
+func (v *mockValidator) ValidateUpstream(ctx context.Context, us *gloov1.Upstream) (*validation.Reports, error) {
 	if v.fValidateUpstream == nil {
 		return reports(), nil
 	}
-	return v.fValidateUpstream(ctx, us, dryRun)
+	return v.fValidateUpstream(ctx, us)
 }
 
 func (v *mockValidator) ValidateDeleteUpstream(ctx context.Context, us *core.ResourceRef, dryRun bool) error {
