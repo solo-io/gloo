@@ -370,7 +370,8 @@ func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersi
 		_, err := v.ValidateDeleteGlooResource(ctx, ref, rv)
 		return err
 	}
-	return errors.Errorf("error cannot delete resource ref namespace: %s name: %s", ref.Namespace, ref.Name)
+	contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource delete ref namespace [%s] name [%s] group [%s] kind [%s]", ref.Namespace, ref.Name, gvk.Group, gvk.Kind)
+	return nil
 }
 
 func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.HashableInputResource, dryRun bool) (*Reports, error) {
