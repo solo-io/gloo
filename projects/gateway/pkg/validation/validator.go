@@ -361,12 +361,11 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 }
 
 func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error {
-	if gvk.Group == v1.GatewayGVK.Group {
+	if gvk.Group == GatewayGroup {
 		if rv, hit := GvkToDeleteGatewayResourceValidator[gvk]; hit {
 			return rv.DeleteResource(ctx, ref, v, dryRun)
 		}
-		// using Upstream Group because its the same group
-	} else if gvk.Group == gloov1.UpstreamGVK.Group {
+	} else if gvk.Group == GlooGroup {
 		if rv, hit := GvkToDeleteGlooValidator[gvk]; hit {
 			_, err := v.ValidateDeleteGlooResource(ctx, ref, rv)
 			return err
@@ -378,9 +377,9 @@ func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersi
 
 func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.HashableInputResource, dryRun bool) (*Reports, error) {
 	var reports *Reports
-	// Gloo has two types of Groups Gateway and Gloo resource Groups. This statement is splitting the Validation based off
+	// Gloo has two types of Groups: Gateway, Gloo. This statement is splitting the Validation based off
 	// the resource group type.
-	if gvk.Group == v1.GatewayCrd.Group {
+	if gvk.Group == GatewayGroup {
 		if rv, hit := GvkToGatewayResourceValidator[gvk]; hit {
 			reports, err := v.ValidateGatewayResource(ctx, resource, rv, dryRun)
 			if err != nil {
@@ -388,8 +387,7 @@ func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind
 			}
 			return reports, nil
 		}
-		// using UpstreamGVK.Group because there is no constant value for gloo.solo.io
-	} else if gvk.Group == gloov1.UpstreamGVK.Group {
+	} else if gvk.Group == GlooGroup {
 		if rv, hit := GvkToGlooValidator[gvk]; hit {
 			reports, err := v.ValidateGlooResource(ctx, resource, rv)
 			if err != nil {

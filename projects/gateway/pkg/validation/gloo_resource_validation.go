@@ -9,6 +9,13 @@ import (
 )
 
 /*
+	Resources that are implemented in Validation must implement the DeleteGlooResourceValidator and/or GlooResourceValidator interfaces.
+	These are used to handle the specific logic used in validation of gateway resources.
+*/
+
+const GlooGroup = "gloo.solo.io"
+
+/*
 	Currently having issues with the following resources as they are not Input Resources
 	// Artifacts          gloo_solo_io.ArtifactList
 	// Endpoints          gloo_solo_io.EndpointList

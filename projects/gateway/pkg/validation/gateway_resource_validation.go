@@ -10,6 +10,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+const GatewayGroup = "gateway.solo.io"
+
+/*
+	Resources that are implemented in Validation must implement the DeleteGatewayResourceValidator and/or GatewayResourceValidator interfaces.
+	These are used to handle the specific logic used in validation of gateway resources.
+*/
+
 // DeleteGatewayResourceValidator are resources that have a Group of gateway.solo.io
 // this interface helps to delete when the resource is being validated
 type DeleteGatewayResourceValidator interface {
