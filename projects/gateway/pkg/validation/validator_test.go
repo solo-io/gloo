@@ -90,6 +90,9 @@ var _ = Describe("Validator", func() {
 
 	Context("validating gloo resources", func() {
 		Context("upstreams", func() {
+
+			rv := UpstreamValidation{}
+
 			It("accepts an upstream when validation succeeds", func() {
 				v.validationFunc = acceptProxy
 
@@ -98,7 +101,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateGlooResource(context.TODO(), us)
+				reports, err := v.ValidateGlooResource(context.TODO(), us, rv)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -115,7 +118,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateGlooResource(context.TODO(), us)
+				reports, err := v.ValidateGlooResource(context.TODO(), us, rv)
 				Expect(err).To(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -131,7 +134,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateGlooResource(context.TODO(), us)
+				reports, err := v.ValidateGlooResource(context.TODO(), us, rv)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -147,7 +150,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateGlooResource(context.TODO(), us)
+				reports, err := v.ValidateGlooResource(context.TODO(), us, rv)
 				Expect(err).To(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -163,7 +166,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.UpstreamGVK, us.GetMetadata().Ref())
+				_, err = v.ValidateDeleteGlooResource(context.TODO(), us.GetMetadata().Ref(), rv)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects an upstream deletion when validation fails", func() {
@@ -174,7 +177,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.UpstreamGVK, us.GetMetadata().Ref())
+				_, err = v.ValidateDeleteGlooResource(context.TODO(), us.GetMetadata().Ref(), rv)
 				Expect(err).To(HaveOccurred())
 			})
 			It("accepts an upstream deletion when there is a validation warning and allowWarnings is true", func() {
@@ -186,7 +189,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.UpstreamGVK, us.GetMetadata().Ref())
+				_, err = v.ValidateDeleteGlooResource(context.TODO(), us.GetMetadata().Ref(), rv)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects an upstream deletion when there is a validation warning and allowWarnings is false", func() {
@@ -198,12 +201,15 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.UpstreamGVK, us.GetMetadata().Ref())
+				_, err = v.ValidateDeleteGlooResource(context.TODO(), us.GetMetadata().Ref(), rv)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("secrets", func() {
+
+			rv := SecretValidation{}
+
 			It("accepts a secret deletion when validation succeeds", func() {
 				v.validationFunc = acceptProxy
 
@@ -218,7 +224,7 @@ var _ = Describe("Validator", func() {
 					},
 				}
 				ref := secret.GetMetadata().Ref()
-				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.SecretGVK, ref)
+				_, err = v.ValidateDeleteGlooResource(context.TODO(), ref, rv)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects a secret deletion when validation fails", func() {
@@ -235,7 +241,7 @@ var _ = Describe("Validator", func() {
 					},
 				}
 				ref := secret.GetMetadata().Ref()
-				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.SecretGVK, ref)
+				_, err = v.ValidateDeleteGlooResource(context.TODO(), ref, rv)
 				Expect(err).To(HaveOccurred())
 			})
 			It("accepts a secret deletion when there is a validation warning and allowWarnings is true", func() {
@@ -253,7 +259,7 @@ var _ = Describe("Validator", func() {
 					},
 				}
 				ref := secret.GetMetadata().Ref()
-				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.SecretGVK, ref)
+				_, err = v.ValidateDeleteGlooResource(context.TODO(), ref, rv)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects a secret deletion when there is a validation warning and allowWarnings is false", func() {
@@ -271,7 +277,7 @@ var _ = Describe("Validator", func() {
 					},
 				}
 				ref := secret.GetMetadata().Ref()
-				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.SecretGVK, ref)
+				_, err = v.ValidateDeleteGlooResource(context.TODO(), ref, rv)
 				Expect(err).To(HaveOccurred())
 			})
 		})

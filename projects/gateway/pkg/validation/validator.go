@@ -84,9 +84,9 @@ type Validator interface {
 	ValidateList(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*Reports, *multierror.Error)
 	ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error
 	ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.HashableInputResource, dryRun bool) (*Reports, error)
-	ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource) (*Reports, error)
+	ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource, rv GlooValidation) (*Reports, error)
 	ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, rv GatewayResourceValidation, dryRun bool) (*Reports, error)
-	ValidateGlooResourceDelete(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef) (*Reports, error)
+	ValidateDeleteGlooResource(ctx context.Context, ref *core.ResourceRef, rv GlooValidation) (*Reports, error)
 	ValidateDeleteVirtualService(ctx context.Context, vs *core.ResourceRef, dryRun bool) error
 	ValidateDeleteRouteTable(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
 }
@@ -361,12 +361,14 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 }
 
 func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error {
-	// TODO replace with the function
-	switch gvk {
-	case v1.VirtualServiceGVK:
-		return v.ValidateDeleteVirtualService(ctx, ref, dryRun)
-	case v1.RouteTableGVK:
-		return v.ValidateDeleteRouteTable(ctx, ref, dryRun)
+	if gvk.Group == v1.GatewayGVK.Group {
+		rv := GvkToGatewayValidator[gvk]()
+		return rv.DeleteResource(ctx, ref, v, dryRun)
+		// using Upstream Group because its the same group
+	} else if gvk.Group == gloov1.UpstreamGVK.Group {
+		rv := GvkToGlooValidator[gvk]()
+		_, err := v.ValidateDeleteGlooResource(ctx, ref, rv)
+		return err
 	}
 	return errors.Errorf("error cannot delete resource ref namespace: %s name: %s", ref.Namespace, ref.Name)
 }
@@ -384,8 +386,8 @@ func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind
 		return reports, nil
 		// using UpstreamGVK.Group because there is no constant value for gloo.solo.io
 	} else if gvk.Group == gloov1.UpstreamGVK.Group {
-		// not deleting
-		reports, err := v.ValidateGlooResource(ctx, resource)
+		rv := GvkToGlooValidator[gvk]()
+		reports, err := v.ValidateGlooResource(ctx, resource, rv)
 		if err != nil {
 			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
 		}
@@ -567,29 +569,11 @@ func (v *validator) ValidateDeleteRouteTable(ctx context.Context, rtRef *core.Re
 
 type GetProxies func(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error)
 
-func (v *validator) ValidateGlooResourceDelete(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef) (*Reports, error) {
+func (v *validator) ValidateDeleteGlooResource(ctx context.Context, ref *core.ResourceRef, rv GlooValidation) (*Reports, error) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
-	// TODO create DeleteGVSR(ref)
-	request := &validation.GlooValidationServiceRequest{}
-	switch gvk {
-	case gloov1.UpstreamGVK:
-		// TODO add deltion once we have an idea of how to cover it.
-		request.Resources = &validation.GlooValidationServiceRequest_DeletedResources{
-			DeletedResources: &validation.DeletedResources{
-				UpstreamRefs: []*core.ResourceRef{ref},
-			},
-		}
-	case gloov1.SecretGVK:
-		request.Resources = &validation.GlooValidationServiceRequest_DeletedResources{
-			DeletedResources: &validation.DeletedResources{
-				SecretRefs: []*core.ResourceRef{ref},
-			},
-		}
-	}
 
-	// TODO need to figure out how to set the GlooValidationServiceRequest correctly...
-	response, err := v.sendGlooValidationServiceRequest(ctx, request)
+	response, err := v.sendGlooValidationServiceRequest(ctx, rv.CreateDeleteRequest(ref))
 	logger := contextutils.LoggerFrom(ctx)
 	if err != nil {
 		if v.ignoreProxyValidationFailure {
@@ -605,36 +589,15 @@ func (v *validator) ValidateGlooResourceDelete(ctx context.Context, gvk schema.G
 }
 
 // ValidateGlooResource will validate gloo group presources
-func (v *validator) ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource) (*Reports, error) {
-	return v.validateGlooResource(ctx, resource)
+func (v *validator) ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource, rv GlooValidation) (*Reports, error) {
+	return v.validateGlooResource(ctx, resource, rv)
 }
 
-func (v *validator) validateGlooResource(ctx context.Context, resource resources.HashableInputResource) (*Reports, error) {
+func (v *validator) validateGlooResource(ctx context.Context, resource resources.HashableInputResource, rv GlooValidation) (*Reports, error) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 
-	// TODO-JAKE since this is no longer a GRPC call, we could consolidate it so that it uses only
-	// the API Snapshots as contains for the deleted or modified resources.  Then we could
-	// merge them with the real snapshot in server.go
-	// TODO CreateModifiedGSVR(resource)
-	request := &validation.GlooValidationServiceRequest{
-		Resources: &validation.GlooValidationServiceRequest_ModifiedResources{
-			ModifiedResources: &validation.ModifiedResources{
-				Upstreams: []*gloov1.Upstream{resource.(*gloov1.Upstream)},
-			},
-		},
-	}
-	switch typed := resource.(type) {
-	case *gloov1.Upstream:
-		request.Resources = &validation.GlooValidationServiceRequest_ModifiedResources{
-			ModifiedResources: &validation.ModifiedResources{
-				Upstreams: []*gloov1.Upstream{typed},
-			},
-		}
-	}
-
-	// TODO need to figure out how to set the GlooValidationServiceRequest correctly...
-	response, err := v.sendGlooValidationServiceRequest(ctx, request)
+	response, err := v.sendGlooValidationServiceRequest(ctx, rv.CreateModifiedRequest(resource))
 	logger := contextutils.LoggerFrom(ctx)
 	if err != nil {
 		if v.ignoreProxyValidationFailure {

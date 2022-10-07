@@ -1,17 +1,21 @@
 package validation
 
 import (
-	"context"
-
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 type GlooValidation interface {
-	CreateDeleteRequest(ctx context.Context, ref *core.ResourceRef) *validation.GlooValidationServiceRequest
-	CreateModifiedRequest(ctx context.Context, resource resources.HashableInputResource) *validation.GlooValidationServiceRequest
+	CreateDeleteRequest(ref *core.ResourceRef) *validation.GlooValidationServiceRequest
+	CreateModifiedRequest(resource resources.HashableInputResource) *validation.GlooValidationServiceRequest
+}
+
+var GvkToGlooValidator = map[schema.GroupVersionKind]func() GlooValidation{
+	gloov1.UpstreamGVK: func() GlooValidation { return UpstreamValidation{} },
+	gloov1.SecretGVK:   func() GlooValidation { return SecretValidation{} },
 }
 
 var _ GlooValidation = SecretValidation{}
@@ -19,7 +23,7 @@ var _ GlooValidation = UpstreamValidation{}
 
 type SecretValidation struct{}
 
-func (sv SecretValidation) CreateDeleteRequest(ctx context.Context, ref *core.ResourceRef) *validation.GlooValidationServiceRequest {
+func (sv SecretValidation) CreateDeleteRequest(ref *core.ResourceRef) *validation.GlooValidationServiceRequest {
 	return &validation.GlooValidationServiceRequest{
 		Resources: &validation.GlooValidationServiceRequest_DeletedResources{
 			DeletedResources: &validation.DeletedResources{
@@ -29,14 +33,14 @@ func (sv SecretValidation) CreateDeleteRequest(ctx context.Context, ref *core.Re
 	}
 }
 
-func (sv SecretValidation) CreateModifiedRequest(ctx context.Context, resource resources.HashableInputResource) *validation.GlooValidationServiceRequest {
+func (sv SecretValidation) CreateModifiedRequest(resource resources.HashableInputResource) *validation.GlooValidationServiceRequest {
 	// NOT IMPLEMENTED
 	return nil
 }
 
 type UpstreamValidation struct{}
 
-func (sv UpstreamValidation) CreateDeleteRequest(ctx context.Context, ref *core.ResourceRef) *validation.GlooValidationServiceRequest {
+func (sv UpstreamValidation) CreateDeleteRequest(ref *core.ResourceRef) *validation.GlooValidationServiceRequest {
 	return &validation.GlooValidationServiceRequest{
 		Resources: &validation.GlooValidationServiceRequest_DeletedResources{
 			DeletedResources: &validation.DeletedResources{
@@ -47,7 +51,7 @@ func (sv UpstreamValidation) CreateDeleteRequest(ctx context.Context, ref *core.
 }
 
 // TODO- fix the HashabledInputResource type.  so that it works with Secrets too.
-func (sv UpstreamValidation) CreateModifiedRequest(ctx context.Context, resource resources.HashableInputResource) *validation.GlooValidationServiceRequest {
+func (sv UpstreamValidation) CreateModifiedRequest(resource resources.HashableInputResource) *validation.GlooValidationServiceRequest {
 	return &validation.GlooValidationServiceRequest{
 		Resources: &validation.GlooValidationServiceRequest_ModifiedResources{
 			ModifiedResources: &validation.ModifiedResources{
