@@ -15,6 +15,7 @@ const GatewayGroup = "gateway.solo.io"
 /*
 	Resources that are implemented in Validation must implement the DeleteGatewayResourceValidator and/or GatewayResourceValidator interfaces.
 	These are used to handle the specific logic used in validation of gateway resources.
+	Have to add  to GVK maps once supported GvkToGatewayResourceValidator and GvkToDeleteGatewayResourceValidator.
 */
 
 // DeleteGatewayResourceValidator are resources that have a Group of gateway.solo.io
