@@ -1,6 +1,10 @@
 package advanced_http
 
 import (
+	"context"
+	"errors"
+	"fmt"
+
 	envoy_config_cluster_v3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_type_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
@@ -13,6 +17,7 @@ import (
 	gloo_advanced_http "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/advanced_http"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/go-utils/contextutils"
 )
 
 var (
@@ -91,9 +96,12 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *gloov1.Upstream, out
 			return err
 		}
 
-		glooHc := convertEnvoyToGloo(envoyHc.GetHttpHealthCheck())
+		glooHc, err := convertEnvoyToGloo(params.Ctx, envoyHc.GetHttpHealthCheck())
+		if err != nil {
+			return err
+		}
 		advancedHttpHealthCheck := envoy_advanced_http.AdvancedHttp{
-			HttpHealthCheck:    &glooHc,
+			HttpHealthCheck:    glooHc,
 			ResponseAssertions: convertGlooToEnvoyRespAssertions(hcCfg.GetHttpHealthCheck().GetResponseAssertions()),
 		}
 
@@ -192,18 +200,34 @@ func convertGlooJsonKeyToEnvoy(jsonKey *gloo_advanced_http.JsonKey) *envoy_advan
 	}
 }
 
-func convertEnvoyToGloo(httpHealth *envoy_config_core_v3.HealthCheck_HttpHealthCheck) envoy_core_v3_endpoint.HealthCheck_HttpHealthCheck {
-	ret := envoy_core_v3_endpoint.HealthCheck_HttpHealthCheck{
-		Host: httpHealth.Host,
-		Path: httpHealth.Path,
+func convertEnvoyToGloo(ctx context.Context, httpHealth *envoy_config_core_v3.HealthCheck_HttpHealthCheck) (*envoy_core_v3_endpoint.HealthCheck_HttpHealthCheck, error) {
+	if httpHealth == nil {
+		return nil, errors.New("http health check is nil")
+	}
+	if len(httpHealth.GetPath()) == 0 {
+		return nil, errors.New("http health check path is empty")
+	}
+	ret := &envoy_core_v3_endpoint.HealthCheck_HttpHealthCheck{
+		Host: httpHealth.GetHost(), // ok if empty, defaults to name of cluster
+		Path: httpHealth.GetPath(),
 	}
 	for _, st := range httpHealth.ExpectedStatuses {
+		if st == nil {
+			// slices in golang can contain nil values; protect against dev error although this should never be hit
+			contextutils.LoggerFrom(ctx).DPanic("nil value in expected statuses slice")
+			continue
+		}
 		ret.ExpectedStatuses = append(ret.ExpectedStatuses, &envoy_type_v3.Int64Range{
-			Start: st.Start,
-			End:   st.End,
+			Start: st.GetStart(),
+			End:   st.GetEnd(),
 		})
 	}
 	for _, rh := range httpHealth.RequestHeadersToAdd {
+		if rh.GetHeader() == nil {
+			// slices in golang can contain nil values; protect against dev error although this should never be hit
+			contextutils.LoggerFrom(ctx).DPanic("nil value in request headers to add slice")
+			continue
+		}
 		ret.RequestHeadersToAdd = append(ret.RequestHeadersToAdd, &envoy_core_v3_endpoint.HeaderValueOption{
 			Header: &envoy_core_v3_endpoint.HeaderValue{
 				Key:   rh.GetHeader().GetKey(),
@@ -212,13 +236,13 @@ func convertEnvoyToGloo(httpHealth *envoy_config_core_v3.HealthCheck_HttpHealthC
 			Append: rh.GetAppend(),
 		})
 	}
-	ret.RequestHeadersToRemove = httpHealth.RequestHeadersToRemove
-	ret.CodecClientType = envoy_type_v3.CodecClientType(httpHealth.CodecClientType)
-	if httpHealth.GetServiceNameMatcher().GetMatchPattern() != nil {
+	ret.RequestHeadersToRemove = httpHealth.GetRequestHeadersToRemove()
+	ret.CodecClientType = envoy_type_v3.CodecClientType(httpHealth.GetCodecClientType())
+	if mp := httpHealth.GetServiceNameMatcher().GetMatchPattern(); mp != nil {
 		ret.ServiceNameMatcher = &envoy_type_matcher_v3_solo.StringMatcher{
-			IgnoreCase: httpHealth.GetServiceNameMatcher().IgnoreCase,
+			IgnoreCase: httpHealth.GetServiceNameMatcher().GetIgnoreCase(),
 		}
-		switch pattern := httpHealth.ServiceNameMatcher.MatchPattern.(type) {
+		switch pattern := mp.(type) {
 		case *envoy_type_matcher_v3.StringMatcher_Exact:
 			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3_solo.StringMatcher_Exact{
 				Exact: pattern.Exact,
@@ -227,22 +251,22 @@ func convertEnvoyToGloo(httpHealth *envoy_config_core_v3.HealthCheck_HttpHealthC
 			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3_solo.StringMatcher_Prefix{
 				Prefix: pattern.Prefix,
 			}
-
 		case *envoy_type_matcher_v3.StringMatcher_SafeRegex:
 			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3_solo.StringMatcher_SafeRegex{
 				SafeRegex: &envoy_type_matcher_v3_solo.RegexMatcher{
 					EngineType: &envoy_type_matcher_v3_solo.RegexMatcher_GoogleRe2{GoogleRe2: &envoy_type_matcher_v3_solo.RegexMatcher_GoogleRE2{
 						MaxProgramSize: pattern.SafeRegex.GetGoogleRe2().GetMaxProgramSize(),
 					}},
-					Regex: pattern.SafeRegex.Regex,
+					Regex: pattern.SafeRegex.GetRegex(),
 				},
 			}
-
 		case *envoy_type_matcher_v3.StringMatcher_Suffix:
 			ret.ServiceNameMatcher.MatchPattern = &envoy_type_matcher_v3_solo.StringMatcher_Suffix{
 				Suffix: pattern.Suffix,
 			}
+		default:
+			return nil, fmt.Errorf("unknown match pattern type %T", pattern)
 		}
 	}
-	return ret
+	return ret, nil
 }

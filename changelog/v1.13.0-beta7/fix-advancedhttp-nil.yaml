@@ -1,0 +1,8 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/gloo/issues/7302
+  description: Fix a potential gloo crash on invalid advanced http health check config, and handle gracefully and report on the upstream.
+
+
+
+

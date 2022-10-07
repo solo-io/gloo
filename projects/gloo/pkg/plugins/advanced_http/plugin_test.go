@@ -141,4 +141,45 @@ var _ = Describe("Plugin", func() {
 		Expect(out.ResponseAssertions.ResponseMatchers[0].MatchHealth).To(Equal(envoy_advanced_http.HealthCheckResult_healthy))
 	})
 
+	It("should error on missing path in health check", func() {
+		upstream.HealthChecks = []*core2.HealthCheck{
+			{
+				HealthChecker: &core2.HealthCheck_HttpHealthCheck_{
+					HttpHealthCheck: &core2.HealthCheck_HttpHealthCheck{
+						Path: "", // error to be empty
+					},
+				},
+			},
+		}
+		err := p.ProcessUpstream(params, upstream, out)
+		Expect(err).To(HaveOccurred())
+	})
+
+	It("should error on missing path in health check", func() {
+		upstream.HealthChecks = []*core2.HealthCheck{
+			{
+				HealthChecker: &core2.HealthCheck_HttpHealthCheck_{
+					HttpHealthCheck: &core2.HealthCheck_HttpHealthCheck{
+						// path is intentionally nil
+						Host: "notempty",
+					},
+				},
+			},
+		}
+		err := p.ProcessUpstream(params, upstream, out)
+		Expect(err).To(HaveOccurred())
+	})
+
+	It("should error on nil in health check", func() {
+		upstream.HealthChecks = []*core2.HealthCheck{
+			{
+				HealthChecker: &core2.HealthCheck_HttpHealthCheck_{
+					HttpHealthCheck: nil,
+				},
+			},
+		}
+		err := p.ProcessUpstream(params, upstream, out)
+		Expect(err).To(HaveOccurred())
+	})
+
 })
