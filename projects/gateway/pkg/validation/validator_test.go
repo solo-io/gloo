@@ -91,7 +91,7 @@ var _ = Describe("Validator", func() {
 	Context("validating gloo resources", func() {
 		Context("upstreams", func() {
 
-			rv := UpstreamValidation{}
+			rv := UpstreamValidator{}
 
 			It("accepts an upstream when validation succeeds", func() {
 				v.validationFunc = acceptProxy
@@ -208,7 +208,7 @@ var _ = Describe("Validator", func() {
 
 		Context("secrets", func() {
 
-			rv := SecretValidation{}
+			rv := SecretValidator{}
 
 			It("accepts a secret deletion when validation succeeds", func() {
 				v.validationFunc = acceptProxy
@@ -284,7 +284,7 @@ var _ = Describe("Validator", func() {
 	})
 
 	Context("validating a route table", func() {
-		var rv = RouteTableValidation{}
+		var rv = RouteTableValidator{}
 		Context("proxy validation accepted", func() {
 			It("accepts the rt", func() {
 				v.validationFunc = acceptProxy
@@ -781,7 +781,7 @@ var _ = Describe("Validator", func() {
 	})
 
 	Context("validating a gateway", func() {
-		rv := GatewayValidation{}
+		rv := GatewayValidator{}
 		Context("proxy validation returns error", func() {
 			It("rejects the gw", func() {
 				v.validationFunc = failProxy

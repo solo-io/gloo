@@ -12,16 +12,17 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
-var _ GatewayResourceValidation = RouteTableValidation{}
+var _ GatewayResourceValidator = RouteTableValidator{}
+var _ DeleteGatewayResourceValidator = RouteTableValidator{}
 
-type RouteTableValidation struct {
+type RouteTableValidator struct {
 }
 
-func (vsv RouteTableValidation) DeleteResource(ctx context.Context, ref *core.ResourceRef, v Validator, dryRun bool) error {
+func (vsv RouteTableValidator) DeleteResource(ctx context.Context, ref *core.ResourceRef, v Validator, dryRun bool) error {
 	return v.ValidateDeleteRouteTable(ctx, ref, dryRun)
 }
 
-func (rtv RouteTableValidation) GetProxies(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error) {
+func (rtv RouteTableValidator) GetProxies(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error) {
 	return proxiesForRouteTable(ctx, snap, resource.(*v1.RouteTable)), nil
 }
 

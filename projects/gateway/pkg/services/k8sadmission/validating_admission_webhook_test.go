@@ -586,7 +586,7 @@ func (v *mockValidator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) 
 	return v.fSync(ctx, snap)
 }
 
-func (v *mockValidator) ValidateDeleteGlooResource(ctx context.Context, ref *core.ResourceRef, rv validation.GlooValidation) (*validation.Reports, error) {
+func (v *mockValidator) ValidateDeleteGlooResource(ctx context.Context, ref *core.ResourceRef, rv validation.DeleteGlooResourceValidator) (*validation.Reports, error) {
 	if v.fValidateDeleteVirtualService == nil {
 		return nil, nil
 	}
@@ -600,14 +600,14 @@ func (v *mockValidator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupV
 	return v.fValidateDeleteVirtualService(ctx, ref, dryRun)
 }
 
-func (v *mockValidator) ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource, rv validation.GlooValidation) (*validation.Reports, error) {
+func (v *mockValidator) ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource, rv validation.GlooResourceValidator) (*validation.Reports, error) {
 	if v.fValidateGateway == nil {
 		return reports(), nil
 	}
 	return v.fValidateUpstream(ctx, &gloov1.Upstream{})
 }
 
-func (v *mockValidator) ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, rv validation.GatewayResourceValidation, dryRun bool) (*validation.Reports, error) {
+func (v *mockValidator) ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, rv validation.GatewayResourceValidator, dryRun bool) (*validation.Reports, error) {
 	if v.fValidateGateway == nil {
 		return reports(), nil
 	}

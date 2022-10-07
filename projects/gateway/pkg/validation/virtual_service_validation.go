@@ -13,7 +13,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
-var _ GatewayResourceValidation = VirtualServiceValidation{}
+var _ GatewayResourceValidator = VirtualServiceValidation{}
+var _ DeleteGatewayResourceValidator = VirtualServiceValidation{}
 
 type VirtualServiceValidation struct {
 }
