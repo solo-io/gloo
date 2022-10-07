@@ -89,6 +89,7 @@ type Validator interface {
 	ValidateDeleteGlooResource(ctx context.Context, ref *core.ResourceRef, rv DeleteGlooResourceValidator) (*Reports, error)
 	ValidateDeleteVirtualService(ctx context.Context, vs *core.ResourceRef, dryRun bool) error
 	ValidateDeleteRouteTable(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
+	ValidationIsSupported(gvk schema.GroupVersionKind) bool
 }
 
 type ValidatorFunc = func(
@@ -183,6 +184,15 @@ func (v *validator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) erro
 	}
 
 	return nil
+}
+
+func (v *validator) ValidationIsSupported(gvk schema.GroupVersionKind) bool {
+	_, hit := GvkToGatewayResourceValidator[gvk]
+	if !hit {
+		_, hit := GvkToGlooValidator[gvk]
+		return hit
+	}
+	return true
 }
 
 type applyResource func(snap *gloov1snap.ApiSnapshot) (proxyNames []string, resource resources.Resource, ref *core.ResourceRef)

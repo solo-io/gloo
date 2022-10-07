@@ -414,15 +414,9 @@ func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.Gr
 
 func (wh *gatewayValidationWebhook) validateGvk(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
 	var reports *validation.Reports
-	// is it a supported resource for gvk validation
-	_, hit := validation.GvkToGatewayResourceValidator[gvk]
-	if !hit {
-		_, hit := validation.GvkToGlooValidator[gvk]
-		if !hit {
-			// resource is not supported
-			contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource namespace [%s] name [%s] group [%s] kind [%s]", ref.Namespace, ref.Name, gvk.Group, gvk.Kind)
-			return &validation.Reports{}, nil
-		}
+	if !wh.validator.ValidationIsSupported(gvk) {
+		contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource namespace [%s] name [%s] group [%s] kind [%s]", ref.Namespace, ref.Name, gvk.Group, gvk.Kind)
+		return &validation.Reports{}, nil
 	}
 
 	newResourceFunc := gloosnapshot.ApiGvkToHashableInputResource[gvk]
