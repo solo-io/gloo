@@ -416,20 +416,11 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 }
 
 func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
-	// using the Upstream gvk because it is tied to gloo.solo.io
-	if gvk.Group == gloov1.UpstreamGVK.Group {
-		reports, err := wh.validator.ValidateGlooResourceDelete(ctx, gvk, ref)
-		if err != nil {
-			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validatin deletion of resource namespace: %s name: %s", ref.Namespace, ref.Name)}}
-		}
-		return reports, nil
-	} else {
-		err := wh.validator.ValidateDeleteRef(ctx, gvk, ref, isDryRun(admissionRequest))
-		if err != nil {
-			return nil, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validatin deletion of resource namespace: %s name: %s", ref.Namespace, ref.Name)}}
-		}
-		return nil, nil
+	err := wh.validator.ValidateDeleteRef(ctx, gvk, ref, isDryRun(admissionRequest))
+	if err != nil {
+		return nil, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validatin deletion of resource namespace: %s name: %s", ref.Namespace, ref.Name)}}
 	}
+	return nil, nil
 }
 
 func (wh *gatewayValidationWebhook) validateGvk(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
