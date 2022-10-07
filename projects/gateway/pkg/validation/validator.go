@@ -2,7 +2,6 @@ package validation
 
 import (
 	"context"
-	"sort"
 	"sync"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -86,7 +85,7 @@ type Validator interface {
 	ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error
 	ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.HashableInputResource, dryRun bool) (*Reports, error)
 	ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource) (*Reports, error)
-	ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, dryRun bool) (*Reports, error)
+	ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, rv GatewayResourceValidation, dryRun bool) (*Reports, error)
 	ValidateGlooResourceDelete(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef) (*Reports, error)
 	ValidateDeleteVirtualService(ctx context.Context, vs *core.ResourceRef, dryRun bool) error
 	ValidateDeleteRouteTable(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
@@ -362,8 +361,7 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 }
 
 func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error {
-	// TODO need to create that map...
-	// TODO deleteResource(ctx, v, dryRun)
+	// TODO replace with the function
 	switch gvk {
 	case v1.VirtualServiceGVK:
 		return v.ValidateDeleteVirtualService(ctx, ref, dryRun)
@@ -378,7 +376,8 @@ func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind
 	// Gloo has two types of Groups Gateway and Gloo resource Groups. This statement is splitting the Validation based off
 	// the resource group type.
 	if gvk.Group == v1.GatewayCrd.Group {
-		reports, err := v.ValidateGatewayResource(ctx, resource, dryRun)
+		rv := GvkToGatewayValidator[gvk]()
+		reports, err := v.ValidateGatewayResource(ctx, resource, rv, dryRun)
 		if err != nil {
 			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
 		}
@@ -651,11 +650,11 @@ func (v *validator) validateGlooResource(ctx context.Context, resource resources
 }
 
 // ValidateGatewayResource will validate gateway group resources
-func (v *validator) ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, dryRun bool) (*Reports, error) {
-	return v.validateGatewayResource(ctx, resource, dryRun, true)
+func (v *validator) ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, rv GatewayResourceValidation, dryRun bool) (*Reports, error) {
+	return v.validateGatewayResource(ctx, resource, rv, dryRun, true)
 }
 
-func (v *validator) validateGatewayResource(ctx context.Context, resource resources.HashableInputResource, dryRun, acquireLock bool) (*Reports, error) {
+func (v *validator) validateGatewayResource(ctx context.Context, resource resources.HashableInputResource, rv GatewayResourceValidation, dryRun, acquireLock bool) (*Reports, error) {
 	apply := func(snap *gloov1snap.ApiSnapshot) ([]string, resources.Resource, *core.ResourceRef) {
 		resourceRef := resource.GetMetadata().Ref()
 
@@ -680,7 +679,7 @@ func (v *validator) validateGatewayResource(ctx context.Context, resource resour
 		}
 
 		// TODO GetProxies(ctx, resource, snap)
-		proxiesToConsider, err := getProxiesFromGatewayResource(ctx, resource, snap)
+		proxiesToConsider, err := rv.GetProxies(ctx, resource, snap)
 		if err != nil {
 			contextutils.LoggerFrom(ctx).Error(eris.Wrapf(err, "the resource is %+v", resource.GetMetadata()))
 		}
@@ -691,19 +690,6 @@ func (v *validator) validateGatewayResource(ctx context.Context, resource resour
 		return v.validateSnapshotThreadSafe(ctx, apply, dryRun)
 	} else {
 		return v.validateSnapshot(ctx, apply, dryRun)
-	}
-}
-
-func getProxiesFromGatewayResource(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error) {
-	switch typed := resource.(type) {
-	case *v1.Gateway:
-		return utils.GetProxyNamesForGateway(typed), nil
-	case *v1.VirtualService:
-		return proxiesForVirtualService(ctx, snap.Gateways, snap.HttpGateways, typed), nil
-	case *v1.RouteTable:
-		return proxiesForRouteTable(ctx, snap, typed), nil
-	default:
-		return nil, eris.New("the type for the resource does not exist when getting the proxies")
 	}
 }
 
@@ -768,23 +754,6 @@ func (v *validator) sendGlooValidationServiceRequest(
 	return v.validationFunc(ctx, req)
 }
 
-func proxiesForVirtualService(ctx context.Context, gwList v1.GatewayList, httpGwList v1.MatchableHttpGatewayList, vs *v1.VirtualService) []string {
-	gatewaysByProxy := utils.GatewaysByProxyName(gwList)
-
-	var proxiesToConsider []string
-
-	for proxyName, gatewayList := range gatewaysByProxy {
-		if gatewayListContainsVirtualService(ctx, gatewayList, httpGwList, vs) {
-			// we only care about validating this proxy if it contains this virtual service
-			proxiesToConsider = append(proxiesToConsider, proxyName)
-		}
-	}
-
-	sort.Strings(proxiesToConsider)
-
-	return proxiesToConsider
-}
-
 func virtualServicesForGateway(ctx context.Context, snap gloov1snap.ApiSnapshot, gateway *v1.Gateway) []*core.ResourceRef {
 	var virtualServices []*core.ResourceRef
 
@@ -818,67 +787,6 @@ func virtualServicesForGateway(ctx context.Context, snap gloov1snap.ApiSnapshot,
 	return virtualServices
 }
 
-func proxiesForRouteTable(ctx context.Context, snap *gloov1snap.ApiSnapshot, rt *v1.RouteTable) []string {
-	affectedVirtualServices := virtualServicesForRouteTable(rt, snap.VirtualServices, snap.RouteTables)
-
-	affectedProxies := make(map[string]struct{})
-	for _, vs := range affectedVirtualServices {
-		proxiesToConsider := proxiesForVirtualService(ctx, snap.Gateways, snap.HttpGateways, vs)
-		for _, proxy := range proxiesToConsider {
-			affectedProxies[proxy] = struct{}{}
-		}
-	}
-
-	var proxiesToConsider []string
-	for proxy := range affectedProxies {
-		proxiesToConsider = append(proxiesToConsider, proxy)
-	}
-	sort.Strings(proxiesToConsider)
-
-	return proxiesToConsider
-}
-
-type routeTableSet map[string]*v1.RouteTable
-
-// gets all the virtual services that have the given route table as a descendent via delegation
-func virtualServicesForRouteTable(
-	rt *v1.RouteTable,
-	allVirtualServices v1.VirtualServiceList,
-	allRouteTables v1.RouteTableList,
-) v1.VirtualServiceList {
-	// To determine all the virtual services that delegate to this route table (either directly or via a delegate
-	// chain), we first find all the ancestor route tables that are part of a delegate chain leading to this route
-	// table, and then find all the virtual services that delegate (via ref or selector) to any of those routes.
-
-	// build up a set of route tables including this route table and its ancestors
-	relevantRouteTables := routeTableSet{gloo_translator.UpstreamToClusterName(rt.GetMetadata().Ref()): rt}
-
-	// keep going until the ref list stops expanding
-	for countedRefs := 0; countedRefs != len(relevantRouteTables); {
-		countedRefs = len(relevantRouteTables)
-		for _, candidateRt := range allRouteTables {
-			// for each RT, if it delegates to any of the relevant RTs, add it to the set of relevant RTs
-			if routesContainSelectorsOrRefs(candidateRt.GetRoutes(),
-				candidateRt.GetMetadata().GetNamespace(),
-				relevantRouteTables) {
-				relevantRouteTables[gloo_translator.UpstreamToClusterName(candidateRt.GetMetadata().Ref())] = candidateRt
-			}
-		}
-	}
-
-	var parentVirtualServices v1.VirtualServiceList
-	for _, candidateVs := range allVirtualServices {
-		// for each VS, check if its routes delegate to any of the relevant RTs
-		if routesContainSelectorsOrRefs(candidateVs.GetVirtualHost().GetRoutes(),
-			candidateVs.GetMetadata().GetNamespace(),
-			relevantRouteTables) {
-			parentVirtualServices = append(parentVirtualServices, candidateVs)
-		}
-	}
-
-	return parentVirtualServices
-}
-
 // Returns true if any of the given routes delegate to any of the given route tables via a direct reference.
 // This is used to determine which route tables are affected when a route table is deleted. Since selectors do not
 // represent hard referential constraints, we only need to check direct references here (we can safely remove a route
@@ -890,7 +798,7 @@ func routesContainRefs(routes []*v1.Route, refs sets.String) bool {
 			continue
 		}
 
-		rtRef := getDelegateRef(delegate)
+		rtRef := GetDelegateRef(delegate)
 		if rtRef == nil {
 			continue
 		}
@@ -900,116 +808,6 @@ func routesContainRefs(routes []*v1.Route, refs sets.String) bool {
 		}
 	}
 	return false
-}
-
-// Returns true if any of the given routes delegate to any of the given route tables via either a direct reference
-// or a selector. This is used to determine which route tables are affected when a route table is added/modified.
-func routesContainSelectorsOrRefs(routes []*v1.Route, parentNamespace string, routeTables routeTableSet) bool {
-	// convert to list for passing into translator func
-	rtList := make([]*v1.RouteTable, 0, len(routeTables))
-	for _, rt := range routeTables {
-		rtList = append(rtList, rt)
-	}
-
-	for _, r := range routes {
-		delegate := r.GetDelegateAction()
-		if delegate == nil {
-			continue
-		}
-
-		// check if this route delegates to any of the given route tables via ref
-		rtRef := getDelegateRef(delegate)
-		if rtRef != nil {
-			if _, ok := routeTables[gloo_translator.UpstreamToClusterName(rtRef)]; ok {
-				return true
-			}
-			continue
-		}
-
-		// check if this route delegates to any of the given route tables via selector
-		rtSelector := delegate.GetSelector()
-		if rtSelector != nil {
-			// this will return the subset of the RT list that matches the selector
-			selectedRtList, err := translator.RouteTablesForSelector(rtList, rtSelector, parentNamespace)
-			if err != nil {
-				return false
-			}
-
-			if len(selectedRtList) > 0 {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func getDelegateRef(delegate *v1.DelegateAction) *core.ResourceRef {
-	// handle deprecated route table resource reference format
-	// TODO(marco): remove when we remove the deprecated fields from the API
-	if delegate.GetNamespace() != "" || delegate.GetName() != "" {
-		return &core.ResourceRef{
-			Namespace: delegate.GetNamespace(),
-			Name:      delegate.GetName(),
-		}
-	} else if delegate.GetRef() != nil {
-		return delegate.GetRef()
-	}
-	return nil
-}
-
-func gatewayListContainsVirtualService(ctx context.Context, gwList v1.GatewayList, httpGwList v1.MatchableHttpGatewayList, vs *v1.VirtualService) bool {
-	for _, gw := range gwList {
-		if gatewayContainsVirtualService(ctx, httpGwList, gw, vs) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func gatewayContainsVirtualService(ctx context.Context, httpGwList v1.MatchableHttpGatewayList, gw *v1.Gateway, vs *v1.VirtualService) bool {
-	if gw.GetTcpGateway() != nil {
-		return false
-	}
-
-	if httpGateway := gw.GetHttpGateway(); httpGateway != nil {
-		return httpGatewayContainsVirtualService(httpGateway, vs, gw.GetSsl())
-	}
-
-	if hybridGateway := gw.GetHybridGateway(); hybridGateway != nil {
-		matchedGateways := hybridGateway.GetMatchedGateways()
-		if matchedGateways != nil {
-			for _, mg := range hybridGateway.GetMatchedGateways() {
-				if httpGateway := mg.GetHttpGateway(); httpGateway != nil {
-					if httpGatewayContainsVirtualService(httpGateway, vs, mg.GetMatcher().GetSslConfig() != nil) {
-						return true
-					}
-				}
-			}
-		} else {
-			delegatedGateway := hybridGateway.GetDelegatedHttpGateways()
-			selectedGatewayList := translator.NewHttpGatewaySelector(httpGwList).SelectMatchableHttpGateways(delegatedGateway, func(err error) {
-				logger := contextutils.LoggerFrom(ctx)
-				logger.Warnf("failed to select matchable http gateways on gateway: %v", err.Error())
-			})
-			for _, selectedHttpGw := range selectedGatewayList {
-				if httpGatewayContainsVirtualService(selectedHttpGw.GetHttpGateway(), vs, selectedHttpGw.GetMatcher().GetSslConfig() != nil) {
-					return true
-				}
-			}
-		}
-
-	}
-
-	return false
-}
-
-func httpGatewayContainsVirtualService(httpGateway *v1.HttpGateway, vs *v1.VirtualService, requireSsl bool) bool {
-	contains, err := translator.HttpGatewayContainsVirtualService(httpGateway, vs, requireSsl)
-	if err != nil {
-		return false
-	}
-	return contains
 }
 
 func resourceReportToMultiErr(resourceRpt *validation.ResourceReport) error {
