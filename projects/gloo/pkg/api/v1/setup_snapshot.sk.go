@@ -54,16 +54,46 @@ func (s SetupSnapshot) HashFields() []zap.Field {
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
 
-func (s *SetupSnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
+func (s *SetupSnapshot) GetResourcesList(resource resources.Resource) (resources.ResourceList, error) {
+	switch resource.(type) {
+	case *Settings:
+		return s.Settings.AsResources(), nil
+	default:
+		return resources.ResourceList{}, eris.New("did not contain the input resource type returning empty list")
+	}
+}
+
+func (s *SetupSnapshot) AddToResourceList(resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *Settings:
+		s.Settings = append(s.Settings, typed)
+		s.Settings.Sort()
+		return nil
+	default:
+		return eris.New("did not add the input resource type because it does not exist")
+	}
+}
+
+func (s *SetupSnapshot) ReplaceResource(i int, resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *Settings:
+		s.Settings[i] = typed
+	default:
+		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+	}
+	return nil
+}
+
+func (s *SetupSnapshot) GetInputResourcesList(resource resources.InputResource) (resources.InputResourceList, error) {
 	switch resource.(type) {
 	case *Settings:
 		return s.Settings.AsInputResources(), nil
 	default:
-		return []resources.InputResource{}, eris.New("did not contain the input resource type returning empty list")
+		return resources.InputResourceList{}, eris.New("did not contain the input resource type returning empty list")
 	}
 }
 
-func (s *SetupSnapshot) AddToResourceList(resource resources.InputResource) error {
+func (s *SetupSnapshot) AddToInputResourceList(resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *Settings:
 		s.Settings = append(s.Settings, typed)
@@ -111,6 +141,6 @@ func (s SetupSnapshot) Stringer() SetupSnapshotStringer {
 	}
 }
 
-var SetupGvkToHashableInputResource = map[schema.GroupVersionKind]func() resources.HashableInputResource{
-	SettingsGVK: NewSettingsHashableInputResource,
+var SetupGvkToHashableResource = map[schema.GroupVersionKind]func() resources.HashableResource{
+	SettingsGVK: NewSettingsHashableResource,
 }

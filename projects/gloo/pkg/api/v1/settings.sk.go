@@ -20,7 +20,7 @@ var (
 	_ resources.HashableInputResource = new(Settings)
 )
 
-func NewSettingsHashableInputResource() resources.HashableInputResource {
+func NewSettingsHashableResource() resources.HashableResource {
 	return new(Settings)
 }
 

@@ -20,7 +20,7 @@ var (
 	_ resources.HashableInputResource = new(Gateway)
 )
 
-func NewGatewayHashableInputResource() resources.HashableInputResource {
+func NewGatewayHashableResource() resources.HashableResource {
 	return new(Gateway)
 }
 

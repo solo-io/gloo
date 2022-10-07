@@ -84,16 +84,62 @@ func (s TranslatorSnapshot) HashFields() []zap.Field {
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
 
-func (s *TranslatorSnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
+func (s *TranslatorSnapshot) GetResourcesList(resource resources.Resource) (resources.ResourceList, error) {
+	switch resource.(type) {
+	case *gloo_solo_io.Upstream:
+		return s.Upstreams.AsResources(), nil
+	case *KubeService:
+		return s.Services.AsResources(), nil
+	case *Ingress:
+		return s.Ingresses.AsResources(), nil
+	default:
+		return resources.ResourceList{}, eris.New("did not contain the input resource type returning empty list")
+	}
+}
+
+func (s *TranslatorSnapshot) AddToResourceList(resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *gloo_solo_io.Upstream:
+		s.Upstreams = append(s.Upstreams, typed)
+		s.Upstreams.Sort()
+		return nil
+	case *KubeService:
+		s.Services = append(s.Services, typed)
+		s.Services.Sort()
+		return nil
+	case *Ingress:
+		s.Ingresses = append(s.Ingresses, typed)
+		s.Ingresses.Sort()
+		return nil
+	default:
+		return eris.New("did not add the input resource type because it does not exist")
+	}
+}
+
+func (s *TranslatorSnapshot) ReplaceResource(i int, resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *gloo_solo_io.Upstream:
+		s.Upstreams[i] = typed
+	case *KubeService:
+		s.Services[i] = typed
+	case *Ingress:
+		s.Ingresses[i] = typed
+	default:
+		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+	}
+	return nil
+}
+
+func (s *TranslatorSnapshot) GetInputResourcesList(resource resources.InputResource) (resources.InputResourceList, error) {
 	switch resource.(type) {
 	case *gloo_solo_io.Upstream:
 		return s.Upstreams.AsInputResources(), nil
 	default:
-		return []resources.InputResource{}, eris.New("did not contain the input resource type returning empty list")
+		return resources.InputResourceList{}, eris.New("did not contain the input resource type returning empty list")
 	}
 }
 
-func (s *TranslatorSnapshot) AddToResourceList(resource resources.InputResource) error {
+func (s *TranslatorSnapshot) AddToInputResourceList(resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *gloo_solo_io.Upstream:
 		s.Upstreams = append(s.Upstreams, typed)
@@ -155,6 +201,8 @@ func (s TranslatorSnapshot) Stringer() TranslatorSnapshotStringer {
 	}
 }
 
-var TranslatorGvkToHashableInputResource = map[schema.GroupVersionKind]func() resources.HashableInputResource{
-	gloo_solo_io.UpstreamGVK: gloo_solo_io.NewUpstreamHashableInputResource,
+var TranslatorGvkToHashableResource = map[schema.GroupVersionKind]func() resources.HashableResource{
+	gloo_solo_io.UpstreamGVK: gloo_solo_io.NewUpstreamHashableResource,
+	KubeServiceGVK:           NewKubeServiceHashableResource,
+	IngressGVK:               NewIngressHashableResource,
 }

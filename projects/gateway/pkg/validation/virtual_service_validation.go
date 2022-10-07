@@ -23,7 +23,7 @@ func (vsv VirtualServiceValidation) DeleteResource(ctx context.Context, ref *cor
 	return v.ValidateDeleteVirtualService(ctx, ref, dryRun)
 }
 
-func (rtv VirtualServiceValidation) GetProxies(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error) {
+func (rtv VirtualServiceValidation) GetProxies(ctx context.Context, resource resources.Resource, snap *gloov1snap.ApiSnapshot) ([]string, error) {
 	return proxiesForVirtualService(ctx, snap.Gateways, snap.HttpGateways, resource.(*v1.VirtualService)), nil
 }
 

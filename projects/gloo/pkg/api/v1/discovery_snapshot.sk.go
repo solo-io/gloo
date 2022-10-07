@@ -84,16 +84,54 @@ func (s DiscoverySnapshot) HashFields() []zap.Field {
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
 
-func (s *DiscoverySnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
+func (s *DiscoverySnapshot) GetResourcesList(resource resources.Resource) (resources.ResourceList, error) {
+	switch resource.(type) {
+	case *Upstream:
+		return s.Upstreams.AsResources(), nil
+	case *Secret:
+		return s.Secrets.AsResources(), nil
+	default:
+		return resources.ResourceList{}, eris.New("did not contain the input resource type returning empty list")
+	}
+}
+
+func (s *DiscoverySnapshot) AddToResourceList(resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *Upstream:
+		s.Upstreams = append(s.Upstreams, typed)
+		s.Upstreams.Sort()
+		return nil
+	case *Secret:
+		s.Secrets = append(s.Secrets, typed)
+		s.Secrets.Sort()
+		return nil
+	default:
+		return eris.New("did not add the input resource type because it does not exist")
+	}
+}
+
+func (s *DiscoverySnapshot) ReplaceResource(i int, resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *Upstream:
+		s.Upstreams[i] = typed
+	case *Secret:
+		s.Secrets[i] = typed
+	default:
+		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+	}
+	return nil
+}
+
+func (s *DiscoverySnapshot) GetInputResourcesList(resource resources.InputResource) (resources.InputResourceList, error) {
 	switch resource.(type) {
 	case *Upstream:
 		return s.Upstreams.AsInputResources(), nil
 	default:
-		return []resources.InputResource{}, eris.New("did not contain the input resource type returning empty list")
+		return resources.InputResourceList{}, eris.New("did not contain the input resource type returning empty list")
 	}
 }
 
-func (s *DiscoverySnapshot) AddToResourceList(resource resources.InputResource) error {
+func (s *DiscoverySnapshot) AddToInputResourceList(resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *Upstream:
 		s.Upstreams = append(s.Upstreams, typed)
@@ -155,6 +193,7 @@ func (s DiscoverySnapshot) Stringer() DiscoverySnapshotStringer {
 	}
 }
 
-var DiscoveryGvkToHashableInputResource = map[schema.GroupVersionKind]func() resources.HashableInputResource{
-	UpstreamGVK: NewUpstreamHashableInputResource,
+var DiscoveryGvkToHashableResource = map[schema.GroupVersionKind]func() resources.HashableResource{
+	UpstreamGVK: NewUpstreamHashableResource,
+	SecretGVK:   NewSecretHashableResource,
 }

@@ -54,16 +54,46 @@ func (s EnterpriseSnapshot) HashFields() []zap.Field {
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
 
-func (s *EnterpriseSnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
+func (s *EnterpriseSnapshot) GetResourcesList(resource resources.Resource) (resources.ResourceList, error) {
+	switch resource.(type) {
+	case *AuthConfig:
+		return s.AuthConfigs.AsResources(), nil
+	default:
+		return resources.ResourceList{}, eris.New("did not contain the input resource type returning empty list")
+	}
+}
+
+func (s *EnterpriseSnapshot) AddToResourceList(resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *AuthConfig:
+		s.AuthConfigs = append(s.AuthConfigs, typed)
+		s.AuthConfigs.Sort()
+		return nil
+	default:
+		return eris.New("did not add the input resource type because it does not exist")
+	}
+}
+
+func (s *EnterpriseSnapshot) ReplaceResource(i int, resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *AuthConfig:
+		s.AuthConfigs[i] = typed
+	default:
+		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+	}
+	return nil
+}
+
+func (s *EnterpriseSnapshot) GetInputResourcesList(resource resources.InputResource) (resources.InputResourceList, error) {
 	switch resource.(type) {
 	case *AuthConfig:
 		return s.AuthConfigs.AsInputResources(), nil
 	default:
-		return []resources.InputResource{}, eris.New("did not contain the input resource type returning empty list")
+		return resources.InputResourceList{}, eris.New("did not contain the input resource type returning empty list")
 	}
 }
 
-func (s *EnterpriseSnapshot) AddToResourceList(resource resources.InputResource) error {
+func (s *EnterpriseSnapshot) AddToInputResourceList(resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *AuthConfig:
 		s.AuthConfigs = append(s.AuthConfigs, typed)
@@ -111,6 +141,6 @@ func (s EnterpriseSnapshot) Stringer() EnterpriseSnapshotStringer {
 	}
 }
 
-var EnterpriseGvkToHashableInputResource = map[schema.GroupVersionKind]func() resources.HashableInputResource{
-	AuthConfigGVK: NewAuthConfigHashableInputResource,
+var EnterpriseGvkToHashableResource = map[schema.GroupVersionKind]func() resources.HashableResource{
+	AuthConfigGVK: NewAuthConfigHashableResource,
 }

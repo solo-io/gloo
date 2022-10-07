@@ -20,7 +20,7 @@ var (
 	_ resources.HashableInputResource = new(GraphQLApi)
 )
 
-func NewGraphQLApiHashableInputResource() resources.HashableInputResource {
+func NewGraphQLApiHashableResource() resources.HashableResource {
 	return new(GraphQLApi)
 }
 

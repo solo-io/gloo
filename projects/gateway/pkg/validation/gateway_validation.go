@@ -14,6 +14,6 @@ var _ GatewayResourceValidator = GatewayValidator{}
 type GatewayValidator struct {
 }
 
-func (rtv GatewayValidator) GetProxies(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error) {
+func (rtv GatewayValidator) GetProxies(ctx context.Context, resource resources.Resource, snap *gloov1snap.ApiSnapshot) ([]string, error) {
 	return utils.GetProxyNamesForGateway(resource.(*v1.Gateway)), nil
 }

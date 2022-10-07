@@ -22,7 +22,7 @@ func (vsv RouteTableValidator) DeleteResource(ctx context.Context, ref *core.Res
 	return v.ValidateDeleteRouteTable(ctx, ref, dryRun)
 }
 
-func (rtv RouteTableValidator) GetProxies(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error) {
+func (rtv RouteTableValidator) GetProxies(ctx context.Context, resource resources.Resource, snap *gloov1snap.ApiSnapshot) ([]string, error) {
 	return proxiesForRouteTable(ctx, snap, resource.(*v1.RouteTable)), nil
 }
 

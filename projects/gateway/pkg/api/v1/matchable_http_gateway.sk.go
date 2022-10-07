@@ -20,7 +20,7 @@ var (
 	_ resources.HashableInputResource = new(MatchableHttpGateway)
 )
 
-func NewMatchableHttpGatewayHashableInputResource() resources.HashableInputResource {
+func NewMatchableHttpGatewayHashableResource() resources.HashableResource {
 	return new(MatchableHttpGateway)
 }
 

@@ -20,7 +20,7 @@ var (
 	_ resources.HashableInputResource = new(RouteOption)
 )
 
-func NewRouteOptionHashableInputResource() resources.HashableInputResource {
+func NewRouteOptionHashableResource() resources.HashableResource {
 	return new(RouteOption)
 }
 

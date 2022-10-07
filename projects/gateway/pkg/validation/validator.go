@@ -83,9 +83,9 @@ type Validator interface {
 	gloov1snap.ApiSyncer
 	ValidateList(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*Reports, *multierror.Error)
 	ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error
-	ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.HashableInputResource, dryRun bool) (*Reports, error)
-	ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource, rv GlooResourceValidator) (*Reports, error)
-	ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, rv GatewayResourceValidator, dryRun bool) (*Reports, error)
+	ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*Reports, error)
+	ValidateGlooResource(ctx context.Context, resource resources.Resource, rv GlooResourceValidator) (*Reports, error)
+	ValidateGatewayResource(ctx context.Context, resource resources.Resource, rv GatewayResourceValidator, dryRun bool) (*Reports, error)
 	ValidateDeleteGlooResource(ctx context.Context, ref *core.ResourceRef, rv DeleteGlooResourceValidator) (*Reports, error)
 	ValidateDeleteVirtualService(ctx context.Context, vs *core.ResourceRef, dryRun bool) error
 	ValidateDeleteRouteTable(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
@@ -175,8 +175,6 @@ func (v *validator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) erro
 	}
 
 	v.latestSnapshotErr = errs
-	// TODO-JAKE call the injection steps here?????
-	// not sure we want to do that.
 	v.latestSnapshot = &snapCopy
 
 	if errs != nil {
@@ -381,11 +379,11 @@ func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersi
 			return err
 		}
 	}
-	contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource delete ref namespace [%s] name [%s] group [%s] kind [%s]", ref.Namespace, ref.Name, gvk.Group, gvk.Kind)
+	contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource delete ref namespace [%s] name [%s] group [%s] kind [%s]", ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
 	return nil
 }
 
-func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.HashableInputResource, dryRun bool) (*Reports, error) {
+func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*Reports, error) {
 	var reports *Reports
 	// Gloo has two types of Groups: Gateway, Gloo. This statement is splitting the Validation based off
 	// the resource group type.
@@ -470,7 +468,7 @@ func (v *validator) processItem(ctx context.Context, item unstructured.Unstructu
 		return &Reports{ProxyReports: &ProxyReports{}}, err
 	}
 
-	if newResourceFunc, hit := gloosnapshot.ApiGvkToHashableInputResource[itemGvk]; hit {
+	if newResourceFunc, hit := gloosnapshot.ApiGvkToHashableResource[itemGvk]; hit {
 		resource := newResourceFunc()
 		if unmarshalErr := skprotoutils.UnmarshalResource(jsonBytes, resource); unmarshalErr != nil {
 			return &Reports{ProxyReports: &ProxyReports{}}, WrappedUnmarshalErr(unmarshalErr)
@@ -602,11 +600,11 @@ func (v *validator) ValidateDeleteGlooResource(ctx context.Context, ref *core.Re
 }
 
 // ValidateGlooResource will validate gloo group presources
-func (v *validator) ValidateGlooResource(ctx context.Context, resource resources.HashableInputResource, rv GlooResourceValidator) (*Reports, error) {
+func (v *validator) ValidateGlooResource(ctx context.Context, resource resources.Resource, rv GlooResourceValidator) (*Reports, error) {
 	return v.validateGlooResource(ctx, resource, rv)
 }
 
-func (v *validator) validateGlooResource(ctx context.Context, resource resources.HashableInputResource, rv GlooResourceValidator) (*Reports, error) {
+func (v *validator) validateGlooResource(ctx context.Context, resource resources.Resource, rv GlooResourceValidator) (*Reports, error) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 
@@ -626,22 +624,22 @@ func (v *validator) validateGlooResource(ctx context.Context, resource resources
 }
 
 // ValidateGatewayResource will validate gateway group resources
-func (v *validator) ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, rv GatewayResourceValidator, dryRun bool) (*Reports, error) {
+func (v *validator) ValidateGatewayResource(ctx context.Context, resource resources.Resource, rv GatewayResourceValidator, dryRun bool) (*Reports, error) {
 	return v.validateGatewayResource(ctx, resource, rv, dryRun, true)
 }
 
-func (v *validator) validateGatewayResource(ctx context.Context, resource resources.HashableInputResource, rv GatewayResourceValidator, dryRun, acquireLock bool) (*Reports, error) {
+func (v *validator) validateGatewayResource(ctx context.Context, resource resources.Resource, rv GatewayResourceValidator, dryRun, acquireLock bool) (*Reports, error) {
 	apply := func(snap *gloov1snap.ApiSnapshot) ([]string, resources.Resource, *core.ResourceRef) {
 		resourceRef := resource.GetMetadata().Ref()
 
 		var isUpdate bool
-		listOfInputResources, err := snap.GetInputResourceTypeList(resource)
+		listOfInputResources, err := snap.GetResourcesList(resource)
 		if err != nil {
 			contextutils.LoggerFrom(ctx).Error(err)
 		}
 		for i, existingResource := range listOfInputResources {
 			if existingResource.GetMetadata().Ref().Equal(resourceRef) {
-				if err := snap.ReplaceInputResource(i, resource); err != nil {
+				if err := snap.ReplaceResource(i, resource); err != nil {
 					contextutils.LoggerFrom(ctx).Error(err)
 				}
 				isUpdate = true

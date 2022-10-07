@@ -54,16 +54,46 @@ func (s EdsSnapshot) HashFields() []zap.Field {
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
 
-func (s *EdsSnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
+func (s *EdsSnapshot) GetResourcesList(resource resources.Resource) (resources.ResourceList, error) {
+	switch resource.(type) {
+	case *Upstream:
+		return s.Upstreams.AsResources(), nil
+	default:
+		return resources.ResourceList{}, eris.New("did not contain the input resource type returning empty list")
+	}
+}
+
+func (s *EdsSnapshot) AddToResourceList(resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *Upstream:
+		s.Upstreams = append(s.Upstreams, typed)
+		s.Upstreams.Sort()
+		return nil
+	default:
+		return eris.New("did not add the input resource type because it does not exist")
+	}
+}
+
+func (s *EdsSnapshot) ReplaceResource(i int, resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *Upstream:
+		s.Upstreams[i] = typed
+	default:
+		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+	}
+	return nil
+}
+
+func (s *EdsSnapshot) GetInputResourcesList(resource resources.InputResource) (resources.InputResourceList, error) {
 	switch resource.(type) {
 	case *Upstream:
 		return s.Upstreams.AsInputResources(), nil
 	default:
-		return []resources.InputResource{}, eris.New("did not contain the input resource type returning empty list")
+		return resources.InputResourceList{}, eris.New("did not contain the input resource type returning empty list")
 	}
 }
 
-func (s *EdsSnapshot) AddToResourceList(resource resources.InputResource) error {
+func (s *EdsSnapshot) AddToInputResourceList(resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *Upstream:
 		s.Upstreams = append(s.Upstreams, typed)
@@ -111,6 +141,6 @@ func (s EdsSnapshot) Stringer() EdsSnapshotStringer {
 	}
 }
 
-var EdsGvkToHashableInputResource = map[schema.GroupVersionKind]func() resources.HashableInputResource{
-	UpstreamGVK: NewUpstreamHashableInputResource,
+var EdsGvkToHashableResource = map[schema.GroupVersionKind]func() resources.HashableResource{
+	UpstreamGVK: NewUpstreamHashableResource,
 }

@@ -264,7 +264,141 @@ func (s ApiSnapshot) HashFields() []zap.Field {
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
 
-func (s *ApiSnapshot) GetInputResourceTypeList(resource resources.InputResource) ([]resources.InputResource, error) {
+func (s *ApiSnapshot) GetResourcesList(resource resources.Resource) (resources.ResourceList, error) {
+	switch resource.(type) {
+	case *gloo_solo_io.Artifact:
+		return s.Artifacts.AsResources(), nil
+	case *gloo_solo_io.Endpoint:
+		return s.Endpoints.AsResources(), nil
+	case *gloo_solo_io.Proxy:
+		return s.Proxies.AsResources(), nil
+	case *gloo_solo_io.UpstreamGroup:
+		return s.UpstreamGroups.AsResources(), nil
+	case *gloo_solo_io.Secret:
+		return s.Secrets.AsResources(), nil
+	case *gloo_solo_io.Upstream:
+		return s.Upstreams.AsResources(), nil
+	case *enterprise_gloo_solo_io.AuthConfig:
+		return s.AuthConfigs.AsResources(), nil
+	case *gateway_solo_io.VirtualService:
+		return s.VirtualServices.AsResources(), nil
+	case *gateway_solo_io.RouteTable:
+		return s.RouteTables.AsResources(), nil
+	case *gateway_solo_io.Gateway:
+		return s.Gateways.AsResources(), nil
+	case *gateway_solo_io.VirtualHostOption:
+		return s.VirtualHostOptions.AsResources(), nil
+	case *gateway_solo_io.RouteOption:
+		return s.RouteOptions.AsResources(), nil
+	case *gateway_solo_io.MatchableHttpGateway:
+		return s.HttpGateways.AsResources(), nil
+	case *graphql_gloo_solo_io.GraphQLApi:
+		return s.GraphqlApis.AsResources(), nil
+	default:
+		return resources.ResourceList{}, eris.New("did not contain the input resource type returning empty list")
+	}
+}
+
+func (s *ApiSnapshot) AddToResourceList(resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *gloo_solo_io.Artifact:
+		s.Artifacts = append(s.Artifacts, typed)
+		s.Artifacts.Sort()
+		return nil
+	case *gloo_solo_io.Endpoint:
+		s.Endpoints = append(s.Endpoints, typed)
+		s.Endpoints.Sort()
+		return nil
+	case *gloo_solo_io.Proxy:
+		s.Proxies = append(s.Proxies, typed)
+		s.Proxies.Sort()
+		return nil
+	case *gloo_solo_io.UpstreamGroup:
+		s.UpstreamGroups = append(s.UpstreamGroups, typed)
+		s.UpstreamGroups.Sort()
+		return nil
+	case *gloo_solo_io.Secret:
+		s.Secrets = append(s.Secrets, typed)
+		s.Secrets.Sort()
+		return nil
+	case *gloo_solo_io.Upstream:
+		s.Upstreams = append(s.Upstreams, typed)
+		s.Upstreams.Sort()
+		return nil
+	case *enterprise_gloo_solo_io.AuthConfig:
+		s.AuthConfigs = append(s.AuthConfigs, typed)
+		s.AuthConfigs.Sort()
+		return nil
+	case *gateway_solo_io.VirtualService:
+		s.VirtualServices = append(s.VirtualServices, typed)
+		s.VirtualServices.Sort()
+		return nil
+	case *gateway_solo_io.RouteTable:
+		s.RouteTables = append(s.RouteTables, typed)
+		s.RouteTables.Sort()
+		return nil
+	case *gateway_solo_io.Gateway:
+		s.Gateways = append(s.Gateways, typed)
+		s.Gateways.Sort()
+		return nil
+	case *gateway_solo_io.VirtualHostOption:
+		s.VirtualHostOptions = append(s.VirtualHostOptions, typed)
+		s.VirtualHostOptions.Sort()
+		return nil
+	case *gateway_solo_io.RouteOption:
+		s.RouteOptions = append(s.RouteOptions, typed)
+		s.RouteOptions.Sort()
+		return nil
+	case *gateway_solo_io.MatchableHttpGateway:
+		s.HttpGateways = append(s.HttpGateways, typed)
+		s.HttpGateways.Sort()
+		return nil
+	case *graphql_gloo_solo_io.GraphQLApi:
+		s.GraphqlApis = append(s.GraphqlApis, typed)
+		s.GraphqlApis.Sort()
+		return nil
+	default:
+		return eris.New("did not add the input resource type because it does not exist")
+	}
+}
+
+func (s *ApiSnapshot) ReplaceResource(i int, resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *gloo_solo_io.Artifact:
+		s.Artifacts[i] = typed
+	case *gloo_solo_io.Endpoint:
+		s.Endpoints[i] = typed
+	case *gloo_solo_io.Proxy:
+		s.Proxies[i] = typed
+	case *gloo_solo_io.UpstreamGroup:
+		s.UpstreamGroups[i] = typed
+	case *gloo_solo_io.Secret:
+		s.Secrets[i] = typed
+	case *gloo_solo_io.Upstream:
+		s.Upstreams[i] = typed
+	case *enterprise_gloo_solo_io.AuthConfig:
+		s.AuthConfigs[i] = typed
+	case *gateway_solo_io.VirtualService:
+		s.VirtualServices[i] = typed
+	case *gateway_solo_io.RouteTable:
+		s.RouteTables[i] = typed
+	case *gateway_solo_io.Gateway:
+		s.Gateways[i] = typed
+	case *gateway_solo_io.VirtualHostOption:
+		s.VirtualHostOptions[i] = typed
+	case *gateway_solo_io.RouteOption:
+		s.RouteOptions[i] = typed
+	case *gateway_solo_io.MatchableHttpGateway:
+		s.HttpGateways[i] = typed
+	case *graphql_gloo_solo_io.GraphQLApi:
+		s.GraphqlApis[i] = typed
+	default:
+		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+	}
+	return nil
+}
+
+func (s *ApiSnapshot) GetInputResourcesList(resource resources.InputResource) (resources.InputResourceList, error) {
 	switch resource.(type) {
 	case *gloo_solo_io.Proxy:
 		return s.Proxies.AsInputResources(), nil
@@ -289,11 +423,11 @@ func (s *ApiSnapshot) GetInputResourceTypeList(resource resources.InputResource)
 	case *graphql_gloo_solo_io.GraphQLApi:
 		return s.GraphqlApis.AsInputResources(), nil
 	default:
-		return []resources.InputResource{}, eris.New("did not contain the input resource type returning empty list")
+		return resources.InputResourceList{}, eris.New("did not contain the input resource type returning empty list")
 	}
 }
 
-func (s *ApiSnapshot) AddToResourceList(resource resources.InputResource) error {
+func (s *ApiSnapshot) AddToInputResourceList(resource resources.InputResource) error {
 	switch typed := resource.(type) {
 	case *gloo_solo_io.Proxy:
 		s.Proxies = append(s.Proxies, typed)
@@ -499,16 +633,19 @@ func (s ApiSnapshot) Stringer() ApiSnapshotStringer {
 	}
 }
 
-var ApiGvkToHashableInputResource = map[schema.GroupVersionKind]func() resources.HashableInputResource{
-	gloo_solo_io.ProxyGVK:                   gloo_solo_io.NewProxyHashableInputResource,
-	gloo_solo_io.UpstreamGroupGVK:           gloo_solo_io.NewUpstreamGroupHashableInputResource,
-	gloo_solo_io.UpstreamGVK:                gloo_solo_io.NewUpstreamHashableInputResource,
-	enterprise_gloo_solo_io.AuthConfigGVK:   enterprise_gloo_solo_io.NewAuthConfigHashableInputResource,
-	gateway_solo_io.VirtualServiceGVK:       gateway_solo_io.NewVirtualServiceHashableInputResource,
-	gateway_solo_io.RouteTableGVK:           gateway_solo_io.NewRouteTableHashableInputResource,
-	gateway_solo_io.GatewayGVK:              gateway_solo_io.NewGatewayHashableInputResource,
-	gateway_solo_io.VirtualHostOptionGVK:    gateway_solo_io.NewVirtualHostOptionHashableInputResource,
-	gateway_solo_io.RouteOptionGVK:          gateway_solo_io.NewRouteOptionHashableInputResource,
-	gateway_solo_io.MatchableHttpGatewayGVK: gateway_solo_io.NewMatchableHttpGatewayHashableInputResource,
-	graphql_gloo_solo_io.GraphQLApiGVK:      graphql_gloo_solo_io.NewGraphQLApiHashableInputResource,
+var ApiGvkToHashableResource = map[schema.GroupVersionKind]func() resources.HashableResource{
+	gloo_solo_io.ArtifactGVK:                gloo_solo_io.NewArtifactHashableResource,
+	gloo_solo_io.EndpointGVK:                gloo_solo_io.NewEndpointHashableResource,
+	gloo_solo_io.ProxyGVK:                   gloo_solo_io.NewProxyHashableResource,
+	gloo_solo_io.UpstreamGroupGVK:           gloo_solo_io.NewUpstreamGroupHashableResource,
+	gloo_solo_io.SecretGVK:                  gloo_solo_io.NewSecretHashableResource,
+	gloo_solo_io.UpstreamGVK:                gloo_solo_io.NewUpstreamHashableResource,
+	enterprise_gloo_solo_io.AuthConfigGVK:   enterprise_gloo_solo_io.NewAuthConfigHashableResource,
+	gateway_solo_io.VirtualServiceGVK:       gateway_solo_io.NewVirtualServiceHashableResource,
+	gateway_solo_io.RouteTableGVK:           gateway_solo_io.NewRouteTableHashableResource,
+	gateway_solo_io.GatewayGVK:              gateway_solo_io.NewGatewayHashableResource,
+	gateway_solo_io.VirtualHostOptionGVK:    gateway_solo_io.NewVirtualHostOptionHashableResource,
+	gateway_solo_io.RouteOptionGVK:          gateway_solo_io.NewRouteOptionHashableResource,
+	gateway_solo_io.MatchableHttpGatewayGVK: gateway_solo_io.NewMatchableHttpGatewayHashableResource,
+	graphql_gloo_solo_io.GraphQLApiGVK:      graphql_gloo_solo_io.NewGraphQLApiHashableResource,
 }

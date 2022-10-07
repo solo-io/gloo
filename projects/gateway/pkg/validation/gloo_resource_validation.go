@@ -34,7 +34,7 @@ type DeleteGlooResourceValidator interface {
 
 // DeleteGlooResourceValidator allows validation of gloo.solo.io resources
 type GlooResourceValidator interface {
-	CreateModifiedRequest(resource resources.HashableInputResource) *validation.GlooValidationServiceRequest
+	CreateModifiedRequest(resource resources.Resource) *validation.GlooValidationServiceRequest
 }
 
 var GvkToGlooValidator = map[schema.GroupVersionKind]GlooResourceValidator{
@@ -75,7 +75,7 @@ func (sv UpstreamValidator) CreateDeleteRequest(ref *core.ResourceRef) *validati
 }
 
 // TODO- fix the HashabledInputResource type.  so that it works with Secrets too.
-func (sv UpstreamValidator) CreateModifiedRequest(resource resources.HashableInputResource) *validation.GlooValidationServiceRequest {
+func (sv UpstreamValidator) CreateModifiedRequest(resource resources.Resource) *validation.GlooValidationServiceRequest {
 	return &validation.GlooValidationServiceRequest{
 		Resources: &validation.GlooValidationServiceRequest_ModifiedResources{
 			ModifiedResources: &validation.ModifiedResources{

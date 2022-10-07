@@ -20,7 +20,7 @@ var (
 	_ resources.HashableInputResource = new(Upstream)
 )
 
-func NewUpstreamHashableInputResource() resources.HashableInputResource {
+func NewUpstreamHashableResource() resources.HashableResource {
 	return new(Upstream)
 }
 

@@ -20,7 +20,7 @@ var (
 	_ resources.HashableInputResource = new(VirtualService)
 )
 
-func NewVirtualServiceHashableInputResource() resources.HashableInputResource {
+func NewVirtualServiceHashableResource() resources.HashableResource {
 	return new(VirtualService)
 }
 

@@ -28,7 +28,7 @@ type DeleteGatewayResourceValidator interface {
 // this interface helps to retrieve the proxies when the resource is being validated
 type GatewayResourceValidator interface {
 	// GetProxies will retrieve the proxies based off the resource type
-	GetProxies(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error)
+	GetProxies(ctx context.Context, resource resources.Resource, snap *gloov1snap.ApiSnapshot) ([]string, error)
 }
 
 // GvkToGatewayValidator the current group of resources that can be validated, that implement the GatewayResoruceValidation interface

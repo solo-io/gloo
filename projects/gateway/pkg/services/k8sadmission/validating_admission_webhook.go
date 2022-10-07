@@ -407,7 +407,7 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
 	err := wh.validator.ValidateDeleteRef(ctx, gvk, ref, isDryRun(admissionRequest))
 	if err != nil {
-		return nil, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validatin deletion of resource namespace: %s name: %s", ref.Namespace, ref.Name)}}
+		return nil, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validatin deletion of resource namespace: %s name: %s", ref.GetNamespace(), ref.GetName())}}
 	}
 	return &validation.Reports{}, nil
 }
@@ -415,11 +415,11 @@ func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.Gr
 func (wh *gatewayValidationWebhook) validateGvk(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
 	var reports *validation.Reports
 	if !wh.validator.ValidationIsSupported(gvk) {
-		contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource namespace [%s] name [%s] group [%s] kind [%s]", ref.Namespace, ref.Name, gvk.Group, gvk.Kind)
+		contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource namespace [%s] name [%s] group [%s] kind [%s]", ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
 		return &validation.Reports{}, nil
 	}
 
-	newResourceFunc := gloosnapshot.ApiGvkToHashableInputResource[gvk]
+	newResourceFunc := gloosnapshot.ApiGvkToHashableResource[gvk]
 
 	newResource := newResourceFunc()
 	oldResource := newResourceFunc()
@@ -455,7 +455,7 @@ func (wh *gatewayValidationWebhook) validateList(ctx context.Context, rawJson []
 	return reports, nil
 }
 
-func (wh *gatewayValidationWebhook) shouldValidateResource(ctx context.Context, admissionRequest *v1beta1.AdmissionRequest, resource, oldResource resources.HashableInputResource) (bool, error) {
+func (wh *gatewayValidationWebhook) shouldValidateResource(ctx context.Context, admissionRequest *v1beta1.AdmissionRequest, resource, oldResource resources.HashableResource) (bool, error) {
 	logger := contextutils.LoggerFrom(ctx)
 
 	if err := protoutils.UnmarshalResource(admissionRequest.Object.Raw, resource); err != nil {

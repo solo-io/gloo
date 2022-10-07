@@ -20,7 +20,7 @@ var (
 	_ resources.HashableInputResource = new(AuthConfig)
 )
 
-func NewAuthConfigHashableInputResource() resources.HashableInputResource {
+func NewAuthConfigHashableResource() resources.HashableResource {
 	return new(AuthConfig)
 }
 

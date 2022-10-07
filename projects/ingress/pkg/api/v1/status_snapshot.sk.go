@@ -10,7 +10,9 @@ import (
 
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/hashutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"go.uber.org/zap"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 type StatusSnapshot struct {
@@ -66,6 +68,44 @@ func (s StatusSnapshot) HashFields() []zap.Field {
 	return append(fields, zap.Uint64("snapshotHash", snapshotHash))
 }
 
+func (s *StatusSnapshot) GetResourcesList(resource resources.Resource) (resources.ResourceList, error) {
+	switch resource.(type) {
+	case *KubeService:
+		return s.Services.AsResources(), nil
+	case *Ingress:
+		return s.Ingresses.AsResources(), nil
+	default:
+		return resources.ResourceList{}, eris.New("did not contain the input resource type returning empty list")
+	}
+}
+
+func (s *StatusSnapshot) AddToResourceList(resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *KubeService:
+		s.Services = append(s.Services, typed)
+		s.Services.Sort()
+		return nil
+	case *Ingress:
+		s.Ingresses = append(s.Ingresses, typed)
+		s.Ingresses.Sort()
+		return nil
+	default:
+		return eris.New("did not add the input resource type because it does not exist")
+	}
+}
+
+func (s *StatusSnapshot) ReplaceResource(i int, resource resources.Resource) error {
+	switch typed := resource.(type) {
+	case *KubeService:
+		s.Services[i] = typed
+	case *Ingress:
+		s.Ingresses[i] = typed
+	default:
+		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+	}
+	return nil
+}
+
 type StatusSnapshotStringer struct {
 	Version   uint64
 	Services  []string
@@ -98,4 +138,9 @@ func (s StatusSnapshot) Stringer() StatusSnapshotStringer {
 		Services:  s.Services.NamespacesDotNames(),
 		Ingresses: s.Ingresses.NamespacesDotNames(),
 	}
+}
+
+var StatusGvkToHashableResource = map[schema.GroupVersionKind]func() resources.HashableResource{
+	KubeServiceGVK: NewKubeServiceHashableResource,
+	IngressGVK:     NewIngressHashableResource,
 }

@@ -20,7 +20,7 @@ var (
 	_ resources.HashableInputResource = new(Proxy)
 )
 
-func NewProxyHashableInputResource() resources.HashableInputResource {
+func NewProxyHashableResource() resources.HashableResource {
 	return new(Proxy)
 }
 

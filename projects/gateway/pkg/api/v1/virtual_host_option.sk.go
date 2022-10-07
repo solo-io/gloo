@@ -20,7 +20,7 @@ var (
 	_ resources.HashableInputResource = new(VirtualHostOption)
 )
 
-func NewVirtualHostOptionHashableInputResource() resources.HashableInputResource {
+func NewVirtualHostOptionHashableResource() resources.HashableResource {
 	return new(VirtualHostOption)
 }
 
