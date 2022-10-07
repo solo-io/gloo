@@ -8,6 +8,18 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+/*
+	Currently having issues with the following resources as they are not Input Resources
+	// Artifacts          gloo_solo_io.ArtifactList
+	// Endpoints          gloo_solo_io.EndpointList
+	// Secrets            gloo_solo_io.SecretList
+	// Ratelimitconfigs   github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList
+
+	// will have to check out RateLimitConfigs, not sure what causes it to not be a Hashable Input Resource
+	it is a custom resource, but not sure what is causing this...
+	projects/gloo/api/external/solo/ratelimit/solo-kit.json
+*/
+
 type GlooValidation interface {
 	CreateDeleteRequest(ref *core.ResourceRef) *validation.GlooValidationServiceRequest
 	CreateModifiedRequest(resource resources.HashableInputResource) *validation.GlooValidationServiceRequest

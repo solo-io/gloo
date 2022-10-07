@@ -604,13 +604,7 @@ func (v *mockValidator) ValidateGlooResource(ctx context.Context, resource resou
 	if v.fValidateGateway == nil {
 		return reports(), nil
 	}
-	// TODO-JAKE need to add in the other deletes
-	switch typed := resource.(type) {
-	case *gloov1.Upstream:
-		return v.fValidateUpstream(ctx, typed)
-	default:
-		return nil, nil
-	}
+	return v.fValidateUpstream(ctx, &gloov1.Upstream{})
 }
 
 func (v *mockValidator) ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, rv validation.GatewayResourceValidation, dryRun bool) (*validation.Reports, error) {
@@ -630,7 +624,6 @@ func (v *mockValidator) ValidateGatewayResource(ctx context.Context, resource re
 }
 
 func (v *mockValidator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.HashableInputResource, dryRun bool) (*validation.Reports, error) {
-	// TODO-not implemented
 	if v.fValidateGateway == nil {
 		return reports(), nil
 	}
