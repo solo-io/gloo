@@ -187,8 +187,8 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 	// TODO how does the proxy get added to the req?   there is a nil proxy sent when validation occurs.
 	// check out the following when calling sendGlooValidationServiceRequest() ->
 	// ValidateUpstream() , ValidateDeleteUpstream*(), ValidateDeleteSecret()
-	if req.Proxy != nil {
-		proxiesToValidate = v1.ProxyList{req.Proxy}
+	if req.GetProxy() != nil {
+		proxiesToValidate = v1.ProxyList{req.GetProxy()}
 	} else {
 		// if no proxy was passed in, call translate for all proxies in snapshot
 		proxiesToValidate = snapCopy.Proxies

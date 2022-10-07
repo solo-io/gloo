@@ -90,7 +90,6 @@ type Validator interface {
 	ValidateGlooResourceDelete(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef) (*Reports, error)
 	ValidateDeleteVirtualService(ctx context.Context, vs *core.ResourceRef, dryRun bool) error
 	ValidateDeleteRouteTable(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
-	ValidateDeleteSecret(ctx context.Context, secret *core.ResourceRef, dryRun bool) error
 }
 
 type ValidatorFunc = func(
@@ -363,6 +362,8 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 }
 
 func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error {
+	// TODO need to create that map...
+	// TODO deleteResource(ctx, v, dryRun)
 	switch gvk {
 	case v1.VirtualServiceGVK:
 		return v.ValidateDeleteVirtualService(ctx, ref, dryRun)
@@ -568,6 +569,9 @@ func (v *validator) ValidateDeleteRouteTable(ctx context.Context, rtRef *core.Re
 type GetProxies func(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error)
 
 func (v *validator) ValidateGlooResourceDelete(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef) (*Reports, error) {
+	v.lock.Lock()
+	defer v.lock.Unlock()
+	// TODO create DeleteGVSR(ref)
 	request := &validation.GlooValidationServiceRequest{}
 	switch gvk {
 	case gloov1.UpstreamGVK:
@@ -577,7 +581,7 @@ func (v *validator) ValidateGlooResourceDelete(ctx context.Context, gvk schema.G
 				UpstreamRefs: []*core.ResourceRef{ref},
 			},
 		}
-	case *&gloov1.SecretGVK:
+	case gloov1.SecretGVK:
 		request.Resources = &validation.GlooValidationServiceRequest_DeletedResources{
 			DeletedResources: &validation.DeletedResources{
 				SecretRefs: []*core.ResourceRef{ref},
@@ -613,6 +617,7 @@ func (v *validator) validateGlooResource(ctx context.Context, resource resources
 	// TODO-JAKE since this is no longer a GRPC call, we could consolidate it so that it uses only
 	// the API Snapshots as contains for the deleted or modified resources.  Then we could
 	// merge them with the real snapshot in server.go
+	// TODO CreateModifiedGSVR(resource)
 	request := &validation.GlooValidationServiceRequest{
 		Resources: &validation.GlooValidationServiceRequest_ModifiedResources{
 			ModifiedResources: &validation.ModifiedResources{
@@ -645,34 +650,6 @@ func (v *validator) validateGlooResource(ctx context.Context, resource resources
 	return v.getReportsFromGlooValidationResponse(response)
 }
 
-func (v *validator) ValidateDeleteSecret(ctx context.Context, secretRef *core.ResourceRef, dryRun bool) error {
-	v.lock.Lock()
-	defer v.lock.Unlock()
-	response, err := v.sendGlooValidationServiceRequest(ctx, &validation.GlooValidationServiceRequest{
-		// Sending a nil proxy causes the remaining secrets to be translated with all proxies in gloo's snapshot
-		Proxy: nil,
-		Resources: &validation.GlooValidationServiceRequest_DeletedResources{
-			DeletedResources: &validation.DeletedResources{
-				SecretRefs: []*core.ResourceRef{secretRef},
-			},
-		},
-	})
-	logger := contextutils.LoggerFrom(ctx)
-	if err != nil {
-		if v.ignoreProxyValidationFailure {
-			logger.Error(err)
-		} else {
-			return err
-		}
-	}
-
-	// dont log the responsse as proxies and status reports may be too large in large envs.
-	logger.Debugf("Got response from GlooValidationService with %d reports", len(response.GetValidationReports()))
-
-	_, err = v.getReportsFromGlooValidationResponse(response)
-	return err
-}
-
 // ValidateGatewayResource will validate gateway group resources
 func (v *validator) ValidateGatewayResource(ctx context.Context, resource resources.HashableInputResource, dryRun bool) (*Reports, error) {
 	return v.validateGatewayResource(ctx, resource, dryRun, true)
@@ -702,6 +679,7 @@ func (v *validator) validateGatewayResource(ctx context.Context, resource resour
 			}
 		}
 
+		// TODO GetProxies(ctx, resource, snap)
 		proxiesToConsider, err := getProxiesFromGatewayResource(ctx, resource, snap)
 		if err != nil {
 			contextutils.LoggerFrom(ctx).Error(eris.Wrapf(err, "the resource is %+v", resource.GetMetadata()))

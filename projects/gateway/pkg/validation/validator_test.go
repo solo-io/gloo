@@ -217,7 +217,7 @@ var _ = Describe("Validator", func() {
 					},
 				}
 				ref := secret.GetMetadata().Ref()
-				err = v.ValidateDeleteSecret(context.TODO(), ref, false)
+				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.SecretGVK, ref)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects a secret deletion when validation fails", func() {
@@ -234,7 +234,7 @@ var _ = Describe("Validator", func() {
 					},
 				}
 				ref := secret.GetMetadata().Ref()
-				err = v.ValidateDeleteSecret(context.TODO(), ref, false)
+				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.SecretGVK, ref)
 				Expect(err).To(HaveOccurred())
 			})
 			It("accepts a secret deletion when there is a validation warning and allowWarnings is true", func() {
@@ -252,7 +252,7 @@ var _ = Describe("Validator", func() {
 					},
 				}
 				ref := secret.GetMetadata().Ref()
-				err = v.ValidateDeleteSecret(context.TODO(), ref, false)
+				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.SecretGVK, ref)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects a secret deletion when there is a validation warning and allowWarnings is false", func() {
@@ -270,7 +270,7 @@ var _ = Describe("Validator", func() {
 					},
 				}
 				ref := secret.GetMetadata().Ref()
-				err = v.ValidateDeleteSecret(context.TODO(), ref, false)
+				_, err = v.ValidateGlooResourceDelete(context.TODO(), gloov1.SecretGVK, ref)
 				Expect(err).To(HaveOccurred())
 			})
 		})

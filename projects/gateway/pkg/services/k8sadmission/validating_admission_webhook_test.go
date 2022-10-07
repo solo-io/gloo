@@ -144,9 +144,6 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 		mv.fValidateDeleteUpstream = func(ctx context.Context, us *core.ResourceRef, dryRun bool) error {
 			return fmt.Errorf(errMsg)
 		}
-		mv.fValidateDeleteSecret = func(ctx context.Context, secret *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
 
 		req := makeReviewRequest(srv.URL, crd, gvk, op, resourceOrRef)
 
@@ -197,9 +194,6 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 			return reports(), fmt.Errorf(errMsg)
 		}
 		mv.fValidateDeleteUpstream = func(ctx context.Context, us *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
-		mv.fValidateDeleteSecret = func(ctx context.Context, secret *core.ResourceRef, dryRun bool) error {
 			return fmt.Errorf(errMsg)
 		}
 
@@ -303,9 +297,6 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 			return reports(), fmt.Errorf(errMsg)
 		}
 		mv.fValidateDeleteUpstream = func(ctx context.Context, us *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
-		mv.fValidateDeleteSecret = func(ctx context.Context, secret *core.ResourceRef, dryRun bool) error {
 			return fmt.Errorf(errMsg)
 		}
 
@@ -586,7 +577,6 @@ type mockValidator struct {
 	fValidateDeleteRouteTable     func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
 	fValidateUpstream             func(ctx context.Context, us *gloov1.Upstream) (*validation.Reports, error)
 	fValidateDeleteUpstream       func(ctx context.Context, us *core.ResourceRef, dryRun bool) error
-	fValidateDeleteSecret         func(ctx context.Context, secret *core.ResourceRef, dryRun bool) error
 }
 
 func (v *mockValidator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) error {
@@ -712,13 +702,6 @@ func (v *mockValidator) ValidateDeleteUpstream(ctx context.Context, us *core.Res
 		return nil
 	}
 	return v.fValidateDeleteUpstream(ctx, us, dryRun)
-}
-
-func (v *mockValidator) ValidateDeleteSecret(ctx context.Context, secret *core.ResourceRef, dryRun bool) error {
-	if v.fValidateDeleteSecret == nil {
-		return nil
-	}
-	return v.fValidateDeleteSecret(ctx, secret, dryRun)
 }
 
 func reports() *validation.Reports {

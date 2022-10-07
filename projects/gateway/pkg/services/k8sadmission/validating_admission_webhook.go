@@ -404,16 +404,6 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 		it is a custom resource, but not sure what is causing this...
 		projects/gloo/api/external/solo/ratelimit/solo-kit.json
 	*/
-
-	// TODO the ref is used for secrets... we don't need it
-	// TODO Secret does not interface with HashableResource, because we only use it's ref...
-	if gvk == gloov1.SecretGVK {
-		err := wh.validator.ValidateDeleteSecret(ctx, ref, dryRun)
-		if err != nil {
-			return &validation.Reports{}, &multierror.Error{Errors: []error{err}}
-		}
-	}
-
 	// TODO look at each of the Delete sections
 	if gvk == ListGVK {
 		return wh.validateList(ctx, admissionRequest.Object.Raw, dryRun)
@@ -426,9 +416,8 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 }
 
 func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
-	// blah....
-	if gvk.Group == gloov1.UpstreamCrd.Group {
-
+	// using the Upstream gvk because it is tied to gloo.solo.io
+	if gvk.Group == gloov1.UpstreamGVK.Group {
 		reports, err := wh.validator.ValidateGlooResourceDelete(ctx, gvk, ref)
 		if err != nil {
 			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validatin deletion of resource namespace: %s name: %s", ref.Namespace, ref.Name)}}
@@ -441,8 +430,6 @@ func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.Gr
 		}
 		return nil, nil
 	}
-	// TODO-JAKE returns an error
-	return nil, nil
 }
 
 func (wh *gatewayValidationWebhook) validateGvk(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
