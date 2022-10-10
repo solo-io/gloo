@@ -43,7 +43,9 @@ endif
 
 
 # if `GO_ARCH` is set, then it will keep its value. Else, it will be changed based off the machine's host architecture.
-ifneq ($(or	$(filter $(UNAME_M), arm64), $(filter $(UNAME_M), aarch64)), )
+# if the machines architecture is set to arm64 then we want to set the appropriate values, else we only support amd64
+IS_ARM_MACHINE := $(or	$(filter $(UNAME_M), arm64), $(filter $(UNAME_M), aarch64))
+ifneq ($(IS_ARM_MACHINE), )
 	PLATFORM := --platform linux/amd64
 	ifeq ($(GOARCH), amd64)
 		GOARCH := amd64
@@ -52,7 +54,10 @@ ifneq ($(or	$(filter $(UNAME_M), arm64), $(filter $(UNAME_M), aarch64)), )
 		PLATFORM := --platform linux/arm64
 	endif
 else
-	GOARCH ?= amd64
+	# currently we only support arm64 and amd64 as a GOARCH option.
+	ifneq ($(GOARCH), arm64)
+		GOARCH := amd64
+	endif
 endif
 
 DOCKER_BUILD_ARGS :=--build-arg DOCKER_GOARCH=$(GOARCH) $(PLATFORM)
@@ -65,6 +70,8 @@ ifeq ($(GOARCH), amd64)
 endif
 
 DOCKER_GO_BORING_ARGS=--build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1 --platform linux/amd64
+# to build an image that must be a AMD64 platform
+DOCKER_GO_AMD_64_ARGS=--build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENABLED=1 --platform linux/amd64
 
 #----------------------------------------------------------------------------------
 # Kind Load Images

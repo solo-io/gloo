@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    description: support for amd64 in ci.  Use `GOARCH=amd64 VERSION=0.0.1-amd64 ./ci/setup-kind.sh`.
+    issueLink: https://github.com/solo-io/gloo/issues/5471

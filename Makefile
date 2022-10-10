@@ -778,7 +778,7 @@ extauth: $(EXTAUTH_OUT_DIR)/extauth-linux-$(DOCKER_GOARCH) $(EXTAUTH_OUT_DIR)/ve
 
 # Build ext-auth-plugins docker image (Cannot be built at all on Apple Silicon)
 .PHONY: ext-auth-plugins-docker
-ifneq ($(UNAME_M), arm64)
+ifeq  ($(IS_ARM_MACHINE), )
 ext-auth-plugins-docker: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 	docker buildx build --load -t $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
@@ -920,12 +920,13 @@ GLOO_DIR=projects/gloo
 GLOO_SOURCES=$(shell find $(GLOO_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 GLOO_OUT_DIR=$(OUTPUT_DIR)/gloo
 
-$(GLOO_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH): $(GLOO_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go
+# the executable outputs as amd64 only because it is placed in an image that is amd64
+$(GLOO_OUT_DIR)/gloo-linux-amd64: $(GLOO_SOURCES)
+	GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go
 
 
 .PHONY: gloo
-gloo: $(GLOO_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH)
+gloo: $(GLOO_OUT_DIR)/gloo-linux-amd64
 
 $(GLOO_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
@@ -934,15 +935,15 @@ $(GLOO_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 .PHONY: gloo-ee-docker
 gloo-ee-docker: $(GLOO_OUT_DIR)/.gloo-ee-docker
 
-$(GLOO_OUT_DIR)/.gloo-ee-docker: $(GLOO_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_OUT_DIR)/Dockerfile
+$(GLOO_OUT_DIR)/.gloo-ee-docker: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
 	cp -r projects/gloo/pkg/plugins/graphql/js $(GLOO_OUT_DIR)/js
 	cp -r projects/ui/src/proto $(GLOO_OUT_DIR)/js
 	docker buildx build --load $(call get_test_tag_option,gloo-ee) $(GLOO_OUT_DIR) \
-		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) $(DOCKER_BUILD_ARGS) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) $(DOCKER_GO_AMD_64_ARGS) \
 		-t $(IMAGE_REPO)/gloo-ee:$(VERSION)
 	touch $@
 
-gloo-ee-docker-dev: $(GLOO_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_OUT_DIR)/Dockerfile
+gloo-ee-docker-dev: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
 	docker buildx build --load -t $(IMAGE_REPO)/gloo-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(GLOO_OUT_DIR) --no-cache
 	touch $@
 
@@ -1335,16 +1336,19 @@ docker-push-non-fips:
 ifeq ($(RELEASE), "true")
 	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION)-race && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug && \
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/caching-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/discovery-ee:$(VERSION)
-ifneq ($(DOCKER_GOARCH), arm64)
-	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION)
+ifeq  ($(IS_ARM_MACHINE), )
+	# this is not built on arm, so this is adding complexity.  There is no reason to add this as well to the normal build of gloo-ee.
+	# so if pushing because of ARM, we will 
+	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) && \
+	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION)-race
 endif
+#
 endif
 
 docker-push-fips:
@@ -1477,7 +1481,7 @@ build-kind-images-non-fips: gloo-ee-envoy-wrapper-debug-docker
 build-kind-images-non-fips: rate-limit-ee-docker
 build-kind-images-non-fips: extauth-ee-docker
 # arm cannot build the ext-auth-plugin currently
-ifneq ($(DOCKER_GOARCH), arm64)
+ifeq ($(IS_ARM_MACHINE), )
 build-kind-images-non-fips: ext-auth-plugins-docker
 endif
 build-kind-images-non-fips: observability-ee-docker
@@ -1489,7 +1493,7 @@ load-kind-images-non-fips: kind-load-gloo-ee # gloo
 load-kind-images-non-fips: kind-load-gloo-ee-envoy-wrapper # envoy
 load-kind-images-non-fips: kind-load-rate-limit-ee # rate limit
 load-kind-images-non-fips: kind-load-extauth-ee # ext auth
-ifneq ($(DOCKER_GOARCH), arm64)
+ifeq  ($(IS_ARM_MACHINE), )
 load-kind-images-non-fips: kind-load-ext-auth-plugins # ext auth plugins
 endif
 load-kind-images-non-fips: kind-load-observability-ee # observability

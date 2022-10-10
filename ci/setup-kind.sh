@@ -1,5 +1,9 @@
 #!/bin/bash -ex
 
+# using different architectures
+# you can set GOARCH=amd64 to build amd64 images.
+
+
 # 0. Assign default values to some of our environment variables
 # The name of the kind cluster to deploy to
 CLUSTER_NAME="${CLUSTER_NAME:-kind}"
@@ -19,9 +23,13 @@ fi
 # set the architecture of the machine
 ARCH=$(uname -m) || ARCH="amd64"
 
+# set the architecture of the images that you will be building, default to the machines architecture
+GOARCH="${GOARCH:${ARCH}}"
+
 # if user is running arm, these are configurations for the registry
 REGISTRY_NAME='kind-registry'
-REGISTRY_PORT='5000'
+# TODO(jake) change to 5001 because this is a better port, does not conflict with apple ear pods
+REGISTRY_PORT="${REGISTRY_PORT:-5000}"
 
 # set the image repo to the kind registry endpoint
 IMAGE_REPO="${IMAGE_REPO:-}"
@@ -31,6 +39,7 @@ fi
 
 function create_kind_registry() {
   # create registry container unless it already exists
+  # 5000 is the port that the container receives images on docker push
   if [ "$(docker inspect -f '{{.State.Running}}' "${REGISTRY_NAME}" 2>/dev/null || true)" != 'true' ]; then
     docker run \
       -d --restart=always -p "127.0.0.1:${REGISTRY_PORT}:5000" --name "${REGISTRY_NAME}" \
@@ -77,6 +86,7 @@ function create_kind_cluster_or_skip() {
   # create kind registry with endpoint
   if [[ $ARCH == "arm64" ]]; then
     create_kind_registry
+    # 5000 is the port that the container receives images from docker push
     ARM_EXTENSION="containerdConfigPatches:
 - |-
   [plugins.\"io.containerd.grpc.v1.cri\".registry.mirrors.\"localhost:${REGISTRY_PORT}\"]
@@ -130,14 +140,17 @@ fi
 
 # 2. Make all the docker images and load them to the kind cluster
 if [[ $ARCH == 'arm64' ]]; then
-  # if using arm64, push to the docker registry container, instead of kind
-  VERSION=$VERSION IMAGE_REPO=${IMAGE_REPO:-} USE_FIPS=$USE_FIPS PUSH_TESTS_ARM=true make docker-push-local-arm -B
+  # if your local machine is arm64, push to the docker registry container, instead of kind
+  # GOARCH allows you to support any type of image architecture
+  GOARCH=$GOARCH VERSION=$VERSION IMAGE_REPO=${IMAGE_REPO:-} USE_FIPS=$USE_FIPS PUSH_TESTS_ARM=true make docker-push-local-arm -B
 else
   VERSION=$VERSION CLUSTER_NAME=$CLUSTER_NAME USE_FIPS=$USE_FIPS make push-kind-images -B
 fi
 
 # 3. Build the test helm chart, ensuring we have a chart in the `_test` folder
-VERSION=$VERSION IMAGE_REPO=localhost:$REGISTRY_PORT RUNNING_REGRESSION_TESTS=true make build-test-chart
+# setting GOARCH here, because we have to set the helm registry values so that they pick up in the helm registry for arm64 support.
+# if this is not done, then helm sets the registry as quay.io, which is only supported for amd64 machines.
+GOARCH=$ARCH VERSION=$VERSION IMAGE_REPO=${IMAGE_REPO:-}  RUNNING_REGRESSION_TESTS=true make build-test-chart
 
 # 4. Build the gloo command line tool, ensuring we have one in the `_output` folder
 make glooctl-$OS
