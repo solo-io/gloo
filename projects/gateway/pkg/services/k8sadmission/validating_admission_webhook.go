@@ -407,7 +407,7 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
 	err := wh.validator.ValidateDeleteRef(ctx, gvk, ref, isDryRun(admissionRequest))
 	if err != nil {
-		return nil, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validatin deletion of resource namespace: %s name: %s", ref.GetNamespace(), ref.GetName())}}
+		return nil, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validating the deletion of resource namespace: %s name: %s", ref.GetNamespace(), ref.GetName())}}
 	}
 	return &validation.Reports{}, nil
 }
