@@ -1,30 +1,24 @@
-####################################################################################################
-# update-all-deps - should be used to update go modules and node js packages
-# generated-code -B - this will generate the Protocs
-# install-go-tools - will install Go dependencies
-# run-tests - runs non kubernetes tests
-# update-ui-deps - NOTE node and yarn are required.
-# install-graphql-js - NOTE node and yarn are required.
-# install-node-packages - calls both update-ui-deps and install graphql js. NOTE node and yarn are required.
-# run-ci-regression-tests - Set KUBE2E_TESTS to the test you would like to test. run ci/setup_kind.sh before running this to create images and helm chart in _test folder.
-#		KUBE2E_TESTS can be set to wasm, gateway, helm, gloo-mtls, redis-clientside-sharding, or caching
-# run-ci-gloo-fed-regression-tests - Set KUBE2E_TESTS to run test. run ci/setup_kind.sh before running this to create images and helm chart in _test folder.
-# run-e2e-tests - set the ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run.
-# glooctl - creates glooctl
-# push-kind-images - Pushes kind images
-# build-and-load-kind-images-non-fips - builds images for kind and loads them into kind
-# build-and-load-kind-images-fips - builds and loads fips images into kind
-# build-kind-images-non-fips - builds non-fips images
-# build-kind-images-fips - builds the fips images
-# load-kind-images-non-fips - loads the non-fips images into kind
-# load-kind-images-fips - loads the fips images into kind
-# docker-push-local-arm - builds images and loads them into the docker registry
-# build-test-chart - builds the helm chart for testing
-# [image-name]-ee-docker build a single image (useful for iterating with an existing set up)
-# gloo-ee-race-docker build a gloo image with race detection enabled.
-####################################################################################################
 include Makefile.docker
 
+# https://www.gnu.org/software/make/manual/html_node/Special-Variables.html#Special-Variables
+.DEFAULT_GOAL := help
+
+#----------------------------------------------------------------------------------
+# Help
+#----------------------------------------------------------------------------------
+# Our Makefile is quite large, and hard to reason through
+# `make help` can be used to self-document targets
+# To update a target to be self-documenting (and appear with the `help` command),
+# place a comment after the target that is prefixed by `##`. For example:
+#	custom-target: ## comment that will appear in the documentation when running `make help`
+#
+# **NOTE TO DEVELOPERS**
+# As you encounter make targets that are frequently used, please make them self-documenting
+
+.PHONY: help
+help: FIRST_COLUMN_WIDTH=35
+help: ## Output the self-documenting make targets
+	@grep -hE '^[%a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-$(FIRST_COLUMN_WIDTH)s\033[0m %s\n", $$1, $$2}'
 
 #----------------------------------------------------------------------------------
 # Base
@@ -72,6 +66,8 @@ TEST_IMAGE_TAG := test-$(BUILD_ID)
 TEST_ASSET_DIR := $(ROOTDIR)/_test
 GCR_REPO_PREFIX := gcr.io/$(GCLOUD_PROJECT_ID)
 
+GINKGO_ENV := GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore ACK_GINKGO_RC=true ACK_GINKGO_DEPRECATIONS=1.16.5
+
 #----------------------------------------------------------------------------------
 # Macros
 #----------------------------------------------------------------------------------
@@ -102,13 +98,13 @@ init:
 	git config core.hooksPath .githooks
 
 .PHONY: update-all-deps
-update-all-deps: install-go-tools install-node-packages
+update-all-deps: install-go-tools install-node-packages ## install-go-tools and install-node-packages
 
 DEPSGOBIN=$(ROOTDIR)/.bin
 
 # https://github.com/go-modules-by-example/index/blob/master/010_tools/README.md
 .PHONY: install-go-tools
-install-go-tools: mod-download
+install-go-tools: mod-download install-test-tools ## Download and install Go dependencies
 	mkdir -p $(DEPSGOBIN)
 	GOBIN=$(DEPSGOBIN) go install istio.io/tools/cmd/protoc-gen-jsonshim
 	GOBIN=$(DEPSGOBIN) go install istio.io/pkg/version
@@ -119,8 +115,12 @@ install-go-tools: mod-download
 	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/gomock
 	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/mockgen
 	GOBIN=$(DEPSGOBIN) go install github.com/google/wire/cmd/wire
-	GOBIN=$(DEPSGOBIN) go install github.com/onsi/ginkgo/ginkgo
 	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-openapi
+
+.PHONY: install-test-tools
+install-test-tools:
+	mkdir -p $(DEPSGOBIN)
+	GOBIN=$(DEPSGOBIN) go install github.com/onsi/ginkgo/ginkgo
 
 .PHONY: mod-download
 mod-download:
@@ -152,29 +152,33 @@ clean-fed: clean-artifacts clean-generated-protos
 	rm -rf $(ROOTDIR)/projects/apiserver/server/services/single_cluster_resource_handler/*
 
 .PHONY: run-tests
-run-tests: install-node-packages
+run-tests: install-node-packages ## Run all tests
 ifneq ($(RELEASE), "true")
 	PATH=$(DEPSGOBIN):$$PATH go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
-	VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor
+	$(GINKGO_ENV) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor -skipPackage=kube2e,gloo-fed-e2e
 endif
 
 # command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
 .PHONY: run-ci-regression-tests
-run-ci-regression-tests: install-go-tools
-	go env -w GOPRIVATE=github.com/solo-io
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn RUNNING_REGRESSION_TESTS=true $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending -noColor ./test/kube2e/$(KUBE2E_TESTS)/...
+run-ci-regression-tests: install-test-tools ## Run the Kubernetes E2E Tests in the {KUBE2E_TESTS} package
+run-ci-regression-tests:
+	# We intentionally leave out the `-r` ginkgo flag, since we are specifying the exact package that we want run
+	$(GINKGO_ENV) $(DEPSGOBIN)/ginkgo -failFast -trace -progress -race -failOnPending -noColor ./test/kube2e/$(KUBE2E_TESTS)
 
+# command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
+# requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
 .PHONY: run-ci-gloo-fed-regression-tests
-run-ci-gloo-fed-regression-tests: install-go-tools
-	go env -w GOPRIVATE=github.com/solo-io
-	MANAGEMENT_CLUSTER_CONTEXT=$(MANAGEMENT_CLUSTER_CONTEXT) RUNNING_REGRESSION_TESTS=true REMOTE_CLUSTER_CONTEXT=$(REMOTE_CLUSTER_CONTEXT) $(DEPSGOBIN)/ginkgo -r ./test/gloo-fed-e2e/...
+run-ci-gloo-fed-regression-tests: install-test-tools ## Run the Kubernetes E2E Tests in the {gloo-fed-e2e} package
+	# We intentionally leave out the `-r` ginkgo flag, since we are specifying the exact package that we want run
+	$(GINKGO_ENV) $(DEPSGOBIN)/ginkgo -failFast -trace -progress -race -failOnPending -noColor ./test/gloo-fed-e2e
 
 # command to run e2e tests
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
 .PHONY: run-e2e-tests
-run-e2e-tests: install-go-tools
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn $(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
+run-e2e-tests: ## Run the in memory Envoy e2e tests (ENVOY_IMAGE_TAG)
+run-e2e-tests: install-test-tools
+	$(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
 
 .PHONY: update-ui-deps
 update-ui-deps:
@@ -221,9 +225,8 @@ endif
 
 SUBDIRS:=projects install pkg test
 .PHONY: generated-code
-generated-code: update-licenses
+generated-code: update-licenses ## Evaluate go generate
 	rm -rf $(ROOTDIR)/vendor_any
-	go mod tidy
 	PATH=$(DEPSGOBIN):$$PATH GO111MODULE=on CGO_ENABLED=1 go generate ./...
 	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
 	PATH=$(DEPSGOBIN):$$PATH go mod tidy
@@ -1461,7 +1464,7 @@ endif
 # Helper targets for CI
 CLUSTER_NAME?=kind
 
-.PHONY: push-kind-images
+.PHONY: push-kind-images ## Build and load images into a kind cluster
 push-kind-images:
 ifeq ($(USE_FIPS),true)
 push-kind-images: build-and-load-kind-images-fips
@@ -1477,7 +1480,6 @@ build-and-load-kind-images-non-fips: build-kind-images-non-fips load-kind-images
 .PHONY: build-kind-images-non-fips
 build-kind-images-non-fips: gloo-ee-docker
 build-kind-images-non-fips: gloo-ee-envoy-wrapper-docker
-build-kind-images-non-fips: gloo-ee-envoy-wrapper-debug-docker
 build-kind-images-non-fips: rate-limit-ee-docker
 build-kind-images-non-fips: extauth-ee-docker
 # arm cannot build the ext-auth-plugin currently
@@ -1508,7 +1510,6 @@ build-and-load-kind-images-fips: build-kind-images-fips load-kind-images-fips
 .PHONY: build-kind-images-fips
 build-kind-images-fips: gloo-fips-ee-docker # gloo
 build-kind-images-fips: gloo-ee-envoy-wrapper-fips-docker # envoy
-build-kind-images-fips: gloo-ee-envoy-wrapper-fips-debug-docker
 build-kind-images-fips: rate-limit-ee-fips-docker # rate limit
 build-kind-images-fips: extauth-ee-fips-docker # ext auth
 build-kind-images-fips: ext-auth-plugins-fips-docker # ext auth plugins
@@ -1519,7 +1520,6 @@ build-kind-images-fips: discovery-ee-docker # discovery
 .PHONY: load-kind-images-fips
 load-kind-images-fips: kind-load-gloo-ee-fips # gloo
 load-kind-images-fips: kind-load-gloo-ee-envoy-wrapper-fips # envoy
-load-kind-images-fips: kind-load-gloo-ee-envoy-wrapper-fips-debug # envoy debug
 load-kind-images-fips: kind-load-rate-limit-ee-fips # rate limit
 load-kind-images-fips: kind-load-extauth-ee-fips # ext auth
 load-kind-images-fips: kind-load-ext-auth-plugins-fips # ext auth plugins

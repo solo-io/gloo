@@ -149,8 +149,7 @@ func getHelmOverrides(fips bool) (filename string, cleanup func()) {
     persistProxySpec: true
   gloo:
     deployment:
-      # TODO change to 2 once we figure out leader election flakes
-      replicas: 1
+      replicas: 2
       livenessProbeEnabled: true
   rbac:    
     namespaced: true

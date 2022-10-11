@@ -1,0 +1,11 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4131
+    resolvesIssue: false
+    description: Speed up test pipeline by optimizing ginkgo command
+  - type: NON_USER_FACING
+    description: Add `help` make target to self-document Makefile.
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/7148
+    resolvesIssue: false
+    description: Run tests with multiple replicas of Gloo, to ensure that leader election is occurring
