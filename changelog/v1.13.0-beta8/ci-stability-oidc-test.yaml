@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/3917
+    description: |
+      Deflake OIDC e2e tests by wrapping request in an Eventually. Latency between applying
+      configuration and the extauth server receiving it over xDS resulted in flakes.
+    resolvesIssue: true

@@ -178,7 +178,8 @@ run-ci-gloo-fed-regression-tests: install-test-tools ## Run the Kubernetes E2E T
 .PHONY: run-e2e-tests
 run-e2e-tests: ## Run the in memory Envoy e2e tests (ENVOY_IMAGE_TAG)
 run-e2e-tests: install-test-tools
-	$(DEPSGOBIN)/ginkgo -r -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
+	# # We intentionally leave out the `-r` ginkgo flag, since we are specifying the exact package that we want run
+	$(GINKGO_ENV) $(DEPSGOBIN)/ginkgo -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
 
 .PHONY: update-ui-deps
 update-ui-deps:

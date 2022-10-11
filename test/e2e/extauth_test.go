@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"math/big"
 	"net"
 	"net/http"
@@ -1114,31 +1113,35 @@ var _ = Describe("External auth", func() {
 								req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/", "localhost", envoyPort), nil)
 								Expect(err).NotTo(HaveOccurred())
 
-								resp, err := client.Do(req)
-								Expect(err).NotTo(HaveOccurred())
-								defer resp.Body.Close()
-								locHdr := resp.Header.Get("Location")
-								Expect(locHdr).NotTo(BeEmpty())
-								locUrl, err := url.Parse(locHdr)
-								Expect(err).NotTo(HaveOccurred())
+								// There is a delay between when we write configuration using our resource clients,
+								// and when the ext-auth-service receives it over xDS from Gloo.
+								// To handle this latency and prevent flakes, we wrap the test in an Eventually block
+								Eventually(func(g Gomega) {
+									resp, err := client.Do(req)
+									g.Expect(err).NotTo(HaveOccurred())
+									defer resp.Body.Close()
+									locHdr := resp.Header.Get("Location")
+									g.Expect(locHdr).NotTo(BeEmpty())
+									locUrl, err := url.Parse(locHdr)
+									g.Expect(err).NotTo(HaveOccurred())
 
-								stateVals := locUrl.Query().Get("state")
-								Expect(stateVals).NotTo(BeEmpty())
+									stateVals := locUrl.Query().Get("state")
+									g.Expect(stateVals).NotTo(BeEmpty())
 
-								var stateClaim struct {
-									jwt.StandardClaims
-									State string
-								}
-								_, err = jwt.ParseWithClaims(stateVals,
-									&stateClaim,
-									func(*jwt.Token) (interface{}, error) {
-										return nil, nil
-									},
-								)
+									var stateClaim struct {
+										jwt.StandardClaims
+										State string
+									}
+									_, err = jwt.ParseWithClaims(stateVals,
+										&stateClaim,
+										func(*jwt.Token) (interface{}, error) {
+											return nil, nil
+										},
+									)
 
-								// state URI has been upgraded to https:
-								log.Println(stateClaim.State)
-								Expect(stateClaim.State).To(ContainSubstring("https://"))
+									// state URI has been upgraded to https:
+									g.Expect(stateClaim.State).To(ContainSubstring("https://"))
+								}, time.Second*3, time.Millisecond*250).ShouldNot(HaveOccurred())
 							})
 						})
 						Context("listener is https, appUrl is http", func() {
@@ -1192,31 +1195,36 @@ var _ = Describe("External auth", func() {
 								req, err := http.NewRequest("GET", fmt.Sprintf("https://%s:%d/", "localhost", 8443), nil)
 								Expect(err).NotTo(HaveOccurred())
 
-								resp, err := client.Do(req)
-								Expect(err).NotTo(HaveOccurred())
-								defer resp.Body.Close()
-								locHdr := resp.Header.Get("Location")
-								Expect(locHdr).NotTo(BeEmpty())
-								locUrl, err := url.Parse(locHdr)
-								Expect(err).NotTo(HaveOccurred())
+								// There is a delay between when we write configuration using our resource clients,
+								// and when the ext-auth-service receives it over xDS from Gloo.
+								// To handle this latency and prevent flakes, we wrap the test in an Eventually block
+								Eventually(func(g Gomega) {
+									resp, err := client.Do(req)
+									g.Expect(err).NotTo(HaveOccurred())
+									defer resp.Body.Close()
+									locHdr := resp.Header.Get("Location")
+									g.Expect(locHdr).NotTo(BeEmpty())
+									locUrl, err := url.Parse(locHdr)
+									g.Expect(err).NotTo(HaveOccurred())
 
-								stateVals := locUrl.Query().Get("state")
-								Expect(stateVals).NotTo(BeEmpty())
+									stateVals := locUrl.Query().Get("state")
+									g.Expect(stateVals).NotTo(BeEmpty())
 
-								var stateClaim struct {
-									jwt.StandardClaims
-									State string
-								}
-								_, err = jwt.ParseWithClaims(stateVals,
-									&stateClaim,
-									func(*jwt.Token) (interface{}, error) {
-										return nil, nil
-									},
-								)
+									var stateClaim struct {
+										jwt.StandardClaims
+										State string
+									}
+									_, err = jwt.ParseWithClaims(stateVals,
+										&stateClaim,
+										func(*jwt.Token) (interface{}, error) {
+											return nil, nil
+										},
+									)
 
-								// state URI has not been downgraded to http:
-								log.Println(stateClaim.State)
-								Expect(stateClaim.State).To(ContainSubstring("https://"))
+									// state URI has not been downgraded to http:
+									g.Expect(stateClaim.State).To(ContainSubstring("https://"))
+								}, time.Second*3, time.Millisecond*250).ShouldNot(HaveOccurred())
+
 							})
 
 						})
