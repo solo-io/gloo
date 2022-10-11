@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/5255
+    description: |
+      Add e2e tests for chaining PassThrough Auths with different FailureModeAllow configs.
+    resolvesIssue: false

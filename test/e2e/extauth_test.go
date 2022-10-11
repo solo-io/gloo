@@ -25,6 +25,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	. "github.com/onsi/ginkgo/extensions/table"
+
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
 
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -2188,13 +2190,12 @@ var _ = Describe("External auth", func() {
 						proxy                 *gloov1.Proxy
 						httpAuthServer        *v1helpers.TestUpstream
 						httpPassthroughConfig *extauth.PassThroughHttp
-						handler               v1helpers.ExtraHandlerFunc
 						authconfigCfg         *structpb.Struct
 						authConfigRequestPath string
 						protocol              string
 					)
 
-					BeforeEach(func() {
+					setupConfig := func() {
 						httpPassthroughConfig = &extauth.PassThroughHttp{
 							Request:  &extauth.PassThroughHttp_Request{},
 							Response: &extauth.PassThroughHttp_Response{},
@@ -2203,12 +2204,11 @@ var _ = Describe("External auth", func() {
 							},
 						}
 						authconfigCfg = nil
-						handler = nil
 						authConfigRequestPath = ""
 						protocol = "http"
-					})
+					}
 
-					JustBeforeEach(func() {
+					setupServerWithFailureModeAllow := func(failureModeAllow bool, handler v1helpers.ExtraHandlerFunc) {
 						httpAuthServer = v1helpers.NewTestHttpUpstreamWithHandler(ctx, "127.0.0.1", handler)
 						up := httpAuthServer.Upstream
 						_, err := testClients.UpstreamClient.Write(up, clients.WriteOpts{})
@@ -2225,7 +2225,8 @@ var _ = Describe("External auth", func() {
 										Protocol: &extauth.PassThroughAuth_Http{
 											Http: httpPassthroughConfig,
 										},
-										Config: authconfigCfg,
+										Config:           authconfigCfg,
+										FailureModeAllow: failureModeAllow,
 									},
 								},
 							}},
@@ -2255,12 +2256,15 @@ var _ = Describe("External auth", func() {
 
 						// make sure that
 						waitForHealthyExtauthService()
+					}
 
+					BeforeEach(func() {
+						setupConfig()
 					})
 
 					It("works", func() {
-
-						expectStatusCodeWithHeaders(200, nil, nil)
+						setupServerWithFailureModeAllow(false, nil)
+						expectStatusCodeWithHeaders(http.StatusOK, nil, nil)
 						select {
 						case received := <-httpAuthServer.C:
 							Expect(received.Method).To(Equal("POST"))
@@ -2269,7 +2273,32 @@ var _ = Describe("External auth", func() {
 						}
 					})
 
+					DescribeTable("failure_mode_allow sanity tests", func(failureModeAllow bool, clientResponse, expectedServiceResponse int) {
+						handler := func(rw http.ResponseWriter, r *http.Request) bool {
+							rw.WriteHeader(clientResponse)
+							return true
+						}
+						setupServerWithFailureModeAllow(failureModeAllow, handler)
+
+						// Any non-200 response from the client results in the passthrough service to return a 401
+						expectStatusCodeWithHeaders(expectedServiceResponse, nil, nil)
+						select {
+						case received := <-httpAuthServer.C:
+							Expect(received.Method).To(Equal("POST"))
+						case <-time.After(time.Second * 5):
+							Fail("request didn't make it upstream")
+						}
+					},
+						Entry("service error", false, http.StatusServiceUnavailable, http.StatusUnauthorized),
+						Entry("service error with failure_mode_allow enabled", true, http.StatusServiceUnavailable, http.StatusOK),
+						Entry("unauthorized", false, http.StatusUnauthorized, http.StatusUnauthorized),
+						Entry("unauthorized with failure_mode_allow enabled", true, http.StatusUnauthorized, http.StatusUnauthorized),
+					)
+
 					Context("setting path on URL", func() {
+						JustBeforeEach(func() {
+							setupServerWithFailureModeAllow(false, nil)
+						})
 						BeforeEach(func() {
 							authConfigRequestPath += "/auth"
 						})
@@ -2286,6 +2315,9 @@ var _ = Describe("External auth", func() {
 					})
 
 					Context("Request", func() {
+						JustBeforeEach(func() {
+							setupServerWithFailureModeAllow(false, nil)
+						})
 						BeforeEach(func() {
 							httpPassthroughConfig.Request = &extauth.PassThroughHttp_Request{
 								AllowedHeaders: []string{"x-passthrough-1", "x-passthrough-2"},
@@ -2323,12 +2355,13 @@ var _ = Describe("External auth", func() {
 						})
 						Context("On authorized response", func() {
 							BeforeEach(func() {
-								handler = func(rw http.ResponseWriter, r *http.Request) bool {
+								handler := func(rw http.ResponseWriter, r *http.Request) bool {
 									rw.Header().Set("x-auth-header-1", "some value")
 									rw.Header().Set("x-auth-header-2", "some value 2")
 									rw.Header().Set("x-shouldnt-upstream", "shouldn't upstream")
 									return true
 								}
+								setupServerWithFailureModeAllow(false, handler)
 							})
 							It("copies `allowed_headers` request headers and adds `headers_to_add` headers to auth request", func() {
 								expectStatusCodeWithHeaders(200, map[string][]string{
@@ -2351,11 +2384,12 @@ var _ = Describe("External auth", func() {
 
 						Context("on authorized response", func() {
 							BeforeEach(func() {
-								handler = func(rw http.ResponseWriter, r *http.Request) bool {
+								handler := func(rw http.ResponseWriter, r *http.Request) bool {
 									rw.Header().Set("x-auth-header-1", "some value")
 									rw.WriteHeader(http.StatusUnauthorized)
 									return true
 								}
+								setupServerWithFailureModeAllow(false, handler)
 							})
 							It("sends allowed authorization headers back to downstream", func() {
 								expectStatusCodeWithHeaders(http.StatusUnauthorized, nil, map[string]string{"x-auth-header-1": "some value"})
@@ -2364,6 +2398,9 @@ var _ = Describe("External auth", func() {
 					})
 
 					Context("Request to Auth Server Body", func() {
+						JustBeforeEach(func() {
+							setupServerWithFailureModeAllow(false, nil)
+						})
 						BeforeEach(func() {
 							// We need these settings so envoy buffers the request body and sends it to the ext-auth-service
 							glooSettings.Extauth.RequestBody = &extauth.BufferSettings{
@@ -2403,7 +2440,9 @@ var _ = Describe("External auth", func() {
 					})
 
 					Context("pass config specified on auth config in auth request body", func() {
-
+						JustBeforeEach(func() {
+							setupServerWithFailureModeAllow(false, nil)
+						})
 						BeforeEach(func() {
 							authconfigCfg = &structpb.Struct{
 								Fields: map[string]*structpb.Value{
@@ -2481,11 +2520,22 @@ var _ = Describe("External auth", func() {
 						httpAuthServerB *v1helpers.TestUpstream
 						httpPassthroughConfigA,
 						httpPassthroughConfigB *extauth.PassThroughHttp
-						handlerA,
-						handlerB v1helpers.ExtraHandlerFunc
 					)
 
-					BeforeEach(func() {
+					authConfigWithFailureModeAllow := func(httpPassthrough *extauth.PassThroughHttp, failureModeAllow bool) *extauth.AuthConfig_Config {
+						return &extauth.AuthConfig_Config{
+							AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+								PassThroughAuth: &extauth.PassThroughAuth{
+									Protocol: &extauth.PassThroughAuth_Http{
+										Http: httpPassthrough,
+									},
+									FailureModeAllow: failureModeAllow,
+								},
+							},
+						}
+					}
+
+					setupAuthConfigs := func(failureModeAllowA, failureModeAllowB bool) {
 						httpPassthroughConfigA = &extauth.PassThroughHttp{
 							Request:  &extauth.PassThroughHttp_Request{},
 							Response: &extauth.PassThroughHttp_Response{},
@@ -2505,35 +2555,20 @@ var _ = Describe("External auth", func() {
 								Name:      GetPassThroughExtAuthExtension().GetConfigRef().Name,
 								Namespace: GetPassThroughExtAuthExtension().GetConfigRef().Namespace,
 							},
-							Configs: []*extauth.AuthConfig_Config{{
-								AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-									PassThroughAuth: &extauth.PassThroughAuth{
-										Protocol: &extauth.PassThroughAuth_Http{
-											Http: httpPassthroughConfigA,
-										},
-									},
-								},
-							},
-								{
-									AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-										PassThroughAuth: &extauth.PassThroughAuth{
-											Protocol: &extauth.PassThroughAuth_Http{
-												Http: httpPassthroughConfigB,
-											},
-										},
-									},
-								},
+							Configs: []*extauth.AuthConfig_Config{
+								authConfigWithFailureModeAllow(httpPassthroughConfigA, failureModeAllowA),
+								authConfigWithFailureModeAllow(httpPassthroughConfigB, failureModeAllowB),
 							},
 						}
-						handlerA, handlerB = nil, nil
-					})
+					}
 
-					JustBeforeEach(func() {
+					setupServers := func(handlerA, handlerB v1helpers.ExtraHandlerFunc) {
 						httpAuthServerA = v1helpers.NewTestHttpUpstreamWithHandler(ctx, "127.0.0.1", handlerA)
 						up := httpAuthServerA.Upstream
 						_, err := testClients.UpstreamClient.Write(up, clients.WriteOpts{})
 						Expect(err).NotTo(HaveOccurred())
 						httpPassthroughConfigA.Url = fmt.Sprintf("http://%s", httpAuthServerA.Address)
+
 						httpAuthServerB = v1helpers.NewTestHttpUpstreamWithHandler(ctx, "127.0.0.1", handlerB)
 						up = httpAuthServerB.Upstream
 						_, err = testClients.UpstreamClient.Write(up, clients.WriteOpts{})
@@ -2555,7 +2590,7 @@ var _ = Describe("External auth", func() {
 						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						})
-					})
+					}
 
 					_ = func(responseCode int, body string) {
 						EventuallyWithOffset(1, func() (int, error) {
@@ -2570,17 +2605,46 @@ var _ = Describe("External auth", func() {
 					}
 
 					It("works", func() {
-						expectStatusCodeWithHeaders(200, nil, nil)
+						setupAuthConfigs(false, false)
+						setupServers(nil, nil)
+						expectStatusCodeWithHeaders(http.StatusOK, nil, nil)
 					})
+
+					Context("server A has server error ", func() {
+						DescribeTable("it returns expected response, depending on failure mode allow", func(failureModeAllowA, failureModeAllowB bool, expectedStatus int) {
+							setupAuthConfigs(failureModeAllowA, failureModeAllowB)
+							// note: HTTP PassThrough services return either a 200 (accepted) or 401 (denied) status,
+							// regardless of the specific status gotten from the internal request
+							handlerA := func(rw http.ResponseWriter, r *http.Request) bool {
+								rw.WriteHeader(http.StatusServiceUnavailable)
+								return true
+							}
+							handlerB := func(rw http.ResponseWriter, r *http.Request) bool {
+								rw.WriteHeader(http.StatusOK)
+								return true
+							}
+							setupServers(handlerA, handlerB)
+
+							expectStatusCodeWithHeaders(expectedStatus, nil, nil)
+						},
+							Entry("neither service has failure_mode_allow enabled", false, false, http.StatusUnauthorized),
+							Entry("service B has failure_mode_allow enabled", false, true, http.StatusUnauthorized),
+							Entry("service A has failure_mode_allow enabled", true, false, http.StatusOK),
+							Entry("both services have failure_mode_allow enabled", true, true, http.StatusOK),
+						)
+					})
+
 					Context("can modify state", func() {
 						BeforeEach(func() {
+							setupAuthConfigs(false, false)
 							httpPassthroughConfigA.Request.PassThroughState = true
 							httpPassthroughConfigA.Response.ReadStateFromResponse = true
 							httpPassthroughConfigB.Request.PassThroughState = true
-							handlerA = func(rw http.ResponseWriter, r *http.Request) bool {
+							handlerA := func(rw http.ResponseWriter, r *http.Request) bool {
 								rw.Write([]byte(`{"state":{"list": ["item1", "item2", 3, {"item4":""}], "string": "hello", "integer": 9, "nestedObject":{"key":"value"}}}`))
 								return false
 							}
+							setupServers(handlerA, nil)
 						})
 						It("modifies state in authServerA and authServerB can see the new state", func() {
 							expectStatusCodeWithHeaders(200, nil, nil)
@@ -2908,8 +2972,6 @@ var _ = Describe("External auth", func() {
 				})
 
 				Context("passthrough chaining sanity", func() {
-					// These tests are used to validate that state is passed properly to and from the passthrough service
-
 					var (
 						proxy           *gloov1.Proxy
 						authServerA     *passthrough_test_utils.GrpcAuthServer
@@ -2936,7 +2998,15 @@ var _ = Describe("External auth", func() {
 						}, "5s", "0.5s").Should(Equal(responseCode))
 					}
 
-					JustBeforeEach(func() {
+					authConfigWithFailureModeAllow := func(address string, failureModeAllow bool) *extauth.AuthConfig_Config {
+						return &extauth.AuthConfig_Config{
+							AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
+								PassThroughAuth: getPassThroughAuthConfig(address, failureModeAllow),
+							},
+						}
+					}
+
+					setupAuthServersWithFailureModeAllow := func(failureModeAllowA, failureModeAllowB bool) {
 						// start auth servers
 						err := authServerA.Start(authServerAPort)
 						Expect(err).NotTo(HaveOccurred())
@@ -2951,17 +3021,10 @@ var _ = Describe("External auth", func() {
 								Namespace: GetPassThroughExtAuthExtension().GetConfigRef().Namespace,
 							},
 							Configs: []*extauth.AuthConfig_Config{
-								{
-									// Ordering is important here, AuthServerA is listed first so it is earlier in the chain
-									AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-										PassThroughAuth: getPassThroughAuthConfig(authServerA.GetAddress(), false),
-									},
-								},
-								{
-									AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-										PassThroughAuth: getPassThroughAuthConfig(authServerB.GetAddress(), false),
-									},
-								},
+								// ServerA is the initial chain, we only care about how it's final status affects Server B
+								// This can apply to N+1 chains, where ServerA is the accumulated response from (0..N), and B is N+1
+								authConfigWithFailureModeAllow(authServerA.GetAddress(), failureModeAllowA),
+								authConfigWithFailureModeAllow(authServerB.GetAddress(), failureModeAllowB),
 							},
 						}
 						_, err = testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
@@ -2981,7 +3044,7 @@ var _ = Describe("External auth", func() {
 						helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 							return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
 						})
-					})
+					}
 
 					AfterEach(func() {
 						authServerA.Stop()
@@ -2989,7 +3052,6 @@ var _ = Describe("External auth", func() {
 					})
 
 					Context("first auth server writes metadata, second requires it", func() {
-
 						BeforeEach(func() {
 							// Configure AuthServerA (first in chain) to return DynamicMetadata.
 							authServerAResponse := passthrough_test_utils.OkResponseWithDynamicMetadata(&structpb.Struct{
@@ -3028,13 +3090,12 @@ var _ = Describe("External auth", func() {
 							//		1. AuthServerA returns DynamicMetadata under PassThrough Key and that data is stored on AuthorizationRequest
 							//		2. State on AuthorizationRequest is parsed and sent on subsequent request to AuthServerB
 							//		3. AuthServerB receives the Metadata and returns ok if all keys are present.
+							setupAuthServersWithFailureModeAllow(false, false)
 							expectRequestEventuallyReturnsResponseCode(http.StatusOK)
 						})
-
 					})
 
 					Context("first auth server does not write metadata, second requires it", func() {
-
 						BeforeEach(func() {
 							// Configure AuthServerA (first in chain) to NOT return DynamicMetadata.
 							authServerAResponse := passthrough_test_utils.OkResponse()
@@ -3048,15 +3109,35 @@ var _ = Describe("External auth", func() {
 						})
 
 						It("should deny extauth passthrough", func() {
+							setupAuthServersWithFailureModeAllow(false, false)
 							// This will deny the request because:
 							//		1. AuthServerA does not return DynamicMetadata under PassThrough Key. So there is not AuthorizationRequest.State
 							//		2. Since there is no AuthorizationRequest.State, no Metadata is sent in request to AuthServerB
 							//		3. AuthServerB receives no Metadata, but requires certain fields and returns 401 since there are missing properties
 							expectRequestEventuallyReturnsResponseCode(http.StatusUnauthorized)
 						})
-
 					})
 
+					Context("first auth server has server issues", func() {
+						BeforeEach(func() {
+							authServerAResponse := passthrough_test_utils.ServerErrorResponse()
+							authServerA = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerAResponse, nil)
+
+							// Configure AuthServerB (second in chain) to not need any metadata to pass
+							authServerBResponse := passthrough_test_utils.DeniedResponse()
+							authServerB = passthrough_test_utils.NewGrpcAuthServerWithResponse(authServerBResponse, nil)
+						})
+
+						DescribeTable("should return expected response, depending on failure_mode_allow", func(failureModeAllowA, failureModeAllowB bool, expectedResponse int) {
+							setupAuthServersWithFailureModeAllow(failureModeAllowA, failureModeAllowB)
+							expectRequestEventuallyReturnsResponseCode(expectedResponse)
+						},
+							Entry("neither service has failure_mode_allow enabled", false, false, http.StatusServiceUnavailable),
+							Entry("service B has failure_mode_allow enabled", false, true, http.StatusServiceUnavailable),
+							Entry("service A has failure_mode_allow enabled", true, false, http.StatusUnauthorized),
+							Entry("both services have failure_mode_allow enabled", true, true, http.StatusUnauthorized),
+						)
+					})
 				})
 
 				Context("passthrough auth config sanity", func() {
