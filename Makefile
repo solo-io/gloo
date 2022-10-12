@@ -226,7 +226,7 @@ clean:
 generate-all: generated-code ## generated-code
 
 .PHONY: generated-code
-generated-code: $(OUTPUT_DIR)/.generated-code verify-enterprise-protos generate-helm-files update-licenses init ## Evaluate go generate
+generated-code: $(OUTPUT_DIR)/.generated-code verify-enterprise-protos generate-helm-files update-licenses init ## Execute Gloo Edge codegen
 
 # Note: currently we generate CLI docs, but don't push them to the consolidated docs repo (gloo-docs). Instead, the
 # Glooctl enterprise docs are pushed from the private repo.
@@ -250,7 +250,7 @@ $(OUTPUT_DIR)/.generated-code:
 	touch $@
 
 .PHONY: verify-enterprise-protos
-verify-enterprise-protos: ## Make sure that the enterprise API *.pb.go files that are generated but not used in this repo are valid.
+verify-enterprise-protos:
 	@echo Verifying validity of generated enterprise files...
 	$(GO_BUILD_FLAGS) GOOS=linux go build projects/gloo/pkg/api/v1/enterprise/verify.go
 
@@ -305,7 +305,7 @@ $(OUTPUT_DIR)/glooctl-windows-$(GOARCH).exe: $(SOURCES)
 
 
 .PHONY: glooctl
-glooctl: $(OUTPUT_DIR)/glooctl
+glooctl: $(OUTPUT_DIR)/glooctl ## Builds the command line tool
 .PHONY: glooctl-linux-$(GOARCH)
 glooctl-linux-$(GOARCH): $(OUTPUT_DIR)/glooctl-linux-$(GOARCH)
 .PHONY: glooctl-darwin-$(GOARCH)
@@ -397,7 +397,7 @@ $(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH): $(GLOO_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go
 
 .PHONY: gloo
-gloo: $(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH) ## Gloo Edge
+gloo: $(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH)
 
 $(GLOO_OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
@@ -464,7 +464,7 @@ $(SDS_OUTPUT_DIR)/sds-linux-$(GOARCH): $(SDS_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(SDS_DIR)/cmd/main.go
 
 .PHONY: sds
-sds: $(SDS_OUTPUT_DIR)/sds-linux-$(GOARCH) ## gRPC server for serving Secret Discovery Service config for Gloo Edge MTLS
+sds: $(SDS_OUTPUT_DIR)/sds-linux-$(GOARCH)
 
 $(SDS_OUTPUT_DIR)/Dockerfile.sds: $(SDS_DIR)/cmd/Dockerfile
 	cp $< $@
@@ -514,7 +514,7 @@ $(CERTGEN_OUTPUT_DIR)/certgen-linux-$(GOARCH): $(CERTGEN_SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CERTGEN_DIR)/main.go
 
 .PHONY: certgen
-certgen: $(CERTGEN_OUTPUT_DIR)/certgen-linux-$(GOARCH) ## Job for creating TLS Secrets in Kubernetes
+certgen: $(CERTGEN_OUTPUT_DIR)/certgen-linux-$(GOARCH)
 
 $(CERTGEN_OUTPUT_DIR)/Dockerfile.certgen: $(CERTGEN_DIR)/Dockerfile
 	cp $< $@
@@ -663,8 +663,11 @@ ifeq ($(CREATE_ASSETS),"true")
 	DOCKER_IMAGES := docker
 endif
 
+# Tag all existing images and retags each one with the repo specified in {IMAGE_REPO}
+# this ensures we have redundancy and can pull images from multiple registries
+# in our case {RETAG_IMAGE_REGISTRY} and {IMAGE_REPO}
 .PHONY: docker-push-retag
-docker-push-retag: ## check if all images are already built for {RETAG_IMAGE_REGISTRY}, and build/retag them respectively with tags for the repository specified by {IMAGE_REPO}.
+docker-push-retag:
 ifeq ($(RELEASE), "true")
 	docker tag $(RETAG_IMAGE_REGISTRY)/ingress:$(VERSION) $(IMAGE_REPO)/ingress:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/discovery:$(VERSION) $(IMAGE_REPO)/discovery:$(VERSION) && \
@@ -768,10 +771,6 @@ push-docker-images-arm-to-kind-registry:
 # The following targets are used to generate the assets on which the kube2e tests rely upon.
 # The Kube2e tests will use the generated Gloo Edge Chart to install Gloo Edge to the GKE test cluster.
 
-.PHONY: build-test-assets
-build-test-assets: build-test-chart $(OUTPUT_DIR)/glooctl-linux-$(GOARCH)
-build-test-assets: ## Generate Gloo Edge value files and then package the Gloo Edge Helm chart to the _test directory (also generate an index file)
-	$(OUTPUT_DIR)/glooctl-darwin-$(GOARCH)
 .PHONY: build-test-chart
 build-test-chart:
 	mkdir -p $(TEST_ASSET_DIR)
@@ -787,8 +786,9 @@ build-test-chart:
 SCAN_DIR ?= $(OUTPUT_DIR)/scans
 SCAN_BUCKET ?= solo-gloo-security-scans
 
+# Run security scan on gloo and solo-projects, Generates scan files to _output/scans directory
 .PHONY: run-security-scans
-run-security-scan: ## Run security scan on gloo and solo-projects, Generates scan files to _output/scans directory
+run-security-scan:
 	GO111MODULE=on go run docs/cmd/generate_docs.go run-security-scan -r gloo -a github-issue-latest
 	GO111MODULE=on go run docs/cmd/generate_docs.go run-security-scan -r glooe -a github-issue-latest
 
