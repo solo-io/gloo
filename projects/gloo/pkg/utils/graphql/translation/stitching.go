@@ -244,6 +244,12 @@ func translateStitchedSchema(params CreateGraphQLApiParams, schema *gloov1beta1.
 				resolver := &gloov2.StitchingResolver{
 					SubschemaName: queryFieldMap[field.Name.Value],
 				}
+
+				marshalledResolver, err := utils.MessageToAny(resolver)
+				if err != nil {
+					return nil, eris.Wrapf(err, "unable to marshal stitchingResolver")
+				}
+
 				r := &gloov2.Resolution{
 					Matcher: &gloov2.QueryMatcher{
 						Match: &gloov2.QueryMatcher_FieldMatcher_{
@@ -255,7 +261,7 @@ func translateStitchedSchema(params CreateGraphQLApiParams, schema *gloov1beta1.
 					},
 					Resolver: &gloov3.TypedExtensionConfig{
 						Name:        "io.solo.graphql.resolver.stitching",
-						TypedConfig: utils.MustMessageToAny(resolver),
+						TypedConfig: marshalledResolver,
 					},
 				}
 				resolutions = append(resolutions, r)
@@ -298,6 +304,12 @@ func translateStitchedSchema(params CreateGraphQLApiParams, schema *gloov1beta1.
 		MergedTypes:                    glooMergedTypes,
 		SubschemaNameToSubschemaConfig: subschemaNameToExecutableSchema,
 	}
+
+	marshalledstitchingExtension, err := utils.MessageToAny(stitchingExtension)
+	if err != nil {
+		return nil, eris.Wrapf(err, "unable to marshal stitchingExtension")
+	}
+
 	return &gloov2.ExecutableSchema{
 		SchemaDefinition: &gloov3.DataSource{
 			Specifier: &gloov3.DataSource_InlineString{
@@ -305,7 +317,7 @@ func translateStitchedSchema(params CreateGraphQLApiParams, schema *gloov1beta1.
 			},
 		},
 		Extensions: map[string]*any.Any{
-			stitchingExtensionName: utils.MustMessageToAny(stitchingExtension),
+			stitchingExtensionName: marshalledstitchingExtension,
 		},
 		Executor: &gloov2.Executor{
 			Executor: &gloov2.Executor_Local_{

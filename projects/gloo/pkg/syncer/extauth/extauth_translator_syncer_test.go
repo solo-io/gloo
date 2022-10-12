@@ -61,7 +61,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		reports = make(reporter.ResourceReports)
-		translator = NewTranslatorSyncerExtension(ctx, syncer.TranslatorSyncerExtensionParams{Hasher: translator2.MustEnvoyCacheResourcesListToFnvHash})
+		translator = NewTranslatorSyncerExtension(ctx, syncer.TranslatorSyncerExtensionParams{Hasher: translator2.EnvoyCacheResourcesListToFnvHash})
 		secret = &gloov1.Secret{
 			Metadata: &skcore.Metadata{
 				Name:      "secret",

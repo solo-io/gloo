@@ -260,7 +260,12 @@ func TranslateExtensions(artifacts types.ArtifactList, api *v1beta1.GraphQLApi) 
 		default:
 			return nil, eris.Errorf("unimplemented type %T for grpc resolver proto descriptor translation", regType)
 		}
-		extensions[grpc.GrpcRegistryExtensionName] = utils.MustMessageToAny(grpcDescRegistry)
+		marshalledGRPCDescRegistry, err := utils.MessageToAny(grpcDescRegistry)
+		if err != nil {
+			// No extra logs needed here as the error is handled in a sensible manner.
+			return nil, eris.Wrapf(err, "unable to marshal grpcDescRegistry")
+		}
+		extensions[grpc.GrpcRegistryExtensionName] = marshalledGRPCDescRegistry
 	}
 
 	if len(extensions) == 0 {

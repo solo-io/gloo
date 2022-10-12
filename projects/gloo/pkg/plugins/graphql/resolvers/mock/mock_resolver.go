@@ -53,8 +53,13 @@ func TranslateMockResolver(r *v1beta1.MockResolver) (*v3.TypedExtensionConfig, e
 			return nil, eris.Errorf("unknown mock resolver responser type %T", r.Response)
 		}
 	}
+
+	marshalledEnvoyConfig, err := utils.MessageToAny(envoyConfig)
+	if err != nil {
+		return nil, eris.Wrapf(err, "unable to marshal envoyConfig")
+	}
 	return &v3.TypedExtensionConfig{
 		Name:        StaticResolverTypedExtensionConfigName,
-		TypedConfig: utils.MustMessageToAny(envoyConfig),
+		TypedConfig: marshalledEnvoyConfig,
 	}, nil
 }

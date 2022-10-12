@@ -41,9 +41,13 @@ func TranslateGrpcResolver(upstreams types.UpstreamList, r *v1beta1.GrpcResolver
 		RequestTransform: requestTransform,
 		SpanName:         r.SpanName,
 	}
+	marshalledGRPCResolver, err := utils.MessageToAny(grpcResolver)
+	if err != nil {
+		return nil, eris.Wrapf(err, "unable to marshal grpcResolver")
+	}
 	return &v3.TypedExtensionConfig{
 		Name:        grpcResolverTypedExtensionConfigName,
-		TypedConfig: utils.MustMessageToAny(grpcResolver),
+		TypedConfig: marshalledGRPCResolver,
 	}, nil
 }
 

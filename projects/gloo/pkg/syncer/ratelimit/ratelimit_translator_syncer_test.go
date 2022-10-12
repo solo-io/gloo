@@ -76,7 +76,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 		domainGenerator = mock_shims.NewMockRateLimitDomainGenerator(ctrl)
 		reports = make(skreporter.ResourceReports)
 
-		syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, translator.MustEnvoyCacheResourcesListToFnvHash)
+		syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, translator.EnvoyCacheResourcesListToFnvHash)
 		Expect(syncer.ID()).To(Equal(xds.ServerRole))
 
 		apiSnapshot = &gloov1snap.ApiSnapshot{
@@ -427,7 +427,7 @@ var _ = Describe("RateLimitTranslatorSyncer- use real (not mocked) collectors", 
 				shims.NewRateLimitConfigTranslator(),
 				translation.NewBasicRateLimitTranslator())
 
-			syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, translator.MustEnvoyCacheResourcesListToFnvHash)
+			syncer = rlsyncer.NewTranslatorSyncer(collectorFactory, domainGenerator, translator.EnvoyCacheResourcesListToFnvHash)
 		})
 
 		It("returns the expected error", func() {

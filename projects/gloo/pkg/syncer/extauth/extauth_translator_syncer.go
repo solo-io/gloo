@@ -59,7 +59,7 @@ func init() {
 }
 
 type translatorSyncerExtension struct {
-	hasher func(resources []envoycache.Resource) uint64
+	hasher func(resources []envoycache.Resource) (uint64, error)
 }
 
 func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyncerExtensionParams) syncer.TranslatorSyncerExtension {
@@ -138,8 +138,13 @@ func (s *translatorSyncerExtension) SyncAndSet(
 	}
 
 	var extAuthSnapshot envoycache.Snapshot
-	if snapshotResources == nil {
-		// If there are no auth configs, use an empty configuration
+	snapshotHash, err := s.hasher(snapshotResources)
+	if err != nil {
+		contextutils.LoggerFrom(ctx).DPanicw("error trying to hash snapshot resources for extauth translation", err)
+	}
+
+	if snapshotResources == nil || err != nil {
+		// If there are no correctly formatted auth configs, use an empty configuration
 		//
 		// The SnapshotCache can now differentiate between nil and empty snapshotResources in a snapshot.
 		// This was introduced with: https://github.com/solo-io/solo-kit/pull/410
@@ -150,7 +155,7 @@ func (s *translatorSyncerExtension) SyncAndSet(
 		// so that extauth picks up the empty config, and becomes healthy
 		extAuthSnapshot = envoycache.NewGenericSnapshot(emptyTypedResources)
 	} else {
-		snapshotVersion := fmt.Sprintf("%d", s.hasher(snapshotResources))
+		snapshotVersion := fmt.Sprintf("%d", snapshotHash)
 		extAuthSnapshot = envoycache.NewEasyGenericSnapshot(snapshotVersion, snapshotResources)
 	}
 

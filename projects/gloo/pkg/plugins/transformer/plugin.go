@@ -2,6 +2,7 @@ package transformer
 
 import (
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	"github.com/rotisserie/eris"
 	v32 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	envoytransformation "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -79,7 +80,11 @@ func translateTransformation(glooTransform *transformation.Transformation) (*env
 	switch typedTransformation := glooTransform.GetTransformationType().(type) {
 	case *transformation.Transformation_XsltTransformation:
 		{
-			any := utils.MustMessageToAny(typedTransformation.XsltTransformation)
+			any, err := utils.MessageToAny(typedTransformation.XsltTransformation)
+			if err != nil {
+				return nil, eris.Wrapf(err, "unable to marshal typedTransformation.XsltTransformation")
+			}
+
 			out.TransformationType = &envoytransformation.Transformation_TransformerConfig{
 				TransformerConfig: &v32.TypedExtensionConfig{
 					// Arbitrary name for TypedExtension, will error if left empty

@@ -3,6 +3,8 @@ package caching
 import (
 	"fmt"
 
+	"github.com/rotisserie/eris"
+
 	envoycaching "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/cache/v3"
 	v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	envoycore "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
@@ -12,6 +14,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
+	"github.com/solo-io/go-utils/contextutils"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -90,7 +93,13 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		MaxPayloadSize: maxSize, // set the max size as enforced by the grpc cache
 	}
 
-	typedConfig := utils.MustMessageToAny(grpcConfig)
+	marshalledGRPCConfig, err := utils.MessageToAny(grpcConfig)
+	if err != nil {
+		wrapErr := eris.Wrapf(err, "unable to marshal grpcConfig")
+		contextutils.LoggerFrom(params.Ctx).DPanic(wrapErr.Error())
+		return []plugins.StagedHttpFilter{}, wrapErr
+	}
+	typedConfig := marshalledGRPCConfig
 	varyHeaders := serverSettings.GetAllowedVaryHeaders()
 
 	allowedHeaders := []*v3.StringMatcher{}

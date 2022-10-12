@@ -71,7 +71,7 @@ func init() {
 type translatorSyncerExtension struct {
 	collectorFactory collectors.ConfigCollectorFactory
 	domainGenerator  rate_limiter_shims.RateLimitDomainGenerator
-	hasher           func(resources []envoycache.Resource) uint64
+	hasher           func(resources []envoycache.Resource) (uint64, error)
 }
 
 func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyncerExtensionParams) syncer.TranslatorSyncerExtension {
@@ -99,7 +99,7 @@ func NewTranslatorSyncerExtension(_ context.Context, params syncer.TranslatorSyn
 func NewTranslatorSyncer(
 	collectorFactory collectors.ConfigCollectorFactory,
 	domainGenerator rate_limiter_shims.RateLimitDomainGenerator,
-	hasher func(resources []envoycache.Resource) uint64,
+	hasher func(resources []envoycache.Resource) (uint64, error),
 ) syncer.TranslatorSyncerExtension {
 	return &translatorSyncerExtension{
 		collectorFactory: collectorFactory,
@@ -177,8 +177,13 @@ func (s *translatorSyncerExtension) Sync(
 	}
 
 	var rateLimitSnapshot envoycache.Snapshot
-	if snapshotResources == nil {
-		// If there are no rate limit configs, use an empty configuration
+	snapshotHash, err := s.hasher(snapshotResources)
+	if err != nil {
+		contextutils.LoggerFrom(ctx).DPanic(fmt.Sprintf("error trying to hash snapshot resources for ratelimit translation: %v", err))
+	}
+
+	if snapshotResources == nil || err != nil {
+		// If there are no correctly formatted rate limit configs, use an empty configuration
 		//
 		// The SnapshotCache can now differentiate between nil and empty resources in a snapshot.
 		// This was introduced with: https://github.com/solo-io/solo-kit/pull/410
@@ -189,7 +194,8 @@ func (s *translatorSyncerExtension) Sync(
 		// so that ratelimiit picks up the empty config, and becomes healthy
 		rateLimitSnapshot = envoycache.NewGenericSnapshot(emptyTypedResources)
 	} else {
-		snapshotVersion := fmt.Sprintf("%d", s.hasher(snapshotResources))
+
+		snapshotVersion := fmt.Sprintf("%d", snapshotHash)
 		rateLimitSnapshot = envoycache.NewEasyGenericSnapshot(snapshotVersion, snapshotResources)
 	}
 

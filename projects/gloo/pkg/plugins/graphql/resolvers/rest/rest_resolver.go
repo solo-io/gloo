@@ -49,9 +49,15 @@ func TranslateRestResolver(upstreams types.UpstreamList, r *RESTResolver) (*v3.T
 		PreExecutionTransform: responseTransform,
 		SpanName:              r.SpanName,
 	}
+
+	marshalledRestResolver, err := utils.MessageToAny(restResolver)
+	if err != nil {
+		return nil, eris.Wrapf(err, "unable to marshal restResolver")
+	}
+
 	return &v3.TypedExtensionConfig{
 		Name:        restResolverTypedExtensionConfigName,
-		TypedConfig: utils.MustMessageToAny(restResolver),
+		TypedConfig: marshalledRestResolver,
 	}, nil
 }
 
