@@ -769,7 +769,8 @@ push-docker-images-arm-to-kind-registry:
 # The Kube2e tests will use the generated Gloo Edge Chart to install Gloo Edge to the GKE test cluster.
 
 .PHONY: build-test-assets
-build-test-assets: build-test-chart $(OUTPUT_DIR)/glooctl-linux-$(GOARCH) \ ## Generate Gloo Edge value files and then package the Gloo Edge Helm chart to the _test directory (also generate an index file)
+build-test-assets: build-test-chart $(OUTPUT_DIR)/glooctl-linux-$(GOARCH)
+build-test-assets: ## Generate Gloo Edge value files and then package the Gloo Edge Helm chart to the _test directory (also generate an index file)
 	$(OUTPUT_DIR)/glooctl-darwin-$(GOARCH)
 .PHONY: build-test-chart
 build-test-chart:
