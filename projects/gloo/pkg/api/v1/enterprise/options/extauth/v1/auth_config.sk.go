@@ -17,7 +17,7 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.HashableInputResource = new(AuthConfig)
+	_ resources.InputResource = new(AuthConfig)
 )
 
 func NewAuthConfigHashableResource() resources.HashableResource {

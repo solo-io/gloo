@@ -17,7 +17,7 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.HashableInputResource = new(GraphQLApi)
+	_ resources.InputResource = new(GraphQLApi)
 )
 
 func NewGraphQLApiHashableResource() resources.HashableResource {

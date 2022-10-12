@@ -17,7 +17,7 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.HashableInputResource = new(Proxy)
+	_ resources.InputResource = new(Proxy)
 )
 
 func NewProxyHashableResource() resources.HashableResource {

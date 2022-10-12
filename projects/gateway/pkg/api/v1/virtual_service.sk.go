@@ -17,7 +17,7 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.HashableInputResource = new(VirtualService)
+	_ resources.InputResource = new(VirtualService)
 )
 
 func NewVirtualServiceHashableResource() resources.HashableResource {

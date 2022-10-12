@@ -97,6 +97,91 @@ func (s *TranslatorSnapshot) GetResourcesList(resource resources.Resource) (reso
 	}
 }
 
+func (s *TranslatorSnapshot) RemoveFromResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch resource.(type) {
+	case *gloo_solo_io.Upstream:
+		newList := gloo_solo_io.UpstreamList{}
+		for _, res := range s.Upstreams {
+			if refKey != res.GetMetadata().Ref().Key() {
+				newList = append(newList, res)
+			}
+		}
+		s.Upstreams = newList
+		s.Upstreams.Sort()
+		return nil
+	case *KubeService:
+		newList := KubeServiceList{}
+		for _, res := range s.Services {
+			if refKey != res.GetMetadata().Ref().Key() {
+				newList = append(newList, res)
+			}
+		}
+		s.Services = newList
+		s.Services.Sort()
+		return nil
+	case *Ingress:
+		newList := IngressList{}
+		for _, res := range s.Ingresses {
+			if refKey != res.GetMetadata().Ref().Key() {
+				newList = append(newList, res)
+			}
+		}
+		s.Ingresses = newList
+		s.Ingresses.Sort()
+		return nil
+	default:
+		return eris.Errorf("did not remove the reousource because its type does not exist [%T]", resource)
+	}
+}
+
+func (s *TranslatorSnapshot) AddOrReplaceToResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch typed := resource.(type) {
+	case *gloo_solo_io.Upstream:
+		updated := false
+		for i, res := range s.Upstreams {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Upstreams[i] = typed
+				updated = true
+			}
+		}
+		if !updated {
+			s.Upstreams = append(s.Upstreams, typed)
+		}
+		s.Upstreams.Sort()
+		return nil
+	case *KubeService:
+		updated := false
+		for i, res := range s.Services {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Services[i] = typed
+				updated = true
+			}
+		}
+		if !updated {
+			s.Services = append(s.Services, typed)
+		}
+		s.Services.Sort()
+		return nil
+	case *Ingress:
+		updated := false
+		for i, res := range s.Ingresses {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Ingresses[i] = typed
+				updated = true
+			}
+		}
+		if !updated {
+			s.Ingresses = append(s.Ingresses, typed)
+		}
+		s.Ingresses.Sort()
+		return nil
+	default:
+		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
+	}
+}
+
 func (s *TranslatorSnapshot) AddToResourceList(resource resources.Resource) error {
 	switch typed := resource.(type) {
 	case *gloo_solo_io.Upstream:
@@ -112,7 +197,7 @@ func (s *TranslatorSnapshot) AddToResourceList(resource resources.Resource) erro
 		s.Ingresses.Sort()
 		return nil
 	default:
-		return eris.New("did not add the input resource type because it does not exist")
+		return eris.Errorf("did not add the resource type because it does not exist %T", resource)
 	}
 }
 
@@ -125,37 +210,7 @@ func (s *TranslatorSnapshot) ReplaceResource(i int, resource resources.Resource)
 	case *Ingress:
 		s.Ingresses[i] = typed
 	default:
-		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
-	}
-	return nil
-}
-
-func (s *TranslatorSnapshot) GetInputResourcesList(resource resources.InputResource) (resources.InputResourceList, error) {
-	switch resource.(type) {
-	case *gloo_solo_io.Upstream:
-		return s.Upstreams.AsInputResources(), nil
-	default:
-		return resources.InputResourceList{}, eris.New("did not contain the input resource type returning empty list")
-	}
-}
-
-func (s *TranslatorSnapshot) AddToInputResourceList(resource resources.InputResource) error {
-	switch typed := resource.(type) {
-	case *gloo_solo_io.Upstream:
-		s.Upstreams = append(s.Upstreams, typed)
-		s.Upstreams.Sort()
-		return nil
-	default:
-		return eris.New("did not add the input resource type because it does not exist")
-	}
-}
-
-func (s *TranslatorSnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
-	switch typed := resource.(type) {
-	case *gloo_solo_io.Upstream:
-		s.Upstreams[i] = typed
-	default:
-		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+		return eris.Wrapf(eris.Errorf("did not contain the resource type %T", resource), "did not replace the resource at index %d", i)
 	}
 	return nil
 }

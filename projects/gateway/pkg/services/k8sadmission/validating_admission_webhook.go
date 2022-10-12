@@ -408,14 +408,10 @@ func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.Gr
 	newResourceFunc := gloosnapshot.ApiGvkToHashableResource[gvk]
 
 	newResource := newResourceFunc()
-	// NOTE-JAKE If unmarshalling gives you issues, you can do this?  not sure we will need the key to delete/remove from the api snapshot list.
-	// newResource.SetMetadata(&core.Metadata{
-	// 	Namespace: ref.Namespace,
-	// 	Name: ref.Name,
-	// })
-	if err := protoutils.UnmarshalResource(admissionRequest.Object.Raw, newResource); err != nil {
-		return nil, &multierror.Error{Errors: []error{WrappedUnmarshalErr(err)}}
-	}
+	newResource.SetMetadata(&core.Metadata{
+		Namespace: ref.GetNamespace(),
+		Name:      ref.GetName(),
+	})
 	err := wh.validator.ValidateDeleteRef(ctx, gvk, newResource, isDryRun(admissionRequest))
 	if err != nil {
 		return nil, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validating the deletion of resource namespace: %s name: %s", ref.GetNamespace(), ref.GetName())}}

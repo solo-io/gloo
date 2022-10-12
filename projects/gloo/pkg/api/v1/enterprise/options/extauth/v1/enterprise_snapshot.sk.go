@@ -63,6 +63,45 @@ func (s *EnterpriseSnapshot) GetResourcesList(resource resources.Resource) (reso
 	}
 }
 
+func (s *EnterpriseSnapshot) RemoveFromResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch resource.(type) {
+	case *AuthConfig:
+		newList := AuthConfigList{}
+		for _, res := range s.AuthConfigs {
+			if refKey != res.GetMetadata().Ref().Key() {
+				newList = append(newList, res)
+			}
+		}
+		s.AuthConfigs = newList
+		s.AuthConfigs.Sort()
+		return nil
+	default:
+		return eris.Errorf("did not remove the reousource because its type does not exist [%T]", resource)
+	}
+}
+
+func (s *EnterpriseSnapshot) AddOrReplaceToResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch typed := resource.(type) {
+	case *AuthConfig:
+		updated := false
+		for i, res := range s.AuthConfigs {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.AuthConfigs[i] = typed
+				updated = true
+			}
+		}
+		if !updated {
+			s.AuthConfigs = append(s.AuthConfigs, typed)
+		}
+		s.AuthConfigs.Sort()
+		return nil
+	default:
+		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
+	}
+}
+
 func (s *EnterpriseSnapshot) AddToResourceList(resource resources.Resource) error {
 	switch typed := resource.(type) {
 	case *AuthConfig:
@@ -70,7 +109,7 @@ func (s *EnterpriseSnapshot) AddToResourceList(resource resources.Resource) erro
 		s.AuthConfigs.Sort()
 		return nil
 	default:
-		return eris.New("did not add the input resource type because it does not exist")
+		return eris.Errorf("did not add the resource type because it does not exist %T", resource)
 	}
 }
 
@@ -79,37 +118,7 @@ func (s *EnterpriseSnapshot) ReplaceResource(i int, resource resources.Resource)
 	case *AuthConfig:
 		s.AuthConfigs[i] = typed
 	default:
-		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
-	}
-	return nil
-}
-
-func (s *EnterpriseSnapshot) GetInputResourcesList(resource resources.InputResource) (resources.InputResourceList, error) {
-	switch resource.(type) {
-	case *AuthConfig:
-		return s.AuthConfigs.AsInputResources(), nil
-	default:
-		return resources.InputResourceList{}, eris.New("did not contain the input resource type returning empty list")
-	}
-}
-
-func (s *EnterpriseSnapshot) AddToInputResourceList(resource resources.InputResource) error {
-	switch typed := resource.(type) {
-	case *AuthConfig:
-		s.AuthConfigs = append(s.AuthConfigs, typed)
-		s.AuthConfigs.Sort()
-		return nil
-	default:
-		return eris.New("did not add the input resource type because it does not exist")
-	}
-}
-
-func (s *EnterpriseSnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
-	switch typed := resource.(type) {
-	case *AuthConfig:
-		s.AuthConfigs[i] = typed
-	default:
-		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+		return eris.Wrapf(eris.Errorf("did not contain the resource type %T", resource), "did not replace the resource at index %d", i)
 	}
 	return nil
 }

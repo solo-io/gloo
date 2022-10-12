@@ -79,6 +79,68 @@ func (s *StatusSnapshot) GetResourcesList(resource resources.Resource) (resource
 	}
 }
 
+func (s *StatusSnapshot) RemoveFromResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch resource.(type) {
+	case *KubeService:
+		newList := KubeServiceList{}
+		for _, res := range s.Services {
+			if refKey != res.GetMetadata().Ref().Key() {
+				newList = append(newList, res)
+			}
+		}
+		s.Services = newList
+		s.Services.Sort()
+		return nil
+	case *Ingress:
+		newList := IngressList{}
+		for _, res := range s.Ingresses {
+			if refKey != res.GetMetadata().Ref().Key() {
+				newList = append(newList, res)
+			}
+		}
+		s.Ingresses = newList
+		s.Ingresses.Sort()
+		return nil
+	default:
+		return eris.Errorf("did not remove the reousource because its type does not exist [%T]", resource)
+	}
+}
+
+func (s *StatusSnapshot) AddOrReplaceToResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch typed := resource.(type) {
+	case *KubeService:
+		updated := false
+		for i, res := range s.Services {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Services[i] = typed
+				updated = true
+			}
+		}
+		if !updated {
+			s.Services = append(s.Services, typed)
+		}
+		s.Services.Sort()
+		return nil
+	case *Ingress:
+		updated := false
+		for i, res := range s.Ingresses {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Ingresses[i] = typed
+				updated = true
+			}
+		}
+		if !updated {
+			s.Ingresses = append(s.Ingresses, typed)
+		}
+		s.Ingresses.Sort()
+		return nil
+	default:
+		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
+	}
+}
+
 func (s *StatusSnapshot) AddToResourceList(resource resources.Resource) error {
 	switch typed := resource.(type) {
 	case *KubeService:
@@ -90,7 +152,7 @@ func (s *StatusSnapshot) AddToResourceList(resource resources.Resource) error {
 		s.Ingresses.Sort()
 		return nil
 	default:
-		return eris.New("did not add the input resource type because it does not exist")
+		return eris.Errorf("did not add the resource type because it does not exist %T", resource)
 	}
 }
 
@@ -101,7 +163,7 @@ func (s *StatusSnapshot) ReplaceResource(i int, resource resources.Resource) err
 	case *Ingress:
 		s.Ingresses[i] = typed
 	default:
-		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+		return eris.Wrapf(eris.Errorf("did not contain the resource type %T", resource), "did not replace the resource at index %d", i)
 	}
 	return nil
 }

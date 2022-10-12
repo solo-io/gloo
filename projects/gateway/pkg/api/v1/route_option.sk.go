@@ -17,7 +17,7 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.HashableInputResource = new(RouteOption)
+	_ resources.InputResource = new(RouteOption)
 )
 
 func NewRouteOptionHashableResource() resources.HashableResource {

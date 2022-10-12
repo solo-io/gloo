@@ -17,7 +17,7 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.HashableInputResource = new(Gateway)
+	_ resources.InputResource = new(Gateway)
 )
 
 func NewGatewayHashableResource() resources.HashableResource {

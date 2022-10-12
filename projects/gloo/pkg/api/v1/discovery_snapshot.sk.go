@@ -88,10 +88,97 @@ func (s *DiscoverySnapshot) GetResourcesList(resource resources.Resource) (resou
 	switch resource.(type) {
 	case *Upstream:
 		return s.Upstreams.AsResources(), nil
+	case *github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespace:
+		return s.Kubenamespaces.AsResources(), nil
 	case *Secret:
 		return s.Secrets.AsResources(), nil
 	default:
 		return resources.ResourceList{}, eris.New("did not contain the input resource type returning empty list")
+	}
+}
+
+func (s *DiscoverySnapshot) RemoveFromResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch resource.(type) {
+	case *Upstream:
+		newList := UpstreamList{}
+		for _, res := range s.Upstreams {
+			if refKey != res.GetMetadata().Ref().Key() {
+				newList = append(newList, res)
+			}
+		}
+		s.Upstreams = newList
+		s.Upstreams.Sort()
+		return nil
+	case *github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespace:
+		newList := github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceList{}
+		for _, res := range s.Kubenamespaces {
+			if refKey != res.GetMetadata().Ref().Key() {
+				newList = append(newList, res)
+			}
+		}
+		s.Kubenamespaces = newList
+		s.Kubenamespaces.Sort()
+		return nil
+	case *Secret:
+		newList := SecretList{}
+		for _, res := range s.Secrets {
+			if refKey != res.GetMetadata().Ref().Key() {
+				newList = append(newList, res)
+			}
+		}
+		s.Secrets = newList
+		s.Secrets.Sort()
+		return nil
+	default:
+		return eris.Errorf("did not remove the reousource because its type does not exist [%T]", resource)
+	}
+}
+
+func (s *DiscoverySnapshot) AddOrReplaceToResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch typed := resource.(type) {
+	case *Upstream:
+		updated := false
+		for i, res := range s.Upstreams {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Upstreams[i] = typed
+				updated = true
+			}
+		}
+		if !updated {
+			s.Upstreams = append(s.Upstreams, typed)
+		}
+		s.Upstreams.Sort()
+		return nil
+	case *github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespace:
+		updated := false
+		for i, res := range s.Kubenamespaces {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Kubenamespaces[i] = typed
+				updated = true
+			}
+		}
+		if !updated {
+			s.Kubenamespaces = append(s.Kubenamespaces, typed)
+		}
+		s.Kubenamespaces.Sort()
+		return nil
+	case *Secret:
+		updated := false
+		for i, res := range s.Secrets {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Secrets[i] = typed
+				updated = true
+			}
+		}
+		if !updated {
+			s.Secrets = append(s.Secrets, typed)
+		}
+		s.Secrets.Sort()
+		return nil
+	default:
+		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
 	}
 }
 
@@ -101,12 +188,16 @@ func (s *DiscoverySnapshot) AddToResourceList(resource resources.Resource) error
 		s.Upstreams = append(s.Upstreams, typed)
 		s.Upstreams.Sort()
 		return nil
+	case *github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespace:
+		s.Kubenamespaces = append(s.Kubenamespaces, typed)
+		s.Kubenamespaces.Sort()
+		return nil
 	case *Secret:
 		s.Secrets = append(s.Secrets, typed)
 		s.Secrets.Sort()
 		return nil
 	default:
-		return eris.New("did not add the input resource type because it does not exist")
+		return eris.Errorf("did not add the resource type because it does not exist %T", resource)
 	}
 }
 
@@ -114,40 +205,12 @@ func (s *DiscoverySnapshot) ReplaceResource(i int, resource resources.Resource) 
 	switch typed := resource.(type) {
 	case *Upstream:
 		s.Upstreams[i] = typed
+	case *github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespace:
+		s.Kubenamespaces[i] = typed
 	case *Secret:
 		s.Secrets[i] = typed
 	default:
-		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
-	}
-	return nil
-}
-
-func (s *DiscoverySnapshot) GetInputResourcesList(resource resources.InputResource) (resources.InputResourceList, error) {
-	switch resource.(type) {
-	case *Upstream:
-		return s.Upstreams.AsInputResources(), nil
-	default:
-		return resources.InputResourceList{}, eris.New("did not contain the input resource type returning empty list")
-	}
-}
-
-func (s *DiscoverySnapshot) AddToInputResourceList(resource resources.InputResource) error {
-	switch typed := resource.(type) {
-	case *Upstream:
-		s.Upstreams = append(s.Upstreams, typed)
-		s.Upstreams.Sort()
-		return nil
-	default:
-		return eris.New("did not add the input resource type because it does not exist")
-	}
-}
-
-func (s *DiscoverySnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
-	switch typed := resource.(type) {
-	case *Upstream:
-		s.Upstreams[i] = typed
-	default:
-		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+		return eris.Wrapf(eris.Errorf("did not contain the resource type %T", resource), "did not replace the resource at index %d", i)
 	}
 	return nil
 }
@@ -195,5 +258,6 @@ func (s DiscoverySnapshot) Stringer() DiscoverySnapshotStringer {
 
 var DiscoveryGvkToHashableResource = map[schema.GroupVersionKind]func() resources.HashableResource{
 	UpstreamGVK: NewUpstreamHashableResource,
-	SecretGVK:   NewSecretHashableResource,
+	github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceGVK: github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.NewKubeNamespaceHashableResource,
+	SecretGVK: NewSecretHashableResource,
 }

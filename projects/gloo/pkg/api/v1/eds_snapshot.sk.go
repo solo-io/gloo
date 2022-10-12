@@ -63,6 +63,45 @@ func (s *EdsSnapshot) GetResourcesList(resource resources.Resource) (resources.R
 	}
 }
 
+func (s *EdsSnapshot) RemoveFromResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch resource.(type) {
+	case *Upstream:
+		newList := UpstreamList{}
+		for _, res := range s.Upstreams {
+			if refKey != res.GetMetadata().Ref().Key() {
+				newList = append(newList, res)
+			}
+		}
+		s.Upstreams = newList
+		s.Upstreams.Sort()
+		return nil
+	default:
+		return eris.Errorf("did not remove the reousource because its type does not exist [%T]", resource)
+	}
+}
+
+func (s *EdsSnapshot) AddOrReplaceToResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch typed := resource.(type) {
+	case *Upstream:
+		updated := false
+		for i, res := range s.Upstreams {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Upstreams[i] = typed
+				updated = true
+			}
+		}
+		if !updated {
+			s.Upstreams = append(s.Upstreams, typed)
+		}
+		s.Upstreams.Sort()
+		return nil
+	default:
+		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
+	}
+}
+
 func (s *EdsSnapshot) AddToResourceList(resource resources.Resource) error {
 	switch typed := resource.(type) {
 	case *Upstream:
@@ -70,7 +109,7 @@ func (s *EdsSnapshot) AddToResourceList(resource resources.Resource) error {
 		s.Upstreams.Sort()
 		return nil
 	default:
-		return eris.New("did not add the input resource type because it does not exist")
+		return eris.Errorf("did not add the resource type because it does not exist %T", resource)
 	}
 }
 
@@ -79,37 +118,7 @@ func (s *EdsSnapshot) ReplaceResource(i int, resource resources.Resource) error 
 	case *Upstream:
 		s.Upstreams[i] = typed
 	default:
-		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
-	}
-	return nil
-}
-
-func (s *EdsSnapshot) GetInputResourcesList(resource resources.InputResource) (resources.InputResourceList, error) {
-	switch resource.(type) {
-	case *Upstream:
-		return s.Upstreams.AsInputResources(), nil
-	default:
-		return resources.InputResourceList{}, eris.New("did not contain the input resource type returning empty list")
-	}
-}
-
-func (s *EdsSnapshot) AddToInputResourceList(resource resources.InputResource) error {
-	switch typed := resource.(type) {
-	case *Upstream:
-		s.Upstreams = append(s.Upstreams, typed)
-		s.Upstreams.Sort()
-		return nil
-	default:
-		return eris.New("did not add the input resource type because it does not exist")
-	}
-}
-
-func (s *EdsSnapshot) ReplaceInputResource(i int, resource resources.InputResource) error {
-	switch typed := resource.(type) {
-	case *Upstream:
-		s.Upstreams[i] = typed
-	default:
-		return eris.Wrapf(eris.New("did not contain the input resource type"), "did not replace the resource at index %d", i)
+		return eris.Wrapf(eris.Errorf("did not contain the resource type %T", resource), "did not replace the resource at index %d", i)
 	}
 	return nil
 }

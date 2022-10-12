@@ -17,7 +17,7 @@ import (
 
 var (
 	// Compile-time assertion
-	_ resources.HashableInputResource = new(UpstreamGroup)
+	_ resources.InputResource = new(UpstreamGroup)
 )
 
 func NewUpstreamGroupHashableResource() resources.HashableResource {
