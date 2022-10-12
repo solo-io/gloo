@@ -359,7 +359,7 @@ func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersi
 	} else if gvk.Group == gloovalidation.GlooGroup {
 		// all this is really doing is telling me that it is supported....
 		if _, hit := gloovalidation.GvkToSupportedDeleteGlooResources[gvk]; hit {
-			_, err := v.validateGlooResource(ctx, resource, true, dryRun)
+			_, err := v.validateGlooResource(ctx, resource, true, dryRun, true)
 			return err
 		}
 	}
@@ -368,12 +368,16 @@ func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersi
 }
 
 func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*Reports, error) {
+	return v.validateGvk(ctx, gvk, resource, dryRun, true)
+}
+
+func (v *validator) validateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun, acquireLock bool) (*Reports, error) {
 	var reports *Reports
 	// Gloo has two types of Groups: Gateway, Gloo. This statement is splitting the Validation based off
 	// the resource group type.
 	if gvk.Group == GatewayGroup {
 		if rv, hit := GvkToGatewayResourceValidator[gvk]; hit {
-			reports, err := v.ValidateGatewayResource(ctx, resource, rv, dryRun)
+			reports, err := v.validateGatewayResource(ctx, resource, rv, dryRun, acquireLock)
 			if err != nil {
 				return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
 			}
@@ -381,7 +385,7 @@ func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind
 		}
 	} else if gvk.Group == gloovalidation.GlooGroup {
 		if _, hit := gloovalidation.GvkToSupportedGlooResources[gvk]; hit {
-			reports, err := v.validateGlooResource(ctx, resource, false, dryRun)
+			reports, err := v.validateGlooResource(ctx, resource, false, dryRun, acquireLock)
 			if err != nil {
 				return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
 			}
@@ -455,7 +459,7 @@ func (v *validator) processItem(ctx context.Context, item unstructured.Unstructu
 		if unmarshalErr := skprotoutils.UnmarshalResource(jsonBytes, resource); unmarshalErr != nil {
 			return &Reports{ProxyReports: &ProxyReports{}}, WrappedUnmarshalErr(unmarshalErr)
 		}
-		return v.ValidateGvk(ctx, itemGvk, resource, false)
+		return v.validateGvk(ctx, itemGvk, resource, false, false)
 	}
 	// TODO(mitchaman): Handle upstreams
 	// should not happen
@@ -580,9 +584,11 @@ func (v *validator) ValidateDeleteRouteTable(ctx context.Context, rtRef *core.Re
 	return nil
 }
 
-func (v *validator) validateGlooResource(ctx context.Context, resource resources.Resource, delete, dryRun bool) (*Reports, error) {
-	v.lock.Lock()
-	defer v.lock.Unlock()
+func (v *validator) validateGlooResource(ctx context.Context, resource resources.Resource, delete, dryRun, acquireLock bool) (*Reports, error) {
+	if acquireLock {
+		v.lock.Lock()
+		defer v.lock.Unlock()
+	}
 	snapshotCopy, err := v.copySnapshot(ctx, dryRun)
 	if err != nil {
 		return &Reports{}, err

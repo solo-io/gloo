@@ -330,6 +330,7 @@ var _ = Describe("Validator", func() {
 
 			Context("allowWarnings=false", func() {
 				It("rejects a vs with missing route table ref", func() {
+					v.glooValidator = mockGlooValidatorWarn{}
 					snap := samples.GlooSnapshotWithDelegates(ns)
 					err := v.Sync(context.TODO(), snap)
 					Expect(err).NotTo(HaveOccurred())
