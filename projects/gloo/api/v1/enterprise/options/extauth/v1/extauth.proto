@@ -922,6 +922,10 @@ message PassThroughAuth {
     // Custom config to be passed per request to the passthrough auth service.
     google.protobuf.Struct config = 4;
 
+    // If set to true, the service will accept client request even if the communication with
+    //  the authorization service has failed, or if the authorization service has returned a server error.
+    // Defaults to false.
+    bool failure_mode_allow = 5;
 }
 
 // Authorizes requests by querying a custom extauth grpc server
@@ -1451,6 +1455,7 @@ message ExtAuthConfig {
     // How to handle processing of named configs within an auth config chain.
     // An example config might be: `( basic1 || basic2 || (oidc1 && !oidc2) )`
     // The boolean expression is evaluated left to right but honors parenthesis and short-circuiting.
+    // Defaults to an empty string, which is interpreted as `and`-ing the configs.
     google.protobuf.StringValue boolean_expr = 10;
 
     // How the service should handle a redirect response from an OIDC issuer. In the default false mode,
