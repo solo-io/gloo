@@ -15,14 +15,15 @@ import (
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
+	gloovalidation "github.com/solo-io/gloo/projects/gloo/pkg/validation"
 	"github.com/solo-io/gloo/test/samples"
 	"github.com/solo-io/go-utils/testutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.opencensus.io/stats/view"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8syamlutil "sigs.k8s.io/yaml"
 )
@@ -30,17 +31,18 @@ import (
 var _ = Describe("Validator", func() {
 	var (
 		t  translator.Translator
-		vf ValidatorFunc
+		gv gloovalidation.GlooValidator
 		ns string
 		v  *validator
 	)
 
 	BeforeEach(func() {
-		ns = "my-namespace"
+		ns = "gloo-system"
 		t = translator.NewDefaultTranslator(translator.Opts{
 			WriteNamespace: ns,
 		})
-		v = NewValidator(NewValidatorConfig(t, vf, false, false))
+
+		v = NewValidator(NewValidatorConfig(t, gv, false, false))
 		mValidConfig = utils.MakeGauge("validation.gateway.solo.io/valid_config", "A boolean indicating whether gloo config is valid")
 	})
 
@@ -91,17 +93,14 @@ var _ = Describe("Validator", func() {
 	Context("validating gloo resources", func() {
 		Context("upstreams", func() {
 
-			rv := UpstreamValidator{}
-
 			It("accepts an upstream when validation succeeds", func() {
-				v.validationFunc = acceptProxy
-
+				v.glooValidator = mockGlooValidatorAccept{}
 				us := samples.SimpleUpstream()
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateGlooResource(context.TODO(), us, rv)
+				reports, err := v.ValidateGvk(context.TODO(), gloov1.UpstreamGVK, us, false)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -111,14 +110,14 @@ var _ = Describe("Validator", func() {
 				Expect(errors).NotTo(HaveOccurred())
 			})
 			It("rejects an upstream when validation fails", func() {
-				v.validationFunc = failProxy
-
+				v.glooValidator = mockGlooValidatorFail{}
 				us := samples.SimpleUpstream()
+				us.Metadata.Namespace = "my-namespace"
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateGlooResource(context.TODO(), us, rv)
+				reports, err := v.ValidateGvk(context.TODO(), gloov1.UpstreamGVK, us, false)
 				Expect(err).To(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -126,7 +125,7 @@ var _ = Describe("Validator", func() {
 				Expect(errors).To(HaveOccurred())
 			})
 			It("accepts an upstream when there is a validation warning and allowWarnings is true", func() {
-				v.validationFunc = warnProxy
+				v.glooValidator = mockGlooValidatorWarn{}
 				v.allowWarnings = true
 
 				us := samples.SimpleUpstream()
@@ -134,7 +133,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateGlooResource(context.TODO(), us, rv)
+				reports, err := v.ValidateGvk(context.TODO(), gloov1.UpstreamGVK, us, false)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -142,7 +141,7 @@ var _ = Describe("Validator", func() {
 				Expect(warnings).NotTo(BeEmpty())
 			})
 			It("rejects an upstream when there is a validation warning and allowWarnings is false", func() {
-				v.validationFunc = warnProxy
+				v.glooValidator = mockGlooValidatorWarn{}
 				v.allowWarnings = false
 
 				us := samples.SimpleUpstream()
@@ -150,7 +149,7 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				reports, err := v.ValidateGlooResource(context.TODO(), us, rv)
+				reports, err := v.ValidateGvk(context.TODO(), gloov1.UpstreamGVK, us, false)
 				Expect(err).To(HaveOccurred())
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 				proxyReport := (*reports.ProxyReports)[0]
@@ -159,29 +158,29 @@ var _ = Describe("Validator", func() {
 			})
 
 			It("accepts an upstream deletion when validation succeeds", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 
 				us := samples.SimpleUpstream()
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateDeleteGlooResource(context.TODO(), us.GetMetadata().Ref(), rv)
+				err = v.ValidateDeleteRef(context.TODO(), gloov1.UpstreamGVK, us, false)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects an upstream deletion when validation fails", func() {
-				v.validationFunc = failProxy
+				v.glooValidator = mockGlooValidatorFail{}
 
 				us := samples.SimpleUpstream()
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateDeleteGlooResource(context.TODO(), us.GetMetadata().Ref(), rv)
+				err = v.ValidateDeleteRef(context.TODO(), gloov1.UpstreamGVK, us, false)
 				Expect(err).To(HaveOccurred())
 			})
 			It("accepts an upstream deletion when there is a validation warning and allowWarnings is true", func() {
-				v.validationFunc = warnProxy
+				v.glooValidator = mockGlooValidatorWarn{}
 				v.allowWarnings = true
 
 				us := samples.SimpleUpstream()
@@ -189,11 +188,11 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateDeleteGlooResource(context.TODO(), us.GetMetadata().Ref(), rv)
+				err = v.ValidateDeleteRef(context.TODO(), gloov1.UpstreamGVK, us, false)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects an upstream deletion when there is a validation warning and allowWarnings is false", func() {
-				v.validationFunc = warnProxy
+				v.glooValidator = mockGlooValidatorWarn{}
 				v.allowWarnings = false
 
 				us := samples.SimpleUpstream()
@@ -201,17 +200,15 @@ var _ = Describe("Validator", func() {
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = v.ValidateDeleteGlooResource(context.TODO(), us.GetMetadata().Ref(), rv)
+				err = v.ValidateDeleteRef(context.TODO(), gloov1.UpstreamGVK, us, false)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("secrets", func() {
 
-			rv := SecretValidator{}
-
 			It("accepts a secret deletion when validation succeeds", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
@@ -223,12 +220,11 @@ var _ = Describe("Validator", func() {
 						Namespace: "namespace",
 					},
 				}
-				ref := secret.GetMetadata().Ref()
-				_, err = v.ValidateDeleteGlooResource(context.TODO(), ref, rv)
+				err = v.ValidateDeleteRef(context.TODO(), gloov1.SecretGVK, secret, false)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects a secret deletion when validation fails", func() {
-				v.validationFunc = failProxy
+				v.glooValidator = mockGlooValidatorFail{}
 
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
@@ -240,12 +236,11 @@ var _ = Describe("Validator", func() {
 						Namespace: "namespace",
 					},
 				}
-				ref := secret.GetMetadata().Ref()
-				_, err = v.ValidateDeleteGlooResource(context.TODO(), ref, rv)
+				err = v.ValidateDeleteRef(context.TODO(), gloov1.SecretGVK, secret, false)
 				Expect(err).To(HaveOccurred())
 			})
 			It("accepts a secret deletion when there is a validation warning and allowWarnings is true", func() {
-				v.validationFunc = warnProxy
+				v.glooValidator = mockGlooValidatorWarn{}
 				v.allowWarnings = true
 
 				snap := samples.SimpleGlooSnapshot(ns)
@@ -258,12 +253,11 @@ var _ = Describe("Validator", func() {
 						Namespace: "namespace",
 					},
 				}
-				ref := secret.GetMetadata().Ref()
-				_, err = v.ValidateDeleteGlooResource(context.TODO(), ref, rv)
+				err = v.ValidateDeleteRef(context.TODO(), gloov1.SecretGVK, secret, false)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("rejects a secret deletion when there is a validation warning and allowWarnings is false", func() {
-				v.validationFunc = warnProxy
+				v.glooValidator = mockGlooValidatorWarn{}
 				v.allowWarnings = false
 
 				snap := samples.SimpleGlooSnapshot(ns)
@@ -276,8 +270,7 @@ var _ = Describe("Validator", func() {
 						Namespace: "namespace",
 					},
 				}
-				ref := secret.GetMetadata().Ref()
-				_, err = v.ValidateDeleteGlooResource(context.TODO(), ref, rv)
+				err = v.ValidateDeleteRef(context.TODO(), gloov1.SecretGVK, secret, false)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -287,7 +280,7 @@ var _ = Describe("Validator", func() {
 		var rv = RouteTableValidator{}
 		Context("proxy validation accepted", func() {
 			It("accepts the rt", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.GlooSnapshotWithDelegates(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -297,7 +290,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			It("accepts the rt and returns proxies each time", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.GlooSnapshotWithDelegates(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -321,7 +314,7 @@ var _ = Describe("Validator", func() {
 
 		Context("proxy validation returns error", func() {
 			It("rejects the rt", func() {
-				v.validationFunc = failProxy
+				v.glooValidator = mockGlooValidatorFail{}
 				snap := samples.GlooSnapshotWithDelegates(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -336,11 +329,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			Context("allowWarnings=false", func() {
-				BeforeEach(func() {
-					v = NewValidator(NewValidatorConfig(t, acceptProxy, true, false))
-				})
 				It("rejects a vs with missing route table ref", func() {
-					v.validationFunc = warnProxy
 					snap := samples.GlooSnapshotWithDelegates(ns)
 					err := v.Sync(context.TODO(), snap)
 					Expect(err).NotTo(HaveOccurred())
@@ -372,7 +361,7 @@ var _ = Describe("Validator", func() {
 				}
 
 				// validate proxy should never be called
-				v.validationFunc = nil
+				v.glooValidator = nil
 				snap := samples.GlooSnapshotWithDelegates(ns)
 				rt := snap.RouteTables[0].DeepCopyObject().(*gatewayv1.RouteTable)
 				rt.Routes = append(rt.Routes, badRoute)
@@ -387,7 +376,7 @@ var _ = Describe("Validator", func() {
 
 		Context("route table delegation with selectors", func() {
 			It("accepts route table with valid prefix", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.GatewaySnapshotWithDelegateSelector(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -398,7 +387,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			It("rejects route table with invalid prefix", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.GatewaySnapshotWithDelegateSelector(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -414,7 +403,7 @@ var _ = Describe("Validator", func() {
 	Context("delete a route table", func() {
 		Context("has parents", func() {
 			It("rejects deletion", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.GatewaySnapshotWithDelegateChain(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -427,7 +416,7 @@ var _ = Describe("Validator", func() {
 		})
 		Context("has no parents", func() {
 			It("deletes safely", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.GatewaySnapshotWithDelegateChain(ns)
 				// break the parent chain
 				snap.RouteTables[1].Routes = nil
@@ -450,7 +439,7 @@ var _ = Describe("Validator", func() {
 
 		Context("proxy validation returns error", func() {
 			It("rejects the vs", func() {
-				v.validationFunc = failProxy
+				v.glooValidator = mockGlooValidatorFail{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -467,7 +456,7 @@ var _ = Describe("Validator", func() {
 		})
 		Context("proxy validation accepted", func() {
 			It("accepts the vs", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -477,7 +466,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			It("accepts the vs and returns proxies each time", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.GlooSnapshotWithDelegates(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -499,7 +488,7 @@ var _ = Describe("Validator", func() {
 		})
 		Context("no gateways for virtual service", func() {
 			It("accepts the vs", func() {
-				v.validationFunc = failProxy
+				v.glooValidator = mockGlooValidatorFail{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				snap.Gateways.Each(func(element *gatewayv1.Gateway) {
 					switch gatewayType := element.GetGatewayType().(type) {
@@ -522,7 +511,7 @@ var _ = Describe("Validator", func() {
 		})
 		Context("invalid selector expression for virtual service", func() {
 			It("rejects the vs", func() {
-				v.validationFunc = failProxy
+				v.glooValidator = mockGlooValidatorFail{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				snap.Gateways.Each(func(element *gatewayv1.Gateway) {
 					http, ok := element.GatewayType.(*gatewayv1.Gateway_HttpGateway)
@@ -561,7 +550,7 @@ var _ = Describe("Validator", func() {
 				}
 
 				// validate proxy should never be called
-				v.validationFunc = nil
+				v.glooValidator = nil
 				snap := samples.SimpleGlooSnapshot(ns)
 				vs := snap.VirtualServices[0].DeepCopyObject().(*gatewayv1.VirtualService)
 				vs.VirtualHost.Routes = append(vs.VirtualHost.Routes, badRoute)
@@ -580,7 +569,7 @@ var _ = Describe("Validator", func() {
 				utils.Measure(context.TODO(), mValidConfig, -1)
 			})
 			It("returns 1 when there are no validation errors", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
@@ -595,7 +584,7 @@ var _ = Describe("Validator", func() {
 				Expect(rows[0].Data.(*view.LastValueData).Value).To(BeEquivalentTo(1))
 			})
 			It("returns 0 when there are validation errors", func() {
-				v.validationFunc = failProxy
+				v.glooValidator = mockGlooValidatorFail{}
 
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
@@ -611,7 +600,7 @@ var _ = Describe("Validator", func() {
 			})
 			It("returns 0 when there are validation warnings and allowWarnings is false", func() {
 				v.allowWarnings = false
-				v.validationFunc = warnProxy
+				v.glooValidator = mockGlooValidatorWarn{}
 
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
@@ -627,7 +616,7 @@ var _ = Describe("Validator", func() {
 			})
 			It("returns 1 when there are validation warnings and allowWarnings is true", func() {
 				v.allowWarnings = true
-				v.validationFunc = warnProxy
+				v.glooValidator = mockGlooValidatorWarn{}
 
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
@@ -642,7 +631,7 @@ var _ = Describe("Validator", func() {
 				Expect(rows[0].Data.(*view.LastValueData).Value).To(BeEquivalentTo(1))
 			})
 			It("does not affect metrics when dryRun is true", func() {
-				v.validationFunc = failProxy
+				v.glooValidator = mockGlooValidatorFail{}
 
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
@@ -667,7 +656,7 @@ var _ = Describe("Validator", func() {
 		})
 		Context("dry-run", func() {
 			It("accepts the vs and rejects the second", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				us := samples.SimpleUpstream()
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
@@ -698,7 +687,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			It("accepts the vs and accepts the second because of dry-run", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				us := samples.SimpleUpstream()
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
@@ -731,7 +720,7 @@ var _ = Describe("Validator", func() {
 	Context("delete a virtual service", func() {
 		Context("has parent gateways", func() {
 			It("rejects deletion", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				ref := snap.VirtualServices[0].Metadata.Ref()
 				snap.Gateways.Each(func(element *gatewayv1.Gateway) {
@@ -765,7 +754,7 @@ var _ = Describe("Validator", func() {
 		})
 		Context("has no parent gateways", func() {
 			It("deletes safely", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -784,7 +773,7 @@ var _ = Describe("Validator", func() {
 		rv := GatewayValidator{}
 		Context("proxy validation returns error", func() {
 			It("rejects the gw", func() {
-				v.validationFunc = failProxy
+				v.glooValidator = mockGlooValidatorFail{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -800,7 +789,7 @@ var _ = Describe("Validator", func() {
 		})
 		Context("proxy validation accepted", func() {
 			It("accepts the gw", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -810,7 +799,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			It("accepts the gateway and returns proxies each time", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.GlooSnapshotWithDelegates(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -835,7 +824,7 @@ var _ = Describe("Validator", func() {
 				badRef := &core.ResourceRef{}
 
 				// validate proxy should never be called
-				v.validationFunc = nil
+				v.glooValidator = nil
 				snap := samples.SimpleGlooSnapshot(ns)
 				gw := snap.Gateways[0].DeepCopyObject().(*gatewayv1.Gateway)
 
@@ -848,6 +837,7 @@ var _ = Describe("Validator", func() {
 				Expect(*(reports.ProxyReports)).To(HaveLen(0))
 			})
 		})
+
 	})
 
 	Context("validating a list of virtual services", func() {
@@ -882,7 +872,7 @@ var _ = Describe("Validator", func() {
 
 		Context("proxy validation returns error", func() {
 			It("rejects the vs list", func() {
-				v.validationFunc = failProxy
+				v.glooValidator = mockGlooValidatorFail{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -902,7 +892,7 @@ var _ = Describe("Validator", func() {
 		Context("proxy validation accepted", func() {
 
 			It("accepts the vs list", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -912,7 +902,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			It("accepts the multi vs list", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -931,7 +921,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			It("rejects the multi vs list with overlapping domains", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -952,7 +942,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			It("accepts the vs list and returns proxies each time", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.GlooSnapshotWithDelegates(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -975,8 +965,7 @@ var _ = Describe("Validator", func() {
 
 		Context("unmarshal errors", func() {
 			It("doesn't mask other errors when there's an unmarshal error in a list", func() {
-
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
@@ -1015,7 +1004,7 @@ var _ = Describe("Validator", func() {
 				}
 
 				// validate proxy should never be called
-				v.validationFunc = nil
+				v.glooValidator = nil
 				snap := samples.SimpleGlooSnapshot(ns)
 				vs := snap.VirtualServices[0].DeepCopyObject().(*gatewayv1.VirtualService)
 				vs.VirtualHost.Routes = append(vs.VirtualHost.Routes, badRoute)
@@ -1032,7 +1021,7 @@ var _ = Describe("Validator", func() {
 
 		Context("dry-run", func() {
 			It("accepts the vs and rejects the second", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				us := samples.SimpleUpstream()
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
@@ -1064,7 +1053,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			It("accepts the vs and accepts the second because of dry-run", func() {
-				v.validationFunc = acceptProxy
+				v.glooValidator = mockGlooValidatorAccept{}
 				us := samples.SimpleUpstream()
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
@@ -1125,7 +1114,7 @@ var _ = Describe("Validator", func() {
 		}
 
 		It("accepts only 1 vs when multiple are written concurrently", func() {
-			v.validationFunc = acceptProxy
+			v.glooValidator = mockGlooValidatorAccept{}
 			us := samples.SimpleUpstream()
 			snap := samples.SimpleGlooSnapshot(ns)
 			err := v.Sync(context.TODO(), snap)
@@ -1152,7 +1141,7 @@ var _ = Describe("Validator", func() {
 			var errMessages []string
 			resultMap.Range(func(name, value interface{}) bool {
 				errMessages = append(errMessages, value.(string))
-				return true // continue
+				return true
 			})
 
 			// Expect 1 worker to have successfully completed and all others to have failed
@@ -1162,84 +1151,70 @@ var _ = Describe("Validator", func() {
 	})
 })
 
-type mockValidationClient struct {
-	validate func(ctx context.Context, in *validation.GlooValidationServiceRequest, opts ...grpc.CallOption) (*validation.GlooValidationServiceResponse, error)
-}
+type mockGlooValidatorAccept struct{}
 
-func (c *mockValidationClient) NotifyOnResync(ctx context.Context, in *validation.NotifyOnResyncRequest, opts ...grpc.CallOption) (validation.GlooValidationService_NotifyOnResyncClient, error) {
-	return nil, nil
-}
-
-func (c *mockValidationClient) Validate(ctx context.Context, in *validation.GlooValidationServiceRequest, opts ...grpc.CallOption) (*validation.GlooValidationServiceResponse, error) {
-	if c.validate == nil {
-		Fail("Validate was called unexpectedly")
-	}
-	return c.validate(ctx, in, opts...)
-}
-
-func acceptProxy(ctx context.Context, in *validation.GlooValidationServiceRequest) (*validation.GlooValidationServiceResponse, error) {
+func (mgv mockGlooValidatorAccept) Validate(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, delete bool) []*gloovalidation.GlooValidationReport {
 	var proxies []*gloov1.Proxy
-	if in.Proxy != nil {
-		proxies = []*gloov1.Proxy{in.Proxy}
+	if proxy != nil {
+		proxies = []*gloov1.Proxy{proxy}
 	} else {
 		proxies = samples.SimpleGlooSnapshot("gloo-system").Proxies
 	}
 
-	var validationReports []*validation.ValidationReport
+	var validationReports []*gloovalidation.GlooValidationReport
 	for _, proxy := range proxies {
 		proxyReport := validationutils.MakeReport(proxy)
-		validationReports = append(validationReports, &validation.ValidationReport{
+		validationReports = append(validationReports, &gloovalidation.GlooValidationReport{
 			Proxy:       proxy,
 			ProxyReport: proxyReport,
 		})
+
 	}
-	return &validation.GlooValidationServiceResponse{
-		ValidationReports: validationReports,
-	}, nil
+	return validationReports
 }
 
-func failProxy(ctx context.Context, in *validation.GlooValidationServiceRequest) (*validation.GlooValidationServiceResponse, error) {
+type mockGlooValidatorFail struct{}
+
+func (mgv mockGlooValidatorFail) Validate(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, delete bool) []*gloovalidation.GlooValidationReport {
 	var proxies []*gloov1.Proxy
-	if in.Proxy != nil {
-		proxies = []*gloov1.Proxy{in.Proxy}
+	if proxy != nil {
+		proxies = []*gloov1.Proxy{proxy}
 	} else {
 		proxies = samples.SimpleGlooSnapshot("gloo-system").Proxies
 	}
 
-	var validationReports []*validation.ValidationReport
+	var validationReports []*gloovalidation.GlooValidationReport
 	for _, proxy := range proxies {
 		proxyReport := validationutils.MakeReport(proxy)
 		validationutils.AppendListenerError(proxyReport.ListenerReports[0], validation.ListenerReport_Error_SSLConfigError, "you should try harder next time")
 
-		validationReports = append(validationReports, &validation.ValidationReport{
+		validationReports = append(validationReports, &gloovalidation.GlooValidationReport{
 			Proxy:       proxy,
 			ProxyReport: proxyReport,
 		})
 	}
-	return &validation.GlooValidationServiceResponse{
-		ValidationReports: validationReports,
-	}, nil
+	return validationReports
 }
 
-func warnProxy(ctx context.Context, in *validation.GlooValidationServiceRequest) (*validation.GlooValidationServiceResponse, error) {
+type mockGlooValidatorWarn struct{}
+
+func (mgvw mockGlooValidatorWarn) Validate(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, delete bool) []*gloovalidation.GlooValidationReport {
 	var proxies []*gloov1.Proxy
-	if in.Proxy != nil {
-		proxies = []*gloov1.Proxy{in.Proxy}
+	if proxy != nil {
+		proxies = []*gloov1.Proxy{proxy}
 	} else {
 		proxies = samples.SimpleGlooSnapshot("gloo-system").Proxies
 	}
 
-	var validationReports []*validation.ValidationReport
+	var validationReports []*gloovalidation.GlooValidationReport
 	for _, proxy := range proxies {
 		proxyReport := validationutils.MakeReport(proxy)
 		validationutils.AppendRouteWarning(proxyReport.ListenerReports[0].GetHttpListenerReport().GetVirtualHostReports()[0].GetRouteReports()[0], validation.RouteReport_Warning_InvalidDestinationWarning, "you should try harder next time")
 
-		validationReports = append(validationReports, &validation.ValidationReport{
+		validationReports = append(validationReports, &gloovalidation.GlooValidationReport{
 			Proxy:       proxy,
 			ProxyReport: proxyReport,
 		})
 	}
-	return &validation.GlooValidationServiceResponse{
-		ValidationReports: validationReports,
-	}, nil
+	return validationReports
 }

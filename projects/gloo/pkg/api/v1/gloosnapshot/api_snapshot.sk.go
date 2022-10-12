@@ -299,6 +299,45 @@ func (s *ApiSnapshot) GetResourcesList(resource resources.Resource) (resources.R
 	}
 }
 
+func (s *ApiSnapshot) RemoveFromResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch resource.(type) {
+	case *gloo_solo_io.Artifact:
+		newList := gloo_solo_io.ArtifactList{}
+		for _, res := range s.Artifacts {
+			if refKey != res.GetMetadata().Ref().Key() {
+				newList = append(newList, res)
+			}
+		}
+		s.Artifacts = newList
+		s.Artifacts.Sort()
+		return nil	
+	default:
+		return eris.Errorf("did not add the input resource type because it does not exist [%T]", resource)
+	}
+}
+
+func (s *ApiSnapshot) AddOrReplaceToResourceList(resource resources.Resource) error {
+	refKey := resource.GetMetadata().Ref().Key()
+	switch typed := resource.(type) {
+	case *gloo_solo_io.Artifact:
+		update := false
+		for i, res := range s.Artifacts {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Artifacts[i] = typed
+				update = true
+			}
+		}
+		if !update {
+			s.Artifacts = append(s.Artifacts, typed)
+		}
+		s.Artifacts.Sort()
+		return nil	
+	default:
+		return eris.Errorf("did not add the input resource type because it does not exist [%T]", resource)
+	}
+}
+
 func (s *ApiSnapshot) AddToResourceList(resource resources.Resource) error {
 	switch typed := resource.(type) {
 	case *gloo_solo_io.Artifact:
