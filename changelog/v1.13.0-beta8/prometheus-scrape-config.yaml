@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/4029
+    description: |
+      Add Prometheus scrape config to default helm values which only scrapes enpoints with the Gloo label, omitting
+      resources such as the Kubernetes API Server which exposes many high cardinality metrics
+    resolvesIssue: true
