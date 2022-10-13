@@ -6,8 +6,8 @@ import (
 	"context"
 
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/pkg/api/multicluster.solo.io/v1alpha1"
-	"github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/pkg/rbac"
+	multicluster_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
+	"github.com/solo-io/solo-projects/projects/multicluster-admission-webhook/pkg/rbac"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	fed_enterprise_gloo_solo_io_v1_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1"
@@ -25,24 +25,24 @@ import (
 type TypedParser interface {
 
 	// Parsers for fed.enterprise.gloo.solo.io/v1 types.
-	ParseFederatedAuthConfig(ctx context.Context, obj *fed_enterprise_gloo_solo_io_v1_types.FederatedAuthConfig) ([]*v1alpha1.Placement, error)
+	ParseFederatedAuthConfig(ctx context.Context, obj *fed_enterprise_gloo_solo_io_v1_types.FederatedAuthConfig) ([]*multicluster_types.Placement, error)
 
 	// Parsers for fed.ratelimit.solo.io/v1alpha1 types.
-	ParseFederatedRateLimitConfig(ctx context.Context, obj *fed_ratelimit_solo_io_v1alpha1_types.FederatedRateLimitConfig) ([]*v1alpha1.Placement, error)
+	ParseFederatedRateLimitConfig(ctx context.Context, obj *fed_ratelimit_solo_io_v1alpha1_types.FederatedRateLimitConfig) ([]*multicluster_types.Placement, error)
 
 	// Parsers for fed.gloo.solo.io/v1 types.
-	ParseFederatedUpstream(ctx context.Context, obj *fed_gloo_solo_io_v1_types.FederatedUpstream) ([]*v1alpha1.Placement, error)
-	ParseFederatedUpstreamGroup(ctx context.Context, obj *fed_gloo_solo_io_v1_types.FederatedUpstreamGroup) ([]*v1alpha1.Placement, error)
-	ParseFederatedSettings(ctx context.Context, obj *fed_gloo_solo_io_v1_types.FederatedSettings) ([]*v1alpha1.Placement, error)
+	ParseFederatedUpstream(ctx context.Context, obj *fed_gloo_solo_io_v1_types.FederatedUpstream) ([]*multicluster_types.Placement, error)
+	ParseFederatedUpstreamGroup(ctx context.Context, obj *fed_gloo_solo_io_v1_types.FederatedUpstreamGroup) ([]*multicluster_types.Placement, error)
+	ParseFederatedSettings(ctx context.Context, obj *fed_gloo_solo_io_v1_types.FederatedSettings) ([]*multicluster_types.Placement, error)
 
 	// Parsers for fed.gateway.solo.io/v1 types.
-	ParseFederatedGateway(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedGateway) ([]*v1alpha1.Placement, error)
-	ParseFederatedMatchableHttpGateway(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedMatchableHttpGateway) ([]*v1alpha1.Placement, error)
-	ParseFederatedVirtualService(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedVirtualService) ([]*v1alpha1.Placement, error)
-	ParseFederatedRouteTable(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedRouteTable) ([]*v1alpha1.Placement, error)
+	ParseFederatedGateway(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedGateway) ([]*multicluster_types.Placement, error)
+	ParseFederatedMatchableHttpGateway(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedMatchableHttpGateway) ([]*multicluster_types.Placement, error)
+	ParseFederatedVirtualService(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedVirtualService) ([]*multicluster_types.Placement, error)
+	ParseFederatedRouteTable(ctx context.Context, obj *fed_gateway_solo_io_v1_types.FederatedRouteTable) ([]*multicluster_types.Placement, error)
 
 	// Parsers for fed.solo.io/v1 types.
-	ParseFailoverScheme(ctx context.Context, obj *fed_solo_io_v1_types.FailoverScheme) ([]*v1alpha1.Placement, error)
+	ParseFailoverScheme(ctx context.Context, obj *fed_solo_io_v1_types.FailoverScheme) ([]*multicluster_types.Placement, error)
 }
 
 // Generic placement parser for handling runtime.Object.
@@ -56,7 +56,7 @@ func NewParser(scheme *runtime.Scheme, typedParser TypedParser) rbac.Parser {
 	return &parser{scheme: scheme, typedParser: typedParser}
 }
 
-func (p *parser) Parse(ctx context.Context, rawObj []byte) ([]*v1alpha1.Placement, error) {
+func (p *parser) Parse(ctx context.Context, rawObj []byte) ([]*multicluster_types.Placement, error) {
 	obj, err := rbac.FromRawToObject(p.scheme, rawObj)
 	if err != nil {
 		return nil, eris.Errorf("Error deserializing raw object: %+v", err)

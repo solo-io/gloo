@@ -15,13 +15,14 @@ import (
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/go-utils/log"
-	"github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/pkg/api/multicluster.solo.io/v1alpha1"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	skv2_test "github.com/solo-io/skv2/test"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
+	multicluster_v1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1"
+	multicluster_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -45,8 +46,8 @@ func TestE2e(t *testing.T) {
 var (
 	remoteClusterContext     string
 	managementClusterContext string
-	mcRole                   *v1alpha1.MultiClusterRole
-	mcRoleBinding            *v1alpha1.MultiClusterRoleBinding
+	mcRole                   *multicluster_v1alpha1.MultiClusterRole
+	mcRoleBinding            *multicluster_v1alpha1.MultiClusterRoleBinding
 	err                      error
 	namespace                = defaults.GlooSystem
 )
@@ -137,19 +138,19 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		return concurrentSuccesses >= 10
 	}, time.Minute*2, time.Second*1).Should(BeTrue())
 
-	rbacClientset, err := v1alpha1.NewClientsetFromConfig(restCfg)
+	rbacClientset, err := multicluster_v1alpha1.NewClientsetFromConfig(restCfg)
 	Expect(err).NotTo(HaveOccurred())
-	mcRole = &v1alpha1.MultiClusterRole{
+	mcRole = &multicluster_v1alpha1.MultiClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "hello",
 			Namespace: namespace,
 		},
-		Spec: v1alpha1.MultiClusterRoleSpec{
-			Rules: []*v1alpha1.MultiClusterRoleSpec_Rule{
+		Spec: multicluster_types.MultiClusterRoleSpec{
+			Rules: []*multicluster_types.MultiClusterRoleSpec_Rule{
 				{
 					ApiGroup: "fed.solo.io",
-					Action:   v1alpha1.MultiClusterRoleSpec_Rule_ANY,
-					Placements: []*v1alpha1.Placement{
+					Action:   multicluster_types.MultiClusterRoleSpec_Rule_ANY,
+					Placements: []*multicluster_types.Placement{
 						{
 							Namespaces: []string{"*"},
 							Clusters:   []string{"*"},
@@ -158,8 +159,8 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 				},
 				{
 					ApiGroup: "fed.gloo.solo.io",
-					Action:   v1alpha1.MultiClusterRoleSpec_Rule_ANY,
-					Placements: []*v1alpha1.Placement{
+					Action:   multicluster_types.MultiClusterRoleSpec_Rule_ANY,
+					Placements: []*multicluster_types.Placement{
 						{
 							Namespaces: []string{"*"},
 							Clusters:   []string{"*"},
@@ -171,12 +172,12 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	}
 	err = rbacClientset.MultiClusterRoles().CreateMultiClusterRole(context.TODO(), mcRole)
 	Expect(err).NotTo(HaveOccurred())
-	mcRoleBinding = &v1alpha1.MultiClusterRoleBinding{
+	mcRoleBinding = &multicluster_v1alpha1.MultiClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "world",
 			Namespace: namespace,
 		},
-		Spec: v1alpha1.MultiClusterRoleBindingSpec{
+		Spec: multicluster_types.MultiClusterRoleBindingSpec{
 			Subjects: []*skv2v1.TypedObjectRef{
 				{
 					Kind: &wrappers.StringValue{Value: "User"},
@@ -200,7 +201,7 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	if mcRoleBinding != nil {
-		rbacClientset, err := v1alpha1.NewClientsetFromConfig(skv2_test.MustConfig(managementClusterContext))
+		rbacClientset, err := multicluster_v1alpha1.NewClientsetFromConfig(skv2_test.MustConfig(managementClusterContext))
 		Expect(err).NotTo(HaveOccurred())
 		rbacClientset.MultiClusterRoleBindings().DeleteMultiClusterRoleBinding(context.TODO(), client.ObjectKey{
 			Namespace: mcRoleBinding.GetNamespace(),
@@ -208,7 +209,7 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 		})
 	}
 	if mcRole != nil {
-		rbacClientset, err := v1alpha1.NewClientsetFromConfig(skv2_test.MustConfig(managementClusterContext))
+		rbacClientset, err := multicluster_v1alpha1.NewClientsetFromConfig(skv2_test.MustConfig(managementClusterContext))
 		Expect(err).NotTo(HaveOccurred())
 		rbacClientset.MultiClusterRoles().DeleteMultiClusterRole(context.TODO(), client.ObjectKey{
 			Namespace: mcRole.GetNamespace(),

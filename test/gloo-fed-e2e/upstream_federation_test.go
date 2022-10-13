@@ -8,7 +8,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/pkg/api/multicluster.solo.io/v1alpha1"
 	"github.com/solo-io/skv2/test"
 	gloo_types "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
@@ -16,6 +15,7 @@ import (
 	gloo_fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1/types"
 	fed_core_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
 	mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
+	multicluster_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -121,7 +121,7 @@ var _ = Describe("Upstream federation", func() {
 					Spec:     upstreamSpec,
 					Metadata: meta,
 				},
-				Placement: &v1alpha1.Placement{
+				Placement: &multicluster_types.Placement{
 					Namespaces: []string{remoteGlooNamespace},
 					Clusters:   []string{remoteClusterContext},
 				},

@@ -32,6 +32,7 @@ func init() {
 		FedEnterpriseGroup,
 		RateLimitGroup,
 		FedRateLimitGroup,
+		MultiClusterAdmissionGroup,
 	}
 
 	ApiserverGroups = []model.Group{
@@ -144,6 +145,8 @@ var FedApiserverGroup = makeGroup(
 	[]model.CustomTemplates{},
 	[]resourceToGenerate{})
 
+var MultiClusterAdmissionGroup = makeMultiClusterAdmissionGroup()
+
 func fedTemplates() []model.CustomTemplates {
 	inputDiscoverySnapshot := map[schema.GroupVersion][]string{
 		corev1.SchemeGroupVersion: {
@@ -250,5 +253,61 @@ func makeGroup(
 		CustomTemplates:         customTemplates,
 		ApiRoot:                 apiRoot,
 		RenderValidationSchemas: false,
+	}
+}
+
+func makeMultiClusterAdmissionGroup() model.Group {
+	return model.Group{
+		GroupVersion: schema.GroupVersion{
+			Group:   "multicluster.solo.io",
+			Version: "v1alpha1",
+		},
+		Module: module,
+		Resources: []model.Resource{
+			{
+				Kind: "MultiClusterRole",
+				Group: model.Group{
+					GroupVersion: schema.GroupVersion{
+						Group:   "multicluster.solo.io",
+						Version: "v1alpha1",
+					},
+				},
+				Spec: model.Field{
+					Type: model.Type{
+						Name: "MultiClusterRoleSpec",
+					},
+				},
+				Status: &model.Field{
+					Type: model.Type{
+						Name: "MultiClusterRoleStatus",
+					},
+				},
+			},
+			{
+				Kind: "MultiClusterRoleBinding",
+				Group: model.Group{
+					GroupVersion: schema.GroupVersion{
+						Group:   "multicluster.solo.io",
+						Version: "v1alpha1",
+					},
+				},
+				Spec: model.Field{
+					Type: model.Type{
+						Name: "MultiClusterRoleBindingSpec",
+					},
+				},
+				Status: &model.Field{
+					Type: model.Type{
+						Name: "MultiClusterRoleBindingStatus",
+					},
+				},
+			},
+		},
+		RenderManifests:         true,
+		RenderTypes:             true,
+		RenderClients:           true,
+		MockgenDirective:        true,
+		RenderFieldJsonDeepcopy: false,
+		ApiRoot:                 apiRoot,
 	}
 }

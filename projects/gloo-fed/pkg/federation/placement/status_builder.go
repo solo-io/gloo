@@ -4,7 +4,7 @@ import (
 	fed_core_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
 	// Important to implcitly this so that it gets imported during code-gen.
 	// This code is only imported in generated code which is deleted during generation.
-	_ "github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/pkg/api/multicluster.solo.io/v1alpha1"
+	_ "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1"
 )
 
 var _ StatusBuilder = &statusBuilder{}

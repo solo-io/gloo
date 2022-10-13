@@ -37,6 +37,7 @@ Name|Version|License
 [sirupsen/logrus](https://github.com/sirupsen/logrus)|v1.9.0|MIT License
 [spf13/cobra](https://github.com/spf13/cobra)|v1.5.0|Apache License 2.0
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.5|BSD 3-clause "New" or "Revised" License
+[spf13/viper](https://github.com/spf13/viper)|v1.12.0|MIT License
 [go.opencensus.io](https://go.opencensus.io)|v0.23.0|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.19.1|MIT License
 [x/mod](https://golang.org/x/mod)|v0.6.0-dev.0.20220419223038-86c51ed26bb4|BSD 3-clause "New" or "Revised" License
@@ -55,6 +56,7 @@ Name|Version|License
 [k8s.io/client-go](https://k8s.io/client-go)|v0.22.4|Apache License 2.0
 [k8s.io/code-generator](https://k8s.io/code-generator)|v0.22.4|Apache License 2.0
 [k8s.io/utils](https://k8s.io/utils)|v0.0.0-20220210201930-3a6ce19ff2f9|Apache License 2.0
+[knative.dev/pkg](https://knative.dev/pkg)|v0.0.0-20211206113427-18589ac7627e|Apache License 2.0
 [sigs.k8s.io/controller-runtime](https://sigs.k8s.io/controller-runtime)|v0.9.7|Apache License 2.0
 [sigs.k8s.io/yaml](https://sigs.k8s.io/yaml)|v1.3.0|MIT License
 [cmd/goimports](https://golang.org/x/tools/cmd/goimports)|latest|MIT License

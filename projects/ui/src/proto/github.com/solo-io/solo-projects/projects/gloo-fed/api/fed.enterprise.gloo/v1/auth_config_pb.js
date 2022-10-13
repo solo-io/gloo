@@ -13,7 +13,7 @@ var goog = jspb;
 var global = Function('return this')();
 
 var extproto_ext_pb = require('../../../../../../../../extproto/ext_pb.js');
-var github_com_solo$io_skv2$enterprise_multicluster$admission$webhook_api_multicluster_v1alpha1_multicluster_pb = require('../../../../../../../../github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/multicluster/v1alpha1/multicluster_pb.js');
+var github_com_solo$io_solo$projects_projects_gloo$fed_api_multicluster_v1alpha1_multicluster_pb = require('../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/multicluster/v1alpha1/multicluster_pb.js');
 var github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_core_v1_placement_pb = require('../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/placement_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb = require('../../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb.js');
 goog.exportSymbol('proto.fed.enterprise.gloo.solo.io.FederatedAuthConfigSpec', null, global);
@@ -67,7 +67,7 @@ proto.fed.enterprise.gloo.solo.io.FederatedAuthConfigSpec.prototype.toObject = f
 proto.fed.enterprise.gloo.solo.io.FederatedAuthConfigSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
     template: (f = msg.getTemplate()) && proto.fed.enterprise.gloo.solo.io.FederatedAuthConfigSpec.Template.toObject(includeInstance, f),
-    placement: (f = msg.getPlacement()) && github_com_solo$io_skv2$enterprise_multicluster$admission$webhook_api_multicluster_v1alpha1_multicluster_pb.Placement.toObject(includeInstance, f)
+    placement: (f = msg.getPlacement()) && github_com_solo$io_solo$projects_projects_gloo$fed_api_multicluster_v1alpha1_multicluster_pb.Placement.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -110,8 +110,8 @@ proto.fed.enterprise.gloo.solo.io.FederatedAuthConfigSpec.deserializeBinaryFromR
       msg.setTemplate(value);
       break;
     case 2:
-      var value = new github_com_solo$io_skv2$enterprise_multicluster$admission$webhook_api_multicluster_v1alpha1_multicluster_pb.Placement;
-      reader.readMessage(value,github_com_solo$io_skv2$enterprise_multicluster$admission$webhook_api_multicluster_v1alpha1_multicluster_pb.Placement.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$projects_projects_gloo$fed_api_multicluster_v1alpha1_multicluster_pb.Placement;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_gloo$fed_api_multicluster_v1alpha1_multicluster_pb.Placement.deserializeBinaryFromReader);
       msg.setPlacement(value);
       break;
     default:
@@ -156,7 +156,7 @@ proto.fed.enterprise.gloo.solo.io.FederatedAuthConfigSpec.serializeBinaryToWrite
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_skv2$enterprise_multicluster$admission$webhook_api_multicluster_v1alpha1_multicluster_pb.Placement.serializeBinaryToWriter
+      github_com_solo$io_solo$projects_projects_gloo$fed_api_multicluster_v1alpha1_multicluster_pb.Placement.serializeBinaryToWriter
     );
   }
 };
@@ -401,7 +401,7 @@ proto.fed.enterprise.gloo.solo.io.FederatedAuthConfigSpec.prototype.hasTemplate 
  */
 proto.fed.enterprise.gloo.solo.io.FederatedAuthConfigSpec.prototype.getPlacement = function() {
   return /** @type{?proto.multicluster.solo.io.Placement} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_skv2$enterprise_multicluster$admission$webhook_api_multicluster_v1alpha1_multicluster_pb.Placement, 2));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_gloo$fed_api_multicluster_v1alpha1_multicluster_pb.Placement, 2));
 };
 
 

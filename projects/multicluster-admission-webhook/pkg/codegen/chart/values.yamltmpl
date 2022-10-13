@@ -1,0 +1,8 @@
+[[- if .Values ]]
+[[ toYaml .Values ]]
+[[- end ]]
+
+[[- range $operator := $.Operators -]]
+[[ lower_camel $operator.Name ]]:
+[[ toYaml $operator.Deployment | indent 2 ]]
+[[- end ]]

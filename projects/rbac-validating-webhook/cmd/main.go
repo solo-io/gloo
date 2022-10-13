@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/solo-io/go-utils/contextutils"
-	rbacconfig "github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/pkg/config"
-	"github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/pkg/webhook"
 	fed_bootstrap "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/bootstrap"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
+	rbacconfig "github.com/solo-io/solo-projects/projects/multicluster-admission-webhook/pkg/config"
+	"github.com/solo-io/solo-projects/projects/multicluster-admission-webhook/pkg/webhook"
 	"github.com/solo-io/solo-projects/projects/rbac-validating-webhook/pkg/placement"
 	"go.uber.org/zap"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"

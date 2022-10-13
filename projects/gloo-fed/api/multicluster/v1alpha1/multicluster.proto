@@ -1,0 +1,68 @@
+syntax = "proto3";
+package multicluster.solo.io;
+
+import "extproto/ext.proto";
+option (extproto.hash_all) = true;
+option (extproto.equal_all) = true;
+
+option go_package = "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types";
+
+import "google/protobuf/wrappers.proto";
+import "github.com/solo-io/skv2/api/core/v1/core.proto";
+
+/*
+    Object representing the clusters and namespaces on which resources are created/updated/deleted,
+    computed as the cartesian product of all declared namespace and cluster values.
+*/
+message Placement {
+    /*
+        List of namespaces within each placement cluster in which to create/update/delete resources.
+        Wildcard ("*") represents any namespace.
+    */
+    repeated string namespaces = 1;
+
+    /*
+        List of clusters (represented by a string) in which to create/update/delete resources.
+        Wildcard ("*") represents any cluster.
+    */
+    repeated string clusters = 2;
+}
+
+message MultiClusterRoleSpec {
+
+    message Rule {
+
+        enum Action {
+            ANY = 0;
+            CREATE = 1;
+            UPDATE = 2;
+            DELETE = 3;
+        }
+
+        string api_group = 1;
+
+        // The kind of the object to apply to, if left empty will apply to all kinds in a group.
+        google.protobuf.StringValue kind = 2;
+
+        Action action = 3;
+
+        // The clusters and namespaces this rule applies to.
+        repeated Placement placements = 4;
+    }
+
+    repeated Rule rules = 1;
+}
+
+message MultiClusterRoleStatus {
+}
+
+message MultiClusterRoleBindingSpec {
+    // reference to users or groups to apply the MultiClusterRole to
+    repeated core.skv2.solo.io.TypedObjectRef subjects = 1;
+
+    // reference to a MultiClusterRole
+    core.skv2.solo.io.ObjectRef role_ref = 2;
+}
+
+message MultiClusterRoleBindingStatus {
+}

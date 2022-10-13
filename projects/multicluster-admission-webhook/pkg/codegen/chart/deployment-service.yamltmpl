@@ -1,0 +1,121 @@
+[[/*
+This template contains the core components for the Operator deployment.
+Expressions evaluating Helm Values use "{{" and "}}"
+Expressions evaluating SKv2 Config use [[ "[[" ]] and [[ "]]" ]]
+*/]]
+[[- range $operator := $.Operators -]]
+---
+
+[[/* Support DaemonSet */]]
+  [[- $workloadKind := "Deployment" ]]
+  [[- if $operator.Deployment.UseDaemonSet ]]
+  [[- $workloadKind = "DaemonSet" ]]
+  [[- end -]]
+[[- $volumes := $operator.Deployment.Volumes -]]
+
+# [[ $workloadKind ]] manifest for [[ $operator.Name ]]
+
+apiVersion: apps/v1
+kind: [[ $workloadKind ]]
+metadata:
+  labels:
+    app: [[ $operator.Name ]]
+  name: [[ $operator.Name ]]
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: [[ $operator.Name ]]
+  template:
+    metadata:
+      labels:
+        app: [[ $operator.Name ]]
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9091"
+        prometheus.io/scrape: "true"
+    spec:
+      serviceAccountName: [[ $operator.Name ]]
+[[- if $volumes ]]
+      volumes:
+[[ toYaml $volumes | indent 6 ]]
+[[- end ]]
+      containers:
+[[- range $container := containerConfigs $operator ]]
+[[- $containerName := lower_camel $container.Name ]]
+[[- $containerVar := printf "$%s" $containerName ]]
+[[- $imageVar := printf "$%s%s" $containerName "Image" ]]
+{{- [[ $containerVar ]] := [[ $container.ValuesVar ]] }}
+{{- [[ $imageVar ]] := [[ $containerVar ]].Image }}
+      - name: [[ $container.Name ]]
+        image: {{ [[ $imageVar ]].registry }}/{{ [[ $imageVar ]].repository }}:{{ [[ $imageVar ]].tag }}
+        imagePullPolicy: {{ [[ $imageVar ]].pullPolicy }}
+[[- if $container.Args ]]
+        args:
+[[ toYaml $container.Args | indent 8 ]]
+[[- end ]]
+[[- if $container.Env ]]
+        env:
+[[ toYaml $container.Env | indent 10 ]]
+[[- end ]]
+[[- if $container.VolumeMounts ]]
+        volumeMounts:
+[[ toYaml $container.VolumeMounts | indent 8 ]]
+[[- end ]]
+{{- if [[ $containerVar ]].Resources }}
+        resources:
+{{ toYaml [[ $containerVar ]].Resources | indent 10}}
+{{- else}}
+        resources:
+          requests:
+            cpu: 500m
+            memory: 256Mi
+{{- end}}
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        {{- if [[ $imageVar ]].pullSecret }}
+        imagePullSecrets:
+        - name: {{ [[ $imageVar ]].pullSecret }}
+        {{- end}}
+[[- end ]]
+
+---
+
+# Service account for [[ $operator.Name ]]
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: [[ $operator.Name ]]
+  name: [[ $operator.Name ]]
+  namespace: {{ $.Release.Namespace }}
+
+
+[[ if gt (len $operator.Name) 0 ]]
+---
+# Service for [[ $operator.Name ]]
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: [[ $operator.Name ]]
+  name: [[ $operator.Name ]]
+  namespace: {{ $.Release.Namespace }}
+spec:
+  selector:
+    app: [[ $operator.Name ]]
+  type: [[ $operator.Service.Type ]]
+  ports:
+  [[- range $port := $operator.Service.Ports ]]
+  - name: [[ $port.Name ]]
+    port: [[ $port.DefaultPort ]]
+  [[- end ]]
+[[ end ]]
+
+[[ end ]]

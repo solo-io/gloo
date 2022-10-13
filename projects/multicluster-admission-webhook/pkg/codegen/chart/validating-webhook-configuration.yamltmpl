@@ -1,0 +1,28 @@
+[[- range $operator := $.Operators -]]
+
+[[ $admissionWebhookPath := getAdmissionWebhookPath -]]
+[[ $webhookPort := getWebhookPort -]]
+[[ $groupVersions := getAdmissionRules -]]
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: [[ $operator.Name ]]
+  labels:
+    app: [[ $operator.Name ]]
+webhooks:
+- name: [[ $operator.Name ]].{{ .Release.Namespace }}.svc  # must be a domain with at least three segments separated by dots
+  admissionReviewVersions:
+  - v1beta1
+  sideEffects: None
+  clientConfig:
+    service:
+      name:  [[ $operator.Name ]]
+      namespace: {{ .Release.Namespace }}
+      path: [[ $admissionWebhookPath ]]
+      port: [[ $webhookPort ]]
+[[- if $groupVersions ]]
+  rules:
+[[ toYaml $groupVersions | indent 2]]
+[[- end ]]
+[[- end ]]

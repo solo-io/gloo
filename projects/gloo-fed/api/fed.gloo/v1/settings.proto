@@ -7,7 +7,7 @@ option (extproto.equal_all) = true;
 import "extproto/ext.proto";
 option (extproto.hash_all) = true;
 
-import "github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/multicluster/v1alpha1/multicluster.proto";
+import "github.com/solo-io/solo-projects/projects/gloo-fed/api/multicluster/v1alpha1/multicluster.proto";
 import "github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/placement.proto";
 import "github.com/solo-io/solo-apis/api/gloo/gloo/v1/settings.proto";
 

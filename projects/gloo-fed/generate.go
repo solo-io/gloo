@@ -6,13 +6,13 @@ import (
 	"os"
 	"strings"
 
-	codegen_placement "github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/pkg/codegen/placement"
 	"github.com/solo-io/skv2/codegen"
 	"github.com/solo-io/skv2/codegen/model"
 	"github.com/solo-io/skv2/codegen/skv2_anyvendor"
 	"github.com/solo-io/skv2/contrib"
 	"github.com/solo-io/solo-kit/pkg/code-generator/sk_anyvendor"
 	"github.com/solo-io/solo-projects/codegen/groups"
+	codegen_placement "github.com/solo-io/solo-projects/projects/multicluster-admission-webhook/pkg/codegen/placement"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -74,11 +74,6 @@ func main() {
 	anyvendorImports.External["github.com/solo-io/solo-apis"] = []string{
 		"api/rate-limiter/**/*.proto",
 		"api/gloo/**/*.proto",
-	}
-	// Pull protos from private repositories
-	os.Setenv("GOPRIVATE", "github.com/solo-io")
-	anyvendorImports.External["github.com/solo-io/skv2-enterprise"] = []string{
-		"**/multicluster-admission-webhook/api/multicluster/v1alpha1/*.proto",
 	}
 	// Need to create copy of fed group to pass just failover schemes into chart
 	fedGroup := groups.FedGroup

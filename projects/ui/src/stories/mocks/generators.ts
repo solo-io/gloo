@@ -4,7 +4,7 @@ import {
   BoolValue,
   UInt32Value,
 } from 'google-protobuf/google/protobuf/wrappers_pb';
-import { Placement } from 'proto/github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/multicluster/v1alpha1/multicluster_pb';
+import { Placement } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/multicluster/v1alpha1/multicluster_pb';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import {
   GatewaySpec,

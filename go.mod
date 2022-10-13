@@ -56,13 +56,13 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.7.4
 	github.com/solo-io/skv2 v0.23.3
-	github.com/solo-io/skv2-enterprise v0.2.8
 	github.com/solo-io/solo-apis v0.0.0-20221011231413-a2f39f95360b
 	github.com/solo-io/solo-kit v0.30.7
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
+	github.com/spf13/viper v1.12.0
 	go.opencensus.io v0.23.0
 	go.uber.org/zap v1.19.1
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
@@ -82,6 +82,7 @@ require (
 	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 	k8s.io/code-generator v0.22.4
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
+	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
 	sigs.k8s.io/controller-runtime v0.11.2
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -299,7 +300,6 @@ require (
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/viper v1.12.0 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/subosito/gotenv v1.3.0 // indirect
 	github.com/tchap/go-patricia/v2 v2.3.1 // indirect
@@ -353,7 +353,6 @@ require (
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	k8s.io/kubectl v0.22.4 // indirect
 	k8s.io/metrics v0.22.4 // indirect
-	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e // indirect
 	sigs.k8s.io/kustomize/api v0.8.11 // indirect
 	sigs.k8s.io/kustomize/kustomize/v4 v4.2.0 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.11.0 // indirect

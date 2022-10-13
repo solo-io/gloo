@@ -1,0 +1,62 @@
+{{ $groups := imported_groups }}
+
+package {{ package }}
+
+import (
+    "context"
+
+    "github.com/rotisserie/eris"
+    "github.com/solo-io/solo-projects/projects/multicluster-admission-webhook/pkg/rbac"
+    "k8s.io/apimachinery/pkg/runtime"
+    multicluster_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
+
+
+{{- range $group := $groups }}
+    {{ $type_import_prefix := group_import_name $group }}
+    {{ $types_import_prefix := (printf "%v_types" (group_import_name $group)) }}
+    {{ $type_import_prefix }} "{{ group_import_path $group }}"
+    {{ $types_import_prefix }} "{{ client_import_path $group }}"
+{{- end }}
+)
+
+// Placement parser for handling typed objects. Implemented by the user.
+type TypedParser interface {
+{{- range $group := $groups }}
+    {{ $types_import_prefix := (printf "%v_types" (group_import_name $group)) }}
+    // Parsers for {{ $group }} types.
+    {{- range $resource := $group.Resources }}
+        Parse{{ $resource.Kind }}(ctx context.Context, obj *{{ $types_import_prefix }}.{{ $resource.Kind }}) ([]*multicluster_types.Placement, error)
+    {{- end }}
+{{- end }}
+}
+
+// Generic placement parser for handling runtime.Object.
+type parser struct {
+    scheme      *runtime.Scheme
+    typedParser TypedParser
+}
+
+// All types must be registered with the scheme.
+func NewParser(scheme *runtime.Scheme, typedParser TypedParser) rbac.Parser {
+    return &parser{scheme: scheme, typedParser: typedParser}
+}
+
+func (p *parser) Parse(ctx context.Context, rawObj []byte) ([]*multicluster_types.Placement, error) {
+    obj, err := rbac.FromRawToObject(p.scheme, rawObj)
+    if err != nil {
+        return nil, eris.Errorf("Error deserializing raw object: %+v", err)
+    }
+    switch objType := obj.(type) {
+    {{- range $group := $groups }}
+        {{ $types_import_prefix := (printf "%v_types" (group_import_name $group)) }}
+        {{- range $resource := $group.Resources }}
+            {{ $type_pointer := (printf "*%s.%s" $types_import_prefix $resource.Kind ) }}
+            case {{ $type_pointer }}:
+                return p.typedParser.Parse{{ $resource.Kind }}(ctx, obj.({{ $type_pointer }}))
+        {{- end }}
+    {{- end }}
+
+    default:
+        return nil, eris.Errorf("Unrecognized object type: %T", objType)
+    }
+}

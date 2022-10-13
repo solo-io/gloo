@@ -1,0 +1,14 @@
+syntax = "proto3";
+package test.multicluster.solo.io;
+
+import "extproto/ext.proto";
+option (extproto.hash_all) = true;
+option (extproto.equal_all) = true;
+
+option go_package = "github.com/solo-io/solo-projects/projects/multicluster-admission-webhook/test/internal/api/test.multicluster.solo.io/v1alpha1/types";
+
+message TestSpec {
+    repeated string namespaces = 1;
+
+    repeated string clusters = 2;
+}

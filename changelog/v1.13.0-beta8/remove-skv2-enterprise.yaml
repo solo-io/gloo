@@ -1,0 +1,9 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/3540
+  description: Remove dependency on skv2-enterprise since that causes issues with upgrading skv2. Copied all the relevant code into solo-projects.
+  resolvesIssue: false
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/gloo/issues/7235
+  description: Remove dependency on skv2-enterprise since that causes issues with upgrading skv2. Copied all the relevant code into solo-projects.
+  resolvesIssue: false

@@ -578,6 +578,10 @@ generated-gloo-fed-ui-deps:
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/multicluster/v1alpha1/*.proto
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/v1/*.proto
 
 	$(PROTOC) -I$(APISERVER_DIR) \
@@ -591,10 +595,6 @@ generated-gloo-fed-ui-deps:
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-projects/projects/gloo/api/enterprise/*/*/*.proto
-
-	$(PROTOC) -I$(APISERVER_DIR) \
-	$(TS_OUT) \
-	$(PROTOC_IMPORT_PATH)/github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/multicluster/v1alpha1/*.proto
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \

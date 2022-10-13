@@ -4,7 +4,7 @@
 
 import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../../extproto/ext_pb";
-import * as github_com_solo_io_skv2_enterprise_multicluster_admission_webhook_api_multicluster_v1alpha1_multicluster_pb from "../../../../../../../../github.com/solo-io/skv2-enterprise/multicluster-admission-webhook/api/multicluster/v1alpha1/multicluster_pb";
+import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_multicluster_v1alpha1_multicluster_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/multicluster/v1alpha1/multicluster_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_core_v1_placement_pb from "../../../../../../../../github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/placement_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gateway_v1_matchable_http_gateway_pb from "../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gateway/v1/matchable_http_gateway_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
@@ -17,8 +17,8 @@ export class FederatedMatchableHttpGatewaySpec extends jspb.Message {
 
   hasPlacement(): boolean;
   clearPlacement(): void;
-  getPlacement(): github_com_solo_io_skv2_enterprise_multicluster_admission_webhook_api_multicluster_v1alpha1_multicluster_pb.Placement | undefined;
-  setPlacement(value?: github_com_solo_io_skv2_enterprise_multicluster_admission_webhook_api_multicluster_v1alpha1_multicluster_pb.Placement): void;
+  getPlacement(): github_com_solo_io_solo_projects_projects_gloo_fed_api_multicluster_v1alpha1_multicluster_pb.Placement | undefined;
+  setPlacement(value?: github_com_solo_io_solo_projects_projects_gloo_fed_api_multicluster_v1alpha1_multicluster_pb.Placement): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): FederatedMatchableHttpGatewaySpec.AsObject;
@@ -33,7 +33,7 @@ export class FederatedMatchableHttpGatewaySpec extends jspb.Message {
 export namespace FederatedMatchableHttpGatewaySpec {
   export type AsObject = {
     template?: FederatedMatchableHttpGatewaySpec.Template.AsObject,
-    placement?: github_com_solo_io_skv2_enterprise_multicluster_admission_webhook_api_multicluster_v1alpha1_multicluster_pb.Placement.AsObject,
+    placement?: github_com_solo_io_solo_projects_projects_gloo_fed_api_multicluster_v1alpha1_multicluster_pb.Placement.AsObject,
   }
 
   export class Template extends jspb.Message {
