@@ -771,11 +771,10 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	} else {
 		logger.Debugf("Gateway translation is disabled. Proxies are provided from another source")
 	}
-	glooValidator := validation.NewGlooValidator(sharedTranslator, xdsSanitizer)
 
 	gwValidationSyncer := gwvalidation.NewValidator(gwvalidation.NewValidatorConfig(
 		gatewayTranslator,
-		glooValidator,
+		validator.ValidateGeneric,
 		ignoreProxyValidationFailure,
 		allowWarnings,
 	))

@@ -17,6 +17,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/hashutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	sk_resources "github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"go.uber.org/zap"
@@ -34,6 +35,7 @@ type validator struct {
 	// any stateful fields should be protected by a mutex or themselves be synchronized (like the xds sanitizer / translator)
 	lock           sync.RWMutex
 	latestSnapshot *v1snap.ApiSnapshot
+	glooValidator  GlooValidator
 	translator     translator.Translator
 	notifyResync   map[*validation.NotifyOnResyncRequest]chan struct{}
 	ctx            context.Context
@@ -42,10 +44,11 @@ type validator struct {
 
 func NewValidator(ctx context.Context, translator translator.Translator, xdsSanitizer sanitizer.XdsSanitizers) *validator {
 	return &validator{
-		translator:   translator,
-		notifyResync: make(map[*validation.NotifyOnResyncRequest]chan struct{}, 1),
-		ctx:          ctx,
-		xdsSanitizer: xdsSanitizer,
+		translator:    translator,
+		glooValidator: NewGlooValidator(translator, xdsSanitizer),
+		notifyResync:  make(map[*validation.NotifyOnResyncRequest]chan struct{}, 1),
+		ctx:           ctx,
+		xdsSanitizer:  xdsSanitizer,
 	}
 }
 
@@ -219,6 +222,29 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 	return &validation.GlooValidationServiceResponse{
 		ValidationReports: validationReports,
 	}, nil
+}
+
+func (s *validator) ValidateGeneric(ctx context.Context, proxy *v1.Proxy, resource resources.Resource, delete bool) ([]*GlooValidationReport, error) {
+	s.lock.Lock()
+	// we may receive a Validate call before a Sync has occurred
+	if s.latestSnapshot == nil {
+		s.lock.Unlock()
+		return nil, eris.New("proxy validation called before the validation server received its first sync of resources")
+	}
+	snapCopy := s.latestSnapshot.Clone() // cloning can mutate so we need a write lock
+	s.lock.Unlock()
+	if resource != nil {
+		if delete {
+			if err := snapCopy.RemoveFromResourceList(resource); err != nil {
+				return nil, err
+			}
+		} else {
+			if err := snapCopy.AddOrReplaceToResourceList(resource); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return s.glooValidator.Validate(ctx, proxy, &snapCopy, delete), nil
 }
 
 // updates the given snapshot with the resources from the request

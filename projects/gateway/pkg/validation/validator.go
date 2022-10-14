@@ -90,32 +90,36 @@ type Validator interface {
 	ValidationIsSupported(gvk schema.GroupVersionKind) bool
 }
 
+type GlooValidatorFunc = func(ctx context.Context, proxy *gloov1.Proxy,
+	resource resources.Resource, delete bool,
+) ([]*gloovalidation.GlooValidationReport, error)
+
 type validator struct {
-	lock                         sync.RWMutex
-	latestSnapshot               *gloov1snap.ApiSnapshot
-	latestSnapshotErr            error
-	translator                   translator.Translator
-	glooValidator                gloovalidation.GlooValidator
+	lock              sync.RWMutex
+	latestSnapshot    *gloov1snap.ApiSnapshot
+	latestSnapshotErr error
+	translator        translator.Translator
+	// This function replaces a grpc client from when gloo and gateway pods were separate.
+	glooValidator                GlooValidatorFunc
 	ignoreProxyValidationFailure bool
 	allowWarnings                bool
 }
 
 type ValidatorConfig struct {
 	translator                   translator.Translator
-	glooValidator                gloovalidation.GlooValidator
-	writeNamespace               string
+	glooValidator                GlooValidatorFunc
 	ignoreProxyValidationFailure bool
 	allowWarnings                bool
 }
 
 func NewValidatorConfig(
 	translator translator.Translator,
-	glooValidator gloovalidation.GlooValidator,
+	glooValidator GlooValidatorFunc,
 	ignoreProxyValidationFailure, allowWarnings bool,
 ) ValidatorConfig {
 	return ValidatorConfig{
-		translator:                   translator,
 		glooValidator:                glooValidator,
+		translator:                   translator,
 		ignoreProxyValidationFailure: ignoreProxyValidationFailure,
 		allowWarnings:                allowWarnings,
 	}
@@ -123,8 +127,8 @@ func NewValidatorConfig(
 
 func NewValidator(cfg ValidatorConfig) *validator {
 	return &validator{
-		translator:                   cfg.translator,
 		glooValidator:                cfg.glooValidator,
+		translator:                   cfg.translator,
 		ignoreProxyValidationFailure: cfg.ignoreProxyValidationFailure,
 		allowWarnings:                cfg.allowWarnings,
 	}
@@ -302,9 +306,17 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 
 		proxies = append(proxies, proxy)
 		// validate the proxy with gloo
-		// TODO-JAKE for more generic run for the first run only have the check on the proxy Reports.  Then after testing of that, add in the resource reports as well.
-		// since this is a for loop we will translate on all the proxies.
-		glooReports := v.validateGlooTranslation(ctx, proxy, snapshotClone, false)
+		glooReports, err := v.glooValidator(ctx, proxy, nil, false)
+		if err != nil {
+			err = errors.Wrapf(err, "failed gloo validation")
+			if v.ignoreProxyValidationFailure {
+				contextutils.LoggerFrom(ctx).Error(err)
+			} else {
+				errs = multierr.Append(errs, err)
+			}
+			continue
+		}
+
 		if len(glooReports) != 1 {
 			// This was likely caused by a development error
 			err := GlooValidationResponseLengthError(glooReports)
@@ -315,7 +327,7 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 		proxyReport := glooReports[0].ProxyReport
 		proxyReports = append(proxyReports, proxyReport)
 		if err := validationutils.GetProxyError(proxyReport); err != nil {
-			errs = multierr.Append(errs, errors.Wrapf(err, "failed to validate Proxy with Gloo validation server"))
+			errs = multierr.Append(errs, errors.Wrapf(err, "failed to validate proxy with gloo translation"))
 			continue
 		}
 		if warnings := validationutils.GetProxyWarning(proxyReport); !v.allowWarnings && len(warnings) > 0 {
@@ -481,11 +493,6 @@ func (v *validator) copySnapshot(ctx context.Context, dryRun bool) (*gloosnapsho
 	return &snapshotClone, nil
 }
 
-// if proxy is set to nil, it will translate all the proxies, else only the proxy provided.
-func (v *validator) validateGlooTranslation(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, delete bool) []*gloovalidation.GlooValidationReport {
-	return v.glooValidator.Validate(ctx, proxy, snapshot, delete)
-}
-
 func (v *validator) ValidateDeleteVirtualService(ctx context.Context, vsRef *core.ResourceRef, dryRun bool) error {
 	v.lock.Lock()
 	defer v.lock.Unlock()
@@ -584,23 +591,12 @@ func (v *validator) ValidateDeleteRouteTable(ctx context.Context, rtRef *core.Re
 	return nil
 }
 
+// TODO-JAKE get rid of the acquire lock... no more reason, although this could be passed to the gloo validation function
 func (v *validator) validateGlooResource(ctx context.Context, resource resources.Resource, delete, dryRun, acquireLock bool) (*Reports, error) {
-	if acquireLock {
-		v.lock.Lock()
-		defer v.lock.Unlock()
-	}
-	snapshotCopy, err := v.copySnapshot(ctx, dryRun)
+	glooReports, err := v.glooValidator(ctx, nil, resource, delete)
 	if err != nil {
-		return &Reports{}, err
+		return nil, eris.Wrapf(err, "failed validating gloo resource")
 	}
-	if resource != nil {
-		if delete {
-			snapshotCopy.RemoveFromResourceList(resource)
-		} else {
-			snapshotCopy.AddOrReplaceToResourceList(resource)
-		}
-	}
-	glooReports := v.validateGlooTranslation(ctx, nil, snapshotCopy, delete)
 	contextutils.LoggerFrom(ctx).Debugf("gloo translation validation returned %d reports", len(glooReports))
 	return v.getReportsFromGlooValidation(glooReports)
 }
@@ -661,11 +657,6 @@ func (v *validator) getReportsFromGlooValidation(reports []*gloovalidation.GlooV
 	for _, report := range reports {
 		// for resorce, resourceReport
 		for resource, reRpt := range report.ResourceReports {
-			// TODO-JAKE lets try this first and then we can see if it works or not.
-			// for resource, reRpt := range report.ResourceReports {
-			// switch resources.Kind(resource) {
-			// case "*v1.Upstream":
-			// TODO-JAKE check if resource GVK is supported against the resource information
 			if err := resourceReportToMultiErr(reRpt.Errors); err != nil {
 				errs = multierr.Append(errs, errors.Wrapf(err, "failed to validate %T with Gloo validation server", resource))
 			}
