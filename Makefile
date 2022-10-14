@@ -1341,16 +1341,16 @@ ifeq ($(RELEASE), "true")
 	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug && \
 	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/caching-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/discovery-ee:$(VERSION)
 ifeq  ($(IS_ARM_MACHINE), )
-	# this is not built on arm, so this is adding complexity.  There is no reason to add this as well to the normal build of gloo-ee.
+	# these images are not built on ARM, so this is adding complexity.  There is no reason to add this as well to the normal build of gloo-ee.
 	# so if pushing because of ARM, we will 
 	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION)-race
+	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION)-race && \
+	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug
 endif
 #
 endif
