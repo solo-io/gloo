@@ -83,47 +83,44 @@ var _ Validator = &validator{}
 type Validator interface {
 	gloov1snap.ApiSyncer
 	ValidateList(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*Reports, *multierror.Error)
-	ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error
+	ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error
 	ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*Reports, error)
 	ValidateGatewayResource(ctx context.Context, resource resources.Resource, rv GatewayResourceValidator, dryRun bool) (*Reports, error)
-	ValidateDeleteGlooResource(ctx context.Context, ref *core.ResourceRef, rv DeleteGlooResourceValidator) (*Reports, error)
 	ValidateDeleteVirtualService(ctx context.Context, vs *core.ResourceRef, dryRun bool) error
 	ValidateDeleteRouteTable(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
 	ValidationIsSupported(gvk schema.GroupVersionKind) bool
 }
 
-type ValidatorFunc = func(
-	context.Context,
-	*validation.GlooValidationServiceRequest,
-) (*validation.GlooValidationServiceResponse, error)
+type ValidatorFunc = func(ctx context.Context, proxy *gloov1.Proxy,
+	resource resources.Resource, delete bool,
+) ([]*gloovalidation.GlooValidationReport, error)
 
 type validator struct {
 	lock              sync.RWMutex
 	latestSnapshot    *gloov1snap.ApiSnapshot
 	latestSnapshotErr error
 	translator        translator.Translator
+	glooValidator     ValidatorFunc
 	//This function replaces a grpc client from when gloo and gateway pods were separate.
-	glooValidator                gloovalidation.GlooValidator
 	ignoreProxyValidationFailure bool
 	allowWarnings                bool
 }
 
 type ValidatorConfig struct {
 	translator                   translator.Translator
-	glooValidator                gloovalidation.GlooValidator
-	writeNamespace               string
+	glooValidator                ValidatorFunc
 	ignoreProxyValidationFailure bool
 	allowWarnings                bool
 }
 
 func NewValidatorConfig(
 	translator translator.Translator,
-	glooValidator gloovalidation.GlooValidator,
+	validatorFunc ValidatorFunc,
 	ignoreProxyValidationFailure, allowWarnings bool,
 ) ValidatorConfig {
 	return ValidatorConfig{
+		glooValidator:                validatorFunc,
 		translator:                   translator,
-		glooValidator:                glooValidator,
 		ignoreProxyValidationFailure: ignoreProxyValidationFailure,
 		allowWarnings:                allowWarnings,
 	}
@@ -131,8 +128,8 @@ func NewValidatorConfig(
 
 func NewValidator(cfg ValidatorConfig) *validator {
 	return &validator{
-		translator:                   cfg.translator,
 		glooValidator:                cfg.glooValidator,
+		translator:                   cfg.translator,
 		ignoreProxyValidationFailure: cfg.ignoreProxyValidationFailure,
 		allowWarnings:                cfg.allowWarnings,
 	}
@@ -317,7 +314,16 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 
 		proxies = append(proxies, proxy)
 		// validate the proxy with gloo
-		glooReports := v.validateGlooTranslation(ctx, proxy, &snapshotClone, false)
+		glooReports, err := v.glooValidator(ctx, proxy, nil, false)
+		if err != nil {
+			err = errors.Wrapf(err, "failed gloo validation")
+			if v.ignoreProxyValidationFailure {
+				contextutils.LoggerFrom(ctx).Error(err)
+			} else {
+				errs = multierr.Append(errs, err)
+			}
+			continue
+		}
 
 		if len(glooReports) != 1 {
 			// This was likely caused by a development error
@@ -364,18 +370,18 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 	return &Reports{ProxyReports: &proxyReports, Proxies: proxies}, nil
 }
 
-func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, dryRun bool) error {
+func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
 	if gvk.Group == GatewayGroup {
 		if rv, hit := GvkToDeleteGatewayResourceValidator[gvk]; hit {
-			return rv.DeleteResource(ctx, ref, v, dryRun)
+			return rv.DeleteResource(ctx, resource.GetMetadata().Ref(), v, dryRun)
 		}
 	} else if gvk.Group == GlooGroup {
-		if rv, hit := GvkToDeleteGlooValidator[gvk]; hit {
-			_, err := v.ValidateDeleteGlooResource(ctx, ref, rv)
+		if _, hit := GvkToDeleteGlooValidator[gvk]; hit {
+			_, err := v.validateGlooResource(ctx, resource, true, dryRun, true)
 			return err
 		}
 	}
-	contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource delete ref namespace [%s] name [%s] group [%s] kind [%s]", ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
+	contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource delete ref namespace [%s] name [%s] group [%s] kind [%s]", resource.GetMetadata().GetNamespace(), resource.GetMetadata().GetName(), gvk.Group, gvk.Kind)
 	return nil
 }
 
@@ -392,8 +398,8 @@ func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind
 			return reports, nil
 		}
 	} else if gvk.Group == GlooGroup {
-		if rv, hit := GvkToGlooValidator[gvk]; hit {
-			reports, err := v.ValidateGlooResource(ctx, resource, rv)
+		if _, hit := GvkToGlooValidator[gvk]; hit {
+			reports, err := v.validateGlooResource(ctx, resource, false, dryRun, true)
 			if err != nil {
 				return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
 			}
@@ -474,11 +480,6 @@ func (v *validator) processItem(ctx context.Context, item unstructured.Unstructu
 	// TODO(mitchaman): Handle upstreams
 	// should not happen
 	return &Reports{ProxyReports: &ProxyReports{}}, errors.Errorf("Unknown group/version/kind, %v", itemGvk)
-}
-
-// if proxy is set to nil, it will translate all the proxies, else only the proxy provided.
-func (v *validator) validateGlooTranslation(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, delete bool) []*gloovalidation.GlooValidationReport {
-	return v.glooValidator.Validate(ctx, proxy, snapshot, delete)
 }
 
 func (v *validator) ValidateDeleteVirtualService(ctx context.Context, vsRef *core.ResourceRef, dryRun bool) error {
@@ -581,20 +582,12 @@ func (v *validator) ValidateDeleteRouteTable(ctx context.Context, rtRef *core.Re
 
 type GetProxies func(ctx context.Context, resource resources.HashableInputResource, snap *gloov1snap.ApiSnapshot) ([]string, error)
 
+// TODO-JAKE get rid of the acquire lock... no more reason, although this could be passed to the gloo validation function
 func (v *validator) validateGlooResource(ctx context.Context, resource resources.Resource, delete, dryRun, acquireLock bool) (*Reports, error) {
-	if acquireLock {
-		v.lock.Lock()
-		defer v.lock.Unlock()
+	glooReports, err := v.glooValidator(ctx, nil, resource, delete)
+	if err != nil {
+		return nil, eris.Wrapf(err, "failed validating gloo resource")
 	}
-	snapshotCopy := v.latestSnapshot.Clone()
-	if resource != nil {
-		if delete {
-			snapshotCopy.RemoveFromResourceList(resource)
-		} else {
-			snapshotCopy.AddOrReplaceToResourceList(resource)
-		}
-	}
-	glooReports := v.validateGlooTranslation(ctx, nil, &snapshotCopy, delete)
 	contextutils.LoggerFrom(ctx).Debugf("gloo translation validation returned %d reports", len(glooReports))
 	return v.getReportsFromGlooValidation(glooReports)
 }
@@ -661,6 +654,8 @@ func (v *validator) getReportsFromGlooValidation(reports []*gloovalidation.GlooV
 			// switch resources.Kind(resource) {
 			// case "*v1.Upstream":
 			// TODO-JAKE check if resource GVK is supported against the resource information
+			// switch resources.Kind(resource) {
+			// case "*v1.Upstream":
 			if err := resourceReportToMultiErr(reRpt.Errors); err != nil {
 				errs = multierr.Append(errs, errors.Wrapf(err, "failed to validate %T with Gloo validation server", resource))
 			}
@@ -669,6 +664,8 @@ func (v *validator) getReportsFromGlooValidation(reports []*gloovalidation.GlooV
 					errs = multierr.Append(errs, errors.New(warning))
 				}
 			}
+			// }
+
 		}
 		// Append proxies and proxy reports
 		if report.Proxy != nil {
