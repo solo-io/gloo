@@ -412,7 +412,7 @@ func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.Gr
 		Namespace: ref.GetNamespace(),
 		Name:      ref.GetName(),
 	})
-	err := wh.validator.ValidateDeleteRef(ctx, gvk, newResource, isDryRun(admissionRequest))
+	err := wh.validator.ValidateDeletedGvk(ctx, gvk, newResource, isDryRun(admissionRequest))
 	if err != nil {
 		return nil, &multierror.Error{Errors: []error{errors.Wrapf(err, "failed validating the deletion of resource namespace: %s name: %s", ref.GetNamespace(), ref.GetName())}}
 	}
@@ -439,7 +439,7 @@ func (wh *gatewayValidationWebhook) validateGvk(ctx context.Context, gvk schema.
 		return nil, nil
 	}
 
-	reports, err := wh.validator.ValidateGvk(ctx, gvk, newResource, isDryRun(admissionRequest))
+	reports, err := wh.validator.ValidateModifiedGvk(ctx, gvk, newResource, isDryRun(admissionRequest))
 	if err != nil {
 		return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", newResource)}}
 	}

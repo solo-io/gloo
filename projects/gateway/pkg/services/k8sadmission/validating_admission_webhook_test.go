@@ -590,33 +590,37 @@ func (v *mockValidator) ValidationIsSupported(gvk schema.GroupVersionKind) bool 
 	return true
 }
 
-func (v *mockValidator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
+func (v *mockValidator) ValidateDeletedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
 	if v.fValidateDeleteVirtualService == nil {
 		return nil
 	}
 	return v.fValidateDeleteVirtualService(ctx, resource.GetMetadata().Ref(), dryRun)
 }
 
-func (v *mockValidator) ValidateGlooResource(ctx context.Context, resource resources.Resource, delete bool) (*validation.Reports, error) {
+func (v *mockValidator) ValidateGlooResource(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*validation.Reports, error) {
 	if v.fValidateGateway == nil {
 		return reports(), nil
 	}
 	return v.fValidateUpstream(ctx, &gloov1.Upstream{})
 }
 
-func (v *mockValidator) ValidateGatewayResource(ctx context.Context, resource resources.Resource, dryRun bool) (*validation.Reports, error) {
+func (v *mockValidator) ValidateModifiedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*validation.Reports, error) {
 	if v.fValidateGateway == nil {
 		return reports(), nil
 	}
-	switch typed := resource.(type) {
-	case *v1.Gateway:
-		return v.fValidateGateway(ctx, typed, dryRun)
-	case *v1.RouteTable:
-		return v.fValidateRouteTable(ctx, typed, dryRun)
-	case *v1.VirtualService:
-		return v.fValidateVirtualService(ctx, typed, dryRun)
-	default:
-		return nil, nil
+	if gvk.Group == validation.GatewayGroup {
+		switch typed := resource.(type) {
+		case *v1.Gateway:
+			return v.fValidateGateway(ctx, typed, dryRun)
+		case *v1.RouteTable:
+			return v.fValidateRouteTable(ctx, typed, dryRun)
+		case *v1.VirtualService:
+			return v.fValidateVirtualService(ctx, typed, dryRun)
+		default:
+			return nil, nil
+		}
+	} else {
+		return v.fValidateUpstream(ctx, gloov1.NewUpstream("new", "name"))
 	}
 }
 

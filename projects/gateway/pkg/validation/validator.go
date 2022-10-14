@@ -82,11 +82,8 @@ var _ Validator = &validator{}
 type Validator interface {
 	gloov1snap.ApiSyncer
 	ValidateList(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*Reports, *multierror.Error)
-	ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error
-	ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*Reports, error)
-	ValidateGatewayResource(ctx context.Context, resource resources.Resource, dryRun bool) (*Reports, error)
-	ValidateDeleteVirtualService(ctx context.Context, vs *core.ResourceRef, dryRun bool) error
-	ValidateDeleteRouteTable(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
+	ValidateModifiedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*Reports, error)
+	ValidateDeletedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error
 	ValidationIsSupported(gvk schema.GroupVersionKind) bool
 }
 
@@ -219,17 +216,17 @@ func (v *validator) gatewayUpdate(snap *gloov1snap.ApiSnapshot) bool {
 	return hashChanged
 }
 
-func (v *validator) validateSnapshotThreadSafe(ctx context.Context, resource resources.Resource, dryRun bool) (
+func (v *validator) validateSnapshotThreadSafe(ctx context.Context, resource resources.Resource, delete, dryRun bool) (
 	*Reports,
 	error,
 ) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 
-	return v.validateSnapshot(ctx, resource, dryRun)
+	return v.validateSnapshot(ctx, resource, delete, dryRun)
 }
 
-func (v *validator) validateSnapshot(ctx context.Context, resource resources.Resource, dryRun bool) (*Reports, error) {
+func (v *validator) validateSnapshot(ctx context.Context, resource resources.Resource, delete, dryRun bool) (*Reports, error) {
 	// validate that a snapshot can be modified
 	// should be called within a lock
 	//
@@ -354,15 +351,17 @@ func (v *validator) validateSnapshot(ctx context.Context, resource resources.Res
 	return &Reports{ProxyReports: &proxyReports, Proxies: proxies}, nil
 }
 
-func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
+func (v *validator) ValidateDeletedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
 	if gvk.Group == GatewayGroup {
-		if rv, hit := GvkSupportedDeleteGatewayResources[gvk]; hit {
-			return rv.DeleteResource(ctx, resource.GetMetadata().Ref(), v, dryRun)
+		// TODO look at this..
+		if _, hit := GvkSupportedDeleteGatewayResources[gvk]; hit {
+			_, err := v.validateGatewayResource(ctx, resource, true, dryRun, true)
+			return err
 		}
 	} else if gvk.Group == gloovalidation.GlooGroup {
 		// all this is really doing is telling me that it is supported....
 		if _, hit := gloovalidation.GvkToSupportedDeleteGlooResources[gvk]; hit {
-			_, err := v.validateGlooResource(ctx, resource, true, dryRun, true)
+			_, err := v.validateGlooResource(ctx, resource, true, dryRun)
 			return err
 		}
 	}
@@ -370,17 +369,17 @@ func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersi
 	return nil
 }
 
-func (v *validator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*Reports, error) {
-	return v.validateGvk(ctx, gvk, resource, dryRun, true)
+func (v *validator) ValidateModifiedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*Reports, error) {
+	return v.validateModifiedResource(ctx, gvk, resource, dryRun, true)
 }
 
-func (v *validator) validateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun, acquireLock bool) (*Reports, error) {
+func (v *validator) validateModifiedResource(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun, acquireLock bool) (*Reports, error) {
 	var reports *Reports
 	// Gloo has two types of Groups: Gateway, Gloo. This statement is splitting the Validation based off
 	// the resource group type.
 	if gvk.Group == GatewayGroup {
 		if _, hit := GvkSupportedValidationGatewayResources[gvk]; hit {
-			reports, err := v.validateGatewayResource(ctx, resource, dryRun, acquireLock)
+			reports, err := v.validateGatewayResource(ctx, resource, false, dryRun, acquireLock)
 			if err != nil {
 				return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
 			}
@@ -388,7 +387,7 @@ func (v *validator) validateGvk(ctx context.Context, gvk schema.GroupVersionKind
 		}
 	} else if gvk.Group == gloovalidation.GlooGroup {
 		if _, hit := gloovalidation.GvkToSupportedGlooResources[gvk]; hit {
-			reports, err := v.validateGlooResource(ctx, resource, false, dryRun, acquireLock)
+			reports, err := v.validateGlooResource(ctx, resource, false, dryRun)
 			if err != nil {
 				return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
 			}
@@ -462,9 +461,8 @@ func (v *validator) processItem(ctx context.Context, item unstructured.Unstructu
 		if unmarshalErr := skprotoutils.UnmarshalResource(jsonBytes, resource); unmarshalErr != nil {
 			return &Reports{ProxyReports: &ProxyReports{}}, WrappedUnmarshalErr(unmarshalErr)
 		}
-		return v.validateGvk(ctx, itemGvk, resource, false, false)
+		return v.validateModifiedResource(ctx, itemGvk, resource, false, false)
 	}
-	// TODO(mitchaman): Handle upstreams
 	// should not happen
 	return &Reports{ProxyReports: &ProxyReports{}}, errors.Errorf("Unknown group/version/kind, %v", itemGvk)
 }
@@ -484,107 +482,7 @@ func (v *validator) copySnapshot(ctx context.Context, dryRun bool) (*gloosnapsho
 	return &snapshotClone, nil
 }
 
-func (v *validator) ValidateDeleteVirtualService(ctx context.Context, vsRef *core.ResourceRef, dryRun bool) error {
-	v.lock.Lock()
-	defer v.lock.Unlock()
-	if !v.ready() {
-		return errors.Errorf("Gateway validation is yet not available. Waiting for first snapshot")
-	}
-	snap := v.latestSnapshot.Clone()
-
-	vs, err := snap.VirtualServices.Find(vsRef.Strings())
-	if err != nil {
-		// if it's not present in the snapshot, allow deletion
-		return nil
-	}
-
-	var parentGateways []*core.ResourceRef
-	snap.Gateways.Each(func(element *v1.Gateway) {
-		virtualServices := virtualServicesForGateway(ctx, snap, element)
-		if len(virtualServices) == 0 {
-			contextutils.LoggerFrom(ctx).Debugw("Accepted deletion of Virtual Service %v", vsRef)
-			return
-		}
-
-		for _, ref := range virtualServices {
-			if ref.Equal(vsRef) {
-				// this gateway points at this virtual service
-				parentGateways = append(parentGateways, element.GetMetadata().Ref())
-
-				break
-			}
-		}
-	})
-
-	if len(parentGateways) > 0 {
-		err := VirtualServiceDeleteErr(parentGateways)
-		if !v.allowWarnings {
-			contextutils.LoggerFrom(ctx).Infof("Rejected deletion of Virtual Service %v: %v", vsRef, err)
-			return err
-		}
-		contextutils.LoggerFrom(ctx).Warn("Allowed deletion of Virtual Service %v with warning: %v", vsRef, err)
-	} else {
-		contextutils.LoggerFrom(ctx).Debugw("Accepted deletion of Virtual Service %v", vsRef)
-	}
-
-	if !dryRun {
-		v.latestSnapshot.RemoveFromResourceList(vs)
-	}
-	return nil
-}
-
-// TODO-JAKE delete
-func (v *validator) ValidateDeleteRouteTable(ctx context.Context, rtRef *core.ResourceRef, dryRun bool) error {
-	v.lock.Lock()
-	defer v.lock.Unlock()
-	if !v.ready() {
-		return errors.Errorf("Gateway validation is yet not available. Waiting for first snapshot")
-	}
-	snap := v.latestSnapshot.Clone()
-
-	rt, err := snap.RouteTables.Find(rtRef.Strings())
-	if err != nil {
-		// if it's not present in the snapshot, allow deletion
-		return nil
-	}
-
-	refsToDelete := sets.NewString(gloo_translator.UpstreamToClusterName(rtRef))
-
-	var parentVirtualServices []*core.ResourceRef
-	snap.VirtualServices.Each(func(element *v1.VirtualService) {
-		// for each VS, check if its routes contain a ref to deleted rt
-		if routesContainRefs(element.GetVirtualHost().GetRoutes(), refsToDelete) {
-			parentVirtualServices = append(parentVirtualServices, element.GetMetadata().Ref())
-		}
-	})
-
-	var parentRouteTables []*core.ResourceRef
-	snap.RouteTables.Each(func(element *v1.RouteTable) {
-		// for each RT, check if its routes contain a ref to deleted rt
-		if routesContainRefs(element.GetRoutes(), refsToDelete) {
-			parentRouteTables = append(parentRouteTables, element.GetMetadata().Ref())
-		}
-	})
-
-	if len(parentVirtualServices) > 0 || len(parentRouteTables) > 0 {
-		err := RouteTableDeleteErr(parentVirtualServices, parentRouteTables)
-		if !v.allowWarnings {
-			contextutils.LoggerFrom(ctx).Debugw("Rejected deletion of Route Table %v: %v", rtRef, err)
-			return err
-		}
-		contextutils.LoggerFrom(ctx).Warn("Allowed deletion of Route Table %v with warning: %v", rtRef, err)
-	} else {
-		contextutils.LoggerFrom(ctx).Debugw("Accepted Route Table deletion %v", rtRef)
-	}
-
-	if !dryRun {
-		v.latestSnapshot.RemoveFromResourceList(rt)
-	}
-	return nil
-}
-
-// TODO-JAKE get rid of the acquire lock... no more reason, although this could be passed to the gloo validation function
-func (v *validator) validateGlooResource(ctx context.Context, resource resources.Resource, delete, dryRun, acquireLock bool) (*Reports, error) {
+func (v *validator) validateGlooResource(ctx context.Context, resource resources.Resource, delete, dryRun bool) (*Reports, error) {
 	glooReports, err := v.glooValidator(ctx, nil, resource, delete)
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed validating gloo resource")
@@ -593,16 +491,11 @@ func (v *validator) validateGlooResource(ctx context.Context, resource resources
 	return v.getReportsFromGlooValidation(glooReports)
 }
 
-// ValidateGatewayResource will validate gateway group resources
-func (v *validator) ValidateGatewayResource(ctx context.Context, resource resources.Resource, dryRun bool) (*Reports, error) {
-	return v.validateGatewayResource(ctx, resource, dryRun, true)
-}
-
-func (v *validator) validateGatewayResource(ctx context.Context, resource resources.Resource, dryRun, acquireLock bool) (*Reports, error) {
+func (v *validator) validateGatewayResource(ctx context.Context, resource resources.Resource, delete, dryRun, acquireLock bool) (*Reports, error) {
 	if acquireLock {
-		return v.validateSnapshotThreadSafe(ctx, resource, dryRun)
+		return v.validateSnapshotThreadSafe(ctx, resource, delete, dryRun)
 	} else {
-		return v.validateSnapshot(ctx, resource, dryRun)
+		return v.validateSnapshot(ctx, resource, delete, dryRun)
 	}
 }
 
