@@ -604,7 +604,7 @@ func (v *mockValidator) ValidateGlooResource(ctx context.Context, resource resou
 	return v.fValidateUpstream(ctx, &gloov1.Upstream{})
 }
 
-func (v *mockValidator) ValidateGatewayResource(ctx context.Context, resource resources.Resource, rv validation.GatewayResourceValidator, dryRun bool) (*validation.Reports, error) {
+func (v *mockValidator) ValidateGatewayResource(ctx context.Context, resource resources.Resource, dryRun bool) (*validation.Reports, error) {
 	if v.fValidateGateway == nil {
 		return reports(), nil
 	}

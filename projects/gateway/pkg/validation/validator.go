@@ -84,7 +84,7 @@ type Validator interface {
 	ValidateList(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*Reports, *multierror.Error)
 	ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error
 	ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*Reports, error)
-	ValidateGatewayResource(ctx context.Context, resource resources.Resource, rv GatewayResourceValidator, dryRun bool) (*Reports, error)
+	ValidateGatewayResource(ctx context.Context, resource resources.Resource, dryRun bool) (*Reports, error)
 	ValidateDeleteVirtualService(ctx context.Context, vs *core.ResourceRef, dryRun bool) error
 	ValidateDeleteRouteTable(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
 	ValidationIsSupported(gvk schema.GroupVersionKind) bool
@@ -181,15 +181,13 @@ func (v *validator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) erro
 }
 
 func (v *validator) ValidationIsSupported(gvk schema.GroupVersionKind) bool {
-	_, hit := GvkToGatewayResourceValidator[gvk]
+	_, hit := GvkSupportedValidationGatewayResources[gvk]
 	if !hit {
 		_, hit := gloovalidation.GvkToSupportedGlooResources[gvk]
 		return hit
 	}
 	return true
 }
-
-type applyResource func(snap *gloov1snap.ApiSnapshot) (proxyNames []string, resource resources.Resource, ref *core.ResourceRef)
 
 func (v *validator) gatewayUpdate(snap *gloov1snap.ApiSnapshot) bool {
 
@@ -221,40 +219,17 @@ func (v *validator) gatewayUpdate(snap *gloov1snap.ApiSnapshot) bool {
 	return hashChanged
 }
 
-// update internal snapshot to handle race where a lot of resources may be deleted at once, before syncer updates
-// should be called within a lock
-func (v *validator) deleteFromLocalSnapshot(resource resources.Resource) {
-	ref := resource.GetMetadata().Ref()
-	switch resource.(type) {
-	case *v1.VirtualService:
-		for i, rt := range v.latestSnapshot.VirtualServices {
-			if rt.GetMetadata().Ref().Equal(ref) {
-				v.latestSnapshot.VirtualServices = append(v.latestSnapshot.VirtualServices[:i],
-					v.latestSnapshot.VirtualServices[i+1:]...)
-				break
-			}
-		}
-	case *v1.RouteTable:
-		for i, rt := range v.latestSnapshot.RouteTables {
-			if rt.GetMetadata().Ref().Equal(ref) {
-				v.latestSnapshot.RouteTables = append(v.latestSnapshot.RouteTables[:i], v.latestSnapshot.RouteTables[i+1:]...)
-				break
-			}
-		}
-	}
-}
-
-func (v *validator) validateSnapshotThreadSafe(ctx context.Context, apply applyResource, dryRun bool) (
+func (v *validator) validateSnapshotThreadSafe(ctx context.Context, resource resources.Resource, dryRun bool) (
 	*Reports,
 	error,
 ) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 
-	return v.validateSnapshot(ctx, apply, dryRun)
+	return v.validateSnapshot(ctx, resource, dryRun)
 }
 
-func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, dryRun bool) (*Reports, error) {
+func (v *validator) validateSnapshot(ctx context.Context, resource resources.Resource, dryRun bool) (*Reports, error) {
 	// validate that a snapshot can be modified
 	// should be called within a lock
 	//
@@ -269,6 +244,7 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 	if !v.ready() {
 		return nil, NotReadyErr
 	}
+	ref := resource.GetMetadata().Ref()
 	ctx = contextutils.WithLogger(ctx, "gateway-validator")
 
 	// currently have the other for Gloo resources
@@ -278,17 +254,33 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 		return nil, nil
 	}
 	// verify the mutation against a snapshot clone first, only apply the change to the actual snapshot if this passes
-	proxyNames, resource, ref := apply(snapshotClone)
-	gatewaysByProxy := utils.GatewaysByProxyName(snapshotClone.Gateways)
+	snapshotClone.AddOrReplaceToResourceList(resource)
+
+	// TODO-JAKE not sure if this is how we would want to handle the ValidateDeleteVirtualService
+	// this does allow us to have a generic validation method
+	// instead of the number we could use a diff function, to find if there is a diff between the two.
+	// TODO-JAKE test that when deleting a VS or a RT, that the translation will automatically cover the error that
+	// we would already expect from these types of validations methods on VS and RTs
+	// if len(snapshotClone.VirtualServices) != len(v.latestSnapshot.VirtualServices) {
+	// 	if err := v.validateDeletedVirtualService(ctx, snapshotClone, resource.GetMetadata().Ref()); err != nil {
+	// 		return &Reports{}, err
+	// 	}
+	// }
+
+	// if len(snapshotClone.RouteTables) != len(v.latestSnapshot.RouteTables) {
+	// 	if err := v.validateDeleteRouteTable(ctx, snapshotClone, resource.GetMetadata().Ref()); err != nil {
+	// 		return &Reports{}, err
+	// 	}
+	// }
 
 	var (
 		errs         error
 		proxyReports ProxyReports
 		proxies      []*gloov1.Proxy
 	)
+	gatewaysByProxy := utils.GatewaysByProxyName(snapshotClone.Gateways)
 	// translate all the proxies
-	for _, proxyName := range proxyNames {
-		gatewayList := gatewaysByProxy[proxyName]
+	for proxyName, gatewayList := range gatewaysByProxy {
 		proxy, reports := v.translator.Translate(ctx, proxyName, snapshotClone, gatewayList)
 		validate := reports.ValidateStrict
 		if v.allowWarnings {
@@ -327,7 +319,7 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 		proxyReport := glooReports[0].ProxyReport
 		proxyReports = append(proxyReports, proxyReport)
 		if err := validationutils.GetProxyError(proxyReport); err != nil {
-			errs = multierr.Append(errs, errors.Wrapf(err, "failed to validate proxy with gloo translation"))
+			errs = multierr.Append(errs, errors.Wrapf(err, "failed to validate Proxy [namespace: %s, name: %s] with gloo validation", proxy.GetMetadata().Namespace, proxy.GetMetadata().Name))
 			continue
 		}
 		if warnings := validationutils.GetProxyWarning(proxyReport); !v.allowWarnings && len(warnings) > 0 {
@@ -355,9 +347,8 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 	}
 
 	if !dryRun {
-		// TODO-JAKE get more information on this comment that Kevin left, not sure why we need to apply the resource to the snapshot on validation
 		// update internal snapshot to handle race where a lot of resources may be applied at once, before syncer updates
-		apply(v.latestSnapshot)
+		v.latestSnapshot.AddOrReplaceToResourceList(resource)
 	}
 
 	return &Reports{ProxyReports: &proxyReports, Proxies: proxies}, nil
@@ -365,7 +356,7 @@ func (v *validator) validateSnapshot(ctx context.Context, apply applyResource, d
 
 func (v *validator) ValidateDeleteRef(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
 	if gvk.Group == GatewayGroup {
-		if rv, hit := GvkToDeleteGatewayResourceValidator[gvk]; hit {
+		if rv, hit := GvkSupportedDeleteGatewayResources[gvk]; hit {
 			return rv.DeleteResource(ctx, resource.GetMetadata().Ref(), v, dryRun)
 		}
 	} else if gvk.Group == gloovalidation.GlooGroup {
@@ -388,8 +379,8 @@ func (v *validator) validateGvk(ctx context.Context, gvk schema.GroupVersionKind
 	// Gloo has two types of Groups: Gateway, Gloo. This statement is splitting the Validation based off
 	// the resource group type.
 	if gvk.Group == GatewayGroup {
-		if rv, hit := GvkToGatewayResourceValidator[gvk]; hit {
-			reports, err := v.validateGatewayResource(ctx, resource, rv, dryRun, acquireLock)
+		if _, hit := GvkSupportedValidationGatewayResources[gvk]; hit {
+			reports, err := v.validateGatewayResource(ctx, resource, dryRun, acquireLock)
 			if err != nil {
 				return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
 			}
@@ -537,11 +528,12 @@ func (v *validator) ValidateDeleteVirtualService(ctx context.Context, vsRef *cor
 	}
 
 	if !dryRun {
-		v.deleteFromLocalSnapshot(vs)
+		v.latestSnapshot.RemoveFromResourceList(vs)
 	}
 	return nil
 }
 
+// TODO-JAKE delete
 func (v *validator) ValidateDeleteRouteTable(ctx context.Context, rtRef *core.ResourceRef, dryRun bool) error {
 	v.lock.Lock()
 	defer v.lock.Unlock()
@@ -586,7 +578,7 @@ func (v *validator) ValidateDeleteRouteTable(ctx context.Context, rtRef *core.Re
 	}
 
 	if !dryRun {
-		v.deleteFromLocalSnapshot(rt)
+		v.latestSnapshot.RemoveFromResourceList(rt)
 	}
 	return nil
 }
@@ -602,45 +594,15 @@ func (v *validator) validateGlooResource(ctx context.Context, resource resources
 }
 
 // ValidateGatewayResource will validate gateway group resources
-func (v *validator) ValidateGatewayResource(ctx context.Context, resource resources.Resource, rv GatewayResourceValidator, dryRun bool) (*Reports, error) {
-	return v.validateGatewayResource(ctx, resource, rv, dryRun, true)
+func (v *validator) ValidateGatewayResource(ctx context.Context, resource resources.Resource, dryRun bool) (*Reports, error) {
+	return v.validateGatewayResource(ctx, resource, dryRun, true)
 }
 
-func (v *validator) validateGatewayResource(ctx context.Context, resource resources.Resource, rv GatewayResourceValidator, dryRun, acquireLock bool) (*Reports, error) {
-	apply := func(snap *gloov1snap.ApiSnapshot) ([]string, resources.Resource, *core.ResourceRef) {
-		resourceRef := resource.GetMetadata().Ref()
-
-		var isUpdate bool
-		listOfInputResources, err := snap.GetResourcesList(resource)
-		if err != nil {
-			contextutils.LoggerFrom(ctx).Error(err)
-		}
-		for i, existingResource := range listOfInputResources {
-			if existingResource.GetMetadata().Ref().Equal(resourceRef) {
-				if err := snap.ReplaceResource(i, resource); err != nil {
-					contextutils.LoggerFrom(ctx).Error(err)
-				}
-				isUpdate = true
-				break
-			}
-		}
-		if !isUpdate {
-			if err := snap.AddToResourceList(resource); err != nil {
-				contextutils.LoggerFrom(ctx).Error(err)
-			}
-		}
-
-		proxiesToConsider, err := rv.GetProxies(ctx, resource, snap)
-		if err != nil {
-			contextutils.LoggerFrom(ctx).Error(eris.Wrapf(err, "the resource is %+v", resource.GetMetadata()))
-		}
-		return proxiesToConsider, resource, resourceRef
-	}
-
+func (v *validator) validateGatewayResource(ctx context.Context, resource resources.Resource, dryRun, acquireLock bool) (*Reports, error) {
 	if acquireLock {
-		return v.validateSnapshotThreadSafe(ctx, apply, dryRun)
+		return v.validateSnapshotThreadSafe(ctx, resource, dryRun)
 	} else {
-		return v.validateSnapshot(ctx, apply, dryRun)
+		return v.validateSnapshot(ctx, resource, dryRun)
 	}
 }
 
@@ -742,6 +704,20 @@ func routesContainRefs(routes []*v1.Route, refs sets.String) bool {
 		}
 	}
 	return false
+}
+
+func GetDelegateRef(delegate *v1.DelegateAction) *core.ResourceRef {
+	// handle deprecated route table resource reference format
+	// TODO(marco): remove when we remove the deprecated fields from the API
+	if delegate.GetNamespace() != "" || delegate.GetName() != "" {
+		return &core.ResourceRef{
+			Namespace: delegate.GetNamespace(),
+			Name:      delegate.GetName(),
+		}
+	} else if delegate.GetRef() != nil {
+		return delegate.GetRef()
+	}
+	return nil
 }
 
 func resourceReportToMultiErr(err error) error {

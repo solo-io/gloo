@@ -4,8 +4,6 @@ import (
 	"context"
 
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -25,22 +23,15 @@ type DeleteGatewayResourceValidator interface {
 	DeleteResource(ctx context.Context, ref *core.ResourceRef, v Validator, dryRun bool) error
 }
 
-// GatewayResourceValidator are resources that have a Group of gateway.solo.io
-// this interface helps to retrieve the proxies when the resource is being validated
-type GatewayResourceValidator interface {
-	// GetProxies will retrieve the proxies based off the resource type
-	GetProxies(ctx context.Context, resource resources.Resource, snap *gloov1snap.ApiSnapshot) ([]string, error)
+// GvkSupportedValidationGatewayResources the current group of resources that can be validated
+var GvkSupportedValidationGatewayResources = map[schema.GroupVersionKind]bool{
+	v1.GatewayGVK:        true,
+	v1.VirtualServiceGVK: true,
+	v1.RouteTableGVK:     true,
 }
 
-// GvkToGatewayValidator the current group of resources that can be validated, that implement the GatewayResoruceValidation interface
-var GvkToGatewayResourceValidator = map[schema.GroupVersionKind]GatewayResourceValidator{
-	v1.GatewayGVK:        &GatewayValidator{},
-	v1.VirtualServiceGVK: &VirtualServiceValidation{},
-	v1.RouteTableGVK:     &RouteTableValidator{},
-}
-
-// GvkToDeleteGatewayResourceValidator the current group of resources that can be validated, that implement the GvkToDeleteGatewayResourceValidator interface
-var GvkToDeleteGatewayResourceValidator = map[schema.GroupVersionKind]DeleteGatewayResourceValidator{
+// GvkSupportedDeleteGatewayResources the current group of resources that can be validated
+var GvkSupportedDeleteGatewayResources = map[schema.GroupVersionKind]DeleteGatewayResourceValidator{
 	v1.VirtualServiceGVK: &VirtualServiceValidation{},
 	v1.RouteTableGVK:     &RouteTableValidator{},
 }
