@@ -7,6 +7,7 @@
 |settings.integrations.knative.proxy.image.tag|string||The image tag for the container.|
 |settings.integrations.knative.proxy.image.repository|string||The image repository (name) for the container.|
 |settings.integrations.knative.proxy.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|settings.integrations.knative.proxy.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |settings.integrations.knative.proxy.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |settings.integrations.knative.proxy.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |settings.integrations.knative.proxy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -107,6 +108,10 @@
 |settings.aws.credential_refresh_delay.seconds|int32||The value of this duration in seconds.|
 |settings.aws.credential_refresh_delay.nanos|int32||The value of this duration in nanoseconds.|
 |settings.rateLimit|interface||Partial config for Gloo Edge Enterprise’s rate-limiting service, based on Envoy’s rate-limit service; supports Envoy’s rate-limit service API. (reference here: https://github.com/lyft/ratelimit#configuration) Configure rate-limit descriptors here, which define the limits for requests based on their descriptors. Configure rate-limits (composed of actions, which define how request characteristics get translated into descriptors) on the VirtualHost or its routes.|
+|settings.circuitBreakers.maxConnections|uint32||Set this field to specify the maximum number of connections that Envoy will make to the upstream cluster. If not specified, the default is 1024.|
+|settings.circuitBreakers.maxPendingRequests|uint32||Set this field to specfify the maximum number of pending requests that Envoy will allow to the upstream cluster. If not specified, the default is 1024.|
+|settings.circuitBreakers.maxRequests|uint32||Set this field to specfify the maximum number of parallel requests that Envoy will make to the upstream cluster. If not specified, the default is 1024.|
+|settings.circuitBreakers.maxRetries|uint32||Set this field to specify the maximum number of parallel retries that Envoy will allow to the upstream cluster. If not specified, the default is 3.|
 |settings.enableRestEds|bool||Whether or not to use rest xds for all EDS by default. Defaults to false.|
 |settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |license_key|string||Your Gloo Edge license key.|
@@ -120,6 +125,7 @@
 |gloo.settings.integrations.knative.proxy.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |gloo.settings.integrations.knative.proxy.image.repository|string|gloo-ee-envoy-wrapper|The image repository (name) for the container.|
 |gloo.settings.integrations.knative.proxy.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo.settings.integrations.knative.proxy.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo.settings.integrations.knative.proxy.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.settings.integrations.knative.proxy.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.settings.integrations.knative.proxy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -220,11 +226,16 @@
 |gloo.settings.aws.credential_refresh_delay.seconds|int32||The value of this duration in seconds.|
 |gloo.settings.aws.credential_refresh_delay.nanos|int32||The value of this duration in nanoseconds.|
 |gloo.settings.rateLimit|interface||Partial config for Gloo Edge Enterprise’s rate-limiting service, based on Envoy’s rate-limit service; supports Envoy’s rate-limit service API. (reference here: https://github.com/lyft/ratelimit#configuration) Configure rate-limit descriptors here, which define the limits for requests based on their descriptors. Configure rate-limits (composed of actions, which define how request characteristics get translated into descriptors) on the VirtualHost or its routes.|
+|gloo.settings.circuitBreakers.maxConnections|uint32||Set this field to specify the maximum number of connections that Envoy will make to the upstream cluster. If not specified, the default is 1024.|
+|gloo.settings.circuitBreakers.maxPendingRequests|uint32||Set this field to specfify the maximum number of pending requests that Envoy will allow to the upstream cluster. If not specified, the default is 1024.|
+|gloo.settings.circuitBreakers.maxRequests|uint32||Set this field to specfify the maximum number of parallel requests that Envoy will make to the upstream cluster. If not specified, the default is 1024.|
+|gloo.settings.circuitBreakers.maxRetries|uint32||Set this field to specify the maximum number of parallel retries that Envoy will allow to the upstream cluster. If not specified, the default is 3.|
 |gloo.settings.enableRestEds|bool||Whether or not to use rest xds for all EDS by default. Defaults to false.|
 |gloo.settings.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gloo.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |gloo.gloo.deployment.image.repository|string|gloo-ee|The image repository (name) for the container.|
 |gloo.gloo.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo.gloo.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo.gloo.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.gloo.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.gloo.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -247,7 +258,7 @@
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
-|gloo.gloo.deployment.ossImageTag|string|1.13.0-beta22|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
+|gloo.gloo.deployment.ossImageTag|string|1.13.0-beta23|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
 |gloo.gloo.deployment.replicas|int||number of instances to deploy|
 |gloo.gloo.deployment.customEnv[].name|string|||
 |gloo.gloo.deployment.customEnv[].value|string|||
@@ -293,6 +304,7 @@
 |gloo.discovery.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |gloo.discovery.deployment.image.repository|string|discovery-ee|The image repository (name) for the container.|
 |gloo.discovery.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo.discovery.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo.discovery.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.discovery.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.discovery.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -370,9 +382,10 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.certGenJob.image.tag|string|1.13.0-beta22|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.13.0-beta23|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string|certgen|The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo.gateway.certGenJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo.gateway.certGenJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.gateway.certGenJob.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.gateway.certGenJob.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -419,9 +432,10 @@
 |gloo.gateway.rolloutJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.rolloutJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.rolloutJob.enabled|bool||Enable the job that applies default Gloo Edge custom resources at install and upgrade time (default true).|
-|gloo.gateway.rolloutJob.image.tag|string|1.13.0-beta22|The image tag for the container.|
+|gloo.gateway.rolloutJob.image.tag|string|1.13.0-beta23|The image tag for the container.|
 |gloo.gateway.rolloutJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.rolloutJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo.gateway.rolloutJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo.gateway.rolloutJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.gateway.rolloutJob.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.gateway.rolloutJob.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -447,9 +461,10 @@
 |gloo.gateway.cleanupJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.cleanupJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.cleanupJob.enabled|bool||Enable the job that removes Gloo Edge custom resources when Gloo Edge is uninstalled (default true).|
-|gloo.gateway.cleanupJob.image.tag|string|1.13.0-beta22|The image tag for the container.|
+|gloo.gateway.cleanupJob.image.tag|string|1.13.0-beta23|The image tag for the container.|
 |gloo.gateway.cleanupJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.cleanupJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo.gateway.cleanupJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo.gateway.cleanupJob.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.gateway.cleanupJob.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.gateway.cleanupJob.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -509,6 +524,7 @@
 |gloo.gatewayProxies.NAME.podTemplate.image.tag|string||The image tag for the container.|
 |gloo.gatewayProxies.NAME.podTemplate.image.repository|string||The image repository (name) for the container.|
 |gloo.gatewayProxies.NAME.podTemplate.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo.gatewayProxies.NAME.podTemplate.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo.gatewayProxies.NAME.podTemplate.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.gatewayProxies.NAME.podTemplate.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.gatewayProxies.NAME.podTemplate.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -702,6 +718,7 @@
 |gloo.gatewayProxies.gatewayProxy.podTemplate.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.image.repository|string|gloo-ee-envoy-wrapper|The image repository (name) for the container.|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -864,6 +881,7 @@
 |gloo.ingress.deployment.image.tag|string||The image tag for the container.|
 |gloo.ingress.deployment.image.repository|string||The image repository (name) for the container.|
 |gloo.ingress.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo.ingress.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo.ingress.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.ingress.deployment.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.ingress.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -915,6 +933,7 @@
 |gloo.ingressProxy.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |gloo.ingressProxy.deployment.image.repository|string|gloo-ee-envoy-wrapper|The image repository (name) for the container.|
 |gloo.ingressProxy.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo.ingressProxy.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo.ingressProxy.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.ingressProxy.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.ingressProxy.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -979,6 +998,7 @@
 |gloo.accessLogger.image.tag|string||The image tag for the container.|
 |gloo.accessLogger.image.repository|string||The image repository (name) for the container.|
 |gloo.accessLogger.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo.accessLogger.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo.accessLogger.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo.accessLogger.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo.accessLogger.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1039,6 +1059,7 @@
 |redis.deployment.image.tag|string|6.2.4|The image tag for the container.|
 |redis.deployment.image.repository|string|redis|The image repository (name) for the container.|
 |redis.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|redis.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |redis.deployment.image.registry|string|docker.io|The image hostname prefix and registry, such as quay.io/solo-io.|
 |redis.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |redis.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1047,6 +1068,7 @@
 |redis.deployment.initContainer.image.tag|string|1.28|The image tag for the container.|
 |redis.deployment.initContainer.image.repository|string|busybox|The image repository (name) for the container.|
 |redis.deployment.initContainer.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|redis.deployment.initContainer.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |redis.deployment.initContainer.image.registry|string|docker.io|The image hostname prefix and registry, such as quay.io/solo-io.|
 |redis.deployment.initContainer.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |redis.deployment.initContainer.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1113,6 +1135,7 @@
 |observability.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |observability.deployment.image.repository|string|observability-ee|The image repository (name) for the container.|
 |observability.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|observability.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |observability.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |observability.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |observability.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1195,6 +1218,7 @@
 |gloo-fed.glooFedApiserver.image.tag|string||The image tag for the container.|
 |gloo-fed.glooFedApiserver.image.repository|string||The image repository (name) for the container.|
 |gloo-fed.glooFedApiserver.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo-fed.glooFedApiserver.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo-fed.glooFedApiserver.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo-fed.glooFedApiserver.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo-fed.glooFedApiserver.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1218,6 +1242,7 @@
 |gloo-fed.glooFedApiserver.console.image.tag|string||The image tag for the container.|
 |gloo-fed.glooFedApiserver.console.image.repository|string||The image repository (name) for the container.|
 |gloo-fed.glooFedApiserver.console.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo-fed.glooFedApiserver.console.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo-fed.glooFedApiserver.console.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo-fed.glooFedApiserver.console.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo-fed.glooFedApiserver.console.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1231,6 +1256,7 @@
 |gloo-fed.glooFedApiserver.envoy.image.tag|string||The image tag for the container.|
 |gloo-fed.glooFedApiserver.envoy.image.repository|string||The image repository (name) for the container.|
 |gloo-fed.glooFedApiserver.envoy.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo-fed.glooFedApiserver.envoy.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo-fed.glooFedApiserver.envoy.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo-fed.glooFedApiserver.envoy.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo-fed.glooFedApiserver.envoy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1250,6 +1276,7 @@
 |gloo-fed.glooFed.image.tag|string||The image tag for the container.|
 |gloo-fed.glooFed.image.repository|string||The image repository (name) for the container.|
 |gloo-fed.glooFed.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo-fed.glooFed.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo-fed.glooFed.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo-fed.glooFed.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo-fed.glooFed.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1266,6 +1293,7 @@
 |gloo-fed.rbacWebhook.image.tag|string||The image tag for the container.|
 |gloo-fed.rbacWebhook.image.repository|string||The image repository (name) for the container.|
 |gloo-fed.rbacWebhook.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|gloo-fed.rbacWebhook.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |gloo-fed.rbacWebhook.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |gloo-fed.rbacWebhook.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |gloo-fed.rbacWebhook.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1278,6 +1306,7 @@
 |global.image.tag|string||The image tag for the container.|
 |global.image.repository|string||The image repository (name) for the container.|
 |global.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|global.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |global.image.registry|string|quay.io/solo-io|The image hostname prefix and registry, such as quay.io/solo-io.|
 |global.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |global.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1295,9 +1324,10 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.13.0-beta22|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.13.0-beta23|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string|sds|The image repository (name) for the container.|
 |global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|global.glooMtls.sds.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |global.glooMtls.sds.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |global.glooMtls.sds.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |global.glooMtls.sds.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1306,6 +1336,7 @@
 |global.glooMtls.envoy.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |global.glooMtls.envoy.image.repository|string|gloo-ee-envoy-wrapper|The image repository (name) for the container.|
 |global.glooMtls.envoy.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|global.glooMtls.envoy.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |global.glooMtls.envoy.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |global.glooMtls.envoy.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |global.glooMtls.envoy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1314,6 +1345,7 @@
 |global.glooMtls.istioProxy.image.tag|string||The image tag for the container.|
 |global.glooMtls.istioProxy.image.repository|string||The image repository (name) for the container.|
 |global.glooMtls.istioProxy.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|global.glooMtls.istioProxy.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |global.glooMtls.istioProxy.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |global.glooMtls.istioProxy.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |global.glooMtls.istioProxy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1356,6 +1388,7 @@
 |global.extensions.extAuth.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |global.extensions.extAuth.deployment.image.repository|string|extauth-ee|The image repository (name) for the container.|
 |global.extensions.extAuth.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|global.extensions.extAuth.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |global.extensions.extAuth.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |global.extensions.extAuth.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |global.extensions.extAuth.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1428,6 +1461,7 @@
 |global.extensions.extAuth.plugins.NAME.image.tag|string||The image tag for the container.|
 |global.extensions.extAuth.plugins.NAME.image.repository|string||The image repository (name) for the container.|
 |global.extensions.extAuth.plugins.NAME.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|global.extensions.extAuth.plugins.NAME.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |global.extensions.extAuth.plugins.NAME.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |global.extensions.extAuth.plugins.NAME.image.pullPolicy|string||The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |global.extensions.extAuth.plugins.NAME.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1458,6 +1492,7 @@
 |global.extensions.rateLimit.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |global.extensions.rateLimit.deployment.image.repository|string|rate-limit-ee|The image repository (name) for the container.|
 |global.extensions.rateLimit.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|global.extensions.rateLimit.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |global.extensions.rateLimit.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |global.extensions.rateLimit.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |global.extensions.rateLimit.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
@@ -1528,6 +1563,7 @@
 |global.extensions.caching.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |global.extensions.caching.deployment.image.repository|string|caching-ee|The image repository (name) for the container.|
 |global.extensions.caching.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|global.extensions.caching.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
 |global.extensions.caching.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
 |global.extensions.caching.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
 |global.extensions.caching.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|

@@ -387,11 +387,24 @@ func setDigest(img *generate.Image, config HelmConfig) {
 
 	digest, _, _ := shellout("docker manifest inspect " + imageUrl + " -v | jq -r \".Descriptor.digest\"")
 	digest = strings.TrimSpace(digest)
-
 	if digest != "" {
 		// notably, non-solo-produced images are ignored, here.  Though not exhaustively true, many of them
 		// don't have a _single_ digest.  Rather, they have several, on a per-platform basis.
 		img.Digest = &digest
+	}
+
+	// FIPS exceptions pulled from "gloo.image": https://github.com/solo-io/gloo/blob/master/install/helm/gloo/templates/_helpers.tpl#L22-L24
+	if *img.Repository == "gloo-ee" || *img.Repository == "extauth-ee" ||
+		*img.Repository == "gloo-ee-envoy-wrapper" || *img.Repository == "rate-limit-ee" || *img.Repository == "ext-auth-plugins" {
+
+		fipsUrl := *registry + "/" + *img.Repository + "-fips:" + *img.Tag
+		digest, _, _ := shellout("docker manifest inspect " + fipsUrl + " -v | jq -r \".Descriptor.digest\"")
+		digest = strings.TrimSpace(digest)
+		if digest != "" {
+			// notably, non-solo-produced images are ignored, here.  Though not exhaustively true, many of them
+			// don't have a _single_ digest.  Rather, they have several, on a per-platform basis.
+			img.FipsDigest = &digest
+		}
 	}
 }
 
