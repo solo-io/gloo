@@ -1,12 +1,7 @@
 name: "Reviewer lottery"
 on:
   pull_request:
-    types:
-      - opened
-      - ready_for_review
-      - reopened
-    tags-ignore:
-      - 'work in progress'
+    types: [opened, ready_for_review, reopened, edited]
 jobs:
   add-reviewer:
     runs-on: ubuntu-latest
