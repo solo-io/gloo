@@ -4,7 +4,7 @@ on:
     types: [opened, ready_for_review, reopened]
 
 jobs:
-  test:
+  add-reviewer:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
