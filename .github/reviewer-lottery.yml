@@ -1,0 +1,15 @@
+groups:
+  - name: devs # name of the group
+    reviewers: 1 # Assign one random reviewer
+    internal_reviewers: 1 # how many reviewers do you want to assign when the PR author belongs to this group?
+    usernames: # github usernames of the reviewers
+      - Elcasteel
+      - nfuden
+      - jbohanon
+      - bewebi
+      - jackstine
+      - inFocus7
+      - ashishb-solo
+      - jenshu
+      - sam-heilbron
+      - ianmacclancy
