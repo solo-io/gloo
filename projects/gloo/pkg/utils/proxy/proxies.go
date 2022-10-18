@@ -6,15 +6,14 @@ import (
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/locality"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/images"
-
-	apps_v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1/sets"
-	core_v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
 	gateway_defaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/skv2/contrib/pkg/sets"
+	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/images"
 	"go.uber.org/zap"
-	k8s_core_types "k8s.io/api/core/v1"
+	apps_v1 "k8s.io/api/apps/v1"
+	core_v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
@@ -63,9 +62,9 @@ func GetGlooInstanceProxies(
 	ctx context.Context,
 	cluster string,
 	namespace string,
-	deployments apps_v1_sets.DeploymentSet,
-	daemonSets apps_v1_sets.DaemonSetSet,
-	services core_v1_sets.ServiceSet,
+	deployments sk_sets.ResourceSet[*apps_v1.Deployment],
+	daemonSets sk_sets.ResourceSet[*apps_v1.DaemonSet],
+	services sk_sets.ResourceSet[*core_v1.Service],
 	localityFinder locality.LocalityFinder,
 	ipFinder locality.ExternalIpFinder,
 ) []*Proxy {
@@ -156,7 +155,7 @@ func GetGlooInstanceProxies(
 
 }
 
-func findProxyConfigDumpService(services core_v1_sets.ServiceSet, name, namespace string) bool {
+func findProxyConfigDumpService(services sk_sets.ResourceSet[*core_v1.Service], name, namespace string) bool {
 	for _, svc := range services.List() {
 		if svc.Name == gateway_defaults.GatewayProxyConfigDumpServiceName(name) && svc.Namespace == namespace {
 			return true
@@ -165,8 +164,8 @@ func findProxyConfigDumpService(services core_v1_sets.ServiceSet, name, namespac
 	return false
 }
 
-func filterServices(services core_v1_sets.ServiceSet, obj meta_v1.Object, matchLabels map[string]string) []*k8s_core_types.Service {
-	var result []*k8s_core_types.Service
+func filterServices(services sk_sets.ResourceSet[*core_v1.Service], obj meta_v1.Object, matchLabels map[string]string) []*core_v1.Service {
+	var result []*core_v1.Service
 	for _, svc := range services.List() {
 		if svc.GetClusterName() == obj.GetClusterName() &&
 			svc.GetNamespace() == obj.GetNamespace() &&

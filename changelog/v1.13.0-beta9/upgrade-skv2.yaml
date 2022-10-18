@@ -1,0 +1,18 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: skv2
+  dependencyTag: v0.23.8
+- type: DEPENDENCY_BUMP
+  dependencyOwner: golang
+  dependencyRepo: mock
+  dependencyTag: v1.7.0-rc.1
+  description: Pick up generics fixes.
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/3540
+  description: Unpin skv2 dependency and upgrade to latest.
+  resolvesIssue: false
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/gloo/issues/7235
+  description: Unpin skv2 dependency and upgrade to latest.
+  resolvesIssue: false

@@ -5,7 +5,7 @@ import (
 
     "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
     {{ base_group_import_name $ }} "github.com/solo-io/solo-apis/pkg/api/{{ base_proto_group_shorthand $ }}.solo.io/{{ base_group_version $ }}"
-    sets "github.com/solo-io/solo-apis/pkg/api/{{ base_proto_group_shorthand $ }}.solo.io/{{ base_group_version $ }}/sets"
+    sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
     types2 "github.com/solo-io/solo-apis/pkg/api/{{ base_proto_group_shorthand $ }}.solo.io/{{ base_group_version $ }}"
     "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator/summarize"
     "github.com/solo-io/go-utils/stringutils"
@@ -16,7 +16,7 @@ import (
 
 {{- $kindLowerCamel := lower_camel $resource.Kind }}
 
-func Get{{ $resource.Kind }}Summary(ctx context.Context, set sets.{{ $resource.Kind }}Set, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+func Get{{ $resource.Kind }}Summary(ctx context.Context, set sk_sets.ResourceSet[*{{ base_group_import_name $ }}.{{ $resource.Kind }}], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
     summary := &types.GlooInstanceSpec_Check_Summary{}
 
     for _, {{ $kindLowerCamel }}Iter := range set.List() {

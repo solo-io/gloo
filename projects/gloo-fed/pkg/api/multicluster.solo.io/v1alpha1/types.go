@@ -4,7 +4,7 @@
 package v1alpha1
 
 import (
-	. "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
+	ibd03c3c10fd724ae6379da0900addc2f "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -26,8 +26,8 @@ type MultiClusterRole struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   MultiClusterRoleSpec   `json:"spec,omitempty"`
-	Status MultiClusterRoleStatus `json:"status,omitempty"`
+	Spec   ibd03c3c10fd724ae6379da0900addc2f.MultiClusterRoleSpec   `json:"spec,omitempty"`
+	Status ibd03c3c10fd724ae6379da0900addc2f.MultiClusterRoleStatus `json:"status,omitempty"`
 }
 
 // GVK returns the GroupVersionKind associated with the resource type.
@@ -61,8 +61,8 @@ type MultiClusterRoleBinding struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   MultiClusterRoleBindingSpec   `json:"spec,omitempty"`
-	Status MultiClusterRoleBindingStatus `json:"status,omitempty"`
+	Spec   ibd03c3c10fd724ae6379da0900addc2f.MultiClusterRoleBindingSpec   `json:"spec,omitempty"`
+	Status ibd03c3c10fd724ae6379da0900addc2f.MultiClusterRoleBindingStatus `json:"status,omitempty"`
 }
 
 // GVK returns the GroupVersionKind associated with the resource type.

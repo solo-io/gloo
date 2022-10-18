@@ -41,34 +41,24 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 
+	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
+	sk_client "github.com/solo-io/skv2/pkg/client"
 	"github.com/solo-io/skv2/pkg/controllerutils"
 	"github.com/solo-io/skv2/pkg/multicluster"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
-	v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
 	v1_types "k8s.io/api/core/v1"
 
-	apps_v1 "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
-	apps_v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1/sets"
 	apps_v1_types "k8s.io/api/apps/v1"
 
-	gateway_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gateway_solo_io_v1_types "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
-	gateway_solo_io_v1_sets "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1/sets"
 
-	gloo_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	gloo_solo_io_v1_types "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	gloo_solo_io_v1_sets "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/sets"
 
-	enterprise_gloo_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	enterprise_gloo_solo_io_v1_types "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
-	enterprise_gloo_solo_io_v1_sets "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1/sets"
 
-	ratelimit_api_solo_io_v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	ratelimit_api_solo_io_v1alpha1_types "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
-	ratelimit_api_solo_io_v1alpha1_sets "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1/sets"
 )
 
 // SnapshotGVKs is a list of the GVKs included in this snapshot
@@ -149,38 +139,38 @@ var SnapshotGVKs = []schema.GroupVersionKind{
 type Snapshot interface {
 
 	// return the set of input Services
-	Services() v1_sets.ServiceSet
+	Services() sk_sets.ResourceSet[*v1_types.Service]
 	// return the set of input Pods
-	Pods() v1_sets.PodSet
+	Pods() sk_sets.ResourceSet[*v1_types.Pod]
 
 	// return the set of input Deployments
-	Deployments() apps_v1_sets.DeploymentSet
+	Deployments() sk_sets.ResourceSet[*apps_v1_types.Deployment]
 	// return the set of input DaemonSets
-	DaemonSets() apps_v1_sets.DaemonSetSet
+	DaemonSets() sk_sets.ResourceSet[*apps_v1_types.DaemonSet]
 
 	// return the set of input Gateways
-	Gateways() gateway_solo_io_v1_sets.GatewaySet
+	Gateways() sk_sets.ResourceSet[*gateway_solo_io_v1_types.Gateway]
 	// return the set of input MatchableHttpGateways
-	MatchableHttpGateways() gateway_solo_io_v1_sets.MatchableHttpGatewaySet
+	MatchableHttpGateways() sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]
 	// return the set of input VirtualServices
-	VirtualServices() gateway_solo_io_v1_sets.VirtualServiceSet
+	VirtualServices() sk_sets.ResourceSet[*gateway_solo_io_v1_types.VirtualService]
 	// return the set of input RouteTables
-	RouteTables() gateway_solo_io_v1_sets.RouteTableSet
+	RouteTables() sk_sets.ResourceSet[*gateway_solo_io_v1_types.RouteTable]
 
 	// return the set of input Upstreams
-	Upstreams() gloo_solo_io_v1_sets.UpstreamSet
+	Upstreams() sk_sets.ResourceSet[*gloo_solo_io_v1_types.Upstream]
 	// return the set of input UpstreamGroups
-	UpstreamGroups() gloo_solo_io_v1_sets.UpstreamGroupSet
+	UpstreamGroups() sk_sets.ResourceSet[*gloo_solo_io_v1_types.UpstreamGroup]
 	// return the set of input Settings
-	Settings() gloo_solo_io_v1_sets.SettingsSet
+	Settings() sk_sets.ResourceSet[*gloo_solo_io_v1_types.Settings]
 	// return the set of input Proxies
-	Proxies() gloo_solo_io_v1_sets.ProxySet
+	Proxies() sk_sets.ResourceSet[*gloo_solo_io_v1_types.Proxy]
 
 	// return the set of input AuthConfigs
-	AuthConfigs() enterprise_gloo_solo_io_v1_sets.AuthConfigSet
+	AuthConfigs() sk_sets.ResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig]
 
 	// return the set of input RateLimitConfigs
-	RateLimitConfigs() ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet
+	RateLimitConfigs() sk_sets.ResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig]
 	// update the status of all input objects which support
 	// the Status subresource (across multiple clusters)
 	SyncStatusesMultiCluster(ctx context.Context, mcClient multicluster.Client, opts SyncStatusOptions) error
@@ -207,12 +197,10 @@ type SyncStatusOptions struct {
 	Service bool
 	// sync status of Pod objects
 	Pod bool
-
 	// sync status of Deployment objects
 	Deployment bool
 	// sync status of DaemonSet objects
 	DaemonSet bool
-
 	// sync status of Gateway objects
 	Gateway bool
 	// sync status of MatchableHttpGateway objects
@@ -221,7 +209,6 @@ type SyncStatusOptions struct {
 	VirtualService bool
 	// sync status of RouteTable objects
 	RouteTable bool
-
 	// sync status of Upstream objects
 	Upstream bool
 	// sync status of UpstreamGroup objects
@@ -230,10 +217,8 @@ type SyncStatusOptions struct {
 	Settings bool
 	// sync status of Proxy objects
 	Proxy bool
-
 	// sync status of AuthConfig objects
 	AuthConfig bool
-
 	// sync status of RateLimitConfig objects
 	RateLimitConfig bool
 }
@@ -241,49 +226,49 @@ type SyncStatusOptions struct {
 type snapshot struct {
 	name string
 
-	services v1_sets.ServiceSet
-	pods     v1_sets.PodSet
+	services sk_sets.ResourceSet[*v1_types.Service]
+	pods     sk_sets.ResourceSet[*v1_types.Pod]
 
-	deployments apps_v1_sets.DeploymentSet
-	daemonSets  apps_v1_sets.DaemonSetSet
+	deployments sk_sets.ResourceSet[*apps_v1_types.Deployment]
+	daemonSets  sk_sets.ResourceSet[*apps_v1_types.DaemonSet]
 
-	gateways              gateway_solo_io_v1_sets.GatewaySet
-	matchableHttpGateways gateway_solo_io_v1_sets.MatchableHttpGatewaySet
-	virtualServices       gateway_solo_io_v1_sets.VirtualServiceSet
-	routeTables           gateway_solo_io_v1_sets.RouteTableSet
+	gateways              sk_sets.ResourceSet[*gateway_solo_io_v1_types.Gateway]
+	matchableHttpGateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]
+	virtualServices       sk_sets.ResourceSet[*gateway_solo_io_v1_types.VirtualService]
+	routeTables           sk_sets.ResourceSet[*gateway_solo_io_v1_types.RouteTable]
 
-	upstreams      gloo_solo_io_v1_sets.UpstreamSet
-	upstreamGroups gloo_solo_io_v1_sets.UpstreamGroupSet
-	settings       gloo_solo_io_v1_sets.SettingsSet
-	proxies        gloo_solo_io_v1_sets.ProxySet
+	upstreams      sk_sets.ResourceSet[*gloo_solo_io_v1_types.Upstream]
+	upstreamGroups sk_sets.ResourceSet[*gloo_solo_io_v1_types.UpstreamGroup]
+	settings       sk_sets.ResourceSet[*gloo_solo_io_v1_types.Settings]
+	proxies        sk_sets.ResourceSet[*gloo_solo_io_v1_types.Proxy]
 
-	authConfigs enterprise_gloo_solo_io_v1_sets.AuthConfigSet
+	authConfigs sk_sets.ResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig]
 
-	rateLimitConfigs ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet
+	rateLimitConfigs sk_sets.ResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig]
 }
 
 func NewSnapshot(
 	name string,
 
-	services v1_sets.ServiceSet,
-	pods v1_sets.PodSet,
+	services sk_sets.ResourceSet[*v1_types.Service],
+	pods sk_sets.ResourceSet[*v1_types.Pod],
 
-	deployments apps_v1_sets.DeploymentSet,
-	daemonSets apps_v1_sets.DaemonSetSet,
+	deployments sk_sets.ResourceSet[*apps_v1_types.Deployment],
+	daemonSets sk_sets.ResourceSet[*apps_v1_types.DaemonSet],
 
-	gateways gateway_solo_io_v1_sets.GatewaySet,
-	matchableHttpGateways gateway_solo_io_v1_sets.MatchableHttpGatewaySet,
-	virtualServices gateway_solo_io_v1_sets.VirtualServiceSet,
-	routeTables gateway_solo_io_v1_sets.RouteTableSet,
+	gateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.Gateway],
+	matchableHttpGateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway],
+	virtualServices sk_sets.ResourceSet[*gateway_solo_io_v1_types.VirtualService],
+	routeTables sk_sets.ResourceSet[*gateway_solo_io_v1_types.RouteTable],
 
-	upstreams gloo_solo_io_v1_sets.UpstreamSet,
-	upstreamGroups gloo_solo_io_v1_sets.UpstreamGroupSet,
-	settings gloo_solo_io_v1_sets.SettingsSet,
-	proxies gloo_solo_io_v1_sets.ProxySet,
+	upstreams sk_sets.ResourceSet[*gloo_solo_io_v1_types.Upstream],
+	upstreamGroups sk_sets.ResourceSet[*gloo_solo_io_v1_types.UpstreamGroup],
+	settings sk_sets.ResourceSet[*gloo_solo_io_v1_types.Settings],
+	proxies sk_sets.ResourceSet[*gloo_solo_io_v1_types.Proxy],
 
-	authConfigs enterprise_gloo_solo_io_v1_sets.AuthConfigSet,
+	authConfigs sk_sets.ResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig],
 
-	rateLimitConfigs ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet,
+	rateLimitConfigs sk_sets.ResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig],
 
 ) Snapshot {
 	return &snapshot{
@@ -311,25 +296,25 @@ func NewSnapshotFromGeneric(
 	genericSnapshot resource.ClusterSnapshot,
 ) Snapshot {
 
-	serviceSet := v1_sets.NewServiceSet()
-	podSet := v1_sets.NewPodSet()
+	serviceSet := sk_sets.NewResourceSet[*v1_types.Service]()
+	podSet := sk_sets.NewResourceSet[*v1_types.Pod]()
 
-	deploymentSet := apps_v1_sets.NewDeploymentSet()
-	daemonSetSet := apps_v1_sets.NewDaemonSetSet()
+	deploymentSet := sk_sets.NewResourceSet[*apps_v1_types.Deployment]()
+	daemonSetSet := sk_sets.NewResourceSet[*apps_v1_types.DaemonSet]()
 
-	gatewaySet := gateway_solo_io_v1_sets.NewGatewaySet()
-	matchableHttpGatewaySet := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
-	virtualServiceSet := gateway_solo_io_v1_sets.NewVirtualServiceSet()
-	routeTableSet := gateway_solo_io_v1_sets.NewRouteTableSet()
+	gatewaySet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.Gateway]()
+	matchableHttpGatewaySet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]()
+	virtualServiceSet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.VirtualService]()
+	routeTableSet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.RouteTable]()
 
-	upstreamSet := gloo_solo_io_v1_sets.NewUpstreamSet()
-	upstreamGroupSet := gloo_solo_io_v1_sets.NewUpstreamGroupSet()
-	settingsSet := gloo_solo_io_v1_sets.NewSettingsSet()
-	proxySet := gloo_solo_io_v1_sets.NewProxySet()
+	upstreamSet := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Upstream]()
+	upstreamGroupSet := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.UpstreamGroup]()
+	settingsSet := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Settings]()
+	proxySet := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Proxy]()
 
-	authConfigSet := enterprise_gloo_solo_io_v1_sets.NewAuthConfigSet()
+	authConfigSet := sk_sets.NewResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig]()
 
-	rateLimitConfigSet := ratelimit_api_solo_io_v1alpha1_sets.NewRateLimitConfigSet()
+	rateLimitConfigSet := sk_sets.NewResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig]()
 
 	for _, snapshot := range genericSnapshot {
 
@@ -485,59 +470,59 @@ func NewSnapshotFromGeneric(
 	)
 }
 
-func (s *snapshot) Services() v1_sets.ServiceSet {
+func (s *snapshot) Services() sk_sets.ResourceSet[*v1_types.Service] {
 	return s.services
 }
 
-func (s *snapshot) Pods() v1_sets.PodSet {
+func (s *snapshot) Pods() sk_sets.ResourceSet[*v1_types.Pod] {
 	return s.pods
 }
 
-func (s *snapshot) Deployments() apps_v1_sets.DeploymentSet {
+func (s *snapshot) Deployments() sk_sets.ResourceSet[*apps_v1_types.Deployment] {
 	return s.deployments
 }
 
-func (s *snapshot) DaemonSets() apps_v1_sets.DaemonSetSet {
+func (s *snapshot) DaemonSets() sk_sets.ResourceSet[*apps_v1_types.DaemonSet] {
 	return s.daemonSets
 }
 
-func (s *snapshot) Gateways() gateway_solo_io_v1_sets.GatewaySet {
+func (s *snapshot) Gateways() sk_sets.ResourceSet[*gateway_solo_io_v1_types.Gateway] {
 	return s.gateways
 }
 
-func (s *snapshot) MatchableHttpGateways() gateway_solo_io_v1_sets.MatchableHttpGatewaySet {
+func (s *snapshot) MatchableHttpGateways() sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway] {
 	return s.matchableHttpGateways
 }
 
-func (s *snapshot) VirtualServices() gateway_solo_io_v1_sets.VirtualServiceSet {
+func (s *snapshot) VirtualServices() sk_sets.ResourceSet[*gateway_solo_io_v1_types.VirtualService] {
 	return s.virtualServices
 }
 
-func (s *snapshot) RouteTables() gateway_solo_io_v1_sets.RouteTableSet {
+func (s *snapshot) RouteTables() sk_sets.ResourceSet[*gateway_solo_io_v1_types.RouteTable] {
 	return s.routeTables
 }
 
-func (s *snapshot) Upstreams() gloo_solo_io_v1_sets.UpstreamSet {
+func (s *snapshot) Upstreams() sk_sets.ResourceSet[*gloo_solo_io_v1_types.Upstream] {
 	return s.upstreams
 }
 
-func (s *snapshot) UpstreamGroups() gloo_solo_io_v1_sets.UpstreamGroupSet {
+func (s *snapshot) UpstreamGroups() sk_sets.ResourceSet[*gloo_solo_io_v1_types.UpstreamGroup] {
 	return s.upstreamGroups
 }
 
-func (s *snapshot) Settings() gloo_solo_io_v1_sets.SettingsSet {
+func (s *snapshot) Settings() sk_sets.ResourceSet[*gloo_solo_io_v1_types.Settings] {
 	return s.settings
 }
 
-func (s *snapshot) Proxies() gloo_solo_io_v1_sets.ProxySet {
+func (s *snapshot) Proxies() sk_sets.ResourceSet[*gloo_solo_io_v1_types.Proxy] {
 	return s.proxies
 }
 
-func (s *snapshot) AuthConfigs() enterprise_gloo_solo_io_v1_sets.AuthConfigSet {
+func (s *snapshot) AuthConfigs() sk_sets.ResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig] {
 	return s.authConfigs
 }
 
-func (s *snapshot) RateLimitConfigs() ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet {
+func (s *snapshot) RateLimitConfigs() sk_sets.ResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig] {
 	return s.rateLimitConfigs
 }
 
@@ -752,103 +737,98 @@ func (s *snapshot) SyncStatuses(ctx context.Context, c client.Client, opts SyncS
 func (s *snapshot) MarshalJSON() ([]byte, error) {
 	snapshotMap := map[string]interface{}{"name": s.name}
 
-	serviceSet := v1_sets.NewServiceSet()
+	serviceSet := sk_sets.NewResourceSet[*v1_types.Service]()
 	for _, obj := range s.services.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		serviceSet.Insert(obj.(*v1_types.Service))
 	}
 	snapshotMap["services"] = serviceSet.List()
-	podSet := v1_sets.NewPodSet()
+	podSet := sk_sets.NewResourceSet[*v1_types.Pod]()
 	for _, obj := range s.pods.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		podSet.Insert(obj.(*v1_types.Pod))
 	}
 	snapshotMap["pods"] = podSet.List()
-
-	deploymentSet := apps_v1_sets.NewDeploymentSet()
+	deploymentSet := sk_sets.NewResourceSet[*apps_v1_types.Deployment]()
 	for _, obj := range s.deployments.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		deploymentSet.Insert(obj.(*apps_v1_types.Deployment))
 	}
 	snapshotMap["deployments"] = deploymentSet.List()
-	daemonSetSet := apps_v1_sets.NewDaemonSetSet()
+	daemonSetSet := sk_sets.NewResourceSet[*apps_v1_types.DaemonSet]()
 	for _, obj := range s.daemonSets.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		daemonSetSet.Insert(obj.(*apps_v1_types.DaemonSet))
 	}
 	snapshotMap["daemonSets"] = daemonSetSet.List()
-
-	gatewaySet := gateway_solo_io_v1_sets.NewGatewaySet()
+	gatewaySet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.Gateway]()
 	for _, obj := range s.gateways.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		gatewaySet.Insert(obj.(*gateway_solo_io_v1_types.Gateway))
 	}
 	snapshotMap["gateways"] = gatewaySet.List()
-	matchableHttpGatewaySet := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
+	matchableHttpGatewaySet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]()
 	for _, obj := range s.matchableHttpGateways.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		matchableHttpGatewaySet.Insert(obj.(*gateway_solo_io_v1_types.MatchableHttpGateway))
 	}
 	snapshotMap["matchableHttpGateways"] = matchableHttpGatewaySet.List()
-	virtualServiceSet := gateway_solo_io_v1_sets.NewVirtualServiceSet()
+	virtualServiceSet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.VirtualService]()
 	for _, obj := range s.virtualServices.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		virtualServiceSet.Insert(obj.(*gateway_solo_io_v1_types.VirtualService))
 	}
 	snapshotMap["virtualServices"] = virtualServiceSet.List()
-	routeTableSet := gateway_solo_io_v1_sets.NewRouteTableSet()
+	routeTableSet := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.RouteTable]()
 	for _, obj := range s.routeTables.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		routeTableSet.Insert(obj.(*gateway_solo_io_v1_types.RouteTable))
 	}
 	snapshotMap["routeTables"] = routeTableSet.List()
-
-	upstreamSet := gloo_solo_io_v1_sets.NewUpstreamSet()
+	upstreamSet := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Upstream]()
 	for _, obj := range s.upstreams.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		upstreamSet.Insert(obj.(*gloo_solo_io_v1_types.Upstream))
 	}
 	snapshotMap["upstreams"] = upstreamSet.List()
-	upstreamGroupSet := gloo_solo_io_v1_sets.NewUpstreamGroupSet()
+	upstreamGroupSet := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.UpstreamGroup]()
 	for _, obj := range s.upstreamGroups.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		upstreamGroupSet.Insert(obj.(*gloo_solo_io_v1_types.UpstreamGroup))
 	}
 	snapshotMap["upstreamGroups"] = upstreamGroupSet.List()
-	settingsSet := gloo_solo_io_v1_sets.NewSettingsSet()
+	settingsSet := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Settings]()
 	for _, obj := range s.settings.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		settingsSet.Insert(obj.(*gloo_solo_io_v1_types.Settings))
 	}
 	snapshotMap["settings"] = settingsSet.List()
-	proxySet := gloo_solo_io_v1_sets.NewProxySet()
+	proxySet := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Proxy]()
 	for _, obj := range s.proxies.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		proxySet.Insert(obj.(*gloo_solo_io_v1_types.Proxy))
 	}
 	snapshotMap["proxies"] = proxySet.List()
-
-	authConfigSet := enterprise_gloo_solo_io_v1_sets.NewAuthConfigSet()
+	authConfigSet := sk_sets.NewResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig]()
 	for _, obj := range s.authConfigs.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
 		authConfigSet.Insert(obj.(*enterprise_gloo_solo_io_v1_types.AuthConfig))
 	}
 	snapshotMap["authConfigs"] = authConfigSet.List()
-
-	rateLimitConfigSet := ratelimit_api_solo_io_v1alpha1_sets.NewRateLimitConfigSet()
+	rateLimitConfigSet := sk_sets.NewResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig]()
 	for _, obj := range s.rateLimitConfigs.UnsortedList() {
 		// redact secret data from the snapshot
 		obj := snapshotutils.RedactSecretData(obj)
@@ -890,7 +870,6 @@ func (s *snapshot) Generic() resource.ClusterSnapshot {
 
 // convert this snapshot to its generic form
 func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.GroupVersionKind, obj resource.TypedObject)) {
-
 	for _, obj := range s.services.List() {
 		cluster := obj.GetClusterName()
 		gvk := schema.GroupVersionKind{
@@ -909,7 +888,6 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		}
 		handleObject(cluster, gvk, obj)
 	}
-
 	for _, obj := range s.deployments.List() {
 		cluster := obj.GetClusterName()
 		gvk := schema.GroupVersionKind{
@@ -928,7 +906,6 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		}
 		handleObject(cluster, gvk, obj)
 	}
-
 	for _, obj := range s.gateways.List() {
 		cluster := obj.GetClusterName()
 		gvk := schema.GroupVersionKind{
@@ -965,7 +942,6 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		}
 		handleObject(cluster, gvk, obj)
 	}
-
 	for _, obj := range s.upstreams.List() {
 		cluster := obj.GetClusterName()
 		gvk := schema.GroupVersionKind{
@@ -1002,7 +978,6 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		}
 		handleObject(cluster, gvk, obj)
 	}
-
 	for _, obj := range s.authConfigs.List() {
 		cluster := obj.GetClusterName()
 		gvk := schema.GroupVersionKind{
@@ -1012,7 +987,6 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		}
 		handleObject(cluster, gvk, obj)
 	}
-
 	for _, obj := range s.rateLimitConfigs.List() {
 		cluster := obj.GetClusterName()
 		gvk := schema.GroupVersionKind{
@@ -1096,25 +1070,20 @@ func NewMultiClusterBuilder(
 
 func (b *multiClusterBuilder) BuildSnapshot(ctx context.Context, name string, opts BuildOptions) (Snapshot, error) {
 
-	services := v1_sets.NewServiceSet()
-	pods := v1_sets.NewPodSet()
-
-	deployments := apps_v1_sets.NewDeploymentSet()
-	daemonSets := apps_v1_sets.NewDaemonSetSet()
-
-	gateways := gateway_solo_io_v1_sets.NewGatewaySet()
-	matchableHttpGateways := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
-	virtualServices := gateway_solo_io_v1_sets.NewVirtualServiceSet()
-	routeTables := gateway_solo_io_v1_sets.NewRouteTableSet()
-
-	upstreams := gloo_solo_io_v1_sets.NewUpstreamSet()
-	upstreamGroups := gloo_solo_io_v1_sets.NewUpstreamGroupSet()
-	settings := gloo_solo_io_v1_sets.NewSettingsSet()
-	proxies := gloo_solo_io_v1_sets.NewProxySet()
-
-	authConfigs := enterprise_gloo_solo_io_v1_sets.NewAuthConfigSet()
-
-	rateLimitConfigs := ratelimit_api_solo_io_v1alpha1_sets.NewRateLimitConfigSet()
+	services := sk_sets.NewResourceSet[*v1_types.Service]()
+	pods := sk_sets.NewResourceSet[*v1_types.Pod]()
+	deployments := sk_sets.NewResourceSet[*apps_v1_types.Deployment]()
+	daemonSets := sk_sets.NewResourceSet[*apps_v1_types.DaemonSet]()
+	gateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.Gateway]()
+	matchableHttpGateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]()
+	virtualServices := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.VirtualService]()
+	routeTables := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.RouteTable]()
+	upstreams := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Upstream]()
+	upstreamGroups := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.UpstreamGroup]()
+	settings := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Settings]()
+	proxies := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Proxy]()
+	authConfigs := sk_sets.NewResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig]()
+	rateLimitConfigs := sk_sets.NewResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig]()
 
 	var errs error
 
@@ -1187,11 +1156,13 @@ func (b *multiClusterBuilder) BuildSnapshot(ctx context.Context, name string, op
 	return outputSnap, errs
 }
 
-func (b *multiClusterBuilder) insertServicesFromCluster(ctx context.Context, cluster string, services v1_sets.ServiceSet, opts ResourceBuildOptions) error {
-	serviceClient, err := v1.NewMulticlusterServiceClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertServicesFromCluster(ctx context.Context, cluster string, services sk_sets.ResourceSet[*v1_types.Service], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	serviceClient := sk_client.NewGenericClient(clusterClient, &v1_types.Service{}, &v1_types.ServiceList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1216,7 +1187,7 @@ func (b *multiClusterBuilder) insertServicesFromCluster(ctx context.Context, clu
 		}
 	}
 
-	serviceList, err := serviceClient.ListService(ctx, opts.ListOptions...)
+	serviceList, err := serviceClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1229,11 +1200,13 @@ func (b *multiClusterBuilder) insertServicesFromCluster(ctx context.Context, clu
 
 	return nil
 }
-func (b *multiClusterBuilder) insertPodsFromCluster(ctx context.Context, cluster string, pods v1_sets.PodSet, opts ResourceBuildOptions) error {
-	podClient, err := v1.NewMulticlusterPodClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertPodsFromCluster(ctx context.Context, cluster string, pods sk_sets.ResourceSet[*v1_types.Pod], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	podClient := sk_client.NewGenericClient(clusterClient, &v1_types.Pod{}, &v1_types.PodList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1258,7 +1231,7 @@ func (b *multiClusterBuilder) insertPodsFromCluster(ctx context.Context, cluster
 		}
 	}
 
-	podList, err := podClient.ListPod(ctx, opts.ListOptions...)
+	podList, err := podClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1271,12 +1244,13 @@ func (b *multiClusterBuilder) insertPodsFromCluster(ctx context.Context, cluster
 
 	return nil
 }
-
-func (b *multiClusterBuilder) insertDeploymentsFromCluster(ctx context.Context, cluster string, deployments apps_v1_sets.DeploymentSet, opts ResourceBuildOptions) error {
-	deploymentClient, err := apps_v1.NewMulticlusterDeploymentClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertDeploymentsFromCluster(ctx context.Context, cluster string, deployments sk_sets.ResourceSet[*apps_v1_types.Deployment], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	deploymentClient := sk_client.NewGenericClient(clusterClient, &apps_v1_types.Deployment{}, &apps_v1_types.DeploymentList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1301,7 +1275,7 @@ func (b *multiClusterBuilder) insertDeploymentsFromCluster(ctx context.Context, 
 		}
 	}
 
-	deploymentList, err := deploymentClient.ListDeployment(ctx, opts.ListOptions...)
+	deploymentList, err := deploymentClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1314,11 +1288,13 @@ func (b *multiClusterBuilder) insertDeploymentsFromCluster(ctx context.Context, 
 
 	return nil
 }
-func (b *multiClusterBuilder) insertDaemonSetsFromCluster(ctx context.Context, cluster string, daemonSets apps_v1_sets.DaemonSetSet, opts ResourceBuildOptions) error {
-	daemonSetClient, err := apps_v1.NewMulticlusterDaemonSetClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertDaemonSetsFromCluster(ctx context.Context, cluster string, daemonSets sk_sets.ResourceSet[*apps_v1_types.DaemonSet], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	daemonSetClient := sk_client.NewGenericClient(clusterClient, &apps_v1_types.DaemonSet{}, &apps_v1_types.DaemonSetList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1343,7 +1319,7 @@ func (b *multiClusterBuilder) insertDaemonSetsFromCluster(ctx context.Context, c
 		}
 	}
 
-	daemonSetList, err := daemonSetClient.ListDaemonSet(ctx, opts.ListOptions...)
+	daemonSetList, err := daemonSetClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1356,12 +1332,13 @@ func (b *multiClusterBuilder) insertDaemonSetsFromCluster(ctx context.Context, c
 
 	return nil
 }
-
-func (b *multiClusterBuilder) insertGatewaysFromCluster(ctx context.Context, cluster string, gateways gateway_solo_io_v1_sets.GatewaySet, opts ResourceBuildOptions) error {
-	gatewayClient, err := gateway_solo_io_v1.NewMulticlusterGatewayClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertGatewaysFromCluster(ctx context.Context, cluster string, gateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.Gateway], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	gatewayClient := sk_client.NewGenericClient(clusterClient, &gateway_solo_io_v1_types.Gateway{}, &gateway_solo_io_v1_types.GatewayList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1386,7 +1363,7 @@ func (b *multiClusterBuilder) insertGatewaysFromCluster(ctx context.Context, clu
 		}
 	}
 
-	gatewayList, err := gatewayClient.ListGateway(ctx, opts.ListOptions...)
+	gatewayList, err := gatewayClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1399,11 +1376,13 @@ func (b *multiClusterBuilder) insertGatewaysFromCluster(ctx context.Context, clu
 
 	return nil
 }
-func (b *multiClusterBuilder) insertMatchableHttpGatewaysFromCluster(ctx context.Context, cluster string, matchableHttpGateways gateway_solo_io_v1_sets.MatchableHttpGatewaySet, opts ResourceBuildOptions) error {
-	matchableHttpGatewayClient, err := gateway_solo_io_v1.NewMulticlusterMatchableHttpGatewayClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertMatchableHttpGatewaysFromCluster(ctx context.Context, cluster string, matchableHttpGateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	matchableHttpGatewayClient := sk_client.NewGenericClient(clusterClient, &gateway_solo_io_v1_types.MatchableHttpGateway{}, &gateway_solo_io_v1_types.MatchableHttpGatewayList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1428,7 +1407,7 @@ func (b *multiClusterBuilder) insertMatchableHttpGatewaysFromCluster(ctx context
 		}
 	}
 
-	matchableHttpGatewayList, err := matchableHttpGatewayClient.ListMatchableHttpGateway(ctx, opts.ListOptions...)
+	matchableHttpGatewayList, err := matchableHttpGatewayClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1441,11 +1420,13 @@ func (b *multiClusterBuilder) insertMatchableHttpGatewaysFromCluster(ctx context
 
 	return nil
 }
-func (b *multiClusterBuilder) insertVirtualServicesFromCluster(ctx context.Context, cluster string, virtualServices gateway_solo_io_v1_sets.VirtualServiceSet, opts ResourceBuildOptions) error {
-	virtualServiceClient, err := gateway_solo_io_v1.NewMulticlusterVirtualServiceClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertVirtualServicesFromCluster(ctx context.Context, cluster string, virtualServices sk_sets.ResourceSet[*gateway_solo_io_v1_types.VirtualService], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	virtualServiceClient := sk_client.NewGenericClient(clusterClient, &gateway_solo_io_v1_types.VirtualService{}, &gateway_solo_io_v1_types.VirtualServiceList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1470,7 +1451,7 @@ func (b *multiClusterBuilder) insertVirtualServicesFromCluster(ctx context.Conte
 		}
 	}
 
-	virtualServiceList, err := virtualServiceClient.ListVirtualService(ctx, opts.ListOptions...)
+	virtualServiceList, err := virtualServiceClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1483,11 +1464,13 @@ func (b *multiClusterBuilder) insertVirtualServicesFromCluster(ctx context.Conte
 
 	return nil
 }
-func (b *multiClusterBuilder) insertRouteTablesFromCluster(ctx context.Context, cluster string, routeTables gateway_solo_io_v1_sets.RouteTableSet, opts ResourceBuildOptions) error {
-	routeTableClient, err := gateway_solo_io_v1.NewMulticlusterRouteTableClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertRouteTablesFromCluster(ctx context.Context, cluster string, routeTables sk_sets.ResourceSet[*gateway_solo_io_v1_types.RouteTable], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	routeTableClient := sk_client.NewGenericClient(clusterClient, &gateway_solo_io_v1_types.RouteTable{}, &gateway_solo_io_v1_types.RouteTableList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1512,7 +1495,7 @@ func (b *multiClusterBuilder) insertRouteTablesFromCluster(ctx context.Context, 
 		}
 	}
 
-	routeTableList, err := routeTableClient.ListRouteTable(ctx, opts.ListOptions...)
+	routeTableList, err := routeTableClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1525,12 +1508,13 @@ func (b *multiClusterBuilder) insertRouteTablesFromCluster(ctx context.Context, 
 
 	return nil
 }
-
-func (b *multiClusterBuilder) insertUpstreamsFromCluster(ctx context.Context, cluster string, upstreams gloo_solo_io_v1_sets.UpstreamSet, opts ResourceBuildOptions) error {
-	upstreamClient, err := gloo_solo_io_v1.NewMulticlusterUpstreamClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertUpstreamsFromCluster(ctx context.Context, cluster string, upstreams sk_sets.ResourceSet[*gloo_solo_io_v1_types.Upstream], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	upstreamClient := sk_client.NewGenericClient(clusterClient, &gloo_solo_io_v1_types.Upstream{}, &gloo_solo_io_v1_types.UpstreamList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1555,7 +1539,7 @@ func (b *multiClusterBuilder) insertUpstreamsFromCluster(ctx context.Context, cl
 		}
 	}
 
-	upstreamList, err := upstreamClient.ListUpstream(ctx, opts.ListOptions...)
+	upstreamList, err := upstreamClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1568,11 +1552,13 @@ func (b *multiClusterBuilder) insertUpstreamsFromCluster(ctx context.Context, cl
 
 	return nil
 }
-func (b *multiClusterBuilder) insertUpstreamGroupsFromCluster(ctx context.Context, cluster string, upstreamGroups gloo_solo_io_v1_sets.UpstreamGroupSet, opts ResourceBuildOptions) error {
-	upstreamGroupClient, err := gloo_solo_io_v1.NewMulticlusterUpstreamGroupClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertUpstreamGroupsFromCluster(ctx context.Context, cluster string, upstreamGroups sk_sets.ResourceSet[*gloo_solo_io_v1_types.UpstreamGroup], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	upstreamGroupClient := sk_client.NewGenericClient(clusterClient, &gloo_solo_io_v1_types.UpstreamGroup{}, &gloo_solo_io_v1_types.UpstreamGroupList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1597,7 +1583,7 @@ func (b *multiClusterBuilder) insertUpstreamGroupsFromCluster(ctx context.Contex
 		}
 	}
 
-	upstreamGroupList, err := upstreamGroupClient.ListUpstreamGroup(ctx, opts.ListOptions...)
+	upstreamGroupList, err := upstreamGroupClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1610,11 +1596,13 @@ func (b *multiClusterBuilder) insertUpstreamGroupsFromCluster(ctx context.Contex
 
 	return nil
 }
-func (b *multiClusterBuilder) insertSettingsFromCluster(ctx context.Context, cluster string, settings gloo_solo_io_v1_sets.SettingsSet, opts ResourceBuildOptions) error {
-	settingsClient, err := gloo_solo_io_v1.NewMulticlusterSettingsClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertSettingsFromCluster(ctx context.Context, cluster string, settings sk_sets.ResourceSet[*gloo_solo_io_v1_types.Settings], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	settingsClient := sk_client.NewGenericClient(clusterClient, &gloo_solo_io_v1_types.Settings{}, &gloo_solo_io_v1_types.SettingsList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1639,7 +1627,7 @@ func (b *multiClusterBuilder) insertSettingsFromCluster(ctx context.Context, clu
 		}
 	}
 
-	settingsList, err := settingsClient.ListSettings(ctx, opts.ListOptions...)
+	settingsList, err := settingsClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1652,11 +1640,13 @@ func (b *multiClusterBuilder) insertSettingsFromCluster(ctx context.Context, clu
 
 	return nil
 }
-func (b *multiClusterBuilder) insertProxiesFromCluster(ctx context.Context, cluster string, proxies gloo_solo_io_v1_sets.ProxySet, opts ResourceBuildOptions) error {
-	proxyClient, err := gloo_solo_io_v1.NewMulticlusterProxyClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertProxiesFromCluster(ctx context.Context, cluster string, proxies sk_sets.ResourceSet[*gloo_solo_io_v1_types.Proxy], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	proxyClient := sk_client.NewGenericClient(clusterClient, &gloo_solo_io_v1_types.Proxy{}, &gloo_solo_io_v1_types.ProxyList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1681,7 +1671,7 @@ func (b *multiClusterBuilder) insertProxiesFromCluster(ctx context.Context, clus
 		}
 	}
 
-	proxyList, err := proxyClient.ListProxy(ctx, opts.ListOptions...)
+	proxyList, err := proxyClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1694,12 +1684,13 @@ func (b *multiClusterBuilder) insertProxiesFromCluster(ctx context.Context, clus
 
 	return nil
 }
-
-func (b *multiClusterBuilder) insertAuthConfigsFromCluster(ctx context.Context, cluster string, authConfigs enterprise_gloo_solo_io_v1_sets.AuthConfigSet, opts ResourceBuildOptions) error {
-	authConfigClient, err := enterprise_gloo_solo_io_v1.NewMulticlusterAuthConfigClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertAuthConfigsFromCluster(ctx context.Context, cluster string, authConfigs sk_sets.ResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	authConfigClient := sk_client.NewGenericClient(clusterClient, &enterprise_gloo_solo_io_v1_types.AuthConfig{}, &enterprise_gloo_solo_io_v1_types.AuthConfigList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1724,7 +1715,7 @@ func (b *multiClusterBuilder) insertAuthConfigsFromCluster(ctx context.Context, 
 		}
 	}
 
-	authConfigList, err := authConfigClient.ListAuthConfig(ctx, opts.ListOptions...)
+	authConfigList, err := authConfigClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1737,12 +1728,13 @@ func (b *multiClusterBuilder) insertAuthConfigsFromCluster(ctx context.Context, 
 
 	return nil
 }
-
-func (b *multiClusterBuilder) insertRateLimitConfigsFromCluster(ctx context.Context, cluster string, rateLimitConfigs ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet, opts ResourceBuildOptions) error {
-	rateLimitConfigClient, err := ratelimit_api_solo_io_v1alpha1.NewMulticlusterRateLimitConfigClient(b.client).Cluster(cluster)
+func (b *multiClusterBuilder) insertRateLimitConfigsFromCluster(ctx context.Context, cluster string, rateLimitConfigs sk_sets.ResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig], opts ResourceBuildOptions) error {
+	clusterClient, err := b.client.Cluster(cluster)
 	if err != nil {
 		return err
 	}
+
+	rateLimitConfigClient := sk_client.NewGenericClient(clusterClient, &ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig{}, &ratelimit_api_solo_io_v1alpha1_types.RateLimitConfigList{})
 
 	if opts.Verifier != nil {
 		mgr, err := b.clusters.Cluster(cluster)
@@ -1767,7 +1759,7 @@ func (b *multiClusterBuilder) insertRateLimitConfigsFromCluster(ctx context.Cont
 		}
 	}
 
-	rateLimitConfigList, err := rateLimitConfigClient.ListRateLimitConfig(ctx, opts.ListOptions...)
+	rateLimitConfigList, err := rateLimitConfigClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1808,25 +1800,20 @@ func NewSingleClusterBuilderWithClusterName(
 
 func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, opts BuildOptions) (Snapshot, error) {
 
-	services := v1_sets.NewServiceSet()
-	pods := v1_sets.NewPodSet()
-
-	deployments := apps_v1_sets.NewDeploymentSet()
-	daemonSets := apps_v1_sets.NewDaemonSetSet()
-
-	gateways := gateway_solo_io_v1_sets.NewGatewaySet()
-	matchableHttpGateways := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
-	virtualServices := gateway_solo_io_v1_sets.NewVirtualServiceSet()
-	routeTables := gateway_solo_io_v1_sets.NewRouteTableSet()
-
-	upstreams := gloo_solo_io_v1_sets.NewUpstreamSet()
-	upstreamGroups := gloo_solo_io_v1_sets.NewUpstreamGroupSet()
-	settings := gloo_solo_io_v1_sets.NewSettingsSet()
-	proxies := gloo_solo_io_v1_sets.NewProxySet()
-
-	authConfigs := enterprise_gloo_solo_io_v1_sets.NewAuthConfigSet()
-
-	rateLimitConfigs := ratelimit_api_solo_io_v1alpha1_sets.NewRateLimitConfigSet()
+	services := sk_sets.NewResourceSet[*v1_types.Service]()
+	pods := sk_sets.NewResourceSet[*v1_types.Pod]()
+	deployments := sk_sets.NewResourceSet[*apps_v1_types.Deployment]()
+	daemonSets := sk_sets.NewResourceSet[*apps_v1_types.DaemonSet]()
+	gateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.Gateway]()
+	matchableHttpGateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]()
+	virtualServices := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.VirtualService]()
+	routeTables := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.RouteTable]()
+	upstreams := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Upstream]()
+	upstreamGroups := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.UpstreamGroup]()
+	settings := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Settings]()
+	proxies := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Proxy]()
+	authConfigs := sk_sets.NewResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig]()
+	rateLimitConfigs := sk_sets.NewResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig]()
 
 	var errs error
 
@@ -1895,7 +1882,7 @@ func (b *singleClusterBuilder) BuildSnapshot(ctx context.Context, name string, o
 	return outputSnap, errs
 }
 
-func (b *singleClusterBuilder) insertServices(ctx context.Context, services v1_sets.ServiceSet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertServices(ctx context.Context, services sk_sets.ResourceSet[*v1_types.Service], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -1915,7 +1902,9 @@ func (b *singleClusterBuilder) insertServices(ctx context.Context, services v1_s
 		}
 	}
 
-	serviceList, err := v1.NewServiceClient(b.mgr.GetClient()).ListService(ctx, opts.ListOptions...)
+	serviceClient := sk_client.NewGenericClient(b.mgr.GetClient(), &v1_types.Service{}, &v1_types.ServiceList{})
+
+	serviceList, err := serviceClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1928,7 +1917,7 @@ func (b *singleClusterBuilder) insertServices(ctx context.Context, services v1_s
 
 	return nil
 }
-func (b *singleClusterBuilder) insertPods(ctx context.Context, pods v1_sets.PodSet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertPods(ctx context.Context, pods sk_sets.ResourceSet[*v1_types.Pod], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -1948,7 +1937,9 @@ func (b *singleClusterBuilder) insertPods(ctx context.Context, pods v1_sets.PodS
 		}
 	}
 
-	podList, err := v1.NewPodClient(b.mgr.GetClient()).ListPod(ctx, opts.ListOptions...)
+	podClient := sk_client.NewGenericClient(b.mgr.GetClient(), &v1_types.Pod{}, &v1_types.PodList{})
+
+	podList, err := podClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1961,8 +1952,7 @@ func (b *singleClusterBuilder) insertPods(ctx context.Context, pods v1_sets.PodS
 
 	return nil
 }
-
-func (b *singleClusterBuilder) insertDeployments(ctx context.Context, deployments apps_v1_sets.DeploymentSet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertDeployments(ctx context.Context, deployments sk_sets.ResourceSet[*apps_v1_types.Deployment], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -1982,7 +1972,9 @@ func (b *singleClusterBuilder) insertDeployments(ctx context.Context, deployment
 		}
 	}
 
-	deploymentList, err := apps_v1.NewDeploymentClient(b.mgr.GetClient()).ListDeployment(ctx, opts.ListOptions...)
+	deploymentClient := sk_client.NewGenericClient(b.mgr.GetClient(), &apps_v1_types.Deployment{}, &apps_v1_types.DeploymentList{})
+
+	deploymentList, err := deploymentClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -1995,7 +1987,7 @@ func (b *singleClusterBuilder) insertDeployments(ctx context.Context, deployment
 
 	return nil
 }
-func (b *singleClusterBuilder) insertDaemonSets(ctx context.Context, daemonSets apps_v1_sets.DaemonSetSet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertDaemonSets(ctx context.Context, daemonSets sk_sets.ResourceSet[*apps_v1_types.DaemonSet], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -2015,7 +2007,9 @@ func (b *singleClusterBuilder) insertDaemonSets(ctx context.Context, daemonSets 
 		}
 	}
 
-	daemonSetList, err := apps_v1.NewDaemonSetClient(b.mgr.GetClient()).ListDaemonSet(ctx, opts.ListOptions...)
+	daemonSetClient := sk_client.NewGenericClient(b.mgr.GetClient(), &apps_v1_types.DaemonSet{}, &apps_v1_types.DaemonSetList{})
+
+	daemonSetList, err := daemonSetClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -2028,8 +2022,7 @@ func (b *singleClusterBuilder) insertDaemonSets(ctx context.Context, daemonSets 
 
 	return nil
 }
-
-func (b *singleClusterBuilder) insertGateways(ctx context.Context, gateways gateway_solo_io_v1_sets.GatewaySet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertGateways(ctx context.Context, gateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.Gateway], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -2049,7 +2042,9 @@ func (b *singleClusterBuilder) insertGateways(ctx context.Context, gateways gate
 		}
 	}
 
-	gatewayList, err := gateway_solo_io_v1.NewGatewayClient(b.mgr.GetClient()).ListGateway(ctx, opts.ListOptions...)
+	gatewayClient := sk_client.NewGenericClient(b.mgr.GetClient(), &gateway_solo_io_v1_types.Gateway{}, &gateway_solo_io_v1_types.GatewayList{})
+
+	gatewayList, err := gatewayClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -2062,7 +2057,7 @@ func (b *singleClusterBuilder) insertGateways(ctx context.Context, gateways gate
 
 	return nil
 }
-func (b *singleClusterBuilder) insertMatchableHttpGateways(ctx context.Context, matchableHttpGateways gateway_solo_io_v1_sets.MatchableHttpGatewaySet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertMatchableHttpGateways(ctx context.Context, matchableHttpGateways sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -2082,7 +2077,9 @@ func (b *singleClusterBuilder) insertMatchableHttpGateways(ctx context.Context, 
 		}
 	}
 
-	matchableHttpGatewayList, err := gateway_solo_io_v1.NewMatchableHttpGatewayClient(b.mgr.GetClient()).ListMatchableHttpGateway(ctx, opts.ListOptions...)
+	matchableHttpGatewayClient := sk_client.NewGenericClient(b.mgr.GetClient(), &gateway_solo_io_v1_types.MatchableHttpGateway{}, &gateway_solo_io_v1_types.MatchableHttpGatewayList{})
+
+	matchableHttpGatewayList, err := matchableHttpGatewayClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -2095,7 +2092,7 @@ func (b *singleClusterBuilder) insertMatchableHttpGateways(ctx context.Context, 
 
 	return nil
 }
-func (b *singleClusterBuilder) insertVirtualServices(ctx context.Context, virtualServices gateway_solo_io_v1_sets.VirtualServiceSet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertVirtualServices(ctx context.Context, virtualServices sk_sets.ResourceSet[*gateway_solo_io_v1_types.VirtualService], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -2115,7 +2112,9 @@ func (b *singleClusterBuilder) insertVirtualServices(ctx context.Context, virtua
 		}
 	}
 
-	virtualServiceList, err := gateway_solo_io_v1.NewVirtualServiceClient(b.mgr.GetClient()).ListVirtualService(ctx, opts.ListOptions...)
+	virtualServiceClient := sk_client.NewGenericClient(b.mgr.GetClient(), &gateway_solo_io_v1_types.VirtualService{}, &gateway_solo_io_v1_types.VirtualServiceList{})
+
+	virtualServiceList, err := virtualServiceClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -2128,7 +2127,7 @@ func (b *singleClusterBuilder) insertVirtualServices(ctx context.Context, virtua
 
 	return nil
 }
-func (b *singleClusterBuilder) insertRouteTables(ctx context.Context, routeTables gateway_solo_io_v1_sets.RouteTableSet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertRouteTables(ctx context.Context, routeTables sk_sets.ResourceSet[*gateway_solo_io_v1_types.RouteTable], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -2148,7 +2147,9 @@ func (b *singleClusterBuilder) insertRouteTables(ctx context.Context, routeTable
 		}
 	}
 
-	routeTableList, err := gateway_solo_io_v1.NewRouteTableClient(b.mgr.GetClient()).ListRouteTable(ctx, opts.ListOptions...)
+	routeTableClient := sk_client.NewGenericClient(b.mgr.GetClient(), &gateway_solo_io_v1_types.RouteTable{}, &gateway_solo_io_v1_types.RouteTableList{})
+
+	routeTableList, err := routeTableClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -2161,8 +2162,7 @@ func (b *singleClusterBuilder) insertRouteTables(ctx context.Context, routeTable
 
 	return nil
 }
-
-func (b *singleClusterBuilder) insertUpstreams(ctx context.Context, upstreams gloo_solo_io_v1_sets.UpstreamSet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertUpstreams(ctx context.Context, upstreams sk_sets.ResourceSet[*gloo_solo_io_v1_types.Upstream], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -2182,7 +2182,9 @@ func (b *singleClusterBuilder) insertUpstreams(ctx context.Context, upstreams gl
 		}
 	}
 
-	upstreamList, err := gloo_solo_io_v1.NewUpstreamClient(b.mgr.GetClient()).ListUpstream(ctx, opts.ListOptions...)
+	upstreamClient := sk_client.NewGenericClient(b.mgr.GetClient(), &gloo_solo_io_v1_types.Upstream{}, &gloo_solo_io_v1_types.UpstreamList{})
+
+	upstreamList, err := upstreamClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -2195,7 +2197,7 @@ func (b *singleClusterBuilder) insertUpstreams(ctx context.Context, upstreams gl
 
 	return nil
 }
-func (b *singleClusterBuilder) insertUpstreamGroups(ctx context.Context, upstreamGroups gloo_solo_io_v1_sets.UpstreamGroupSet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertUpstreamGroups(ctx context.Context, upstreamGroups sk_sets.ResourceSet[*gloo_solo_io_v1_types.UpstreamGroup], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -2215,7 +2217,9 @@ func (b *singleClusterBuilder) insertUpstreamGroups(ctx context.Context, upstrea
 		}
 	}
 
-	upstreamGroupList, err := gloo_solo_io_v1.NewUpstreamGroupClient(b.mgr.GetClient()).ListUpstreamGroup(ctx, opts.ListOptions...)
+	upstreamGroupClient := sk_client.NewGenericClient(b.mgr.GetClient(), &gloo_solo_io_v1_types.UpstreamGroup{}, &gloo_solo_io_v1_types.UpstreamGroupList{})
+
+	upstreamGroupList, err := upstreamGroupClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -2228,7 +2232,7 @@ func (b *singleClusterBuilder) insertUpstreamGroups(ctx context.Context, upstrea
 
 	return nil
 }
-func (b *singleClusterBuilder) insertSettings(ctx context.Context, settings gloo_solo_io_v1_sets.SettingsSet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertSettings(ctx context.Context, settings sk_sets.ResourceSet[*gloo_solo_io_v1_types.Settings], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -2248,7 +2252,9 @@ func (b *singleClusterBuilder) insertSettings(ctx context.Context, settings gloo
 		}
 	}
 
-	settingsList, err := gloo_solo_io_v1.NewSettingsClient(b.mgr.GetClient()).ListSettings(ctx, opts.ListOptions...)
+	settingsClient := sk_client.NewGenericClient(b.mgr.GetClient(), &gloo_solo_io_v1_types.Settings{}, &gloo_solo_io_v1_types.SettingsList{})
+
+	settingsList, err := settingsClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -2261,7 +2267,7 @@ func (b *singleClusterBuilder) insertSettings(ctx context.Context, settings gloo
 
 	return nil
 }
-func (b *singleClusterBuilder) insertProxies(ctx context.Context, proxies gloo_solo_io_v1_sets.ProxySet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertProxies(ctx context.Context, proxies sk_sets.ResourceSet[*gloo_solo_io_v1_types.Proxy], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -2281,7 +2287,9 @@ func (b *singleClusterBuilder) insertProxies(ctx context.Context, proxies gloo_s
 		}
 	}
 
-	proxyList, err := gloo_solo_io_v1.NewProxyClient(b.mgr.GetClient()).ListProxy(ctx, opts.ListOptions...)
+	proxyClient := sk_client.NewGenericClient(b.mgr.GetClient(), &gloo_solo_io_v1_types.Proxy{}, &gloo_solo_io_v1_types.ProxyList{})
+
+	proxyList, err := proxyClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -2294,8 +2302,7 @@ func (b *singleClusterBuilder) insertProxies(ctx context.Context, proxies gloo_s
 
 	return nil
 }
-
-func (b *singleClusterBuilder) insertAuthConfigs(ctx context.Context, authConfigs enterprise_gloo_solo_io_v1_sets.AuthConfigSet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertAuthConfigs(ctx context.Context, authConfigs sk_sets.ResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -2315,7 +2322,9 @@ func (b *singleClusterBuilder) insertAuthConfigs(ctx context.Context, authConfig
 		}
 	}
 
-	authConfigList, err := enterprise_gloo_solo_io_v1.NewAuthConfigClient(b.mgr.GetClient()).ListAuthConfig(ctx, opts.ListOptions...)
+	authConfigClient := sk_client.NewGenericClient(b.mgr.GetClient(), &enterprise_gloo_solo_io_v1_types.AuthConfig{}, &enterprise_gloo_solo_io_v1_types.AuthConfigList{})
+
+	authConfigList, err := authConfigClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -2328,8 +2337,7 @@ func (b *singleClusterBuilder) insertAuthConfigs(ctx context.Context, authConfig
 
 	return nil
 }
-
-func (b *singleClusterBuilder) insertRateLimitConfigs(ctx context.Context, rateLimitConfigs ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet, opts ResourceBuildOptions) error {
+func (b *singleClusterBuilder) insertRateLimitConfigs(ctx context.Context, rateLimitConfigs sk_sets.ResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig], opts ResourceBuildOptions) error {
 
 	if opts.Verifier != nil {
 		gvk := schema.GroupVersionKind{
@@ -2349,7 +2357,9 @@ func (b *singleClusterBuilder) insertRateLimitConfigs(ctx context.Context, rateL
 		}
 	}
 
-	rateLimitConfigList, err := ratelimit_api_solo_io_v1alpha1.NewRateLimitConfigClient(b.mgr.GetClient()).ListRateLimitConfig(ctx, opts.ListOptions...)
+	rateLimitConfigClient := sk_client.NewGenericClient(b.mgr.GetClient(), &ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig{}, &ratelimit_api_solo_io_v1alpha1_types.RateLimitConfigList{})
+
+	rateLimitConfigList, err := rateLimitConfigClient.List(ctx, opts.ListOptions...)
 	if err != nil {
 		return err
 	}
@@ -2383,25 +2393,20 @@ func (i *inMemoryBuilder) BuildSnapshot(ctx context.Context, name string, opts B
 		return nil, err
 	}
 
-	services := v1_sets.NewServiceSet()
-	pods := v1_sets.NewPodSet()
-
-	deployments := apps_v1_sets.NewDeploymentSet()
-	daemonSets := apps_v1_sets.NewDaemonSetSet()
-
-	gateways := gateway_solo_io_v1_sets.NewGatewaySet()
-	matchableHttpGateways := gateway_solo_io_v1_sets.NewMatchableHttpGatewaySet()
-	virtualServices := gateway_solo_io_v1_sets.NewVirtualServiceSet()
-	routeTables := gateway_solo_io_v1_sets.NewRouteTableSet()
-
-	upstreams := gloo_solo_io_v1_sets.NewUpstreamSet()
-	upstreamGroups := gloo_solo_io_v1_sets.NewUpstreamGroupSet()
-	settings := gloo_solo_io_v1_sets.NewSettingsSet()
-	proxies := gloo_solo_io_v1_sets.NewProxySet()
-
-	authConfigs := enterprise_gloo_solo_io_v1_sets.NewAuthConfigSet()
-
-	rateLimitConfigs := ratelimit_api_solo_io_v1alpha1_sets.NewRateLimitConfigSet()
+	services := sk_sets.NewResourceSet[*v1_types.Service]()
+	pods := sk_sets.NewResourceSet[*v1_types.Pod]()
+	deployments := sk_sets.NewResourceSet[*apps_v1_types.Deployment]()
+	daemonSets := sk_sets.NewResourceSet[*apps_v1_types.DaemonSet]()
+	gateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.Gateway]()
+	matchableHttpGateways := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway]()
+	virtualServices := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.VirtualService]()
+	routeTables := sk_sets.NewResourceSet[*gateway_solo_io_v1_types.RouteTable]()
+	upstreams := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Upstream]()
+	upstreamGroups := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.UpstreamGroup]()
+	settings := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Settings]()
+	proxies := sk_sets.NewResourceSet[*gloo_solo_io_v1_types.Proxy]()
+	authConfigs := sk_sets.NewResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig]()
+	rateLimitConfigs := sk_sets.NewResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig]()
 
 	genericSnap.ForEachObject(func(cluster string, gvk schema.GroupVersionKind, obj resource.TypedObject) {
 		switch obj := obj.(type) {
@@ -2473,7 +2478,7 @@ func (i *inMemoryBuilder) BuildSnapshot(ctx context.Context, name string, opts B
 func (i *inMemoryBuilder) insertService(
 	ctx context.Context,
 	service *v1_types.Service,
-	serviceSet v1_sets.ServiceSet,
+	serviceSet sk_sets.ResourceSet[*v1_types.Service],
 	buildOpts BuildOptions,
 ) {
 
@@ -2502,7 +2507,7 @@ func (i *inMemoryBuilder) insertService(
 func (i *inMemoryBuilder) insertPod(
 	ctx context.Context,
 	pod *v1_types.Pod,
-	podSet v1_sets.PodSet,
+	podSet sk_sets.ResourceSet[*v1_types.Pod],
 	buildOpts BuildOptions,
 ) {
 
@@ -2532,7 +2537,7 @@ func (i *inMemoryBuilder) insertPod(
 func (i *inMemoryBuilder) insertDeployment(
 	ctx context.Context,
 	deployment *apps_v1_types.Deployment,
-	deploymentSet apps_v1_sets.DeploymentSet,
+	deploymentSet sk_sets.ResourceSet[*apps_v1_types.Deployment],
 	buildOpts BuildOptions,
 ) {
 
@@ -2561,7 +2566,7 @@ func (i *inMemoryBuilder) insertDeployment(
 func (i *inMemoryBuilder) insertDaemonSet(
 	ctx context.Context,
 	daemonSet *apps_v1_types.DaemonSet,
-	daemonSetSet apps_v1_sets.DaemonSetSet,
+	daemonSetSet sk_sets.ResourceSet[*apps_v1_types.DaemonSet],
 	buildOpts BuildOptions,
 ) {
 
@@ -2591,7 +2596,7 @@ func (i *inMemoryBuilder) insertDaemonSet(
 func (i *inMemoryBuilder) insertGateway(
 	ctx context.Context,
 	gateway *gateway_solo_io_v1_types.Gateway,
-	gatewaySet gateway_solo_io_v1_sets.GatewaySet,
+	gatewaySet sk_sets.ResourceSet[*gateway_solo_io_v1_types.Gateway],
 	buildOpts BuildOptions,
 ) {
 
@@ -2620,7 +2625,7 @@ func (i *inMemoryBuilder) insertGateway(
 func (i *inMemoryBuilder) insertMatchableHttpGateway(
 	ctx context.Context,
 	matchableHttpGateway *gateway_solo_io_v1_types.MatchableHttpGateway,
-	matchableHttpGatewaySet gateway_solo_io_v1_sets.MatchableHttpGatewaySet,
+	matchableHttpGatewaySet sk_sets.ResourceSet[*gateway_solo_io_v1_types.MatchableHttpGateway],
 	buildOpts BuildOptions,
 ) {
 
@@ -2649,7 +2654,7 @@ func (i *inMemoryBuilder) insertMatchableHttpGateway(
 func (i *inMemoryBuilder) insertVirtualService(
 	ctx context.Context,
 	virtualService *gateway_solo_io_v1_types.VirtualService,
-	virtualServiceSet gateway_solo_io_v1_sets.VirtualServiceSet,
+	virtualServiceSet sk_sets.ResourceSet[*gateway_solo_io_v1_types.VirtualService],
 	buildOpts BuildOptions,
 ) {
 
@@ -2678,7 +2683,7 @@ func (i *inMemoryBuilder) insertVirtualService(
 func (i *inMemoryBuilder) insertRouteTable(
 	ctx context.Context,
 	routeTable *gateway_solo_io_v1_types.RouteTable,
-	routeTableSet gateway_solo_io_v1_sets.RouteTableSet,
+	routeTableSet sk_sets.ResourceSet[*gateway_solo_io_v1_types.RouteTable],
 	buildOpts BuildOptions,
 ) {
 
@@ -2708,7 +2713,7 @@ func (i *inMemoryBuilder) insertRouteTable(
 func (i *inMemoryBuilder) insertUpstream(
 	ctx context.Context,
 	upstream *gloo_solo_io_v1_types.Upstream,
-	upstreamSet gloo_solo_io_v1_sets.UpstreamSet,
+	upstreamSet sk_sets.ResourceSet[*gloo_solo_io_v1_types.Upstream],
 	buildOpts BuildOptions,
 ) {
 
@@ -2737,7 +2742,7 @@ func (i *inMemoryBuilder) insertUpstream(
 func (i *inMemoryBuilder) insertUpstreamGroup(
 	ctx context.Context,
 	upstreamGroup *gloo_solo_io_v1_types.UpstreamGroup,
-	upstreamGroupSet gloo_solo_io_v1_sets.UpstreamGroupSet,
+	upstreamGroupSet sk_sets.ResourceSet[*gloo_solo_io_v1_types.UpstreamGroup],
 	buildOpts BuildOptions,
 ) {
 
@@ -2766,7 +2771,7 @@ func (i *inMemoryBuilder) insertUpstreamGroup(
 func (i *inMemoryBuilder) insertSettings(
 	ctx context.Context,
 	settings *gloo_solo_io_v1_types.Settings,
-	settingsSet gloo_solo_io_v1_sets.SettingsSet,
+	settingsSet sk_sets.ResourceSet[*gloo_solo_io_v1_types.Settings],
 	buildOpts BuildOptions,
 ) {
 
@@ -2795,7 +2800,7 @@ func (i *inMemoryBuilder) insertSettings(
 func (i *inMemoryBuilder) insertProxy(
 	ctx context.Context,
 	proxy *gloo_solo_io_v1_types.Proxy,
-	proxySet gloo_solo_io_v1_sets.ProxySet,
+	proxySet sk_sets.ResourceSet[*gloo_solo_io_v1_types.Proxy],
 	buildOpts BuildOptions,
 ) {
 
@@ -2825,7 +2830,7 @@ func (i *inMemoryBuilder) insertProxy(
 func (i *inMemoryBuilder) insertAuthConfig(
 	ctx context.Context,
 	authConfig *enterprise_gloo_solo_io_v1_types.AuthConfig,
-	authConfigSet enterprise_gloo_solo_io_v1_sets.AuthConfigSet,
+	authConfigSet sk_sets.ResourceSet[*enterprise_gloo_solo_io_v1_types.AuthConfig],
 	buildOpts BuildOptions,
 ) {
 
@@ -2855,7 +2860,7 @@ func (i *inMemoryBuilder) insertAuthConfig(
 func (i *inMemoryBuilder) insertRateLimitConfig(
 	ctx context.Context,
 	rateLimitConfig *ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig,
-	rateLimitConfigSet ratelimit_api_solo_io_v1alpha1_sets.RateLimitConfigSet,
+	rateLimitConfigSet sk_sets.ResourceSet[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig],
 	buildOpts BuildOptions,
 ) {
 

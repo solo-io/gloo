@@ -22,7 +22,7 @@ require (
 	github.com/go-openapi/swag v0.22.3
 	github.com/go-test/deep v1.0.7
 	github.com/gobuffalo/packr v1.30.1
-	github.com/golang/mock v1.6.0
+	github.com/golang/mock v1.7.0-rc.1
 	github.com/golang/protobuf v1.5.2
 	github.com/google/wire v0.4.0
 	github.com/graphql-go/graphql v0.8.0
@@ -55,7 +55,7 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.17
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.7.4
-	github.com/solo-io/skv2 v0.23.3
+	github.com/solo-io/skv2 v0.23.8
 	github.com/solo-io/solo-apis v0.0.0-20221017125545-95baf021ea32
 	github.com/solo-io/solo-kit v0.30.7
 	github.com/solo-io/wasm-kit v0.1.3
@@ -67,7 +67,7 @@ require (
 	go.uber.org/zap v1.19.1
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
 	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b
-	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
+	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	golang.org/x/tools v0.1.12
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
@@ -296,7 +296,7 @@ require (
 	github.com/schollz/progressbar/v3 v3.7.4 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/solo-io/cue v0.4.3 // indirect
+	github.com/solo-io/cue v0.4.4 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -321,6 +321,7 @@ require (
 	go.uber.org/multierr v1.7.0 // indirect
 	gocloud.dev v0.18.0 // indirect
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
+	golang.org/x/exp v0.0.0-20220921164117-439092de6870 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094 // indirect
 	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261 // indirect
@@ -370,15 +371,11 @@ replace (
 	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v0.0.0-20210511163231-5b2d2b5f6c34
 	github.com/docker/docker => github.com/moby/moby v20.10.14+incompatible
 	github.com/go-logr/logr => github.com/go-logr/logr v0.4.0
-	github.com/golang/mock v1.4.4-0.20200406172829-6d816de489c1 => github.com/golang/mock v1.4.3
 	github.com/open-policy-agent/opa => github.com/open-policy-agent/opa v0.44.0
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.0-rc1
-	// skv2 uses a newer version than the imported solo-kit version which causes issues. Replaces the version with the solo-kit version
 	github.com/pseudomuto/protoc-gen-doc => github.com/pseudomuto/protoc-gen-doc v1.0.0
 	github.com/sclevine/agouti => github.com/yuval-k/agouti v0.0.0-20190109124522-0e71d6bad483
 
-	// Gloo-fed code currently relies on older skv2: https://github.com/solo-io/solo-projects/issues/3540
-	github.com/solo-io/skv2 => github.com/solo-io/skv2 v0.21.7
 	go.opentelemetry.io/otel => go.opentelemetry.io/otel v0.11.0
 
 	// Lock sys package to fix issue https://github.com/golang/go/issues/49219

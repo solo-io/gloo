@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	v1sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
 	"github.com/solo-io/go-utils/contextutils"
+	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	corev1 "k8s.io/api/core/v1"
 )
 
 // Get a summary of pods in the given namespace and cluster. To bypass the cluster check (e.g. for single-cluster
 // use, pass in "" for the cluster.
-func GetPodsSummary(ctx context.Context, set v1sets.PodSet, namespace, cluster string) *Summary {
+func GetPodsSummary(ctx context.Context, set sk_sets.ResourceSet[*corev1.Pod], namespace, cluster string) *Summary {
 	summary := &Summary{}
 	for _, podIter := range set.List() {
 		pod := podIter

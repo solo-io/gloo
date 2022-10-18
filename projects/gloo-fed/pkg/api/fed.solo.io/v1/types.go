@@ -4,7 +4,7 @@
 package v1
 
 import (
-	. "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
+	i34a2542baad1b3857c070638195ee381 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -26,8 +26,8 @@ type GlooInstance struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   GlooInstanceSpec   `json:"spec,omitempty"`
-	Status GlooInstanceStatus `json:"status,omitempty"`
+	Spec   i34a2542baad1b3857c070638195ee381.GlooInstanceSpec   `json:"spec,omitempty"`
+	Status i34a2542baad1b3857c070638195ee381.GlooInstanceStatus `json:"status,omitempty"`
 }
 
 // GVK returns the GroupVersionKind associated with the resource type.
@@ -61,8 +61,8 @@ type FailoverScheme struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   FailoverSchemeSpec   `json:"spec,omitempty"`
-	Status FailoverSchemeStatus `json:"status,omitempty"`
+	Spec   i34a2542baad1b3857c070638195ee381.FailoverSchemeSpec   `json:"spec,omitempty"`
+	Status i34a2542baad1b3857c070638195ee381.FailoverSchemeStatus `json:"status,omitempty"`
 }
 
 // GVK returns the GroupVersionKind associated with the resource type.

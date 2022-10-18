@@ -6,14 +6,15 @@ import (
 	"context"
 
 	"github.com/solo-io/go-utils/stringutils"
+	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	enterprise_gloo_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
 	types2 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
-	sets "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1/sets"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator/summarize"
 )
 
-func GetAuthConfigSummary(ctx context.Context, set sets.AuthConfigSet, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+func GetAuthConfigSummary(ctx context.Context, set sk_sets.ResourceSet[*enterprise_gloo_solo_io_v1.AuthConfig], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
 	summary := &types.GlooInstanceSpec_Check_Summary{}
 
 	for _, authConfigIter := range set.List() {

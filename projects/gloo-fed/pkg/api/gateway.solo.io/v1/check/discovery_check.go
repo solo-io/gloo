@@ -6,14 +6,15 @@ import (
 	"context"
 
 	"github.com/solo-io/go-utils/stringutils"
+	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	gateway_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	types2 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
-	sets "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1/sets"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator/summarize"
 )
 
-func GetGatewaySummary(ctx context.Context, set sets.GatewaySet, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+func GetGatewaySummary(ctx context.Context, set sk_sets.ResourceSet[*gateway_solo_io_v1.Gateway], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
 	summary := &types.GlooInstanceSpec_Check_Summary{}
 
 	for _, gatewayIter := range set.List() {
@@ -57,7 +58,7 @@ func GetGatewaySummary(ctx context.Context, set sets.GatewaySet, watchedNamespac
 	return summary
 }
 
-func GetMatchableHttpGatewaySummary(ctx context.Context, set sets.MatchableHttpGatewaySet, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+func GetMatchableHttpGatewaySummary(ctx context.Context, set sk_sets.ResourceSet[*gateway_solo_io_v1.MatchableHttpGateway], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
 	summary := &types.GlooInstanceSpec_Check_Summary{}
 
 	for _, matchableHttpGatewayIter := range set.List() {
@@ -101,7 +102,7 @@ func GetMatchableHttpGatewaySummary(ctx context.Context, set sets.MatchableHttpG
 	return summary
 }
 
-func GetVirtualServiceSummary(ctx context.Context, set sets.VirtualServiceSet, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+func GetVirtualServiceSummary(ctx context.Context, set sk_sets.ResourceSet[*gateway_solo_io_v1.VirtualService], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
 	summary := &types.GlooInstanceSpec_Check_Summary{}
 
 	for _, virtualServiceIter := range set.List() {
@@ -145,7 +146,7 @@ func GetVirtualServiceSummary(ctx context.Context, set sets.VirtualServiceSet, w
 	return summary
 }
 
-func GetRouteTableSummary(ctx context.Context, set sets.RouteTableSet, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+func GetRouteTableSummary(ctx context.Context, set sk_sets.ResourceSet[*gateway_solo_io_v1.RouteTable], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
 	summary := &types.GlooInstanceSpec_Check_Summary{}
 
 	for _, routeTableIter := range set.List() {

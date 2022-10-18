@@ -85,6 +85,7 @@ func (s *federatedUpstreamSet) List(filterResource ...func(*fed_gloo_solo_io_v1.
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_gloo_solo_io_v1.FederatedUpstream))
 		})
@@ -104,6 +105,7 @@ func (s *federatedUpstreamSet) UnsortedList(filterResource ...func(*fed_gloo_sol
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_gloo_solo_io_v1.FederatedUpstream))
 		})
@@ -304,6 +306,7 @@ func (s *federatedUpstreamGroupSet) List(filterResource ...func(*fed_gloo_solo_i
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup))
 		})
@@ -323,6 +326,7 @@ func (s *federatedUpstreamGroupSet) UnsortedList(filterResource ...func(*fed_glo
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_gloo_solo_io_v1.FederatedUpstreamGroup))
 		})
@@ -523,6 +527,7 @@ func (s *federatedSettingsSet) List(filterResource ...func(*fed_gloo_solo_io_v1.
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_gloo_solo_io_v1.FederatedSettings))
 		})
@@ -542,6 +547,7 @@ func (s *federatedSettingsSet) UnsortedList(filterResource ...func(*fed_gloo_sol
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_gloo_solo_io_v1.FederatedSettings))
 		})

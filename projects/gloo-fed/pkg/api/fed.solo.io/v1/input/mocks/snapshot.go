@@ -9,15 +9,16 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	v1sets "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1/sets"
-	v1sets0 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
+	sets_v2 "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	multicluster "github.com/solo-io/skv2/pkg/multicluster"
 	resource "github.com/solo-io/skv2/pkg/resource"
-	v1sets1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1/sets"
-	v1sets2 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1/sets"
-	v1sets3 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/sets"
-	v1alpha1sets "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1/sets"
+	v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
+	v10 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
+	v11 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	v1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
 	input "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/input"
+	v12 "k8s.io/api/apps/v1"
+	v13 "k8s.io/api/core/v1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -46,10 +47,10 @@ func (m *MockSnapshot) EXPECT() *MockSnapshotMockRecorder {
 }
 
 // AuthConfigs mocks base method.
-func (m *MockSnapshot) AuthConfigs() v1sets1.AuthConfigSet {
+func (m *MockSnapshot) AuthConfigs() sets_v2.ResourceSet[*v1.AuthConfig] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AuthConfigs")
-	ret0, _ := ret[0].(v1sets1.AuthConfigSet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v1.AuthConfig])
 	return ret0
 }
 
@@ -74,10 +75,10 @@ func (mr *MockSnapshotMockRecorder) Clone() *gomock.Call {
 }
 
 // DaemonSets mocks base method.
-func (m *MockSnapshot) DaemonSets() v1sets.DaemonSetSet {
+func (m *MockSnapshot) DaemonSets() sets_v2.ResourceSet[*v12.DaemonSet] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DaemonSets")
-	ret0, _ := ret[0].(v1sets.DaemonSetSet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v12.DaemonSet])
 	return ret0
 }
 
@@ -88,10 +89,10 @@ func (mr *MockSnapshotMockRecorder) DaemonSets() *gomock.Call {
 }
 
 // Deployments mocks base method.
-func (m *MockSnapshot) Deployments() v1sets.DeploymentSet {
+func (m *MockSnapshot) Deployments() sets_v2.ResourceSet[*v12.Deployment] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Deployments")
-	ret0, _ := ret[0].(v1sets.DeploymentSet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v12.Deployment])
 	return ret0
 }
 
@@ -114,10 +115,10 @@ func (mr *MockSnapshotMockRecorder) ForEachObject(handleObject interface{}) *gom
 }
 
 // Gateways mocks base method.
-func (m *MockSnapshot) Gateways() v1sets2.GatewaySet {
+func (m *MockSnapshot) Gateways() sets_v2.ResourceSet[*v10.Gateway] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Gateways")
-	ret0, _ := ret[0].(v1sets2.GatewaySet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v10.Gateway])
 	return ret0
 }
 
@@ -157,10 +158,10 @@ func (mr *MockSnapshotMockRecorder) MarshalJSON() *gomock.Call {
 }
 
 // MatchableHttpGateways mocks base method.
-func (m *MockSnapshot) MatchableHttpGateways() v1sets2.MatchableHttpGatewaySet {
+func (m *MockSnapshot) MatchableHttpGateways() sets_v2.ResourceSet[*v10.MatchableHttpGateway] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MatchableHttpGateways")
-	ret0, _ := ret[0].(v1sets2.MatchableHttpGatewaySet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v10.MatchableHttpGateway])
 	return ret0
 }
 
@@ -171,10 +172,10 @@ func (mr *MockSnapshotMockRecorder) MatchableHttpGateways() *gomock.Call {
 }
 
 // Pods mocks base method.
-func (m *MockSnapshot) Pods() v1sets0.PodSet {
+func (m *MockSnapshot) Pods() sets_v2.ResourceSet[*v13.Pod] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Pods")
-	ret0, _ := ret[0].(v1sets0.PodSet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v13.Pod])
 	return ret0
 }
 
@@ -185,10 +186,10 @@ func (mr *MockSnapshotMockRecorder) Pods() *gomock.Call {
 }
 
 // Proxies mocks base method.
-func (m *MockSnapshot) Proxies() v1sets3.ProxySet {
+func (m *MockSnapshot) Proxies() sets_v2.ResourceSet[*v11.Proxy] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Proxies")
-	ret0, _ := ret[0].(v1sets3.ProxySet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v11.Proxy])
 	return ret0
 }
 
@@ -199,10 +200,10 @@ func (mr *MockSnapshotMockRecorder) Proxies() *gomock.Call {
 }
 
 // RateLimitConfigs mocks base method.
-func (m *MockSnapshot) RateLimitConfigs() v1alpha1sets.RateLimitConfigSet {
+func (m *MockSnapshot) RateLimitConfigs() sets_v2.ResourceSet[*v1alpha1.RateLimitConfig] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RateLimitConfigs")
-	ret0, _ := ret[0].(v1alpha1sets.RateLimitConfigSet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v1alpha1.RateLimitConfig])
 	return ret0
 }
 
@@ -213,10 +214,10 @@ func (mr *MockSnapshotMockRecorder) RateLimitConfigs() *gomock.Call {
 }
 
 // RouteTables mocks base method.
-func (m *MockSnapshot) RouteTables() v1sets2.RouteTableSet {
+func (m *MockSnapshot) RouteTables() sets_v2.ResourceSet[*v10.RouteTable] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RouteTables")
-	ret0, _ := ret[0].(v1sets2.RouteTableSet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v10.RouteTable])
 	return ret0
 }
 
@@ -227,10 +228,10 @@ func (mr *MockSnapshotMockRecorder) RouteTables() *gomock.Call {
 }
 
 // Services mocks base method.
-func (m *MockSnapshot) Services() v1sets0.ServiceSet {
+func (m *MockSnapshot) Services() sets_v2.ResourceSet[*v13.Service] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Services")
-	ret0, _ := ret[0].(v1sets0.ServiceSet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v13.Service])
 	return ret0
 }
 
@@ -241,10 +242,10 @@ func (mr *MockSnapshotMockRecorder) Services() *gomock.Call {
 }
 
 // Settings mocks base method.
-func (m *MockSnapshot) Settings() v1sets3.SettingsSet {
+func (m *MockSnapshot) Settings() sets_v2.ResourceSet[*v11.Settings] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Settings")
-	ret0, _ := ret[0].(v1sets3.SettingsSet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v11.Settings])
 	return ret0
 }
 
@@ -283,10 +284,10 @@ func (mr *MockSnapshotMockRecorder) SyncStatusesMultiCluster(ctx, mcClient, opts
 }
 
 // UpstreamGroups mocks base method.
-func (m *MockSnapshot) UpstreamGroups() v1sets3.UpstreamGroupSet {
+func (m *MockSnapshot) UpstreamGroups() sets_v2.ResourceSet[*v11.UpstreamGroup] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpstreamGroups")
-	ret0, _ := ret[0].(v1sets3.UpstreamGroupSet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v11.UpstreamGroup])
 	return ret0
 }
 
@@ -297,10 +298,10 @@ func (mr *MockSnapshotMockRecorder) UpstreamGroups() *gomock.Call {
 }
 
 // Upstreams mocks base method.
-func (m *MockSnapshot) Upstreams() v1sets3.UpstreamSet {
+func (m *MockSnapshot) Upstreams() sets_v2.ResourceSet[*v11.Upstream] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Upstreams")
-	ret0, _ := ret[0].(v1sets3.UpstreamSet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v11.Upstream])
 	return ret0
 }
 
@@ -311,10 +312,10 @@ func (mr *MockSnapshotMockRecorder) Upstreams() *gomock.Call {
 }
 
 // VirtualServices mocks base method.
-func (m *MockSnapshot) VirtualServices() v1sets2.VirtualServiceSet {
+func (m *MockSnapshot) VirtualServices() sets_v2.ResourceSet[*v10.VirtualService] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VirtualServices")
-	ret0, _ := ret[0].(v1sets2.VirtualServiceSet)
+	ret0, _ := ret[0].(sets_v2.ResourceSet[*v10.VirtualService])
 	return ret0
 }
 

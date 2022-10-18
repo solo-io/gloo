@@ -4,7 +4,7 @@
 package v1
 
 import (
-	. "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1/types"
+	i9e8d98f5d505710fab19de87d4cbe590 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -26,8 +26,8 @@ type FederatedGateway struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   FederatedGatewaySpec   `json:"spec,omitempty"`
-	Status FederatedGatewayStatus `json:"status,omitempty"`
+	Spec   i9e8d98f5d505710fab19de87d4cbe590.FederatedGatewaySpec   `json:"spec,omitempty"`
+	Status i9e8d98f5d505710fab19de87d4cbe590.FederatedGatewayStatus `json:"status,omitempty"`
 }
 
 // GVK returns the GroupVersionKind associated with the resource type.
@@ -61,8 +61,8 @@ type FederatedMatchableHttpGateway struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   FederatedMatchableHttpGatewaySpec   `json:"spec,omitempty"`
-	Status FederatedMatchableHttpGatewayStatus `json:"status,omitempty"`
+	Spec   i9e8d98f5d505710fab19de87d4cbe590.FederatedMatchableHttpGatewaySpec   `json:"spec,omitempty"`
+	Status i9e8d98f5d505710fab19de87d4cbe590.FederatedMatchableHttpGatewayStatus `json:"status,omitempty"`
 }
 
 // GVK returns the GroupVersionKind associated with the resource type.
@@ -96,8 +96,8 @@ type FederatedVirtualService struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   FederatedVirtualServiceSpec   `json:"spec,omitempty"`
-	Status FederatedVirtualServiceStatus `json:"status,omitempty"`
+	Spec   i9e8d98f5d505710fab19de87d4cbe590.FederatedVirtualServiceSpec   `json:"spec,omitempty"`
+	Status i9e8d98f5d505710fab19de87d4cbe590.FederatedVirtualServiceStatus `json:"status,omitempty"`
 }
 
 // GVK returns the GroupVersionKind associated with the resource type.
@@ -131,8 +131,8 @@ type FederatedRouteTable struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   FederatedRouteTableSpec   `json:"spec,omitempty"`
-	Status FederatedRouteTableStatus `json:"status,omitempty"`
+	Spec   i9e8d98f5d505710fab19de87d4cbe590.FederatedRouteTableSpec   `json:"spec,omitempty"`
+	Status i9e8d98f5d505710fab19de87d4cbe590.FederatedRouteTableStatus `json:"status,omitempty"`
 }
 
 // GVK returns the GroupVersionKind associated with the resource type.

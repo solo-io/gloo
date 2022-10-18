@@ -85,6 +85,7 @@ func (s *federatedAuthConfigSet) List(filterResource ...func(*fed_enterprise_glo
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig))
 		})
@@ -104,6 +105,7 @@ func (s *federatedAuthConfigSet) UnsortedList(filterResource ...func(*fed_enterp
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig))
 		})

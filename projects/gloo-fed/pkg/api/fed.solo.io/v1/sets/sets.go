@@ -85,6 +85,7 @@ func (s *glooInstanceSet) List(filterResource ...func(*fed_solo_io_v1.GlooInstan
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_solo_io_v1.GlooInstance))
 		})
@@ -104,6 +105,7 @@ func (s *glooInstanceSet) UnsortedList(filterResource ...func(*fed_solo_io_v1.Gl
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_solo_io_v1.GlooInstance))
 		})
@@ -304,6 +306,7 @@ func (s *failoverSchemeSet) List(filterResource ...func(*fed_solo_io_v1.Failover
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_solo_io_v1.FailoverScheme))
 		})
@@ -323,6 +326,7 @@ func (s *failoverSchemeSet) UnsortedList(filterResource ...func(*fed_solo_io_v1.
 	}
 	var genericFilters []func(ezkube.ResourceId) bool
 	for _, filter := range filterResource {
+		filter := filter
 		genericFilters = append(genericFilters, func(obj ezkube.ResourceId) bool {
 			return filter(obj.(*fed_solo_io_v1.FailoverScheme))
 		})

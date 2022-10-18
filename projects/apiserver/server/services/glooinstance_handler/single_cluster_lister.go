@@ -6,11 +6,10 @@ import (
 
 	"github.com/rotisserie/eris"
 	apps_v1 "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1"
-	apps_v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1/sets"
 	core_v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
-	core_v1_sets "github.com/solo-io/external-apis/pkg/api/k8s/core/v1/sets"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
+	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	skv2_v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"github.com/solo-io/skv2/pkg/ezkube"
 	enterprise_gloo_v1 "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1"
@@ -258,12 +257,11 @@ func (l *singleClusterGlooInstanceLister) buildGlooInstanceFromDeployment(
 
 	// proxy info
 	instance.Spec.Proxies = convertProxies(proxy.GetGlooInstanceProxies(ctx, "", deployment.GetNamespace(),
-		apps_v1_sets.NewDeploymentSetFromList(deployments), apps_v1_sets.NewDaemonSetSetFromList(daemonSets),
-		core_v1_sets.NewServiceSetFromList(services), localityFinder, ipFinder))
+		newDeploymentSetFromList(deployments), newDaemonSetSetFromList(daemonSets), newServiceSetFromList(services), localityFinder, ipFinder))
 
 	// pod and deployment summaries
-	podSet := core_v1_sets.NewPodSetFromList(pods)
-	deploymentSet := apps_v1_sets.NewDeploymentSetFromList(deployments)
+	podSet := newPodSetFromList(pods)
+	deploymentSet := newDeploymentSetFromList(deployments)
 	instance.Spec.Check.Pods = convertSummary(checker.GetPodsSummary(ctx, podSet, instance.Spec.ControlPlane.GetNamespace(), ""))
 	instance.Spec.Check.Deployments = convertSummary(checker.GetDeploymentsSummary(ctx, deploymentSet, instance.Spec.ControlPlane.GetNamespace(), ""))
 
@@ -379,4 +377,35 @@ func convertResourceReports(resourceReports []*checker.ResourceReport) []*rpc_ed
 		})
 	}
 	return convertedResourceReports
+}
+
+// Helpers to replace New<T>SetFromList functions from external-apis to use generic sets
+// Take a list of <T> as returned from the k8s client and return a set of pointers
+func newDeploymentSetFromList(deploymentList *k8s_apps_types.DeploymentList) sk_sets.ResourceSet[*k8s_apps_types.Deployment] {
+	set := sk_sets.NewResourceSet[*k8s_apps_types.Deployment]()
+	for _, item := range deploymentList.Items {
+		set.Insert(&item)
+	}
+	return set
+}
+func newPodSetFromList(serviceList *k8s_core_types.PodList) sk_sets.ResourceSet[*k8s_core_types.Pod] {
+	set := sk_sets.NewResourceSet[*k8s_core_types.Pod]()
+	for _, item := range serviceList.Items {
+		set.Insert(&item)
+	}
+	return set
+}
+func newServiceSetFromList(serviceList *k8s_core_types.ServiceList) sk_sets.ResourceSet[*k8s_core_types.Service] {
+	set := sk_sets.NewResourceSet[*k8s_core_types.Service]()
+	for _, item := range serviceList.Items {
+		set.Insert(&item)
+	}
+	return set
+}
+func newDaemonSetSetFromList(deploymentList *k8s_apps_types.DaemonSetList) sk_sets.ResourceSet[*k8s_apps_types.DaemonSet] {
+	set := sk_sets.NewResourceSet[*k8s_apps_types.DaemonSet]()
+	for _, item := range deploymentList.Items {
+		set.Insert(&item)
+	}
+	return set
 }

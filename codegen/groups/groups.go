@@ -266,7 +266,7 @@ func makeMultiClusterAdmissionGroup() model.Group {
 		Resources: []model.Resource{
 			{
 				Kind: "MultiClusterRole",
-				Group: model.Group{
+				Group: &model.Group{
 					GroupVersion: schema.GroupVersion{
 						Group:   "multicluster.solo.io",
 						Version: "v1alpha1",
@@ -285,7 +285,7 @@ func makeMultiClusterAdmissionGroup() model.Group {
 			},
 			{
 				Kind: "MultiClusterRoleBinding",
-				Group: model.Group{
+				Group: &model.Group{
 					GroupVersion: schema.GroupVersion{
 						Group:   "multicluster.solo.io",
 						Version: "v1alpha1",

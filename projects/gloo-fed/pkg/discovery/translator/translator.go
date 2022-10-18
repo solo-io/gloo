@@ -12,9 +12,9 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/go-utils/stringutils"
+	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	v1sets "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/sets"
 	enterprise_check "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/check"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/input"
@@ -196,7 +196,7 @@ func getProxyForGlooInstance(installNamespace string, proxies []*types.GlooInsta
 
 // GetSettings returns the first settings object in the given namespace and cluster.
 // In all known real-world cases, this should be the "default"-named settings object.
-func getSettings(set v1sets.SettingsSet, namespace, cluster string) *gloov1.Settings {
+func getSettings(set sk_sets.ResourceSet[*gloov1.Settings], namespace, cluster string) *gloov1.Settings {
 	for _, settingsIter := range set.List() {
 		settings := settingsIter
 		if settings.Namespace == namespace && settings.ClusterName == cluster {

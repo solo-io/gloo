@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	v1sets "github.com/solo-io/external-apis/pkg/api/k8s/apps/v1/sets"
 	"github.com/solo-io/go-utils/contextutils"
+	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -13,7 +13,7 @@ import (
 
 // Get a summary of deployments in the given namespace and cluster. To bypass the cluster check (e.g. for single-cluster
 // use), pass in "" for the cluster.
-func GetDeploymentsSummary(ctx context.Context, deployments v1sets.DeploymentSet, namespace, cluster string) *Summary {
+func GetDeploymentsSummary(ctx context.Context, deployments sk_sets.ResourceSet[*appsv1.Deployment], namespace, cluster string) *Summary {
 	summary := &Summary{}
 
 	for _, deploymentIter := range deployments.List() {

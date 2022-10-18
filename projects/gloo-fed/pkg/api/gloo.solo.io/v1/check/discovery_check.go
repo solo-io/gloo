@@ -6,14 +6,15 @@ import (
 	"context"
 
 	"github.com/solo-io/go-utils/stringutils"
+	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	gloo_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	types2 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	sets "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/sets"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator/summarize"
 )
 
-func GetUpstreamSummary(ctx context.Context, set sets.UpstreamSet, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+func GetUpstreamSummary(ctx context.Context, set sk_sets.ResourceSet[*gloo_solo_io_v1.Upstream], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
 	summary := &types.GlooInstanceSpec_Check_Summary{}
 
 	for _, upstreamIter := range set.List() {
@@ -57,7 +58,7 @@ func GetUpstreamSummary(ctx context.Context, set sets.UpstreamSet, watchedNamesp
 	return summary
 }
 
-func GetUpstreamGroupSummary(ctx context.Context, set sets.UpstreamGroupSet, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+func GetUpstreamGroupSummary(ctx context.Context, set sk_sets.ResourceSet[*gloo_solo_io_v1.UpstreamGroup], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
 	summary := &types.GlooInstanceSpec_Check_Summary{}
 
 	for _, upstreamGroupIter := range set.List() {
@@ -101,7 +102,7 @@ func GetUpstreamGroupSummary(ctx context.Context, set sets.UpstreamGroupSet, wat
 	return summary
 }
 
-func GetSettingsSummary(ctx context.Context, set sets.SettingsSet, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+func GetSettingsSummary(ctx context.Context, set sk_sets.ResourceSet[*gloo_solo_io_v1.Settings], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
 	summary := &types.GlooInstanceSpec_Check_Summary{}
 
 	for _, settingsIter := range set.List() {
@@ -145,7 +146,7 @@ func GetSettingsSummary(ctx context.Context, set sets.SettingsSet, watchedNamesp
 	return summary
 }
 
-func GetProxySummary(ctx context.Context, set sets.ProxySet, watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
+func GetProxySummary(ctx context.Context, set sk_sets.ResourceSet[*gloo_solo_io_v1.Proxy], watchedNamespaces []string, cluster string) *types.GlooInstanceSpec_Check_Summary {
 	summary := &types.GlooInstanceSpec_Check_Summary{}
 
 	for _, proxyIter := range set.List() {
