@@ -250,8 +250,13 @@ func (v *validator) validateSnapshot(ctx context.Context, resource resources.Res
 		// allow writes if storage is already broken
 		return nil, nil
 	}
+
 	// verify the mutation against a snapshot clone first, only apply the change to the actual snapshot if this passes
-	snapshotClone.AddOrReplaceToResourceList(resource)
+	if delete {
+		snapshotClone.RemoveFromResourceList(resource)
+	} else {
+		snapshotClone.AddOrReplaceToResourceList(resource)
+	}
 
 	// TODO-JAKE not sure if this is how we would want to handle the ValidateDeleteVirtualService
 	// this does allow us to have a generic validation method
@@ -345,7 +350,11 @@ func (v *validator) validateSnapshot(ctx context.Context, resource resources.Res
 
 	if !dryRun {
 		// update internal snapshot to handle race where a lot of resources may be applied at once, before syncer updates
-		v.latestSnapshot.AddOrReplaceToResourceList(resource)
+		if delete {
+			v.latestSnapshot.RemoveFromResourceList(resource)
+		} else {
+			v.latestSnapshot.AddOrReplaceToResourceList(resource)
+		}
 	}
 
 	return &Reports{ProxyReports: &proxyReports, Proxies: proxies}, nil

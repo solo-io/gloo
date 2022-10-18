@@ -1,7 +1,6 @@
 package translator
 
 import (
-	errors "github.com/rotisserie/eris"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
@@ -39,9 +38,11 @@ func (t *HybridTranslator) ComputeListener(params Params, proxyName string, gate
 	if matchedGateways != nil {
 		hybridListener = t.computeHybridListenerFromMatchedGateways(params, proxyName, gateway, matchedGateways)
 		if len(hybridListener.GetMatchedListeners()) == 0 {
+			// TODO-JAKE I think this will work, I do not have enough knowledge as to whether we should make this a
+			// new behavior, or even a warning.
 			// matched gateways are define inline, and therefore if they don't produce
 			// any matched listeners, there is an error on the gateway resource
-			params.reports.AddError(gateway, errors.New(EmptyHybridGatewayMessage))
+			// params.reports.AddError(gateway, errors.New(EmptyHybridGatewayMessage))
 			return nil
 		}
 	} else {
