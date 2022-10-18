@@ -1,0 +1,11 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  issueLink: https://github.com/solo-io/gloo/issues/7307
+  resolvesIssue: false
+  dependencyOwner: solo-io
+  dependencyRepo: envoy-gloo-ee
+  dependencyTag: v1.23.1-patch5
+  description: >
+    Update envoy-gloo-ee to version v1.23.1-patch5.
+    This resolves a bug which caused envoy to crash when a headers-only request was sent
+    to an AWS Lambda upstream with wrapAsApiGateway enabled.

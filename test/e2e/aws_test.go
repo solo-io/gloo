@@ -123,7 +123,7 @@ var _ = Describe("AWS Lambda ", func() {
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(string(body)).To(ContainSubstring(substring))
-		}, "10s", "1s")
+		}, "10s", "1s").Should(Succeed())
 	}
 
 	validateLambdaUppercase := func(envoyPort uint32) {
@@ -312,68 +312,108 @@ var _ = Describe("AWS Lambda ", func() {
 					g.Expect(err).NotTo(HaveOccurred())
 					g.Expect(res.StatusCode).To(Equal(200))
 					expectResponse(res, bodyString, statusCode, headers)
-				}, "5s", "1s")
+				}, "5s", "1s").Should(Succeed())
 			})
 
-			It("Can configure wrapAsApiGateway", func() {
-				createEchoProxy(false, true)
+			Context("Can configure wrapAsApiGateway", func() {
+				It("works with a simple request", func() {
 
-				// format API gateway request.
-				bodyString := "test"
-				body := []byte(bodyString)
-				headers := map[string][]string{
-					"single-value-header": {"value"},
-					"multi-value-header":  {"value1", "value2"},
-				}
+					createEchoProxy(false, true)
 
-				// expect that the response (which is identical to the payload sent to the lambda) is transformed appropriately.
-				expectResponse := func(response *http.Response, body string, statusCode int, headers map[string][]string) {
-					Expect(response.StatusCode).To(Equal(statusCode))
-
-					defer response.Body.Close()
-					responseBody, err := ioutil.ReadAll(response.Body)
-					Expect(err).NotTo(HaveOccurred())
-
-					jsonResponseBody := make(map[string]interface{})
-					err = json.Unmarshal(responseBody, &jsonResponseBody)
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(jsonResponseBody["body"]).To(Equal(bodyString))
-					Expect(jsonResponseBody["httpMethod"]).To(Equal("POST"))
-
-					responseHeaders := jsonResponseBody["headers"].(map[string]interface{})
-					Expect(responseHeaders["single-value-header"]).To(Equal(headers["single-value-header"][0]))
-
-					responseMultiValueHeaders := jsonResponseBody["multiValueHeaders"].(map[string]interface{})
-					responseMultiValueHeader := responseMultiValueHeaders["multi-value-header"].([]interface{})
-					Expect(len(responseMultiValueHeader)).To(Equal(len(headers["multi-value-header"])))
-					for i, v := range responseMultiValueHeader {
-						Expect(v).To(Equal(headers["multi-value-header"][i]))
+					// format API gateway request.
+					bodyString := "test"
+					body := []byte(bodyString)
+					headers := map[string][]string{
+						"single-value-header": {"value"},
+						"multi-value-header":  {"value1", "value2"},
 					}
-				}
 
-				Eventually(func(g Gomega) {
-					var buf bytes.Buffer
-					buf.Write(body)
+					// expect that the response (which is identical to the payload sent to the lambda) is transformed appropriately.
+					expectResponse := func(response *http.Response, body string, statusCode int, headers map[string][]string) {
+						Expect(response.StatusCode).To(Equal(statusCode))
 
-					client := http.DefaultClient
-					var err error
-					// send request to echo lambda, mimicking a service that generates an API gateway response.
-					res, err := client.Do(&http.Request{
-						Method: "POST",
-						URL: &url.URL{
-							Scheme:   "http",
-							Host:     fmt.Sprintf("localhost:%d", defaults.HttpPort),
-							Path:     "/1",
-							RawQuery: "param_a=value_1&param_b=value_b&param_b=value_2",
-						},
-						Body:   ioutil.NopCloser(&buf),
-						Header: headers,
-					})
-					g.Expect(err).NotTo(HaveOccurred())
-					g.Expect(res.StatusCode).To(Equal(200))
-					expectResponse(res, bodyString, 200, headers)
-				}, "5s", "1s")
+						defer response.Body.Close()
+						responseBody, err := ioutil.ReadAll(response.Body)
+						Expect(err).NotTo(HaveOccurred())
+
+						jsonResponseBody := make(map[string]interface{})
+						err = json.Unmarshal(responseBody, &jsonResponseBody)
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(jsonResponseBody["body"]).To(Equal(bodyString))
+						Expect(jsonResponseBody["httpMethod"]).To(Equal("POST"))
+
+						responseHeaders := jsonResponseBody["headers"].(map[string]interface{})
+						Expect(responseHeaders["single-value-header"]).To(Equal(headers["single-value-header"][0]))
+
+						responseMultiValueHeaders := jsonResponseBody["multiValueHeaders"].(map[string]interface{})
+						responseMultiValueHeader := responseMultiValueHeaders["multi-value-header"].([]interface{})
+						Expect(len(responseMultiValueHeader)).To(Equal(len(headers["multi-value-header"])))
+						for i, v := range responseMultiValueHeader {
+							Expect(v).To(Equal(headers["multi-value-header"][i]))
+						}
+					}
+
+					Eventually(func(g Gomega) {
+						var buf bytes.Buffer
+						buf.Write(body)
+
+						client := http.DefaultClient
+						var err error
+						// send request to echo lambda, mimicking a service that generates an API gateway response.
+						res, err := client.Do(&http.Request{
+							Method: "POST",
+							URL: &url.URL{
+								Scheme:   "http",
+								Host:     fmt.Sprintf("localhost:%d", defaults.HttpPort),
+								Path:     "/1",
+								RawQuery: "param_a=value_1&param_b=value_b&param_b=value_2",
+							},
+							Body:   ioutil.NopCloser(&buf),
+							Header: headers,
+						})
+						g.Expect(err).NotTo(HaveOccurred())
+						expectResponse(res, bodyString, 200, headers)
+					}, "5s", "1s").Should(Succeed())
+				})
+
+				It("works with a request with no body", func() {
+					createEchoProxy(false, true)
+
+					// expect that the response (which is identical to the payload sent to the lambda) is transformed appropriately.
+					expectResponse := func(response *http.Response, statusCode int) {
+						Expect(response.StatusCode).To(Equal(statusCode))
+
+						defer response.Body.Close()
+						responseBody, err := ioutil.ReadAll(response.Body)
+						Expect(err).NotTo(HaveOccurred())
+
+						jsonResponseBody := make(map[string]interface{})
+						err = json.Unmarshal(responseBody, &jsonResponseBody)
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(jsonResponseBody["body"]).To(Equal(""))
+						Expect(jsonResponseBody["httpMethod"]).To(Equal("POST"))
+						Expect(jsonResponseBody["headers"].(map[string]interface{})["content-length"]).To(Equal("0"))
+					}
+
+					Eventually(func(g Gomega) {
+						client := http.DefaultClient
+						var err error
+
+						res, err := client.Do(&http.Request{
+							Method: "POST",
+							URL: &url.URL{
+								Scheme: "http",
+								Host:   fmt.Sprintf("localhost:%d", defaults.HttpPort),
+								Path:   "/1",
+							},
+						})
+
+						g.Expect(err).NotTo(HaveOccurred())
+						expectResponse(res, 200)
+					}, "5s", "1s").Should(Succeed())
+				})
 			})
 		})
 
