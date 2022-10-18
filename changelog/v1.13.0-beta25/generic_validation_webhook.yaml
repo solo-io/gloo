@@ -1,0 +1,12 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: >
+      To support a generic validation webhook, solo kit will have to be bumped with the necessary changes
+      to make resources interface the Hashable Input Resource.
+    dependencyOwner: solo-io
+    dependencyRepo:  solo-kit
+    dependencyTag: todo
+  - type: BREAKING_CHANGE
+    description: generic validation webhook
+    issueLink: https://github.com/solo-io/gloo/issues/7273
+    resolvesIssue: false
