@@ -545,7 +545,7 @@ kubectl-docker: $(KUBECTL_OUTPUT_DIR)/Dockerfile.kubectl
 # Build All
 #----------------------------------------------------------------------------------
 .PHONY: build
-build: gloo glooctl discovery envoyinit certgen ingress ## Build All Images
+build: gloo glooctl discovery envoyinit certgen ingress ## Build All Docker containers
 
 #----------------------------------------------------------------------------------
 # Deployment Manifests / Helm
@@ -708,7 +708,7 @@ ifeq ($(RELEASE), "true")
 endif
 
 .PHONY: docker docker-push
-docker: ## Build all Docker containers
+docker: ## Build all Docker images
 docker: discovery-docker gloo-docker gloo-race-docker \
 		gloo-envoy-wrapper-docker certgen-docker sds-docker \
 		ingress-docker access-logger-docker kubectl-docker
