@@ -316,7 +316,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 
 		proxies = append(proxies, proxy)
 		// validate the proxy with gloo
-		glooReports, err := v.glooValidator(ctx, proxy, glooResource, false)
+		glooReports, err := v.glooValidator(ctx, proxy, glooResource, opts.Delete)
 		if err != nil {
 			err = errors.Wrapf(err, "failed gloo validation")
 			if v.ignoreProxyValidationFailure {
@@ -330,6 +330,13 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 		if len(glooReports) != 1 {
 			// This was likely caused by a development error
 			err := GlooValidationResponseLengthError(glooReports)
+			errs = multierr.Append(errs, err)
+			continue
+		}
+
+		_, err = v.getReportsFromGlooValidation(glooReports)
+		if err != nil {
+			err = errors.Wrapf(err, "failed resource reports from gloo validation")
 			errs = multierr.Append(errs, err)
 			continue
 		}
@@ -511,4 +518,71 @@ func GetDelegateRef(delegate *v1.DelegateAction) *core.ResourceRef {
 		return delegate.GetRef()
 	}
 	return nil
+}
+
+// Converts the GlooValidationService into Reports.
+func (v *validator) getReportsFromGlooValidation(reports []*gloovalidation.GlooValidationReport) (
+	*Reports,
+	error,
+) {
+	var (
+		errs         error
+		proxyReports ProxyReports
+		proxies      []*gloov1.Proxy
+	)
+	for _, report := range reports {
+		// for resorce, resourceReport
+		for resource, reRpt := range report.ResourceReports {
+			if err := resourceReportToMultiErr(reRpt.Errors); err != nil {
+				errs = multierr.Append(errs, errors.Wrapf(err, "failed to validate %T with Gloo validation server", resource))
+			}
+			if warnings := reRpt.Warnings; !v.allowWarnings && len(warnings) > 0 {
+				for _, warning := range warnings {
+					errs = multierr.Append(errs, errors.New(warning))
+				}
+			}
+		}
+		// Append proxies and proxy reports
+		if report.Proxy != nil {
+			proxies = append(proxies, report.Proxy)
+		}
+		if proxyReport := report.ProxyReport; proxyReport != nil {
+			proxyReports = append(proxyReports, report.ProxyReport)
+			if err := validationutils.GetProxyError(proxyReport); err != nil {
+				errs = multierr.Append(errs, errors.Wrapf(err, "failed to validate Proxy with Gloo validation server"))
+			}
+			if warnings := validationutils.GetProxyWarning(proxyReport); !v.allowWarnings && len(warnings) > 0 {
+				for _, warning := range warnings {
+					errs = multierr.Append(errs, errors.New(warning))
+				}
+			}
+		}
+	}
+	return &Reports{
+		ProxyReports: &proxyReports,
+		Proxies:      proxies,
+	}, errs
+}
+
+func resourceReportToMultiErr(err error) error {
+	var multiErr error
+	for _, errStr := range getErrors(err) {
+		multiErr = multierr.Append(multiErr, errors.New(errStr))
+	}
+	return multiErr
+}
+
+func getErrors(err error) []string {
+	if err == nil {
+		return []string{}
+	}
+	switch err := err.(type) {
+	case *multierror.Error:
+		var errorStrings []string
+		for _, e := range err.Errors {
+			errorStrings = append(errorStrings, e.Error())
+		}
+		return errorStrings
+	}
+	return []string{err.Error()}
 }
