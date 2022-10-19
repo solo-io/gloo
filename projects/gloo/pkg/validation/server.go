@@ -224,7 +224,10 @@ func (s *validator) Validate(ctx context.Context, req *validation.GlooValidation
 	}, nil
 }
 
-func (s *validator) ValidateGeneric(ctx context.Context, proxy *v1.Proxy, resource resources.Resource, delete bool) ([]*GlooValidationReport, error) {
+// ValidateGloo replaces the functionality of Validate.  Validate is still a method that needs to be
+// exported because it is used as a gRPC service. A synced version of the snapshot is needed for
+// gloo validation.
+func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource resources.Resource, delete bool) ([]*GlooValidationReport, error) {
 	s.lock.Lock()
 	// we may receive a Validate call before a Sync has occurred
 	if s.latestSnapshot == nil {

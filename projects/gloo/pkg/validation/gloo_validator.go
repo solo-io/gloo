@@ -51,8 +51,6 @@ type GlooValidationReport struct {
 }
 
 func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snapshot *gloosnapshot.ApiSnapshot, delete bool) []*GlooValidationReport {
-	// TODO not sure what to do here
-	// return v.validateGlooTranslation(ctx, proxy, snapshot, delete, v.xdsSanitizer)
 	ctx = contextutils.WithLogger(ctx, "proxy-validator")
 
 	var validationReports []*GlooValidationReport
