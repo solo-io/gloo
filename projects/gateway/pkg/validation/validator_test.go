@@ -764,10 +764,8 @@ var _ = Describe("Validator", func() {
 				err = v.ValidateDeletedGvk(context.TODO(), v1.VirtualServiceGVK, snap.VirtualServices[0], false)
 				Expect(err).NotTo(HaveOccurred())
 
-				// TODO-JAKE I changed out the error for this, so that the hybrid listener would not error out on translation.
-				// ensure vs was removed from validator internal snapshot
 				_, err = v.latestSnapshot.VirtualServices.Find(ref.Strings())
-				Expect(err).To(HaveOccurred())
+				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 	})

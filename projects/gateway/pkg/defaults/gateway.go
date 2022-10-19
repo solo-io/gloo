@@ -84,7 +84,14 @@ func DefaultHybridGateway(writeNamespace string) *v1.Gateway {
 				MatchedGateways: []*v1.MatchedGateway{
 					{
 						GatewayType: &v1.MatchedGateway_HttpGateway{
-							HttpGateway: &v1.HttpGateway{},
+							HttpGateway: &v1.HttpGateway{
+								VirtualServices: []*core.ResourceRef{
+									{
+										Namespace: writeNamespace,
+										Name:      "virtualservice",
+									},
+								},
+							},
 						},
 					},
 				},
