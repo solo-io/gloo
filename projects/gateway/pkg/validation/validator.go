@@ -17,7 +17,6 @@ import (
 	"github.com/solo-io/gloo/projects/gateway/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	gloo_translator "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	gloovalidation "github.com/solo-io/gloo/projects/gloo/pkg/validation"
 	"github.com/solo-io/go-utils/contextutils"
@@ -28,7 +27,6 @@ import (
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 type Reports struct {
@@ -233,7 +231,8 @@ func (v *validator) validateSnapshot(ctx context.Context, resource resources.Res
 	// validation occurs by the following steps:
 	//	1. Clone the most recent snapshot
 	//	2. Apply the changes to that snapshot clone
-	//	3. Validate the generated proxy of that snapshot clone by making a gRPC call to Gloo.
+	//	3. Validate the generated proxy of that snapshot clone by validating both gateway and gloo translation.
+	//		a. we call gloo translation via a passed method, glooValidator
 	//	4. If the proxy is valid, we know that the requested mutation is valid. If this request happens
 	//		during a dry run, we don't want to actually apply the change, since this will modify the internal
 	//		state of the validator, which is shared across requests. Therefore, only if we are not in a dry run,
@@ -257,23 +256,6 @@ func (v *validator) validateSnapshot(ctx context.Context, resource resources.Res
 	} else {
 		snapshotClone.AddOrReplaceToResourceList(resource)
 	}
-
-	// TODO-JAKE not sure if this is how we would want to handle the ValidateDeleteVirtualService
-	// this does allow us to have a generic validation method
-	// instead of the number we could use a diff function, to find if there is a diff between the two.
-	// TODO-JAKE test that when deleting a VS or a RT, that the translation will automatically cover the error that
-	// we would already expect from these types of validations methods on VS and RTs
-	// if len(snapshotClone.VirtualServices) != len(v.latestSnapshot.VirtualServices) {
-	// 	if err := v.validateDeletedVirtualService(ctx, snapshotClone, resource.GetMetadata().Ref()); err != nil {
-	// 		return &Reports{}, err
-	// 	}
-	// }
-
-	// if len(snapshotClone.RouteTables) != len(v.latestSnapshot.RouteTables) {
-	// 	if err := v.validateDeleteRouteTable(ctx, snapshotClone, resource.GetMetadata().Ref()); err != nil {
-	// 		return &Reports{}, err
-	// 	}
-	// }
 
 	var (
 		errs         error
@@ -362,13 +344,11 @@ func (v *validator) validateSnapshot(ctx context.Context, resource resources.Res
 
 func (v *validator) ValidateDeletedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
 	if gvk.Group == GatewayGroup {
-		// TODO look at this..
 		if _, hit := GvkSupportedDeleteGatewayResources[gvk]; hit {
 			_, err := v.validateGatewayResource(ctx, resource, true, dryRun, true)
 			return err
 		}
 	} else if gvk.Group == gloovalidation.GlooGroup {
-		// all this is really doing is telling me that it is supported....
 		if _, hit := gloovalidation.GvkToSupportedDeleteGlooResources[gvk]; hit {
 			_, err := v.validateGlooResource(ctx, resource, true, dryRun)
 			return err
@@ -552,62 +532,6 @@ func (v *validator) getReportsFromGlooValidation(reports []*gloovalidation.GlooV
 	}, errs
 }
 
-func virtualServicesForGateway(ctx context.Context, snap gloov1snap.ApiSnapshot, gateway *v1.Gateway) []*core.ResourceRef {
-	var virtualServices []*core.ResourceRef
-
-	switch gatewayType := gateway.GetGatewayType().(type) {
-	case *v1.Gateway_TcpGateway:
-		// TcpGateway does not configure VirtualServices
-		break
-	case *v1.Gateway_HttpGateway:
-		virtualServices = gatewayType.HttpGateway.GetVirtualServices()
-	case *v1.Gateway_HybridGateway:
-		matchedGateways := gatewayType.HybridGateway.GetMatchedGateways()
-		if matchedGateways != nil {
-			for _, matchedGateway := range matchedGateways {
-				if httpGateway := matchedGateway.GetHttpGateway(); httpGateway != nil {
-					virtualServices = append(virtualServices, httpGateway.GetVirtualServices()...)
-				}
-			}
-		} else {
-			delegatedGateways := gatewayType.HybridGateway.GetDelegatedHttpGateways()
-			httpGatewayList := translator.NewHttpGatewaySelector(snap.HttpGateways).SelectMatchableHttpGateways(delegatedGateways, func(err error) {
-				logger := contextutils.LoggerFrom(ctx)
-				logger.Warnf("failed to select matchable http gateways on gateway: %v", err.Error())
-			})
-
-			httpGatewayList.Each(func(element *v1.MatchableHttpGateway) {
-				virtualServices = append(virtualServices, element.GetHttpGateway().GetVirtualServices()...)
-			})
-		}
-	}
-
-	return virtualServices
-}
-
-// Returns true if any of the given routes delegate to any of the given route tables via a direct reference.
-// This is used to determine which route tables are affected when a route table is deleted. Since selectors do not
-// represent hard referential constraints, we only need to check direct references here (we can safely remove a route
-// table that matches via a selector).
-func routesContainRefs(routes []*v1.Route, refs sets.String) bool {
-	for _, r := range routes {
-		delegate := r.GetDelegateAction()
-		if delegate == nil {
-			continue
-		}
-
-		rtRef := GetDelegateRef(delegate)
-		if rtRef == nil {
-			continue
-		}
-
-		if _, ok := refs[gloo_translator.UpstreamToClusterName(rtRef)]; ok {
-			return true
-		}
-	}
-	return false
-}
-
 func GetDelegateRef(delegate *v1.DelegateAction) *core.ResourceRef {
 	// handle deprecated route table resource reference format
 	// TODO(marco): remove when we remove the deprecated fields from the API
@@ -634,10 +558,10 @@ func getErrors(err error) []string {
 	if err == nil {
 		return []string{}
 	}
-	switch err.(type) {
+	switch err := err.(type) {
 	case *multierror.Error:
 		var errorStrings []string
-		for _, e := range err.(*multierror.Error).Errors {
+		for _, e := range err.Errors {
 			errorStrings = append(errorStrings, e.Error())
 		}
 		return errorStrings
