@@ -586,7 +586,11 @@ func (v *mockValidator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) 
 	return v.fSync(ctx, snap)
 }
 
-func (v *mockValidator) ValidationIsSupported(gvk schema.GroupVersionKind) bool {
+func (v *mockValidator) ModificationIsSupported(gvk schema.GroupVersionKind) bool {
+	return true
+}
+
+func (v *mockValidator) ValidationDeletionIsSupported(gvk schema.GroupVersionKind) bool {
 	return true
 }
 
