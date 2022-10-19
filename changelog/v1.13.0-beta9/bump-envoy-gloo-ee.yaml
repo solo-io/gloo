@@ -1,0 +1,7 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyRepo: envoy-gloo-ee
+  dependencyTag: v1.23.1-patch7
+  dependencyOwner: solo-io
+  description: >
+    Bump envoy-gloo-ee to v1.23.1-patch7 to fix bug where enums can't be used in GraphQL query params.
