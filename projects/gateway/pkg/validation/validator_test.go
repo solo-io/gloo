@@ -755,17 +755,33 @@ var _ = Describe("Validator", func() {
 			})
 		})
 		Context("has no parent gateways", func() {
-			It("deletes safely", func() {
+			It("unable to delete vs, because it is assigned to hybrid gateway", func() {
 				v.glooValidator = ValidateAccept
 				snap := samples.SimpleGlooSnapshot(ns)
 				err := v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
 				ref := snap.VirtualServices[0].Metadata.Ref()
 				err = v.ValidateDeletedGvk(context.TODO(), v1.VirtualServiceGVK, snap.VirtualServices[0], false)
-				Expect(err).NotTo(HaveOccurred())
+				Expect(err).To(HaveOccurred())
 
 				_, err = v.latestSnapshot.VirtualServices.Find(ref.Strings())
 				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("deletes safely", func() {
+				v.glooValidator = ValidateAccept
+				snap := samples.SimpleGlooSnapshot(ns)
+				newVS := samples.SimpleVS("newnamespace", "newname", "mydomain", snap.Upstreams[0].Metadata.Ref())
+				err := snap.AddToResourceList(newVS)
+				Expect(err).NotTo(HaveOccurred())
+				err = v.Sync(context.TODO(), snap)
+				Expect(err).NotTo(HaveOccurred())
+				ref := newVS.Metadata.Ref()
+				err = v.ValidateDeletedGvk(context.TODO(), v1.VirtualServiceGVK, newVS, false)
+				Expect(err).ToNot(HaveOccurred())
+
+				_, err = v.latestSnapshot.VirtualServices.Find(ref.Strings())
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})

@@ -343,16 +343,11 @@ func (v *validator) validateSnapshot(ctx context.Context, resource resources.Res
 }
 
 func (v *validator) ValidateDeletedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
-	if gvk.Group == GatewayGroup {
-		if _, hit := GvkSupportedDeleteGatewayResources[gvk]; hit {
-			_, err := v.validateGatewayResource(ctx, resource, true, dryRun, true)
-			return err
-		}
-	} else if gvk.Group == gloovalidation.GlooGroup {
-		if _, hit := gloovalidation.GvkToSupportedDeleteGlooResources[gvk]; hit {
-			_, err := v.validateGlooResource(ctx, resource, true, dryRun)
-			return err
-		}
+	_, supportedGatewayResource := GvkSupportedDeleteGatewayResources[gvk]
+	_, supportedGlooResource := gloovalidation.GvkToSupportedDeleteGlooResources[gvk]
+	if supportedGatewayResource || supportedGlooResource {
+		_, err := v.validateGatewayResource(ctx, resource, true, dryRun, true)
+		return err
 	}
 	contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource delete ref namespace [%s] name [%s] group [%s] kind [%s]", resource.GetMetadata().GetNamespace(), resource.GetMetadata().GetName(), gvk.Group, gvk.Kind)
 	return nil
@@ -364,24 +359,14 @@ func (v *validator) ValidateModifiedGvk(ctx context.Context, gvk schema.GroupVer
 
 func (v *validator) validateModifiedResource(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun, acquireLock bool) (*Reports, error) {
 	var reports *Reports
-	// Gloo has two types of Groups: Gateway, Gloo. This statement is splitting the Validation based off
-	// the resource group type.
-	if gvk.Group == GatewayGroup {
-		if _, hit := GvkSupportedValidationGatewayResources[gvk]; hit {
-			reports, err := v.validateGatewayResource(ctx, resource, false, dryRun, acquireLock)
-			if err != nil {
-				return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
-			}
-			return reports, nil
+	_, supportedGatewayResource := GvkSupportedValidationGatewayResources[gvk]
+	_, supportedGlooResource := gloovalidation.GvkToSupportedGlooResources[gvk]
+	if supportedGatewayResource || supportedGlooResource {
+		reports, err := v.validateGatewayResource(ctx, resource, false, dryRun, acquireLock)
+		if err != nil {
+			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
 		}
-	} else if gvk.Group == gloovalidation.GlooGroup {
-		if _, hit := gloovalidation.GvkToSupportedGlooResources[gvk]; hit {
-			reports, err := v.validateGlooResource(ctx, resource, false, dryRun)
-			if err != nil {
-				return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
-			}
-			return reports, nil
-		}
+		return reports, nil
 	}
 	return reports, &multierror.Error{Errors: []error{errors.Errorf("failed validating the resoruce [%T] because the group [%s] does not get validated", resource, gvk.Group)}}
 }
