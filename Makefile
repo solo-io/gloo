@@ -223,7 +223,7 @@ clean:
 #----------------------------------------------------------------------------------
 
 .PHONY: generate-all
-generate-all: generated-code ## generated-code
+generate-all: generated-code ## Calls generated-code
 
 .PHONY: generated-code
 generated-code: $(OUTPUT_DIR)/.generated-code verify-enterprise-protos generate-helm-files update-licenses init ## Execute Gloo Edge codegen
@@ -403,7 +403,7 @@ $(GLOO_OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
 
 .PHONY: gloo-docker
-gloo-docker: $(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH) $(GLOO_OUTPUT_DIR)/Dockerfile.gloo ## gloo-docker
+gloo-docker: $(GLOO_OUTPUT_DIR)/gloo-linux-$(GOARCH) $(GLOO_OUTPUT_DIR)/Dockerfile.gloo
 	docker build $(GLOO_OUTPUT_DIR) -f $(GLOO_OUTPUT_DIR)/Dockerfile.gloo \
 		--build-arg GOARCH=$(GOARCH) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
@@ -437,16 +437,15 @@ $(GLOO_RACE_OUT_DIR)/gloo-linux-$(GOARCH): $(GLOO_RACE_OUT_DIR)/.gloo-race-docke
 	docker cp gloo-race-temp-container:/gloo-linux-$(GOARCH) $(GLOO_RACE_OUT_DIR)/gloo-linux-$(GOARCH)
 	docker rm -f gloo-race-temp-container
 
-# Build the gloo project with race detection enabled
 .PHONY: gloo-race
-gloo-race: $(GLOO_RACE_OUT_DIR)/gloo-linux-$(GOARCH) ## Gloo with race detection enabled.
+gloo-race: $(GLOO_RACE_OUT_DIR)/gloo-linux-$(GOARCH)
 
 $(GLOO_RACE_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
 
 # Take the executable built in gloo-race and put it in a docker container
 .PHONY: gloo-race-docker
-gloo-race-docker: $(GLOO_RACE_OUT_DIR)/.gloo-race-docker ## gloo-race-docker
+gloo-race-docker: $(GLOO_RACE_OUT_DIR)/.gloo-race-docker
 $(GLOO_RACE_OUT_DIR)/.gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-$(GOARCH) $(GLOO_RACE_OUT_DIR)/Dockerfile
 	docker build $(call get_test_tag_option,gloo) $(GLOO_RACE_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) --build-arg GOARCH=$(GOARCH) $(PLATFORM) \
@@ -546,7 +545,7 @@ kubectl-docker: $(KUBECTL_OUTPUT_DIR)/Dockerfile.kubectl
 # Build All
 #----------------------------------------------------------------------------------
 .PHONY: build
-build: gloo glooctl discovery envoyinit certgen ingress ## Build All
+build: gloo glooctl discovery envoyinit certgen ingress ## Build All Images
 
 #----------------------------------------------------------------------------------
 # Deployment Manifests / Helm
@@ -601,7 +600,7 @@ ifeq ($(CREATE_ASSETS), "true")
 endif
 
 .PHONY: render-manifests
-render-manifests: install/gloo-gateway.yaml install/gloo-ingress.yaml install/gloo-knative.yaml ## Build the Gloo Edge Manifests that are published as release assets
+render-manifests: install/gloo-gateway.yaml install/gloo-ingress.yaml install/gloo-knative.yaml
 
 INSTALL_NAMESPACE ?= gloo-system
 
@@ -646,7 +645,7 @@ $(OUTPUT_DIR)/gloo-enterprise-version:
 	GO111MODULE=on go run hack/find_latest_enterprise_version.go
 
 .PHONY: upload-github-release-assets
-upload-github-release-assets: print-git-info build-cli render-manifests ## The code does the proper checking for a {TAGGED_VERSION}
+upload-github-release-assets: print-git-info build-cli render-manifests
 	GO111MODULE=on go run ci/upload_github_release_assets.go $(ASSETS_ONLY_RELEASE)
 
 
@@ -709,6 +708,7 @@ ifeq ($(RELEASE), "true")
 endif
 
 .PHONY: docker docker-push
+docker: ## Build all Docker containers
 docker: discovery-docker gloo-docker gloo-race-docker \
 		gloo-envoy-wrapper-docker certgen-docker sds-docker \
 		ingress-docker access-logger-docker kubectl-docker
@@ -804,7 +804,7 @@ publish-security-scan:
 # Third Party License Management
 #----------------------------------------------------------------------------------
 .PHONY: update-licenses
-update-licenses: ## Check for GPL licenses, if there are any, this will fail
+update-licenses:
 	GO111MODULE=on go run hack/utils/oss_compliance/oss_compliance.go osagen -c "GNU General Public License v2.0,GNU General Public License v3.0,GNU Lesser General Public License v2.1,GNU Lesser General Public License v3.0,GNU Affero General Public License v3.0"
 
 	GO111MODULE=on go run hack/utils/oss_compliance/oss_compliance.go osagen -s "Mozilla Public License 2.0,GNU General Public License v2.0,GNU General Public License v3.0,GNU Lesser General Public License v2.1,GNU Lesser General Public License v3.0,GNU Affero General Public License v3.0"> docs/content/static/content/osa_provided.md
