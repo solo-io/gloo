@@ -36,9 +36,10 @@ import (
 var _ = Describe("ValidatingAdmissionWebhook", func() {
 
 	var (
-		srv *httptest.Server
-		mv  *mockValidator
-		wh  *gatewayValidationWebhook
+		srv    *httptest.Server
+		mv     *mockValidator
+		wh     *gatewayValidationWebhook
+		errMsg = "didn't say the magic word"
 	)
 
 	BeforeEach(func() {
@@ -49,7 +50,20 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 			validator:        mv,
 		}
 		srv = httptest.NewServer(wh)
+
 	})
+
+	setMockFunctions := func() {
+		mv.fValidateList = func(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*validation.Reports, *multierror.Error) {
+			return reports(), &multierror.Error{Errors: []error{fmt.Errorf(errMsg)}}
+		}
+		mv.fValidateModifiedGvk = func(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*validation.Reports, error) {
+			return reports(), fmt.Errorf(errMsg)
+		}
+		mv.fValidateDeleteGvk = func(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
+			return fmt.Errorf(errMsg)
+		}
+	}
 
 	AfterEach(func() {
 		srv.Close()
@@ -94,8 +108,6 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 
 	routeTable := &v1.RouteTable{Metadata: &core.Metadata{Namespace: "namespace", Name: "rt"}}
 
-	errMsg := "didn't say the magic word"
-
 	DescribeTable("processes admission requests with auto-accept validator", func(crd crd.Crd, gvk schema.GroupVersionKind, op v1beta1.Operation, resourceOrRef interface{}) {
 		reviewRequest := makeReviewRequest(srv.URL, crd, gvk, op, resourceOrRef)
 		res, err := srv.Client().Do(reviewRequest)
@@ -120,31 +132,7 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 	)
 
 	DescribeTable("processes admission requests with auto-fail validator", func(crd crd.Crd, gvk schema.GroupVersionKind, op v1beta1.Operation, resourceOrRef interface{}) {
-		mv.fValidateList = func(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*validation.Reports, *multierror.Error) {
-			return reports(), &multierror.Error{Errors: []error{fmt.Errorf(errMsg)}}
-		}
-		mv.fValidateGateway = func(ctx context.Context, gw *v1.Gateway, dryRun bool) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateVirtualService = func(ctx context.Context, vs *v1.VirtualService, dryRun bool) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateDeleteVirtualService = func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
-		mv.fValidateRouteTable = func(ctx context.Context, rt *v1.RouteTable, dryRun bool) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateDeleteRouteTable = func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
-		mv.fValidateUpstream = func(ctx context.Context, us *gloov1.Upstream) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateDeleteUpstream = func(ctx context.Context, us *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
-
+		setMockFunctions()
 		req := makeReviewRequest(srv.URL, crd, gvk, op, resourceOrRef)
 
 		res, err := srv.Client().Do(req)
@@ -172,31 +160,7 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 	)
 
 	DescribeTable("processes status updates with auto-fail validator", func(expectAllowed bool, crd crd.Crd, gvk schema.GroupVersionKind, op v1beta1.Operation, resource resources.InputResource) {
-		mv.fValidateList = func(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*validation.Reports, *multierror.Error) {
-			return reports(), &multierror.Error{Errors: []error{fmt.Errorf(errMsg)}}
-		}
-		mv.fValidateGateway = func(ctx context.Context, gw *v1.Gateway, dryRun bool) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateVirtualService = func(ctx context.Context, vs *v1.VirtualService, dryRun bool) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateDeleteVirtualService = func(ctx context.Context, vs *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
-		mv.fValidateRouteTable = func(ctx context.Context, rt *v1.RouteTable, dryRun bool) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateDeleteRouteTable = func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
-		mv.fValidateUpstream = func(ctx context.Context, us *gloov1.Upstream) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateDeleteUpstream = func(ctx context.Context, us *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
-
+		setMockFunctions()
 		resourceCrd, err := crd.KubeResource(resource)
 		Expect(err).NotTo(HaveOccurred())
 		raw, err := json.Marshal(resourceCrd)
@@ -275,31 +239,7 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 	)
 
 	DescribeTable("processes metadata updates with auto-fail validator", func(expectAllowed bool, crd crd.Crd, gvk schema.GroupVersionKind, op v1beta1.Operation, resource resources.InputResource) {
-		mv.fValidateList = func(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*validation.Reports, *multierror.Error) {
-			return reports(), &multierror.Error{Errors: []error{fmt.Errorf(errMsg)}}
-		}
-		mv.fValidateGateway = func(ctx context.Context, gw *v1.Gateway, dryRun bool) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateVirtualService = func(ctx context.Context, vs *v1.VirtualService, dryRun bool) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateDeleteVirtualService = func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
-		mv.fValidateRouteTable = func(ctx context.Context, rt *v1.RouteTable, dryRun bool) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateDeleteRouteTable = func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
-		mv.fValidateUpstream = func(ctx context.Context, us *gloov1.Upstream) (*validation.Reports, error) {
-			return reports(), fmt.Errorf(errMsg)
-		}
-		mv.fValidateDeleteUpstream = func(ctx context.Context, us *core.ResourceRef, dryRun bool) error {
-			return fmt.Errorf(errMsg)
-		}
-
+		setMockFunctions()
 		resourceCrd, err := crd.KubeResource(resource)
 		Expect(err).NotTo(HaveOccurred())
 		raw, err := json.Marshal(resourceCrd)
@@ -401,10 +341,7 @@ var _ = Describe("ValidatingAdmissionWebhook", func() {
 
 	Context("returns proxies", func() {
 		It("returns proxy if requested", func() {
-			mv.fValidateGateway = func(ctx context.Context, gw *v1.Gateway, dryRun bool) (*validation.Reports, error) {
-				return reports(), fmt.Errorf(errMsg)
-			}
-
+			setMockFunctions()
 			req, err := makeReviewRequestWithProxies(srv.URL, v1.GatewayCrd, gateway.GroupVersionKind(), v1beta1.Create, gateway, true)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -568,15 +505,10 @@ func parseReviewResponse(resp *http.Response) (*AdmissionReviewWithProxies, erro
 var _ validation.Validator = new(mockValidator)
 
 type mockValidator struct {
-	fSync                         func(context.Context, *gloov1snap.ApiSnapshot) error
-	fValidateList                 func(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*validation.Reports, *multierror.Error)
-	fValidateGateway              func(ctx context.Context, gw *v1.Gateway, dryRun bool) (*validation.Reports, error)
-	fValidateVirtualService       func(ctx context.Context, vs *v1.VirtualService, dryRun bool) (*validation.Reports, error)
-	fValidateDeleteVirtualService func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
-	fValidateRouteTable           func(ctx context.Context, rt *v1.RouteTable, dryRun bool) (*validation.Reports, error)
-	fValidateDeleteRouteTable     func(ctx context.Context, rt *core.ResourceRef, dryRun bool) error
-	fValidateUpstream             func(ctx context.Context, us *gloov1.Upstream) (*validation.Reports, error)
-	fValidateDeleteUpstream       func(ctx context.Context, us *core.ResourceRef, dryRun bool) error
+	fSync                func(context.Context, *gloov1snap.ApiSnapshot) error
+	fValidateList        func(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*validation.Reports, *multierror.Error)
+	fValidateDeleteGvk   func(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error
+	fValidateModifiedGvk func(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*validation.Reports, error)
 }
 
 func (v *mockValidator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) error {
@@ -595,55 +527,17 @@ func (v *mockValidator) ValidationDeletionIsSupported(gvk schema.GroupVersionKin
 }
 
 func (v *mockValidator) ValidateDeletedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
-	if v.fValidateDeleteVirtualService == nil {
+	if v.fValidateDeleteGvk == nil {
 		return nil
 	}
-	return v.fValidateDeleteVirtualService(ctx, resource.GetMetadata().Ref(), dryRun)
-}
-
-func (v *mockValidator) ValidateGlooResource(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*validation.Reports, error) {
-	if v.fValidateGateway == nil {
-		return reports(), nil
-	}
-	return v.fValidateUpstream(ctx, &gloov1.Upstream{})
+	return v.fValidateDeleteGvk(ctx, gvk, resource, dryRun)
 }
 
 func (v *mockValidator) ValidateModifiedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*validation.Reports, error) {
-	if v.fValidateGateway == nil {
-		return reports(), nil
-	}
-	if gvk.Group == validation.GatewayGroup {
-		switch typed := resource.(type) {
-		case *v1.Gateway:
-			return v.fValidateGateway(ctx, typed, dryRun)
-		case *v1.RouteTable:
-			return v.fValidateRouteTable(ctx, typed, dryRun)
-		case *v1.VirtualService:
-			return v.fValidateVirtualService(ctx, typed, dryRun)
-		default:
-			return nil, nil
-		}
-	} else {
-		return v.fValidateUpstream(ctx, gloov1.NewUpstream("new", "name"))
-	}
-}
-
-func (v *mockValidator) ValidateGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*validation.Reports, error) {
-	if v.fValidateGateway == nil {
-		return reports(), nil
-	}
-	switch typed := resource.(type) {
-	case *v1.Gateway:
-		return v.fValidateGateway(ctx, typed, dryRun)
-	case *v1.RouteTable:
-		return v.fValidateRouteTable(ctx, typed, dryRun)
-	case *v1.VirtualService:
-		return v.fValidateVirtualService(ctx, typed, dryRun)
-	case *gloov1.Upstream:
-		return v.fValidateUpstream(ctx, typed)
-	default:
+	if v.fValidateModifiedGvk == nil {
 		return nil, nil
 	}
+	return v.fValidateModifiedGvk(ctx, gvk, resource, dryRun)
 }
 
 func (v *mockValidator) ValidateList(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (*validation.Reports, *multierror.Error) {
@@ -651,55 +545,6 @@ func (v *mockValidator) ValidateList(ctx context.Context, ul *unstructured.Unstr
 		return reports(), nil
 	}
 	return v.fValidateList(ctx, ul, dryRun)
-}
-
-func (v *mockValidator) ValidateGateway(ctx context.Context, gw *v1.Gateway, dryRun bool) (*validation.Reports, error) {
-	if v.fValidateGateway == nil {
-		return reports(), nil
-	}
-	return v.fValidateGateway(ctx, gw, dryRun)
-}
-
-func (v *mockValidator) ValidateVirtualService(ctx context.Context, vs *v1.VirtualService, dryRun bool) (*validation.Reports, error) {
-	if v.fValidateVirtualService == nil {
-		return reports(), nil
-	}
-	return v.fValidateVirtualService(ctx, vs, dryRun)
-}
-
-func (v *mockValidator) ValidateDeleteVirtualService(ctx context.Context, vs *core.ResourceRef, dryRun bool) error {
-	if v.fValidateDeleteVirtualService == nil {
-		return nil
-	}
-	return v.fValidateDeleteVirtualService(ctx, vs, dryRun)
-}
-
-func (v *mockValidator) ValidateRouteTable(ctx context.Context, rt *v1.RouteTable, dryRun bool) (*validation.Reports, error) {
-	if v.fValidateRouteTable == nil {
-		return reports(), nil
-	}
-	return v.fValidateRouteTable(ctx, rt, dryRun)
-}
-
-func (v *mockValidator) ValidateDeleteRouteTable(ctx context.Context, rt *core.ResourceRef, dryRun bool) error {
-	if v.fValidateDeleteRouteTable == nil {
-		return nil
-	}
-	return v.fValidateDeleteRouteTable(ctx, rt, dryRun)
-}
-
-func (v *mockValidator) ValidateUpstream(ctx context.Context, us *gloov1.Upstream) (*validation.Reports, error) {
-	if v.fValidateUpstream == nil {
-		return reports(), nil
-	}
-	return v.fValidateUpstream(ctx, us)
-}
-
-func (v *mockValidator) ValidateDeleteUpstream(ctx context.Context, us *core.ResourceRef, dryRun bool) error {
-	if v.fValidateDeleteUpstream == nil {
-		return nil
-	}
-	return v.fValidateDeleteUpstream(ctx, us, dryRun)
 }
 
 func reports() *validation.Reports {
