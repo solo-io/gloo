@@ -522,7 +522,7 @@ func (v *mockValidator) ModificationIsSupported(gvk schema.GroupVersionKind) boo
 	return true
 }
 
-func (v *mockValidator) ValidationDeletionIsSupported(gvk schema.GroupVersionKind) bool {
+func (v *mockValidator) DeletionIsSupported(gvk schema.GroupVersionKind) bool {
 	return true
 }
 
