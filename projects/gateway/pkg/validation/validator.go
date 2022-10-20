@@ -334,13 +334,6 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 			continue
 		}
 
-		_, err = v.getReportsFromGlooValidation(glooReports)
-		if err != nil {
-			err = errors.Wrapf(err, "failed resource reports from gloo validation")
-			errs = multierr.Append(errs, err)
-			continue
-		}
-
 		proxyReport := glooReports[0].ProxyReport
 		proxyReports = append(proxyReports, proxyReport)
 		if err := validationutils.GetProxyError(proxyReport); err != nil {
@@ -351,6 +344,13 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 			for _, warning := range warnings {
 				errs = multierr.Append(errs, errors.New(warning))
 			}
+			continue
+		}
+
+		_, err = v.getReportsFromGlooValidation(glooReports)
+		if err != nil {
+			err = errors.Wrapf(err, "failed resource reports from gloo validation")
+			errs = multierr.Append(errs, err)
 			continue
 		}
 	}
