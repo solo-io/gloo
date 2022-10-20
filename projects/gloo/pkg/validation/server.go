@@ -28,6 +28,7 @@ import (
 type Validator interface {
 	v1snap.ApiSyncer
 	validation.GlooValidationServiceServer
+	ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource resources.Resource, delete bool) ([]*GlooValidationReport, error)
 }
 
 type validator struct {
