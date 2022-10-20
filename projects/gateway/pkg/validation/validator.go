@@ -85,9 +85,9 @@ type Validator interface {
 	ValidateModifiedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*Reports, error)
 	// ValidateDeletedGvk validate the creation or update of a resource.
 	ValidateDeletedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error
-	// ModificationIsSupported returns wether a resource is supported
+	// ModificationIsSupported returns whether a resource is supported
 	ModificationIsSupported(gvk schema.GroupVersionKind) bool
-	// ValidationDeletionIsSupported returns wether a deletion of a resource is supported
+	// ValidationDeletionIsSupported returns whether a deletion of a resource is supported
 	ValidationDeletionIsSupported(gvk schema.GroupVersionKind) bool
 }
 
@@ -337,7 +337,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 		proxyReport := glooReports[0].ProxyReport
 		proxyReports = append(proxyReports, proxyReport)
 		if err := validationutils.GetProxyError(proxyReport); err != nil {
-			errs = multierr.Append(errs, errors.Wrapf(err, "failed to validate Proxy [namespace: %s, name: %s] with gloo validation", proxy.GetMetadata().Namespace, proxy.GetMetadata().Name))
+			errs = multierr.Append(errs, errors.Wrapf(err, "failed to validate Proxy [namespace: %s, name: %s] with gloo validation", proxy.GetMetadata().GetNamespace(), proxy.GetMetadata().GetName()))
 			continue
 		}
 		if warnings := validationutils.GetProxyWarning(proxyReport); !v.allowWarnings && len(warnings) > 0 {
