@@ -21,6 +21,7 @@ weight: 5
 - [KnativeOptions](#knativeoptions)
 - [DiscoveryOptions](#discoveryoptions)
 - [UdsOptions](#udsoptions)
+- [GraphqlDiscoveryOptions](#graphqldiscoveryoptions)
 - [FdsMode](#fdsmode)
 - [ConsulConfiguration](#consulconfiguration)
 - [ServiceDiscoveryOptions](#servicediscoveryoptions)
@@ -287,6 +288,7 @@ This option determines the root of the directory tree used to this end.
 ```yaml
 "fdsMode": .gloo.solo.io.Settings.DiscoveryOptions.FdsMode
 "udsOptions": .gloo.solo.io.Settings.DiscoveryOptions.UdsOptions
+"graphqlOptions": .gloo.solo.io.Settings.DiscoveryOptions.GraphqlDiscoveryOptions
 
 ```
 
@@ -294,6 +296,7 @@ This option determines the root of the directory tree used to this end.
 | ----- | ---- | ----------- | 
 | `fdsMode` | [.gloo.solo.io.Settings.DiscoveryOptions.FdsMode](../settings.proto.sk/#fdsmode) |  |
 | `udsOptions` | [.gloo.solo.io.Settings.DiscoveryOptions.UdsOptions](../settings.proto.sk/#udsoptions) |  |
+| `graphqlOptions` | [.gloo.solo.io.Settings.DiscoveryOptions.GraphqlDiscoveryOptions](../settings.proto.sk/#graphqldiscoveryoptions) | Enterprise-only: Options for GraphQL discovery. |
 
 
 
@@ -313,6 +316,23 @@ This option determines the root of the directory tree used to this end.
 | ----- | ---- | ----------- | 
 | `enabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Enable upstream discovery service. Defaults to true. |
 | `watchLabels` | `map<string, string>` | Map of labels to watch. Only services which match all of the selectors specified here will be discovered by UDS. |
+
+
+
+
+---
+### GraphqlDiscoveryOptions
+
+
+
+```yaml
+"enabled": .google.protobuf.BoolValue
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `enabled` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Enable graphql discovery service. Defaults to true. |
 
 
 

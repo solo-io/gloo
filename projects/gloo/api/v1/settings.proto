@@ -193,6 +193,15 @@ message Settings {
         }
 
         UdsOptions uds_options = 2;
+
+        // Enterprise-only: Options for GraphQL discovery
+        GraphqlDiscoveryOptions graphql_options = 3;
+
+        message GraphqlDiscoveryOptions {
+            // Enable graphql discovery service. Defaults to true.
+            google.protobuf.BoolValue enabled = 1;
+        }
+
     }
 
     // Options for configuring Gloo's Discovery service
