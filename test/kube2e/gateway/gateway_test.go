@@ -8,11 +8,17 @@ import (
 	"strings"
 	"time"
 
+	ratelimit2 "github.com/solo-io/gloo/projects/gloo/api/external/solo/ratelimit"
+	v1alpha1skv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
+	"github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+	rlv1alpha1 "github.com/solo-io/solo-apis/pkg/api/ratelimit.solo.io/v1alpha1"
+
 	"github.com/solo-io/solo-kit/test/setup"
 
 	gloostatusutils "github.com/solo-io/gloo/pkg/utils/statusutils"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -88,6 +94,7 @@ var _ = Describe("Kube2e: gateway", func() {
 		proxyClient             gloov1.ProxyClient
 		serviceClient           skkube.ServiceClient
 		statusClient            resources.StatusClient
+		rateLimitConfigClient   v1alpha1skv1.RateLimitConfigClient
 	)
 
 	BeforeEach(func() {
@@ -146,6 +153,11 @@ var _ = Describe("Kube2e: gateway", func() {
 			Cfg:         cfg,
 			SharedCache: cache,
 		}
+		ratelimitConfigClientFactory := &factory.KubeResourceClientFactory{
+			Crd:         v1alpha1skv1.RateLimitConfigCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
+		}
 
 		gatewayClient, err = gatewayv1.NewGatewayClient(ctx, gatewayClientFactory)
 		Expect(err).NotTo(HaveOccurred())
@@ -195,6 +207,11 @@ var _ = Describe("Kube2e: gateway", func() {
 		kubeCoreCache, err := kubecache.NewKubeCoreCache(ctx, kubeClient)
 		Expect(err).NotTo(HaveOccurred())
 		serviceClient = service.NewServiceClient(kubeClient, kubeCoreCache)
+
+		rateLimitConfigClient, err = v1alpha1skv1.NewRateLimitConfigClient(ctx, ratelimitConfigClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+		err = rateLimitConfigClient.Register()
+		Expect(err).NotTo(HaveOccurred())
 
 		statusClient = gloostatusutils.GetStatusClientForNamespace(testHelper.InstallNamespace)
 	})
@@ -1438,6 +1455,65 @@ var _ = Describe("Kube2e: gateway", func() {
 				// properly and should fail
 				helpers.EventuallyResourceAccepted(getProxy)
 			})
+		})
+	})
+
+	Context("tests with RateLimitConfigs", func() {
+
+		var rateLimitConfig *v1alpha1skv1.RateLimitConfig
+
+		BeforeEach(func() {
+			rateLimitConfig = &v1alpha1skv1.RateLimitConfig{
+				RateLimitConfig: ratelimit2.RateLimitConfig{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "testrlc",
+						Namespace: testHelper.InstallNamespace,
+					},
+					Spec: rlv1alpha1.RateLimitConfigSpec{
+						ConfigType: &rlv1alpha1.RateLimitConfigSpec_Raw_{
+							Raw: &rlv1alpha1.RateLimitConfigSpec_Raw{
+								Descriptors: []*rlv1alpha1.Descriptor{{
+									Key:   "generic_key",
+									Value: "foo",
+									RateLimit: &rlv1alpha1.RateLimit{
+										Unit:            rlv1alpha1.RateLimit_MINUTE,
+										RequestsPerUnit: 1,
+									},
+								}},
+								RateLimits: []*rlv1alpha1.RateLimitActions{{
+									Actions: []*rlv1alpha1.Action{{
+										ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+											GenericKey: &rlv1alpha1.Action_GenericKey{
+												DescriptorValue: "foo",
+											},
+										},
+									}},
+								}},
+							},
+						},
+					},
+				},
+			}
+
+			_, err := rateLimitConfigClient.Write(rateLimitConfig, clients.WriteOpts{})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("correctly sets a status to a RateLimitConfig", func() {
+			// demand that a created ratelimit config _has_ a rejected status.
+			Eventually(func() error {
+				rlc, err := rateLimitConfigClient.Read(rateLimitConfig.GetMetadata().GetNamespace(), rateLimitConfig.GetMetadata().GetName(), clients.ReadOpts{Ctx: ctx})
+				if err != nil {
+					return err
+				}
+				if rlc.Status.State != v1alpha1.RateLimitConfigStatus_REJECTED {
+					return errors.Errorf("expected rejected status, got %v", rlc.Status.State)
+				}
+				if !strings.Contains(rlc.Status.Message, "enterprise-only") {
+					return errors.Errorf("expected enterprise-only message in status, got %v", rlc.Status.Message)
+				}
+				return nil
+			}, "15s", "0.5s").ShouldNot(HaveOccurred())
 		})
 	})
 
