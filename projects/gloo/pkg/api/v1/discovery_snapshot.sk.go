@@ -101,41 +101,38 @@ func (s *DiscoverySnapshot) RemoveFromResourceList(resource resources.Resource) 
 	refKey := resource.GetMetadata().Ref().Key()
 	switch resource.(type) {
 	case *Upstream:
-		newList := UpstreamList{}
-		for _, res := range s.Upstreams {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Upstreams {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Upstreams = append(s.Upstreams[:i], s.Upstreams[i+1:]...)
+				break
 			}
 		}
-		s.Upstreams = newList
-		s.Upstreams.Sort()
 		return nil
 	case *github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespace:
-		newList := github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespaceList{}
-		for _, res := range s.Kubenamespaces {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Kubenamespaces {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Kubenamespaces = append(s.Kubenamespaces[:i], s.Kubenamespaces[i+1:]...)
+				break
 			}
 		}
-		s.Kubenamespaces = newList
-		s.Kubenamespaces.Sort()
 		return nil
 	case *Secret:
-		newList := SecretList{}
-		for _, res := range s.Secrets {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Secrets {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Secrets = append(s.Secrets[:i], s.Secrets[i+1:]...)
+				break
 			}
 		}
-		s.Secrets = newList
-		s.Secrets.Sort()
 		return nil
 	default:
-		return eris.Errorf("did not remove the reousource because its type does not exist [%T]", resource)
+		return eris.Errorf("did not remove the resource because its type does not exist [%T]", resource)
 	}
 }
 
-func (s *DiscoverySnapshot) AddOrReplaceToResourceList(resource resources.Resource) error {
+func (s *DiscoverySnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {
 	case *Upstream:
@@ -180,39 +177,6 @@ func (s *DiscoverySnapshot) AddOrReplaceToResourceList(resource resources.Resour
 	default:
 		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
 	}
-}
-
-func (s *DiscoverySnapshot) AddToResourceList(resource resources.Resource) error {
-	switch typed := resource.(type) {
-	case *Upstream:
-		s.Upstreams = append(s.Upstreams, typed)
-		s.Upstreams.Sort()
-		return nil
-	case *github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespace:
-		s.Kubenamespaces = append(s.Kubenamespaces, typed)
-		s.Kubenamespaces.Sort()
-		return nil
-	case *Secret:
-		s.Secrets = append(s.Secrets, typed)
-		s.Secrets.Sort()
-		return nil
-	default:
-		return eris.Errorf("did not add the resource type because it does not exist %T", resource)
-	}
-}
-
-func (s *DiscoverySnapshot) ReplaceResource(i int, resource resources.Resource) error {
-	switch typed := resource.(type) {
-	case *Upstream:
-		s.Upstreams[i] = typed
-	case *github_com_solo_io_solo_kit_pkg_api_v1_resources_common_kubernetes.KubeNamespace:
-		s.Kubenamespaces[i] = typed
-	case *Secret:
-		s.Secrets[i] = typed
-	default:
-		return eris.Wrapf(eris.Errorf("did not contain the resource type %T", resource), "did not replace the resource at index %d", i)
-	}
-	return nil
 }
 
 type DiscoverySnapshotStringer struct {

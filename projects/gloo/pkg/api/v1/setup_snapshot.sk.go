@@ -67,21 +67,20 @@ func (s *SetupSnapshot) RemoveFromResourceList(resource resources.Resource) erro
 	refKey := resource.GetMetadata().Ref().Key()
 	switch resource.(type) {
 	case *Settings:
-		newList := SettingsList{}
-		for _, res := range s.Settings {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Settings {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Settings = append(s.Settings[:i], s.Settings[i+1:]...)
+				break
 			}
 		}
-		s.Settings = newList
-		s.Settings.Sort()
 		return nil
 	default:
-		return eris.Errorf("did not remove the reousource because its type does not exist [%T]", resource)
+		return eris.Errorf("did not remove the resource because its type does not exist [%T]", resource)
 	}
 }
 
-func (s *SetupSnapshot) AddOrReplaceToResourceList(resource resources.Resource) error {
+func (s *SetupSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {
 	case *Settings:
@@ -100,27 +99,6 @@ func (s *SetupSnapshot) AddOrReplaceToResourceList(resource resources.Resource) 
 	default:
 		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
 	}
-}
-
-func (s *SetupSnapshot) AddToResourceList(resource resources.Resource) error {
-	switch typed := resource.(type) {
-	case *Settings:
-		s.Settings = append(s.Settings, typed)
-		s.Settings.Sort()
-		return nil
-	default:
-		return eris.Errorf("did not add the resource type because it does not exist %T", resource)
-	}
-}
-
-func (s *SetupSnapshot) ReplaceResource(i int, resource resources.Resource) error {
-	switch typed := resource.(type) {
-	case *Settings:
-		s.Settings[i] = typed
-	default:
-		return eris.Wrapf(eris.Errorf("did not contain the resource type %T", resource), "did not replace the resource at index %d", i)
-	}
-	return nil
 }
 
 type SetupSnapshotStringer struct {

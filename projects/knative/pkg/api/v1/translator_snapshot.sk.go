@@ -69,21 +69,20 @@ func (s *TranslatorSnapshot) RemoveFromResourceList(resource resources.Resource)
 	refKey := resource.GetMetadata().Ref().Key()
 	switch resource.(type) {
 	case *github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.Ingress:
-		newList := github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.IngressList{}
-		for _, res := range s.Ingresses {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Ingresses {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Ingresses = append(s.Ingresses[:i], s.Ingresses[i+1:]...)
+				break
 			}
 		}
-		s.Ingresses = newList
-		s.Ingresses.Sort()
 		return nil
 	default:
-		return eris.Errorf("did not remove the reousource because its type does not exist [%T]", resource)
+		return eris.Errorf("did not remove the resource because its type does not exist [%T]", resource)
 	}
 }
 
-func (s *TranslatorSnapshot) AddOrReplaceToResourceList(resource resources.Resource) error {
+func (s *TranslatorSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {
 	case *github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.Ingress:
@@ -102,27 +101,6 @@ func (s *TranslatorSnapshot) AddOrReplaceToResourceList(resource resources.Resou
 	default:
 		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
 	}
-}
-
-func (s *TranslatorSnapshot) AddToResourceList(resource resources.Resource) error {
-	switch typed := resource.(type) {
-	case *github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.Ingress:
-		s.Ingresses = append(s.Ingresses, typed)
-		s.Ingresses.Sort()
-		return nil
-	default:
-		return eris.Errorf("did not add the resource type because it does not exist %T", resource)
-	}
-}
-
-func (s *TranslatorSnapshot) ReplaceResource(i int, resource resources.Resource) error {
-	switch typed := resource.(type) {
-	case *github_com_solo_io_gloo_projects_knative_pkg_api_external_knative.Ingress:
-		s.Ingresses[i] = typed
-	default:
-		return eris.Wrapf(eris.Errorf("did not contain the resource type %T", resource), "did not replace the resource at index %d", i)
-	}
-	return nil
 }
 
 type TranslatorSnapshotStringer struct {

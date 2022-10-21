@@ -67,21 +67,20 @@ func (s *EdsSnapshot) RemoveFromResourceList(resource resources.Resource) error 
 	refKey := resource.GetMetadata().Ref().Key()
 	switch resource.(type) {
 	case *Upstream:
-		newList := UpstreamList{}
-		for _, res := range s.Upstreams {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Upstreams {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Upstreams = append(s.Upstreams[:i], s.Upstreams[i+1:]...)
+				break
 			}
 		}
-		s.Upstreams = newList
-		s.Upstreams.Sort()
 		return nil
 	default:
-		return eris.Errorf("did not remove the reousource because its type does not exist [%T]", resource)
+		return eris.Errorf("did not remove the resource because its type does not exist [%T]", resource)
 	}
 }
 
-func (s *EdsSnapshot) AddOrReplaceToResourceList(resource resources.Resource) error {
+func (s *EdsSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {
 	case *Upstream:
@@ -100,27 +99,6 @@ func (s *EdsSnapshot) AddOrReplaceToResourceList(resource resources.Resource) er
 	default:
 		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
 	}
-}
-
-func (s *EdsSnapshot) AddToResourceList(resource resources.Resource) error {
-	switch typed := resource.(type) {
-	case *Upstream:
-		s.Upstreams = append(s.Upstreams, typed)
-		s.Upstreams.Sort()
-		return nil
-	default:
-		return eris.Errorf("did not add the resource type because it does not exist %T", resource)
-	}
-}
-
-func (s *EdsSnapshot) ReplaceResource(i int, resource resources.Resource) error {
-	switch typed := resource.(type) {
-	case *Upstream:
-		s.Upstreams[i] = typed
-	default:
-		return eris.Wrapf(eris.Errorf("did not contain the resource type %T", resource), "did not replace the resource at index %d", i)
-	}
-	return nil
 }
 
 type EdsSnapshotStringer struct {

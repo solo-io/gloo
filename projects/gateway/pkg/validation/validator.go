@@ -303,7 +303,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 	if opts.Delete {
 		snapshotClone.RemoveFromResourceList(opts.Resource)
 	} else {
-		snapshotClone.AddOrReplaceToResourceList(opts.Resource)
+		snapshotClone.UpsertToResourceList(opts.Resource)
 	}
 
 	// only set the glooResource if we are validating a gloo resource
@@ -397,7 +397,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 		if opts.Delete {
 			v.latestSnapshot.RemoveFromResourceList(opts.Resource)
 		} else {
-			v.latestSnapshot.AddOrReplaceToResourceList(opts.Resource)
+			v.latestSnapshot.UpsertToResourceList(opts.Resource)
 		}
 	}
 

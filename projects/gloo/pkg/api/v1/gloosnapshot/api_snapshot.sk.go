@@ -305,161 +305,146 @@ func (s *ApiSnapshot) RemoveFromResourceList(resource resources.Resource) error 
 	refKey := resource.GetMetadata().Ref().Key()
 	switch resource.(type) {
 	case *gloo_solo_io.Artifact:
-		newList := gloo_solo_io.ArtifactList{}
-		for _, res := range s.Artifacts {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Artifacts {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Artifacts = append(s.Artifacts[:i], s.Artifacts[i+1:]...)
+				break
 			}
 		}
-		s.Artifacts = newList
-		s.Artifacts.Sort()
 		return nil
 	case *gloo_solo_io.Endpoint:
-		newList := gloo_solo_io.EndpointList{}
-		for _, res := range s.Endpoints {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Endpoints {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Endpoints = append(s.Endpoints[:i], s.Endpoints[i+1:]...)
+				break
 			}
 		}
-		s.Endpoints = newList
-		s.Endpoints.Sort()
 		return nil
 	case *gloo_solo_io.Proxy:
-		newList := gloo_solo_io.ProxyList{}
-		for _, res := range s.Proxies {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Proxies {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Proxies = append(s.Proxies[:i], s.Proxies[i+1:]...)
+				break
 			}
 		}
-		s.Proxies = newList
-		s.Proxies.Sort()
 		return nil
 	case *gloo_solo_io.UpstreamGroup:
-		newList := gloo_solo_io.UpstreamGroupList{}
-		for _, res := range s.UpstreamGroups {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.UpstreamGroups {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.UpstreamGroups = append(s.UpstreamGroups[:i], s.UpstreamGroups[i+1:]...)
+				break
 			}
 		}
-		s.UpstreamGroups = newList
-		s.UpstreamGroups.Sort()
 		return nil
 	case *gloo_solo_io.Secret:
-		newList := gloo_solo_io.SecretList{}
-		for _, res := range s.Secrets {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Secrets {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Secrets = append(s.Secrets[:i], s.Secrets[i+1:]...)
+				break
 			}
 		}
-		s.Secrets = newList
-		s.Secrets.Sort()
 		return nil
 	case *gloo_solo_io.Upstream:
-		newList := gloo_solo_io.UpstreamList{}
-		for _, res := range s.Upstreams {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Upstreams {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Upstreams = append(s.Upstreams[:i], s.Upstreams[i+1:]...)
+				break
 			}
 		}
-		s.Upstreams = newList
-		s.Upstreams.Sort()
 		return nil
 	case *enterprise_gloo_solo_io.AuthConfig:
-		newList := enterprise_gloo_solo_io.AuthConfigList{}
-		for _, res := range s.AuthConfigs {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.AuthConfigs {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.AuthConfigs = append(s.AuthConfigs[:i], s.AuthConfigs[i+1:]...)
+				break
 			}
 		}
-		s.AuthConfigs = newList
-		s.AuthConfigs.Sort()
 		return nil
 	case *github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfig:
-		newList := github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfigList{}
-		for _, res := range s.Ratelimitconfigs {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Ratelimitconfigs {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Ratelimitconfigs = append(s.Ratelimitconfigs[:i], s.Ratelimitconfigs[i+1:]...)
+				break
 			}
 		}
-		s.Ratelimitconfigs = newList
-		s.Ratelimitconfigs.Sort()
 		return nil
 	case *gateway_solo_io.VirtualService:
-		newList := gateway_solo_io.VirtualServiceList{}
-		for _, res := range s.VirtualServices {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.VirtualServices {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.VirtualServices = append(s.VirtualServices[:i], s.VirtualServices[i+1:]...)
+				break
 			}
 		}
-		s.VirtualServices = newList
-		s.VirtualServices.Sort()
 		return nil
 	case *gateway_solo_io.RouteTable:
-		newList := gateway_solo_io.RouteTableList{}
-		for _, res := range s.RouteTables {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.RouteTables {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.RouteTables = append(s.RouteTables[:i], s.RouteTables[i+1:]...)
+				break
 			}
 		}
-		s.RouteTables = newList
-		s.RouteTables.Sort()
 		return nil
 	case *gateway_solo_io.Gateway:
-		newList := gateway_solo_io.GatewayList{}
-		for _, res := range s.Gateways {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.Gateways {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.Gateways = append(s.Gateways[:i], s.Gateways[i+1:]...)
+				break
 			}
 		}
-		s.Gateways = newList
-		s.Gateways.Sort()
 		return nil
 	case *gateway_solo_io.VirtualHostOption:
-		newList := gateway_solo_io.VirtualHostOptionList{}
-		for _, res := range s.VirtualHostOptions {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.VirtualHostOptions {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.VirtualHostOptions = append(s.VirtualHostOptions[:i], s.VirtualHostOptions[i+1:]...)
+				break
 			}
 		}
-		s.VirtualHostOptions = newList
-		s.VirtualHostOptions.Sort()
 		return nil
 	case *gateway_solo_io.RouteOption:
-		newList := gateway_solo_io.RouteOptionList{}
-		for _, res := range s.RouteOptions {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.RouteOptions {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.RouteOptions = append(s.RouteOptions[:i], s.RouteOptions[i+1:]...)
+				break
 			}
 		}
-		s.RouteOptions = newList
-		s.RouteOptions.Sort()
 		return nil
 	case *gateway_solo_io.MatchableHttpGateway:
-		newList := gateway_solo_io.MatchableHttpGatewayList{}
-		for _, res := range s.HttpGateways {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.HttpGateways {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.HttpGateways = append(s.HttpGateways[:i], s.HttpGateways[i+1:]...)
+				break
 			}
 		}
-		s.HttpGateways = newList
-		s.HttpGateways.Sort()
 		return nil
 	case *graphql_gloo_solo_io.GraphQLApi:
-		newList := graphql_gloo_solo_io.GraphQLApiList{}
-		for _, res := range s.GraphqlApis {
-			if refKey != res.GetMetadata().Ref().Key() {
-				newList = append(newList, res)
+
+		for i, res := range s.GraphqlApis {
+			if refKey == res.GetMetadata().Ref().Key() {
+				s.GraphqlApis = append(s.GraphqlApis[:i], s.GraphqlApis[i+1:]...)
+				break
 			}
 		}
-		s.GraphqlApis = newList
-		s.GraphqlApis.Sort()
 		return nil
 	default:
-		return eris.Errorf("did not remove the reousource because its type does not exist [%T]", resource)
+		return eris.Errorf("did not remove the resource because its type does not exist [%T]", resource)
 	}
 }
 
-func (s *ApiSnapshot) AddOrReplaceToResourceList(resource resources.Resource) error {
+func (s *ApiSnapshot) UpsertToResourceList(resource resources.Resource) error {
 	refKey := resource.GetMetadata().Ref().Key()
 	switch typed := resource.(type) {
 	case *gloo_solo_io.Artifact:
@@ -660,111 +645,6 @@ func (s *ApiSnapshot) AddOrReplaceToResourceList(resource resources.Resource) er
 	default:
 		return eris.Errorf("did not add/replace the resource type because it does not exist %T", resource)
 	}
-}
-
-func (s *ApiSnapshot) AddToResourceList(resource resources.Resource) error {
-	switch typed := resource.(type) {
-	case *gloo_solo_io.Artifact:
-		s.Artifacts = append(s.Artifacts, typed)
-		s.Artifacts.Sort()
-		return nil
-	case *gloo_solo_io.Endpoint:
-		s.Endpoints = append(s.Endpoints, typed)
-		s.Endpoints.Sort()
-		return nil
-	case *gloo_solo_io.Proxy:
-		s.Proxies = append(s.Proxies, typed)
-		s.Proxies.Sort()
-		return nil
-	case *gloo_solo_io.UpstreamGroup:
-		s.UpstreamGroups = append(s.UpstreamGroups, typed)
-		s.UpstreamGroups.Sort()
-		return nil
-	case *gloo_solo_io.Secret:
-		s.Secrets = append(s.Secrets, typed)
-		s.Secrets.Sort()
-		return nil
-	case *gloo_solo_io.Upstream:
-		s.Upstreams = append(s.Upstreams, typed)
-		s.Upstreams.Sort()
-		return nil
-	case *enterprise_gloo_solo_io.AuthConfig:
-		s.AuthConfigs = append(s.AuthConfigs, typed)
-		s.AuthConfigs.Sort()
-		return nil
-	case *github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfig:
-		s.Ratelimitconfigs = append(s.Ratelimitconfigs, typed)
-		s.Ratelimitconfigs.Sort()
-		return nil
-	case *gateway_solo_io.VirtualService:
-		s.VirtualServices = append(s.VirtualServices, typed)
-		s.VirtualServices.Sort()
-		return nil
-	case *gateway_solo_io.RouteTable:
-		s.RouteTables = append(s.RouteTables, typed)
-		s.RouteTables.Sort()
-		return nil
-	case *gateway_solo_io.Gateway:
-		s.Gateways = append(s.Gateways, typed)
-		s.Gateways.Sort()
-		return nil
-	case *gateway_solo_io.VirtualHostOption:
-		s.VirtualHostOptions = append(s.VirtualHostOptions, typed)
-		s.VirtualHostOptions.Sort()
-		return nil
-	case *gateway_solo_io.RouteOption:
-		s.RouteOptions = append(s.RouteOptions, typed)
-		s.RouteOptions.Sort()
-		return nil
-	case *gateway_solo_io.MatchableHttpGateway:
-		s.HttpGateways = append(s.HttpGateways, typed)
-		s.HttpGateways.Sort()
-		return nil
-	case *graphql_gloo_solo_io.GraphQLApi:
-		s.GraphqlApis = append(s.GraphqlApis, typed)
-		s.GraphqlApis.Sort()
-		return nil
-	default:
-		return eris.Errorf("did not add the resource type because it does not exist %T", resource)
-	}
-}
-
-func (s *ApiSnapshot) ReplaceResource(i int, resource resources.Resource) error {
-	switch typed := resource.(type) {
-	case *gloo_solo_io.Artifact:
-		s.Artifacts[i] = typed
-	case *gloo_solo_io.Endpoint:
-		s.Endpoints[i] = typed
-	case *gloo_solo_io.Proxy:
-		s.Proxies[i] = typed
-	case *gloo_solo_io.UpstreamGroup:
-		s.UpstreamGroups[i] = typed
-	case *gloo_solo_io.Secret:
-		s.Secrets[i] = typed
-	case *gloo_solo_io.Upstream:
-		s.Upstreams[i] = typed
-	case *enterprise_gloo_solo_io.AuthConfig:
-		s.AuthConfigs[i] = typed
-	case *github_com_solo_io_gloo_projects_gloo_pkg_api_external_solo_ratelimit.RateLimitConfig:
-		s.Ratelimitconfigs[i] = typed
-	case *gateway_solo_io.VirtualService:
-		s.VirtualServices[i] = typed
-	case *gateway_solo_io.RouteTable:
-		s.RouteTables[i] = typed
-	case *gateway_solo_io.Gateway:
-		s.Gateways[i] = typed
-	case *gateway_solo_io.VirtualHostOption:
-		s.VirtualHostOptions[i] = typed
-	case *gateway_solo_io.RouteOption:
-		s.RouteOptions[i] = typed
-	case *gateway_solo_io.MatchableHttpGateway:
-		s.HttpGateways[i] = typed
-	case *graphql_gloo_solo_io.GraphQLApi:
-		s.GraphqlApis[i] = typed
-	default:
-		return eris.Wrapf(eris.Errorf("did not contain the resource type %T", resource), "did not replace the resource at index %d", i)
-	}
-	return nil
 }
 
 type ApiSnapshotStringer struct {

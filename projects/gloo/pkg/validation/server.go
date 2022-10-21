@@ -243,7 +243,7 @@ func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource 
 				return nil, err
 			}
 		} else {
-			if err := snapCopy.AddOrReplaceToResourceList(resource); err != nil {
+			if err := snapCopy.UpsertToResourceList(resource); err != nil {
 				return nil, err
 			}
 		}

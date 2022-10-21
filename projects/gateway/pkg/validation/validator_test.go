@@ -763,7 +763,7 @@ var _ = Describe("Validator", func() {
 				v.glooValidator = ValidateAccept
 				snap := samples.SimpleGlooSnapshot(ns)
 				newVS := samples.SimpleVS("newnamespace", "newname", "mydomain", snap.Upstreams[0].Metadata.Ref())
-				err := snap.AddToResourceList(newVS)
+				err := snap.UpsertToResourceList(newVS)
 				Expect(err).NotTo(HaveOccurred())
 				err = v.Sync(context.TODO(), snap)
 				Expect(err).NotTo(HaveOccurred())
