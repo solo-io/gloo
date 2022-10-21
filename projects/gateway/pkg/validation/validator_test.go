@@ -411,7 +411,6 @@ var _ = Describe("Validator", func() {
 				Expect(err).NotTo(HaveOccurred())
 				err = v.ValidateDeletedGvk(context.TODO(), v1.RouteTableGVK, snap.RouteTables[1], false)
 				Expect(err).To(HaveOccurred())
-				// TODO-JAKE I believe this is acceptable
 				Expect(err.Error()).To(ContainSubstring("missing route table"))
 			})
 		})
@@ -486,14 +485,7 @@ var _ = Describe("Validator", func() {
 		})
 		Context("no gateways for virtual service", func() {
 			It("accepts the vs", func() {
-				// TODO-JAKE not sure if we want this to be a ValidateAccept
 				v.glooValidator = ValidateAccept
-				/*
-					So it looks like the gateways have to have selectors that match the VS labels and be in it's ns
-					if this is not true, then we do not need to validate the virtual service against this gateway.
-
-					So the question is why is the VS failing?
-				*/
 				snap := samples.SimpleGlooSnapshot(ns)
 				snap.Gateways.Each(func(element *gatewayv1.Gateway) {
 					switch gatewayType := element.GetGatewayType().(type) {
@@ -511,7 +503,6 @@ var _ = Describe("Validator", func() {
 				Expect(err).NotTo(HaveOccurred())
 				reports, err := v.ValidateModifiedGvk(context.TODO(), v1.VirtualServiceGVK, snap.VirtualServices[0], false)
 				Expect(err).NotTo(HaveOccurred())
-				// TODO-JAKE if we are not filtering the proxies, we will have a report on the proxy
 				Expect(*(reports.ProxyReports)).To(HaveLen(1))
 			})
 		})
@@ -750,8 +741,8 @@ var _ = Describe("Validator", func() {
 				Expect(err).NotTo(HaveOccurred())
 				err = v.ValidateDeletedGvk(context.TODO(), v1.VirtualServiceGVK, snap.VirtualServices[0], false)
 				Expect(err).To(HaveOccurred())
-				// TODO-JAKE probably not the error we want to be having.  This looks like the default error.
 				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("invalid virtual service ref name:\"%s\"", ref.Name)))
+				Expect(err.Error()).To(ContainSubstring("hybrid gateway does not have any populated matched gateways"))
 			})
 		})
 		Context("has no parent gateways", func() {

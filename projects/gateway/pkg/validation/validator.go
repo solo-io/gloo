@@ -60,22 +60,13 @@ type ProxyReports []*validation.ProxyReport
 type UpstreamReports []*validation.ResourceReport
 
 var (
-	NotReadyErr = errors.Errorf("validation is not yet available. Waiting for first snapshot")
-
-	RouteTableDeleteErr = func(parentVirtualServices, parentRouteTables []*core.ResourceRef) error {
-		return errors.Errorf("Deletion blocked because active Routes delegate to this Route Table. Remove delegate actions to this route table from the virtual services: %v and the route tables: %v, then try again",
-			parentVirtualServices,
-			parentRouteTables)
-	}
-	VirtualServiceDeleteErr = func(parentGateways []*core.ResourceRef) error {
-		return errors.Errorf("Deletion blocked because active Gateways reference this Virtual Service. Remove refs to this virtual service from the gateways: %v, then try again",
-			parentGateways)
-	}
-	unmarshalErrMsg       = "could not unmarshal raw object"
-	couldNotRenderProxy   = "could not render proxy"
-	failedGlooValidation  = "failed gloo validation"
-	failedResourceReports = "failed resource reports from gloo validation"
-	WrappedUnmarshalErr   = func(err error) error {
+	NotReadyErr             = errors.Errorf("validation is not yet available. Waiting for first snapshot")
+	HasNotReceivedFirstSync = eris.New("proxy validation called before the validation server received its first sync of resources")
+	unmarshalErrMsg         = "could not unmarshal raw object"
+	couldNotRenderProxy     = "could not render proxy"
+	failedGlooValidation    = "failed gloo validation"
+	failedResourceReports   = "failed resource reports from gloo validation"
+	WrappedUnmarshalErr     = func(err error) error {
 		return errors.Wrapf(err, unmarshalErrMsg)
 	}
 
@@ -302,7 +293,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 	ctx = contextutils.WithLogger(ctx, "gateway-validator")
 
 	// currently have the other for Gloo resources
-	snapshotClone, err := v.copySnapshot(ctx, opts.DryRun)
+	snapshotClone, err := v.copySnapshotNonThreadSafe(ctx, opts.DryRun)
 	if err != nil {
 		// allow writes if storage is already broken
 		return nil, nil
@@ -317,7 +308,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 
 	// only set the glooResource if we are validating a gloo resource
 	var glooResource resources.Resource
-	if opts.Gvk.Group == gloovalidation.GlooGroup {
+	if opts.Gvk.Group != GatewayGroup {
 		glooResource = opts.Resource
 	}
 
@@ -513,9 +504,12 @@ func (v *validator) processItem(ctx context.Context, item unstructured.Unstructu
 	return &Reports{ProxyReports: &ProxyReports{}}, errors.Errorf("Unknown group/version/kind, %v", itemGvk)
 }
 
-func (v *validator) copySnapshot(ctx context.Context, dryRun bool) (*gloosnapshot.ApiSnapshot, error) {
+// copySnapshotNonThreadSafe will copy the snapshot. If there is an error with the latest snapshot, it will error.
+// NOTE: does not perform any lock, and this function is not thread safe. Any read or write to the snapshot needs to be
+// done under a lock
+func (v *validator) copySnapshotNonThreadSafe(ctx context.Context, dryRun bool) (*gloosnapshot.ApiSnapshot, error) {
 	if v.latestSnapshot == nil {
-		return nil, eris.New("proxy validation called before the validation server received its first sync of resources")
+		return nil, HasNotReceivedFirstSync
 	}
 	if v.latestSnapshotErr != nil {
 		if !dryRun {

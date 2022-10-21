@@ -6,7 +6,7 @@ changelog:
     dependencyOwner: solo-io
     dependencyRepo:  solo-kit
     dependencyTag: todo
-  - type: BREAKING_CHANGE
-    description: generic validation webhook
+  - type: NON_USER_FACING
+    description: generic validation webhook. Future enhancements to the validation webhook will have to include the supported gvks that are to be supported.
     issueLink: https://github.com/solo-io/gloo/issues/7273
     resolvesIssue: false

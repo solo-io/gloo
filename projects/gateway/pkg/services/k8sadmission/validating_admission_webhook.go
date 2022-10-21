@@ -399,9 +399,8 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 	}
 	if isDelete {
 		return wh.deleteRef(ctx, gvk, ref, admissionRequest)
-	} else {
-		return wh.validateGvk(ctx, gvk, ref, admissionRequest)
 	}
+	return wh.validateGvk(ctx, gvk, ref, admissionRequest)
 }
 
 func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
