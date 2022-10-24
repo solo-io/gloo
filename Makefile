@@ -716,7 +716,7 @@ docker-local: discovery-docker gloo-docker  \
 		ingress-docker access-logger-docker kubectl-docker
 
 .PHONY: docker-ci
-ifneq ($(UNAME_M), "arm64")
+ifeq ($(UNAME_M), arm64)
 docker-ci:
 else
 docker-ci: gloo-race-docker
