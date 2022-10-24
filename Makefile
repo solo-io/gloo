@@ -743,7 +743,7 @@ ifeq ($(CREATE_ASSETS), "true")
 	docker push $(IMAGE_REPO)/sds:$(VERSION) && \
 	docker push $(IMAGE_REPO)/access-logger:$(VERSION)
 endif
-
+# To mimic the effects of CI, both TAGGED_VERSION and CREATE_TEST_ASSETS need to be set
 .PHONY: docker-push-extended
 docker-push-extended:
 ifeq ($(CREATE_ASSETS), "true")
