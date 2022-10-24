@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/gloo/issues/7343
+  resolvesIssue: false
+  description: >
+    Fixes issue where discovery pod can leak memory when trying to create graphql schemas from gRPC services with a recursive type.

@@ -1,13 +1,16 @@
 package grpc_test
 
 import (
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/protoparse"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/discovery/pkg/fds"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/test/matchers"
 	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/grpc-graphql"
 )
 
@@ -29,7 +32,8 @@ var _ = Describe("Grpc reflection - graphql schema discovery test", func() {
 		})
 
 		var (
-			schemaDef string
+			schemaDef     string
+			localExecutor *v1beta1.Executor_Local_
 		)
 
 		BeforeEach(func() {
@@ -37,10 +41,13 @@ var _ = Describe("Grpc reflection - graphql schema discovery test", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			schemaDef = schema.GetExecutableSchema().GetSchemaDefinition()
+			Expect(schema.GetExecutableSchema().GetExecutor().Executor).To(BeAssignableToTypeOf(&v1beta1.Executor_Local_{}))
+			localExecutor = schema.GetExecutableSchema().GetExecutor().Executor.(*v1beta1.Executor_Local_)
 		})
 
 		AfterEach(func() {
 			schemaDef = ""
+			localExecutor = nil
 		})
 
 		It("should translate a simple proto to graphql schema", func() {
@@ -70,8 +77,12 @@ type Pet {
 			Expect(schemaDef).To(ContainSubstring(`"""Created from protobuf type foo.PetRequest"""
 input PetRequestInput {
   id: Int
-}
-`))
+  recursive: PetRequest_RecursiveMessageInput
+}`))
+			Expect(schemaDef).To(ContainSubstring(`"""Created from protobuf type foo.PetRequest.RecursiveMessage"""
+input PetRequest_RecursiveMessageInput {
+  request: PetRequestInput
+}`))
 		})
 
 		It("should translate the Query types", func() {
@@ -79,6 +90,33 @@ input PetRequestInput {
 type Query {
   GetBar(PetRequest: PetRequestInput): Pet @resolve(name: "Query|Foo.GetBar")
 }`))
+		})
+
+		It("should construct outgoing message", func() {
+			resolution := &v1beta1.Resolution{
+				Resolver: &v1beta1.Resolution_GrpcResolver{
+					GrpcResolver: &v1beta1.GrpcResolver{
+						UpstreamRef: &core.ResourceRef{Name: "test", Namespace: "test-system"},
+						RequestTransform: &v1beta1.GrpcRequestTemplate{
+							OutgoingMessageJson: &structpb.Value{
+								Kind: &structpb.Value_StructValue{
+									StructValue: &structpb.Struct{
+										Fields: map[string]*structpb.Value{
+											"id": {Kind: &structpb.Value_StringValue{StringValue: "{$args.PetRequest.id}"}},
+											// shouldn't recurse into the recursive message
+											"recursive": {Kind: &structpb.Value_StringValue{StringValue: "{$args.PetRequest.recursive}"}},
+										},
+									},
+								},
+							},
+							ServiceName: "foo.Foo",
+							MethodName:  "GetBar",
+						},
+					},
+				},
+			}
+			Expect(localExecutor.Local.GetResolutions()).To(HaveKey("Query|Foo.GetBar"))
+			Expect(localExecutor.Local.GetResolutions()["Query|Foo.GetBar"]).To(matchers.MatchProto(resolution))
 		})
 	})
 
@@ -106,6 +144,10 @@ message Pet {
 }
 message PetRequest {
 	uint64 id = 1;
+	RecursiveMessage recursive = 2;
+	message RecursiveMessage {
+		PetRequest request = 1;
+	}
 }
 service Foo {
 	rpc GetBar(PetRequest) returns (Pet) {};

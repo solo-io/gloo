@@ -250,14 +250,11 @@ func GenerateOutgoingJsonBodyForInputType(inputType *desc.MessageDescriptor, arg
 		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 			path += "[*]"
 		}
-		if f.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-			newVal = GenerateOutgoingJsonBodyForInputType(f.GetMessageType(), path)
-		} else {
-			newVal = &structpb.Value{
-				Kind: &structpb.Value_StringValue{
-					StringValue: path + "}",
-				},
-			}
+
+		newVal = &structpb.Value{
+			Kind: &structpb.Value_StringValue{
+				StringValue: path + "}",
+			},
 		}
 
 		val.Fields[f.GetName()] = newVal
