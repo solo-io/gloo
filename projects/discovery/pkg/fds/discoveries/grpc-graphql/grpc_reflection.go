@@ -15,6 +15,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/graphql-go/graphql/language/printer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/graphql/v1beta1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
@@ -49,7 +50,11 @@ func getGrpcSpec(u *v1.Upstream) *grpc_plugins.ServiceSpec {
 	return grpcWrapper.Grpc
 }
 
-func NewFunctionDiscoveryFactory() fds.FunctionDiscoveryFactory {
+func NewFunctionDiscoveryFactory(opts bootstrap.Opts) fds.FunctionDiscoveryFactory {
+	// Allow disabling of fds for GraphQL purposes, default to enabled
+	if gqlEnabled := opts.Settings.GetDiscovery().GetFdsOptions().GetGraphqlEnabled(); gqlEnabled != nil && gqlEnabled.GetValue() == false {
+		return nil
+	}
 	return &FunctionDiscoveryFactory{
 		DetectionTimeout: time.Second * 15,
 		FunctionPollTime: time.Second * 15,

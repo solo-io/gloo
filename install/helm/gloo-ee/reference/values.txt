@@ -258,7 +258,7 @@
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
-|gloo.gloo.deployment.ossImageTag|string|1.13.0-beta23|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
+|gloo.gloo.deployment.ossImageTag|string|1.13.0-beta25|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
 |gloo.gloo.deployment.replicas|int||number of instances to deploy|
 |gloo.gloo.deployment.customEnv[].name|string|||
 |gloo.gloo.deployment.customEnv[].value|string|||
@@ -301,6 +301,7 @@
 |gloo.gloo.splitLogOutput|bool||Set to true to send debug/info/warning logs to stdout, error/fatal/panic to stderr. Set to false to send all logs to stdout|
 |gloo.gloo.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gloo.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
+|gloo.gloo.disableLeaderElection|bool||Set to true to disable leader election, and ensure all running replicas are considered the leader. Do not enable this with multiple replicas of Gloo|
 |gloo.discovery.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |gloo.discovery.deployment.image.repository|string|discovery-ee|The image repository (name) for the container.|
 |gloo.discovery.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
@@ -362,6 +363,7 @@
 |gloo.discovery.fdsMode|string||mode for function discovery (blacklist or whitelist). See more info in the settings docs|
 |gloo.discovery.udsOptions.enabled|bool||Enable upstream discovery service. Defaults to true.|
 |gloo.discovery.udsOptions.watchLabels.NAME|string||Map of labels to watch. Only services which match all of the selectors specified here will be discovered by UDS.|
+|gloo.discovery.fdsOptions.graphqlEnabled|bool||Enable GraphQL schema generation on the function discovery service. Defaults to true.|
 |gloo.discovery.enabled|bool||enable Discovery features|
 |gloo.discovery.serviceAccount.extraAnnotations.NAME|string||extra annotations to add to the service account|
 |gloo.discovery.serviceAccount.disableAutomount|bool||disable automounting the service account to the gateway proxy. not mounting the token hardens the proxy container, but may interfere with service mesh integrations|
@@ -382,7 +384,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.certGenJob.image.tag|string|1.13.0-beta23|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.13.0-beta25|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string|certgen|The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.certGenJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -432,7 +434,7 @@
 |gloo.gateway.rolloutJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.rolloutJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.rolloutJob.enabled|bool||Enable the job that applies default Gloo Edge custom resources at install and upgrade time (default true).|
-|gloo.gateway.rolloutJob.image.tag|string|1.13.0-beta23|The image tag for the container.|
+|gloo.gateway.rolloutJob.image.tag|string|1.13.0-beta25|The image tag for the container.|
 |gloo.gateway.rolloutJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.rolloutJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.rolloutJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -461,7 +463,7 @@
 |gloo.gateway.cleanupJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.cleanupJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.cleanupJob.enabled|bool||Enable the job that removes Gloo Edge custom resources when Gloo Edge is uninstalled (default true).|
-|gloo.gateway.cleanupJob.image.tag|string|1.13.0-beta23|The image tag for the container.|
+|gloo.gateway.cleanupJob.image.tag|string|1.13.0-beta25|The image tag for the container.|
 |gloo.gateway.cleanupJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.cleanupJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.cleanupJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -1324,7 +1326,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.13.0-beta23|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.13.0-beta25|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string|sds|The image repository (name) for the container.|
 |global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |global.glooMtls.sds.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|

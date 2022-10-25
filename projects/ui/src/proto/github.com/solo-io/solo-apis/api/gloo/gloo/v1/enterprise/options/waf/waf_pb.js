@@ -13,8 +13,10 @@ var goog = jspb;
 var global = Function('return this')();
 
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_waf_waf_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/waf/waf_pb.js');
+var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../../extproto/ext_pb.js');
 goog.exportSymbol('proto.waf.options.gloo.solo.io.CoreRuleSet', null, global);
+goog.exportSymbol('proto.waf.options.gloo.solo.io.RuleSetFromConfigMap', null, global);
 goog.exportSymbol('proto.waf.options.gloo.solo.io.Settings', null, global);
 
 /**
@@ -39,7 +41,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.waf.options.gloo.solo.io.Settings.repeatedFields_ = [4];
+proto.waf.options.gloo.solo.io.Settings.repeatedFields_ = [4,8];
 
 
 
@@ -75,6 +77,8 @@ proto.waf.options.gloo.solo.io.Settings.toObject = function(includeInstance, msg
     coreRuleSet: (f = msg.getCoreRuleSet()) && proto.waf.options.gloo.solo.io.CoreRuleSet.toObject(includeInstance, f),
     ruleSetsList: jspb.Message.toObjectList(msg.getRuleSetsList(),
     github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_waf_waf_pb.RuleSet.toObject, includeInstance),
+    configMapRuleSetsList: jspb.Message.toObjectList(msg.getConfigMapRuleSetsList(),
+    proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.toObject, includeInstance),
     auditLogging: (f = msg.getAuditLogging()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_waf_waf_pb.AuditLogging.toObject(includeInstance, f),
     requestHeadersOnly: jspb.Message.getFieldWithDefault(msg, 6, false),
     responseHeadersOnly: jspb.Message.getFieldWithDefault(msg, 7, false)
@@ -131,6 +135,11 @@ proto.waf.options.gloo.solo.io.Settings.deserializeBinaryFromReader = function(m
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_waf_waf_pb.RuleSet;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_waf_waf_pb.RuleSet.deserializeBinaryFromReader);
       msg.addRuleSets(value);
+      break;
+    case 8:
+      var value = new proto.waf.options.gloo.solo.io.RuleSetFromConfigMap;
+      reader.readMessage(value,proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.deserializeBinaryFromReader);
+      msg.addConfigMapRuleSets(value);
       break;
     case 5:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_waf_waf_pb.AuditLogging;
@@ -202,6 +211,14 @@ proto.waf.options.gloo.solo.io.Settings.serializeBinaryToWriter = function(messa
       4,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_waf_waf_pb.RuleSet.serializeBinaryToWriter
+    );
+  }
+  f = message.getConfigMapRuleSetsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      8,
+      f,
+      proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.serializeBinaryToWriter
     );
   }
   f = message.getAuditLogging();
@@ -323,6 +340,37 @@ proto.waf.options.gloo.solo.io.Settings.prototype.clearRuleSetsList = function()
 
 
 /**
+ * repeated RuleSetFromConfigMap config_map_rule_sets = 8;
+ * @return {!Array<!proto.waf.options.gloo.solo.io.RuleSetFromConfigMap>}
+ */
+proto.waf.options.gloo.solo.io.Settings.prototype.getConfigMapRuleSetsList = function() {
+  return /** @type{!Array<!proto.waf.options.gloo.solo.io.RuleSetFromConfigMap>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.waf.options.gloo.solo.io.RuleSetFromConfigMap, 8));
+};
+
+
+/** @param {!Array<!proto.waf.options.gloo.solo.io.RuleSetFromConfigMap>} value */
+proto.waf.options.gloo.solo.io.Settings.prototype.setConfigMapRuleSetsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 8, value);
+};
+
+
+/**
+ * @param {!proto.waf.options.gloo.solo.io.RuleSetFromConfigMap=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.waf.options.gloo.solo.io.RuleSetFromConfigMap}
+ */
+proto.waf.options.gloo.solo.io.Settings.prototype.addConfigMapRuleSets = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 8, opt_value, proto.waf.options.gloo.solo.io.RuleSetFromConfigMap, opt_index);
+};
+
+
+proto.waf.options.gloo.solo.io.Settings.prototype.clearConfigMapRuleSetsList = function() {
+  this.setConfigMapRuleSetsList([]);
+};
+
+
+/**
  * optional envoy.config.filter.http.modsecurity.v2.AuditLogging audit_logging = 5;
  * @return {?proto.envoy.config.filter.http.modsecurity.v2.AuditLogging}
  */
@@ -383,6 +431,213 @@ proto.waf.options.gloo.solo.io.Settings.prototype.getResponseHeadersOnly = funct
 /** @param {boolean} value */
 proto.waf.options.gloo.solo.io.Settings.prototype.setResponseHeadersOnly = function(value) {
   jspb.Message.setProto3BooleanField(this, 7, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.repeatedFields_, null);
+};
+goog.inherits(proto.waf.options.gloo.solo.io.RuleSetFromConfigMap, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.displayName = 'proto.waf.options.gloo.solo.io.RuleSetFromConfigMap';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.repeatedFields_ = [2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.prototype.toObject = function(opt_includeInstance) {
+  return proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.waf.options.gloo.solo.io.RuleSetFromConfigMap} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    configMapRef: (f = msg.getConfigMapRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    dataMapKeysList: jspb.Message.getRepeatedField(msg, 2)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.waf.options.gloo.solo.io.RuleSetFromConfigMap}
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.waf.options.gloo.solo.io.RuleSetFromConfigMap;
+  return proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.waf.options.gloo.solo.io.RuleSetFromConfigMap} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.waf.options.gloo.solo.io.RuleSetFromConfigMap}
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setConfigMapRef(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addDataMapKeys(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.waf.options.gloo.solo.io.RuleSetFromConfigMap} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getConfigMapRef();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getDataMapKeysList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef config_map_ref = 1;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.prototype.getConfigMapRef = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.prototype.setConfigMapRef = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.prototype.clearConfigMapRef = function() {
+  this.setConfigMapRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.prototype.hasConfigMapRef = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * repeated string data_map_keys = 2;
+ * @return {!Array<string>}
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.prototype.getDataMapKeysList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/** @param {!Array<string>} value */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.prototype.setDataMapKeysList = function(value) {
+  jspb.Message.setField(this, 2, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.prototype.addDataMapKeys = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+proto.waf.options.gloo.solo.io.RuleSetFromConfigMap.prototype.clearDataMapKeysList = function() {
+  this.setDataMapKeysList([]);
 };
 
 

@@ -40,6 +40,11 @@ export class Secret extends jspb.Message {
   getHeader(): HeaderSecret | undefined;
   setHeader(value?: HeaderSecret): void;
 
+  hasCredentials(): boolean;
+  clearCredentials(): void;
+  getCredentials(): AccountCredentialsSecret | undefined;
+  setCredentials(value?: AccountCredentialsSecret): void;
+
   hasExtensions(): boolean;
   clearExtensions(): void;
   getExtensions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_extensions_pb.Extensions | undefined;
@@ -69,6 +74,7 @@ export namespace Secret {
     oauth?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.OauthSecret.AsObject,
     apiKey?: github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb.ApiKey.AsObject,
     header?: HeaderSecret.AsObject,
+    credentials?: AccountCredentialsSecret.AsObject,
     extensions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_extensions_pb.Extensions.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
   }
@@ -81,6 +87,7 @@ export namespace Secret {
     OAUTH = 5,
     API_KEY = 6,
     HEADER = 8,
+    CREDENTIALS = 9,
     EXTENSIONS = 4,
   }
 }
@@ -176,5 +183,29 @@ export class HeaderSecret extends jspb.Message {
 export namespace HeaderSecret {
   export type AsObject = {
     headersMap: Array<[string, string]>,
+  }
+}
+
+export class AccountCredentialsSecret extends jspb.Message {
+  getUsername(): string;
+  setUsername(value: string): void;
+
+  getPassword(): string;
+  setPassword(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AccountCredentialsSecret.AsObject;
+  static toObject(includeInstance: boolean, msg: AccountCredentialsSecret): AccountCredentialsSecret.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: AccountCredentialsSecret, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AccountCredentialsSecret;
+  static deserializeBinaryFromReader(message: AccountCredentialsSecret, reader: jspb.BinaryReader): AccountCredentialsSecret;
+}
+
+export namespace AccountCredentialsSecret {
+  export type AsObject = {
+    username: string,
+    password: string,
   }
 }

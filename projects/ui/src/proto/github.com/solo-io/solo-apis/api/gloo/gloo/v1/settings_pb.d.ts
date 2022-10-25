@@ -403,6 +403,11 @@ export namespace SettingsSpec {
     getUdsOptions(): SettingsSpec.DiscoveryOptions.UdsOptions | undefined;
     setUdsOptions(value?: SettingsSpec.DiscoveryOptions.UdsOptions): void;
 
+    hasFdsOptions(): boolean;
+    clearFdsOptions(): void;
+    getFdsOptions(): SettingsSpec.DiscoveryOptions.FdsOptions | undefined;
+    setFdsOptions(value?: SettingsSpec.DiscoveryOptions.FdsOptions): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): DiscoveryOptions.AsObject;
     static toObject(includeInstance: boolean, msg: DiscoveryOptions): DiscoveryOptions.AsObject;
@@ -417,6 +422,7 @@ export namespace SettingsSpec {
     export type AsObject = {
       fdsMode: SettingsSpec.DiscoveryOptions.FdsModeMap[keyof SettingsSpec.DiscoveryOptions.FdsModeMap],
       udsOptions?: SettingsSpec.DiscoveryOptions.UdsOptions.AsObject,
+      fdsOptions?: SettingsSpec.DiscoveryOptions.FdsOptions.AsObject,
     }
 
     export class UdsOptions extends jspb.Message {
@@ -441,6 +447,28 @@ export namespace SettingsSpec {
       export type AsObject = {
         enabled?: google_protobuf_wrappers_pb.BoolValue.AsObject,
         watchLabelsMap: Array<[string, string]>,
+      }
+    }
+
+    export class FdsOptions extends jspb.Message {
+      hasGraphqlEnabled(): boolean;
+      clearGraphqlEnabled(): void;
+      getGraphqlEnabled(): google_protobuf_wrappers_pb.BoolValue | undefined;
+      setGraphqlEnabled(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): FdsOptions.AsObject;
+      static toObject(includeInstance: boolean, msg: FdsOptions): FdsOptions.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: FdsOptions, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): FdsOptions;
+      static deserializeBinaryFromReader(message: FdsOptions, reader: jspb.BinaryReader): FdsOptions;
+    }
+
+    export namespace FdsOptions {
+      export type AsObject = {
+        graphqlEnabled?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       }
     }
 

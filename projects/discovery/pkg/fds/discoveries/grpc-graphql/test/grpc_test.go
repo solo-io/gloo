@@ -12,13 +12,29 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/discovery/pkg/fds"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/grpc-graphql"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var _ = Describe("Grpc reflection - graphql schema discovery test", func() {
 	Context("translates proto to graphql schema", func() {
+		var (
+			opts bootstrap.Opts
+		)
+		BeforeEach(func() {
+			opts = bootstrap.Opts{
+				Settings: &v1.Settings{
+					Discovery: &v1.Settings_DiscoveryOptions{
+						FdsOptions: &v1.Settings_DiscoveryOptions_FdsOptions{
+							GraphqlEnabled: &wrapperspb.BoolValue{Value: true},
+						},
+					},
+				},
+			}
+		})
 		var (
 			refClient         grpc.GrpcReflectionClient
 			functionDiscovery *grpc.GraphqlSchemaDiscovery
@@ -32,7 +48,7 @@ var _ = Describe("Grpc reflection - graphql schema discovery test", func() {
 					Namespace: "test-system",
 				},
 			}
-			functionDiscovery = grpc.NewFunctionDiscoveryFactory().NewFunctionDiscovery(upstream, fds.AdditionalClients{}).(*grpc.GraphqlSchemaDiscovery)
+			functionDiscovery = grpc.NewFunctionDiscoveryFactory(opts).NewFunctionDiscovery(upstream, fds.AdditionalClients{}).(*grpc.GraphqlSchemaDiscovery)
 		}
 
 		getGraphqlDocForProto := func(offset int, proto string) *ast.Document {
@@ -130,11 +146,11 @@ service Foo {
 						message Pet {
 							int32 id = 1;
 						}
-						
+
 						message PetRequest {
 							Pet pet = 1;
 						}
-						
+
 						service Foo {
 							rpc GetPet(PetRequest) returns (Pet) {};
 						}`

@@ -1,0 +1,10 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/gloo/issues/7344
+  resolvesIssue: false
+  description: |
+    Implements logic to prevent GraphQL FDS extensions from being registered when the setting discovery.fdsOptions.graphqlEnabled is set to false
+- type: DEPENDENCY_BUMP
+  dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v1.13.0-beta25

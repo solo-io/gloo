@@ -1932,6 +1932,11 @@ export class Ldap extends jspb.Message {
   getDisableGroupChecking(): boolean;
   setDisableGroupChecking(value: boolean): void;
 
+  hasGroupLookupSettings(): boolean;
+  clearGroupLookupSettings(): void;
+  getGroupLookupSettings(): LdapServiceAccount | undefined;
+  setGroupLookupSettings(value?: LdapServiceAccount): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Ldap.AsObject;
   static toObject(includeInstance: boolean, msg: Ldap): Ldap.AsObject;
@@ -1951,6 +1956,7 @@ export namespace Ldap {
     pool?: Ldap.ConnectionPool.AsObject,
     searchfilter: string,
     disableGroupChecking: boolean,
+    groupLookupSettings?: LdapServiceAccount.AsObject,
   }
 
   export class ConnectionPool extends jspb.Message {
@@ -1979,6 +1985,32 @@ export namespace Ldap {
       maxsize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
       initialsize?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     }
+  }
+}
+
+export class LdapServiceAccount extends jspb.Message {
+  hasCredentialsSecretRef(): boolean;
+  clearCredentialsSecretRef(): void;
+  getCredentialsSecretRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setCredentialsSecretRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+  getCheckGroupsWithServiceAccount(): boolean;
+  setCheckGroupsWithServiceAccount(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LdapServiceAccount.AsObject;
+  static toObject(includeInstance: boolean, msg: LdapServiceAccount): LdapServiceAccount.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: LdapServiceAccount, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LdapServiceAccount;
+  static deserializeBinaryFromReader(message: LdapServiceAccount, reader: jspb.BinaryReader): LdapServiceAccount;
+}
+
+export namespace LdapServiceAccount {
+  export type AsObject = {
+    credentialsSecretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    checkGroupsWithServiceAccount: boolean,
   }
 }
 
@@ -2758,6 +2790,88 @@ export namespace ExtAuthConfig {
     }
   }
 
+  export class LdapConfig extends jspb.Message {
+    getAddress(): string;
+    setAddress(value: string): void;
+
+    getUserdntemplate(): string;
+    setUserdntemplate(value: string): void;
+
+    getMembershipattributename(): string;
+    setMembershipattributename(value: string): void;
+
+    clearAllowedgroupsList(): void;
+    getAllowedgroupsList(): Array<string>;
+    setAllowedgroupsList(value: Array<string>): void;
+    addAllowedgroups(value: string, index?: number): string;
+
+    hasPool(): boolean;
+    clearPool(): void;
+    getPool(): Ldap.ConnectionPool | undefined;
+    setPool(value?: Ldap.ConnectionPool): void;
+
+    getSearchfilter(): string;
+    setSearchfilter(value: string): void;
+
+    getDisableGroupChecking(): boolean;
+    setDisableGroupChecking(value: boolean): void;
+
+    hasGroupLookupSettings(): boolean;
+    clearGroupLookupSettings(): void;
+    getGroupLookupSettings(): ExtAuthConfig.LdapServiceAccountConfig | undefined;
+    setGroupLookupSettings(value?: ExtAuthConfig.LdapServiceAccountConfig): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): LdapConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: LdapConfig): LdapConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: LdapConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): LdapConfig;
+    static deserializeBinaryFromReader(message: LdapConfig, reader: jspb.BinaryReader): LdapConfig;
+  }
+
+  export namespace LdapConfig {
+    export type AsObject = {
+      address: string,
+      userdntemplate: string,
+      membershipattributename: string,
+      allowedgroupsList: Array<string>,
+      pool?: Ldap.ConnectionPool.AsObject,
+      searchfilter: string,
+      disableGroupChecking: boolean,
+      groupLookupSettings?: ExtAuthConfig.LdapServiceAccountConfig.AsObject,
+    }
+  }
+
+  export class LdapServiceAccountConfig extends jspb.Message {
+    getUsername(): string;
+    setUsername(value: string): void;
+
+    getPassword(): string;
+    setPassword(value: string): void;
+
+    getCheckGroupsWithServiceAccount(): boolean;
+    setCheckGroupsWithServiceAccount(value: boolean): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): LdapServiceAccountConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: LdapServiceAccountConfig): LdapServiceAccountConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: LdapServiceAccountConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): LdapServiceAccountConfig;
+    static deserializeBinaryFromReader(message: LdapServiceAccountConfig, reader: jspb.BinaryReader): LdapServiceAccountConfig;
+  }
+
+  export namespace LdapServiceAccountConfig {
+    export type AsObject = {
+      username: string,
+      password: string,
+      checkGroupsWithServiceAccount: boolean,
+    }
+  }
+
   export class Config extends jspb.Message {
     hasName(): boolean;
     clearName(): void;
@@ -2799,6 +2913,11 @@ export namespace ExtAuthConfig {
     getLdap(): Ldap | undefined;
     setLdap(value?: Ldap): void;
 
+    hasLdapInternal(): boolean;
+    clearLdapInternal(): void;
+    getLdapInternal(): ExtAuthConfig.LdapConfig | undefined;
+    setLdapInternal(value?: ExtAuthConfig.LdapConfig): void;
+
     hasJwt(): boolean;
     clearJwt(): void;
     getJwt(): google_protobuf_empty_pb.Empty | undefined;
@@ -2830,6 +2949,7 @@ export namespace ExtAuthConfig {
       pluginAuth?: AuthPlugin.AsObject,
       opaAuth?: ExtAuthConfig.OpaAuthConfig.AsObject,
       ldap?: Ldap.AsObject,
+      ldapInternal?: ExtAuthConfig.LdapConfig.AsObject,
       jwt?: google_protobuf_empty_pb.Empty.AsObject,
       passThroughAuth?: PassThroughAuth.AsObject,
     }
@@ -2843,6 +2963,7 @@ export namespace ExtAuthConfig {
       PLUGIN_AUTH = 6,
       OPA_AUTH = 7,
       LDAP = 8,
+      LDAP_INTERNAL = 14,
       JWT = 12,
       PASS_THROUGH_AUTH = 13,
     }

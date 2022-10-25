@@ -152,10 +152,10 @@ clean-fed: clean-artifacts clean-generated-protos
 	rm -rf $(ROOTDIR)/projects/apiserver/server/services/single_cluster_resource_handler/*
 
 .PHONY: run-tests
-run-tests: install-node-packages ## Run all tests
+run-tests: install-node-packages ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
 ifneq ($(RELEASE), "true")
 	PATH=$(DEPSGOBIN):$$PATH go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
-	$(GINKGO_ENV) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor -skipPackage=kube2e,gloo-fed-e2e
+	$(GINKGO_ENV) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor -skipPackage=kube2e,gloo-fed-e2e $(TEST_PKG)
 endif
 
 # command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
@@ -1347,7 +1347,7 @@ ifeq ($(RELEASE), "true")
 	docker push $(IMAGE_REPO)/discovery-ee:$(VERSION)
 ifeq  ($(IS_ARM_MACHINE), )
 	# these images are not built on ARM, so this is adding complexity.  There is no reason to add this as well to the normal build of gloo-ee.
-	# so if pushing because of ARM, we will 
+	# so if pushing because of ARM, we will
 	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION)-race && \
 	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug
