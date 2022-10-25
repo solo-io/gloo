@@ -471,6 +471,12 @@ func (t *extAuthConfigTranslator) authConfigToService(
 			return nil, "", err
 		}
 		return opaCfg, config.GetName().GetValue(), nil
+	case *extauthv1.ExtAuthConfig_Config_LdapInternal:
+		ldapSvc, err := getLdapAuthServiceWithSecret(ctx, cfg.LdapInternal)
+		if err != nil {
+			return nil, "", err
+		}
+		return ldapSvc, config.GetName().GetValue(), nil
 	case *extauthv1.ExtAuthConfig_Config_Ldap:
 		ldapSvc, err := getLdapAuthService(ctx, cfg.Ldap)
 		if err != nil {
@@ -507,7 +513,7 @@ func addTrailingSlash(url string) string {
 }
 
 func getLdapAuthService(ctx context.Context, ldapCfg *extauthv1.Ldap) (api.AuthService, error) {
-	poolInitCap, poolMaxCap := getLdapConnectionPoolParams(ldapCfg)
+	poolInitCap, poolMaxCap := getLdapConnectionPoolParams(ldapCfg.GetPool())
 
 	// Connection pool will be cleaned up when the context is cancelled
 	ldapClientBuilder, err := ldap.NewPooledClientBuilder(ctx, &ldap.ClientPoolConfig{
@@ -518,13 +524,40 @@ func getLdapAuthService(ctx context.Context, ldapCfg *extauthv1.Ldap) (api.AuthS
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to start LDAP connection pool")
 	}
-
 	ldapAuthService, err := ldap.NewLdapAuthService(ldapClientBuilder, &ldap.Config{
-		UserDnTemplate:          ldapCfg.UserDnTemplate,
-		MembershipAttributeName: ldapCfg.MembershipAttributeName,
-		AllowedGroups:           ldapCfg.AllowedGroups,
-		SearchFilter:            ldapCfg.SearchFilter,
-		DisableGroupChecking:    ldapCfg.DisableGroupChecking,
+		UserDnTemplate:                ldapCfg.UserDnTemplate,
+		MembershipAttributeName:       ldapCfg.MembershipAttributeName,
+		AllowedGroups:                 ldapCfg.AllowedGroups,
+		SearchFilter:                  ldapCfg.SearchFilter,
+		DisableGroupChecking:          ldapCfg.DisableGroupChecking,
+		CheckGroupsWithServiceAccount: false,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create LDAP auth service")
+	}
+	return ldapAuthService, nil
+}
+func getLdapAuthServiceWithSecret(ctx context.Context, ldapCfg *extauthv1.ExtAuthConfig_LdapConfig) (api.AuthService, error) {
+	poolInitCap, poolMaxCap := getLdapConnectionPoolParams(ldapCfg.GetPool())
+
+	// Connection pool will be cleaned up when the context is cancelled
+	ldapClientBuilder, err := ldap.NewPooledClientBuilder(ctx, &ldap.ClientPoolConfig{
+		ServerAddress:   ldapCfg.Address,
+		InitialCapacity: poolInitCap,
+		MaximumCapacity: poolMaxCap,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to start LDAP connection pool")
+	}
+	ldapAuthService, err := ldap.NewLdapAuthService(ldapClientBuilder, &ldap.Config{
+		UserDnTemplate:                ldapCfg.UserDnTemplate,
+		MembershipAttributeName:       ldapCfg.MembershipAttributeName,
+		AllowedGroups:                 ldapCfg.AllowedGroups,
+		SearchFilter:                  ldapCfg.SearchFilter,
+		DisableGroupChecking:          ldapCfg.DisableGroupChecking,
+		CheckGroupsWithServiceAccount: ldapCfg.GetGroupLookupSettings().GetCheckGroupsWithServiceAccount(),
+		ServiceAccountUsername:        ldapCfg.GetGroupLookupSettings().GetUsername(),
+		ServiceAccountPassword:        ldapCfg.GetGroupLookupSettings().GetPassword(),
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create LDAP auth service")
@@ -532,21 +565,19 @@ func getLdapAuthService(ctx context.Context, ldapCfg *extauthv1.Ldap) (api.AuthS
 	return ldapAuthService, nil
 }
 
-func getLdapConnectionPoolParams(config *extauthv1.Ldap) (initCap int, maxCap int) {
-	initCap = 2
-	maxCap = 5
+func getLdapConnectionPoolParams(pool *extauthv1.Ldap_ConnectionPool) (int, int) {
+	initCap := 2
+	maxCap := 5
 
-	if initSize := config.GetPool().GetInitialSize(); initSize != nil {
+	if initSize := pool.GetInitialSize(); initSize != nil {
 		initCap = int(initSize.Value)
 	}
 
-	if maxSize := config.GetPool().GetMaxSize(); maxSize != nil {
+	if maxSize := pool.GetMaxSize(); maxSize != nil {
 		maxCap = int(maxSize.Value)
 	}
-
-	return
+	return initCap, maxCap
 }
-
 func getPassThroughGrpcAuthService(ctx context.Context, passthroughAuthCfg *structpb.Struct, grpcConfig *extauthv1.PassThroughGrpc, failureModeAllow bool) (api.AuthService, error) {
 
 	connectionTimeout := 5 * time.Second

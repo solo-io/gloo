@@ -324,6 +324,48 @@ var _ = Describe("Ext Auth Config Translator", func() {
 			services := authServiceChain.ListAuthServices()
 			Expect(services).To(HaveLen(1))
 		})
+		It("works with the new API", func() {
+			authService, err := translator.Translate(ctx, &extauthv1.ExtAuthConfig{
+				AuthConfigRefName: "default.ldap-authconfig",
+				Configs: []*extauthv1.ExtAuthConfig_Config{
+					{
+						AuthConfig: &extauthv1.ExtAuthConfig_Config_LdapInternal{
+							LdapInternal: &extauthv1.ExtAuthConfig_LdapConfig{
+								Address:                 "my.server.com:389",
+								UserDnTemplate:          "uid=%s,ou=people,dc=solo,dc=io",
+								MembershipAttributeName: "someName",
+								AllowedGroups: []string{
+									"cn=managers,ou=groups,dc=solo,dc=io",
+									"cn=developers,ou=groups,dc=solo,dc=io",
+								},
+								Pool: &extauthv1.Ldap_ConnectionPool{
+									MaxSize: &wrappers.UInt32Value{
+										Value: uint32(5),
+									},
+									InitialSize: &wrappers.UInt32Value{
+										Value: uint32(0), // Set to 0, otherwise it will try to connect to the dummy address
+									},
+								},
+								SearchFilter:         "(objectClass=*)",
+								DisableGroupChecking: false,
+								GroupLookupSettings: &extauthv1.ExtAuthConfig_LdapServiceAccountConfig{
+									CheckGroupsWithServiceAccount: true,
+									Username:                      "user",
+									Password:                      "pass",
+								},
+							},
+						},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(authService).NotTo(BeNil())
+			authServiceChain, ok := authService.(chain.AuthServiceChain)
+			Expect(ok).To(BeTrue())
+			Expect(authServiceChain).NotTo(BeNil())
+			services := authServiceChain.ListAuthServices()
+			Expect(services).To(HaveLen(1))
+		})
 	})
 
 	Describe("translating OAuth2.0 access token IntrospectionUrl config", func() {

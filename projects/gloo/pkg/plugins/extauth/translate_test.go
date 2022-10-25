@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+
 	"github.com/golang/protobuf/ptypes"
 
 	. "github.com/onsi/ginkgo"
@@ -24,16 +26,18 @@ import (
 var _ = Describe("Translate", func() {
 
 	var (
-		params           plugins.Params
-		virtualHost      *v1.VirtualHost
-		upstream         *v1.Upstream
-		secret           *v1.Secret
-		route            *v1.Route
-		authConfig       *extauth.AuthConfig
-		authConfigRef    *core.ResourceRef
-		extAuthExtension *extauth.ExtAuthExtension
-		clientSecret     *extauth.OauthSecret
-		apiKey           *extauth.ApiKey
+		params            plugins.Params
+		virtualHost       *v1.VirtualHost
+		upstream          *v1.Upstream
+		secret            *v1.Secret
+		route             *v1.Route
+		authConfig        *extauth.AuthConfig
+		authConfigRef     *core.ResourceRef
+		extAuthExtension  *extauth.ExtAuthExtension
+		clientSecret      *extauth.OauthSecret
+		apiKey            *extauth.ApiKey
+		credentialsSecret *v1.AccountCredentialsSecret
+		ldapSecret        *v1.Secret
 	)
 
 	BeforeEach(func() {
@@ -75,6 +79,19 @@ var _ = Describe("Translate", func() {
 			ApiKey: "apiKey1",
 		}
 
+		credentialsSecret = &v1.AccountCredentialsSecret{
+			Username: "user",
+			Password: "pass",
+		}
+		ldapSecret = &v1.Secret{
+			Metadata: &core.Metadata{
+				Name:      "ldapSecret",
+				Namespace: "default",
+			},
+			Kind: &v1.Secret_Credentials{
+				Credentials: credentialsSecret,
+			},
+		}
 		clientSecret = &extauth.OauthSecret{
 			ClientSecret: "1234",
 		}
@@ -156,7 +173,7 @@ var _ = Describe("Translate", func() {
 		}
 
 		params.Snapshot.Proxies = v1.ProxyList{proxy}
-		params.Snapshot.Secrets = v1.SecretList{secret}
+		params.Snapshot.Secrets = v1.SecretList{secret, ldapSecret}
 	})
 
 	It("should translate oauth config for extauth server", func() {
@@ -663,6 +680,93 @@ var _ = Describe("Translate", func() {
 			Expect(actual.GetIntrospection().GetClientSecret()).To(Equal(clientSecret.ClientSecret))
 			Expect(actual.GetIntrospection().GetUserIdAttributeName()).To(Equal(expected.GetIntrospection().GetUserIdAttributeName()))
 			Expect(actual.GetRequiredScopes().GetScope()).To(Equal(expected.GetRequiredScopes().GetScope()))
+		})
+	})
+
+	Context("with Ldap extauth", func() {
+		BeforeEach(func() {
+			authConfig = &extauth.AuthConfig{
+				Metadata: &core.Metadata{
+					Name:      "oauth",
+					Namespace: "gloo-system",
+				},
+				Configs: []*extauth.AuthConfig_Config{{
+					AuthConfig: &extauth.AuthConfig_Config_Ldap{
+						Ldap: &extauth.Ldap{
+							Address:                 "my.server.com:389",
+							UserDnTemplate:          "uid=%s,ou=people,dc=solo,dc=io",
+							MembershipAttributeName: "someName",
+							AllowedGroups: []string{
+								"cn=managers,ou=groups,dc=solo,dc=io",
+								"cn=developers,ou=groups,dc=solo,dc=io",
+							},
+							Pool: &extauth.Ldap_ConnectionPool{
+								MaxSize: &wrappers.UInt32Value{
+									Value: uint32(5),
+								},
+								InitialSize: &wrappers.UInt32Value{
+									Value: uint32(0), // Set to 0, otherwise it will try to connect to the dummy address
+								},
+							},
+							SearchFilter:         "(objectClass=*)",
+							DisableGroupChecking: false,
+							GroupLookupSettings: &extauth.LdapServiceAccount{
+								CheckGroupsWithServiceAccount: true,
+								CredentialsSecretRef:          ldapSecret.Metadata.Ref(),
+							},
+						},
+					},
+				}},
+			}
+			authConfigRef = authConfig.Metadata.Ref()
+			extAuthExtension = &extauth.ExtAuthExtension{
+				Spec: &extauth.ExtAuthExtension_ConfigRef{
+					ConfigRef: authConfigRef,
+				},
+			}
+
+			params.Snapshot = &v1snap.ApiSnapshot{
+				Upstreams:   v1.UpstreamList{upstream},
+				AuthConfigs: extauth.AuthConfigList{authConfig},
+			}
+		})
+		It("translates ldap config", func() {
+
+			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
+			Expect(translated.Configs).To(HaveLen(1))
+			actual := translated.Configs[0].GetLdapInternal()
+			expected := authConfig.Configs[0].GetLdap()
+			Expect(actual.Address).To(Equal(expected.Address))
+			Expect(actual.AllowedGroups).To(BeEquivalentTo(expected.AllowedGroups))
+			Expect(actual.Pool.MaxSize).To(Equal(expected.Pool.MaxSize))
+			Expect(actual.Pool.InitialSize).To(Equal(expected.Pool.InitialSize))
+			Expect(actual.SearchFilter).To(Equal(expected.SearchFilter))
+			Expect(actual.GroupLookupSettings.Username).To(Equal("user"))
+			Expect(actual.GroupLookupSettings.Password).To(Equal("pass"))
+			Expect(actual.UserDnTemplate).To(Equal(expected.UserDnTemplate))
+			Expect(actual.MembershipAttributeName).To(Equal(expected.MembershipAttributeName))
+		})
+		It("does not require credentials when service account is not required ", func() {
+			authConfig.Configs[0].GetLdap().GroupLookupSettings.CheckGroupsWithServiceAccount = false
+			authConfig.Configs[0].GetLdap().GroupLookupSettings.CredentialsSecretRef = nil
+
+			_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+		})
+		It("requires credentials when service account is required", func() {
+			authConfig.Configs[0].GetLdap().GroupLookupSettings.CredentialsSecretRef = nil
+			_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).To(HaveOccurred())
+		})
+		It("Uses the old API when settings for service account are not present", func() {
+			authConfig.Configs[0].GetLdap().GroupLookupSettings = nil
+
+			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			Expect(err).NotTo(HaveOccurred())
+			final := translated.Configs[0].GetLdap()
+			Expect(final).NotTo(BeNil(), "Old API should be used")
 		})
 	})
 })

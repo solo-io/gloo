@@ -33,6 +33,12 @@ var (
 	MissingRequiredMetadataError = func(requiredKey string, secret *v1.Secret) error {
 		return errors.Errorf("API key secret [%s] does not contain the required [%s] metadata entry", secret.Metadata.Ref().Key(), requiredKey)
 	}
+	NonAccountCredentialsSecretError = func(secret *v1.Secret) error {
+		return errors.Errorf("secret [%s] is not an Account Credentials secret", secret.Metadata.Ref().Key())
+	}
+	MissingSecretError = func() error {
+		return errors.Errorf("Authenticating with service account configured without account credentials")
+	}
 	duplicateModuleError           = func(s string) error { return fmt.Errorf("%s is a duplicate module", s) }
 	unknownPassThroughProtocolType = func(protocol interface{}) error {
 		return errors.Errorf("unknown passthrough protocol type [%v]", protocol)
@@ -145,8 +151,18 @@ func translateConfig(ctx context.Context, snap *v1snap.ApiSnapshot, cfg *extauth
 		}
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_OpaAuth{OpaAuth: cfg}
 	case *extauth.AuthConfig_Config_Ldap:
-		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Ldap{
-			Ldap: config.Ldap,
+		if config.Ldap.GroupLookupSettings == nil {
+			//use old API if we do not have service account settings
+			extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Ldap{Ldap: config.Ldap}
+		} else {
+			// translate the config to the new API that includes the service account user and password taken from a secret
+			cfg, err := translateLdapConfig(snap, config.Ldap)
+			if err != nil {
+				return nil, err
+			}
+			extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_LdapInternal{
+				LdapInternal: cfg,
+			}
 		}
 	case *extauth.AuthConfig_Config_Jwt:
 		extAuthConfig.AuthConfig = &extauth.ExtAuthConfig_Config_Jwt{}
@@ -463,7 +479,39 @@ func translateOidcAuthorizationCode(snap *v1snap.ApiSnapshot, config *extauth.Oi
 		AutoMapFromMetadata:      config.AutoMapFromMetadata,
 	}, nil
 }
-
+func translateLdapConfig(snap *v1snap.ApiSnapshot, config *extauth.Ldap) (*extauth.ExtAuthConfig_LdapConfig, error) {
+	var translatedGroupLookupSettings *extauth.ExtAuthConfig_LdapServiceAccountConfig
+	if config.GroupLookupSettings != nil {
+		translatedGroupLookupSettings = &extauth.ExtAuthConfig_LdapServiceAccountConfig{}
+		translatedGroupLookupSettings.CheckGroupsWithServiceAccount = config.GetGroupLookupSettings().GetCheckGroupsWithServiceAccount()
+		if translatedGroupLookupSettings.CheckGroupsWithServiceAccount && config.GetGroupLookupSettings().CredentialsSecretRef == nil {
+			return nil, MissingSecretError()
+		}
+		if config.GetGroupLookupSettings().CredentialsSecretRef != nil {
+			secret, err := snap.Secrets.Find(config.GetGroupLookupSettings().GetCredentialsSecretRef().GetNamespace(),
+				config.GetGroupLookupSettings().GetCredentialsSecretRef().GetName())
+			if err != nil {
+				return nil, err
+			}
+			if _, ok := secret.GetKind().(*v1.Secret_Credentials); !ok {
+				return nil, NonAccountCredentialsSecretError(secret)
+			}
+			translatedGroupLookupSettings.Username = secret.GetCredentials().GetUsername()
+			translatedGroupLookupSettings.Password = secret.GetCredentials().GetPassword()
+		}
+	}
+	translatedConfig := &extauth.ExtAuthConfig_LdapConfig{
+		Address:                 config.GetAddress(),
+		UserDnTemplate:          config.GetUserDnTemplate(),
+		MembershipAttributeName: config.GetMembershipAttributeName(),
+		AllowedGroups:           config.GetAllowedGroups(),
+		Pool:                    config.GetPool(),
+		SearchFilter:            config.GetSearchFilter(),
+		DisableGroupChecking:    config.GetDisableGroupChecking(),
+		GroupLookupSettings:     translatedGroupLookupSettings,
+	}
+	return translatedConfig, nil
+}
 func translateAccessTokenValidationConfig(snap *v1snap.ApiSnapshot, config *extauth.AccessTokenValidation) (*extauth.ExtAuthConfig_AccessTokenValidationConfig, error) {
 	accessTokenValidationConfig := &extauth.ExtAuthConfig_AccessTokenValidationConfig{
 		UserinfoUrl:  config.GetUserinfoUrl(),
