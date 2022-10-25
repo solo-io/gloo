@@ -1,8 +1,6 @@
 package graphql
 
 import (
-	"os"
-	"strconv"
 	"strings"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
@@ -100,27 +98,6 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 
 	if err != nil {
 		return eris.Wrapf(err, "unable to translate graphql api control plane config to data plane config")
-	}
-
-	// If the GraphQlApi resource has a stitched schema definition, we want to get the generated schema definition from `routeConf` and write that to the status field
-	if gql.GetStitchedSchema() != nil {
-		ref := params.Messages
-
-		//This error occurs only due to developer error, ensure that params is not malformed
-		if ref == nil {
-			return eris.Wrapf(err, "Stitched/complete schema cannot be written to uninitialized params.virtualHostParams.Params.Messages")
-		}
-
-		schemaString := routeConf.GetExecutableSchema().GetSchemaDefinition().GetInlineString()
-		if pxStatusSizeEnv := os.Getenv("PROXY_STATUS_MAX_SIZE_BYTES"); pxStatusSizeEnv != "" {
-			proxyStatusMaxSizeBits, err := strconv.Atoi(pxStatusSizeEnv)
-			if err != nil || proxyStatusMaxSizeBits < 0 {
-				return eris.Wrapf(err, "PROXY_STATUS_MAX_SIZE_BYTES is not an integer value greater than 0")
-			}
-			ref[gqlRef] = append(ref[gqlRef], schemaString[:proxyStatusMaxSizeBits]+"...")
-		} else {
-			ref[gqlRef] = append(ref[gqlRef], schemaString)
-		}
 	}
 
 	return pluginutils.SetRoutePerFilterConfig(out, FilterName, routeConf)

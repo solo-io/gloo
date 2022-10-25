@@ -1,0 +1,7 @@
+changelog:
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/4219
+  resolvesIssue: false
+  description: >
+    Removes the Stitched Schema SDL from being reported in the status, as most stitched schemas are
+    too large to be reported in the status.

@@ -250,8 +250,6 @@ type Query {
 	}
 
 	BeforeEach(func() {
-		os.Setenv("PROXY_STATUS_MAX_SIZE_BYTES", "64")
-
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 		contextutils.SetFallbackLogger(logger.Sugar())
 
@@ -272,7 +270,6 @@ type Query {
 
 	AfterEach(func() {
 		cancel()
-		os.Unsetenv("PROXY_STATUS_MAX_SIZE_BYTES")
 	})
 	Context("With envoy", func() {
 		var (
@@ -360,18 +357,6 @@ type Query {
 
 			proxy = getProxy(envoyPort)
 			configureProxy()
-
-			readProxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-			Expect(err).NotTo(HaveOccurred())
-			proxyMessages := readProxy.GetNamespacedStatuses().GetStatuses()["gloo-system"].GetMessages()
-			stitchedSchemaMessage := []string{`type Query {
-  products: Product
-  user: User
-}
-
-type User {
-  u...`}
-			Expect(proxyMessages).To(Equal(stitchedSchemaMessage))
 
 		})
 
