@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/4124
+    description:  > 
+      Helm license value is now required. This will catch empty license keys prior to upgrade / install which would set up gloo without enterprise functionality which would cause warnings and disable all enterprise functionality.

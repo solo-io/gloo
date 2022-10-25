@@ -1172,14 +1172,8 @@ HELM_SYNC_DIR_GLOO_FED := $(OUTPUT_DIR)/helm_gloo_fed
 HELM_DIR := $(ROOTDIR)/install/helm
 GLOOE_CHART_DIR := $(HELM_DIR)/gloo-ee
 GLOO_FED_CHART_DIR := $(HELM_DIR)/gloo-fed
-MANIFEST_DIR := install/manifest
-MANIFEST_FOR_GLOO_EE := glooe-release.yaml
-MANIFEST_FOR_GLOO_FED := gloo-fed-release.yaml
 GLOOE_HELM_BUCKET := gs://gloo-ee-helm
 GLOO_FED_HELM_BUCKET := gs://gloo-fed-helm
-
-.PHONY: manifest
-manifest: init-helm produce-manifests
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
 USE_DIGESTS:=""
@@ -1189,7 +1183,6 @@ endif
 
 .PHONY: helm-template
 helm-template:
-	mkdir -p $(MANIFEST_DIR)
 	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
 	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)" $(USE_DIGESTS)
 
@@ -1202,10 +1195,6 @@ $(OUTPUT_DIR)/.helm-initialized:
 	helm repo add gloo-fed https://storage.googleapis.com/gloo-fed-helm
 	helm dependency update install/helm/gloo-ee
 	touch $@
-
-.PHONY: produce-manifests
-produce-manifests: gloofed-produce-manifests
-	helm template glooe install/helm/gloo-ee --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_EE)
 
 .PHONY: package-gloo-edge-chart
 package-gloo-edge-chart: init-helm
@@ -1262,10 +1251,6 @@ gloofed-helm-template:
 		-e 's/%gloo-fed-rbac-validating-webhook-version%/'$(GLOO_FED_RBAC_VALIDATING_WEBHOOK_VERSION)'/'\
 		$(GLOO_FED_CHART_DIR)/values-template.yaml > $(GLOO_FED_CHART_DIR)/values.yaml
 
-.PHONY: gloofed-produce-manifests
-gloofed-produce-manifests: gloofed-helm-template
-	helm template gloo-fed install/helm/gloo-fed --namespace gloo-system > $(MANIFEST_DIR)/$(MANIFEST_FOR_GLOO_FED)
-
 .PHONY: package-gloo-fed-chart
 package-gloo-fed-chart: gloofed-helm-template
 	helm package --destination $(HELM_SYNC_DIR_GLOO_FED) $(GLOO_FED_CHART_DIR)
@@ -1273,10 +1258,6 @@ package-gloo-fed-chart: gloofed-helm-template
 #----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------
-
-.PHONY: upload-github-release-assets
-upload-github-release-assets:
-	$(GO_BUILD_FLAGS) go run ci/upload_github_release_assets.go
 
 DEPS_DIR=$(OUTPUT_DIR)/dependencies/$(VERSION)
 DEPS_BUCKET=gloo-ee-dependencies

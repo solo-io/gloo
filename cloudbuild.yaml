@@ -185,8 +185,7 @@ steps:
 - name: "gcr.io/solo-public/go-mod-make:0.4.24"
   args:
     [
-      "manifest",
-      "upload-github-release-assets",
+      "init-helm",
       "build-and-upload-gcs-release-assets",
       "fetch-package-and-save-helm",
       "publish-dependencies",

@@ -75,6 +75,7 @@ func BuildTestManifest(chartName string, namespace string, values helmValues) (T
 		return nil, err
 	}
 
+	values.valuesArgs = append(values.valuesArgs, "license_key=\"placeholder-license-key\"")
 	helmValues, err := buildHelmValues(chartPath, values)
 	if err != nil {
 		return nil, err

@@ -4872,7 +4872,7 @@ metadata:
 
 		// Lines ending with whitespace causes malformatted config map (https://github.com/solo-io/gloo/issues/4645)
 		It("Should not contain trailing whitespace", func() {
-			out, err := exec.Command("helm", "template", "../helm/gloo-ee").CombinedOutput()
+			out, err := exec.Command("helm", "template", "--set", "license_key=placeholder-license-key", "../helm/gloo-ee").CombinedOutput()
 			Expect(err).NotTo(HaveOccurred(), string(out))
 
 			lines := strings.Split(string(out), "\n")
