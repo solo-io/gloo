@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/6581
+    description: Fix missing gloo-fed-rbac-validating-webhook image digest.
