@@ -152,6 +152,22 @@ TEST_ASSET_DIR := $(ROOTDIR)/_test
 # in the tree rooted at that directory that match the given criteria.
 get_sources = $(shell find $(1) -name "*.go" | grep -v test | grep -v generated.go | grep -v mock_)
 
+# If both GCLOUD_PROJECT_ID and BUILD_ID are set, define functions that take a docker image name
+# and returns a tag name either with or without (_option) the '-t' flag that can be passed to 'docker build'
+# to create a tag for a test image. If the function is not defined, any attempt at calling if will
+# return nothing (it does not cause en error)
+ifneq ($(GCLOUD_PROJECT_ID),)
+ifneq ($(BUILD_ID),)
+define get_test_tag_option
+	-t $(GCR_REPO_PREFIX)/$(1):$(TEST_IMAGE_TAG)
+endef
+# Same as above, but returns only the tag name without the '-t' prefix
+define get_test_tag
+	$(GCR_REPO_PREFIX)/$(1):$(TEST_IMAGE_TAG)
+endef
+endif
+endif
+
 #----------------------------------------------------------------------------------
 # Repo setup
 #----------------------------------------------------------------------------------
@@ -434,8 +450,8 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
 	cp $< $@
 
 $(GLOO_RACE_OUT_DIR)/.gloo-race-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT_DIR)/Dockerfile.build
-	docker buildx build -t $(IMAGE_REPO)/gloo-race-build-container:$(VERSION) \
-		-f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
+	docker buildx build $(GLOO_RACE_OUT_DIR) -f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
+		 -t $(IMAGE_REPO)/gloo-race-build-container:$(VERSION)\
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
@@ -461,8 +477,8 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 # Take the executable built in gloo-race and put it in a docker container
 .PHONY: gloo-race-docker
 gloo-race-docker: $(GLOO_RACE_OUT_DIR)/.gloo-race-docker
-$(GLOO_RACE_OUT_DIR)/.gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64 $(GLOO_RACE_OUT_DIR)/Dockerfile
-	docker buildx build  $(call get_test_tag_option,gloo) $(GLOO_RACE_OUT_DIR) \
+$(GLOO_RACE_OUT_DIR)/.gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-$(GOARCH) $(GLOO_RACE_OUT_DIR)/Dockerfile
+	docker buildx build $(call get_test_tag_option,gloo) $(GLOO_RACE_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) --build-arg GOARCH=amd64 \
 		-t $(IMAGE_REPO)/gloo:$(VERSION)-race $(QUAY_EXPIRATION_LABEL) \
 		--load $(PLATFORM)
