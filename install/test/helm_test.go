@@ -4016,7 +4016,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
           resources:
-            requests: 
+            requests:
               cpu: 250m
               memory: 64Mi
             limits:
@@ -4576,6 +4576,16 @@ metadata:
 						testManifest.ExpectDeploymentAppsV1(discoveryDeployment)
 					})
 
+					It("allows disabling FDS GraphQL discovery", func() {
+						settings := makeUnstructureFromTemplateFile("fixtures/settings/graphql_fds_disabled.yaml", namespace)
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"discovery.fdsOptions.graphqlEnabled=false",
+							},
+						})
+						testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+					})
+
 					It("allows disabling upstream discovery", func() {
 						settings := makeUnstructureFromTemplateFile("fixtures/settings/uds_disabled.yaml", namespace)
 						prepareMakefile(namespace, helmValues{
@@ -4647,6 +4657,58 @@ metadata:
 					"app":              "gloo",
 					"gateway-proxy-id": "gateway-proxy",
 				}
+
+				It("should allow customising tcp keepalive on custom gateway proxies", func() {
+					prepareMakefile(namespace, helmValues{
+						valuesArgs: []string{"",
+							"gatewayProxies.gatewayProxy.tcpKeepaliveTimeSeconds=30",
+							"gatewayProxies.anotherGatewayProxy.tcpKeepaliveTimeSeconds=33",
+						},
+					})
+					gatewayProxyKeepaliveSeen := false
+					anotherGatewayProxyKeepaliveSeen := false
+					testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+						return resource.GetKind() == "ConfigMap"
+					}).ExpectAll(func(configMap *unstructured.Unstructured) {
+						configMapObject, err := kuberesource.ConvertUnstructured(configMap)
+						Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("ConfigMap %+v should be able to convert from unstructured", configMap))
+						structuredConfigMap, ok := configMapObject.(*v1.ConfigMap)
+						Expect(ok).To(BeTrue(), fmt.Sprintf("configMap %+v should be able to cast to a structured configMap", configMap))
+						configMapName := structuredConfigMap.GetName()
+						envoyConfig := structuredConfigMap.Data["envoy.yaml"]
+						if configMapName == "gateway-proxy-envoy-config" {
+							gatewayProxyKeepaliveSeen = true
+							Expect(envoyConfig).To(ContainSubstring("keepalive_time: 30"), "Should set custom value for gatewayProxy")
+						} else if configMapName == "another-gateway-proxy-envoy-config" {
+							anotherGatewayProxyKeepaliveSeen = true
+							Expect(envoyConfig).To(ContainSubstring("keepalive_time: 33"), "Should set custom value for another custom gatewayProxy value")
+						}
+					})
+					Expect(gatewayProxyKeepaliveSeen).To(BeTrue())
+					Expect(anotherGatewayProxyKeepaliveSeen).To(BeTrue())
+				})
+
+				It("should allow customising tcp keepalive", func() {
+					prepareMakefile(namespace, helmValues{
+						valuesArgs: []string{"",
+							"gatewayProxies.gatewayProxy.tcpKeepaliveTimeSeconds=30"},
+					})
+					byt, err := ioutil.ReadFile("fixtures/envoy_config/tcp_keepalive.yaml")
+					Expect(err).ToNot(HaveOccurred())
+					envoyBootstrapYaml := string(byt)
+
+					envoyBootstrapSpec := make(map[string]string)
+					envoyBootstrapSpec["envoy.yaml"] = envoyBootstrapYaml
+
+					cmRb := ResourceBuilder{
+						Namespace: namespace,
+						Name:      gatewayProxyConfigMapName,
+						Labels:    labels,
+						Data:      envoyBootstrapSpec,
+					}
+					envoyBootstrapCm := cmRb.GetConfigMap()
+					testManifest.ExpectConfigMapWithYamlData(envoyBootstrapCm)
+				})
 
 				It("is not created if disabled", func() {
 
