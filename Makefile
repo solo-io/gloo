@@ -466,7 +466,7 @@ $(GLOO_RACE_OUT_DIR)/.gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64 $(
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) --build-arg GOARCH=amd64 \
 		-t $(IMAGE_REPO)/gloo:$(VERSION)-race $(QUAY_EXPIRATION_LABEL) \
 		--load $(PLATFORM)
-	touch $@
+
 #----------------------------------------------------------------------------------
 # SDS Server - gRPC server for serving Secret Discovery Service config for Gloo Edge MTLS
 #----------------------------------------------------------------------------------
@@ -565,7 +565,7 @@ kubectl-docker: $(KUBECTL_OUTPUT_DIR)/Dockerfile.kubectl
 # Build All
 #----------------------------------------------------------------------------------
 .PHONY: build
-build: gloo glooctl discovery envoyinit certgen ingress ## Build All Docker containers
+build: gloo gloo-race glooctl discovery envoyinit certgen ingress ## Build All Docker containers
 
 #----------------------------------------------------------------------------------
 # Deployment Manifests / Helm
@@ -753,7 +753,8 @@ ifeq ($(CREATE_ASSETS), "true")
 	docker push $(IMAGE_REPO)/sds:$(VERSION) && \
 	docker push $(IMAGE_REPO)/access-logger:$(VERSION)
 endif
-# To mimic the effects of CI, both TAGGED_VERSION and CREATE_TEST_ASSETS need to be set
+
+# To mimic the effects of CI, CREATE_ASSETS, TAGGED_VERSION, and CREATE_TEST_ASSETS need to be set
 .PHONY: docker-push-extended
 docker-push-extended:
 ifeq ($(CREATE_ASSETS), "true")
@@ -767,6 +768,7 @@ push-kind-images: docker
 	kind load docker-image $(IMAGE_REPO)/ingress:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/discovery:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/gloo:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REPO)/gloo:$(VERSION)-race --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/gloo-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/certgen:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/kubectl:$(VERSION) --name $(CLUSTER_NAME)
