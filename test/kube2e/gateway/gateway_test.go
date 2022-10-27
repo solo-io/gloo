@@ -2071,7 +2071,6 @@ spec:
 					}, time.Second*15, time.Second*1).Should(BeTrue())
 				})
 
-				// TODO-JAKE add in resources for rate limit config
 				It("rejects bad resources", func() {
 					testCases := []testCase{{
 						resourceYaml: `
@@ -2086,8 +2085,28 @@ spec:
       - addr: ~
 `,
 						expectedErr: "addr cannot be empty for host\n",
+					}, {
+						resourceYaml: `
+apiVersion: ratelimit.solo.io/v1alpha1
+kind: RateLimitConfig
+metadata:
+  name: rlc
+  namespace: gloo-system
+spec:
+  raw:
+    descriptors:
+      - key: foo
+        value: foo
+        rateLimit:
+          requestsPerUnit: 1
+          unit: MINUTE
+    rateLimits:
+      - actions:
+        - genericKey:
+            descriptorValue: bar
+`,
+						expectedErr: "The Gloo Advanced Rate limit API feature 'RateLimitConfig' is enterprise-only",
 					}}
-
 					for _, tc := range testCases {
 						testValidation(tc.resourceYaml, tc.expectedErr)
 					}
