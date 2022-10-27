@@ -1,4 +1,4 @@
- # Installing on Kubernetes
+# Installing on Kubernetes
 
 Note: if running on GKE, you need to configure permission to create rbac: 
 ```bash
