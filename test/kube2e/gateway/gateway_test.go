@@ -1898,7 +1898,7 @@ var _ = Describe("Kube2e: gateway", func() {
 		})
 	})
 
-	Context("tests for the validation server", func() {
+	Context("tests for the validation", func() {
 
 		Context("rejects bad resources", func() {
 
@@ -2071,6 +2071,7 @@ spec:
 					}, time.Second*15, time.Second*1).Should(BeTrue())
 				})
 
+				// TODO-JAKE add in resources for rate limit config
 				It("rejects bad resources", func() {
 					testCases := []testCase{{
 						resourceYaml: `
