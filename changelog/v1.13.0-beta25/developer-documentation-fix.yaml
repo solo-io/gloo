@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/7301
+    description:  > 
+      Fix for build-test-assets make target introduced in https://github.com/solo-io/gloo/pull/7312.
+      Also changed our build tool to `buildx` from `build` for platform targeting.
