@@ -457,7 +457,7 @@ $(GLOO_RACE_OUT_DIR)/.gloo-race-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT_DI
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg USE_APK=true \
-		--build-arg GOARCH=$(GOARCH) \
+		--build-arg GOARCH=amd64 \
 		--load $(PLATFORM)
 		.
 	touch $@
@@ -477,11 +477,11 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 # Take the executable built in gloo-race and put it in a docker container
 .PHONY: gloo-race-docker
 gloo-race-docker: $(GLOO_RACE_OUT_DIR)/.gloo-race-docker
-$(GLOO_RACE_OUT_DIR)/.gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-$(GOARCH) $(GLOO_RACE_OUT_DIR)/Dockerfile
+$(GLOO_RACE_OUT_DIR)/.gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64 $(GLOO_RACE_OUT_DIR)/Dockerfile
 	docker buildx build $(call get_test_tag_option,gloo) $(GLOO_RACE_OUT_DIR) \
-		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) --build-arg GOARCH=amd64 \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		-t $(IMAGE_REPO)/gloo:$(VERSION)-race $(QUAY_EXPIRATION_LABEL) \
-		--load $(PLATFORM)
+		--load --everplatform linux/amd64
 
 #----------------------------------------------------------------------------------
 # SDS Server - gRPC server for serving Secret Discovery Service config for Gloo Edge MTLS
@@ -581,7 +581,7 @@ kubectl-docker: $(KUBECTL_OUTPUT_DIR)/Dockerfile.kubectl
 # Build All
 #----------------------------------------------------------------------------------
 .PHONY: build
-build: gloo gloo-race glooctl discovery envoyinit certgen ingress ## Build All Docker containers
+build: gloo glooctl discovery envoyinit certgen ingress ## Build All Docker containers
 
 #----------------------------------------------------------------------------------
 # Deployment Manifests / Helm
@@ -726,7 +726,6 @@ ifeq ($(RELEASE), "true")
 	docker push $(IMAGE_REPO)/ingress:$(VERSION) && \
 	docker push $(IMAGE_REPO)/discovery:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo:$(VERSION)-race && \
 	docker push $(IMAGE_REPO)/gloo-envoy-wrapper:$(VERSION) && \
 	docker push $(IMAGE_REPO)/certgen:$(VERSION) && \
 	docker push $(IMAGE_REPO)/kubectl:$(VERSION) && \
@@ -784,7 +783,6 @@ push-kind-images: docker
 	kind load docker-image $(IMAGE_REPO)/ingress:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/discovery:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/gloo:$(VERSION) --name $(CLUSTER_NAME)
-	kind load docker-image $(IMAGE_REPO)/gloo:$(VERSION)-race --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/gloo-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/certgen:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image $(IMAGE_REPO)/kubectl:$(VERSION) --name $(CLUSTER_NAME)
