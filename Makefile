@@ -1590,7 +1590,7 @@ build-test-chart-fed: gloofed-helm-template
 # Assumes that a gloo-edge-OS chart is located at ../gloo/_test/gloo-dev.tgz, which
 # points towards whatever modified build is being tested.
 .PHONY: build-chart-with-local-gloo-dev
-build-chart-with-local-gloo-dev:
+build-chart-with-local-gloo-dev: build-test-chart-fed
 	mkdir -p $(TEST_ASSET_DIR)
 	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) $(USE_DIGESTS)
 	helm repo add helm-hub https://charts.helm.sh/stable

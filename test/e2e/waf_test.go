@@ -47,8 +47,22 @@ var _ = Describe("waf", func() {
 			# Turn rule engine on
 			SecRuleEngine On
 			SecAuditLogFormat %s
-			SecRule %s:User-Agent "nikto" "%s,id:107,%s,msg:'blocked nikto scammer'"
+			SecRule %s:User-Agent "nikto" "%s,id:107,%s,msg:'blocked nikto'"
 `
+		rulesTemplate1 = `SecRule REQUEST_HEADERS:User-Agent "scammer" "deny,status:403,id:108,phase:1,msg:'blocked scammer'"`
+		ignoredRule    = `SecRule REQUEST_HEADERS:User-Agent "skippedRule" "deny,status:403,id:109,phase:1,msg:'blocked skippedRule'"`
+
+		configMapRuleSets = []*waf.RuleSetFromConfigMap{
+			{
+				ConfigMapRef: &core.ResourceRef{
+					Namespace: "gloo-system",
+					Name:      "configmapname",
+				},
+				DataMapKeys: []string{
+					"key1", //order in artifact is key2, then key1 - validate order of passed keys is respected
+				},
+			},
+		}
 	)
 
 	const (
@@ -169,6 +183,7 @@ var _ = Describe("waf", func() {
 	var getProxyWafDisruptiveListener = func(envoyPort uint32, upstream *core.ResourceRef) *gloov1.Proxy {
 		wafCfg := &waf.Settings{
 			RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
+			ConfigMapRuleSets:         configMapRuleSets,
 			CustomInterventionMessage: customInterventionMessage,
 		}
 		return getProxyWaf(envoyPort, upstream, wafCfg, nil, nil, nil, nil, nil)
@@ -193,8 +208,59 @@ var _ = Describe("waf", func() {
 		return getProxyWaf(envoyPort, upstream, nil, vhostSettings, nil, nil, wafRouteSettings, nil)
 	}
 
-	BeforeEach(func() {
+	var expectRequestBlockedByWaf = func(useragent string, envoyPort uint32) {
+		var bodyStr string
+		Eventually(func() (int, error) {
+			client := http.DefaultClient
+			reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
+			Expect(err).NotTo(HaveOccurred())
+			resp, err := client.Do(&http.Request{
+				Method: http.MethodGet,
+				URL:    reqUrl,
+				Header: map[string][]string{
+					"user-agent": {useragent},
+				},
+			})
+			if err != nil {
+				return 0, err
+			}
+			defer resp.Body.Close()
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return 0, err
+			}
+			bodyStr = string(body)
+			return resp.StatusCode, nil
+		}, "10s", "0.5s").Should(Equal(http.StatusForbidden))
+		Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
+	}
 
+	var expectRequestAllowedByWaf = func(useragent string, envoyPort uint32) {
+		Eventually(func() (int, error) {
+			client := http.DefaultClient
+			reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
+			Expect(err).NotTo(HaveOccurred())
+			var header map[string][]string
+			if len(useragent) > 0 {
+				header = map[string][]string{
+					"user-agent": {useragent},
+				}
+			}
+			resp, err := client.Do(&http.Request{
+				Method: http.MethodGet,
+				URL:    reqUrl,
+				Header: header,
+			})
+			if err != nil {
+				return 0, err
+			}
+			defer resp.Body.Close()
+			_, _ = io.ReadAll(resp.Body)
+			return resp.StatusCode, nil
+		}, "10s", "0.5s").Should(Equal(http.StatusOK))
+	}
+
+	BeforeEach(func() {
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 		contextutils.SetFallbackLogger(logger.Sugar())
 
@@ -238,75 +304,26 @@ var _ = Describe("waf", func() {
 			_, err = testClients.UpstreamClient.Write(up, opts)
 			Expect(err).NotTo(HaveOccurred())
 
+			configmap := &gloov1.Artifact{
+				Metadata: &core.Metadata{
+					Namespace: "gloo-system",
+					Name:      "configmapname",
+				},
+				Data: map[string]string{
+					"key1": rulesTemplate1, //the only key passed
+					"key2": ignoredRule,
+				},
+			}
+			_, err = testClients.ArtifactClient.Write(configmap, clients.WriteOpts{})
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		AfterEach(func() {
+			err := testClients.ArtifactClient.Delete("gloo-system", "configmapname", clients.DeleteOpts{})
+			Expect(err).ToNot(HaveOccurred())
 			if envoyInstance != nil {
 				envoyInstance.Clean()
 			}
-		})
-
-		Context("listener rules", func() {
-			var (
-				proxy *gloov1.Proxy
-			)
-
-			BeforeEach(func() {
-				proxy = getProxyWafDisruptiveListener(envoyPort, testUpstream.Upstream.Metadata.Ref())
-
-				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
-				Expect(err).NotTo(HaveOccurred())
-
-				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
-					return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
-				}, "10s", "0.5s")
-			})
-
-			It("will get rejected by waf", func() {
-				var bodyStr string
-				Eventually(func() (int, error) {
-					client := http.DefaultClient
-					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
-					Expect(err).NotTo(HaveOccurred())
-					resp, err := client.Do(&http.Request{
-						Method: http.MethodGet,
-						URL:    reqUrl,
-						Header: map[string][]string{
-							"user-agent": {"nikto"},
-						},
-					})
-					if err != nil {
-						return 0, err
-					}
-					defer resp.Body.Close()
-					body, err := io.ReadAll(resp.Body)
-					if err != nil {
-						return 0, err
-					}
-					bodyStr = string(body)
-					return resp.StatusCode, nil
-				}, "10s", "0.5s").Should(Equal(http.StatusForbidden))
-				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
-			})
-
-			It("will not get rejected by waf", func() {
-				Eventually(func() (int, error) {
-					client := http.DefaultClient
-					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
-					Expect(err).NotTo(HaveOccurred())
-					resp, err := client.Do(&http.Request{
-						Method: http.MethodGet,
-						URL:    reqUrl,
-					})
-					if err != nil {
-						return 0, err
-					}
-					defer resp.Body.Close()
-					_, _ = io.ReadAll(resp.Body)
-					return resp.StatusCode, nil
-				}, "10s", "0.5s").Should(Equal(http.StatusOK))
-			})
-
 		})
 
 		Context("no body processing rules", func() {
@@ -328,14 +345,14 @@ var _ = Describe("waf", func() {
 				}
 				if request {
 					rules += `
-					SecRule REQUEST_BODY "@contains nikto" "deny,status:403,id:107,phase:2,msg:'blocked nikto scammer'"
+					SecRule REQUEST_BODY "@contains nikto" "deny,status:403,id:107,phase:2,msg:'blocked nikto'"
 					`
 					if bodypassthrough {
 						wafCfg.RequestHeadersOnly = true
 					}
 				} else {
 					rules += `
-					SecRule RESPONSE_BODY "@contains nikto" "deny,status:403,id:107,phase:4,msg:'blocked nikto scammer'"
+					SecRule RESPONSE_BODY "@contains nikto" "deny,status:403,id:107,phase:4,msg:'blocked nikto'"
 					`
 					if bodypassthrough {
 						wafCfg.ResponseHeadersOnly = true
@@ -460,6 +477,34 @@ var _ = Describe("waf", func() {
 
 		})
 
+		Context("listener rules", func() {
+			var (
+				proxy *gloov1.Proxy
+			)
+
+			BeforeEach(func() {
+				proxy = getProxyWafDisruptiveListener(envoyPort, testUpstream.Upstream.Metadata.Ref())
+
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				helpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+					return testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+				}, "10s", "0.5s")
+			})
+
+			It("will get rejected by waf", func() {
+				expectRequestBlockedByWaf("nikto", envoyPort)
+				expectRequestBlockedByWaf("scammer", envoyPort)
+			})
+
+			It("will not get rejected by waf", func() {
+				expectRequestAllowedByWaf("", envoyPort)
+				expectRequestAllowedByWaf("skippedRule", envoyPort)
+			})
+
+		})
+
 		Context("vhost rules", func() {
 			var (
 				proxy *gloov1.Proxy
@@ -468,6 +513,7 @@ var _ = Describe("waf", func() {
 			BeforeEach(func() {
 				wafCfg := &waf.Settings{
 					RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
+					ConfigMapRuleSets:         configMapRuleSets,
 					CustomInterventionMessage: customInterventionMessage,
 				}
 				proxy = getProxyWafDisruptiveVhost(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg)
@@ -481,48 +527,13 @@ var _ = Describe("waf", func() {
 			})
 
 			It("will get rejected by waf", func() {
-				var bodyStr string
-				Eventually(func() (int, error) {
-					client := http.DefaultClient
-					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
-					Expect(err).NotTo(HaveOccurred())
-					resp, err := client.Do(&http.Request{
-						Method: http.MethodGet,
-						URL:    reqUrl,
-						Header: map[string][]string{
-							"user-agent": {"nikto"},
-						},
-					})
-					if err != nil {
-						return 0, err
-					}
-					defer resp.Body.Close()
-					body, err := io.ReadAll(resp.Body)
-					if err != nil {
-						return 0, err
-					}
-					bodyStr = string(body)
-					return resp.StatusCode, nil
-				}, "10s", "0.5s").Should(Equal(http.StatusForbidden))
-				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
+				expectRequestBlockedByWaf("nikto", envoyPort)
+				expectRequestBlockedByWaf("scammer", envoyPort)
 			})
 
 			It("will not get rejected by waf", func() {
-				Eventually(func() (int, error) {
-					client := http.DefaultClient
-					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
-					Expect(err).NotTo(HaveOccurred())
-					resp, err := client.Do(&http.Request{
-						Method: http.MethodGet,
-						URL:    reqUrl,
-					})
-					if err != nil {
-						return 0, err
-					}
-					defer resp.Body.Close()
-					_, _ = io.ReadAll(resp.Body)
-					return resp.StatusCode, nil
-				}, "10s", "0.5s").Should(Equal(http.StatusOK))
+				expectRequestAllowedByWaf("", envoyPort)
+				expectRequestAllowedByWaf("skippedRule", envoyPort)
 			})
 
 		})
@@ -536,6 +547,7 @@ var _ = Describe("waf", func() {
 				wafCfg := &waf.Settings{
 					RuleSets:                  []*envoywaf.RuleSet{getRulesTemplate(true, true, true, false)},
 					CustomInterventionMessage: customInterventionMessage,
+					ConfigMapRuleSets:         configMapRuleSets,
 				}
 				proxy = getProxyWafDisruptiveRoute(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg)
 
@@ -548,48 +560,13 @@ var _ = Describe("waf", func() {
 			})
 
 			It("will get rejected by waf", func() {
-				var bodyStr string
-				Eventually(func() (int, error) {
-					client := http.DefaultClient
-					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
-					Expect(err).NotTo(HaveOccurred())
-					resp, err := client.Do(&http.Request{
-						Method: http.MethodGet,
-						URL:    reqUrl,
-						Header: map[string][]string{
-							"user-agent": {"nikto"},
-						},
-					})
-					if err != nil {
-						return 0, err
-					}
-					defer resp.Body.Close()
-					body, err := io.ReadAll(resp.Body)
-					if err != nil {
-						return 0, err
-					}
-					bodyStr = string(body)
-					return resp.StatusCode, nil
-				}, "10s", "0.5s").Should(Equal(http.StatusForbidden))
-				Expect(bodyStr).To(ContainSubstring(customInterventionMessage))
+				expectRequestBlockedByWaf("nikto", envoyPort)
+				expectRequestBlockedByWaf("scammer", envoyPort)
 			})
 
 			It("will not get rejected by waf", func() {
-				Eventually(func() (int, error) {
-					client := http.DefaultClient
-					reqUrl, err := url.Parse(fmt.Sprintf("http://%s:%d/hello/1", "localhost", envoyPort))
-					Expect(err).NotTo(HaveOccurred())
-					resp, err := client.Do(&http.Request{
-						Method: http.MethodGet,
-						URL:    reqUrl,
-					})
-					if err != nil {
-						return 0, err
-					}
-					defer resp.Body.Close()
-					_, _ = io.ReadAll(resp.Body)
-					return resp.StatusCode, nil
-				}, "10s", "0.5s").Should(Equal(http.StatusOK))
+				expectRequestAllowedByWaf("", envoyPort)
+				expectRequestAllowedByWaf("skippedRule", envoyPort)
 			})
 
 			It("will not get rejected by waf since it's on a different route", func() {

@@ -2,6 +2,9 @@ package waf
 
 import (
 	"context"
+	"sort"
+
+	"github.com/solo-io/go-utils/contextutils"
 
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation_ee"
@@ -9,6 +12,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
+	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	dlp_plugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/dlp"
@@ -90,14 +94,8 @@ func (p *plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.Vir
 		}
 	}
 
-	perVhostCfg.RuleSets = wafConfig.GetRuleSets()
-
-	if coreRuleSet := getCoreRuleSet(wafConfig.GetCoreRuleSet()); coreRuleSet != nil {
-		perVhostCfg.RuleSets = append(perVhostCfg.RuleSets, coreRuleSet...)
-	}
-
+	perVhostCfg.RuleSets = getRuleSets(params.Ctx, params.Snapshot, wafConfig)
 	pluginutils.SetVhostPerFilterConfig(out, FilterName, perVhostCfg)
-
 	return nil
 }
 
@@ -127,7 +125,6 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 
 	// filterRequiredForListener should be instantiated at plugin init
 	p.filterRequiredForListener[params.HttpListener] = struct{}{}
-
 	perRouteCfg := &ModSecurityPerRoute{
 		Disabled:                  wafConfig.GetDisabled(),
 		AuditLogging:              wafConfig.GetAuditLogging(),
@@ -144,11 +141,7 @@ func (p *plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 		}
 	}
 
-	perRouteCfg.RuleSets = wafConfig.GetRuleSets()
-	if coreRuleSet := getCoreRuleSet(wafConfig.GetCoreRuleSet()); coreRuleSet != nil {
-		perRouteCfg.RuleSets = append(perRouteCfg.RuleSets, coreRuleSet...)
-	}
-
+	perRouteCfg.RuleSets = getRuleSets(params.Ctx, params.Snapshot, wafConfig)
 	pluginutils.SetRoutePerFilterConfig(out, FilterName, perRouteCfg)
 	return nil
 }
@@ -166,22 +159,17 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		return filters, nil
 	}
 
-	var settings waf.Settings
-	if wafSettings != nil {
-		settings = *wafSettings
-	}
-
 	modSecurityConfig := &ModSecurity{}
 
-	if settings.GetCoreRuleSet() == nil && settings.GetRuleSets() == nil {
+	if wafSettings.GetCoreRuleSet() == nil && wafSettings.GetRuleSets() == nil {
 		modSecurityConfig.Disabled = true
 	} else {
-		modSecurityConfig.RuleSets = settings.GetRuleSets()
-		modSecurityConfig.AuditLogging = settings.GetAuditLogging()
-		modSecurityConfig.Disabled = settings.GetDisabled()
-		modSecurityConfig.CustomInterventionMessage = settings.GetCustomInterventionMessage()
-		modSecurityConfig.RequestHeadersOnly = settings.GetRequestHeadersOnly()
-		modSecurityConfig.ResponseHeadersOnly = settings.GetResponseHeadersOnly()
+		modSecurityConfig.RuleSets = getRuleSets(params.Ctx, params.Snapshot, wafSettings)
+		modSecurityConfig.AuditLogging = wafSettings.GetAuditLogging()
+		modSecurityConfig.Disabled = wafSettings.GetDisabled()
+		modSecurityConfig.CustomInterventionMessage = wafSettings.GetCustomInterventionMessage()
+		modSecurityConfig.RequestHeadersOnly = wafSettings.GetRequestHeadersOnly()
+		modSecurityConfig.ResponseHeadersOnly = wafSettings.GetResponseHeadersOnly()
 
 		if dlpActions != nil && len(dlpActions) > 0 {
 			modSecurityConfig.DlpTransformation = &transformation_ee.DlpTransformation{
@@ -189,9 +177,6 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 				EnableHeaderTransformation:          true,
 				EnableDynamicMetadataTransformation: true,
 			}
-		}
-		if coreRuleSet := getCoreRuleSet(settings.GetCoreRuleSet()); coreRuleSet != nil {
-			modSecurityConfig.RuleSets = append(modSecurityConfig.RuleSets, coreRuleSet...)
 		}
 	}
 
@@ -201,6 +186,19 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	}
 	filters = append(filters, stagedFilter)
 	return filters, nil
+}
+
+func getRuleSets(ctx context.Context, snap *v1snap.ApiSnapshot, settings *waf.Settings) []*RuleSet {
+	allRules := settings.RuleSets
+	if coreRuleSet := getCoreRuleSet(settings.GetCoreRuleSet()); coreRuleSet != nil {
+		allRules = append(allRules, coreRuleSet...)
+	}
+	// ruleSetsFromConfigMap
+	if len(settings.GetConfigMapRuleSets()) > 0 {
+		ruleSetFromConfigMap := translateConfigMapToRuleSets(ctx, snap, settings.GetConfigMapRuleSets())
+		allRules = append(allRules, ruleSetFromConfigMap...)
+	}
+	return allRules
 }
 
 func dlpActionsForListener(listener *v1.HttpListener) []*transformation_ee.Action {
@@ -244,4 +242,44 @@ func getDlpTransformation(ctx context.Context, dlpSettings *dlp.Config) *transfo
 		}
 	}
 	return nil
+}
+
+// Get String data from configmap and pass as input as ruleset RuleStr
+// todo: convert the log warnings to true warnings once it is possible to send back warning and errors https://github.com/solo-io/gloo/issues/7357
+func translateConfigMapToRuleSets(ctx context.Context, snap *v1snap.ApiSnapshot, ruleSetsFromConfigMaps []*waf.RuleSetFromConfigMap) []*RuleSet {
+	ruleSets := []*RuleSet{}
+	for _, ruleSetFromConfigMap := range ruleSetsFromConfigMaps {
+		artifact, err := snap.Artifacts.Find(ruleSetFromConfigMap.GetConfigMapRef().Strings())
+		if err != nil {
+			contextutils.LoggerFrom(ctx).Warnf("config map %s:%s cannot be found", ruleSetFromConfigMap.GetConfigMapRef().Namespace, ruleSetFromConfigMap.GetConfigMapRef().Name)
+			return nil
+		}
+		// if no keys are provided for the data map in the configmap then sort the keys and add all rules
+		if len(ruleSetFromConfigMap.GetDataMapKeys()) == 0 {
+			// sort keys to maintain order
+			keys := make([]string, 0, len(artifact.Data))
+			for k := range artifact.Data {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for _, k := range keys {
+				rs := &RuleSet{
+					RuleStr: artifact.Data[k],
+				}
+				ruleSets = append(ruleSets, rs)
+			}
+		} else { // keys were provided, get the rules only for those provided keys
+			for _, key := range ruleSetFromConfigMap.DataMapKeys {
+				if val, ok := artifact.Data[key]; ok {
+					rs := &RuleSet{
+						RuleStr: val,
+					}
+					ruleSets = append(ruleSets, rs)
+				} else {
+					contextutils.LoggerFrom(ctx).Warnf("config map key '%s' for configmap %s:%s cannot be found", key, ruleSetFromConfigMap.GetConfigMapRef().Namespace, ruleSetFromConfigMap.GetConfigMapRef().Name)
+				}
+			}
+		}
+	}
+	return ruleSets
 }

@@ -19,23 +19,120 @@ import (
 
 var _ = Describe("waf plugin", func() {
 	var (
-		plugin       plugins.Plugin
-		params       plugins.Params
-		vhostParams  plugins.VirtualHostParams
-		virtualHost  *v1.VirtualHost
-		route        *v1.Route
-		httpListener *v1.HttpListener
-		wafVhost     *waf.Settings
-		wafRoute     *waf.Settings
-		dlpSettings  *dlp.Config
-		wafListener  *waf.Settings
+		plugin            plugins.Plugin
+		params            plugins.Params
+		vhostParams       plugins.VirtualHostParams
+		virtualHost       *v1.VirtualHost
+		route             *v1.Route
+		httpListener      *v1.HttpListener
+		wafVhost          *waf.Settings
+		wafRoute          *waf.Settings
+		dlpSettings       *dlp.Config
+		wafListener       *waf.Settings
+		configMapRuleSets []*waf.RuleSetFromConfigMap
 	)
 
 	const (
 		rulesString               = "rules rules rules"
 		crsRulesString            = "crs rules rules rules"
+		ruleStringFromArtifact1   = "rule from artifact 1"
+		ruleStringFromArtifact2   = "rule from artifact 2"
+		ruleStringFromArtifact3   = "rule from artifact 3"
+		ruleStringFromArtifact4   = "rule from artifact 4"
 		customInterventionMessage = "custom intervention message"
 	)
+
+	BeforeEach(func() {
+		wafListener = &waf.Settings{}
+	})
+
+	JustBeforeEach(func() {
+		if wafRoute == nil {
+			wafRoute = &waf.Settings{}
+		}
+		if dlpSettings == nil {
+			dlpSettings = &dlp.Config{}
+		}
+		route = &v1.Route{
+			Matchers: []*matchers.Matcher{{
+				PathSpecifier: &matchers.Matcher_Prefix{
+					Prefix: "/",
+				},
+			}},
+			Action: &v1.Route_DirectResponseAction{
+				DirectResponseAction: &v1.DirectResponseAction{
+					Status: 200,
+					Body:   "test",
+				},
+			},
+			Options: &v1.RouteOptions{
+				Waf: wafRoute,
+				Dlp: dlpSettings,
+			},
+		}
+
+		if wafVhost == nil {
+			wafVhost = &waf.Settings{}
+		}
+
+		virtualHost = &v1.VirtualHost{
+			Name:    "virt1",
+			Domains: []string{"*"},
+			Options: &v1.VirtualHostOptions{
+				Waf: wafVhost,
+				Dlp: dlpSettings,
+			},
+			Routes: []*v1.Route{route},
+		}
+
+		httpListener = &v1.HttpListener{
+			VirtualHosts: []*v1.VirtualHost{virtualHost},
+			Options: &v1.HttpListenerOptions{
+				Waf: wafListener,
+			},
+		}
+		proxy := &v1.Proxy{
+			Metadata: &core.Metadata{
+				Name:      "secret",
+				Namespace: "default",
+			},
+			Listeners: []*v1.Listener{{
+				Name: "default",
+				ListenerType: &v1.Listener_HttpListener{
+					HttpListener: httpListener,
+				},
+			}},
+		}
+
+		params.Snapshot = &v1snap.ApiSnapshot{
+			Proxies: v1.ProxyList{proxy},
+		}
+		vhostParams = plugins.VirtualHostParams{
+			Params:   params,
+			Proxy:    proxy,
+			Listener: proxy.Listeners[0],
+		}
+
+		configMapRuleSets = []*waf.RuleSetFromConfigMap{
+			{
+				ConfigMapRef: &core.ResourceRef{
+					Namespace: "namespace",
+					Name:      "name",
+				},
+				DataMapKeys: []string{
+					"key1", //order in artifact is key2, then key1 - validate order of passed keys is respected
+					"key2",
+				},
+			},
+			{
+				ConfigMapRef: &core.ResourceRef{
+					Namespace: "namespace",
+					Name:      "name2",
+				},
+			},
+		}
+
+	})
 
 	allTests := func() {
 		Context("process snapshot", func() {
@@ -46,13 +143,22 @@ var _ = Describe("waf plugin", func() {
 			)
 
 			var checkRuleSets = func(rs []*envoywaf.RuleSet) {
-				Expect(rs).To(HaveLen(3))
+				Expect(rs).To(HaveLen(7))
 				Expect(rs[0].Files).To(BeNil())
 				Expect(rs[0].RuleStr).To(Equal(rulesString))
 				Expect(rs[1].Files).To(BeNil())
 				Expect(rs[1].RuleStr).To(Equal(crsRulesString))
 				Expect(rs[2].Directory).To(Equal(crsPathPrefix))
 				Expect(rs[2].RuleStr).To(Equal(""))
+				//rules from configmap
+				Expect(rs[3].Files).To(BeNil())
+				Expect(rs[3].RuleStr).To(Equal(ruleStringFromArtifact1))
+				Expect(rs[4].Files).To(BeNil())
+				Expect(rs[4].RuleStr).To(Equal(ruleStringFromArtifact2))
+				Expect(rs[5].Files).To(BeNil())
+				Expect(rs[5].RuleStr).To(Equal(ruleStringFromArtifact3))
+				Expect(rs[6].Files).To(BeNil())
+				Expect(rs[6].RuleStr).To(Equal(ruleStringFromArtifact4))
 			}
 
 			JustBeforeEach(func() {
@@ -64,6 +170,30 @@ var _ = Describe("waf plugin", func() {
 					VirtualHostParams: vhostParams,
 					VirtualHost:       virtualHost,
 				}
+
+				params.Snapshot.Artifacts = v1.ArtifactList{
+					{
+						Metadata: &core.Metadata{
+							Name:      "name",
+							Namespace: "namespace",
+						},
+						Data: map[string]string{
+							"key2": ruleStringFromArtifact2, //rule will come after rule from source.conf - tests sorting of keys
+							"key1": ruleStringFromArtifact1,
+						},
+					},
+					{
+						Metadata: &core.Metadata{
+							Name:      "name2",
+							Namespace: "namespace",
+						},
+						Data: map[string]string{
+							"key4": ruleStringFromArtifact4, //should be sorted to key3, key4 as no keys are passed
+							"key3": ruleStringFromArtifact3,
+						},
+					},
+				}
+
 				// run it like the translator:
 				err := plugin.(plugins.RoutePlugin).ProcessRoute(routesParams, route, &outRoute)
 				Expect(err).NotTo(HaveOccurred())
@@ -102,6 +232,7 @@ var _ = Describe("waf plugin", func() {
 							RuleStr: rulesString,
 						},
 					}
+
 					wafListener = &waf.Settings{
 						CoreRuleSet: &waf.CoreRuleSet{
 							CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
@@ -109,6 +240,7 @@ var _ = Describe("waf plugin", func() {
 							},
 						},
 						RuleSets:                  ruleSets,
+						ConfigMapRuleSets:         configMapRuleSets,
 						CustomInterventionMessage: customInterventionMessage,
 						RequestHeadersOnly:        true,
 						ResponseHeadersOnly:       true,
@@ -174,6 +306,7 @@ var _ = Describe("waf plugin", func() {
 								RuleStr: rulesString,
 							},
 						}
+
 						wafRoute = &waf.Settings{
 							CoreRuleSet: &waf.CoreRuleSet{
 								CustomSettingsType: &waf.CoreRuleSet_CustomSettingsString{
@@ -181,6 +314,7 @@ var _ = Describe("waf plugin", func() {
 								},
 							},
 							RuleSets:                  ruleSets,
+							ConfigMapRuleSets:         configMapRuleSets,
 							CustomInterventionMessage: customInterventionMessage,
 							RequestHeadersOnly:        true,
 							ResponseHeadersOnly:       true,
@@ -193,6 +327,7 @@ var _ = Describe("waf plugin", func() {
 								},
 							},
 							RuleSets:                  ruleSets,
+							ConfigMapRuleSets:         configMapRuleSets,
 							CustomInterventionMessage: customInterventionMessage,
 							RequestHeadersOnly:        true,
 							ResponseHeadersOnly:       true,
@@ -293,79 +428,6 @@ var _ = Describe("waf plugin", func() {
 
 		})
 	}
-
-	BeforeEach(func() {
-		wafListener = &waf.Settings{}
-	})
-
-	JustBeforeEach(func() {
-		if wafRoute == nil {
-			wafRoute = &waf.Settings{}
-		}
-		if dlpSettings == nil {
-			dlpSettings = &dlp.Config{}
-		}
-		route = &v1.Route{
-			Matchers: []*matchers.Matcher{{
-				PathSpecifier: &matchers.Matcher_Prefix{
-					Prefix: "/",
-				},
-			}},
-			Action: &v1.Route_DirectResponseAction{
-				DirectResponseAction: &v1.DirectResponseAction{
-					Status: 200,
-					Body:   "test",
-				},
-			},
-			Options: &v1.RouteOptions{
-				Waf: wafRoute,
-				Dlp: dlpSettings,
-			},
-		}
-
-		if wafVhost == nil {
-			wafVhost = &waf.Settings{}
-		}
-
-		virtualHost = &v1.VirtualHost{
-			Name:    "virt1",
-			Domains: []string{"*"},
-			Options: &v1.VirtualHostOptions{
-				Waf: wafVhost,
-				Dlp: dlpSettings,
-			},
-			Routes: []*v1.Route{route},
-		}
-
-		httpListener = &v1.HttpListener{
-			VirtualHosts: []*v1.VirtualHost{virtualHost},
-			Options: &v1.HttpListenerOptions{
-				Waf: wafListener,
-			},
-		}
-		proxy := &v1.Proxy{
-			Metadata: &core.Metadata{
-				Name:      "secret",
-				Namespace: "default",
-			},
-			Listeners: []*v1.Listener{{
-				Name: "default",
-				ListenerType: &v1.Listener_HttpListener{
-					HttpListener: httpListener,
-				},
-			}},
-		}
-
-		params.Snapshot = &v1snap.ApiSnapshot{
-			Proxies: v1.ProxyList{proxy},
-		}
-		vhostParams = plugins.VirtualHostParams{
-			Params:   params,
-			Proxy:    proxy,
-			Listener: proxy.Listeners[0],
-		}
-
-	})
 	allTests()
 
 })

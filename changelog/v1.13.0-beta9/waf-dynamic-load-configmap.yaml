@@ -1,0 +1,11 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/gloo/issues/3329
+    resolvesIssue: false
+    description: >
+      Allow direct specification of a config map with mod security ruleset to allow for dynamic loading of customer specified rulesets
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.13.0-beta24
+    description: Pick up waf settings proto changes
