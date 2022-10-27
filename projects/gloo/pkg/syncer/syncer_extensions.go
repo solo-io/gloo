@@ -30,6 +30,10 @@ type TranslatorSyncerExtension interface {
 		settings *v1.Settings,
 		snapshotSetter SnapshotSetter,
 		reports reporter.ResourceReports)
+
+	// Translate will process the ApiSnapshot and updates the reports with Errors/Warnings that it encouters
+	// unlike Sync() this will not update the SnapshotCache.
+	Translate(ctx context.Context, snap *v1snap.ApiSnapshot, proxies v1.ProxyList, reports reporter.ResourceReports) error
 }
 
 type TranslatorSyncerExtensionParams struct {

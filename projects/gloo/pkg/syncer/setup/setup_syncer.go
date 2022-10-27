@@ -724,6 +724,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		ConfigStatusMetricOpts:         nil,
 		IsolateVirtualHostsBySslConfig: opts.Settings.GetGateway().GetIsolateVirtualHostsBySslConfig().GetValue(),
 	}
+
 	var (
 		ignoreProxyValidationFailure bool
 		allowWarnings                bool
@@ -735,17 +736,39 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 
 	resourceHasher := translator.EnvoyCacheResourcesListToFnvHash
 
+	// Set up the syncer extensions
+	syncerExtensionParams := syncer.TranslatorSyncerExtensionParams{
+		RateLimitServiceSettings: ratelimit.ServiceSettings{
+			Descriptors:    opts.Settings.GetRatelimit().GetDescriptors(),
+			SetDescriptors: opts.Settings.GetRatelimit().GetSetDescriptors(),
+		},
+		Hasher: resourceHasher,
+	}
+	var syncerExtensions []syncer.TranslatorSyncerExtension
+	for _, syncerExtensionFactory := range extensions.SyncerExtensions {
+		// TODO-JAKE might want to look into the issue with the copy value of the Mutex to syncerExtensionFactory
+		syncerExtension := syncerExtensionFactory(watchOpts.Ctx, syncerExtensionParams)
+		syncerExtensions = append(syncerExtensions, syncerExtension)
+	}
+
 	sharedTranslator := translator.NewTranslatorWithHasher(sslutils.NewSslConfigTranslator(), opts.Settings, extensions.PluginRegistryFactory(watchOpts.Ctx), resourceHasher)
 	routeReplacingSanitizer, err := sanitizer.NewRouteReplacingSanitizer(opts.Settings.GetGloo().GetInvalidConfigPolicy())
 	if err != nil {
 		return err
 	}
 
-	xdsSanitizer := sanitizer.XdsSanitizers{
+	xdsSanitizers := sanitizer.XdsSanitizers{
 		sanitizer.NewUpstreamRemovingSanitizer(),
 		routeReplacingSanitizer,
 	}
-	validator := validation.NewValidator(watchOpts.Ctx, sharedTranslator, xdsSanitizer)
+
+	vc := validation.ValidatorConfig{
+		Ctx:           watchOpts.Ctx,
+		Translator:    sharedTranslator,
+		XdsSanitizers: xdsSanitizers,
+		Extensions:    syncerExtensions,
+	}
+	validator := validation.NewValidator(vc)
 	if opts.ValidationServer.Server != nil {
 		opts.ValidationServer.Server.SetValidator(validator)
 	}
@@ -779,25 +802,11 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		allowWarnings,
 	))
 
-	// Set up the syncer extensions
-	syncerExtensionParams := syncer.TranslatorSyncerExtensionParams{
-		RateLimitServiceSettings: ratelimit.ServiceSettings{
-			Descriptors:    opts.Settings.GetRatelimit().GetDescriptors(),
-			SetDescriptors: opts.Settings.GetRatelimit().GetSetDescriptors(),
-		},
-		Hasher: resourceHasher,
-	}
-	var syncerExtensions []syncer.TranslatorSyncerExtension
-	for _, syncerExtensionFactory := range extensions.SyncerExtensions {
-		syncerExtension := syncerExtensionFactory(watchOpts.Ctx, syncerExtensionParams)
-		syncerExtensions = append(syncerExtensions, syncerExtension)
-	}
-
 	translationSync := syncer.NewTranslatorSyncer(
 		opts.WatchOpts.Ctx,
 		sharedTranslator,
 		opts.ControlPlane.SnapshotCache,
-		xdsSanitizer,
+		xdsSanitizers,
 		rpt,
 		opts.DevMode,
 		syncerExtensions,

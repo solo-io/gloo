@@ -427,6 +427,9 @@ func (v *validator) ValidateModifiedGvk(ctx context.Context, gvk schema.GroupVer
 
 func (v *validator) validateModifiedResource(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun, acquireLock bool) (*Reports, error) {
 	var reports *Reports
+	// TODO-JAKE
+	// so it looks like we might need to extend the helm chart in enterprise to add the rate limit resources
+	// so we might need to create a template if it already is not impacted in enterprise
 	if v.ModificationIsSupported(gvk) {
 		reports, err := v.validateResource(&validationOptions{Ctx: ctx, Resource: resource, Gvk: gvk, Delete: false, DryRun: dryRun, AcquireLock: acquireLock})
 		if err != nil {

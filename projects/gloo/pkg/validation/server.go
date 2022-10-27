@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
@@ -30,6 +31,14 @@ type Validator interface {
 	ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource resources.Resource, delete bool) ([]*GlooValidationReport, error)
 }
 
+// ValidatorConfig is used to configure the validator
+type ValidatorConfig struct {
+	Ctx           context.Context
+	Translator    translator.Translator
+	XdsSanitizers sanitizer.XdsSanitizers
+	Extensions    []syncer.TranslatorSyncerExtension
+}
+
 type validator struct {
 	// note to devs: this can be called in parallel by the validation webhook and main translation loops at the same time
 	// any stateful fields should be protected by a mutex or themselves be synchronized (like the xds sanitizer / translator)
@@ -40,15 +49,23 @@ type validator struct {
 	notifyResync   map[*validation.NotifyOnResyncRequest]chan struct{}
 	ctx            context.Context
 	xdsSanitizer   sanitizer.XdsSanitizers
+	extensions     []syncer.TranslatorSyncerExtension
 }
 
-func NewValidator(ctx context.Context, translator translator.Translator, xdsSanitizer sanitizer.XdsSanitizers) *validator {
+// TODO-JAKE Libary breaking change
+func NewValidator(config ValidatorConfig) *validator {
+	gvc := GlooValidatorConfig{
+		XdsSanitizer:   config.XdsSanitizers,
+		Extensions:     config.Extensions,
+		GlooTranslator: config.Translator,
+	}
 	return &validator{
-		translator:    translator,
-		glooValidator: NewGlooValidator(translator, xdsSanitizer),
+		translator:    config.Translator,
+		glooValidator: NewGlooValidator(gvc),
 		notifyResync:  make(map[*validation.NotifyOnResyncRequest]chan struct{}, 1),
-		ctx:           ctx,
-		xdsSanitizer:  xdsSanitizer,
+		ctx:           config.Ctx,
+		xdsSanitizer:  config.XdsSanitizers,
+		extensions:    config.Extensions,
 	}
 }
 
@@ -221,7 +238,10 @@ func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource 
 			}
 		}
 	}
-	return s.glooValidator.Validate(ctx, proxy, &snapCopy, delete), nil
+
+	validationReports := s.glooValidator.Validate(ctx, proxy, &snapCopy, delete)
+
+	return validationReports, nil
 }
 
 // updates the given snapshot with the resources from the request

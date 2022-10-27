@@ -8,6 +8,7 @@ import (
 	"github.com/rotisserie/eris"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/go-utils/contextutils"
@@ -39,6 +40,19 @@ func NewTranslatorSyncerExtension(_ context.Context, _ syncer.TranslatorSyncerEx
 
 func (s *translatorSyncerExtension) ID() string {
 	return ServerRole
+}
+
+// TODO-JAKE later
+func (s *translatorSyncerExtension) Translate(
+	ctx context.Context,
+	snap *gloov1snap.ApiSnapshot,
+	_ v1.ProxyList,
+	reports reporter.ResourceReports,
+) error {
+	// we can just call sync because we are not going doing anything with the
+	// gloo settings or the snapshot setter
+	s.Sync(ctx, snap, nil, nil, reports)
+	return nil
 }
 
 func (s *translatorSyncerExtension) Sync(
