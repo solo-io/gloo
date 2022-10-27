@@ -782,6 +782,8 @@ ifneq ($(and $(filter $(CREATE_ASSETS), "true"), $(filter-out $(UNAME_M), arm64)
 	docker push $(IMAGE_REPO)/gloo:$(VERSION)-race
 endif
 
+# To mimic the effects of CI, CREATE_ASSETS, TAGGED_VERSION and CREATE_TEST_ASSETS need to be set
+# Extended images are the same as regular images but with curl
 .PHONY: docker-push-extended
 docker-push-extended:
 ifeq ($(CREATE_ASSETS), "true")
