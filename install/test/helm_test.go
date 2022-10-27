@@ -3792,6 +3792,10 @@ webhooks:
        apiGroups: ["gloo.solo.io"]
        apiVersions: ["v1"]
        resources: ["secrets"]
+     - operations: [ "CREATE", "UPDATE", "DELETE" ]
+	   apiGroups: ["ratelimit.solo.io"]
+	   apiVersions: ["v1alpha1"]
+	   resources: ["*"]
    sideEffects: None
    matchPolicy: Exact
    admissionReviewVersions:
