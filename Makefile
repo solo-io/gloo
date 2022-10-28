@@ -119,9 +119,7 @@ UNAME_M := $(shell uname -m)
 IS_ARM_MACHINE := $(or	$(filter $(UNAME_M), arm64), $(filter $(UNAME_M), aarch64))
 ifneq ($(IS_ARM_MACHINE), )
 	PLATFORM := --platform linux/amd64
-	ifeq ($(GOARCH), amd64)
-		GOARCH := amd64
-	else
+	ifneq ($(GOARCH), amd64)
 		GOARCH := arm64
 		PLATFORM := --platform linux/arm64
 	endif
