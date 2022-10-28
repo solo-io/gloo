@@ -22,6 +22,10 @@ func AddNamespaceFlag(set *pflag.FlagSet, strptr *string) {
 	set.StringVarP(strptr, "namespace", "n", DefaultNamespace, "namespace for reading or writing resources")
 }
 
+func AddNamespacesFlag(set *pflag.FlagSet, strptr *[]string) {
+	set.StringSliceVar(strptr, "namespaces", []string{}, "namespaces for reading resources")
+}
+
 func AddExcludeCheckFlag(set *pflag.FlagSet, strarrptr *[]string) {
 	set.StringSliceVarP(strarrptr, "exclude", "x", []string{}, "check to exclude: (deployments, pods, upstreams, upstreamgroup, auth-configs, rate-limit-configs, secrets, virtual-services, gateways, proxies, xds-metrics)")
 }

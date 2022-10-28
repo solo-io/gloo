@@ -64,7 +64,21 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 
 			printer = printers.P{OutputType: opts.Top.Output}
 			printer.CheckResult = printer.NewCheckResult()
-			err := CheckResources(opts)
+
+			var err error
+			if len(opts.Check.Namespaces) != 0 {
+				for _, namespace := range opts.Check.Namespaces {
+					printer.AppendMessage("Checking " + namespace + " namespace.\n")
+					opts.Metadata.Namespace = namespace
+					err = CheckResources(opts)
+					if err != nil {
+						return err
+					}
+				}
+			} else {
+				printer.AppendMessage("Checking default namespace (gloo-system).\n")
+				err = CheckResources(opts)
+			}
 
 			if err != nil {
 				// Not returning error here because this shouldn't propagate as a standard CLI error, which prints usage.
@@ -87,6 +101,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 	pflags := cmd.PersistentFlags()
 	flagutils.AddCheckOutputFlag(pflags, &opts.Top.Output)
 	flagutils.AddNamespaceFlag(pflags, &opts.Metadata.Namespace)
+	flagutils.AddNamespacesFlag(pflags, &opts.Check.Namespaces)
 	flagutils.AddExcludeCheckFlag(pflags, &opts.Top.CheckName)
 	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
