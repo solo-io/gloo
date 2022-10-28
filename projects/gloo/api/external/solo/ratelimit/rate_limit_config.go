@@ -79,6 +79,7 @@ func (r *RateLimitConfig) GetNamespacedStatuses() *core.NamespacedStatuses {
 }
 
 func (r *RateLimitConfig) SetNamespacedStatuses(status *core.NamespacedStatuses) {
+	contextutils.LoggerFrom(context.Background()).DPanic(status.Statuses)
 	contextutils.LoggerFrom(context.Background()).DPanic("implement me")
 }
 
