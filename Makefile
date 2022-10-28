@@ -143,6 +143,10 @@ BUILD_ID := $(BUILD_ID)
 
 TEST_ASSET_DIR := $(ROOTDIR)/_test
 
+TEST_IMAGE_TAG := test-$(BUILD_ID)
+TEST_ASSET_DIR := $(ROOTDIR)/_test
+GCR_REPO_PREFIX := gcr.io/$(GCLOUD_PROJECT_ID)
+
 #----------------------------------------------------------------------------------
 # Macros
 #----------------------------------------------------------------------------------
