@@ -464,7 +464,7 @@ $(GLOO_RACE_OUT_DIR)/.gloo-race-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT_DI
 # Hardcode GOARCH for targets that are both built and run entirely in amd64 docker containers
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
-$(GLOO_RACE_OUT_DIR)/gloo-linux-$(GOARCH): $(GLOO_RACE_OUT_DIR)/.gloo-race-docker-build
+$(GLOO_RACE_OUT_DIR)/gloo-linux-amd64: $(GLOO_RACE_OUT_DIR)/.gloo-race-docker-build
 	docker create -ti --name gloo-race-temp-container $(IMAGE_REPO)/gloo-race-build-container:$(VERSION) bash
 	docker cp gloo-race-temp-container:/gloo-linux-amd64 $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64
 	docker rm -f gloo-race-temp-container
@@ -478,9 +478,8 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 # Hardcode GOARCH for targets that are both built and run entirely in amd64 docker containers
 # Take the executable built in gloo-race and put it in a docker container
 .PHONY: gloo-race-docker
-gloo-race-docker: $(GLOO_RACE_OUT_DIR)/.gloo-race-docker ## gloo-race-docker
-$(GLOO_RACE_OUT_DIR)/.gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64 $(GLOO_RACE_OUT_DIR)/Dockerfile
-	docker build $(call get_test_tag_option,gloo) $(GLOO_RACE_OUT_DIR) \
+gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64 $(GLOO_RACE_OUT_DIR)/Dockerfile.build  ## gloo-race-docker
+	docker buildx build --load $(GLOO_RACE_OUT_DIR) -f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) --build-arg GOARCH=amd64 $(PLATFORM) \
 		-t $(IMAGE_REPO)/gloo:$(VERSION)-race $(QUAY_EXPIRATION_LABEL)
 	touch $@
