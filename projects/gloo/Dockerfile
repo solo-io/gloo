@@ -24,6 +24,7 @@ RUN if [[ $USE_APK ]]; then apk add --no-cache gcc musl-dev git; fi
 
 ADD . /go/src/github.com/solo-io/gloo
 WORKDIR /go/src/github.com/solo-io/gloo
+ENV GOROOT /usr/local/go
 
 # Build gloo with CGO and -race enabled
 RUN CGO_ENABLED=1 GOARCH=${GOARCH} GOOS=linux go build \
