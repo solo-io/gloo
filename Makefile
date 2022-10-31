@@ -118,10 +118,10 @@ UNAME_M := $(shell uname -m)
 # if the machines architecture is set to arm64 then we want to set the appropriate values, else we only support amd64
 IS_ARM_MACHINE := $(or	$(filter $(UNAME_M), arm64), $(filter $(UNAME_M), aarch64))
 ifneq ($(IS_ARM_MACHINE), )
-	PLATFORM := --platform linux/amd64
+	PLATFORM := --platform=linux/amd64
 	ifneq ($(GOARCH), amd64)
 		GOARCH := arm64
-		PLATFORM := --platform linux/arm64
+		PLATFORM := --platform=linux/arm64
 	endif
 else
 	# currently we only support arm64 and amd64 as a GOARCH option.
@@ -450,7 +450,7 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
 
 # Hardcode GOARCH for targets that are both built and run entirely in amd64 docker containers
 $(GLOO_RACE_OUT_DIR)/.gloo-race-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT_DIR)/Dockerfile.build
-	docker buildx build --load $(PLATFORM) -t $(IMAGE_REPO)/gloo-race-build-container:$(VERSION) \
+	docker buildx build --load --progress=plain --platform=linux/amd64 -t $(IMAGE_REPO)/gloo-race-build-container:$(VERSION) \
 		-f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
@@ -479,7 +479,7 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 # Take the executable built in gloo-race and put it in a docker container
 .PHONY: gloo-race-docker
 gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64 $(GLOO_RACE_OUT_DIR)/Dockerfile ## gloo-race-docker
-	docker buildx build --load --platform linux/amd64 $(GLOO_RACE_OUT_DIR) -f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
+	docker buildx build --progress=plain --load --platform linux/amd64 $(GLOO_RACE_OUT_DIR) -f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		--build-arg GOARCH=amd64 $(PLATFORM) \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
