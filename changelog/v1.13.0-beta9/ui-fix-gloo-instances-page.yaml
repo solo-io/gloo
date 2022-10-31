@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7388
+    description: >
+      This adds some type checks to have the gloo instances page load correctly.

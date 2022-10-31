@@ -4,7 +4,6 @@ import {
   BoolValue,
   UInt32Value,
 } from 'google-protobuf/google/protobuf/wrappers_pb';
-import { Placement } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/multicluster/v1alpha1/multicluster_pb';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import {
   GatewaySpec,
@@ -61,6 +60,7 @@ import {
   Time,
 } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/common_pb';
 import { Gateway } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
+import { Placement } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/multicluster/v1alpha1/multicluster_pb';
 
 import {
   ClusterDetails,

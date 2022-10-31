@@ -1,17 +1,15 @@
 // @ts-ignore
-import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
 
 export const getGlooInstanceStatus = (
   instance?: GlooInstance.AsObject,
-  specificCheckSubfield?: string
+  specificCheckSubfield?: keyof GlooInstance.GlooInstanceSpec.Check.AsObject
 ): 0 | 1 | 2 | 3 => {
   const check = instance?.spec?.check || {};
 
   if (!!specificCheckSubfield) {
-    const checkSummary: GlooInstance.GlooInstanceSpec.Check.Summary.AsObject =
-      // @ts-ignore getting past ts' inability to deal with [] referencing
-      check[specificCheckSubfield];
+    const checkSummary = check[specificCheckSubfield];
 
     if (checkSummary?.errorsList.length) {
       return UpstreamStatus.State.REJECTED;
@@ -22,10 +20,11 @@ export const getGlooInstanceStatus = (
     }
   } else {
     let warningSeen = false;
-    Object.keys(check).forEach(key => {
-      const checkSummary: GlooInstance.GlooInstanceSpec.Check.Summary.AsObject =
-        // @ts-ignore getting past ts' inability to deal with [] referencing
-        check[key];
+    Object.values(check).forEach(checkSummary => {
+      if (checkSummary === undefined) {
+        // This defaults to pending if there is no data returned (errors or otherwise).
+        return UpstreamStatus.State.PENDING;
+      }
 
       if (checkSummary.errorsList.length > 0) {
         return UpstreamStatus.State.REJECTED;
@@ -46,7 +45,7 @@ export const getGlooInstanceStatus = (
 
 export const getGlooInstanceListStatus = (
   glooInstances: GlooInstance.AsObject[] | undefined,
-  specificCheckSubfield?: string
+  specificCheckSubfield?: keyof GlooInstance.GlooInstanceSpec.Check.AsObject
 ): 0 | 1 | 2 | 3 => {
   if (!glooInstances) {
     return UpstreamStatus.State.PENDING;

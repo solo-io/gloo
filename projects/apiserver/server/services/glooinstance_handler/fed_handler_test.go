@@ -198,6 +198,14 @@ var _ = Describe("fed gloo instance and cluster handler", func() {
 								},
 								Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
 							},
+							MatchableHttpGateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+								Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+								Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+							},
+							RateLimitConfigs: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+								Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+								Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+							},
 							VirtualServices: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
 								Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
 								Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
@@ -259,6 +267,14 @@ var _ = Describe("fed gloo instance and cluster handler", func() {
 						Proxies: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy{},
 						Check: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check{
 							Gateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+								Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+								Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+							},
+							MatchableHttpGateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+								Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+								Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+							},
+							RateLimitConfigs: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
 								Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
 								Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
 							},
@@ -369,6 +385,14 @@ var _ = Describe("fed gloo instance and cluster handler", func() {
 										},
 										Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
 									},
+									MatchableHttpGateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+										Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+										Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+									},
+									RateLimitConfigs: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+										Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+										Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+									},
 									VirtualServices: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
 										Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
 										Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
@@ -435,6 +459,14 @@ var _ = Describe("fed gloo instance and cluster handler", func() {
 								Proxies: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Proxy{},
 								Check: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check{
 									Gateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+										Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+										Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+									},
+									MatchableHttpGateways: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
+										Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+										Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
+									},
+									RateLimitConfigs: &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary{
 										Errors:   []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
 										Warnings: []*rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check_Summary_ResourceReport{},
 									},

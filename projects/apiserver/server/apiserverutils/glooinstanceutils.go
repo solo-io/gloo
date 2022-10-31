@@ -88,16 +88,18 @@ func convertToRpcPorts(ports []*fedv1types.GlooInstanceSpec_Proxy_IngressEndpoin
 
 func convertToRpcCheck(check *fedv1types.GlooInstanceSpec_Check) *rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check {
 	return &rpc_edge_v1.GlooInstance_GlooInstanceSpec_Check{
-		Gateways:        convertToRpcSummary(check.GetGateways()),
-		VirtualServices: convertToRpcSummary(check.GetVirtualServices()),
-		RouteTables:     convertToRpcSummary(check.GetRouteTables()),
-		AuthConfigs:     convertToRpcSummary(check.GetAuthConfigs()),
-		Settings:        convertToRpcSummary(check.GetSettings()),
-		Upstreams:       convertToRpcSummary(check.GetUpstreams()),
-		UpstreamGroups:  convertToRpcSummary(check.GetUpstreamGroups()),
-		Proxies:         convertToRpcSummary(check.GetProxies()),
-		Deployments:     convertToRpcSummary(check.GetDeployments()),
-		Pods:            convertToRpcSummary(check.GetPods()),
+		Gateways:              convertToRpcSummary(check.GetGateways()),
+		MatchableHttpGateways: convertToRpcSummary(check.GetMatchableHttpGateways()),
+		RateLimitConfigs:      convertToRpcSummary(check.GetRateLimitConfigs()),
+		VirtualServices:       convertToRpcSummary(check.GetVirtualServices()),
+		RouteTables:           convertToRpcSummary(check.GetRouteTables()),
+		AuthConfigs:           convertToRpcSummary(check.GetAuthConfigs()),
+		Settings:              convertToRpcSummary(check.GetSettings()),
+		Upstreams:             convertToRpcSummary(check.GetUpstreams()),
+		UpstreamGroups:        convertToRpcSummary(check.GetUpstreamGroups()),
+		Proxies:               convertToRpcSummary(check.GetProxies()),
+		Deployments:           convertToRpcSummary(check.GetDeployments()),
+		Pods:                  convertToRpcSummary(check.GetPods()),
 	}
 }
 

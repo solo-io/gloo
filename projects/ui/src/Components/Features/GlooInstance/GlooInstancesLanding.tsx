@@ -1,34 +1,34 @@
-import React from 'react';
 import styled from '@emotion/styled/macro';
-import { Loading } from 'Components/Common/Loading';
 import {
   useListGlooInstances,
-  useListVirtualServices,
   useListUpstreams,
+  useListVirtualServices,
 } from 'API/hooks';
-import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
-import { SectionCard } from 'Components/Common/SectionCard';
+import { ReactComponent as SuccessCircle } from 'assets/big-successful-checkmark.svg';
+import { ReactComponent as ClusterIcon } from 'assets/cluster-icon.svg';
+import { ReactComponent as EnvoyLogo } from 'assets/envoy-logo.svg';
+import { ReactComponent as GearIcon } from 'assets/gear-icon.svg';
 import { ReactComponent as GlooIcon } from 'assets/Gloo.svg';
 import { ReactComponent as MeshIcon } from 'assets/mesh-icon.svg';
-import { ReactComponent as ClusterIcon } from 'assets/cluster-icon.svg';
 import { ReactComponent as NamespaceIcon } from 'assets/namespace-icon.svg';
-import { ReactComponent as VersionsIcon } from 'assets/versions-icon.svg';
-import { ReactComponent as EnvoyLogo } from 'assets/envoy-logo.svg';
-import { ReactComponent as VirtualServiceIcon } from 'assets/virtualservice-icon.svg';
 import { ReactComponent as UpstreamsIcon } from 'assets/upstreams-icon.svg';
-import { ReactComponent as GearIcon } from 'assets/gear-icon.svg';
-import { ReactComponent as SuccessCircle } from 'assets/big-successful-checkmark.svg';
-import { colors } from 'Styles/colors';
+import { ReactComponent as VersionsIcon } from 'assets/versions-icon.svg';
+import { ReactComponent as VirtualServiceIcon } from 'assets/virtualservice-icon.svg';
 import { CardWhiteSubsection } from 'Components/Common/Card';
-import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { CountBox } from 'Components/Common/CountBox';
+import { DataError } from 'Components/Common/DataError';
+import { HealthIndicator } from 'Components/Common/HealthIndicator';
+import { Loading } from 'Components/Common/Loading';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { SoloLink } from 'Components/Common/SoloLink';
 import { UpstreamStatus } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/upstream_pb';
-import { objectMetasAreEqual } from 'API/helpers';
+import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
+import { GlooInstance } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/glooinstance_pb';
+import React from 'react';
+import { di } from 'react-magnetic-di/macro';
+import { colors } from 'Styles/colors';
 import { getGlooInstanceStatus } from 'utils/gloo-instance-helpers';
 import { GlooInstanceIssues } from './GlooInstanceIssues';
-import { SoloLink } from 'Components/Common/SoloLink';
-import { DataError } from 'Components/Common/DataError';
-import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb_service';
 
 const GlooIconHolder = styled.div`
   display: flex;
@@ -416,6 +416,7 @@ const GlooInstanceCard = ({
 };
 
 export const GlooInstancesLanding = () => {
+  di(useListGlooInstances, useListUpstreams, useListVirtualServices);
   const { data: glooInstances, error: instancesError } = useListGlooInstances();
   const { data: upstreamsResponse, error: upstreamsResponseError } =
     useListUpstreams(undefined, { limit: 0, offset: 0 });
@@ -448,6 +449,7 @@ export const GlooInstancesLanding = () => {
 
   return (
     <>
+      <div data-testid='gloo-instances-landing' />
       {!!glooInstances.length ? (
         glooInstances.map(instance => (
           <GlooInstanceCard
