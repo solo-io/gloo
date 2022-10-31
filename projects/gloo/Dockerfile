@@ -26,7 +26,7 @@ ADD . /go/src/github.com/solo-io/gloo
 WORKDIR /go/src/github.com/solo-io/gloo
 
 # Build gloo with CGO and -race enabled
-RUN CGO_ENABLED=1 GOARCH=${GOARCH} GOOS=linux go build \
+RUN GO111MODULE=on CGO_ENABLED=1 GOARCH=${GOARCH} GOOS=linux go build \
     -race \
     -gcflags="$GCFLAGS" \
     -ldflags="-X github.com/solo-io/gloo/pkg/version.Version=$VERSION $LDFLAGS" \
