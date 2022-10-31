@@ -31,7 +31,7 @@ RUN CGO_ENABLED=1 GOARCH=${GOARCH} GOOS=linux go build \
     -gcflags="$GCFLAGS" \
     -ldflags="-X github.com/solo-io/gloo/pkg/version.Version=$VERSION $LDFLAGS" \
     -o gloo-linux-${GOARCH} \
-    /usr/local/go/src/projects/gloo/cmd/main.go
+    projects/gloo/cmd/main.go
 
 
 FROM alpine:3.15.6
