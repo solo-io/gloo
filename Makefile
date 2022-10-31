@@ -478,11 +478,12 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 # Hardcode GOARCH for targets that are both built and run entirely in amd64 docker containers
 # Take the executable built in gloo-race and put it in a docker container
 .PHONY: gloo-race-docker
-gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64 ## gloo-race-docker
+gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64 $(GLOO_RACE_OUT_DIR)/Dockerfile ## gloo-race-docker
 	docker buildx build --load $(PLATFORM) $(GLOO_RACE_OUT_DIR) -f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		--build-arg GOARCH=amd64 $(PLATFORM) \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
+		--build-arg VERSION=$(VERSION)
 		-t $(IMAGE_REPO)/gloo:$(VERSION)-race $(QUAY_EXPIRATION_LABEL)
 	touch $@
 #----------------------------------------------------------------------------------
