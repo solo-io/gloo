@@ -457,7 +457,6 @@ $(GLOO_RACE_OUT_DIR)/.gloo-race-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT_DI
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg USE_APK=true \
-		--build-arg GOARCH=amd64 \
 		.
 	touch $@
 
@@ -482,7 +481,6 @@ gloo-race-docker: $(GLOO_RACE_OUT_DIR)/.gloo-race-docker ## gloo-race-docker
 $(GLOO_RACE_OUT_DIR)/.gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64 $(GLOO_RACE_OUT_DIR)/Dockerfile
 	docker buildx build --progress=plain --load --platform linux/amd64 $(GLOO_RACE_OUT_DIR) -f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
-		--build-arg GOARCH=amd64 $(PLATFORM) \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		-t $(IMAGE_REPO)/gloo:$(VERSION)-race $(QUAY_EXPIRATION_LABEL)

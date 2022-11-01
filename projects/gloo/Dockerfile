@@ -14,7 +14,6 @@ ARG VERSION
 ARG GCFLAGS
 ARG LDFLAGS
 ARG USE_APK
-ARG GOARCH
 
 # Fail if VERSION is not set
 RUN if [[ ! $VERSION ]]; then echo "Required VERSION build argument not set" && exit 1; fi
@@ -29,14 +28,13 @@ RUN echo $GOROOT
 RUN ls
 
 # Build gloo with CGO and -race enabled
-RUN CGO_ENABLED=1 GOARCH=${GOARCH} GOOS=linux go build \
+RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
     -race \
     -gcflags="$GCFLAGS" \
     -ldflags="-X github.com/solo-io/gloo/pkg/version.Version=$VERSION $LDFLAGS" \
-    -o gloo-linux-${GOARCH} \
+    -o gloo-linux-amd64 \
     projects/gloo/cmd/main.go
 
 
 FROM alpine:3.15.6
-ARG GOARCH
-COPY --from=build-env /go/src/github.com/solo-io/gloo/gloo-linux-${GOARCH} /
+COPY --from=build-env /go/src/github.com/solo-io/gloo/gloo-linux-amd64 /
