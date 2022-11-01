@@ -479,7 +479,7 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 .PHONY: gloo-race-docker
 gloo-race-docker: $(GLOO_RACE_OUT_DIR)/.gloo-race-docker ## gloo-race-docker
 $(GLOO_RACE_OUT_DIR)/.gloo-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-amd64 $(GLOO_RACE_OUT_DIR)/Dockerfile
-	docker buildx build --progress=plain --load --platform linux/amd64 $(GLOO_RACE_OUT_DIR) -f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
+	docker build $(GLOO_RACE_OUT_DIR) -f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
