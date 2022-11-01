@@ -450,7 +450,7 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
 
 # Hardcode GOARCH for targets that are both built and run entirely in amd64 docker containers
 $(GLOO_RACE_OUT_DIR)/.gloo-race-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT_DIR)/Dockerfile.build
-	docker buildx build --load --progress=plain --platform=linux/amd64 -t $(IMAGE_REPO)/gloo-race-build-container:$(VERSION) \
+	docker build -t $(IMAGE_REPO)/gloo-race-build-container:$(VERSION) \
 		-f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
