@@ -65,20 +65,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 			printer = printers.P{OutputType: opts.Top.Output}
 			printer.CheckResult = printer.NewCheckResult()
 
-			var err error
-			if len(opts.Check.Namespaces) != 0 {
-				for _, namespace := range opts.Check.Namespaces {
-					printer.AppendMessage("Checking " + namespace + " namespace.\n")
-					opts.Metadata.Namespace = namespace
-					err = CheckResources(opts)
-					if err != nil {
-						return err
-					}
-				}
-			} else {
-				printer.AppendMessage("Checking default namespace (gloo-system).\n")
-				err = CheckResources(opts)
-			}
+			err := CheckResources(opts)
 
 			if err != nil {
 				// Not returning error here because this shouldn't propagate as a standard CLI error, which prints usage.
@@ -125,21 +112,25 @@ func CheckResources(opts *options.Options) error {
 		}
 	}
 
-	if included := doesNotContain(opts.Top.CheckName, "pods"); included {
-		err := checkPods(opts)
-		if err != nil {
-			multiErr = multierror.Append(multiErr, err)
-		}
-	}
-
 	settings, err := getSettings(opts)
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 	}
 
-	namespaces, err := getNamespaces(opts.Top.Ctx, settings)
+	namespaces := opts.Check.Namespaces
+	if len(opts.Check.Namespaces) == 0 {
+		namespaces, err = getNamespaces(opts.Top.Ctx, settings)
+		namespaces = []string{"gloo-system"}
+	}
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
+	}
+
+	if included := doesNotContain(opts.Top.CheckName, "pods"); included {
+		err := checkPods(opts, namespaces)
+		if err != nil {
+			multiErr = multierror.Append(multiErr, err)
+		}
 	}
 
 	var knownUpstreams []string
@@ -304,57 +295,65 @@ func getAndCheckDeployments(opts *options.Options) (*appsv1.DeploymentList, erro
 	return deployments, nil
 }
 
-func checkPods(opts *options.Options) error {
+func checkPods(opts *options.Options, namespaces []string) error {
 	printer.AppendCheck("Checking pods... ")
 	client, err := helpers.KubeClient()
 	if err != nil {
 		return err
 	}
-	pods, err := client.CoreV1().Pods(opts.Metadata.GetNamespace()).List(opts.Top.Ctx, metav1.ListOptions{})
-	if err != nil {
-		return err
-	}
 	var multiErr *multierror.Error
-	for _, pod := range pods.Items {
-		for _, condition := range pod.Status.Conditions {
-			var errorToPrint string
-			var message string
 
-			if condition.Message != "" {
-				message = fmt.Sprintf(" Message: %s", condition.Message)
-			}
+	for _, ns := range namespaces {
+		//Check if namespace exists
+		_, err = client.CoreV1().Namespaces().Get(opts.Top.Ctx, ns, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		pods, err := client.CoreV1().Pods(ns).List(opts.Top.Ctx, metav1.ListOptions{})
+		if err != nil {
+			return err
+		}
+		for _, pod := range pods.Items {
+			for _, condition := range pod.Status.Conditions {
+				var errorToPrint string
+				var message string
 
-			// if condition is not met and the pod is not completed
-			conditionNotMet := condition.Status != corev1.ConditionTrue && condition.Reason != "PodCompleted"
+				if condition.Message != "" {
+					message = fmt.Sprintf(" Message: %s", condition.Message)
+				}
 
-			// possible condition types listed at https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-conditions
-			switch condition.Type {
-			case corev1.PodScheduled:
-				if conditionNotMet {
-					errorToPrint = fmt.Sprintf("Pod %s in namespace %s is not yet scheduled!%s", pod.Name, pod.Namespace, message)
-				}
-			case corev1.PodReady:
-				if conditionNotMet {
-					errorToPrint = fmt.Sprintf("Pod %s in namespace %s is not ready!%s", pod.Name, pod.Namespace, message)
-				}
-			case corev1.PodInitialized:
-				if conditionNotMet {
-					errorToPrint = fmt.Sprintf("Pod %s in namespace %s is not yet initialized!%s", pod.Name, pod.Namespace, message)
-				}
-			case corev1.PodReasonUnschedulable:
-				if conditionNotMet {
-					errorToPrint = fmt.Sprintf("Pod %s in namespace %s is unschedulable!%s", pod.Name, pod.Namespace, message)
-				}
-			case corev1.ContainersReady:
-				if conditionNotMet {
-					errorToPrint = fmt.Sprintf("Not all containers in pod %s in namespace %s are ready!%s", pod.Name, pod.Namespace, message)
-				}
-			default:
-				fmt.Printf("Note: Unhandled pod condition %s", condition.Type)
-			}
+				// if condition is not met and the pod is not completed
+				conditionNotMet := condition.Status != corev1.ConditionTrue && condition.Reason != "PodCompleted"
 
-			if errorToPrint != "" {
-				multiErr = multierror.Append(multiErr, fmt.Errorf(errorToPrint))
+				// possible condition types listed at https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-conditions
+				switch condition.Type {
+				case corev1.PodScheduled:
+					if conditionNotMet {
+						errorToPrint = fmt.Sprintf("Pod %s in namespace %s is not yet scheduled!%s", pod.Name, pod.Namespace, message)
+					}
+				case corev1.PodReady:
+					if conditionNotMet {
+						errorToPrint = fmt.Sprintf("Pod %s in namespace %s is not ready!%s", pod.Name, pod.Namespace, message)
+					}
+				case corev1.PodInitialized:
+					if conditionNotMet {
+						errorToPrint = fmt.Sprintf("Pod %s in namespace %s is not yet initialized!%s", pod.Name, pod.Namespace, message)
+					}
+				case corev1.PodReasonUnschedulable:
+					if conditionNotMet {
+						errorToPrint = fmt.Sprintf("Pod %s in namespace %s is unschedulable!%s", pod.Name, pod.Namespace, message)
+					}
+				case corev1.ContainersReady:
+					if conditionNotMet {
+						errorToPrint = fmt.Sprintf("Not all containers in pod %s in namespace %s are ready!%s", pod.Name, pod.Namespace, message)
+					}
+				default:
+					fmt.Printf("Note: Unhandled pod condition %s", condition.Type)
+				}
+
+				if errorToPrint != "" {
+					multiErr = multierror.Append(multiErr, fmt.Errorf(errorToPrint))
+				}
 			}
 		}
 	}

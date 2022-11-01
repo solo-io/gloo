@@ -1,4 +1,5 @@
 changelog:
   - type: NEW_FEATURE
+    resolvesIssue: false
     issueLink: https://github.com/solo-io/gloo/issues/1299
     description: Added a `--namespaces` flag to glooctl to allow checking of pods over an array of namespaces
