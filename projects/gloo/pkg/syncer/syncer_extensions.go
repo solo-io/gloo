@@ -16,6 +16,12 @@ type SnapshotSetter interface {
 	SetSnapshot(node string, snapshot envoycache.Snapshot)
 }
 
+// NoOpSnapshotSetter does nothing in it's interface
+type NoOpSnapshotSetter struct{}
+
+// SetSnapshot does nothing, it is a no-op function
+func (n *NoOpSnapshotSetter) SetSnapshot(node string, snapshot envoycache.Snapshot) {}
+
 // TranslatorSyncerExtension represents a custom sync behavior that updates an entry in the SnapshotCache
 type TranslatorSyncerExtension interface {
 	// ID returns the unique identifier for this TranslatorSyncerExtension
@@ -30,10 +36,6 @@ type TranslatorSyncerExtension interface {
 		settings *v1.Settings,
 		snapshotSetter SnapshotSetter,
 		reports reporter.ResourceReports)
-
-	// Translate will process the ApiSnapshot and updates the reports with Errors/Warnings that it encouters
-	// unlike Sync() this will not update the SnapshotCache.
-	Translate(ctx context.Context, snap *v1snap.ApiSnapshot, proxies v1.ProxyList, reports reporter.ResourceReports) error
 }
 
 type TranslatorSyncerExtensionParams struct {

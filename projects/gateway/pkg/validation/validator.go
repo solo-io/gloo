@@ -17,11 +17,12 @@ import (
 	"github.com/solo-io/gloo/projects/gateway/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	syncerValidation "github.com/solo-io/gloo/projects/gloo/pkg/syncer/validation"
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	gloovalidation "github.com/solo-io/gloo/projects/gloo/pkg/validation"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	skprotoutils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
@@ -60,13 +61,14 @@ type ProxyReports []*validation.ProxyReport
 type UpstreamReports []*validation.ResourceReport
 
 var (
-	NotReadyErr             = errors.Errorf("validation is not yet available. Waiting for first snapshot")
-	HasNotReceivedFirstSync = eris.New("proxy validation called before the validation server received its first sync of resources")
-	unmarshalErrMsg         = "could not unmarshal raw object"
-	couldNotRenderProxy     = "could not render proxy"
-	failedGlooValidation    = "failed gloo validation"
-	failedResourceReports   = "failed resource reports from gloo validation"
-	WrappedUnmarshalErr     = func(err error) error {
+	NotReadyErr                    = errors.Errorf("validation is not yet available. Waiting for first snapshot")
+	HasNotReceivedFirstSync        = eris.New("proxy validation called before the validation server received its first sync of resources")
+	unmarshalErrMsg                = "could not unmarshal raw object"
+	couldNotRenderProxy            = "could not render proxy"
+	failedGlooValidation           = "failed gloo validation"
+	failedResourceReports          = "failed gloo validation resource reports"
+	failedExtensionResourceReports = "failed extension resourcee reports"
+	WrappedUnmarshalErr            = func(err error) error {
 		return errors.Wrapf(err, unmarshalErrMsg)
 	}
 
@@ -123,6 +125,7 @@ type validator struct {
 	translator        translator.Translator
 	// This function replaces a grpc client from when gloo and gateway pods were separate.
 	glooValidator                GlooValidatorFunc
+	syncerValidator              syncerValidation.Validator
 	ignoreProxyValidationFailure bool
 	allowWarnings                bool
 }
@@ -139,6 +142,7 @@ type validationOptions struct {
 type ValidatorConfig struct {
 	translator                   translator.Translator
 	glooValidator                GlooValidatorFunc
+	syncerValidator              syncerValidation.Validator
 	ignoreProxyValidationFailure bool
 	allowWarnings                bool
 }
@@ -146,10 +150,12 @@ type ValidatorConfig struct {
 func NewValidatorConfig(
 	translator translator.Translator,
 	glooValidator GlooValidatorFunc,
+	syncerValidator syncerValidation.Validator,
 	ignoreProxyValidationFailure, allowWarnings bool,
 ) ValidatorConfig {
 	return ValidatorConfig{
 		glooValidator:                glooValidator,
+		syncerValidator:              syncerValidator,
 		translator:                   translator,
 		ignoreProxyValidationFailure: ignoreProxyValidationFailure,
 		allowWarnings:                allowWarnings,
@@ -159,6 +165,7 @@ func NewValidatorConfig(
 func NewValidator(cfg ValidatorConfig) *validator {
 	return &validator{
 		glooValidator:                cfg.glooValidator,
+		syncerValidator:              cfg.syncerValidator,
 		translator:                   cfg.translator,
 		ignoreProxyValidationFailure: cfg.ignoreProxyValidationFailure,
 		allowWarnings:                cfg.allowWarnings,
@@ -217,6 +224,10 @@ func (v *validator) ModificationIsSupported(gvk schema.GroupVersionKind) bool {
 	_, supported := GvkSupportedValidationGatewayResources[gvk]
 	if !supported {
 		_, supported := gloovalidation.GvkToSupportedGlooResources[gvk]
+		if !supported {
+			_, supported = syncerValidation.GvkToSupportedExtensionResources[gvk]
+			return supported
+		}
 		return supported
 	}
 	return supported
@@ -227,6 +238,10 @@ func (v *validator) DeletionIsSupported(gvk schema.GroupVersionKind) bool {
 	_, supported := GvkSupportedDeleteGatewayResources[gvk]
 	if !supported {
 		_, supported = gloovalidation.GvkToSupportedDeleteGlooResources[gvk]
+		if !supported {
+			_, supported = syncerValidation.GvkToSupportedDeleteExtensionResources[gvk]
+			return supported
+		}
 		return supported
 	}
 	return supported
@@ -366,11 +381,24 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 			continue
 		}
 
-		_, err = v.getReportsFromGlooValidation(glooReports)
+		// TODO-JAKE make this getErrorsFromGlooValidation
+		err = v.getErrorsFromGlooValidation(glooReports)
 		if err != nil {
 			err = errors.Wrapf(err, failedResourceReports)
 			errs = multierr.Append(errs, err)
 			continue
+		}
+	}
+
+	// validate the extensions
+	// TODO-JAKE add an extra flag to opt-in/out for extension validation.
+	// TODO-JAKE if not on enterprise do not validate this????
+
+	extensionReports := v.syncerValidator.Validate(ctx, snapshotClone)
+	if len(extensionReports) > 0 {
+		if err = v.getErrorsFromResourceReports(extensionReports); err != nil {
+			err = errors.Wrapf(err, failedExtensionResourceReports)
+			errs = multierr.Append(errs, err)
 		}
 	}
 
@@ -409,9 +437,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 
 // ValidateDeletedGvk will validate a deletion of a resource, as long as it is supported, against the Gateway and Gloo Translations.
 func (v *validator) ValidateDeletedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
-	_, supportedGatewayResource := GvkSupportedDeleteGatewayResources[gvk]
-	_, supportedGlooResource := gloovalidation.GvkToSupportedDeleteGlooResources[gvk]
-	if supportedGatewayResource || supportedGlooResource {
+	if v.DeletionIsSupported(gvk) {
 		_, err := v.validateResource(&validationOptions{Ctx: ctx, Resource: resource, Delete: true, DryRun: dryRun, AcquireLock: true})
 		return err
 	}
@@ -427,9 +453,6 @@ func (v *validator) ValidateModifiedGvk(ctx context.Context, gvk schema.GroupVer
 
 func (v *validator) validateModifiedResource(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun, acquireLock bool) (*Reports, error) {
 	var reports *Reports
-	// TODO-JAKE
-	// so it looks like we might need to extend the helm chart in enterprise to add the rate limit resources
-	// so we might need to create a template if it already is not impacted in enterprise
 	if v.ModificationIsSupported(gvk) {
 		reports, err := v.validateResource(&validationOptions{Ctx: ctx, Resource: resource, Gvk: gvk, Delete: false, DryRun: dryRun, AcquireLock: acquireLock})
 		if err != nil {
@@ -536,48 +559,14 @@ func (v *validator) validateResource(opts *validationOptions) (*Reports, error) 
 	}
 }
 
-func GetDelegateRef(delegate *v1.DelegateAction) *core.ResourceRef {
-	// handle deprecated route table resource reference format
-	// TODO(marco): remove when we remove the deprecated fields from the API
-	if delegate.GetNamespace() != "" || delegate.GetName() != "" {
-		return &core.ResourceRef{
-			Namespace: delegate.GetNamespace(),
-			Name:      delegate.GetName(),
-		}
-	} else if delegate.GetRef() != nil {
-		return delegate.GetRef()
-	}
-	return nil
-}
-
-// Converts the GlooValidationService into Reports.
-func (v *validator) getReportsFromGlooValidation(reports []*gloovalidation.GlooValidationReport) (
-	*Reports,
-	error,
-) {
-	var (
-		errs         error
-		proxyReports ProxyReports
-		proxies      []*gloov1.Proxy
-	)
+// getErrorsFromGlooValidation returns an error comprising of the gloo reports
+func (v *validator) getErrorsFromGlooValidation(reports []*gloovalidation.GlooValidationReport) error {
+	var errs error
 	for _, report := range reports {
-		// for resorce, resourceReport
-		for resource, reRpt := range report.ResourceReports {
-			if err := resourceReportToMultiErr(reRpt.Errors); err != nil {
-				errs = multierr.Append(errs, glooFailedResourceValidation(err, resource))
-			}
-			if warnings := reRpt.Warnings; !v.allowWarnings && len(warnings) > 0 {
-				for _, warning := range warnings {
-					errs = multierr.Append(errs, errors.New(warning))
-				}
-			}
-		}
-		// Append proxies and proxy reports
-		if report.Proxy != nil {
-			proxies = append(proxies, report.Proxy)
+		if err := v.getErrorsFromResourceReports(report.ResourceReports); err != nil {
+			errs = multierr.Append(errs, err)
 		}
 		if proxyReport := report.ProxyReport; proxyReport != nil {
-			proxyReports = append(proxyReports, report.ProxyReport)
 			if err := validationutils.GetProxyError(proxyReport); err != nil {
 				errs = multierr.Append(errs, errors.Wrapf(err, "failed to validate Proxy with Gloo validation server"))
 			}
@@ -588,10 +577,22 @@ func (v *validator) getReportsFromGlooValidation(reports []*gloovalidation.GlooV
 			}
 		}
 	}
-	return &Reports{
-		ProxyReports: &proxyReports,
-		Proxies:      proxies,
-	}, errs
+	return errs
+}
+
+func (v *validator) getErrorsFromResourceReports(reports reporter.ResourceReports) error {
+	var errs error
+	for resource, reRpt := range reports {
+		if err := resourceReportToMultiErr(reRpt.Errors); err != nil {
+			errs = multierr.Append(errs, glooFailedResourceValidation(err, resource))
+		}
+		if warnings := reRpt.Warnings; !v.allowWarnings && len(warnings) > 0 {
+			for _, warning := range warnings {
+				errs = multierr.Append(errs, errors.New(warning))
+			}
+		}
+	}
+	return errs
 }
 
 func resourceReportToMultiErr(err error) error {

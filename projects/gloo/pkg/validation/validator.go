@@ -5,7 +5,6 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
@@ -98,15 +97,6 @@ func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snaps
 		// Sanitize routes before sending report to gateway
 		gv.xdsSanitizer.SanitizeSnapshot(ctx, snapshot, xdsSnapshot, resourceReports)
 		routeErrorToWarnings(resourceReports, proxyReport)
-
-		// TODO-JAKE we might want to set the proxies of the snapshot here so that they align with the proxiesToValidate list above...
-		for _, ex := range gv.extensions {
-			err := ex.Translate(ctx, snapshot, v1.ProxyList{proxy}, resourceReports)
-			// TODO-JAKE not sure if we want to have an error here, because these errors are not really respective of the proxy resource
-			if err != nil {
-				resourceReports.AddError(proxy, err)
-			}
-		}
 
 		validationReports = append(validationReports, &GlooValidationReport{
 			Proxy:           proxy,

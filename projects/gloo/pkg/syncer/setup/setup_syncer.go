@@ -29,6 +29,7 @@ import (
 	gloostatusutils "github.com/solo-io/gloo/pkg/utils/statusutils"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	syncerValidation "github.com/solo-io/gloo/projects/gloo/pkg/syncer/validation"
 
 	"github.com/golang/protobuf/ptypes/duration"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -795,9 +796,11 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		logger.Debugf("Gateway translation is disabled. Proxies are provided from another source")
 	}
 
+	syncerValidator := syncerValidation.NewValidator(syncerExtensions, opts.Settings)
 	gwValidationSyncer := gwvalidation.NewValidator(gwvalidation.NewValidatorConfig(
 		gatewayTranslator,
 		validator.ValidateGloo,
+		&syncerValidator,
 		ignoreProxyValidationFailure,
 		allowWarnings,
 	))
