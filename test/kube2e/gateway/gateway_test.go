@@ -68,7 +68,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-var _ = Describe("Kube2e: gateway", func() {
+var _ = FDescribe("Kube2e: gateway", func() {
 
 	var (
 		testRunnerDestination *gloov1.Destination
@@ -1252,60 +1252,71 @@ var _ = Describe("Kube2e: gateway", func() {
 		})
 	})
 
-	Context("tests with RateLimitConfigs", func() {
-
-		var rateLimitConfig *v1alpha1skv1.RateLimitConfig
+	Context("validation server is disabled", func() {
 
 		BeforeEach(func() {
-			rateLimitConfig = &v1alpha1skv1.RateLimitConfig{
-				RateLimitConfig: ratelimit2.RateLimitConfig{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "testrlc",
-						Namespace: testHelper.InstallNamespace,
-					},
-					Spec: rlv1alpha1.RateLimitConfigSpec{
-						ConfigType: &rlv1alpha1.RateLimitConfigSpec_Raw_{
-							Raw: &rlv1alpha1.RateLimitConfigSpec_Raw{
-								Descriptors: []*rlv1alpha1.Descriptor{{
-									Key:   "generic_key",
-									Value: "foo",
-									RateLimit: &rlv1alpha1.RateLimit{
-										Unit:            rlv1alpha1.RateLimit_MINUTE,
-										RequestsPerUnit: 1,
-									},
-								}},
-								RateLimits: []*rlv1alpha1.RateLimitActions{{
-									Actions: []*rlv1alpha1.Action{{
-										ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
-											GenericKey: &rlv1alpha1.Action_GenericKey{
-												DescriptorValue: "foo",
-											},
+			kube2e.UpdateAlwaysAcceptSetting(ctx, true, testHelper.InstallNamespace)
+		})
+
+		AfterEach(func() {
+			kube2e.UpdateAlwaysAcceptSetting(ctx, false, testHelper.InstallNamespace)
+		})
+
+		Context("tests with RateLimitConfigs", func() {
+
+			var rateLimitConfig *v1alpha1skv1.RateLimitConfig
+
+			BeforeEach(func() {
+				rateLimitConfig = &v1alpha1skv1.RateLimitConfig{
+					RateLimitConfig: ratelimit2.RateLimitConfig{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "testrlc",
+							Namespace: testHelper.InstallNamespace,
+						},
+						Spec: rlv1alpha1.RateLimitConfigSpec{
+							ConfigType: &rlv1alpha1.RateLimitConfigSpec_Raw_{
+								Raw: &rlv1alpha1.RateLimitConfigSpec_Raw{
+									Descriptors: []*rlv1alpha1.Descriptor{{
+										Key:   "generic_key",
+										Value: "foo",
+										RateLimit: &rlv1alpha1.RateLimit{
+											Unit:            rlv1alpha1.RateLimit_MINUTE,
+											RequestsPerUnit: 1,
 										},
 									}},
-								}},
+									RateLimits: []*rlv1alpha1.RateLimitActions{{
+										Actions: []*rlv1alpha1.Action{{
+											ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
+												GenericKey: &rlv1alpha1.Action_GenericKey{
+													DescriptorValue: "foo",
+												},
+											},
+										}},
+									}},
+								},
 							},
 						},
 					},
-				},
-			}
-			glooResources.Ratelimitconfigs = v1alpha1skv1.RateLimitConfigList{rateLimitConfig}
-		})
+				}
+				glooResources.Ratelimitconfigs = v1alpha1skv1.RateLimitConfigList{rateLimitConfig}
+			})
 
-		It("correctly sets a status to a RateLimitConfig", func() {
-			// demand that a created ratelimit config _has_ a rejected status.
-			Eventually(func() error {
-				rlc, err := resourceClientset.RateLimitConfigClient().Read(rateLimitConfig.GetMetadata().GetNamespace(), rateLimitConfig.GetMetadata().GetName(), clients.ReadOpts{Ctx: ctx})
-				if err != nil {
-					return err
-				}
-				if rlc.Status.State != v1alpha1.RateLimitConfigStatus_REJECTED {
-					return errors.Errorf("expected rejected status, got %v", rlc.Status.State)
-				}
-				if !strings.Contains(rlc.Status.Message, "enterprise-only") {
-					return errors.Errorf("expected enterprise-only message in status, got %v", rlc.Status.Message)
-				}
-				return nil
-			}, "15s", "0.5s").ShouldNot(HaveOccurred())
+			It("correctly sets a status to a RateLimitConfig", func() {
+				// demand that a created ratelimit config _has_ a rejected status.
+				Eventually(func() error {
+					rlc, err := resourceClientset.RateLimitConfigClient().Read(rateLimitConfig.GetMetadata().GetNamespace(), rateLimitConfig.GetMetadata().GetName(), clients.ReadOpts{Ctx: ctx})
+					if err != nil {
+						return err
+					}
+					if rlc.Status.State != v1alpha1.RateLimitConfigStatus_REJECTED {
+						return errors.Errorf("expected rejected status, got %v", rlc.Status.State)
+					}
+					if !strings.Contains(rlc.Status.Message, "enterprise-only") {
+						return errors.Errorf("expected enterprise-only message in status, got %v", rlc.Status.Message)
+					}
+					return nil
+				}, "15s", "0.5s").ShouldNot(HaveOccurred())
+			})
 		})
 	})
 
