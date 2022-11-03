@@ -68,7 +68,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-var _ = FDescribe("Kube2e: gateway", func() {
+var _ = Describe("Kube2e: gateway", func() {
 
 	var (
 		testRunnerDestination *gloov1.Destination
