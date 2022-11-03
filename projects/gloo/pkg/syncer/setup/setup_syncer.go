@@ -726,20 +726,11 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		IsolateVirtualHostsBySslConfig: opts.Settings.GetGateway().GetIsolateVirtualHostsBySslConfig().GetValue(),
 	}
 
-	var (
-		ignoreProxyValidationFailure bool
-		allowWarnings                bool
-	)
-	if gwOpts.Validation != nil && opts.GatewayControllerEnabled {
-		ignoreProxyValidationFailure = gwOpts.Validation.IgnoreProxyValidationFailure
-		allowWarnings = gwOpts.Validation.AllowWarnings
-	}
-
 	resourceHasher := translator.EnvoyCacheResourcesListToFnvHash
 
 	// Set up the syncer extensions
 	syncerExtensionParams := syncer.TranslatorSyncerExtensionParams{
-		RateLimitServiceSettings: ratelimit.ServiceSettings{
+		RateLimitServiceSettings: &ratelimit.ServiceSettings{
 			Descriptors:    opts.Settings.GetRatelimit().GetDescriptors(),
 			SetDescriptors: opts.Settings.GetRatelimit().GetSetDescriptors(),
 		},
@@ -747,7 +738,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 	var syncerExtensions []syncer.TranslatorSyncerExtension
 	for _, syncerExtensionFactory := range extensions.SyncerExtensions {
-		// TODO-JAKE might want to look into the issue with the copy value of the Mutex to syncerExtensionFactory
 		syncerExtension := syncerExtensionFactory(watchOpts.Ctx, syncerExtensionParams)
 		syncerExtensions = append(syncerExtensions, syncerExtension)
 	}
@@ -764,10 +754,12 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	vc := validation.ValidatorConfig{
-		Ctx:           watchOpts.Ctx,
-		Translator:    sharedTranslator,
-		XdsSanitizers: xdsSanitizers,
-		Extensions:    syncerExtensions,
+		Ctx: watchOpts.Ctx,
+		GlooValidatorConfig: validation.GlooValidatorConfig{
+			XdsSanitizer: xdsSanitizers,
+			Extensions:   syncerExtensions,
+			Translator:   sharedTranslator,
+		},
 	}
 	validator := validation.NewValidator(vc)
 	if opts.ValidationServer.Server != nil {
@@ -797,13 +789,21 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 	}
 
 	syncerValidator := syncerValidation.NewValidator(syncerExtensions, opts.Settings)
-	gwValidationSyncer := gwvalidation.NewValidator(gwvalidation.NewValidatorConfig(
-		gatewayTranslator,
-		validator.ValidateGloo,
-		&syncerValidator,
-		ignoreProxyValidationFailure,
-		allowWarnings,
-	))
+
+	validationConfig := gwvalidation.ValidatorConfig{
+		Translator:      gatewayTranslator,
+		GlooValidator:   validator.ValidateGloo,
+		SyncerValidator: &syncerValidator,
+	}
+	if gwOpts.Validation != nil {
+		valOpts := gwOpts.Validation
+		if opts.GatewayControllerEnabled {
+			validationConfig.AllowWarnings = valOpts.AllowWarnings
+			validationConfig.IgnoreProxyValidationFailure = valOpts.IgnoreProxyValidationFailure
+		}
+		validationConfig.EnableExtensionValidation = valOpts.EnableExtensionValidation
+	}
+	gwValidationSyncer := gwvalidation.NewValidator(validationConfig)
 
 	translationSync := syncer.NewTranslatorSyncer(
 		opts.WatchOpts.Ctx,
@@ -1121,6 +1121,7 @@ func constructOpts(ctx context.Context, clientset *kubernetes.Interface, kubeCac
 			IgnoreProxyValidationFailure: validationCfg.GetIgnoreGlooValidationFailure(),
 			AlwaysAcceptResources:        alwaysAcceptResources,
 			AllowWarnings:                allowWarnings,
+			EnableExtensionValidation:    validationCfg.GetEnableExtensionValidation().GetValue(),
 			WarnOnRouteShortCircuiting:   validationCfg.GetWarnRouteShortCircuiting().GetValue(),
 		}
 		if validation.ProxyValidationServerAddress == "" {

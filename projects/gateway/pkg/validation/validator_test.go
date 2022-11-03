@@ -47,7 +47,13 @@ var _ = Describe("Validator", func() {
 		})
 
 		syncerValidator := syncerValidation.NewValidator([]syncer.TranslatorSyncerExtension{}, nil)
-		v = NewValidator(NewValidatorConfig(t, gv, &syncerValidator, false, false))
+		v = NewValidator(ValidatorConfig{
+			Translator:                   t,
+			GlooValidator:                gv,
+			SyncerValidator:              &syncerValidator,
+			AllowWarnings:                false,
+			IgnoreProxyValidationFailure: false,
+		})
 		mValidConfig = utils.MakeGauge("validation.gateway.solo.io/valid_config", "A boolean indicating whether gloo config is valid")
 	})
 

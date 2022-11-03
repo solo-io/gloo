@@ -36,24 +36,24 @@ type GlooValidator interface {
 }
 
 type GlooValidatorConfig struct {
-	GlooTranslator gloo_translator.Translator
-	XdsSanitizer   sanitizer.XdsSanitizer
-	Extensions     []syncer.TranslatorSyncerExtension
+	Translator   gloo_translator.Translator
+	XdsSanitizer sanitizer.XdsSanitizer
+	Extensions   []syncer.TranslatorSyncerExtension
 }
 
 // NewGlooValidator will create a new GlooValidator
 func NewGlooValidator(config GlooValidatorConfig) GlooValidator {
 	return glooValidator{
-		glooTranslator: config.GlooTranslator,
-		xdsSanitizer:   config.XdsSanitizer,
-		extensions:     config.Extensions,
+		translator:   config.Translator,
+		xdsSanitizer: config.XdsSanitizer,
+		extensions:   config.Extensions,
 	}
 }
 
 type glooValidator struct {
-	glooTranslator gloo_translator.Translator
-	xdsSanitizer   sanitizer.XdsSanitizer
-	extensions     []syncer.TranslatorSyncerExtension
+	translator   gloo_translator.Translator
+	xdsSanitizer sanitizer.XdsSanitizer
+	extensions   []syncer.TranslatorSyncerExtension
 }
 
 type GlooValidationReport struct {
@@ -92,7 +92,7 @@ func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snaps
 	// resources occurs in the following for loop.
 	for _, proxy := range proxiesToValidate {
 		// so params has the ctx, snapshot, proxy
-		xdsSnapshot, resourceReports, proxyReport := gv.glooTranslator.Translate(params, proxy)
+		xdsSnapshot, resourceReports, proxyReport := gv.translator.Translate(params, proxy)
 
 		// Sanitize routes before sending report to gateway
 		gv.xdsSanitizer.SanitizeSnapshot(ctx, snapshot, xdsSnapshot, resourceReports)

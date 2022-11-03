@@ -40,7 +40,7 @@ type TranslatorSyncerExtension interface {
 
 type TranslatorSyncerExtensionParams struct {
 	Hasher                   func(resources []envoycache.Resource) (uint64, error)
-	RateLimitServiceSettings ratelimit.ServiceSettings
+	RateLimitServiceSettings *ratelimit.ServiceSettings
 }
 
 // TranslatorSyncerExtensionFactory generates TranslatorSyncerExtensions

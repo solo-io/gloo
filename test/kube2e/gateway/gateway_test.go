@@ -77,6 +77,46 @@ var _ = FDescribe("Kube2e: gateway", func() {
 		glooResources *gloosnapshot.ApiSnapshot
 	)
 
+	verifyValidationWorks := func() {
+		// Validation of Gloo resources requires that a Proxy resource exist
+		// Therefore, before the tests start, we must attempt updates that should be rejected
+		// They will only be rejected once a Proxy exists in the ApiSnapshot
+
+		placeholderUs := &gloov1.Upstream{
+			Metadata: &core.Metadata{
+				Name:      "",
+				Namespace: testHelper.InstallNamespace,
+			},
+			UpstreamType: &gloov1.Upstream_Static{
+				Static: &static.UpstreamSpec{
+					Hosts: []*static.Host{{
+						Addr: "~",
+					}},
+				},
+			},
+		}
+		attempt := 0
+		Eventually(func(g Gomega) bool {
+			placeholderUs.Metadata.Name = fmt.Sprintf("invalid-placeholder-us-%d", attempt)
+
+			_, err := resourceClientset.UpstreamClient().Write(placeholderUs, clients.WriteOpts{Ctx: ctx})
+			if err != nil {
+				// We have successfully rejected an invalid upstream
+				// This means that the webhook is fully warmed, and contains a Snapshot with a Proxy
+				return true
+			}
+
+			err = resourceClientset.UpstreamClient().Delete(
+				placeholderUs.GetMetadata().GetNamespace(),
+				placeholderUs.GetMetadata().GetName(),
+				clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+			g.Expect(err).NotTo(HaveOccurred())
+
+			attempt += 1
+			return false
+		}, time.Second*15, time.Second*1).Should(BeTrue())
+	}
+
 	BeforeEach(func() {
 		// Create a VirtualService routing directly to the testrunner kubernetes service
 		testRunnerDestination = &gloov1.Destination{
@@ -2043,43 +2083,7 @@ spec:
 				})
 
 				JustBeforeEach(func() {
-					// Validation of Gloo resources requires that a Proxy resource exist
-					// Therefore, before the tests start, we must attempt updates that should be rejected
-					// They will only be rejected once a Proxy exists in the ApiSnapshot
-
-					placeholderUs := &gloov1.Upstream{
-						Metadata: &core.Metadata{
-							Name:      "",
-							Namespace: testHelper.InstallNamespace,
-						},
-						UpstreamType: &gloov1.Upstream_Static{
-							Static: &static.UpstreamSpec{
-								Hosts: []*static.Host{{
-									Addr: "~",
-								}},
-							},
-						},
-					}
-					attempt := 0
-					Eventually(func(g Gomega) bool {
-						placeholderUs.Metadata.Name = fmt.Sprintf("invalid-placeholder-us-%d", attempt)
-
-						_, err := resourceClientset.UpstreamClient().Write(placeholderUs, clients.WriteOpts{Ctx: ctx})
-						if err != nil {
-							// We have successfully rejected an invalid upstream
-							// This means that the webhook is fully warmed, and contains a Snapshot with a Proxy
-							return true
-						}
-
-						err = resourceClientset.UpstreamClient().Delete(
-							placeholderUs.GetMetadata().GetNamespace(),
-							placeholderUs.GetMetadata().GetName(),
-							clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
-						g.Expect(err).NotTo(HaveOccurred())
-
-						attempt += 1
-						return false
-					}, time.Second*15, time.Second*1).Should(BeTrue())
+					verifyValidationWorks()
 				})
 
 				It("rejects bad resources", func() {
@@ -2096,7 +2100,39 @@ spec:
       - addr: ~
 `,
 						expectedErr: "addr cannot be empty for host\n",
-					}, {
+					}}
+					for _, tc := range testCases {
+						testValidation(tc.resourceYaml, tc.expectedErr)
+					}
+				})
+
+			})
+			Context("extension resources", func() {
+
+				BeforeEach(func() {
+					// Set the validation settings to be as strict as possible so that we can trigger
+					// rejections by just producing a warning on the resource
+					kube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
+						Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
+						settings.GetGateway().GetValidation().AllowWarnings = &wrappers.BoolValue{Value: false}
+						settings.GetGateway().GetValidation().EnableExtensionValidation = &wrappers.BoolValue{Value: true}
+					}, testHelper.InstallNamespace)
+				})
+
+				AfterEach(func() {
+					kube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
+						Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
+						settings.GetGateway().GetValidation().AllowWarnings = &wrappers.BoolValue{Value: true}
+						settings.GetGateway().GetValidation().EnableExtensionValidation = &wrappers.BoolValue{Value: false}
+					}, testHelper.InstallNamespace)
+				})
+
+				JustBeforeEach(func() {
+					verifyValidationWorks()
+				})
+
+				It("rejects bad resources", func() {
+					testCases := []testCase{{
 						resourceYaml: `
 apiVersion: ratelimit.solo.io/v1alpha1
 kind: RateLimitConfig
@@ -2124,7 +2160,6 @@ spec:
 				})
 
 			})
-
 		})
 
 		It("rejects invalid inja template in transformation", func() {

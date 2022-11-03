@@ -128,6 +128,7 @@ type validator struct {
 	syncerValidator              syncerValidation.Validator
 	ignoreProxyValidationFailure bool
 	allowWarnings                bool
+	enableExtensionValidation    bool
 }
 
 type validationOptions struct {
@@ -140,35 +141,22 @@ type validationOptions struct {
 }
 
 type ValidatorConfig struct {
-	translator                   translator.Translator
-	glooValidator                GlooValidatorFunc
-	syncerValidator              syncerValidation.Validator
-	ignoreProxyValidationFailure bool
-	allowWarnings                bool
-}
-
-func NewValidatorConfig(
-	translator translator.Translator,
-	glooValidator GlooValidatorFunc,
-	syncerValidator syncerValidation.Validator,
-	ignoreProxyValidationFailure, allowWarnings bool,
-) ValidatorConfig {
-	return ValidatorConfig{
-		glooValidator:                glooValidator,
-		syncerValidator:              syncerValidator,
-		translator:                   translator,
-		ignoreProxyValidationFailure: ignoreProxyValidationFailure,
-		allowWarnings:                allowWarnings,
-	}
+	Translator                   translator.Translator
+	GlooValidator                GlooValidatorFunc
+	SyncerValidator              syncerValidation.Validator
+	IgnoreProxyValidationFailure bool
+	EnableExtensionValidation    bool
+	AllowWarnings                bool
 }
 
 func NewValidator(cfg ValidatorConfig) *validator {
 	return &validator{
-		glooValidator:                cfg.glooValidator,
-		syncerValidator:              cfg.syncerValidator,
-		translator:                   cfg.translator,
-		ignoreProxyValidationFailure: cfg.ignoreProxyValidationFailure,
-		allowWarnings:                cfg.allowWarnings,
+		glooValidator:                cfg.GlooValidator,
+		syncerValidator:              cfg.SyncerValidator,
+		translator:                   cfg.Translator,
+		ignoreProxyValidationFailure: cfg.IgnoreProxyValidationFailure,
+		allowWarnings:                cfg.AllowWarnings,
+		enableExtensionValidation:    cfg.EnableExtensionValidation,
 	}
 }
 
@@ -353,6 +341,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 		glooReports, err := v.glooValidator(ctx, proxy, opts.Resource, opts.Delete)
 		if err != nil {
 			err = errors.Wrapf(err, failedGlooValidation)
+			// TODO-JAKE pretty sure we can deprecate this field.
 			if v.ignoreProxyValidationFailure {
 				contextutils.LoggerFrom(ctx).Error(err)
 			} else {
@@ -381,7 +370,6 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 			continue
 		}
 
-		// TODO-JAKE make this getErrorsFromGlooValidation
 		err = v.getErrorsFromGlooValidation(glooReports)
 		if err != nil {
 			err = errors.Wrapf(err, failedResourceReports)
@@ -390,15 +378,15 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 		}
 	}
 
-	// validate the extensions
-	// TODO-JAKE add an extra flag to opt-in/out for extension validation.
 	// TODO-JAKE if not on enterprise do not validate this????
-
-	extensionReports := v.syncerValidator.Validate(ctx, snapshotClone)
-	if len(extensionReports) > 0 {
-		if err = v.getErrorsFromResourceReports(extensionReports); err != nil {
-			err = errors.Wrapf(err, failedExtensionResourceReports)
-			errs = multierr.Append(errs, err)
+	// TODO-JAKE I am assuming that if running on enterprise we would want this to be true by default?
+	if v.enableExtensionValidation {
+		extensionReports := v.syncerValidator.Validate(ctx, snapshotClone)
+		if len(extensionReports) > 0 {
+			if err = v.getErrorsFromResourceReports(extensionReports); err != nil {
+				err = errors.Wrapf(err, failedExtensionResourceReports)
+				errs = multierr.Append(errs, err)
+			}
 		}
 	}
 
