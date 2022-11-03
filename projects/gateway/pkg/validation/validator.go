@@ -12,7 +12,6 @@ import (
 	"github.com/rotisserie/eris"
 	errors "github.com/rotisserie/eris"
 	utils2 "github.com/solo-io/gloo/pkg/utils"
-	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
 	"github.com/solo-io/gloo/projects/gateway/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/grpc/validation"
@@ -31,19 +30,6 @@ import (
 )
 
 const GatewayGroup = "gateway.solo.io"
-
-// GvkSupportedValidationGatewayResources the current group of resources that can be validated
-var GvkSupportedValidationGatewayResources = map[schema.GroupVersionKind]bool{
-	v1.GatewayGVK:        true,
-	v1.VirtualServiceGVK: true,
-	v1.RouteTableGVK:     true,
-}
-
-// GvkSupportedDeleteGatewayResources the current group of resources that can be validated
-var GvkSupportedDeleteGatewayResources = map[schema.GroupVersionKind]bool{
-	v1.VirtualServiceGVK: true,
-	v1.RouteTableGVK:     true,
-}
 
 type Reports struct {
 	Proxies      []*gloov1.Proxy
@@ -108,10 +94,6 @@ type Validator interface {
 	ValidateModifiedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) (*Reports, error)
 	// ValidateDeletedGvk validate the deletion of a resource.
 	ValidateDeletedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error
-	// ModificationIsSupported returns whether a resource is supported
-	ModificationIsSupported(gvk schema.GroupVersionKind) bool
-	// DeletionIsSupported returns whether a deletion of a resource is supported
-	DeletionIsSupported(gvk schema.GroupVersionKind) bool
 }
 
 type GlooValidatorFunc = func(ctx context.Context, proxy *gloov1.Proxy,
@@ -204,35 +186,6 @@ func (v *validator) Sync(ctx context.Context, snap *gloov1snap.ApiSnapshot) erro
 	}
 
 	return nil
-}
-
-func (v *validator) ModificationIsSupported(gvk schema.GroupVersionKind) bool {
-	// note ModificationIsSupported does not currently support Secrets.  This is
-	// because it is only supported if deleting.
-	_, supported := GvkSupportedValidationGatewayResources[gvk]
-	if !supported {
-		_, supported := gloovalidation.GvkToSupportedGlooResources[gvk]
-		if !supported {
-			_, supported = syncerValidation.GvkToSupportedExtensionResources[gvk]
-			return supported
-		}
-		return supported
-	}
-	return supported
-}
-
-// DeletionIsSupported checks whether the deletion of a particular resources is supported.
-func (v *validator) DeletionIsSupported(gvk schema.GroupVersionKind) bool {
-	_, supported := GvkSupportedDeleteGatewayResources[gvk]
-	if !supported {
-		_, supported = gloovalidation.GvkToSupportedDeleteGlooResources[gvk]
-		if !supported {
-			_, supported = syncerValidation.GvkToSupportedDeleteExtensionResources[gvk]
-			return supported
-		}
-		return supported
-	}
-	return supported
 }
 
 func (v *validator) gatewayUpdate(snap *gloov1snap.ApiSnapshot) bool {
@@ -425,12 +378,8 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 
 // ValidateDeletedGvk will validate a deletion of a resource, as long as it is supported, against the Gateway and Gloo Translations.
 func (v *validator) ValidateDeletedGvk(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun bool) error {
-	if v.DeletionIsSupported(gvk) {
-		_, err := v.validateResource(&validationOptions{Ctx: ctx, Resource: resource, Delete: true, DryRun: dryRun, AcquireLock: true})
-		return err
-	}
-	contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource delete ref namespace [%s] name [%s] group [%s] kind [%s]", resource.GetMetadata().GetNamespace(), resource.GetMetadata().GetName(), gvk.Group, gvk.Kind)
-	return nil
+	_, err := v.validateResource(&validationOptions{Ctx: ctx, Resource: resource, Delete: true, DryRun: dryRun, AcquireLock: true})
+	return err
 }
 
 // ValidateModifiedGvk will validate a resource, as long as it is supported, against the Gateway and Gloo translations.
@@ -441,14 +390,11 @@ func (v *validator) ValidateModifiedGvk(ctx context.Context, gvk schema.GroupVer
 
 func (v *validator) validateModifiedResource(ctx context.Context, gvk schema.GroupVersionKind, resource resources.Resource, dryRun, acquireLock bool) (*Reports, error) {
 	var reports *Reports
-	if v.ModificationIsSupported(gvk) {
-		reports, err := v.validateResource(&validationOptions{Ctx: ctx, Resource: resource, Gvk: gvk, Delete: false, DryRun: dryRun, AcquireLock: acquireLock})
-		if err != nil {
-			return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
-		}
-		return reports, nil
+	reports, err := v.validateResource(&validationOptions{Ctx: ctx, Resource: resource, Gvk: gvk, Delete: false, DryRun: dryRun, AcquireLock: acquireLock})
+	if err != nil {
+		return reports, &multierror.Error{Errors: []error{errors.Wrapf(err, "Validating %T failed", resource)}}
 	}
-	return reports, &multierror.Error{Errors: []error{groupIsNotSupported(resource, gvk)}}
+	return reports, nil
 }
 
 func (v *validator) ValidateList(ctx context.Context, ul *unstructured.UnstructuredList, dryRun bool) (
@@ -510,7 +456,7 @@ func (v *validator) processItem(ctx context.Context, item unstructured.Unstructu
 		return &Reports{ProxyReports: &ProxyReports{}}, err
 	}
 
-	if newResourceFunc, hit := gloosnapshot.ApiGvkToHashableResource[itemGvk]; hit && v.ModificationIsSupported(itemGvk) {
+	if newResourceFunc, hit := gloosnapshot.ApiGvkToHashableResource[itemGvk]; hit {
 		resource := newResourceFunc()
 		if unmarshalErr := skprotoutils.UnmarshalResource(jsonBytes, resource); unmarshalErr != nil {
 			return &Reports{ProxyReports: &ProxyReports{}}, WrappedUnmarshalErr(unmarshalErr)

@@ -3,22 +3,11 @@ package validation
 import (
 	"context"
 
-	ratelimit "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
-
-// TODO-JAKE add in extension Supported GVKs, or get rid of supported GVKs all together...
-var GvkToSupportedDeleteExtensionResources = map[schema.GroupVersionKind]bool{
-	ratelimit.RateLimitConfigGVK: true,
-}
-
-var GvkToSupportedExtensionResources = map[schema.GroupVersionKind]bool{
-	ratelimit.RateLimitConfigGVK: true,
-}
 
 // NewValidator will create a new validator for the purpose of validating extensions.
 func NewValidator(extensions []syncer.TranslatorSyncerExtension, settings *v1.Settings) validator {

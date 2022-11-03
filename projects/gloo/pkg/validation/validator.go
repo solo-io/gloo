@@ -11,24 +11,11 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	ratelimit "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	gloo_translator "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
 const GlooGroup = "gloo.solo.io"
-
-var GvkToSupportedDeleteGlooResources = map[schema.GroupVersionKind]bool{
-	gloov1.UpstreamGVK:           true,
-	gloov1.SecretGVK:             true,
-	ratelimit.RateLimitConfigGVK: true,
-}
-
-var GvkToSupportedGlooResources = map[schema.GroupVersionKind]bool{
-	gloov1.UpstreamGVK:           true,
-	ratelimit.RateLimitConfigGVK: true,
-}
 
 // GlooValidator is used to validate solo.io.gloo resources
 type GlooValidator interface {

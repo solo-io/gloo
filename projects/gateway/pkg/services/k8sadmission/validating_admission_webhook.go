@@ -394,12 +394,18 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 	isDelete := admissionRequest.Operation == v1beta1.Delete
 	dryRun := isDryRun(admissionRequest)
 
+	if _, hit := gloosnapshot.ApiGvkToHashableResource[gvk]; !hit {
+		contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource namespace [%s] name [%s] group [%s] kind [%s]", ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
+		return &validation.Reports{}, nil
+	}
+
 	if gvk == ListGVK {
 		return wh.validateList(ctx, admissionRequest.Object.Raw, dryRun)
 	}
 	if isDelete {
 		return wh.deleteRef(ctx, gvk, ref, admissionRequest)
 	}
+
 	return wh.validateGvk(ctx, gvk, ref, admissionRequest)
 }
 
@@ -420,11 +426,6 @@ func (wh *gatewayValidationWebhook) deleteRef(ctx context.Context, gvk schema.Gr
 
 func (wh *gatewayValidationWebhook) validateGvk(ctx context.Context, gvk schema.GroupVersionKind, ref *core.ResourceRef, admissionRequest *v1beta1.AdmissionRequest) (*validation.Reports, *multierror.Error) {
 	var reports *validation.Reports
-	if !wh.validator.ModificationIsSupported(gvk) {
-		contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource namespace [%s] name [%s] group [%s] kind [%s]", ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
-		return &validation.Reports{}, nil
-	}
-
 	newResourceFunc := gloosnapshot.ApiGvkToHashableResource[gvk]
 
 	newResource := newResourceFunc()
