@@ -62,9 +62,12 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 				return errors.New("Invalid output type. Only table (default) and json are supported.")
 			}
 
+			if len(opts.Check.Namespaces) != 0 {
+				opts.Metadata.Namespace = opts.Check.Namespaces[0]
+			}
+
 			printer = printers.P{OutputType: opts.Top.Output}
 			printer.CheckResult = printer.NewCheckResult()
-
 			err := CheckResources(opts)
 
 			if err != nil {
@@ -96,11 +99,30 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 
 func CheckResources(opts *options.Options) error {
 	var multiErr *multierror.Error
-
 	err := checkConnection(opts.Top.Ctx, opts.Metadata.GetNamespace())
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 		return multiErr
+	}
+
+	settings, err := getSettings(opts)
+	if err != nil {
+		multiErr = multierror.Append(multiErr, err)
+	}
+
+	namespaces, err := getNamespaces(opts.Top.Ctx, settings)
+	if err != nil {
+		return err
+	}
+	if len(opts.Check.Namespaces) != 0 {
+		namespaces = opts.Check.Namespaces
+	} else if opts.Metadata.GetNamespace() != "" {
+		namespaces = []string{opts.Metadata.GetNamespace()}
+	} else {
+		namespaces, err = getNamespaces(opts.Top.Ctx, settings)
+		if err != nil {
+			return err
+		}
 	}
 
 	var deployments *appsv1.DeploymentList
@@ -112,16 +134,6 @@ func CheckResources(opts *options.Options) error {
 		}
 	}
 
-	settings, err := getSettings(opts)
-	if err != nil {
-		multiErr = multierror.Append(multiErr, err)
-	}
-
-	namespaces := opts.Check.Namespaces
-	if len(opts.Check.Namespaces) == 0 {
-		namespaces, err = getNamespaces(opts.Top.Ctx, settings)
-		namespaces = []string{"gloo-system"}
-	}
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 	}
