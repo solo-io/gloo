@@ -64,5 +64,13 @@ func (m *RetryPolicy) Equal(that interface{}) bool {
 		}
 	}
 
+	if m.GetBaseInterval() != target.GetBaseInterval() {
+		return false
+	}
+
+	if m.GetMaxInterval() != target.GetMaxInterval() {
+		return false
+	}
+
 	return true
 }

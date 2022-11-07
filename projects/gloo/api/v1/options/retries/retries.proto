@@ -22,4 +22,10 @@ message RetryPolicy {
 
     // Specifies a non-zero upstream timeout per retry attempt. This parameter is optional.
     google.protobuf.Duration per_try_timeout = 3;
+
+    // Specifies the base interval for a retry
+    uint32 base_interval = 4;
+
+    // Specifies the max interval for a retry
+    uint32 max_interval = 5;
 }

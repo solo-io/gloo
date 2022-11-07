@@ -1,7 +1,10 @@
 package basicroute
 
 import (
+	"time"
+
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	routev3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/pkg/utils/regexutils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -10,6 +13,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils/upgradeconfig"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var (
@@ -250,9 +254,18 @@ func convertPolicy(policy *retries.RetryPolicy) *envoy_config_route_v3.RetryPoli
 		numRetries = 1
 	}
 
+	/** TODO possibly set defaults here?
+	FROM THE ENVOY DOCS: given the default interval, the first retry will be delayed randomly by 0-24ms, the 2nd by 0-74ms, the 3rd by 0-174ms, and so on. The interval is capped at a maximum interval, which defaults to 10 times the base interval (250ms). The default base interval (and therefore the maximum interval) can be manipulated by setting the upstream.base_retry_backoff_ms runtime parameter.
+	**/
+	retryBackOffPolicyIntervals := &routev3.RetryPolicy_RetryBackOff{
+		BaseInterval: durationpb.New(time.Duration(policy.GetBaseInterval())),
+		MaxInterval:  durationpb.New(time.Duration(policy.GetMaxInterval())),
+	}
+
 	return &envoy_config_route_v3.RetryPolicy{
 		RetryOn:       policy.GetRetryOn(),
 		NumRetries:    &wrappers.UInt32Value{Value: numRetries},
 		PerTryTimeout: policy.GetPerTryTimeout(),
+		RetryBackOff:  retryBackOffPolicyIntervals,
 	}
 }

@@ -1194,6 +1194,12 @@ spec:
                         type: object
                       retries:
                         properties:
+                          baseInterval:
+                            format: int32
+                            type: integer
+                          maxInterval:
+                            format: int32
+                            type: integer
                           numRetries:
                             format: int32
                             type: integer
@@ -3204,6 +3210,12 @@ spec:
                               type: object
                             retries:
                               properties:
+                                baseInterval:
+                                  format: int32
+                                  type: integer
+                                maxInterval:
+                                  format: int32
+                                  type: integer
                                 numRetries:
                                   format: int32
                                   type: integer

@@ -45,5 +45,9 @@ func (m *RetryPolicy) Clone() proto.Message {
 		target.PerTryTimeout = proto.Clone(m.GetPerTryTimeout()).(*github_com_golang_protobuf_ptypes_duration.Duration)
 	}
 
+	target.BaseInterval = m.GetBaseInterval()
+
+	target.MaxInterval = m.GetMaxInterval()
+
 	return target
 }

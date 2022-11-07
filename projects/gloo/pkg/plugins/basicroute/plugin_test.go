@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	envoy_type_matcher_v3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/type/matcher/v3"
@@ -305,6 +306,8 @@ var _ = Describe("retries", func() {
 			RetryOn:       "if at first you don't succeed",
 			NumRetries:    5,
 			PerTryTimeout: t,
+			MaxInterval:   250,
+			BaseInterval:  12,
 		}
 		expectedRetryPolicy = &envoy_config_route_v3.RetryPolicy{
 			RetryOn: "if at first you don't succeed",
@@ -312,6 +315,11 @@ var _ = Describe("retries", func() {
 				Value: 5,
 			},
 			PerTryTimeout: t,
+			RetryBackOff: &envoy_config_route_v3.RetryPolicy_RetryBackOff{
+
+				MaxInterval:  durationpb.New(250),
+				BaseInterval: durationpb.New(12),
+			},
 		}
 	})
 
