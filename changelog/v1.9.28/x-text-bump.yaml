@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: golang.org
+    dependencyRepo: x/text
+    dependencyTag: v0.3.8
+    issueLink: https://github.com/solo-io/gloo/issues/7364
+    resolvesIssue: true
