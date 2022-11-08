@@ -384,7 +384,7 @@ var _ = Describe("Helm Test", func() {
 						})
 					}
 
-					FIt("should be able to set custom labels and annotations on certGenJob", func() {
+					It("should be able to set custom labels and annotations on certGenJob", func() {
 						values := []string{
 							"gateway.certGenJob.extraPodLabels.foo=bar",
 							"gateway.certGenJob.extraPodAnnotations.foo2=baz",
@@ -407,7 +407,7 @@ var _ = Describe("Helm Test", func() {
 
 					})
 
-					FIt("should be able to set custom labels and annotations on cleanupJob", func() {
+					It("should be able to set custom labels and annotations on cleanupJob", func() {
 						values := []string{
 							"gateway.cleanupJob.extraPodLabels.foo=bar",
 							"gateway.cleanupJob.extraPodAnnotations.foo2=baz",
@@ -428,7 +428,7 @@ var _ = Describe("Helm Test", func() {
 						testJobLabelsAndAnnotations(values, jobNames, expectedLabels, expectedAnnotations)
 					})
 
-					FIt("should be able to set custom labels and annotations on rolloutJob", func() {
+					It("should be able to set custom labels and annotations on rolloutJob", func() {
 						values := []string{
 							"gateway.rolloutJob.extraPodLabels.foo=bar",
 							"gateway.rolloutJob.extraPodAnnotations.foo2=baz",
