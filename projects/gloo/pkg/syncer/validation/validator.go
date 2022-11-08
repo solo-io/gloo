@@ -31,7 +31,6 @@ type validator struct {
 // Validate will sync the extensions with the snapshot. This uses a no-op snapshot setter, so that no changes to the
 // snapshot occur.
 func (v *validator) Validate(ctx context.Context, snapshot *gloosnapshot.ApiSnapshot) reporter.ResourceReports {
-	// TODO-JAKE make some tests for this?
 	noOp := &syncer.NoOpSnapshotSetter{}
 	reports := reporter.ResourceReports{}
 	for _, ex := range v.extensions {
