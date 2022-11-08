@@ -2115,7 +2115,6 @@ spec:
 					kube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
 						Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
 						settings.GetGateway().GetValidation().AllowWarnings = &wrappers.BoolValue{Value: false}
-						settings.GetGateway().GetValidation().EnableExtensionValidation = &wrappers.BoolValue{Value: true}
 					}, testHelper.InstallNamespace)
 				})
 
@@ -2123,7 +2122,6 @@ spec:
 					kube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
 						Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
 						settings.GetGateway().GetValidation().AllowWarnings = &wrappers.BoolValue{Value: true}
-						settings.GetGateway().GetValidation().EnableExtensionValidation = &wrappers.BoolValue{Value: false}
 					}, testHelper.InstallNamespace)
 				})
 

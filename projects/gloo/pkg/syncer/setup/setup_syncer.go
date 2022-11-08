@@ -801,7 +801,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 			validationConfig.AllowWarnings = valOpts.AllowWarnings
 			validationConfig.IgnoreProxyValidationFailure = valOpts.IgnoreProxyValidationFailure
 		}
-		validationConfig.EnableExtensionValidation = valOpts.EnableExtensionValidation
 	}
 	gwValidationSyncer := gwvalidation.NewValidator(validationConfig)
 
@@ -1121,7 +1120,6 @@ func constructOpts(ctx context.Context, clientset *kubernetes.Interface, kubeCac
 			IgnoreProxyValidationFailure: validationCfg.GetIgnoreGlooValidationFailure(),
 			AlwaysAcceptResources:        alwaysAcceptResources,
 			AllowWarnings:                allowWarnings,
-			EnableExtensionValidation:    validationCfg.GetEnableExtensionValidation().GetValue(),
 			WarnOnRouteShortCircuiting:   validationCfg.GetWarnRouteShortCircuiting().GetValue(),
 		}
 		if validation.ProxyValidationServerAddress == "" {

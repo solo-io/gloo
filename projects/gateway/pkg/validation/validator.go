@@ -110,7 +110,6 @@ type validator struct {
 	syncerValidator              syncerValidation.Validator
 	ignoreProxyValidationFailure bool
 	allowWarnings                bool
-	enableExtensionValidation    bool
 }
 
 type validationOptions struct {
@@ -127,7 +126,6 @@ type ValidatorConfig struct {
 	GlooValidator                GlooValidatorFunc
 	SyncerValidator              syncerValidation.Validator
 	IgnoreProxyValidationFailure bool
-	EnableExtensionValidation    bool
 	AllowWarnings                bool
 }
 
@@ -138,7 +136,6 @@ func NewValidator(cfg ValidatorConfig) *validator {
 		translator:                   cfg.Translator,
 		ignoreProxyValidationFailure: cfg.IgnoreProxyValidationFailure,
 		allowWarnings:                cfg.AllowWarnings,
-		enableExtensionValidation:    cfg.EnableExtensionValidation,
 	}
 }
 
@@ -331,15 +328,11 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 		}
 	}
 
-	// TODO-JAKE if not on enterprise do not validate this????
-	// TODO-JAKE I am assuming that if running on enterprise we would want this to be true by default?
-	if v.enableExtensionValidation {
-		extensionReports := v.syncerValidator.Validate(ctx, snapshotClone)
-		if len(extensionReports) > 0 {
-			if err = v.getErrorsFromResourceReports(extensionReports); err != nil {
-				err = errors.Wrapf(err, failedExtensionResourceReports)
-				errs = multierr.Append(errs, err)
-			}
+	extensionReports := v.syncerValidator.Validate(ctx, snapshotClone)
+	if len(extensionReports) > 0 {
+		if err = v.getErrorsFromResourceReports(extensionReports); err != nil {
+			err = errors.Wrapf(err, failedExtensionResourceReports)
+			errs = multierr.Append(errs, err)
 		}
 	}
 

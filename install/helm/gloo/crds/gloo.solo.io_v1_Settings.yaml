@@ -312,9 +312,6 @@ spec:
                       disableTransformationValidation:
                         nullable: true
                         type: boolean
-                      enableExtensionValidation:
-                        nullable: true
-                        type: boolean
                       ignoreGlooValidationFailure:
                         type: boolean
                       proxyValidationServerAddr:

@@ -1,7 +1,6 @@
 changelog:
   - type: NEW_FEATURE
     description: >
-      validation of extensions. Use the `EnableExtensionValidation` setting on the settings API to enable extension 
-      validations. This can be used to validate Rate Limit Configs.
+      validation of extensions. This can be used to validate Rate Limit Configs.
     issueLink: https://github.com/solo-io/gloo/issues/6777
     resolvesIssue: false

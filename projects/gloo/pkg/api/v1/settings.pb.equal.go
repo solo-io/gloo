@@ -1827,16 +1827,6 @@ func (m *GatewayOptions_ValidationOptions) Equal(that interface{}) bool {
 		}
 	}
 
-	if h, ok := interface{}(m.GetEnableExtensionValidation()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetEnableExtensionValidation()) {
-			return false
-		}
-	} else {
-		if !proto.Equal(m.GetEnableExtensionValidation(), target.GetEnableExtensionValidation()) {
-			return false
-		}
-	}
-
 	return true
 }
 

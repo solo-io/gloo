@@ -1050,12 +1050,6 @@ func (m *GatewayOptions_ValidationOptions) Clone() proto.Message {
 		target.ServerEnabled = proto.Clone(m.GetServerEnabled()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
 	}
 
-	if h, ok := interface{}(m.GetEnableExtensionValidation()).(clone.Cloner); ok {
-		target.EnableExtensionValidation = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
-	} else {
-		target.EnableExtensionValidation = proto.Clone(m.GetEnableExtensionValidation()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
-	}
-
 	return target
 }
 
