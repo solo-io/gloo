@@ -7,6 +7,7 @@ import (
 	"time"
 
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -83,9 +84,12 @@ var _ = Describe("Validation Server", func() {
 
 		translator = NewTranslatorWithHasher(utils.NewSslConfigTranslator(), settings, pluginRegistry, EnvoyCacheResourcesListToFnvHash)
 		vc = ValidatorConfig{
-			Ctx:           context.TODO(),
-			Translator:    translator,
-			XdsSanitizers: xdsSanitizer,
+			Ctx: context.TODO(),
+			GlooValidatorConfig: GlooValidatorConfig{
+				XdsSanitizer: xdsSanitizer,
+				Extensions:   []syncer.TranslatorSyncerExtension{},
+				Translator:   translator,
+			},
 		}
 	})
 

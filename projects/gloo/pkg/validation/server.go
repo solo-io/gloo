@@ -32,7 +32,6 @@ type Validator interface {
 // ValidatorConfig is used to configure the validator
 type ValidatorConfig struct {
 	Ctx                 context.Context
-	Translator          translator.Translator
 	GlooValidatorConfig GlooValidatorConfig
 }
 
