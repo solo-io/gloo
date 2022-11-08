@@ -394,14 +394,15 @@ func (wh *gatewayValidationWebhook) validateAdmissionRequest(
 	isDelete := admissionRequest.Operation == v1beta1.Delete
 	dryRun := isDryRun(admissionRequest)
 
+	if gvk == ListGVK {
+		return wh.validateList(ctx, admissionRequest.Object.Raw, dryRun)
+	}
+
 	if _, hit := gloosnapshot.ApiGvkToHashableResource[gvk]; !hit {
 		contextutils.LoggerFrom(ctx).Debugf("unsupported validation for resource namespace [%s] name [%s] group [%s] kind [%s]", ref.GetNamespace(), ref.GetName(), gvk.Group, gvk.Kind)
 		return &validation.Reports{}, nil
 	}
 
-	if gvk == ListGVK {
-		return wh.validateList(ctx, admissionRequest.Object.Raw, dryRun)
-	}
 	if isDelete {
 		return wh.deleteRef(ctx, gvk, ref, admissionRequest)
 	}
