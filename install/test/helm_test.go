@@ -3783,7 +3783,11 @@ webhooks:
      - operations: [ "CREATE", "UPDATE", "DELETE" ]
        apiGroups: ["gateway.solo.io"]
        apiVersions: ["v1"]
-       resources: ["*"]
+       resources: ["virtualservices", "routetables"]
+     - operations: [ "CREATE", "UPDATE"]
+       apiGroups: ["gateway.solo.io"]
+       apiVersions: ["v1"]
+       resources: ["gateways"]
      - operations: [ "CREATE", "UPDATE", "DELETE" ]
        apiGroups: ["gloo.solo.io"]
        apiVersions: ["v1"]
@@ -3795,7 +3799,7 @@ webhooks:
      - operations: [ "CREATE", "UPDATE", "DELETE" ]
        apiGroups: ["ratelimit.solo.io"]
        apiVersions: ["v1alpha1"]
-       resources: ["*"]
+       resources: ["ratelimitconfigs"]
    sideEffects: None
    matchPolicy: Exact
    admissionReviewVersions:
