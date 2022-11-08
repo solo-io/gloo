@@ -2055,6 +2055,28 @@ spec:
 `,
 							expectedErr: gwtranslator.MissingGatewayTypeErr.Error(),
 						},
+						{
+							resourceYaml: `
+apiVersion: ratelimit.solo.io/v1alpha1
+kind: RateLimitConfig
+metadata:
+  name: rlc
+  namespace: gloo-system
+spec:
+  raw:
+    descriptors:
+      - key: foo
+        value: foo
+        rateLimit:
+          requestsPerUnit: 1
+          unit: MINUTE
+    rateLimits:
+      - actions:
+        - genericKey:
+            descriptorValue: bar
+`,
+							expectedErr: "The Gloo Advanced Rate limit API feature 'RateLimitConfig' is enterprise-only",
+						},
 					}
 
 					for _, tc := range testCases {
@@ -2100,57 +2122,6 @@ spec:
       - addr: ~
 `,
 						expectedErr: "addr cannot be empty for host\n",
-					}}
-					for _, tc := range testCases {
-						testValidation(tc.resourceYaml, tc.expectedErr)
-					}
-				})
-
-			})
-			Context("extension resources", func() {
-
-				BeforeEach(func() {
-					// Set the validation settings to be as strict as possible so that we can trigger
-					// rejections by just producing a warning on the resource
-					kube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
-						Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
-						settings.GetGateway().GetValidation().AllowWarnings = &wrappers.BoolValue{Value: false}
-					}, testHelper.InstallNamespace)
-				})
-
-				AfterEach(func() {
-					kube2e.UpdateSettings(ctx, func(settings *gloov1.Settings) {
-						Expect(settings.GetGateway().GetValidation()).NotTo(BeNil())
-						settings.GetGateway().GetValidation().AllowWarnings = &wrappers.BoolValue{Value: true}
-					}, testHelper.InstallNamespace)
-				})
-
-				JustBeforeEach(func() {
-					verifyValidationWorks()
-				})
-
-				It("rejects bad resources", func() {
-					testCases := []testCase{{
-						resourceYaml: `
-apiVersion: ratelimit.solo.io/v1alpha1
-kind: RateLimitConfig
-metadata:
-  name: rlc
-  namespace: gloo-system
-spec:
-  raw:
-    descriptors:
-      - key: foo
-        value: foo
-        rateLimit:
-          requestsPerUnit: 1
-          unit: MINUTE
-    rateLimits:
-      - actions:
-        - genericKey:
-            descriptorValue: bar
-`,
-						expectedErr: "The Gloo Advanced Rate limit API feature 'RateLimitConfig' is enterprise-only",
 					}}
 					for _, tc := range testCases {
 						testValidation(tc.resourceYaml, tc.expectedErr)
