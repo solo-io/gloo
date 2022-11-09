@@ -169,7 +169,11 @@ func applyRetries(in *v1.Route, out *envoy_config_route_v3.Route) error {
 			"had nil route", in.GetAction())
 	}
 
-	routeAction.Route.RetryPolicy = convertPolicy(policy)
+	var err error
+	routeAction.Route.RetryPolicy, err = convertPolicy(policy)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -236,13 +240,17 @@ func applyUpgrades(in *v1.Route, out *envoy_config_route_v3.Route) error {
 }
 
 func applyRetriesVhost(in *v1.VirtualHost, out *envoy_config_route_v3.VirtualHost) error {
-	out.RetryPolicy = convertPolicy(in.GetOptions().GetRetries())
+	var err error
+	out.RetryPolicy, err = convertPolicy(in.GetOptions().GetRetries())
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func convertPolicy(policy *retries.RetryPolicy) *envoy_config_route_v3.RetryPolicy {
+func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPolicy, error) {
 	if policy == nil {
-		return nil
+		return nil, nil
 	}
 
 	numRetries := policy.GetNumRetries()
@@ -254,5 +262,5 @@ func convertPolicy(policy *retries.RetryPolicy) *envoy_config_route_v3.RetryPoli
 		RetryOn:       policy.GetRetryOn(),
 		NumRetries:    &wrappers.UInt32Value{Value: numRetries},
 		PerTryTimeout: policy.GetPerTryTimeout(),
-	}
+	}, nil
 }
