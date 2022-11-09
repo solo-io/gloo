@@ -10,6 +10,14 @@ option (extproto.equal_all) = true;
 option (extproto.hash_all) = true;
 option (extproto.clone_all) = true;
 
+message RetryPolicyInterval {
+    // Specifies the max interval for a retry
+    google.protobuf.Duration max_interval = 1;
+
+    // Specifies the base interval for a retry
+    google.protobuf.Duration base_interval = 2;
+}
+
 // Retry Policy applied at the Route and/or Virtual Hosts levels.
 message RetryPolicy {
     // Specifies the conditions under which retry takes place. These are the same
@@ -23,9 +31,5 @@ message RetryPolicy {
     // Specifies a non-zero upstream timeout per retry attempt. This parameter is optional.
     google.protobuf.Duration per_try_timeout = 3;
 
-    // Specifies the base interval for a retry
-    uint32 base_interval = 4;
-
-    // Specifies the max interval for a retry
-    uint32 max_interval = 5;
+    RetryPolicyInterval retry_policy_interval = 4;
 }
