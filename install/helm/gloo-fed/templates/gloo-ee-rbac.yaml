@@ -10,9 +10,11 @@ kind: ClusterRole
 {{- end }}{{/* .Values.glooFedApiserver.namespaceRestrictedMode */}}
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-console
   {{- if .Values.glooFedApiserver.namespaceRestrictedMode }}
+  name: gloo-console
   namespace: {{ .Release.Namespace }}
+  {{- else }}
+  name: gloo-console-{{ .Release.Namespace }}
   {{- end }}{{/* .Values.glooFedApiserver.namespaceRestrictedMode */}}
   labels:
     app: gloo
@@ -98,9 +100,11 @@ kind: ClusterRoleBinding
 {{- end }}{{/* .Values.glooFedApiserver.namespaceRestrictedMode */}}
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-console
   {{- if .Values.glooFedApiserver.namespaceRestrictedMode }}
+  name: gloo-console
   namespace: {{ .Release.Namespace }}
+  {{- else }}
+  name: gloo-console-{{ .Release.Namespace }}
   {{- end }}{{/* .Values.glooFedApiserver.namespaceRestrictedMode */}}
   labels:
     app: gloo
@@ -111,10 +115,11 @@ subjects:
 roleRef:
   {{- if .Values.glooFedApiserver.namespaceRestrictedMode }}
   kind: Role
+  name: gloo-console
   {{- else }}
   kind: ClusterRole
+  name: gloo-console-{{ .Release.Namespace }}
   {{- end }}{{/* .Values.glooFedApiserver.namespaceRestrictedMode */}}
-  name: gloo-console
   apiGroup: rbac.authorization.k8s.io
 
 ---

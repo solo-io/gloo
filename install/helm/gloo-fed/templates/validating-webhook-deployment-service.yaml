@@ -8,32 +8,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rbac-validating-webhook-{{ .Release.Name }}
+  name: rbac-validating-webhook
   labels:
     app: gloo-fed
-    gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+    gloo-fed: rbac-validating-webhook
   namespace: {{ .Release.Namespace }}
 spec:
   selector:
     matchLabels:
       app: gloo-fed
-      gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+      gloo-fed: rbac-validating-webhook
   template:
     metadata:
       labels:
         app: gloo-fed
-        gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+        gloo-fed: rbac-validating-webhook
       annotations:
         prometheus.io/path: /metrics
         prometheus.io/port: "8080"
         prometheus.io/scrape: "true"
     spec:
-      serviceAccountName: rbac-validating-webhook-{{ .Release.Name }}
+      serviceAccountName: rbac-validating-webhook
       volumes:
       - name: admission-certs
         secret:
           optional: true
-          secretName: rbac-validating-webhook-{{ .Release.Name }}
+          secretName: rbac-validating-webhook
       containers:
       - image: {{ $image.registry }}/{{ $image.repository }}:{{ $image.tag }}
         env:
@@ -42,11 +42,11 @@ spec:
               fieldRef:
                 fieldPath: metadata.namespace
           - name: SERVICE_NAME
-            value: rbac-validating-webhook-{{ .Release.Name }}
+            value: rbac-validating-webhook
           - name: SECRET_NAME
-            value: rbac-validating-webhook-{{ .Release.Name }}
+            value: rbac-validating-webhook
           - name: VALIDATING_WEBHOOK_CONFIGURATION_NAME
-            value: rbac-validating-webhook-{{ .Release.Name }}
+            value: rbac-validating-webhook-{{ .Release.Namespace }}
           - name: CERT_DIR
             value: /etc/certs/admission
           - name: WEBHOOK_PATH
@@ -87,10 +87,10 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: rbac-validating-webhook-{{ .Release.Name }}
+  name: rbac-validating-webhook
   labels:
     app: gloo-fed
-    gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+    gloo-fed: rbac-validating-webhook
   namespace: {{ $.Release.Namespace }}
 
 
@@ -101,15 +101,15 @@ metadata:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rbac-validating-webhook-{{ .Release.Name }}
+  name: rbac-validating-webhook
   labels:
     app: gloo-fed
-    gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+    gloo-fed: rbac-validating-webhook
   namespace: {{ $.Release.Namespace }}
 spec:
   selector:
     app: gloo-fed
-    gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+    gloo-fed: rbac-validating-webhook
   type: ClusterIP
   ports:
   - name: webhook

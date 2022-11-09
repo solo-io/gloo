@@ -9,7 +9,7 @@ https://docs.solo.io/gloo-edge/latest/guides/gloo_federation/multicluster_rbac/
 To install with multicluster RBAC enabled, install Gloo Federation with
 the helm value `enableMultiClusterRbac=true`.
 
-Once you see the `rbac-validating-webhook-gloo-fed` pod up and running,
+Once you see the `rbac-validating-webhook` pod up and running,
 the Kubernetes Validating Webhook is registered. Without any permissions applied
 by default, running:
 ```shell script

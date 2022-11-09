@@ -6,10 +6,10 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: rbac-validating-webhook-{{ .Release.Name }}
+  name: rbac-validating-webhook-{{ .Release.Namespace }}
   labels:
     app: gloo-fed
-    gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+    gloo-fed: rbac-validating-webhook
 rules:
 - apiGroups:
   - multicluster.solo.io
@@ -41,17 +41,17 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: rbac-validating-webhook-{{ .Release.Name }}
+  name: rbac-validating-webhook-{{ .Release.Namespace }}
   labels:
     app: gloo-fed
-    gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+    gloo-fed: rbac-validating-webhook
 subjects:
 - kind: ServiceAccount
-  name: rbac-validating-webhook-{{ .Release.Name }}
+  name: rbac-validating-webhook
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: rbac-validating-webhook-{{ .Release.Name }}
+  name: rbac-validating-webhook-{{ .Release.Namespace }}
   apiGroup: rbac.authorization.k8s.io
 
 {{ end }} {{/* if enableMultiClusterRbac */}}

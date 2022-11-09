@@ -3,7 +3,7 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-fed
+  name: gloo-fed-{{ .Release.Namespace }}
   labels:
     app: gloo-fed
 rules:
@@ -71,14 +71,6 @@ rules:
   verbs:
     - '*'
 - apiGroups:
-  - fed.solo.io
-  resources:
-  - glooinstances/status
-  - failoverschemes/status
-  verbs:
-  - get
-  - update
-- apiGroups:
   - ""
   resources:
   - secrets
@@ -100,7 +92,7 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-fed
+  name: gloo-fed-{{ .Release.Namespace }}
   labels:
     app: gloo-fed
 subjects:
@@ -109,7 +101,7 @@ subjects:
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: gloo-fed
+  name: gloo-fed-{{ .Release.Namespace }}
   apiGroup: rbac.authorization.k8s.io
 
 ---
@@ -117,7 +109,7 @@ roleRef:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gloo-fed-console
+  name: gloo-fed-console-{{ .Release.Namespace }}
   labels:
     app: gloo-fed
 subjects:
@@ -126,7 +118,7 @@ subjects:
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: gloo-fed
+  name: gloo-fed-{{ .Release.Namespace }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 {{- end }} {{/* .Values.enabled */}}

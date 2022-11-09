@@ -4,18 +4,18 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: rbac-validating-webhook-{{ .Release.Name }}
+  name: rbac-validating-webhook-{{ .Release.Namespace }}
   labels:
     app: gloo-fed
-    gloo-fed: rbac-validating-webhook-{{ .Release.Name }}
+    gloo-fed: rbac-validating-webhook
 webhooks:
-- name: rbac-validating-webhook-{{ .Release.Name }}.{{ .Release.Namespace }}.svc  # must be a domain with at least three segments separated by dots
+- name: rbac-validating-webhook.{{ .Release.Namespace }}.svc  # must be a domain with at least three segments separated by dots
   admissionReviewVersions:
   - v1beta1
   sideEffects: None
   clientConfig:
     service:
-      name:  rbac-validating-webhook-{{ .Release.Name }}
+      name:  rbac-validating-webhook
       namespace: {{ .Release.Namespace }}
       path: /admission
       port: 8443
