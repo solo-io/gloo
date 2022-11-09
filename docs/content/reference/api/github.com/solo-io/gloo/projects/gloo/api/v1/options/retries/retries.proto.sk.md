@@ -11,6 +11,7 @@ weight: 5
 #### Types:
 
 
+- [RetryPolicyInterval](#retrypolicyinterval)
 - [RetryPolicy](#retrypolicy)
   
 
@@ -18,6 +19,25 @@ weight: 5
 
 ##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto](https://github.com/solo-io/gloo/blob/master/projects/gloo/api/v1/options/retries/retries.proto)
 
+
+
+
+
+---
+### RetryPolicyInterval
+
+
+
+```yaml
+"maxInterval": .google.protobuf.Duration
+"baseInterval": .google.protobuf.Duration
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `maxInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies the max interval for a retry. |
+| `baseInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies the base interval for a retry. |
 
 
 
@@ -32,6 +52,7 @@ Retry Policy applied at the Route and/or Virtual Hosts levels.
 "retryOn": string
 "numRetries": int
 "perTryTimeout": .google.protobuf.Duration
+"retryPolicyInterval": .retries.options.gloo.solo.io.RetryPolicyInterval
 
 ```
 
@@ -40,6 +61,7 @@ Retry Policy applied at the Route and/or Virtual Hosts levels.
 | `retryOn` | `string` | Specifies the conditions under which retry takes place. These are the same conditions [documented for Envoy](https://www.envoyproxy.io/docs/envoy/v1.14.1/configuration/http/http_filters/router_filter#config-http-filters-router-x-envoy-retry-on). |
 | `numRetries` | `int` | Specifies the allowed number of retries. This parameter is optional and defaults to 1. These are the same conditions [documented for Envoy](https://www.envoyproxy.io/docs/envoy/v1.14.1/configuration/http/http_filters/router_filter#config-http-filters-router-x-envoy-retry-on). |
 | `perTryTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies a non-zero upstream timeout per retry attempt. This parameter is optional. |
+| `retryPolicyInterval` | [.retries.options.gloo.solo.io.RetryPolicyInterval](../retries.proto.sk/#retrypolicyinterval) | Specifies the retry policy interval. |
 
 
 

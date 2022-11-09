@@ -1116,6 +1116,13 @@ spec:
                         type: string
                       retryOn:
                         type: string
+                      retryPolicyInterval:
+                        properties:
+                          baseInterval:
+                            type: string
+                          maxInterval:
+                            type: string
+                        type: object
                     type: object
                   stagedTransformations:
                     properties:
