@@ -79,8 +79,6 @@ func (r *RateLimitConfig) GetNamespacedStatuses() *core.NamespacedStatuses {
 }
 
 func (r *RateLimitConfig) SetNamespacedStatuses(status *core.NamespacedStatuses) {
-	// TODO-JAKE find out what is calling this, how this is being called.
-	contextutils.LoggerFrom(context.Background()).DPanic(status.GetStatuses())
 	contextutils.LoggerFrom(context.Background()).DPanic("implement me")
 }
 
