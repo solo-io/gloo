@@ -57,7 +57,7 @@ var (
 	couldNotRenderProxy            = "could not render proxy"
 	failedGlooValidation           = "failed gloo validation"
 	failedResourceReports          = "failed gloo validation resource reports"
-	failedExtensionResourceReports = "failed extension resourcee reports"
+	failedExtensionResourceReports = "failed extension resource reports"
 	WrappedUnmarshalErr            = func(err error) error {
 		return errors.Wrapf(err, unmarshalErrMsg)
 	}

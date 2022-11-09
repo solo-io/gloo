@@ -3800,12 +3800,15 @@ webhooks:
        apiGroups: ["ratelimit.solo.io"]
        apiVersions: ["v1alpha1"]
        resources: ["ratelimitconfigs"]
+     - operations: [ "CREATE", "UPDATE", "DELETE" ]
+       apiGroups: ["enterprise.gloo.solo.io"]
+       apiVersions: ["v1"]
+       resources: ["authconfigs"]
    sideEffects: None
    matchPolicy: Exact
    admissionReviewVersions:
      - v1beta1
    failurePolicy: Ignore
-
 `)
 						prepareMakefile(namespace, helmValues{})
 						testManifest.ExpectUnstructured(vwc.GetKind(), vwc.GetNamespace(), vwc.GetName()).To(BeEquivalentTo(vwc))
