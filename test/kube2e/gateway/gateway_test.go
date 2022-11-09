@@ -1292,7 +1292,7 @@ var _ = Describe("Kube2e: gateway", func() {
 		})
 	})
 
-	Context("validation server is disabled", func() {
+	Context("validation will not always accept", func() {
 
 		BeforeEach(func() {
 			kube2e.UpdateAlwaysAcceptSetting(ctx, true, testHelper.InstallNamespace)

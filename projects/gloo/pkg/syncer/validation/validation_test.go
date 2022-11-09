@@ -20,12 +20,12 @@ const (
 
 var _ = Describe("Extension Validator", func() {
 	var (
-		glooValidator validator
-		settings      v1.Settings
-		ctx           context.Context
-		snapshot      gloosnapshot.ApiSnapshot
-		resource      resources.InputResource
-		extensions    []syncer.TranslatorSyncerExtension
+		extensionValidator *validator
+		settings           v1.Settings
+		ctx                context.Context
+		snapshot           gloosnapshot.ApiSnapshot
+		resource           resources.InputResource
+		extensions         []syncer.TranslatorSyncerExtension
 	)
 
 	BeforeEach(func() {
@@ -44,7 +44,7 @@ var _ = Describe("Extension Validator", func() {
 	})
 
 	JustBeforeEach(func() {
-		glooValidator = NewValidator(extensions, &settings)
+		extensionValidator = NewValidator(extensions, &settings)
 	})
 
 	Context("failing extension validating Extensions", func() {
@@ -54,7 +54,7 @@ var _ = Describe("Extension Validator", func() {
 			}
 		})
 		It("should fail on a failing extension", func() {
-			reports := glooValidator.Validate(ctx, &snapshot)
+			reports := extensionValidator.Validate(ctx, &snapshot)
 			err := reports.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(errorMessage))
@@ -69,7 +69,7 @@ var _ = Describe("Extension Validator", func() {
 			}
 		})
 		It("should pass on a passing extension", func() {
-			reports := glooValidator.Validate(ctx, &snapshot)
+			reports := extensionValidator.Validate(ctx, &snapshot)
 			err := reports.Validate()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(reports)).To(Equal(1))
@@ -84,7 +84,7 @@ var _ = Describe("Extension Validator", func() {
 			}
 		})
 		It("should fail when one failing extension", func() {
-			reports := glooValidator.Validate(ctx, &snapshot)
+			reports := extensionValidator.Validate(ctx, &snapshot)
 			err := reports.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(errorMessage))
@@ -100,7 +100,7 @@ var _ = Describe("Extension Validator", func() {
 			}
 		})
 		It("should fail when one failing extension", func() {
-			reports := glooValidator.Validate(ctx, &snapshot)
+			reports := extensionValidator.Validate(ctx, &snapshot)
 			err := reports.Validate()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(reports)).To(Equal(1))

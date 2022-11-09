@@ -69,14 +69,6 @@ var (
 
 	mValidConfig = utils2.MakeGauge("validation.gateway.solo.io/valid_config",
 		"A boolean indicating whether gloo config is valid")
-
-	groupIsNotSupported = func(resource resources.Resource, gvk schema.GroupVersionKind) error {
-		return errors.Errorf("failed validating the resoruce [%T] because the group [%s] kind [%s] is not supported", resource, gvk.Group, gvk.Kind)
-	}
-
-	glooFailedResourceValidation = func(err error, resource resources.Resource) error {
-		return errors.Wrapf(err, "failed to validate resource [%T] with Gloo validation server", resource)
-	}
 )
 
 const (
@@ -107,7 +99,7 @@ type validator struct {
 	translator        translator.Translator
 	// This function replaces a grpc client from when gloo and gateway pods were separate.
 	glooValidator                GlooValidatorFunc
-	syncerValidator              syncerValidation.Validator
+	extensionValidator           syncerValidation.Validator
 	ignoreProxyValidationFailure bool
 	allowWarnings                bool
 }
@@ -124,7 +116,7 @@ type validationOptions struct {
 type ValidatorConfig struct {
 	Translator                   translator.Translator
 	GlooValidator                GlooValidatorFunc
-	SyncerValidator              syncerValidation.Validator
+	ExtensionValidator           syncerValidation.Validator
 	IgnoreProxyValidationFailure bool
 	AllowWarnings                bool
 }
@@ -132,7 +124,7 @@ type ValidatorConfig struct {
 func NewValidator(cfg ValidatorConfig) *validator {
 	return &validator{
 		glooValidator:                cfg.GlooValidator,
-		syncerValidator:              cfg.SyncerValidator,
+		extensionValidator:           cfg.ExtensionValidator,
 		translator:                   cfg.Translator,
 		ignoreProxyValidationFailure: cfg.IgnoreProxyValidationFailure,
 		allowWarnings:                cfg.AllowWarnings,
@@ -328,7 +320,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 		}
 	}
 
-	extensionReports := v.syncerValidator.Validate(ctx, snapshotClone)
+	extensionReports := v.extensionValidator.Validate(ctx, snapshotClone)
 	if len(extensionReports) > 0 {
 		if err = v.getErrorsFromResourceReports(extensionReports); err != nil {
 			err = errors.Wrapf(err, failedExtensionResourceReports)
@@ -486,7 +478,8 @@ func (v *validator) validateResource(opts *validationOptions) (*Reports, error) 
 	}
 }
 
-// getErrorsFromGlooValidation returns an error comprising of the gloo reports
+// getErrorsFromGlooValidation returns an error comprising of the gloo reports. The errors will include warnings if
+// allowWarnings is not set.
 func (v *validator) getErrorsFromGlooValidation(reports []*gloovalidation.GlooValidationReport) error {
 	var errs error
 	for _, report := range reports {
@@ -508,39 +501,8 @@ func (v *validator) getErrorsFromGlooValidation(reports []*gloovalidation.GlooVa
 }
 
 func (v *validator) getErrorsFromResourceReports(reports reporter.ResourceReports) error {
-	var errs error
-	for resource, reRpt := range reports {
-		if err := resourceReportToMultiErr(reRpt.Errors); err != nil {
-			errs = multierr.Append(errs, glooFailedResourceValidation(err, resource))
-		}
-		if warnings := reRpt.Warnings; !v.allowWarnings && len(warnings) > 0 {
-			for _, warning := range warnings {
-				errs = multierr.Append(errs, errors.New(warning))
-			}
-		}
+	if !v.allowWarnings {
+		return reports.ValidateStrict()
 	}
-	return errs
-}
-
-func resourceReportToMultiErr(err error) error {
-	var multiErr error
-	for _, errStr := range getErrors(err) {
-		multiErr = multierr.Append(multiErr, errors.New(errStr))
-	}
-	return multiErr
-}
-
-func getErrors(err error) []string {
-	if err == nil {
-		return []string{}
-	}
-	switch err := err.(type) {
-	case *multierror.Error:
-		var errorStrings []string
-		for _, e := range err.Errors {
-			errorStrings = append(errorStrings, e.Error())
-		}
-		return errorStrings
-	}
-	return []string{err.Error()}
+	return reports.Validate()
 }

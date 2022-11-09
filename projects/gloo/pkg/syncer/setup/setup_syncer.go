@@ -788,12 +788,13 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		logger.Debugf("Gateway translation is disabled. Proxies are provided from another source")
 	}
 
-	syncerValidator := syncerValidation.NewValidator(syncerExtensions, opts.Settings)
+	// create a validator to validate extensions: currently this could include Ext-Auth and Rate Limit
+	extensionValidator := syncerValidation.NewValidator(syncerExtensions, opts.Settings)
 
 	validationConfig := gwvalidation.ValidatorConfig{
-		Translator:      gatewayTranslator,
-		GlooValidator:   validator.ValidateGloo,
-		SyncerValidator: &syncerValidator,
+		Translator:         gatewayTranslator,
+		GlooValidator:      validator.ValidateGloo,
+		ExtensionValidator: extensionValidator,
 	}
 	if gwOpts.Validation != nil {
 		valOpts := gwOpts.Validation

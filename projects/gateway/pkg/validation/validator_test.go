@@ -46,11 +46,11 @@ var _ = Describe("Validator", func() {
 			WriteNamespace: ns,
 		})
 
-		syncerValidator := syncerValidation.NewValidator([]syncer.TranslatorSyncerExtension{}, nil)
+		extensionValidator := syncerValidation.NewValidator([]syncer.TranslatorSyncerExtension{}, nil)
 		v = NewValidator(ValidatorConfig{
 			Translator:                   t,
 			GlooValidator:                gv,
-			SyncerValidator:              &syncerValidator,
+			ExtensionValidator:           extensionValidator,
 			AllowWarnings:                false,
 			IgnoreProxyValidationFailure: false,
 		})
