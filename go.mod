@@ -42,7 +42,7 @@ require (
 	github.com/rotisserie/eris v0.5.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/solo-io/anyvendor v0.0.4
-	github.com/solo-io/caching-service v0.1.5-0.20220822121333-9c5f0baac953
+	github.com/solo-io/caching-service v0.1.16
 	github.com/solo-io/cli-kit v0.2.1
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.29.0

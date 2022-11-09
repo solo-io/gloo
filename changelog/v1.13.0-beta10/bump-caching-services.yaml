@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: caching-service
+    dependencyTag: v0.1.16
+    issueLink: https://github.com/solo-io/gloo/issues/7226
+    description: Pull in recent changes to caching-service which resolve issues with redis-based caching
