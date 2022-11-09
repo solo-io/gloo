@@ -1,6 +1,6 @@
 changelog:
   - type: NEW_FEATURE
     description: >
-      validation of extensions. This can be used to validate Rate Limit Configs.
+      Validation of extensions. This can be used to validate Rate Limit Configs and Ext-Auth Configs.
     issueLink: https://github.com/solo-io/gloo/issues/6777
     resolvesIssue: false
