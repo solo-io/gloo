@@ -102,10 +102,9 @@ type validator struct {
 	latestSnapshotErr error
 	translator        translator.Translator
 	// This function replaces a grpc client from when gloo and gateway pods were separate.
-	glooValidator                GlooValidatorFunc
-	extensionValidator           syncerValidation.Validator
-	ignoreProxyValidationFailure bool
-	allowWarnings                bool
+	glooValidator      GlooValidatorFunc
+	extensionValidator syncerValidation.Validator
+	allowWarnings      bool
 }
 
 type validationOptions struct {
@@ -118,20 +117,18 @@ type validationOptions struct {
 }
 
 type ValidatorConfig struct {
-	Translator                   translator.Translator
-	GlooValidator                GlooValidatorFunc
-	ExtensionValidator           syncerValidation.Validator
-	IgnoreProxyValidationFailure bool
-	AllowWarnings                bool
+	Translator         translator.Translator
+	GlooValidator      GlooValidatorFunc
+	ExtensionValidator syncerValidation.Validator
+	AllowWarnings      bool
 }
 
 func NewValidator(cfg ValidatorConfig) *validator {
 	return &validator{
-		glooValidator:                cfg.GlooValidator,
-		extensionValidator:           cfg.ExtensionValidator,
-		translator:                   cfg.Translator,
-		ignoreProxyValidationFailure: cfg.IgnoreProxyValidationFailure,
-		allowWarnings:                cfg.AllowWarnings,
+		glooValidator:      cfg.GlooValidator,
+		extensionValidator: cfg.ExtensionValidator,
+		translator:         cfg.Translator,
+		allowWarnings:      cfg.AllowWarnings,
 	}
 }
 
@@ -287,12 +284,7 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 		glooReports, err := v.glooValidator(ctx, proxy, opts.Resource, opts.Delete)
 		if err != nil {
 			err = errors.Wrapf(err, failedGlooValidation)
-			// TODO-JAKE pretty sure we can deprecate this field.
-			if v.ignoreProxyValidationFailure {
-				contextutils.LoggerFrom(ctx).Error(err)
-			} else {
-				errs = multierr.Append(errs, err)
-			}
+			errs = multierr.Append(errs, err)
 			continue
 		}
 

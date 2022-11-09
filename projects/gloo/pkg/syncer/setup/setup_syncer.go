@@ -800,7 +800,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		valOpts := gwOpts.Validation
 		if opts.GatewayControllerEnabled {
 			validationConfig.AllowWarnings = valOpts.AllowWarnings
-			validationConfig.IgnoreProxyValidationFailure = valOpts.IgnoreProxyValidationFailure
 		}
 	}
 	gwValidationSyncer := gwvalidation.NewValidator(validationConfig)
@@ -1118,7 +1117,6 @@ func constructOpts(ctx context.Context, clientset *kubernetes.Interface, kubeCac
 			ValidatingWebhookPort:        gwdefaults.ValidationWebhookBindPort,
 			ValidatingWebhookCertPath:    validationCfg.GetValidationWebhookTlsCert(),
 			ValidatingWebhookKeyPath:     validationCfg.GetValidationWebhookTlsKey(),
-			IgnoreProxyValidationFailure: validationCfg.GetIgnoreGlooValidationFailure(),
 			AlwaysAcceptResources:        alwaysAcceptResources,
 			AllowWarnings:                allowWarnings,
 			WarnOnRouteShortCircuiting:   validationCfg.GetWarnRouteShortCircuiting().GetValue(),
