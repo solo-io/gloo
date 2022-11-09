@@ -20,8 +20,6 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 
-	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
-
 	"github.com/solo-io/gloo/pkg/utils"
 
 	"go.opencensus.io/stats"
@@ -466,7 +464,7 @@ func (wh *gatewayValidationWebhook) validateList(ctx context.Context, rawJson []
 func (wh *gatewayValidationWebhook) shouldValidateResource(ctx context.Context, admissionRequest *v1beta1.AdmissionRequest, resource, oldResource resources.HashableResource) (bool, error) {
 	logger := contextutils.LoggerFrom(ctx)
 
-	if err := protoutils.UnmarshalResource(admissionRequest.Object.Raw, resource); err != nil {
+	if err := validation.UnmarshalResource(admissionRequest.Object.Raw, resource); err != nil {
 		return false, &multierror.Error{Errors: []error{WrappedUnmarshalErr(err)}}
 	}
 	if skipValidationCheck(resource.GetMetadata().GetAnnotations()) {
@@ -480,7 +478,7 @@ func (wh *gatewayValidationWebhook) shouldValidateResource(ctx context.Context, 
 
 	// For update requests, we check to see if this is a status update
 	// If it is, we do not need to validate the resource
-	if err := protoutils.UnmarshalResource(admissionRequest.OldObject.Raw, oldResource); err != nil {
+	if err := validation.UnmarshalResource(admissionRequest.OldObject.Raw, oldResource); err != nil {
 		return false, &multierror.Error{Errors: []error{WrappedUnmarshalErr(err)}}
 	}
 

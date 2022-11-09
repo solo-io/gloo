@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
@@ -20,9 +21,12 @@ import (
 	validationutils "github.com/solo-io/gloo/projects/gloo/pkg/utils/validation"
 	gloovalidation "github.com/solo-io/gloo/projects/gloo/pkg/validation"
 	"github.com/solo-io/go-utils/contextutils"
+	kubeCRDV1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
-	skprotoutils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	skProtoUtils "github.com/solo-io/solo-kit/pkg/utils/protoutils"
+
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -443,7 +447,7 @@ func (v *validator) processItem(ctx context.Context, item unstructured.Unstructu
 
 	if newResourceFunc, hit := gloosnapshot.ApiGvkToHashableResource[itemGvk]; hit {
 		resource := newResourceFunc()
-		if unmarshalErr := skprotoutils.UnmarshalResource(jsonBytes, resource); unmarshalErr != nil {
+		if unmarshalErr := UnmarshalResource(jsonBytes, resource); unmarshalErr != nil {
 			return &Reports{ProxyReports: &ProxyReports{}}, WrappedUnmarshalErr(unmarshalErr)
 		}
 		return v.validateModifiedResource(ctx, itemGvk, resource, false, false)
@@ -505,4 +509,22 @@ func (v *validator) getErrorsFromResourceReports(reports reporter.ResourceReport
 		return reports.ValidateStrict()
 	}
 	return reports.Validate()
+}
+
+// UnmarshalResource is the same as the solo-kit pkg/utils/protoutils.Unmarshal() except it does not set the status of the resource
+// since validation does not write the resources, this is ok. Validation will only store the state of a resource
+// to the copy of the snapshot.
+func UnmarshalResource(kubeJson []byte, resource resources.Resource) error {
+	var resourceCrd kubeCRDV1.Resource
+	if err := json.Unmarshal(kubeJson, &resourceCrd); err != nil {
+		return errors.Wrapf(err, "unmarshalling from raw json")
+	}
+	resource.SetMetadata(kubeutils.FromKubeMeta(resourceCrd.ObjectMeta, true))
+
+	if resourceCrd.Spec != nil {
+		if err := skProtoUtils.UnmarshalMap(*resourceCrd.Spec, resource); err != nil {
+			return errors.Wrapf(err, "parsing resource from crd spec %v in namespace %v into %T", resourceCrd.Name, resourceCrd.Namespace, resource)
+		}
+	}
+	return nil
 }
