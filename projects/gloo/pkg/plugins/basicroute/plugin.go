@@ -258,6 +258,35 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 		numRetries = 1
 	}
 
+	v3RetryPolicyBackOff := &envoy_config_route_v3.RetryPolicy_RetryBackOff{}
+
+	if retryPolicyInterval := policy.GetRetryPolicyInterval(); retryPolicyInterval != nil {
+		if baseInterval := retryPolicyInterval.BaseInterval; baseInterval != nil {
+			if ms := baseInterval.AsDuration().Milliseconds(); ms >= 0 {
+				v3RetryPolicyBackOff.BaseInterval = baseInterval
+			} else {
+				return nil,
+					errors.Errorf("base interval for retry backoff was less than 0 | you provided: %v", ms)
+			}
+		}
+
+		if maxInterval := retryPolicyInterval.MaxInterval; maxInterval != nil {
+			if ms := maxInterval.AsDuration().Milliseconds(); ms >= 0 {
+				v3RetryPolicyBackOff.MaxInterval = maxInterval
+			} else {
+				return nil,
+					errors.Errorf("max interval for retry backoff was less than 0 | you provided: %v", ms)
+			}
+		}
+
+		return &envoy_config_route_v3.RetryPolicy{
+			RetryOn:       policy.GetRetryOn(),
+			NumRetries:    &wrappers.UInt32Value{Value: numRetries},
+			PerTryTimeout: policy.GetPerTryTimeout(),
+			RetryBackOff:  v3RetryPolicyBackOff,
+		}, nil
+	}
+
 	return &envoy_config_route_v3.RetryPolicy{
 		RetryOn:       policy.GetRetryOn(),
 		NumRetries:    &wrappers.UInt32Value{Value: numRetries},
