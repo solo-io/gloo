@@ -2,6 +2,7 @@ package basicroute_test
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/settingsutil"
@@ -306,8 +307,10 @@ var _ = Describe("retries", func() {
 			RetryOn:       "if at first you don't succeed",
 			NumRetries:    5,
 			PerTryTimeout: t,
-			MaxInterval:   250,
-			BaseInterval:  12,
+			RetryPolicyInterval: &retries.RetryPolicyInterval{ // TODO
+				MaxInterval:  durationpb.New(250),
+				BaseInterval: durationpb.New(12),
+			},
 		}
 		expectedRetryPolicy = &envoy_config_route_v3.RetryPolicy{
 			RetryOn: "if at first you don't succeed",
@@ -315,12 +318,12 @@ var _ = Describe("retries", func() {
 				Value: 5,
 			},
 			PerTryTimeout: t,
-			RetryBackOff: &envoy_config_route_v3.RetryPolicy_RetryBackOff{
-
-				MaxInterval:  durationpb.New(250),
+			RetryBackOff: &envoy_config_route_v3.RetryPolicy_RetryBackOff{ // TODO
 				BaseInterval: durationpb.New(12),
 			},
 		}
+
+		fmt.Printf("%#v\n", expectedRetryPolicy.RetryBackOff)
 	})
 
 	It("works", func() {
