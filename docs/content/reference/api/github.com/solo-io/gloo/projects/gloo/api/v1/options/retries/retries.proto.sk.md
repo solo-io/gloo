@@ -26,7 +26,8 @@ weight: 5
 ---
 ### RetryPolicyInterval
 
-
+ 
+This specifies the retry policy interval for backoffs. Note that if the base interval provided is larger than the maximum interval, there will be an error.
 
 ```yaml
 "maxInterval": .google.protobuf.Duration
