@@ -455,7 +455,7 @@ var _ = Describe("Translator", func() {
 	})
 
 	Context("Auth configs", func() {
-		It("will error if auth config is missing", func() {
+		It("will not error if auth config is missing", func() {
 			proxyClone := proto.Clone(proxy).(*v1.Proxy)
 			proxyClone.GetListeners()[0].GetHttpListener().GetVirtualHosts()[0].Options =
 				&v1.VirtualHostOptions{
@@ -467,11 +467,10 @@ var _ = Describe("Translator", func() {
 				}
 
 			_, errs, _ := translator.Translate(params, proxyClone)
-			Expect(errs.Validate()).To(HaveOccurred())
-			Expect(errs.Validate().Error()).To(ContainSubstring("VirtualHost Error: ProcessingError. Reason: auth config not found:"))
+			Expect(errs).To(HaveLen(0))
 		})
 
-		It("will error if auth config is missing from a hybrid listener", func() {
+		It("will not error if auth config is missing from a hybrid listener", func() {
 			proxyClone := proto.Clone(proxy).(*v1.Proxy)
 			proxyClone.GetListeners()[2].GetHybridListener().GetMatchedListeners()[1].GetHttpListener().GetVirtualHosts()[0].Options =
 				&v1.VirtualHostOptions{
@@ -483,8 +482,7 @@ var _ = Describe("Translator", func() {
 				}
 
 			_, errs, _ := translator.Translate(params, proxyClone)
-			Expect(errs.Validate()).To(HaveOccurred())
-			Expect(errs.Validate().Error()).To(ContainSubstring("VirtualHost Error: ProcessingError. Reason: auth config not found:"))
+			Expect(errs).To(HaveLen(0))
 		})
 	})
 
