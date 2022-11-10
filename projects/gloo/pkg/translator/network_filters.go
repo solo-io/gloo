@@ -73,22 +73,6 @@ func (n *httpNetworkFilterTranslator) ComputeNetworkFilters(params plugins.Param
 	// was removed. If we want to support other network filters, we would process
 	// those plugins here.
 
-	// Check that we don't refer to nonexistent auth config
-	// TODO (sam-heilbron)
-	// This is a partial duplicate of the open source ExtauthTranslatorSyncer
-	// We should find a single place to define this configuration
-	for i, vHost := range n.listener.GetVirtualHosts() {
-		acRef := vHost.GetOptions().GetExtauth().GetConfigRef()
-		if acRef != nil {
-			if _, err := params.Snapshot.AuthConfigs.Find(acRef.GetNamespace(), acRef.GetName()); err != nil {
-				validation.AppendVirtualHostError(
-					n.report.GetVirtualHostReports()[i],
-					validationapi.VirtualHostReport_Error_ProcessingError,
-					"auth config not found: "+acRef.String())
-			}
-		}
-	}
-
 	// add the http connection manager filter after all the InAuth Listener Filters
 	networkFilter, err := n.hcmNetworkFilterTranslator.ComputeNetworkFilter(params)
 	if err != nil {
