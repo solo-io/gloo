@@ -307,7 +307,7 @@ var _ = FDescribe("Gateway", func() {
 				})
 
 				By("second virtualservice should not end up in the proxy (bad config)")
-				gloohelpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
+				gloohelpers.EventuallyResourceRejected(func() (resources.InputResource, error) {
 					proxy, err = testClients.ProxyClient.Read(writeNamespace, gatewaydefaults.GatewayProxyName, clients.ReadOpts{})
 					if err != nil {
 						return nil, err
@@ -389,7 +389,7 @@ var _ = FDescribe("Gateway", func() {
 
 				// Make sure each virtual service's status metric is as expected:
 				Expect(gloohelpers.ReadMetricByLabel(vsMetric, "name", "vs1")).To(Equal(0))
-				Expect(gloohelpers.ReadMetricByLabel(vsMetric, "name", "vs2")).To(Equal(1))
+				Expect(gloohelpers.ReadMetricByLabel(vsMetric, "name", "vs2")).To(Equal(0))
 				Expect(gloohelpers.ReadMetricByLabel(vsMetric, "name", "vs3")).To(Equal(0))
 			})
 
