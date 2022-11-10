@@ -37,7 +37,7 @@ const (
 	tlsInspectorType = "type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector"
 )
 
-var _ = FDescribe("Gateway", func() {
+var _ = Describe("Gateway", func() {
 
 	var (
 		ctx            context.Context
