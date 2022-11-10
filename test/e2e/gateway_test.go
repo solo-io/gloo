@@ -37,7 +37,7 @@ const (
 	tlsInspectorType = "type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector"
 )
 
-var _ = Describe("Gateway", func() {
+var _ = FDescribe("Gateway", func() {
 
 	var (
 		ctx            context.Context
@@ -297,8 +297,8 @@ var _ = Describe("Gateway", func() {
 				_, err = testClients.VirtualServiceClient.Write(vs2, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
 
-				// Check that virtualservice is reporting an error because of missing authconfig:
-				gloohelpers.EventuallyResourceRejected(func() (resources.InputResource, error) {
+				// Check that virtualservice is not reporting an error because of missing authconfig: this is only a warning
+				gloohelpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
 					return testClients.VirtualServiceClient.Read(writeNamespace, "vs2", clients.ReadOpts{})
 				})
 
