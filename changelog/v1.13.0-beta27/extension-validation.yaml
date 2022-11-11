@@ -1,0 +1,8 @@
+changelog:
+  - type: NEW_FEATURE
+    description: >
+      Validation of extensions. This can be used to validate Rate Limit Configs and Ext-Auth Configs.
+      The `IgnoreProxyValidationFailure` setting falg for validation is now depricated as well, as it has not had any effect
+      for quite some time.
+    issueLink: https://github.com/solo-io/gloo/issues/6777
+    resolvesIssue: false
