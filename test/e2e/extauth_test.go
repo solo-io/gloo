@@ -967,6 +967,28 @@ var _ = Describe("External auth", func() {
 					})
 				})
 
+				Context("happy path with default settings and allowing refreshing", func() {
+					BeforeEach(func() {
+						oauth2.OidcAuthorizationCode.Session = &extauth.UserSession{
+							Session: &extauth.UserSession_Cookie{Cookie: &extauth.UserSession_InternalSession{
+								AllowRefreshing: &wrappers.BoolValue{Value: true},
+							}},
+						}
+					})
+
+					It("should work", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {
+							Expect(cookies).ToNot(BeEmpty())
+							var cookienames []string
+							for _, c := range cookies {
+								cookienames = append(cookienames, c.Name)
+								Expect(c.HttpOnly).To(BeTrue())
+							}
+							Expect(cookienames).To(ConsistOf("access_token", "id_token", "refresh_token"))
+						})
+					})
+				})
+
 				Context("Oidc callbackPath test", func() {
 					BeforeEach(func() {
 						oauth2 := getOidcAuthCodeConfig(envoyPort, secret.Metadata.Ref())
@@ -1612,7 +1634,29 @@ var _ = Describe("External auth", func() {
 					})
 				})
 
-				Context("Oidc callbackPath test", func() {
+				Context("happy path with default settings and allowing refreshing", func() {
+					BeforeEach(func() {
+						oauth2.Oauth2.Session = &extauth.UserSession{
+							Session: &extauth.UserSession_Cookie{Cookie: &extauth.UserSession_InternalSession{
+								AllowRefreshing: &wrappers.BoolValue{Value: true},
+							}},
+						}
+					})
+
+					It("should work", func() {
+						ExpectHappyPathToWork(makeSingleRequest, func() {
+							Expect(cookies).ToNot(BeEmpty())
+							var cookienames []string
+							for _, c := range cookies {
+								cookienames = append(cookienames, c.Name)
+								Expect(c.HttpOnly).To(BeTrue())
+							}
+							Expect(cookienames).To(ConsistOf("access_token", "id_token", "refresh_token"))
+						})
+					})
+				})
+
+				Context("callbackPath test", func() {
 					BeforeEach(func() {
 						oauth2 := getOAuth2Config(envoyPort, secret.Metadata.Ref())
 						oauth2.Oauth2.CallbackPath = "/callback"
@@ -3914,9 +3958,9 @@ func (f *fakeOAuth2Server) Start() {
 			r.ParseForm()
 			fmt.Fprintln(GinkgoWriter, "got request for token. query:", r.URL.RawQuery, r.URL.String(), "form:", r.Form.Encode())
 			f.token = "SlAV32hkKG"
+			refreshToken := "8xLOxBtZp8"
 
-			// does this work as intended.
-			_, _ = rw.Write([]byte(fmt.Sprintf("access_token=%s", f.token)))
+			_, _ = rw.Write([]byte(fmt.Sprintf("access_token=%s&refresh_token=%s", f.token, refreshToken)))
 		case "/revoke":
 			r.ParseForm()
 			tokenTypeHint := r.Form.Get("token_type_hint")
@@ -4017,7 +4061,7 @@ func getOAuth2Config(envoyPort uint32, secretRef *core.ResourceRef) *extauth.OAu
 		Oauth2: &extauth.PlainOAuth2{
 			ClientId:        "test-clientid",
 			ClientSecretRef: secretRef,
-			AppUrl:          fmt.Sprintf("http://localhost:%d", envoyPort), // todo: envoyPort vs 5556
+			AppUrl:          fmt.Sprintf("http://localhost:%d", envoyPort),
 			CallbackPath:    "/callback",
 			Scopes:          []string{"email"},
 			AuthEndpoint:    fmt.Sprintf("http://localhost:%d/auth", 5556),
@@ -4060,26 +4104,11 @@ func getOAuth2ExtAuthExtension() *extauth.ExtAuthExtension {
 	}
 }
 
-func getProxyExtAuthOAuth2AndOpa(envoyPort uint32, secretRef, upstream *core.ResourceRef, modules []*core.ResourceRef) *gloov1.Proxy {
-	return getProxyExtAuth(envoyPort, upstream, getOAuth2AndOpaExtAuthExtension(), false)
-}
-
 func getOidcAndOpaExtAuthExtension() *extauth.ExtAuthExtension {
 	return &extauth.ExtAuthExtension{
 		Spec: &extauth.ExtAuthExtension_ConfigRef{
 			ConfigRef: &core.ResourceRef{
 				Name:      "oidcand-opa-auth",
-				Namespace: defaults.GlooSystem,
-			},
-		},
-	}
-}
-
-func getOAuth2AndOpaExtAuthExtension() *extauth.ExtAuthExtension {
-	return &extauth.ExtAuthExtension{
-		Spec: &extauth.ExtAuthExtension_ConfigRef{
-			ConfigRef: &core.ResourceRef{
-				Name:      "oauth2and-opa-auth",
 				Namespace: defaults.GlooSystem,
 			},
 		},

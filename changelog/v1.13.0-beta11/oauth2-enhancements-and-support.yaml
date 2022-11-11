@@ -1,0 +1,9 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/solo-projects/issues/4238
+    description: Add e2e test for refresh token.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: ext-auth-service
+    dependencyTag: v0.29.1
