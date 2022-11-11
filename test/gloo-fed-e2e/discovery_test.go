@@ -11,7 +11,6 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 var _ = Describe("Discovery e2e", func() {
@@ -26,14 +25,14 @@ var _ = Describe("Discovery e2e", func() {
 				GetGlooInstance(
 					context.TODO(),
 					types.NamespacedName{
-						Name:      remoteClusterContext + "-gloo-system",
+						Name:      remoteClusterConfig.KubeContext + "-gloo-system",
 						Namespace: "gloo-system",
 					})
 
 			return instance
 		}, 5*time.Second).ShouldNot(BeNil())
 
-		Expect(instance.Spec.GetCluster()).To(BeEquivalentTo(remoteClusterContext))
+		Expect(instance.Spec.GetCluster()).To(BeEquivalentTo(remoteClusterConfig.KubeContext))
 		Expect(instance.Spec.GetControlPlane().GetNamespace()).To(BeEquivalentTo("gloo-system"))
 		Expect(instance.Spec.GetControlPlane().GetWatchedNamespaces()).To(BeEquivalentTo([]string{"gloo-system", "default"}))
 		Expect(instance.Spec.IsEnterprise).To(BeEquivalentTo(true))
@@ -47,9 +46,7 @@ var _ = Describe("Discovery e2e", func() {
 		// check gateway-proxy, gateway-proxy-ssl and gateway-proxy-failover gateways are created
 		Expect(instance.Spec.GetCheck().GetGateways().GetTotal()).To(BeEquivalentTo(3))
 
-		remoteRestCfg, err := config.GetConfigWithContext(remoteClusterContext)
-		Expect(err).NotTo(HaveOccurred())
-		coreRemoteClientset, err := k8s_core_v1.NewClientsetFromConfig(remoteRestCfg)
+		coreRemoteClientset, err := k8s_core_v1.NewClientsetFromConfig(remoteClusterConfig.RestConfig)
 		Expect(err).NotTo(HaveOccurred())
 
 		ingressEndpoints := instance.Spec.GetProxies()[0].GetIngressEndpoints()[0]
@@ -81,12 +78,12 @@ var _ = Describe("Discovery e2e", func() {
 				GetGlooInstance(
 					context.TODO(),
 					types.NamespacedName{
-						Name:      managementClusterContext + "-gloo-system",
+						Name:      managementClusterConfig.KubeContext + "-gloo-system",
 						Namespace: "gloo-system",
 					})
 			return instance
 		}, 5*time.Second).ShouldNot(BeNil())
-		Expect(instance.Spec.GetCluster()).To(BeEquivalentTo(managementClusterContext))
+		Expect(instance.Spec.GetCluster()).To(BeEquivalentTo(managementClusterConfig.KubeContext))
 		Expect(instance.Spec.GetControlPlane().GetNamespace()).To(BeEquivalentTo("gloo-system"))
 		Expect(instance.Spec.GetControlPlane().GetWatchedNamespaces()).To(HaveLen(0))
 		Expect(instance.Spec.IsEnterprise).To(BeEquivalentTo(true))

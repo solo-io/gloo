@@ -132,6 +132,45 @@ func (m *FailoverSchemeStatus) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
+	{
+		var result uint64
+		innerHash := fnv.New64()
+		for k, v := range m.GetNamespacedStatuses() {
+			innerHash.Reset()
+
+			if h, ok := interface{}(v).(safe_hasher.SafeHasher); ok {
+				if _, err = innerHash.Write([]byte("")); err != nil {
+					return 0, err
+				}
+				if _, err = h.Hash(innerHash); err != nil {
+					return 0, err
+				}
+			} else {
+				if fieldValue, err := hashstructure.Hash(v, nil); err != nil {
+					return 0, err
+				} else {
+					if _, err = innerHash.Write([]byte("")); err != nil {
+						return 0, err
+					}
+					if err := binary.Write(innerHash, binary.LittleEndian, fieldValue); err != nil {
+						return 0, err
+					}
+				}
+			}
+
+			if _, err = innerHash.Write([]byte(k)); err != nil {
+				return 0, err
+			}
+
+			result = result ^ innerHash.Sum64()
+		}
+		err = binary.Write(hasher, binary.LittleEndian, result)
+		if err != nil {
+			return 0, err
+		}
+
+	}
+
 	return hasher.Sum64(), nil
 }
 
@@ -228,6 +267,56 @@ func (m *FailoverSchemeSpec_FailoverEndpoints_LocalityLbTargets) Hash(hasher has
 			return 0, err
 		} else {
 			if _, err = hasher.Write([]byte("LocalityWeight")); err != nil {
+				return 0, err
+			}
+			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return hasher.Sum64(), nil
+}
+
+// Hash function
+func (m *FailoverSchemeStatus_Status) Hash(hasher hash.Hash64) (uint64, error) {
+	if m == nil {
+		return 0, nil
+	}
+	if hasher == nil {
+		hasher = fnv.New64()
+	}
+	var err error
+	if _, err = hasher.Write([]byte("fed.solo.io.github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types.FailoverSchemeStatus_Status")); err != nil {
+		return 0, err
+	}
+
+	err = binary.Write(hasher, binary.LittleEndian, m.GetState())
+	if err != nil {
+		return 0, err
+	}
+
+	if _, err = hasher.Write([]byte(m.GetMessage())); err != nil {
+		return 0, err
+	}
+
+	err = binary.Write(hasher, binary.LittleEndian, m.GetObservedGeneration())
+	if err != nil {
+		return 0, err
+	}
+
+	if h, ok := interface{}(m.GetProcessingTime()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("ProcessingTime")); err != nil {
+			return 0, err
+		}
+		if _, err = h.Hash(hasher); err != nil {
+			return 0, err
+		}
+	} else {
+		if fieldValue, err := hashstructure.Hash(m.GetProcessingTime(), nil); err != nil {
+			return 0, err
+		} else {
+			if _, err = hasher.Write([]byte("ProcessingTime")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {

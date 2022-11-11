@@ -14,7 +14,6 @@ import (
 	gateway_solo_io_v1_sets "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1/sets"
 	fed_gateway_solo_io_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1/controller"
-	fed_gateway_solo_io_v1_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gateway.solo.io/v1/types"
 	mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
@@ -26,64 +25,69 @@ import (
 )
 
 type federatedGatewayReconciler struct {
-	ctx                  context.Context
-	federatedGateways    fed_gateway_solo_io_v1.FederatedGatewayClient
-	baseClients          gateway_solo_io_v1.MulticlusterClientset
-	statusBuilderFactory placement.StatusBuilderFactory
-	clusterSet           multicluster.ClusterSet
+	ctx               context.Context
+	federatedGateways fed_gateway_solo_io_v1.FederatedGatewayClient
+	baseClients       gateway_solo_io_v1.MulticlusterClientset
+	placementManager  placement.Manager
+	clusterSet        multicluster.ClusterSet
 }
 
 func NewFederatedGatewayReconciler(
 	ctx context.Context,
 	federatedGateways fed_gateway_solo_io_v1.FederatedGatewayClient,
 	baseClients gateway_solo_io_v1.MulticlusterClientset,
-	statusBuilderFactory placement.StatusBuilderFactory,
+	placementManager placement.Manager,
 	clusterSet multicluster.ClusterSet,
 ) controller.FederatedGatewayFinalizer {
 	return &federatedGatewayReconciler{
-		ctx:                  ctx,
-		federatedGateways:    federatedGateways,
-		baseClients:          baseClients,
-		statusBuilderFactory: statusBuilderFactory,
-		clusterSet:           clusterSet,
+		ctx:               ctx,
+		federatedGateways: federatedGateways,
+		baseClients:       baseClients,
+		placementManager:  placementManager,
+		clusterSet:        clusterSet,
 	}
 }
 
 func (f *federatedGatewayReconciler) ReconcileFederatedGateway(obj *fed_gateway_solo_io_v1.FederatedGateway) (reconcile.Result, error) {
-	if !obj.NeedsReconcile() {
+	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
+	if !obj.NeedsReconcile(currentPlacementStatus) {
 		return reconcile.Result{}, nil
 	}
 
 	contextutils.LoggerFrom(f.ctx).Debugw("processing federated gateway", zap.Any("FederatedGateway", obj))
-	statusBuilder := f.statusBuilderFactory.GetBuilder()
+	statusBuilder := f.placementManager.GetBuilder()
 
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedGateways.UpdateFederatedGatewayStatus(f.ctx, obj)
 	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
-			obj.Status.PlacementStatus = statusBuilder.
-				UpdateUnprocessed(obj.Status.PlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
+			updatedPlacementStatus := statusBuilder.
+				UpdateUnprocessed(currentPlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
 				Eject(obj.GetGeneration())
+			f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 			return reconcile.Result{}, f.federatedGateways.UpdateFederatedGatewayStatus(f.ctx, obj)
 		}
 	}
 	if obj.Spec.Template.GetSpec() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedGateways.UpdateFederatedGatewayStatus(f.ctx, obj)
 	}
 	if obj.Spec.Template.GetMetadata() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedGateways.UpdateFederatedGatewayStatus(f.ctx, obj)
 	}
 
@@ -117,9 +121,7 @@ func (f *federatedGatewayReconciler) ReconcileFederatedGateway(obj *fed_gateway_
 		}
 	}
 
-	obj.Status = fed_gateway_solo_io_v1_types.FederatedGatewayStatus{
-		PlacementStatus: statusBuilder.Build(obj.GetGeneration()),
-	}
+	f.placementManager.SetPlacementStatus(&obj.Status, statusBuilder.Build(obj.GetGeneration()))
 	err := f.federatedGateways.UpdateFederatedGatewayStatus(f.ctx, obj)
 	if err != nil {
 		multiErr.Errors = append(multiErr.Errors, err)
@@ -250,7 +252,7 @@ type federatedMatchableHttpGatewayReconciler struct {
 	ctx                            context.Context
 	federatedMatchableHttpGateways fed_gateway_solo_io_v1.FederatedMatchableHttpGatewayClient
 	baseClients                    gateway_solo_io_v1.MulticlusterClientset
-	statusBuilderFactory           placement.StatusBuilderFactory
+	placementManager               placement.Manager
 	clusterSet                     multicluster.ClusterSet
 }
 
@@ -258,53 +260,58 @@ func NewFederatedMatchableHttpGatewayReconciler(
 	ctx context.Context,
 	federatedMatchableHttpGateways fed_gateway_solo_io_v1.FederatedMatchableHttpGatewayClient,
 	baseClients gateway_solo_io_v1.MulticlusterClientset,
-	statusBuilderFactory placement.StatusBuilderFactory,
+	placementManager placement.Manager,
 	clusterSet multicluster.ClusterSet,
 ) controller.FederatedMatchableHttpGatewayFinalizer {
 	return &federatedMatchableHttpGatewayReconciler{
 		ctx:                            ctx,
 		federatedMatchableHttpGateways: federatedMatchableHttpGateways,
 		baseClients:                    baseClients,
-		statusBuilderFactory:           statusBuilderFactory,
+		placementManager:               placementManager,
 		clusterSet:                     clusterSet,
 	}
 }
 
 func (f *federatedMatchableHttpGatewayReconciler) ReconcileFederatedMatchableHttpGateway(obj *fed_gateway_solo_io_v1.FederatedMatchableHttpGateway) (reconcile.Result, error) {
-	if !obj.NeedsReconcile() {
+	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
+	if !obj.NeedsReconcile(currentPlacementStatus) {
 		return reconcile.Result{}, nil
 	}
 
 	contextutils.LoggerFrom(f.ctx).Debugw("processing federated matchableHttpGateway", zap.Any("FederatedMatchableHttpGateway", obj))
-	statusBuilder := f.statusBuilderFactory.GetBuilder()
+	statusBuilder := f.placementManager.GetBuilder()
 
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedMatchableHttpGateways.UpdateFederatedMatchableHttpGatewayStatus(f.ctx, obj)
 	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
-			obj.Status.PlacementStatus = statusBuilder.
-				UpdateUnprocessed(obj.Status.PlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
+			updatedPlacementStatus := statusBuilder.
+				UpdateUnprocessed(currentPlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
 				Eject(obj.GetGeneration())
+			f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 			return reconcile.Result{}, f.federatedMatchableHttpGateways.UpdateFederatedMatchableHttpGatewayStatus(f.ctx, obj)
 		}
 	}
 	if obj.Spec.Template.GetSpec() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedMatchableHttpGateways.UpdateFederatedMatchableHttpGatewayStatus(f.ctx, obj)
 	}
 	if obj.Spec.Template.GetMetadata() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedMatchableHttpGateways.UpdateFederatedMatchableHttpGatewayStatus(f.ctx, obj)
 	}
 
@@ -338,9 +345,7 @@ func (f *federatedMatchableHttpGatewayReconciler) ReconcileFederatedMatchableHtt
 		}
 	}
 
-	obj.Status = fed_gateway_solo_io_v1_types.FederatedMatchableHttpGatewayStatus{
-		PlacementStatus: statusBuilder.Build(obj.GetGeneration()),
-	}
+	f.placementManager.SetPlacementStatus(&obj.Status, statusBuilder.Build(obj.GetGeneration()))
 	err := f.federatedMatchableHttpGateways.UpdateFederatedMatchableHttpGatewayStatus(f.ctx, obj)
 	if err != nil {
 		multiErr.Errors = append(multiErr.Errors, err)
@@ -471,7 +476,7 @@ type federatedVirtualServiceReconciler struct {
 	ctx                      context.Context
 	federatedVirtualServices fed_gateway_solo_io_v1.FederatedVirtualServiceClient
 	baseClients              gateway_solo_io_v1.MulticlusterClientset
-	statusBuilderFactory     placement.StatusBuilderFactory
+	placementManager         placement.Manager
 	clusterSet               multicluster.ClusterSet
 }
 
@@ -479,53 +484,58 @@ func NewFederatedVirtualServiceReconciler(
 	ctx context.Context,
 	federatedVirtualServices fed_gateway_solo_io_v1.FederatedVirtualServiceClient,
 	baseClients gateway_solo_io_v1.MulticlusterClientset,
-	statusBuilderFactory placement.StatusBuilderFactory,
+	placementManager placement.Manager,
 	clusterSet multicluster.ClusterSet,
 ) controller.FederatedVirtualServiceFinalizer {
 	return &federatedVirtualServiceReconciler{
 		ctx:                      ctx,
 		federatedVirtualServices: federatedVirtualServices,
 		baseClients:              baseClients,
-		statusBuilderFactory:     statusBuilderFactory,
+		placementManager:         placementManager,
 		clusterSet:               clusterSet,
 	}
 }
 
 func (f *federatedVirtualServiceReconciler) ReconcileFederatedVirtualService(obj *fed_gateway_solo_io_v1.FederatedVirtualService) (reconcile.Result, error) {
-	if !obj.NeedsReconcile() {
+	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
+	if !obj.NeedsReconcile(currentPlacementStatus) {
 		return reconcile.Result{}, nil
 	}
 
 	contextutils.LoggerFrom(f.ctx).Debugw("processing federated virtualService", zap.Any("FederatedVirtualService", obj))
-	statusBuilder := f.statusBuilderFactory.GetBuilder()
+	statusBuilder := f.placementManager.GetBuilder()
 
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedVirtualServices.UpdateFederatedVirtualServiceStatus(f.ctx, obj)
 	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
-			obj.Status.PlacementStatus = statusBuilder.
-				UpdateUnprocessed(obj.Status.PlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
+			updatedPlacementStatus := statusBuilder.
+				UpdateUnprocessed(currentPlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
 				Eject(obj.GetGeneration())
+			f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 			return reconcile.Result{}, f.federatedVirtualServices.UpdateFederatedVirtualServiceStatus(f.ctx, obj)
 		}
 	}
 	if obj.Spec.Template.GetSpec() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedVirtualServices.UpdateFederatedVirtualServiceStatus(f.ctx, obj)
 	}
 	if obj.Spec.Template.GetMetadata() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedVirtualServices.UpdateFederatedVirtualServiceStatus(f.ctx, obj)
 	}
 
@@ -559,9 +569,7 @@ func (f *federatedVirtualServiceReconciler) ReconcileFederatedVirtualService(obj
 		}
 	}
 
-	obj.Status = fed_gateway_solo_io_v1_types.FederatedVirtualServiceStatus{
-		PlacementStatus: statusBuilder.Build(obj.GetGeneration()),
-	}
+	f.placementManager.SetPlacementStatus(&obj.Status, statusBuilder.Build(obj.GetGeneration()))
 	err := f.federatedVirtualServices.UpdateFederatedVirtualServiceStatus(f.ctx, obj)
 	if err != nil {
 		multiErr.Errors = append(multiErr.Errors, err)
@@ -692,7 +700,7 @@ type federatedRouteTableReconciler struct {
 	ctx                  context.Context
 	federatedRouteTables fed_gateway_solo_io_v1.FederatedRouteTableClient
 	baseClients          gateway_solo_io_v1.MulticlusterClientset
-	statusBuilderFactory placement.StatusBuilderFactory
+	placementManager     placement.Manager
 	clusterSet           multicluster.ClusterSet
 }
 
@@ -700,53 +708,58 @@ func NewFederatedRouteTableReconciler(
 	ctx context.Context,
 	federatedRouteTables fed_gateway_solo_io_v1.FederatedRouteTableClient,
 	baseClients gateway_solo_io_v1.MulticlusterClientset,
-	statusBuilderFactory placement.StatusBuilderFactory,
+	placementManager placement.Manager,
 	clusterSet multicluster.ClusterSet,
 ) controller.FederatedRouteTableFinalizer {
 	return &federatedRouteTableReconciler{
 		ctx:                  ctx,
 		federatedRouteTables: federatedRouteTables,
 		baseClients:          baseClients,
-		statusBuilderFactory: statusBuilderFactory,
+		placementManager:     placementManager,
 		clusterSet:           clusterSet,
 	}
 }
 
 func (f *federatedRouteTableReconciler) ReconcileFederatedRouteTable(obj *fed_gateway_solo_io_v1.FederatedRouteTable) (reconcile.Result, error) {
-	if !obj.NeedsReconcile() {
+	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
+	if !obj.NeedsReconcile(currentPlacementStatus) {
 		return reconcile.Result{}, nil
 	}
 
 	contextutils.LoggerFrom(f.ctx).Debugw("processing federated routeTable", zap.Any("FederatedRouteTable", obj))
-	statusBuilder := f.statusBuilderFactory.GetBuilder()
+	statusBuilder := f.placementManager.GetBuilder()
 
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedRouteTables.UpdateFederatedRouteTableStatus(f.ctx, obj)
 	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
-			obj.Status.PlacementStatus = statusBuilder.
-				UpdateUnprocessed(obj.Status.PlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
+			updatedPlacementStatus := statusBuilder.
+				UpdateUnprocessed(currentPlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
 				Eject(obj.GetGeneration())
+			f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 			return reconcile.Result{}, f.federatedRouteTables.UpdateFederatedRouteTableStatus(f.ctx, obj)
 		}
 	}
 	if obj.Spec.Template.GetSpec() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedRouteTables.UpdateFederatedRouteTableStatus(f.ctx, obj)
 	}
 	if obj.Spec.Template.GetMetadata() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedRouteTables.UpdateFederatedRouteTableStatus(f.ctx, obj)
 	}
 
@@ -780,9 +793,7 @@ func (f *federatedRouteTableReconciler) ReconcileFederatedRouteTable(obj *fed_ga
 		}
 	}
 
-	obj.Status = fed_gateway_solo_io_v1_types.FederatedRouteTableStatus{
-		PlacementStatus: statusBuilder.Build(obj.GetGeneration()),
-	}
+	f.placementManager.SetPlacementStatus(&obj.Status, statusBuilder.Build(obj.GetGeneration()))
 	err := f.federatedRouteTables.UpdateFederatedRouteTableStatus(f.ctx, obj)
 	if err != nil {
 		multiErr.Errors = append(multiErr.Errors, err)

@@ -16,7 +16,7 @@ var _ = Describe("StatusBuilder", func() {
 	)
 
 	BeforeEach(func() {
-		builder = placement.NewFactory("pod").GetBuilder()
+		builder = placement.NewManager("ns", "pod").GetBuilder()
 	})
 
 	Describe("Build", func() {
@@ -85,7 +85,6 @@ var _ = Describe("StatusBuilder", func() {
 		It("works when a resource has been marked INVALID", func() {
 			actual := builder.UpdateUnprocessed(&fed_core_v1.PlacementStatus{}, "foo", fed_core_v1.PlacementStatus_INVALID).
 				Eject(100)
-
 			Expect(actual).To(Equal(&fed_core_v1.PlacementStatus{
 				State:              fed_core_v1.PlacementStatus_INVALID,
 				Message:            "foo",

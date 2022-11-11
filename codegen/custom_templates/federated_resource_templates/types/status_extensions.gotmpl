@@ -1,0 +1,27 @@
+// Generated status setting functions
+
+package types
+
+import (
+	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
+)
+
+{{- range $resource := $.Resources }}
+
+{{- if $resource.Status }}
+// SetPlacementStatus assigns the PlacementStatus for {{ $resource.Status.Type.Name }}
+func (x *{{ $resource.Status.Type.Name }}) SetPlacementStatus(status *v1.PlacementStatus) {
+    if x != nil {
+        x.PlacementStatus = status
+    }
+}
+
+// SetNamespacedPlacementStatuses assigns the PlacementStatuses for {{ $resource.Status.Type.Name }}
+func (x *{{ $resource.Status.Type.Name }}) SetNamespacedPlacementStatuses(statuses map[string]*v1.PlacementStatus) {
+	if x != nil {
+        x.NamespacedPlacementStatuses = statuses
+    }
+}
+
+{{- end }}
+{{- end }}

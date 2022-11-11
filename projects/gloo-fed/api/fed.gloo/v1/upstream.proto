@@ -28,4 +28,5 @@ message FederatedUpstreamSpec {
 
 message FederatedUpstreamStatus {
     core.fed.solo.io.PlacementStatus placement_status = 1;
+    map<string,core.fed.solo.io.PlacementStatus> namespaced_placement_statuses = 2;
 }

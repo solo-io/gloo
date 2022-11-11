@@ -75,7 +75,10 @@ import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apis
 import { FederatedAuthConfigSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.enterprise.gloo/v1/auth_config_pb';
 import { FederatedGatewaySpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/gateway_pb';
 import { FederatedRouteTableSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/route_table_pb';
-import { FederatedVirtualServiceSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/virtual_service_pb';
+import {
+  FederatedVirtualServiceSpec,
+  FederatedVirtualServiceStatus,
+} from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gateway/v1/virtual_service_pb';
 import { FederatedSettingsSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/settings_pb';
 import { FederatedUpstreamGroupSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/upstream_group_pb';
 import { FederatedUpstreamSpec } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed.gloo/v1/upstream_pb';
@@ -85,18 +88,73 @@ import {
   TemplateMetadata,
 } from 'proto/github.com/solo-io/solo-projects/projects/gloo-fed/api/fed/core/v1/placement_pb';
 
+const placementStatusStates = [
+  PlacementStatus.State.UNKNOWN,
+  PlacementStatus.State.PLACED,
+  PlacementStatus.State.FAILED,
+  PlacementStatus.State.STALE,
+  PlacementStatus.State.INVALID,
+  PlacementStatus.State.PENDING,
+];
+
+// functions for creating a fake status for a federated resource ===>
+export const createFederatedResourceStatus = (
+  meta: Partial<FederatedVirtualServiceStatus.AsObject> = {}
+): FederatedVirtualServiceStatus.AsObject => {
+  return {
+    placementStatus: meta.placementStatus ?? createPlacementStatus(),
+    namespacedPlacementStatusesMap:
+      meta.namespacedPlacementStatusesMap ??
+      Array.from({ length: Number(faker.random.numeric()) }).map(() => {
+        return [faker.random.word(), createPlacementStatus()];
+      }),
+  };
+};
+
+export const createPlacementStatus = (
+  meta: Partial<PlacementStatus.AsObject> = {}
+): PlacementStatus.AsObject => {
+  return {
+    clustersMap:
+      meta.clustersMap ??
+      Array.from({ length: Number(faker.random.numeric()) }).map(() => {
+        return [faker.random.word(), createCluster()];
+      }),
+    state: meta.state ?? faker.helpers.arrayElement(placementStatusStates),
+    message: meta.message ?? faker.random.word(),
+    observedGeneration:
+      meta.observedGeneration ?? Number(faker.random.numeric()),
+    //processingTime: meta.processingTime ?? createTimestamp(), // TODO add back when we add processingTime
+    writtenBy: meta.writtenBy ?? faker.random.word(),
+  };
+};
+
+export const createCluster = (
+  meta: Partial<PlacementStatus.Cluster.AsObject> = {}
+): PlacementStatus.Cluster.AsObject => {
+  return {
+    namespacesMap:
+      meta.namespacesMap ??
+      Array.from({ length: Number(faker.random.numeric()) }).map(() => {
+        return [faker.random.word(), createNamespace()];
+      }),
+  };
+};
+
+export const createNamespace = (
+  meta: Partial<PlacementStatus.Namespace.AsObject> = {}
+): PlacementStatus.Namespace.AsObject => {
+  return {
+    state: meta.state ?? faker.helpers.arrayElement(placementStatusStates),
+    message: meta.message ?? faker.random.word(),
+  };
+};
+// <=== functions for creating a fake status for a federated resource
+
 export const createInstanceStatus = (
   meta: Partial<GlooInstance.GlooInstanceStatus.AsObject> = {}
 ): GlooInstance.GlooInstanceStatus.AsObject => {
-  return faker.helpers.arrayElement([
-    PlacementStatus.State.FAILED,
-    PlacementStatus.State.INVALID,
-    PlacementStatus.State.INVALID,
-    PlacementStatus.State.PENDING,
-    PlacementStatus.State.PLACED,
-    PlacementStatus.State.STALE,
-    PlacementStatus.State.UNKNOWN,
-  ]);
+  return faker.helpers.arrayElement(placementStatusStates);
 };
 
 export const createTimestamp = (
@@ -404,7 +462,7 @@ export const createFederatedVirtualService = (
   return {
     metadata: meta.metadata ?? createObjMeta(),
     spec: meta.spec ?? createFederatedVirtualServiceSpec(),
-    status: meta.status ?? createInstanceStatus(),
+    status: meta.status ?? createFederatedResourceStatus(),
   };
 };
 
@@ -423,7 +481,7 @@ export const createListFederatedRouteTables = (
   return {
     metadata: meta.metadata ?? createObjMeta(),
     spec: meta.spec ?? createFederatedRouteTableSpec(),
-    status: meta.status ?? createInstanceStatus(),
+    status: meta.status ?? createFederatedResourceStatus(),
   };
 };
 
@@ -442,7 +500,7 @@ export const createFederatedUpstream = (
   return {
     metadata: meta.metadata ?? createObjMeta(),
     spec: meta.spec ?? createFederatedUpstreamSpec(),
-    status: meta.status ?? createInstanceStatus(),
+    status: meta.status ?? createFederatedResourceStatus(),
   };
 };
 
@@ -461,7 +519,7 @@ export const createFederatedUpstreamGroup = (
   return {
     metadata: meta.metadata ?? createObjMeta(),
     spec: meta.spec ?? createFederatedUpstreamGroupSpec(),
-    status: meta.status ?? createInstanceStatus(),
+    status: meta.status ?? createFederatedResourceStatus(),
   };
 };
 
@@ -480,7 +538,7 @@ export const createFederatedAuthConfig = (
   return {
     metadata: meta.metadata ?? createObjMeta(),
     spec: meta.spec ?? createFederatedAuthConfigSpec(),
-    status: meta.status ?? createInstanceStatus(),
+    status: meta.status ?? createFederatedResourceStatus(),
   };
 };
 
@@ -499,7 +557,7 @@ export const createFederatedGateway = (
   return {
     metadata: meta.metadata ?? createObjMeta(),
     spec: meta.spec ?? createFederatedGatewaySpec(),
-    status: meta.status ?? createInstanceStatus(),
+    status: meta.status ?? createFederatedResourceStatus(),
   };
 };
 
@@ -518,7 +576,7 @@ export const createFederatedSettings = (
   return {
     metadata: meta.metadata ?? createObjMeta(),
     spec: meta.spec ?? createFederatedSettingsSpec(),
-    status: meta.status ?? createInstanceStatus(),
+    status: meta.status ?? createFederatedResourceStatus(),
   };
 };
 

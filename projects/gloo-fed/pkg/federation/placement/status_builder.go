@@ -2,16 +2,23 @@ package placement
 
 import (
 	fed_core_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
-	// Important to implcitly this so that it gets imported during code-gen.
+	// https://go.dev/doc/effective_go#blank_import
+	// Important to implicitly import this so that it gets imported during code-gen.
 	// This code is only imported in generated code which is deleted during generation.
 	_ "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1"
 )
 
-var _ StatusBuilder = &statusBuilder{}
+var _ StatusBuilder = new(statusBuilder)
 
 type statusBuilder struct {
 	podName string
 	status  *fed_core_v1.PlacementStatus
+}
+
+func NewStatusBuilder(podName string) StatusBuilder {
+	return &statusBuilder{
+		podName: podName,
+	}
 }
 
 func (b *statusBuilder) init() {

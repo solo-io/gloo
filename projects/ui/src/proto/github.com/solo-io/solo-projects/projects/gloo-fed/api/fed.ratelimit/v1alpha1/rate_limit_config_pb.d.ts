@@ -70,6 +70,8 @@ export class FederatedRateLimitConfigStatus extends jspb.Message {
   getPlacementStatus(): github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_core_v1_placement_pb.PlacementStatus | undefined;
   setPlacementStatus(value?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_core_v1_placement_pb.PlacementStatus): void;
 
+  getNamespacedPlacementStatusesMap(): jspb.Map<string, github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_core_v1_placement_pb.PlacementStatus>;
+  clearNamespacedPlacementStatusesMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): FederatedRateLimitConfigStatus.AsObject;
   static toObject(includeInstance: boolean, msg: FederatedRateLimitConfigStatus): FederatedRateLimitConfigStatus.AsObject;
@@ -83,5 +85,6 @@ export class FederatedRateLimitConfigStatus extends jspb.Message {
 export namespace FederatedRateLimitConfigStatus {
   export type AsObject = {
     placementStatus?: github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_core_v1_placement_pb.PlacementStatus.AsObject,
+    namespacedPlacementStatusesMap: Array<[string, github_com_solo_io_solo_projects_projects_gloo_fed_api_fed_core_v1_placement_pb.PlacementStatus.AsObject]>,
   }
 }

@@ -4,11 +4,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
+
 	"github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/options/static"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/skv2/test"
 	gloo_types "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1"
@@ -26,26 +27,25 @@ import (
 var _ = Describe("Upstream federation", func() {
 
 	var (
-		ctx          context.Context
-		upstreamSpec *gloo_types.UpstreamSpec
-		meta         *fed_core_v1.TemplateMetadata
-
-		localGlooHubNamespace = "gloo-system"
-		remoteGlooNamespace   = "gloo-system"
-
-		fedUpstream *v1.FederatedUpstream
+		ctx              context.Context
+		placementManager placement.Manager
+		upstreamSpec     *gloo_types.UpstreamSpec
+		meta             *fed_core_v1.TemplateMetadata
+		fedUpstream      *v1.FederatedUpstream
 	)
 
 	BeforeEach(func() {
 		ctx = context.TODO()
+
+		placementManager = placement.NewManager(namespace, "gloo-fed-pod")
 	})
 
 	AfterEach(func() {
 		// Just in case test fails earlier than expected
 		if fedUpstream != nil {
-			clientset, err := v1.NewClientsetFromConfig(test.MustConfig(""))
+			clientset, err := v1.NewClientsetFromConfig(managementClusterConfig.RestConfig)
 			Expect(err).NotTo(HaveOccurred())
-			clientset.FederatedUpstreams().DeleteFederatedUpstream(ctx, client.ObjectKey{
+			_ = clientset.FederatedUpstreams().DeleteFederatedUpstream(ctx, client.ObjectKey{
 				Namespace: fedUpstream.GetNamespace(),
 				Name:      fedUpstream.GetName(),
 			})
@@ -55,7 +55,7 @@ var _ = Describe("Upstream federation", func() {
 	It("throws validation error when missing Placement", func() {
 		fedUpstream = &v1.FederatedUpstream{
 			ObjectMeta: metav1.ObjectMeta{
-				Namespace: localGlooHubNamespace,
+				Namespace: namespace,
 				Name:      "fed-upstream",
 			},
 			Spec: gloo_fed_types.FederatedUpstreamSpec{
@@ -68,30 +68,27 @@ var _ = Describe("Upstream federation", func() {
 		}
 
 		// register fedUpstream with kind-mgmt
-		clientset, err := v1.NewClientsetFromConfig(test.MustConfig(""))
+		clientset, err := v1.NewClientsetFromConfig(managementClusterConfig.RestConfig)
 		Expect(err).NotTo(HaveOccurred())
 		err = clientset.FederatedUpstreams().CreateFederatedUpstream(ctx, fedUpstream)
 		Expect(err).NotTo(HaveOccurred())
 
 		// wait for INVALID placement status, per `federation_reconcilers.go`
-		var resultingFedUpstream *v1.FederatedUpstream
-		Eventually(func() (mc_types.PlacementStatus_State, error) {
-			resultingFedUpstream, err = clientset.FederatedUpstreams().GetFederatedUpstream(
+		Eventually(func(g Gomega) {
+			resultingFedUpstream, err := clientset.FederatedUpstreams().GetFederatedUpstream(
 				ctx,
 				types.NamespacedName{
 					Name:      fedUpstream.GetObjectMeta().GetName(),
 					Namespace: fedUpstream.GetObjectMeta().GetNamespace(),
 				},
 			)
-			if err != nil {
-				return mc_types.PlacementStatus_FAILED, err
-			}
-			return resultingFedUpstream.Status.GetPlacementStatus().GetState(), nil
-		}, 10*time.Second).Should(Equal(mc_types.PlacementStatus_INVALID))
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(placementManager.GetPlacementStatus(&resultingFedUpstream.Status).GetState()).To(Equal(mc_types.PlacementStatus_INVALID))
+		}, 10*time.Second).Should(Succeed())
 	})
 
 	It("works", func() {
-		clientset, err := v1.NewClientsetFromConfig(test.MustConfig(""))
+		clientset, err := v1.NewClientsetFromConfig(managementClusterConfig.RestConfig)
 		Expect(err).NotTo(HaveOccurred())
 
 		upstreamSpec = &gloo_types.UpstreamSpec{
@@ -113,7 +110,7 @@ var _ = Describe("Upstream federation", func() {
 
 		fedUpstream = &v1.FederatedUpstream{
 			ObjectMeta: metav1.ObjectMeta{
-				Namespace: localGlooHubNamespace,
+				Namespace: namespace,
 				Name:      "fed-upstream",
 			},
 			Spec: gloo_fed_types.FederatedUpstreamSpec{
@@ -122,8 +119,8 @@ var _ = Describe("Upstream federation", func() {
 					Metadata: meta,
 				},
 				Placement: &multicluster_types.Placement{
-					Namespaces: []string{remoteGlooNamespace},
-					Clusters:   []string{remoteClusterContext},
+					Namespaces: []string{namespace},
+					Clusters:   []string{remoteClusterConfig.KubeContext},
 				},
 			},
 		}
@@ -131,12 +128,12 @@ var _ = Describe("Upstream federation", func() {
 		err = clientset.FederatedUpstreams().CreateFederatedUpstream(ctx, fedUpstream)
 		Expect(err).NotTo(HaveOccurred())
 
-		remoteClientSet, err := gloo_v1.NewClientsetFromConfig(test.MustConfig(remoteClusterContext))
+		remoteClientSet, err := gloo_v1.NewClientsetFromConfig(remoteClusterConfig.RestConfig)
 		Expect(err).NotTo(HaveOccurred())
 		var resultingUpstream *gloo_v1.Upstream
 		Eventually(func() *gloo_v1.Upstream {
 			resultingUpstream, _ = remoteClientSet.Upstreams().
-				GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: remoteGlooNamespace})
+				GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: namespace})
 			return resultingUpstream
 		}, 10*time.Second).ShouldNot(BeNil())
 
@@ -144,12 +141,12 @@ var _ = Describe("Upstream federation", func() {
 		Expect(resultingUpstream.Annotations).To(Equal(meta.Annotations))
 		Expect(resultingUpstream.Labels).To(Equal(map[string]string{
 			"label":             "printer",
-			federation.HubOwner: localGlooHubNamespace + ".fed-upstream",
+			federation.HubOwner: namespace + ".fed-upstream",
 		}))
 
 		Eventually(func() bool {
 			resultingUpstream, _ = remoteClientSet.Upstreams().
-				GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: remoteGlooNamespace})
+				GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: namespace})
 			return resultingUpstream.Status.State == gloo_types.UpstreamStatus_Accepted
 		}, 10*time.Second).Should(BeTrue(), "remote upstream should be marked accepted by gloo")
 
@@ -162,7 +159,7 @@ var _ = Describe("Upstream federation", func() {
 
 		Eventually(func() bool {
 			_, err = remoteClientSet.Upstreams().
-				GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: remoteGlooNamespace})
+				GetUpstream(ctx, types.NamespacedName{Name: meta.Name, Namespace: namespace})
 			if err != nil {
 				return errors.IsNotFound(err)
 			}

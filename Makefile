@@ -126,6 +126,10 @@ install-test-tools:
 mod-download:
 	go mod download all
 
+.PHONY: mod-tidy
+mod-tidy:
+	GOBIN=$(DEPSGOBIN) go mod tidy
+
 .PHONY: install-node-packages
 install-node-packages:
 	npm install -g yarn
@@ -187,7 +191,12 @@ update-ui-deps:
 
 .PHONY: fmt-changed
 fmt-changed:
-	git diff --name-only | grep '.*.go$$' | xargs goimports -w
+	GOBIN=$(DEPSGOBIN) git diff --name-only | grep '.*.go$$' | xargs goimports -w
+
+SUBDIRS:=projects install pkg test
+.PHONY: fmt
+fmt:
+	GOBIN=$(DEPSGOBIN) goimports -w $(SUBDIRS)
 
 .PHONY: check-format
 check-format:
@@ -212,6 +221,11 @@ clean:
 #----------------------------------------------------------------------------------
 PROTOC_IMPORT_PATH:=$(ROOTDIR)/vendor_any
 
+# https://github.com/solo-io/skv2/blob/2c57f51fd5f459d4895c523134cd4e90bf54eb15/codegen/collector/compiler.go#L86
+# MAX_CONCURRENT_PROTOCS sets the upper limit for the number of concurrent `protoc` processes executed during codegen
+# When this is not set, the host machine executing codegen may run out of available file descriptors
+MAX_CONCURRENT_PROTOCS ?= 10
+
 .PHONY: generate-all
 generate-all: check-solo-apis generated-code generate-gloo-fed generate-helm-docs
 
@@ -224,7 +238,6 @@ ifeq ($(GLOO_BRANCH_BUILD),)
 	go get github.com/solo-io/solo-apis@gloo-$(GLOO_VERSION)
 endif
 
-SUBDIRS:=projects install pkg test
 .PHONY: generated-code
 generated-code: update-licenses ## Evaluate go generate
 	rm -rf $(ROOTDIR)/vendor_any

@@ -19,17 +19,17 @@ import (
 
 func Initialize(
 	ctx context.Context,
-	podName string,
 	localManager manager.Manager,
 	baseMCClientset ratelimit_solo_io_v1alpha1.MulticlusterClientset,
 	clusterSet multicluster.ClusterSet,
+	placementManager placement.Manager,
 ) error {
 
 	federatedRateLimitConfigs := NewFederatedRateLimitConfigReconciler(
 		ctx,
 		fed_ratelimit_solo_io_v1alpha1.NewClientset(localManager.GetClient()).FederatedRateLimitConfigs(),
 		baseMCClientset,
-		placement.NewFactory(podName),
+		placementManager,
 		clusterSet,
 	)
 	federatedRateLimitConfigReconciler := fed_ratelimit_solo_io_v1alpha1_controller.NewFederatedRateLimitConfigReconcileLoop("federatedRateLimitConfig", localManager, reconcile.Options{})

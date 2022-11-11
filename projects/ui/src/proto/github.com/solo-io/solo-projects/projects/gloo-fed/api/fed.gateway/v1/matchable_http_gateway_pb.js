@@ -473,7 +473,8 @@ proto.fed.gateway.solo.io.FederatedMatchableHttpGatewayStatus.prototype.toObject
  */
 proto.fed.gateway.solo.io.FederatedMatchableHttpGatewayStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
-    placementStatus: (f = msg.getPlacementStatus()) && github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_core_v1_placement_pb.PlacementStatus.toObject(includeInstance, f)
+    placementStatus: (f = msg.getPlacementStatus()) && github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_core_v1_placement_pb.PlacementStatus.toObject(includeInstance, f),
+    namespacedPlacementStatusesMap: (f = msg.getNamespacedPlacementStatusesMap()) ? f.toObject(includeInstance, proto.core.fed.solo.io.PlacementStatus.toObject) : []
   };
 
   if (includeInstance) {
@@ -515,6 +516,12 @@ proto.fed.gateway.solo.io.FederatedMatchableHttpGatewayStatus.deserializeBinaryF
       reader.readMessage(value,github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_core_v1_placement_pb.PlacementStatus.deserializeBinaryFromReader);
       msg.setPlacementStatus(value);
       break;
+    case 2:
+      var value = msg.getNamespacedPlacementStatusesMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readMessage, proto.core.fed.solo.io.PlacementStatus.deserializeBinaryFromReader, "");
+         });
+      break;
     default:
       reader.skipField();
       break;
@@ -552,6 +559,10 @@ proto.fed.gateway.solo.io.FederatedMatchableHttpGatewayStatus.serializeBinaryToW
       github_com_solo$io_solo$projects_projects_gloo$fed_api_fed_core_v1_placement_pb.PlacementStatus.serializeBinaryToWriter
     );
   }
+  f = message.getNamespacedPlacementStatusesMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeMessage, proto.core.fed.solo.io.PlacementStatus.serializeBinaryToWriter);
+  }
 };
 
 
@@ -582,6 +593,24 @@ proto.fed.gateway.solo.io.FederatedMatchableHttpGatewayStatus.prototype.clearPla
  */
 proto.fed.gateway.solo.io.FederatedMatchableHttpGatewayStatus.prototype.hasPlacementStatus = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * map<string, core.fed.solo.io.PlacementStatus> namespaced_placement_statuses = 2;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!proto.core.fed.solo.io.PlacementStatus>}
+ */
+proto.fed.gateway.solo.io.FederatedMatchableHttpGatewayStatus.prototype.getNamespacedPlacementStatusesMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!proto.core.fed.solo.io.PlacementStatus>} */ (
+      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
+      proto.core.fed.solo.io.PlacementStatus));
+};
+
+
+proto.fed.gateway.solo.io.FederatedMatchableHttpGatewayStatus.prototype.clearNamespacedPlacementStatusesMap = function() {
+  this.getNamespacedPlacementStatusesMap().clear();
 };
 
 

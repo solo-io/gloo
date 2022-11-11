@@ -40,7 +40,7 @@ var _ = Describe("Remote Envoy Config Getter", func() {
 	It("works for getting remote envoy config", func() {
 		serverAddr := "localhost:" + strconv.Itoa(apiserverPort)
 
-		glooInstanceRefName := fmt.Sprintf("%s-%s", managementClusterContext, defaults.GlooSystem)
+		glooInstanceRefName := fmt.Sprintf("%s-%s", managementClusterConfig.KubeContext, defaults.GlooSystem)
 
 		var opts []grpc.DialOption
 		opts = append(opts, grpc.WithInsecure())

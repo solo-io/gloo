@@ -1,8 +1,35 @@
-# gloo-fed
-Multi Cluster Gloo Federation
+# Gloo Federation
 
-## Prerequisites
+Gloo Edge Federation allows users to manage the configuration for all of their Gloo Edge instances from one place, no matter what platform they run on.
 
+## Background
+Gloo Edge Federation elevates Gloo Edge’s powerful routing features beyond the environment they live in, allowing users to create all new global routing features between different Gloo Edge instances. Gloo Edge Federation provides:
+- Consistent configuration 
+- Service failover 
+- Unified debugging
+- Automated Gloo Edge discovery across all of your Gloo Edge instances
+
+## Build
+*All make targets are currently defined in the [Makefile](./../../Makefile) at the root of the repository.*
+
+The `VERSION` env variable determines the name of the tag for the image.
+
+You may either inject the version yourself:
+```bash
+VERSION=<version name> make gloo-fed-docker
+```
+
+Or rely on the auto-generated version:
+```shell
+make gloo-fed-docker
+```
+
+## Release
+During a Gloo Edge Enterprise release, the `gloo-fed` image is published to the [Google Cloud Registry](https://console.cloud.google.com/gcr/images/gloo-edge/GLOBAL) and the [Quay repository](https://quay.io/repository/solo-io/gloo-fed).
+
+
+## Local Development
+### Prerequisites
 Before setting up Gloo Fed, make sure you have performed the following steps:
 
 * Install [Docker](https://docs.docker.com/docker-for-mac/install/)
@@ -42,8 +69,7 @@ On a linux:
       # kind setup
       127.0.0.1       host.docker.internal
 
-## Running and testing Gloo Fed locally
-
+### Running and testing Gloo Fed locally
 Note that since this is an Enterprise feature, you will need a Gloo License Key below:
 
 ```shell script

@@ -19,17 +19,17 @@ import (
 
 func Initialize(
 	ctx context.Context,
-	podName string,
 	localManager manager.Manager,
 	baseMCClientset enterprise_gloo_solo_io_v1.MulticlusterClientset,
 	clusterSet multicluster.ClusterSet,
+	placementManager placement.Manager,
 ) error {
 
 	federatedAuthConfigs := NewFederatedAuthConfigReconciler(
 		ctx,
 		fed_enterprise_gloo_solo_io_v1.NewClientset(localManager.GetClient()).FederatedAuthConfigs(),
 		baseMCClientset,
-		placement.NewFactory(podName),
+		placementManager,
 		clusterSet,
 	)
 	federatedAuthConfigReconciler := fed_enterprise_gloo_solo_io_v1_controller.NewFederatedAuthConfigReconcileLoop("federatedAuthConfig", localManager, reconcile.Options{})

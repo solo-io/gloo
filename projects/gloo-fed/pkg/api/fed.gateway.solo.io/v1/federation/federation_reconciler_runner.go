@@ -19,17 +19,17 @@ import (
 
 func Initialize(
 	ctx context.Context,
-	podName string,
 	localManager manager.Manager,
 	baseMCClientset gateway_solo_io_v1.MulticlusterClientset,
 	clusterSet multicluster.ClusterSet,
+	placementManager placement.Manager,
 ) error {
 
 	federatedGateways := NewFederatedGatewayReconciler(
 		ctx,
 		fed_gateway_solo_io_v1.NewClientset(localManager.GetClient()).FederatedGateways(),
 		baseMCClientset,
-		placement.NewFactory(podName),
+		placementManager,
 		clusterSet,
 	)
 	federatedGatewayReconciler := fed_gateway_solo_io_v1_controller.NewFederatedGatewayReconcileLoop("federatedGateway", localManager, reconcile.Options{})
@@ -42,7 +42,7 @@ func Initialize(
 		ctx,
 		fed_gateway_solo_io_v1.NewClientset(localManager.GetClient()).FederatedMatchableHttpGateways(),
 		baseMCClientset,
-		placement.NewFactory(podName),
+		placementManager,
 		clusterSet,
 	)
 	federatedMatchableHttpGatewayReconciler := fed_gateway_solo_io_v1_controller.NewFederatedMatchableHttpGatewayReconcileLoop("federatedMatchableHttpGateway", localManager, reconcile.Options{})
@@ -55,7 +55,7 @@ func Initialize(
 		ctx,
 		fed_gateway_solo_io_v1.NewClientset(localManager.GetClient()).FederatedVirtualServices(),
 		baseMCClientset,
-		placement.NewFactory(podName),
+		placementManager,
 		clusterSet,
 	)
 	federatedVirtualServiceReconciler := fed_gateway_solo_io_v1_controller.NewFederatedVirtualServiceReconcileLoop("federatedVirtualService", localManager, reconcile.Options{})
@@ -68,7 +68,7 @@ func Initialize(
 		ctx,
 		fed_gateway_solo_io_v1.NewClientset(localManager.GetClient()).FederatedRouteTables(),
 		baseMCClientset,
-		placement.NewFactory(podName),
+		placementManager,
 		clusterSet,
 	)
 	federatedRouteTableReconciler := fed_gateway_solo_io_v1_controller.NewFederatedRouteTableReconcileLoop("federatedRouteTable", localManager, reconcile.Options{})

@@ -105,6 +105,8 @@ export class FailoverSchemeStatus extends jspb.Message {
   getProcessingTime(): google_protobuf_timestamp_pb.Timestamp | undefined;
   setProcessingTime(value?: google_protobuf_timestamp_pb.Timestamp): void;
 
+  getNamespacedStatusesMap(): jspb.Map<string, FailoverSchemeStatus.Status>;
+  clearNamespacedStatusesMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): FailoverSchemeStatus.AsObject;
   static toObject(includeInstance: boolean, msg: FailoverSchemeStatus): FailoverSchemeStatus.AsObject;
@@ -121,6 +123,41 @@ export namespace FailoverSchemeStatus {
     message: string,
     observedGeneration: number,
     processingTime?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    namespacedStatusesMap: Array<[string, FailoverSchemeStatus.Status.AsObject]>,
+  }
+
+  export class Status extends jspb.Message {
+    getState(): FailoverSchemeStatus.StateMap[keyof FailoverSchemeStatus.StateMap];
+    setState(value: FailoverSchemeStatus.StateMap[keyof FailoverSchemeStatus.StateMap]): void;
+
+    getMessage(): string;
+    setMessage(value: string): void;
+
+    getObservedGeneration(): number;
+    setObservedGeneration(value: number): void;
+
+    hasProcessingTime(): boolean;
+    clearProcessingTime(): void;
+    getProcessingTime(): google_protobuf_timestamp_pb.Timestamp | undefined;
+    setProcessingTime(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Status.AsObject;
+    static toObject(includeInstance: boolean, msg: Status): Status.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Status, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Status;
+    static deserializeBinaryFromReader(message: Status, reader: jspb.BinaryReader): Status;
+  }
+
+  export namespace Status {
+    export type AsObject = {
+      state: FailoverSchemeStatus.StateMap[keyof FailoverSchemeStatus.StateMap],
+      message: string,
+      observedGeneration: number,
+      processingTime?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    }
   }
 
   export interface StateMap {

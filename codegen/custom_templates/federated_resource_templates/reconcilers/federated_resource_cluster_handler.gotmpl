@@ -24,14 +24,14 @@ var ClusterHandlerRetryAttempts uint = 5
 type clusterHandler struct {
     ctx     context.Context
     clients {{ $import_prefix }}.Clientset
-    factory placement.StatusBuilderFactory
+    manager placement.Manager
 }
 
-func NewClusterHandler(ctx context.Context, clients {{ $import_prefix }}.Clientset, factory placement.StatusBuilderFactory) multicluster.ClusterHandler {
+func NewClusterHandler(ctx context.Context, clients {{ $import_prefix }}.Clientset, manager placement.Manager) multicluster.ClusterHandler {
     return &clusterHandler{
         ctx:     ctx,
         clients: clients,
-        factory: factory,
+        manager: manager,
     }
 }
 
@@ -89,11 +89,14 @@ func (f *clusterHandler) maybeUpdate{{ $resource.Kind }}StatusWithRetries(item *
 func (f *clusterHandler) maybeUpdate{{ $resource.Kind }}Status(item *{{ $import_prefix }}.{{ $resource.Kind }}, cluster string) error {
 	for _, c := range item.Spec.Placement.GetClusters() {
         if c == cluster {
+            currentPlacementStatus := f.manager.GetPlacementStatus(&item.Status)
+            
             // An existing resource references the given cluster. Update its status to trigger a resync.
-            item.Status.PlacementStatus = f.factory.GetBuilder().
-                UpdateUnprocessed(item.Status.PlacementStatus, placement.ClusterEventTriggered(cluster), mc_types.PlacementStatus_PENDING).
-                // Do not update the observed generation or written by fields as we have not actually processed the resource.
-                Eject(item.Status.PlacementStatus.GetObservedGeneration())
+            updatedPlacementStatus := f.manager.GetBuilder().
+                UpdateUnprocessed(currentPlacementStatus, placement.ClusterEventTriggered(cluster), mc_types.PlacementStatus_PENDING).
+            	// Do not update the observed generation or written by fields as we have not actually processed the resource.
+            	Eject(currentPlacementStatus.GetObservedGeneration())
+            f.manager.SetPlacementStatus(&item.Status, updatedPlacementStatus)
 
             return f.clients.{{ pluralize $resource.Kind }}().Update{{ $resource.Kind }}Status(f.ctx, item)
         }

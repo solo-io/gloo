@@ -6,30 +6,42 @@ import (
 	mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
 )
 
-func (obj *FederatedGateway) NeedsReconcile() bool {
+// NeedsReconcile returns true if the object has not been observed or is in some state where a retry is needed
+// This implementation is not ideal, as it relies on using the Status of the resource, which should
+// be a read-only field. Instead, we could compare the resource hash to the last observed hash
+func (obj *FederatedGateway) NeedsReconcile(placementStatus *mc_types.PlacementStatus) bool {
 	// If the FederatedGateway has not been observed or is in some state where a retry is needed, it needs reconcile
-	return obj.Generation != obj.Status.PlacementStatus.GetObservedGeneration() ||
-		obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_PLACED ||
-		obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_FAILED
+	return obj.Generation != placementStatus.GetObservedGeneration() ||
+		placementStatus.GetState() != mc_types.PlacementStatus_PLACED ||
+		placementStatus.GetState() != mc_types.PlacementStatus_FAILED
 }
 
-func (obj *FederatedMatchableHttpGateway) NeedsReconcile() bool {
+// NeedsReconcile returns true if the object has not been observed or is in some state where a retry is needed
+// This implementation is not ideal, as it relies on using the Status of the resource, which should
+// be a read-only field. Instead, we could compare the resource hash to the last observed hash
+func (obj *FederatedMatchableHttpGateway) NeedsReconcile(placementStatus *mc_types.PlacementStatus) bool {
 	// If the FederatedMatchableHttpGateway has not been observed or is in some state where a retry is needed, it needs reconcile
-	return obj.Generation != obj.Status.PlacementStatus.GetObservedGeneration() ||
-		obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_PLACED ||
-		obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_FAILED
+	return obj.Generation != placementStatus.GetObservedGeneration() ||
+		placementStatus.GetState() != mc_types.PlacementStatus_PLACED ||
+		placementStatus.GetState() != mc_types.PlacementStatus_FAILED
 }
 
-func (obj *FederatedVirtualService) NeedsReconcile() bool {
+// NeedsReconcile returns true if the object has not been observed or is in some state where a retry is needed
+// This implementation is not ideal, as it relies on using the Status of the resource, which should
+// be a read-only field. Instead, we could compare the resource hash to the last observed hash
+func (obj *FederatedVirtualService) NeedsReconcile(placementStatus *mc_types.PlacementStatus) bool {
 	// If the FederatedVirtualService has not been observed or is in some state where a retry is needed, it needs reconcile
-	return obj.Generation != obj.Status.PlacementStatus.GetObservedGeneration() ||
-		obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_PLACED ||
-		obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_FAILED
+	return obj.Generation != placementStatus.GetObservedGeneration() ||
+		placementStatus.GetState() != mc_types.PlacementStatus_PLACED ||
+		placementStatus.GetState() != mc_types.PlacementStatus_FAILED
 }
 
-func (obj *FederatedRouteTable) NeedsReconcile() bool {
+// NeedsReconcile returns true if the object has not been observed or is in some state where a retry is needed
+// This implementation is not ideal, as it relies on using the Status of the resource, which should
+// be a read-only field. Instead, we could compare the resource hash to the last observed hash
+func (obj *FederatedRouteTable) NeedsReconcile(placementStatus *mc_types.PlacementStatus) bool {
 	// If the FederatedRouteTable has not been observed or is in some state where a retry is needed, it needs reconcile
-	return obj.Generation != obj.Status.PlacementStatus.GetObservedGeneration() ||
-		obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_PLACED ||
-		obj.Status.PlacementStatus.GetState() != mc_types.PlacementStatus_FAILED
+	return obj.Generation != placementStatus.GetObservedGeneration() ||
+		placementStatus.GetState() != mc_types.PlacementStatus_PLACED ||
+		placementStatus.GetState() != mc_types.PlacementStatus_FAILED
 }

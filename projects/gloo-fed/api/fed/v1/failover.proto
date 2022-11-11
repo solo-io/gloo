@@ -97,16 +97,38 @@ message FailoverSchemeStatus {
         ACCEPTED = 4;
     }
 
-    // The current state of the resource
+    // The current state of the resource.
+    // Deprecated: use namespacedStatuses instead.
     State state = 1;
 
-    // A human readable message about the current state of the object
+    // A human readable message about the current state of the object.
+    // Deprecated: use namespacedStatuses instead.
     string message = 2;
 
     // The most recently observed generation of the resource. This value corresponds to the `metadata.generation` of
-    // a kubernetes resource
+    // a kubernetes resource.
+    // Deprecated: use namespacedStatuses instead.
     int64 observed_generation = 3;
 
-    // The time at which this status was recorded
-    google.protobuf.Timestamp processing_time  = 4;
+    // The time at which this status was recorded.
+    // Deprecated: use namespacedStatuses instead.
+    google.protobuf.Timestamp processing_time = 4;
+
+    // Map of gloo fed controller namespace to FailoverScheme status.
+    map<string,Status> namespaced_statuses = 5;
+
+    message Status {
+        // The current state of the resource.
+        State state = 1;
+
+        // A human readable message about the current state of the object.
+        string message = 2;
+
+        // The most recently observed generation of the resource. This value corresponds to the `metadata.generation` of
+        // a kubernetes resource.
+        int64 observed_generation = 3;
+
+        // The time at which this status was recorded.
+        google.protobuf.Timestamp processing_time = 4;
+    }
 }

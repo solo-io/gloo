@@ -119,6 +119,23 @@ func (m *FailoverSchemeStatus) Equal(that interface{}) bool {
 		}
 	}
 
+	if len(m.GetNamespacedStatuses()) != len(target.GetNamespacedStatuses()) {
+		return false
+	}
+	for k, v := range m.GetNamespacedStatuses() {
+
+		if h, ok := interface{}(v).(equality.Equalizer); ok {
+			if !h.Equal(target.GetNamespacedStatuses()[k]) {
+				return false
+			}
+		} else {
+			if !proto.Equal(v, target.GetNamespacedStatuses()[k]) {
+				return false
+			}
+		}
+
+	}
+
 	return true
 }
 
@@ -211,6 +228,52 @@ func (m *FailoverSchemeSpec_FailoverEndpoints_LocalityLbTargets) Equal(that inte
 		}
 	} else {
 		if !proto.Equal(m.GetLocalityWeight(), target.GetLocalityWeight()) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Equal function
+func (m *FailoverSchemeStatus_Status) Equal(that interface{}) bool {
+	if that == nil {
+		return m == nil
+	}
+
+	target, ok := that.(*FailoverSchemeStatus_Status)
+	if !ok {
+		that2, ok := that.(FailoverSchemeStatus_Status)
+		if ok {
+			target = &that2
+		} else {
+			return false
+		}
+	}
+	if target == nil {
+		return m == nil
+	} else if m == nil {
+		return false
+	}
+
+	if m.GetState() != target.GetState() {
+		return false
+	}
+
+	if strings.Compare(m.GetMessage(), target.GetMessage()) != 0 {
+		return false
+	}
+
+	if m.GetObservedGeneration() != target.GetObservedGeneration() {
+		return false
+	}
+
+	if h, ok := interface{}(m.GetProcessingTime()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetProcessingTime()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetProcessingTime(), target.GetProcessingTime()) {
 			return false
 		}
 	}

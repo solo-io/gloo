@@ -14,7 +14,6 @@ import (
 	gloo_solo_io_v1_sets "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/sets"
 	fed_gloo_solo_io_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1/controller"
-	fed_gloo_solo_io_v1_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.gloo.solo.io/v1/types"
 	mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
@@ -26,64 +25,69 @@ import (
 )
 
 type federatedUpstreamReconciler struct {
-	ctx                  context.Context
-	federatedUpstreams   fed_gloo_solo_io_v1.FederatedUpstreamClient
-	baseClients          gloo_solo_io_v1.MulticlusterClientset
-	statusBuilderFactory placement.StatusBuilderFactory
-	clusterSet           multicluster.ClusterSet
+	ctx                context.Context
+	federatedUpstreams fed_gloo_solo_io_v1.FederatedUpstreamClient
+	baseClients        gloo_solo_io_v1.MulticlusterClientset
+	placementManager   placement.Manager
+	clusterSet         multicluster.ClusterSet
 }
 
 func NewFederatedUpstreamReconciler(
 	ctx context.Context,
 	federatedUpstreams fed_gloo_solo_io_v1.FederatedUpstreamClient,
 	baseClients gloo_solo_io_v1.MulticlusterClientset,
-	statusBuilderFactory placement.StatusBuilderFactory,
+	placementManager placement.Manager,
 	clusterSet multicluster.ClusterSet,
 ) controller.FederatedUpstreamFinalizer {
 	return &federatedUpstreamReconciler{
-		ctx:                  ctx,
-		federatedUpstreams:   federatedUpstreams,
-		baseClients:          baseClients,
-		statusBuilderFactory: statusBuilderFactory,
-		clusterSet:           clusterSet,
+		ctx:                ctx,
+		federatedUpstreams: federatedUpstreams,
+		baseClients:        baseClients,
+		placementManager:   placementManager,
+		clusterSet:         clusterSet,
 	}
 }
 
 func (f *federatedUpstreamReconciler) ReconcileFederatedUpstream(obj *fed_gloo_solo_io_v1.FederatedUpstream) (reconcile.Result, error) {
-	if !obj.NeedsReconcile() {
+	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
+	if !obj.NeedsReconcile(currentPlacementStatus) {
 		return reconcile.Result{}, nil
 	}
 
 	contextutils.LoggerFrom(f.ctx).Debugw("processing federated upstream", zap.Any("FederatedUpstream", obj))
-	statusBuilder := f.statusBuilderFactory.GetBuilder()
+	statusBuilder := f.placementManager.GetBuilder()
 
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedUpstreams.UpdateFederatedUpstreamStatus(f.ctx, obj)
 	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
-			obj.Status.PlacementStatus = statusBuilder.
-				UpdateUnprocessed(obj.Status.PlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
+			updatedPlacementStatus := statusBuilder.
+				UpdateUnprocessed(currentPlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
 				Eject(obj.GetGeneration())
+			f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 			return reconcile.Result{}, f.federatedUpstreams.UpdateFederatedUpstreamStatus(f.ctx, obj)
 		}
 	}
 	if obj.Spec.Template.GetSpec() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedUpstreams.UpdateFederatedUpstreamStatus(f.ctx, obj)
 	}
 	if obj.Spec.Template.GetMetadata() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedUpstreams.UpdateFederatedUpstreamStatus(f.ctx, obj)
 	}
 
@@ -117,9 +121,7 @@ func (f *federatedUpstreamReconciler) ReconcileFederatedUpstream(obj *fed_gloo_s
 		}
 	}
 
-	obj.Status = fed_gloo_solo_io_v1_types.FederatedUpstreamStatus{
-		PlacementStatus: statusBuilder.Build(obj.GetGeneration()),
-	}
+	f.placementManager.SetPlacementStatus(&obj.Status, statusBuilder.Build(obj.GetGeneration()))
 	err := f.federatedUpstreams.UpdateFederatedUpstreamStatus(f.ctx, obj)
 	if err != nil {
 		multiErr.Errors = append(multiErr.Errors, err)
@@ -250,7 +252,7 @@ type federatedUpstreamGroupReconciler struct {
 	ctx                     context.Context
 	federatedUpstreamGroups fed_gloo_solo_io_v1.FederatedUpstreamGroupClient
 	baseClients             gloo_solo_io_v1.MulticlusterClientset
-	statusBuilderFactory    placement.StatusBuilderFactory
+	placementManager        placement.Manager
 	clusterSet              multicluster.ClusterSet
 }
 
@@ -258,53 +260,58 @@ func NewFederatedUpstreamGroupReconciler(
 	ctx context.Context,
 	federatedUpstreamGroups fed_gloo_solo_io_v1.FederatedUpstreamGroupClient,
 	baseClients gloo_solo_io_v1.MulticlusterClientset,
-	statusBuilderFactory placement.StatusBuilderFactory,
+	placementManager placement.Manager,
 	clusterSet multicluster.ClusterSet,
 ) controller.FederatedUpstreamGroupFinalizer {
 	return &federatedUpstreamGroupReconciler{
 		ctx:                     ctx,
 		federatedUpstreamGroups: federatedUpstreamGroups,
 		baseClients:             baseClients,
-		statusBuilderFactory:    statusBuilderFactory,
+		placementManager:        placementManager,
 		clusterSet:              clusterSet,
 	}
 }
 
 func (f *federatedUpstreamGroupReconciler) ReconcileFederatedUpstreamGroup(obj *fed_gloo_solo_io_v1.FederatedUpstreamGroup) (reconcile.Result, error) {
-	if !obj.NeedsReconcile() {
+	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
+	if !obj.NeedsReconcile(currentPlacementStatus) {
 		return reconcile.Result{}, nil
 	}
 
 	contextutils.LoggerFrom(f.ctx).Debugw("processing federated upstreamGroup", zap.Any("FederatedUpstreamGroup", obj))
-	statusBuilder := f.statusBuilderFactory.GetBuilder()
+	statusBuilder := f.placementManager.GetBuilder()
 
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedUpstreamGroups.UpdateFederatedUpstreamGroupStatus(f.ctx, obj)
 	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
-			obj.Status.PlacementStatus = statusBuilder.
-				UpdateUnprocessed(obj.Status.PlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
+			updatedPlacementStatus := statusBuilder.
+				UpdateUnprocessed(currentPlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
 				Eject(obj.GetGeneration())
+			f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 			return reconcile.Result{}, f.federatedUpstreamGroups.UpdateFederatedUpstreamGroupStatus(f.ctx, obj)
 		}
 	}
 	if obj.Spec.Template.GetSpec() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedUpstreamGroups.UpdateFederatedUpstreamGroupStatus(f.ctx, obj)
 	}
 	if obj.Spec.Template.GetMetadata() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedUpstreamGroups.UpdateFederatedUpstreamGroupStatus(f.ctx, obj)
 	}
 
@@ -338,9 +345,7 @@ func (f *federatedUpstreamGroupReconciler) ReconcileFederatedUpstreamGroup(obj *
 		}
 	}
 
-	obj.Status = fed_gloo_solo_io_v1_types.FederatedUpstreamGroupStatus{
-		PlacementStatus: statusBuilder.Build(obj.GetGeneration()),
-	}
+	f.placementManager.SetPlacementStatus(&obj.Status, statusBuilder.Build(obj.GetGeneration()))
 	err := f.federatedUpstreamGroups.UpdateFederatedUpstreamGroupStatus(f.ctx, obj)
 	if err != nil {
 		multiErr.Errors = append(multiErr.Errors, err)
@@ -468,64 +473,69 @@ func (f *federatedUpstreamGroupReconciler) deleteAll(ownerLabel map[string]strin
 }
 
 type federatedSettingsReconciler struct {
-	ctx                  context.Context
-	federatedSettings    fed_gloo_solo_io_v1.FederatedSettingsClient
-	baseClients          gloo_solo_io_v1.MulticlusterClientset
-	statusBuilderFactory placement.StatusBuilderFactory
-	clusterSet           multicluster.ClusterSet
+	ctx               context.Context
+	federatedSettings fed_gloo_solo_io_v1.FederatedSettingsClient
+	baseClients       gloo_solo_io_v1.MulticlusterClientset
+	placementManager  placement.Manager
+	clusterSet        multicluster.ClusterSet
 }
 
 func NewFederatedSettingsReconciler(
 	ctx context.Context,
 	federatedSettings fed_gloo_solo_io_v1.FederatedSettingsClient,
 	baseClients gloo_solo_io_v1.MulticlusterClientset,
-	statusBuilderFactory placement.StatusBuilderFactory,
+	placementManager placement.Manager,
 	clusterSet multicluster.ClusterSet,
 ) controller.FederatedSettingsFinalizer {
 	return &federatedSettingsReconciler{
-		ctx:                  ctx,
-		federatedSettings:    federatedSettings,
-		baseClients:          baseClients,
-		statusBuilderFactory: statusBuilderFactory,
-		clusterSet:           clusterSet,
+		ctx:               ctx,
+		federatedSettings: federatedSettings,
+		baseClients:       baseClients,
+		placementManager:  placementManager,
+		clusterSet:        clusterSet,
 	}
 }
 
 func (f *federatedSettingsReconciler) ReconcileFederatedSettings(obj *fed_gloo_solo_io_v1.FederatedSettings) (reconcile.Result, error) {
-	if !obj.NeedsReconcile() {
+	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
+	if !obj.NeedsReconcile(currentPlacementStatus) {
 		return reconcile.Result{}, nil
 	}
 
 	contextutils.LoggerFrom(f.ctx).Debugw("processing federated settings", zap.Any("FederatedSettings", obj))
-	statusBuilder := f.statusBuilderFactory.GetBuilder()
+	statusBuilder := f.placementManager.GetBuilder()
 
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedSettings.UpdateFederatedSettingsStatus(f.ctx, obj)
 	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
-			obj.Status.PlacementStatus = statusBuilder.
-				UpdateUnprocessed(obj.Status.PlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
+			updatedPlacementStatus := statusBuilder.
+				UpdateUnprocessed(currentPlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
 				Eject(obj.GetGeneration())
+			f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 			return reconcile.Result{}, f.federatedSettings.UpdateFederatedSettingsStatus(f.ctx, obj)
 		}
 	}
 	if obj.Spec.Template.GetSpec() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedSettings.UpdateFederatedSettingsStatus(f.ctx, obj)
 	}
 	if obj.Spec.Template.GetMetadata() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedSettings.UpdateFederatedSettingsStatus(f.ctx, obj)
 	}
 
@@ -559,9 +569,7 @@ func (f *federatedSettingsReconciler) ReconcileFederatedSettings(obj *fed_gloo_s
 		}
 	}
 
-	obj.Status = fed_gloo_solo_io_v1_types.FederatedSettingsStatus{
-		PlacementStatus: statusBuilder.Build(obj.GetGeneration()),
-	}
+	f.placementManager.SetPlacementStatus(&obj.Status, statusBuilder.Build(obj.GetGeneration()))
 	err := f.federatedSettings.UpdateFederatedSettingsStatus(f.ctx, obj)
 	if err != nil {
 		multiErr.Errors = append(multiErr.Errors, err)

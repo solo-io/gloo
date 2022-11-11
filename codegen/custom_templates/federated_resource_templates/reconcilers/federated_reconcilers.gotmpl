@@ -1,19 +1,17 @@
 // Definition for federated resource reconciler templates.
 package federation
 
-{{ $import_prefix := group_import_name $ }}
-{{ $base_import_prefix := base_group_import_name $ }}
+{{- $import_prefix := group_import_name $ }}
+{{- $base_import_prefix := base_group_import_name $ }}
 
 import (
     "context"
 
     "github.com/hashicorp/go-multierror"
-    "github.com/solo-io/solo-projects/projects/gloo-fed/internal/settings"
     {{ $base_import_prefix }} "github.com/solo-io/solo-apis/pkg/api/{{ base_proto_group_shorthand $ }}.solo.io/{{ base_group_version $ }}"
     {{ $base_import_prefix }}_sets "github.com/solo-io/solo-apis/pkg/api/{{ base_proto_group_shorthand $ }}.solo.io/{{ base_group_version $ }}/sets"
     {{ $import_prefix }} "{{ group_import_path $ }}"
     "{{ group_import_path $ }}/controller"
-    {{ $import_prefix }}_types "{{ group_import_path $ }}/types"
     "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
     "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
     "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/multicluster"
@@ -37,7 +35,7 @@ type {{ $kindLowerCamel }}Reconciler struct {
     ctx                    context.Context
     {{ pluralize $kindLowerCamel }} {{ $import_prefix }}.{{ $resource.Kind }}Client
     baseClients          {{ $base_import_prefix }}.MulticlusterClientset
-    statusBuilderFactory placement.StatusBuilderFactory
+    placementManager     placement.Manager
     clusterSet           multicluster.ClusterSet
 }
 
@@ -45,53 +43,58 @@ func New{{ $resource.Kind }}Reconciler(
     ctx context.Context,
     {{ pluralize $kindLowerCamel }} {{ $import_prefix }}.{{ $resource.Kind }}Client,
     baseClients {{ $base_import_prefix }}.MulticlusterClientset,
-    statusBuilderFactory placement.StatusBuilderFactory,
+    placementManager placement.Manager,
     clusterSet multicluster.ClusterSet,
 ) controller.{{ $resource.Kind }}Finalizer {
     return &{{ $kindLowerCamel }}Reconciler{
         ctx:                  ctx,
         {{ pluralize $kindLowerCamel }}:   {{ pluralize $kindLowerCamel }},
         baseClients:          baseClients,
-        statusBuilderFactory: statusBuilderFactory,
+        placementManager:     placementManager,
         clusterSet:           clusterSet,
     }
 }
 
 func (f *{{ $kindLowerCamel }}Reconciler) Reconcile{{ $resource.Kind }}(obj *{{ $import_prefix }}.{{ $resource.Kind }}) (reconcile.Result, error) {
-    if !obj.NeedsReconcile() {
+    currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
+    if !obj.NeedsReconcile(currentPlacementStatus) {
         return reconcile.Result{}, nil
     }
 
     contextutils.LoggerFrom(f.ctx).Debugw("processing federated {{ $baseKindLowerCamel }}", zap.Any("{{ $resource.Kind }}", obj))
-    statusBuilder := f.statusBuilderFactory.GetBuilder()
+    statusBuilder := f.placementManager.GetBuilder()
 
     allClusters := f.clusterSet.ListClusters()
 
     // Validate resource
     if obj.Spec.GetPlacement() == nil {
-        obj.Status.PlacementStatus = statusBuilder.
-            UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
-            Eject(obj.GetGeneration())
+    	updatedPlacementStatus := statusBuilder.
+    		UpdateUnprocessed(currentPlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+    	    Eject(obj.GetGeneration())
+    	f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
         return reconcile.Result{}, f.{{ pluralize $kindLowerCamel }}.Update{{ $resource.Kind }}Status(f.ctx, obj)
     }
     for _, cluster := range obj.Spec.Placement.GetClusters() {
         if !stringutils.ContainsString(cluster, allClusters) {
-            obj.Status.PlacementStatus = statusBuilder.
-                UpdateUnprocessed(obj.Status.PlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
+            updatedPlacementStatus := statusBuilder.
+                UpdateUnprocessed(currentPlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
                 Eject(obj.GetGeneration())
+            f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
             return reconcile.Result{}, f.{{ pluralize $kindLowerCamel }}.Update{{ $resource.Kind }}Status(f.ctx, obj)
         }
     }
     if obj.Spec.Template.GetSpec() == nil {
-        obj.Status.PlacementStatus = statusBuilder.
-            UpdateUnprocessed(obj.Status.PlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
+        updatedPlacementStatus := statusBuilder.
+            UpdateUnprocessed(currentPlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
             Eject(obj.GetGeneration())
+        f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
         return reconcile.Result{}, f.{{ pluralize $kindLowerCamel }}.Update{{ $resource.Kind }}Status(f.ctx, obj)
     }
     if obj.Spec.Template.GetMetadata() == nil {
-        obj.Status.PlacementStatus = statusBuilder.
-            UpdateUnprocessed(obj.Status.PlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
+        updatedPlacementStatus := statusBuilder.
+            UpdateUnprocessed(currentPlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
             Eject(obj.GetGeneration())
+        f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
         return reconcile.Result{}, f.{{ pluralize $kindLowerCamel }}.Update{{ $resource.Kind }}Status(f.ctx, obj)
     }
 
@@ -125,9 +128,7 @@ func (f *{{ $kindLowerCamel }}Reconciler) Reconcile{{ $resource.Kind }}(obj *{{ 
         }
     }
 
-    obj.Status = {{ $import_prefix }}_types.{{ $resource.Kind }}Status{
-        PlacementStatus: statusBuilder.Build(obj.GetGeneration()),
-    }
+    f.placementManager.SetPlacementStatus(&obj.Status, statusBuilder.Build(obj.GetGeneration()))
     err := f.{{ pluralize $kindLowerCamel }}.Update{{ $resource.Kind }}Status(f.ctx, obj)
     if err != nil {
         multiErr.Errors = append(multiErr.Errors, err)

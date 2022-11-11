@@ -1,4 +1,4 @@
-package settings
+package runner
 
 import (
 	"github.com/kelseyhightower/envconfig"
@@ -12,7 +12,8 @@ type Settings struct {
 	LicenseKey     string `envconfig:"GLOO_LICENSE_KEY" default:""`
 }
 
-func New() *Settings {
+// NewSettings returns the Gloo Federation Settings based on the configured environment variables
+func NewSettings() *Settings {
 	var s Settings
 
 	err := envconfig.Process("", &s)

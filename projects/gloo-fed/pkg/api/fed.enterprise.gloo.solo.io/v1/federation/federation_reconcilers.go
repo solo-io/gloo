@@ -14,7 +14,6 @@ import (
 	enterprise_gloo_solo_io_v1_sets "github.com/solo-io/solo-apis/pkg/api/enterprise.gloo.solo.io/v1/sets"
 	fed_enterprise_gloo_solo_io_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1/controller"
-	fed_enterprise_gloo_solo_io_v1_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.enterprise.gloo.solo.io/v1/types"
 	mc_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/core/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/federation/placement"
@@ -29,7 +28,7 @@ type federatedAuthConfigReconciler struct {
 	ctx                  context.Context
 	federatedAuthConfigs fed_enterprise_gloo_solo_io_v1.FederatedAuthConfigClient
 	baseClients          enterprise_gloo_solo_io_v1.MulticlusterClientset
-	statusBuilderFactory placement.StatusBuilderFactory
+	placementManager     placement.Manager
 	clusterSet           multicluster.ClusterSet
 }
 
@@ -37,53 +36,58 @@ func NewFederatedAuthConfigReconciler(
 	ctx context.Context,
 	federatedAuthConfigs fed_enterprise_gloo_solo_io_v1.FederatedAuthConfigClient,
 	baseClients enterprise_gloo_solo_io_v1.MulticlusterClientset,
-	statusBuilderFactory placement.StatusBuilderFactory,
+	placementManager placement.Manager,
 	clusterSet multicluster.ClusterSet,
 ) controller.FederatedAuthConfigFinalizer {
 	return &federatedAuthConfigReconciler{
 		ctx:                  ctx,
 		federatedAuthConfigs: federatedAuthConfigs,
 		baseClients:          baseClients,
-		statusBuilderFactory: statusBuilderFactory,
+		placementManager:     placementManager,
 		clusterSet:           clusterSet,
 	}
 }
 
 func (f *federatedAuthConfigReconciler) ReconcileFederatedAuthConfig(obj *fed_enterprise_gloo_solo_io_v1.FederatedAuthConfig) (reconcile.Result, error) {
-	if !obj.NeedsReconcile() {
+	currentPlacementStatus := f.placementManager.GetPlacementStatus(&obj.Status)
+	if !obj.NeedsReconcile(currentPlacementStatus) {
 		return reconcile.Result{}, nil
 	}
 
 	contextutils.LoggerFrom(f.ctx).Debugw("processing federated authConfig", zap.Any("FederatedAuthConfig", obj))
-	statusBuilder := f.statusBuilderFactory.GetBuilder()
+	statusBuilder := f.placementManager.GetBuilder()
 
 	allClusters := f.clusterSet.ListClusters()
 
 	// Validate resource
 	if obj.Spec.GetPlacement() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.PlacementMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedAuthConfigs.UpdateFederatedAuthConfigStatus(f.ctx, obj)
 	}
 	for _, cluster := range obj.Spec.Placement.GetClusters() {
 		if !stringutils.ContainsString(cluster, allClusters) {
-			obj.Status.PlacementStatus = statusBuilder.
-				UpdateUnprocessed(obj.Status.PlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
+			updatedPlacementStatus := statusBuilder.
+				UpdateUnprocessed(currentPlacementStatus, placement.ClusterNotRegistered(cluster), mc_types.PlacementStatus_INVALID).
 				Eject(obj.GetGeneration())
+			f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 			return reconcile.Result{}, f.federatedAuthConfigs.UpdateFederatedAuthConfigStatus(f.ctx, obj)
 		}
 	}
 	if obj.Spec.Template.GetSpec() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.SpecTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedAuthConfigs.UpdateFederatedAuthConfigStatus(f.ctx, obj)
 	}
 	if obj.Spec.Template.GetMetadata() == nil {
-		obj.Status.PlacementStatus = statusBuilder.
-			UpdateUnprocessed(obj.Status.PlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
+		updatedPlacementStatus := statusBuilder.
+			UpdateUnprocessed(currentPlacementStatus, placement.MetaTemplateMissing, mc_types.PlacementStatus_INVALID).
 			Eject(obj.GetGeneration())
+		f.placementManager.SetPlacementStatus(&obj.Status, updatedPlacementStatus)
 		return reconcile.Result{}, f.federatedAuthConfigs.UpdateFederatedAuthConfigStatus(f.ctx, obj)
 	}
 
@@ -117,9 +121,7 @@ func (f *federatedAuthConfigReconciler) ReconcileFederatedAuthConfig(obj *fed_en
 		}
 	}
 
-	obj.Status = fed_enterprise_gloo_solo_io_v1_types.FederatedAuthConfigStatus{
-		PlacementStatus: statusBuilder.Build(obj.GetGeneration()),
-	}
+	f.placementManager.SetPlacementStatus(&obj.Status, statusBuilder.Build(obj.GetGeneration()))
 	err := f.federatedAuthConfigs.UpdateFederatedAuthConfigStatus(f.ctx, obj)
 	if err != nil {
 		multiErr.Errors = append(multiErr.Errors, err)

@@ -23,14 +23,14 @@ var ClusterHandlerRetryAttempts uint = 5
 type clusterHandler struct {
 	ctx     context.Context
 	clients fed_gloo_solo_io_v1.Clientset
-	factory placement.StatusBuilderFactory
+	manager placement.Manager
 }
 
-func NewClusterHandler(ctx context.Context, clients fed_gloo_solo_io_v1.Clientset, factory placement.StatusBuilderFactory) multicluster.ClusterHandler {
+func NewClusterHandler(ctx context.Context, clients fed_gloo_solo_io_v1.Clientset, manager placement.Manager) multicluster.ClusterHandler {
 	return &clusterHandler{
 		ctx:     ctx,
 		clients: clients,
-		factory: factory,
+		manager: manager,
 	}
 }
 
@@ -108,11 +108,14 @@ func (f *clusterHandler) maybeUpdateFederatedUpstreamStatusWithRetries(item *fed
 func (f *clusterHandler) maybeUpdateFederatedUpstreamStatus(item *fed_gloo_solo_io_v1.FederatedUpstream, cluster string) error {
 	for _, c := range item.Spec.Placement.GetClusters() {
 		if c == cluster {
+			currentPlacementStatus := f.manager.GetPlacementStatus(&item.Status)
+
 			// An existing resource references the given cluster. Update its status to trigger a resync.
-			item.Status.PlacementStatus = f.factory.GetBuilder().
-				UpdateUnprocessed(item.Status.PlacementStatus, placement.ClusterEventTriggered(cluster), mc_types.PlacementStatus_PENDING).
+			updatedPlacementStatus := f.manager.GetBuilder().
+				UpdateUnprocessed(currentPlacementStatus, placement.ClusterEventTriggered(cluster), mc_types.PlacementStatus_PENDING).
 				// Do not update the observed generation or written by fields as we have not actually processed the resource.
-				Eject(item.Status.PlacementStatus.GetObservedGeneration())
+				Eject(currentPlacementStatus.GetObservedGeneration())
+			f.manager.SetPlacementStatus(&item.Status, updatedPlacementStatus)
 
 			return f.clients.FederatedUpstreams().UpdateFederatedUpstreamStatus(f.ctx, item)
 		}
@@ -141,11 +144,14 @@ func (f *clusterHandler) maybeUpdateFederatedUpstreamGroupStatusWithRetries(item
 func (f *clusterHandler) maybeUpdateFederatedUpstreamGroupStatus(item *fed_gloo_solo_io_v1.FederatedUpstreamGroup, cluster string) error {
 	for _, c := range item.Spec.Placement.GetClusters() {
 		if c == cluster {
+			currentPlacementStatus := f.manager.GetPlacementStatus(&item.Status)
+
 			// An existing resource references the given cluster. Update its status to trigger a resync.
-			item.Status.PlacementStatus = f.factory.GetBuilder().
-				UpdateUnprocessed(item.Status.PlacementStatus, placement.ClusterEventTriggered(cluster), mc_types.PlacementStatus_PENDING).
+			updatedPlacementStatus := f.manager.GetBuilder().
+				UpdateUnprocessed(currentPlacementStatus, placement.ClusterEventTriggered(cluster), mc_types.PlacementStatus_PENDING).
 				// Do not update the observed generation or written by fields as we have not actually processed the resource.
-				Eject(item.Status.PlacementStatus.GetObservedGeneration())
+				Eject(currentPlacementStatus.GetObservedGeneration())
+			f.manager.SetPlacementStatus(&item.Status, updatedPlacementStatus)
 
 			return f.clients.FederatedUpstreamGroups().UpdateFederatedUpstreamGroupStatus(f.ctx, item)
 		}
@@ -174,11 +180,14 @@ func (f *clusterHandler) maybeUpdateFederatedSettingsStatusWithRetries(item *fed
 func (f *clusterHandler) maybeUpdateFederatedSettingsStatus(item *fed_gloo_solo_io_v1.FederatedSettings, cluster string) error {
 	for _, c := range item.Spec.Placement.GetClusters() {
 		if c == cluster {
+			currentPlacementStatus := f.manager.GetPlacementStatus(&item.Status)
+
 			// An existing resource references the given cluster. Update its status to trigger a resync.
-			item.Status.PlacementStatus = f.factory.GetBuilder().
-				UpdateUnprocessed(item.Status.PlacementStatus, placement.ClusterEventTriggered(cluster), mc_types.PlacementStatus_PENDING).
+			updatedPlacementStatus := f.manager.GetBuilder().
+				UpdateUnprocessed(currentPlacementStatus, placement.ClusterEventTriggered(cluster), mc_types.PlacementStatus_PENDING).
 				// Do not update the observed generation or written by fields as we have not actually processed the resource.
-				Eject(item.Status.PlacementStatus.GetObservedGeneration())
+				Eject(currentPlacementStatus.GetObservedGeneration())
+			f.manager.SetPlacementStatus(&item.Status, updatedPlacementStatus)
 
 			return f.clients.FederatedSettings().UpdateFederatedSettingsStatus(f.ctx, item)
 		}

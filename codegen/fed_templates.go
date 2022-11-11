@@ -37,6 +37,11 @@ var FederatedResourceTemplates = func() []model.CustomTemplates {
 		panic(err)
 	}
 
+	statusExtensions, err := fedTemplatesBox.FindString("types/status_extensions.gotmpl")
+	if err != nil {
+		panic(err)
+	}
+
 	return []model.CustomTemplates{
 		{
 			Templates: map[string]string{
@@ -70,6 +75,13 @@ var FederatedResourceTemplates = func() []model.CustomTemplates {
 		{
 			Templates: map[string]string{
 				"resource_apis.proto": fedApiserverProtos,
+			},
+			Funcs: GetTemplateFuncs(),
+		},
+
+		{
+			Templates: map[string]string{
+				"types/status_extensions.gen.go": statusExtensions,
 			},
 			Funcs: GetTemplateFuncs(),
 		},

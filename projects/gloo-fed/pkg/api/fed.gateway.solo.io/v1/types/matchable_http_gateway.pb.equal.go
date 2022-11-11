@@ -100,6 +100,23 @@ func (m *FederatedMatchableHttpGatewayStatus) Equal(that interface{}) bool {
 		}
 	}
 
+	if len(m.GetNamespacedPlacementStatuses()) != len(target.GetNamespacedPlacementStatuses()) {
+		return false
+	}
+	for k, v := range m.GetNamespacedPlacementStatuses() {
+
+		if h, ok := interface{}(v).(equality.Equalizer); ok {
+			if !h.Equal(target.GetNamespacedPlacementStatuses()[k]) {
+				return false
+			}
+		} else {
+			if !proto.Equal(v, target.GetNamespacedPlacementStatuses()[k]) {
+				return false
+			}
+		}
+
+	}
+
 	return true
 }
 

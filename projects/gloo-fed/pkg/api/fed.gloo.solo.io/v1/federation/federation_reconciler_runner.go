@@ -19,17 +19,17 @@ import (
 
 func Initialize(
 	ctx context.Context,
-	podName string,
 	localManager manager.Manager,
 	baseMCClientset gloo_solo_io_v1.MulticlusterClientset,
 	clusterSet multicluster.ClusterSet,
+	placementManager placement.Manager,
 ) error {
 
 	federatedUpstreams := NewFederatedUpstreamReconciler(
 		ctx,
 		fed_gloo_solo_io_v1.NewClientset(localManager.GetClient()).FederatedUpstreams(),
 		baseMCClientset,
-		placement.NewFactory(podName),
+		placementManager,
 		clusterSet,
 	)
 	federatedUpstreamReconciler := fed_gloo_solo_io_v1_controller.NewFederatedUpstreamReconcileLoop("federatedUpstream", localManager, reconcile.Options{})
@@ -42,7 +42,7 @@ func Initialize(
 		ctx,
 		fed_gloo_solo_io_v1.NewClientset(localManager.GetClient()).FederatedUpstreamGroups(),
 		baseMCClientset,
-		placement.NewFactory(podName),
+		placementManager,
 		clusterSet,
 	)
 	federatedUpstreamGroupReconciler := fed_gloo_solo_io_v1_controller.NewFederatedUpstreamGroupReconcileLoop("federatedUpstreamGroup", localManager, reconcile.Options{})
@@ -55,7 +55,7 @@ func Initialize(
 		ctx,
 		fed_gloo_solo_io_v1.NewClientset(localManager.GetClient()).FederatedSettings(),
 		baseMCClientset,
-		placement.NewFactory(podName),
+		placementManager,
 		clusterSet,
 	)
 	federatedSettingsReconciler := fed_gloo_solo_io_v1_controller.NewFederatedSettingsReconcileLoop("federatedSettings", localManager, reconcile.Options{})

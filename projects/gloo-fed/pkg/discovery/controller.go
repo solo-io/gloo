@@ -6,7 +6,6 @@ import (
 
 	v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
 	"github.com/solo-io/skv2/pkg/multicluster"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/internal/settings"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/input"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator"
@@ -15,7 +14,7 @@ import (
 
 func InitializeDiscovery(
 	ctx context.Context,
-	cfg *settings.Settings,
+	writeNamespace string,
 	localManager manager.Manager,
 	mcClient multicluster.Client,
 	cw multicluster.ClusterWatcher,
@@ -24,7 +23,7 @@ func InitializeDiscovery(
 		ctx,
 		fedv1.NewClientset(localManager.GetClient()).GlooInstances(),
 		input.NewMultiClusterBuilder(cw.(multicluster.Interface), mcClient),
-		translator.NewTranslator(cfg.WriteNamespace, v1.NewMulticlusterClientset(mcClient)),
+		translator.NewTranslator(writeNamespace, v1.NewMulticlusterClientset(mcClient)),
 	)
 
 	input.RegisterMultiClusterReconciler(ctx, cw, glooResourceReconciler.ReconcileAll, time.Second/2, input.ReconcileOptions{})

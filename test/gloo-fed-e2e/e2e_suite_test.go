@@ -6,12 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
+	"k8s.io/client-go/rest"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/go-utils/log"
@@ -44,102 +45,104 @@ func TestE2e(t *testing.T) {
 }
 
 var (
-	remoteClusterContext     string
-	managementClusterContext string
-	mcRole                   *multicluster_v1alpha1.MultiClusterRole
-	mcRoleBinding            *multicluster_v1alpha1.MultiClusterRoleBinding
-	err                      error
-	namespace                = defaults.GlooSystem
+	remoteClusterConfig     *clusterConfig
+	managementClusterConfig *clusterConfig
+
+	mcRole        *multicluster_v1alpha1.MultiClusterRole
+	mcRoleBinding *multicluster_v1alpha1.MultiClusterRoleBinding
+	err           error
+	namespace     = defaults.GlooSystem
 )
 
-var _ = SynchronizedBeforeSuite(func() []byte {
-	if os.Getenv(remoteClusterContextEnvName) == "" {
-		return nil
+type clusterConfig struct {
+	KubeContext           string
+	RestConfig            *rest.Config
+	FederatedClientset    fedv1.Clientset
+	MulticlusterClientset multicluster_v1alpha1.Clientset
+	GatewayClientset      gatewayv1.Clientset
+	GlooClientset         gloov1.Clientset
+}
+
+func createClusterConfigFromKubeContext(kubeCtx string) *clusterConfig {
+	restCfg := skv2_test.MustConfig(kubeCtx)
+	fedClientset, err := fedv1.NewClientsetFromConfig(restCfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	multiclusterClientset, err := multicluster_v1alpha1.NewClientsetFromConfig(restCfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	glooClientset, err := gloov1.NewClientsetFromConfig(restCfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	gatewayClientset, err := gatewayv1.NewClientsetFromConfig(restCfg)
+	Expect(err).NotTo(HaveOccurred())
+
+	return &clusterConfig{
+		KubeContext:           kubeCtx,
+		RestConfig:            restCfg,
+		FederatedClientset:    fedClientset,
+		MulticlusterClientset: multiclusterClientset,
+		GatewayClientset:      gatewayClientset,
+		GlooClientset:         glooClientset,
 	}
-	remoteClusterContext = os.Getenv(remoteClusterContextEnvName)
-	managementClusterContext = os.Getenv(managementClusterContextEnvName)
+}
+
+var _ = SynchronizedBeforeSuite(func() []byte {
+	remoteClusterConfig = createClusterConfigFromKubeContext(os.Getenv(remoteClusterContextEnvName))
+	managementClusterConfig = createClusterConfigFromKubeContext(os.Getenv(managementClusterContextEnvName))
 
 	err = os.Setenv(statusutils.PodNamespaceEnvName, namespace)
 	Expect(err).NotTo(HaveOccurred())
 
-	restCfg := skv2_test.MustConfig(managementClusterContext)
 	// Wait for the Gloo Instances to be created
-	clientset, err := fedv1.NewClientsetFromConfig(restCfg)
-	Eventually(func() int {
-		instances, err := clientset.GlooInstances().ListGlooInstance(context.TODO())
-		Expect(err).NotTo(HaveOccurred())
+	Eventually(func(g Gomega) int {
+		instances, err := managementClusterConfig.FederatedClientset.GlooInstances().ListGlooInstance(context.TODO())
+		g.Expect(err).NotTo(HaveOccurred())
 		return len(instances.Items)
-	}, time.Second*60, time.Millisecond*500).Should(Equal(2))
+	}, time.Minute, time.Second).Should(Equal(2))
 
 	// Wait for Upstream to be Accepted
-	glooClient, err := gloov1.NewClientsetFromConfig(restCfg)
-	Eventually(func() (gloov1.UpstreamStatus_State, error) {
-		us, err := glooClient.Upstreams().GetUpstream(context.TODO(), client.ObjectKey{
+	Eventually(func(g Gomega) gloov1.UpstreamStatus_State {
+		us, err := managementClusterConfig.GlooClientset.Upstreams().GetUpstream(context.TODO(), client.ObjectKey{
 			Name:      "default-service-blue-10000",
 			Namespace: namespace,
 		})
-		if err != nil {
-			log.Printf("failed to get upstream: %v", err)
-			return 0, err
-		}
-
-		return us.Status.GetState(), nil
-	}, time.Second*30, time.Millisecond*500).Should(Equal(gloov1.UpstreamStatus_Accepted))
+		g.Expect(err).NotTo(HaveOccurred())
+		return us.Status.GetState()
+	}, time.Minute, time.Second).Should(Equal(gloov1.UpstreamStatus_Accepted))
 
 	// Wait for remote Upstream to be Accepted
-	remoteRestCfg := skv2_test.MustConfig(remoteClusterContext)
-	remoteGlooClient, err := gloov1.NewClientsetFromConfig(remoteRestCfg)
-	Eventually(func() (gloov1.UpstreamStatus_State, error) {
-		us, err := remoteGlooClient.Upstreams().GetUpstream(context.TODO(), client.ObjectKey{
+	Eventually(func() gloov1.UpstreamStatus_State {
+		us, err := remoteClusterConfig.GlooClientset.Upstreams().GetUpstream(context.TODO(), client.ObjectKey{
 			Name:      "default-service-green-10000",
 			Namespace: namespace,
 		})
-		if err != nil {
-			return 0, err
-		}
-		return us.Status.GetState(), nil
-	}, time.Second*10, time.Millisecond*500).Should(Equal(gloov1.UpstreamStatus_Accepted))
+		Expect(err).NotTo(HaveOccurred())
+		return us.Status.GetState()
+	}, time.Minute*2, time.Second).Should(Equal(gloov1.UpstreamStatus_Accepted))
 
 	// Wait for VirtualService to be Accepted
-	gatewayClient, err := gatewayv1.NewClientsetFromConfig(restCfg)
-	Eventually(func() (gatewayv1.VirtualServiceStatus_State, error) {
-		vs, err := gatewayClient.VirtualServices().GetVirtualService(context.TODO(), client.ObjectKey{
+	Eventually(func() gatewayv1.VirtualServiceStatus_State {
+		vs, err := managementClusterConfig.GatewayClientset.VirtualServices().GetVirtualService(context.TODO(), client.ObjectKey{
 			Name:      "simple-route",
 			Namespace: namespace,
 		})
-		if err != nil {
-			return 0, err
-		}
-
-		return vs.Status.GetState(), nil
-	}, time.Second*10, time.Millisecond*500).Should(Equal(gatewayv1.VirtualServiceStatus_Accepted))
+		Expect(err).NotTo(HaveOccurred())
+		return vs.Status.GetState()
+	}, time.Minute*2, time.Second).Should(Equal(gatewayv1.VirtualServiceStatus_Accepted))
 
 	// Wait for FailoverScheme to be Accepted, and stay Accepted
-	Eventually(func() bool {
-		concurrentSuccesses := 0
-		for i := 0; i < 60; i++ {
-			failover, err := clientset.FailoverSchemes().GetFailoverScheme(context.TODO(), client.ObjectKey{
+	Eventually(func(g Gomega) {
+		g.Consistently(func(g Gomega) {
+			failover, err := managementClusterConfig.FederatedClientset.FailoverSchemes().GetFailoverScheme(context.TODO(), client.ObjectKey{
 				Name:      "failover-test-scheme",
 				Namespace: namespace,
 			})
-			if err != nil {
-				continue
-			}
-			if failover.Status.GetState() == fed_types.FailoverSchemeStatus_ACCEPTED {
-				concurrentSuccesses++
-			} else {
-				concurrentSuccesses = 0
-			}
-			if concurrentSuccesses == 10 {
-				break
-			}
-			time.Sleep(time.Second * 1)
-		}
-		return concurrentSuccesses >= 10
-	}, time.Minute*2, time.Second*1).Should(BeTrue())
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(failover.Status.GetState()).To(Equal(fed_types.FailoverSchemeStatus_ACCEPTED))
+		}, time.Second*10, time.Second).Should(Succeed())
+	}, time.Minute*2, time.Second).Should(Succeed())
 
-	rbacClientset, err := multicluster_v1alpha1.NewClientsetFromConfig(restCfg)
-	Expect(err).NotTo(HaveOccurred())
 	mcRole = &multicluster_v1alpha1.MultiClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "hello",
@@ -170,8 +173,9 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			},
 		},
 	}
-	err = rbacClientset.MultiClusterRoles().CreateMultiClusterRole(context.TODO(), mcRole)
+	err = managementClusterConfig.MulticlusterClientset.MultiClusterRoles().CreateMultiClusterRole(context.TODO(), mcRole)
 	Expect(err).NotTo(HaveOccurred())
+
 	mcRoleBinding = &multicluster_v1alpha1.MultiClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "world",
@@ -190,28 +194,22 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			},
 		},
 	}
-	err = rbacClientset.MultiClusterRoleBindings().CreateMultiClusterRoleBinding(context.TODO(), mcRoleBinding)
+	err = managementClusterConfig.MulticlusterClientset.MultiClusterRoleBindings().CreateMultiClusterRoleBinding(context.TODO(), mcRoleBinding)
 	Expect(err).NotTo(HaveOccurred())
 
 	return nil
 }, func([]byte) {})
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
-	err := os.Unsetenv(statusutils.PodNamespaceEnvName)
-	Expect(err).NotTo(HaveOccurred())
-
 	if mcRoleBinding != nil {
-		rbacClientset, err := multicluster_v1alpha1.NewClientsetFromConfig(skv2_test.MustConfig(managementClusterContext))
-		Expect(err).NotTo(HaveOccurred())
-		rbacClientset.MultiClusterRoleBindings().DeleteMultiClusterRoleBinding(context.TODO(), client.ObjectKey{
+		_ = managementClusterConfig.MulticlusterClientset.MultiClusterRoleBindings().DeleteMultiClusterRoleBinding(context.TODO(), client.ObjectKey{
 			Namespace: mcRoleBinding.GetNamespace(),
 			Name:      mcRoleBinding.GetName(),
 		})
 	}
+
 	if mcRole != nil {
-		rbacClientset, err := multicluster_v1alpha1.NewClientsetFromConfig(skv2_test.MustConfig(managementClusterContext))
-		Expect(err).NotTo(HaveOccurred())
-		rbacClientset.MultiClusterRoles().DeleteMultiClusterRole(context.TODO(), client.ObjectKey{
+		_ = managementClusterConfig.MulticlusterClientset.MultiClusterRoles().DeleteMultiClusterRole(context.TODO(), client.ObjectKey{
 			Namespace: mcRole.GetNamespace(),
 			Name:      mcRole.GetName(),
 		})
