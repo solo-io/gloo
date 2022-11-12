@@ -65,7 +65,7 @@ func Run(runCtx context.Context, settings *Settings) error {
 	multiclusterClient := client.NewClient(clusterWatcher)
 	discovery.InitializeDiscovery(runCtx, settings.WriteNamespace, mgr, multiclusterClient, clusterWatcher)
 
-	if err := failover.InitializeFailover(runCtx, mgr, multiclusterClient, clusterWatcher); err != nil {
+	if err := failover.InitializeFailover(runCtx, mgr, multiclusterClient, clusterWatcher, settings.PodNamespace); err != nil {
 		return errors.Errorf("A fatal error occurred while setting up failover reconciler", zap.Error(err))
 	}
 

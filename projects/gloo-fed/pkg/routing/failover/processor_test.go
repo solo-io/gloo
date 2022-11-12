@@ -36,6 +36,8 @@ var _ = Describe("Processor", func() {
 		glooMcClientset      *mock_gloo_v1.MockMulticlusterClientset
 		glooClientset        *mock_gloo_v1.MockClientset
 		upstreamClient       *mock_gloo_v1.MockUpstreamClient
+
+		statusManager *failover.StatusManager
 	)
 
 	BeforeEach(func() {
@@ -46,6 +48,8 @@ var _ = Describe("Processor", func() {
 		glooMcClientset = mock_gloo_v1.NewMockMulticlusterClientset(ctrl)
 		glooClientset = mock_gloo_v1.NewMockClientset(ctrl)
 		upstreamClient = mock_gloo_v1.NewMockUpstreamClient(ctrl)
+
+		statusManager = failover.NewStatusManager(failoverSchemeClient, defaults.GlooFed)
 	})
 
 	AfterEach(func() {
@@ -58,23 +62,25 @@ var _ = Describe("Processor", func() {
 
 			It("will error if no primary target is given", func() {
 
-				processor := failover.NewFailoverProcessor(glooMcClientset, glooInstanceClient, failoverSchemeClient)
+				processor := failover.NewFailoverProcessor(glooMcClientset, glooInstanceClient, failoverSchemeClient, statusManager)
 				obj := &fedv1.FailoverScheme{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "one",
 						Namespace: "two",
 					},
 				}
-				_, status := processor.ProcessFailoverUpdate(ctx, obj)
-				Expect(status).To(test_matchers.MatchFailoverStatus(&fed_types.FailoverSchemeStatus{
+				_, statusBuilder := processor.ProcessFailoverUpdate(ctx, obj)
+				actualStatus := statusBuilder.Build().Status
+				expectedStatus := createStatus(&failover.StatusImpl{
 					State:   fed_types.FailoverSchemeStatus_INVALID,
 					Message: failover.EmptyPrimaryTargetError.Error(),
-				}))
+				})
+				Expect(&actualStatus).To(test_matchers.MatchFailoverStatus(&expectedStatus))
 			})
 
 			It("will error if no primary is already in use", func() {
 
-				processor := failover.NewFailoverProcessor(glooMcClientset, glooInstanceClient, failoverSchemeClient)
+				processor := failover.NewFailoverProcessor(glooMcClientset, glooInstanceClient, failoverSchemeClient, statusManager)
 				obj := &fedv1.FailoverScheme{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "one",
@@ -110,16 +116,18 @@ var _ = Describe("Processor", func() {
 					ListFailoverScheme(ctx).
 					Return(&fedv1.FailoverSchemeList{Items: []fedv1.FailoverScheme{*errored}}, nil)
 
-				_, status := processor.ProcessFailoverUpdate(ctx, obj)
-				Expect(status).To(test_matchers.MatchFailoverStatus(&fed_types.FailoverSchemeStatus{
+				_, statusBuilder := processor.ProcessFailoverUpdate(ctx, obj)
+				actualStatus := statusBuilder.Build().Status
+				expectedStatus := createStatus(&fed_types.FailoverSchemeStatus{
 					State:   fed_types.FailoverSchemeStatus_INVALID,
 					Message: failover.PrimaryTargetAlreadyInUseError(obj.Spec.GetPrimary(), errored).Error(),
-				}))
+				})
+				Expect(&actualStatus).To(test_matchers.MatchFailoverStatus(&expectedStatus))
 			})
 
 			It("will error if no failover groups are specified", func() {
 
-				processor := failover.NewFailoverProcessor(glooMcClientset, glooInstanceClient, failoverSchemeClient)
+				processor := failover.NewFailoverProcessor(glooMcClientset, glooInstanceClient, failoverSchemeClient, statusManager)
 				obj := &fedv1.FailoverScheme{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "one",
@@ -153,11 +161,13 @@ var _ = Describe("Processor", func() {
 					ListFailoverScheme(ctx).
 					Return(&fedv1.FailoverSchemeList{}, nil)
 
-				_, status := processor.ProcessFailoverUpdate(ctx, obj)
-				Expect(status).To(test_matchers.MatchFailoverStatus(&fed_types.FailoverSchemeStatus{
+				_, statusBuilder := processor.ProcessFailoverUpdate(ctx, obj)
+				actualStatus := statusBuilder.Build().Status
+				expectedStatus := createStatus(&fed_types.FailoverSchemeStatus{
 					State:   fed_types.FailoverSchemeStatus_INVALID,
 					Message: failover.EmptyFailoverTargetsError.Error(),
-				}))
+				})
+				Expect(&actualStatus).To(test_matchers.MatchFailoverStatus(&expectedStatus))
 			})
 
 		})
@@ -166,7 +176,7 @@ var _ = Describe("Processor", func() {
 
 			It("can return a valid failover cfg", func() {
 
-				processor := failover.NewFailoverProcessor(glooMcClientset, glooInstanceClient, failoverSchemeClient)
+				processor := failover.NewFailoverProcessor(glooMcClientset, glooInstanceClient, failoverSchemeClient, statusManager)
 
 				instanceCluster1 := &fedv1.GlooInstance{
 					ObjectMeta: metav1.ObjectMeta{
@@ -318,8 +328,8 @@ var _ = Describe("Processor", func() {
 					},
 				}
 
-				returned, status := processor.ProcessFailoverUpdate(ctx, obj)
-				Expect(status).To(BeNil())
+				returned, statusBuilder := processor.ProcessFailoverUpdate(ctx, obj)
+				Expect(statusBuilder).To(BeNil())
 				Expect(returned).To(MatchPublicFields(expected))
 			})
 
@@ -329,7 +339,7 @@ var _ = Describe("Processor", func() {
 	Context("ProcessFailoverDelete", func() {
 
 		It("will get the primary upstream, and set the failover policy to nil", func() {
-			processor := failover.NewFailoverProcessor(glooMcClientset, glooInstanceClient, failoverSchemeClient)
+			processor := failover.NewFailoverProcessor(glooMcClientset, glooInstanceClient, failoverSchemeClient, statusManager)
 			obj := &fedv1.FailoverScheme{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "one",

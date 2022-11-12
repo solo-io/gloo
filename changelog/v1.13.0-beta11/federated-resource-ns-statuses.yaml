@@ -1,9 +1,9 @@
 changelog:
-  - type: NON_USER_FACING
+  - type: NEW_FEATURE
     issueLink: https://github.com/solo-io/gloo/issues/7237
     resolvesIssue: false
     description: >
       Expand the PlacementStatus API on FederatedResources, to allow for a set of statuses
       to be maintained on a single resource, each keyed by the namespace that the Gloo Federation
-      operator is running in. This enables a canary upgrades for Gloo Fed, where mutltiple operators can 
+      operator is running in. This enables canary upgrades for Gloo Fed, where mutltiple operators can
       report their own status.

@@ -16,7 +16,6 @@ import (
 	fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/fields"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/routing/failover/internal"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -71,11 +70,13 @@ func NewFailoverProcessor(
 	glooClientset gloov1.MulticlusterClientset,
 	glooInstanceClient fedv1.GlooInstanceClient,
 	failoverSchemeClient fedv1.FailoverSchemeClient,
+	statusManager *StatusManager,
 ) FailoverProcessor {
 	return &failoverProcessorImpl{
 		glooClientset:        glooClientset,
 		glooInstanceClient:   glooInstanceClient,
 		failoverSchemeClient: failoverSchemeClient,
+		statusManager:        statusManager,
 	}
 }
 
@@ -83,19 +84,20 @@ type failoverProcessorImpl struct {
 	glooClientset        gloov1.MulticlusterClientset
 	glooInstanceClient   fedv1.GlooInstanceClient
 	failoverSchemeClient fedv1.FailoverSchemeClient
+	statusManager        *StatusManager
 }
 
 func (f failoverProcessorImpl) ProcessFailoverUpdate(
 	ctx context.Context,
 	obj *fedv1.FailoverScheme,
-) (*gloov1.Upstream, *fed_types.FailoverSchemeStatus) {
-	statusBuilder := NewFailoverStatusBuilder(obj)
+) (*gloov1.Upstream, StatusBuilder) {
+	statusBuilder := f.statusManager.NewStatusBuilder(obj)
 	if obj.Spec.GetPrimary() == nil {
-		return nil, statusBuilder.Invalidate(EmptyPrimaryTargetError).Build()
+		return nil, statusBuilder.Invalidate(EmptyPrimaryTargetError)
 	}
 	primaryClusterClient, err := f.glooClientset.Cluster(obj.Spec.GetPrimary().GetClusterName())
 	if err != nil {
-		return nil, statusBuilder.Fail(err).Build()
+		return nil, statusBuilder.Fail(err)
 	}
 
 	primaryUpstream, err := primaryClusterClient.Upstreams().GetUpstream(ctx, client.ObjectKey{
@@ -105,14 +107,14 @@ func (f failoverProcessorImpl) ProcessFailoverUpdate(
 	if err != nil {
 		// If the primary upstream cannot be found, the object is invalid and cannot be retried.
 		if errors.IsNotFound(err) {
-			return nil, statusBuilder.Invalidate(err).Build()
+			return nil, statusBuilder.Invalidate(err)
 		}
-		return nil, statusBuilder.Fail(err).Build()
+		return nil, statusBuilder.Fail(err)
 	}
 
 	failoverSchemeList, err := f.failoverSchemeClient.ListFailoverScheme(ctx)
 	if err != nil {
-		return nil, statusBuilder.Fail(err).Build()
+		return nil, statusBuilder.Fail(err)
 	}
 	// For each existing failover scheme, check if the primary upstream is already a primary target.
 	// Make sure to not check the scheme which is currently being reconciled.
@@ -121,19 +123,18 @@ func (f failoverProcessorImpl) ProcessFailoverUpdate(
 		if failoverScheme.Spec.GetPrimary().Equal(obj.Spec.GetPrimary()) &&
 			sets.Key(&failoverScheme) != sets.Key(obj) {
 			return nil, statusBuilder.
-				Invalidate(PrimaryTargetAlreadyInUseError(obj.Spec.GetPrimary(), &failoverScheme)).
-				Build()
+				Invalidate(PrimaryTargetAlreadyInUseError(obj.Spec.GetPrimary(), &failoverScheme))
 		}
 
 	}
 
 	if len(obj.Spec.GetFailoverGroups()) == 0 {
-		return nil, statusBuilder.Invalidate(EmptyFailoverTargetsError).Build()
+		return nil, statusBuilder.Invalidate(EmptyFailoverTargetsError)
 	}
 
-	failoverCfg, status := f.buildFailoverConfig(ctx, obj, statusBuilder)
-	if status != nil {
-		return nil, status
+	failoverCfg, updatedStatusBuilder := f.buildFailoverConfig(ctx, obj, statusBuilder)
+	if updatedStatusBuilder != nil {
+		return nil, updatedStatusBuilder
 	}
 
 	primaryUpstream.Spec.Failover = failoverCfg
@@ -143,8 +144,8 @@ func (f failoverProcessorImpl) ProcessFailoverUpdate(
 func (f failoverProcessorImpl) buildFailoverConfig(
 	ctx context.Context,
 	obj *fedv1.FailoverScheme,
-	statusBuilder *failoverStatusBuilder,
-) (*gloo_api_v1.Failover, *fed_types.FailoverSchemeStatus) {
+	statusBuilder StatusBuilder,
+) (*gloo_api_v1.Failover, StatusBuilder) {
 	failoverCfg := &gloo_api_v1.Failover{}
 	for _, priority := range obj.Spec.GetFailoverGroups() {
 		glooPriority := &gloo_api_v1.Failover_PrioritizedLocality{}
@@ -158,13 +159,13 @@ func (f failoverProcessorImpl) buildFailoverConfig(
 				fields.BuildClusterFieldMatcher(groupMember.GetCluster()),
 			)
 			if err != nil {
-				return nil, statusBuilder.Fail(err).Build()
+				return nil, statusBuilder.Fail(err)
 			}
 			instanceSet := v1sets.NewGlooInstanceSetFromList(instances)
 
 			glooClusterClient, err := f.glooClientset.Cluster(groupMember.GetCluster())
 			if err != nil {
-				return nil, statusBuilder.Fail(err).Build()
+				return nil, statusBuilder.Fail(err)
 			}
 
 			for _, usRef := range groupMember.GetUpstreams() {
@@ -174,9 +175,9 @@ func (f failoverProcessorImpl) buildFailoverConfig(
 				})
 				if err != nil {
 					if errors.IsNotFound(err) {
-						return nil, statusBuilder.Invalidate(err).Build()
+						return nil, statusBuilder.Invalidate(err)
 					}
-					return nil, statusBuilder.Fail(err).Build()
+					return nil, statusBuilder.Fail(err)
 				}
 				usLocality, err := f.computeEndpoints(&skv2v1.ClusterObjectRef{
 					Name:        us.GetName(),
@@ -184,7 +185,7 @@ func (f failoverProcessorImpl) buildFailoverConfig(
 					ClusterName: groupMember.GetCluster(),
 				}, instanceSet)
 				if err != nil {
-					return nil, statusBuilder.Invalidate(err).Build()
+					return nil, statusBuilder.Invalidate(err)
 				}
 				// If usLocality has zone (and/or) region replace them.
 				if usLocality.GetLocality().GetZone() != "" {
@@ -311,7 +312,7 @@ func (f *failoverProcessorImpl) ProcessFailoverDelete(
 func GetGlooInstanceForUpstream(us ezkube.ClusterResourceId, instances v1sets.GlooInstanceSet) v1sets.GlooInstanceSet {
 	result := v1sets.NewGlooInstanceSet()
 	for _, instance := range instances.List() {
-		if internal.IsGlooInstanceUpstream(instance, us) {
+		if IsGlooInstanceUpstream(instance, us) {
 			result.Insert(instance)
 		}
 	}

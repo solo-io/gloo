@@ -1,7 +1,9 @@
-package internal_test
+package failover_test
 
 import (
 	"context"
+
+	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/routing/failover"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -13,7 +15,6 @@ import (
 	mock_fed_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/mocks"
 	v1sets "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/sets"
 	fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/routing/failover/internal"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -44,7 +45,7 @@ var _ = Describe("DependentsCalculator", func() {
 
 		Context("ForUpstream", func() {
 			It("will return all failovers who reference the upstream", func() {
-				depCalc := internal.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
+				depCalc := failover.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
 
 				usRef := &skv2v1.ClusterObjectRef{
 					Name:        "upstream",
@@ -144,7 +145,7 @@ var _ = Describe("DependentsCalculator", func() {
 				)
 
 				When("gloo instance cannot be found", func() {
-					depCalc := internal.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
+					depCalc := failover.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
 
 					failoverSchemeClient.EXPECT().
 						ListFailoverScheme(ctx).
@@ -169,7 +170,7 @@ var _ = Describe("DependentsCalculator", func() {
 
 				When("gloo instance fails for any other reason", func() {
 
-					depCalc := internal.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
+					depCalc := failover.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
 
 					failoverSchemeClient.EXPECT().
 						ListFailoverScheme(ctx).
@@ -197,7 +198,7 @@ var _ = Describe("DependentsCalculator", func() {
 
 			It("will return all relevant schemes for the instance owned upstreams", func() {
 
-				depCalc := internal.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
+				depCalc := failover.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
 
 				list := &fedv1.FailoverSchemeList{
 					Items: []fedv1.FailoverScheme{

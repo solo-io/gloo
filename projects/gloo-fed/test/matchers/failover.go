@@ -32,10 +32,8 @@ func (f *failoverMatcher) Matches(x interface{}) bool {
 		!reflect.DeepEqual(failScheme.Spec.FailoverGroups, f.failScheme.Spec.FailoverGroups) {
 		return false
 	}
-	// skip processing time as it will always be different
-	return failScheme.Status.GetState() == f.failScheme.Status.GetState() &&
-		failScheme.Status.GetObservedGeneration() == f.failScheme.Status.GetObservedGeneration() &&
-		failScheme.Status.GetMessage() == f.failScheme.Status.GetMessage()
+
+	return StatusesAreEqual(&failScheme.Status, &f.failScheme.Status)
 }
 
 func (f *failoverMatcher) String() string {
@@ -57,10 +55,8 @@ func (f *failoverStatusMatcher) Match(actual interface{}) (success bool, err err
 	if !ok {
 		return false, nil
 	}
-	// skip processing time as it will always be different
-	return failScheme.GetState() == f.failSchemeStatus.GetState() &&
-		failScheme.GetObservedGeneration() == f.failSchemeStatus.GetObservedGeneration() &&
-		failScheme.GetMessage() == f.failSchemeStatus.GetMessage(), nil
+
+	return StatusesAreEqual(failScheme, f.failSchemeStatus), nil
 }
 
 func (f *failoverStatusMatcher) FailureMessage(actual interface{}) (message string) {
@@ -69,4 +65,29 @@ func (f *failoverStatusMatcher) FailureMessage(actual interface{}) (message stri
 
 func (f *failoverStatusMatcher) NegatedFailureMessage(actual interface{}) (message string) {
 	return format.Message(actual, "Not to be identical except the time to", f.failSchemeStatus)
+}
+
+// StatusesAreEqual returns true if the two StatusesAreEqual objects are identical, false otherwise
+func StatusesAreEqual(left, right *fed_types.FailoverSchemeStatus) bool {
+	leftStatuses := left.GetNamespacedStatuses()
+	rightStatuses := right.GetNamespacedStatuses()
+
+	if len(leftStatuses) != len(rightStatuses) {
+		return false
+	}
+
+	for ns, leftStatus := range leftStatuses {
+		if !SingleStatusesAreEqual(leftStatus, rightStatuses[ns]) {
+			return false
+		}
+	}
+	return true
+}
+
+// SingleStatusesAreEqual returns true if the two FailoverSchemeStatus_Status objects are identical, false otherwise
+func SingleStatusesAreEqual(left, right *fed_types.FailoverSchemeStatus_Status) bool {
+	// we skip processing time as it will always be different
+	return left.GetState() == right.GetState() &&
+		left.GetObservedGeneration() == right.GetObservedGeneration() &&
+		left.GetMessage() == right.GetMessage()
 }

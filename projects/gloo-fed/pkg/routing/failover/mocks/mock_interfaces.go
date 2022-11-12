@@ -9,9 +9,11 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	v10 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
-	types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
+	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	reconcile "github.com/solo-io/skv2/pkg/reconcile"
+	v10 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	v11 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
+	failover "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/routing/failover"
 )
 
 // MockFailoverProcessor is a mock of FailoverProcessor interface.
@@ -38,10 +40,10 @@ func (m *MockFailoverProcessor) EXPECT() *MockFailoverProcessorMockRecorder {
 }
 
 // ProcessFailoverDelete mocks base method.
-func (m *MockFailoverProcessor) ProcessFailoverDelete(ctx context.Context, obj *v10.FailoverScheme) (*v1.Upstream, error) {
+func (m *MockFailoverProcessor) ProcessFailoverDelete(ctx context.Context, obj *v11.FailoverScheme) (*v10.Upstream, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ProcessFailoverDelete", ctx, obj)
-	ret0, _ := ret[0].(*v1.Upstream)
+	ret0, _ := ret[0].(*v10.Upstream)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -53,11 +55,11 @@ func (mr *MockFailoverProcessorMockRecorder) ProcessFailoverDelete(ctx, obj inte
 }
 
 // ProcessFailoverUpdate mocks base method.
-func (m *MockFailoverProcessor) ProcessFailoverUpdate(ctx context.Context, obj *v10.FailoverScheme) (*v1.Upstream, *types.FailoverSchemeStatus) {
+func (m *MockFailoverProcessor) ProcessFailoverUpdate(ctx context.Context, obj *v11.FailoverScheme) (*v10.Upstream, failover.StatusBuilder) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ProcessFailoverUpdate", ctx, obj)
-	ret0, _ := ret[0].(*v1.Upstream)
-	ret1, _ := ret[1].(*types.FailoverSchemeStatus)
+	ret0, _ := ret[0].(*v10.Upstream)
+	ret1, _ := ret[1].(failover.StatusBuilder)
 	return ret0, ret1
 }
 
@@ -65,4 +67,138 @@ func (m *MockFailoverProcessor) ProcessFailoverUpdate(ctx context.Context, obj *
 func (mr *MockFailoverProcessorMockRecorder) ProcessFailoverUpdate(ctx, obj interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessFailoverUpdate", reflect.TypeOf((*MockFailoverProcessor)(nil).ProcessFailoverUpdate), ctx, obj)
+}
+
+// MockFailoverDependencyCalculator is a mock of FailoverDependencyCalculator interface.
+type MockFailoverDependencyCalculator struct {
+	ctrl     *gomock.Controller
+	recorder *MockFailoverDependencyCalculatorMockRecorder
+}
+
+// MockFailoverDependencyCalculatorMockRecorder is the mock recorder for MockFailoverDependencyCalculator.
+type MockFailoverDependencyCalculatorMockRecorder struct {
+	mock *MockFailoverDependencyCalculator
+}
+
+// NewMockFailoverDependencyCalculator creates a new mock instance.
+func NewMockFailoverDependencyCalculator(ctrl *gomock.Controller) *MockFailoverDependencyCalculator {
+	mock := &MockFailoverDependencyCalculator{ctrl: ctrl}
+	mock.recorder = &MockFailoverDependencyCalculatorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFailoverDependencyCalculator) EXPECT() *MockFailoverDependencyCalculatorMockRecorder {
+	return m.recorder
+}
+
+// ForGlooInstance mocks base method.
+func (m *MockFailoverDependencyCalculator) ForGlooInstance(ctx context.Context, glooInstance *v1.ObjectRef) ([]*v11.FailoverScheme, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ForGlooInstance", ctx, glooInstance)
+	ret0, _ := ret[0].([]*v11.FailoverScheme)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ForGlooInstance indicates an expected call of ForGlooInstance.
+func (mr *MockFailoverDependencyCalculatorMockRecorder) ForGlooInstance(ctx, glooInstance interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForGlooInstance", reflect.TypeOf((*MockFailoverDependencyCalculator)(nil).ForGlooInstance), ctx, glooInstance)
+}
+
+// ForUpstream mocks base method.
+func (m *MockFailoverDependencyCalculator) ForUpstream(ctx context.Context, upstream *v1.ClusterObjectRef) ([]*v11.FailoverScheme, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ForUpstream", ctx, upstream)
+	ret0, _ := ret[0].([]*v11.FailoverScheme)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ForUpstream indicates an expected call of ForUpstream.
+func (mr *MockFailoverDependencyCalculatorMockRecorder) ForUpstream(ctx, upstream interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForUpstream", reflect.TypeOf((*MockFailoverDependencyCalculator)(nil).ForUpstream), ctx, upstream)
+}
+
+// MockFailoverDependentReconciler is a mock of FailoverDependentReconciler interface.
+type MockFailoverDependentReconciler struct {
+	ctrl     *gomock.Controller
+	recorder *MockFailoverDependentReconcilerMockRecorder
+}
+
+// MockFailoverDependentReconcilerMockRecorder is the mock recorder for MockFailoverDependentReconciler.
+type MockFailoverDependentReconcilerMockRecorder struct {
+	mock *MockFailoverDependentReconciler
+}
+
+// NewMockFailoverDependentReconciler creates a new mock instance.
+func NewMockFailoverDependentReconciler(ctrl *gomock.Controller) *MockFailoverDependentReconciler {
+	mock := &MockFailoverDependentReconciler{ctrl: ctrl}
+	mock.recorder = &MockFailoverDependentReconcilerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFailoverDependentReconciler) EXPECT() *MockFailoverDependentReconcilerMockRecorder {
+	return m.recorder
+}
+
+// ReconcileGlooInstance mocks base method.
+func (m *MockFailoverDependentReconciler) ReconcileGlooInstance(obj *v11.GlooInstance) (reconcile.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReconcileGlooInstance", obj)
+	ret0, _ := ret[0].(reconcile.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReconcileGlooInstance indicates an expected call of ReconcileGlooInstance.
+func (mr *MockFailoverDependentReconcilerMockRecorder) ReconcileGlooInstance(obj interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileGlooInstance", reflect.TypeOf((*MockFailoverDependentReconciler)(nil).ReconcileGlooInstance), obj)
+}
+
+// ReconcileGlooInstanceDeletion mocks base method.
+func (m *MockFailoverDependentReconciler) ReconcileGlooInstanceDeletion(req reconcile.Request) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReconcileGlooInstanceDeletion", req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReconcileGlooInstanceDeletion indicates an expected call of ReconcileGlooInstanceDeletion.
+func (mr *MockFailoverDependentReconcilerMockRecorder) ReconcileGlooInstanceDeletion(req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileGlooInstanceDeletion", reflect.TypeOf((*MockFailoverDependentReconciler)(nil).ReconcileGlooInstanceDeletion), req)
+}
+
+// ReconcileUpstream mocks base method.
+func (m *MockFailoverDependentReconciler) ReconcileUpstream(clusterName string, obj *v10.Upstream) (reconcile.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReconcileUpstream", clusterName, obj)
+	ret0, _ := ret[0].(reconcile.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReconcileUpstream indicates an expected call of ReconcileUpstream.
+func (mr *MockFailoverDependentReconcilerMockRecorder) ReconcileUpstream(clusterName, obj interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileUpstream", reflect.TypeOf((*MockFailoverDependentReconciler)(nil).ReconcileUpstream), clusterName, obj)
+}
+
+// ReconcileUpstreamDeletion mocks base method.
+func (m *MockFailoverDependentReconciler) ReconcileUpstreamDeletion(clusterName string, req reconcile.Request) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReconcileUpstreamDeletion", clusterName, req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReconcileUpstreamDeletion indicates an expected call of ReconcileUpstreamDeletion.
+func (mr *MockFailoverDependentReconcilerMockRecorder) ReconcileUpstreamDeletion(clusterName, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReconcileUpstreamDeletion", reflect.TypeOf((*MockFailoverDependentReconciler)(nil).ReconcileUpstreamDeletion), clusterName, req)
 }

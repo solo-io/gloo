@@ -1,4 +1,4 @@
-package internal
+package failover
 
 import (
 	"context"
@@ -6,9 +6,7 @@ import (
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"github.com/solo-io/skv2/pkg/reconcile"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	"github.com/solo-io/solo-kit/pkg/utils/prototime"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
-	fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
@@ -27,11 +25,13 @@ func NewFailoverDependentReconciler(
 	ctx context.Context,
 	depCalc FailoverDependencyCalculator,
 	failoverSchemeClient fedv1.FailoverSchemeClient,
+	statusManager *StatusManager,
 ) FailoverDependentReconciler {
 	return &failoverDependentReconcilerImpl{
 		ctx:                  ctx,
 		depCalc:              depCalc,
 		failoverSchemeClient: failoverSchemeClient,
+		statusManager:        statusManager,
 	}
 }
 
@@ -39,6 +39,7 @@ type failoverDependentReconcilerImpl struct {
 	ctx                  context.Context
 	depCalc              FailoverDependencyCalculator
 	failoverSchemeClient fedv1.FailoverSchemeClient
+	statusManager        *StatusManager
 }
 
 func (f *failoverDependentReconcilerImpl) ReconcileGlooInstance(obj *fedv1.GlooInstance) (reconcile.Result, error) {
@@ -98,15 +99,11 @@ func (f *failoverDependentReconcilerImpl) ReconcileUpstreamDeletion(
 // has changed. Will return on first failed update.
 func (f *failoverDependentReconcilerImpl) updateMultiStatus(failoverSchemes []*fedv1.FailoverScheme) error {
 	for _, failoverScheme := range failoverSchemes {
-		failoverScheme.Status = fed_types.FailoverSchemeStatus{
-			State:              fed_types.FailoverSchemeStatus_PENDING,
-			Message:            DependentUpdateMessage,
-			ObservedGeneration: failoverScheme.GetGeneration(),
-			ProcessingTime:     prototime.Now(),
-		}
+		statusBuilder := f.statusManager.NewStatusBuilder(failoverScheme)
+		updateErr := f.statusManager.UpdateStatus(f.ctx, statusBuilder.Pending(DependentUpdateMessage))
 		// Only return an error if there is no update conflict, If the CRD has been updated than we can most
 		// likely skip reprocessing this event
-		if err := IgnoreIsConflictError(f.failoverSchemeClient.UpdateFailoverSchemeStatus(f.ctx, failoverScheme)); err != nil {
+		if err := IgnoreIsConflictError(updateErr); err != nil {
 			return err
 		}
 	}

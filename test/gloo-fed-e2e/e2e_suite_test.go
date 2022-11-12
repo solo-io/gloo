@@ -139,7 +139,9 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 				Namespace: namespace,
 			})
 			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(failover.Status.GetState()).To(Equal(fed_types.FailoverSchemeStatus_ACCEPTED))
+			statuses := failover.Status.GetNamespacedStatuses()
+			g.Expect(statuses).NotTo(BeNil())
+			g.Expect(statuses[namespace].GetState()).To(Equal(fed_types.FailoverSchemeStatus_ACCEPTED))
 		}, time.Second*10, time.Second).Should(Succeed())
 	}, time.Minute*2, time.Second).Should(Succeed())
 

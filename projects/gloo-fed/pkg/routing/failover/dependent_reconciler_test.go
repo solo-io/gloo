@@ -1,19 +1,21 @@
-package internal_test
+package failover_test
 
 import (
 	"context"
 
+	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/routing/failover"
+	mock_failover "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/routing/failover/mocks"
+
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"github.com/solo-io/skv2/pkg/reconcile"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	mock_fed_v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/mocks"
 	fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
-	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/routing/failover/internal"
-	mock_internal "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/routing/failover/internal/mocks"
 	test_matchers "github.com/solo-io/solo-projects/projects/gloo-fed/test/matchers"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,12 +29,14 @@ var _ = Describe("DependentsReconciler", func() {
 		ctrl *gomock.Controller
 
 		failoverSchemeClient *mock_fed_v1.MockFailoverSchemeClient
+		statusManager        *failover.StatusManager
 	)
 
 	BeforeEach(func() {
 		ctrl, ctx = gomock.WithContext(context.TODO(), GinkgoT())
 
 		failoverSchemeClient = mock_fed_v1.NewMockFailoverSchemeClient(ctrl)
+		statusManager = failover.NewStatusManager(failoverSchemeClient, defaults.GlooFed)
 	})
 
 	AfterEach(func() {
@@ -41,12 +45,12 @@ var _ = Describe("DependentsReconciler", func() {
 
 	Describe("FailoverDependentReconciler", func() {
 		var (
-			depCalc *mock_internal.MockFailoverDependencyCalculator
+			depCalc *mock_failover.MockFailoverDependencyCalculator
 			result  []*fedv1.FailoverScheme
 		)
 
 		BeforeEach(func() {
-			depCalc = mock_internal.NewMockFailoverDependencyCalculator(ctrl)
+			depCalc = mock_failover.NewMockFailoverDependencyCalculator(ctrl)
 
 			result = []*fedv1.FailoverScheme{
 				{
@@ -62,11 +66,11 @@ var _ = Describe("DependentsReconciler", func() {
 			}
 
 			expected1 := result[0].DeepCopy()
-			expectedStatus := fed_types.FailoverSchemeStatus{
+			expectedStatus := createStatus(&failover.StatusImpl{
 				State:              fed_types.FailoverSchemeStatus_PENDING,
-				Message:            internal.DependentUpdateMessage,
+				Message:            failover.DependentUpdateMessage,
 				ObservedGeneration: expected1.GetGeneration(),
-			}
+			})
 			expected1.Status = expectedStatus
 			expected2 := result[1].DeepCopy()
 			expected2.Status = expectedStatus
@@ -80,7 +84,7 @@ var _ = Describe("DependentsReconciler", func() {
 		})
 
 		It("can ReconcileGlooInstance", func() {
-			reconciler := internal.NewFailoverDependentReconciler(ctx, depCalc, failoverSchemeClient)
+			reconciler := failover.NewFailoverDependentReconciler(ctx, depCalc, failoverSchemeClient, statusManager)
 			obj := &fedv1.GlooInstance{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "one",
@@ -100,7 +104,7 @@ var _ = Describe("DependentsReconciler", func() {
 		})
 
 		It("can ReconcileGlooInstanceDeletion", func() {
-			reconciler := internal.NewFailoverDependentReconciler(ctx, depCalc, failoverSchemeClient)
+			reconciler := failover.NewFailoverDependentReconciler(ctx, depCalc, failoverSchemeClient, statusManager)
 			obj := reconcile.Request{
 				NamespacedName: types.NamespacedName{
 					Namespace: "one",
@@ -120,7 +124,7 @@ var _ = Describe("DependentsReconciler", func() {
 		})
 
 		It("can ReconcileUpstream", func() {
-			reconciler := internal.NewFailoverDependentReconciler(ctx, depCalc, failoverSchemeClient)
+			reconciler := failover.NewFailoverDependentReconciler(ctx, depCalc, failoverSchemeClient, statusManager)
 			obj := &gloov1.Upstream{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "one",
@@ -141,7 +145,7 @@ var _ = Describe("DependentsReconciler", func() {
 		})
 
 		It("can ReconcileUpstreamDeletion", func() {
-			reconciler := internal.NewFailoverDependentReconciler(ctx, depCalc, failoverSchemeClient)
+			reconciler := failover.NewFailoverDependentReconciler(ctx, depCalc, failoverSchemeClient, statusManager)
 			obj := reconcile.Request{
 				NamespacedName: types.NamespacedName{
 					Namespace: "one",
