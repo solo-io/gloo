@@ -286,19 +286,6 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 			}
 		}
 
-		// If both intervals are defined
-		if retryPolicyInterval.GetMaxInterval() != nil && retryPolicyInterval.GetBaseInterval() != nil {
-
-			maxIntervalDur := retryPolicyInterval.GetMaxInterval().AsDuration()
-			baseIntervalDur := retryPolicyInterval.GetBaseInterval().AsDuration()
-
-			// Check that the base interval is smaller than the max interval
-			if baseIntervalDur > maxIntervalDur {
-				return nil, errors.Errorf("base interval %v was larger than max interval %v", baseIntervalDur, maxIntervalDur)
-			}
-
-		}
-
 		// If max and/or/both base intervals are defined, return a RetryPolicy object that contains them
 		return &envoy_config_route_v3.RetryPolicy{
 			RetryOn:       policy.GetRetryOn(),
