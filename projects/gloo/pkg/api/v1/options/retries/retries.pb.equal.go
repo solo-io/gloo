@@ -46,22 +46,22 @@ func (m *RetryPolicyInterval) Equal(that interface{}) bool {
 		return false
 	}
 
-	if h, ok := interface{}(m.GetMaxInterval()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetMaxInterval()) {
-			return false
-		}
-	} else {
-		if !proto.Equal(m.GetMaxInterval(), target.GetMaxInterval()) {
-			return false
-		}
-	}
-
 	if h, ok := interface{}(m.GetBaseInterval()).(equality.Equalizer); ok {
 		if !h.Equal(target.GetBaseInterval()) {
 			return false
 		}
 	} else {
 		if !proto.Equal(m.GetBaseInterval(), target.GetBaseInterval()) {
+			return false
+		}
+	}
+
+	if h, ok := interface{}(m.GetMaxInterval()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetMaxInterval()) {
+			return false
+		}
+	} else {
+		if !proto.Equal(m.GetMaxInterval(), target.GetMaxInterval()) {
 			return false
 		}
 	}

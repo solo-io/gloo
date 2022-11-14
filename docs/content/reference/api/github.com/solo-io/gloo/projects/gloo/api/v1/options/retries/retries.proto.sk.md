@@ -30,15 +30,15 @@ weight: 5
 This specifies the retry policy interval for backoffs. Note that if the base interval provided is larger than the maximum interval, there will be an error.
 
 ```yaml
-"maxInterval": .google.protobuf.Duration
 "baseInterval": .google.protobuf.Duration
+"maxInterval": .google.protobuf.Duration
 
 ```
 
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
-| `maxInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies the max interval for a retry. |
 | `baseInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies the base interval for a retry. |
+| `maxInterval` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies the max interval for a retry. |
 
 
 

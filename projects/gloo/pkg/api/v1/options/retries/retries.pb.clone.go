@@ -35,16 +35,16 @@ func (m *RetryPolicyInterval) Clone() proto.Message {
 	}
 	target = &RetryPolicyInterval{}
 
-	if h, ok := interface{}(m.GetMaxInterval()).(clone.Cloner); ok {
-		target.MaxInterval = h.Clone().(*github_com_golang_protobuf_ptypes_duration.Duration)
-	} else {
-		target.MaxInterval = proto.Clone(m.GetMaxInterval()).(*github_com_golang_protobuf_ptypes_duration.Duration)
-	}
-
 	if h, ok := interface{}(m.GetBaseInterval()).(clone.Cloner); ok {
 		target.BaseInterval = h.Clone().(*github_com_golang_protobuf_ptypes_duration.Duration)
 	} else {
 		target.BaseInterval = proto.Clone(m.GetBaseInterval()).(*github_com_golang_protobuf_ptypes_duration.Duration)
+	}
+
+	if h, ok := interface{}(m.GetMaxInterval()).(clone.Cloner); ok {
+		target.MaxInterval = h.Clone().(*github_com_golang_protobuf_ptypes_duration.Duration)
+	} else {
+		target.MaxInterval = proto.Clone(m.GetMaxInterval()).(*github_com_golang_protobuf_ptypes_duration.Duration)
 	}
 
 	return target

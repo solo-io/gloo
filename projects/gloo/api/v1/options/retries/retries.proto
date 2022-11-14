@@ -15,14 +15,14 @@ option (extproto.clone_all) = true;
 // This specifies the retry policy interval for backoffs. Note that if the base interval provided is larger than the maximum interval, there will be an error.
 message RetryPolicyInterval {
 
-    // Specifies the max interval for a retry
-    google.protobuf.Duration max_interval = 1 [(validate.rules).duration = {
+    // Specifies the base interval for a retry
+    google.protobuf.Duration base_interval = 1 [(validate.rules).duration = {
         required: true
         gte {nanos: 1000000}
       }];
 
-    // Specifies the base interval for a retry
-    google.protobuf.Duration base_interval = 2 [(validate.rules).duration = {gt {}}];
+    // Specifies the max interval for a retry
+    google.protobuf.Duration max_interval = 2 [(validate.rules).duration = {gt {}}];
 }
 
 // Retry Policy applied at the Route and/or Virtual Hosts levels.
