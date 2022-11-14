@@ -1114,15 +1114,15 @@ spec:
                         type: integer
                       perTryTimeout:
                         type: string
-                      retryOn:
-                        type: string
-                      retryPolicyInterval:
+                      retryBackOff:
                         properties:
                           baseInterval:
                             type: string
                           maxInterval:
                             type: string
                         type: object
+                      retryOn:
+                        type: string
                     type: object
                   stagedTransformations:
                     properties:

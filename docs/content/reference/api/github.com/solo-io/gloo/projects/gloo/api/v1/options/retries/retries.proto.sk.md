@@ -11,7 +11,7 @@ weight: 5
 #### Types:
 
 
-- [RetryPolicyInterval](#retrypolicyinterval)
+- [RetryBackOff](#retrybackoff)
 - [RetryPolicy](#retrypolicy)
   
 
@@ -24,7 +24,7 @@ weight: 5
 
 
 ---
-### RetryPolicyInterval
+### RetryBackOff
 
  
 This specifies the retry policy interval for backoffs. Note that if the base interval provided is larger than the maximum interval, there will be an error.
@@ -53,7 +53,7 @@ Retry Policy applied at the Route and/or Virtual Hosts levels.
 "retryOn": string
 "numRetries": int
 "perTryTimeout": .google.protobuf.Duration
-"retryPolicyInterval": .retries.options.gloo.solo.io.RetryPolicyInterval
+"retryBackOff": .retries.options.gloo.solo.io.RetryBackOff
 
 ```
 
@@ -62,7 +62,7 @@ Retry Policy applied at the Route and/or Virtual Hosts levels.
 | `retryOn` | `string` | Specifies the conditions under which retry takes place. These are the same conditions [documented for Envoy](https://www.envoyproxy.io/docs/envoy/v1.14.1/configuration/http/http_filters/router_filter#config-http-filters-router-x-envoy-retry-on). |
 | `numRetries` | `int` | Specifies the allowed number of retries. This parameter is optional and defaults to 1. These are the same conditions [documented for Envoy](https://www.envoyproxy.io/docs/envoy/v1.14.1/configuration/http/http_filters/router_filter#config-http-filters-router-x-envoy-retry-on). |
 | `perTryTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Specifies a non-zero upstream timeout per retry attempt. This parameter is optional. |
-| `retryPolicyInterval` | [.retries.options.gloo.solo.io.RetryPolicyInterval](../retries.proto.sk/#retrypolicyinterval) | Specifies the retry policy interval. |
+| `retryBackOff` | [.retries.options.gloo.solo.io.RetryBackOff](../retries.proto.sk/#retrybackoff) | Specifies the retry policy interval. |
 
 
 

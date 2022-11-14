@@ -28,12 +28,12 @@ var (
 )
 
 // Clone function
-func (m *RetryPolicyInterval) Clone() proto.Message {
-	var target *RetryPolicyInterval
+func (m *RetryBackOff) Clone() proto.Message {
+	var target *RetryBackOff
 	if m == nil {
 		return target
 	}
-	target = &RetryPolicyInterval{}
+	target = &RetryBackOff{}
 
 	if h, ok := interface{}(m.GetBaseInterval()).(clone.Cloner); ok {
 		target.BaseInterval = h.Clone().(*github_com_golang_protobuf_ptypes_duration.Duration)
@@ -68,10 +68,10 @@ func (m *RetryPolicy) Clone() proto.Message {
 		target.PerTryTimeout = proto.Clone(m.GetPerTryTimeout()).(*github_com_golang_protobuf_ptypes_duration.Duration)
 	}
 
-	if h, ok := interface{}(m.GetRetryPolicyInterval()).(clone.Cloner); ok {
-		target.RetryPolicyInterval = h.Clone().(*RetryPolicyInterval)
+	if h, ok := interface{}(m.GetRetryBackOff()).(clone.Cloner); ok {
+		target.RetryBackOff = h.Clone().(*RetryBackOff)
 	} else {
-		target.RetryPolicyInterval = proto.Clone(m.GetRetryPolicyInterval()).(*RetryPolicyInterval)
+		target.RetryBackOff = proto.Clone(m.GetRetryBackOff()).(*RetryBackOff)
 	}
 
 	return target

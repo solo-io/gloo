@@ -26,7 +26,7 @@ var (
 )
 
 // Hash function
-func (m *RetryPolicyInterval) Hash(hasher hash.Hash64) (uint64, error) {
+func (m *RetryBackOff) Hash(hasher hash.Hash64) (uint64, error) {
 	if m == nil {
 		return 0, nil
 	}
@@ -34,7 +34,7 @@ func (m *RetryPolicyInterval) Hash(hasher hash.Hash64) (uint64, error) {
 		hasher = fnv.New64()
 	}
 	var err error
-	if _, err = hasher.Write([]byte("retries.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries.RetryPolicyInterval")); err != nil {
+	if _, err = hasher.Write([]byte("retries.options.gloo.solo.io.github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries.RetryBackOff")); err != nil {
 		return 0, err
 	}
 
@@ -123,18 +123,18 @@ func (m *RetryPolicy) Hash(hasher hash.Hash64) (uint64, error) {
 		}
 	}
 
-	if h, ok := interface{}(m.GetRetryPolicyInterval()).(safe_hasher.SafeHasher); ok {
-		if _, err = hasher.Write([]byte("RetryPolicyInterval")); err != nil {
+	if h, ok := interface{}(m.GetRetryBackOff()).(safe_hasher.SafeHasher); ok {
+		if _, err = hasher.Write([]byte("RetryBackOff")); err != nil {
 			return 0, err
 		}
 		if _, err = h.Hash(hasher); err != nil {
 			return 0, err
 		}
 	} else {
-		if fieldValue, err := hashstructure.Hash(m.GetRetryPolicyInterval(), nil); err != nil {
+		if fieldValue, err := hashstructure.Hash(m.GetRetryBackOff(), nil); err != nil {
 			return 0, err
 		} else {
-			if _, err = hasher.Write([]byte("RetryPolicyInterval")); err != nil {
+			if _, err = hasher.Write([]byte("RetryBackOff")); err != nil {
 				return 0, err
 			}
 			if err := binary.Write(hasher, binary.LittleEndian, fieldValue); err != nil {

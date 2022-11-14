@@ -1298,11 +1298,11 @@ apis:
   rest.options.gloo.solo.io.ServiceSpec:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/rest/rest.proto.sk/#ServiceSpec
     package: rest.options.gloo.solo.io
+  retries.options.gloo.solo.io.RetryBackOff:
+    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto.sk/#RetryBackOff
+    package: retries.options.gloo.solo.io
   retries.options.gloo.solo.io.RetryPolicy:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto.sk/#RetryPolicy
-    package: retries.options.gloo.solo.io
-  retries.options.gloo.solo.io.RetryPolicyInterval:
-    relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/options/retries/retries.proto.sk/#RetryPolicyInterval
     package: retries.options.gloo.solo.io
   selectors.core.gloo.solo.io.Selector:
     relativepath: reference/api/github.com/solo-io/gloo/projects/gloo/api/v1/core/selectors/selectors.proto.sk/#Selector

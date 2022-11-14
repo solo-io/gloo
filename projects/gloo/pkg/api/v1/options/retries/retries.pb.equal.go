@@ -26,14 +26,14 @@ var (
 )
 
 // Equal function
-func (m *RetryPolicyInterval) Equal(that interface{}) bool {
+func (m *RetryBackOff) Equal(that interface{}) bool {
 	if that == nil {
 		return m == nil
 	}
 
-	target, ok := that.(*RetryPolicyInterval)
+	target, ok := that.(*RetryBackOff)
 	if !ok {
-		that2, ok := that.(RetryPolicyInterval)
+		that2, ok := that.(RetryBackOff)
 		if ok {
 			target = &that2
 		} else {
@@ -108,12 +108,12 @@ func (m *RetryPolicy) Equal(that interface{}) bool {
 		}
 	}
 
-	if h, ok := interface{}(m.GetRetryPolicyInterval()).(equality.Equalizer); ok {
-		if !h.Equal(target.GetRetryPolicyInterval()) {
+	if h, ok := interface{}(m.GetRetryBackOff()).(equality.Equalizer); ok {
+		if !h.Equal(target.GetRetryBackOff()) {
 			return false
 		}
 	} else {
-		if !proto.Equal(m.GetRetryPolicyInterval(), target.GetRetryPolicyInterval()) {
+		if !proto.Equal(m.GetRetryBackOff(), target.GetRetryBackOff()) {
 			return false
 		}
 	}

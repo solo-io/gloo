@@ -13,7 +13,7 @@ option (extproto.clone_all) = true;
 
 
 // This specifies the retry policy interval for backoffs. Note that if the base interval provided is larger than the maximum interval, there will be an error.
-message RetryPolicyInterval {
+message RetryBackOff {
 
     // Specifies the base interval for a retry
     google.protobuf.Duration base_interval = 1 [(validate.rules).duration = {
@@ -39,5 +39,5 @@ message RetryPolicy {
     google.protobuf.Duration per_try_timeout = 3;
 
     // Specifies the retry policy interval
-    RetryPolicyInterval retry_policy_interval = 4;
+    RetryBackOff retry_back_off= 4;
 }
