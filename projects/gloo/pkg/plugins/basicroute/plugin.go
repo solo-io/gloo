@@ -260,7 +260,7 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 
 	v3RetryPolicyBackOff := &envoy_config_route_v3.RetryPolicy_RetryBackOff{}
 
-	if retryPolicyInterval := policy.GetRetryPolicyInterval(); retryPolicyInterval != nil {
+	if retryPolicyInterval := policy.GetRetryBackOff(); retryPolicyInterval != nil {
 
 		// Check if the base interval is defined
 		if baseInterval := retryPolicyInterval.GetBaseInterval(); baseInterval != nil {

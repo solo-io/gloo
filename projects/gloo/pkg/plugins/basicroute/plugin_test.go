@@ -358,7 +358,7 @@ var _ = Describe("retries with max interval", func() {
 			RetryOn:       "if at first you don't succeed",
 			NumRetries:    5,
 			PerTryTimeout: t,
-			RetryPolicyInterval: &retries.RetryPolicyInterval{
+			RetryBackOff: &retries.RetryBackOff{
 				MaxInterval: durationpb.New(250),
 			},
 		}
@@ -417,7 +417,7 @@ var _ = Describe("retries with base interval", func() {
 			RetryOn:       "if at first you don't succeed",
 			NumRetries:    5,
 			PerTryTimeout: t,
-			RetryPolicyInterval: &retries.RetryPolicyInterval{
+			RetryBackOff: &retries.RetryBackOff{
 				BaseInterval: durationpb.New(999),
 			},
 		}
@@ -476,7 +476,7 @@ var _ = Describe("retries with both intervals", func() {
 			RetryOn:       "if at first you don't succeed",
 			NumRetries:    5,
 			PerTryTimeout: t,
-			RetryPolicyInterval: &retries.RetryPolicyInterval{
+			RetryBackOff: &retries.RetryBackOff{
 				MaxInterval:  durationpb.New(250),
 				BaseInterval: durationpb.New(12),
 			},
