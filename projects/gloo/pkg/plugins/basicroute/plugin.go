@@ -260,29 +260,44 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 
 	v3RetryPolicyBackOff := &envoy_config_route_v3.RetryPolicy_RetryBackOff{}
 
+	// Let's make some checks
 	if retryPolicyInterval := policy.GetRetryBackOff(); retryPolicyInterval != nil {
 
-		// Check if the base interval is defined
-		if baseInterval := retryPolicyInterval.GetBaseInterval(); baseInterval != nil {
+		baseInterval := retryPolicyInterval.GetBaseInterval()
+		maxInterval := retryPolicyInterval.GetMaxInterval()
 
-			// If the base interval is defined, check that it's greater than zero
-			if dur := baseInterval.AsDuration(); dur >= 0 {
-				v3RetryPolicyBackOff.BaseInterval = baseInterval
-			} else {
+		// Is the max interval larger than or equal to the base interval?
+		if baseInterval != nil && maxInterval != nil {
+			if baseInterval.AsDuration().Milliseconds() >= maxInterval.AsDuration().Milliseconds() {
 				return nil,
-					errors.Errorf("base interval for retry backoff was less than 0 | you provided: %v", dur)
+					errors.Errorf(
+						"base interval: %d is >= max interval: %d",
+						baseInterval.AsDuration().Milliseconds(),
+						maxInterval.AsDuration().Milliseconds())
+			}
+		}
+
+		// Check if the base interval is defined
+		if baseInterval != nil {
+
+			// If the base interval is defined, check that it's greater than zero milliseconds
+			if dur := baseInterval.AsDuration().Milliseconds(); dur <= 0 {
+				return nil,
+					errors.Errorf("base interval for retry backoff was <= than 0 | you provided: %d", dur)
+			} else {
+				v3RetryPolicyBackOff.BaseInterval = baseInterval
 			}
 		}
 
 		// Check if the max interval is defined
-		if maxInterval := retryPolicyInterval.GetMaxInterval(); maxInterval != nil {
+		if maxInterval != nil {
 
 			// If the max interval is defined, check that it's greater than zero
-			if dur := maxInterval.AsDuration().Milliseconds(); dur >= 0 {
-				v3RetryPolicyBackOff.MaxInterval = maxInterval
-			} else {
+			if dur := maxInterval.AsDuration().Milliseconds(); dur <= 0 {
 				return nil,
-					errors.Errorf("max interval for retry backoff was less than 0 | you provided: %v", dur)
+					errors.Errorf("max interval for retry backoff was <= than 0 | you provided: %d", dur)
+			} else {
+				v3RetryPolicyBackOff.MaxInterval = maxInterval
 			}
 		}
 

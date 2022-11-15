@@ -24,7 +24,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// This specifies the retry policy interval for backoffs. Note that if the base interval provided is larger than the maximum interval, there will be an error.
+// This specifies the retry policy interval for backoffs. Note that if the base interval provided is larger than the maximum interval OR if any of the durations passed are <= 0 MS, there will be an error.
 type RetryBackOff struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
