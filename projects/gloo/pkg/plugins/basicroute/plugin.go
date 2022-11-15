@@ -1,6 +1,8 @@
 package basicroute
 
 import (
+	"fmt"
+
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/gloo/pkg/utils/regexutils"
@@ -270,11 +272,15 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 		if baseInterval != nil && maxInterval != nil {
 			if baseInterval.AsDuration().Milliseconds() >= maxInterval.AsDuration().Milliseconds() {
 				return nil,
-					errors.Errorf(
 						"base interval: %d is >= max interval: %d",
 						baseInterval.AsDuration().Milliseconds(),
 						maxInterval.AsDuration().Milliseconds())
 			}
+		}
+
+		// Check if the max interval is defined without the base interval
+		if maxInterval != nil && baseInterval == nil {
+			fmt.Errorf("max interval was defined, but the base interval was not")
 		}
 
 		// Check if the base interval is defined
