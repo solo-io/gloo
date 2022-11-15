@@ -346,65 +346,6 @@ var _ = Describe("retries empty backoff", func() {
 	})
 })
 
-var _ = Describe("retries with max interval", func() {
-	var (
-		retryPolicy         *retries.RetryPolicy
-		expectedRetryPolicy *envoy_config_route_v3.RetryPolicy
-	)
-
-	BeforeEach(func() {
-		t := prototime.DurationToProto(time.Minute)
-		retryPolicy = &retries.RetryPolicy{
-			RetryOn:       "if at first you don't succeed",
-			NumRetries:    5,
-			PerTryTimeout: t,
-			RetryBackOff: &retries.RetryBackOff{
-				MaxInterval: durationpb.New(250),
-			},
-		}
-		expectedRetryPolicy = &envoy_config_route_v3.RetryPolicy{
-			RetryOn: "if at first you don't succeed",
-			NumRetries: &wrappers.UInt32Value{
-				Value: 5,
-			},
-			PerTryTimeout: t,
-			RetryBackOff: &envoy_config_route_v3.RetryPolicy_RetryBackOff{
-				MaxInterval: durationpb.New(250),
-			},
-		}
-	})
-
-	It("works", func() {
-		plugin := NewPlugin()
-		routeAction := &envoy_config_route_v3.RouteAction{}
-		out := &envoy_config_route_v3.Route{
-			Action: &envoy_config_route_v3.Route_Route{
-				Route: routeAction,
-			},
-		}
-		err := plugin.ProcessRoute(plugins.RouteParams{}, &v1.Route{
-			Options: &v1.RouteOptions{
-				Retries: retryPolicy,
-			},
-			Action: &v1.Route_RouteAction{},
-		}, out)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(routeAction.RetryPolicy).To(Equal(expectedRetryPolicy))
-	})
-
-	It("works on vhost", func() {
-		plugin := NewPlugin()
-		out := &envoy_config_route_v3.VirtualHost{}
-		err := plugin.ProcessVirtualHost(plugins.VirtualHostParams{}, &v1.VirtualHost{
-			Options: &v1.VirtualHostOptions{
-				Retries: retryPolicy,
-			},
-		}, out)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(out.RetryPolicy).To(Equal(expectedRetryPolicy))
-	})
-})
-
 var _ = Describe("retries with base interval", func() {
 	var (
 		retryPolicy         *retries.RetryPolicy
@@ -418,7 +359,7 @@ var _ = Describe("retries with base interval", func() {
 			NumRetries:    5,
 			PerTryTimeout: t,
 			RetryBackOff: &retries.RetryBackOff{
-				BaseInterval: durationpb.New(999),
+				BaseInterval: durationpb.New(999999999),
 			},
 		}
 		expectedRetryPolicy = &envoy_config_route_v3.RetryPolicy{
@@ -428,7 +369,7 @@ var _ = Describe("retries with base interval", func() {
 			},
 			PerTryTimeout: t,
 			RetryBackOff: &envoy_config_route_v3.RetryPolicy_RetryBackOff{
-				BaseInterval: durationpb.New(999),
+				BaseInterval: durationpb.New(999999999),
 			},
 		}
 	})
@@ -477,8 +418,8 @@ var _ = Describe("retries with both intervals", func() {
 			NumRetries:    5,
 			PerTryTimeout: t,
 			RetryBackOff: &retries.RetryBackOff{
-				MaxInterval:  durationpb.New(250),
-				BaseInterval: durationpb.New(12),
+				MaxInterval:  durationpb.New(12000000),
+				BaseInterval: durationpb.New(11000000),
 			},
 		}
 		expectedRetryPolicy = &envoy_config_route_v3.RetryPolicy{
@@ -488,8 +429,8 @@ var _ = Describe("retries with both intervals", func() {
 			},
 			PerTryTimeout: t,
 			RetryBackOff: &envoy_config_route_v3.RetryPolicy_RetryBackOff{
-				MaxInterval:  durationpb.New(250),
-				BaseInterval: durationpb.New(12),
+				MaxInterval:  durationpb.New(12000000),
+				BaseInterval: durationpb.New(11000000),
 			},
 		}
 	})

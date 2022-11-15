@@ -5,6 +5,8 @@ package retries.options.gloo.solo.io;
 option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/retries";
 
 import "google/protobuf/duration.proto";
+// Validate is added to mimic envoy's setup and for when we finally implement validation.
+// For now we reiterate this in code as we do not check the validation rules. 
 import "validate/validate.proto";
 import "extproto/ext.proto";
 option (extproto.equal_all) = true;

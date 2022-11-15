@@ -272,7 +272,7 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 		if baseInterval != nil && maxInterval != nil {
 			if baseInterval.AsDuration().Milliseconds() >= maxInterval.AsDuration().Milliseconds() {
 				return nil,
-						"base interval: %d is >= max interval: %d",
+					fmt.Errorf("base interval: %d is >= max interval: %d",
 						baseInterval.AsDuration().Milliseconds(),
 						maxInterval.AsDuration().Milliseconds())
 			}
@@ -280,7 +280,7 @@ func convertPolicy(policy *retries.RetryPolicy) (*envoy_config_route_v3.RetryPol
 
 		// Check if the max interval is defined without the base interval
 		if maxInterval != nil && baseInterval == nil {
-			fmt.Errorf("max interval was defined, but the base interval was not")
+			return nil, fmt.Errorf("max interval was defined, but the base interval was not")
 		}
 
 		// Check if the base interval is defined
