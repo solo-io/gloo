@@ -225,9 +225,7 @@ func (s *validator) ValidateGloo(ctx context.Context, proxy *v1.Proxy, resource 
 		}
 	}
 
-	validationReports := s.validator.Validate(ctx, proxy, &snapCopy, delete)
-
-	return validationReports, nil
+	return s.validator.Validate(ctx, proxy, &snapCopy, delete), nil
 }
 
 // updates the given snapshot with the resources from the request

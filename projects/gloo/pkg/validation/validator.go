@@ -78,7 +78,6 @@ func (gv glooValidator) Validate(ctx context.Context, proxy *gloov1.Proxy, snaps
 	// Validation with gateway occurs in /projects/gateway/pkg/validation/validator.go, where validation for the Gloo
 	// resources occurs in the following for loop.
 	for _, proxy := range proxiesToValidate {
-		// so params has the ctx, snapshot, proxy
 		xdsSnapshot, resourceReports, proxyReport := gv.translator.Translate(params, proxy)
 
 		// Sanitize routes before sending report to gateway

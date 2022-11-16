@@ -455,6 +455,7 @@ var _ = Describe("Translator", func() {
 	})
 
 	Context("Auth configs", func() {
+		// the missing config should be handled by extensions as a warning
 		It("will not error if auth config is missing", func() {
 			proxyClone := proto.Clone(proxy).(*v1.Proxy)
 			proxyClone.GetListeners()[0].GetHttpListener().GetVirtualHosts()[0].Options =
@@ -470,6 +471,7 @@ var _ = Describe("Translator", func() {
 			Expect(errs).To(HaveLen(0))
 		})
 
+		// the missing config should be handled by extensions as a warning
 		It("will not error if auth config is missing from a hybrid listener", func() {
 			proxyClone := proto.Clone(proxy).(*v1.Proxy)
 			proxyClone.GetListeners()[2].GetHybridListener().GetMatchedListeners()[1].GetHttpListener().GetVirtualHosts()[0].Options =
