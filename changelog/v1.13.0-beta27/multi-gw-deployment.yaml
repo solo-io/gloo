@@ -1,0 +1,3 @@
+changelog:
+  - type: FIX
+    description: Changes to the multi gateway docs to match >1.12 behavior

@@ -70,6 +70,8 @@ If you want additional `Gateways` for a single proxy, create your own `Gateway` 
 As shown in the following example, you can declare as many Envoy proxies as you want under the `gloo.gatewayProxies` property in the Helm configuration file.
 
 ```yaml
+gateway:
+  persistProxySpec: true
 gloo:
   gatewayProxies:
     publicGw: # Proxy name for public access (Internet facing)
@@ -108,6 +110,11 @@ gloo:
       disabled: true # disable the default gateway-proxy deployment and its 2 default Gateway CRs
 ```
 
+Ensure the `httpbin` upstream exists in the cluster via the following command.
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/master/samples/httpbin/httpbin.yaml
+```
 
 This will generate the following two `Gateway` CRs and also two Envoy deployments called `public-gw` and `private-gw`:
 
