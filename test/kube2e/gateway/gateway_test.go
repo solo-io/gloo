@@ -27,7 +27,6 @@ import (
 	gloostatusutils "github.com/solo-io/gloo/pkg/utils/statusutils"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -1292,7 +1291,7 @@ var _ = Describe("Kube2e: gateway", func() {
 		})
 	})
 
-	Context("validation will not always accept", func() {
+	Context("validation will always accept resources", func() {
 
 		BeforeEach(func() {
 			kube2e.UpdateAlwaysAcceptSetting(ctx, true, testHelper.InstallNamespace)
@@ -1343,17 +1342,13 @@ var _ = Describe("Kube2e: gateway", func() {
 
 			It("correctly sets a status to a RateLimitConfig", func() {
 				// demand that a created ratelimit config _has_ a rejected status.
-				Eventually(func() error {
+				Eventually(func(g Gomega) error {
 					rlc, err := resourceClientset.RateLimitConfigClient().Read(rateLimitConfig.GetMetadata().GetNamespace(), rateLimitConfig.GetMetadata().GetName(), clients.ReadOpts{Ctx: ctx})
 					if err != nil {
 						return err
 					}
-					if rlc.Status.State != v1alpha1.RateLimitConfigStatus_REJECTED {
-						return errors.Errorf("expected rejected status, got %v", rlc.Status.State)
-					}
-					if !strings.Contains(rlc.Status.Message, "enterprise-only") {
-						return errors.Errorf("expected enterprise-only message in status, got %v", rlc.Status.Message)
-					}
+					g.Expect(rlc.Status.State).NotTo(Equal(v1alpha1.RateLimitConfigStatus_REJECTED))
+					g.Expect(rlc.Status.Message).Should(ContainSubstring("enterprise-only"))
 					return nil
 				}, "15s", "0.5s").ShouldNot(HaveOccurred())
 			})

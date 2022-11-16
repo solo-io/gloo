@@ -635,7 +635,7 @@ message GatewayOptions {
         // Path to TLS Private Key for Kubernetes Validating webhook. Defaults to `/etc/gateway/validation-certs/tls.key`.
         string validation_webhook_tls_key = 4;
 
-        // Deprecated: the Gateway and the Gloo pods are now together, there are no longer
+        // Deprecated: the Gateway and the Gloo pods are now merged together, there are no longer
         // requests made to a Gloo Validation server.
         // When Gateway cannot communicate with Gloo (e.g. Gloo is offline)
         // resources will be rejected by default.

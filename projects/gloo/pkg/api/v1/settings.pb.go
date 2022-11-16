@@ -2647,7 +2647,7 @@ type GatewayOptions_ValidationOptions struct {
 	ValidationWebhookTlsCert string `protobuf:"bytes,3,opt,name=validation_webhook_tls_cert,json=validationWebhookTlsCert,proto3" json:"validation_webhook_tls_cert,omitempty"`
 	// Path to TLS Private Key for Kubernetes Validating webhook. Defaults to `/etc/gateway/validation-certs/tls.key`.
 	ValidationWebhookTlsKey string `protobuf:"bytes,4,opt,name=validation_webhook_tls_key,json=validationWebhookTlsKey,proto3" json:"validation_webhook_tls_key,omitempty"`
-	// Deprecated: the Gateway and the Gloo pods are now together, there are no longer
+	// Deprecated: the Gateway and the Gloo pods are now merged together, there are no longer
 	// requests made to a Gloo Validation server.
 	// When Gateway cannot communicate with Gloo (e.g. Gloo is offline)
 	// resources will be rejected by default.

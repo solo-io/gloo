@@ -1,8 +1,10 @@
 changelog:
   - type: NEW_FEATURE
     description: >
-      Validation of extensions. This can be used to validate Rate Limit Configs and Ext-Auth Configs.
-      The `IgnoreProxyValidationFailure` setting flag for validation is now depricated as well, as it has not had any effect
-      for quite some time.
+      Validation of `TranslatorSyncerExtensions` is now enabled.
+      The Validator interface has changed, we have deleted the `ModificationIsSupported`, and `DeletionIsSupported` methods, as they are
+      no longer needed.  All supported resources are now mentioned in the gateway-validation-webhook-configuration.yaml.
+      The `IgnoreProxyValidationFailure` flag was intended to ignore network issues between the Gateway server and the Gloo server.
+      Since the Gateway server and the Gloo server have merged, this is no longer an issue that can occur, and the field is now deprecated.
     issueLink: https://github.com/solo-io/gloo/issues/6777
     resolvesIssue: false
