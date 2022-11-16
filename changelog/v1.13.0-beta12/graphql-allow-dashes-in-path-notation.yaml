@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7433
+    resolvesIssue: false
+    description: >
+      Allows dashes in accessors in path notation in GraphQL. For example, a header `api-key` can be accessed as 
+      `{$headers.api-key}` in path notation.

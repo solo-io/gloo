@@ -10,7 +10,7 @@ import (
 
 var (
 	// pattern to match basic accessor
-	Accessor = regexp.MustCompile(`^[a-zA-Z_$:][a-zA-Z0-9_$:]*$`)
+	Accessor = regexp.MustCompile(`^[a-zA-Z_\-$:][a-zA-Z0-9_\-$:]*$`)
 	// pattern to match array index
 	Index = regexp.MustCompile(`^\[([0-9]+|\*)]$`)
 	// valid segment openers
@@ -18,7 +18,7 @@ var (
 	// valid properties in [] format
 	Property = regexp.MustCompile(`^\[(?:'|")(.*)(?:'|")]$`)
 	// an entire segment; kinda the culmination of all of the above patterns
-	Segment = regexp.MustCompile(`^((?:[a-zA-Z_$:][a-zA-Z0-9_$:]*)|(?:\[(?:'.*?'|".*?")])|(?:\[\d+])|(?:\[\*]))`)
+	Segment = regexp.MustCompile(`^((?:[a-zA-Z_\-$:][a-zA-Z0-9_\-$:]*)|(?:\[(?:'.*?'|".*?")])|(?:\[\d+])|(?:\[\*]))`)
 )
 
 func DotNotationToPathSegments(input string) ([]*v2.PathSegment, error) {

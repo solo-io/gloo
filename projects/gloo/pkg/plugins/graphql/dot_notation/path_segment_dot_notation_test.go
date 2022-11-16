@@ -50,9 +50,23 @@ var _ = Describe("Dot Notation Test", func() {
 			}, nil)
 
 		})
+
+		It("allows for dashes in segments", func() {
+			testDotNotationTranslation("a-b.c", []*v2.PathSegment{
+				Key("a-b"),
+				Key("c"),
+			}, nil)
+
+			testDotNotationTranslation("a.c-b.d", []*v2.PathSegment{
+				Key("a"),
+				Key("c-b"),
+				Key("d"),
+			}, nil)
+		})
 		It("catches trailing dot correctly", func() {
 			testDotNotationTranslation("a.b.c.", nil, errors.New("Unable to parse 'a.b.c.' due to trailing dot!"))
 			testDotNotationTranslation(".", nil, errors.New("Unexpected char: ., index: 0, key: ."))
+
 		})
 		It("translates chained indices correctly", func() {
 
