@@ -314,26 +314,6 @@ var _ = Describe("Gateway", func() {
 					}
 					nonSslListener := getNonSSLListener(proxy)
 					vhostCount := len(nonSslListener.GetHttpListener().VirtualHosts)
-					// there will be 2 vs now, since missing ext-auths is only a warning and not an error
-					if vhostCount == 2 {
-						return proxy, nil
-					}
-
-					return nil, errors.Errorf("non-ssl listener virtual hosts: expected 2, found %d ", vhostCount)
-				})
-
-				// we can delete the second VS since it will never have the reference to the Ext-Auth
-				err = testClients.VirtualServiceClient.Delete(writeNamespace, "vs2", clients.DeleteOpts{})
-				Expect(err).NotTo(HaveOccurred())
-				By("second virtualservice should now be deleted in proxy")
-				gloohelpers.EventuallyResourceAccepted(func() (resources.InputResource, error) {
-					proxy, err = testClients.ProxyClient.Read(writeNamespace, gatewaydefaults.GatewayProxyName, clients.ReadOpts{})
-					if err != nil {
-						return nil, err
-					}
-					nonSslListener := getNonSSLListener(proxy)
-					vhostCount := len(nonSslListener.GetHttpListener().VirtualHosts)
-					// there will be 1 vs now, since we are deleing the VS with the missing Ext-Auth
 					if vhostCount == 1 {
 						return proxy, nil
 					}
