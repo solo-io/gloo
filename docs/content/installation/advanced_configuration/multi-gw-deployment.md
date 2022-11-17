@@ -70,8 +70,6 @@ If you want additional `Gateways` for a single proxy, create your own `Gateway` 
 As shown in the following example, you can declare as many Envoy proxies as you want under the `gloo.gatewayProxies` property in the Helm configuration file.
 
 ```yaml
-gateway:
-  persistProxySpec: true
 gloo:
   gatewayProxies:
     publicGw: # Proxy name for public access (Internet facing)
@@ -188,7 +186,7 @@ spec:
             namespace: gloo-system
 ```
 
-You can check everything is correct with `glooctl` commands:
+Assuming `glooctl` is at least v1.12, you can check everything is correct with `glooctl` commands:
 
 ```bash
 $ glooctl get vs
