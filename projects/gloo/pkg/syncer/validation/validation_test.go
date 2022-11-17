@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	errorMessage = "There was an error with the resource"
+	errorMessage   = "There was an error with the resource"
+	warningMessage = "There was a warning with the resource"
 )
 
 var _ = Describe("Extension Validator", func() {
@@ -107,6 +108,21 @@ var _ = Describe("Extension Validator", func() {
 		})
 	})
 
+	Context("one passing and one warning extension", func() {
+		BeforeEach(func() {
+			extensions = []syncer.TranslatorSyncerExtension{
+				TestPassingExtension{resource: resource},
+				TestWarningExtension{resource: resource},
+			}
+		})
+		It("should show warning when one warning extension", func() {
+			reports := extensionValidator.Validate(ctx, &snapshot)
+			err := reports.ValidateStrict()
+			Expect(err).To(HaveOccurred())
+			Expect(len(reports)).To(Equal(1))
+		})
+	})
+
 })
 
 type TestFailingExtension struct {
@@ -120,6 +136,19 @@ func (t TestFailingExtension) ID() string {
 func (t TestFailingExtension) Sync(ctx context.Context, snap *gloosnapshot.ApiSnapshot, settings *v1.Settings, snapshotSetter syncer.SnapshotSetter, reports reporter.ResourceReports) {
 	reports.Accept(t.resource)
 	reports.AddError(t.resource, errors.New(errorMessage))
+}
+
+type TestWarningExtension struct {
+	resource resources.InputResource
+}
+
+func (t TestWarningExtension) ID() string {
+	return "warning Test"
+}
+
+func (t TestWarningExtension) Sync(ctx context.Context, snap *gloosnapshot.ApiSnapshot, settings *v1.Settings, snapshotSetter syncer.SnapshotSetter, reports reporter.ResourceReports) {
+	reports.Accept(t.resource)
+	reports.AddWarning(t.resource, warningMessage)
 }
 
 type TestPassingExtension struct {
