@@ -100,6 +100,9 @@ var _ = Describe("Kube2e: gateway", func() {
 
 			_, err := resourceClientset.UpstreamClient().Write(placeholderUs, clients.WriteOpts{Ctx: ctx})
 			if err != nil {
+				serr := err.Error()
+				g.Expect(serr).Should(ContainSubstring("admission webhook"))
+				g.Expect(serr).Should(ContainSubstring("port cannot be empty for host"))
 				// We have successfully rejected an invalid upstream
 				// This means that the webhook is fully warmed, and contains a Snapshot with a Proxy
 				return true
