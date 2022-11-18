@@ -3,16 +3,22 @@ import { Global } from '@emotion/core';
 import styled from '@emotion/styled';
 import { createGraphiQLFetcher } from '@graphiql/toolkit';
 import { Tooltip } from 'antd';
-import { useGetGraphqlApiDetails, useListVirtualServices } from 'API/hooks';
+import {
+  useGetGraphqlApiDetails,
+  useListRouteTables,
+  useListVirtualServices,
+} from 'API/hooks';
 import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
 import { ReactComponent as CopyIcon } from 'assets/document.svg';
 import { SoloInput } from 'Components/Common/SoloInput';
-import { Fetcher, GraphiQL } from 'graphiql';
+import { GraphiQL } from 'graphiql';
 // @ts-ignore
 import GraphiQLExplorer from 'graphiql-explorer';
-import { buildSchema, DocumentNode, parse } from 'graphql';
+import { buildSchema, DocumentNode } from 'graphql';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import * as React from 'react';
-import { ChangeEvent, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { colors } from 'Styles/colors';
 import { copyTextToClipboard } from 'utils';
@@ -113,63 +119,90 @@ const setGqlStorage = (value: string) => {
 };
 
 const defaultQuery = `query Example {
-  }
+}
 
-  # Welcome to GraphiQL, an in-browser tool for
-  # writing, validating, and testing GraphQL queries.
-  #
-  # Type queries into this side of the screen, and you
-  # will see intelligent typeaheads aware of the current
-  # GraphQL type schema and live syntax and
-  # validation errors highlighted within the text.
-  #
-  # GraphQL queries typically start with a "{" character.
-  # Lines that start with a # are ignored.
-  # The name of the query on the first line of each tab
-  # is the title of that tab.
-  #
-  # An example GraphQL query might look like:
-  #     query Example {
-  #       field(arg: "value") {
-  #         subField
-  #       }
-  #     }
-  #
-  # Keyboard shortcuts:
-  #     Prettify Query:    Shift-Ctrl-P
-  #     Merge Query:     Shift-Ctrl-M
-  #     Run Query:        Ctrl-Enter
-  #     Auto Complete:  Ctrl-Space
+# Welcome to GraphiQL, an in-browser tool for
+# writing, validating, and testing GraphQL queries.
+#
+# Type queries into this side of the screen, and you
+# will see intelligent typeaheads aware of the current
+# GraphQL type schema and live syntax and
+# validation errors highlighted within the text.
+#
+# GraphQL queries typically start with a "{" character.
+# Lines that start with a # are ignored.
+# The name of the query on the first line of each tab
+# is the title of that tab.
+#
+# An example GraphQL query might look like:
+#     query Example {
+#       field(arg: "value") {
+#         subField
+#       }
+#     }
+#
+# Keyboard shortcuts:
+#     Prettify Query:    Shift-Ctrl-P
+#     Merge Query:     Shift-Ctrl-M
+#     Run Query:        Ctrl-Enter
+#     Auto Complete:  Ctrl-Space
 
 `;
+
+const refsMatch = (
+  ref1: ResourceRef.AsObject | undefined,
+  ref2: ResourceRef.AsObject | undefined
+) => {
+  if (!ref1 && !ref2 && ref1 === ref2) return true;
+  if (!ref1 || !ref2) return false;
+  return ref1.name === ref2.name && ref1.namespace === ref2.namespace;
+};
 
 export const GraphqlApiExplorer = () => {
   const { graphqlApiName, graphqlApiNamespace, graphqlApiClusterName } =
     useParams();
   const [gqlError, setGqlError] = useState('');
   const [explorerOpen, setExplorerOpen] = useState(false);
-  const [refetch, setRefetch] = useState(false);
-  const [url, setUrl] = useState(getGqlStorage());
   const [showTooltip, setShowTooltip] = useState(false);
   const [copyingKubectl, setCopyingKubectl] = useState(false);
   const [copyingProxy, setCopyingProxy] = useState(false);
   const [showUrlBar, setShowUrlBar] = useState(false);
   const [query, setQuery] = useState<string>();
+  const graphiqlRef = useRef<null | GraphiQL>(null);
+  const [hasTriedToFetch, setHasTriedToFetch] = useState(false);
 
-  const {
-    data: graphqlApi,
-    error: graphqlApiError,
-    mutate,
-  } = useGetGraphqlApiDetails({
+  //
+  // Schema URL
+  //
+  const urlDebounceMs = 1000;
+  // `url` is updated after no input is registered for `urlDebounceMs`.
+  const [url, setUrl] = useState(getGqlStorage());
+  // The urlToDisplay is what the user edits, and updates instantly.
+  const [urlToDisplay, setUrlToDisplay] = useState(url);
+  useEffect(() => {
+    // `urlTimeout` keeps track of the input delay.
+    // Sets the real `url` after `urlDebounceMs`
+    const urlTimeout = setTimeout(() => setUrl(urlToDisplay), urlDebounceMs);
+    return () => {
+      // Clears the timeout if the useEffect dependencies change.
+      // (in which case a new timeout will be set)
+      clearTimeout(urlTimeout);
+    };
+  }, [setUrl, urlToDisplay]);
+  //
+  // When the url changes, this updates localStorage.
+  useEffect(() => {
+    setGqlStorage(url);
+  }, [url]);
+
+  const graphqlApiRef: ResourceRef.AsObject = {
     name: graphqlApiName,
     namespace: graphqlApiNamespace,
+  };
+  const { data: graphqlApi } = useGetGraphqlApiDetails({
+    ...graphqlApiRef,
     clusterName: graphqlApiClusterName,
   });
-
-  const changeUrl = (value: string) => {
-    setGqlStorage(value);
-    setUrl(value);
-  };
 
   const copyKubectlCommand = async () => {
     setCopyingKubectl(true);
@@ -193,67 +226,108 @@ export const GraphqlApiExplorer = () => {
   };
 
   // If we need the custom fetcher, we can add `schemaFetcher` to the document.
-  let gqlFetcher: Fetcher = createGraphiQLFetcher({
-    url,
-    schemaFetcher: async graphQLParams => {
-      if (!graphQLParams.variables?.trim()) graphQLParams.variables = '{}';
+  const gqlFetcher = useMemo(
+    () =>
+      createGraphiQLFetcher({
+        url,
+        schemaFetcher: async graphQLParams => {
+          if (!graphQLParams.variables?.trim()) graphQLParams.variables = '{}';
+          try {
+            const data = await fetch(url, {
+              method: 'POST',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(graphQLParams),
+              credentials: 'same-origin',
+            });
+            setHasTriedToFetch(true);
+            return data.json().catch(() => data.text());
+          } catch (error: any) {}
+        },
+      }),
+    [url, setHasTriedToFetch]
+  );
+  //
+  // This checks if the URL is valid, separate from the fetcher
+  // so we can control when it's called.
+  useEffect(() => {
+    (async () => {
       try {
-        setRefetch(false);
-        setGqlError('');
-        const data = await fetch(url, {
+        await fetch(url, {
           method: 'POST',
           headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(graphQLParams),
           credentials: 'same-origin',
         });
-        return data.json().catch(() => data.text());
+        setGqlError('');
       } catch (error: any) {
         setGqlError(error.message);
       }
-    },
-  });
+    })();
+  }, [url, setGqlError]);
 
-  const graphiqlRef = useRef<null | GraphiQL>(null);
-
-  const { data: vsResponse, error: virtualServicesError } =
-    useListVirtualServices();
+  //
+  // Gets the corresponding VirtualServices, which can be either:
+  // - a VirtualService with a matching graphqlApiRef, or
+  // - a VirtualService with a delegateAction to a RouteTable,
+  //   which has a matching graphqlApiRef.
+  //
+  const { data: vsResponse } = useListVirtualServices();
   const virtualServices = vsResponse?.virtualServicesList;
-
-  const correspondingVirtualServices = useMemo(
-    () =>
-      virtualServices?.filter(vs =>
-        vs.spec?.virtualHost?.routesList.some(
-          route =>
-            route?.graphqlApiRef?.name === graphqlApiName &&
-            route?.graphqlApiRef?.namespace === graphqlApiNamespace
+  const { data: rtResponse } = useListRouteTables();
+  const routeTables = rtResponse?.routeTablesList;
+  const correspondingVirtualServices = useMemo(() => {
+    //
+    // Gets the VirtualServices with a matching graphqlApiRef.
+    const vssThatMatch = [] as VirtualService.AsObject[];
+    const vssThatDontMatch = [] as VirtualService.AsObject[];
+    if (virtualServices) {
+      for (let vs of virtualServices) {
+        if (
+          vs.spec?.virtualHost?.routesList.some(r =>
+            refsMatch(r.graphqlApiRef, graphqlApiRef)
+          )
         )
-      ),
-    [virtualServices, graphqlApiName, graphqlApiNamespace]
+          vssThatMatch.push(vs);
+        else vssThatDontMatch.push(vs);
+      }
+    }
+    //
+    // Gets the VirtualServices with a delegateAction to a RouteTable,
+    // which has a matching graphqlApiRef
+    const rtsThatMatch = routeTables?.filter(rt =>
+      rt.spec?.routesList.some(r => refsMatch(r.graphqlApiRef, graphqlApiRef))
+    );
+    // Only need to check VirtualServices that aren't already a correspondingVirtualService.
+    const vssOfRtsThatMatch = vssThatDontMatch?.filter(vs =>
+      vs.spec?.virtualHost?.routesList.some(r =>
+        rtsThatMatch?.some(rt =>
+          refsMatch(
+            !!rt.metadata
+              ? { name: rt.metadata.name, namespace: rt.metadata.namespace }
+              : undefined,
+            r.delegateAction?.ref
+          )
+        )
+      )
+    );
+    //
+    // Merge the VirtualServices (we made sure there aren't duplicates)
+    return [...vssThatMatch, vssOfRtsThatMatch];
+  }, [virtualServices, routeTables, graphqlApiName, graphqlApiNamespace]);
+
+  const schemaText = graphqlApi?.spec?.executableSchema?.schemaDefinition ?? '';
+  const executableSchema = useMemo(
+    () => buildSchema(schemaText, { assumeValidSDL: true }),
+    [schemaText]
   );
-
-  let executableSchema;
-
-  if (graphqlApi?.spec?.executableSchema?.schemaDefinition) {
-    const schemaDef = graphqlApi.spec.executableSchema.schemaDefinition;
-    executableSchema = buildSchema(schemaDef, {
-      assumeValidSDL: true,
-    });
-  }
 
   const handlePrettifyQuery = () => {
     graphiqlRef?.current?.handlePrettifyQuery();
-  };
-
-  const changeHost = (e: ChangeEvent<HTMLInputElement>) => {
-    setRefetch(true);
-    changeUrl(e.currentTarget.value);
-  };
-
-  const toggleUrlBar = () => {
-    setShowUrlBar(!showUrlBar);
   };
 
   const toggleExplorer = () => {
@@ -347,8 +421,8 @@ export const GraphqlApiExplorer = () => {
                     </div>
                   </>
                 }
-                value={url}
-                onChange={changeHost}
+                value={urlToDisplay}
+                onChange={e => setUrlToDisplay(e.currentTarget.value)}
               />
             </LabelTextWrapper>
           </GqlInputWrapper>
@@ -356,7 +430,7 @@ export const GraphqlApiExplorer = () => {
       ) : null}
       <div className='graphiql-outer-container'>
         <GraphiQLExplorer
-          schema={!refetch ? executableSchema : undefined}
+          schema={hasTriedToFetch ? executableSchema : undefined}
           query={query}
           onEdit={handleQueryUpdate}
           onRunOperation={(operationName?: string) =>
@@ -394,7 +468,7 @@ export const GraphqlApiExplorer = () => {
           query={query}
           operationName={opName}
           onEditOperationName={s => setOpName(s)}
-          schema={!refetch ? executableSchema : undefined}
+          schema={hasTriedToFetch ? executableSchema : undefined}
           fetcher={gqlFetcher}>
           <GraphiQL.Toolbar>
             <GraphiQL.Button
@@ -408,7 +482,7 @@ export const GraphqlApiExplorer = () => {
               title='Prettify Query (Shift-Ctrl-P)'
             />
             <GraphiQL.Button
-              onClick={toggleUrlBar}
+              onClick={() => setShowUrlBar(!showUrlBar)}
               label={showUrlBar ? 'Hide Url Bar' : 'Show Url Bar'}
               title='Show/Hide Url Bar'
             />

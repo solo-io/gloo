@@ -1,0 +1,8 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/4258
+    description: >
+      Fixes the GraphQL VirtualService identification,
+      URL input debouncing, and docs explorer fetching
+      in the Graphql Explorer UI.
+    resolvesIssue: false
