@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/solo-projects/issues/4247
+    description: Add upgrade testing on the PR level to solo-projects

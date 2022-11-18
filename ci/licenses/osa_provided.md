@@ -20,6 +20,7 @@ Name|Version|License
 [go-test/deep](https://github.com/go-test/deep)|v1.0.7|MIT License
 [gobuffalo/packr](https://github.com/gobuffalo/packr)|v1.30.1|MIT License
 [golang/protobuf](https://github.com/golang/protobuf)|v1.5.2|BSD 3-clause "New" or "Revised" License
+[go-github/v32](https://github.com/google/go-github)|v32.0.0|BSD 3-clause "New" or "Revised" License
 [google/wire](https://github.com/google/wire)|v0.4.0|Apache License 2.0
 [graphql-go/graphql](https://github.com/graphql-go/graphql)|v0.8.0|MIT License
 [grpc-ecosystem/go-grpc-middleware](https://github.com/grpc-ecosystem/go-grpc-middleware)|v1.3.0|Apache License 2.0

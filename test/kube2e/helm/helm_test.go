@@ -406,12 +406,13 @@ func checkGlooHealthy(testHelper *helper.SoloTestHelper) {
 
 func glooctlCheckEventuallyHealthy(offset int, testHelper *helper.SoloTestHelper, timeoutInterval string) {
 	EventuallyWithOffset(offset, func() error {
+		contextWithCancel, cancel := context.WithCancel(context.Background())
 		opts := &options.Options{
 			Metadata: core.Metadata{
 				Namespace: testHelper.InstallNamespace,
 			},
 			Top: options.Top{
-				Ctx:       context.Background(),
+				Ctx:       contextWithCancel,
 				CheckName: []string{
 					// TODO if glooctl check runs out of goroutines, try skipping some checks here
 					// https://github.com/solo-io/solo-projects/issues/3614
@@ -423,6 +424,7 @@ func glooctlCheckEventuallyHealthy(offset int, testHelper *helper.SoloTestHelper
 		if err != nil {
 			return eris.Wrap(err, "glooctl check detected a problem with the installation")
 		}
+		cancel() //attempt to avoid hitting go-routine limit
 		return nil
 	}, timeoutInterval, "5s").Should(BeNil())
 }

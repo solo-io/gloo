@@ -103,7 +103,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        kube-e2e-test-type: [ 'gateway', 'gloo-mtls', 'helm', 'redis-clientside-sharding', 'wasm', 'caching']
+        kube-e2e-test-type: ['gateway', 'gloo-mtls', 'helm', 'redis-clientside-sharding', 'wasm', 'caching', 'upgrade']
         use-fips: ['false']
         include:
           - kube-e2e-test-type: 'gateway'
@@ -188,6 +188,7 @@ jobs:
       - name: Testing - kube e2e regression tests
         env:
           KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type }}
+          GITHUB_TOKEN: ${{ github.token }}
           USE_FIPS: ${{ matrix.use-fips }}
         run: |
           make run-ci-regression-tests
