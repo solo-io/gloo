@@ -262,9 +262,9 @@ func getGlooServerVersion(ctx context.Context, namespace string) (v string) {
 	Expect(len(glooVersion.GetServer())).To(Equal(1))
 	for _, container := range glooVersion.GetServer()[0].GetKubernetes().GetContainers() {
 		if v == "" {
-			v = container.OssTag
+			v = container.GetTag()
 		} else {
-			Expect(container.OssTag).To(Equal(v))
+			Expect(container.GetTag()).To(Equal(v))
 		}
 	}
 	return v
