@@ -757,7 +757,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		Ctx: watchOpts.Ctx,
 		GlooValidatorConfig: validation.GlooValidatorConfig{
 			XdsSanitizer: xdsSanitizers,
-			Extensions:   syncerExtensions,
 			Translator:   sharedTranslator,
 		},
 	}
@@ -788,8 +787,16 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		logger.Debugf("Gateway translation is disabled. Proxies are provided from another source")
 	}
 
-	// create a validator to validate extensions: currently this could include Ext-Auth and Rate Limit
-	extensionValidator := syncerValidation.NewValidator(syncerExtensions, opts.Settings)
+	// filter the list of extensions to only include the rate limit extension for validation
+	syncerValidatorExtensions := []syncer.TranslatorSyncerExtension{}
+	for _, ext := range syncerExtensions {
+		// currently only supporting ratelimit extension in validation
+		if ext.ID() == ratelimitExt.ServerRole {
+			syncerValidatorExtensions = append(syncerValidatorExtensions, ext)
+		}
+	}
+	// create a validator to validate extensions
+	extensionValidator := syncerValidation.NewValidator(syncerValidatorExtensions, opts.Settings)
 
 	validationConfig := gwvalidation.ValidatorConfig{
 		Translator:         gatewayTranslator,
