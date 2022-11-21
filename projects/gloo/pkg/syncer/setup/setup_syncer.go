@@ -757,7 +757,6 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		Ctx: watchOpts.Ctx,
 		GlooValidatorConfig: validation.GlooValidatorConfig{
 			XdsSanitizer: xdsSanitizers,
-			Extensions:   syncerExtensions,
 			Translator:   sharedTranslator,
 		},
 	}
