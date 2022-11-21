@@ -36,6 +36,7 @@ func (t *HybridTranslator) ComputeListener(params Params, proxyName string, gate
 		return nil
 	}
 
+	contextutils.LoggerFrom(params.ctx).Info("Building a Hybrid Translator")
 	// MatchedGateways take precedence over DelegatedHttpGateways
 	if matchedGateways != nil {
 		hybridListener = t.computeHybridListenerFromMatchedGateways(params, proxyName, gateway, matchedGateways)
@@ -56,6 +57,7 @@ func (t *HybridTranslator) ComputeListener(params Params, proxyName string, gate
 		}
 	}
 
+	contextutils.LoggerFrom(params.ctx).Info("Built a Hybrid Translator")
 	listener := makeListener(gateway)
 	listener.ListenerType = &gloov1.Listener_HybridListener{
 		HybridListener: hybridListener,

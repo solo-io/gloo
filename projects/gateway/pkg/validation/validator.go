@@ -327,6 +327,8 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 		}
 	}
 
+	// I think this is going to fix it
+	snapshotClone.Proxies = proxies
 	extensionReports := v.extensionValidator.Validate(ctx, snapshotClone)
 	if len(extensionReports) > 0 {
 		if err = v.getErrorsFromResourceReports(extensionReports); err != nil {
