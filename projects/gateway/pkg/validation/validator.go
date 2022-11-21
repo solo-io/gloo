@@ -239,8 +239,14 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 	ref := opts.Resource.GetMetadata().Ref()
 	ctx = contextutils.WithLogger(ctx, "gateway-validator")
 
+	logger := contextutils.LoggerFrom(ctx)
 	// currently have the other for Gloo resources
+	logger.Infof("VS of latest snapshot before copying %d", len(v.latestSnapshot.VirtualServices))
 	snapshotClone, err := v.copySnapshotNonThreadSafe(ctx, opts.DryRun)
+	logger.Infof("VS when copying %d", len(snapshotClone.VirtualServices))
+	for _, vs := range snapshotClone.VirtualServices {
+		logger.Infof("vs info: [%s] [%s]", vs.GetMetadata().GetNamespace(), vs.GetMetadata().GetName())
+	}
 	if err != nil {
 		// allow writes if storage is already broken
 		return nil, nil
@@ -443,6 +449,7 @@ func (v *validator) processItem(ctx context.Context, item unstructured.Unstructu
 		if unmarshalErr := UnmarshalResource(jsonBytes, resource); unmarshalErr != nil {
 			return &Reports{ProxyReports: &ProxyReports{}}, WrappedUnmarshalErr(unmarshalErr)
 		}
+		// since ValidateList locks, we do not need to lock here.
 		return v.validateModifiedResource(ctx, itemGvk, resource, false, false)
 	}
 	// should not happen
