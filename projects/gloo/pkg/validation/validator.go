@@ -7,7 +7,6 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer/sanitizer"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
@@ -25,7 +24,6 @@ type GlooValidator interface {
 type GlooValidatorConfig struct {
 	Translator   gloo_translator.Translator
 	XdsSanitizer sanitizer.XdsSanitizer
-	Extensions   []syncer.TranslatorSyncerExtension
 }
 
 // NewGlooValidator will create a new GlooValidator
@@ -33,14 +31,12 @@ func NewGlooValidator(config GlooValidatorConfig) GlooValidator {
 	return glooValidator{
 		translator:   config.Translator,
 		xdsSanitizer: config.XdsSanitizer,
-		extensions:   config.Extensions,
 	}
 }
 
 type glooValidator struct {
 	translator   gloo_translator.Translator
 	xdsSanitizer sanitizer.XdsSanitizer
-	extensions   []syncer.TranslatorSyncerExtension
 }
 
 type GlooValidationReport struct {
