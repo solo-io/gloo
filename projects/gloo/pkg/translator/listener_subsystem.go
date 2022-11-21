@@ -197,7 +197,7 @@ func (l *ListenerSubsystemTranslatorFactory) GetHybridListenerTranslators(ctx co
 				l.pluginRegistry.GetHttpFilterPlugins(),
 				l.pluginRegistry.GetHttpConnectionManagerPlugins(),
 				routeConfigurationName)
-
+			contextutils.LoggerFrom(ctx).Infof("Building a Hybrid network filter translator")
 			// This translator produces FilterChains
 			// For an HttpGateway we first build a set of NetworkFilters.
 			// Then, for each SslConfiguration that was found on that HttpGateway,
@@ -306,7 +306,7 @@ func (l *ListenerSubsystemTranslatorFactory) GetAggregateListenerTranslators(ctx
 			l.pluginRegistry.GetHttpFilterPlugins(),
 			l.pluginRegistry.GetHttpConnectionManagerPlugins(),
 			routeConfigurationName)
-
+		contextutils.LoggerFrom(ctx).Infof("Building a aggregate network filter translator")
 		// This translator produces FilterChains
 		// For an HttpGateway we first build a set of NetworkFilters.
 		// Then, for each SslConfiguration that was found on that HttpGateway,
