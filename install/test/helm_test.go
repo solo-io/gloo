@@ -3914,6 +3914,10 @@ webhooks:
        apiGroups: ["ratelimit.solo.io"]
        apiVersions: ["v1alpha1"]
        resources: ["ratelimitconfigs"]
+     - operations: [ "CREATE", "UPDATE", "DELETE" ]
+       apiGroups: ["enterprise.gloo.solo.io"]
+       apiVersions: ["v1"]
+       resources: ["authconfigs"]
    sideEffects: None
    matchPolicy: Exact
    admissionReviewVersions:
