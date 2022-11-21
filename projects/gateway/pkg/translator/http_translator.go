@@ -25,8 +25,10 @@ func (t *HttpTranslator) ComputeListener(params Params, proxyName string, gatewa
 	snap := params.snapshot
 	if len(snap.VirtualServices) == 0 {
 		snapHash := hashutils.MustHash(snap)
-		contextutils.LoggerFrom(params.ctx).Debugf("%v had no virtual services", snapHash)
+		contextutils.LoggerFrom(params.ctx).Infof("%v had no virtual services", snapHash)
 		return nil
+	} else {
+		contextutils.LoggerFrom(params.ctx).Infof("snapshot has VSs now I will create a Http Listener, :: %d", len(snap.VirtualServices))
 	}
 
 	sslGateway := gateway.GetSsl()

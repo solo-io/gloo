@@ -262,6 +262,10 @@ func (v *validator) validateSnapshot(opts *validationOptions) (*Reports, error) 
 			return nil, err
 		}
 	}
+	logger.Infof("VS after upsert and remove %d", len(snapshotClone.VirtualServices))
+	for _, vs := range snapshotClone.VirtualServices {
+		logger.Infof("vs upsert... info: [%s] [%s]", vs.GetMetadata().GetNamespace(), vs.GetMetadata().GetName())
+	}
 
 	var (
 		errs         error
