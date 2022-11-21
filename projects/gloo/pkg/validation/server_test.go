@@ -7,7 +7,6 @@ import (
 	"time"
 
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -87,7 +86,6 @@ var _ = Describe("Validation Server", func() {
 			Ctx: context.TODO(),
 			GlooValidatorConfig: GlooValidatorConfig{
 				XdsSanitizer: xdsSanitizer,
-				Extensions:   []syncer.TranslatorSyncerExtension{},
 				Translator:   translator,
 			},
 		}
