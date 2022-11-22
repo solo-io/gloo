@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    resolvesIssue: false
+    issueLink: https://github.com/solo-io/solo-projects/issues/4242
+    description: >
+      Fix default scrape configuration for out of box prometheus to also target the bundled kube-state-metrics.
+      This enables the pod metrics to be propagated which enables the memory dashboards to work.
