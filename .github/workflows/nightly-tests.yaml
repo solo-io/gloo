@@ -1,7 +1,7 @@
 name: Nightly
 on:
   schedule:
-    # run Monday-Friday mornings (midnight utc)
+    # run Monday-Friday mornings (midnight UTC)
     - cron: "0 0 * * 1-5"
 jobs:
   prepare_env:
