@@ -110,6 +110,7 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 				Verbose:           true, // this is important, as curl will only output status codes with verbose output
 			}, expectedResponseSubstring, 1, 2*time.Minute)
 		}
+
 		// This just registers the clients that we will need during the tests
 		BeforeEach(func() {
 			testHelper = inputs.TestHelper
@@ -150,11 +151,15 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 
 			authConfigClient, err = extauthapi.NewAuthConfigClient(ctx, authConfigClientFactory)
 			Expect(err).NotTo(HaveOccurred())
+			err = authConfigClient.Register()
+			Expect(err).ToNot(HaveOccurred())
 
 			gatewayClient, err = gatewayv2.NewGatewayClient(ctx, gatewayClientFactory)
 			Expect(err).NotTo(HaveOccurred())
 
 			virtualServiceClient, err = gatewayv1.NewVirtualServiceClient(ctx, virtualServiceClientFactory)
+			Expect(err).NotTo(HaveOccurred())
+			err := virtualServiceClient.Register()
 			Expect(err).NotTo(HaveOccurred())
 
 			proxyClient, err = gloov1.NewProxyClient(ctx, proxyClientFactory)
@@ -472,7 +477,9 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			})
 
 			AfterEach(func() {
-				for _, cleanup := range cleanUpFuncs {
+				// delete the resources in reverse order because we need to delete the VS that references the auth config
+				for i := len(cleanUpFuncs) - 1; i >= 0; i-- {
+					cleanup := cleanUpFuncs[i]
 					if cleanup != nil {
 						cleanup()
 					}

@@ -121,9 +121,12 @@ func (s *translatorSyncerExtension) Sync(
 ) {
 	ctx = contextutils.WithLogger(ctx, "rateLimitTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
-	snapHash := hashutils.MustHash(snap)
-	logger.Infof("begin rate limit sync %v (%v proxies, %v rate limit configs)", snapHash, len(snap.Proxies), len(snap.Ratelimitconfigs))
-	defer logger.Infof("end sync %v", snapHash)
+	// only hash during debug because of the performance issues surrounding hashing
+	if contextutils.GetLogLevel() == zap.DebugLevel {
+		snapHash := hashutils.MustHash(snap)
+		logger.Debugf("begin rate limit sync %v (%v proxies, %v rate limit configs)", snapHash, len(snap.Proxies), len(snap.Ratelimitconfigs))
+		defer logger.Debugf("end sync %v", snapHash)
+	}
 
 	reports.Accept(snap.Proxies.AsInputResources()...)
 	reports.Accept(snap.Ratelimitconfigs.AsInputResources()...)

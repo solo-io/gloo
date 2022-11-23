@@ -267,7 +267,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 			}
 		})
 
-		When("there are not errors", func() {
+		When("there are no errors", func() {
 			It("works as expected", func() {
 				basic.EXPECT().ToXdsConfiguration().Return(config1, nil)
 				global.EXPECT().ToXdsConfiguration().Return(config2, nil)
@@ -304,7 +304,7 @@ var _ = Describe("RateLimitTranslatorSyncer", func() {
 			})
 		})
 
-		When("there is a failure getting xDS config", func() {
+		When("there is no error getting xDS config", func() {
 			It("writes reports", func() {
 				basic.EXPECT().ToXdsConfiguration().Return(config1, nil)
 				global.EXPECT().ToXdsConfiguration().Return(&enterprise.RateLimitConfig{Domain: config2.Domain}, testErr)

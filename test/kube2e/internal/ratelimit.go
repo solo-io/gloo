@@ -11,7 +11,6 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
-	ratelimit2 "github.com/solo-io/gloo/projects/gloo/api/external/solo/ratelimit"
 	v1alpha1 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/solo/ratelimit"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauthv1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -26,8 +25,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/test/kube2e"
+	v1helpers "github.com/solo-io/solo-projects/test/v1helpers"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 )
@@ -306,8 +305,13 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 				})
 
 				AfterEach(func() {
-					err := authConfigClient.Delete(testHelper.InstallNamespace, "basic-auth", clients.DeleteOpts{Ctx: ctx})
-					Expect(err).NotTo(HaveOccurred(), "should delete authconfigs on cleanup")
+					// have to delete the vs because the admission webhook will return an error if we just delete the auth config
+					// the vs referecences the vs
+					kube2e.DeleteVirtualService(virtualServiceClient, testHelper.InstallNamespace, "vs", clients.DeleteOpts{Ctx: ctx, IgnoreNotExist: true})
+					Eventually(func(g Gomega) {
+						err := authConfigClient.Delete(testHelper.InstallNamespace, "basic-auth", clients.DeleteOpts{Ctx: ctx})
+						g.Expect(err).NotTo(HaveOccurred(), "should delete authconfigs on cleanup")
+					}, "5s", "1s")
 				})
 
 				It("can rate limit before hitting the auth server when so configured", func() {
@@ -424,38 +428,8 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 					Expect(err).NotTo(HaveOccurred())
 				}
 
-				rateLimitConfig := &v1alpha1.RateLimitConfig{
-					RateLimitConfig: ratelimit2.RateLimitConfig{
-						ObjectMeta: metav1.ObjectMeta{
-							Name:      configRef.Name,
-							Namespace: configRef.Namespace,
-						},
-						Spec: rlv1alpha1.RateLimitConfigSpec{
-							ConfigType: &rlv1alpha1.RateLimitConfigSpec_Raw_{
-								Raw: &rlv1alpha1.RateLimitConfigSpec_Raw{
-									Descriptors: []*rlv1alpha1.Descriptor{{
-										Key:   "generic_key",
-										Value: "foo",
-										RateLimit: &rlv1alpha1.RateLimit{
-											Unit:            rlv1alpha1.RateLimit_MINUTE,
-											RequestsPerUnit: 1,
-										},
-									}},
-									RateLimits: []*rlv1alpha1.RateLimitActions{{
-										Actions: []*rlv1alpha1.Action{{
-											ActionSpecifier: &rlv1alpha1.Action_GenericKey_{
-												GenericKey: &rlv1alpha1.Action_GenericKey{
-													DescriptorValue: "foo",
-												},
-											},
-										}},
-									}},
-								},
-							},
-						},
-					},
-				}
-				_, err = rateLimitConfigClient.Write(rateLimitConfig, clients.WriteOpts{OverwriteExisting: false})
+				rateLimitConfig := *v1helpers.NewSimpleRateLimitConfig(configRef.Name, configRef.Namespace, "generic_key", "foo", "foo")
+				_, err = rateLimitConfigClient.Write(&rateLimitConfig, clients.WriteOpts{OverwriteExisting: false})
 				Expect(err).NotTo(HaveOccurred())
 
 			})

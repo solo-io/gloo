@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/solo-io/solo-projects/projects/extauth/pkg/runner"
+	"go.uber.org/zap"
 
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -81,10 +82,13 @@ func (s *translatorSyncerExtension) Sync(
 ) {
 	ctx = contextutils.WithLogger(ctx, "extAuthTranslatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
-	snapHash := hashutils.MustHash(snap)
-	logger.Infof("begin auth sync %v (%v proxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, %v auth configs)", snapHash,
-		len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs))
-	defer logger.Infof("end auth sync %v", snapHash)
+	// only hash during debug because of the performance issues surrounding hashing
+	if contextutils.GetLogLevel() == zap.DebugLevel {
+		snapHash := hashutils.MustHash(snap)
+		logger.Debugf("begin auth sync %v (%v proxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, %v auth configs)", snapHash,
+			len(snap.Proxies), len(snap.Upstreams), len(snap.Endpoints), len(snap.Secrets), len(snap.Artifacts), len(snap.AuthConfigs))
+		defer logger.Debugf("end auth sync %v", snapHash)
+	}
 
 	s.SyncAndSet(ctx, snap, settings, snapshotSetter, reports)
 }
