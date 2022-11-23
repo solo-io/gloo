@@ -1214,7 +1214,7 @@ package-gloo-edge-chart: init-helm
 	helm package --destination $(HELM_SYNC_DIR_FOR_GLOO_EE) $(GLOOE_CHART_DIR)
 
 .PHONY: fetch-package-and-save-helm
-fetch-package-and-save-helm: init-helm package-gloo-fed-chart
+fetch-package-and-save-helm: init-helm
 ifeq ($(RELEASE),"true")
 	until $$(GENERATION=$$(gsutil ls -a $(GLOOE_HELM_BUCKET)/index.yaml | tail -1 | cut -f2 -d '#') && \
 					gsutil cp -v $(GLOOE_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_FOR_GLOO_EE)/index.yaml && \
@@ -1229,7 +1229,7 @@ ifeq ($(RELEASE),"true")
 		  gsutil cp -v $(GLOO_FED_HELM_BUCKET)/index.yaml $(HELM_SYNC_DIR_GLOO_FED)/index.yaml && \
 		  helm package --destination $(HELM_SYNC_DIR_GLOO_FED)/charts $(HELM_DIR)/gloo-fed >> /dev/null && \
 		  helm repo index $(HELM_SYNC_DIR_GLOO_FED) --merge $(HELM_SYNC_DIR_GLOO_FED)/index.yaml && \
-		  gsutil -m rsync $(HELM_SYNC_DIR_GLOO_FED)/charts $(GLOO_FED_HELM_BUCKET) && \
+		  gsutil -m rsync $(HELM_SYNC_DIR_GLOO_FED)/charts $(GLOO_FED_HELM_BUCKET)/charts && \
 		  gsutil -h x-goog-if-generation-match:"$$GENERATION" cp $(HELM_SYNC_DIR_GLOO_FED)/index.yaml $(GLOO_FED_HELM_BUCKET)/index.yaml); do \
 	echo "Failed to upload new helm index (updated helm index since last download?). Trying again"; \
 	sleep 2; \
