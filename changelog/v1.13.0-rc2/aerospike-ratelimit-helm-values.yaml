@@ -1,0 +1,6 @@
+changelog:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/3945
+    resolvesIssue: false
+    description: >
+      Adding Rate Limit Aerospike helm values.

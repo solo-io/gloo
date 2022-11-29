@@ -1291,6 +1291,355 @@ gloo:
 					Expect(rateLimitDeploymentCreated).To(BeTrue(), "Should create the rate-limit deployment")
 				})
 
+				Context("Aerospike", func() {
+					var aeroSpikeKeyValuesTLS, aeroSpikeKeyValues map[string]string
+					BeforeEach(func() {
+						aeroSpikeKeyValuesTLS = map[string]string{
+							"AEROSPIKE_NODE_TLS_NAME":        "tlsName",
+							"AEROSPIKE_INSECURE_SKIP_VERIFY": "true",
+							"AEROSPIKE_TLS_VERSION":          "1.3",
+							"AEROSPIKE_CERT_FILE":            "/etc/aerospike/tls/tls.crt",
+							"AEROSPIKE_KEY_FILE":             "/etc/aerospike/tls/tls.key",
+							"AEROSPIKE_ROOT_CA_FILE":         "/etc/aerospike/root-tls/tls.crt",
+							"AEROSPIKE_TLS_CURVE_GROUPS":     "23,24,25,29",
+						}
+						aeroSpikeKeyValues = map[string]string{
+							"AEROSPIKE_ADDRESS":      "aerospikeAddress",
+							"AEROSPIKE_NAMESPACE":    "aeroNamespace",
+							"AEROSPIKE_SET":          "aeroSet",
+							"AEROSPIKE_PORT":         "3004",
+							"AEROSPIKE_BATCH_SIZE":   "2",
+							"AEROSPIKE_COMMIT_LEVEL": "1",
+							"AEROSPIKE_READMODE_SC":  "3",
+							"AEROSPIKE_READMODE_AP":  "4",
+						}
+					})
+
+					It("has aerospike with TLS configurations", func() {
+						// file creation operations to support test
+						helmOverrideFile := "helm-override-*.yaml"
+						tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+						Expect(err).ToNot(HaveOccurred())
+						_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
+						Expect(err).NotTo(HaveOccurred())
+						defer tmpFile.Close()
+						defer os.Remove(tmpFile.Name())
+
+						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+							valuesFile: tmpFile.Name(),
+							valuesArgs: []string{
+								"global.extensions.rateLimit.deployment.aerospike.address=aerospikeAddress",
+								"global.extensions.rateLimit.deployment.aerospike.namespace=aeroNamespace",
+								"global.extensions.rateLimit.deployment.aerospike.set=aeroSet",
+								"global.extensions.rateLimit.deployment.aerospike.port=3004",
+								"global.extensions.rateLimit.deployment.aerospike.batchSize=2",
+								"global.extensions.rateLimit.deployment.aerospike.commitLevel=1",
+								"global.extensions.rateLimit.deployment.aerospike.readModeSC=3",
+								"global.extensions.rateLimit.deployment.aerospike.readModeAP=4",
+								"global.extensions.rateLimit.deployment.aerospike.tls.name=tlsName",
+								"global.extensions.rateLimit.deployment.aerospike.tls.version=1.3",
+								"global.extensions.rateLimit.deployment.aerospike.tls.insecure=true",
+								"global.extensions.rateLimit.deployment.aerospike.tls.certSecretName=AeroCertSecretName",
+								"global.extensions.rateLimit.deployment.aerospike.tls.rootCASecretName=RootCASecretName",
+								"global.extensions.rateLimit.deployment.aerospike.tls.curveGroups[0]=23",
+								"global.extensions.rateLimit.deployment.aerospike.tls.curveGroups[1]=24",
+								"global.extensions.rateLimit.deployment.aerospike.tls.curveGroups[2]=25",
+								"global.extensions.rateLimit.deployment.aerospike.tls.curveGroups[3]=29",
+							},
+						})
+						Expect(err).ToNot(HaveOccurred())
+						foundRateLimit := false
+						testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+							return resource.GetKind() == "Deployment"
+						}).ExpectAll(func(deployment *unstructured.Unstructured) {
+							deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+							if err != nil {
+								fmt.Printf(err.Error())
+							}
+							Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+							structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+							Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+							// should have redis deployed with tls enabled
+							if structuredDeployment.GetName() == "rate-limit" {
+								foundRateLimit = true
+								ex := ExpectContainer{
+									Containers: structuredDeployment.Spec.Template.Spec.Containers,
+									Name:       "rate-limit",
+								}
+								Expect(structuredDeployment.Spec.Template.Spec.Containers).To(HaveLen(1), "should have exactly 1 container")
+								for key, value := range aeroSpikeKeyValues {
+									ex.ExpectToHaveEnv(key, value, fmt.Sprintf("should have %s = %s", key, value))
+								}
+								for key, value := range aeroSpikeKeyValuesTLS {
+									ex.ExpectToHaveEnv(key, value, fmt.Sprintf("should have %s = %s", key, value))
+								}
+								// have the valume mounts for the secrets
+								ex.ExpectToHaveVolumeMount("aerospike-cert-volume")
+								ex.ExpectToHaveVolumeMount("aerospike-root-cert-volume")
+								Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(v1.Volume{
+									Name: "aerospike-root-cert-volume",
+									VolumeSource: v1.VolumeSource{
+										Secret: &v1.SecretVolumeSource{
+											SecretName:  "RootCASecretName",
+											Items:       nil,
+											DefaultMode: proto.Int(420),
+										},
+									},
+								}))
+								Expect(structuredDeployment.Spec.Template.Spec.Volumes).To(ContainElement(v1.Volume{
+									Name: "aerospike-cert-volume",
+									VolumeSource: v1.VolumeSource{
+										Secret: &v1.SecretVolumeSource{
+											SecretName:  "AeroCertSecretName",
+											Items:       nil,
+											DefaultMode: proto.Int(420),
+										},
+									},
+								}))
+							}
+						})
+						Expect(foundRateLimit).To(Equal(true))
+					})
+
+					It("does not populdate aerospike with TLS configurations that do not need to be populated", func() {
+						aeroSpikeKeyValuesTLS := map[string]string{
+							"AEROSPIKE_NODE_TLS_NAME":        "tlsName",
+							"AEROSPIKE_INSECURE_SKIP_VERIFY": "",
+							"AEROSPIKE_TLS_VERSION":          "",
+						}
+						aerospikeDoesNotInclude := []string{
+							"AEROSPIKE_TLS_CURVE_GROUPS",
+							"AEROSPIKE_CERT_FILE",
+							"AEROSPIKE_KEY_FILE",
+							"AEROSPIKE_ROOT_CA_FILE",
+						}
+						// file creation operations to support test
+						helmOverrideFile := "helm-override-*.yaml"
+						tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+						Expect(err).ToNot(HaveOccurred())
+						_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
+						Expect(err).NotTo(HaveOccurred())
+						defer tmpFile.Close()
+						defer os.Remove(tmpFile.Name())
+
+						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+							valuesFile: tmpFile.Name(),
+							// TODO-JAKE if the value is not specified do not add it here.
+							valuesArgs: []string{
+								"global.extensions.rateLimit.deployment.aerospike.address=aerospikeAddress",
+								"global.extensions.rateLimit.deployment.aerospike.namespace=aeroNamespace",
+								"global.extensions.rateLimit.deployment.aerospike.set=aeroSet",
+								"global.extensions.rateLimit.deployment.aerospike.port=3004",
+								"global.extensions.rateLimit.deployment.aerospike.batchSize=2",
+								"global.extensions.rateLimit.deployment.aerospike.commitLevel=1",
+								"global.extensions.rateLimit.deployment.aerospike.readModeSC=3",
+								"global.extensions.rateLimit.deployment.aerospike.readModeAP=4",
+								"global.extensions.rateLimit.deployment.aerospike.tls.name=tlsName",
+							},
+						})
+						Expect(err).ToNot(HaveOccurred())
+						foundRateLimit := false
+						testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+							return resource.GetKind() == "Deployment"
+						}).ExpectAll(func(deployment *unstructured.Unstructured) {
+							deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+							if err != nil {
+								fmt.Printf(err.Error())
+							}
+							Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+							structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+							Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+							// should have redis deployed with tls enabled
+							if structuredDeployment.GetName() == "rate-limit" {
+								foundRateLimit = true
+								ex := ExpectContainer{
+									Containers: structuredDeployment.Spec.Template.Spec.Containers,
+									Name:       "rate-limit",
+								}
+								for key, value := range aeroSpikeKeyValuesTLS {
+									ex.ExpectToHaveEnv(key, value, fmt.Sprintf("should have %s = %s", key, value))
+								}
+								for _, key := range aerospikeDoesNotInclude {
+									ex.ExpectToNotHaveEnv(key, fmt.Sprintf("should not have key %s", key))
+								}
+								ex.ExpectToNotHaveVolumeMount("aerospike-cert-volume")
+								ex.ExpectToNotHaveVolumeMount("aerospike-root-cert-volume")
+								Expect(structuredDeployment.Spec.Template.Spec.Volumes).ToNot(ContainElement(v1.Volume{
+									Name: "aerospike-root-cert-volume",
+									VolumeSource: v1.VolumeSource{
+										Secret: &v1.SecretVolumeSource{
+											SecretName:  "RootCASecretName",
+											Items:       nil,
+											DefaultMode: proto.Int(420),
+										},
+									},
+								}))
+								Expect(structuredDeployment.Spec.Template.Spec.Volumes).ToNot(ContainElement(v1.Volume{
+									Name: "aerospike-cert-volume",
+									VolumeSource: v1.VolumeSource{
+										Secret: &v1.SecretVolumeSource{
+											SecretName:  "AeroCertSecretName",
+											Items:       nil,
+											DefaultMode: proto.Int(420),
+										},
+									},
+								}))
+							}
+						})
+						Expect(foundRateLimit).To(Equal(true))
+					})
+
+					It("should populate aerospike data without TLS settings", func() {
+						// file creation operations to support test
+						helmOverrideFile := "helm-override-*.yaml"
+						tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+						Expect(err).ToNot(HaveOccurred())
+						_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
+						Expect(err).NotTo(HaveOccurred())
+						defer tmpFile.Close()
+						defer os.Remove(tmpFile.Name())
+
+						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+							valuesFile: tmpFile.Name(),
+							valuesArgs: []string{
+								"global.extensions.rateLimit.deployment.aerospike.address=aerospikeAddress",
+								"global.extensions.rateLimit.deployment.aerospike.namespace=aeroNamespace",
+								"global.extensions.rateLimit.deployment.aerospike.set=aeroSet",
+								"global.extensions.rateLimit.deployment.aerospike.port=3004",
+								"global.extensions.rateLimit.deployment.aerospike.batchSize=2",
+								"global.extensions.rateLimit.deployment.aerospike.commitLevel=1",
+								"global.extensions.rateLimit.deployment.aerospike.readModeSC=3",
+								"global.extensions.rateLimit.deployment.aerospike.readModeAP=4",
+							},
+						})
+						Expect(err).ToNot(HaveOccurred())
+						foundRateLimit := false
+						testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+							return resource.GetKind() == "Deployment"
+						}).ExpectAll(func(deployment *unstructured.Unstructured) {
+							deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+							if err != nil {
+								fmt.Printf(err.Error())
+							}
+							Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+							structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+							Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+							// should have redis deployed with tls enabled
+							if structuredDeployment.GetName() == "rate-limit" {
+								foundRateLimit = true
+								ex := ExpectContainer{
+									Containers: structuredDeployment.Spec.Template.Spec.Containers,
+									Name:       "rate-limit",
+								}
+								Expect(structuredDeployment.Spec.Template.Spec.Containers).To(HaveLen(1), "should have exactly 1 container")
+								for key, value := range aeroSpikeKeyValues {
+									ex.ExpectToHaveEnv(key, value, fmt.Sprintf("should have %s = %s", key, value))
+								}
+								for key, value := range aeroSpikeKeyValuesTLS {
+									ex.ExpectToNotHaveEnv(key, fmt.Sprintf("should not have key %s = %s", key, value))
+								}
+								Expect(structuredDeployment.Spec.Template.Spec.Volumes).ToNot(ContainElement(v1.Volume{
+									Name: "aerospike-root-cert-volume",
+									VolumeSource: v1.VolumeSource{
+										Secret: &v1.SecretVolumeSource{
+											SecretName:  "RootCASecretName",
+											Items:       nil,
+											DefaultMode: proto.Int(420),
+										},
+									},
+								}))
+								Expect(structuredDeployment.Spec.Template.Spec.Volumes).ToNot(ContainElement(v1.Volume{
+									Name: "aerospike-cert-volume",
+									VolumeSource: v1.VolumeSource{
+										Secret: &v1.SecretVolumeSource{
+											SecretName:  "AeroCertSecretName",
+											Items:       nil,
+											DefaultMode: proto.Int(420),
+										},
+									},
+								}))
+							}
+						})
+						Expect(foundRateLimit).To(Equal(true))
+					})
+					It("should set the default values for the helm chart", func() {
+						// the only value that should be changed is the address
+						aerospikeValuesChanged := map[string]string{
+							"AEROSPIKE_ADDRESS": "aerospikeAddress",
+						}
+						// file creation operations to support test
+						helmOverrideFile := "helm-override-*.yaml"
+						tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+						Expect(err).ToNot(HaveOccurred())
+						_, err = tmpFile.Write([]byte(helmOverrideFileContents(false)))
+						Expect(err).NotTo(HaveOccurred())
+						defer tmpFile.Close()
+						defer os.Remove(tmpFile.Name())
+
+						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+							valuesFile: tmpFile.Name(),
+							valuesArgs: []string{
+								"global.extensions.rateLimit.deployment.aerospike.address=aerospikeAddress",
+							},
+						})
+						Expect(err).ToNot(HaveOccurred())
+						foundRateLimit := false
+						testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+							return resource.GetKind() == "Deployment"
+						}).ExpectAll(func(deployment *unstructured.Unstructured) {
+							deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+							if err != nil {
+								fmt.Printf(err.Error())
+							}
+							Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured", deployment))
+							structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+							Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment", deployment))
+							// should have redis deployed with tls enabled
+							if structuredDeployment.GetName() == "rate-limit" {
+								foundRateLimit = true
+								ex := ExpectContainer{
+									Containers: structuredDeployment.Spec.Template.Spec.Containers,
+									Name:       "rate-limit",
+								}
+								Expect(structuredDeployment.Spec.Template.Spec.Containers).To(HaveLen(1), "should have exactly 1 container")
+								for key, value := range aerospikeValuesChanged {
+									ex.ExpectToHaveEnv(key, value, fmt.Sprintf("should have %s = %s", key, value))
+								}
+								for key, value := range aeroSpikeKeyValues {
+									// the address is the only aerospike variable being set in this test
+									if key != "AEROSPIKE_ADDRESS" {
+										ex.ExpectToNotHaveEnv(key, fmt.Sprintf("should not have key %s = %s", key, value))
+									}
+								}
+								for key, value := range aeroSpikeKeyValuesTLS {
+									ex.ExpectToNotHaveEnv(key, fmt.Sprintf("should not have key %s = %s", key, value))
+								}
+								Expect(structuredDeployment.Spec.Template.Spec.Volumes).ToNot(ContainElement(v1.Volume{
+									Name: "aerospike-root-cert-volume",
+									VolumeSource: v1.VolumeSource{
+										Secret: &v1.SecretVolumeSource{
+											SecretName:  "RootCASecretName",
+											Items:       nil,
+											DefaultMode: proto.Int(420),
+										},
+									},
+								}))
+								Expect(structuredDeployment.Spec.Template.Spec.Volumes).ToNot(ContainElement(v1.Volume{
+									Name: "aerospike-cert-volume",
+									VolumeSource: v1.VolumeSource{
+										Secret: &v1.SecretVolumeSource{
+											SecretName:  "AeroCertSecretName",
+											Items:       nil,
+											DefaultMode: proto.Int(420),
+										},
+									},
+								}))
+							}
+						})
+						Expect(foundRateLimit).To(Equal(true))
+					})
+				})
+
 				It("doesn't duplicate resources across proxies when dataplane per proxy is false", func() {
 
 					helmOverrideFile := "helm-override-*.yaml"

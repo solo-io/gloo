@@ -21,9 +21,19 @@ func (c *ExpectContainer) ExpectToHaveEnv(envName, envValue, errorMsg string) {
 	Expect(c.hasEnvVar(envName, envValue)).To(BeTrue(), errorMsg)
 }
 
+func (c *ExpectContainer) ExpectToNotHaveEnv(envName, errorMsg string) {
+	Expect(c.doesNotHaveEnvVar(envName)).To(BeTrue(), errorMsg)
+}
+
 func (ec *ExpectContainer) ExpectToHaveVolumeMount(name string) *v1.VolumeMount {
 	vm := ec.getVolumeMount(name)
 	Expect(vm).NotTo(BeNil())
+	return vm
+}
+
+func (ec *ExpectContainer) ExpectToNotHaveVolumeMount(name string) *v1.VolumeMount {
+	vm := ec.getVolumeMount(name)
+	Expect(vm).To(BeNil())
 	return vm
 }
 
@@ -61,6 +71,20 @@ func (ec *ExpectContainer) hasEnvVar(env, value string) bool {
 		return false
 	}
 	Expect(c.Env).To(ContainElement(v1.EnvVar{Name: env, Value: value}))
+	return true
+}
+
+func (ec *ExpectContainer) doesNotHaveEnvVar(env string) bool {
+	c := ec.getContainer()
+	if c == nil {
+		return true
+	}
+	for _, e := range c.Env {
+		if e.Name == env {
+			Expect(e.Name).ToNot(Equal(env))
+			return false
+		}
+	}
 	return true
 }
 

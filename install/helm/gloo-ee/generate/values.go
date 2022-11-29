@@ -108,11 +108,33 @@ type DynamoDb struct {
 	BatchSize          uint8  `json:"batchSize" desc:"batch size for get requests to DynamoDB (max 100, default 100)"`
 }
 
+type AerospikeDb struct {
+	Address      string        `json:"address" desc:"when set, enables Aerospike DB. The address for the Aerospike DB host."`
+	Namespace    string        `json:"namespace" desc:"the namespace of the aerospike DB. Defaults to solo-namespace."`
+	Set          string        `json:"set" desc:"the name of the aerospike DB set. Defaults to ratelimiter."`
+	Port         int           `json:"port" desc:"the port used by the address. Default to 3000."`
+	BatchSize    int           `json:"batchSize" desc:"the size of the batch"`
+	CommitLevel  int           `json:"commitLevel" desc:"the commit level. See [commit policy](https://github.com/aerospike/aerospike-client-go/blob/master/commit_policy.go) for options."`
+	ReadModeSC   int           `json:"readModeSC" desc:"the read mode SC. See [read mode SC](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_sc.go) for options."`
+	ReadModeAP   int           `json:"readModeAP" desc:"the read mode AP. See [read mode AP](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_ap.go) for options."`
+	AerospikeTLS *AerospikeTLS `json:"tls,omitempty" desc:"Aerospike TLS Settings"`
+}
+
+type AerospikeTLS struct {
+	Name             string   `json:"name" desc:"the TLS Name"`
+	Version          string   `json:"version" desc:"TLS version 1.0, 1.1, 1.2, and 1.3 supported"`
+	Insecure         *bool    `json:"insecure" desc:"TLS insecure setting"`
+	CertSecretName   string   `json:"certSecretName" desc:"name of the kubernetes.io/tls secret with the tls.crt and tls.key defined"`
+	RootCASecretName string   `json:"rootCASecretName" desc:"the secret name for the Opaque root CA, set the key as tls.crt"`
+	CurveGroups      []string `json:"curveGroups" desc:"the TLS curve groups"`
+}
+
 type RateLimitDeployment struct {
 	Name                 string               `json:"name"`
 	GlooAddress          string               `json:"glooAddress"`
 	GlooPort             uint                 `json:"glooPort" desc:"Sets the port of the gloo xDS server in the ratelimit sidecar envoy bootstrap config"`
 	DynamoDb             DynamoDb             `json:"dynamodb"`
+	AerospikeDb          AerospikeDb          `json:"aerospike"`
 	Image                *glooGen.Image       `json:"image,omitempty"`
 	Stats                *glooGen.Stats       `json:"stats"`
 	RunAsUser            float64              `json:"runAsUser" desc:"Explicitly set the user ID for the container to run as. Default is 10101"`
