@@ -1499,6 +1499,20 @@
 |global.extensions.rateLimit.deployment.dynamodb.tableName|string|rate-limits|DynamoDB table name used to back rate limit service (default rate-limits)|
 |global.extensions.rateLimit.deployment.dynamodb.consistentReads|bool|true|if true, reads from DynamoDB will be strongly consistent (default false)|
 |global.extensions.rateLimit.deployment.dynamodb.batchSize|uint8|100|batch size for get requests to DynamoDB (max 100, default 100)|
+|global.extensions.rateLimit.deployment.aerospike.address|string||when set, enables Aerospike DB. The address for the Aerospike DB host.|
+|global.extensions.rateLimit.deployment.aerospike.namespace|string||the namespace of the aerospike DB. Defaults to solo-namespace.|
+|global.extensions.rateLimit.deployment.aerospike.set|string||the name of the aerospike DB set. Defaults to ratelimiter.|
+|global.extensions.rateLimit.deployment.aerospike.port|int|0|the port used by the address. Default to 3000.|
+|global.extensions.rateLimit.deployment.aerospike.batchSize|int|0|the size of the batch|
+|global.extensions.rateLimit.deployment.aerospike.commitLevel|int|0|the commit level. See [commit policy](https://github.com/aerospike/aerospike-client-go/blob/master/commit_policy.go) for options.|
+|global.extensions.rateLimit.deployment.aerospike.readModeSC|int|0|the read mode SC. See [read mode SC](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_sc.go) for options.|
+|global.extensions.rateLimit.deployment.aerospike.readModeAP|int|0|the read mode AP. See [read mode AP](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_ap.go) for options.|
+|global.extensions.rateLimit.deployment.aerospike.tls.name|string||the TLS Name|
+|global.extensions.rateLimit.deployment.aerospike.tls.version|string||TLS version 1.0, 1.1, 1.2, and 1.3 supported|
+|global.extensions.rateLimit.deployment.aerospike.tls.insecure|bool||TLS insecure setting|
+|global.extensions.rateLimit.deployment.aerospike.tls.certSecretName|string||name of the kubernetes.io/tls secret with the tls.crt and tls.key defined|
+|global.extensions.rateLimit.deployment.aerospike.tls.rootCASecretName|string||the secret name for the Opaque root CA, set the key as tls.crt|
+|global.extensions.rateLimit.deployment.aerospike.tls.curveGroups[]|string||the TLS curve groups|
 |global.extensions.rateLimit.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |global.extensions.rateLimit.deployment.image.repository|string|rate-limit-ee|The image repository (name) for the container.|
 |global.extensions.rateLimit.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|

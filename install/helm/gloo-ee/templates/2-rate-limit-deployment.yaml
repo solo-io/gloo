@@ -89,6 +89,60 @@ spec:
               value: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.consistentReads | quote }}
             - name: DYNAMODB_BATCH_SIZE
               value: {{ .Values.global.extensions.rateLimit.deployment.dynamodb.batchSize | quote }}
+            {{- else if .Values.global.extensions.rateLimit.deployment.aerospike.address }}
+            {{- $aero := .Values.global.extensions.rateLimit.deployment.aerospike }}
+            - name: AEROSPIKE_ADDRESS
+              value: {{ $aero.address }}
+            {{- if $aero.namespace }}
+            - name: AEROSPIKE_NAMESPACE
+              value: {{ $aero.namespace }}
+            {{- end }}
+            {{- if $aero.set }}
+            - name: AEROSPIKE_SET
+              value: {{ $aero.set }}
+            {{- end }}
+            {{- if $aero.port }}
+            - name: AEROSPIKE_PORT
+              value: {{ $aero.port | quote}}
+            {{- end }}
+            {{- if $aero.batchSize }}
+            - name: AEROSPIKE_BATCH_SIZE
+              value: {{ $aero.batchSize | quote }}
+            {{- end }}
+            {{- if $aero.commitLevel }}
+            - name: AEROSPIKE_COMMIT_LEVEL
+              value: {{ $aero.commitLevel | quote }}
+            {{- end }}
+            {{- if $aero.readModeSC }}
+            - name: AEROSPIKE_READMODE_SC
+              value: {{ $aero.readModeSC | quote }}
+            {{- end }}
+            {{- if $aero.readModeAP }}
+            - name: AEROSPIKE_READMODE_AP
+              value: {{ $aero.readModeAP | quote }}
+            {{- end }}
+            {{- if $aero.tls }}
+            - name: AEROSPIKE_NODE_TLS_NAME
+              value: {{ $aero.tls.name }}
+            - name: AEROSPIKE_INSECURE_SKIP_VERIFY
+              value: {{ $aero.tls.insecure | quote }}
+            - name: AEROSPIKE_TLS_VERSION
+              value: {{ $aero.tls.version | quote }}
+            {{- if $aero.tls.curveGroups }}
+            - name: AEROSPIKE_TLS_CURVE_GROUPS
+              value: '{{ join "," $aero.tls.curveGroups }}'
+            {{- end }}
+            {{- if $aero.tls.certSecretName }}
+            - name: AEROSPIKE_CERT_FILE
+              value: "/etc/aerospike/tls/tls.crt"
+            - name: AEROSPIKE_KEY_FILE
+              value: "/etc/aerospike/tls/tls.key"
+            {{- end }}
+            {{- if $aero.tls.rootCASecretName }}
+            - name: AEROSPIKE_ROOT_CA_FILE
+              value: "/etc/aerospike/root-tls/tls.crt"
+            {{- end }}
+            {{- end }}{{/* $aero.tls */}}
             {{- else if .Values.redis.clientSideShardingEnabled }}{{/* end .Values.global.extensions.rateLimit.deployment.dynamodb.secretName */}}
             - name: REDIS_URL
               value: /var/run/envoy/ratelimit.sock
@@ -152,7 +206,7 @@ spec:
             - name: http-monitoring
               containerPort: 9091
           {{- end }}
-          {{- if or .Values.redis.clientSideShardingEnabled .Values.redis.cert.enabled }}
+          {{- if (or .Values.redis.clientSideShardingEnabled (or .Values.redis.cert.enabled (and .Values.global.extensions.rateLimit.deployment.aerospike.tls (or (.Values.global.extensions.rateLimit.deployment.aerospike.tls).rootCASecretName (.Values.global.extensions.rateLimit.deployment.aerospike.tls).certSecretName)))) }}
           volumeMounts:
             {{- if .Values.redis.clientSideShardingEnabled }}
             - mountPath: /var/run/envoy/
@@ -161,6 +215,14 @@ spec:
             {{- if .Values.redis.cert.enabled }}
             - mountPath: /etc/tls/
               name: ca-cert-volume
+            {{- end }}
+            {{- if and .Values.global.extensions.rateLimit.deployment.aerospike.tls .Values.global.extensions.rateLimit.deployment.aerospike.tls.certSecretName }}
+            - mountPath: /etc/aerospike/tls/
+              name: aerospike-cert-volume
+            {{- end }}
+            {{- if and .Values.global.extensions.rateLimit.deployment.aerospike.tls .Values.global.extensions.rateLimit.deployment.aerospike.tls.rootCASecretName }}
+            - mountPath: /etc/aerospike/root-tls/
+              name: aerospike-root-cert-volume
             {{- end }}
           {{- end }}{{/* or .Values.redis.clientSideShardingEnabled .Values.redis.cert.enabled */}}
         {{- if or .Values.global.glooMtls.enabled .Values.redis.clientSideShardingEnabled }}
@@ -222,7 +284,7 @@ spec:
       {{- if .Values.global.extensions.rateLimit.antiAffinity }}
         {{ toYaml .Values.global.extensions.rateLimit.antiAffinity | nindent 8 }}
       {{- end }}
-      {{- if or (or .Values.global.glooMtls.enabled .Values.redis.clientSideShardingEnabled) .Values.redis.cert.enabled }}
+      {{- if or (or .Values.global.glooMtls.enabled (or .Values.redis.clientSideShardingEnabled (and .Values.global.extensions.rateLimit.deployment.aerospike.tls (or (.Values.global.extensions.rateLimit.deployment.aerospike.tls).rootCASecretName (.Values.global.extensions.rateLimit.deployment.aerospike.tls).rootCASecretName)))) .Values.redis.cert.enabled }}
       volumes:
         {{- if .Values.global.glooMtls.enabled }}
         - name: gloo-mtls-certs
@@ -243,6 +305,18 @@ spec:
             secretName: {{.Release.Name}}-redis-ca-cert-secret
             defaultMode: 420
         {{- end }}
+        {{- if and .Values.global.extensions.rateLimit.deployment.aerospike.tls .Values.global.extensions.rateLimit.deployment.aerospike.tls.certSecretName }}
+        - name: aerospike-cert-volume
+          secret:
+            secretName: {{ .Values.global.extensions.rateLimit.deployment.aerospike.tls.certSecretName }}
+            defaultMode: 420
+        {{- end }}
+        {{- if and .Values.global.extensions.rateLimit.deployment.aerospike.tls .Values.global.extensions.rateLimit.deployment.aerospike.tls.rootCASecretName }}
+        - name: aerospike-root-cert-volume
+          secret:
+            secretName: {{ .Values.global.extensions.rateLimit.deployment.aerospike.tls.rootCASecretName }}
+            defaultMode: 420
+        {{ end }}
       {{- end }}{{/* .Values.global.glooMtls.enabled || .Values.redis.clientSideShardingEnabled || .Values.redis.cert.enabled */}}
 {{- include "gloo.pullSecret" $image | nindent 6}}
 ---
