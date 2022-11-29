@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/solo-io/solo-projects/test/kubeutils"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 
@@ -54,7 +56,7 @@ func StartTestHelper() {
 	testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
 		defaults.RootDir = filepath.Join(cwd, "../../..")
 		defaults.HelmChartName = "gloo-ee"
-		defaults.LicenseKey = "eyJleHAiOjM4Nzk1MTY3ODYsImlhdCI6MTU1NDk0MDM0OCwiayI6IkJ3ZXZQQSJ9.tbJ9I9AUltZ-iMmHBertugI2YIg1Z8Q0v6anRjc66Jo"
+		defaults.LicenseKey = kubeutils.LicenseKey()
 		defaults.InstallNamespace = installNamespace
 		defaults.Verbose = true
 		return defaults

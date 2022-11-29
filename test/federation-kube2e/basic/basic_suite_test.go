@@ -1,4 +1,4 @@
-package gloo_fed_e2e_test
+package basic_test
 
 import (
 	"context"
@@ -6,21 +6,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
-	"k8s.io/client-go/rest"
+	"github.com/solo-io/solo-projects/test/kubeutils"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/solo-io/go-utils/log"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
-	skv2_test "github.com/solo-io/skv2/test"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	multicluster_v1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1"
 	multicluster_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
@@ -29,24 +27,35 @@ import (
 )
 
 const (
-	remoteClusterContextEnvName     = "REMOTE_CLUSTER_CONTEXT"
-	managementClusterContextEnvName = "MANAGEMENT_CLUSTER_CONTEXT"
+	remoteClusterEnvName     = "REMOTE_CLUSTER"
+	managementClusterEnvName = "MANAGEMENT_CLUSTER"
 )
 
 func TestE2e(t *testing.T) {
-	if os.Getenv(remoteClusterContextEnvName) == "" || os.Getenv(managementClusterContextEnvName) == "" {
-		log.Warnf("This test is disabled. "+
-			"To enable, set %s and %s in your env.", remoteClusterContextEnvName, managementClusterContextEnvName)
+	if !kubeutils.IsKubeTestType("basic") {
+		log.Warnf("This test is disabled. To enable, set KUBE2E_TESTS to 'basic' in your env.")
 		return
 	}
+
+	requiredEnvForTest := []string{
+		kubeutils.GlooLicenseKey,
+		managementClusterEnvName,
+		remoteClusterEnvName,
+	}
+
+	if !kubeutils.IsEnvDefined(requiredEnvForTest) {
+		log.Warnf("This test is disabled. To enable, set %v in your env.", requiredEnvForTest)
+		return
+	}
+
 	RegisterFailHandler(Fail)
 	junitReporter := reporters.NewJUnitReporter("junit.xml")
 	RunSpecsWithDefaultAndCustomReporters(t, "Fed E2e Suite", []Reporter{junitReporter})
 }
 
 var (
-	remoteClusterConfig     *clusterConfig
-	managementClusterConfig *clusterConfig
+	remoteClusterConfig     *kubeutils.ClusterConfig
+	managementClusterConfig *kubeutils.ClusterConfig
 
 	mcRole        *multicluster_v1alpha1.MultiClusterRole
 	mcRoleBinding *multicluster_v1alpha1.MultiClusterRoleBinding
@@ -54,42 +63,9 @@ var (
 	namespace     = defaults.GlooSystem
 )
 
-type clusterConfig struct {
-	KubeContext           string
-	RestConfig            *rest.Config
-	FederatedClientset    fedv1.Clientset
-	MulticlusterClientset multicluster_v1alpha1.Clientset
-	GatewayClientset      gatewayv1.Clientset
-	GlooClientset         gloov1.Clientset
-}
-
-func createClusterConfigFromKubeContext(kubeCtx string) *clusterConfig {
-	restCfg := skv2_test.MustConfig(kubeCtx)
-	fedClientset, err := fedv1.NewClientsetFromConfig(restCfg)
-	Expect(err).NotTo(HaveOccurred())
-
-	multiclusterClientset, err := multicluster_v1alpha1.NewClientsetFromConfig(restCfg)
-	Expect(err).NotTo(HaveOccurred())
-
-	glooClientset, err := gloov1.NewClientsetFromConfig(restCfg)
-	Expect(err).NotTo(HaveOccurred())
-
-	gatewayClientset, err := gatewayv1.NewClientsetFromConfig(restCfg)
-	Expect(err).NotTo(HaveOccurred())
-
-	return &clusterConfig{
-		KubeContext:           kubeCtx,
-		RestConfig:            restCfg,
-		FederatedClientset:    fedClientset,
-		MulticlusterClientset: multiclusterClientset,
-		GatewayClientset:      gatewayClientset,
-		GlooClientset:         glooClientset,
-	}
-}
-
 var _ = SynchronizedBeforeSuite(func() []byte {
-	remoteClusterConfig = createClusterConfigFromKubeContext(os.Getenv(remoteClusterContextEnvName))
-	managementClusterConfig = createClusterConfigFromKubeContext(os.Getenv(managementClusterContextEnvName))
+	remoteClusterConfig = kubeutils.CreateClusterConfigFromKubeClusterNameEnv(remoteClusterEnvName)
+	managementClusterConfig = kubeutils.CreateClusterConfigFromKubeClusterNameEnv(managementClusterEnvName)
 
 	err = os.Setenv(statusutils.PodNamespaceEnvName, namespace)
 	Expect(err).NotTo(HaveOccurred())

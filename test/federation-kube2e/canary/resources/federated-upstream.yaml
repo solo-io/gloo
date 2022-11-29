@@ -1,0 +1,21 @@
+apiVersion: fed.gloo.solo.io/v1
+kind: FederatedUpstream
+metadata:
+  name: federated-upstream
+  namespace: gloo-fed
+spec:
+  placement:
+    clusters:
+      - remote-cluster
+    namespaces:
+      - gloo-system
+  template:
+    metadata:
+      name: upstream
+    spec:
+      # Intentionally include an unknown field, this should not cause errors
+      nonExistentField: xyz
+      kube:
+        serviceName: my-service
+        serviceNamespace: default
+        servicePort: 10000

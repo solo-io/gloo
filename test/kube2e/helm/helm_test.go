@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
+	kubeutils2 "github.com/solo-io/solo-projects/test/kubeutils"
+
 	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -75,7 +77,7 @@ var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 		testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
 			defaults.RootDir = filepath.Join(cwd, "../../..")
 			defaults.HelmChartName = "gloo-ee"
-			defaults.LicenseKey = "eyJleHAiOjM4Nzk1MTY3ODYsImlhdCI6MTU1NDk0MDM0OCwiayI6IkJ3ZXZQQSJ9.tbJ9I9AUltZ-iMmHBertugI2YIg1Z8Q0v6anRjc66Jo"
+			defaults.LicenseKey = kubeutils2.LicenseKey()
 			defaults.InstallNamespace = namespace
 			defaults.Verbose = true
 			return defaults

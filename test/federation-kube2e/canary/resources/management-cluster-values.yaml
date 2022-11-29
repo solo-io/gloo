@@ -1,0 +1,32 @@
+global:
+  extensions:
+    extAuth:
+      enabled: false
+    rateLimit:
+      enabled: false
+observability:
+  enabled: false
+prometheus:
+  enabled: false
+grafana:
+  defaultInstallationEnabled: false
+gloo-fed:
+  enabled: true
+  enableMultiClusterRbac: true
+  glooFedApiserver:
+    enable: false
+  glooFed:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+gloo:
+  gloo:
+    deployment:
+      replicas: 0
+  discovery:
+    deployment:
+      replicas: 0
+  gatewayProxies:
+    gatewayProxy:
+      disabled: true

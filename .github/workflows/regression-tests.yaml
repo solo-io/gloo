@@ -1,9 +1,20 @@
 name: CI
+
 on:
   push:
     branches:
       - 'master'
   pull_request:
+
+env:
+  VERSION: '1.0.0-ci'
+  HELM_VERSION: 'v3.6.0'
+  KUBECTL_VERSION: 'v1.22.4'
+  CLUSTER_NODE_VERSION: 'v1.22.4@sha256:ca3587e6e545a96c07bf82e2c46503d9ef86fc704f44c17577fca7bcabf5f978'
+  GLOO_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
+  GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
 jobs:
   gloo_fed_e2e_tests:
     name: Gloo Fed E2E Tests
@@ -34,10 +45,8 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup Private Repo Permissions
-        env:
-          TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          git config --global url."https://${TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
+          git config --global url."https://${GITHUB_TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
       - name: Setup - gcloud / gsutil
         uses: google-github-actions/setup-gcloud@v0
         with:
@@ -62,10 +71,12 @@ jobs:
             ${{ runner.os }}-go
       - uses: azure/setup-kubectl@v1
         with:
-          version: 'v1.22.4'
+          version: ${{ env.KUBECTL_VERSION }}
+      - uses: azure/setup-helm@v1
+        with:
+          version: ${{ env.HELM_VERSION }}
       - uses: engineerd/setup-kind@v0.5.0
         with:
-          # We rely on the `projects/gloo-fed/ci/setup-kind` script to create a kind cluster
           skipClusterCreation: "true"
           version: v0.11.1
       - name: Yarn Install
@@ -73,23 +84,19 @@ jobs:
         with:
           node-version: '14'
       - run: yarn --cwd projects/ui install
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Setup Kind
         run: |
           ./projects/gloo-fed/ci/setup-kind.sh
         env:
-          GLOO_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-          MANAGEMENT_CLUSTER_NAME: management
-          REMOTE_CLUSTER_NAME: remote
-          CLUSTER_NODE_VERSION: 'v1.22.4@sha256:ca3587e6e545a96c07bf82e2c46503d9ef86fc704f44c17577fca7bcabf5f978'
+          MANAGEMENT_CLUSTER: management
+          REMOTE_CLUSTER: remote
       - name: Run tests
         run: |
           make run-ci-gloo-fed-regression-tests
         env:
-          MANAGEMENT_CLUSTER_CONTEXT: kind-management
-          REMOTE_CLUSTER_CONTEXT: kind-remote
+          KUBE2E_TESTS: basic
+          MANAGEMENT_CLUSTER: management
+          REMOTE_CLUSTER: remote
       - name: Debug Info
         if: failure()
         run: |
@@ -97,6 +104,84 @@ jobs:
           kubectl get all -A
           kubectl get configmaps -A
           kubectl port-forward -n gloo-system deploy/gateway-proxy 19000 & sleep 5; curl localhost:19000/clusters; curl localhost:19000/config_dump;
+  gloo_fed_canary_tests:
+    name: Gloo Fed Canary Tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.4.0
+        with:
+          access_token: ${{ github.token }}
+      - name: Free disk space
+        run: |
+          echo "Before clearing disk space:"
+          df -h
+
+          # https://github.com/actions/virtual-environments/issues/709
+          sudo apt-get clean
+
+          # Clean up pre-installed tools
+          # https://github.com/actions/virtual-environments/issues/1918
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf $AGENT_TOOLSDIRECTORY
+
+          echo "After clearing disk space:"
+          df -h
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Private Repo Permissions
+        run: |
+          git config --global url."https://${GITHUB_TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
+      - name: Setup - gcloud / gsutil
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
+          project_id: gloo-ee
+          export_default_credentials: true
+      - name: Setup docker
+        run: |
+          gcloud auth configure-docker
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18.2
+      - uses: actions/cache@v3
+        env:
+          # https://github.com/actions/cache#cache-segment-restore-timeout
+          SEGMENT_DOWNLOAD_TIMEOUT_MIN: 5
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go
+      - uses: azure/setup-kubectl@v1
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+      - uses: azure/setup-helm@v1
+        with:
+          version: ${{ env.HELM_VERSION }}
+      - uses: engineerd/setup-kind@v0.5.0
+        with:
+          skipClusterCreation: true
+          version: v0.11.1
+      - name: Setup Kind
+        run: |
+          ./projects/gloo-fed/ci/setup-kind-canary.sh
+        env:
+          MANAGEMENT_CLUSTER: management
+          REMOTE_RELEASE_CLUSTER: remote-release
+          REMOTE_CANARY_CLUSTER: remote-canary
+      - name: Run tests
+        run: |
+          make run-ci-gloo-fed-regression-tests
+        env:
+          KUBE2E_TESTS: canary
+          MANAGEMENT_CLUSTER: management
+          REMOTE_RELEASE_CLUSTER: remote-release
+          REMOTE_CANARY_CLUSTER: remote-canary
   regression_tests:
     name: k8s regression tests
     runs-on: ubuntu-22.04
@@ -165,30 +250,20 @@ jobs:
       - uses: azure/setup-kubectl@v1
         id: kubectl
         with:
-          version: 'v1.22.4'
+          version: ${{ env.KUBECTL_VERSION }}
       - uses: azure/setup-helm@v1
         with:
-          version: v3.6.0
+          version: ${{ env.HELM_VERSION }}
       - name: Configure git for private modules
-        env:
-          # matches the GITHUB_ACTION secret used in the cloudbuild, but named CI_ADMIN_GITHUB_TOKEN here
-          # because secrets.GITHUB_ACTION is reserved in github workflows
-          TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-        run: git config --global url."https://soloio_bot:${TOKEN}@github.com".insteadOf "https://github.com"
+        run: git config --global url."https://soloio_bot:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Setup test env
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
           USE_FIPS: ${{ matrix.use-fips }}
-          CLUSTER_NAME: 'kind'
-          CLUSTER_NODE_VERSION: 'v1.22.4@sha256:ca3587e6e545a96c07bf82e2c46503d9ef86fc704f44c17577fca7bcabf5f978'
-          VERSION: '0.0.0-kind'
         run: |
           ./ci/setup-kind.sh
       - name: Testing - kube e2e regression tests
         env:
           KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type }}
-          GITHUB_TOKEN: ${{ github.token }}
           USE_FIPS: ${{ matrix.use-fips }}
         run: |
           make run-ci-regression-tests

@@ -10,6 +10,8 @@ import (
 	"text/template"
 	"time"
 
+	kubeutils2 "github.com/solo-io/solo-projects/test/kubeutils"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -74,7 +76,7 @@ var _ = Describe("Upgrade Tests", func() {
 		testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
 			defaults.RootDir = filepath.Join(cwd, "../../..")
 			defaults.HelmChartName = "gloo-ee"
-			defaults.LicenseKey = "eyJleHAiOjM4Nzk1MTY3ODYsImlhdCI6MTU1NDk0MDM0OCwiayI6IkJ3ZXZQQSJ9.tbJ9I9AUltZ-iMmHBertugI2YIg1Z8Q0v6anRjc66Jo"
+			defaults.LicenseKey = kubeutils2.LicenseKey()
 			defaults.InstallNamespace = namespace
 			defaults.Verbose = true
 			return defaults

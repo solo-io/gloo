@@ -1,4 +1,4 @@
-# gloo-fed E2e Tests
+# Gloo Federation Kubernetes End-to-End Tests
 Gloo Fed E2E Tests
 
 ## Prerequisites

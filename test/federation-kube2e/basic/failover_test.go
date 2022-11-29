@@ -1,4 +1,4 @@
-package gloo_fed_e2e_test
+package basic_test
 
 import (
 	"fmt"

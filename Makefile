@@ -159,7 +159,7 @@ clean-fed: clean-artifacts clean-generated-protos
 run-tests: install-node-packages ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
 ifneq ($(RELEASE), "true")
 	PATH=$(DEPSGOBIN):$$PATH go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
-	$(GINKGO_ENV) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor -skipPackage=kube2e,gloo-fed-e2e $(TEST_PKG)
+	$(GINKGO_ENV) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor -skipPackage=kube2e,federation-kube2e $(TEST_PKG)
 endif
 
 # command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
@@ -173,9 +173,9 @@ run-ci-regression-tests:
 # command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
 # requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
 .PHONY: run-ci-gloo-fed-regression-tests
-run-ci-gloo-fed-regression-tests: install-test-tools ## Run the Kubernetes E2E Tests in the {gloo-fed-e2e} package
+run-ci-gloo-fed-regression-tests: install-test-tools ## Run the Federation Kubernetes E2E Tests in the {KUBE2E_TESTS} package
 	# We intentionally leave out the `-r` ginkgo flag, since we are specifying the exact package that we want run
-	$(GINKGO_ENV) $(DEPSGOBIN)/ginkgo -failFast -trace -progress -race -failOnPending -noColor ./test/gloo-fed-e2e
+	$(GINKGO_ENV) $(DEPSGOBIN)/ginkgo -failFast -trace -progress -race -failOnPending -noColor ./test/federation-kube2e/$(KUBE2E_TESTS)
 
 # command to run e2e tests
 # requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run

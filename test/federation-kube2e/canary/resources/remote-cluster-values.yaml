@@ -1,0 +1,41 @@
+global:
+  extensions:
+    extAuth:
+      enabled: false
+    rateLimit:
+      enabled: false
+observability:
+  enabled: false
+prometheus:
+  enabled: false
+grafana:
+  defaultInstallationEnabled: false
+gloo-fed:
+  enabled: false
+  glooFedApiserver:
+    enable: false
+gloo:
+  gloo:
+    disableLeaderElection: true
+    deployment:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+  discovery:
+    deployment:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+  gatewayProxies:
+    gatewayProxy:
+      failover:
+        enabled: true
+      service:
+        type: NodePort
+      podTemplate:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi

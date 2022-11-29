@@ -2,13 +2,13 @@
 
 # 0. Assign default values to some of our environment variables
 # The name of the management kind cluster to deploy to
-MANAGEMENT_CLUSTER_NAME="${MANAGEMENT_CLUSTER_NAME:-management}"
+MANAGEMENT_CLUSTER="${MANAGEMENT_CLUSTER:-management}"
 # The name of the remote kind cluster to deploy to
-REMOTE_CLUSTER_NAME="${REMOTE_CLUSTER_NAME:-remote}"
+REMOTE_CLUSTER="${REMOTE_CLUSTER:-remote}"
 # The version of the Node Docker image to use for booting the clusters
 CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.22.4}"
 # The version used to tag images
-VERSION="${VERSION:-0.0.0-kind1}"
+VERSION="${VERSION:-1.0.0-ci}"
 # The license key used to support enterprise features
 GLOO_LICENSE_KEY="${GLOO_LICENSE_KEY:-}"
 # Automatically (lazily) determine OS type
@@ -30,7 +30,7 @@ shopt -s expand_aliases
 alias glooctl=_output/glooctl-$OS-amd64
 
 # 3. Create the management kind cluster
-cat <<EOF | kind create cluster --name "$MANAGEMENT_CLUSTER_NAME" --image "kindest/node:$CLUSTER_NODE_VERSION" --config=-
+cat <<EOF | kind create cluster --name "$MANAGEMENT_CLUSTER" --image "kindest/node:$CLUSTER_NODE_VERSION" --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 kubeadmConfigPatches:
@@ -60,7 +60,7 @@ EOF
 
 # 4. Create the remote kind cluster
 # Add locality labels to remote kind cluster for discovery
-(cat <<EOF | kind create cluster --name "$REMOTE_CLUSTER_NAME" --image "kindest/node:$CLUSTER_NODE_VERSION" --config=-
+(cat <<EOF | kind create cluster --name "$REMOTE_CLUSTER" --image "kindest/node:$CLUSTER_NODE_VERSION" --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -105,13 +105,13 @@ VERSION=$VERSION make package-gloo-fed-chart package-gloo-edge-chart
 VERSION=$VERSION make gloo-ee-docker gloo-ee-envoy-wrapper-docker discovery-ee-docker
 
 # 6. Install Gloo in the management kind cluster
-kubectl config use-context kind-"$MANAGEMENT_CLUSTER_NAME"
+kubectl config use-context kind-"$MANAGEMENT_CLUSTER"
 
 yarn --cwd projects/ui build
 
 # 6a. Load federation and enterprise images used in this test
-CLUSTER_NAME=$MANAGEMENT_CLUSTER_NAME VERSION=$VERSION make gloofed-load-kind-images
-CLUSTER_NAME=$MANAGEMENT_CLUSTER_NAME VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
+CLUSTER_NAME=$MANAGEMENT_CLUSTER VERSION=$VERSION make gloofed-load-kind-images
+CLUSTER_NAME=$MANAGEMENT_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
 
 # 6b. Install gloo-fed and gloo-ee to management kind cluster
 cat > management-helm-values.yaml << EOF
@@ -150,10 +150,10 @@ kubectl -n gloo-system rollout status deployment gateway-proxy --timeout=2m || t
 kubectl -n gloo-system rollout status deployment gateway --timeout=2m || true
 
 # 7. Install Gloo in the remote kind cluster
-kubectl config use-context kind-"$REMOTE_CLUSTER_NAME"
+kubectl config use-context kind-"$REMOTE_CLUSTER"
 
 # 7a. Load enterprise images used in this test
-CLUSTER_NAME=$REMOTE_CLUSTER_NAME VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
+CLUSTER_NAME=$REMOTE_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
 
 # 7b. Install gloo-ee to remote kind cluster
 cat > remote-helm-values.yaml <<EOF
@@ -204,7 +204,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 glooctl create secret tls --name failover-downstream --certchain tls.crt --privatekey tls.key --rootca mtls.crt
 
 # Revert back to management cluster context
-kubectl config use-context kind-"$MANAGEMENT_CLUSTER_NAME"
+kubectl config use-context kind-"$MANAGEMENT_CLUSTER"
 
 glooctl create secret tls --name failover-upstream --certchain mtls.crt --privatekey mtls.key
 rm mtls.key mtls.crt tls.crt tls.key
@@ -215,13 +215,13 @@ if [[ $OS == 'darwin' ]]; then
   MANAGEMENT_CLUSTER_DOMAIN=host.docker.internal
   REMOTE_CLUSTER_DOMAIN=host.docker.internal
 else
-  MANAGEMENT_CLUSTER_DOMAIN=$(docker exec "$MANAGEMENT_CLUSTER_NAME"-control-plane ip addr show dev eth0 | sed -nE 's|\s*inet\s+([0-9.]+).*|\1|p'):6443
-  REMOTE_CLUSTER_DOMAIN=$(docker exec "$REMOTE_CLUSTER_NAME"-control-plane ip addr show dev eth0 | sed -nE 's|\s*inet\s+([0-9.]+).*|\1|p'):6443
+  MANAGEMENT_CLUSTER_DOMAIN=$(docker exec "$MANAGEMENT_CLUSTER"-control-plane ip addr show dev eth0 | sed -nE 's|\s*inet\s+([0-9.]+).*|\1|p'):6443
+  REMOTE_CLUSTER_DOMAIN=$(docker exec "$REMOTE_CLUSTER"-control-plane ip addr show dev eth0 | sed -nE 's|\s*inet\s+([0-9.]+).*|\1|p'):6443
 fi
-glooctl cluster register --cluster-name kind-"$MANAGEMENT_CLUSTER_NAME" --remote-context kind-"$MANAGEMENT_CLUSTER_NAME" --local-cluster-domain-override "$MANAGEMENT_CLUSTER_DOMAIN" --federation-namespace gloo-system
-glooctl cluster register --cluster-name kind-"$REMOTE_CLUSTER_NAME" --remote-context kind-"$REMOTE_CLUSTER_NAME" --local-cluster-domain-override "$REMOTE_CLUSTER_DOMAIN" --federation-namespace gloo-system
+glooctl cluster register --cluster-name kind-"$MANAGEMENT_CLUSTER" --remote-context kind-"$MANAGEMENT_CLUSTER" --local-cluster-domain-override "$MANAGEMENT_CLUSTER_DOMAIN" --federation-namespace gloo-system
+glooctl cluster register --cluster-name kind-"$REMOTE_CLUSTER" --remote-context kind-"$REMOTE_CLUSTER" --local-cluster-domain-override "$REMOTE_CLUSTER_DOMAIN" --federation-namespace gloo-system
 
-echo "Registered gloo clusters kind-$MANAGEMENT_CLUSTER_NAME and kind-$REMOTE_CLUSTER_NAME"
+echo "Registered gloo clusters kind-$MANAGEMENT_CLUSTER and kind-$REMOTE_CLUSTER"
 
 # Set up resources for Failover demo
 echo "Set up resources for Failover demo..."
@@ -359,7 +359,7 @@ spec:
       terminationGracePeriodSeconds: 0
 EOF
 
-kubectl config use-context kind-"$REMOTE_CLUSTER_NAME"
+kubectl config use-context kind-"$REMOTE_CLUSTER"
 
 # Apply green deployment and service
 kubectl apply -f - <<EOF
@@ -495,7 +495,7 @@ spec:
       terminationGracePeriodSeconds: 0
 EOF
 
-kubectl config use-context kind-"$MANAGEMENT_CLUSTER_NAME"
+kubectl config use-context kind-"$MANAGEMENT_CLUSTER"
 
 kubectl apply -f - <<EOF
 apiVersion: fed.gloo.solo.io/v1
@@ -506,7 +506,7 @@ metadata:
 spec:
   placement:
     clusters:
-      - kind-$MANAGEMENT_CLUSTER_NAME
+      - kind-$MANAGEMENT_CLUSTER
     namespaces:
       - gloo-system
   template:
@@ -538,7 +538,7 @@ metadata:
 spec:
   placement:
     clusters:
-      - kind-$MANAGEMENT_CLUSTER_NAME
+      - kind-$MANAGEMENT_CLUSTER
     namespaces:
       - gloo-system
   template:
@@ -564,12 +564,12 @@ metadata:
   namespace: gloo-system
 spec:
   primary:
-    clusterName: kind-$MANAGEMENT_CLUSTER_NAME
+    clusterName: kind-$MANAGEMENT_CLUSTER
     name: default-service-blue-10000
     namespace: gloo-system
   failoverGroups:
   - priorityGroup:
-    - cluster: kind-$REMOTE_CLUSTER_NAME
+    - cluster: kind-$REMOTE_CLUSTER
       upstreams:
       - name: default-service-green-10000
         namespace: gloo-system
