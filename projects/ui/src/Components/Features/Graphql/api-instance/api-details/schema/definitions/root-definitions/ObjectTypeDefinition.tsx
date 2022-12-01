@@ -18,7 +18,6 @@ const ObjectTypeDefinition: React.FC<
     ...props,
     isRoot: true,
     objectType: node.name.value,
-    isEditable: true,
   };
   return (
     <>

@@ -4,6 +4,7 @@ import {
   useGetStitchedSchemaDefinition,
 } from 'API/hooks';
 import AreaHeader from 'Components/Common/AreaHeader';
+import { Loading } from 'Components/Common/Loading';
 import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core_pb';
 import React, { useMemo } from 'react';
 import { parseSchemaString } from 'utils/graphql-helpers';
@@ -57,6 +58,7 @@ export const StitchedGraphqlApiDetails: React.FC<{
           onLoadContent={() => new Promise((res, rej) => res('loaded!'))}
         />
 
+        {stitchedSchema === undefined && <Loading />}
         {parsedStitchedSchema && (
           <SchemaDefinitions
             isEditable={false}

@@ -10,11 +10,12 @@ import {
 } from 'API/hooks';
 import { ReactComponent as WarningExclamation } from 'assets/big-warning-exclamation.svg';
 import { ReactComponent as CopyIcon } from 'assets/document.svg';
+import { Loading } from 'Components/Common/Loading';
 import { SoloInput } from 'Components/Common/SoloInput';
-import { GraphiQL } from 'graphiql';
+import { GraphiQL, Storage } from 'graphiql';
 // @ts-ignore
 import GraphiQLExplorer from 'graphiql-explorer';
-import { buildSchema, DocumentNode } from 'graphql';
+import { DocumentNode } from 'graphql';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { VirtualService } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/gateway_resources_pb';
 import * as React from 'react';
@@ -22,6 +23,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { colors } from 'Styles/colors';
 import { copyTextToClipboard } from 'utils';
+import { useGetSchema } from 'utils/graphql-helpers';
 import {
   StatusHealth,
   WarningCircle,
@@ -99,24 +101,12 @@ const Copied = styled.span`
   margin-left: 10px;
 `;
 
-const GQL_STORAGE_KEY = 'gqlStorageKey';
-
 const StyledCopyIcon = styled(CopyIcon)`
   color: white;
   display: inline-block;
   margin-left: 10px;
   fill: white;
 `;
-
-const getGqlStorage = () => {
-  return (
-    localStorage.getItem(GQL_STORAGE_KEY) || 'http://localhost:8080/graphql'
-  );
-};
-
-const setGqlStorage = (value: string) => {
-  localStorage.setItem(GQL_STORAGE_KEY, value);
-};
 
 const defaultQuery = `query Example {
 }
@@ -172,6 +162,27 @@ export const GraphqlApiExplorer = () => {
   const [hasTriedToFetch, setHasTriedToFetch] = useState(false);
 
   //
+  // Including GraphQL API info in the localStorage keys, so they don't override each other.
+  //
+  const localStorageKey = `${graphqlApiName}/${graphqlApiNamespace}/${graphqlApiClusterName}:`;
+  const localStorageUrlKey = localStorageKey + 'url';
+  const getGqlStorage = () => {
+    return (
+      localStorage.getItem(localStorageUrlKey) ||
+      'http://localhost:8080/graphql'
+    );
+  };
+  const setGqlStorage = (value: string) => {
+    localStorage.setItem(localStorageUrlKey, value);
+  };
+  const customStorage: Storage = {
+    getItem: key => localStorage.getItem(localStorageKey + key),
+    removeItem: key => localStorage.removeItem(localStorageKey + key),
+    setItem: (key, value) => localStorage.setItem(localStorageKey + key, value),
+    length: localStorage.length,
+  };
+
+  //
   // Schema URL
   //
   const urlDebounceMs = 1000;
@@ -203,6 +214,7 @@ export const GraphqlApiExplorer = () => {
     ...graphqlApiRef,
     clusterName: graphqlApiClusterName,
   });
+  const { parsedSchema } = useGetSchema(graphqlApi);
 
   const copyKubectlCommand = async () => {
     setCopyingKubectl(true);
@@ -255,7 +267,7 @@ export const GraphqlApiExplorer = () => {
   useEffect(() => {
     (async () => {
       try {
-        await fetch(url, {
+        const res = await fetch(url, {
           method: 'POST',
           headers: {
             Accept: 'application/json',
@@ -263,6 +275,7 @@ export const GraphqlApiExplorer = () => {
           },
           credentials: 'same-origin',
         });
+        if (!res.ok) throw new Error(res.statusText);
         setGqlError('');
       } catch (error: any) {
         setGqlError(error.message);
@@ -320,12 +333,6 @@ export const GraphqlApiExplorer = () => {
     return [...vssThatMatch, vssOfRtsThatMatch];
   }, [virtualServices, routeTables, graphqlApiName, graphqlApiNamespace]);
 
-  const schemaText = graphqlApi?.spec?.executableSchema?.schemaDefinition ?? '';
-  const executableSchema = useMemo(
-    () => buildSchema(schemaText, { assumeValidSDL: true }),
-    [schemaText]
-  );
-
   const handlePrettifyQuery = () => {
     graphiqlRef?.current?.handlePrettifyQuery();
   };
@@ -352,6 +359,7 @@ export const GraphqlApiExplorer = () => {
   // TODO:  We can hide and show elements based on what we get back.
   //        The schema will only refetch if the executable schema is undefined.
   if (correspondingVirtualServices === undefined) return null;
+  if (parsedSchema === undefined) return <Loading />;
   return correspondingVirtualServices.length > 0 ? (
     <Wrapper>
       <Global styles={graphiqlCustomStyles} />
@@ -365,7 +373,7 @@ export const GraphqlApiExplorer = () => {
                     <div className='ml-2'>
                       <span className='text-sm'>
                         {gqlError
-                          ? 'Failed to fetch Graphql service.  Update the host to attempt again.'
+                          ? 'Failed to fetch GraphQL service.  Update the host to attempt again.'
                           : 'Endpoint URL'}
                       </span>
                       <Tooltip
@@ -430,7 +438,7 @@ export const GraphqlApiExplorer = () => {
       ) : null}
       <div className='graphiql-outer-container'>
         <GraphiQLExplorer
-          schema={hasTriedToFetch ? executableSchema : undefined}
+          schema={hasTriedToFetch ? parsedSchema : undefined}
           query={query}
           onEdit={handleQueryUpdate}
           onRunOperation={(operationName?: string) =>
@@ -465,10 +473,11 @@ export const GraphqlApiExplorer = () => {
             },
           }}
           onEditQuery={handleQueryUpdate}
+          storage={customStorage}
           query={query}
           operationName={opName}
           onEditOperationName={s => setOpName(s)}
-          schema={hasTriedToFetch ? executableSchema : undefined}
+          schema={hasTriedToFetch ? parsedSchema : undefined}
           fetcher={gqlFetcher}>
           <GraphiQL.Toolbar>
             <GraphiQL.Button

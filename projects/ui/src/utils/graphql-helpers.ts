@@ -1,4 +1,6 @@
+import { useGetStitchedSchemaDefinition } from 'API/hooks';
 import {
+  buildSchema,
   DirectiveDefinitionNode,
   DocumentNode,
   EnumTypeDefinitionNode,
@@ -17,6 +19,7 @@ import { ClusterObjectRef } from 'proto/github.com/solo-io/skv2/api/core/v1/core
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { GraphqlApi } from 'proto/github.com/solo-io/solo-projects/projects/apiserver/api/rpc.edge.gloo/v1/graphql_pb';
+import { useMemo } from 'react';
 
 export function isElementInView(el: HTMLElement | null) {
   if (!el) return false;
@@ -365,4 +368,41 @@ export const arrayMapToObject = <T>(arr: [keyof T, any][]) => {
   const objMap = {} as T;
   arr.forEach(pair => (objMap[pair[0]] = pair[1]));
   return objMap;
+};
+
+/** This returns the `schemaText` and `parsedSchema` for any executable or stitched `graphqlApi`. */
+export const useGetSchema = (graphqlApi: GraphqlApi.AsObject | undefined) => {
+  // Try to get executable schema
+  const executableSchemaText =
+    graphqlApi?.spec?.executableSchema?.schemaDefinition ?? '';
+  const executableSchema = useMemo(() => {
+    try {
+      return buildSchema(executableSchemaText, { assumeValidSDL: true });
+    } catch {
+      return undefined;
+    }
+  }, [executableSchemaText]);
+  // Try to get stitched schema
+  const { data: stitchedSchemaText } = useGetStitchedSchemaDefinition({
+    name: graphqlApi?.metadata?.name ?? '',
+    namespace: graphqlApi?.metadata?.namespace ?? '',
+    clusterName: graphqlApi?.metadata?.clusterName ?? '',
+  });
+  const parsedStitchedSchema = useMemo(() => {
+    try {
+      return buildSchema(stitchedSchemaText ?? '', { assumeValidSDL: true });
+    } catch {
+      return undefined;
+    }
+  }, [stitchedSchemaText]);
+  //
+  // Return the correct schema
+  if (!!graphqlApi && isStitchedAPI(graphqlApi)) {
+    return {
+      schemaText: stitchedSchemaText,
+      parsedSchema: parsedStitchedSchema,
+    };
+  } else {
+    return { schemaText: executableSchemaText, parsedSchema: executableSchema };
+  }
 };

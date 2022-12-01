@@ -104,7 +104,16 @@ export const useGetGraphqlApiYaml = (
 ) => useRequest(graphqlConfigApi.getGraphqlApiYaml, [graphqlApiRef]);
 export const useGetStitchedSchemaDefinition = (
   graphqlApiRef: ClusterObjectRef.AsObject
-) => useRequest(graphqlConfigApi.getStitchedSchemaDefinition, [graphqlApiRef]);
+) =>
+  useRequest(graphqlConfigApi.getStitchedSchemaDefinition, [graphqlApiRef], {
+    key:
+      'getStitchedSchemaDefinition:' +
+      Object.keys(graphqlApiRef)
+        .sort()
+        .map(k => graphqlApiRef[k as keyof typeof graphqlApiRef])
+        .join('/'),
+    skip: !Object.values(graphqlApiRef).some(v => v !== ''),
+  });
 
 // ------------------------ //
 //

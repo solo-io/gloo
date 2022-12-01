@@ -1,0 +1,6 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/solo-projects/issues/4278
+    description: >
+      Adds support for stitched APIs in the GraphQL Explorer UI.
+    resolvesIssue: false
