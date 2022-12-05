@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo:  gloo
+    dependencyTag: v1.13.0-rc2
+  - type: NON_USER_FACING
+    description: Upgrade dependencies to resolve CVEs.

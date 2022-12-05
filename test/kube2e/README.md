@@ -42,7 +42,7 @@ It accepts a number of environment variables, to control the creation of a kind 
 | ---                   |   ---      |    ---      |
 | CLUSTER_NAME          | kind       | The name of the cluster that will be generated |
 | CLUSTER_NODE_VERSION  | v1.22.4    | The version of the Node Docker image to use for booting the cluster |
-| VERSION               | 0.0.0-kind1 | The version used to tag Gloo images that are deployed to the cluster |
+| VERSION               | 1.0.0-ci | The version used to tag Gloo images that are deployed to the cluster |
 | USE_FIPS              | false      | Whether to install fips compliant data plane images |
 
 Example:
