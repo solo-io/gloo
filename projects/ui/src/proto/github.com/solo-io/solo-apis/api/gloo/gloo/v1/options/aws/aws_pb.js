@@ -78,7 +78,8 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance,
     proto.aws.options.gloo.solo.io.LambdaFunctionSpec.toObject, includeInstance),
     roleArn: jspb.Message.getFieldWithDefault(msg, 4, ""),
     awsAccountId: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    disableRoleChaining: jspb.Message.getFieldWithDefault(msg, 6, false)
+    disableRoleChaining: jspb.Message.getFieldWithDefault(msg, 6, false),
+    destinationOverrides: (f = msg.getDestinationOverrides()) && proto.aws.options.gloo.solo.io.DestinationSpec.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -140,6 +141,11 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = functi
     case 6:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setDisableRoleChaining(value);
+      break;
+    case 7:
+      var value = new proto.aws.options.gloo.solo.io.DestinationSpec;
+      reader.readMessage(value,proto.aws.options.gloo.solo.io.DestinationSpec.deserializeBinaryFromReader);
+      msg.setDestinationOverrides(value);
       break;
     default:
       reader.skipField();
@@ -212,6 +218,14 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(m
     writer.writeBool(
       6,
       f
+    );
+  }
+  f = message.getDestinationOverrides();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      proto.aws.options.gloo.solo.io.DestinationSpec.serializeBinaryToWriter
     );
   }
 };
@@ -337,6 +351,36 @@ proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.getDisableRoleChaining = f
 /** @param {boolean} value */
 proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.setDisableRoleChaining = function(value) {
   jspb.Message.setProto3BooleanField(this, 6, value);
+};
+
+
+/**
+ * optional DestinationSpec destination_overrides = 7;
+ * @return {?proto.aws.options.gloo.solo.io.DestinationSpec}
+ */
+proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.getDestinationOverrides = function() {
+  return /** @type{?proto.aws.options.gloo.solo.io.DestinationSpec} */ (
+    jspb.Message.getWrapperField(this, proto.aws.options.gloo.solo.io.DestinationSpec, 7));
+};
+
+
+/** @param {?proto.aws.options.gloo.solo.io.DestinationSpec|undefined} value */
+proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.setDestinationOverrides = function(value) {
+  jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.clearDestinationOverrides = function() {
+  this.setDestinationOverrides(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.aws.options.gloo.solo.io.UpstreamSpec.prototype.hasDestinationOverrides = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 

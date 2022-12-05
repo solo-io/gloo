@@ -29,6 +29,11 @@ export class UpstreamSpec extends jspb.Message {
   getDisableRoleChaining(): boolean;
   setDisableRoleChaining(value: boolean): void;
 
+  hasDestinationOverrides(): boolean;
+  clearDestinationOverrides(): void;
+  getDestinationOverrides(): DestinationSpec | undefined;
+  setDestinationOverrides(value?: DestinationSpec): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSpec.AsObject;
   static toObject(includeInstance: boolean, msg: UpstreamSpec): UpstreamSpec.AsObject;
@@ -47,6 +52,7 @@ export namespace UpstreamSpec {
     roleArn: string,
     awsAccountId: string,
     disableRoleChaining: boolean,
+    destinationOverrides?: DestinationSpec.AsObject,
   }
 }
 

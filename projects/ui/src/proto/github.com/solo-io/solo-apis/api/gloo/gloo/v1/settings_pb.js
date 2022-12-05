@@ -5959,7 +5959,8 @@ proto.gloo.solo.io.GlooOptions.AWSOptions.toObject = function(includeInstance, m
     enableCredentialsDiscovey: jspb.Message.getFieldWithDefault(msg, 1, false),
     serviceAccountCredentials: (f = msg.getServiceAccountCredentials()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials.toObject(includeInstance, f),
     propagateOriginalRouting: (f = msg.getPropagateOriginalRouting()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
-    credentialRefreshDelay: (f = msg.getCredentialRefreshDelay()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
+    credentialRefreshDelay: (f = msg.getCredentialRefreshDelay()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
+    fallbackToFirstFunction: (f = msg.getFallbackToFirstFunction()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -6014,6 +6015,11 @@ proto.gloo.solo.io.GlooOptions.AWSOptions.deserializeBinaryFromReader = function
       var value = new google_protobuf_duration_pb.Duration;
       reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
       msg.setCredentialRefreshDelay(value);
+      break;
+    case 5:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setFallbackToFirstFunction(value);
       break;
     default:
       reader.skipField();
@@ -6073,6 +6079,14 @@ proto.gloo.solo.io.GlooOptions.AWSOptions.serializeBinaryToWriter = function(mes
       4,
       f,
       google_protobuf_duration_pb.Duration.serializeBinaryToWriter
+    );
+  }
+  f = message.getFallbackToFirstFunction();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
     );
   }
 };
@@ -6196,6 +6210,36 @@ proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.clearCredentialRefreshDelay 
  */
 proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.hasCredentialRefreshDelay = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue fallback_to_first_function = 5;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.getFallbackToFirstFunction = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 5));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.setFallbackToFirstFunction = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.clearFallbackToFirstFunction = function() {
+  this.setFallbackToFirstFunction(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.GlooOptions.AWSOptions.prototype.hasFallbackToFirstFunction = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 

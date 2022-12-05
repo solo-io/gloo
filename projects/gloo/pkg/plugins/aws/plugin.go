@@ -4,6 +4,7 @@ import (
 	"github.com/golang/protobuf/ptypes/any"
 	v3 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
 	envoyaws "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/aws"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	ossplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/aws"
@@ -27,14 +28,15 @@ type plugin struct {
 	ossplugin.Plugin
 }
 
+// NewPLugin for ee lambda. Wraps the oss plugin as much as possible.
 func NewPlugin() plugins.Plugin {
 	// The Enterprise Plugin is a replica of the Open Source Plugin,
 	// except that it builds the PerRoute configuration differently
 	return ossplugin.NewPlugin(GenerateEnterpriseAWSLambdaRouteConfig)
 }
 
-func GenerateEnterpriseAWSLambdaRouteConfig(destination *aws.DestinationSpec, upstream *aws.UpstreamSpec) (*envoyaws.AWSLambdaPerRoute, error) {
-	lambdaPerRoute, err := ossplugin.GenerateAWSLambdaRouteConfig(destination, upstream)
+func GenerateEnterpriseAWSLambdaRouteConfig(options *v1.GlooOptions_AWSOptions, destination *aws.DestinationSpec, upstream *aws.UpstreamSpec) (*envoyaws.AWSLambdaPerRoute, error) {
+	lambdaPerRoute, err := ossplugin.GenerateAWSLambdaRouteConfig(options, destination, upstream)
 	if err != nil {
 		return lambdaPerRoute, err
 	}

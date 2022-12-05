@@ -918,6 +918,11 @@ export namespace GlooOptions {
     getCredentialRefreshDelay(): google_protobuf_duration_pb.Duration | undefined;
     setCredentialRefreshDelay(value?: google_protobuf_duration_pb.Duration): void;
 
+    hasFallbackToFirstFunction(): boolean;
+    clearFallbackToFirstFunction(): void;
+    getFallbackToFirstFunction(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setFallbackToFirstFunction(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
     getCredentialsFetcherCase(): AWSOptions.CredentialsFetcherCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): AWSOptions.AsObject;
@@ -935,6 +940,7 @@ export namespace GlooOptions {
       serviceAccountCredentials?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_aws_filter_pb.AWSLambdaConfig.ServiceAccountCredentials.AsObject,
       propagateOriginalRouting?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       credentialRefreshDelay?: google_protobuf_duration_pb.Duration.AsObject,
+      fallbackToFirstFunction?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     }
 
     export enum CredentialsFetcherCase {

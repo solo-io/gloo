@@ -15,6 +15,7 @@ var global = Function('return this')();
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb = require('../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/jwt_authn/v3/config_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../../extproto/ext_pb.js');
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 goog.exportSymbol('proto.jwt.options.gloo.solo.io.ClaimToHeader', null, global);
 goog.exportSymbol('proto.jwt.options.gloo.solo.io.Jwks', null, global);
@@ -810,7 +811,8 @@ proto.jwt.options.gloo.solo.io.Provider.toObject = function(includeInstance, msg
     tokenSource: (f = msg.getTokenSource()) && proto.jwt.options.gloo.solo.io.TokenSource.toObject(includeInstance, f),
     keepToken: jspb.Message.getFieldWithDefault(msg, 5, false),
     claimsToHeadersList: jspb.Message.toObjectList(msg.getClaimsToHeadersList(),
-    proto.jwt.options.gloo.solo.io.ClaimToHeader.toObject, includeInstance)
+    proto.jwt.options.gloo.solo.io.ClaimToHeader.toObject, includeInstance),
+    clockSkewSeconds: (f = msg.getClockSkewSeconds()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -873,6 +875,11 @@ proto.jwt.options.gloo.solo.io.Provider.deserializeBinaryFromReader = function(m
       var value = new proto.jwt.options.gloo.solo.io.ClaimToHeader;
       reader.readMessage(value,proto.jwt.options.gloo.solo.io.ClaimToHeader.deserializeBinaryFromReader);
       msg.addClaimsToHeaders(value);
+      break;
+    case 8:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setClockSkewSeconds(value);
       break;
     default:
       reader.skipField();
@@ -946,6 +953,14 @@ proto.jwt.options.gloo.solo.io.Provider.serializeBinaryToWriter = function(messa
       6,
       f,
       proto.jwt.options.gloo.solo.io.ClaimToHeader.serializeBinaryToWriter
+    );
+  }
+  f = message.getClockSkewSeconds();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
     );
   }
 };
@@ -1100,6 +1115,36 @@ proto.jwt.options.gloo.solo.io.Provider.prototype.addClaimsToHeaders = function(
 
 proto.jwt.options.gloo.solo.io.Provider.prototype.clearClaimsToHeadersList = function() {
   this.setClaimsToHeadersList([]);
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value clock_skew_seconds = 8;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.getClockSkewSeconds = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 8));
+};
+
+
+/** @param {?proto.google.protobuf.UInt32Value|undefined} value */
+proto.jwt.options.gloo.solo.io.Provider.prototype.setClockSkewSeconds = function(value) {
+  jspb.Message.setWrapperField(this, 8, value);
+};
+
+
+proto.jwt.options.gloo.solo.io.Provider.prototype.clearClockSkewSeconds = function() {
+  this.setClockSkewSeconds(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.jwt.options.gloo.solo.io.Provider.prototype.hasClockSkewSeconds = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 

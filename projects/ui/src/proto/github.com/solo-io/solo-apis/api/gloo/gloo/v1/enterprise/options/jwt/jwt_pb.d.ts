@@ -6,6 +6,7 @@ import * as jspb from "google-protobuf";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_jwt_authn_v3_config_pb from "../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/jwt_authn/v3/config_pb";
 import * as extproto_ext_pb from "../../../../../../../../../../extproto/ext_pb";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 
 export class JwtStagedVhostExtension extends jspb.Message {
@@ -134,6 +135,11 @@ export class Provider extends jspb.Message {
   setClaimsToHeadersList(value: Array<ClaimToHeader>): void;
   addClaimsToHeaders(value?: ClaimToHeader, index?: number): ClaimToHeader;
 
+  hasClockSkewSeconds(): boolean;
+  clearClockSkewSeconds(): void;
+  getClockSkewSeconds(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setClockSkewSeconds(value?: google_protobuf_wrappers_pb.UInt32Value): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Provider.AsObject;
   static toObject(includeInstance: boolean, msg: Provider): Provider.AsObject;
@@ -152,6 +158,7 @@ export namespace Provider {
     tokenSource?: TokenSource.AsObject,
     keepToken: boolean,
     claimsToHeadersList: Array<ClaimToHeader.AsObject>,
+    clockSkewSeconds?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
   }
 }
 
