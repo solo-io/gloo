@@ -1,0 +1,9 @@
+changelog:
+- dependencyOwner: solo-io
+  dependencyRepo: caching-service
+  dependencyTag: v0.1.17
+  type: DEPENDENCY_BUMP
+  description: >
+    Bump caching-service, pulling in changes which
+    support updates to the headers of stale cache entries
+    as part of the validation workflow.
