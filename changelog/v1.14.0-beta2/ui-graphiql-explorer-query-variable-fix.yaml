@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7467
+    description: >
+      Fixes the issue where not supplying query variables 
+      breaks graphiql explorer queries.
+    resolvesIssue: false

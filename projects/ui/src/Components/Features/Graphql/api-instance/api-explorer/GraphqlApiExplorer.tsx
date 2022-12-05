@@ -356,6 +356,30 @@ export const GraphqlApiExplorer = () => {
   //   The example has "query Example { }" in it.
   const [opName, setOpName] = useState('Example');
 
+  // This does some error checking and provides valid variables JSON,
+  //  so the query works when variables==="".
+  const onRunOperation = (operationName?: string) => {
+    if (!graphiqlRef.current) return;
+    if (!graphiqlRef.current.variableEditorComponent?.cachedValue.trim())
+      graphiqlRef.current.handleEditVariables('{}');
+    graphiqlRef.current.handleRunQuery(operationName);
+  };
+
+  // Overrides default run behavior to use our custom `onRunOperation()`
+  useEffect(() => {
+    if (!graphiqlRef || parsedSchema === undefined) return;
+    const el = document.querySelector('button.execute-button');
+    if (!el) return;
+    const onRunClick = (e: Event) => {
+      e.preventDefault();
+      onRunOperation();
+    };
+    el.addEventListener('click', onRunClick);
+    return () => {
+      el.removeEventListener('click', onRunClick);
+    };
+  }, [graphiqlRef, parsedSchema]);
+
   // TODO:  We can hide and show elements based on what we get back.
   //        The schema will only refetch if the executable schema is undefined.
   if (correspondingVirtualServices === undefined) return null;
@@ -441,15 +465,14 @@ export const GraphqlApiExplorer = () => {
           schema={hasTriedToFetch ? parsedSchema : undefined}
           query={query}
           onEdit={handleQueryUpdate}
-          onRunOperation={(operationName?: string) =>
-            graphiqlRef.current?.handleRunQuery(operationName)
-          }
+          onRunOperation={onRunOperation}
           explorerIsOpen={explorerOpen}
           onToggleExplorer={toggleExplorer}
         />
         <GraphiQL
           ref={graphiqlRef}
           defaultQuery={defaultQuery}
+          maxHistoryLength={1}
           variables={'{}'}
           tabs={{
             onTabChange: (tabs: TabsState) => {
