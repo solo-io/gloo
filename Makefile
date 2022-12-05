@@ -1600,18 +1600,21 @@ build-test-chart-fed: gloofed-helm-template
 	helm repo index $(TEST_ASSET_DIR)
 
 # Exclusively useful for testing with locally modified gloo-edge-OS builds.
-# Assumes that a gloo-edge-OS chart is located at ../gloo/_test/gloo-dev.tgz, which
+# Assumes that a gloo-edge-OS chart is located at ../gloo/_test/gloo-v0.0.0-dev.tgz, which
+# one must have also run build-test-chart
 # points towards whatever modified build is being tested.
-.PHONY: build-chart-with-local-gloo-dev
+.PHONY: build-chart-with-local-gloo-dev ## Helm chart that relies on oss chart for cross cutting deps
 build-chart-with-local-gloo-dev: build-test-chart-fed
 	mkdir -p $(TEST_ASSET_DIR)
 	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) $(USE_DIGESTS)
 	helm repo add helm-hub https://charts.helm.sh/stable
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
-	helm dependency update install/helm/gloo-ee
 	echo replacing gloo chart $(ls install/helm/gloo-ee/charts/gloo*) with ../gloo/_test/gloo-dev.tgz
-	rm install/helm/gloo-ee/charts/gloo*
-	cp ../gloo/_test/gloo-dev.tgz install/helm/gloo-ee/charts/
+	# TODO: If edge hits 2.0 then this needs to change
+	#  we specify it this way to not delete the gloo-fed chart
+	rm install/helm/gloo-ee/charts/gloo-1*
+	cp ../gloo/_test/gloo-v0.0.0-dev.tgz install/helm/gloo-ee/charts/
+	
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
 	helm repo index $(TEST_ASSET_DIR)
 
