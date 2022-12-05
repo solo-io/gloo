@@ -1636,8 +1636,8 @@ github.com/soheilhy/cmux v0.1.5/go.mod h1:T7TcVDs9LWfQgPlPsdngu6I6QIoyIFZDDC6sNE
 github.com/solo-io/anyvendor v0.0.1/go.mod h1:SLucIeU8qBOYI82BveNVn2LzZFcMWJSCf8Kd1S4Jcr4=
 github.com/solo-io/anyvendor v0.0.4 h1:9nI7o7Srml2uaOpT5HJSru06IHUZpzSCU/dEkseiGa4=
 github.com/solo-io/anyvendor v0.0.4/go.mod h1:+TTkDGd11u8ugXccqtukBEWvkZkODaBbeWgdH/F/IWY=
-github.com/solo-io/caching-service v0.1.16 h1:pDzFCPXdAP9seFDhwZe04IgTMjOZa8md1fUuNvtSl9A=
-github.com/solo-io/caching-service v0.1.16/go.mod h1:ZzSroVQ7Osms6zowW46sXh3X409gvIVPpnY1Ck74RbM=
+github.com/solo-io/caching-service v0.1.17 h1:igt6p9wjCPg+U7K03Oyybz0xqlQw1GyN4zeG8/u0+cg=
+github.com/solo-io/caching-service v0.1.17/go.mod h1:XQbr2MGZS216YIBTywFJ+vxseVR1f1IpCa24MatYdDA=
 github.com/solo-io/cli-kit v0.2.1 h1:Hc5EXi0ccP4yHmuBLHHr98Q/Jz0cQt7huRg9x/iH3qQ=
 github.com/solo-io/cli-kit v0.2.1/go.mod h1:l99zSPTfmt9KaSKQMGwju+IdVvw1HaVU8ZrO4q19meo=
 github.com/solo-io/cue v0.4.1/go.mod h1:NaNBm1PrzINbNcE/ZU9wEAJ6JXvi//F/HU5cIpngeZE=
