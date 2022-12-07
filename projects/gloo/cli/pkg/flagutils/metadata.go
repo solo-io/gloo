@@ -39,7 +39,7 @@ func AddReadOnlyFlag(set *pflag.FlagSet, readOnly *bool) {
 	set.BoolVarP(readOnly, "read-only", "", false, "only do checks that dont require creating resources (i.e. port forwards)")
 }
 
-// AddTimeoutFlag
+// AddTimeoutFlag adds a flag to our flag set that sets the cluster connection timeout in seconds
 func AddTimeoutFlag(set *pflag.FlagSet, timeout *float64) {
 	set.Float64VarP(timeout, "timeout", "", 5, "cluster connection check timeout")
 }
