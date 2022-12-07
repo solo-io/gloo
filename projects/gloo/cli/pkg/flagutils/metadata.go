@@ -38,3 +38,8 @@ func AddExcludeCheckFlag(set *pflag.FlagSet, strarrptr *[]string) {
 func AddReadOnlyFlag(set *pflag.FlagSet, readOnly *bool) {
 	set.BoolVarP(readOnly, "read-only", "", false, "only do checks that dont require creating resources (i.e. port forwards)")
 }
+
+// AddTimeoutFlag
+func AddTimeoutFlag(set *pflag.FlagSet, timeout *float64) {
+	set.Float64VarP(timeout, "timeout", "", 5, "only do checks that dont require creating resources (i.e. port forwards)")
+}

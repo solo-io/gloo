@@ -404,6 +404,13 @@ var _ = Describe("Kube2e: glooctl", func() {
 			Expect(output).To(ContainSubstring("Warning: checking xds with port forwarding is disabled"))
 		})
 
+		FIt("can set a timeout", func() {
+			_, err := runGlooctlCommand("check", "--timeout", ".00000001")
+			Expect(err).To(HaveOccurred())
+
+			Expect(err.Error()).To(ContainSubstring("context deadline exceeded"))
+		})
+
 		It("fails if no gateway proxy deployments", func() {
 			err := exec.RunCommand(testHelper.RootDir, false, "kubectl", "scale", "--replicas=0", "deployment", "gateway-proxy", "-n", "gloo-system")
 			Expect(err).ToNot(HaveOccurred())

@@ -91,6 +91,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 	flagutils.AddResourceNamespaceFlag(pflags, &opts.Top.ResourceNamespaces)
 	flagutils.AddExcludeCheckFlag(pflags, &opts.Top.CheckName)
 	flagutils.AddReadOnlyFlag(pflags, &opts.Top.ReadOnly)
+	flagutils.AddTimeoutFlag(pflags, &opts.Check.Timeout)
 	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }
@@ -100,7 +101,7 @@ func CheckResources(opts *options.Options) error {
 
 	ctx, cancel := context.WithCancel(opts.Top.Ctx)
 	defer cancel()
-	err := checkConnection(ctx, opts.Metadata.GetNamespace())
+	err := checkConnection(ctx, opts)
 	if err != nil {
 		multiErr = multierror.Append(multiErr, err)
 		return multiErr
@@ -929,12 +930,12 @@ func renderNamespaceName(namespace, name string) string {
 
 // Checks whether the cluster that the kubeconfig points at is available
 // The timeout for the kubernetes client is set to a low value to notify the user of the failure
-func checkConnection(ctx context.Context, ns string) error {
-	client, err := helpers.GetKubernetesClientWithTimeout(5 * time.Second)
+func checkConnection(ctx context.Context, opts *options.Options) error {
+	client, err := helpers.GetKubernetesClientWithTimeout(time.Duration(int(opts.Check.Timeout * float64(time.Second.Nanoseconds()))))
 	if err != nil {
 		return eris.Wrapf(err, "Could not get kubernetes client")
 	}
-	_, err = client.CoreV1().Namespaces().Get(ctx, ns, metav1.GetOptions{})
+	_, err = client.CoreV1().Namespaces().Get(ctx, opts.Metadata.GetNamespace(), metav1.GetOptions{})
 	if err != nil {
 		return eris.Wrapf(err, "Could not communicate with kubernetes cluster")
 	}

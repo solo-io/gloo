@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Added  --timeout flag to `glooctl check` to adjust the cluster connection check timeout.
+    issueLink: https://github.com/solo-io/gloo/issues/4204
