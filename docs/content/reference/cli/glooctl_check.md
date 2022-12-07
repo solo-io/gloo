@@ -24,6 +24,7 @@ glooctl check [flags]
   -p, --pod-selector string               Label selector for pod scanning (default "gloo")
       --read-only                         only do checks that dont require creating resources (i.e. port forwards)
   -r, --resource-namespaces stringArray   Namespaces in which to scan gloo custom resources. If not provided, all watched namespaces (as specified in settings) will be scanned.
+      --timeout float                     only do checks that dont require creating resources (i.e. port forwards) (default 5)
 ```
 
 ### Options inherited from parent commands
