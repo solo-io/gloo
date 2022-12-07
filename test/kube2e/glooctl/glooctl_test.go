@@ -407,7 +407,6 @@ var _ = Describe("Kube2e: glooctl", func() {
 		It("can set a timeout", func() {
 			_, err := runGlooctlCommand("check", "--timeout", ".00000001")
 			Expect(err).To(HaveOccurred())
-
 			Expect(err.Error()).To(ContainSubstring("context deadline exceeded"))
 		})
 
