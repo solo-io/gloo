@@ -17,6 +17,7 @@ glooctl check [flags]
 ### Options
 
 ```
+      --check-connection-timeout string   the timeout for the initial connection check (default "5s")
   -x, --exclude strings                   check to exclude: (deployments, pods, upstreams, upstreamgroup, auth-configs, rate-limit-configs, secrets, virtual-services, gateways, proxies, xds-metrics)
   -h, --help                              help for check
   -n, --namespace string                  namespace for reading or writing resources (default "gloo-system")
@@ -24,7 +25,6 @@ glooctl check [flags]
   -p, --pod-selector string               Label selector for pod scanning (default "gloo")
       --read-only                         only do checks that dont require creating resources (i.e. port forwards)
   -r, --resource-namespaces stringArray   Namespaces in which to scan gloo custom resources. If not provided, all watched namespaces (as specified in settings) will be scanned.
-      --timeout float                     cluster connection check timeout (default 5)
 ```
 
 ### Options inherited from parent commands

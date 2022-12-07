@@ -41,5 +41,5 @@ func AddReadOnlyFlag(set *pflag.FlagSet, readOnly *bool) {
 
 // AddTimeoutFlag adds a flag to our flag set that sets the cluster connection timeout in seconds
 func AddTimeoutFlag(set *pflag.FlagSet, timeout *string) {
-	set.StringVarP(timeout, "check-connection-timeout", "", "5s", "cluster connection check timeout")
+	set.StringVarP(timeout, "check-connection-timeout", "", "5s", "the timeout for the initial connection check")
 }
