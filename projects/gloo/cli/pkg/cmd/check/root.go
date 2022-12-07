@@ -91,7 +91,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 	flagutils.AddResourceNamespaceFlag(pflags, &opts.Top.ResourceNamespaces)
 	flagutils.AddExcludeCheckFlag(pflags, &opts.Top.CheckName)
 	flagutils.AddReadOnlyFlag(pflags, &opts.Top.ReadOnly)
-	flagutils.AddTimeoutFlag(pflags, &opts.Check.Timeout)
+	flagutils.AddTimeoutFlag(pflags, &opts.Check.ConnectionCheckTimeout)
 	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }
@@ -931,7 +931,11 @@ func renderNamespaceName(namespace, name string) string {
 // Checks whether the cluster that the kubeconfig points at is available
 // The timeout for the kubernetes client is set to a low value to notify the user of the failure
 func checkConnection(ctx context.Context, opts *options.Options) error {
-	client, err := helpers.GetKubernetesClientWithTimeout(time.Duration(int(opts.Check.Timeout * float64(time.Second.Nanoseconds()))))
+	time, err := time.ParseDuration(opts.Check.ConnectionCheckTimeout)
+	if err != nil {
+		return err
+	}
+	client, err := helpers.GetKubernetesClientWithTimeout(time)
 	if err != nil {
 		return eris.Wrapf(err, "Could not get kubernetes client")
 	}

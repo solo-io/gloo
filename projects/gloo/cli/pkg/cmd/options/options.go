@@ -454,5 +454,5 @@ type Check struct {
 	SecretClientTimeout time.Duration
 
 	// Timeout for connecting to the cluster
-	Timeout float64
+	ConnectionCheckTimeout string
 }
