@@ -404,7 +404,7 @@ var _ = Describe("Kube2e: glooctl", func() {
 			Expect(output).To(ContainSubstring("Warning: checking xds with port forwarding is disabled"))
 		})
 
-		FIt("can set a timeout", func() {
+		It("can set a timeout", func() {
 			_, err := runGlooctlCommand("check", "--timeout", ".00000001")
 			Expect(err).To(HaveOccurred())
 
