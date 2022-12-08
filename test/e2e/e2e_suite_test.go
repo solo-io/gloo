@@ -42,8 +42,10 @@ var _ = AfterSuite(func() {
 
 	_ = envoyFactory.Clean()
 	_ = consulFactory.Clean()
+
 })
 
+// NOTE: Please read the README.md for these tests
 func TestE2e(t *testing.T) {
 
 	// set default port to an unprivileged port for local testing.
@@ -51,6 +53,7 @@ func TestE2e(t *testing.T) {
 	// test/services/gateway.go:233
 	defaults.HttpPort = 8083
 
+	// NOTE: if tests fails and spits out logs continuously, please read the README.md for these tests.
 	helpers.RegisterCommonFailHandlers()
 	helpers.SetupLog()
 	// RegisterFailHandler(Fail)

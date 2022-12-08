@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/3945
+    resolvesIssue: true
+    description: >
+      Adding Rate Limit Aerospike Rate Limiter e2e tests.

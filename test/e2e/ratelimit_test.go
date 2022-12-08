@@ -16,6 +16,7 @@ import (
 
 	"github.com/onsi/ginkgo/config"
 
+	"github.com/solo-io/rate-limiter/pkg/cache/aerospike"
 	"github.com/solo-io/rate-limiter/pkg/cache/dynamodb"
 	"github.com/solo-io/rate-limiter/pkg/cache/redis"
 
@@ -94,6 +95,7 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		// Tests are responsible for managing these settings
 		rlServerSettings.RedisSettings = redis.Settings{}
 		rlServerSettings.DynamoDbSettings = dynamodb.Settings{}
+		rlServerSettings.AerospikeSettings = aerospike.Settings{}
 	})
 
 	runClusteredTest := func() {
@@ -1356,6 +1358,9 @@ var _ = Describe("Rate Limit Local E2E", func() {
 	}
 
 	runRedisTests := func(clustered bool) {
+		if os.Getenv("DO_NOT_RUN_REDIS") == "1" {
+			return
+		}
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 
 		BeforeEach(func() {
@@ -1405,7 +1410,9 @@ var _ = Describe("Rate Limit Local E2E", func() {
 	})
 
 	Context("DynamoDb-backed rate limiting", func() {
-
+		if os.Getenv("DO_NOT_RUN_DYNAMO") == "1" {
+			return
+		}
 		BeforeEach(func() {
 			var err error
 			// Set AWS session to use local DynamoDB instead of defaulting to live AWS web services
@@ -1434,6 +1441,44 @@ var _ = Describe("Rate Limit Local E2E", func() {
 		AfterEach(func() {
 			cancel()
 			services.MustKillAndRemoveContainer(services.DynamoDbContainerName)
+		})
+
+		runAllTests()
+	})
+
+	Context("Aerospike-backed rate limiting", func() {
+		if os.Getenv("DO_NOT_RUN_AEROSPIKE") == "1" {
+			return
+		}
+
+		BeforeEach(func() {
+			rlServerSettings.AerospikeSettings.Address = services.GetAerospikeHost()
+			rlServerSettings.AerospikeSettings.Namespace = "test"
+			rlServerSettings.AerospikeSettings.Port = services.AerospikePort
+
+			err := services.RunAerospikeContainer()
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(func() bool {
+				return services.AerospikeIsHealthy(rlServerSettings.AerospikeSettings.Address, rlServerSettings.AerospikeSettings.Port)
+			}, "5s", "500ms").Should(BeTrue())
+			err = services.ConfigureAerospike()
+			Expect(err).NotTo(HaveOccurred())
+			// although aerospike says it is healthy, the rate limiter will error when connecting
+			// saying Failed to connect to hosts: ... is not yet fully initialized
+			time.Sleep(1 * time.Second)
+
+			ctx, cancel = context.WithCancel(context.Background())
+			cache = memory.NewInMemoryResourceCache()
+
+			testClients = services.GetTestClients(ctx, cache)
+			testClients.GlooPort = int(services.AllocateGlooPort())
+		})
+
+		JustBeforeEach(justBeforeEach)
+
+		AfterEach(func() {
+			cancel()
+			services.MustKillAndRemoveContainer(services.AerospikeDbContainerName)
 		})
 
 		runAllTests()

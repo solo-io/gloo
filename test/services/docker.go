@@ -52,6 +52,18 @@ func ContainerExistsWithName(containerName string) string {
 	return string(out)
 }
 
+func ExecOnContainer(containerName string, args []string) ([]byte, error) {
+	updatedContainerName := getUpdatedContainerName(containerName)
+	arguments := []string{"exec", updatedContainerName}
+	arguments = append(arguments, args...)
+	cmd := exec.Command("docker", arguments...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, errors.Wrapf(err, "Unable to execute command %v on [%s] container [%s]", arguments, containerName, out)
+	}
+	return out, nil
+}
+
 func MustKillAndRemoveContainer(containerName string) {
 	err := KillAndRemoveContainer(containerName)
 	Expect(err).ToNot(HaveOccurred())

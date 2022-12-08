@@ -1,6 +1,7 @@
 Name|Version|License
 ---|---|---
 [Masterminds/goutils](https://github.com/Masterminds/goutils)|v1.1.1|Apache License 2.0
+[aerospike/aerospike-client-go](https://github.com/aerospike/aerospike-client-go)|v4.5.2+incompatible|Apache License 2.0
 [avast/retry-go](https://github.com/avast/retry-go)|v2.4.3+incompatible|MIT License
 [aws/aws-sdk-go](https://github.com/aws/aws-sdk-go)|v1.43.16|Apache License 2.0
 [deislabs/oras](https://github.com/deislabs/oras)|v0.11.1|MIT License

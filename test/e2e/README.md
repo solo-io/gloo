@@ -8,7 +8,7 @@ This directory contains end-to-end tests that do not require kubernetes
 For these tests to run, we require Envoy be built in a docker container. The `VERSION` env variable determines the name of the tag for that image.
 
 ```bash
-VERSION=<version-name> make gloo-ee-envoy-wrapper-docker
+VERSION=<version-name> make gloo-ee-envoy-wrapper-docker -B
 ```
 
 ### Run Tests
@@ -19,3 +19,13 @@ Example:
 ```bash
 ENVOY_IMAGE_TAG=<version-name> make run-e2e-tests
 ```
+
+### Flags
+You can use the following flags for the `ratelimit_test.go` to turn off key features.  This is done because the Focus will be ignored and run all `BeforeEach` functions, thus creating the containers, but not tearing them down. Set to `1`.
+- DO_NOT_RUN_AEROSPIKE=1
+- DO_NOT_RUN_REDIS=1
+- DO_NOT_RUN_DYNAMO=1
+
+
+
+

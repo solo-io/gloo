@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/Masterminds/goutils v1.1.1
+	github.com/aerospike/aerospike-client-go v4.5.2+incompatible
 	github.com/avast/retry-go v2.4.3+incompatible
 	github.com/aws/aws-sdk-go v1.43.16
 	github.com/deislabs/oras v0.11.1
@@ -116,7 +117,6 @@ require (
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
-	github.com/aerospike/aerospike-client-go v4.5.2+incompatible // indirect
 	github.com/aerospike/aerospike-client-go/v6 v6.3.0 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/armon/go-metrics v0.3.11 // indirect
