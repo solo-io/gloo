@@ -1,0 +1,11 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7529
+    description: >
+      Fixes issue where Gloo Fed erroneously writes to a remote cluster registered by another Gloo Fed instance.
+      The cluster watcher now only watches clusters registered in the Gloo Fed instance's own install namespace.
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: skv2
+    dependencyTag: v0.25.0

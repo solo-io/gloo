@@ -51,7 +51,7 @@ func Run(runCtx context.Context, settings *Settings) error {
 
 	clusterWatcher := watch.NewClusterWatcher(runCtx, manager.Options{
 		Scheme: fed_bootstrap.MustRemoteScheme(runCtx),
-	})
+	}, []string{fed_bootstrap.GetInstallNamespace()})
 
 	// Generate the set of cluster (names) that the cluster watcher will be registered with
 	clusterSet := multicluster.NewClusterSet()

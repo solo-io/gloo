@@ -108,7 +108,7 @@ func initializeGlooFed(ctx context.Context, mgr manager.Manager, apiserverSettin
 	ratelimitFedClient := ratelimitfedv1alpha1.NewClientset(mgr.GetClient())
 	clusterWatcher := watch.NewClusterWatcher(ctx, manager.Options{
 		Scheme: fed_bootstrap.MustRemoteScheme(ctx),
-	})
+	}, []string{apiserverutils.GetInstallNamespace()})
 	clusterSet := multicluster.NewClusterSet()
 	clusterWatcher.RegisterClusterHandler(clusterSet)
 	mcClient := client.NewClient(clusterWatcher)

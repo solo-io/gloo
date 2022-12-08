@@ -56,7 +56,7 @@ require (
 	github.com/solo-io/protoc-gen-ext v0.0.17
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.7.4
-	github.com/solo-io/skv2 v0.23.8
+	github.com/solo-io/skv2 v0.25.0
 	github.com/solo-io/solo-apis v0.0.0-20221203004959-2300e0475043
 	github.com/solo-io/solo-kit v0.30.8
 	github.com/solo-io/wasm-kit v0.1.3
@@ -297,7 +297,7 @@ require (
 	github.com/schollz/progressbar/v3 v3.7.4 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/solo-io/cue v0.4.4 // indirect
+	github.com/solo-io/cue v0.4.6 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

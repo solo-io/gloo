@@ -1642,8 +1642,8 @@ github.com/solo-io/cli-kit v0.2.1 h1:Hc5EXi0ccP4yHmuBLHHr98Q/Jz0cQt7huRg9x/iH3qQ
 github.com/solo-io/cli-kit v0.2.1/go.mod h1:l99zSPTfmt9KaSKQMGwju+IdVvw1HaVU8ZrO4q19meo=
 github.com/solo-io/cue v0.4.1/go.mod h1:NaNBm1PrzINbNcE/ZU9wEAJ6JXvi//F/HU5cIpngeZE=
 github.com/solo-io/cue v0.4.3/go.mod h1:P1tN9y6nBPAMoEK5aJxI8kn0VUcjVcRc+8esieRzQ7M=
-github.com/solo-io/cue v0.4.4 h1:FZC5slfXj1bRjM6RMasdcoQqId1FNuxHCouMft+IvqE=
-github.com/solo-io/cue v0.4.4/go.mod h1:P1tN9y6nBPAMoEK5aJxI8kn0VUcjVcRc+8esieRzQ7M=
+github.com/solo-io/cue v0.4.6 h1:xfZN+SKo+WNOlGup6G2vMYl5MxgEuJ9r+NFFpo2SXm0=
+github.com/solo-io/cue v0.4.6/go.mod h1:P1tN9y6nBPAMoEK5aJxI8kn0VUcjVcRc+8esieRzQ7M=
 github.com/solo-io/ext-auth-plugins v0.2.1 h1:8ZkQx9DnTUE3z4vK029l1F2GHbDjNphkewR4opYwvFc=
 github.com/solo-io/ext-auth-plugins v0.2.1/go.mod h1:bVOJ1BvrBQC6CyYa+DtGU+vJ0asUu3Xa0CSSp9l97fA=
 github.com/solo-io/ext-auth-service v0.29.2 h1:0GrVPfFg67p45ru4C/lFPz2XtP/2cNbgT7WSBZcj4b4=
@@ -1687,8 +1687,8 @@ github.com/solo-io/skv2 v0.16.2/go.mod h1:VHaqcbvRTzPD/m5lCV+zBOQppbtEB5PTmkZkCm
 github.com/solo-io/skv2 v0.17.0/go.mod h1:52/0ETq6fkr/abuoUYd3qgV8DEFBI72Sd5frl2dFGJs=
 github.com/solo-io/skv2 v0.21.6/go.mod h1:8jNcMWuAkBxdGhlRFMSgsK94q/jZGPEas8VHTr/al/Y=
 github.com/solo-io/skv2 v0.22.11/go.mod h1:PYlP+s/zurQdh+5rTvPUGm81IvEaD30LYNWtgQGZnqs=
-github.com/solo-io/skv2 v0.23.8 h1:rmdGalLYubsFtr5XvHtwh7kNW3tVjt7kLQ5CgGAygBU=
-github.com/solo-io/skv2 v0.23.8/go.mod h1:MnAxtESVUzH++Dy6jOsq13SA41Dfl+HbioKd+pejRuc=
+github.com/solo-io/skv2 v0.25.0 h1:9KiuZCeUGJEygfqPmUZQp+KDodnZYiVuYzSOQ2cdXX8=
+github.com/solo-io/skv2 v0.25.0/go.mod h1:ZgInY/qtk1o5zS1brsSx9My3iDNf9jVlmRRPoFKAWgY=
 github.com/solo-io/solo-apis v0.0.0-20210119160956-e52ac14025d3/go.mod h1:9tB/zzr7cGk308Y7tqwWRkccG8N4rSslS6s8mlKXd5s=
 github.com/solo-io/solo-apis v0.0.0-20221203004959-2300e0475043 h1:Y+rsPVTO/uOpsMUjGMsT3t2vgmHmPj5qAATmCzRq0no=
 github.com/solo-io/solo-apis v0.0.0-20221203004959-2300e0475043/go.mod h1:860OrJwOkf8TAdzsQZWewslW1BmtXUD6n/P6ny8s7/Q=
