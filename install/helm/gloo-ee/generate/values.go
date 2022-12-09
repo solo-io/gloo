@@ -109,24 +109,24 @@ type DynamoDb struct {
 }
 
 type AerospikeDb struct {
-	Address      string        `json:"address" desc:"when set, enables Aerospike DB. The address for the Aerospike DB host."`
-	Namespace    string        `json:"namespace" desc:"the namespace of the aerospike DB. Defaults to solo-namespace."`
-	Set          string        `json:"set" desc:"the name of the aerospike DB set. Defaults to ratelimiter."`
-	Port         int           `json:"port" desc:"the port used by the address. Default to 3000."`
-	BatchSize    int           `json:"batchSize" desc:"the size of the batch"`
-	CommitLevel  int           `json:"commitLevel" desc:"the commit level. See [commit policy](https://github.com/aerospike/aerospike-client-go/blob/master/commit_policy.go) for options."`
-	ReadModeSC   int           `json:"readModeSC" desc:"the read mode SC. See [read mode SC](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_sc.go) for options."`
-	ReadModeAP   int           `json:"readModeAP" desc:"the read mode AP. See [read mode AP](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_ap.go) for options."`
+	Address      string        `json:"address" desc:"The IP address or hostname of the Aerospike database. The address must be reachable from Gloo Edge, such as in a virtual machine with a public IP address or in a pod in the cluster. By setting this value, you also enable Aerospike database as the backing storage for the rate limit service."`
+	Namespace    string        `json:"namespace" desc:"The Aerospike namespace of the database."`
+	Set          string        `json:"set" desc:"The Aerospike name of the database set."`
+	Port         int           "json:\"port\" desc:\"The port of the `rateLimit.deployment.aerospike.address`.\""
+	BatchSize    int           `json:"batchSize" desc:"The size of the batch, which is the number of keys sent in the request."`
+	CommitLevel  int           `json:"commitLevel" desc:"The level of guaranteed consistency for transaction commits on the Aerospike server. For possible values, see the [Aerospike commit policy](https://github.com/aerospike/aerospike-client-go/blob/master/commit_policy.go)."`
+	ReadModeSC   int           `json:"readModeSC" desc:"The read mode for strong consistency (SC) options. For possible values, see the [Aerospike read mode SC](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_sc.go)."`
+	ReadModeAP   int           `json:"readModeAP" desc:"The read mode for availability (AP). For possible values, see the [Aerospike read mode AP](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_ap.go)."`
 	AerospikeTLS *AerospikeTLS `json:"tls,omitempty" desc:"Aerospike TLS Settings"`
 }
 
 type AerospikeTLS struct {
-	Name             string   `json:"name" desc:"the TLS Name"`
-	Version          string   `json:"version" desc:"TLS version 1.0, 1.1, 1.2, and 1.3 supported"`
-	Insecure         *bool    `json:"insecure" desc:"TLS insecure setting"`
-	CertSecretName   string   `json:"certSecretName" desc:"name of the kubernetes.io/tls secret with the tls.crt and tls.key defined"`
-	RootCASecretName string   `json:"rootCASecretName" desc:"the secret name for the Opaque root CA, set the key as tls.crt"`
-	CurveGroups      []string `json:"curveGroups" desc:"the TLS curve groups"`
+	Name             string   "json:\"name,omitempty\" desc:\"The subject name of the TLS authority. For more information, see the [Aerospike docs](https://docs.aerospike.com/reference/configuration#tls-name). To enable TLS, you must provide at least this value and the `certSecretName` value.\""
+	Version          string   `json:"version,omitempty" desc:"The TLS version. Versions 1.0, 1.1, 1.2, and 1.3 are supported."`
+	Insecure         *bool    "json:\"insecure,omitempty\" desc:\"The TLS insecure setting. If set to `true`, the authority of the certificate on the client's end is not authenticated. You might use insecure mode in non-production environments when the certificate is not known.\""
+	CertSecretName   string   "json:\"certSecretName,omitempty\" desc:\"The name of the `kubernetes.io/tls` secret that has the `tls.crt` and `tls.key` data. To enable TLS, you must provide at least this value and the `name` value.\""
+	RootCASecretName string   "json:\"rootCASecretName,omitempty\" desc:\"The secret name for the Opaque root CA that sets the key as `tls.crt`.\""
+	CurveGroups      []string `json:"curveGroups,omitempty" desc:"The TLS identifier for an elliptic curve. For more information, see [TLS supported groups](https://www.iana.org/assignments/tls-parameters/tls-parameters.xml#tls-parameters-8)."`
 }
 
 type RateLimitDeployment struct {

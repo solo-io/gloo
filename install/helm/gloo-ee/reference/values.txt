@@ -1499,20 +1499,20 @@
 |global.extensions.rateLimit.deployment.dynamodb.tableName|string|rate-limits|DynamoDB table name used to back rate limit service (default rate-limits)|
 |global.extensions.rateLimit.deployment.dynamodb.consistentReads|bool|true|if true, reads from DynamoDB will be strongly consistent (default false)|
 |global.extensions.rateLimit.deployment.dynamodb.batchSize|uint8|100|batch size for get requests to DynamoDB (max 100, default 100)|
-|global.extensions.rateLimit.deployment.aerospike.address|string||when set, enables Aerospike DB. The address for the Aerospike DB host.|
-|global.extensions.rateLimit.deployment.aerospike.namespace|string||the namespace of the aerospike DB. Defaults to solo-namespace.|
-|global.extensions.rateLimit.deployment.aerospike.set|string||the name of the aerospike DB set. Defaults to ratelimiter.|
-|global.extensions.rateLimit.deployment.aerospike.port|int|0|the port used by the address. Default to 3000.|
-|global.extensions.rateLimit.deployment.aerospike.batchSize|int|0|the size of the batch|
-|global.extensions.rateLimit.deployment.aerospike.commitLevel|int|0|the commit level. See [commit policy](https://github.com/aerospike/aerospike-client-go/blob/master/commit_policy.go) for options.|
-|global.extensions.rateLimit.deployment.aerospike.readModeSC|int|0|the read mode SC. See [read mode SC](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_sc.go) for options.|
-|global.extensions.rateLimit.deployment.aerospike.readModeAP|int|0|the read mode AP. See [read mode AP](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_ap.go) for options.|
-|global.extensions.rateLimit.deployment.aerospike.tls.name|string||the TLS Name|
-|global.extensions.rateLimit.deployment.aerospike.tls.version|string||TLS version 1.0, 1.1, 1.2, and 1.3 supported|
-|global.extensions.rateLimit.deployment.aerospike.tls.insecure|bool||TLS insecure setting|
-|global.extensions.rateLimit.deployment.aerospike.tls.certSecretName|string||name of the kubernetes.io/tls secret with the tls.crt and tls.key defined|
-|global.extensions.rateLimit.deployment.aerospike.tls.rootCASecretName|string||the secret name for the Opaque root CA, set the key as tls.crt|
-|global.extensions.rateLimit.deployment.aerospike.tls.curveGroups[]|string||the TLS curve groups|
+|global.extensions.rateLimit.deployment.aerospike.address|string||The IP address or hostname of the Aerospike database. The address must be reachable from Gloo Edge, such as in a virtual machine with a public IP address or in a pod in the cluster. By setting this value, you also enable Aerospike database as the backing storage for the rate limit service.|
+|global.extensions.rateLimit.deployment.aerospike.namespace|string|solo-namespace|The Aerospike namespace of the database.|
+|global.extensions.rateLimit.deployment.aerospike.set|string|ratelimiter|The Aerospike name of the database set.|
+|global.extensions.rateLimit.deployment.aerospike.port|int|3000|The port of the `rateLimit.deployment.aerospike.address`.|
+|global.extensions.rateLimit.deployment.aerospike.batchSize|int|5000|The size of the batch, which is the number of keys sent in the request.|
+|global.extensions.rateLimit.deployment.aerospike.commitLevel|int|1|The level of guaranteed consistency for transaction commits on the Aerospike server. For possible values, see the [Aerospike commit policy](https://github.com/aerospike/aerospike-client-go/blob/master/commit_policy.go).|
+|global.extensions.rateLimit.deployment.aerospike.readModeSC|int|0|The read mode for strong consistency (SC) options. For possible values, see the [Aerospike read mode SC](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_sc.go).|
+|global.extensions.rateLimit.deployment.aerospike.readModeAP|int|0|The read mode for availability (AP). For possible values, see the [Aerospike read mode AP](https://github.com/aerospike/aerospike-client-go/blob/master/read_mode_ap.go).|
+|global.extensions.rateLimit.deployment.aerospike.tls.name|string||The subject name of the TLS authority. For more information, see the [Aerospike docs](https://docs.aerospike.com/reference/configuration#tls-name). To enable TLS, you must provide at least this value and the `certSecretName` value.|
+|global.extensions.rateLimit.deployment.aerospike.tls.version|string|1.3|The TLS version. Versions 1.0, 1.1, 1.2, and 1.3 are supported.|
+|global.extensions.rateLimit.deployment.aerospike.tls.insecure|bool|false|The TLS insecure setting. If set to `true`, the authority of the certificate on the client's end is not authenticated. You might use insecure mode in non-production environments when the certificate is not known.|
+|global.extensions.rateLimit.deployment.aerospike.tls.certSecretName|string||The name of the `kubernetes.io/tls` secret that has the `tls.crt` and `tls.key` data. To enable TLS, you must provide at least this value and the `name` value.|
+|global.extensions.rateLimit.deployment.aerospike.tls.rootCASecretName|string||The secret name for the Opaque root CA that sets the key as `tls.crt`.|
+|global.extensions.rateLimit.deployment.aerospike.tls.curveGroups[]|string||The TLS identifier for an elliptic curve. For more information, see [TLS supported groups](https://www.iana.org/assignments/tls-parameters/tls-parameters.xml#tls-parameters-8).|
 |global.extensions.rateLimit.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
 |global.extensions.rateLimit.deployment.image.repository|string|rate-limit-ee|The image repository (name) for the container.|
 |global.extensions.rateLimit.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|

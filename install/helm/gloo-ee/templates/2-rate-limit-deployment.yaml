@@ -122,12 +122,18 @@ spec:
               value: {{ $aero.readModeAP | quote }}
             {{- end }}
             {{- if $aero.tls }}
+            {{- if $aero.tls.name }}
             - name: AEROSPIKE_NODE_TLS_NAME
               value: {{ $aero.tls.name }}
+            {{- end }}
+            {{- if $aero.tls.insecure }}
             - name: AEROSPIKE_INSECURE_SKIP_VERIFY
               value: {{ $aero.tls.insecure | quote }}
+            {{- end }}
+            {{- if $aero.tls.version }}
             - name: AEROSPIKE_TLS_VERSION
               value: {{ $aero.tls.version | quote }}
+            {{- end }}
             {{- if $aero.tls.curveGroups }}
             - name: AEROSPIKE_TLS_CURVE_GROUPS
               value: '{{ join "," $aero.tls.curveGroups }}'

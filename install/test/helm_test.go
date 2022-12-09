@@ -1293,6 +1293,16 @@ gloo:
 
 				Context("Aerospike", func() {
 					var aeroSpikeKeyValuesTLS, aeroSpikeKeyValues map[string]string
+					aerospikeDefaultValues := map[string]string{
+						"AEROSPIKE_NAMESPACE":    "solo-namespace",
+						"AEROSPIKE_SET":          "ratelimiter",
+						"AEROSPIKE_PORT":         "3000",
+						"AEROSPIKE_BATCH_SIZE":   "5000",
+						"AEROSPIKE_COMMIT_LEVEL": "1",
+					}
+					aerospikeDefaultTLSValues := map[string]string{
+						"AEROSPIKE_TLS_VERSION": "1.3",
+					}
 					BeforeEach(func() {
 						aeroSpikeKeyValuesTLS = map[string]string{
 							"AEROSPIKE_NODE_TLS_NAME":        "tlsName",
@@ -1403,9 +1413,8 @@ gloo:
 
 					It("does not populdate aerospike with TLS configurations that do not need to be populated", func() {
 						aeroSpikeKeyValuesTLS := map[string]string{
-							"AEROSPIKE_NODE_TLS_NAME":        "tlsName",
-							"AEROSPIKE_INSECURE_SKIP_VERIFY": "",
-							"AEROSPIKE_TLS_VERSION":          "",
+							"AEROSPIKE_NODE_TLS_NAME": "tlsName",
+							"AEROSPIKE_TLS_VERSION":   "1.3",
 						}
 						aerospikeDoesNotInclude := []string{
 							"AEROSPIKE_TLS_CURVE_GROUPS",
@@ -1424,7 +1433,6 @@ gloo:
 
 						testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
 							valuesFile: tmpFile.Name(),
-							// TODO-JAKE if the value is not specified do not add it here.
 							valuesArgs: []string{
 								"global.extensions.rateLimit.deployment.aerospike.address=aerospikeAddress",
 								"global.extensions.rateLimit.deployment.aerospike.namespace=aeroNamespace",
@@ -1535,7 +1543,14 @@ gloo:
 								for key, value := range aeroSpikeKeyValues {
 									ex.ExpectToHaveEnv(key, value, fmt.Sprintf("should have %s = %s", key, value))
 								}
+							OUTER:
 								for key, value := range aeroSpikeKeyValuesTLS {
+									for dk, dv := range aerospikeDefaultTLSValues {
+										if key == dk {
+											ex.ExpectToHaveEnv(dk, dv, fmt.Sprintf("should have the default key %s=%s", key, value))
+											continue OUTER
+										}
+									}
 									ex.ExpectToNotHaveEnv(key, fmt.Sprintf("should not have key %s = %s", key, value))
 								}
 								Expect(structuredDeployment.Spec.Template.Spec.Volumes).ToNot(ContainElement(v1.Volume{
@@ -1605,13 +1620,27 @@ gloo:
 								for key, value := range aerospikeValuesChanged {
 									ex.ExpectToHaveEnv(key, value, fmt.Sprintf("should have %s = %s", key, value))
 								}
+							OUTER:
 								for key, value := range aeroSpikeKeyValues {
+									for defaultKey, defaultValue := range aerospikeDefaultValues {
+										if key == defaultKey {
+											ex.ExpectToHaveEnv(key, defaultValue, fmt.Sprintf("the default value for key %s=%s", defaultKey, defaultValue))
+											continue OUTER
+										}
+									}
 									// the address is the only aerospike variable being set in this test
 									if key != "AEROSPIKE_ADDRESS" {
 										ex.ExpectToNotHaveEnv(key, fmt.Sprintf("should not have key %s = %s", key, value))
 									}
 								}
+							TLS_OUTER:
 								for key, value := range aeroSpikeKeyValuesTLS {
+									for dk, dv := range aerospikeDefaultTLSValues {
+										if key == dk {
+											ex.ExpectToHaveEnv(dk, dv, fmt.Sprintf("should have the default key %s=%s", key, value))
+											continue TLS_OUTER
+										}
+									}
 									ex.ExpectToNotHaveEnv(key, fmt.Sprintf("should not have key %s = %s", key, value))
 								}
 								Expect(structuredDeployment.Spec.Template.Spec.Volumes).ToNot(ContainElement(v1.Volume{

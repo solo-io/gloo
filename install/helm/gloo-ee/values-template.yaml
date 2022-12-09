@@ -125,6 +125,15 @@ global:
           tableName: rate-limits
           consistentReads: true
           batchSize: 100
+        aerospike:
+          namespace: solo-namespace
+          set: ratelimiter
+          port: 3000
+          batchSize: 5000
+          commitLevel: 1
+          tls:
+            version: "1.3"
+            insecure: false
         runAsUser: 10101
       service:
         port: 18081
