@@ -286,7 +286,7 @@ Injection point for enterprise-exclusive settings into the settings manifest
 {{- if $.Values.global.extensions.caching.enabled }}
   cachingServer:
     cachingServiceRef:
-      name: caching-server
+      name: caching-service
       namespace: {{ .Release.Namespace }}
 {{- end }} {{/* if $.Values.global.extensions.caching.enabled */}}
 {{- $consoleOpts := $.Values.global.console | default dict }}

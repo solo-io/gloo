@@ -3,6 +3,7 @@ package cachinggrpc
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -196,7 +197,7 @@ var _ = Describe("Installing gloo", func() {
 			Service:           defaults.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		}, kube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*5)
+		}, kube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Second*20)
 	})
 
 	It("gets the same response with grpc-caching and does not break", func() {
@@ -222,7 +223,208 @@ var _ = Describe("Installing gloo", func() {
 
 	})
 
+	happyPathTest := func() {
+		By("sending an inital request to cache the response")
+		res, err := requestOnPath("/service/1/valid-for-three-seconds")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(res).To(ContainSubstring("200"))
+		// expect headers to not contain an age header, because they are not yet cached
+		headers := getResponseHeadersFromCurlOutput(res)
+		Expect(headers).NotTo(HaveKey("age"))
+		// get date header
+		date, err := time.Parse(time.RFC1123, headers["date"])
+		Expect(err).NotTo(HaveOccurred())
+
+		By("sending a second request to serve the response from cache")
+		// sleep for 1 second so we can ensure that the date header timestamp of the second
+		// request is different from the first
+		time.Sleep(time.Second)
+
+		res, err = requestOnPath("/service/1/valid-for-three-seconds")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(res).To(ContainSubstring("200"))
+		headers = getResponseHeadersFromCurlOutput(res)
+		// expect headers to contain an age header
+		Expect(headers).To(HaveKey("age"))
+		// expect the age header to be less than 3 seconds
+		age, err := strconv.Atoi(headers["age"])
+		Expect(err).NotTo(HaveOccurred())
+		Expect(age).To(BeNumerically("<", 3))
+		Expect(age).To(BeNumerically(">", 0))
+		// expect the date header to be the same as the first request
+		Expect(headers["date"]).To(Equal(date.Format(time.RFC1123)))
+	}
+
+	validationTest := func() {
+		By("sending an inital request to cache the response")
+		res, err := requestOnPath("/service/1/valid-for-three-seconds")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(res).To(ContainSubstring("200"))
+		// expect headers to not contain an age header, because they are not yet cached
+		headers := getResponseHeadersFromCurlOutput(res)
+		Expect(headers).NotTo(HaveKey("age"))
+		// get date header
+		date, err := time.Parse(time.RFC1123, headers["date"])
+		Expect(err).NotTo(HaveOccurred())
+
+		By("sending a second request to serve the response from cache")
+		// sleep for 1 second so we can ensure that the date header timestamp of the second
+		// request is different from the first
+		time.Sleep(time.Second)
+
+		res, err = requestOnPath("/service/1/valid-for-three-seconds")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(res).To(ContainSubstring("200"))
+		headers = getResponseHeadersFromCurlOutput(res)
+		// expect headers to contain an age header
+		Expect(headers).To(HaveKey("age"))
+		// expect the age header to be less than 3 seconds
+		age, err := strconv.Atoi(headers["age"])
+		Expect(err).NotTo(HaveOccurred())
+		Expect(age).To(BeNumerically("<", 3))
+		Expect(age).To(BeNumerically(">", 0))
+		// expect the date header to be the same as the first request
+		Expect(headers["date"]).To(Equal(date.Format(time.RFC1123)))
+
+		By("sending a third request to serve the response from cache")
+		// sleep for 5 seconds so we can ensure that the cached response is expired
+		time.Sleep(time.Second * 5)
+
+		res, err = requestOnPath("/service/1/valid-for-three-seconds")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(res).To(ContainSubstring("200"))
+		headers = getResponseHeadersFromCurlOutput(res)
+		// expect headers to not contain an age header, because the cached response is expired
+		Expect(headers).NotTo(HaveKey("age"))
+		// expect the validation workflow to update the date header
+		Expect(headers["date"]).NotTo(Equal(date.Format(time.RFC1123)))
+	}
+
+	Context("Using the redis cache service implementation", func() {
+		BeforeEach(func() {
+			createCachingTestResources()
+			waitForGateway()
+			// Wait for the service to be responding
+			Eventually(func() (string, error) {
+				return requestOnPath("/service/1/no-cache")
+			}, "20s", "1s").Should(ContainSubstring("200"))
+		})
+
+		AfterEach(func() {
+			deleteCachingTestResources()
+			restartRedis()
+		})
+
+		It("can cache a response", happyPathTest)
+		It("can validate expired cached responses", validationTest)
+	})
+
+	Context("Using the inmemory cache service implementation", func() {
+		BeforeEach(func() {
+			patchCachingServiceToUseInmemoryCache()
+			restartCachingService()
+			createCachingTestResources()
+			waitForGateway()
+			// Wait for the service to be responding
+			Eventually(func() (string, error) {
+				return requestOnPath("/service/1/no-cache")
+			}, "20s", "1s").Should(ContainSubstring("200"))
+		})
+
+		AfterEach(func() {
+			deleteCachingTestResources()
+		})
+
+		It("can cache a response", happyPathTest)
+		It("can validate expired cached responses", validationTest)
+	})
 })
+
+// create the test resources in ../assets/caching/resources/ one by one, ensuring that each is accepted before creating the next
+func createCachingTestResources() {
+	// create cache_test_service pod
+	_, err := services.KubectlOut("apply", "-f", "../assets/caching/resources/pod.yaml")
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(func() (string, error) {
+		return services.KubectlOut("get", "pod/service1", "-n", testHelper.InstallNamespace, "-o", "jsonpath={.status.phase}")
+	}, "20s", "1s").Should(Equal("Running"))
+
+	// create service pointing to cache_test_service pod
+	_, err = services.KubectlOut("apply", "-f", "../assets/caching/resources/svc.yaml")
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(func() (string, error) {
+		return services.KubectlOut("get", "svc/service1", "-n", testHelper.InstallNamespace)
+	}, "20s", "1s").ShouldNot(BeEmpty())
+
+	// create upstream pointing to service
+	_, err = services.KubectlOut("apply", "-f", "../assets/caching/resources/us.yaml")
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(func() (string, error) {
+		return services.KubectlOut("get", "us/test-cache-us", "-n", testHelper.InstallNamespace, "-o", "jsonpath={.status.statuses."+testHelper.InstallNamespace+".state}")
+	}, "20s", "1s").Should(Equal("Accepted"))
+
+	// create virtual service routing to upstream
+	_, err = services.KubectlOut("apply", "-f", "../assets/caching/resources/vs.yaml")
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(func() (string, error) {
+		return services.KubectlOut("get", "vs/cache-test-vs", "-n", testHelper.InstallNamespace, "-o", "jsonpath={.status.statuses."+testHelper.InstallNamespace+".state}")
+	}, "20s", "1s").Should(Equal("Accepted"))
+
+}
+
+func deleteCachingTestResources() {
+	_, err := services.KubectlOut("delete", "-f", "../assets/caching/resources/vs.yaml")
+	Expect(err).NotTo(HaveOccurred())
+	_, err = services.KubectlOut("delete", "-f", "../assets/caching/resources/us.yaml")
+	Expect(err).NotTo(HaveOccurred())
+	_, err = services.KubectlOut("delete", "-f", "../assets/caching/resources/svc.yaml")
+	Expect(err).NotTo(HaveOccurred())
+	_, err = services.KubectlOut("delete", "-f", "../assets/caching/resources/pod.yaml")
+	Expect(err).NotTo(HaveOccurred())
+}
+
+func patchCachingServiceToUseInmemoryCache() {
+	// get the name of the image, which we need in order to patch the deployment
+	out, err := services.KubectlOut("get", "deploy/caching-service", "-n", testHelper.InstallNamespace, "-o", "jsonpath={.spec.template.spec.containers[0].image}")
+	Expect(err).NotTo(HaveOccurred())
+	image := strings.TrimSpace(out)
+
+	// patch the deployment to use the inmemory cache
+	_, err = services.KubectlOut("patch", "deploy/caching-service", "-n", testHelper.InstallNamespace, "--type", "merge", "-p", `{"spec":{"template":{"spec":{"containers":[{"name":"caching-service","image":"`+image+`","env":[{"name":"SERVICE_TYPE","value":"inmemory"}]}]}}}}`)
+	Expect(err).NotTo(HaveOccurred())
+}
+
+func restartCachingService() {
+	out, err := services.KubectlOut(strings.Split("rollout restart -n "+testHelper.InstallNamespace+" deploy/caching-service", " ")...)
+	fmt.Println(out)
+	Expect(err).ToNot(HaveOccurred())
+	out, err = services.KubectlOut(strings.Split("rollout status -n "+testHelper.InstallNamespace+" deploy/caching-service", " ")...)
+	fmt.Println(out)
+	Expect(err).ToNot(HaveOccurred())
+}
+
+func restartRedis() {
+	out, err := services.KubectlOut(strings.Split("rollout restart -n "+testHelper.InstallNamespace+" deploy/redis", " ")...)
+	fmt.Println(out)
+	Expect(err).ToNot(HaveOccurred())
+	out, err = services.KubectlOut(strings.Split("rollout status -n "+testHelper.InstallNamespace+" deploy/redis", " ")...)
+	fmt.Println(out)
+	Expect(err).ToNot(HaveOccurred())
+}
+
+// A bit of a hack to get response headers from the verbose curl output
+func getResponseHeadersFromCurlOutput(res string) map[string]string {
+	headers := map[string]string{}
+	// response headers start with "< "
+	for _, header := range strings.Split(res, "< ") {
+		headerParts := strings.Split(header, ": ")
+		if len(headerParts) == 2 {
+			// strip "\r\n" from the end of the value
+			headers[headerParts[0]] = strings.TrimSuffix(headerParts[1], "\r\n")
+		}
+	}
+	return headers
+}
 
 func generateHealthCheckRoute() *v1.Route {
 	return &v1.Route{

@@ -1,0 +1,8 @@
+changelog:
+- type: NON_USER_FACING
+  description: Add kube2e tests against caching functionality
+- type: FIX
+  issueLink: https://github.com/solo-io/solo-projects/issues/4162
+  description: >
+    Update helm charts to use "caching-service" instead of
+    "caching-server" as the default cache service upstream name

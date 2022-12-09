@@ -1,0 +1,10 @@
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: "test-cache-us"
+  namespace: "gloo-system"
+spec:
+    kube:
+      serviceName: service1
+      serviceNamespace: gloo-system
+      servicePort: 8000
