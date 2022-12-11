@@ -2904,7 +2904,7 @@ spec:
 							},
 						})
 						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].ReadinessProbe = &v1.Probe{
-							Handler: v1.Handler{
+							ProbeHandler: v1.ProbeHandler{
 								Exec: &v1.ExecAction{
 									Command: []string{
 										"wget", "-O", "/dev/null", "127.0.0.1:19000/ready",
@@ -2916,7 +2916,7 @@ spec:
 							FailureThreshold:    3,
 						}
 						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].LivenessProbe = &v1.Probe{
-							Handler: v1.Handler{
+							ProbeHandler: v1.ProbeHandler{
 								Exec: &v1.ExecAction{
 									Command: []string{
 										"wget", "-O", "/dev/null", "127.0.0.1:19000/server_info",
@@ -2950,7 +2950,7 @@ spec:
 							},
 						})
 						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].ReadinessProbe = &v1.Probe{
-							Handler: v1.Handler{
+							ProbeHandler: v1.ProbeHandler{
 								HTTPGet: &v1.HTTPGetAction{
 									Path:   "/ready",
 									Port:   intstr.FromInt(19000),
@@ -2962,7 +2962,7 @@ spec:
 							FailureThreshold:    3,
 						}
 						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].LivenessProbe = &v1.Probe{
-							Handler: v1.Handler{
+							ProbeHandler: v1.ProbeHandler{
 								HTTPGet: &v1.HTTPGetAction{
 									Path:   "/server_info",
 									Port:   intstr.FromInt(19000),
@@ -2997,7 +2997,7 @@ spec:
 						})
 
 						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Lifecycle = &v1.Lifecycle{
-							PreStop: &v1.Handler{
+							PreStop: &v1.LifecycleHandler{
 								Exec: &v1.ExecAction{
 									Command: []string{
 										"/bin/sh",
@@ -3020,7 +3020,7 @@ spec:
 						})
 
 						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Lifecycle = &v1.Lifecycle{
-							PreStop: &v1.Handler{
+							PreStop: &v1.LifecycleHandler{
 								Exec: &v1.ExecAction{
 									Command: []string{
 										"/bin/sh",
@@ -4350,7 +4350,7 @@ metadata:
 						}
 
 						deploy.Spec.Template.Spec.Containers[0].ReadinessProbe = &v1.Probe{
-							Handler: v1.Handler{
+							ProbeHandler: v1.ProbeHandler{
 								TCPSocket: &v1.TCPSocketAction{
 									Port: intstr.FromInt(9977),
 								},
@@ -5283,7 +5283,7 @@ metadata:
 												AllowPrivilegeEscalation: pointer.BoolPtr(false),
 											},
 											ReadinessProbe: &v1.Probe{
-												Handler: v1.Handler{
+												ProbeHandler: v1.ProbeHandler{
 													TCPSocket: &v1.TCPSocketAction{
 														Port: intstr.FromInt(9977),
 													},
@@ -5711,7 +5711,6 @@ spec:
 						// Values without any tags are assumed to be embedded structs, and are ignored.
 						tagStr, ok := structField.Tag.Lookup("json")
 						if ok && !strings.Contains(strings.ToLower(tagStr), "omitempty") {
-							fmt.Sprintf("Missing omitempty in %s.%s", inspectedStruct.Name(), structField.Name)
 							missingVals = append(missingVals, fmt.Sprintf("{ no omitempty - %s.%s }", inspectedStruct.Name(), structField.Name))
 						}
 
