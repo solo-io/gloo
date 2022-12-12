@@ -328,6 +328,7 @@ func routeJwtRequirementName(routeName string) string {
 
 func (p *plugin) translateProviders(in *v1.VirtualHost, j jwt.VhostExtension, claimsToHeader map[string]*SoloJwtAuthnPerRoute_ClaimToHeaders, stage uint32) error {
 	for name, provider := range j.GetProviders() {
+
 		envoyProvider, err := translateProvider(provider)
 		if err != nil {
 			return err
@@ -337,6 +338,10 @@ func (p *plugin) translateProviders(in *v1.VirtualHost, j jwt.VhostExtension, cl
 		p.uniqProviders[stage][name] = envoyProvider
 		claimsToHeader[name] = translateClaimsToHeader(provider.ClaimsToHeaders)
 		p.perVhostProviders[stage][in] = append(p.perVhostProviders[stage][in], name)
+
+		if css := provider.GetClockSkewSeconds(); css != nil {
+			envoyProvider.ClockSkewSeconds = css.GetValue()
+		}
 	}
 	return nil
 }

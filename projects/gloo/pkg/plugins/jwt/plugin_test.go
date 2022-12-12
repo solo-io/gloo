@@ -12,6 +12,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	envoycore "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/config/core/v3"
@@ -150,8 +151,9 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 								},
 							},
 						},
-						Audiences: []string{"testaud"},
-						Issuer:    "testiss",
+						Audiences:        []string{"testaud"},
+						Issuer:           "testiss",
+						ClockSkewSeconds: &wrappers.UInt32Value{Value: 120},
 					},
 				},
 			}
@@ -279,6 +281,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 								Issuer:            jwtVhost.Providers["provider1"].Issuer,
 								Audiences:         jwtVhost.Providers["provider1"].Audiences,
 								PayloadInMetadata: providerName,
+								ClockSkewSeconds:  120,
 								JwksSourceSpecifier: &v3.JwtProvider_RemoteJwks{
 									RemoteJwks: &v3.RemoteJwks{
 										CacheDuration: &duration.Duration{Seconds: 5},
@@ -736,6 +739,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 				outFilters          []plugins.StagedHttpFilter
 				beforeCfg, afterCfg *JwtWithStage
 			)
+
 			JustBeforeEach(func() {
 				outVhost = envoy_config_route_v3.VirtualHost{
 					Name: "test",

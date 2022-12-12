@@ -470,9 +470,10 @@ func getJwtVhostCfg(jwtksServerRef *core.ResourceRef, allowMissingFailed, keepTo
 						},
 					},
 				},
-				Issuer:    issuer,
-				Audiences: []string{audience},
-				KeepToken: keepToken,
+				Issuer:           issuer,
+				ClockSkewSeconds: &wrappers.UInt32Value{Value: 120},
+				Audiences:        []string{audience},
+				KeepToken:        keepToken,
 				TokenSource: &jwtplugin.TokenSource{
 					Headers: []*jwtplugin.TokenSource_HeaderSource{{
 						Header: "x-jwt",
