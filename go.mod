@@ -12,7 +12,7 @@ require (
 	github.com/envoyproxy/go-control-plane v0.10.3
 	github.com/envoyproxy/protoc-gen-validate v0.6.7
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible
-	github.com/fsnotify/fsnotify v1.5.4
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-openapi/loads v0.19.4
 	github.com/go-openapi/spec v0.19.6
@@ -47,14 +47,14 @@ require (
 	github.com/sergi/go-diff v1.1.0
 	github.com/solo-io/go-list-licenses v0.1.0
 	github.com/solo-io/go-utils v0.23.0
-	github.com/solo-io/k8s-utils v0.1.4-0.20221210204313-86dffae3a896
+	github.com/solo-io/k8s-utils v0.1.4-0.20221213125258-34918d5b7bb6
 	github.com/solo-io/protoc-gen-ext v0.0.17
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/skv2 v0.21.6
 
 	// Pinned to the `gloo-edge-safe-hasher` tag of solo-apis
 	github.com/solo-io/solo-apis v0.0.0-20220923183548-9746539fc625
-	github.com/solo-io/solo-kit v0.30.9-0.20221211011959-e0f45d792425
+	github.com/solo-io/solo-kit v0.30.9-0.20221214002426-44fc4013bcac
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
