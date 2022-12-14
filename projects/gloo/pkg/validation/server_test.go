@@ -40,6 +40,8 @@ import (
 var _ = Describe("Validation Server", func() {
 	var (
 		ctrl              *gomock.Controller
+		ctx               context.Context
+		cancel            context.CancelFunc
 		settings          *v1.Settings
 		translator        Translator
 		params            plugins.Params
@@ -65,9 +67,9 @@ var _ = Describe("Validation Server", func() {
 			},
 		}
 		registeredPlugins = registry.Plugins(opts)
-
+		ctx, cancel = context.WithCancel(context.Background())
 		params = plugins.Params{
-			Ctx:      context.Background(),
+			Ctx:      ctx,
 			Snapshot: samples.SimpleGlooSnapshot("gloo-system"),
 		}
 
@@ -77,7 +79,9 @@ var _ = Describe("Validation Server", func() {
 			routeReplacingSanitizer,
 		}
 	})
-
+	AfterEach(func() {
+		cancel()
+	})
 	JustBeforeEach(func() {
 		pluginRegistry := registry.NewPluginRegistry(registeredPlugins)
 
