@@ -3,32 +3,35 @@ package checks
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/pkg/utils/modfile"
 )
 
-var _ = Describe("Checks", func() {
+var _ = Describe("Checks mod", func() {
 
-	It("should used forked klog instead of klog", func() {
-		// regular klog writes to disk, so make sure we used a forked version that doesn't write to
-		// disk, which is a problem with hardened containers with root only file systems.
+	// Ginkgo v2.0.0 contains describetable so this could be wr
+	// 	DescribeTable("needed replaces are present",
 
-		allPackages, err := modfile.Parse()
-		Expect(err).NotTo(HaveOccurred())
+	// 	func(name, path, oldPath, version string){
+	// 		allPackages, err := modfile.Parse()
+	// 		Expect(err).NotTo(HaveOccurred())
 
-		replacedPackages := allPackages.Replace
-		Expect(replacedPackages).NotTo(BeNil())
+	// 		replacedPackages := allPackages.Replace
+	// 		Expect(replacedPackages).NotTo(BeNil())
 
-		var klogReplace modfile.ReplacedGoPackage
-		for _, replacedGoPkg := range replacedPackages {
-			if replacedGoPkg.Old.Path == "k8s.io/klog" {
-				klogReplace = replacedGoPkg
-				break
-			}
-		}
+	// 		var replace modfile.ReplacedGoPackage
+	// 		for _, replacedGoPkg := range replacedPackages {
+	// 			if replacedGoPkg.Old.Path == oldPath {
+	// 				replace = replacedGoPkg
+	// 				break
+	// 			}
+	// 		}
 
-		Expect(klogReplace).NotTo(BeNil())
-		Expect(klogReplace.New.Path).To(Equal("github.com/stefanprodan/klog"))
-		Expect(klogReplace.New.Version).To(Equal("v0.0.0-20190418165334-9cbb78b20423"))
-	})
+	// 		Expect(replace).NotTo(BeNil())
+	// 		Expect(replace.New.Path).To(Equal(path))
+	// 		Expect(replace.New.Version).To(Equal(version))
+	// 	},
+
+	// 	// we no longer need to replace klog but this was a long time example Entry("k8s.io/klog", "k8s.io/klog", "github.com/stefanprodan/klog", "v0.0.0-20181102134211-b9b56d5dfc92"),
+
+	// )
 
 })
