@@ -512,6 +512,7 @@ var _ = Describe("Validation Server", func() {
 				defer GinkgoRecover()
 				for {
 					notification, err := stream.Recv()
+					l.Lock()
 					if desiredErrCode == 0 {
 						Expect(err).To(BeNil())
 					} else {
@@ -521,7 +522,7 @@ var _ = Describe("Validation Server", func() {
 						Expect(st.Code()).To(Equal(desiredErrCode))
 						continue
 					}
-					l.Lock()
+
 					notifications = append(notifications, notification)
 					l.Unlock()
 				}
