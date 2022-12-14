@@ -504,6 +504,7 @@ var _ = Describe("Validation Server", func() {
 
 			var notifications []*validationgrpc.NotifyOnResyncResponse
 			var l sync.Mutex
+
 			var desiredErrCode codes.Code
 
 			// watch notifications
@@ -564,7 +565,9 @@ var _ = Describe("Validation Server", func() {
 			Eventually(getNotifications, time.Second).Should(HaveLen(5))
 
 			// test close
+			l.Lock()
 			desiredErrCode = codes.Unavailable
+			l.Unlock()
 			srv.Stop()
 
 			// create jitter by changing upstreams
