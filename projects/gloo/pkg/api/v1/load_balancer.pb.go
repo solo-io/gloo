@@ -7,15 +7,14 @@
 package v1
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	duration "github.com/golang/protobuf/ptypes/duration"
 	empty "github.com/golang/protobuf/ptypes/empty"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -40,6 +39,7 @@ type LoadBalancerConfig struct {
 	// Set to 0 to disable and have changes applied immediately.
 	UpdateMergeWindow *duration.Duration `protobuf:"bytes,2,opt,name=update_merge_window,json=updateMergeWindow,proto3" json:"update_merge_window,omitempty"`
 	// Types that are assignable to Type:
+	//
 	//	*LoadBalancerConfig_RoundRobin_
 	//	*LoadBalancerConfig_LeastRequest_
 	//	*LoadBalancerConfig_Random_
@@ -47,6 +47,7 @@ type LoadBalancerConfig struct {
 	//	*LoadBalancerConfig_Maglev_
 	Type isLoadBalancerConfig_Type `protobuf_oneof:"type"`
 	// Types that are assignable to LocalityConfig:
+	//
 	//	*LoadBalancerConfig_LocalityWeightedLbConfig
 	LocalityConfig isLoadBalancerConfig_LocalityConfig `protobuf_oneof:"locality_config"`
 }

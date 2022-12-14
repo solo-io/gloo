@@ -7,14 +7,13 @@
 package options
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	grpc "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/grpc"
 	rest "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/rest"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -37,6 +36,7 @@ type ServiceSpec struct {
 	// to be usable by Gloo. (plugins currently need to be compiled into Gloo)
 	//
 	// Types that are assignable to PluginType:
+	//
 	//	*ServiceSpec_Rest
 	//	*ServiceSpec_Grpc
 	PluginType isServiceSpec_PluginType `protobuf_oneof:"plugin_type"`

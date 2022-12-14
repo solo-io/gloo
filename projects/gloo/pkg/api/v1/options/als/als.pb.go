@@ -7,14 +7,13 @@
 package als
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	_struct "github.com/golang/protobuf/ptypes/struct"
 	_ "github.com/solo-io/protoc-gen-ext/extproto"
 	_ "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -81,6 +80,7 @@ type AccessLog struct {
 	// type of Access Logging service to implement
 	//
 	// Types that are assignable to OutputDestination:
+	//
 	//	*AccessLog_FileSink
 	//	*AccessLog_GrpcService
 	OutputDestination isAccessLog_OutputDestination `protobuf_oneof:"OutputDestination"`
@@ -167,6 +167,7 @@ type FileSink struct {
 	// the format which the logs should be outputted by
 	//
 	// Types that are assignable to OutputFormat:
+	//
 	//	*FileSink_StringFormat
 	//	*FileSink_JsonFormat
 	OutputFormat isFileSink_OutputFormat `protobuf_oneof:"output_format"`
@@ -262,6 +263,7 @@ type GrpcService struct {
 	// The static cluster defined in bootstrap config to route to
 	//
 	// Types that are assignable to ServiceRef:
+	//
 	//	*GrpcService_StaticClusterName
 	ServiceRef                      isGrpcService_ServiceRef `protobuf_oneof:"service_ref"`
 	AdditionalRequestHeadersToLog   []string                 `protobuf:"bytes,4,rep,name=additional_request_headers_to_log,json=additionalRequestHeadersToLog,proto3" json:"additional_request_headers_to_log,omitempty"`
