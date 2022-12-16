@@ -169,6 +169,23 @@ func (m *RouteConfigurationOptions) Clone() proto.Message {
 }
 
 // Clone function
+func (m *Router) Clone() proto.Message {
+	var target *Router
+	if m == nil {
+		return target
+	}
+	target = &Router{}
+
+	if h, ok := interface{}(m.GetSuppressEnvoyHeaders()).(clone.Cloner); ok {
+		target.SuppressEnvoyHeaders = h.Clone().(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	} else {
+		target.SuppressEnvoyHeaders = proto.Clone(m.GetSuppressEnvoyHeaders()).(*github_com_golang_protobuf_ptypes_wrappers.BoolValue)
+	}
+
+	return target
+}
+
+// Clone function
 func (m *HttpListenerOptions) Clone() proto.Message {
 	var target *HttpListenerOptions
 	if m == nil {

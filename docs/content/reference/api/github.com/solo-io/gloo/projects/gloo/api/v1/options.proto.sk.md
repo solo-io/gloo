@@ -13,6 +13,7 @@ weight: 5
 
 - [ListenerOptions](#listeneroptions)
 - [RouteConfigurationOptions](#routeconfigurationoptions)
+- [Router](#router)
 - [HttpListenerOptions](#httplisteneroptions)
 - [TcpListenerOptions](#tcplisteneroptions)
 - [VirtualHostOptions](#virtualhostoptions)
@@ -72,6 +73,24 @@ to be usable by Gloo. (plugins currently need to be compiled into Gloo)
 | Field | Type | Description |
 | ----- | ---- | ----------- | 
 | `maxDirectResponseBodySizeBytes` | [.google.protobuf.UInt32Value](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/u-int-32-value) | The maximum bytes of the response direct response body size. If not specified the default is 4096. Please refer to the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route.proto#envoy-v3-api-field-config-route-v3-routeconfiguration-max-direct-response-body-size-bytes) for more details about the `max_direct_response_body_size_bytes` attribute. |
+
+
+
+
+---
+### Router
+
+ 
+Maps to https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/router/v3/router.proto
+
+```yaml
+"suppressEnvoyHeaders": .google.protobuf.BoolValue
+
+```
+
+| Field | Type | Description |
+| ----- | ---- | ----------- | 
+| `suppressEnvoyHeaders` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Do not add any additional x-envoy- headers to requests or responses. This only affects the router filter generated x-envoy- headers, other Envoy filters and the HTTP connection manager may continue to set x-envoy- headers. |
 
 
 

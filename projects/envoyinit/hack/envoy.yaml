@@ -94,6 +94,7 @@ static_resources:
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+                        #suppress_envoy_headers: true
   # A cluster is a group of logically similar upstream hosts that Envoy connects to.
   clusters:
     - name: echo_service
