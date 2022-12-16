@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"text/template"
 	"time"
+
+	"github.com/solo-io/solo-projects/test/services"
+	yamlHelper "gopkg.in/yaml.v2"
 
 	kubeutils2 "github.com/solo-io/solo-projects/test/kubeutils"
 
@@ -44,7 +48,9 @@ import (
 )
 
 const (
-	glooChartName = "gloo"
+	glooChartName    = "gloo"
+	yamlAssetDir     = "../upgrade/assets/"
+	GatewayProxyName = "gateway-proxy"
 )
 
 var _ = Describe("Upgrade Tests", func() {
@@ -79,11 +85,13 @@ var _ = Describe("Upgrade Tests", func() {
 			defaults.LicenseKey = kubeutils2.LicenseKey()
 			defaults.InstallNamespace = namespace
 			defaults.Verbose = true
+			defaults.DeployTestRunner = true
 			return defaults
 		})
 		Expect(err).NotTo(HaveOccurred())
 
 		chartUri = filepath.Join(testHelper.RootDir, testHelper.TestAssetDir, testHelper.HelmChartName+"-"+testHelper.ChartVersion()+".tgz")
+
 		reqTemplateUri = filepath.Join(testHelper.RootDir, "install/helm/gloo-ee/requirements.yaml")
 		strictValidation = false
 
@@ -162,6 +170,7 @@ var _ = Describe("Upgrade Tests", func() {
 // Repeated Test Code
 // ===================================
 // Based case test for local runs to help narrow down failures
+
 func baseUpgradeTest(ctx context.Context, reqTemplateUri string, startingVersion string, testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool) {
 	By(fmt.Sprintf("should start with gloo version %s", startingVersion))
 	Expect(fmt.Sprintf("v%s", getGlooServerVersion(ctx, testHelper.InstallNamespace))).To(Equal(startingVersion))
@@ -271,8 +280,14 @@ func installGloo(testHelper *helper.SoloTestHelper, fromRelease string, strictVa
 	fmt.Printf("running helm with args: %v\n", args)
 	runAndCleanCommand("helm", args...)
 
+	if err := testHelper.Deploy(5 * time.Minute); err != nil {
+		Expect(err).NotTo(HaveOccurred())
+	}
+
 	// Check that everything is OK
 	checkGlooHealthy(testHelper)
+	preUpgradeDataSetup(testHelper)
+	preUpgradeDataValidation(testHelper)
 }
 
 // CRDs are applied to a cluster when performing a `helm install` operation
@@ -318,6 +333,7 @@ func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, reqTemplate
 
 	//Check that everything is OK
 	checkGlooHealthy(testHelper)
+	postUpgradeValidation(testHelper)
 }
 
 func uninstallGloo(testHelper *helper.SoloTestHelper, ctx context.Context, cancel context.CancelFunc) {
@@ -327,6 +343,90 @@ func uninstallGloo(testHelper *helper.SoloTestHelper, ctx context.Context, cance
 	_, err = kube2e.MustKubeClient().CoreV1().Namespaces().Get(ctx, testHelper.InstallNamespace, metav1.GetOptions{})
 	Expect(apierrors.IsNotFound(err)).To(BeTrue())
 	cancel()
+}
+
+// Gets the kind and metadata of a yaml file - used for creation of resources
+func getYamlData(filename string) (kind string, name string, namespace string) {
+	type KubernetesStruct struct {
+		Kind     string `yaml:"kind"`
+		Metadata struct {
+			Name      string `yaml:"name"`
+			Namespace string `yaml:"namespace"`
+		} `yaml:"metadata"`
+	}
+
+	var kubernetesValues KubernetesStruct
+
+	file, err := ioutil.ReadFile(filepath.Join(yamlAssetDir, filename))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	err = yamlHelper.Unmarshal(file, &kubernetesValues)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return kubernetesValues.Kind, kubernetesValues.Metadata.Name, kubernetesValues.Metadata.Namespace
+}
+
+func preUpgradeDataSetup(testHelper *helper.SoloTestHelper) {
+	//hello world example
+	createResource("petstore_deployment.yaml")
+	createResource("petstore_svc.yaml")
+	createResource("petstore_vs.yaml")
+}
+
+// Sets up resources before upgrading
+func preUpgradeDataValidation(testHelper *helper.SoloTestHelper) {
+	validatePetstoreTraffic(testHelper)
+}
+
+// All Validation scenarios
+func postUpgradeValidation(testHelper *helper.SoloTestHelper) {
+	validatePetstoreTraffic(testHelper)
+}
+
+// Creates resources from yaml files in the upgrade/assets folder and validates they have been created
+func createResource(filename string) {
+	kind, name, namespace := getYamlData(filename)
+	fmt.Printf("Creating %s %s in namespace: %s", kind, name, namespace)
+	runAndCleanCommand("kubectl", "apply", "-f", filepath.Join(yamlAssetDir, filename))
+
+	//validate resource creation
+	switch kind {
+	case "Service":
+		Eventually(func() (string, error) {
+			return services.KubectlOut("get", "svc/"+name, "-n", namespace)
+		}, "20s", "1s").ShouldNot(BeEmpty())
+		fmt.Printf(" (✓)\n")
+	case "Deployment":
+		Eventually(func() (string, error) {
+			return services.KubectlOut("get", "deploy/"+name, "-n", namespace)
+		}, "20s", "1s").ShouldNot(BeEmpty())
+		fmt.Printf(" (✓)\n")
+	case "VirtualService":
+		Eventually(func() (string, error) {
+			return services.KubectlOut("get", "vs/"+name, "-n", namespace, "-o", "jsonpath={.status.statuses."+namespace+".state}")
+		}, "20s", "1s").Should(Equal("Accepted"))
+		fmt.Printf(" (✓)\n")
+	default:
+		fmt.Printf(" : No validation found for yaml kind: %s\n", kind)
+	}
+}
+
+// runs a curl against the petstore service to check routing is working - run before and after upgrade
+func validatePetstoreTraffic(testHelper *helper.SoloTestHelper) {
+	petString := "[{\"id\":1,\"name\":\"Dog\",\"status\":\"available\"},{\"id\":2,\"name\":\"Cat\",\"status\":\"pending\"}]"
+	testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
+		Protocol:          "http",
+		Path:              "/all-pets",
+		Method:            "GET",
+		Host:              GatewayProxyName,
+		Service:           GatewayProxyName,
+		Port:              80,
+		ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
+		Verbose:           true,
+	}, petString, 1, time.Minute*1)
 }
 
 func getUpgradeHelmOverrides() (filename string, cleanup func()) {

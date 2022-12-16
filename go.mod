@@ -75,6 +75,7 @@ require (
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
+	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.7.1
 	istio.io/pkg v0.0.0-20211123161558-1e5d0c4ee827
 	istio.io/tools v0.0.0-20210420211536-9c0f48df3262
@@ -341,7 +342,6 @@ require (
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	istio.io/api v0.0.0-20211130000055-e9d1de18c118 // indirect
 	istio.io/client-go v1.12.0-alpha.5.0.20211124144007-2c98ed70c967 // indirect

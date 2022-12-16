@@ -1,0 +1,5 @@
+CHANGELOG:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4373
+    resolvesIssue: false
+    description: add data scenario and util code for building resources to upgrade tests
