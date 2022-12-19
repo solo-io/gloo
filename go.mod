@@ -51,7 +51,7 @@ require (
 	github.com/solo-io/k8s-utils v0.1.7
 	github.com/solo-io/protoc-gen-ext v0.0.17
 	github.com/solo-io/protoc-gen-openapi v0.1.0
-	github.com/solo-io/skv2 v0.25.1-0.20221213052911-73173f036c2b
+	github.com/solo-io/skv2 v0.25.1-0.20221219164519-ad58a375e8db
 
 	// Pinned to the `gloo-edge-safe-hasher` tag of solo-apis
 	github.com/solo-io/solo-apis v0.0.0-20220923183548-9746539fc625
