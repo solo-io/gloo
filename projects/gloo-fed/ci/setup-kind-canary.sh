@@ -22,6 +22,18 @@ else
   OS='linux'
 fi
 
+# set the architecture of the machine (checking for arm64 and if not defaulting to amd64)
+ARCH="amd64"
+if [[ $(uname -m) == "arm64" ]]; then
+  ARCH="arm64"
+fi
+
+# set the architecture of the images that you will be building, default to the machines architecture
+if [[ -z "${GOARCH}" ]]; then
+  GOARCH=$ARCH
+fi
+
+
 # 1. Ensure that a license key is provided
 if [ "$GLOO_LICENSE_KEY" == "" ]; then
   echo "please provide a license key"
@@ -29,9 +41,9 @@ if [ "$GLOO_LICENSE_KEY" == "" ]; then
 fi
 
 # 2. Build the gloo command line tool, ensuring we have one in the `_output` folder
-make glooctl-$OS
+make glooctl-$OS-$GOARCH
 shopt -s expand_aliases
-alias glooctl=_output/glooctl-$OS-amd64
+alias glooctl=_output/glooctl-$OS-$GOARCH
 
 # 3. Create the kind clusters
 # https://kind.sigs.k8s.io/docs/user/configuration/

@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/k8s-utils/issues/25
+    description: Added make targets to build glooctl for arm, added arch detection to setup kind scripts

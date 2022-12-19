@@ -1067,15 +1067,14 @@ discovery-ee-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-ee-linux-$(DOCKER_GOARCH)
 #----------------------------------------------------------------------------------
 
 CLI_DIR=projects/gloo/cli
-
 $(OUTPUT_DIR)/glooctl: $(SOURCES)
 	GO111MODULE=on go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
 
-$(OUTPUT_DIR)/glooctl-linux-amd64: $(SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
+$(OUTPUT_DIR)/glooctl-linux-$(GOARCH): $(SOURCES)
+	$(GO_BUILD_FLAGS) GOOS=linux GOARCH=$(GOARCH) go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
 
-$(OUTPUT_DIR)/glooctl-darwin-amd64: $(SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=darwin go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
+$(OUTPUT_DIR)/glooctl-darwin-$(GOARCH): $(SOURCES)
+	$(GO_BUILD_FLAGS) GOOS=darwin GOARCH=$(GOARCH) go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
 
 $(OUTPUT_DIR)/glooctl-windows-amd64.exe: $(SOURCES)
 	$(GO_BUILD_FLAGS) GOOS=windows go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/main.go
@@ -1084,15 +1083,15 @@ $(OUTPUT_DIR)/glooctl-windows-amd64.exe: $(SOURCES)
 # this is because of the dependency on github.com/solo-io/k8s-utils@v0.1.0/testutils/helper/install.go
 .PHONY: glooctl
 glooctl: $(OUTPUT_DIR)/glooctl
-.PHONY: glooctl-linux
-glooctl-linux: $(OUTPUT_DIR)/glooctl-linux-amd64
-.PHONY: glooctl-darwin
-glooctl-darwin: $(OUTPUT_DIR)/glooctl-darwin-amd64
+.PHONY: glooctl-linux-$(GOARCH)
+glooctl-linux-$(GOARCH): $(OUTPUT_DIR)/glooctl-linux-$(GOARCH)
+.PHONY: glooctl-darwin-$(GOARCH)
+glooctl-darwin-$(GOARCH): $(OUTPUT_DIR)/glooctl-darwin-$(GOARCH)
 .PHONY: glooctl-windows
 glooctl-windows: $(OUTPUT_DIR)/glooctl-windows-amd64.exe
 
 .PHONY: build-cli
-build-cli: glooctl-linux glooctl-darwin glooctl-windows
+build-cli: glooctl-linux-$(GOARCH) glooctl-darwin-$(GOARCH) glooctl-windows
 
 #----------------------------------------------------------------------------------
 # Glooctl Plugins

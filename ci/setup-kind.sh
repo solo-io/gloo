@@ -20,11 +20,16 @@ else
   OS='linux'
 fi
 
-# set the architecture of the machine
-ARCH=$(uname -m) || ARCH="amd64"
+# set the architecture of the machine (checking for arm64 and if not defaulting to amd64)
+ARCH="amd64"
+if [[ $(uname -m) == "arm64" ]]; then
+  ARCH="arm64"
+fi
 
 # set the architecture of the images that you will be building, default to the machines architecture
-GOARCH="${GOARCH:${ARCH}}"
+if [[ -z "${GOARCH}" ]]; then
+  GOARCH=$ARCH
+fi
 
 # if user is running arm, these are configurations for the registry
 REGISTRY_NAME='kind-registry'
@@ -153,4 +158,4 @@ fi
 GOARCH=$ARCH VERSION=$VERSION IMAGE_REPO=${IMAGE_REPO:-}  RUNNING_REGRESSION_TESTS=true make build-test-chart
 
 # 4. Build the gloo command line tool, ensuring we have one in the `_output` folder
-make glooctl-$OS
+make glooctl-$OS-$GOARCH
