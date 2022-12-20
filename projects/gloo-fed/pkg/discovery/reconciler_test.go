@@ -6,9 +6,9 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"github.com/solo-io/go-utils/contextutils"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	"github.com/solo-io/skv2/pkg/ezkube"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/input"
 	mock_input "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/input/mocks"
@@ -81,11 +81,11 @@ var _ = Describe("Deployment Reconciler Test", func() {
 				UpsertGlooInstance(ctx, instance2).
 				Return(nil)
 
-			_, err := reconciler.ReconcileAll(&skv2v1.ClusterObjectRef{
+			_, err := reconciler.ReconcileAll(ezkube.ConvertRefToId(&skv2v1.ClusterObjectRef{
 				Name:        "",
 				Namespace:   "",
 				ClusterName: cluster,
-			})
+			}))
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -118,11 +118,11 @@ var _ = Describe("Deployment Reconciler Test", func() {
 				}).
 				Return(nil)
 
-			_, err := reconciler.ReconcileAll(&skv2v1.ClusterObjectRef{
+			_, err := reconciler.ReconcileAll(ezkube.ConvertRefToId(&skv2v1.ClusterObjectRef{
 				Name:        "",
 				Namespace:   "",
 				ClusterName: cluster,
-			})
+			}))
 			Expect(err).NotTo(HaveOccurred())
 		})
 

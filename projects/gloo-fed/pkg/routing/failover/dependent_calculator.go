@@ -5,7 +5,6 @@ import (
 
 	"github.com/solo-io/go-utils/stringutils"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
-	"github.com/solo-io/skv2/pkg/ezkube"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	v1sets "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/sets"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -99,7 +98,7 @@ func (f *failoverDependencyCalculatorImpl) getUpstreams(
 }
 
 // IsGlooInstanceUpstream determines whether a particular upstream belongs to the passed in gloo instance
-func IsGlooInstanceUpstream(instance *fedv1.GlooInstance, usRef ezkube.ClusterResourceId) bool {
+func IsGlooInstanceUpstream(instance *fedv1.GlooInstance, usRef *skv2v1.ClusterObjectRef) bool {
 	if instance.Spec.GetCluster() == usRef.GetClusterName() {
 		switch {
 

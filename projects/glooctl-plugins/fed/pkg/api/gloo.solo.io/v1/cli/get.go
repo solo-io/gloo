@@ -11,6 +11,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/solo-io/gloo/pkg/cliutil"
+	"github.com/solo-io/skv2/pkg/ezkube"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/glooctl-plugins/fed/pkg/cmd/options"
 	"github.com/solo-io/solo-projects/projects/glooctl-plugins/fed/pkg/constants"
@@ -56,7 +57,7 @@ func Upstream(opts *options.Options) *cobra.Command {
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"CLUSTER", "NAMESPACE", "NAME"})
 			for _, v := range upstreams.GetUpstreams() {
-				table.Append([]string{v.GetMetadata().GetClusterName(), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
+				table.Append([]string{ezkube.GetClusterName(v.GetMetadata()), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
 			}
 			if table.NumLines() == 0 {
 				fmt.Printf("No resources found.\n")
@@ -107,7 +108,7 @@ func UpstreamGroup(opts *options.Options) *cobra.Command {
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"CLUSTER", "NAMESPACE", "NAME"})
 			for _, v := range upstreamGroups.GetUpstreamGroups() {
-				table.Append([]string{v.GetMetadata().GetClusterName(), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
+				table.Append([]string{ezkube.GetClusterName(v.GetMetadata()), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
 			}
 			if table.NumLines() == 0 {
 				fmt.Printf("No resources found.\n")
@@ -158,7 +159,7 @@ func Settings(opts *options.Options) *cobra.Command {
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"CLUSTER", "NAMESPACE", "NAME"})
 			for _, v := range settings.GetSettings() {
-				table.Append([]string{v.GetMetadata().GetClusterName(), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
+				table.Append([]string{ezkube.GetClusterName(v.GetMetadata()), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
 			}
 			if table.NumLines() == 0 {
 				fmt.Printf("No resources found.\n")
@@ -209,7 +210,7 @@ func Proxy(opts *options.Options) *cobra.Command {
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"CLUSTER", "NAMESPACE", "NAME"})
 			for _, v := range proxies.GetProxies() {
-				table.Append([]string{v.GetMetadata().GetClusterName(), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
+				table.Append([]string{ezkube.GetClusterName(v.GetMetadata()), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
 			}
 			if table.NumLines() == 0 {
 				fmt.Printf("No resources found.\n")

@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	"github.com/solo-io/skv2/pkg/ezkube"
 	gloo_api_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	gloo_types "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
@@ -120,7 +121,7 @@ var _ = Describe("Processor", func() {
 				actualStatus := statusBuilder.Build().Status
 				expectedStatus := createStatus(&fed_types.FailoverSchemeStatus{
 					State:   fed_types.FailoverSchemeStatus_INVALID,
-					Message: failover.PrimaryTargetAlreadyInUseError(obj.Spec.GetPrimary(), errored).Error(),
+					Message: failover.PrimaryTargetAlreadyInUseError(ezkube.ConvertRefToId(obj.Spec.GetPrimary()), errored).Error(),
 				})
 				Expect(&actualStatus).To(test_matchers.MatchFailoverStatus(&expectedStatus))
 			})

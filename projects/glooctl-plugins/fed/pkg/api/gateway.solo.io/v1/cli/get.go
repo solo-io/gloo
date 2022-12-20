@@ -11,6 +11,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/solo-io/gloo/pkg/cliutil"
+	"github.com/solo-io/skv2/pkg/ezkube"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
 	"github.com/solo-io/solo-projects/projects/glooctl-plugins/fed/pkg/cmd/options"
 	"github.com/solo-io/solo-projects/projects/glooctl-plugins/fed/pkg/constants"
@@ -56,7 +57,7 @@ func Gateway(opts *options.Options) *cobra.Command {
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"CLUSTER", "NAMESPACE", "NAME"})
 			for _, v := range gateways.GetGateways() {
-				table.Append([]string{v.GetMetadata().GetClusterName(), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
+				table.Append([]string{ezkube.GetClusterName(v.GetMetadata()), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
 			}
 			if table.NumLines() == 0 {
 				fmt.Printf("No resources found.\n")
@@ -107,7 +108,7 @@ func MatchableHttpGateway(opts *options.Options) *cobra.Command {
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"CLUSTER", "NAMESPACE", "NAME"})
 			for _, v := range matchableHttpGateways.GetMatchableHttpGateways() {
-				table.Append([]string{v.GetMetadata().GetClusterName(), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
+				table.Append([]string{ezkube.GetClusterName(v.GetMetadata()), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
 			}
 			if table.NumLines() == 0 {
 				fmt.Printf("No resources found.\n")
@@ -158,7 +159,7 @@ func VirtualService(opts *options.Options) *cobra.Command {
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"CLUSTER", "NAMESPACE", "NAME"})
 			for _, v := range virtualServices.GetVirtualServices() {
-				table.Append([]string{v.GetMetadata().GetClusterName(), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
+				table.Append([]string{ezkube.GetClusterName(v.GetMetadata()), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
 			}
 			if table.NumLines() == 0 {
 				fmt.Printf("No resources found.\n")
@@ -209,7 +210,7 @@ func RouteTable(opts *options.Options) *cobra.Command {
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"CLUSTER", "NAMESPACE", "NAME"})
 			for _, v := range routeTables.GetRouteTables() {
-				table.Append([]string{v.GetMetadata().GetClusterName(), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
+				table.Append([]string{ezkube.GetClusterName(v.GetMetadata()), v.GetMetadata().GetNamespace(), v.GetMetadata().GetName()})
 			}
 			if table.NumLines() == 0 {
 				fmt.Printf("No resources found.\n")

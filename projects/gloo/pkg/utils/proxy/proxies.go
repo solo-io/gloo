@@ -4,13 +4,13 @@ import (
 	"context"
 	"sort"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/locality"
-
 	gateway_defaults "github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/skv2/contrib/pkg/sets"
 	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
+	"github.com/solo-io/skv2/pkg/ezkube"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/images"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/locality"
 	"go.uber.org/zap"
 	apps_v1 "k8s.io/api/apps/v1"
 	core_v1 "k8s.io/api/core/v1"
@@ -72,7 +72,7 @@ func GetGlooInstanceProxies(
 	var proxies []*Proxy
 	for _, deployment := range deployments.List() {
 		deployment := deployment
-		if cluster != "" && deployment.GetClusterName() != cluster {
+		if cluster != "" && ezkube.GetClusterName(deployment) != cluster {
 			continue
 		}
 		if deployment.GetNamespace() != namespace {
@@ -167,7 +167,7 @@ func findProxyConfigDumpService(services sk_sets.ResourceSet[*core_v1.Service], 
 func filterServices(services sk_sets.ResourceSet[*core_v1.Service], obj meta_v1.Object, matchLabels map[string]string) []*core_v1.Service {
 	var result []*core_v1.Service
 	for _, svc := range services.List() {
-		if svc.GetClusterName() == obj.GetClusterName() &&
+		if ezkube.GetClusterName(svc) == ezkube.GetClusterName(obj) &&
 			svc.GetNamespace() == obj.GetNamespace() &&
 			labels.SelectorFromSet(svc.Spec.Selector).Matches(labels.Set(matchLabels)) {
 			result = append(result, svc)

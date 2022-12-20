@@ -6,7 +6,7 @@ MANAGEMENT_CLUSTER="${MANAGEMENT_CLUSTER:-management}"
 # The name of the remote kind cluster to deploy to
 REMOTE_CLUSTER="${REMOTE_CLUSTER:-remote}"
 # The version of the Node Docker image to use for booting the clusters
-CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.22.4}"
+CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.24.7}"
 # The version used to tag images
 VERSION="${VERSION:-1.0.0-ci}"
 # The license key used to support enterprise features
@@ -44,29 +44,6 @@ alias glooctl=_output/glooctl-$OS-$GOARCH
 cat <<EOF | kind create cluster --name "$MANAGEMENT_CLUSTER" --image "kindest/node:$CLUSTER_NODE_VERSION" --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
-kubeadmConfigPatches:
-- |
-  apiVersion: kubeadm.k8s.io/v1beta2
-  kind: ClusterConfiguration
-  metadata:
-    name: config
-  apiServer:
-    extraArgs:
-      "feature-gates": "EphemeralContainers=true"
-  scheduler:
-    extraArgs:
-      "feature-gates": "EphemeralContainers=true"
-  controllerManager:
-    extraArgs:
-      "feature-gates": "EphemeralContainers=true"
-- |
-  apiVersion: kubeadm.k8s.io/v1beta2
-  kind: InitConfiguration
-  metadata:
-    name: config
-  nodeRegistration:
-    kubeletExtraArgs:
-      "feature-gates": "EphemeralContainers=true"
 EOF
 
 # 4. Create the remote kind cluster
@@ -87,7 +64,7 @@ kubeadmConfigPatches:
   nodeRegistration:
     kubeletExtraArgs:
       node-labels: "topology.kubernetes.io/region=us-east-1,topology.kubernetes.io/zone=us-east-1c"
-  apiVersion: kubeadm.k8s.io/v1beta2
+  apiVersion: kubeadm.k8s.io/v1beta3
   kind: ClusterConfiguration
   metadata:
     name: config
@@ -101,7 +78,7 @@ kubeadmConfigPatches:
     extraArgs:
       "feature-gates": "EphemeralContainers=true"
 - |
-  apiVersion: kubeadm.k8s.io/v1beta2
+  apiVersion: kubeadm.k8s.io/v1beta3
   kind: InitConfiguration
   metadata:
     name: config

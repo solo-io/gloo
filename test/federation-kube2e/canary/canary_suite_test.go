@@ -94,7 +94,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	multiClusterInstaller.RegisterInstaller(getRemoteReleaseInstaller())
 	multiClusterInstaller.RegisterInstaller(getRemoteCanaryInstaller())
 
-	// Conifigure Pre-Fail Handlers so that we output debug information on fails
+	// Configure Pre-Fail Handlers so that we output debug information on fails
 	skhelpers.RegisterCommonFailHandlers()
 	skhelpers.RegisterPreFailHandler(
 		kubeutils.GetClusteredPreFailHandler(ctx, orchestrator, GinkgoWriter, []kubeutils.InstallRef{

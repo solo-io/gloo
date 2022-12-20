@@ -8,7 +8,7 @@
 # The name of the kind cluster to deploy to
 CLUSTER_NAME="${CLUSTER_NAME:-kind}"
 # The version of the Node Docker image to use for booting the cluster
-CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.22.4}"
+CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.24.7}"
 # The version used to tag images
 VERSION="${VERSION:-1.0.0-ci}"
 # Whether or not to use fips compliant data plane images
@@ -106,27 +106,10 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 kubeadmConfigPatches:
 - |
-  apiVersion: kubeadm.k8s.io/v1beta2
-  kind: ClusterConfiguration
-  metadata:
-    name: config
-  apiServer:
-    extraArgs:
-      "feature-gates": "EphemeralContainers=true"
-  scheduler:
-    extraArgs:
-      "feature-gates": "EphemeralContainers=true"
-  controllerManager:
-    extraArgs:
-      "feature-gates": "EphemeralContainers=true"
-- |
-  apiVersion: kubeadm.k8s.io/v1beta2
+  apiVersion: kubeadm.k8s.io/v1beta3
   kind: InitConfiguration
   metadata:
     name: config
-  nodeRegistration:
-    kubeletExtraArgs:
-      "feature-gates": "EphemeralContainers=true"
 $ARM_EXTENSION
 EOF
 

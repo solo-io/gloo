@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/go-utils/stringutils"
 	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	corev1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	"github.com/solo-io/skv2/pkg/ezkube"
 	gateway_solo_io_v1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	types2 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
@@ -21,7 +22,7 @@ func GetGatewaySummary(ctx context.Context, set sk_sets.ResourceSet[*gateway_sol
 		gateway := gatewayIter
 
 		// If the resource is not in the right cluster, continue
-		if gateway.GetClusterName() != cluster {
+		if ezkube.GetClusterName(gateway) != cluster {
 			continue
 		}
 
@@ -65,7 +66,7 @@ func GetMatchableHttpGatewaySummary(ctx context.Context, set sk_sets.ResourceSet
 		matchableHttpGateway := matchableHttpGatewayIter
 
 		// If the resource is not in the right cluster, continue
-		if matchableHttpGateway.GetClusterName() != cluster {
+		if ezkube.GetClusterName(matchableHttpGateway) != cluster {
 			continue
 		}
 
@@ -109,7 +110,7 @@ func GetVirtualServiceSummary(ctx context.Context, set sk_sets.ResourceSet[*gate
 		virtualService := virtualServiceIter
 
 		// If the resource is not in the right cluster, continue
-		if virtualService.GetClusterName() != cluster {
+		if ezkube.GetClusterName(virtualService) != cluster {
 			continue
 		}
 
@@ -153,7 +154,7 @@ func GetRouteTableSummary(ctx context.Context, set sk_sets.ResourceSet[*gateway_
 		routeTable := routeTableIter
 
 		// If the resource is not in the right cluster, continue
-		if routeTable.GetClusterName() != cluster {
+		if ezkube.GetClusterName(routeTable) != cluster {
 			continue
 		}
 

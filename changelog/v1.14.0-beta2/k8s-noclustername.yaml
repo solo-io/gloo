@@ -1,0 +1,29 @@
+changelog:
+  - type: NON_USER_FACING
+    description: |
+      Update kind node version used in CI to 1.24.7 to verify that fed still works on 1.24
+  - type: FIX
+    description: |
+      Gloo Federation for k8s 1.24+ now supports the 1.24 breaking changes in cluster naming and service accounts.
+    issueLink: https://github.com/solo-io/gloo/issues/6611
+    resolvesIssue: false
+  - type: FIX
+    description: Fix Gloo Fed cluster registration on k8s 1.24+.
+    issueLink: https://github.com/solo-io/gloo/issues/7071
+    resolvesIssue: false
+  - type: FIX
+    description: Fix a panic that occurs in Gloo Fed when applying a FailoverScheme.
+    issueLink: https://github.com/solo-io/gloo/issues/7572
+    resolvesIssue: false
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: skv2
+    dependencyTag: v0.26.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: go-utils
+    dependencyTag: v0.23.0
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: k8s-utils
+    dependencyTag: v0.1.7

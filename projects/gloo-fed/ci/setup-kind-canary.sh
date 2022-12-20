@@ -10,7 +10,7 @@ REMOTE_RELEASE_CLUSTER="${REMOTE_RELEASE_CLUSTER_NAME:-remote-release}"
 # The name of the remote kind cluster to deploy to
 REMOTE_CANARY_CLUSTER="${REMOTE_CANARY_CLUSTER:-remote-canary}"
 # The version of the Node Docker image to use for booting the clusters
-CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.22.4}"
+CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.24.7}"
 # The version used to tag images
 VERSION="${VERSION:-1.0.0-ci}"
 # The license key used to support enterprise features

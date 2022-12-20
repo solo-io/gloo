@@ -7,6 +7,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	"github.com/solo-io/skv2/pkg/ezkube"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -16,7 +17,7 @@ func GetPodsSummary(ctx context.Context, set sk_sets.ResourceSet[*corev1.Pod], n
 	summary := &Summary{}
 	for _, podIter := range set.List() {
 		pod := podIter
-		if (cluster != "" && pod.ClusterName != cluster) || pod.Namespace != namespace {
+		if (cluster != "" && ezkube.GetClusterName(pod) != cluster) || pod.Namespace != namespace {
 			continue
 		}
 

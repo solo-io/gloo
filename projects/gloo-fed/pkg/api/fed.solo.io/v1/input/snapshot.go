@@ -34,6 +34,7 @@ import (
 	snapshotutils "github.com/solo-io/skv2/contrib/pkg/snapshot"
 
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/skv2/pkg/ezkube"
 	"github.com/solo-io/skv2/pkg/resource"
 	"github.com/solo-io/skv2/pkg/verifier"
 	"k8s.io/apimachinery/pkg/labels"
@@ -871,7 +872,7 @@ func (s *snapshot) Generic() resource.ClusterSnapshot {
 // convert this snapshot to its generic form
 func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.GroupVersionKind, obj resource.TypedObject)) {
 	for _, obj := range s.services.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "",
 			Version: "v1",
@@ -880,7 +881,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.pods.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "",
 			Version: "v1",
@@ -889,7 +890,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.deployments.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "apps",
 			Version: "v1",
@@ -898,7 +899,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.daemonSets.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "apps",
 			Version: "v1",
@@ -907,7 +908,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.gateways.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "gateway.solo.io",
 			Version: "v1",
@@ -916,7 +917,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.matchableHttpGateways.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "gateway.solo.io",
 			Version: "v1",
@@ -925,7 +926,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.virtualServices.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "gateway.solo.io",
 			Version: "v1",
@@ -934,7 +935,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.routeTables.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "gateway.solo.io",
 			Version: "v1",
@@ -943,7 +944,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.upstreams.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "gloo.solo.io",
 			Version: "v1",
@@ -952,7 +953,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.upstreamGroups.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "gloo.solo.io",
 			Version: "v1",
@@ -961,7 +962,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.settings.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "gloo.solo.io",
 			Version: "v1",
@@ -970,7 +971,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.proxies.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "gloo.solo.io",
 			Version: "v1",
@@ -979,7 +980,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.authConfigs.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "enterprise.gloo.solo.io",
 			Version: "v1",
@@ -988,7 +989,7 @@ func (s *snapshot) ForEachObject(handleObject func(cluster string, gvk schema.Gr
 		handleObject(cluster, gvk, obj)
 	}
 	for _, obj := range s.rateLimitConfigs.List() {
-		cluster := obj.GetClusterName()
+		cluster := ezkube.GetClusterName(obj)
 		gvk := schema.GroupVersionKind{
 			Group:   "ratelimit.api.solo.io",
 			Version: "v1alpha1",
@@ -1193,8 +1194,9 @@ func (b *multiClusterBuilder) insertServicesFromCluster(ctx context.Context, clu
 	}
 
 	for _, item := range serviceList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		services.Insert(item)
 	}
 
@@ -1237,8 +1239,9 @@ func (b *multiClusterBuilder) insertPodsFromCluster(ctx context.Context, cluster
 	}
 
 	for _, item := range podList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		pods.Insert(item)
 	}
 
@@ -1281,8 +1284,9 @@ func (b *multiClusterBuilder) insertDeploymentsFromCluster(ctx context.Context, 
 	}
 
 	for _, item := range deploymentList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		deployments.Insert(item)
 	}
 
@@ -1325,8 +1329,9 @@ func (b *multiClusterBuilder) insertDaemonSetsFromCluster(ctx context.Context, c
 	}
 
 	for _, item := range daemonSetList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		daemonSets.Insert(item)
 	}
 
@@ -1369,8 +1374,9 @@ func (b *multiClusterBuilder) insertGatewaysFromCluster(ctx context.Context, clu
 	}
 
 	for _, item := range gatewayList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		gateways.Insert(item)
 	}
 
@@ -1413,8 +1419,9 @@ func (b *multiClusterBuilder) insertMatchableHttpGatewaysFromCluster(ctx context
 	}
 
 	for _, item := range matchableHttpGatewayList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		matchableHttpGateways.Insert(item)
 	}
 
@@ -1457,8 +1464,9 @@ func (b *multiClusterBuilder) insertVirtualServicesFromCluster(ctx context.Conte
 	}
 
 	for _, item := range virtualServiceList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		virtualServices.Insert(item)
 	}
 
@@ -1501,8 +1509,9 @@ func (b *multiClusterBuilder) insertRouteTablesFromCluster(ctx context.Context, 
 	}
 
 	for _, item := range routeTableList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		routeTables.Insert(item)
 	}
 
@@ -1545,8 +1554,9 @@ func (b *multiClusterBuilder) insertUpstreamsFromCluster(ctx context.Context, cl
 	}
 
 	for _, item := range upstreamList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		upstreams.Insert(item)
 	}
 
@@ -1589,8 +1599,9 @@ func (b *multiClusterBuilder) insertUpstreamGroupsFromCluster(ctx context.Contex
 	}
 
 	for _, item := range upstreamGroupList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		upstreamGroups.Insert(item)
 	}
 
@@ -1633,8 +1644,9 @@ func (b *multiClusterBuilder) insertSettingsFromCluster(ctx context.Context, clu
 	}
 
 	for _, item := range settingsList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		settings.Insert(item)
 	}
 
@@ -1677,8 +1689,9 @@ func (b *multiClusterBuilder) insertProxiesFromCluster(ctx context.Context, clus
 	}
 
 	for _, item := range proxyList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		proxies.Insert(item)
 	}
 
@@ -1721,8 +1734,9 @@ func (b *multiClusterBuilder) insertAuthConfigsFromCluster(ctx context.Context, 
 	}
 
 	for _, item := range authConfigList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		authConfigs.Insert(item)
 	}
 
@@ -1765,8 +1779,9 @@ func (b *multiClusterBuilder) insertRateLimitConfigsFromCluster(ctx context.Cont
 	}
 
 	for _, item := range rateLimitConfigList.Items {
-		item := item.DeepCopy()    // pike + own
-		item.ClusterName = cluster // set cluster for in-memory processing
+		item := item.DeepCopy() // pike + own
+
+		ezkube.SetClusterName(item, cluster) // set cluster for what was in-memory processing
 		rateLimitConfigs.Insert(item)
 	}
 
@@ -1910,8 +1925,8 @@ func (b *singleClusterBuilder) insertServices(ctx context.Context, services sk_s
 	}
 
 	for _, item := range serviceList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		services.Insert(item)
 	}
 
@@ -1945,8 +1960,8 @@ func (b *singleClusterBuilder) insertPods(ctx context.Context, pods sk_sets.Reso
 	}
 
 	for _, item := range podList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		pods.Insert(item)
 	}
 
@@ -1980,8 +1995,8 @@ func (b *singleClusterBuilder) insertDeployments(ctx context.Context, deployment
 	}
 
 	for _, item := range deploymentList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		deployments.Insert(item)
 	}
 
@@ -2015,8 +2030,8 @@ func (b *singleClusterBuilder) insertDaemonSets(ctx context.Context, daemonSets 
 	}
 
 	for _, item := range daemonSetList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		daemonSets.Insert(item)
 	}
 
@@ -2050,8 +2065,8 @@ func (b *singleClusterBuilder) insertGateways(ctx context.Context, gateways sk_s
 	}
 
 	for _, item := range gatewayList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		gateways.Insert(item)
 	}
 
@@ -2085,8 +2100,8 @@ func (b *singleClusterBuilder) insertMatchableHttpGateways(ctx context.Context, 
 	}
 
 	for _, item := range matchableHttpGatewayList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		matchableHttpGateways.Insert(item)
 	}
 
@@ -2120,8 +2135,8 @@ func (b *singleClusterBuilder) insertVirtualServices(ctx context.Context, virtua
 	}
 
 	for _, item := range virtualServiceList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		virtualServices.Insert(item)
 	}
 
@@ -2155,8 +2170,8 @@ func (b *singleClusterBuilder) insertRouteTables(ctx context.Context, routeTable
 	}
 
 	for _, item := range routeTableList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		routeTables.Insert(item)
 	}
 
@@ -2190,8 +2205,8 @@ func (b *singleClusterBuilder) insertUpstreams(ctx context.Context, upstreams sk
 	}
 
 	for _, item := range upstreamList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		upstreams.Insert(item)
 	}
 
@@ -2225,8 +2240,8 @@ func (b *singleClusterBuilder) insertUpstreamGroups(ctx context.Context, upstrea
 	}
 
 	for _, item := range upstreamGroupList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		upstreamGroups.Insert(item)
 	}
 
@@ -2260,8 +2275,8 @@ func (b *singleClusterBuilder) insertSettings(ctx context.Context, settings sk_s
 	}
 
 	for _, item := range settingsList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		settings.Insert(item)
 	}
 
@@ -2295,8 +2310,8 @@ func (b *singleClusterBuilder) insertProxies(ctx context.Context, proxies sk_set
 	}
 
 	for _, item := range proxyList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		proxies.Insert(item)
 	}
 
@@ -2330,8 +2345,8 @@ func (b *singleClusterBuilder) insertAuthConfigs(ctx context.Context, authConfig
 	}
 
 	for _, item := range authConfigList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		authConfigs.Insert(item)
 	}
 
@@ -2365,8 +2380,8 @@ func (b *singleClusterBuilder) insertRateLimitConfigs(ctx context.Context, rateL
 	}
 
 	for _, item := range rateLimitConfigList.Items {
-		item := item.DeepCopy() // pike + own the item.
-		item.ClusterName = b.clusterName
+		item := item.DeepCopy()                    // pike + own the item.
+		ezkube.SetClusterName(item, b.clusterName) // set cluster for what was in-memory processing
 		rateLimitConfigs.Insert(item)
 	}
 

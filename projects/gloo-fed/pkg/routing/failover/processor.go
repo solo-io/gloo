@@ -29,7 +29,7 @@ var (
 			"Upstream %s.%s on cluster %s is already the primary target on FailoverScheme %s.%s",
 			us.GetName(),
 			us.GetNamespace(),
-			us.GetClusterName(),
+			ezkube.GetClusterName(us),
 			fs.GetName(),
 			fs.GetNamespace(),
 		)
@@ -40,7 +40,7 @@ var (
 			glooInstances,
 			usRef.GetName(),
 			usRef.GetNamespace(),
-			usRef.GetClusterName(),
+			ezkube.GetClusterName(usRef),
 		)
 	}
 
@@ -123,7 +123,7 @@ func (f failoverProcessorImpl) ProcessFailoverUpdate(
 		if failoverScheme.Spec.GetPrimary().Equal(obj.Spec.GetPrimary()) &&
 			sets.Key(&failoverScheme) != sets.Key(obj) {
 			return nil, statusBuilder.
-				Invalidate(PrimaryTargetAlreadyInUseError(obj.Spec.GetPrimary(), &failoverScheme))
+				Invalidate(PrimaryTargetAlreadyInUseError(ezkube.ConvertRefToId(obj.Spec.GetPrimary()), &failoverScheme))
 		}
 
 	}
@@ -158,6 +158,7 @@ func (f failoverProcessorImpl) buildFailoverConfig(
 				ctx,
 				fields.BuildClusterFieldMatcher(groupMember.GetCluster()),
 			)
+
 			if err != nil {
 				return nil, statusBuilder.Fail(err)
 			}
@@ -211,10 +212,11 @@ func (f *failoverProcessorImpl) computeEndpoints(
 	instanceSet v1sets.GlooInstanceSet,
 ) (*gloo_api_v1.LocalityLbEndpoints, error) {
 	glooLocality := &gloo_api_v1.LocalityLbEndpoints{}
+
 	// continuously merge with the gateway instance set to build a list of possibe gateway instances
 	usInstanceSet := GetGlooInstanceForUpstream(usRef, instanceSet)
 	if usInstanceSet.Length() != 1 {
-		return nil, GlooInstanceError(usInstanceSet.Length(), usRef)
+		return nil, GlooInstanceError(usInstanceSet.Length(), ezkube.ConvertRefToId(usRef))
 	}
 	instance := usInstanceSet.List()[0]
 
@@ -309,7 +311,7 @@ func (f *failoverProcessorImpl) ProcessFailoverDelete(
 }
 
 // GetGlooInstanceForUpstream returns all gloo instances that an Upstream belongs to, this should only be 1
-func GetGlooInstanceForUpstream(us ezkube.ClusterResourceId, instances v1sets.GlooInstanceSet) v1sets.GlooInstanceSet {
+func GetGlooInstanceForUpstream(us *skv2v1.ClusterObjectRef, instances v1sets.GlooInstanceSet) v1sets.GlooInstanceSet {
 	result := v1sets.NewGlooInstanceSet()
 	for _, instance := range instances.List() {
 		if IsGlooInstanceUpstream(instance, us) {

@@ -28,6 +28,7 @@ import (
 
 	"github.com/solo-io/skv2/contrib/pkg/input"
 	sk_core_v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	"github.com/solo-io/skv2/pkg/ezkube"
 	"github.com/solo-io/skv2/pkg/multicluster"
 	multicluster_reconcile_v2 "github.com/solo-io/skv2/pkg/multicluster/reconcile/v2"
 	multicluster_v2 "github.com/solo-io/skv2/pkg/multicluster/v2"
@@ -115,7 +116,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &v1_types.Service{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*v1_types.Service]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *v1_types.Service) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -124,7 +125,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -132,7 +133,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &v1_types.Pod{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*v1_types.Pod]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *v1_types.Pod) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -141,7 +142,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -149,7 +150,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &apps_v1_types.Deployment{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*apps_v1_types.Deployment]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *apps_v1_types.Deployment) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -158,7 +159,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -166,7 +167,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &apps_v1_types.DaemonSet{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*apps_v1_types.DaemonSet]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *apps_v1_types.DaemonSet) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -175,7 +176,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -183,7 +184,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.Gateway{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gateway_solo_io_v1_types.Gateway]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gateway_solo_io_v1_types.Gateway) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -192,7 +193,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -200,7 +201,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.MatchableHttpGateway{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gateway_solo_io_v1_types.MatchableHttpGateway]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gateway_solo_io_v1_types.MatchableHttpGateway) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -209,7 +210,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -217,7 +218,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.VirtualService{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gateway_solo_io_v1_types.VirtualService]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gateway_solo_io_v1_types.VirtualService) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -226,7 +227,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -234,7 +235,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &gateway_solo_io_v1_types.RouteTable{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gateway_solo_io_v1_types.RouteTable]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gateway_solo_io_v1_types.RouteTable) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -243,7 +244,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -251,7 +252,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.Upstream{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gloo_solo_io_v1_types.Upstream]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gloo_solo_io_v1_types.Upstream) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -260,7 +261,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -268,7 +269,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.UpstreamGroup{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gloo_solo_io_v1_types.UpstreamGroup]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gloo_solo_io_v1_types.UpstreamGroup) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -277,7 +278,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -285,7 +286,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.Settings{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gloo_solo_io_v1_types.Settings]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gloo_solo_io_v1_types.Settings) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -294,7 +295,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -302,7 +303,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &gloo_solo_io_v1_types.Proxy{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*gloo_solo_io_v1_types.Proxy]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *gloo_solo_io_v1_types.Proxy) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -311,7 +312,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -319,7 +320,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &enterprise_gloo_solo_io_v1_types.AuthConfig{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*enterprise_gloo_solo_io_v1_types.AuthConfig]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *enterprise_gloo_solo_io_v1_types.AuthConfig) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -328,7 +329,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)
@@ -336,7 +337,7 @@ func RegisterMultiClusterReconciler(
 	multicluster_reconcile_v2.NewLoop("das", clusters, &ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig{}, reconcile_v2.Options{}).
 		AddReconciler(ctx, &multicluster_v2.ReconcilerFuncs[*ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig]{
 			ReconcileFunc: func(ctx context.Context, clusterName string, obj *ratelimit_api_solo_io_v1alpha1_types.RateLimitConfig) (reconcile.Result, error) {
-				obj.ClusterName = clusterName
+				ezkube.SetClusterName(obj, clusterName)
 				return r.base.ReconcileRemoteGeneric(obj)
 			},
 			ReconcileDeletionFunc: func(ctx context.Context, clusterName string, obj reconcile_v2.Request) error {
@@ -345,7 +346,7 @@ func RegisterMultiClusterReconciler(
 					Namespace:   obj.Namespace,
 					ClusterName: clusterName,
 				}
-				_, err := r.base.ReconcileRemoteGeneric(ref)
+				_, err := r.base.ReconcileRemoteGeneric(ezkube.ConvertRefToId(ref))
 				return err
 			},
 		}, predicates...)

@@ -40,13 +40,13 @@ Name|Version|License
 [spf13/cobra](https://github.com/spf13/cobra)|v1.5.0|Apache License 2.0
 [spf13/pflag](https://github.com/spf13/pflag)|v1.0.5|BSD 3-clause "New" or "Revised" License
 [spf13/viper](https://github.com/spf13/viper)|v1.12.0|MIT License
-[go.opencensus.io](https://go.opencensus.io)|v0.23.0|Apache License 2.0
+[go.opencensus.io](https://go.opencensus.io)|v0.24.0|Apache License 2.0
 [go.uber.org/zap](https://go.uber.org/zap)|v1.19.1|MIT License
-[x/mod](https://golang.org/x/mod)|v0.6.0-dev.0.20220419223038-86c51ed26bb4|BSD 3-clause "New" or "Revised" License
-[x/net](https://golang.org/x/net)|v0.0.0-20220826154423-83b083e8dc8b|BSD 3-clause "New" or "Revised" License
-[x/sync](https://golang.org/x/sync)|v0.0.0-20220722155255-886fb9371eb4|BSD 3-clause "New" or "Revised" License
+[x/mod](https://golang.org/x/mod)|v0.7.0|BSD 3-clause "New" or "Revised" License
+[x/net](https://golang.org/x/net)|v0.2.0|BSD 3-clause "New" or "Revised" License
+[x/sync](https://golang.org/x/sync)|v0.1.0|BSD 3-clause "New" or "Revised" License
 [x/tools](https://golang.org/x/tools)|v0.0.0-20210106214847-113979e3529a|BSD 3-clause "New" or "Revised" License
-[google.golang.org/grpc](https://google.golang.org/grpc)|v1.49.0|Apache License 2.0
+[google.golang.org/grpc](https://google.golang.org/grpc)|v1.50.1|Apache License 2.0
 [google.golang.org/protobuf](https://google.golang.org/protobuf)|v1.28.1|BSD 3-clause "New" or "Revised" License
 [square/go-jose.v2](https://gopkg.in/square/go-jose.v2)|v2.6.0|Apache License 2.0
 [gopkg.in/yaml.v2](https://gopkg.in/yaml.v2)|v2.4.0|Apache License 2.0

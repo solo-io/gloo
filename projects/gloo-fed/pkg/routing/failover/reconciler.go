@@ -44,7 +44,7 @@ type failoverSchemeReconcilerImpl struct {
 
 func (f *failoverSchemeReconcilerImpl) ReconcileFailoverScheme(obj *fedv1.FailoverScheme) (reconcile.Result, error) {
 	currentStatus := f.statusManager.GetStatus(obj)
-	if obj.GetGeneration() == currentStatus.GetObservedGeneration() &&
+	if currentStatus != nil && obj.GetGeneration() == currentStatus.GetObservedGeneration() &&
 		(currentStatus.GetState() == fed_types.FailoverSchemeStatus_INVALID ||
 			currentStatus.GetState() == fed_types.FailoverSchemeStatus_ACCEPTED) {
 		return reconcile.Result{}, nil

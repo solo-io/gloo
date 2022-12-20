@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/go-utils/stringutils"
 	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	"github.com/solo-io/skv2/pkg/ezkube"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	enterprise_check "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/enterprise.gloo.solo.io/v1/check"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
@@ -57,7 +58,7 @@ func (t *translator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) 
 			continue
 		}
 
-		cluster := deployment.GetClusterName()
+		cluster := ezkube.GetClusterName(deployment)
 		client, err := t.mcClientSet.Cluster(cluster)
 		if err != nil {
 			contextutils.LoggerFrom(ctx).Errorf("couldn't get client for cluster %v", cluster)
@@ -68,7 +69,7 @@ func (t *translator) FromSnapshot(ctx context.Context, snapshot input.Snapshot) 
 		// Ignore error that may occur when listing nodes
 		region, _ := localityFinder.GetRegion(ctx)
 
-		settings := getSettings(snapshot.Settings(), deployment.Namespace, deployment.ClusterName)
+		settings := getSettings(snapshot.Settings(), deployment.Namespace, ezkube.GetClusterName(deployment))
 		var watchedNamespaces []string
 		if settings != nil {
 			watchedNamespaces = settings.Spec.WatchNamespaces
@@ -135,15 +136,15 @@ func getAdminInfo(installNamespace string, watchedNamespaces []string, proxies [
 }
 
 /*
-	GetWriteNamespaceForGlooInstance returns the write namespace for a gloo instance based on the
-	following heuristics:
+GetWriteNamespaceForGlooInstance returns the write namespace for a gloo instance based on the
+following heuristics:
 
-		* Watch Namespaces is not empty
-			1. Installation Namespace (if it is watched)
-			2. gloo-system (if it is watched)
-			3. First item in the watch namespaces list
-		* Watch Namespaces is empty
-			1. Installation Namespace
+  - Watch Namespaces is not empty
+    1. Installation Namespace (if it is watched)
+    2. gloo-system (if it is watched)
+    3. First item in the watch namespaces list
+  - Watch Namespaces is empty
+    1. Installation Namespace
 */
 func getWriteNamespaceForGlooInstance(installNamespace string, watchedNamespaces []string) string {
 	if len(watchedNamespaces) > 0 {
@@ -158,13 +159,12 @@ func getWriteNamespaceForGlooInstance(installNamespace string, watchedNamespaces
 }
 
 /*
-	GetProxyForGlooInstance returns the proxy which should be used by gloo-fed for routing in failover and
-	other related scenarios. Select based on the following heuristics:
+GetProxyForGlooInstance returns the proxy which should be used by gloo-fed for routing in failover and
+other related scenarios. Select based on the following heuristics:
 
-		1. Proxy found with default gateway name "gateway-proxy" in install namespace
-		2. First proxy found in install namespace
-		3. First proxy in list
-
+ 1. Proxy found with default gateway name "gateway-proxy" in install namespace
+ 2. First proxy found in install namespace
+ 3. First proxy in list
 */
 func getProxyForGlooInstance(installNamespace string, proxies []*types.GlooInstanceSpec_Proxy) *types.GlooInstanceSpec_Proxy {
 	if len(proxies) == 0 {
@@ -199,7 +199,7 @@ func getProxyForGlooInstance(installNamespace string, proxies []*types.GlooInsta
 func getSettings(set sk_sets.ResourceSet[*gloov1.Settings], namespace, cluster string) *gloov1.Settings {
 	for _, settingsIter := range set.List() {
 		settings := settingsIter
-		if settings.Namespace == namespace && settings.ClusterName == cluster {
+		if settings.Namespace == namespace && ezkube.GetClusterName(settings) == cluster {
 			return settings
 		}
 	}

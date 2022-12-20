@@ -19,6 +19,7 @@ import (
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 	fed_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
 	multicluster_v1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1"
 	multicluster_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
@@ -54,6 +55,9 @@ func TestE2e(t *testing.T) {
 }
 
 var (
+	ctx    context.Context
+	cancel context.CancelFunc
+
 	remoteClusterConfig     *kubeutils.ClusterConfig
 	managementClusterConfig *kubeutils.ClusterConfig
 
@@ -67,8 +71,26 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	remoteClusterConfig = kubeutils.CreateClusterConfigFromKubeClusterNameEnv(remoteClusterEnvName)
 	managementClusterConfig = kubeutils.CreateClusterConfigFromKubeClusterNameEnv(managementClusterEnvName)
 
+	ctx, cancel = context.WithCancel(context.Background())
+
 	err = os.Setenv(statusutils.PodNamespaceEnvName, namespace)
 	Expect(err).NotTo(HaveOccurred())
+
+	orchestrator := kubeutils.NewKindOrchestrator()
+
+	// Configure Pre-Fail Handlers so that we output debug information on fails
+	skhelpers.RegisterCommonFailHandlers()
+	skhelpers.RegisterPreFailHandler(
+		kubeutils.GetClusteredPreFailHandler(ctx, orchestrator, GinkgoWriter, []kubeutils.InstallRef{
+			{
+				ClusterName: managementClusterConfig.ClusterName,
+				Namespace:   defaults.GlooSystem,
+			},
+			{
+				ClusterName: remoteClusterConfig.ClusterName,
+				Namespace:   defaults.GlooSystem,
+			},
+		}))
 
 	// Wait for the Gloo Instances to be created
 	Eventually(func(g Gomega) int {
@@ -117,6 +139,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			g.Expect(err).NotTo(HaveOccurred())
 			statuses := failover.Status.GetNamespacedStatuses()
 			g.Expect(statuses).NotTo(BeNil())
+			g.Expect(statuses[namespace].GetMessage()).To(Equal(""))
 			g.Expect(statuses[namespace].GetState()).To(Equal(fed_types.FailoverSchemeStatus_ACCEPTED))
 		}, time.Second*10, time.Second).Should(Succeed())
 	}, time.Minute*2, time.Second).Should(Succeed())
@@ -192,4 +215,6 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 			Name:      mcRole.GetName(),
 		})
 	}
+
+	cancel()
 })

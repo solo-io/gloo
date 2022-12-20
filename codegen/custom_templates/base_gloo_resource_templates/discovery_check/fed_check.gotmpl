@@ -6,6 +6,7 @@ import (
     "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/types"
     {{ base_group_import_name $ }} "github.com/solo-io/solo-apis/pkg/api/{{ base_proto_group_shorthand $ }}.solo.io/{{ base_group_version $ }}"
     sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
+    "github.com/solo-io/skv2/pkg/ezkube"
     types2 "github.com/solo-io/solo-apis/pkg/api/{{ base_proto_group_shorthand $ }}.solo.io/{{ base_group_version $ }}"
     "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/discovery/translator/summarize"
     "github.com/solo-io/go-utils/stringutils"
@@ -23,7 +24,7 @@ func Get{{ $resource.Kind }}Summary(ctx context.Context, set sk_sets.ResourceSet
         {{ $kindLowerCamel }} := {{ $kindLowerCamel }}Iter
 
         // If the resource is not in the right cluster, continue
-		if {{ $kindLowerCamel }}.GetClusterName() != cluster {
+		if ezkube.GetClusterName({{ $kindLowerCamel }}) != cluster {
 			continue
 		}
 

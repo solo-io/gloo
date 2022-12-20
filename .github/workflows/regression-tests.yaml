@@ -9,8 +9,8 @@ on:
 env:
   VERSION: '1.0.0-ci'
   HELM_VERSION: 'v3.6.0'
-  KUBECTL_VERSION: 'v1.22.4'
-  CLUSTER_NODE_VERSION: 'v1.22.4@sha256:ca3587e6e545a96c07bf82e2c46503d9ef86fc704f44c17577fca7bcabf5f978'
+  KUBECTL_VERSION: 'v1.24.7'
+  CLUSTER_NODE_VERSION: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5'
   GLOO_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
   GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -78,7 +78,7 @@ jobs:
       - uses: engineerd/setup-kind@v0.5.0
         with:
           skipClusterCreation: "true"
-          version: v0.11.1
+          version: v0.17.0
       - name: Yarn Install
         uses: actions/setup-node@v2
         with:
@@ -166,7 +166,7 @@ jobs:
       - uses: engineerd/setup-kind@v0.5.0
         with:
           skipClusterCreation: true
-          version: v0.11.1
+          version: v0.17.0
       - name: Setup Kind
         run: |
           ./projects/gloo-fed/ci/setup-kind-canary.sh
@@ -202,17 +202,14 @@ jobs:
         run: |
           echo "Before clearing disk space:"
           df -h
-
           # https://github.com/actions/virtual-environments/issues/709
           sudo apt-get clean
-
           # Clean up pre-installed tools
           # https://github.com/actions/virtual-environments/issues/1918
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/share/boost
           sudo rm -rf $AGENT_TOOLSDIRECTORY
-
           echo "After clearing disk space:"
           df -h
       - name: Setup - gcloud / gsutil
@@ -246,7 +243,7 @@ jobs:
         with:
           # We rely on the `ci/setup-kind` script to create a kind cluster
           skipClusterCreation: true
-          version: v0.11.1
+          version: v0.17.0
       - uses: azure/setup-kubectl@v1
         id: kubectl
         with:

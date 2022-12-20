@@ -27,7 +27,7 @@ type glooResourceReconcilerImpl struct {
 }
 
 func (g *glooResourceReconcilerImpl) ReconcileAll(
-	id ezkube.ClusterResourceId,
+	_ ezkube.ClusterResourceId,
 ) (bool, error) { // The first bool indicates whether we should retry
 	// Build a snapshot that gets everything across all clusters.
 	// Translate that snapshot into a list of Gloo Instances.

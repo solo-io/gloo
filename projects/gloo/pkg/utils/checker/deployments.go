@@ -7,6 +7,7 @@ import (
 	"github.com/solo-io/go-utils/contextutils"
 	sk_sets "github.com/solo-io/skv2/contrib/pkg/sets/v2"
 	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
+	"github.com/solo-io/skv2/pkg/ezkube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -19,7 +20,7 @@ func GetDeploymentsSummary(ctx context.Context, deployments sk_sets.ResourceSet[
 	for _, deploymentIter := range deployments.List() {
 		deployment := deploymentIter
 
-		if (cluster != "" && deployment.ClusterName != cluster) || deployment.Namespace != namespace {
+		if (cluster != "" && ezkube.GetClusterName(deployment) != cluster) || deployment.Namespace != namespace {
 			continue
 		}
 
