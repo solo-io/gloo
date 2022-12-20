@@ -1407,6 +1407,8 @@ github.com/solo-io/skv2 v0.25.1-0.20221219181534-e24a348e66d2 h1:TASlla3AjTp1AW8
 github.com/solo-io/skv2 v0.25.1-0.20221219181534-e24a348e66d2/go.mod h1:ZgInY/qtk1o5zS1brsSx9My3iDNf9jVlmRRPoFKAWgY=
 github.com/solo-io/skv2 v0.25.1-0.20221219191313-17eb4b4e488e h1:YcbCmRV5NZb1PNtRQ0LdOBsm3fyYWyTEFp00fBWVH98=
 github.com/solo-io/skv2 v0.25.1-0.20221219191313-17eb4b4e488e/go.mod h1:ZgInY/qtk1o5zS1brsSx9My3iDNf9jVlmRRPoFKAWgY=
+github.com/solo-io/skv2 v0.26.0 h1:g4SoYb2dCa+zeI35p7VUSLFmnMk+YBLUhTq38rcYLyc=
+github.com/solo-io/skv2 v0.26.0/go.mod h1:ZgInY/qtk1o5zS1brsSx9My3iDNf9jVlmRRPoFKAWgY=
 github.com/solo-io/solo-apis v0.0.0-20220923183548-9746539fc625 h1:Tah0/lj7EoXWCdkKUOMgl+uXhH7zAy4mlCnoJRMUFzg=
 github.com/solo-io/solo-apis v0.0.0-20220923183548-9746539fc625/go.mod h1:HeaqtVvRW8TJMzGDZMP9I9HOixQuZGHfw2J5sxE1qlQ=
 github.com/solo-io/solo-kit v0.23.0/go.mod h1:uCOi8RQ3MetHXsRFvVKPzafYySUvFuPxB+gvo7ScRR8=
