@@ -5179,15 +5179,21 @@ spec:
 						"gloo.gateway.rolloutJob.resources.requests.cpu=200m",
 						"gloo.gateway.rolloutJob.resources.limits.memory=300Mi",
 						"gloo.gateway.rolloutJob.resources.limits.cpu=400m",
+						// linkerd
+						"gloo.settings.linkerd=true",
 					},
 				})
 				Expect(err).NotTo(HaveOccurred())
 				job := getJob(testManifest, namespace, "gloo-ee-resource-rollout")
 
 				// istio injection should always be disabled
-				inject, ok := job.Spec.Template.ObjectMeta.Labels["sidecar.istio.io/inject"]
+				istioInject, ok := job.Spec.Template.ObjectMeta.Labels["sidecar.istio.io/inject"]
 				Expect(ok).To(BeTrue())
-				Expect(inject).To(Equal("false"))
+				Expect(istioInject).To(Equal("false"))
+				// linkerd injection should be disabled if linkerd is enabled
+				linkerdInject, ok := job.Spec.Template.ObjectMeta.Annotations["linkerd.io/inject"]
+				Expect(ok).To(BeTrue())
+				Expect(linkerdInject).To(Equal("disabled"))
 				// image
 				Expect(job.Spec.Template.Spec.Containers[0].Image).To(Equal("myreg/myrepo:mytag"))
 				// job spec

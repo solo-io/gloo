@@ -29,8 +29,11 @@ spec:
         {{ $key | quote }}: {{ $value | quote }}
         {{- end }}
         {{- end }}
-      {{- if .Values.gloo.gateway.rolloutJob.extraPodAnnotations }}
+      {{- if or .Values.gloo.settings.linkerd .Values.gloo.gateway.rolloutJob.extraPodAnnotations }}
       annotations:
+        {{- if .Values.gloo.settings.linkerd }}
+        "linkerd.io/inject": disabled
+        {{- end }}
         {{- range $key, $value := .Values.gloo.gateway.rolloutJob.extraPodAnnotations }}
         {{ $key | quote }}: {{ $value | quote }}
         {{- end }}

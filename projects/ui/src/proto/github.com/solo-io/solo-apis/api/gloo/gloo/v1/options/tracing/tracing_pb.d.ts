@@ -5,6 +5,8 @@
 import * as jspb from "google-protobuf";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_zipkin_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/trace/v3/zipkin_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_datadog_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/trace/v3/datadog_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_opentelemetry_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/trace/v3/opentelemetry_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_opencensus_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/trace/v3/opencensus_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as extproto_ext_pb from "../../../../../../../../../extproto/ext_pb";
@@ -36,6 +38,16 @@ export class ListenerTracingSettings extends jspb.Message {
   getDatadogConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_datadog_pb.DatadogConfig | undefined;
   setDatadogConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_datadog_pb.DatadogConfig): void;
 
+  hasOpenTelemetryConfig(): boolean;
+  clearOpenTelemetryConfig(): void;
+  getOpenTelemetryConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_opentelemetry_pb.OpenTelemetryConfig | undefined;
+  setOpenTelemetryConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_opentelemetry_pb.OpenTelemetryConfig): void;
+
+  hasOpenCensusConfig(): boolean;
+  clearOpenCensusConfig(): void;
+  getOpenCensusConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_opencensus_pb.OpenCensusConfig | undefined;
+  setOpenCensusConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_opencensus_pb.OpenCensusConfig): void;
+
   clearEnvironmentVariablesForTagsList(): void;
   getEnvironmentVariablesForTagsList(): Array<TracingTagEnvironmentVariable>;
   setEnvironmentVariablesForTagsList(value: Array<TracingTagEnvironmentVariable>): void;
@@ -64,6 +76,8 @@ export namespace ListenerTracingSettings {
     tracePercentages?: TracePercentages.AsObject,
     zipkinConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig.AsObject,
     datadogConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_datadog_pb.DatadogConfig.AsObject,
+    openTelemetryConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_opentelemetry_pb.OpenTelemetryConfig.AsObject,
+    openCensusConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_trace_v3_opencensus_pb.OpenCensusConfig.AsObject,
     environmentVariablesForTagsList: Array<TracingTagEnvironmentVariable.AsObject>,
     literalsForTagsList: Array<TracingTagLiteral.AsObject>,
   }
@@ -72,6 +86,8 @@ export namespace ListenerTracingSettings {
     PROVIDER_CONFIG_NOT_SET = 0,
     ZIPKIN_CONFIG = 4,
     DATADOG_CONFIG = 5,
+    OPEN_TELEMETRY_CONFIG = 8,
+    OPEN_CENSUS_CONFIG = 9,
   }
 }
 

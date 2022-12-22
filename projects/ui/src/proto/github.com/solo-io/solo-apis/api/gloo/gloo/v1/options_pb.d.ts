@@ -611,6 +611,11 @@ export class RouteOptions extends jspb.Message {
   getMaxStreamDuration(): RouteOptions.MaxStreamDuration | undefined;
   setMaxStreamDuration(value?: RouteOptions.MaxStreamDuration): void;
 
+  hasIdleTimeout(): boolean;
+  clearIdleTimeout(): void;
+  getIdleTimeout(): google_protobuf_duration_pb.Duration | undefined;
+  setIdleTimeout(value?: google_protobuf_duration_pb.Duration): void;
+
   getHostRewriteTypeCase(): RouteOptions.HostRewriteTypeCase;
   getRateLimitEarlyConfigTypeCase(): RouteOptions.RateLimitEarlyConfigTypeCase;
   getRateLimitConfigTypeCase(): RouteOptions.RateLimitConfigTypeCase;
@@ -661,6 +666,7 @@ export namespace RouteOptions {
     envoyMetadataMap: Array<[string, google_protobuf_struct_pb.Struct.AsObject]>,
     regexRewrite?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.AsObject,
     maxStreamDuration?: RouteOptions.MaxStreamDuration.AsObject,
+    idleTimeout?: google_protobuf_duration_pb.Duration.AsObject,
   }
 
   export class MaxStreamDuration extends jspb.Message {

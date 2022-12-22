@@ -3054,7 +3054,8 @@ proto.gloo.solo.io.RouteOptions.toObject = function(includeInstance, msg) {
     stagedTransformations: (f = msg.getStagedTransformations()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_transformation_transformation_pb.TransformationStages.toObject(includeInstance, f),
     envoyMetadataMap: (f = msg.getEnvoyMetadataMap()) ? f.toObject(includeInstance, proto.google.protobuf.Struct.toObject) : [],
     regexRewrite: (f = msg.getRegexRewrite()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.toObject(includeInstance, f),
-    maxStreamDuration: (f = msg.getMaxStreamDuration()) && proto.gloo.solo.io.RouteOptions.MaxStreamDuration.toObject(includeInstance, f)
+    maxStreamDuration: (f = msg.getMaxStreamDuration()) && proto.gloo.solo.io.RouteOptions.MaxStreamDuration.toObject(includeInstance, f),
+    idleTimeout: (f = msg.getIdleTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3255,6 +3256,11 @@ proto.gloo.solo.io.RouteOptions.deserializeBinaryFromReader = function(msg, read
       var value = new proto.gloo.solo.io.RouteOptions.MaxStreamDuration;
       reader.readMessage(value,proto.gloo.solo.io.RouteOptions.MaxStreamDuration.deserializeBinaryFromReader);
       msg.setMaxStreamDuration(value);
+      break;
+    case 29:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setIdleTimeout(value);
       break;
     default:
       reader.skipField();
@@ -3542,6 +3548,14 @@ proto.gloo.solo.io.RouteOptions.serializeBinaryToWriter = function(message, writ
       28,
       f,
       proto.gloo.solo.io.RouteOptions.MaxStreamDuration.serializeBinaryToWriter
+    );
+  }
+  f = message.getIdleTimeout();
+  if (f != null) {
+    writer.writeMessage(
+      29,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -4769,6 +4783,36 @@ proto.gloo.solo.io.RouteOptions.prototype.clearMaxStreamDuration = function() {
  */
 proto.gloo.solo.io.RouteOptions.prototype.hasMaxStreamDuration = function() {
   return jspb.Message.getField(this, 28) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration idle_timeout = 29;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.getIdleTimeout = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 29));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.gloo.solo.io.RouteOptions.prototype.setIdleTimeout = function(value) {
+  jspb.Message.setWrapperField(this, 29, value);
+};
+
+
+proto.gloo.solo.io.RouteOptions.prototype.clearIdleTimeout = function() {
+  this.setIdleTimeout(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.hasIdleTimeout = function() {
+  return jspb.Message.getField(this, 29) != null;
 };
 
 

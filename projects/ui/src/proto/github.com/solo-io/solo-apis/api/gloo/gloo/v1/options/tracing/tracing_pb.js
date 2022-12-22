@@ -14,6 +14,8 @@ var global = Function('return this')();
 
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_zipkin_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/trace/v3/zipkin_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_datadog_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/trace/v3/datadog_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opentelemetry_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/trace/v3/opentelemetry_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opencensus_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/trace/v3/opencensus_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
 var extproto_ext_pb = require('../../../../../../../../../extproto/ext_pb.js');
@@ -56,7 +58,7 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.repeatedFields_ = [1,
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.tracing.options.gloo.solo.io.ListenerTracingSettings.oneofGroups_ = [[4,5]];
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.oneofGroups_ = [[4,5,8,9]];
 
 /**
  * @enum {number}
@@ -64,7 +66,9 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.oneofGroups_ = [[4,5]
 proto.tracing.options.gloo.solo.io.ListenerTracingSettings.ProviderConfigCase = {
   PROVIDER_CONFIG_NOT_SET: 0,
   ZIPKIN_CONFIG: 4,
-  DATADOG_CONFIG: 5
+  DATADOG_CONFIG: 5,
+  OPEN_TELEMETRY_CONFIG: 8,
+  OPEN_CENSUS_CONFIG: 9
 };
 
 /**
@@ -109,6 +113,8 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.toObject = function(i
     tracePercentages: (f = msg.getTracePercentages()) && proto.tracing.options.gloo.solo.io.TracePercentages.toObject(includeInstance, f),
     zipkinConfig: (f = msg.getZipkinConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_zipkin_pb.ZipkinConfig.toObject(includeInstance, f),
     datadogConfig: (f = msg.getDatadogConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_datadog_pb.DatadogConfig.toObject(includeInstance, f),
+    openTelemetryConfig: (f = msg.getOpenTelemetryConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opentelemetry_pb.OpenTelemetryConfig.toObject(includeInstance, f),
+    openCensusConfig: (f = msg.getOpenCensusConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opencensus_pb.OpenCensusConfig.toObject(includeInstance, f),
     environmentVariablesForTagsList: jspb.Message.toObjectList(msg.getEnvironmentVariablesForTagsList(),
     proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable.toObject, includeInstance),
     literalsForTagsList: jspb.Message.toObjectList(msg.getLiteralsForTagsList(),
@@ -173,6 +179,16 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.deserializeBinaryFrom
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_datadog_pb.DatadogConfig;
       reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_datadog_pb.DatadogConfig.deserializeBinaryFromReader);
       msg.setDatadogConfig(value);
+      break;
+    case 8:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opentelemetry_pb.OpenTelemetryConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opentelemetry_pb.OpenTelemetryConfig.deserializeBinaryFromReader);
+      msg.setOpenTelemetryConfig(value);
+      break;
+    case 9:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opencensus_pb.OpenCensusConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opencensus_pb.OpenCensusConfig.deserializeBinaryFromReader);
+      msg.setOpenCensusConfig(value);
       break;
     case 6:
       var value = new proto.tracing.options.gloo.solo.io.TracingTagEnvironmentVariable;
@@ -251,6 +267,22 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.serializeBinaryToWrit
       5,
       f,
       github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_datadog_pb.DatadogConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getOpenTelemetryConfig();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opentelemetry_pb.OpenTelemetryConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getOpenCensusConfig();
+  if (f != null) {
+    writer.writeMessage(
+      9,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opencensus_pb.OpenCensusConfig.serializeBinaryToWriter
     );
   }
   f = message.getEnvironmentVariablesForTagsList();
@@ -420,6 +452,66 @@ proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.clearDatado
  */
 proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.hasDatadogConfig = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional solo.io.envoy.config.trace.v3.OpenTelemetryConfig open_telemetry_config = 8;
+ * @return {?proto.solo.io.envoy.config.trace.v3.OpenTelemetryConfig}
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.getOpenTelemetryConfig = function() {
+  return /** @type{?proto.solo.io.envoy.config.trace.v3.OpenTelemetryConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opentelemetry_pb.OpenTelemetryConfig, 8));
+};
+
+
+/** @param {?proto.solo.io.envoy.config.trace.v3.OpenTelemetryConfig|undefined} value */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.setOpenTelemetryConfig = function(value) {
+  jspb.Message.setOneofWrapperField(this, 8, proto.tracing.options.gloo.solo.io.ListenerTracingSettings.oneofGroups_[0], value);
+};
+
+
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.clearOpenTelemetryConfig = function() {
+  this.setOpenTelemetryConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.hasOpenTelemetryConfig = function() {
+  return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional solo.io.envoy.config.trace.v3.OpenCensusConfig open_census_config = 9;
+ * @return {?proto.solo.io.envoy.config.trace.v3.OpenCensusConfig}
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.getOpenCensusConfig = function() {
+  return /** @type{?proto.solo.io.envoy.config.trace.v3.OpenCensusConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_trace_v3_opencensus_pb.OpenCensusConfig, 9));
+};
+
+
+/** @param {?proto.solo.io.envoy.config.trace.v3.OpenCensusConfig|undefined} value */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.setOpenCensusConfig = function(value) {
+  jspb.Message.setOneofWrapperField(this, 9, proto.tracing.options.gloo.solo.io.ListenerTracingSettings.oneofGroups_[0], value);
+};
+
+
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.clearOpenCensusConfig = function() {
+  this.setOpenCensusConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.tracing.options.gloo.solo.io.ListenerTracingSettings.prototype.hasOpenCensusConfig = function() {
+  return jspb.Message.getField(this, 9) != null;
 };
 
 
