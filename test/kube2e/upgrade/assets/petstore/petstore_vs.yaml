@@ -7,10 +7,19 @@ metadata:
 spec:
   virtualHost:
     domains:
-      - '*'
+      - 'petstore'
     routes:
       - matchers:
           - exact: /all-pets
+        options:
+          prefixRewrite: /api/pets
+        routeAction:
+          single:
+            upstream:
+              name: gloo-system-petstore-8080
+              namespace: gloo-system
+      - matchers:
+          - exact: /single-pet
         options:
           prefixRewrite: /api/pets
         routeAction:

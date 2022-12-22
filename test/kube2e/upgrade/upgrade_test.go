@@ -51,6 +51,10 @@ const (
 	glooChartName    = "gloo"
 	yamlAssetDir     = "../upgrade/assets/"
 	GatewayProxyName = "gateway-proxy"
+	petStoreHost     = "petstore"
+	rateLimitHost    = "ratelimit"
+	responseCode200  = "HTTP/1.1 200"
+	responseCode429  = "HTTP/1.1 429 Too Many Requests"
 )
 
 var _ = Describe("Upgrade Tests", func() {
@@ -170,7 +174,6 @@ var _ = Describe("Upgrade Tests", func() {
 // Repeated Test Code
 // ===================================
 // Based case test for local runs to help narrow down failures
-
 func baseUpgradeTest(ctx context.Context, reqTemplateUri string, startingVersion string, testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool) {
 	By(fmt.Sprintf("should start with gloo version %s", startingVersion))
 	Expect(fmt.Sprintf("v%s", getGlooServerVersion(ctx, testHelper.InstallNamespace))).To(Equal(startingVersion))
@@ -258,6 +261,7 @@ func makeUnstructuredFromTemplateFile(fixtureName string, values interface{}) *u
 }
 
 func installGloo(testHelper *helper.SoloTestHelper, fromRelease string, strictValidation bool) {
+	fmt.Printf("\n=============== Installing Gloo : %s ===============\n", fromRelease)
 	valueOverrideFile, cleanupFunc := getUpgradeHelmOverrides()
 	defer cleanupFunc()
 
@@ -286,7 +290,7 @@ func installGloo(testHelper *helper.SoloTestHelper, fromRelease string, strictVa
 
 	// Check that everything is OK
 	checkGlooHealthy(testHelper)
-	preUpgradeDataSetup(testHelper)
+	preUpgradeDataSetup()
 	preUpgradeDataValidation(testHelper)
 }
 
@@ -369,28 +373,46 @@ func getYamlData(filename string) (kind string, name string, namespace string) {
 	return kubernetesValues.Kind, kubernetesValues.Metadata.Name, kubernetesValues.Metadata.Namespace
 }
 
-func preUpgradeDataSetup(testHelper *helper.SoloTestHelper) {
+func preUpgradeDataSetup() {
+	fmt.Printf("\n=============== Creating Resources ===============\n")
 	//hello world example
-	createResource("petstore_deployment.yaml")
-	createResource("petstore_svc.yaml")
-	createResource("petstore_vs.yaml")
+	createPetStoreResources()
+	createRateLimitResources()
+}
+
+func createPetStoreResources() {
+	fmt.Printf("\n=============== Pet Store Resources ===============\n")
+	createResource("petstore", "petstore_deployment.yaml")
+	createResource("petstore", "petstore_svc.yaml")
+	createResource("petstore", "petstore_vs.yaml")
+}
+
+func createRateLimitResources() {
+	fmt.Printf("\n=============== Rate Limmit Resources ===============\n")
+	createResource("ratelimit", "echo1_upstream.yaml")
+	createResource("ratelimit", "echo2_upstream.yaml")
+	createResource("ratelimit", "ratelimit_ratelimitconfig.yaml")
+	createResource("ratelimit", "ratelimit_vs.yaml")
 }
 
 // Sets up resources before upgrading
 func preUpgradeDataValidation(testHelper *helper.SoloTestHelper) {
 	validatePetstoreTraffic(testHelper)
+	validateRateLimitTraffic(testHelper)
 }
 
 // All Validation scenarios
 func postUpgradeValidation(testHelper *helper.SoloTestHelper) {
 	validatePetstoreTraffic(testHelper)
+	validateRateLimitTraffic(testHelper)
 }
 
 // Creates resources from yaml files in the upgrade/assets folder and validates they have been created
-func createResource(filename string) {
-	kind, name, namespace := getYamlData(filename)
+func createResource(folder string, filename string) {
+	localFilePath := filepath.Join(folder, filename)
+	kind, name, namespace := getYamlData(localFilePath)
 	fmt.Printf("Creating %s %s in namespace: %s", kind, name, namespace)
-	runAndCleanCommand("kubectl", "apply", "-f", filepath.Join(yamlAssetDir, filename))
+	runAndCleanCommand("kubectl", "apply", "-f", filepath.Join(yamlAssetDir, localFilePath))
 
 	//validate resource creation
 	switch kind {
@@ -403,6 +425,16 @@ func createResource(filename string) {
 		Eventually(func() (string, error) {
 			return services.KubectlOut("get", "deploy/"+name, "-n", namespace)
 		}, "20s", "1s").ShouldNot(BeEmpty())
+		fmt.Printf(" (✓)\n")
+	case "Upstream":
+		Eventually(func() (string, error) {
+			return services.KubectlOut("get", "us/"+name, "-n", namespace)
+		}, "20s", "1s").ShouldNot(BeEmpty())
+		fmt.Printf(" (✓)\n")
+	case "RateLimitConfig":
+		Eventually(func() (string, error) {
+			return services.KubectlOut("get", "ratelimitconfig/"+name, "-n", namespace, "-o", "jsonpath={.status.state}")
+		}, "20s", "1s").Should(Equal("ACCEPTED"))
 		fmt.Printf(" (✓)\n")
 	case "VirtualService":
 		Eventually(func() (string, error) {
@@ -421,12 +453,40 @@ func validatePetstoreTraffic(testHelper *helper.SoloTestHelper) {
 		Protocol:          "http",
 		Path:              "/all-pets",
 		Method:            "GET",
-		Host:              GatewayProxyName,
+		Host:              petStoreHost,
 		Service:           GatewayProxyName,
 		Port:              80,
 		ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
 		Verbose:           true,
 	}, petString, 1, time.Minute*1)
+}
+
+// This function validates the traffic going to the rate limit vs
+// There are two routes - 1 for /posts1 which is not rate limited and one for /posts2 which is
+// The defined rate limit is 1 request per hour to the petstore domain on the route for /posts2
+// after the upgrade we run the same function as redis is bounced as part of the upgrade and all rate limiting gets reset.
+func validateRateLimitTraffic(testHelper *helper.SoloTestHelper) {
+	testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
+		Protocol:          "http",
+		Path:              "/posts1",
+		Method:            "GET",
+		Host:              rateLimitHost,
+		Service:           GatewayProxyName,
+		Port:              80,
+		ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
+		Verbose:           true,
+	}, responseCode200, 1, time.Minute*1)
+
+	testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
+		Protocol:          "http",
+		Path:              "/posts2",
+		Method:            "GET",
+		Host:              rateLimitHost,
+		Service:           GatewayProxyName,
+		Port:              80,
+		ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
+		Verbose:           true,
+	}, responseCode429, 1, time.Minute*1)
 }
 
 func getUpgradeHelmOverrides() (filename string, cleanup func()) {

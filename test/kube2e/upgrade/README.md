@@ -21,4 +21,5 @@ kubectl delete ns gloo-system && kubectl delete crd --all
 kubectl delete clusterrolebinding,clusterrole -l app=gloo
 kubectl delete clusterrolebinding,clusterrole -l app.kubernetes.io/instance=gloo
 kubectl delete clusterrolebinding,clusterrole -l app=glooe-prometheus 
+kubectl delete clusterrolebinding,clusterrole -l app.kubernetes.io/instance=gloo-ee
 ```

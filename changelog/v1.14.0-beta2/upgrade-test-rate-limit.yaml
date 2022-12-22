@@ -1,0 +1,5 @@
+CHANGELOG:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4360
+    resolvesIssue: false
+    description: add rate limit data scenario to upgrade tests
