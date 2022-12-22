@@ -175,7 +175,9 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 				// if we fallback to first, we need to have a valid destination
 				contextutils.LoggerFrom(params.Ctx).Debug("no destinationSpec set with fallbackToFirstFunction enabled, processing as aws route")
 				dest = &v1.DestinationSpec{
-					DestinationType: &v1.DestinationSpec_Aws{},
+					DestinationType: &v1.DestinationSpec_Aws{
+						Aws: &aws.DestinationSpec{},
+					},
 				}
 			}
 			awsDestinationSpec, ok := dest.GetDestinationType().(*v1.DestinationSpec_Aws)
@@ -199,7 +201,15 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 				return nil, err
 			}
 			// should be aws upstream
-			return p.perRouteConfigGenerator(p.settings, awsDestinationSpec.Aws, lambdaSpec)
+			awsLambda, err := p.perRouteConfigGenerator(p.settings, awsDestinationSpec.Aws, lambdaSpec)
+			if err == nil {
+				// set the `destinationSpec` to be `awsDestinationSpec` after being modified in `GenerateAWSLambdaRouteConfig`
+				// doing it this way allows us to keep the original destinationSpec with the updated awsDestinationSpec added onto it
+				dest.DestinationType = awsDestinationSpec
+				spec.DestinationSpec = dest
+			}
+
+			return awsLambda, err
 		},
 	)
 
