@@ -165,11 +165,13 @@ func (p *Plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoy_config_route_v3.Route) error {
 	err := pluginutils.MarkPerFilterConfig(params.Ctx, params.Snapshot, in, out, FilterName,
 		func(spec *v1.Destination) (proto.Message, error) {
+			shouldFallback := p.settings.GetFallbackToFirstFunction().GetValue()
+			// local variable to avoid side effects for calls that are not to aws upstreams
 			dest := spec.GetDestinationSpec()
-			// check if it's aws destination
-			// it is incorrect to set lambda functionality on routes that do not have a lambda function specified unless we fallback
 			if dest == nil {
-				if p.settings.GetFallbackToFirstFunction().GetValue() == false {
+				// it is incorrect to set lambda functionality on routes that do not have a lambda function specified unless we fallback
+				// thereofore skip lambda filter if fallback is set to false
+				if !shouldFallback {
 					return nil, nil
 				}
 				// if we fallback to first, we need to have a valid destination
@@ -180,29 +182,35 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 					},
 				}
 			}
+			// check if the destination is an aws destinationtype and skip the function if not
 			awsDestinationSpec, ok := dest.GetDestinationType().(*v1.DestinationSpec_Aws)
 			if !ok {
 				return nil, nil
 			}
 
-			// get upstream
 			upstreamRef, err := upstreams.DestinationToUpstreamRef(spec)
 			if err != nil {
 				contextutils.LoggerFrom(params.Ctx).Error(err)
 				return nil, err
 			}
+
+			// validate that the upstream is one that we have previously recorded as an aws upstream
 			lambdaSpec, ok := p.recordedUpstreams[translator.UpstreamToClusterName(upstreamRef)]
 			if !ok {
-				if p.settings.GetFallbackToFirstFunction().GetValue() == true {
+
+				if spec.GetDestinationSpec() == nil && shouldFallback {
+					// skip the lambda plugin as the route was not explicitly set to be an aws route
 					return nil, nil
 				}
+				// error as we have a route that `thinks` its pointing to an aws upstream
+				// but the upstream does not believe that it is an aws upstream
 				err := errors.Errorf("%v is not an AWS upstream", *upstreamRef)
 				contextutils.LoggerFrom(params.Ctx).Error(err)
 				return nil, err
 			}
-			// should be aws upstream
+
 			awsLambda, err := p.perRouteConfigGenerator(p.settings, awsDestinationSpec.Aws, lambdaSpec)
-			if err == nil {
+			if shouldFallback && spec.GetDestinationSpec() == nil {
 				// set the `destinationSpec` to be the original destinationSpec with the updated awsDestinationSpec added onto it
 				spec.DestinationSpec = dest
 			}
