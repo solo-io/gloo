@@ -203,9 +203,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 			// should be aws upstream
 			awsLambda, err := p.perRouteConfigGenerator(p.settings, awsDestinationSpec.Aws, lambdaSpec)
 			if err == nil {
-				// set the `destinationSpec` to be `awsDestinationSpec` after being modified in `GenerateAWSLambdaRouteConfig`
-				// doing it this way allows us to keep the original destinationSpec with the updated awsDestinationSpec added onto it
-				dest.DestinationType = awsDestinationSpec
+				// set the `destinationSpec` to be the original destinationSpec with the updated awsDestinationSpec added onto it
 				spec.DestinationSpec = dest
 			}
 
