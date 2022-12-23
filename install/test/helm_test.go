@@ -3365,7 +3365,19 @@ spec:
 						})
 						testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 					})
+					It("correctly sets the gateway circuitBreakers fields in the settings", func() {
+						settings := makeUnstructureFromTemplateFile("fixtures/settings/gateway_circuit_breakers.yaml", namespace)
 
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"settings.circuitBreakers.maxConnections=1024",
+								"settings.circuitBreakers.maxPendingRequests=1024",
+								"settings.circuitBreakers.maxRequests=1024",
+								"settings.circuitBreakers.maxRetries=3",
+							},
+						})
+						testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
+					})
 					It("correctly allows setting readGatewaysFromAllNamespaces field in the settings when validation disabled", func() {
 						settings := makeUnstructureFromTemplateFile("fixtures/settings/read_gateways_from_all_namespaces.yaml", namespace)
 
