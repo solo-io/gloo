@@ -4,6 +4,8 @@ on:
     # run Monday-Friday mornings (midnight UTC)
     - cron: "0 5 * * 1-5"
   workflow_dispatch:
+    #remove before merging
+  pull_request:
 jobs:
   prepare_env:
     name: Prepare Environment
@@ -23,6 +25,8 @@ jobs:
         # knative support has been deprecated: https://github.com/solo-io/gloo/issues/5707
         # We have removed it from our CI regression tests
         kube-e2e-test-type: ['gateway', 'gloo', 'ingress', 'helm', 'gloomtls', 'glooctl', 'upgrade']
+        kube-version: [{node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kind: 'v0.17.0', kubectl: 'v1.24.7'},
+                       {node: 'v1.22.4@sha256:ca3587e6e545a96c07bf82e2c46503d9ef86fc704f44c17577fca7bcabf5f978', kind: 'v0.11.1', kubectl: 'v1.22.4'}]
     steps:
     - name: Cancel Previous Actions
       uses: styfle/cancel-workflow-action@0.4.1
@@ -64,11 +68,11 @@ jobs:
       with:
         # We rely on the `deploy-to-kind-cluster` script to create a kind cluster
         skipClusterCreation: true
-        version: v0.17.0
+        version: ${{ matrix.kube-version.kind }}
     - uses: azure/setup-kubectl@v1
       id: kubectl
       with:
-        version: 'v1.24.7'
+        version: ${{ matrix.kube-version.kubectl }}
     - uses: azure/setup-helm@v1
       with:
         version: v3.6.3
@@ -76,7 +80,7 @@ jobs:
       env:
         KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type }}
         CLUSTER_NAME: 'kind'
-        CLUSTER_NODE_VERSION: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5'
+        CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
         SKIP_DOCKER: 'true'
       run: |
         ./ci/deploy-to-kind-cluster.sh
