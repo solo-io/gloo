@@ -4,20 +4,18 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/solo-io/solo-projects/test/kubeutils"
-
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 
 	"github.com/solo-io/gloo/test/helpers"
-	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
+	enterprisehelpers "github.com/solo-io/solo-projects/test/kube2e"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
@@ -47,20 +45,10 @@ var _ = BeforeSuite(StartTestHelper)
 var _ = AfterSuite(TearDownTestHelper)
 
 func StartTestHelper() {
-	cwd, err := os.Getwd()
-	Expect(err).NotTo(HaveOccurred())
 
-	err = os.Setenv(statusutils.PodNamespaceEnvName, installNamespace)
+	err := os.Setenv(statusutils.PodNamespaceEnvName, installNamespace)
 	Expect(err).NotTo(HaveOccurred())
-
-	testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
-		defaults.RootDir = filepath.Join(cwd, "../../..")
-		defaults.HelmChartName = "gloo-ee"
-		defaults.LicenseKey = kubeutils.LicenseKey()
-		defaults.InstallNamespace = installNamespace
-		defaults.Verbose = true
-		return defaults
-	})
+	testHelper, err = enterprisehelpers.GetEnterpriseTestHelper(ctx, installNamespace)
 
 	skhelpers.RegisterPreFailHandler(helpers.KubeDumpOnFail(GinkgoWriter, testHelper.InstallNamespace))
 	Expect(err).NotTo(HaveOccurred())

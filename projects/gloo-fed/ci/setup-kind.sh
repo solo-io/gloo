@@ -9,6 +9,8 @@ REMOTE_CLUSTER="${REMOTE_CLUSTER:-remote}"
 CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.24.7}"
 # The version used to tag images
 VERSION="${VERSION:-1.0.0-ci}"
+# If true, use a released chart with the version in $VERSION
+FROM_RELEASE="${FROM_RELEASE:-false}"
 # The license key used to support enterprise features
 GLOO_LICENSE_KEY="${GLOO_LICENSE_KEY:-}"
 # Automatically (lazily) determine OS type
@@ -34,7 +36,10 @@ if [ "$GLOO_LICENSE_KEY" == "" ]; then
   echo "please provide a license key"
   exit 0
 fi
-
+#Get the latest release from git
+if [[ "$FROM_RELEASE" == "true" ]]; then
+  VERSION=`git describe --abbrev=0 --tags`
+fi
 # 2. Build the gloo command line tool, ensuring we have one in the `_output` folder
 make glooctl-$OS-$GOARCH
 shopt -s expand_aliases
@@ -88,20 +93,20 @@ kubeadmConfigPatches:
 EOF
 )
 
-# 5. Build local federation and enterprise images used in these clusters
-VERSION=$VERSION make package-gloo-fed-chart package-gloo-edge-chart
-VERSION=$VERSION make gloo-ee-docker gloo-ee-envoy-wrapper-docker discovery-ee-docker
-
-# 6. Install Gloo in the management kind cluster
+# 5. Set context to management cluster
 kubectl config use-context kind-"$MANAGEMENT_CLUSTER"
+if [[ $FROM_RELEASE != "true" ]]; then
+  # 5a. Build local federation and enterprise images used in these clusters
+  VERSION=$VERSION make package-gloo-fed-chart package-gloo-edge-chart
+  VERSION=$VERSION make gloo-ee-docker gloo-ee-envoy-wrapper-docker discovery-ee-docker
 
-yarn --cwd projects/ui build
+  yarn --cwd projects/ui build
 
-# 6a. Load federation and enterprise images used in this test
-CLUSTER_NAME=$MANAGEMENT_CLUSTER VERSION=$VERSION make gloofed-load-kind-images
-CLUSTER_NAME=$MANAGEMENT_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
-
-# 6b. Install gloo-fed and gloo-ee to management kind cluster
+  # 6. Load federation and enterprise images used in this test
+  CLUSTER_NAME=$MANAGEMENT_CLUSTER VERSION=$VERSION make gloofed-load-kind-images
+  CLUSTER_NAME=$MANAGEMENT_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
+fi
+# 6a. Install gloo-fed and gloo-ee to management kind cluster
 cat > management-helm-values.yaml << EOF
 global:
   extensions:
@@ -126,8 +131,11 @@ gloo:
         type: NodePort
 EOF
 
-glooctl install gateway enterprise --license-key="$GLOO_LICENSE_KEY" --file _output/helm/gloo-ee-"$VERSION".tgz --values management-helm-values.yaml
-
+if [[ $FROM_RELEASE == "true" ]]; then
+  glooctl install gateway enterprise --license-key="$GLOO_LICENSE_KEY" --version "$VERSION" --values management-helm-values.yaml
+else
+  glooctl install gateway enterprise --license-key="$GLOO_LICENSE_KEY" --file _output/helm/gloo-ee-"$VERSION".tgz --values management-helm-values.yaml
+fi
 rm management-helm-values.yaml
 
 # 6c. Wait for the installation to complete
@@ -140,10 +148,8 @@ kubectl -n gloo-system rollout status deployment gateway --timeout=2m || true
 # 7. Install Gloo in the remote kind cluster
 kubectl config use-context kind-"$REMOTE_CLUSTER"
 
-# 7a. Load enterprise images used in this test
-CLUSTER_NAME=$REMOTE_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
 
-# 7b. Install gloo-ee to remote kind cluster
+# 7a. Install gloo-ee to remote kind cluster
 cat > remote-helm-values.yaml <<EOF
 global:
   extensions:
@@ -170,8 +176,13 @@ gloo:
         type: NodePort
 EOF
 
-glooctl install gateway enterprise --license-key="$GLOO_LICENSE_KEY" --file _output/helm/gloo-ee-"$VERSION".tgz --values remote-helm-values.yaml
-
+if [[ $FROM_RELEASE == "true" ]]; then
+  glooctl install gateway enterprise --license-key="$GLOO_LICENSE_KEY" --version "$VERSION" --values remote-helm-values.yaml
+else
+  # Load enterprise images used in this test
+  CLUSTER_NAME=$REMOTE_CLUSTER VERSION=$VERSION make kind-load-gloo-ee kind-load-gloo-ee-envoy-wrapper kind-load-discovery-ee
+  glooctl install gateway enterprise --license-key="$GLOO_LICENSE_KEY" --file _output/helm/gloo-ee-"$VERSION".tgz --values remote-helm-values.yaml
+fi
 rm remote-helm-values.yaml
 
 # 7c. Wait for the installation to complete

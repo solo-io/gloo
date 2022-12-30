@@ -1,0 +1,229 @@
+name: Fed Nightly Tests
+on:
+  schedule:
+    # run Monday-Friday mornings 2 AM eastern (1 hour after enterprise tests run)
+    - cron: "0 7 * * 1-5"
+  workflow_dispatch:
+env:
+  HELM_VERSION: 'v3.6.0'
+  GLOO_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
+  # Test with the latest released version. This can also be replaced with a specific release for manual testing
+  RELEASED_VERSION: "LATEST"
+  GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  # Results are posted to #edge-nightly-results
+  SLACK_CHANNEL: "C04CJMXAH7A"
+jobs:
+  gloo_fed_e2e_tests:
+    name: Gloo Fed E2E Tests
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14' },
+                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7' } ]
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.4.0
+        with:
+          access_token: ${{ github.token }}
+      - name: Free disk space
+        run: |
+          echo "Before clearing disk space:"
+          df -h
+          
+          # https://github.com/actions/virtual-environments/issues/709
+          sudo apt-get clean
+          
+          # Clean up pre-installed tools
+          # https://github.com/actions/virtual-environments/issues/1918
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf $AGENT_TOOLSDIRECTORY
+          
+          echo "After clearing disk space:"
+          df -h
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Private Repo Permissions
+        run: |
+          git config --global url."https://${GITHUB_TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
+      - name: Setup - gcloud / gsutil
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
+          project_id: gloo-ee
+          export_default_credentials: true
+      - name: Setup docker
+        run: |
+          gcloud auth configure-docker
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18.2
+      - uses: actions/cache@v3
+        env:
+          # https://github.com/actions/cache#cache-segment-restore-timeout
+          SEGMENT_DOWNLOAD_TIMEOUT_MIN: 5
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go
+      - uses: azure/setup-kubectl@v1
+        with:
+          version: ${{ matrix.kube-version.kubectl }}
+      - uses: azure/setup-helm@v1
+        with:
+          version: ${{ env.HELM_VERSION }}
+      - uses: engineerd/setup-kind@v0.5.0
+        with:
+          skipClusterCreation: "true"
+          version: v0.17.0
+      - name: Yarn Install
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - run: yarn --cwd projects/ui install
+      - name: Setup Kind
+        run: |
+          ./projects/gloo-fed/ci/setup-kind.sh
+        env:
+          MANAGEMENT_CLUSTER: management
+          REMOTE_CLUSTER: remote
+          FROM_RELEASE: true
+          CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
+      - name: Run tests
+        run: |
+          make run-ci-gloo-fed-regression-tests
+        env:
+          KUBE2E_TESTS: basic
+          MANAGEMENT_CLUSTER: management
+          REMOTE_CLUSTER: remote
+      - name: Debug Info
+        if: failure()
+        run: |
+          # see what's in the cluster if we failed
+          kubectl get all -A
+          kubectl get configmaps -A
+          kubectl port-forward -n gloo-system deploy/gateway-proxy 19000 & sleep 5; curl localhost:19000/clusters; curl localhost:19000/config_dump;
+      - name: Send Fail Message
+        id: message-on-failure
+        if: ${{ failure() && github.event.schedule }}
+        shell: bash
+        run: |
+          curl -X POST https://slack.com/api/chat.postMessage\
+             -H "Content-Type: application/json; charset=utf-8"\
+             -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
+             -d '{"channel":"${{ env.SLACK_CHANNEL }}","text":":red_circle: Gloo fed basic tests failed on kube version ${{ matrix.kube-version.kubectl }}.. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, Fed tests>"}'
+      - name: Send Success Message
+        id: message-on-success
+        if: ${{ success() && github.event.schedule }}
+        shell: bash
+        run: |
+          curl -X POST https://slack.com/api/chat.postMessage\
+             -H "Content-Type: application/json; charset=utf-8"\
+             -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
+             -d '{"channel":"${{ env.SLACK_CHANNEL }}","text":":large_green_circle: Gloo fed basic tests succeeded on kube version ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, Fed tests>"}'
+  gloo_fed_canary_tests:
+    name: Gloo Fed Canary Tests
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
+                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.4.0
+        with:
+          access_token: ${{ github.token }}
+      - name: Free disk space
+        run: |
+          echo "Before clearing disk space:"
+          df -h
+          
+          # https://github.com/actions/virtual-environments/issues/709
+          sudo apt-get clean
+          
+          # Clean up pre-installed tools
+          # https://github.com/actions/virtual-environments/issues/1918
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf $AGENT_TOOLSDIRECTORY
+          
+          echo "After clearing disk space:"
+          df -h
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Private Repo Permissions
+        run: |
+          git config --global url."https://${GITHUB_TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
+      - name: Setup - gcloud / gsutil
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
+          project_id: gloo-ee
+          export_default_credentials: true
+      - name: Setup docker
+        run: |
+          gcloud auth configure-docker
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18.2
+      - uses: actions/cache@v3
+        env:
+          # https://github.com/actions/cache#cache-segment-restore-timeout
+          SEGMENT_DOWNLOAD_TIMEOUT_MIN: 5
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go
+      - uses: azure/setup-kubectl@v1
+        with:
+          version: ${{ matrix.kube-version.kubectl }}
+      - uses: azure/setup-helm@v1
+        with:
+          version: ${{ env.HELM_VERSION }}
+      - uses: engineerd/setup-kind@v0.5.0
+        with:
+          skipClusterCreation: true
+          version: ${{ matrix.kube-version.kind }}
+      - name: Setup Kind
+        run: |
+          ./projects/gloo-fed/ci/setup-kind-canary.sh
+        env:
+          CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
+          MANAGEMENT_CLUSTER: management
+          REMOTE_RELEASE_CLUSTER: remote-release
+          REMOTE_CANARY_CLUSTER: remote-canary
+      - name: Run tests
+        run: |
+          make run-ci-gloo-fed-regression-tests
+        env:
+          KUBE2E_TESTS: canary
+          MANAGEMENT_CLUSTER: management
+          REMOTE_RELEASE_CLUSTER: remote-release
+          REMOTE_CANARY_CLUSTER: remote-canary
+      - name: Send Fail Message
+        id: message-on-failure
+        if: ${{ failure() && github.event.schedule }}
+        shell: bash
+        run: |
+          curl -X POST https://slack.com/api/chat.postMessage\
+             -H "Content-Type: application/json; charset=utf-8"\
+             -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
+             -d '{"channel": "${{ env.SLACK_CHANNEL }}","text":":red_circle: Gloo fed canary test failed on kube version ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'
+      - name: Send Success Message
+        id: message-on-success
+        if: ${{ success() && github.event.schedule }}
+        shell: bash
+        run: |
+          curl -X POST https://slack.com/api/chat.postMessage\
+             -H "Content-Type: application/json; charset=utf-8"\
+             -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
+             -d '{"channel":"${{ env.SLACK_CHANNEL }}","text":":large_green_circle: Gloo fed canary test succeeded on kube version ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'

@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/solo-io/solo-projects/test/kube2e"
+
 	"github.com/solo-io/solo-projects/test/kubeutils"
 
 	errors "github.com/rotisserie/eris"
@@ -44,9 +46,10 @@ func NewGlooInstaller(config InstallConfig) (*GlooInstaller, error) {
 	if glooLicenseKey == "" {
 		return nil, errors.New("LicenseKey required, but not provided")
 	}
-
+	useVersion := kube2e.GetTestReleasedVersion(context.Background(), "solo-projects")
 	testHelper, err := helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
 		defaults.RootDir = filepath.Dir(goModFile)
+		defaults.ReleasedVersion = useVersion
 		defaults.HelmChartName = helmChartName
 		defaults.LicenseKey = kubeutils.LicenseKey()
 		defaults.InstallNamespace = config.InstallNamespace
@@ -54,10 +57,10 @@ func NewGlooInstaller(config InstallConfig) (*GlooInstaller, error) {
 		defaults.DeployTestRunner = false
 		return defaults
 	})
+
 	if err != nil {
 		return nil, err
 	}
-
 	return &GlooInstaller{
 		config:     config,
 		testHelper: testHelper,

@@ -1,0 +1,10 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyRepo: k8s-utils
+    dependencyOwner: solo-io
+    dependencyTag: v0.1.1
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4191
+    resolvesIssue: false
+    description: >
+      Add workflow to run nightly regression tests and allow running regression tests from a released version of edge.

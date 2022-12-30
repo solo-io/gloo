@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"time"
 
-	kubeutils2 "github.com/solo-io/solo-projects/test/kubeutils"
-
 	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,6 +21,7 @@ import (
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
+	enterprisehelpers "github.com/solo-io/solo-projects/test/kube2e"
 	admission_v1 "k8s.io/api/admissionregistration/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,14 +39,14 @@ const (
 	// TODO delete tests once this version is no longer supported https://github.com/solo-io/gloo/issues/6661
 	versionBeforeGlooGatewayMerge = "1.11.0"
 
-	glooChartName = "gloo"
+	glooChartName  = "gloo"
+	glooeeRepoName = "https://storage.googleapis.com/gloo-ee-helm"
 )
 
 var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 
 	var (
-		chartUri       string
-		reqTemplateUri string
+		chartUri string
 
 		ctx    context.Context
 		cancel context.CancelFunc
@@ -58,8 +57,10 @@ var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 
 		testHelper *helper.SoloTestHelper
 
-		// if set, the test will install from a released version (rather than local version) of the helm chart
+		// if set, the test will install the initial version of gloo from a released version (rather than local version) of the helm chart
 		fromRelease string
+		// if set, the test will upgrade to a released version of gloo
+		targetReleasedVersion string
 		// whether to set validation webhook's failurePolicy=Fail
 		strictValidation bool
 	)
@@ -72,26 +73,23 @@ var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 		kubeClientset, err = kubernetes.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
 
-		cwd, err := os.Getwd()
+		testHelper, err = enterprisehelpers.GetEnterpriseTestHelper(ctx, namespace)
 		Expect(err).NotTo(HaveOccurred())
-		testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
-			defaults.RootDir = filepath.Join(cwd, "../../..")
-			defaults.HelmChartName = "gloo-ee"
-			defaults.LicenseKey = kubeutils2.LicenseKey()
-			defaults.InstallNamespace = namespace
-			defaults.Verbose = true
-			return defaults
-		})
-		Expect(err).NotTo(HaveOccurred())
-
-		chartUri = filepath.Join(testHelper.RootDir, testHelper.TestAssetDir, testHelper.HelmChartName+"-"+testHelper.ChartVersion()+".tgz")
-		reqTemplateUri = filepath.Join(testHelper.RootDir, "install/helm/gloo-ee/requirements.yaml")
+		targetReleasedVersion = testHelper.ReleasedVersion
+		if targetReleasedVersion != "" {
+			chartUri = "glooe/gloo-ee"
+		} else {
+			chartUri = filepath.Join(testHelper.RootDir, testHelper.TestAssetDir, testHelper.HelmChartName+"-"+testHelper.ChartVersion()+".tgz")
+		}
 
 		fromRelease = ""
 		strictValidation = false
 	})
 
 	JustBeforeEach(func() {
+		if fromRelease == "" && targetReleasedVersion != "" {
+			fromRelease = targetReleasedVersion
+		}
 		installGloo(testHelper, chartUri, fromRelease, strictValidation)
 	})
 
@@ -156,7 +154,7 @@ var _ = Describe("Installing and upgrading GlooEE via helm", func() {
 			if newFailurePolicy == admission_v1.Fail {
 				newStrictValue = true
 			}
-			upgradeGloo(testHelper, chartUri, reqTemplateUri, fromRelease, newStrictValue, []string{})
+			upgradeGloo(testHelper, chartUri, fromRelease, targetReleasedVersion, newStrictValue, []string{})
 
 			By(fmt.Sprintf("should have updated to gateway.validation.failurePolicy=%v", newFailurePolicy))
 			webhookConfig, err = webhookConfigClient.Get(ctx, "gloo-gateway-validation-webhook-"+testHelper.InstallNamespace, metav1.GetOptions{})
@@ -212,7 +210,7 @@ func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease
 	// construct helm args
 	var args = []string{"install", testHelper.HelmChartName}
 	if fromRelease != "" {
-		runAndCleanCommand("helm", "repo", "add", testHelper.HelmChartName, "https://storage.googleapis.com/gloo-ee-helm",
+		runAndCleanCommand("helm", "repo", "add", testHelper.HelmChartName, glooeeRepoName,
 			"--force-update")
 		args = append(args, testHelper.HelmChartName+"/gloo-ee",
 			"--version", fmt.Sprintf("v%s", fromRelease))
@@ -234,8 +232,8 @@ func installGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease
 	checkGlooHealthy(testHelper)
 }
 
-func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, reqTemplateUri string, fromRelease string, strictValidation bool, additionalArgs []string) {
-	upgradeCrds(fromRelease, reqTemplateUri)
+func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, fromRelease string, targetReleasedVersion string, strictValidation bool, additionalArgs []string) {
+	upgradeCrds(fromRelease, chartUri, targetReleasedVersion)
 
 	valueOverrideFile, cleanupFunc := getUpgradeHelmOverrides()
 	defer cleanupFunc()
@@ -244,6 +242,9 @@ func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, reqTemplate
 		"-n", testHelper.InstallNamespace,
 		"--set-string", "license_key=" + testHelper.LicenseKey,
 		"--values", valueOverrideFile}
+	if targetReleasedVersion != "" {
+		args = append(args, "--version", targetReleasedVersion)
+	}
 	if strictValidation {
 		args = append(args, strictValidationArgs...)
 	}
@@ -286,26 +287,26 @@ func getGlooOSSDep(reqTemplateUri string) (string, string, error) {
 	return "", "", eris.New("could not get gloo dependency info")
 }
 
-func upgradeCrds(fromRelease string, reqTemplateUri string) {
+func upgradeCrds(fromRelease string, localChartUri string, publishedChartVersion string) {
 	// if we're just upgrading within the same release, no need to reapply crds
 	if fromRelease == "" {
 		return
 	}
 
-	// get the OSS gloo version that we depend on
-	repo, version, err := getGlooOSSDep(reqTemplateUri)
-	Expect(err).NotTo(HaveOccurred())
-
-	// untar the OSS gloo chart into a temp dir
-	dir, err := os.MkdirTemp("", "gloo-chart")
+	// untar the chart into a temp dir
+	dir, err := os.MkdirTemp("", "unzipped-chart")
 	Expect(err).NotTo(HaveOccurred())
 	defer os.RemoveAll(dir)
-
-	runAndCleanCommand("helm", "repo", "add", glooChartName, repo, "--force-update")
-	runAndCleanCommand("helm", "pull", glooChartName+"/gloo", "--version", version, "--untar", "--untardir", dir)
-
+	if publishedChartVersion != "" {
+		// Download the crds from the released chart
+		runAndCleanCommand("helm", "repo", "add", "glooe", glooeeRepoName, "--force-update")
+		runAndCleanCommand("helm", "pull", "glooe/gloo-ee", "--version", publishedChartVersion, "--untar", "--untardir", dir)
+	} else {
+		//untar the local chart to get the crds
+		runAndCleanCommand("tar", "-xvf", localChartUri, "--directory", dir)
+	}
 	// apply the crds
-	crdDir := dir + "/gloo/crds"
+	crdDir := dir + "/gloo-ee/charts/gloo/crds"
 	runAndCleanCommand("kubectl", "apply", "-f", crdDir)
 	// allow some time for the new crds to take effect
 	time.Sleep(time.Second * 5)

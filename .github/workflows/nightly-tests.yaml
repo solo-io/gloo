@@ -1,0 +1,135 @@
+name: Enterprise Nightly Tests
+on:
+  schedule:
+    # run Monday-Friday mornings 1 AM eastern (1 hour after gloo oss tests run)
+    - cron: "0 6 * * 1-5"
+  workflow_dispatch:
+env:
+  HELM_VERSION: 'v3.6.0'
+  GLOO_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
+  # Nightly tests run with the latest released version instead of building images locally
+  # This can variable also be replaced with a specific release for manual testing
+  RELEASED_VERSION: "LATEST"
+  GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  # Results are posted to #edge-nightly-results
+  SLACK_CHANNEL: "C04CJMXAH7A"
+jobs:
+
+
+  regression_tests:
+    name: k8s nightly tests
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls'}, {test: 'helm'}, {test: 'redis-clientside-sharding'}, {test: 'wasm'}, {test: 'caching'}, {test: 'upgrade'}]
+        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
+                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
+    steps:
+      - name: Cancel Previous Actions
+        uses: styfle/cancel-workflow-action@0.4.1
+        with:
+          access_token: ${{ github.token }}
+      - name: Free disk space
+        run: |
+          echo "Before clearing disk space:"
+          df -h
+          
+          # https://github.com/actions/virtual-environments/issues/709
+          sudo apt-get clean
+          
+          # Clean up pre-installed tools
+          # https://github.com/actions/virtual-environments/issues/1918
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf $AGENT_TOOLSDIRECTORY
+          
+          echo "After clearing disk space:"
+          df -h
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18.2
+        id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/cache@v3
+        env:
+          # https://github.com/actions/cache#cache-segment-restore-timeout
+          SEGMENT_DOWNLOAD_TIMEOUT_MIN: 5
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - uses: engineerd/setup-kind@v0.5.0
+        with:
+          # We rely on the `ci/setup-kind` script to create a kind cluster
+          skipClusterCreation: true
+          version: ${{ matrix.kube-version.kind }}
+      - uses: azure/setup-kubectl@v1
+        id: kubectl
+        with:
+          version: ${{ matrix.kube-version.kubectl }}
+      - uses: azure/setup-helm@v1
+        with:
+          version: ${{ env.HELM_VERSION }}
+      - name: Configure git for private modules
+        env:
+          # matches the GITHUB_ACTION secret used in the cloudbuild, but named CI_ADMIN_GITHUB_TOKEN here
+          # because secrets.GITHUB_ACTION is reserved in github workflows
+          TOKEN: ${{ env.GITHUB_TOKEN }}
+        run: git config --global url."https://soloio_bot:${TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Setup test env
+        env:
+          USE_FIPS: ${{ matrix.kube-e2e-test-type.use-fips }}
+          CLUSTER_NAME: 'kind'
+          CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
+          FROM_RELEASE: 'true'
+        run: |
+          ./ci/setup-kind.sh
+          # TODO: install released glooctl
+          make build-cli
+      - name: Testing - kube e2e regression tests
+        env:
+          KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type.test }}
+          USE_FIPS: ${{ matrix.kube-e2e-test-type.use-fips }}
+        run: |
+          make run-ci-regression-tests
+      - uses: testspace-com/setup-testspace@v1
+        with:
+          domain: solo-io.testspace.com
+          token: ${{ secrets.TESTSPACE_TOKEN }}
+        if: ${{ always() && github.ref == 'refs/heads/master' }}
+      - name: Push result to Testspace server
+        run: |
+          testspace push --verbose "**/junit.xml"
+        if: ${{ always() && github.ref == 'refs/heads/master' }}
+      - name: Debug Info
+        if: failure()
+        run: |
+          # see what's in the cluster if we failed
+          kubectl get all -A
+          kubectl get configmaps -A
+      - name: Send Fail Message
+        id: message-on-failure
+        if: ${{ failure() && github.event.schedule }}
+        shell: bash
+        run: |
+          curl -X POST https://slack.com/api/chat.postMessage\
+                -H "Content-Type: application/json; charset=utf-8"\
+                -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
+                -d '{"channel":${{ env.SLACK_CHANNEL }},"text":":red_circle: ${{ matrix.kube-e2e-test-type.test }} failed on k8s ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'
+      - name: Send Success Message
+        id: message-on-success
+        if: ${{ success() && github.event.schedule }}
+        shell: bash
+        run: |
+          curl -X POST https://slack.com/api/chat.postMessage\
+             -H "Content-Type: application/json; charset=utf-8"\
+             -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
+             -d '{"channel":${{ env.SLACK_CHANNEL }},"text":":large_green_circle: ${{ matrix.kube-e2e-test-type.test }} succeeded on k8s ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'

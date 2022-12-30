@@ -122,7 +122,7 @@ EOF
 }
 create_kind_cluster_or_skip
 
-if [[ $JUST_KIND == "true" ]]; then
+if [[ $FROM_RELEASE == "true" ]]; then
   exit
 fi
 

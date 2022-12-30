@@ -14,14 +14,12 @@ import (
 	"github.com/solo-io/solo-projects/test/services"
 	yamlHelper "gopkg.in/yaml.v2"
 
-	kubeutils2 "github.com/solo-io/solo-projects/test/kubeutils"
-
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/check"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/rotisserie/eris"
-	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
+	enterprisehelpers "github.com/solo-io/solo-projects/test/kube2e"
 	"github.com/solo-io/solo-projects/test/kube2e/upgrade"
 
 	"github.com/solo-io/k8s-utils/kubeutils"
@@ -48,7 +46,7 @@ import (
 )
 
 const (
-	glooChartName    = "gloo"
+	glooeRepoName    = "https://storage.googleapis.com/gloo-ee-helm"
 	yamlAssetDir     = "../upgrade/assets/"
 	GatewayProxyName = "gateway-proxy"
 	petStoreHost     = "petstore"
@@ -60,11 +58,10 @@ const (
 var _ = Describe("Upgrade Tests", func() {
 
 	var (
-		chartUri       string
-		reqTemplateUri string
-		ctx            context.Context
-		cancel         context.CancelFunc
-		testHelper     *helper.SoloTestHelper
+		chartUri   string
+		ctx        context.Context
+		cancel     context.CancelFunc
+		testHelper *helper.SoloTestHelper
 
 		// whether to set validation webhook's failurePolicy=Fail
 		strictValidation bool
@@ -80,23 +77,14 @@ var _ = Describe("Upgrade Tests", func() {
 	// setup for all tests
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
-
-		cwd, err := os.Getwd()
+		var err error
+		testHelper, err = enterprisehelpers.GetEnterpriseTestHelper(ctx, namespace)
 		Expect(err).NotTo(HaveOccurred())
-		testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
-			defaults.RootDir = filepath.Join(cwd, "../../..")
-			defaults.HelmChartName = "gloo-ee"
-			defaults.LicenseKey = kubeutils2.LicenseKey()
-			defaults.InstallNamespace = namespace
-			defaults.Verbose = true
-			defaults.DeployTestRunner = true
-			return defaults
-		})
-		Expect(err).NotTo(HaveOccurred())
-
-		chartUri = filepath.Join(testHelper.RootDir, testHelper.TestAssetDir, testHelper.HelmChartName+"-"+testHelper.ChartVersion()+".tgz")
-
-		reqTemplateUri = filepath.Join(testHelper.RootDir, "install/helm/gloo-ee/requirements.yaml")
+		if testHelper.ReleasedVersion == "" {
+			chartUri = filepath.Join(testHelper.RootDir, testHelper.TestAssetDir, testHelper.HelmChartName+"-"+testHelper.ChartVersion()+".tgz")
+		} else {
+			chartUri = "glooe/gloo-ee"
+		}
 		strictValidation = false
 
 		LastPatchMostRecentMinorVersion, CurrentPatchMostRecentMinorVersion, err = upgrade.GetUpgradeVersions(ctx, "solo-projects")
@@ -115,7 +103,7 @@ var _ = Describe("Upgrade Tests", func() {
 			//	baseUpgradeTest(ctx, crdDir, LastPatchMostRecentMinorVersion.String(), testHelper, chartUri, strictValidation)
 			//})
 			It("uses helm to update validationServerGrpcMaxSizeBytes without errors", func() {
-				updateSettingsWithoutErrors(ctx, reqTemplateUri, testHelper, chartUri, strictValidation)
+				updateSettingsWithoutErrors(ctx, testHelper, chartUri, strictValidation)
 			})
 		})
 		Context("When upgrading from CurrentPatchMostRecentMinorVersion to PR version of gloo", func() {
@@ -126,7 +114,7 @@ var _ = Describe("Upgrade Tests", func() {
 				uninstallGloo(testHelper, ctx, cancel)
 			})
 			It("uses helm to update validationServerGrpcMaxSizeBytes without errors", func() {
-				updateSettingsWithoutErrors(ctx, reqTemplateUri, testHelper, chartUri, strictValidation)
+				updateSettingsWithoutErrors(ctx, testHelper, chartUri, strictValidation)
 			})
 		})
 	})
@@ -152,7 +140,7 @@ var _ = Describe("Upgrade Tests", func() {
 				uninstallGloo(testHelper, ctx, cancel)
 			})
 			It("sets validation webhook caBundle on install and upgrade", func() {
-				updateValidationWebhookTests(ctx, reqTemplateUri, kubeClientset, testHelper, chartUri, false)
+				updateValidationWebhookTests(ctx, kubeClientset, testHelper, chartUri, false)
 			})
 		})
 
@@ -164,7 +152,7 @@ var _ = Describe("Upgrade Tests", func() {
 				uninstallGloo(testHelper, ctx, cancel)
 			})
 			It("sets validation webhook caBundle on install and upgrade", func() {
-				updateValidationWebhookTests(ctx, reqTemplateUri, kubeClientset, testHelper, chartUri, false)
+				updateValidationWebhookTests(ctx, kubeClientset, testHelper, chartUri, false)
 			})
 		})
 	})
@@ -174,25 +162,25 @@ var _ = Describe("Upgrade Tests", func() {
 // Repeated Test Code
 // ===================================
 // Based case test for local runs to help narrow down failures
-func baseUpgradeTest(ctx context.Context, reqTemplateUri string, startingVersion string, testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool) {
+func baseUpgradeTest(ctx context.Context, startingVersion string, testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool) {
 	By(fmt.Sprintf("should start with gloo version %s", startingVersion))
 	Expect(fmt.Sprintf("v%s", getGlooServerVersion(ctx, testHelper.InstallNamespace))).To(Equal(startingVersion))
 
 	// upgrade to the gloo version being tested
-	upgradeGloo(testHelper, chartUri, reqTemplateUri, strictValidation, nil)
+	upgradeGloo(testHelper, chartUri, strictValidation, nil)
 
 	By("should have upgraded to the gloo version being tested")
 	Expect(getGlooServerVersion(ctx, testHelper.InstallNamespace)).To(Equal(testHelper.ChartVersion()))
 }
 
-func updateSettingsWithoutErrors(ctx context.Context, reqTemplateUri string, testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool) {
+func updateSettingsWithoutErrors(ctx context.Context, testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool) {
 	By("should start with the settings.invalidConfigPolicy.invalidRouteResponseCode=404")
 	client := helpers.MustSettingsClient(ctx)
 	settings, err := client.Read(testHelper.InstallNamespace, defaults.SettingsName, clients.ReadOpts{})
 	Expect(err).To(BeNil())
 	Expect(settings.GetGloo().GetInvalidConfigPolicy().GetInvalidRouteResponseCode()).To(Equal(uint32(404)))
 
-	upgradeGloo(testHelper, chartUri, reqTemplateUri, strictValidation, []string{
+	upgradeGloo(testHelper, chartUri, strictValidation, []string{
 		"--set", "gloo.settings.replaceInvalidRoutes=true",
 		"--set", "gloo.settings.invalidConfigPolicy.invalidRouteResponseCode=400",
 		"--set", "gloo.gateway.validation.validationServerGrpcMaxSizeBytes=5000000",
@@ -205,7 +193,7 @@ func updateSettingsWithoutErrors(ctx context.Context, reqTemplateUri string, tes
 	Expect(settings.GetGateway().GetValidation().GetValidationServerGrpcMaxSizeBytes().GetValue()).To(Equal(int32(5000000)))
 }
 
-func updateValidationWebhookTests(ctx context.Context, reqTemplateUri string, kubeClientset kubernetes.Interface, testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool) {
+func updateValidationWebhookTests(ctx context.Context, kubeClientset kubernetes.Interface, testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool) {
 	webhookConfigClient := kubeClientset.AdmissionregistrationV1().ValidatingWebhookConfigurations()
 	secretClient := kubeClientset.CoreV1().Secrets(testHelper.InstallNamespace)
 
@@ -216,7 +204,7 @@ func updateValidationWebhookTests(ctx context.Context, reqTemplateUri string, ku
 	Expect(err).NotTo(HaveOccurred())
 	Expect(webhookConfig.Webhooks[0].ClientConfig.CABundle).To(Equal(secret.Data[corev1.ServiceAccountRootCAKey]))
 
-	upgradeGloo(testHelper, chartUri, reqTemplateUri, strictValidation, nil)
+	upgradeGloo(testHelper, chartUri, strictValidation, nil)
 
 	By("the webhook caBundle and secret's root ca value should still match after upgrade")
 	webhookConfig, err = webhookConfigClient.Get(ctx, "gloo-gateway-validation-webhook-"+testHelper.InstallNamespace, metav1.GetOptions{})
@@ -268,7 +256,7 @@ func installGloo(testHelper *helper.SoloTestHelper, fromRelease string, strictVa
 	// construct helm args
 	var args = []string{"install", testHelper.HelmChartName}
 
-	runAndCleanCommand("helm", "repo", "add", testHelper.HelmChartName, "https://storage.googleapis.com/gloo-ee-helm",
+	runAndCleanCommand("helm", "repo", "add", testHelper.HelmChartName, glooeRepoName,
 		"--force-update")
 	args = append(args, testHelper.HelmChartName+"/gloo-ee",
 		"--version", fromRelease)
@@ -297,28 +285,29 @@ func installGloo(testHelper *helper.SoloTestHelper, fromRelease string, strictVa
 // CRDs are applied to a cluster when performing a `helm install` operation
 // However, `helm upgrade` intentionally does not apply CRDs (https://helm.sh/docs/topics/charts/#limitations-on-crds)
 // Before performing the upgrade, we must manually apply any CRDs that were introduced since v1.9.0
-func upgradeCrds(reqTemplateUri string) {
-	// get the OSS gloo version that we depend on
-	repo, version, err := getGlooOSSDep(reqTemplateUri)
-	Expect(err).NotTo(HaveOccurred())
+func upgradeCrds(localChartUri string, publishedChartVersion string) {
 
-	// untar the OSS gloo chart into a temp dir
-	dir, err := os.MkdirTemp("", "gloo-chart")
+	// untar the chart into a temp dir
+	dir, err := os.MkdirTemp("", "unzipped-chart")
 	Expect(err).NotTo(HaveOccurred())
 	defer os.RemoveAll(dir)
-
-	runAndCleanCommand("helm", "repo", "add", glooChartName, repo, "--force-update")
-	runAndCleanCommand("helm", "pull", glooChartName+"/gloo", "--version", version, "--untar", "--untardir", dir)
-
+	if publishedChartVersion != "" {
+		// Download the crds from the released chart
+		runAndCleanCommand("helm", "repo", "add", "glooe", glooeRepoName, "--force-update")
+		runAndCleanCommand("helm", "pull", "glooe/gloo-ee", "--version", publishedChartVersion, "--untar", "--untardir", dir)
+	} else {
+		//untar the local chart to get the crds
+		runAndCleanCommand("tar", "-xvf", localChartUri, "--directory", dir)
+	}
 	// apply the crds
-	crdDir := dir + "/gloo/crds"
+	crdDir := dir + "/gloo-ee/charts/gloo/crds"
 	runAndCleanCommand("kubectl", "apply", "-f", crdDir)
 	// allow some time for the new crds to take effect
 	time.Sleep(time.Second * 5)
 }
 
-func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, reqTemplateUri string, strictValidation bool, additionalArgs []string) {
-	upgradeCrds(reqTemplateUri)
+func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, strictValidation bool, additionalArgs []string) {
+	upgradeCrds(chartUri, testHelper.ReleasedVersion)
 
 	valueOverrideFile, cleanupFunc := getUpgradeHelmOverrides()
 	defer cleanupFunc()
@@ -582,25 +571,4 @@ func glooctlCheckEventuallyHealthy(offset int, testHelper *helper.SoloTestHelper
 		cancel() //attempt to avoid hitting go-routine limit
 		return nil
 	}, timeoutInterval, "5s").Should(BeNil())
-}
-
-// returns repository and version of the Gloo OSS dependency
-func getGlooOSSDep(reqTemplateUri string) (string, string, error) {
-	bytes, err := os.ReadFile(reqTemplateUri)
-	if err != nil {
-		return "", "", err
-	}
-
-	var dl generate.DependencyList
-	err = yaml.Unmarshal(bytes, &dl)
-	if err != nil {
-		return "", "", err
-	}
-
-	for _, v := range dl.Dependencies {
-		if v.Name == glooChartName {
-			return v.Repository, v.Version, nil
-		}
-	}
-	return "", "", eris.New("could not get gloo dependency info")
 }

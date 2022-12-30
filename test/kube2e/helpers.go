@@ -4,8 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"runtime"
 	"time"
+
+	"github.com/solo-io/solo-projects/test/kube2e/upgrade"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	. "github.com/onsi/gomega"
@@ -22,6 +26,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes"
+
+	kubetestutils "github.com/solo-io/solo-projects/test/kubeutils"
 )
 
 const (
@@ -170,7 +176,41 @@ func MustKubeClient() kubernetes.Interface {
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 	return kubeClient
 }
-
+func GetTestReleasedVersion(ctx context.Context, repoName string) string {
+	var useVersion string
+	if useVersion = os.Getenv("RELEASED_VERSION"); useVersion != "" {
+		if useVersion == "LATEST" {
+			_, current, err := upgrade.GetUpgradeVersions(ctx, repoName)
+			Expect(err).NotTo(HaveOccurred())
+			useVersion = current.String()
+		}
+	}
+	return useVersion
+}
+func GetEnterpriseTestHelper(ctx context.Context, namespace string) (*helper.SoloTestHelper, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	if useVersion := GetTestReleasedVersion(ctx, "solo-projects"); useVersion != "" {
+		return helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
+			defaults.RootDir = filepath.Join(cwd, "../../..")
+			defaults.HelmChartName = "gloo-ee"
+			defaults.ReleasedVersion = useVersion
+			defaults.LicenseKey = kubetestutils.LicenseKey()
+			defaults.InstallNamespace = namespace
+			return defaults
+		})
+	} else {
+		return helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
+			defaults.RootDir = filepath.Join(cwd, "../../..")
+			defaults.HelmChartName = "gloo-ee"
+			defaults.LicenseKey = kubetestutils.LicenseKey()
+			defaults.InstallNamespace = namespace
+			return defaults
+		})
+	}
+}
 func PrintGlooDebugLogs() {
 	logs, _ := ioutil.ReadFile(cliutil.GetLogsPath())
 	fmt.Println("*** Gloo debug logs ***")

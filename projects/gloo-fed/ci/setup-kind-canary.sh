@@ -15,6 +15,7 @@ CLUSTER_NODE_VERSION="${CLUSTER_NODE_VERSION:-v1.24.7}"
 VERSION="${VERSION:-1.0.0-ci}"
 # The license key used to support enterprise features
 GLOO_LICENSE_KEY="${GLOO_LICENSE_KEY:-}"
+FROM_RELEASE="${FROM_RELEASE:-false}"
 # Automatically (lazily) determine OS type
 if [[ $OSTYPE == 'darwin'* ]]; then
   OS='darwin'
@@ -56,6 +57,10 @@ kind create cluster --name "$REMOTE_RELEASE_CLUSTER" --image "kindest/node:$CLUS
 kind create cluster --name "$REMOTE_CANARY_CLUSTER" --image "kindest/node:$CLUSTER_NODE_VERSION" \
   --config="$SCRIPT_DIR/resources/remote-kind-cluster.yaml"
 
+if [[ "$FROM_RELEASE" == "true" ]]; then
+  echo "skipping build because we will test a released version of gloo"
+  exit;
+fi
 # 4. Build local federation and enterprise images and helm charts used in these clusters
 # NOTE TO DEVELOPERS: This build step should only occur once, and we can load the images into separate clusters
 VERSION=$VERSION make build-test-chart
