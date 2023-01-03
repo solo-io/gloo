@@ -1,0 +1,5 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  dependencyOwner: k8s
+  dependencyRepo: k8s.io
+  dependencyTag: v1.25.4
