@@ -29,11 +29,12 @@ import (
 var _ = Describe("Happy path", func() {
 
 	var (
-		ctx           context.Context
-		cancel        context.CancelFunc
-		testClients   services.TestClients
-		envoyInstance *services.EnvoyInstance
-		envoyPort     uint32
+		ctx               context.Context
+		cancel            context.CancelFunc
+		testClients       services.TestClients
+		envoyInstance     *services.EnvoyInstance
+		envoyPort         uint32
+		noHealthyUpstream = "no healthy upstream"
 	)
 
 	BeforeEach(func() {
@@ -194,7 +195,7 @@ var _ = Describe("Happy path", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		TestUpstreamUnavailable := func() {
-			v1helpers.ExpectHttpUnavailableWithOffset(3, nil, nil, envoyPort, "")
+			v1helpers.ExpectHttpUnavailableWithOffset(3, nil, nil, envoyPort, noHealthyUpstream)
 		}
 		TestUpstreamUnavailable()
 
@@ -284,7 +285,7 @@ var _ = Describe("Happy path", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		TestUpstreamUnavailable := func() {
-			v1helpers.ExpectHttpUnavailableWithOffset(3, nil, nil, envoyPort, "")
+			v1helpers.ExpectHttpUnavailableWithOffset(3, nil, nil, envoyPort, noHealthyUpstream)
 		}
 		TestUpstreamUnavailable()
 

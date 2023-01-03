@@ -54,6 +54,7 @@
 |settings.integrations.knative.proxy.tolerations[].tolerationSeconds|int64|||
 |settings.integrations.knative.proxy.affinity.NAME|interface|||
 |settings.integrations.knative.proxy.hostAliases[]|interface|||
+|settings.integrations.knative.proxy.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |settings.integrations.knative.proxy.resources.limits.memory|string||amount of memory|
 |settings.integrations.knative.proxy.resources.limits.cpu|string||amount of CPUs|
 |settings.integrations.knative.proxy.resources.requests.memory|string||amount of memory|
@@ -107,6 +108,7 @@
 |settings.aws.propagateOriginalRouting|bool||Send downstream path and method as x-envoy-original-path and x-envoy-original-method headers on the request to AWS lambda.|
 |settings.aws.credential_refresh_delay.seconds|int32||The value of this duration in seconds.|
 |settings.aws.credential_refresh_delay.nanos|int32||The value of this duration in nanoseconds.|
+|settings.aws.fallbackToFirstFunction|bool||It will use the first function which if discovery is enabled the first function is the first function name alphabetically from the last discovery run. Defaults to false.|
 |settings.rateLimit|interface||Partial config for Gloo Edge Enterprise’s rate-limiting service, based on Envoy’s rate-limit service; supports Envoy’s rate-limit service API. (reference here: https://github.com/lyft/ratelimit#configuration) Configure rate-limit descriptors here, which define the limits for requests based on their descriptors. Configure rate-limits (composed of actions, which define how request characteristics get translated into descriptors) on the VirtualHost or its routes.|
 |settings.circuitBreakers.maxConnections|uint32||Set this field to specify the maximum number of connections that Envoy will make to the upstream cluster. If not specified, the default is 1024.|
 |settings.circuitBreakers.maxPendingRequests|uint32||Set this field to specfify the maximum number of pending requests that Envoy will allow to the upstream cluster. If not specified, the default is 1024.|
@@ -172,6 +174,7 @@
 |gloo.settings.integrations.knative.proxy.tolerations[].tolerationSeconds|int64|||
 |gloo.settings.integrations.knative.proxy.affinity.NAME|interface|||
 |gloo.settings.integrations.knative.proxy.hostAliases[]|interface|||
+|gloo.settings.integrations.knative.proxy.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.settings.integrations.knative.proxy.resources.limits.memory|string||amount of memory|
 |gloo.settings.integrations.knative.proxy.resources.limits.cpu|string||amount of CPUs|
 |gloo.settings.integrations.knative.proxy.resources.requests.memory|string||amount of memory|
@@ -225,6 +228,7 @@
 |gloo.settings.aws.propagateOriginalRouting|bool||Send downstream path and method as x-envoy-original-path and x-envoy-original-method headers on the request to AWS lambda.|
 |gloo.settings.aws.credential_refresh_delay.seconds|int32||The value of this duration in seconds.|
 |gloo.settings.aws.credential_refresh_delay.nanos|int32||The value of this duration in nanoseconds.|
+|gloo.settings.aws.fallbackToFirstFunction|bool||It will use the first function which if discovery is enabled the first function is the first function name alphabetically from the last discovery run. Defaults to false.|
 |gloo.settings.rateLimit|interface||Partial config for Gloo Edge Enterprise’s rate-limiting service, based on Envoy’s rate-limit service; supports Envoy’s rate-limit service API. (reference here: https://github.com/lyft/ratelimit#configuration) Configure rate-limit descriptors here, which define the limits for requests based on their descriptors. Configure rate-limits (composed of actions, which define how request characteristics get translated into descriptors) on the VirtualHost or its routes.|
 |gloo.settings.circuitBreakers.maxConnections|uint32||Set this field to specify the maximum number of connections that Envoy will make to the upstream cluster. If not specified, the default is 1024.|
 |gloo.settings.circuitBreakers.maxPendingRequests|uint32||Set this field to specfify the maximum number of pending requests that Envoy will allow to the upstream cluster. If not specified, the default is 1024.|
@@ -258,7 +262,7 @@
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
-|gloo.gloo.deployment.ossImageTag|string|1.14.0-beta2|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
+|gloo.gloo.deployment.ossImageTag|string|1.14.0-beta4|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
 |gloo.gloo.deployment.replicas|int||number of instances to deploy|
 |gloo.gloo.deployment.customEnv[].name|string|||
 |gloo.gloo.deployment.customEnv[].value|string|||
@@ -290,6 +294,7 @@
 |gloo.gloo.deployment.tolerations[].tolerationSeconds|int64|||
 |gloo.gloo.deployment.affinity.NAME|interface|||
 |gloo.gloo.deployment.hostAliases[]|interface|||
+|gloo.gloo.deployment.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.gloo.deployment.resources.limits.memory|string||amount of memory|
 |gloo.gloo.deployment.resources.limits.cpu|string||amount of CPUs|
 |gloo.gloo.deployment.resources.requests.memory|string||amount of memory|
@@ -355,6 +360,7 @@
 |gloo.discovery.deployment.tolerations[].tolerationSeconds|int64|||
 |gloo.discovery.deployment.affinity.NAME|interface|||
 |gloo.discovery.deployment.hostAliases[]|interface|||
+|gloo.discovery.deployment.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.discovery.deployment.resources.limits.memory|string||amount of memory|
 |gloo.discovery.deployment.resources.limits.cpu|string||amount of CPUs|
 |gloo.discovery.deployment.resources.requests.memory|string||amount of memory|
@@ -384,7 +390,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.certGenJob.image.tag|string|1.14.0-beta2|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.14.0-beta4|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string|certgen|The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.certGenJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -404,6 +410,7 @@
 |gloo.gateway.certGenJob.tolerations[].tolerationSeconds|int64|||
 |gloo.gateway.certGenJob.affinity.NAME|interface|||
 |gloo.gateway.certGenJob.hostAliases[]|interface|||
+|gloo.gateway.certGenJob.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.gateway.certGenJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.certGenJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.certGenJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
@@ -433,12 +440,13 @@
 |gloo.gateway.rolloutJob.tolerations[].tolerationSeconds|int64|||
 |gloo.gateway.rolloutJob.affinity.NAME|interface|||
 |gloo.gateway.rolloutJob.hostAliases[]|interface|||
+|gloo.gateway.rolloutJob.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.gateway.rolloutJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.rolloutJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.rolloutJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.rolloutJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gloo.gateway.rolloutJob.enabled|bool||Enable the job that applies default Gloo Edge custom resources at install and upgrade time (default true).|
-|gloo.gateway.rolloutJob.image.tag|string|1.14.0-beta2|The image tag for the container.|
+|gloo.gateway.rolloutJob.image.tag|string|1.14.0-beta4|The image tag for the container.|
 |gloo.gateway.rolloutJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.rolloutJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.rolloutJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -464,12 +472,13 @@
 |gloo.gateway.cleanupJob.tolerations[].tolerationSeconds|int64|||
 |gloo.gateway.cleanupJob.affinity.NAME|interface|||
 |gloo.gateway.cleanupJob.hostAliases[]|interface|||
+|gloo.gateway.cleanupJob.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.gateway.cleanupJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
 |gloo.gateway.cleanupJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.cleanupJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.cleanupJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gloo.gateway.cleanupJob.enabled|bool||Enable the job that removes Gloo Edge custom resources when Gloo Edge is uninstalled (default true).|
-|gloo.gateway.cleanupJob.image.tag|string|1.14.0-beta2|The image tag for the container.|
+|gloo.gateway.cleanupJob.image.tag|string|1.14.0-beta4|The image tag for the container.|
 |gloo.gateway.cleanupJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.cleanupJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.cleanupJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -525,6 +534,7 @@
 |gloo.gatewayProxies.NAME.kind.deployment.tolerations[].tolerationSeconds|int64|||
 |gloo.gatewayProxies.NAME.kind.deployment.affinity.NAME|interface|||
 |gloo.gatewayProxies.NAME.kind.deployment.hostAliases[]|interface|||
+|gloo.gatewayProxies.NAME.kind.deployment.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.gatewayProxies.NAME.kind.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.NAME.kind.daemonSet.hostPort|bool||whether or not to enable host networking on the pod. Only relevant when running as a DaemonSet|
 |gloo.gatewayProxies.NAME.kind.daemonSet.hostNetwork|bool|||
@@ -602,6 +612,8 @@
 |gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.failureThreshold|int32|||
 |gloo.gatewayProxies.NAME.podTemplate.customLivenessProbe.terminationGracePeriodSeconds|int64|||
 |gloo.gatewayProxies.NAME.podTemplate.extraGatewayProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge gateway-proxy deployment.|
+|gloo.gatewayProxies.NAME.podTemplate.extraContainers[]|interface||Extra [containers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of containers on the gateway proxy deployment.|
+|gloo.gatewayProxies.NAME.podTemplate.extraInitContainers[]|interface||Extra [initContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the gateway proxy deployment.|
 |gloo.gatewayProxies.NAME.podTemplate.enablePodSecurityContext|bool||Whether or not to render the pod security context. Default is true|
 |gloo.gatewayProxies.NAME.configMap.data.NAME|string|||
 |gloo.gatewayProxies.NAME.configMap.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -626,6 +638,7 @@
 |gloo.gatewayProxies.NAME.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.NAME.antiAffinity|bool||configure anti affinity such that pods are preferably not co-located|
 |gloo.gatewayProxies.NAME.affinity.NAME|interface|||
+|gloo.gatewayProxies.NAME.topologySpreadConstraints[]|interface||configure topologySpreadConstraints for gateway proxy pods|
 |gloo.gatewayProxies.NAME.tracing.provider.NAME|interface|||
 |gloo.gatewayProxies.NAME.tracing.cluster[].NAME|interface|||
 |gloo.gatewayProxies.NAME.gatewaySettings.enabled|bool||enable/disable default gateways|
@@ -720,6 +733,7 @@
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.tolerations[].tolerationSeconds|int64|||
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.affinity.NAME|interface|||
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.hostAliases[]|interface|||
+|gloo.gatewayProxies.gatewayProxy.kind.deployment.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.gatewayProxy.kind.daemonSet.hostPort|bool||whether or not to enable host networking on the pod. Only relevant when running as a DaemonSet|
 |gloo.gatewayProxies.gatewayProxy.kind.daemonSet.hostNetwork|bool|||
@@ -797,6 +811,8 @@
 |gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.failureThreshold|int32|||
 |gloo.gatewayProxies.gatewayProxy.podTemplate.customLivenessProbe.terminationGracePeriodSeconds|int64|||
 |gloo.gatewayProxies.gatewayProxy.podTemplate.extraGatewayProxyLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the gloo edge gateway-proxy deployment.|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.extraContainers[]|interface||Extra [containers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of containers on the gateway proxy deployment.|
+|gloo.gatewayProxies.gatewayProxy.podTemplate.extraInitContainers[]|interface||Extra [initContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the gateway proxy deployment.|
 |gloo.gatewayProxies.gatewayProxy.podTemplate.enablePodSecurityContext|bool||Whether or not to render the pod security context. Default is true|
 |gloo.gatewayProxies.gatewayProxy.configMap.data.NAME|string|||
 |gloo.gatewayProxies.gatewayProxy.configMap.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -824,6 +840,7 @@
 |gloo.gatewayProxies.gatewayProxy.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.gatewayProxy.antiAffinity|bool||configure anti affinity such that pods are preferably not co-located|
 |gloo.gatewayProxies.gatewayProxy.affinity.NAME|interface|||
+|gloo.gatewayProxies.gatewayProxy.topologySpreadConstraints[]|interface||configure topologySpreadConstraints for gateway proxy pods|
 |gloo.gatewayProxies.gatewayProxy.tracing.provider.NAME|interface|||
 |gloo.gatewayProxies.gatewayProxy.tracing.cluster[].NAME|interface|||
 |gloo.gatewayProxies.gatewayProxy.gatewaySettings.enabled|bool||enable/disable default gateways|
@@ -933,6 +950,7 @@
 |gloo.ingress.deployment.tolerations[].tolerationSeconds|int64|||
 |gloo.ingress.deployment.affinity.NAME|interface|||
 |gloo.ingress.deployment.hostAliases[]|interface|||
+|gloo.ingress.deployment.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.ingress.deployment.resources.limits.memory|string||amount of memory|
 |gloo.ingress.deployment.resources.limits.cpu|string||amount of CPUs|
 |gloo.ingress.deployment.resources.requests.memory|string||amount of memory|
@@ -988,6 +1006,7 @@
 |gloo.ingressProxy.deployment.tolerations[].tolerationSeconds|int64|||
 |gloo.ingressProxy.deployment.affinity.NAME|interface|||
 |gloo.ingressProxy.deployment.hostAliases[]|interface|||
+|gloo.ingressProxy.deployment.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.ingressProxy.deployment.resources.limits.memory|string||amount of memory|
 |gloo.ingressProxy.deployment.resources.limits.cpu|string||amount of CPUs|
 |gloo.ingressProxy.deployment.resources.requests.memory|string||amount of memory|
@@ -1061,6 +1080,7 @@
 |gloo.accessLogger.tolerations[].tolerationSeconds|int64|||
 |gloo.accessLogger.affinity.NAME|interface|||
 |gloo.accessLogger.hostAliases[]|interface|||
+|gloo.accessLogger.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.accessLogger.resources.limits.memory|string||amount of memory|
 |gloo.accessLogger.resources.limits.cpu|string||amount of CPUs|
 |gloo.accessLogger.resources.requests.memory|string||amount of memory|
@@ -1123,6 +1143,7 @@
 |redis.deployment.tolerations[].tolerationSeconds|int64|||
 |redis.deployment.affinity.NAME|interface|||
 |redis.deployment.hostAliases[]|interface|||
+|redis.deployment.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |redis.deployment.resources.limits.memory|string||amount of memory|
 |redis.deployment.resources.limits.cpu|string||amount of CPUs|
 |redis.deployment.resources.requests.memory|string||amount of memory|
@@ -1193,6 +1214,7 @@
 |observability.deployment.tolerations[].tolerationSeconds|int64|||
 |observability.deployment.affinity.NAME|interface|||
 |observability.deployment.hostAliases[]|interface|||
+|observability.deployment.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |observability.deployment.resources.limits.memory|string||amount of memory|
 |observability.deployment.resources.limits.cpu|string||amount of CPUs|
 |observability.deployment.resources.requests.memory|string||amount of memory|
@@ -1334,7 +1356,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.14.0-beta2|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.14.0-beta4|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string|sds|The image repository (name) for the container.|
 |global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |global.glooMtls.sds.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -1453,6 +1475,7 @@
 |global.extensions.extAuth.deployment.tolerations[].tolerationSeconds|int64|||
 |global.extensions.extAuth.deployment.affinity.NAME|interface|||
 |global.extensions.extAuth.deployment.hostAliases[]|interface|||
+|global.extensions.extAuth.deployment.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |global.extensions.extAuth.deployment.resources.limits.memory|string||amount of memory|
 |global.extensions.extAuth.deployment.resources.limits.cpu|string||amount of CPUs|
 |global.extensions.extAuth.deployment.resources.requests.memory|string||amount of memory|
@@ -1568,6 +1591,7 @@
 |global.extensions.rateLimit.deployment.tolerations[].tolerationSeconds|int64|||
 |global.extensions.rateLimit.deployment.affinity.NAME|interface|||
 |global.extensions.rateLimit.deployment.hostAliases[]|interface|||
+|global.extensions.rateLimit.deployment.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |global.extensions.rateLimit.deployment.resources.limits.memory|string||amount of memory|
 |global.extensions.rateLimit.deployment.resources.limits.cpu|string||amount of CPUs|
 |global.extensions.rateLimit.deployment.resources.requests.memory|string||amount of memory|
@@ -1640,6 +1664,7 @@
 |global.extensions.caching.deployment.tolerations[].tolerationSeconds|int64|||
 |global.extensions.caching.deployment.affinity.NAME|interface|||
 |global.extensions.caching.deployment.hostAliases[]|interface|||
+|global.extensions.caching.deployment.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |global.extensions.caching.deployment.resources.limits.memory|string||amount of memory|
 |global.extensions.caching.deployment.resources.limits.cpu|string||amount of CPUs|
 |global.extensions.caching.deployment.resources.requests.memory|string||amount of memory|

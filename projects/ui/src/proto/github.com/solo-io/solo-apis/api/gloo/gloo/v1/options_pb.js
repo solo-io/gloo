@@ -2910,7 +2910,7 @@ proto.gloo.solo.io.RouteOptions.repeatedFields_ = [21];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.RouteOptions.oneofGroups_ = [[10,19],[142,143],[140,141],[144,145],[16,25]];
+proto.gloo.solo.io.RouteOptions.oneofGroups_ = [[10,19,101],[142,143],[140,141],[144,145],[16,25]];
 
 /**
  * @enum {number}
@@ -2918,7 +2918,8 @@ proto.gloo.solo.io.RouteOptions.oneofGroups_ = [[10,19],[142,143],[140,141],[144
 proto.gloo.solo.io.RouteOptions.HostRewriteTypeCase = {
   HOST_REWRITE_TYPE_NOT_SET: 0,
   HOST_REWRITE: 10,
-  AUTO_HOST_REWRITE: 19
+  AUTO_HOST_REWRITE: 19,
+  HOST_REWRITE_PATH_REGEX: 101
 };
 
 /**
@@ -3032,6 +3033,7 @@ proto.gloo.solo.io.RouteOptions.toObject = function(includeInstance, msg) {
     headerManipulation: (f = msg.getHeaderManipulation()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_headers_headers_pb.HeaderManipulation.toObject(includeInstance, f),
     hostRewrite: jspb.Message.getFieldWithDefault(msg, 10, ""),
     autoHostRewrite: (f = msg.getAutoHostRewrite()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    hostRewritePathRegex: (f = msg.getHostRewritePathRegex()) && github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.toObject(includeInstance, f),
     cors: (f = msg.getCors()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_cors_cors_pb.CorsPolicy.toObject(includeInstance, f),
     lbHash: (f = msg.getLbHash()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_lbhash_lbhash_pb.RouteActionHashConfig.toObject(includeInstance, f),
     upgradesList: jspb.Message.toObjectList(msg.getUpgradesList(),
@@ -3145,6 +3147,11 @@ proto.gloo.solo.io.RouteOptions.deserializeBinaryFromReader = function(msg, read
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setAutoHostRewrite(value);
+      break;
+    case 101:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.deserializeBinaryFromReader);
+      msg.setHostRewritePathRegex(value);
       break;
     case 11:
       var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_cors_cors_pb.CorsPolicy;
@@ -3376,6 +3383,14 @@ proto.gloo.solo.io.RouteOptions.serializeBinaryToWriter = function(message, writ
       19,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getHostRewritePathRegex();
+  if (f != null) {
+    writer.writeMessage(
+      101,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.serializeBinaryToWriter
     );
   }
   f = message.getCors();
@@ -4134,6 +4149,36 @@ proto.gloo.solo.io.RouteOptions.prototype.clearAutoHostRewrite = function() {
  */
 proto.gloo.solo.io.RouteOptions.prototype.hasAutoHostRewrite = function() {
   return jspb.Message.getField(this, 19) != null;
+};
+
+
+/**
+ * optional solo.io.envoy.type.matcher.v3.RegexMatchAndSubstitute host_rewrite_path_regex = 101;
+ * @return {?proto.solo.io.envoy.type.matcher.v3.RegexMatchAndSubstitute}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.getHostRewritePathRegex = function() {
+  return /** @type{?proto.solo.io.envoy.type.matcher.v3.RegexMatchAndSubstitute} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute, 101));
+};
+
+
+/** @param {?proto.solo.io.envoy.type.matcher.v3.RegexMatchAndSubstitute|undefined} value */
+proto.gloo.solo.io.RouteOptions.prototype.setHostRewritePathRegex = function(value) {
+  jspb.Message.setOneofWrapperField(this, 101, proto.gloo.solo.io.RouteOptions.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.RouteOptions.prototype.clearHostRewritePathRegex = function() {
+  this.setHostRewritePathRegex(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RouteOptions.prototype.hasHostRewritePathRegex = function() {
+  return jspb.Message.getField(this, 101) != null;
 };
 
 

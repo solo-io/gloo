@@ -504,6 +504,11 @@ export class RouteOptions extends jspb.Message {
   getAutoHostRewrite(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setAutoHostRewrite(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
+  hasHostRewritePathRegex(): boolean;
+  clearHostRewritePathRegex(): void;
+  getHostRewritePathRegex(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute | undefined;
+  setHostRewritePathRegex(value?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute): void;
+
   hasCors(): boolean;
   clearCors(): void;
   getCors(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_cors_cors_pb.CorsPolicy | undefined;
@@ -644,6 +649,7 @@ export namespace RouteOptions {
     headerManipulation?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_headers_headers_pb.HeaderManipulation.AsObject,
     hostRewrite: string,
     autoHostRewrite?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    hostRewritePathRegex?: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_matcher_v3_regex_pb.RegexMatchAndSubstitute.AsObject,
     cors?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_cors_cors_pb.CorsPolicy.AsObject,
     lbHash?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_lbhash_lbhash_pb.RouteActionHashConfig.AsObject,
     upgradesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb.ProtocolUpgradeConfig.AsObject>,
@@ -707,6 +713,7 @@ export namespace RouteOptions {
     HOST_REWRITE_TYPE_NOT_SET = 0,
     HOST_REWRITE = 10,
     AUTO_HOST_REWRITE = 19,
+    HOST_REWRITE_PATH_REGEX = 101,
   }
 
   export enum RateLimitEarlyConfigTypeCase {

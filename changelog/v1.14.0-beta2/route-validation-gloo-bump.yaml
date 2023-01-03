@@ -1,0 +1,12 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Updates gloo to `v1.14.0-beta4`, which includes fixes for the `fallbackToFirstFunction` feature, and Route Validation.
+    dependencyOwner: solo-io
+    issueLink: https://github.com/solo-io/solo-projects/issues/4336
+    resolvesIssue: false
+    dependencyRepo: gloo
+    dependencyTag: v1.14.0-beta4
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: solo-apis
+    dependencyTag: gloo-v1.14.0-beta4
