@@ -123,7 +123,7 @@ jobs:
           curl -X POST https://slack.com/api/chat.postMessage\
                 -H "Content-Type: application/json; charset=utf-8"\
                 -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
-                -d '{"channel":${{ env.SLACK_CHANNEL }},"text":":red_circle: ${{ matrix.kube-e2e-test-type.test }} failed on k8s ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'
+                -d '{"channel":"${{ env.SLACK_CHANNEL }}","text":":red_circle: ${{ matrix.kube-e2e-test-type.test }} failed on k8s ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'
       - name: Send Success Message
         id: message-on-success
         if: ${{ success() && github.event.schedule }}
@@ -132,4 +132,4 @@ jobs:
           curl -X POST https://slack.com/api/chat.postMessage\
              -H "Content-Type: application/json; charset=utf-8"\
              -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
-             -d '{"channel":${{ env.SLACK_CHANNEL }},"text":":large_green_circle: ${{ matrix.kube-e2e-test-type.test }} succeeded on k8s ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'
+             -d '{"channel":"${{ env.SLACK_CHANNEL }}","text":":large_green_circle: ${{ matrix.kube-e2e-test-type.test }} succeeded on k8s ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'
