@@ -383,7 +383,7 @@ type HttpConnectionManagerSettings struct {
 	// Determines if adjacent slashes in the path are merged into one before any processing of requests by HTTP filters or routing.
 	// See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto
 	MergeSlashes bool `protobuf:"varint,29,opt,name=merge_slashes,json=mergeSlashes,proto3" json:"merge_slashes,omitempty"`
-	// Should paths be normalized according to RFC 3986 before any processing of requests by HTTP filters or routing?
+	// Should paths be normalized according to RFC 3986 before any processing of requests by HTTP filters or routing? Defaults to True.
 	// See here for more information: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto
 	NormalizePath *wrappers.BoolValue `protobuf:"bytes,30,opt,name=normalize_path,json=normalizePath,proto3" json:"normalize_path,omitempty"`
 }
