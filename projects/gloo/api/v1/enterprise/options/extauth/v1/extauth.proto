@@ -1082,6 +1082,12 @@ message PassThroughGrpc {
 
     // Timeout for the auth server to respond. Defaults to 5s
     google.protobuf.Duration connection_timeout = 2;
+
+    //TLS settings for the PassThroughGrpc
+    PassThroughGrpcTlsConfig sslConfig = 3;
+}
+
+message PassThroughGrpcTlsConfig {
 }
 
 // Authorizes requests by making a POST HTTP/1 request to a custom HTTP auth server
