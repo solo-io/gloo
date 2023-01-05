@@ -1,0 +1,38 @@
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: echo-vs
+  namespace: gloo-system
+spec:
+  virtualHost:
+    domains:
+      - 'auth'
+    options:
+      extauth:
+        configRef:
+          name: basic-auth-user-and-admin
+          namespace: gloo-system
+    routes:
+      - matchers:
+          - prefix: /test/1
+        routeAction:
+          single:
+            kube:
+              port: 5678
+              ref:
+                name: test-app-1
+                namespace: gloo-system
+      - matchers:
+          - prefix: /test/2
+        options:
+          extauth:
+            configRef:
+              name: basic-auth-admin
+              namespace: gloo-system
+        routeAction:
+          single:
+            kube:
+              port: 5678
+              ref:
+                name: test-app-2
+                namespace: gloo-system

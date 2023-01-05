@@ -3,13 +3,18 @@ package upgrade_test
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	runtimeCheck "runtime"
+	"strings"
 	"text/template"
 	"time"
+
+	enterprisehelpers "github.com/solo-io/solo-projects/test/kube2e"
 
 	"github.com/solo-io/solo-projects/test/services"
 	yamlHelper "gopkg.in/yaml.v2"
@@ -19,7 +24,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 	"github.com/rotisserie/eris"
-	enterprisehelpers "github.com/solo-io/solo-projects/test/kube2e"
 	"github.com/solo-io/solo-projects/test/kube2e/upgrade"
 
 	"github.com/solo-io/k8s-utils/kubeutils"
@@ -48,11 +52,16 @@ import (
 const (
 	glooeRepoName    = "https://storage.googleapis.com/gloo-ee-helm"
 	yamlAssetDir     = "../upgrade/assets/"
-	GatewayProxyName = "gateway-proxy"
+	gatewayProxyName = "gateway-proxy"
+	gatewayProxyPort = 80
 	petStoreHost     = "petstore"
 	rateLimitHost    = "ratelimit"
-	responseCode200  = "HTTP/1.1 200"
-	responseCode429  = "HTTP/1.1 429 Too Many Requests"
+	authHost         = "auth"
+	response200      = "HTTP/1.1 200"
+	response429      = "HTTP/1.1 429 Too Many Requests"
+	response401      = "HTTP/1.1 401 Unauthorized"
+	appName1         = "test-app-1"
+	appName2         = "test-app-2"
 )
 
 var _ = Describe("Upgrade Tests", func() {
@@ -365,40 +374,102 @@ func getYamlData(filename string) (kind string, name string, namespace string) {
 func preUpgradeDataSetup() {
 	fmt.Printf("\n=============== Creating Resources ===============\n")
 	//hello world example
-	createPetStoreResources()
-	createRateLimitResources()
-}
-
-func createPetStoreResources() {
-	fmt.Printf("\n=============== Pet Store Resources ===============\n")
-	createResource("petstore", "petstore_deployment.yaml")
-	createResource("petstore", "petstore_svc.yaml")
-	createResource("petstore", "petstore_vs.yaml")
-}
-
-func createRateLimitResources() {
-	fmt.Printf("\n=============== Rate Limmit Resources ===============\n")
-	createResource("ratelimit", "echo1_upstream.yaml")
-	createResource("ratelimit", "echo2_upstream.yaml")
-	createResource("ratelimit", "ratelimit_ratelimitconfig.yaml")
-	createResource("ratelimit", "ratelimit_vs.yaml")
+	createResources("petstore")
+	createResources("ratelimit")
+	createResources("auth")
 }
 
 // Sets up resources before upgrading
 func preUpgradeDataValidation(testHelper *helper.SoloTestHelper) {
 	validatePetstoreTraffic(testHelper)
 	validateRateLimitTraffic(testHelper)
+	validateAuthTraffic(testHelper)
 }
 
 // All Validation scenarios
 func postUpgradeValidation(testHelper *helper.SoloTestHelper) {
 	validatePetstoreTraffic(testHelper)
 	validateRateLimitTraffic(testHelper)
+	validateAuthTraffic(testHelper)
+}
+
+// Get all yaml files from a specified directory in upgrade/assets
+// sort these files by kubernetes resource type and determine if there are architecture (arm vs amd) specific files
+// Then apply resources in a specific order
+func createResources(directory string) {
+	fmt.Printf("\n=============== %s Directory Resources ===============\n", directory)
+	files, err := ioutil.ReadDir(filepath.Join(yamlAssetDir, directory))
+	Expect(err).NotTo(HaveOccurred())
+
+	//final map of files for resources
+	fileMap := make(map[string][]string)
+
+	//map of deployments
+	deploymentMap := make(map[string][]string)
+	for _, f := range files {
+
+		//check filetype
+		fileEnding := strings.Split(f.Name(), ".")
+		if fileEnding[len(fileEnding)-1] != "yaml" {
+			continue
+		}
+		kind, _, _ := getYamlData(filepath.Join(directory, f.Name()))
+
+		if kind == "Deployment" {
+			splitName := strings.Split(f.Name(), "_")
+			if deploymentMap[splitName[0]] == nil {
+				deploymentMap[splitName[0]] = []string{f.Name()}
+			} else {
+				deploymentMap[splitName[0]] = append(deploymentMap[splitName[0]], f.Name())
+			}
+			//create a placeholder for the deployments
+			if fileMap[kind] == nil {
+				fileMap[kind] = []string{}
+			}
+		} else {
+			if fileMap[kind] == nil {
+				fileMap[kind] = []string{f.Name()}
+			} else {
+				fileMap[kind] = append(fileMap[kind], f.Name())
+			}
+		}
+	}
+
+	// handle deployment map
+	// there may be arm specific deployments - if arm, use those
+	// If there are not, use all deployments
+	for filenamePrefix, filesList := range deploymentMap {
+		if len(deploymentMap[filenamePrefix]) > 1 {
+			for _, file := range filesList {
+				splitName := strings.Split(file, "_")
+
+				if contains(splitName, "arm") && runtimeCheck.GOARCH == "arm64" {
+					fileMap["Deployment"] = append(fileMap["Deployment"], file)
+					break
+				} else {
+					fileMap["Deployment"] = append(fileMap["Deployment"], file)
+				}
+			}
+		} else { // there is only one deployment of this name so we assume not dependent on os
+			fileMap["Deployment"] = append(fileMap["Deployment"], filesList[0])
+		}
+	}
+
+	//order of resource creation
+	creationOrder := []string{"Deployment", "Service", "Upstream", "AuthConfig", "RateLimitConfig", "VirtualService"}
+	for _, kind := range creationOrder {
+		filePaths := fileMap[kind]
+		if nil != filePaths {
+			for _, filepath := range filePaths {
+				createResource(directory, filepath)
+			}
+		}
+	}
 }
 
 // Creates resources from yaml files in the upgrade/assets folder and validates they have been created
-func createResource(folder string, filename string) {
-	localFilePath := filepath.Join(folder, filename)
+func createResource(directory string, filename string) {
+	localFilePath := filepath.Join(directory, filename)
 	kind, name, namespace := getYamlData(localFilePath)
 	fmt.Printf("Creating %s %s in namespace: %s", kind, name, namespace)
 	runAndCleanCommand("kubectl", "apply", "-f", filepath.Join(yamlAssetDir, localFilePath))
@@ -430,6 +501,11 @@ func createResource(folder string, filename string) {
 			return services.KubectlOut("get", "vs/"+name, "-n", namespace, "-o", "jsonpath={.status.statuses."+namespace+".state}")
 		}, "20s", "1s").Should(Equal("Accepted"))
 		fmt.Printf(" (✓)\n")
+	case "AuthConfig":
+		Eventually(func() (string, error) {
+			return services.KubectlOut("get", "AuthConfig/"+name, "-n", namespace, "-o", "jsonpath={.status.statuses."+namespace+".state}")
+		}, "20s", "1s").Should(Equal("Accepted"))
+		fmt.Printf(" (✓)\n")
 	default:
 		fmt.Printf(" : No validation found for yaml kind: %s\n", kind)
 	}
@@ -438,16 +514,7 @@ func createResource(folder string, filename string) {
 // runs a curl against the petstore service to check routing is working - run before and after upgrade
 func validatePetstoreTraffic(testHelper *helper.SoloTestHelper) {
 	petString := "[{\"id\":1,\"name\":\"Dog\",\"status\":\"available\"},{\"id\":2,\"name\":\"Cat\",\"status\":\"pending\"}]"
-	testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-		Protocol:          "http",
-		Path:              "/all-pets",
-		Method:            "GET",
-		Host:              petStoreHost,
-		Service:           GatewayProxyName,
-		Port:              80,
-		ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		Verbose:           true,
-	}, petString, 1, time.Minute*1)
+	curlAndAssertResponse(testHelper, petStoreHost, "/all-pets", petString)
 }
 
 // This function validates the traffic going to the rate limit vs
@@ -455,27 +522,56 @@ func validatePetstoreTraffic(testHelper *helper.SoloTestHelper) {
 // The defined rate limit is 1 request per hour to the petstore domain on the route for /posts2
 // after the upgrade we run the same function as redis is bounced as part of the upgrade and all rate limiting gets reset.
 func validateRateLimitTraffic(testHelper *helper.SoloTestHelper) {
-	testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
-		Protocol:          "http",
-		Path:              "/posts1",
-		Method:            "GET",
-		Host:              rateLimitHost,
-		Service:           GatewayProxyName,
-		Port:              80,
-		ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		Verbose:           true,
-	}, responseCode200, 1, time.Minute*1)
+	curlAndAssertResponse(testHelper, rateLimitHost, "/posts1", response200)
+	curlAndAssertResponse(testHelper, rateLimitHost, "/posts2", response429)
+}
 
+func validateAuthTraffic(testHelper *helper.SoloTestHelper) {
+	By("denying unauthenticated requests on both routes", func() {
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", nil, response401)
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", nil, response401)
+		//strict admin only on route
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("user:password"), response401)
+	})
+
+	By("allowing authenticated requests on both routes", func() {
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("user:password"), appName1)
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("admin:password"), appName1)
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("admin:password"), appName2)
+	})
+}
+func buildAuthHeader(credentials string) map[string]string {
+	encodedCredentials := base64.StdEncoding.EncodeToString([]byte(credentials))
+	return map[string]string{
+		"Authorization": fmt.Sprintf("Basic %s", encodedCredentials),
+	}
+}
+
+func curlAndAssertResponse(testHelper *helper.SoloTestHelper, host string, path string, expectedResponseSubstring string) {
 	testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 		Protocol:          "http",
-		Path:              "/posts2",
+		Path:              path,
 		Method:            "GET",
-		Host:              rateLimitHost,
-		Service:           GatewayProxyName,
-		Port:              80,
-		ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
+		Host:              host,
+		Service:           gatewayProxyName,
+		Port:              gatewayProxyPort,
+		ConnectionTimeout: 5, // this is important, as the first curl call sometimes hangs indefinitely
 		Verbose:           true,
-	}, responseCode429, 1, time.Minute*1)
+	}, expectedResponseSubstring, 1, time.Minute*1)
+}
+
+func curlWithHeadersAndAssertResponse(testHelper *helper.SoloTestHelper, host string, path string, headers map[string]string, expectedResponseSubstring string) {
+	testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
+		Protocol:          "http",
+		Path:              path,
+		Method:            "GET",
+		Host:              host,
+		Headers:           headers,
+		Service:           gatewayProxyName,
+		Port:              gatewayProxyPort,
+		ConnectionTimeout: 5, // this is important, as the first curl call sometimes hangs indefinitely
+		Verbose:           true,
+	}, expectedResponseSubstring, 1, time.Minute*1)
 }
 
 func getUpgradeHelmOverrides() (filename string, cleanup func()) {
@@ -571,4 +667,14 @@ func glooctlCheckEventuallyHealthy(offset int, testHelper *helper.SoloTestHelper
 		cancel() //attempt to avoid hitting go-routine limit
 		return nil
 	}, timeoutInterval, "5s").Should(BeNil())
+}
+
+func contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
 }
