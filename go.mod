@@ -54,10 +54,10 @@ require (
 	github.com/solo-io/go-utils v0.23.0
 	github.com/solo-io/k8s-utils v0.1.8
 	github.com/solo-io/licensing v0.2.0
-	github.com/solo-io/protoc-gen-ext v0.0.17
+	github.com/solo-io/protoc-gen-ext v0.0.18
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.7.4
-	github.com/solo-io/skv2 v0.26.0
+	github.com/solo-io/skv2 v0.26.1
 	github.com/solo-io/solo-apis v0.0.0-20230103150601-cdc352116d38
 	github.com/solo-io/solo-kit v0.30.8
 	github.com/solo-io/wasm-kit v0.1.3
