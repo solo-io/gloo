@@ -52,7 +52,7 @@ require (
 	github.com/solo-io/gloo v1.14.0-beta4
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.23.0
-	github.com/solo-io/k8s-utils v0.1.7
+	github.com/solo-io/k8s-utils v0.1.8
 	github.com/solo-io/licensing v0.2.0
 	github.com/solo-io/protoc-gen-ext v0.0.17
 	github.com/solo-io/protoc-gen-openapi v0.1.0
