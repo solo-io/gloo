@@ -220,6 +220,13 @@ func isIstioIntegrationEnabled() bool {
 	return found && strings.ToLower(lookupResult) == "true"
 }
 
+// experimental function - if all else fails in case it's related to issue #7298
+// only used during testing with uer
+func expShouldUseKubePort() bool {
+	lookupResult, found := os.LookupEnv("USE_SERVICE_PORT_FOR_ISTIO")
+	return found && strings.ToLower(lookupResult) == "true" && isIstioIntegrationEnabled()
+}
+
 func (c *edsWatcher) watch(writeNamespace string, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
 	watch := c.kubeShareFactory.Subscribe()
 
@@ -289,6 +296,10 @@ func findPortForService(services []*kubev1.Service, spec *kubeplugin.UpstreamSpe
 	return nil, false
 }
 
+func expPrintUpstream() string {
+	return fmt.Sprintf("Upstream Name: %s; Upstream Namespace: %s\n")
+}
+
 func filterEndpoints(
 	_ context.Context, // do not use for logging! return logging messages as strings and log them after hashing (see https://github.com/solo-io/gloo/issues/3761)
 	writeNamespace string,
@@ -304,9 +315,14 @@ func filterEndpoints(
 	podMap := generatePodsMap(pods)
 
 	istioIntegrationEnabled := isIstioIntegrationEnabled()
+	useKubeServicePort := expShouldUseKubePort()
 
 	// for each upstream
 	for usRef, spec := range upstreams {
+		warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: UpstreamName: %s; UpstreamNS: %s\n", usRef.GetName(), usRef.GetNamespace()))
+		// does `usRef.String()` print the name & values as a human-readable string?
+		// this _could_ make the final logs gigantic.
+		warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: Upstream Data: %s\n", spec.String()))
 		kubeServicePort, singlePortService := findPortForService(services, spec)
 		if kubeServicePort == nil {
 			errorsToLog = append(errorsToLog, fmt.Sprintf("upstream %v: port %v not found for service %v", usRef.Key(), spec.GetServicePort(), spec.GetServiceName()))
@@ -317,6 +333,8 @@ func filterEndpoints(
 			if eps.Namespace != spec.GetServiceNamespace() || eps.Name != spec.GetServiceName() {
 				continue
 			}
+			warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: EndpointName: %s; EndpointNS: %s\n", eps.GetName(), eps.GetNamespace()))
+			// for each subset in the matching endpoint
 			for _, subset := range eps.Subsets {
 				port := findFirstPortInEndpointSubsets(subset, singlePortService, kubeServicePort)
 				if port == 0 {
@@ -330,6 +348,9 @@ func filterEndpoints(
 					// IF this was still just usRef...
 					//   THEN "endpointsMap[key] = append(endpointsMap[key], &copyRef)", the key with a reused address (or pointer), COULD end up pointing to a different upstream..?
 					//   BUT... could that cause the issue NYT & PM are seeing?
+					if useKubeServicePort {
+						port = uint32(kubeServicePort.Port)
+					}
 					key := Epkey{hostname, port, spec.GetServiceName(), spec.GetServiceNamespace(), &copyRef}
 					endpointsMap[key] = append(endpointsMap[key], &copyRef)
 					warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: (istioIntegration) endpoint map at key: %v = to %v. With an upstream of %v\n", key, endpointsMap[key], &copyRef))
@@ -339,6 +360,7 @@ func filterEndpoints(
 				}
 			}
 		}
+		warnsToLog = append(warnsToLog, "[fabian log]: upstream end\n")
 	}
 
 	endpoints = generateFilteredEndpointList(endpointsMap, services, podMap, writeNamespace, endpoints, istioIntegrationEnabled)
@@ -398,6 +420,7 @@ func findFirstPortInEndpointSubsets(subset kubev1.EndpointSubset, singlePortServ
 	return port
 }
 
+// todo - add a log here?
 func generateFilteredEndpointList(
 	endpointsMap map[Epkey][]*core.ResourceRef,
 	services []*kubev1.Service,
