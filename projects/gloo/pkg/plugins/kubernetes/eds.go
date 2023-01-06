@@ -296,10 +296,6 @@ func findPortForService(services []*kubev1.Service, spec *kubeplugin.UpstreamSpe
 	return nil, false
 }
 
-func expPrintUpstream() string {
-	return fmt.Sprintf("Upstream Name: %s; Upstream Namespace: %s\n")
-}
-
 func filterEndpoints(
 	_ context.Context, // do not use for logging! return logging messages as strings and log them after hashing (see https://github.com/solo-io/gloo/issues/3761)
 	writeNamespace string,
