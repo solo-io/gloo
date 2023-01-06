@@ -1,0 +1,65 @@
+name: Solo-Projects Standard Setups
+description: configuration to enable make targets
+inputs:
+  GLOO_EE_GCR_KEY:
+    required: true
+    description: access key for Google Cloud
+  QUAY_IO_PASSWORD:
+    required: true
+    description: access key for Quay Image repository
+  GO_VERSION:
+    description: Version of golang to build with
+    default: 1.18.2
+  GITHUB_TOKEN:
+    required: true
+    description: access token for use in CI
+  
+runs:
+  using: "composite"
+  steps:
+    # remove a few large, unneeded toolsets from base ubuntu worker
+    - name: Free disk space
+      shell: bash
+      run: |
+        echo "Before clearing disk space:"
+        df -h
+
+        # https://github.com/actions/virtual-environments/issues/709
+        sudo apt-get clean
+
+        # Clean up pre-installed tools
+        # https://github.com/actions/virtual-environments/issues/1918
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /usr/local/share/boost
+        sudo rm -rf $AGENT_TOOLSDIRECTORY
+
+        echo "After clearing disk space:"
+        df -h
+    # enable ineraction with gcloud buckets
+    - name: Setup - gcloud / gsutil
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        service_account_key: ${{ inputs.GLOO_EE_GCR_KEY }}
+        project_id: gloo-ee
+        export_default_credentials: true
+    # enable pushing built images to quay repo
+    - name: Quay Login
+      uses: docker/login-action@v1
+      with:
+        registry: quay.io
+        username: solo-io+solobot
+        password: ${{ inputs.QUAY_IO_PASSWORD }}
+    # enable a few builder base images to be pulled
+    - name: Gcloud Login
+      shell: bash
+      run: gcloud auth configure-docker
+    # pre-load the go mod dependencies, and set up `go run` to function
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ inputs.GO_VERSION }}
+    # enable a few private dependencies to be reachable
+    - name: Configure git for private modules
+      shell: bash
+      run: git config --global url."https://soloio_bot:${{ inputs.GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"

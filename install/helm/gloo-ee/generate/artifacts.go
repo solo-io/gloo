@@ -37,7 +37,11 @@ type GenerationArguments struct {
 	// Allows for overriding the gloo-fed chart repo; used in local builds to specify a
 	// local directory instead of the official gloo-fed-helm release repository.
 	GlooFedRepoOverride string
-	GenerateHelmDocs    bool
+
+	// Allows for overriding the gloo chart repo; used for alternate deployment patterns
+	// such as consuming a gloo chart which was pushed to a test helm repo
+	GlooRepoOverride string
+	GenerateHelmDocs bool
 
 	// specify using image digests, rather than image tags
 	UseDigests bool
@@ -85,7 +89,7 @@ func ArtifactName(artifact Artifact) string {
 
 // Run generates the helm artifacts for the corresponding file sets
 func Run(args *GenerationArguments, fileSets ...*GenerationFiles) error {
-	osGlooVersion, err := GetGlooOsVersion(fileSets...)
+	osGlooVersion, err := GetGlooOsVersion(args, fileSets...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to determine open source Gloo version")
 	}
@@ -140,6 +144,10 @@ func GetArguments(args *GenerationArguments) error {
 		"gloo-fed-repo-override",
 		"",
 		"(Optional) repository override for gloo-fed chart.")
+	var glooRepoOverride = flag.String(
+		"gloo-repo-override",
+		"",
+		"(Optional) repository override for gloo chart.")
 	var generateHelmDocs = flag.Bool(
 		"generate-helm-docs",
 		false,
@@ -156,6 +164,9 @@ func GetArguments(args *GenerationArguments) error {
 	}
 	if *glooFedRepoOverride != "" {
 		args.GlooFedRepoOverride = *glooFedRepoOverride
+	}
+	if *glooRepoOverride != "" {
+		args.GlooRepoOverride = *glooRepoOverride
 	}
 	if *generateHelmDocs {
 		args.GenerateHelmDocs = *generateHelmDocs
@@ -180,6 +191,7 @@ func (gc *GenerationConfig) runGeneration() error {
 		gc.OsGlooVersion,
 		gc.Arguments.Version,
 		gc.Arguments.GlooFedRepoOverride,
+		gc.Arguments.GlooRepoOverride,
 	); err != nil {
 		return errors.Wrapf(err, "unable to parse requirements.yaml")
 	}

@@ -1,0 +1,83 @@
+on:
+  workflow_dispatch:
+    inputs:
+      publish_fed:
+        description: "Publish Fed images and chart"
+        default: true
+        required: false
+        type: boolean
+      gloo_sha:
+        description: "(optional) gloo commit SHA to reference if unpublished OSS changes are desired"
+        default: ""
+        required: false
+        type: string
+
+env:  # necessary environment varialbe for several of our docker builds
+  GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+
+jobs:
+  publish-gloo-ee:
+    name: publish gloo-ee
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/standard-gloo-ee-setup
+        with:
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GO_VERSION: 1.18.2
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+      - name: build and publish
+        run: .github/workflows/helpers/build-and-publish-gloo-ee.sh
+        env:
+          GLOO_SHA: ${{ inputs.gloo_sha }}
+      - name: extract results artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: gloo-ee install instructions
+          path: ./published-gloo-ee.txt
+
+  publish-gloo-fed:
+    if: inputs.publish_fed
+    name: publish gloo-fed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/standard-gloo-ee-setup
+        with:
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GO_VERSION: 1.18.2
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+      - name: build and publish
+        run: .github/workflows/helpers/build-and-publish-gloo-fed.sh
+      - name: extract results artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: gloo-fed install instructions
+          path: ./published-gloo-fed.txt
+
+  publish-gloo:
+    if: inputs.gloo_sha != ''
+    name: publish gloo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+        with:
+          repository: solo-io/gloo
+          ref: ${{ inputs.gloo_sha }}
+          path: gloo
+      - uses: ./.github/actions/standard-gloo-ee-setup
+        with:
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GO_VERSION: 1.18.2
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+      - name: build and publish
+        run: .github/workflows/helpers/build-and-publish-gloo.sh
+      - name: extract results artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: gloo install instructions
+          path: ./published-gloo.txt

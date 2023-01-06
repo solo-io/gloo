@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  issueLink: https://github.com/solo-io/solo-projects/issues/4052
+  description: add github job to release solo-projects from a given feature branch

@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -18,7 +19,11 @@ const (
 	glooOsModuleName      = "github.com/solo-io/gloo"
 )
 
-func GetGlooOsVersion(filesets ...*GenerationFiles) (string, error) {
+func GetGlooOsVersion(args *GenerationArguments, filesets ...*GenerationFiles) (string, error) {
+	if args.GlooRepoOverride != "" {
+		// in the event we provide a glooRepoOverride, we want to use an identical version of gloo and gloo-ee
+		return args.Version, nil
+	}
 	return getDependencyVersion(glooOsDependencyName, glooOsModuleName, filesets...)
 }
 
@@ -81,12 +86,17 @@ func readConfig(path string) (HelmConfig, error) {
 	return config, nil
 }
 
-func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersion string, glooFedVersion string, glooFedRepoOverride string) error {
+func generateRequirementsYaml(requirementsTemplatePath, outputPath, osGlooVersion string, glooFedVersion string, glooFedRepoOverride string, glooRepositoryOverride string) error {
 	var dl DependencyList
 	if err := readYaml(requirementsTemplatePath, &dl); err != nil {
 		return err
 	}
 	for i, v := range dl.Dependencies {
+		if v.Name == glooOsDependencyName && glooRepositoryOverride != "" {
+			fmt.Print("overriding gloo repository\n")
+			dl.Dependencies[i].Repository = glooRepositoryOverride
+		}
+
 		if v.Name == glooOsDependencyName && v.Version == "" {
 			dl.Dependencies[i].Version = osGlooVersion
 		}

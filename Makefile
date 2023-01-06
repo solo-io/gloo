@@ -1196,7 +1196,7 @@ endif
 .PHONY: helm-template
 helm-template:
 	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
-	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)" $(USE_DIGESTS)
+	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)" $(USE_DIGESTS) --gloo-repo-override=$(GLOO_REPO_OVERRIDE)
 
 .PHONY: init-helm
 init-helm: helm-template gloofed-helm-template $(OUTPUT_DIR)/.helm-initialized
