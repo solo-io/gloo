@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5728
+    description: >
+      Prevent Ext-Auth side car container from crashing when connecting using unix domain socket.

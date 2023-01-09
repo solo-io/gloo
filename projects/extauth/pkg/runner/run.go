@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/solo-io/solo-projects/pkg/version"
 
@@ -73,6 +76,9 @@ func buildListener(ctx context.Context, settings Settings) (net.Listener, error)
 		addr = settings.ServerUDSAddr
 		runMode = "unixDomainSocket"
 		network = "unix"
+		if err := cleanUnixSocket(ctx, addr); err != nil {
+			return nil, err
+		}
 	} else {
 		addr = fmt.Sprintf(":%d", settings.ExtAuthSettings.ServerPort)
 		runMode = "gRPC"
@@ -84,16 +90,16 @@ func buildListener(ctx context.Context, settings Settings) (net.Listener, error)
 		logger.Info("TLS is enabled, loading certificates")
 
 		tlsMode = "secure"
-		keyPair, err := tls.LoadX509KeyPair(settings.CertPath, settings.KeyPath)
-		if err != nil {
+		keyPair, keyErr := tls.LoadX509KeyPair(settings.CertPath, settings.KeyPath)
+		if keyErr != nil {
 			logger.Warnw("failed to load certificates from files, trying to load them from environment variables",
-				zap.Error(err), zap.String("CertPath", settings.CertPath), zap.String("KeyPath", settings.KeyPath))
+				zap.Error(keyErr), zap.String("CertPath", settings.CertPath), zap.String("KeyPath", settings.KeyPath))
 			if len(settings.Cert) == 0 || len(settings.Key) == 0 {
 				return nil, eris.New("must provide Cert and Key when running in TLS mode")
 			}
-			keyPair, err = tls.X509KeyPair(settings.Cert, settings.Key)
-			if err != nil {
-				return nil, err
+			keyPair, keyErr = tls.X509KeyPair(settings.Cert, settings.Key)
+			if keyErr != nil {
+				return nil, keyErr
 			}
 		}
 		cfg := &tls.Config{Certificates: []tls.Certificate{keyPair}}
@@ -110,4 +116,24 @@ func buildListener(ctx context.Context, settings Settings) (net.Listener, error)
 	logger.Infof("external auth server running in [%s] [%s] mode, listening at [%s]", tlsMode, runMode, addr)
 
 	return listener, nil
+}
+
+// cleanUnixSocket will remove the socket file if it exists
+func cleanUnixSocket(ctx context.Context, addr string) error {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGHUP)
+	go func() {
+		select {
+		case <-sigs:
+		case <-ctx.Done():
+		}
+		err := os.RemoveAll(addr)
+		if err != nil {
+			contextutils.LoggerFrom(ctx).Warnf("server failed to clean unix socket: %s", err.Error())
+		}
+	}()
+	// Remove the unix socket file, because it could already be in use.
+	// this is safe because this is the only process that should be using this file as a server
+	// clients are still able to connect
+	return os.RemoveAll(addr)
 }

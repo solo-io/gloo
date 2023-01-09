@@ -7,6 +7,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 	"github.com/solo-io/solo-projects/test/kube2e"
+	"github.com/solo-io/solo-projects/test/services"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -86,6 +87,33 @@ var _ = Describe("Installing gloo in gloo mtls mode", func() {
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
 		}, kube2e.GetSimpleTestRunnerHttpResponse(), 1, time.Minute*5)
+	})
+
+	It("can recover from the ext-auth sidecar container being deleted", func() {
+		podName, err := services.GetGatewayPodName()
+		Expect(err).ToNot(HaveOccurred())
+		// it takes 2 requests to kill the container un-gracefully
+		_, err = services.KubectlOut("exec", "-n", testHelper.InstallNamespace, podName, "-c", "extauth", "--", "kill", "1")
+		Expect(err).ToNot(HaveOccurred())
+		_, err = services.KubectlOut("exec", "-n", testHelper.InstallNamespace, podName, "-c", "extauth", "--", "kill", "1")
+		Expect(err).ToNot(HaveOccurred())
+
+		Eventually(func() bool {
+			ready, err := services.PodIsReady(ctx, testHelper.InstallNamespace, podName)
+			if err != nil {
+				return true
+			}
+			return ready
+		}, "2s", "0.1s").Should(Equal(false))
+
+		// after some time kubernetes will repost the container, and this should resolve with a ready status
+		Eventually(func() bool {
+			ready, err := services.PodIsReady(ctx, testHelper.InstallNamespace, podName)
+			if err != nil {
+				return false
+			}
+			return ready
+		}, "15s", "1s").Should(Equal(true))
 	})
 
 })

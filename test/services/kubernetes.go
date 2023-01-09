@@ -2,19 +2,26 @@ package services
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/onsi/ginkgo"
 	"github.com/pkg/errors"
 	"github.com/solo-io/go-utils/log"
+	"github.com/solo-io/k8s-utils/kubeutils"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 const (
-	testrunner = "testrunner"
+	testrunner          = "testrunner"
+	gatewayPodNameRegex = "gateway[-]proxy[-]\\S*"
 )
 
 func SetupKubeForTest(namespace string) error {
@@ -194,4 +201,42 @@ func WaitNamespaceStatus(namespace, status string, finished func(output string) 
 			}
 		}
 	}
+}
+
+// GetGatewayPodName this will return the pod name for the gateway proxy pod
+func GetGatewayPodName() (string, error) {
+	output, err := KubectlOut("get", "pods", "-A")
+	if err != nil {
+		return "", err
+	}
+	reg, err := regexp.Compile(gatewayPodNameRegex)
+	if err != nil {
+		return "", err
+	}
+	regMatch := reg.Find([]byte(output))
+	podName := string(regMatch)
+	return podName, nil
+}
+
+// PodIsReady will check all the conditions on a pod for a True condition
+func PodIsReady(ctx context.Context, namespace, podName string) (bool, error) {
+	cfg, err := kubeutils.GetConfig("", "")
+	if err != nil {
+		return false, err
+	}
+	kubeClient, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return false, err
+	}
+	gatewayPod, err := kubeClient.CoreV1().Pods(namespace).Get(ctx, podName, metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+	ready := true
+	for _, condition := range gatewayPod.Status.Conditions {
+		if condition.Status != corev1.ConditionTrue {
+			ready = false
+		}
+	}
+	return ready, nil
 }
