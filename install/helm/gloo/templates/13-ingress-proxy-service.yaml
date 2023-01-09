@@ -18,14 +18,18 @@ metadata:
 {{- end }}
 spec:
   ports:
+{{- if .Values.ingressProxy.service.httpPort}}
   - port: {{ .Values.ingressProxy.service.httpPort }}
     targetPort: {{ .Values.ingressProxy.deployment.httpPort }}
     protocol: TCP
     name: http
+{{- end}}
+{{- if .Values.ingressProxy.service.httpsPort}}
   - port: {{ .Values.ingressProxy.service.httpsPort }}
     targetPort: {{ .Values.ingressProxy.deployment.httpsPort }}
     protocol: TCP
     name: https
+{{- end}}
   selector:
     gloo: ingress-proxy
   type: {{ .Values.ingressProxy.service.type }}

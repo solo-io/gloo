@@ -13,21 +13,31 @@ spec:
   externalTrafficPolicy: {{ .Values.gloo.deployment.externalTrafficPolicy }}
 {{- end }}
   ports:
+{{- if .Values.gloo.deployment.xdsPort }}
   - name: grpc-xds
     port: {{ .Values.gloo.deployment.xdsPort }}
     protocol: TCP
+{{- end }}
+{{- if .Values.gloo.deployment.restXdsPort }}
   - name: rest-xds
     port: {{ .Values.gloo.deployment.restXdsPort }}
     protocol: TCP
+{{- end }}
+{{- if .Values.gloo.deployment.validationPort }}
   - name: grpc-validation
     port: {{ .Values.gloo.deployment.validationPort }}
     protocol: TCP
+{{- end }}
+{{- if .Values.gloo.deployment.proxyDebugPort }}
   - name: grpc-proxydebug
     port: {{ .Values.gloo.deployment.proxyDebugPort }}
     protocol: TCP
+{{- end }}
+{{- if .Values.gloo.deployment.wasmCachePortExposed }}
   - name: wasm-cache
     port: 9979
     protocol: TCP
+{{- end }}
 {{- if and .Values.gateway.enabled .Values.gateway.validation.enabled }}
   - name: https
     port: 443

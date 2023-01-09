@@ -83,12 +83,16 @@ spec:
           runAsUser: {{ printf "%.0f" (float64 .Values.gloo.deployment.runAsUser)}}
           {{- end }}
         ports:
+{{- if .Values.gloo.deployment.xdsPort }}
         - containerPort: {{ .Values.gloo.deployment.xdsPort }}
           name: grpc-xds
           protocol: TCP
+{{- end}}
+{{- if .Values.gloo.deployment.restXdsPort }}
         - containerPort: {{ .Values.gloo.deployment.restXdsPort }}
           name: rest-xds
           protocol: TCP
+{{- end}}
         readinessProbe:
           tcpSocket:
             port: {{ .Values.gloo.deployment.xdsPort }}
@@ -126,9 +130,11 @@ spec:
           runAsUser: {{ printf "%.0f" (float64 .Values.gloo.deployment.runAsUser)}}
           {{- end }}
         ports:
+{{- if .Values.gloo.deployment.validationPort}}
         - containerPort: {{ .Values.gloo.deployment.validationPort }}
           name: validation
           protocol: TCP
+{{- end}}
         readinessProbe:
           tcpSocket:
             port: {{ .Values.gloo.deployment.validationPort }}
@@ -171,22 +177,32 @@ spec:
             - ALL
         ports:
 {{- if not .Values.global.glooMtls.enabled }}
+{{- if .Values.gloo.deployment.xdsPort}}
         - containerPort: {{ .Values.gloo.deployment.xdsPort }}
           name: grpc-xds
           protocol: TCP
+{{- end }}
+{{- if .Values.gloo.deployment.restXdsPort}}
         - containerPort: {{ .Values.gloo.deployment.restXdsPort }}
           name: rest-xds
           protocol: TCP
 {{- end }}
+{{- end }}
+{{- if .Values.gloo.deployment.validationPort }}
         - containerPort: {{ .Values.gloo.deployment.validationPort }}
           name: grpc-validation
           protocol: TCP
+{{- end }}
+{{- if .Values.gloo.deployment.proxyDebugPort }}
         - containerPort: {{ .Values.gloo.deployment.proxyDebugPort }}
           name: grpc-proxydebug
           protocol: TCP
+{{- end }}
+{{- if .Values.gloo.deployment.wasmCachePortExposed }}
         - containerPort: 9979
           name: wasm-cache
           protocol: TCP
+{{- end }}
         {{- if and $statsConfig.enabled $statsConfig.podMonitorEnabled }}
         - name: http-monitoring
           containerPort: 9091

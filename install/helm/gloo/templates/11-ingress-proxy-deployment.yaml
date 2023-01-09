@@ -71,12 +71,16 @@ spec:
             add:
             - NET_BIND_SERVICE
         ports:
+        {{- if .Values.ingressProxy.deployment.httpPort}}
         - containerPort: {{ .Values.ingressProxy.deployment.httpPort }}
           name: http
           protocol: TCP
+        {{- end}}
+        {{- if .Values.ingressProxy.deployment.httpsPort}}
         - containerPort: {{ .Values.ingressProxy.deployment.httpsPort }}
           name: https
           protocol: TCP
+        {{- end}}
 {{- with .Values.ingressProxy.deployment.extraPorts }}
 {{toYaml  . | indent 8}}{{- end }}
         volumeMounts:

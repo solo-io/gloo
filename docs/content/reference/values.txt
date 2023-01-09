@@ -14,8 +14,8 @@
 |settings.integrations.knative.proxy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |settings.integrations.knative.proxy.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |settings.integrations.knative.proxy.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|settings.integrations.knative.proxy.httpPort|int|8080|HTTP port for the proxy|
-|settings.integrations.knative.proxy.httpsPort|int|8443|HTTPS port for the proxy|
+|settings.integrations.knative.proxy.httpPort|int|8080|HTTP port for the proxy (set to 0 to disable)|
+|settings.integrations.knative.proxy.httpsPort|int|8443|HTTPS port for the proxy (set to 0 to disable)|
 |settings.integrations.knative.proxy.tracing|string||tracing configuration|
 |settings.integrations.knative.proxy.loopBackAddress|string|127.0.0.1|Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1|
 |settings.integrations.knative.proxy.stats|bool||Controls whether or not Envoy stats are enabled|
@@ -64,8 +64,8 @@
 |settings.integrations.knative.proxy.service.type|string|LoadBalancer|K8s service type|
 |settings.integrations.knative.proxy.service.extraAnnotations.NAME|string||extra annotations to add to the service|
 |settings.integrations.knative.proxy.service.loadBalancerIP|string||IP address of the load balancer|
-|settings.integrations.knative.proxy.service.httpPort|int|80|HTTP port for the knative/ingress proxy service|
-|settings.integrations.knative.proxy.service.httpsPort|int|443|HTTPS port for the knative/ingress proxy service|
+|settings.integrations.knative.proxy.service.httpPort|int|80|HTTP port for the knative/ingress proxy service (set to 0 to disable)|
+|settings.integrations.knative.proxy.service.httpsPort|int|443|HTTPS port for the knative/ingress proxy service (set to 0 to disable)|
 |settings.integrations.knative.proxy.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |settings.integrations.knative.proxy.configMap.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |settings.integrations.knative.proxy.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -126,10 +126,11 @@
 |gloo.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |gloo.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |gloo.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|gloo.deployment.xdsPort|int|9977|port where gloo serves xDS API to Envoy|
-|gloo.deployment.restXdsPort|uint32|9976|port where gloo serves REST xDS API to Envoy|
-|gloo.deployment.validationPort|int|9988|port where gloo serves gRPC Proxy Validation to Gateway|
-|gloo.deployment.proxyDebugPort|int|9966|port where gloo serves gRPC Proxy contents to glooctl|
+|gloo.deployment.xdsPort|int|9977|port where gloo serves xDS API to Envoy (set to 0 to disable)|
+|gloo.deployment.restXdsPort|uint32|9976|port where gloo serves REST xDS API to Envoy (set to 0 to disable)|
+|gloo.deployment.validationPort|int|9988|port where gloo serves gRPC Proxy Validation to Gateway (set to 0 to disable)|
+|gloo.deployment.proxyDebugPort|int|9966|port where gloo serves gRPC Proxy contents to glooctl (set to 0 to disable)|
+|gloo.deployment.wasmCachePortExposed|bool|||
 |gloo.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
 |gloo.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |gloo.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
@@ -429,8 +430,8 @@
 |gatewayProxies.NAME.podTemplate.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |gatewayProxies.NAME.podTemplate.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |gatewayProxies.NAME.podTemplate.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|gatewayProxies.NAME.podTemplate.httpPort|int||HTTP port for the gateway service target port|
-|gatewayProxies.NAME.podTemplate.httpsPort|int||HTTPS port for the gateway service target port|
+|gatewayProxies.NAME.podTemplate.httpPort|int||HTTP port for the gateway service target port (set to 0 to disable)|
+|gatewayProxies.NAME.podTemplate.httpsPort|int||HTTPS port for the gateway service target port (set to 0 to disable)|
 |gatewayProxies.NAME.podTemplate.extraPorts[]|interface||extra ports for the gateway pod|
 |gatewayProxies.NAME.podTemplate.extraAnnotations.NAME|string||extra annotations to add to the pod|
 |gatewayProxies.NAME.podTemplate.nodeName|string||name of node to run on|
@@ -581,6 +582,8 @@
 |gatewayProxies.NAME.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
 |gatewayProxies.NAME.xdsServiceAddress|string||The k8s service name for the xds server. Defaults to gloo.|
 |gatewayProxies.NAME.xdsServicePort|uint32||The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay.|
+|gatewayProxies.NAME.monitoringPortExposed|bool|||
+|gatewayProxies.NAME.configDumpServicePortExposed|bool|||
 |gatewayProxies.NAME.tcpKeepaliveTimeSeconds|uint32||The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive|
 |gatewayProxies.NAME.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gatewayProxies.gatewayProxy.kind.deployment.replicas|int|1|number of instances to deploy|
@@ -628,8 +631,8 @@
 |gatewayProxies.gatewayProxy.podTemplate.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |gatewayProxies.gatewayProxy.podTemplate.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |gatewayProxies.gatewayProxy.podTemplate.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|gatewayProxies.gatewayProxy.podTemplate.httpPort|int|8080|HTTP port for the gateway service target port|
-|gatewayProxies.gatewayProxy.podTemplate.httpsPort|int|8443|HTTPS port for the gateway service target port|
+|gatewayProxies.gatewayProxy.podTemplate.httpPort|int|8080|HTTP port for the gateway service target port (set to 0 to disable)|
+|gatewayProxies.gatewayProxy.podTemplate.httpsPort|int|8443|HTTPS port for the gateway service target port (set to 0 to disable)|
 |gatewayProxies.gatewayProxy.podTemplate.extraPorts[]|interface||extra ports for the gateway pod|
 |gatewayProxies.gatewayProxy.podTemplate.extraAnnotations.NAME|string||extra annotations to add to the pod|
 |gatewayProxies.gatewayProxy.podTemplate.nodeName|string||name of node to run on|
@@ -785,6 +788,8 @@
 |gatewayProxies.gatewayProxy.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
 |gatewayProxies.gatewayProxy.xdsServiceAddress|string||The k8s service name for the xds server. Defaults to gloo.|
 |gatewayProxies.gatewayProxy.xdsServicePort|uint32||The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay.|
+|gatewayProxies.gatewayProxy.monitoringPortExposed|bool|||
+|gatewayProxies.gatewayProxy.configDumpServicePortExposed|bool|||
 |gatewayProxies.gatewayProxy.tcpKeepaliveTimeSeconds|uint32|60|The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive|
 |gatewayProxies.gatewayProxy.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |ingress.enabled|bool|false||
@@ -850,8 +855,8 @@
 |ingressProxy.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |ingressProxy.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |ingressProxy.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|ingressProxy.deployment.httpPort|int|8080|HTTP port for the ingress container|
-|ingressProxy.deployment.httpsPort|int|8443|HTTPS port for the ingress container|
+|ingressProxy.deployment.httpPort|int|8080|HTTP port for the ingress container (set to 0 to disable)|
+|ingressProxy.deployment.httpsPort|int|8443|HTTPS port for the ingress container (set to 0 to disable)|
 |ingressProxy.deployment.extraPorts[]|interface|||
 |ingressProxy.deployment.extraAnnotations.NAME|string|||
 |ingressProxy.deployment.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|
@@ -903,8 +908,8 @@
 |ingressProxy.service.type|string|LoadBalancer|K8s service type|
 |ingressProxy.service.extraAnnotations.NAME|string||extra annotations to add to the service|
 |ingressProxy.service.loadBalancerIP|string||IP address of the load balancer|
-|ingressProxy.service.httpPort|int|80|HTTP port for the knative/ingress proxy service|
-|ingressProxy.service.httpsPort|int|443|HTTPS port for the knative/ingress proxy service|
+|ingressProxy.service.httpPort|int|80|HTTP port for the knative/ingress proxy service (set to 0 to disable)|
+|ingressProxy.service.httpsPort|int|443|HTTPS port for the knative/ingress proxy service (set to 0 to disable)|
 |ingressProxy.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |k8s.clusterName|string|cluster.local|cluster name to use when referencing services.|
 |accessLogger.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|
@@ -916,7 +921,7 @@
 |accessLogger.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |accessLogger.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |accessLogger.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|accessLogger.port|uint|8083||
+|accessLogger.port|uint|8083|(set to 0 to disable)|
 |accessLogger.serviceName|string|AccessLog||
 |accessLogger.enabled|bool|false||
 |accessLogger.stats.enabled|bool|true|Controls whether or not Envoy stats are enabled|

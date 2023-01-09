@@ -11,10 +11,12 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   ports:
+{{- if .Values.accessLogger.port }}
   - port: {{ .Values.accessLogger.port }}
     targetPort: {{ .Values.accessLogger.port }}
     protocol: TCP
     name: http
+{{- end}}
 {{- if and $statsConfig.enabled $statsConfig.serviceMonitorEnabled }}
   - name: http-monitoring
     port: 9091

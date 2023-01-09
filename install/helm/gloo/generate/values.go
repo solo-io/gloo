@@ -164,8 +164,8 @@ type Knative struct {
 
 type KnativeProxy struct {
 	Image                               *Image                `json:"image,omitempty"`
-	HttpPort                            *int                  `json:"httpPort,omitempty" desc:"HTTP port for the proxy"`
-	HttpsPort                           *int                  `json:"httpsPort,omitempty" desc:"HTTPS port for the proxy"`
+	HttpPort                            *int                  `json:"httpPort,omitempty" desc:"HTTP port for the proxy (set to 0 to disable)"`
+	HttpsPort                           *int                  `json:"httpsPort,omitempty" desc:"HTTPS port for the proxy (set to 0 to disable)"`
 	Tracing                             *string               `json:"tracing,omitempty" desc:"tracing configuration"`
 	LoopBackAddress                     *string               `json:"loopBackAddress,omitempty" desc:"Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1"`
 	Stats                               *bool                 `json:"stats,omitempty" desc:"Controls whether or not Envoy stats are enabled"`
@@ -236,10 +236,11 @@ type Gloo struct {
 
 type GlooDeployment struct {
 	Image                 *Image            `json:"image,omitempty"`
-	XdsPort               *int              `json:"xdsPort,omitempty" desc:"port where gloo serves xDS API to Envoy"`
-	RestXdsPort           *uint32           `json:"restXdsPort,omitempty" desc:"port where gloo serves REST xDS API to Envoy"`
-	ValidationPort        *int              `json:"validationPort,omitempty" desc:"port where gloo serves gRPC Proxy Validation to Gateway"`
-	ProxyDebugPort        *int              `json:"proxyDebugPort,omitempty" desc:"port where gloo serves gRPC Proxy contents to glooctl"`
+	XdsPort               *int              `json:"xdsPort,omitempty" desc:"port where gloo serves xDS API to Envoy (set to 0 to disable)"`
+	RestXdsPort           *uint32           `json:"restXdsPort,omitempty" desc:"port where gloo serves REST xDS API to Envoy (set to 0 to disable)"`
+	ValidationPort        *int              `json:"validationPort,omitempty" desc:"port where gloo serves gRPC Proxy Validation to Gateway (set to 0 to disable)"`
+	ProxyDebugPort        *int              `json:"proxyDebugPort,omitempty" desc:"port where gloo serves gRPC Proxy contents to glooctl (set to 0 to disable)"`
+	wasmCachePortExposed  *bool             `json:"wasmCachePortExposed,omitempty" desc:""`
 	Stats                 *Stats            `json:"stats,omitempty" desc:"overrides for prometheus stats published by the gloo pod"`
 	FloatingUserId        *bool             `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
 	RunAsUser             *float64          `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101."`
@@ -421,6 +422,8 @@ type GatewayProxy struct {
 	LogLevel                       *string                      `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info"`
 	XdsServiceAddress              *string                      `json:"xdsServiceAddress,omitempty" desc:"The k8s service name for the xds server. Defaults to gloo."`
 	XdsServicePort                 *uint32                      `json:"xdsServicePort,omitempty" desc:"The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay."`
+	MonitoringPortExposed          *bool                        `json:"monitoringPortExposed,omitempty"`
+	ConfigDumpServicePortExposed   *bool                        `json:"configDumpServicePortExposed,omitempty"`
 	TcpKeepaliveTimeSeconds        *uint32                      `json:"tcpKeepaliveTimeSeconds,omitempty" desc:"The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive"`
 	*KubeResourceOverride
 }
@@ -475,8 +478,8 @@ type DaemonSetSpec struct {
 
 type GatewayProxyPodTemplate struct {
 	Image                         *Image                `json:"image,omitempty"`
-	HttpPort                      *int                  `json:"httpPort,omitempty" desc:"HTTP port for the gateway service target port"`
-	HttpsPort                     *int                  `json:"httpsPort,omitempty" desc:"HTTPS port for the gateway service target port"`
+	HttpPort                      *int                  `json:"httpPort,omitempty" desc:"HTTP port for the gateway service target port (set to 0 to disable)"`
+	HttpsPort                     *int                  `json:"httpsPort,omitempty" desc:"HTTPS port for the gateway service target port (set to 0 to disable)"`
 	ExtraPorts                    []interface{}         `json:"extraPorts,omitempty" desc:"extra ports for the gateway pod"`
 	ExtraAnnotations              map[string]string     `json:"extraAnnotations,omitempty" desc:"extra annotations to add to the pod"`
 	NodeName                      *string               `json:"nodeName,omitempty" desc:"name of node to run on"`
@@ -539,7 +542,7 @@ type Failover struct {
 
 type AccessLogger struct {
 	Image                        *Image                `json:"image,omitempty"`
-	Port                         *uint                 `json:"port,omitempty"`
+	Port                         *uint                 `json:"port,omitempty" desc:"(set to 0 to disable)"`
 	ServiceName                  *string               `json:"serviceName,omitempty"`
 	Enabled                      *bool                 `json:"enabled,omitempty"`
 	Stats                        *Stats                `json:"stats,omitempty" desc:"overrides for prometheus stats published by the access logging pod"`
@@ -584,8 +587,8 @@ type IngressProxy struct {
 
 type IngressProxyDeployment struct {
 	Image                   *Image            `json:"image,omitempty"`
-	HttpPort                *int              `json:"httpPort,omitempty" desc:"HTTP port for the ingress container"`
-	HttpsPort               *int              `json:"httpsPort,omitempty" desc:"HTTPS port for the ingress container"`
+	HttpPort                *int              `json:"httpPort,omitempty" desc:"HTTP port for the ingress container (set to 0 to disable)"`
+	HttpsPort               *int              `json:"httpsPort,omitempty" desc:"HTTPS port for the ingress container (set to 0 to disable)"`
 	ExtraPorts              []interface{}     `json:"extraPorts,omitempty"`
 	ExtraAnnotations        map[string]string `json:"extraAnnotations,omitempty"`
 	FloatingUserId          *bool             `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
@@ -603,8 +606,8 @@ type Service struct {
 	Type             *string           `json:"type,omitempty" desc:"K8s service type"`
 	ExtraAnnotations map[string]string `json:"extraAnnotations,omitempty" desc:"extra annotations to add to the service"`
 	LoadBalancerIP   *string           `json:"loadBalancerIP,omitempty" desc:"IP address of the load balancer"`
-	HttpPort         *int              `json:"httpPort,omitempty" desc:"HTTP port for the knative/ingress proxy service"`
-	HttpsPort        *int              `json:"httpsPort,omitempty" desc:"HTTPS port for the knative/ingress proxy service"`
+	HttpPort         *int              `json:"httpPort,omitempty" desc:"HTTP port for the knative/ingress proxy service (set to 0 to disable)"`
+	HttpsPort        *int              `json:"httpsPort,omitempty" desc:"HTTPS port for the knative/ingress proxy service (set to 0 to disable)"`
 	*KubeResourceOverride
 }
 

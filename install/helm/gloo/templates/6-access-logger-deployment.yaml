@@ -80,9 +80,11 @@ spec:
           - name: SERVER_PORT
             value: "{{ .Values.accessLogger.port }}"
           ports:
+{{- if .Values.accessLogger.port }}
           - containerPort: {{ .Values.accessLogger.port }}
             name: http
             protocol: TCP
+{{- end }}
 {{- if and $statsConfig.enabled $statsConfig.podMonitorEnabled }}
           - name: http-monitoring
             containerPort: 9091
