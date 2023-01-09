@@ -10,7 +10,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/fgrosse/zaptest"
 	. "github.com/onsi/ginkgo"
@@ -25,6 +28,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/helpers"
+	gloohelpers "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/contextutils"
 	envoy_type "github.com/solo-io/solo-kit/pkg/api/external/envoy/type"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -333,7 +337,7 @@ var _ = Describe("waf", func() {
 				vhost bool
 			)
 
-			prep := func(request, bodypassthrough bool) {
+			prep := func(request, bodypassthrough, configureTls bool) {
 				// make sure body rules are passed through
 				rules := `
 				# Turn rule engine on
@@ -371,6 +375,31 @@ var _ = Describe("waf", func() {
 					proxy = getProxyWaf(envoyPort, testUpstream.Upstream.Metadata.Ref(), wafCfg, nil, nil, nil, nil, nil)
 				}
 
+				if configureTls {
+					// write TLS secret
+					secret := &gloov1.Secret{
+						Metadata: &core.Metadata{
+							Name:      "tls-secret",
+							Namespace: "gloo-system",
+						},
+						Kind: &gloov1.Secret_Tls{
+							Tls: &gloov1.TlsSecret{
+								CertChain:  gloohelpers.Certificate(),
+								PrivateKey: gloohelpers.PrivateKey(),
+							},
+						},
+					}
+					_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{Ctx: ctx})
+					Expect(err).NotTo(HaveOccurred())
+
+					// configure TLS on the proxy
+					proxy.Listeners[0].SslConfigurations = []*gloov1.SslConfig{{
+						SslSecrets: &gloov1.SslConfig_SecretRef{
+							SecretRef: secret.GetMetadata().Ref(),
+						},
+					}}
+				}
+
 				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -387,7 +416,7 @@ var _ = Describe("waf", func() {
 					resp, err := client.Do(&http.Request{
 						Method: http.MethodPost,
 						URL:    reqUrl,
-						Body:   ioutil.NopCloser(bytes.NewBuffer([]byte("nikto"))),
+						Body:   io.NopCloser(bytes.NewBuffer([]byte("nikto"))),
 					})
 					if err != nil {
 						return 0, err
@@ -397,6 +426,45 @@ var _ = Describe("waf", func() {
 					return resp.StatusCode, nil
 				}, "10s", "0.5s")
 			}
+
+			EventuallyWithBodyHttps := func() gomega.AsyncAssertion {
+				return EventuallyWithOffset(1, func() (int, error) {
+					client := http.DefaultClient
+					reqUrl, err := url.Parse(fmt.Sprintf("https://%s:%d/hello/1", "localhost", envoyPort))
+					Expect(err).NotTo(HaveOccurred())
+					resp, err := client.Do(&http.Request{
+						Method: http.MethodPost,
+						URL:    reqUrl,
+						Body:   io.NopCloser(bytes.NewBuffer([]byte("nikto"))),
+					})
+					if err != nil {
+						return 0, err
+					}
+					defer resp.Body.Close()
+					_, _ = io.ReadAll(resp.Body)
+					return resp.StatusCode, nil
+				}, "10s", "0.5s")
+			}
+
+			EventuallyConnectRequest := func() gomega.AsyncAssertion {
+				return EventuallyWithOffset(1, func() (int, error) {
+					// run curl command and check output
+					cmd := exec.Command("curl", "--insecure", "-X", "CONNECT", "--http1.1", "--request-target", fmt.Sprintf("localhost:%d", envoyPort), fmt.Sprintf("https://localhost:%d/hello/1", envoyPort), "-w", "%{http_code}")
+					out, err := cmd.CombinedOutput()
+					if err != nil {
+						return 0, err
+					}
+
+					// get the status code from the last line of the output
+					statusCodeString := strings.Split(string(out), "\n")[len(strings.Split(string(out), "\n"))-1]
+					statusCode, err := strconv.Atoi(statusCodeString)
+					if err != nil {
+						return 0, err
+					}
+					return statusCode, nil
+				}, "3s", "0.5s")
+			}
+
 			Context("on listener", func() {
 				BeforeEach(func() {
 					route = false
@@ -404,21 +472,30 @@ var _ = Describe("waf", func() {
 				})
 
 				It("will reject request body", func() {
-					prep(true, false)
+					prep(true, false, false)
 					EventuallyWithBody().Should(Equal(http.StatusForbidden))
 				})
 				It("will reject response body", func() {
-					prep(false, false)
+					prep(false, false, false)
 					EventuallyWithBody().Should(Equal(http.StatusForbidden))
 				})
 
 				It("will NOT reject request body", func() {
-					prep(true, true)
+					prep(true, true, false)
 					EventuallyWithBody().Should(Equal(http.StatusOK))
 				})
 
+				It("will handle CONNECT request", func() {
+					prep(true, true, true)
+					// validate TLS setup (send request to https port)
+					EventuallyWithBodyHttps().Should(Equal(http.StatusOK))
+
+					// we don't support connect requests in this service, but we should not crash
+					EventuallyConnectRequest().Should(Equal(http.StatusNotFound))
+				})
+
 				It("will NOT reject response body", func() {
-					prep(false, true)
+					prep(false, true, false)
 					EventuallyWithBody().Should(Equal(http.StatusOK))
 				})
 			})
@@ -430,21 +507,21 @@ var _ = Describe("waf", func() {
 				})
 
 				It("will reject request body", func() {
-					prep(true, false)
+					prep(true, false, false)
 					EventuallyWithBody().Should(Equal(http.StatusForbidden))
 				})
 				It("will reject response body", func() {
-					prep(false, false)
+					prep(false, false, false)
 					EventuallyWithBody().Should(Equal(http.StatusForbidden))
 				})
 
 				It("will NOT reject request body", func() {
-					prep(true, true)
+					prep(true, true, false)
 					EventuallyWithBody().Should(Equal(http.StatusOK))
 				})
 
 				It("will NOT reject response body", func() {
-					prep(false, true)
+					prep(false, true, false)
 					EventuallyWithBody().Should(Equal(http.StatusOK))
 				})
 			})
@@ -456,21 +533,21 @@ var _ = Describe("waf", func() {
 				})
 
 				It("will reject request body", func() {
-					prep(true, false)
+					prep(true, false, false)
 					EventuallyWithBody().Should(Equal(http.StatusForbidden))
 				})
 				It("will reject response body", func() {
-					prep(false, false)
+					prep(false, false, false)
 					EventuallyWithBody().Should(Equal(http.StatusForbidden))
 				})
 
 				It("will NOT reject request body", func() {
-					prep(true, true)
+					prep(true, true, false)
 					EventuallyWithBody().Should(Equal(http.StatusOK))
 				})
 
 				It("will NOT reject response body", func() {
-					prep(false, true)
+					prep(false, true, false)
 					EventuallyWithBody().Should(Equal(http.StatusOK))
 				})
 			})
