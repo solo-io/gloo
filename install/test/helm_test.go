@@ -4573,6 +4573,30 @@ metadata:
 						testManifest.ExpectDeploymentAppsV1(glooDeployment)
 					})
 
+					It("Should disable ports when zeroed/toggled", func() {
+						glooDeployment.Spec.Template.Spec.Containers[0].Ports = nil
+						glooDeployment.Spec.Template.Spec.Containers[0].ReadinessProbe = &v1.Probe{
+							Handler: v1.Handler{
+								TCPSocket: &v1.TCPSocketAction{
+									Port: intstr.FromInt(0),
+								},
+							},
+							InitialDelaySeconds: 3,
+							PeriodSeconds:       10,
+							FailureThreshold:    3,
+						}
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"gloo.deployment.xdsPort=0",
+								"gloo.deployment.restXdsPort=0",
+								"gloo.deployment.validationPort=0",
+								"gloo.deployment.proxyDebugPort=0",
+								"gloo.deployment.wasmCachePortExposed=false",
+							},
+						})
+						testManifest.ExpectDeploymentAppsV1(glooDeployment)
+					})
+
 					Context("pass image pull secrets", func() {
 						pullSecretName := "test-pull-secret"
 						pullSecret := []v1.LocalObjectReference{
