@@ -3,6 +3,7 @@ package extauth
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/solo-io/go-utils/contextutils"
@@ -45,7 +46,7 @@ var (
 	}
 )
 
-// Returns {nil, nil} if the input config is empty or if it contains only custom auth entries
+// TranslateExtAuthConfig Returns {nil, nil} if the input config is empty or if it contains only custom auth entries
 func TranslateExtAuthConfig(ctx context.Context, snapshot *v1snap.ApiSnapshot, authConfigRef *core.ResourceRef) (*extauth.ExtAuthConfig, error) {
 	configResource, err := snapshot.AuthConfigs.Find(authConfigRef.Strings())
 	if err != nil {
@@ -67,6 +68,13 @@ func TranslateExtAuthConfig(ctx context.Context, snapshot *v1snap.ApiSnapshot, a
 	if len(translatedConfigs) == 0 {
 		return nil, nil
 	}
+
+	// We sort translatedConfigs to ensure that on each translation run the same configs
+	// hash to the same value. This is one solution to ensure this.
+	// However, we may choose a more robust way of implementing this
+	sort.SliceStable(translatedConfigs, func(i, j int) bool {
+		return translatedConfigs[i].GetName().GetValue() < translatedConfigs[j].GetName().GetValue()
+	})
 
 	return &extauth.ExtAuthConfig{
 		BooleanExpr:       configResource.BooleanExpr,

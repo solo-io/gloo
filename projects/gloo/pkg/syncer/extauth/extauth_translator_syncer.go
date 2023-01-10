@@ -136,7 +136,7 @@ func (s *translatorSyncerExtension) SyncAndSet(
 	}
 
 	var snapshotResources []envoycache.Resource
-	for _, cfg := range ConvertConfigMapToSortedList(helper.translatedConfigs) {
+	for _, cfg := range convertConfigMapToSortedList(helper.translatedConfigs) {
 		resource := extauth.NewExtAuthConfigXdsResourceWrapper(cfg)
 		snapshotResources = append(snapshotResources, resource)
 	}
@@ -211,7 +211,6 @@ func (h *helper) processAuthExtensionConfigRef(ctx context.Context, snap *gloov1
 		contextutils.LoggerFrom(ctx).Warnf("Unable to find referenced auth config %v in snapshot", configRef)
 		reports.AddError(parentProxy, err)
 		return err
-
 	}
 
 	// do validation
@@ -259,11 +258,11 @@ func (h *helper) processAuthExtensionCustomAuth(ctx context.Context, settings *g
 	return nil
 }
 
-// We need a stable ordering of configs. It doesn't really matter what order as long as it's consistent.
+// convertConfigMapToSortedList converts a map of AuthConfigs into a slice with a stable order.
+// It doesn't really matter what order as long as it's consistent.
 // If we don't do this, different orders of configs will produce different
 // hashes, which will trick the system into unnecessarily thinking that we need to update the extauth service.
-// Visible for testing
-func ConvertConfigMapToSortedList(configMap map[string]*extauth.ExtAuthConfig) []*extauth.ExtAuthConfig {
+func convertConfigMapToSortedList(configMap map[string]*extauth.ExtAuthConfig) []*extauth.ExtAuthConfig {
 	// extract values for sorting
 	var configs []*extauth.ExtAuthConfig
 	var configKeys []string

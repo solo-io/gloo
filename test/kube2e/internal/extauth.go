@@ -4,9 +4,22 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/solo-io/gloo/test/gomega/assertions"
+	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
+	"github.com/solo-io/gloo/test/gomega/transforms"
+	"github.com/solo-io/go-utils/stats"
+
+	"github.com/avast/retry-go"
+	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	defaults2 "github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	glooKube2e "github.com/solo-io/gloo/test/kube2e"
 
 	"github.com/solo-io/solo-projects/test/kube2e"
 	"github.com/solo-io/solo-projects/test/services"
@@ -38,11 +51,9 @@ import (
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/k8s-utils/kubeutils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"k8s.io/client-go/rest"
 
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
@@ -87,6 +98,10 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			settingsClient       gloov1.SettingsClient
 			origSettings         *gloov1.Settings // used to capture & restore initial Settings so each test can modify them
 
+			resourceClientset *glooKube2e.KubeResourceClientSet
+			snapshotWriter    helpers.SnapshotWriter
+			glooResources     *gloosnapshot.ApiSnapshot
+
 			err error
 		)
 
@@ -119,54 +134,21 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			cfg, err = kubeutils.GetConfig("", "")
 			Expect(err).NotTo(HaveOccurred())
 
-			kubeClient, err = kubernetes.NewForConfig(cfg)
+			resourceClientset, err = glooKube2e.NewKubeResourceClientSet(ctx, cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			kubeCache := kube.NewKubeCache(ctx)
-			gatewayClientFactory := &factory.KubeResourceClientFactory{
-				Crd:         gatewayv2.GatewayCrd,
-				Cfg:         cfg,
-				SharedCache: kubeCache,
-			}
-			virtualServiceClientFactory := &factory.KubeResourceClientFactory{
-				Crd:         gatewayv1.VirtualServiceCrd,
-				Cfg:         cfg,
-				SharedCache: kubeCache,
-			}
-			proxyClientFactory := &factory.KubeResourceClientFactory{
-				Crd:         gloov1.ProxyCrd,
-				Cfg:         cfg,
-				SharedCache: kubeCache,
-			}
-			authConfigClientFactory := &factory.KubeResourceClientFactory{
-				Crd:         extauthapi.AuthConfigCrd,
-				Cfg:         cfg,
-				SharedCache: kubeCache,
-			}
-			settingsClientFactory := &factory.KubeResourceClientFactory{
-				Crd:         gloov1.SettingsCrd,
-				Cfg:         cfg,
-				SharedCache: kubeCache,
-			}
+			kubeClient = resourceClientset.KubeClients()
+			authConfigClient = resourceClientset.AuthConfigClient()
+			gatewayClient = resourceClientset.GatewayClient()
+			virtualServiceClient = resourceClientset.VirtualServiceClient()
+			proxyClient = resourceClientset.ProxyClient()
+			settingsClient = resourceClientset.SettingsClient()
 
-			authConfigClient, err = extauthapi.NewAuthConfigClient(ctx, authConfigClientFactory)
-			Expect(err).NotTo(HaveOccurred())
-			err = authConfigClient.Register()
-			Expect(err).ToNot(HaveOccurred())
-
-			gatewayClient, err = gatewayv2.NewGatewayClient(ctx, gatewayClientFactory)
-			Expect(err).NotTo(HaveOccurred())
-
-			virtualServiceClient, err = gatewayv1.NewVirtualServiceClient(ctx, virtualServiceClientFactory)
-			Expect(err).NotTo(HaveOccurred())
-			err := virtualServiceClient.Register()
-			Expect(err).NotTo(HaveOccurred())
-
-			proxyClient, err = gloov1.NewProxyClient(ctx, proxyClientFactory)
-			Expect(err).NotTo(HaveOccurred())
-
-			settingsClient, err = gloov1.NewSettingsClient(ctx, settingsClientFactory)
-			Expect(err).NotTo(HaveOccurred(), "Should be able to build a settings client")
+			// Not all tests in this file use the snapshotWriter or glooResources snapshot
+			// The idea is to progressively move towards this model, because it's used in oss
+			// and is easier to set up/teardown resources consistently
+			snapshotWriter = helpers.NewSnapshotWriter(resourceClientset, []retry.Option{})
+			glooResources = &gloosnapshot.ApiSnapshot{}
 		})
 
 		BeforeEach(func() {
@@ -1116,6 +1098,164 @@ func RunExtAuthTests(inputs *ExtAuthTestInputs) {
 			})
 
 		})
+
+		Context("xDS Updates", func() {
+			// These tests validate that we are pushing xDS updates at the proper cadence
+			// Previous bugs caused xDS updates to be more frequent than necessary
+			// These frequent updates don't change the behavior necessarily, but they imply that
+			// we are performing potentially expensive translation cycles that are unnecessary
+
+			const (
+				eastResource    = "east"
+				westResource    = "west"
+				xdsResponseStat = "xds_responses{type=\"type.googleapis.com/enterprise.gloo.solo.io.ExtAuthConfig\"}"
+			)
+
+			var (
+				metricsRequest        *http.Request
+				xdsResponseCountRegex *regexp.Regexp
+				xdsResponseCount      = 0
+			)
+
+			BeforeEach(func() {
+				xdsResponseCountRegex, err = regexp.Compile(fmt.Sprintf("%s ([\\d]+)", xdsResponseStat))
+				Expect(err).NotTo(HaveOccurred())
+
+				metricsRequest, err = http.NewRequest(http.MethodPost, fmt.Sprintf("http://localhost:%d/metrics", stats.DefaultPort), nil)
+				Expect(err).NotTo(HaveOccurred())
+
+				acEast := getComplexAuthConfig(eastResource, defaults2.GlooSystem)
+				vsEast := helpers.NewVirtualServiceBuilder().
+					WithName(eastResource).
+					WithNamespace(defaults2.GlooSystem).
+					WithDomain(eastResource).
+					WithVirtualHostOptions(&gloov1.VirtualHostOptions{
+						Extauth: &extauthapi.ExtAuthExtension{
+							Spec: &extauthapi.ExtAuthExtension_ConfigRef{
+								ConfigRef: acEast.GetMetadata().Ref(),
+							},
+						},
+					}).
+					WithRoutePrefixMatcher("test", "/").
+					WithRouteDirectResponseAction("test", &gloov1.DirectResponseAction{
+						Status: http.StatusOK,
+					}).
+					Build()
+
+				acWest := getComplexAuthConfig(westResource, defaults2.GlooSystem)
+				vsWest := helpers.NewVirtualServiceBuilder().
+					WithName(westResource).
+					WithNamespace(defaults2.GlooSystem).
+					WithDomain(westResource).
+					WithVirtualHostOptions(&gloov1.VirtualHostOptions{
+						Extauth: &extauthapi.ExtAuthExtension{
+							Spec: &extauthapi.ExtAuthExtension_ConfigRef{
+								ConfigRef: acWest.GetMetadata().Ref(),
+							},
+						},
+					}).
+					WithRoutePrefixMatcher("test", "/").
+					WithRouteDirectResponseAction("test", &gloov1.DirectResponseAction{
+						Status: http.StatusOK,
+					}).
+					Build()
+
+				glooResources.AuthConfigs = extauthapi.AuthConfigList{acEast, acWest}
+				glooResources.VirtualServices = gatewayv2.VirtualServiceList{vsEast, vsWest}
+
+				err = snapshotWriter.WriteSnapshot(glooResources, clients.WriteOpts{Ctx: ctx})
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			AfterEach(func() {
+				err = snapshotWriter.DeleteSnapshot(glooResources, clients.DeleteOpts{Ctx: ctx})
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			JustBeforeEach(func() {
+				// Wait for xDS responses to stabilize
+				xdsMetricAssertion, statValue := assertions.IntStatisticReachesConsistentValueAssertion(xdsResponseStat, 2)
+				assertions.EventuallyStatisticsMatchAssertions(assertions.DefaultStatsPortFwd, xdsMetricAssertion)
+
+				// Mark the stable value of that metric. Tests will compare the new count to this value
+				xdsResponseCount = *statValue
+			})
+
+			It("updates to non-authconfig resources do not change xDS request count", func() {
+				vsRefToUpdate := glooResources.VirtualServices[0].GetMetadata().Ref()
+
+				By("Patch the resource to trigger a snapshot sync in the Gloo controller")
+				patchErr := helpers.PatchResource(
+					ctx,
+					vsRefToUpdate,
+					func(resource resources.Resource) resources.Resource {
+						resource.GetMetadata().Labels = map[string]string{
+							"unique-label": "modified",
+						}
+						return resource
+					},
+					resourceClientset.VirtualServiceClient().BaseClient(),
+				)
+				Expect(patchErr).NotTo(HaveOccurred())
+
+				By("Validate that the xDS response count has not changed")
+				assertions.EventuallyStatisticsMatchAssertions(assertions.DefaultStatsPortFwd,
+					Consistently(func(g Gomega) {
+						currentXdsResponseCount := 0
+						g.Expect(http.DefaultClient.Do(metricsRequest)).To(testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+							StatusCode: http.StatusOK,
+							Body: WithTransform(func(body []byte) error {
+								count, transformErr := transforms.IntRegexTransform(xdsResponseCountRegex)(body)
+								currentXdsResponseCount = count
+								return transformErr
+							}, Succeed()),
+						}))
+						g.Expect(currentXdsResponseCount).To(Equal(xdsResponseCount), "xds response count should not change")
+					}, assertions.SafeTimeToSyncStats, "1s"),
+				)
+			})
+
+			It("updates to authconfig resources change xDS request count", func() {
+				authRefToUpdate := glooResources.AuthConfigs[0].GetMetadata().Ref()
+
+				By("Patch the resource to trigger a snapshot sync in the Gloo controller")
+				patchErr := helpers.PatchResource(
+					ctx,
+					authRefToUpdate,
+					func(resource resources.Resource) resources.Resource {
+						authConfig := resource.(*extauthapi.AuthConfig)
+						// Perform a meaningful change to the AuthConfig to ensure that it will result in a different resource hash
+						authConfig.Configs[1].GetOauth2().GetAccessTokenValidation().GetIntrospection().IntrospectionUrl = "introspection-url-modified"
+						return authConfig
+					},
+					resourceClientset.AuthConfigClient().BaseClient(),
+				)
+				Expect(patchErr).NotTo(HaveOccurred())
+
+				By("Validate that the xDS response count has changed")
+				statStabilizesAssertion, _ := assertions.IntStatisticReachesConsistentValueAssertion(xdsResponseStat, 2)
+				assertions.EventuallyStatisticsMatchAssertions(assertions.DefaultStatsPortFwd,
+					// Assert that the statistic has increased
+					Eventually(func(g Gomega) {
+						currentXdsResponseCount := 0
+						g.Expect(http.DefaultClient.Do(metricsRequest)).To(testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+							StatusCode: http.StatusOK,
+							Body: WithTransform(func(body []byte) error {
+								count, transformErr := transforms.IntRegexTransform(xdsResponseCountRegex)(body)
+								currentXdsResponseCount = count
+								return transformErr
+							}, Succeed()),
+						}))
+
+						g.Expect(currentXdsResponseCount).To(BeNumerically(">=", xdsResponseCount+1), "xds response count should increase for resource patch")
+					}, "1m", "1s"),
+					// Assert that after increasing, its stabilizes
+					statStabilizesAssertion,
+				)
+
+			})
+
+		})
 	})
 }
 
@@ -1217,6 +1357,53 @@ func buildBasicAuthConfig(name, namespace string, users map[string]*extauthapi.B
 				},
 			},
 		}},
+	}
+}
+
+func getComplexAuthConfig(name, namespace string) *extauthapi.AuthConfig {
+	return &extauthapi.AuthConfig{
+		Metadata: &core.Metadata{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Configs: []*extauthapi.AuthConfig_Config{
+			{
+				Name: &wrappers.StringValue{Value: "jwt"},
+				AuthConfig: &extauthapi.AuthConfig_Config_Jwt{
+					Jwt: &empty.Empty{},
+				},
+			},
+			{
+				Name: &wrappers.StringValue{Value: "oauth"},
+				AuthConfig: &extauthapi.AuthConfig_Config_Oauth2{
+					Oauth2: &extauthapi.OAuth2{
+						OauthType: &extauthapi.OAuth2_AccessTokenValidation{
+							AccessTokenValidation: &extauthapi.AccessTokenValidation{
+								ValidationType: &extauthapi.AccessTokenValidation_Introspection{
+									Introspection: &extauthapi.IntrospectionValidation{
+										IntrospectionUrl: fmt.Sprintf("fake-url-%s", name),
+									},
+								},
+								UserinfoUrl: fmt.Sprintf("fake-url-%s", name),
+							},
+						},
+					},
+				},
+			},
+			{
+				Name: &wrappers.StringValue{Value: "passthrough"},
+				AuthConfig: &extauthapi.AuthConfig_Config_PassThroughAuth{
+					PassThroughAuth: &extauthapi.PassThroughAuth{
+						FailureModeAllow: true,
+						Protocol: &extauthapi.PassThroughAuth_Grpc{
+							Grpc: &extauthapi.PassThroughGrpc{
+								Address: fmt.Sprintf("passthrough-%s", name),
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 }
 

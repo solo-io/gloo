@@ -235,9 +235,7 @@ var _ = Describe("External auth", func() {
 		})
 
 		AfterEach(func() {
-			if envoyInstance != nil {
-				_ = envoyInstance.Clean()
-			}
+			_ = envoyInstance.Clean()
 		})
 
 		var basicConfigSetup = func() {

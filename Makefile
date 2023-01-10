@@ -155,6 +155,10 @@ clean-fed: clean-artifacts clean-generated-protos
 	rm -rf $(ROOTDIR)/projects/glooctl-plugins/fed/pkg/api
 	rm -rf $(ROOTDIR)/projects/apiserver/server/services/single_cluster_resource_handler/*
 
+.PHONY: test
+test: install-test-tools ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
+	$(GINKGO_ENV) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -failFast -trace -progress -compilers=4 -failOnPending -noColor -randomizeSuites -randomizeAllSpecs -r $(TEST_PKG)
+
 .PHONY: run-tests
 run-tests: install-node-packages ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
 ifneq ($(RELEASE), "true")

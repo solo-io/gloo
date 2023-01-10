@@ -1,0 +1,15 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/7546
+    description: >
+      ExtAuth only pushes updates via xDS when the set of AuthConfigs has changed.
+      Previously, an AuthConfig with multiple definitions would cause the hash of the
+      snapshot to change on each translation run.
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/6598
+    description: >
+      Ensure that unmatched AuthConfigs at both VS and RT level do not cause extauth to loop loading config
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.14.0-beta45
