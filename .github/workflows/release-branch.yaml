@@ -1,3 +1,5 @@
+name: Create Test Release
+
 on:
   workflow_dispatch:
     inputs:

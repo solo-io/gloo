@@ -5,8 +5,9 @@
 #   * helm chart:       https://console.cloud.google.com/storage/browser/gloo-ee-test-helm
 # ...based on the current branch
 # --------------------------------------
-VERSION=$(go run .github/workflows/helpers/find-latest-local-version.go)-$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
-# for example: VERSION=$(1.14.0-beta2)-$(4052-one-click)-$(7c8df00ef)
+BRANCH=$(echo $(git rev-parse --abbrev-ref HEAD) | tr -d '0123456789/.')
+VERSION=$(go run .github/workflows/helpers/find-latest-local-version.go)-b$BRANCH-$(git rev-parse --short HEAD)
+# for example: VERSION=$(1.14.0-beta2)-b$(-one-click)-$(7c8df00ef)
 HELM_BUCKET="gs://gloo-ee-test-helm"
 HELM_SYNC_DIR="_output/helm_gloo_fed"
 HELM_DIR="install/helm"
