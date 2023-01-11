@@ -1081,7 +1081,6 @@ var _ = Describe("Helm Test", func() {
 							fmt.Sprintf("gatewayProxies.gatewayProxy.podTemplate.httpPort=%d", httpPort),
 							fmt.Sprintf("gatewayProxies.gatewayProxy.podTemplate.httpsPort=%d", httpsPort),
 							//shortcut to get a proxy with a name and mostly default values but avoid hiding any bugs around needing to set disabled=false
-							fmt.Sprintf("gatewayProxies.namedGatewayProxy.logLevel=debug"),
 							fmt.Sprintf("gatewayProxies.secondGatewayProxy.podTemplate.httpPort=%d", secondDeploymentHttpPort),
 							fmt.Sprintf("gatewayProxies.secondGatewayProxy.podTemplate.httpsPort=%d", secondDeploymentHttpsPort),
 						},
@@ -1133,7 +1132,6 @@ var _ = Describe("Helm Test", func() {
 							fmt.Sprintf("gatewayProxies.gatewayProxy.podTemplate.httpPort=%d", httpPort),
 							fmt.Sprintf("gatewayProxies.gatewayProxy.podTemplate.httpsPort=%d", httpsPort),
 							//shortcut to get a proxy with a name and mostly default values but avoid hiding any bugs around needing to set disabled=false
-							fmt.Sprintf("gatewayProxies.namedGatewayProxy.logLevel=debug"),
 							fmt.Sprintf("gatewayProxies.secondGatewayProxy.podTemplate.httpPort=%d", secondDeploymentHttpPort),
 							fmt.Sprintf("gatewayProxies.secondGatewayProxy.podTemplate.httpsPort=%d", secondDeploymentHttpsPort),
 						},
@@ -3531,18 +3529,6 @@ spec:
 						})
 						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})
-
-					It("can set log level env var", func() {
-						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Env = append(
-							gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Env,
-							GetLogLevelEnvVar(),
-						)
-						prepareMakefile(namespace, helmValues{
-							valuesArgs: []string{"gatewayProxies.gatewayProxy.logLevel=debug"},
-						})
-						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
-					})
-
 					It("can accept extra env vars", func() {
 						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Env = append(
 							[]v1.EnvVar{GetTestExtraEnvVar()},
