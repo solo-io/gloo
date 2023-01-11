@@ -69,11 +69,9 @@ spec:
         - containerPort: {{ .Values.settings.integrations.knative.proxy.httpPort }}
           name: http
           protocol: TCP
-{{- if .Values.settings.integrations.knative.proxy.httpsPort }}
         - containerPort: {{ .Values.settings.integrations.knative.proxy.httpsPort }}
           name: https
           protocol: TCP
-{{- end}}
         volumeMounts:
         - mountPath: /etc/envoy
           name: envoy-config
