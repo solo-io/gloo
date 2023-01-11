@@ -5480,7 +5480,7 @@ metadata:
 				})
 			})
 
-			FDescribe("merge ingress and gateway", func() {
+			Describe("merge ingress and gateway", func() {
 
 				// helper for passing a values file
 				prepareMakefileFromValuesFile := func(valuesFile string) {
