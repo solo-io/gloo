@@ -84,6 +84,26 @@ func ConvertKubeResource(unst *unstructured.Unstructured, res resources.Resource
 
 var _ = Describe("Helm Test", func() {
 
+	deploymentContainsMonitoringPort := func(deployment *appsv1.Deployment) bool {
+		for _, container := range deployment.Spec.Template.Spec.Containers {
+			for _, containerPort := range container.Ports {
+				if containerPort.Name == "http-monitoring" {
+					return true
+				}
+			}
+		}
+		return false
+	}
+
+	serviceContainsMonitoringPort := func(service *v1.Service) bool {
+		for _, servicePort := range service.Spec.Ports {
+			if servicePort.Name == "http-monitoring" {
+				return true
+			}
+		}
+		return false
+	}
+
 	var allTests = func(rendererTestCase renderTestCase) {
 		var (
 			glooPorts = []v1.ContainerPort{
@@ -248,7 +268,7 @@ var _ = Describe("Helm Test", func() {
 					// custom labeling, unless those deployments aren't enabled by default (like the accessLogger).
 					// Note: test panics if values-template.yaml doesn't contain at least an empty definition
 					// of each label object that's modified here.
-					// Note note: Update number in final expectation if you add new labels here.
+					// Note: Update number in final expectation if you add new labels here.
 					prepareMakefile(namespace, helmValues{
 						valuesArgs: []string{
 							"gloo.deployment.extraGlooLabels.foo=bar",
@@ -512,26 +532,6 @@ var _ = Describe("Helm Test", func() {
 					prepareMakefileFromValuesFile("values/val_consul_discovery_test_inputs.yaml")
 					testManifest.ExpectUnstructured(settings.GetKind(), settings.GetNamespace(), settings.GetName()).To(BeEquivalentTo(settings))
 				})
-
-				deploymentContainsMonitoringPort := func(deployment *appsv1.Deployment) bool {
-					for _, container := range deployment.Spec.Template.Spec.Containers {
-						for _, containerPort := range container.Ports {
-							if containerPort.Name == "http-monitoring" {
-								return true
-							}
-						}
-					}
-					return false
-				}
-
-				serviceContainsMonitoringPort := func(service *v1.Service) bool {
-					for _, servicePort := range service.Spec.Ports {
-						if servicePort.Name == "http-monitoring" {
-							return true
-						}
-					}
-					return false
-				}
 
 				It("should be able to override global defaults", func() {
 					prepareMakefile(namespace, helmValues{
@@ -1312,73 +1312,100 @@ var _ = Describe("Helm Test", func() {
 						}
 					})
 
-					It("can create an access logging deployment/service", func() {
-						prepareMakefileFromValuesFile("values/val_access_logger.yaml")
-						container := GetQuayContainerSpec("access-logger", version, GetPodNamespaceEnvVar(), GetPodNameEnvVar(),
-							v1.EnvVar{
+					FContext("access logging deployment/service", func() {
+						var (
+							dep *appsv1.Deployment
+							svc *v1.Service
+						)
+						BeforeEach(func() {
+							prepareMakefileFromValuesFile("values/val_access_logger.yaml")
+							container := GetQuayContainerSpec("access-logger", version, GetPodNamespaceEnvVar(), GetPodNameEnvVar(),
+								v1.EnvVar{
+									Name:  "SERVICE_NAME",
+									Value: "AccessLog",
+								},
+								v1.EnvVar{
+									Name:  "SERVER_PORT",
+									Value: "8083",
+								},
+							)
+							container.PullPolicy = "IfNotPresent"
+							svcBuilder := &ResourceBuilder{
+								Namespace:  namespace,
+								Name:       accessLoggerName,
+								Labels:     cloneMap(labels),
+								Containers: []ContainerSpec{container},
+								Service: ServiceSpec{
+									Ports: []PortSpec{
+										{
+											Name: "http",
+											Port: 8083,
+										},
+									},
+								},
+							}
+							svc = svcBuilder.GetService()
+							svc.Spec.Selector = map[string]string{
+								"app":  "gloo",
+								"gloo": "gateway-proxy-access-logger",
+							}
+							svc.Spec.Type = ""
+							svc.Spec.Ports[0].TargetPort = intstr.FromInt(8083)
+							svc.Spec.Selector = cloneMap(labels)
+
+							deploymentBuilder := &ResourceBuilder{
+								Namespace:  namespace,
+								Name:       accessLoggerName,
+								Labels:     cloneMap(labels),
+								Containers: []ContainerSpec{container},
+								Service: ServiceSpec{
+									Ports: []PortSpec{
+										{
+											Name: "http",
+											Port: 8083,
+										},
+									},
+								},
+							}
+							dep = deploymentBuilder.GetDeploymentAppsv1()
+							dep.Spec.Template.ObjectMeta.Labels = cloneMap(labels)
+							dep.Spec.Selector.MatchLabels = cloneMap(labels)
+							dep.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{
+								{Name: "http", ContainerPort: 8083, Protocol: "TCP"},
+							}
+							dep.Spec.Template.Annotations = statsAnnotations
+							dep.Spec.Template.Spec.ServiceAccountName = "gateway-proxy"
+
+							truez := true
+							defaultUser := int64(10101)
+							dep.Spec.Template.Spec.SecurityContext = &v1.PodSecurityContext{
+								RunAsUser:    &defaultUser,
+								RunAsNonRoot: &truez,
+							}
+						})
+						It("can create an access logging deployment/service", func() {
+							testManifest.ExpectDeploymentAppsV1(dep)
+							testManifest.ExpectService(svc)
+						})
+						It("disables port on access-logger service if set to 0", func() {
+							prepareMakefile(namespace, helmValues{
+								valuesArgs: []string{
+									"accessLogger.enabled=true",
+									"accessLogger.port=0",
+								},
+							})
+							svc.Spec.Ports = nil
+							dep.Spec.Template.Spec.Containers[0].Env = append(dep.Spec.Template.Spec.Containers[0].Env[0:2], v1.EnvVar{
 								Name:  "SERVICE_NAME",
 								Value: "AccessLog",
-							},
-							v1.EnvVar{
+							}, v1.EnvVar{
 								Name:  "SERVER_PORT",
-								Value: "8083",
-							},
-						)
-						container.PullPolicy = "IfNotPresent"
-						svcBuilder := &ResourceBuilder{
-							Namespace:  namespace,
-							Name:       accessLoggerName,
-							Labels:     cloneMap(labels),
-							Containers: []ContainerSpec{container},
-							Service: ServiceSpec{
-								Ports: []PortSpec{
-									{
-										Name: "http",
-										Port: 8083,
-									},
-								},
-							},
-						}
-						svc := svcBuilder.GetService()
-						svc.Spec.Selector = map[string]string{
-							"app":  "gloo",
-							"gloo": "gateway-proxy-access-logger",
-						}
-						svc.Spec.Type = ""
-						svc.Spec.Ports[0].TargetPort = intstr.FromInt(8083)
-						svc.Spec.Selector = cloneMap(labels)
-
-						deploymentBuilder := &ResourceBuilder{
-							Namespace:  namespace,
-							Name:       accessLoggerName,
-							Labels:     cloneMap(labels),
-							Containers: []ContainerSpec{container},
-							Service: ServiceSpec{
-								Ports: []PortSpec{
-									{
-										Name: "http",
-										Port: 8083,
-									},
-								},
-							},
-						}
-						dep := deploymentBuilder.GetDeploymentAppsv1()
-						dep.Spec.Template.ObjectMeta.Labels = cloneMap(labels)
-						dep.Spec.Selector.MatchLabels = cloneMap(labels)
-						dep.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{
-							{Name: "http", ContainerPort: 8083, Protocol: "TCP"},
-						}
-						dep.Spec.Template.Annotations = statsAnnotations
-						dep.Spec.Template.Spec.ServiceAccountName = "gateway-proxy"
-
-						truez := true
-						defaultUser := int64(10101)
-						dep.Spec.Template.Spec.SecurityContext = &v1.PodSecurityContext{
-							RunAsUser:    &defaultUser,
-							RunAsNonRoot: &truez,
-						}
-						testManifest.ExpectDeploymentAppsV1(dep)
-						testManifest.ExpectService(svc)
+								Value: "0",
+							})
+							dep.Spec.Template.Spec.Containers[0].Ports = nil
+							testManifest.ExpectDeploymentAppsV1(dep)
+							testManifest.ExpectService(svc)
+						})
 					})
 
 					It("has a proxy with access logging cluster", func() {
@@ -2604,6 +2631,62 @@ spec:
 						testManifest.ExpectService(gatewayProxyService)
 					})
 
+					It("Should disable ports when zeroed/toggled for gateway-proxy-service", func() {
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"gateway.enabled=true",
+
+								"global.glooStats.enabled=true",
+								"global.glooStats.serviceMonitorEnabled=false",
+								"global.glooStats.podMonitorEnabled=false",
+
+								"gatewayProxies.gatewayProxy.failover.enabled=true",
+								"gatewayProxies.gatewayProxy.failover.port=0",
+								"gatewayProxies.gatewayProxy.service.httpPort=0",
+								"gatewayProxies.gatewayProxy.service.httpsPort=0",
+
+								"gatewayProxies.gatewayProxy.readConfig=true",
+								"gatewayProxies.gatewayProxy.readConfigMulticluster=true",
+								"gatewayProxies.gatewayProxy.configDumpServicePortExposed=false",
+							},
+						})
+						serviceLabels := map[string]string{
+							"app":              "gloo",
+							"gloo":             "gateway-proxy",
+							"gateway-proxy-id": "gateway-proxy",
+						}
+						serviceSelector := map[string]string{
+							"gloo":             "gateway-proxy",
+							"gateway-proxy-id": "gateway-proxy",
+						}
+						rb := ResourceBuilder{
+							Namespace: namespace,
+							Name:      "gateway-proxy-config-dump-service",
+							Args:      nil,
+							Labels:    serviceLabels,
+						}
+						gatewayProxyConfigDumpService := rb.GetService()
+						gatewayProxyConfigDumpService.Spec.Selector = serviceSelector
+						gatewayProxyConfigDumpService.Spec.Ports = nil
+						gatewayProxyConfigDumpService.Spec.Type = v1.ServiceTypeClusterIP
+						testManifest.ExpectService(gatewayProxyConfigDumpService)
+
+						rb = ResourceBuilder{
+							Namespace: namespace,
+							Name:      "gateway-proxy-monitoring-service",
+							Args:      nil,
+							Labels:    serviceLabels,
+						}
+						gatewayProxyMonitoringService := rb.GetService()
+						gatewayProxyMonitoringService.Spec.Selector = serviceSelector
+						gatewayProxyMonitoringService.Spec.Ports = nil
+						gatewayProxyMonitoringService.Spec.Type = v1.ServiceTypeClusterIP
+						testManifest.Expect("Service", gatewayProxyMonitoringService.Namespace, gatewayProxyMonitoringService.Name).To(BeNil())
+
+						gatewayProxyService.Spec.Ports = nil
+						testManifest.ExpectService(gatewayProxyService)
+					})
+
 					It("adds failover port", func() {
 						gatewayProxyService.Spec.Ports = append(gatewayProxyService.Spec.Ports, v1.ServicePort{
 							Name:     "failover",
@@ -2806,7 +2889,7 @@ spec:
 							},
 						})
 						deploymentName := "gateway-proxy-internal"
-						// deployment exists for for second declaration of gateway proxy
+						// deployment exists for second declaration of gateway proxy
 						testManifest.Expect("Deployment", namespace, deploymentName).NotTo(BeNil())
 						testManifest.Expect("Deployment", namespace, "gateway-proxy").NotTo(BeNil())
 					})
@@ -3583,6 +3666,18 @@ spec:
 						Expect(customPort.TargetPort.IntVal).To(Equal(testTargetPort))
 					})
 
+					It("Should disable ports when zeroed/toggled", func() {
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"gatewayProxies.gatewayProxy.podTemplate.httpPort=0",
+								"gatewayProxies.gatewayProxy.podTemplate.httpsPort=0",
+								"global.istioSDS.enabled=false",
+							},
+						})
+						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Ports = nil
+						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+					})
+
 					It("does not disable gateway proxy", func() {
 						prepareMakefile(namespace, helmValues{
 							valuesArgs: []string{"gatewayProxies.gatewayProxy.disabled=false"},
@@ -3698,6 +3793,37 @@ spec:
 `)
 
 						prepareMakefile(namespace, helmValues{})
+						testManifest.ExpectUnstructured(glooService.GetKind(), glooService.GetNamespace(), glooService.GetName()).To(BeEquivalentTo(glooService))
+
+					})
+
+					It("Should disable ports when zeroed/toggled on gloo service", func() {
+						glooService := makeUnstructured(`
+---
+# Source: gloo/templates/2-gloo-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gloo
+    gloo: gloo
+  name: gloo
+  namespace: ` + namespace + `
+spec:
+  ports: null
+  selector:
+    gloo: gloo
+`)
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"gloo.deployment.xdsPort=0",
+								"gloo.deployment.restXdsPort=0",
+								"gloo.deployment.validationPort=0",
+								"gloo.deployment.proxyDebugPort=0",
+								"gloo.deployment.wasmCachePortExposed=false",
+								"gateway.validation.enabled=false",
+							},
+						})
 						testManifest.ExpectUnstructured(glooService.GetKind(), glooService.GetNamespace(), glooService.GetName()).To(BeEquivalentTo(glooService))
 
 					})
@@ -5295,6 +5421,18 @@ metadata:
 					testManifest.ExpectService(ingressProxyService)
 				})
 
+				It("Should disable ports when zeroed/toggled", func() {
+					prepareMakefile(namespace, helmValues{
+						valuesArgs: []string{
+							"ingress.enabled=true",
+							"ingressProxy.service.httpPort=0",
+							"ingressProxy.service.httpsPort=0",
+						},
+					})
+					ingressProxyService.Spec.Ports = nil
+					testManifest.ExpectService(ingressProxyService)
+				})
+
 				It("sets type", func() {
 					ingressProxyService.Spec.Type = v1.ServiceTypeNodePort
 					prepareMakefile(namespace, helmValues{
@@ -5342,7 +5480,7 @@ metadata:
 				})
 			})
 
-			Describe("merge ingress and gateway", func() {
+			FDescribe("merge ingress and gateway", func() {
 
 				// helper for passing a values file
 				prepareMakefileFromValuesFile := func(valuesFile string) {

@@ -354,13 +354,11 @@ spec:
           name: istio-certs
         - mountPath: /etc/envoy
           name: envoy-config
-{{- end }}
         ports:
-        {{- if $global.istioSDS.enabled }}
         - containerPort: 8234
           name: sds
           protocol: TCP
-        {{- end }}
+{{- end }}
         readinessProbe:
           tcpSocket:
             port: 8234

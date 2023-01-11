@@ -240,7 +240,7 @@ type GlooDeployment struct {
 	RestXdsPort           *uint32           `json:"restXdsPort,omitempty" desc:"port where gloo serves REST xDS API to Envoy (set to 0 to disable)"`
 	ValidationPort        *int              `json:"validationPort,omitempty" desc:"port where gloo serves gRPC Proxy Validation to Gateway (set to 0 to disable)"`
 	ProxyDebugPort        *int              `json:"proxyDebugPort,omitempty" desc:"port where gloo serves gRPC Proxy contents to glooctl (set to 0 to disable)"`
-	WasmCachePortExposed  *bool             `json:"wasmCachePortExposed, omitempty" desc:""`
+	WasmCachePortExposed  *bool             `json:"wasmCachePortExposed, omitempty" desc:"Setting this field to false disables wasm-cache on port 9979. Default is true"`
 	Stats                 *Stats            `json:"stats,omitempty" desc:"overrides for prometheus stats published by the gloo pod"`
 	FloatingUserId        *bool             `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
 	RunAsUser             *float64          `json:"runAsUser,omitempty" desc:"Explicitly set the user ID for the processes in the container to run as. Default is 10101."`
@@ -422,8 +422,7 @@ type GatewayProxy struct {
 	LogLevel                       *string                      `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info"`
 	XdsServiceAddress              *string                      `json:"xdsServiceAddress,omitempty" desc:"The k8s service name for the xds server. Defaults to gloo."`
 	XdsServicePort                 *uint32                      `json:"xdsServicePort,omitempty" desc:"The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay."`
-	MonitoringPortExposed          *bool                        `json:"monitoringPortExposed,omitempty"`
-	ConfigDumpServicePortExposed   *bool                        `json:"configDumpServicePortExposed,omitempty"`
+	ConfigDumpServicePortExposed   *bool                        `json:"configDumpServicePortExposed,omitempty" desc:"Setting this field to false disables gateway-proxy-config-dump-service on port 8082. Default is true"`
 	TcpKeepaliveTimeSeconds        *uint32                      `json:"tcpKeepaliveTimeSeconds,omitempty" desc:"The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive"`
 	*KubeResourceOverride
 }
@@ -533,7 +532,7 @@ type Tracing struct {
 }
 
 type Failover struct {
-	Enabled    *bool   `json:"enabled,omitempty" desc:"(Enterprise Only): Configure this proxy for failover"`
+	Enabled    *bool   `json:"enabled,omitempty" desc:"(Enterprise Only): Configure this proxy for failover (note: setting the port to 0 will disable failover)"`
 	Port       *uint   `json:"port,omitempty" desc:"(Enterprise Only): Port to use for failover Gateway Bind port, and service. Default is 15443"`
 	NodePort   *uint   `json:"nodePort,omitempty" desc:"(Enterprise Only): Optional NodePort for failover Service"`
 	SecretName *string `json:"secretName,omitempty" desc:"(Enterprise Only): Secret containing downstream Ssl Secrets Default is failover-downstream"`
@@ -652,7 +651,7 @@ type IstioProxyContainer struct {
 }
 
 type IstioSDS struct {
-	Enabled        *bool         `json:"enabled,omitempty" desc:"Enables SDS cert-rotator sidecar for istio mTLS cert rotation"`
+	Enabled        *bool         `json:"enabled,omitempty" desc:"Enables SDS cert-rotator sidecar (and corresponding port) for istio mTLS cert rotation"`
 	CustomSidecars []interface{} `json:"customSidecars,omitempty" desc:"Override the default Istio sidecar in gateway-proxy with a custom container. Ignored if IstioSDS.enabled is false"`
 }
 

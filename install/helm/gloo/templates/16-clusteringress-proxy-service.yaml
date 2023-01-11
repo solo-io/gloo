@@ -11,18 +11,14 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
-{{- if .Values.settings.integrations.knative.proxy.service.httpPort }}
   - port: {{ .Values.settings.integrations.knative.proxy.service.httpPort }}
     targetPort: {{ .Values.settings.integrations.knative.proxy.httpPort }}
     protocol: TCP
     name: http
-{{- end}}
-{{- if .Values.settings.integrations.knative.proxy.service.httpsPort }}
   - port: {{ .Values.settings.integrations.knative.proxy.service.httpsPort }}
     targetPort: {{ .Values.settings.integrations.knative.proxy.httpsPort }}
     protocol: TCP
     name: https
-{{- end}}
   selector:
     gloo: clusteringress-proxy
   type: {{ .Values.settings.integrations.knative.proxy.service.type }}

@@ -116,7 +116,7 @@ spec:
   selector:
     gloo: gateway-proxy
     gateway-proxy-id: {{ $name | kebabcase }}
-{{- if .Values.gatewayProxies.gatewayProxy.monitoringPortExposed }}
+{{- if .Values.gatewayProxies.gatewayProxy.configDumpServicePortExposed }}
   ports:
     - protocol: TCP
       port: 8082
@@ -141,7 +141,7 @@ spec:
   selector:
     gloo: gateway-proxy
     gateway-proxy-id: {{ $name | kebabcase }}
-{{- if .Values.gatewayProxies.gatewayProxy.monitoringPortExposed }}
+{{- if and .Values.global.glooStats.enabled .Values.global.glooStats.serviceMonitorEnabled }}
   ports:
     - name: http-monitoring
       port: 8081
