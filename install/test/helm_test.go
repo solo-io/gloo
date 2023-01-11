@@ -1312,7 +1312,7 @@ var _ = Describe("Helm Test", func() {
 						}
 					})
 
-					FContext("access logging deployment/service", func() {
+					Context("access logging deployment/service", func() {
 						var (
 							dep *appsv1.Deployment
 							svc *v1.Service
