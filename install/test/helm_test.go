@@ -1395,13 +1395,15 @@ var _ = Describe("Helm Test", func() {
 								},
 							})
 							svc.Spec.Ports = nil
-							dep.Spec.Template.Spec.Containers[0].Env = append(dep.Spec.Template.Spec.Containers[0].Env[0:2], v1.EnvVar{
-								Name:  "SERVICE_NAME",
-								Value: "AccessLog",
-							}, v1.EnvVar{
-								Name:  "SERVER_PORT",
-								Value: "0",
-							})
+							dep.Spec.Template.Spec.Containers[0].Env = []v1.EnvVar{
+								GetPodNamespaceEnvVar(),
+								GetPodNameEnvVar(), {
+									Name:  "SERVICE_NAME",
+									Value: "AccessLog",
+								}, {
+									Name:  "SERVER_PORT",
+									Value: "0",
+								}}
 							dep.Spec.Template.Spec.Containers[0].Ports = nil
 							testManifest.ExpectDeploymentAppsV1(dep)
 							testManifest.ExpectService(svc)
