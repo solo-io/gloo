@@ -1,6 +1,0 @@
-changelog:
-  - type: HELM
-    description: >
-       Remove `gloo.gatewayProxies.gatewayProxy.logLevel` which had no effect on the log level of the gateway proxy. If you want to set the gateway-proxy log level, you should use `gloo. gatewayProxies.gatewayProxy.envoyLogLevel`
-    issueLink: https://github.com/solo-io/gloo/issues/5477
-    resolvesIssue: false
