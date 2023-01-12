@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/5728
+    description: >
+      Fix flake in CI with Ext Auth container crash.

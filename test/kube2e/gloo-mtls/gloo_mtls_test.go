@@ -92,28 +92,57 @@ var _ = Describe("Installing gloo in gloo mtls mode", func() {
 	It("can recover from the ext-auth sidecar container being deleted", func() {
 		podName, err := services.GetGatewayPodName()
 		Expect(err).ToNot(HaveOccurred())
-		// it takes 2 requests to kill the container un-gracefully
-		_, err = services.KubectlOut("exec", "-n", testHelper.InstallNamespace, podName, "-c", "extauth", "--", "kill", "1")
-		Expect(err).ToNot(HaveOccurred())
-		_, err = services.KubectlOut("exec", "-n", testHelper.InstallNamespace, podName, "-c", "extauth", "--", "kill", "1")
-		Expect(err).ToNot(HaveOccurred())
-
-		Eventually(func() bool {
-			ready, err := services.PodIsReady(ctx, testHelper.InstallNamespace, podName)
-			if err != nil {
-				return true
-			}
-			return ready
-		}, "2s", "0.1s").Should(Equal(false))
-
+		// getting out of memory issue on CI containers, try to attempt multiple times
+		numOfAttempts := 5
+		// if we successfully kill the container, then the container will be in a bad state and is not ready
+		result := eventuallyKillExtAuthSideCarUnGracefully(ctx, podName, numOfAttempts)
+		Expect(result).To(Equal(true))
+		eventuallyPodWillBeNonReady(ctx, podName)
 		// after some time kubernetes will repost the container, and this should resolve with a ready status
-		Eventually(func() bool {
-			ready, err := services.PodIsReady(ctx, testHelper.InstallNamespace, podName)
-			if err != nil {
-				return false
-			}
-			return ready
-		}, "15s", "1s").Should(Equal(true))
+		eventuallyPodWillBeReady(ctx, podName)
 	})
 
 })
+
+func killExtAuthSideCarContainer(podName string) bool {
+	// it takes 2 requests to kill the container un-gracefully
+	// it takes some time for the extauth container to be ready
+	Eventually(func(g Gomega) {
+		_, err := services.KubectlOut("exec", "-n", testHelper.InstallNamespace, podName, "-c", "extauth", "--", "kill", "1")
+		g.Expect(err).ToNot(HaveOccurred())
+	}, "5s", "1s")
+	_, err := services.KubectlOut("exec", "-n", testHelper.InstallNamespace, podName, "-c", "extauth", "--", "kill", "1")
+	return err == nil
+}
+
+func eventuallyKillExtAuthSideCarUnGracefully(ctx context.Context, podName string, attempts int) bool {
+	for i := 0; i < attempts; i++ {
+		result := killExtAuthSideCarContainer(podName)
+		if result {
+			return true
+		} else {
+			eventuallyPodWillBeNonReady(ctx, podName)
+			// not sure if the container will fix itself... as it should
+			eventuallyPodWillBeReady(ctx, podName)
+		}
+	}
+	return false
+}
+
+func eventuallyPodWillBeReady(ctx context.Context, podName string) {
+	eventuallyPodWillReachReadyState(ctx, podName, true)
+}
+
+func eventuallyPodWillBeNonReady(ctx context.Context, podName string) {
+	eventuallyPodWillReachReadyState(ctx, podName, false)
+}
+
+func eventuallyPodWillReachReadyState(ctx context.Context, podName string, readyState bool) {
+	Eventually(func() bool {
+		ready, err := services.PodIsReady(ctx, testHelper.InstallNamespace, podName)
+		if err != nil {
+			return false
+		}
+		return ready
+	}, "15s", time.Millisecond*50).Should(Equal(readyState))
+}
