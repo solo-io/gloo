@@ -1,9 +1,11 @@
 name: Enterprise Nightly Tests
+
 on:
   schedule:
     # run Monday-Friday mornings 1 AM eastern (1 hour after gloo oss tests run)
     - cron: "0 6 * * 1-5"
   workflow_dispatch:
+
 env:
   HELM_VERSION: 'v3.6.0'
   GLOO_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
@@ -14,9 +16,8 @@ env:
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
   # Results are posted to #edge-nightly-results
   SLACK_CHANNEL: "C04CJMXAH7A"
+
 jobs:
-
-
   regression_tests:
     name: k8s nightly tests
     runs-on: ubuntu-22.04
@@ -115,21 +116,35 @@ jobs:
           # see what's in the cluster if we failed
           kubectl get all -A
           kubectl get configmaps -A
-      - name: Send Fail Message
-        id: message-on-failure
-        if: ${{ failure() && github.event.schedule }}
-        shell: bash
+      - name: save results
+        if: ${{ failure() }}
+        run: echo '{"url":"https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}",
+                "name":"${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}}"}' > test-out.json
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: ${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}}
+          path: test-out.json
+          if-no-files-found: warn
+
+  publish_results:
+    runs-on: ubuntu-22.04
+    if: ${{ always() }}
+    needs: [ regression_tests ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.18.2
+      - uses: actions/download-artifact@v3
+      - name: send slack message
+        env:
+          PARENT_JOB_URL: https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}} # parent job hyperlink
+          PREAMBLE: "Gloo EE nightlies (dev)" # text to hyperlink at start of slack message
+          SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
+          SLACK_CHANNEL: "C04CJMXAH7A"  #edge-nightly-results
+          # SLACK_CHANNEL: "C0314KESVNV"  #slack-integration-testing
         run: |
-          curl -X POST https://slack.com/api/chat.postMessage\
-                -H "Content-Type: application/json; charset=utf-8"\
-                -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
-                -d '{"channel":"${{ env.SLACK_CHANNEL }}","text":":red_circle: ${{ matrix.kube-e2e-test-type.test }} failed on k8s ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'
-      - name: Send Success Message
-        id: message-on-success
-        if: ${{ success() && github.event.schedule }}
-        shell: bash
-        run: |
-          curl -X POST https://slack.com/api/chat.postMessage\
-             -H "Content-Type: application/json; charset=utf-8"\
-             -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
-             -d '{"channel":"${{ env.SLACK_CHANNEL }}","text":":large_green_circle: ${{ matrix.kube-e2e-test-type.test }} succeeded on k8s ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'
+          test_results="$(cat */test-out.json | jq -c --slurp .)"
+          echo $test_results
+          go run .github/workflows/helpers/notify/notify-from-json.go $test_results

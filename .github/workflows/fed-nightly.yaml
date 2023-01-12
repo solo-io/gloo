@@ -1,9 +1,11 @@
 name: Fed Nightly Tests
+
 on:
   schedule:
     # run Monday-Friday mornings 2 AM eastern (1 hour after enterprise tests run)
     - cron: "0 7 * * 1-5"
   workflow_dispatch:
+
 env:
   HELM_VERSION: 'v3.6.0'
   GLOO_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
@@ -11,8 +13,7 @@ env:
   RELEASED_VERSION: "LATEST"
   GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-  # Results are posted to #edge-nightly-results
-  SLACK_CHANNEL: "C04CJMXAH7A"
+
 jobs:
   gloo_fed_e2e_tests:
     name: Gloo Fed E2E Tests
@@ -108,24 +109,17 @@ jobs:
           kubectl get all -A
           kubectl get configmaps -A
           kubectl port-forward -n gloo-system deploy/gateway-proxy 19000 & sleep 5; curl localhost:19000/clusters; curl localhost:19000/config_dump;
-      - name: Send Fail Message
-        id: message-on-failure
-        if: ${{ failure() && github.event.schedule }}
-        shell: bash
-        run: |
-          curl -X POST https://slack.com/api/chat.postMessage\
-             -H "Content-Type: application/json; charset=utf-8"\
-             -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
-             -d '{"channel":"${{ env.SLACK_CHANNEL }}","text":":red_circle: Gloo fed basic tests failed on kube version ${{ matrix.kube-version.kubectl }}.. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, Fed tests>"}'
-      - name: Send Success Message
-        id: message-on-success
-        if: ${{ success() && github.event.schedule }}
-        shell: bash
-        run: |
-          curl -X POST https://slack.com/api/chat.postMessage\
-             -H "Content-Type: application/json; charset=utf-8"\
-             -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
-             -d '{"channel":"${{ env.SLACK_CHANNEL }}","text":":large_green_circle: Gloo fed basic tests succeeded on kube version ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, Fed tests>"}'
+      - name: save results
+        if: ${{ failure() }}
+        run: echo '{"url":"https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}",
+                "name":"fed-${{matrix.kube-version.kubectl}}"}' > test-out.json
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: fed-${{matrix.kube-version.kubectl}}
+          path: test-out.json
+          if-no-files-found: warn
+
   gloo_fed_canary_tests:
     name: Gloo Fed Canary Tests
     runs-on: ubuntu-22.04
@@ -209,21 +203,35 @@ jobs:
           MANAGEMENT_CLUSTER: management
           REMOTE_RELEASE_CLUSTER: remote-release
           REMOTE_CANARY_CLUSTER: remote-canary
-      - name: Send Fail Message
-        id: message-on-failure
-        if: ${{ failure() && github.event.schedule }}
-        shell: bash
+      - name: save results
+        if: ${{ failure() }}
+        run: echo '{"url":"https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}",
+                "name":"canary-${{matrix.kube-version.kubectl}}"}' > test-out.json
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: canary-${{matrix.kube-version.kubectl}}
+          path: test-out.json
+          if-no-files-found: warn
+
+  publish_results:
+    runs-on: ubuntu-22.04
+    if: ${{ always() }}
+    needs: [ gloo_fed_e2e_tests, gloo_fed_canary_tests ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.18.2
+      - uses: actions/download-artifact@v3
+      - name: send slack message
+        env:
+          PARENT_JOB_URL: https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}} # parent job hyperlink
+          PREAMBLE: "Fed nightlies (dev)" # text to hyperlink at start of slack message
+          SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
+          SLACK_CHANNEL: "C04CJMXAH7A"  #edge-nightly-results
+          # SLACK_CHANNEL: "C0314KESVNV"  #slack-integration-testing
         run: |
-          curl -X POST https://slack.com/api/chat.postMessage\
-             -H "Content-Type: application/json; charset=utf-8"\
-             -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
-             -d '{"channel": "${{ env.SLACK_CHANNEL }}","text":":red_circle: Gloo fed canary test failed on kube version ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'
-      - name: Send Success Message
-        id: message-on-success
-        if: ${{ success() && github.event.schedule }}
-        shell: bash
-        run: |
-          curl -X POST https://slack.com/api/chat.postMessage\
-             -H "Content-Type: application/json; charset=utf-8"\
-             -H "Authorization: Bearer ${{ secrets.SLACKBOT_BEARER }}"\
-             -d '{"channel":"${{ env.SLACK_CHANNEL }}","text":":large_green_circle: Gloo fed canary test succeeded on kube version ${{ matrix.kube-version.kubectl }}. <https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}|Full Results, EE tests>"}'
+          test_results="$(cat */test-out.json | jq -c --slurp .)"
+          echo $test_results
+          go run .github/workflows/helpers/notify/notify-from-json.go $test_results

@@ -22,6 +22,7 @@ else
       go get github.com/solo-io/gloo@$GLOO_SHA
       go mod tidy
       GLOO_REPO_OVERRIDE="https://storage.googleapis.com/gloo-ee-test-helm"
+      helm repo add gloo-test $GLOO_REPO_OVERRIDE
 fi
 
 # build and push images
@@ -29,6 +30,7 @@ VERSION=$VERSION make build-kind-images-non-fips -B
 VERSION=$VERSION TAGGED_VERSION=$VERSION make docker-push-non-fips -B
 
 # create appropriate Values.yaml and Chart.yaml files
+helm repo update
 VERSION=$VERSION GLOO_REPO_OVERRIDE=$GLOO_REPO_OVERRIDE make init-helm
 
 # Complicated block ripped from gloo-ee Makefile.  Roughly, this block...
