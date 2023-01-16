@@ -14,8 +14,8 @@
 |settings.integrations.knative.proxy.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |settings.integrations.knative.proxy.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |settings.integrations.knative.proxy.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|settings.integrations.knative.proxy.httpPort|int|8080|HTTP port for the proxy (set to 0 to disable)|
-|settings.integrations.knative.proxy.httpsPort|int|8443|HTTPS port for the proxy (set to 0 to disable)|
+|settings.integrations.knative.proxy.httpPort|int|8080|HTTP port for the proxy|
+|settings.integrations.knative.proxy.httpsPort|int|8443|HTTPS port for the proxy|
 |settings.integrations.knative.proxy.tracing|string||tracing configuration|
 |settings.integrations.knative.proxy.loopBackAddress|string|127.0.0.1|Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1|
 |settings.integrations.knative.proxy.stats|bool||Controls whether or not Envoy stats are enabled|
@@ -853,8 +853,8 @@
 |ingressProxy.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |ingressProxy.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |ingressProxy.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|ingressProxy.deployment.httpPort|int|8080|HTTP port for the ingress container (set to 0 to disable)|
-|ingressProxy.deployment.httpsPort|int|8443|HTTPS port for the ingress container (set to 0 to disable)|
+|ingressProxy.deployment.httpPort|int|8080|HTTP port for the ingress container|
+|ingressProxy.deployment.httpsPort|int|8443|HTTPS port for the ingress container|
 |ingressProxy.deployment.extraPorts[]|interface|||
 |ingressProxy.deployment.extraAnnotations.NAME|string|||
 |ingressProxy.deployment.floatingUserId|bool||If true, allows the cluster to dynamically assign a user ID for the processes running in the container.|

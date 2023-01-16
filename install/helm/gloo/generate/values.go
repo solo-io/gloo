@@ -164,8 +164,8 @@ type Knative struct {
 
 type KnativeProxy struct {
 	Image                               *Image                `json:"image,omitempty"`
-	HttpPort                            *int                  `json:"httpPort,omitempty" desc:"HTTP port for the proxy (set to 0 to disable)"`
-	HttpsPort                           *int                  `json:"httpsPort,omitempty" desc:"HTTPS port for the proxy (set to 0 to disable)"`
+	HttpPort                            *int                  `json:"httpPort,omitempty" desc:"HTTP port for the proxy"`
+	HttpsPort                           *int                  `json:"httpsPort,omitempty" desc:"HTTPS port for the proxy"`
 	Tracing                             *string               `json:"tracing,omitempty" desc:"tracing configuration"`
 	LoopBackAddress                     *string               `json:"loopBackAddress,omitempty" desc:"Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1"`
 	Stats                               *bool                 `json:"stats,omitempty" desc:"Controls whether or not Envoy stats are enabled"`
@@ -586,8 +586,8 @@ type IngressProxy struct {
 
 type IngressProxyDeployment struct {
 	Image                   *Image            `json:"image,omitempty"`
-	HttpPort                *int              `json:"httpPort,omitempty" desc:"HTTP port for the ingress container (set to 0 to disable)"`
-	HttpsPort               *int              `json:"httpsPort,omitempty" desc:"HTTPS port for the ingress container (set to 0 to disable)"`
+	HttpPort                *int              `json:"httpPort,omitempty" desc:"HTTP port for the ingress container"`
+	HttpsPort               *int              `json:"httpsPort,omitempty" desc:"HTTPS port for the ingress container"`
 	ExtraPorts              []interface{}     `json:"extraPorts,omitempty"`
 	ExtraAnnotations        map[string]string `json:"extraAnnotations,omitempty"`
 	FloatingUserId          *bool             `json:"floatingUserId,omitempty" desc:"If true, allows the cluster to dynamically assign a user ID for the processes running in the container."`
