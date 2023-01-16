@@ -4755,16 +4755,7 @@ metadata:
 
 					It("Should disable ports when zeroed/toggled", func() {
 						glooDeployment.Spec.Template.Spec.Containers[0].Ports = nil
-						glooDeployment.Spec.Template.Spec.Containers[0].ReadinessProbe = &v1.Probe{
-							Handler: v1.Handler{
-								TCPSocket: &v1.TCPSocketAction{
-									Port: intstr.FromInt(0),
-								},
-							},
-							InitialDelaySeconds: 3,
-							PeriodSeconds:       10,
-							FailureThreshold:    3,
-						}
+						glooDeployment.Spec.Template.Spec.Containers[0].ReadinessProbe = nil
 						prepareMakefile(namespace, helmValues{
 							valuesArgs: []string{
 								"gloo.deployment.xdsPort=0",
