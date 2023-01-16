@@ -3824,6 +3824,7 @@ spec:
 								"gloo.deployment.validationPort=0",
 								"gloo.deployment.proxyDebugPort=0",
 								"gloo.deployment.wasmCachePortExposed=false",
+								"gateway.validation.enabled=false",
 							},
 						})
 						testManifest.ExpectUnstructured(glooService.GetKind(), glooService.GetNamespace(), glooService.GetName()).To(BeEquivalentTo(glooService))
