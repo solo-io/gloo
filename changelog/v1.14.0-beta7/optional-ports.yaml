@@ -1,4 +1,5 @@
 changelog:
   - type: NEW_FEATURE
     issueLink: https://github.com/solo-io/gloo/issues/7377
+    resolvesIssue: false
     description: Ports in helm charts can now be disabled via setting the port to 0 (or via toggle if port hardcoded).

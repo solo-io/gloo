@@ -537,8 +537,8 @@ type Tracing struct {
 }
 
 type Failover struct {
-	Enabled    *bool   `json:"enabled,omitempty" desc:"(Enterprise Only): Configure this proxy for failover (note: setting the port to 0 will disable failover)"`
-	Port       *uint   `json:"port,omitempty" desc:"(Enterprise Only): Port to use for failover Gateway Bind port, and service. Default is 15443"`
+	Enabled    *bool   `json:"enabled,omitempty" desc:"(Enterprise Only): Configure this proxy for failover (note: setting the port to 0 will also disable failover)"`
+	Port       *uint   `json:"port,omitempty" desc:"(Enterprise Only): Port to use for failover Gateway Bind port, and service. Default is 15443 (set to 0 to disable failover)"`
 	NodePort   *uint   `json:"nodePort,omitempty" desc:"(Enterprise Only): Optional NodePort for failover Service"`
 	SecretName *string `json:"secretName,omitempty" desc:"(Enterprise Only): Secret containing downstream Ssl Secrets Default is failover-downstream"`
 	*KubeResourceOverride
