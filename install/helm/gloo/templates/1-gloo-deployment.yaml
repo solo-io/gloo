@@ -92,13 +92,13 @@ spec:
         - containerPort: {{ .Values.gloo.deployment.restXdsPort }}
           name: rest-xds
           protocol: TCP
-{{- end}}
         readinessProbe:
           tcpSocket:
             port: {{ .Values.gloo.deployment.xdsPort }}
           initialDelaySeconds: 3
           periodSeconds: 10
           failureThreshold: 3
+{{- end}}
 {{- if .Values.gloo.deployment.livenessProbeEnabled }}
         livenessProbe:
           httpGet:
@@ -134,13 +134,13 @@ spec:
         - containerPort: {{ .Values.gloo.deployment.validationPort }}
           name: validation
           protocol: TCP
-{{- end}}
         readinessProbe:
           tcpSocket:
             port: {{ .Values.gloo.deployment.validationPort }}
           initialDelaySeconds: 3
           periodSeconds: 10
           failureThreshold: 3
+{{- end}}
         volumeMounts:
         - mountPath: /etc/envoy/ssl
           name: gloo-mtls-certs
@@ -254,7 +254,7 @@ spec:
           - name: DISABLE_LEADER_ELECTION
             value: "true"
         {{- end}}
-{{- if not .Values.global.glooMtls.enabled }}
+{{- if and (not .Values.global.glooMtls.enabled) .Values.gloo.deployment.xdsPort }}
         readinessProbe:
           tcpSocket:
             port: {{ .Values.gloo.deployment.xdsPort }}
