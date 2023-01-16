@@ -3669,7 +3669,7 @@ spec:
 						Expect(customPort.TargetPort.IntVal).To(Equal(testTargetPort))
 					})
 
-					It("Should disable ports when zeroed/toggled", func() {
+					It("Should disable ports when zeroed/toggled for gateway-proxy deployment", func() {
 						prepareMakefile(namespace, helmValues{
 							valuesArgs: []string{
 								"gatewayProxies.gatewayProxy.podTemplate.httpPort=0",
@@ -3824,7 +3824,6 @@ spec:
 								"gloo.deployment.validationPort=0",
 								"gloo.deployment.proxyDebugPort=0",
 								"gloo.deployment.wasmCachePortExposed=false",
-								"gateway.validation.enabled=false",
 							},
 						})
 						testManifest.ExpectUnstructured(glooService.GetKind(), glooService.GetNamespace(), glooService.GetName()).To(BeEquivalentTo(glooService))
