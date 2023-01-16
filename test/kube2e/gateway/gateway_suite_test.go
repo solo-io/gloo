@@ -138,6 +138,7 @@ func getHelmOverrides(fips bool) (filename string, cleanup func()) {
   gateway:
     persistProxySpec: true
   gloo:
+    logLevel: debug
     deployment:
       replicas: 2
       livenessProbeEnabled: true

@@ -54,7 +54,7 @@ func init() {
 }
 
 const (
-	// The extauth server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
+	// ServerRole The extauth server sends xDS discovery requests to Gloo to get its configuration from Gloo. This constant determines
 	// the value of the nodeInfo.Metadata.role field that the server sends along to retrieve its configuration snapshot,
 	// similarly to how the regular Gloo gateway-proxies do.
 	ServerRole = glooAuthSyncer.ServerRole
@@ -71,10 +71,14 @@ func NewConfigSource(settings Settings) server.RunnableModule {
 	}
 }
 
+// Name returns the identifier for the module; used for logging.
 func (*configSource) Name() string {
 	return "xDS"
 }
 
+// Run is called by the server during startup.
+// The provided context will be cancelled when the server is shut down.
+// If the returned error is an instance of FatalError, the server will panic.
 func (x *configSource) Run(ctx context.Context, service service.ExtAuthService) error {
 	nodeInfo, err := x.getNodeInfo()
 

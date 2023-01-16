@@ -44,6 +44,9 @@ var (
 	unknownPassThroughProtocolType = func(protocol interface{}) error {
 		return errors.Errorf("unknown passthrough protocol type [%v]", protocol)
 	}
+	noMatchesForGroupError = func(labelSelector map[string]string) error {
+		return errors.Errorf("no matching apikey secrets for the provided label selector %v", labelSelector)
+	}
 )
 
 // TranslateExtAuthConfig Returns {nil, nil} if the input config is empty or if it contains only custom auth entries
@@ -313,7 +316,7 @@ func translateSecretsApiKey(ctx context.Context, snap *v1snap.ApiSnapshot, confi
 			//
 			// We do not yet support warnings on AuthConfig CRs, so we log a warning instead
 			// Technical Debt: https://github.com/solo-io/solo-projects/issues/2950
-			err := NoMatchesForGroupError(config.LabelSelector)
+			err := noMatchesForGroupError(config.LabelSelector)
 			contextutils.LoggerFrom(ctx).Warnf("%v, continuing processing", err)
 		}
 	}

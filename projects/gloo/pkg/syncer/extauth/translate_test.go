@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"time"
 
+	extauthsyncer "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
 
 	"github.com/golang/protobuf/ptypes"
@@ -13,10 +15,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 
-	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
-	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
-
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	v1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
 	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -177,7 +177,7 @@ var _ = Describe("Translate", func() {
 	})
 
 	It("should translate oauth config for extauth server", func() {
-		translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+		translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 		Expect(translated.Configs).To(HaveLen(1))
@@ -267,7 +267,7 @@ var _ = Describe("Translate", func() {
 		})
 
 		It("should translate plain oauth2 config", func() {
-			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 			Expect(translated.Configs).To(HaveLen(1))
@@ -333,22 +333,22 @@ var _ = Describe("Translate", func() {
 		Context("secret is malformed", func() {
 			It("returns expected error when secret is not of API key type", func() {
 				secret.Kind = &v1.Secret_Aws{}
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+				_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring(NonApiKeySecretError(secret).Error())))
+				Expect(err).To(MatchError(ContainSubstring(extauthsyncer.NonApiKeySecretError(secret).Error())))
 			})
 
 			It("returns expected error when the secret does not contain an API key", func() {
 				secret.GetApiKey().ApiKey = ""
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+				_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring(EmptyApiKeyError(secret).Error())))
+				Expect(err).To(MatchError(ContainSubstring(extauthsyncer.EmptyApiKeyError(secret).Error())))
 			})
 		})
 
 		Context("with api key extauth, secret ref matching", func() {
 			It("should translate api keys config for extauth server - matching secret ref", func() {
-				translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+				translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 				Expect(translated.Configs).To(HaveLen(1))
@@ -365,7 +365,7 @@ var _ = Describe("Translate", func() {
 
 			It("should translate api keys config for extauth server - mismatching secret ref", func() {
 				secret.Metadata.Name = "mismatchName"
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+				_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("list did not find secret"))
 			})
@@ -425,13 +425,13 @@ var _ = Describe("Translate", func() {
 			It("should fail if required metadata is missing on the secret", func() {
 				secret.GetApiKey().Metadata = nil
 
-				_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+				_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(ContainSubstring(MissingRequiredMetadataError("user-id", secret).Error())))
+				Expect(err).To(MatchError(ContainSubstring(extauthsyncer.MissingRequiredMetadataError("user-id", secret).Error())))
 			})
 
 			It("should include secret metadata in the API key metadata", func() {
-				translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+				translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 				Expect(translated.Configs).To(HaveLen(1))
@@ -457,7 +457,7 @@ var _ = Describe("Translate", func() {
 					secret.GetApiKey().Metadata = nil
 					authConfig.GetConfigs()[0].GetApiKeyAuth().GetHeadersFromMetadataEntry()["x-user-id"].Required = false
 
-					translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+					translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 					Expect(translated.Configs).To(HaveLen(1))
@@ -505,7 +505,7 @@ var _ = Describe("Translate", func() {
 			})
 
 			It("should translate api keys config for extauth server - matching label", func() {
-				translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+				translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 				Expect(translated.Configs).To(HaveLen(1))
@@ -521,19 +521,19 @@ var _ = Describe("Translate", func() {
 
 				It("should not error - mismatched labels", func() {
 					secret.Metadata.Labels = map[string]string{"missingLabel": "missingValue"}
-					_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+					_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("should not error - empty labels", func() {
 					secret.Metadata.Labels = map[string]string{}
-					_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+					_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("should not error - nil labels", func() {
 					secret.Metadata.Labels = nil
-					_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+					_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
@@ -583,7 +583,7 @@ var _ = Describe("Translate", func() {
 		})
 
 		It("should translate OPA config without options specified", func() {
-			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 			Expect(translated.Configs).To(HaveLen(1))
@@ -602,7 +602,7 @@ var _ = Describe("Translate", func() {
 				FastInputConversion: true,
 			}
 
-			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 			Expect(translated.Configs).To(HaveLen(1))
@@ -664,7 +664,7 @@ var _ = Describe("Translate", func() {
 		})
 
 		It("should succeed for IntrospectionValidation config", func() {
-			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
@@ -732,7 +732,7 @@ var _ = Describe("Translate", func() {
 		})
 		It("translates ldap config", func() {
 
-			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(translated.AuthConfigRefName).To(Equal(authConfigRef.Key()))
 			Expect(translated.Configs).To(HaveLen(1))
@@ -752,18 +752,18 @@ var _ = Describe("Translate", func() {
 			authConfig.Configs[0].GetLdap().GroupLookupSettings.CheckGroupsWithServiceAccount = false
 			authConfig.Configs[0].GetLdap().GroupLookupSettings.CredentialsSecretRef = nil
 
-			_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 			Expect(err).NotTo(HaveOccurred())
 		})
 		It("requires credentials when service account is required", func() {
 			authConfig.Configs[0].GetLdap().GroupLookupSettings.CredentialsSecretRef = nil
-			_, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			_, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 			Expect(err).To(HaveOccurred())
 		})
 		It("Uses the old API when settings for service account are not present", func() {
 			authConfig.Configs[0].GetLdap().GroupLookupSettings = nil
 
-			translated, err := TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
+			translated, err := extauthsyncer.TranslateExtAuthConfig(context.TODO(), params.Snapshot, authConfigRef)
 			Expect(err).NotTo(HaveOccurred())
 			final := translated.Configs[0].GetLdap()
 			Expect(final).NotTo(BeNil(), "Old API should be used")

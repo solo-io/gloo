@@ -45,8 +45,6 @@ steps:
     - "--repo-output-dir"
     - "."
     - "--use-ssh"
-  env:
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
   id: "prepare-workspace"
 
 - name: gcr.io/cloud-builders/gsutil
@@ -62,8 +60,6 @@ steps:
 # e2e-go-mod-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-go-mod-ginkgo
 # Must set the GOPATH to tell the container the workspace has already been set up (by the prepare-workspace step above)
 - name: node:16
-  env:
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
   secretEnv: ["NPM_TOKEN"]
   dir: "/workspace/solo-projects/projects/ui"
   entrypoint: yarn
@@ -79,8 +75,6 @@ steps:
   id: "yarn-build"
 
 - name: node:16
-  env:
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
   secretEnv: ["NPM_TOKEN"]
   dir: "/workspace/solo-projects/projects/gloo/pkg/plugins/graphql/js"
   entrypoint: yarn
@@ -134,22 +128,14 @@ steps:
 # Can't run gingko with -race because this changes the go runtime dependency and extauth plugin dependency test will fail
 - name: "gcr.io/solo-public/e2e-go-mod-ginkgo:0.4.24"
   dir: *dir
-  entrypoint: "bash"
-  args:
-    - "-ce"
-    - |
-      make run-tests
+  entrypoint: make
+  args: ["run-tests"]
   env:
-    - "TAGGED_VERSION=$TAG_NAME"
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
     - "ENVOY_BINARY=/workspace/envoy"
     - "LIBSAXON_SHARED_OBJECT_PATH=/workspace/libsaxon-solo.so"
     - "AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials"
     - "RUN_KUBE_TESTS=1"
-    - "CLOUD_BUILD=1"
     - "GCLOUD_BUILD_ID=$BUILD_ID"
-    - "HELM_HOME=/root/.helm"
-    - "GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn"
   waitFor:
     [
       "prepare-workspace",
@@ -173,9 +159,6 @@ steps:
 
 - name: "gcr.io/solo-public/go-mod-make:0.4.24"
   args: ["docker-push-extended"]
-  env:
-    - "TAGGED_VERSION=$TAG_NAME"
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
   dir: *dir
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
   waitFor: ["docker-login", "yarn-build"]
@@ -190,11 +173,6 @@ steps:
       "fetch-package-and-save-helm",
       "publish-dependencies",
     ]
-  env:
-    - "TAGGED_VERSION=$TAG_NAME"
-    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
-    - "HELM_HOME=/root/.helm" # tell helm where to find data
-    - "GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore"
   dir: *dir
   waitFor: ["prepare-workspace", "push-docker-images"]
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
@@ -211,8 +189,6 @@ steps:
 - name: 'gcr.io/solo-public/go-mod-make:0.4.24'
   args: ['docker-retag-images']
   env:
-  - "TAGGED_VERSION=$TAG_NAME"
-  - "PROJECT_ROOT=github.com/solo-io/solo-projects"
   - "TEST_ASSET_ID=$_PR_NUM"
   - 'IMAGE_REPO=gcr.io/gloo-edge'
   - 'RETAG_IMAGE_REGISTRY=quay.io/solo-io'
@@ -235,6 +211,10 @@ timeout: 3600s
 tags: ["solo-projects"]
 options:
   machineType: "N1_HIGHCPU_32"
+  env:
+    - "TAGGED_VERSION=$TAG_NAME"
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+    - "HELM_HOME=/root/.helm"
   volumes:
     - name: "gopath"
       path: "/go"

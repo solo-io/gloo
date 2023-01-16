@@ -3,7 +3,6 @@ package extauth
 import (
 	envoy_config_route_v3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
-	errors "github.com/rotisserie/eris"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	extauthapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/transformation"
@@ -32,10 +31,6 @@ const (
 
 var (
 	sanitizeFilterStage = plugins.BeforeStage(plugins.AuthNStage)
-
-	NoMatchesForGroupError = func(labelSelector map[string]string) error {
-		return errors.Errorf("no matching apikey secrets for the provided label selector %v", labelSelector)
-	}
 )
 
 type plugin struct {

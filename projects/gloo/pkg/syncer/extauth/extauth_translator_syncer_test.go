@@ -76,7 +76,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		secret = &gloov1.Secret{
 			Metadata: &skcore.Metadata{
 				Name:      "secret",
-				Namespace: "gloo-system",
+				Namespace: writeNamespace,
 			},
 
 			Kind: &gloov1.Secret_Oauth{
@@ -91,7 +91,7 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 		snapCache = &mockSetSnapshot{}
 		settings = setupSettings(ctx)
 
-		statusClient = statusutils.GetStatusClientFromEnvOrDefault(namespace)
+		statusClient = statusutils.GetStatusClientFromEnvOrDefault(writeNamespace)
 	})
 
 	translate := func() envoycache.Snapshot {
@@ -343,7 +343,7 @@ func getBasicAuthConfig(authName string) *extauth.AuthConfig {
 	return &extauth.AuthConfig{
 		Metadata: &skcore.Metadata{
 			Name:      authName,
-			Namespace: defaults.GlooSystem,
+			Namespace: writeNamespace,
 		},
 		Configs: []*extauth.AuthConfig_Config{{
 			AuthConfig: &extauth.AuthConfig_Config_BasicAuth{
@@ -448,7 +448,7 @@ func getProxy(configFormat ConfigFormatType, authConfigRef *skcore.ResourceRef) 
 	proxy := &gloov1.Proxy{
 		Metadata: &skcore.Metadata{
 			Name:      "proxy",
-			Namespace: "gloo-system",
+			Namespace: writeNamespace,
 		},
 		Listeners: []*gloov1.Listener{{
 			Name: "listener-::-8443",
@@ -504,7 +504,7 @@ func setupSettings(ctx context.Context) *gloov1.Settings {
 	settings := &gloov1.Settings{
 		Metadata: &skcore.Metadata{
 			Name:      defaults.DefaultValue,
-			Namespace: defaults.GlooSystem,
+			Namespace: writeNamespace,
 		},
 		Gloo: &gloov1.GlooOptions{
 			InvalidConfigPolicy: &gloov1.GlooOptions_InvalidConfigPolicy{

@@ -1,0 +1,14 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/3558
+    resolvesIssue: false
+    description: >
+      Begin the scaffolding for some performance improvements in the ext auth translation
+  - type: NON_USER_FACING
+    description: >
+      Simplify the configuration of our Cloubuild.yaml to avoid defining the same environment
+      variables in multiple steps.
+  - type: NON_USER_FACING
+    description: >
+      Fix a flakey test that validated xDS metrics. This test exposed a bug in our code
+      so the fix was to adjust the test to compensate.

@@ -67,6 +67,8 @@ TEST_ASSET_DIR := $(ROOTDIR)/_test
 GCR_REPO_PREFIX := gcr.io/$(GCLOUD_PROJECT_ID)
 
 GINKGO_ENV := GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore ACK_GINKGO_RC=true ACK_GINKGO_DEPRECATIONS=1.16.5
+GINKGO_FLAGS := -failFast -trace -progress -compilers=4 -failOnPending -noColor -randomizeSuites -randomizeAllSpecs
+USER_GINKGO_FLAGS ?=
 
 #----------------------------------------------------------------------------------
 # Macros
@@ -157,7 +159,11 @@ clean-fed: clean-artifacts clean-generated-protos
 
 .PHONY: test
 test: install-test-tools ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
-	$(GINKGO_ENV) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -failFast -trace -progress -compilers=4 -failOnPending -noColor -randomizeSuites -randomizeAllSpecs -r $(TEST_PKG)
+	$(GINKGO_ENV) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo \
+		-ldflags=$(LDFLAGS) \
+		$(GINKGO_FLAGS) \
+		$(USER_GINKGO_FLAGS) \
+		$(TEST_PKG)
 
 .PHONY: run-tests
 run-tests: install-node-packages ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
