@@ -64,8 +64,8 @@
 |settings.integrations.knative.proxy.service.type|string|LoadBalancer|K8s service type|
 |settings.integrations.knative.proxy.service.extraAnnotations.NAME|string||extra annotations to add to the service|
 |settings.integrations.knative.proxy.service.loadBalancerIP|string||IP address of the load balancer|
-|settings.integrations.knative.proxy.service.httpPort|int|80|HTTP port for the knative/ingress proxy service (set to 0 to disable)|
-|settings.integrations.knative.proxy.service.httpsPort|int|443|HTTPS port for the knative/ingress proxy service (set to 0 to disable)|
+|settings.integrations.knative.proxy.service.httpPort|int|80|HTTP port for the knative/ingress proxy service|
+|settings.integrations.knative.proxy.service.httpsPort|int|443|HTTPS port for the knative/ingress proxy service|
 |settings.integrations.knative.proxy.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |settings.integrations.knative.proxy.configMap.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |settings.integrations.knative.proxy.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -918,8 +918,8 @@
 |ingressProxy.service.type|string|LoadBalancer|K8s service type|
 |ingressProxy.service.extraAnnotations.NAME|string||extra annotations to add to the service|
 |ingressProxy.service.loadBalancerIP|string||IP address of the load balancer|
-|ingressProxy.service.httpPort|int|80|HTTP port for the knative/ingress proxy service (set to 0 to disable)|
-|ingressProxy.service.httpsPort|int|443|HTTPS port for the knative/ingress proxy service (set to 0 to disable)|
+|ingressProxy.service.httpPort|int|80|HTTP port for the knative/ingress proxy service|
+|ingressProxy.service.httpsPort|int|443|HTTPS port for the knative/ingress proxy service|
 |ingressProxy.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |k8s.clusterName|string|cluster.local|cluster name to use when referencing services.|
 |accessLogger.image.tag|string|<release_version, ex: 1.2.3>|The image tag for the container.|

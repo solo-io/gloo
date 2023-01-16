@@ -606,8 +606,8 @@ type Service struct {
 	Type             *string           `json:"type,omitempty" desc:"K8s service type"`
 	ExtraAnnotations map[string]string `json:"extraAnnotations,omitempty" desc:"extra annotations to add to the service"`
 	LoadBalancerIP   *string           `json:"loadBalancerIP,omitempty" desc:"IP address of the load balancer"`
-	HttpPort         *int              `json:"httpPort,omitempty" desc:"HTTP port for the knative/ingress proxy service (set to 0 to disable)"`
-	HttpsPort        *int              `json:"httpsPort,omitempty" desc:"HTTPS port for the knative/ingress proxy service (set to 0 to disable)"`
+	HttpPort         *int              `json:"httpPort,omitempty" desc:"HTTP port for the knative/ingress proxy service"`
+	HttpsPort        *int              `json:"httpsPort,omitempty" desc:"HTTPS port for the knative/ingress proxy service"`
 	*KubeResourceOverride
 }
 
