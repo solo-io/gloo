@@ -2614,8 +2614,6 @@ spec:
 								"global.glooStats.serviceMonitorEnabled=false",
 								"global.glooStats.podMonitorEnabled=false",
 
-								"gatewayProxies.gatewayProxy.failover.enabled=true",
-								"gatewayProxies.gatewayProxy.failover.port=0",
 								"gatewayProxies.gatewayProxy.service.httpPort=0",
 								"gatewayProxies.gatewayProxy.service.httpsPort=0",
 
@@ -2632,19 +2630,8 @@ spec:
 							"gloo":             "gateway-proxy",
 							"gateway-proxy-id": "gateway-proxy",
 						}
-						rb := ResourceBuilder{
-							Namespace: namespace,
-							Name:      "gateway-proxy-config-dump-service",
-							Args:      nil,
-							Labels:    serviceLabels,
-						}
-						gatewayProxyConfigDumpService := rb.GetService()
-						gatewayProxyConfigDumpService.Spec.Selector = serviceSelector
-						gatewayProxyConfigDumpService.Spec.Ports = nil
-						gatewayProxyConfigDumpService.Spec.Type = v1.ServiceTypeClusterIP
-						testManifest.ExpectService(gatewayProxyConfigDumpService)
 
-						rb = ResourceBuilder{
+						rb := ResourceBuilder{
 							Namespace: namespace,
 							Name:      "gateway-proxy-monitoring-service",
 							Args:      nil,
