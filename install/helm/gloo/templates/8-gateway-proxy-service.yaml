@@ -65,7 +65,7 @@ spec:
   {{- end }}
 {{- end }}
 {{- if $spec.failover }}
-{{- if and $spec.failover.enabled $spec.failover.port }}
+{{- if $spec.failover.enabled }}
   - port: {{ $spec.failover.port }}
     targetPort: {{ $spec.failover.port }}
     protocol: TCP
@@ -116,11 +116,9 @@ spec:
   selector:
     gloo: gateway-proxy
     gateway-proxy-id: {{ $name | kebabcase }}
-{{- if .Values.gatewayProxies.gatewayProxy.configDumpServicePortExposed }}
   ports:
     - protocol: TCP
       port: 8082
-{{- end }} {{/* if .Values.gatewayProxies.gatewayProxy.configDumpServicePortExposed */}}
 {{- end }} {{/* with (first .) */}}
 {{- end }} {{/* define gatewayProxy.configDumpServiceSpec */}}
 {{- define "gatewayProxy.monitoringServiceSpec" }}

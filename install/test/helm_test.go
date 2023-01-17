@@ -2621,7 +2621,6 @@ spec:
 
 								"gatewayProxies.gatewayProxy.readConfig=true",
 								"gatewayProxies.gatewayProxy.readConfigMulticluster=true",
-								"gatewayProxies.gatewayProxy.configDumpServicePortExposed=false",
 							},
 						})
 						serviceLabels := map[string]string{
