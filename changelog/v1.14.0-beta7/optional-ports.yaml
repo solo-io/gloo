@@ -2,4 +2,4 @@ changelog:
   - type: NEW_FEATURE
     issueLink: https://github.com/solo-io/gloo/issues/7377
     resolvesIssue: false
-    description: Ports in k8s manifests for gateway-proxy can now be disabled by zeroing the port
+    description: Ports in k8s manifests for gateway-proxy can now be disabled by setting a given port to 0
