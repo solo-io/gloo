@@ -3645,7 +3645,6 @@ spec:
 							valuesArgs: []string{
 								"gatewayProxies.gatewayProxy.podTemplate.httpPort=0",
 								"gatewayProxies.gatewayProxy.podTemplate.httpsPort=0",
-								"global.istioSDS.enabled=false",
 							},
 						})
 						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Ports = nil

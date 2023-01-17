@@ -657,7 +657,7 @@ type IstioProxyContainer struct {
 }
 
 type IstioSDS struct {
-	Enabled        *bool         `json:"enabled,omitempty" desc:"Enables SDS cert-rotator sidecar (and corresponding port) for istio mTLS cert rotation"`
+	Enabled        *bool         `json:"enabled,omitempty" desc:"Enables SDS cert-rotator sidecar for istio mTLS cert rotation"`
 	CustomSidecars []interface{} `json:"customSidecars,omitempty" desc:"Override the default Istio sidecar in gateway-proxy with a custom container. Ignored if IstioSDS.enabled is false"`
 }
 
