@@ -544,7 +544,7 @@ type Failover struct {
 
 type AccessLogger struct {
 	Image                        *Image                `json:"image,omitempty"`
-	Port                         *uint                 `json:"port,omitempty" desc:""`
+	Port                         *uint                 `json:"port,omitempty"`
 	ServiceName                  *string               `json:"serviceName,omitempty"`
 	Enabled                      *bool                 `json:"enabled,omitempty"`
 	Stats                        *Stats                `json:"stats,omitempty" desc:"overrides for prometheus stats published by the access logging pod"`
