@@ -2605,6 +2605,62 @@ spec:
 						testManifest.ExpectService(gatewayProxyService)
 					})
 
+					It("Should disable ports when zeroed/toggled for gateway-proxy-service", func() {
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"gateway.enabled=true",
+
+								"global.glooStats.enabled=true",
+								"global.glooStats.serviceMonitorEnabled=false",
+								"global.glooStats.podMonitorEnabled=false",
+
+								"gatewayProxies.gatewayProxy.failover.enabled=true",
+								"gatewayProxies.gatewayProxy.failover.port=0",
+								"gatewayProxies.gatewayProxy.service.httpPort=0",
+								"gatewayProxies.gatewayProxy.service.httpsPort=0",
+
+								"gatewayProxies.gatewayProxy.readConfig=true",
+								"gatewayProxies.gatewayProxy.readConfigMulticluster=true",
+								"gatewayProxies.gatewayProxy.configDumpServicePortExposed=false",
+							},
+						})
+						serviceLabels := map[string]string{
+							"app":              "gloo",
+							"gloo":             "gateway-proxy",
+							"gateway-proxy-id": "gateway-proxy",
+						}
+						serviceSelector := map[string]string{
+							"gloo":             "gateway-proxy",
+							"gateway-proxy-id": "gateway-proxy",
+						}
+						rb := ResourceBuilder{
+							Namespace: namespace,
+							Name:      "gateway-proxy-config-dump-service",
+							Args:      nil,
+							Labels:    serviceLabels,
+						}
+						gatewayProxyConfigDumpService := rb.GetService()
+						gatewayProxyConfigDumpService.Spec.Selector = serviceSelector
+						gatewayProxyConfigDumpService.Spec.Ports = nil
+						gatewayProxyConfigDumpService.Spec.Type = v1.ServiceTypeClusterIP
+						testManifest.ExpectService(gatewayProxyConfigDumpService)
+
+						rb = ResourceBuilder{
+							Namespace: namespace,
+							Name:      "gateway-proxy-monitoring-service",
+							Args:      nil,
+							Labels:    serviceLabels,
+						}
+						gatewayProxyMonitoringService := rb.GetService()
+						gatewayProxyMonitoringService.Spec.Selector = serviceSelector
+						gatewayProxyMonitoringService.Spec.Ports = nil
+						gatewayProxyMonitoringService.Spec.Type = v1.ServiceTypeClusterIP
+						testManifest.Expect("Service", gatewayProxyMonitoringService.Namespace, gatewayProxyMonitoringService.Name).To(BeNil())
+
+						gatewayProxyService.Spec.Ports = nil
+						testManifest.ExpectService(gatewayProxyService)
+					})
+
 					It("adds failover port", func() {
 						gatewayProxyService.Spec.Ports = append(gatewayProxyService.Spec.Ports, v1.ServicePort{
 							Name:     "failover",
@@ -3582,6 +3638,18 @@ spec:
 						Expect(customPort.Protocol).To(Equal(v1.ProtocolTCP))
 						Expect(customPort.Port).To(Equal(testPort))
 						Expect(customPort.TargetPort.IntVal).To(Equal(testTargetPort))
+					})
+
+					It("Should disable ports when zeroed/toggled for gateway-proxy deployment", func() {
+						prepareMakefile(namespace, helmValues{
+							valuesArgs: []string{
+								"gatewayProxies.gatewayProxy.podTemplate.httpPort=0",
+								"gatewayProxies.gatewayProxy.podTemplate.httpsPort=0",
+								"global.istioSDS.enabled=false",
+							},
+						})
+						gatewayProxyDeployment.Spec.Template.Spec.Containers[0].Ports = nil
+						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})
 
 					It("does not disable gateway proxy", func() {

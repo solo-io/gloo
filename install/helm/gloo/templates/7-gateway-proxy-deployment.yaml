@@ -236,6 +236,7 @@ spec:
             - NET_BIND_SERVICE
           {{- end}}
         ports:
+{{- if $spec.podTemplate.httpPort }}
         - containerPort: {{ $spec.podTemplate.httpPort }}
           name: http
           protocol: TCP
@@ -244,6 +245,8 @@ spec:
           hostPort: {{ $spec.podTemplate.httpPort }}
           {{- end}}
           {{- end}}
+{{- end}}
+{{- if $spec.podTemplate.httpsPort}}
         - containerPort: {{ $spec.podTemplate.httpsPort }}
           name: https
           protocol: TCP
@@ -252,6 +255,7 @@ spec:
           hostPort: {{ $spec.podTemplate.httpsPort }}
           {{- end}}
           {{- end}}
+{{- end}}
        {{- if and $statsConfig.enabled $statsConfig.podMonitorEnabled }}
         - name: http-monitoring
           containerPort: 8081
@@ -350,7 +354,6 @@ spec:
           name: istio-certs
         - mountPath: /etc/envoy
           name: envoy-config
-{{- end }}
         ports:
         - containerPort: 8234
           name: sds
@@ -361,6 +364,7 @@ spec:
           initialDelaySeconds: 3
           periodSeconds: 10
           failureThreshold: 3
+{{- end }}
 {{- end }} {{- /* $global.glooMtls.enabled or $.Values.istioSDS.enabled */}}
 {{- if $global.istioSDS.enabled }}
 {{- if $global.istioSDS.customSidecars }}

@@ -426,6 +426,7 @@ type GatewayProxy struct {
 	LogLevel                       *string                      `json:"logLevel,omitempty" desc:"Level at which the pod should log. Options include \"info\", \"debug\", \"warn\", \"error\", \"panic\" and \"fatal\". Default level is info"`
 	XdsServiceAddress              *string                      `json:"xdsServiceAddress,omitempty" desc:"The k8s service name for the xds server. Defaults to gloo."`
 	XdsServicePort                 *uint32                      `json:"xdsServicePort,omitempty" desc:"The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay."`
+	ConfigDumpServicePortExposed   *bool                        `json:"configDumpServicePortExposed,omitempty" desc:"Setting this field to false disables gateway-proxy-config-dump-service on port 8082. Default is true"`
 	TcpKeepaliveTimeSeconds        *uint32                      `json:"tcpKeepaliveTimeSeconds,omitempty" desc:"The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive"`
 	*KubeResourceOverride
 }
@@ -480,8 +481,8 @@ type DaemonSetSpec struct {
 
 type GatewayProxyPodTemplate struct {
 	Image                         *Image                `json:"image,omitempty"`
-	HttpPort                      *int                  `json:"httpPort,omitempty" desc:"HTTP port for the gateway service target port"`
-	HttpsPort                     *int                  `json:"httpsPort,omitempty" desc:"HTTPS port for the gateway service target port"`
+	HttpPort                      *int                  `json:"httpPort,omitempty" desc:"HTTP port for the gateway service target port (set to 0 to disable)"`
+	HttpsPort                     *int                  `json:"httpsPort,omitempty" desc:"HTTPS port for the gateway service target port (set to 0 to disable)"`
 	ExtraPorts                    []interface{}         `json:"extraPorts,omitempty" desc:"extra ports for the gateway pod"`
 	ExtraAnnotations              map[string]string     `json:"extraAnnotations,omitempty" desc:"extra annotations to add to the pod"`
 	NodeName                      *string               `json:"nodeName,omitempty" desc:"name of node to run on"`
@@ -535,8 +536,8 @@ type Tracing struct {
 }
 
 type Failover struct {
-	Enabled    *bool   `json:"enabled,omitempty" desc:"(Enterprise Only): Configure this proxy for failover"`
-	Port       *uint   `json:"port,omitempty" desc:"(Enterprise Only): Port to use for failover Gateway Bind port, and service. Default is 15443"`
+	Enabled    *bool   `json:"enabled,omitempty" desc:"(Enterprise Only): Configure this proxy for failover (note: setting the port to 0 will also disable failover)"`
+	Port       *uint   `json:"port,omitempty" desc:"(Enterprise Only): Port to use for failover Gateway Bind port, and service. Default is 15443 (set to 0 to disable failover)"`
 	NodePort   *uint   `json:"nodePort,omitempty" desc:"(Enterprise Only): Optional NodePort for failover Service"`
 	SecretName *string `json:"secretName,omitempty" desc:"(Enterprise Only): Secret containing downstream Ssl Secrets Default is failover-downstream"`
 	*KubeResourceOverride
@@ -544,7 +545,7 @@ type Failover struct {
 
 type AccessLogger struct {
 	Image                        *Image                `json:"image,omitempty"`
-	Port                         *uint                 `json:"port,omitempty"`
+	Port                         *uint                 `json:"port,omitempty" desc:"(set to 0 to disable)"`
 	ServiceName                  *string               `json:"serviceName,omitempty"`
 	Enabled                      *bool                 `json:"enabled,omitempty"`
 	Stats                        *Stats                `json:"stats,omitempty" desc:"overrides for prometheus stats published by the access logging pod"`
@@ -656,7 +657,7 @@ type IstioProxyContainer struct {
 }
 
 type IstioSDS struct {
-	Enabled        *bool         `json:"enabled,omitempty" desc:"Enables SDS cert-rotator sidecar for istio mTLS cert rotation"`
+	Enabled        *bool         `json:"enabled,omitempty" desc:"Enables SDS cert-rotator sidecar (and corresponding port) for istio mTLS cert rotation"`
 	CustomSidecars []interface{} `json:"customSidecars,omitempty" desc:"Override the default Istio sidecar in gateway-proxy with a custom container. Ignored if IstioSDS.enabled is false"`
 }
 

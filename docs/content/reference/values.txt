@@ -441,8 +441,8 @@
 |gatewayProxies.NAME.podTemplate.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |gatewayProxies.NAME.podTemplate.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |gatewayProxies.NAME.podTemplate.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|gatewayProxies.NAME.podTemplate.httpPort|int||HTTP port for the gateway service target port|
-|gatewayProxies.NAME.podTemplate.httpsPort|int||HTTPS port for the gateway service target port|
+|gatewayProxies.NAME.podTemplate.httpPort|int||HTTP port for the gateway service target port (set to 0 to disable)|
+|gatewayProxies.NAME.podTemplate.httpsPort|int||HTTPS port for the gateway service target port (set to 0 to disable)|
 |gatewayProxies.NAME.podTemplate.extraPorts[]|interface||extra ports for the gateway pod|
 |gatewayProxies.NAME.podTemplate.extraAnnotations.NAME|string||extra annotations to add to the pod|
 |gatewayProxies.NAME.podTemplate.nodeName|string||name of node to run on|
@@ -567,8 +567,8 @@
 |gatewayProxies.NAME.extraProxyVolumeMounts[].NAME|interface|||
 |gatewayProxies.NAME.extraProxyVolumeMountHelper|string||name of custom made named template allowing for extra volume mounts on the proxy container|
 |gatewayProxies.NAME.loopBackAddress|string||Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1|
-|gatewayProxies.NAME.failover.enabled|bool||(Enterprise Only): Configure this proxy for failover|
-|gatewayProxies.NAME.failover.port|uint||(Enterprise Only): Port to use for failover Gateway Bind port, and service. Default is 15443|
+|gatewayProxies.NAME.failover.enabled|bool||(Enterprise Only): Configure this proxy for failover (note: setting the port to 0 will also disable failover)|
+|gatewayProxies.NAME.failover.port|uint||(Enterprise Only): Port to use for failover Gateway Bind port, and service. Default is 15443 (set to 0 to disable failover)|
 |gatewayProxies.NAME.failover.nodePort|uint||(Enterprise Only): Optional NodePort for failover Service|
 |gatewayProxies.NAME.failover.secretName|string||(Enterprise Only): Secret containing downstream Ssl Secrets Default is failover-downstream|
 |gatewayProxies.NAME.failover.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -593,6 +593,7 @@
 |gatewayProxies.NAME.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
 |gatewayProxies.NAME.xdsServiceAddress|string||The k8s service name for the xds server. Defaults to gloo.|
 |gatewayProxies.NAME.xdsServicePort|uint32||The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay.|
+|gatewayProxies.NAME.configDumpServicePortExposed|bool||Setting this field to false disables gateway-proxy-config-dump-service on port 8082. Default is true|
 |gatewayProxies.NAME.tcpKeepaliveTimeSeconds|uint32||The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive|
 |gatewayProxies.NAME.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gatewayProxies.gatewayProxy.kind.deployment.replicas|int|1|number of instances to deploy|
@@ -640,8 +641,8 @@
 |gatewayProxies.gatewayProxy.podTemplate.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |gatewayProxies.gatewayProxy.podTemplate.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |gatewayProxies.gatewayProxy.podTemplate.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|gatewayProxies.gatewayProxy.podTemplate.httpPort|int|8080|HTTP port for the gateway service target port|
-|gatewayProxies.gatewayProxy.podTemplate.httpsPort|int|8443|HTTPS port for the gateway service target port|
+|gatewayProxies.gatewayProxy.podTemplate.httpPort|int|8080|HTTP port for the gateway service target port (set to 0 to disable)|
+|gatewayProxies.gatewayProxy.podTemplate.httpsPort|int|8443|HTTPS port for the gateway service target port (set to 0 to disable)|
 |gatewayProxies.gatewayProxy.podTemplate.extraPorts[]|interface||extra ports for the gateway pod|
 |gatewayProxies.gatewayProxy.podTemplate.extraAnnotations.NAME|string||extra annotations to add to the pod|
 |gatewayProxies.gatewayProxy.podTemplate.nodeName|string||name of node to run on|
@@ -766,8 +767,8 @@
 |gatewayProxies.gatewayProxy.extraProxyVolumeMounts[].NAME|interface|||
 |gatewayProxies.gatewayProxy.extraProxyVolumeMountHelper|string||name of custom made named template allowing for extra volume mounts on the proxy container|
 |gatewayProxies.gatewayProxy.loopBackAddress|string|127.0.0.1|Name on which to bind the loop-back interface for this instance of Envoy. Defaults to 127.0.0.1, but other common values may be localhost or ::1|
-|gatewayProxies.gatewayProxy.failover.enabled|bool|false|(Enterprise Only): Configure this proxy for failover|
-|gatewayProxies.gatewayProxy.failover.port|uint|15443|(Enterprise Only): Port to use for failover Gateway Bind port, and service. Default is 15443|
+|gatewayProxies.gatewayProxy.failover.enabled|bool|false|(Enterprise Only): Configure this proxy for failover (note: setting the port to 0 will also disable failover)|
+|gatewayProxies.gatewayProxy.failover.port|uint|15443|(Enterprise Only): Port to use for failover Gateway Bind port, and service. Default is 15443 (set to 0 to disable failover)|
 |gatewayProxies.gatewayProxy.failover.nodePort|uint||(Enterprise Only): Optional NodePort for failover Service|
 |gatewayProxies.gatewayProxy.failover.secretName|string|failover-downstream|(Enterprise Only): Secret containing downstream Ssl Secrets Default is failover-downstream|
 |gatewayProxies.gatewayProxy.failover.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -797,6 +798,7 @@
 |gatewayProxies.gatewayProxy.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
 |gatewayProxies.gatewayProxy.xdsServiceAddress|string||The k8s service name for the xds server. Defaults to gloo.|
 |gatewayProxies.gatewayProxy.xdsServicePort|uint32||The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay.|
+|gatewayProxies.gatewayProxy.configDumpServicePortExposed|bool|true|Setting this field to false disables gateway-proxy-config-dump-service on port 8082. Default is true|
 |gatewayProxies.gatewayProxy.tcpKeepaliveTimeSeconds|uint32|60|The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive|
 |gatewayProxies.gatewayProxy.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |ingress.enabled|bool|false||
@@ -928,7 +930,7 @@
 |accessLogger.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |accessLogger.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |accessLogger.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
-|accessLogger.port|uint|8083||
+|accessLogger.port|uint|8083|(set to 0 to disable)|
 |accessLogger.serviceName|string|AccessLog||
 |accessLogger.enabled|bool|false||
 |accessLogger.stats.enabled|bool|true|Controls whether or not Envoy stats are enabled|
@@ -1037,7 +1039,7 @@
 |global.glooMtls.sdsResources.limits.cpu|string||amount of CPUs|
 |global.glooMtls.sdsResources.requests.memory|string||amount of memory|
 |global.glooMtls.sdsResources.requests.cpu|string||amount of CPUs|
-|global.istioSDS.enabled|bool|false|Enables SDS cert-rotator sidecar for istio mTLS cert rotation|
+|global.istioSDS.enabled|bool|false|Enables SDS cert-rotator sidecar (and corresponding port) for istio mTLS cert rotation|
 |global.istioSDS.customSidecars[]|interface||Override the default Istio sidecar in gateway-proxy with a custom container. Ignored if IstioSDS.enabled is false|
 |global.istioIntegration.labelInstallNamespace|bool|false|If creating a namespace for Gloo, include the 'istio-injection: enabled' label (or 'istio.io/rev=' if 'istioSidecarRevTag' field is also set) to allow Istio sidecar injection for Gloo pods. Be aware that Istio's default injection behavior will auto-inject a sidecar into all pods in such a marked namespace. Disabling this behavior in Istio's configs or using gloo's global.istioIntegration.disableAutoinjection flag is recommended.|
 |global.istioIntegration.whitelistDiscovery|bool|false|Annotate the discovery pod for Istio sidecar injection to ensure that it gets a sidecar even when namespace-wide auto-injection is disabled. Generally only needed for FDS is enabled.|

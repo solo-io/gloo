@@ -34,7 +34,7 @@ spec:
   # port order matters due to this issue: https://github.com/solo-io/gloo/issues/2571
   ports:
 {{- if $spec.service.httpsFirst }}
-  {{- if not $gatewaySettings.disableHttpsGateway }}
+  {{- if and (not $gatewaySettings.disableHttpsGateway) $spec.service.httpsPort }}
   - port: {{ $spec.service.httpsPort }}
     targetPort: {{ $spec.podTemplate.httpsPort }}
     protocol: TCP
@@ -44,7 +44,7 @@ spec:
     {{- end}}
   {{- end }}
 {{- end }}
-  {{- if not $gatewaySettings.disableHttpGateway }}
+  {{- if and (not $gatewaySettings.disableHttpGateway) $spec.service.httpPort }}
   - port: {{ $spec.service.httpPort }}
     targetPort: {{ $spec.podTemplate.httpPort }}
     protocol: TCP
@@ -54,7 +54,7 @@ spec:
     {{- end}}
   {{- end }}
 {{- if not $spec.service.httpsFirst }}
-  {{- if not $gatewaySettings.disableHttpsGateway }}
+  {{- if and (not $gatewaySettings.disableHttpsGateway) $spec.service.httpsPort }}
   - port: {{ $spec.service.httpsPort }}
     targetPort: {{ $spec.podTemplate.httpsPort }}
     protocol: TCP
@@ -65,7 +65,7 @@ spec:
   {{- end }}
 {{- end }}
 {{- if $spec.failover }}
-{{- if $spec.failover.enabled }}
+{{- if and $spec.failover.enabled $spec.failover.port }}
   - port: {{ $spec.failover.port }}
     targetPort: {{ $spec.failover.port }}
     protocol: TCP
@@ -116,9 +116,11 @@ spec:
   selector:
     gloo: gateway-proxy
     gateway-proxy-id: {{ $name | kebabcase }}
+{{- if .Values.gatewayProxies.gatewayProxy.configDumpServicePortExposed }}
   ports:
     - protocol: TCP
       port: 8082
+{{- end }} {{/* if .Values.gatewayProxies.gatewayProxy.configDumpServicePortExposed */}}
 {{- end }} {{/* with (first .) */}}
 {{- end }} {{/* define gatewayProxy.configDumpServiceSpec */}}
 {{- define "gatewayProxy.monitoringServiceSpec" }}
@@ -139,9 +141,11 @@ spec:
   selector:
     gloo: gateway-proxy
     gateway-proxy-id: {{ $name | kebabcase }}
+{{- if and .Values.global.glooStats.enabled .Values.global.glooStats.serviceMonitorEnabled }}
   ports:
     - name: http-monitoring
       port: 8081
+{{- end }}
 {{- end }} {{/* with (first .) */}}
 {{- end }} {{/* define gatewayProxy.monitoringServiceSpec */}}
 
