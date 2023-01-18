@@ -1,0 +1,76 @@
+name: Solo-Projects Regression Tests
+description: run regression test suite
+inputs:
+  GLOO_EE_GCR_KEY:
+    required: true
+    description: access key for Google Cloud
+  QUAY_IO_PASSWORD:
+    required: true
+    description: access key for Quay Image repository
+  GITHUB_TOKEN:
+    required: true
+    description: access token for use in CI
+  TESTSPACE_TOKEN:
+    required: true
+    description: access token uploading test results
+  
+runs:
+  using: "composite"
+  steps:
+  - uses: ./.github/actions/standard-gloo-ee-setup
+    with:
+      GLOO_EE_GCR_KEY: ${{ inputs.GLOO_EE_GCR_KEY }}
+      QUAY_IO_PASSWORD: ${{ inputs.QUAY_IO_PASSWORD }}
+      GO_VERSION: 1.18.2
+      GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+  - uses: engineerd/setup-kind@v0.5.0
+    with:
+      # We rely on the `ci/setup-kind` script to create a kind cluster
+      skipClusterCreation: true
+      version: ${{ matrix.kube-version.kind }}
+  - uses: azure/setup-kubectl@v1
+    id: kubectl
+    with:
+      version: ${{ matrix.kube-version.kubectl }}
+  - uses: azure/setup-helm@v1
+    with:
+      version: v3.6.1
+  - name: Setup test env
+    shell: bash
+    env:
+      USE_FIPS: ${{ matrix.kube-e2e-test-type.use-fips }}
+      CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
+    run: ./ci/setup-kind.sh
+  - name: Testing - kube e2e regression tests
+    shell: bash
+    env:
+      KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type.test }}
+      USE_FIPS: ${{ matrix.kube-e2e-test-type.use-fips }}
+    run: make run-ci-regression-tests
+  - uses: testspace-com/setup-testspace@v1
+    with:
+      domain: solo-io.testspace.com
+      token: ${{ inputs.TESTSPACE_TOKEN }}
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+  - name: Push result to Testspace server
+    shell: bash
+    run: testspace push --verbose "**/junit.xml"
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+  - name: Debug Info
+    if: failure()
+    shell: bash
+    run: |
+      # see what's in the cluster if we failed
+      kubectl get all -A
+      kubectl get configmaps -A
+  - name: save results
+    if: ${{ failure() }}
+    shell: bash
+    run: echo '{"url":"https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}",
+            "name":"${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}}"}' > test-out.json
+  - uses: actions/upload-artifact@v3
+    if: ${{ failure() }}
+    with:
+      name: ${{matrix.kube-e2e-test-type.test}}@k8s${{matrix.kube-version.kubectl}}
+      path: test-out.json
+      if-no-files-found: warn

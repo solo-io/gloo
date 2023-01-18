@@ -17,6 +17,11 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # save money by cancelling obsolete compute
+    - name: Cancel Previous Actions
+      uses: styfle/cancel-workflow-action@0.4.1
+      with:
+        access_token: ${{ github.token }}
     # remove a few large, unneeded toolsets from base ubuntu worker
     - name: Free disk space
       shell: bash
@@ -63,3 +68,13 @@ runs:
     - name: Configure git for private modules
       shell: bash
       run: git config --global url."https://soloio_bot:${{ inputs.GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+    # save money by caching go dependency downloads
+    - uses: actions/cache@v3
+      env:
+        # https://github.com/actions/cache#cache-segment-restore-timeout
+        SEGMENT_DOWNLOAD_TIMEOUT_MIN: "5"
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-

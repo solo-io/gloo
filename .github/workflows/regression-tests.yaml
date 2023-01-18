@@ -8,274 +8,64 @@ on:
 
 env:
   VERSION: '1.0.0-ci'
-  HELM_VERSION: 'v3.6.0'
-  KUBECTL_VERSION: 'v1.24.7'
-  CLUSTER_NODE_VERSION: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5'
   GLOO_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
   GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
 jobs:
   gloo_fed_e2e_tests:
-    name: Gloo Fed E2E Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.4.0
-        with:
-          access_token: ${{ github.token }}
-      - name: Free disk space
-        run: |
-          echo "Before clearing disk space:"
-          df -h
-
-          # https://github.com/actions/virtual-environments/issues/709
-          sudo apt-get clean
-
-          # Clean up pre-installed tools
-          # https://github.com/actions/virtual-environments/issues/1918
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf $AGENT_TOOLSDIRECTORY
-
-          echo "After clearing disk space:"
-          df -h
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Setup Private Repo Permissions
-        run: |
-          git config --global url."https://${GITHUB_TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
-      - name: Setup - gcloud / gsutil
-        uses: google-github-actions/setup-gcloud@v0
-        with:
-          service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
-          project_id: gloo-ee
-          export_default_credentials: true
-      - name: Setup docker
-        run: |
-          gcloud auth configure-docker
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.18.2
-      - uses: actions/cache@v3
-        env:
-          # https://github.com/actions/cache#cache-segment-restore-timeout
-          SEGMENT_DOWNLOAD_TIMEOUT_MIN: 5
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go
-      - uses: azure/setup-kubectl@v1
-        with:
-          version: ${{ env.KUBECTL_VERSION }}
-      - uses: azure/setup-helm@v1
-        with:
-          version: ${{ env.HELM_VERSION }}
-      - uses: engineerd/setup-kind@v0.5.0
-        with:
-          skipClusterCreation: "true"
-          version: v0.17.0
-      - name: Yarn Install
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-      - run: yarn --cwd projects/ui install
-      - name: Setup Kind
-        run: |
-          ./projects/gloo-fed/ci/setup-kind.sh
-        env:
-          MANAGEMENT_CLUSTER: management
-          REMOTE_CLUSTER: remote
-      - name: Run tests
-        run: |
-          make run-ci-gloo-fed-regression-tests
-        env:
-          KUBE2E_TESTS: basic
-          MANAGEMENT_CLUSTER: management
-          REMOTE_CLUSTER: remote
-      - name: Debug Info
-        if: failure()
-        run: |
-          # see what's in the cluster if we failed
-          kubectl get all -A
-          kubectl get configmaps -A
-          kubectl port-forward -n gloo-system deploy/gateway-proxy 19000 & sleep 5; curl localhost:19000/clusters; curl localhost:19000/config_dump;
-  gloo_fed_canary_tests:
-    name: Gloo Fed Canary Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.4.0
-        with:
-          access_token: ${{ github.token }}
-      - name: Free disk space
-        run: |
-          echo "Before clearing disk space:"
-          df -h
-
-          # https://github.com/actions/virtual-environments/issues/709
-          sudo apt-get clean
-
-          # Clean up pre-installed tools
-          # https://github.com/actions/virtual-environments/issues/1918
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf $AGENT_TOOLSDIRECTORY
-
-          echo "After clearing disk space:"
-          df -h
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Setup Private Repo Permissions
-        run: |
-          git config --global url."https://${GITHUB_TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
-      - name: Setup - gcloud / gsutil
-        uses: google-github-actions/setup-gcloud@v0
-        with:
-          service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
-          project_id: gloo-ee
-          export_default_credentials: true
-      - name: Setup docker
-        run: |
-          gcloud auth configure-docker
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.18.2
-      - uses: actions/cache@v3
-        env:
-          # https://github.com/actions/cache#cache-segment-restore-timeout
-          SEGMENT_DOWNLOAD_TIMEOUT_MIN: 5
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go
-      - uses: azure/setup-kubectl@v1
-        with:
-          version: ${{ env.KUBECTL_VERSION }}
-      - uses: azure/setup-helm@v1
-        with:
-          version: ${{ env.HELM_VERSION }}
-      - uses: engineerd/setup-kind@v0.5.0
-        with:
-          skipClusterCreation: true
-          version: v0.17.0
-      - name: Setup Kind
-        run: |
-          ./projects/gloo-fed/ci/setup-kind-canary.sh
-        env:
-          MANAGEMENT_CLUSTER: management
-          REMOTE_RELEASE_CLUSTER: remote-release
-          REMOTE_CANARY_CLUSTER: remote-canary
-      - name: Run tests
-        run: |
-          make run-ci-gloo-fed-regression-tests
-        env:
-          KUBE2E_TESTS: canary
-          MANAGEMENT_CLUSTER: management
-          REMOTE_RELEASE_CLUSTER: remote-release
-          REMOTE_CANARY_CLUSTER: remote-canary
-  regression_tests:
-    name: k8s regression tests
+    # when a job runs with a matrix, its name changes automatically.  HOWEVER, it can be dynamically computed
+    # based on matrix variables.  Doing this (below) lets us satisfy the admin requirement of a test called
+    # "Gloo Fed E2E Tests" to run during a PR's CI
+    name: ${{matrix.name-helper}}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        kube-e2e-test-type: ['gateway', 'gloo-mtls', 'helm', 'redis-clientside-sharding', 'wasm', 'caching', 'upgrade']
-        use-fips: ['false']
-        include:
-          - kube-e2e-test-type: 'gateway'
-            use-fips: 'true'
+        name-helper: ['Gloo Fed E2E Tests']
+        kube-version: [{ node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' }]
     steps:
-      - name: Cancel Previous Actions
-        uses: styfle/cancel-workflow-action@0.4.1
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/fed-regression-tests
         with:
-          access_token: ${{ github.token }}
-      - name: Free disk space
-        run: |
-          echo "Before clearing disk space:"
-          df -h
-          # https://github.com/actions/virtual-environments/issues/709
-          sudo apt-get clean
-          # Clean up pre-installed tools
-          # https://github.com/actions/virtual-environments/issues/1918
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf $AGENT_TOOLSDIRECTORY
-          echo "After clearing disk space:"
-          df -h
-      - name: Setup - gcloud / gsutil
-        uses: google-github-actions/setup-gcloud@v0
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+
+  gloo_fed_canary_tests:
+    # when a job runs with a matrix, its name changes automatically.  HOWEVER, it can be dynamically computed
+    # based on matrix variables.  Doing this (below) lets us satisfy the admin requirement of a test called
+    # "Gloo Fed Canary Tests" to run during a PR's CI
+    name: ${{matrix.name-helper}}
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        name-helper: ['Gloo Fed Canary Tests']
+        kube-version: [{ node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' }]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/canary-regression-tests
         with:
-          service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
-          project_id: gloo-ee
-          export_default_credentials: true
-      - name: Setup docker
-        run: |
-          gcloud auth configure-docker
-      - name: Set up Go
-        uses: actions/setup-go@v3
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+
+  regression_tests:
+    name: k8s regression tests (${{matrix.kube-e2e-test-type.test}}, ${{matrix.kube-e2e-test-type.use-fips}})
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        kube-e2e-test-type: [{test: 'gateway', use-fips: 'true'}, {test: 'gateway', use-fips: 'false'}, {test: 'gloo-mtls', use-fips: 'false'}, {test: 'helm', use-fips: 'false'}, {test: 'redis-clientside-sharding', use-fips: 'false'}, {test: 'wasm', use-fips: 'false'}, {test: 'caching', use-fips: 'false'}, {test: 'upgrade', use-fips: 'false'}]
+        kube-version: [{ node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' }]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/regression-tests
         with:
-          go-version: 1.18.2
-        id: go
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: actions/cache@v3
-        env:
-          # https://github.com/actions/cache#cache-segment-restore-timeout
-          SEGMENT_DOWNLOAD_TIMEOUT_MIN: 5
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - uses: engineerd/setup-kind@v0.5.0
-        with:
-          # We rely on the `ci/setup-kind` script to create a kind cluster
-          skipClusterCreation: true
-          version: v0.17.0
-      - uses: azure/setup-kubectl@v1
-        id: kubectl
-        with:
-          version: ${{ env.KUBECTL_VERSION }}
-      - uses: azure/setup-helm@v1
-        with:
-          version: ${{ env.HELM_VERSION }}
-      - name: Configure git for private modules
-        run: git config --global url."https://soloio_bot:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
-      - name: Setup test env
-        env:
-          USE_FIPS: ${{ matrix.use-fips }}
-        run: |
-          ./ci/setup-kind.sh
-      - name: Testing - kube e2e regression tests
-        env:
-          KUBE2E_TESTS: ${{ matrix.kube-e2e-test-type }}
-          USE_FIPS: ${{ matrix.use-fips }}
-        run: |
-          make run-ci-regression-tests
-      - uses: testspace-com/setup-testspace@v1
-        with:
-          domain: solo-io.testspace.com
-          token: ${{ secrets.TESTSPACE_TOKEN }}
-        if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      - name: Push result to Testspace server
-        run: |
-          testspace push --verbose "**/junit.xml"
-        if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      - name: Debug Info
-        if: failure()
-        run: |
-          # see what's in the cluster if we failed
-          kubectl get all -A
-          kubectl get configmaps -A
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}

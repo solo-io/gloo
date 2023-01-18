@@ -2,224 +2,236 @@ name: Fed Nightly Tests
 
 on:
   schedule:
-    # run Monday-Friday mornings 2 AM eastern (1 hour after enterprise tests run)
-    - cron: "0 7 * * 1-5"
+    - cron: "0 5 * * 1-5" # weekdays @ 00:00 EST, run tests against latest dev
+    - cron: "6 6 * * 1"   # monday   @ 01:06 EST, run expanded tests against v1.13.x 
+    - cron: "7 7 * * 1"   # monday   @ 02:07 EST, run expanded tests against v1.12.x
+    - cron: "8 8 * * 1"   # monday   @ 03:08 EST, run expanded tests against v1.11.x
+    - cron: "9 9 * * 1"   # monday   @ 04:09 EST, run expanded tests against v1.10.x
   workflow_dispatch:
 
 env:
-  HELM_VERSION: 'v3.6.0'
+  VERSION: '1.0.0-ci'
   GLOO_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
-  # Test with the latest released version. This can also be replaced with a specific release for manual testing
-  RELEASED_VERSION: "LATEST"
   GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
 jobs:
-  gloo_fed_e2e_tests:
-    name: Gloo Fed E2E Tests
+  fed_tests_dev:
+    name: fed regression tests (fed@k8s${{matrix.kube-version.kubectl}})
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 5 * * 1-5'
     runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
       matrix:
-        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14' },
-                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7' } ]
+        kube-version: [{ node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' }]
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.4.0
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/fed-regression-tests
         with:
-          access_token: ${{ github.token }}
-      - name: Free disk space
-        run: |
-          echo "Before clearing disk space:"
-          df -h
-          
-          # https://github.com/actions/virtual-environments/issues/709
-          sudo apt-get clean
-          
-          # Clean up pre-installed tools
-          # https://github.com/actions/virtual-environments/issues/1918
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf $AGENT_TOOLSDIRECTORY
-          
-          echo "After clearing disk space:"
-          df -h
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Setup Private Repo Permissions
-        run: |
-          git config --global url."https://${GITHUB_TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
-      - name: Setup - gcloud / gsutil
-        uses: google-github-actions/setup-gcloud@v0
-        with:
-          service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
-          project_id: gloo-ee
-          export_default_credentials: true
-      - name: Setup docker
-        run: |
-          gcloud auth configure-docker
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.18.2
-      - uses: actions/cache@v3
-        env:
-          # https://github.com/actions/cache#cache-segment-restore-timeout
-          SEGMENT_DOWNLOAD_TIMEOUT_MIN: 5
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go
-      - uses: azure/setup-kubectl@v1
-        with:
-          version: ${{ matrix.kube-version.kubectl }}
-      - uses: azure/setup-helm@v1
-        with:
-          version: ${{ env.HELM_VERSION }}
-      - uses: engineerd/setup-kind@v0.5.0
-        with:
-          skipClusterCreation: "true"
-          version: v0.17.0
-      - name: Yarn Install
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-      - run: yarn --cwd projects/ui install
-      - name: Setup Kind
-        run: |
-          ./projects/gloo-fed/ci/setup-kind.sh
-        env:
-          MANAGEMENT_CLUSTER: management
-          REMOTE_CLUSTER: remote
-          FROM_RELEASE: true
-          CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
-      - name: Run tests
-        run: |
-          make run-ci-gloo-fed-regression-tests
-        env:
-          KUBE2E_TESTS: basic
-          MANAGEMENT_CLUSTER: management
-          REMOTE_CLUSTER: remote
-      - name: Debug Info
-        if: failure()
-        run: |
-          # see what's in the cluster if we failed
-          kubectl get all -A
-          kubectl get configmaps -A
-          kubectl port-forward -n gloo-system deploy/gateway-proxy 19000 & sleep 5; curl localhost:19000/clusters; curl localhost:19000/config_dump;
-      - name: save results
-        if: ${{ failure() }}
-        run: echo '{"url":"https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}",
-                "name":"fed-${{matrix.kube-version.kubectl}}"}' > test-out.json
-      - uses: actions/upload-artifact@v3
-        if: ${{ failure() }}
-        with:
-          name: fed-${{matrix.kube-version.kubectl}}
-          path: test-out.json
-          if-no-files-found: warn
-
-  gloo_fed_canary_tests:
-    name: Gloo Fed Canary Tests
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+  canary_tests_dev:
+    name: fed regression tests (fed-canary@k8s${{matrix.kube-version.kubectl}})
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 5 * * 1-5'
     runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
+      matrix:
+        kube-version: [{ node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' }]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/canary-regression-tests
+        with:
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+
+  fed_tests_13:
+    name: fed regression tests (fed@k8s${{matrix.kube-version.kubectl}})
+    if: github.event.schedule == '6 6 * * 1'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
       matrix:
         kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
                         { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.4.0
+      - uses: actions/checkout@v3
         with:
-          access_token: ${{ github.token }}
-      - name: Free disk space
-        run: |
-          echo "Before clearing disk space:"
-          df -h
-          
-          # https://github.com/actions/virtual-environments/issues/709
-          sudo apt-get clean
-          
-          # Clean up pre-installed tools
-          # https://github.com/actions/virtual-environments/issues/1918
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf $AGENT_TOOLSDIRECTORY
-          
-          echo "After clearing disk space:"
-          df -h
-      - uses: actions/checkout@v2
+          ref: v1.13.x
+      - uses: ./.github/actions/fed-regression-tests
         with:
-          fetch-depth: 0
-      - name: Setup Private Repo Permissions
-        run: |
-          git config --global url."https://${GITHUB_TOKEN}@github.com/solo-io/".insteadOf "https://github.com/solo-io/"
-      - name: Setup - gcloud / gsutil
-        uses: google-github-actions/setup-gcloud@v0
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+  canary_tests_13:
+    name: fed regression tests (fed-canary@k8s${{matrix.kube-version.kubectl}})
+    if: github.event.schedule == '6 6 * * 1'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
+                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
+    steps:
+      - uses: actions/checkout@v3
         with:
-          service_account_key: ${{ secrets.GLOO_EE_GCR_KEY }}
-          project_id: gloo-ee
-          export_default_credentials: true
-      - name: Setup docker
-        run: |
-          gcloud auth configure-docker
-      - name: Set up Go
-        uses: actions/setup-go@v3
+          ref: v1.13.x
+      - uses: ./.github/actions/canary-regression-tests
         with:
-          go-version: 1.18.2
-      - uses: actions/cache@v3
-        env:
-          # https://github.com/actions/cache#cache-segment-restore-timeout
-          SEGMENT_DOWNLOAD_TIMEOUT_MIN: 5
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+
+  fed_tests_12:
+    name: fed regression tests (fed@k8s${{matrix.kube-version.kubectl}})
+    if: github.event.schedule == '7 7 * * 1'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
+                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
+    steps:
+      - uses: actions/checkout@v3
         with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go
-      - uses: azure/setup-kubectl@v1
+          ref: v1.12.x
+      - uses: ./.github/actions/fed-regression-tests
         with:
-          version: ${{ matrix.kube-version.kubectl }}
-      - uses: azure/setup-helm@v1
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+  canary_tests_12:
+    name: fed regression tests (fed-canary@k8s${{matrix.kube-version.kubectl}})
+    if: github.event.schedule == '7 7 * * 1'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
+                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
+    steps:
+      - uses: actions/checkout@v3
         with:
-          version: ${{ env.HELM_VERSION }}
-      - uses: engineerd/setup-kind@v0.5.0
+          ref: v1.12.x
+      - uses: ./.github/actions/canary-regression-tests
         with:
-          skipClusterCreation: true
-          version: ${{ matrix.kube-version.kind }}
-      - name: Setup Kind
-        run: |
-          ./projects/gloo-fed/ci/setup-kind-canary.sh
-        env:
-          CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
-          MANAGEMENT_CLUSTER: management
-          REMOTE_RELEASE_CLUSTER: remote-release
-          REMOTE_CANARY_CLUSTER: remote-canary
-      - name: Run tests
-        run: |
-          make run-ci-gloo-fed-regression-tests
-        env:
-          KUBE2E_TESTS: canary
-          MANAGEMENT_CLUSTER: management
-          REMOTE_RELEASE_CLUSTER: remote-release
-          REMOTE_CANARY_CLUSTER: remote-canary
-      - name: save results
-        if: ${{ failure() }}
-        run: echo '{"url":"https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}",
-                "name":"canary-${{matrix.kube-version.kubectl}}"}' > test-out.json
-      - uses: actions/upload-artifact@v3
-        if: ${{ failure() }}
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+
+  fed_tests_11:
+    name: fed regression tests (fed@k8s${{matrix.kube-version.kubectl}})
+    if: github.event.schedule == '8 8 * * 1'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
+                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
+    steps:
+      - uses: actions/checkout@v3
         with:
-          name: canary-${{matrix.kube-version.kubectl}}
-          path: test-out.json
-          if-no-files-found: warn
+          ref: v1.11.x
+      - uses: ./.github/actions/fed-regression-tests
+        with:
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+  canary_tests_11:
+    name: fed regression tests (fed-canary@k8s${{matrix.kube-version.kubectl}})
+    if: github.event.schedule == '8 8 * * 1'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
+                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: v1.11.x
+      - uses: ./.github/actions/canary-regression-tests
+        with:
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+
+  fed_tests_10:
+    name: fed regression tests (fed@k8s${{matrix.kube-version.kubectl}})
+    if: github.event.schedule == '9 9 * * 1'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
+                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: v1.10.x
+      - uses: ./.github/actions/fed-regression-tests
+        with:
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
+  canary_tests_10:
+    name: fed regression tests (fed-canary@k8s${{matrix.kube-version.kubectl}})
+    if: github.event.schedule == '9 9 * * 1'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
+                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: v1.10.x
+      - uses: ./.github/actions/canary-regression-tests
+        with:
+          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
+          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
 
   publish_results:
     runs-on: ubuntu-22.04
     if: ${{ always() }}
-    needs: [ gloo_fed_e2e_tests, gloo_fed_canary_tests ]
+    needs: [ fed_tests_dev, canary_tests_dev, fed_tests_13, canary_tests_13, fed_tests_12, canary_tests_12, fed_tests_11, canary_tests_11, fed_tests_10, canary_tests_10 ]
     steps:
       - uses: actions/checkout@v3
+      - name: compute-preamble
+        id: compute-preamble
+        shell: bash
+        run: |
+          echo "SLACK_CHANNEL=C04CJMXAH7A" >> $GITHUB_ENV     #edge-nightly-results by default
+          if [[ ${{github.event_name == 'workflow_dispatch'}} = true ]]; then
+            preamble="Gloo Fed nightlies (manual run)"
+            echo "SLACK_CHANNEL=C0314KESVNV" >> $GITHUB_ENV   #slack-integration-testing if manually run
+          elif [[ ${{github.event.schedule == '9 9 * * 1'}} = true ]]; then
+              preamble="Gloo Fed weeklies (v1.10.x)"
+          elif [[ ${{github.event.schedule == '8 8 * * 1'}} = true ]]; then
+              preamble="Gloo Fed weeklies (v1.11.x)"
+          elif [[ ${{github.event.schedule == '7 7 * * 1'}} = true ]]; then
+              preamble="Gloo Fed weeklies (v1.12.x)"
+          elif [[ ${{github.event.schedule == '6 6 * * 1'}} = true ]]; then
+              preamble="Gloo Fed weeklies (v1.13.x)"
+          elif [[ ${{github.event.schedule == '0 5 * * 1-5'}} = true ]]; then
+              preamble="Gloo Fed nightlies (dev)"
+          fi
+          echo "Setting PREAMBLE as $preamble"
+          echo "::set-output name=preamble::$(echo $preamble)"
       - uses: actions/setup-go@v2
         with:
           go-version: 1.18.2
@@ -227,10 +239,8 @@ jobs:
       - name: send slack message
         env:
           PARENT_JOB_URL: https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}} # parent job hyperlink
-          PREAMBLE: "Fed nightlies (dev)" # text to hyperlink at start of slack message
+          PREAMBLE: ${{ steps.compute-preamble.outputs.preamble }}  # text to hyperlink at start of slack message
           SLACKBOT_BEARER: ${{ secrets.SLACKBOT_BEARER }}
-          SLACK_CHANNEL: "C04CJMXAH7A"  #edge-nightly-results
-          # SLACK_CHANNEL: "C0314KESVNV"  #slack-integration-testing
         run: |
           test_results="$(cat */test-out.json | jq -c --slurp .)"
           echo $test_results

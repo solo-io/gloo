@@ -1,0 +1,62 @@
+name: Gloo-Fed Canary Regression Tests
+description: run gloo-fed canary regression test suite
+inputs:
+  GLOO_EE_GCR_KEY:
+    required: true
+    description: access key for Google Cloud
+  QUAY_IO_PASSWORD:
+    required: true
+    description: access key for Quay Image repository
+  GITHUB_TOKEN:
+    required: true
+    description: access token for use in CI
+  TESTSPACE_TOKEN:
+    required: true
+    description: access token uploading test results
+  
+runs:
+  using: "composite"
+  steps:
+  - uses: ./.github/actions/standard-gloo-ee-setup
+    with:
+      GLOO_EE_GCR_KEY: ${{ inputs.GLOO_EE_GCR_KEY }}
+      QUAY_IO_PASSWORD: ${{ inputs.QUAY_IO_PASSWORD }}
+      GO_VERSION: 1.18.2
+      GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+  - uses: azure/setup-kubectl@v1
+    with:
+      version: ${{ matrix.kube-version.kubectl }}
+  - uses: azure/setup-helm@v1
+    with:
+      version: v3.6.1
+  - uses: engineerd/setup-kind@v0.5.0
+    with:
+      skipClusterCreation: true
+      version: ${{ matrix.kube-version.kind }}
+  - name: Setup Kind
+    shell: bash
+    run: ./projects/gloo-fed/ci/setup-kind-canary.sh      
+    env:
+      MANAGEMENT_CLUSTER: management
+      REMOTE_RELEASE_CLUSTER: remote-release
+      REMOTE_CANARY_CLUSTER: remote-canary
+      CLUSTER_NODE_VERSION: ${{ matrix.kube-version.node }}
+  - name: Run tests
+    shell: bash
+    run: make run-ci-gloo-fed-regression-tests
+    env:
+      KUBE2E_TESTS: canary
+      MANAGEMENT_CLUSTER: management
+      REMOTE_RELEASE_CLUSTER: remote-release
+      REMOTE_CANARY_CLUSTER: remote-canary
+  - name: save results
+    if: ${{ failure() }}
+    shell: bash
+    run: echo '{"url":"https://github.com/solo-io/solo-projects/actions/runs/${{github.run_id}}",
+            "name":"fed-canary@k8s${{matrix.kube-version.kubectl}}"}' > test-out.json
+  - uses: actions/upload-artifact@v3
+    if: ${{ failure() }}
+    with:
+      name: fed-canary@k8s${{matrix.kube-version.kubectl}}
+      path: test-out.json
+      if-no-files-found: warn

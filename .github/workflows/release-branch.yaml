@@ -14,7 +14,7 @@ on:
         required: false
         type: string
 
-env:  # necessary environment varialbe for several of our docker builds
+env:  # necessary environment variable for several of our docker builds
   GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
 
 jobs:
