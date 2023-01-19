@@ -10,7 +10,8 @@ DOCKER_BUILDKIT=0 docker build https://github.com/envoyproxy/envoy.git\#main:exa
 
 # please note that this image is not published on release
 # if you make a new build of this image, you will need to manually push it to GCR
+# docker push gcr.io/solo-test-236622/cache_test_service:$TAG
 # in order for it to be accessible outside of your local environment
 
-TAG=${TAG:-0.0.0}
+TAG=${TAG:-0.0.2}
 docker build -t gcr.io/solo-test-236622/cache_test_service:$TAG .

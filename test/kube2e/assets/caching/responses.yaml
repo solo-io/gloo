@@ -8,6 +8,16 @@ valid-for-three-seconds:
   headers:
     cache-control: max-age=3
     custom-header: any value
+valid-for-five-seconds:
+  body: This response will stay fresh for five seconds
+  headers:
+    cache-control: max-age=5
+    custom-header: any value
+valid-for-ten-seconds:
+  body: This response will stay fresh for ten seconds
+  headers:
+    cache-control: max-age=10
+    custom-header: any value
 private:
   body: This is a private response, it will not be cached by Envoy
   headers:

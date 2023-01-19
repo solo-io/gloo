@@ -7,7 +7,7 @@ metadata:
   namespace: gloo-system
 spec:
   containers:
-  - image: gcr.io/solo-test-236622/cache_test_service:0.0.1
+  - image: gcr.io/solo-test-236622/cache_test_service:0.0.2
     name: service1
     ports:
     - name: http

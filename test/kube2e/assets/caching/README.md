@@ -1,5 +1,5 @@
 # Description
- - This directory contains resources used in the caching kube2e tests, defined in [/test/kube2e/caching](/test/kube2e/caching).
+ - This directory contains resources used in the caching kube2e tests, defined in [/test/kube2e/caching](/test/kube2e/caching) the image is also used by caching upgrade tests [/test/kube2e/upgrade](/test/kube2e/upgrade)
  - In particular, the [./resources.yaml](./resources.yaml) file defined here creates resources used by the caching kube2e tests for testing cache functionality
  - The rest of the files in this directory are used to build the `gcr.io/solo-test-236622/cache_test_service` docker image referenced on [./resources.yaml line 9](./resources.yaml#L9)
    - This image is a backend service for cache testing, originally developed for the [upstream Envoy cache filter sandbox](https://www.envoyproxy.io/docs/envoy/latest/start/sandboxes/cache#cache-filter)

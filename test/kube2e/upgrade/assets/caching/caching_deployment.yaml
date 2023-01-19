@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cache-test-service
+  name: cache-test-service
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: cache-test-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cache-test-service
+    spec:
+      containers:
+        - image: gcr.io/solo-test-236622/cache_test_service:0.0.2
+          name: service1
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              port: 8000
+              path: /service/1/no-cache

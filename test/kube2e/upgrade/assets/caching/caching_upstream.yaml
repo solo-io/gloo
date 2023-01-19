@@ -5,6 +5,6 @@ metadata:
   namespace: gloo-system
 spec:
     kube:
-      serviceName: service1
+      serviceName: cache-test-service
       serviceNamespace: gloo-system
       servicePort: 8000

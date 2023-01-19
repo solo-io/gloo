@@ -8,6 +8,7 @@
 # Assets package 
 - Assets are YAML definitions of resources should have filename in the format `resourceName_resourceType.yaml`
 - There should be one resource per YAML file 
+- The assets used in the caching tests reference a sandbox caching image that we build based on an image provided for envoy testing - more can be found here [/test/kube2e/assets/caching/README.md](/test/kube2e/assets/caching/README.md)
 
 # Running Tests
 - You will need to generate the `_test` and `_output` folders in order to run these tests locally

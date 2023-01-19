@@ -246,17 +246,14 @@ var _ = Describe("Installing gloo", func() {
 		headers = getResponseHeadersFromCurlOutput(res)
 		// expect headers to contain an age header
 		Expect(headers).To(HaveKey("age"))
-		// expect the age header to be less than 3 seconds
-		age, err := strconv.Atoi(headers["age"])
-		Expect(err).NotTo(HaveOccurred())
-		Expect(age).To(BeNumerically("<", 3))
-		Expect(age).To(BeNumerically(">", 0))
+		// check header age
+		Expect(strconv.Atoi(headers["age"])).To(And(BeNumerically("<=", 3)), BeNumerically(">=", 0), "age header should be between 0 and 3")
 		// expect the date header to be the same as the first request
 		Expect(headers["date"]).To(Equal(date.Format(time.RFC1123)))
 	}
 
 	validationTest := func() {
-		By("sending an inital request to cache the response")
+		By("sending an initial request to cache the response")
 		res, err := requestOnPath("/service/1/valid-for-three-seconds")
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res).To(ContainSubstring("200"))
@@ -278,11 +275,8 @@ var _ = Describe("Installing gloo", func() {
 		headers = getResponseHeadersFromCurlOutput(res)
 		// expect headers to contain an age header
 		Expect(headers).To(HaveKey("age"))
-		// expect the age header to be less than 3 seconds
-		age, err := strconv.Atoi(headers["age"])
-		Expect(err).NotTo(HaveOccurred())
-		Expect(age).To(BeNumerically("<", 3))
-		Expect(age).To(BeNumerically(">", 0))
+		// Check header age
+		Expect(strconv.Atoi(headers["age"])).To(And(BeNumerically("<=", 3)), BeNumerically(">=", 0), "age header should be between 0 and 3")
 		// expect the date header to be the same as the first request
 		Expect(headers["date"]).To(Equal(date.Format(time.RFC1123)))
 

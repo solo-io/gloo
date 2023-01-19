@@ -1,0 +1,17 @@
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: cache-test-vs
+  namespace: gloo-system
+spec:
+  virtualHost:
+    domains:
+      - 'caching'
+    routes:
+      - matchers:
+          - prefix: /
+        routeAction:
+          single:
+            upstream:
+              name: test-cache-us
+              namespace: gloo-system
