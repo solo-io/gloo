@@ -579,7 +579,6 @@ func getLdapConnectionPoolParams(pool *extauthv1.Ldap_ConnectionPool) (int, int)
 	return initCap, maxCap
 }
 func getPassThroughGrpcAuthService(ctx context.Context, passthroughAuthCfg *structpb.Struct, grpcConfig *extauthv1.PassThroughGrpc, failureModeAllow bool) (api.AuthService, error) {
-
 	connectionTimeout := 5 * time.Second
 
 	if timeout := grpcConfig.GetConnectionTimeout(); timeout != nil {
@@ -594,6 +593,7 @@ func getPassThroughGrpcAuthService(ctx context.Context, passthroughAuthCfg *stru
 		Address:           grpcConfig.GetAddress(),
 		ConnectionTimeout: connectionTimeout,
 		FailureModeAllow:  failureModeAllow,
+		UseSecure:         grpcConfig.GetTlsConfig() != nil,
 	}
 
 	grpcClientManager, err := grpcPassthrough.NewGrpcClientManager(ctx, clientManagerConfig)

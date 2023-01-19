@@ -27,6 +27,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_wasm_wasm_pb f
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_azure_azure_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/azure/azure_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_healthcheck_healthcheck_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/healthcheck/healthcheck_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_protocol_upgrade_protocol_upgrade_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/protocol_upgrade/protocol_upgrade_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/router/router_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_proxylatency_proxylatency_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/proxylatency/proxylatency_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_buffer_v3_buffer_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/buffer/v3/buffer_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_filters_http_csrf_v3_csrf_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/filters/http/csrf/v3/csrf_pb";
@@ -205,6 +206,11 @@ export class HttpListenerOptions extends jspb.Message {
   getDynamicForwardProxy(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig | undefined;
   setDynamicForwardProxy(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig): void;
 
+  hasRouter(): boolean;
+  clearRouter(): void;
+  getRouter(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb.Router | undefined;
+  setRouter(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb.Router): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: HttpListenerOptions): HttpListenerOptions.AsObject;
@@ -235,6 +241,7 @@ export namespace HttpListenerOptions {
     sanitizeClusterHeader?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     leftmostXffAddress?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     dynamicForwardProxy?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_dynamic_forward_proxy_dynamic_forward_proxy_pb.FilterConfig.AsObject,
+    router?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_router_router_pb.Router.AsObject,
   }
 }
 

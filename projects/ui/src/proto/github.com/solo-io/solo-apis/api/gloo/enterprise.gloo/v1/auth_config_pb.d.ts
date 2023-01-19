@@ -2068,6 +2068,11 @@ export class PassThroughGrpc extends jspb.Message {
   getConnectionTimeout(): google_protobuf_duration_pb.Duration | undefined;
   setConnectionTimeout(value?: google_protobuf_duration_pb.Duration): void;
 
+  hasTlsconfig(): boolean;
+  clearTlsconfig(): void;
+  getTlsconfig(): PassThroughGrpcTLSConfig | undefined;
+  setTlsconfig(value?: PassThroughGrpcTLSConfig): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PassThroughGrpc.AsObject;
   static toObject(includeInstance: boolean, msg: PassThroughGrpc): PassThroughGrpc.AsObject;
@@ -2082,6 +2087,23 @@ export namespace PassThroughGrpc {
   export type AsObject = {
     address: string,
     connectionTimeout?: google_protobuf_duration_pb.Duration.AsObject,
+    tlsconfig?: PassThroughGrpcTLSConfig.AsObject,
+  }
+}
+
+export class PassThroughGrpcTLSConfig extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PassThroughGrpcTLSConfig.AsObject;
+  static toObject(includeInstance: boolean, msg: PassThroughGrpcTLSConfig): PassThroughGrpcTLSConfig.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PassThroughGrpcTLSConfig, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PassThroughGrpcTLSConfig;
+  static deserializeBinaryFromReader(message: PassThroughGrpcTLSConfig, reader: jspb.BinaryReader): PassThroughGrpcTLSConfig;
+}
+
+export namespace PassThroughGrpcTLSConfig {
+  export type AsObject = {
   }
 }
 
