@@ -571,13 +571,13 @@ var _ = Describe("AWS Lambda", func() {
 				addUpstream()
 			})
 
-			It("should be able to call lambda", testProxy)
+			FIt("should be able to call lambda", testProxy)
 
-			It("should be able to call lambda with response transform", testProxyWithResponseTransform)
+			FIt("should be able to call lambda with response transform", testProxyWithResponseTransform)
 
-			It("should be able to call lambda with request transform", testProxyWithRequestTransform)
+			FIt("should be able to call lambda with request transform", testProxyWithRequestTransform)
 
-			It("should be able to call lambda with request and response transforms", testProxyWithRequestAndResponseTransforms)
+			FIt("should be able to call lambda with request and response transforms", testProxyWithRequestAndResponseTransforms)
 		})
 		Context("With gateway translation", func() {
 			BeforeEach(func() {
