@@ -36,7 +36,7 @@ steps:
 
 # $COMMIT_SHA is a default gcloud env var, to run via cloudbuild submit use:
 # gcloud builds submit --substitutions COMMIT_SHA=<commitsha>,REPO_NAME=solo-io/solo-projects --project gloo-ee
-- name: 'gcr.io/solo-public/prepare-go-workspace:0.4.24'
+- name: 'gcr.io/solo-public/prepare-go-workspace:0.4.28'
   args:
     - "--repo-name"
     - "$REPO_NAME"
@@ -85,7 +85,7 @@ steps:
 # Setup and run E2E tests (from here until "test")
 
 # Pull Envoy images
-- name: 'gcr.io/solo-public/go-mod-make:0.4.24'
+- name: 'gcr.io/solo-public/go-mod-make:0.4.28'
   entrypoint: "bash"
   args:
     - "-ce"
@@ -126,7 +126,7 @@ steps:
 # need to use the provided entrypoint
 # This step HAS to run after codegen, because codegen also runs `go generate` and might overwrite existing plugin files.
 # Can't run gingko with -race because this changes the go runtime dependency and extauth plugin dependency test will fail
-- name: "gcr.io/solo-public/e2e-go-mod-ginkgo:0.4.24"
+- name: "gcr.io/solo-public/e2e-go-mod-ginkgo:0.4.28"
   dir: *dir
   entrypoint: make
   args: ["run-tests"]
@@ -157,7 +157,7 @@ steps:
   waitFor: ["-"]
   id: "docker-login"
 
-- name: "gcr.io/solo-public/go-mod-make:0.4.24"
+- name: "gcr.io/solo-public/go-mod-make:0.4.28"
   args: ["docker-push-extended"]
   dir: *dir
   secretEnv: ["GITHUB_TOKEN", "QUAY_IO_PASSWORD"]
@@ -165,7 +165,7 @@ steps:
   id: "push-docker-images"
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/tree/master/go-mod-make
-- name: "gcr.io/solo-public/go-mod-make:0.4.24"
+- name: "gcr.io/solo-public/go-mod-make:0.4.28"
   args:
     [
       "init-helm",
@@ -186,7 +186,7 @@ steps:
   id: 'gcr-auth'
 
 # Run make targets to retag and push docker images to GCR
-- name: 'gcr.io/solo-public/go-mod-make:0.4.24'
+- name: 'gcr.io/solo-public/go-mod-make:0.4.28'
   args: ['docker-retag-images']
   env:
   - "TEST_ASSET_ID=$_PR_NUM"
