@@ -10,10 +10,10 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
-var _ = Describe("Route Configs", func() {
+var _ = FDescribe("Route Configs", func() {
 
-	DescribeTable("validate route path", func(path string, expectedValue bool) {
-		if expectedValue {
+	DescribeTable("validate route path", func(path string, shouldPass bool) {
+		if shouldPass {
 			Expect(translator.ValidateRoutePath(path)).ToNot(HaveOccurred())
 		} else {
 			Expect(translator.ValidateRoutePath(path)).To(HaveOccurred())
@@ -37,6 +37,8 @@ var _ = Describe("Route Configs", func() {
 		Entry("hash", "hello/something#", false),
 		Entry("/..", "hello/../something", false),
 		Entry("/.", "hello/./something", false),
+		Entry("real-route", "api-gateway_default-route-5-matcher-0", true),
+		Entry("real-route", " api-gateway_default-route-5-matcher-0", false),
 	)
 
 	It("Should validate all seperate characters", func() {
