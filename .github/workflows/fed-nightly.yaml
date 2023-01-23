@@ -146,25 +146,6 @@ jobs:
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
           TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
-  canary_tests_11:
-    name: fed regression tests (fed-canary@k8s${{matrix.kube-version.kubectl}})
-    if: github.event.schedule == '8 8 * * 1'
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
-                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v1.11.x
-      - uses: ./.github/actions/canary-regression-tests
-        with:
-          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
-          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
 
   fed_tests_10:
     name: fed regression tests (fed@k8s${{matrix.kube-version.kubectl}})
@@ -185,30 +166,11 @@ jobs:
           QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
           GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
           TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
-  canary_tests_10:
-    name: fed regression tests (fed-canary@k8s${{matrix.kube-version.kubectl}})
-    if: github.event.schedule == '9 9 * * 1'
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        kube-version: [ { node: 'v1.21.14', kubectl: 'v1.21.14', kind: 'v0.17.0' },
-                        { node: 'v1.24.7@sha256:5c015142d9b60a0f6c45573f809957076514e38ec973565e2b2fe828b91597f5', kubectl: 'v1.24.7', kind: 'v0.17.0' } ]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v1.10.x
-      - uses: ./.github/actions/canary-regression-tests
-        with:
-          GLOO_EE_GCR_KEY: ${{ secrets.GLOO_EE_GCR_KEY }}
-          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-          GITHUB_TOKEN: ${{ secrets.CI_ADMIN_GITHUB_TOKEN }}
-          TESTSPACE_TOKEN: ${{ secrets.TESTSPACE_TOKEN }}
 
   publish_results:
     runs-on: ubuntu-22.04
     if: ${{ always() }}
-    needs: [ fed_tests_dev, canary_tests_dev, fed_tests_13, canary_tests_13, fed_tests_12, canary_tests_12, fed_tests_11, canary_tests_11, fed_tests_10, canary_tests_10 ]
+    needs: [ fed_tests_dev, canary_tests_dev, fed_tests_13, canary_tests_13, fed_tests_12, canary_tests_12, fed_tests_11, fed_tests_10 ]
     steps:
       - uses: actions/checkout@v3
       - name: compute-preamble

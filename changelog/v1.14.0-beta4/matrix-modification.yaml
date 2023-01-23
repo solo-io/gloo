@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4410
+    description: Updated set of matrix jobs to match LTS branches.  (Previously, were attempting to run _all_ modern tests against branches that didn't support them)
+    resolvesIssue: false
