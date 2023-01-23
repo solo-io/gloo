@@ -18,6 +18,14 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth/test_fixtures"
 )
 
+// syncer.TranslatorSyncerExtension Sync methods are a frequently executed code path.
+// We are progressively adding micro-benchmarking to this area of the code to ensure
+// we don't introduce unintended latency to this space.
+//
+// At the moment, these tests (and our benchmarking approach) are not stable, so while
+// we define the tests here, they are skipped in CI. The hope is that running locally
+// we can see the measured difference now, and in the future we except to flush out
+// our benchmarking tests.
 var _ = Describe("ExtAuth Translation - Benchmarking Tests", func() {
 
 	var (
@@ -45,8 +53,8 @@ var _ = Describe("ExtAuth Translation - Benchmarking Tests", func() {
 		func(producer extauthsyncer.XdsSnapshotProducer, resourceFrequency test_fixtures.ResourceFrequency, durationAssertion types.GomegaMatcher) {
 			By("Seed Snapshot with resources")
 			snapshot := &gloov1snap.ApiSnapshot{
-				AuthConfigs: test_fixtures.AuthConfigSliceForBenchmark(writeNamespace, resourceFrequency.AuthConfigs),
-				Proxies:     test_fixtures.ProxySliceForBenchmark(writeNamespace, resourceFrequency),
+				AuthConfigs: test_fixtures.AuthConfigSlice(writeNamespace, resourceFrequency.AuthConfigs),
+				Proxies:     test_fixtures.ProxySlice(writeNamespace, resourceFrequency),
 			}
 			// Settings are only used by the XdsSnapshotProducer to validate that if a custom auth
 			// server name is defined, that it maps to the name of a server configured in Settings
@@ -69,12 +77,12 @@ var _ = Describe("ExtAuth Translation - Benchmarking Tests", func() {
 			for i := 0; i < samples; i++ {
 				results[i] = timeForFuncToComplete(functionToBenchmark)
 			}
-
 			sort.Float64s(results)
+
 			By("Assert 80th percentile of ProduceXdsSnapshot completes within expected window")
 			// 0:sample-1, 1:sample-2, 2:sample-3 [3:sample-4], 4:sample5
 			eightyPercentile := results[samples-2]
-			print(eightyPercentile)
+			print(eightyPercentile) // Helpful to gather details about results in CI
 			Expect(eightyPercentile).To(durationAssertion)
 		},
 		getBenchmarkingTestEntries()...,
@@ -115,7 +123,25 @@ func getBenchmarkingTestEntries() []TableEntry {
 
 	// We're running locally
 	return []TableEntry{
-		Entry("proxySourcedXdsSnapshotProducer",
+		// (AC=1000, PXY=50, VH=100, R=1000)
+		Entry("snapshotSourcedXdsSnapshotProducer (AC=1000, PXY=50, VH=100, R=1000)",
+			extauthsyncer.NewSnapshotSourcedXdsSnapshotProducer(),
+			test_fixtures.ResourceFrequency{
+				AuthConfigs:          1000,
+				Proxies:              50,
+				VirtualHostsPerProxy: 100,
+				RoutesPerVirtualHost: 1000,
+			},
+			// Should take 2 +- 1 seconds
+			// Recent LOCAL results:
+			// +1.630976e+000
+			// +1.801740e+000
+			// +1.680145e+000
+			// +1.847926e+000
+			// +2.005645e+000
+			BeNumerically("~", 2, 1),
+		),
+		Entry("proxySourcedXdsSnapshotProducer (AC=1000, PXY=50, VH=100, R=1000)",
 			extauthsyncer.NewProxySourcedXdsSnapshotProducer(),
 			test_fixtures.ResourceFrequency{
 				AuthConfigs:          1000,
@@ -130,6 +156,8 @@ func getBenchmarkingTestEntries() []TableEntry {
 			// +8.101754e+000
 			// +7.821978e+000
 			// +7.087994e+000
+			// +8.308528e+000
+			// +6.692507e+000
 			BeNumerically("~", 7, 2),
 		),
 	}

@@ -96,7 +96,7 @@ func (s *translatorSyncerExtension) Sync(
 	// This extension is invoked during our translation engine, as well as during validation of Gloo
 	// Edge resources. It would be better to have some state that is persisted across runs because some
 	// simple caching will save us CPU, but in the meantime we don't do that
-	xdsSnapshotProducer := NewProxySourcedXdsSnapshotProducer()
+	xdsSnapshotProducer := NewSnapshotSourcedXdsSnapshotProducer()
 	xdsSnapshot := xdsSnapshotProducer.ProduceXdsSnapshot(ctx, settings, snap, reports)
 
 	var snapshotResources []envoycache.Resource

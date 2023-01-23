@@ -50,21 +50,27 @@ var (
 )
 
 // TranslateExtAuthConfig Returns {nil, nil} if the input config is empty or if it contains only custom auth entries
+// Deprecated: Prefer ConvertExternalAuthConfigToXdsAuthConfig
 func TranslateExtAuthConfig(ctx context.Context, snapshot *v1snap.ApiSnapshot, authConfigRef *core.ResourceRef) (*extauth.ExtAuthConfig, error) {
 	configResource, err := snapshot.AuthConfigs.Find(authConfigRef.Strings())
 	if err != nil {
 		return nil, errors.Errorf("could not find auth config [%s] in snapshot", authConfigRef.Key())
 	}
 
+	return ConvertExternalAuthConfigToXdsAuthConfig(ctx, snapshot, configResource)
+}
+
+// ConvertExternalAuthConfigToXdsAuthConfig converts a user facing AuthConfig object
+// into an AuthConfig object that will be sent over xDS to the ext-auth-service.
+// Returns {nil, nil} if the input config is empty
+func ConvertExternalAuthConfigToXdsAuthConfig(ctx context.Context, snapshot *v1snap.ApiSnapshot, externalAuthConfig *extauth.AuthConfig) (*extauth.ExtAuthConfig, error) {
 	var translatedConfigs []*extauth.ExtAuthConfig_Config
-	for _, config := range configResource.Configs {
+	for _, config := range externalAuthConfig.Configs {
 		translated, err := translateConfig(ctx, snapshot, config)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to translate ext auth config")
-		} else if translated == nil {
-			// Custom auth, ignore
-			continue
 		}
+
 		translatedConfigs = append(translatedConfigs, translated)
 	}
 
@@ -80,8 +86,8 @@ func TranslateExtAuthConfig(ctx context.Context, snapshot *v1snap.ApiSnapshot, a
 	})
 
 	return &extauth.ExtAuthConfig{
-		BooleanExpr:       configResource.BooleanExpr,
-		AuthConfigRefName: authConfigRef.Key(),
+		BooleanExpr:       externalAuthConfig.GetBooleanExpr(),
+		AuthConfigRefName: externalAuthConfig.GetMetadata().Ref().Key(),
 		Configs:           translatedConfigs,
 	}, nil
 }

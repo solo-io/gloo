@@ -1,0 +1,8 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/3558
+    resolvesIssue: false
+    description: >
+      Use new implementation to translate AuthConfig resources into xDS resources to
+      be sent to the ext-auth-service. The implementation is more performant, and reports
+      errors on both the AuthConfig and Proxy resources.

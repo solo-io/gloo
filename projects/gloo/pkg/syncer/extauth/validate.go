@@ -4,6 +4,8 @@ import (
 	"fmt"
 	url2 "net/url"
 
+	"github.com/hashicorp/go-multierror"
+
 	errors "github.com/rotisserie/eris"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -46,20 +48,31 @@ func IsIntrospectionUrlParsable(url string) bool {
 	return true
 }
 
+// ValidateAuthConfig writes all errors from an AuthConfig onto a report
 func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports) {
+	errIfInvalid := ErrorIfInvalidAuthConfig(ac)
+	if errIfInvalid.ErrorOrNil() != nil {
+		reports.AddErrors(ac, errIfInvalid.Errors...)
+	}
+}
+
+// ErrorIfInvalidAuthConfig returns a multierror.Error containing all errors on an AuthConfig
+func ErrorIfInvalidAuthConfig(ac *extauth.AuthConfig) *multierror.Error {
+	var multiErr *multierror.Error
+
 	configs := ac.GetConfigs()
 	if len(configs) == 0 {
-		reports.AddError(ac, errors.Errorf("No configurations for auth config %v", ac.Metadata.Ref()))
+		return multierror.Append(errors.Errorf("No configurations for auth config %v", ac.Metadata.Ref()))
 	}
 	for _, conf := range configs {
 		switch cfg := conf.AuthConfig.(type) {
 		case *extauth.AuthConfig_Config_BasicAuth:
 			if cfg.BasicAuth.GetApr() == nil {
-				reports.AddError(ac, NewInvalidAuthConfigError("basic", ac.GetMetadata().Ref()))
+				multiErr = multierror.Append(multiErr, NewInvalidAuthConfigError("basic", ac.GetMetadata().Ref()))
 			}
 		case *extauth.AuthConfig_Config_Oauth:
 			if cfg.Oauth.GetAppUrl() == "" {
-				reports.AddError(ac, NewInvalidAuthConfigError("oauth", ac.GetMetadata().Ref()))
+				multiErr = multierror.Append(multiErr, NewInvalidAuthConfigError("oauth", ac.GetMetadata().Ref()))
 			}
 		case *extauth.AuthConfig_Config_Oauth2:
 			switch oauthCfg := cfg.Oauth2.OauthType.(type) {
@@ -71,40 +84,40 @@ func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports
 					oidcCfg.GetAppUrl() == "" ||
 					oidcCfg.GetIssuerUrl() == "" ||
 					oidcCfg.GetCallbackPath() == "" {
-					reports.AddError(ac, OAuth2IncompleteOIDCInfoErr)
+					multiErr = multierror.Append(multiErr, OAuth2IncompleteOIDCInfoErr)
 				}
 			case *extauth.OAuth2_AccessTokenValidation:
 				switch validation := oauthCfg.AccessTokenValidation.ValidationType.(type) {
 				case *extauth.AccessTokenValidation_IntrospectionUrl:
 					introspectionUrl := validation.IntrospectionUrl
 					if introspectionUrl == "" {
-						reports.AddError(ac, OAuth2EmtpyIntrospectionUrlErr)
+						multiErr = multierror.Append(multiErr, OAuth2EmtpyIntrospectionUrlErr)
 					} else if !IsIntrospectionUrlParsable(introspectionUrl) {
-						reports.AddError(ac, OAuth2InvalidIntrospectionUrlErr)
+						multiErr = multierror.Append(multiErr, OAuth2InvalidIntrospectionUrlErr)
 					}
 				case *extauth.AccessTokenValidation_Introspection:
 					introspectionUrl := validation.Introspection.GetIntrospectionUrl()
 					if introspectionUrl == "" {
-						reports.AddError(ac, OAuth2EmtpyIntrospectionUrlErr)
+						multiErr = multierror.Append(multiErr, OAuth2EmtpyIntrospectionUrlErr)
 					} else if !IsIntrospectionUrlParsable(introspectionUrl) {
-						reports.AddError(ac, OAuth2InvalidIntrospectionUrlErr)
+						multiErr = multierror.Append(multiErr, OAuth2InvalidIntrospectionUrlErr)
 					}
 
 					// XOR clientId and clientSecretRef
 					clientIdExists := validation.Introspection.GetClientId() != ""
 					clientSecretExists := validation.Introspection.GetClientSecretRef() != nil
 					if clientIdExists != clientSecretExists {
-						reports.AddError(ac, OAuth2IncompleteIntrospectionCredentialsErr)
+						multiErr = multierror.Append(multiErr, OAuth2IncompleteIntrospectionCredentialsErr)
 					}
 				case *extauth.AccessTokenValidation_Jwt:
 					switch jwksSource := validation.Jwt.JwksSourceSpecifier.(type) {
 					case *extauth.JwtValidation_RemoteJwks_:
 						if jwksSource.RemoteJwks.GetUrl() == "" {
-							reports.AddError(ac, OAuth2EmtpyRemoteJwksUrlErr)
+							multiErr = multierror.Append(multiErr, OAuth2EmtpyRemoteJwksUrlErr)
 						}
 					case *extauth.JwtValidation_LocalJwks_:
 						if jwksSource.LocalJwks.GetInlineString() == "" {
-							reports.AddError(ac, OAuth2EmtpyLocalJwksErr)
+							multiErr = multierror.Append(multiErr, OAuth2EmtpyLocalJwksErr)
 						}
 					}
 				}
@@ -116,42 +129,43 @@ func ValidateAuthConfig(ac *extauth.AuthConfig, reports reporter.ResourceReports
 					oauth2Cfg.GetTokenEndpoint() == "" ||
 					oauth2Cfg.GetClientSecretRef() == nil ||
 					oauth2Cfg.GetCallbackPath() == "" {
-					reports.AddError(ac, OAuth2IncompletePlainInfoErr)
+					multiErr = multierror.Append(multiErr, OAuth2IncompletePlainInfoErr)
 				}
 			}
 		case *extauth.AuthConfig_Config_ApiKeyAuth:
 			if len(cfg.ApiKeyAuth.GetLabelSelector())+len(cfg.ApiKeyAuth.GetApiKeySecretRefs()) == 0 {
-				reports.AddError(ac, NewInvalidAuthConfigError("apikey", ac.GetMetadata().Ref()))
+				multiErr = multierror.Append(multiErr, NewInvalidAuthConfigError("apikey", ac.GetMetadata().Ref()))
 			}
 		case *extauth.AuthConfig_Config_PluginAuth:
 			if cfg.PluginAuth.GetConfig() == nil {
-				reports.AddError(ac, NewInvalidAuthConfigError("plugin", ac.GetMetadata().Ref()))
+				multiErr = multierror.Append(multiErr, NewInvalidAuthConfigError("plugin", ac.GetMetadata().Ref()))
 			}
 		case *extauth.AuthConfig_Config_OpaAuth:
 			if cfg.OpaAuth.GetQuery() == "" {
-				reports.AddError(ac, NewInvalidAuthConfigError("opa", ac.GetMetadata().Ref()))
+				multiErr = multierror.Append(multiErr, NewInvalidAuthConfigError("opa", ac.GetMetadata().Ref()))
 			}
 		case *extauth.AuthConfig_Config_Ldap:
 			if cfg.Ldap.GetAddress() == "" {
-				reports.AddError(ac, NewInvalidAuthConfigError("ldap", ac.GetMetadata().Ref()))
+				multiErr = multierror.Append(multiErr, NewInvalidAuthConfigError("ldap", ac.GetMetadata().Ref()))
 			}
 		case *extauth.AuthConfig_Config_PassThroughAuth:
 			switch protocolCfg := cfg.PassThroughAuth.GetProtocol().(type) {
 			case *extauth.PassThroughAuth_Grpc:
 				if protocolCfg.Grpc.GetAddress() == "" {
-					reports.AddError(ac, NewInvalidAuthConfigError("passthrough grpc", ac.GetMetadata().Ref()))
+					multiErr = multierror.Append(multiErr, NewInvalidAuthConfigError("passthrough grpc", ac.GetMetadata().Ref()))
 				}
 			case *extauth.PassThroughAuth_Http:
 				if protocolCfg.Http.GetUrl() == "" {
-					reports.AddError(ac, NewInvalidAuthConfigError("passthrough http", ac.GetMetadata().Ref()))
+					multiErr = multierror.Append(multiErr, NewInvalidAuthConfigError("passthrough http", ac.GetMetadata().Ref()))
 				}
 			default:
-				reports.AddError(ac, errors.Errorf("Unknown passthrough protocol type for %v", ac.Metadata.Ref()))
+				multiErr = multierror.Append(multiErr, errors.Errorf("Unknown passthrough protocol type for %v", ac.Metadata.Ref()))
 			}
 		case *extauth.AuthConfig_Config_Jwt:
 			// no validation needed yet for dummy jwt service
 		default:
-			reports.AddError(ac, errors.Errorf("Unknown Auth Config type for %v", ac.Metadata.Ref()))
+			multiErr = multierror.Append(multiErr, errors.Errorf("Unknown Auth Config type for %v", ac.Metadata.Ref()))
 		}
 	}
+	return multiErr
 }

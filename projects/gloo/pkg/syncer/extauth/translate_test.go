@@ -41,7 +41,6 @@ var _ = Describe("Translate", func() {
 	)
 
 	BeforeEach(func() {
-
 		upstream = &v1.Upstream{
 			Metadata: &core.Metadata{
 				Name:      "extauth",
@@ -147,7 +146,6 @@ var _ = Describe("Translate", func() {
 	})
 
 	JustBeforeEach(func() {
-
 		virtualHost = &v1.VirtualHost{
 			Name:    "virt1",
 			Domains: []string{"*"},

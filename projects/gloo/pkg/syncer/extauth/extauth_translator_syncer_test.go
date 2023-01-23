@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth/test_fixtures"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	translator2 "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -180,8 +181,8 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 				apiSnapshot.AuthConfigs = append(apiSnapshot.AuthConfigs, badConfig)
 				apiSnapshot.AuthConfigs = append(apiSnapshot.AuthConfigs, goodConfig)
 
-				authConfigClient.Write(goodConfig, clients.WriteOpts{})
-				authConfigClient.Write(badConfig, clients.WriteOpts{})
+				authConfigClient.Write(goodConfig, clients.WriteOpts{Ctx: ctx})
+				authConfigClient.Write(badConfig, clients.WriteOpts{Ctx: ctx})
 
 				// Add 4 virtual hosts. 2 good, one bad, one missing.
 				proxy.Listeners = append(proxy.Listeners, &gloov1.Listener{
@@ -198,16 +199,16 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 					},
 				})
 
-				proxyClient.Write(proxy, clients.WriteOpts{})
+				_, err := proxyClient.Write(proxy, clients.WriteOpts{Ctx: ctx})
+				Expect(err).NotTo(HaveOccurred())
 
 				Expect(reports).To(HaveLen(0), "should have no reports yet")
 				snap := translate()
 
 				extAuthRes := snap.GetResources(extauth.ExtAuthConfigType)
-				// The Oauth from default setup, the well configured basic-auth, and the misconfigured basic auth.
-				Expect(extAuthRes.Items).To(HaveLen(3), "It should have three auth configs")
+				// The Oauth from default setup, the well configured basic-auth.
+				Expect(extAuthRes.Items).To(HaveLen(2), "It should have two auth configs")
 				Expect(extAuthRes.Items["gloo-system.auth"]).NotTo(BeNil())
-				Expect(extAuthRes.Items["gloo-system.bad-auth"]).NotTo(BeNil())
 				Expect(extAuthRes.Items["gloo-system.good-auth"]).NotTo(BeNil())
 
 				Expect(reports).To(HaveLen(4), "should have auth, bad-auth, good-auth and proxy")
@@ -273,13 +274,14 @@ var _ = Describe("ExtauthTranslatorSyncer", func() {
 			JustBeforeEach(func() {
 				// The apiSnapshot is initialized in the outer JustBeforeEach, so we modify it here
 
-				apiSnapshot.AuthConfigs = append(apiSnapshot.AuthConfigs,
-					getComplexAuthConfig("complex-east"),
-					getComplexAuthConfig("complex-west"))
+				apiSnapshot.AuthConfigs = extauth.AuthConfigList{
+					test_fixtures.ComplexAuthConfig("complex-east", writeNamespace),
+					test_fixtures.ComplexAuthConfig("complex-west", writeNamespace),
+				}
 				apiSnapshot.Proxies = gloov1.ProxyList{{
 					Metadata: &skcore.Metadata{
 						Name:      "proxy-with-complex-auth",
-						Namespace: defaults.GlooSystem,
+						Namespace: writeNamespace,
 					},
 					Listeners: []*gloov1.Listener{{
 						Name: "listener-::-8000",
@@ -353,48 +355,6 @@ func getBasicAuthConfig(authName string) *extauth.AuthConfig {
 					},
 				},
 			}},
-		},
-	}
-}
-
-func getComplexAuthConfig(authName string) *extauth.AuthConfig {
-	return &extauth.AuthConfig{
-		Metadata: &skcore.Metadata{
-			Name:      authName,
-			Namespace: defaults.GlooSystem,
-		},
-		BooleanExpr: &wrappers.StringValue{Value: "oauth2 || passthrough || jwt"},
-		Configs: []*extauth.AuthConfig_Config{
-			{
-				Name: &wrappers.StringValue{Value: "oauth2"},
-				AuthConfig: &extauth.AuthConfig_Config_Oauth2{
-					Oauth2: &extauth.OAuth2{
-						OauthType: &extauth.OAuth2_AccessTokenValidation{
-							AccessTokenValidation: &extauth.AccessTokenValidation{
-								UserinfoUrl: fmt.Sprintf("fake-url-%s", authName),
-							},
-						},
-					},
-				},
-			},
-			{
-				Name: &wrappers.StringValue{Value: "passthrough"},
-				AuthConfig: &extauth.AuthConfig_Config_PassThroughAuth{
-					PassThroughAuth: &extauth.PassThroughAuth{
-						Protocol: &extauth.PassThroughAuth_Grpc{
-							Grpc: &extauth.PassThroughGrpc{
-								Address: fmt.Sprintf("passthrough-%s", authName),
-							},
-						},
-					},
-				},
-			},
-			{
-				Name: &wrappers.StringValue{Value: "jwt"},
-				AuthConfig: &extauth.AuthConfig_Config_Jwt{
-					Jwt: &empty.Empty{},
-				},
-			},
 		},
 	}
 }

@@ -24,6 +24,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	testmatchers "github.com/solo-io/gloo/test/gomega/matchers"
+
 	. "github.com/onsi/ginkgo/extensions/table"
 
 	"github.com/solo-io/ext-auth-service/pkg/config/oidc"
@@ -1267,19 +1269,25 @@ var _ = Describe("External auth", func() {
 					payload["foo"] = "not-bar"
 				}
 				`}}
-							modules := []*core.ResourceRef{{Name: policy.Metadata.Name}}
+							_, err := testClients.ArtifactClient.Write(policy, clients.WriteOpts{Ctx: ctx})
+							Expect(err).ToNot(HaveOccurred())
+
+							modules := []*core.ResourceRef{{
+								Name:      policy.GetMetadata().GetName(),
+								Namespace: policy.GetMetadata().GetNamespace(),
+							}}
 							options := &extauth.OpaAuthOptions{FastInputConversion: true}
 
-							_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+							_, err = testClients.AuthConfigClient.Write(&extauth.AuthConfig{
 								Metadata: &core.Metadata{
-									Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,
-									Namespace: getOidcAndOpaExtAuthExtension().GetConfigRef().Namespace,
+									Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().GetName(),
+									Namespace: getOidcAndOpaExtAuthExtension().GetConfigRef().GetNamespace(),
 								},
 								Configs: []*extauth.AuthConfig_Config{
 									{
 										AuthConfig: &extauth.AuthConfig_Config_Oauth2{
 											Oauth2: &extauth.OAuth2{
-												OauthType: getOidcAuthCodeConfig(envoyPort, secret.Metadata.Ref()),
+												OauthType: getOidcAuthCodeConfig(envoyPort, secret.GetMetadata().Ref()),
 											},
 										},
 									},
@@ -1293,24 +1301,19 @@ var _ = Describe("External auth", func() {
 							Expect(err).NotTo(HaveOccurred())
 
 							proxy = getProxyExtAuthOIDCAndOpa(envoyPort, secret.Metadata.Ref(), testUpstream.Upstream.Metadata.Ref(), modules)
-
-							_, err = testClients.ArtifactClient.Write(policy, clients.WriteOpts{})
-							Expect(err).ToNot(HaveOccurred())
 						})
 
 						It("should NOT allow access", func() {
-							EventuallyWithOffset(1, func() (int, error) {
-								req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
+							Eventually(func(g Gomega) {
+								req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), nil)
 								req.Header.Add("Authorization", "Bearer "+token)
 
 								resp, err := http.DefaultClient.Do(req)
-								if err != nil {
-									return 0, err
-								}
-								defer resp.Body.Close()
-								_, _ = io.ReadAll(resp.Body)
-								return resp.StatusCode, nil
-							}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+								g.Expect(err).NotTo(HaveOccurred())
+								g.Expect(resp).To(testmatchers.HaveHttpResponse(&testmatchers.HttpResponse{
+									StatusCode: http.StatusForbidden,
+								}))
+							}, "5s", "0.5s").Should(Succeed())
 
 						})
 
@@ -1363,9 +1366,15 @@ var _ = Describe("External auth", func() {
 				payload["foo"] = "bar"
 			}
 			`}}
-						modules := []*core.ResourceRef{{Name: policy.Metadata.Name, Namespace: policy.Metadata.Namespace}}
+						_, err := testClients.ArtifactClient.Write(policy, clients.WriteOpts{Ctx: ctx})
+						Expect(err).ToNot(HaveOccurred())
+
+						modules := []*core.ResourceRef{{
+							Name:      policy.GetMetadata().GetName(),
+							Namespace: policy.GetMetadata().GetNamespace(),
+						}}
 						options := &extauth.OpaAuthOptions{FastInputConversion: true}
-						_, err := testClients.AuthConfigClient.Write(&extauth.AuthConfig{
+						_, err = testClients.AuthConfigClient.Write(&extauth.AuthConfig{
 							Metadata: &core.Metadata{
 								Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,
 								Namespace: getOidcAndOpaExtAuthExtension().GetConfigRef().Namespace,
@@ -1387,9 +1396,6 @@ var _ = Describe("External auth", func() {
 						}, clients.WriteOpts{Ctx: ctx})
 						Expect(err).NotTo(HaveOccurred())
 						proxy = getProxyExtAuthOIDCAndOpa(envoyPort, secret.Metadata.Ref(), testUpstream.Upstream.Metadata.Ref(), modules)
-
-						_, err = testClients.ArtifactClient.Write(policy, clients.WriteOpts{})
-						Expect(err).ToNot(HaveOccurred())
 					})
 					It("should allow access", func() {
 						ExpectUpstreamRequest()
@@ -3332,7 +3338,7 @@ var _ = Describe("External auth", func() {
 							Oauth: clientSecret,
 						},
 					}
-					_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{})
+					_, err := testClients.SecretClient.Write(secret, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
 
 					authConfig = &extauth.AuthConfig{
@@ -3342,16 +3348,10 @@ var _ = Describe("External auth", func() {
 						},
 						Configs: []*extauth.AuthConfig_Config{{
 							AuthConfig: &extauth.AuthConfig_Config_Oauth{
-								Oauth: getOauthConfig(envoyPort, secret.Metadata.Ref()),
+								Oauth: getOauthConfig(envoyPort, secret.GetMetadata().Ref()),
 							},
 						}},
 					}
-					// paranoia check if its already deleted thats fine as we just check that its gone
-					_ = testClients.AuthConfigClient.Delete(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.DeleteOpts{})
-					helpers.EventuallyResourceDeleted(func() (resources.InputResource, error) {
-						return testClients.AuthConfigClient.Read(authConfig.Metadata.Namespace, authConfig.Metadata.Name, clients.ReadOpts{})
-					})
-					// the accepted check is in JustBeforeEach
 					_, err = testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
 					Expect(err).NotTo(HaveOccurred())
 
@@ -3474,13 +3474,19 @@ var _ = Describe("External auth", func() {
 					payload["foo"] = "not-bar"
 				}
 				`}}
-							modules := []*core.ResourceRef{{Name: policy.Metadata.Name}}
+							_, err := testClients.ArtifactClient.Write(policy, clients.WriteOpts{Ctx: ctx})
+							Expect(err).ToNot(HaveOccurred())
+
+							modules := []*core.ResourceRef{{
+								Name:      policy.GetMetadata().GetName(),
+								Namespace: policy.GetMetadata().GetNamespace(),
+							}}
 							options := &extauth.OpaAuthOptions{FastInputConversion: true}
-							//Check for accepted is in JustBeforeEach
+
 							authConfig = &extauth.AuthConfig{
 								Metadata: &core.Metadata{
-									Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().Name,
-									Namespace: getOidcAndOpaExtAuthExtension().GetConfigRef().Namespace,
+									Name:      getOidcAndOpaExtAuthExtension().GetConfigRef().GetName(),
+									Namespace: getOidcAndOpaExtAuthExtension().GetConfigRef().GetNamespace(),
 								},
 								Configs: []*extauth.AuthConfig_Config{
 									{
@@ -3495,13 +3501,10 @@ var _ = Describe("External auth", func() {
 									},
 								},
 							}
-							_, err := testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
+							_, err = testClients.AuthConfigClient.Write(authConfig, clients.WriteOpts{Ctx: ctx})
 							Expect(err).NotTo(HaveOccurred())
 
 							proxy = getProxyExtAuthOIDCAndOpa(envoyPort, secret.Metadata.Ref(), testUpstream.Upstream.Metadata.Ref(), modules)
-
-							_, err = testClients.ArtifactClient.Write(policy, clients.WriteOpts{})
-							Expect(err).ToNot(HaveOccurred())
 						})
 
 						It("should NOT allow access", func() {
@@ -3569,7 +3572,13 @@ var _ = Describe("External auth", func() {
 				payload["foo"] = "bar"
 			}
 			`}}
-						modules := []*core.ResourceRef{{Name: policy.Metadata.Name, Namespace: policy.Metadata.Namespace}}
+						_, err := testClients.ArtifactClient.Write(policy, clients.WriteOpts{Ctx: ctx})
+						Expect(err).ToNot(HaveOccurred())
+
+						modules := []*core.ResourceRef{{
+							Name:      policy.GetMetadata().GetName(),
+							Namespace: policy.GetMetadata().GetNamespace(),
+						}}
 						options := &extauth.OpaAuthOptions{FastInputConversion: true}
 						ac := &extauth.AuthConfig{
 							Metadata: &core.Metadata{
@@ -3589,12 +3598,9 @@ var _ = Describe("External auth", func() {
 								},
 							},
 						}
-						_, err := testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
+						_, err = testClients.AuthConfigClient.Write(ac, clients.WriteOpts{Ctx: ctx})
 						Expect(err).NotTo(HaveOccurred())
 						proxy = getProxyExtAuthOIDCAndOpa(envoyPort, secret.Metadata.Ref(), testUpstream.Upstream.Metadata.Ref(), modules)
-
-						_, err = testClients.ArtifactClient.Write(policy, clients.WriteOpts{})
-						Expect(err).ToNot(HaveOccurred())
 					})
 					It("should allow access", func() {
 						ExpectUpstreamRequest()
