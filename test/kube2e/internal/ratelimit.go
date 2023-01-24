@@ -311,7 +311,7 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 					Eventually(func(g Gomega) {
 						err := authConfigClient.Delete(testHelper.InstallNamespace, "basic-auth", clients.DeleteOpts{Ctx: ctx})
 						g.Expect(err).NotTo(HaveOccurred(), "should delete authconfigs on cleanup")
-					}, "5s", "1s")
+					}, "5s", "1s").Should(Succeed())
 				})
 
 				It("can rate limit before hitting the auth server when so configured", func() {
@@ -428,10 +428,11 @@ func RunRateLimitTests(inputs *RateLimitTestInputs) {
 					Expect(err).NotTo(HaveOccurred())
 				}
 
-				rateLimitConfig := *v1helpers.NewSimpleRateLimitConfig(configRef.Name, configRef.Namespace, "generic_key", "foo", "foo")
-				_, err = rateLimitConfigClient.Write(&rateLimitConfig, clients.WriteOpts{OverwriteExisting: false})
-				Expect(err).NotTo(HaveOccurred())
-
+				Eventually(func(g Gomega) {
+					rateLimitConfig := *v1helpers.NewSimpleRateLimitConfig(configRef.Name, configRef.Namespace, "generic_key", "foo", "foo")
+					_, err = rateLimitConfigClient.Write(&rateLimitConfig, clients.WriteOpts{OverwriteExisting: false})
+					g.Expect(err).NotTo(HaveOccurred())
+				}, "5s", "1s").Should(Succeed())
 			})
 
 			It("works when the resource is referenced from a virtual host", func() {
