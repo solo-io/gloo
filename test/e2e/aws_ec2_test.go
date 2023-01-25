@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/gloo/projects/discovery/pkg/fds/discoveries/aws"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -60,9 +61,6 @@ curl http://<instance-public-ip>/
 */
 
 var _ = Describe("AWS EC2 Plugin utils test", func() {
-	if os.Getenv("SKIP_TEMP_DISABLED") == "1" {
-		return
-	}
 	const region = "us-east-1"
 
 	var (
@@ -83,7 +81,7 @@ var _ = Describe("AWS EC2 Plugin utils test", func() {
 		}
 
 		// role arn format: "arn:aws:iam::[account_number]:role/[role_name]"
-		roleArn = os.Getenv("AWS_ARN_ROLE_1")
+		roleArn = os.Getenv(aws.AWS_ROLE_ARN)
 		if roleArn == "" {
 			Skip("no AWS role ARN available")
 		}

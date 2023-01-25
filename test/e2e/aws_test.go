@@ -48,8 +48,7 @@ var _ = Describe("AWS Lambda", func() {
 		region               = "us-east-1"
 		webIdentityTokenFile = "AWS_WEB_IDENTITY_TOKEN_FILE"
 		jwtPrivateKey        = "JWT_PRIVATE_KEY"
-		awsRoleArnEnv        = "AWS_ROLE_ARN"
-		awsRoleArnVal        = "arn:aws:iam::802411188784:role/gloo-edge-e2e-sts"
+		awsRoleArn           = "AWS_ROLE_ARN"
 	)
 
 	var (
@@ -656,6 +655,11 @@ var _ = Describe("AWS Lambda", func() {
 
 		addCredentialsSts := func() {
 
+			roleArn := os.Getenv(awsRoleArn)
+			if roleArn == "" {
+				Fail(fmt.Sprintf("AWS role arn unset, set via %s", awsRoleArn))
+			}
+
 			jwtKey := os.Getenv(jwtPrivateKey)
 			if jwtKey == "" {
 				Fail(fmt.Sprintf("Token location unset, set via %s", jwtPrivateKey))
@@ -694,11 +698,11 @@ var _ = Describe("AWS Lambda", func() {
 
 			// Have to set these values for tests which use the envoy binary
 			os.Setenv(webIdentityTokenFile, tmpFile.Name())
-			os.Setenv(awsRoleArnEnv, awsRoleArnVal)
+			os.Setenv(awsRoleArn, roleArn)
 
 			envoyInstance.DockerOptions = services.DockerOptions{
 				Volumes: []string{fmt.Sprintf("%s:%s", tmpFile.Name(), tmpFile.Name())},
-				Env:     []string{webIdentityTokenFile, awsRoleArnEnv},
+				Env:     []string{webIdentityTokenFile, awsRoleArn},
 			}
 		}
 
@@ -774,7 +778,7 @@ var _ = Describe("AWS Lambda", func() {
 				os.Remove(tmpFile.Name())
 			}
 			os.Unsetenv(webIdentityTokenFile)
-			os.Unsetenv(awsRoleArnEnv)
+			os.Unsetenv(awsRoleArn)
 		})
 		Context("No gateway translation ", func() {
 			BeforeEach(func() {
