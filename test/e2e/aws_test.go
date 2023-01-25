@@ -778,7 +778,6 @@ var _ = Describe("AWS Lambda", func() {
 				os.Remove(tmpFile.Name())
 			}
 			os.Unsetenv(webIdentityTokenFile)
-			os.Unsetenv(awsRoleArn)
 		})
 		Context("No gateway translation ", func() {
 			BeforeEach(func() {
