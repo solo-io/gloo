@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -16,8 +17,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
-
-	"github.com/aws/aws-sdk-go/aws/credentials"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/aws"
@@ -83,6 +82,7 @@ var _ = Describe("AWS Lambda ", func() {
 		if err != nil {
 			Fail("no AWS creds available")
 		}
+
 		var opts clients.WriteOpts
 
 		accesskey := v.AccessKeyID
@@ -317,7 +317,6 @@ var _ = Describe("AWS Lambda ", func() {
 
 			Context("Can configure wrapAsApiGateway", func() {
 				It("works with a simple request", func() {
-
 					createEchoProxy(false, true)
 
 					// format API gateway request.
@@ -341,7 +340,8 @@ var _ = Describe("AWS Lambda ", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						Expect(jsonResponseBody["body"]).To(Equal(bodyString))
-						Expect(jsonResponseBody["httpMethod"]).To(Equal("POST"))
+						Expect(jsonResponseBody["httpMethod"]).To(Equal("GET"))
+						Expect(jsonResponseBody["path"]).To(Equal("/1"))
 
 						responseHeaders := jsonResponseBody["headers"].(map[string]interface{})
 						Expect(responseHeaders["single-value-header"]).To(Equal(headers["single-value-header"][0]))
@@ -352,6 +352,17 @@ var _ = Describe("AWS Lambda ", func() {
 						for i, v := range responseMultiValueHeader {
 							Expect(v).To(Equal(headers["multi-value-header"][i]))
 						}
+
+						responseQueryStringParameters := jsonResponseBody["queryStringParameters"].(map[string]interface{})
+						Expect(responseQueryStringParameters["param_a"]).To(Equal("value_1"))
+						// note that we expect the value of param_b to be the last value assigned to it in the query string.
+						Expect(responseQueryStringParameters["param_b"]).To(Equal("value_2"))
+
+						responseMultiValueQueryStringParameters := jsonResponseBody["multiValueQueryStringParameters"].(map[string]interface{})
+						responseMultiValueQueryStringParameter := responseMultiValueQueryStringParameters["param_b"].([]interface{})
+						Expect(len(responseMultiValueQueryStringParameter)).To(Equal(2))
+						Expect(responseMultiValueQueryStringParameter[0]).To(Equal("value_b"))
+						Expect(responseMultiValueQueryStringParameter[1]).To(Equal("value_2"))
 					}
 
 					Eventually(func(g Gomega) {
@@ -362,7 +373,7 @@ var _ = Describe("AWS Lambda ", func() {
 						var err error
 						// send request to echo lambda, mimicking a service that generates an API gateway response.
 						res, err := client.Do(&http.Request{
-							Method: "POST",
+							Method: "GET",
 							URL: &url.URL{
 								Scheme:   "http",
 								Host:     fmt.Sprintf("localhost:%d", defaults.HttpPort),
@@ -393,8 +404,19 @@ var _ = Describe("AWS Lambda ", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						Expect(jsonResponseBody["body"]).To(Equal(""))
-						Expect(jsonResponseBody["httpMethod"]).To(Equal("POST"))
-						Expect(jsonResponseBody["headers"].(map[string]interface{})["content-length"]).To(Equal("0"))
+						Expect(jsonResponseBody["httpMethod"]).To(Equal("GET"))
+						Expect(jsonResponseBody["path"]).To(Equal("/1"))
+
+						responseQueryStringParameters := jsonResponseBody["queryStringParameters"].(map[string]interface{})
+						Expect(responseQueryStringParameters["param_a"]).To(Equal("value_1"))
+						// note that we expect the value of param_b to be the last value assigned to it in the query string.
+						Expect(responseQueryStringParameters["param_b"]).To(Equal("value_2"))
+
+						responseMultiValueQueryStringParameters := jsonResponseBody["multiValueQueryStringParameters"].(map[string]interface{})
+						responseMultiValueQueryStringParameter := responseMultiValueQueryStringParameters["param_b"].([]interface{})
+						Expect(len(responseMultiValueQueryStringParameter)).To(Equal(2))
+						Expect(responseMultiValueQueryStringParameter[0]).To(Equal("value_b"))
+						Expect(responseMultiValueQueryStringParameter[1]).To(Equal("value_2"))
 					}
 
 					Eventually(func(g Gomega) {
@@ -402,11 +424,12 @@ var _ = Describe("AWS Lambda ", func() {
 						var err error
 
 						res, err := client.Do(&http.Request{
-							Method: "POST",
+							Method: "GET",
 							URL: &url.URL{
-								Scheme: "http",
-								Host:   fmt.Sprintf("localhost:%d", defaults.HttpPort),
-								Path:   "/1",
+								Scheme:   "http",
+								Host:     fmt.Sprintf("localhost:%d", defaults.HttpPort),
+								Path:     "/1",
+								RawQuery: "param_a=value_1&param_b=value_b&param_b=value_2",
 							},
 						})
 

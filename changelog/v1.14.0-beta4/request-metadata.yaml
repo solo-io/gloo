@@ -1,0 +1,16 @@
+changelog:
+- type: DEPENDENCY_BUMP
+  resolvesIssue: false
+  dependencyRepo: envoy-gloo-ee
+  dependencyOwner: solo-io
+  dependencyTag: v1.23.3-patch3
+  description: >
+   Update to envoy-gloo-ee v1.23.3-patch3 to remain in sync with upstream.
+- type: NON_USER_FACING
+  resolvesIssue: false
+  issueLink: https://github.com/solo-io/solo-projects/issues/4353
+  description: > 
+    Updates e2e testing against the AWS Lambda filter to
+    validate that HTTPMethod, Path, queryStringParameters, and
+    multiValueQueryStringParameters are set correctly in the request metadata
+    when wrapAsApiGateway is enabled.
