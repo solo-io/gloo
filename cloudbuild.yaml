@@ -157,8 +157,8 @@ steps:
   - 'TAGGED_VERSION=$TAG_NAME'
   - 'TEST_ASSET_ID=$_PR_NUM'
   - 'IMAGE_REPO=gcr.io/gloo-edge'
-  - 'RETAG_IMAGE_REGISTRY=quay.io/solo-io'
   - 'AWS_ROLE_ARN=arn:aws:iam::802411188784:role/gloo-edge-e2e-sts'
+  - 'RETAG_IMAGE_REGISTRY=quay.io/solo-io'
   dir: *dir
   secretEnv: ['GITHUB_TOKEN']
   waitFor: ['gcr-auth', 'set-gcr-zone', 'docker-push-extended']
