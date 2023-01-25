@@ -101,7 +101,7 @@ steps:
   dir: *dir
   args: ['run-tests']
   waitFor: ['get-envoy', 'setup-aws-creds', 'set-gcr-zone', 'get-test-credentials', 'install-go-tools']
-  secretEnv: ['AWS_ARN_ROLE_1', "AWS_ROLE_ARN_STS", "JWT_PRIVATE_KEY"]
+  secretEnv: ["JWT_PRIVATE_KEY"]
   id: 'test'
 
 # Log into quay.io
