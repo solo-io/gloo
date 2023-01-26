@@ -654,12 +654,7 @@ var _ = Describe("AWS Lambda", func() {
 		)
 
 		addCredentialsSts := func() {
-
-			roleArn := os.Getenv(awsRoleArn)
-			if roleArn == "" {
-				Fail(fmt.Sprintf("AWS role arn unset, set via %s", awsRoleArn))
-			}
-
+			roleArn := "arn:aws:iam::802411188784:role/gloo-edge-e2e-sts"
 			jwtKey := os.Getenv(jwtPrivateKey)
 			if jwtKey == "" {
 				Fail(fmt.Sprintf("Token location unset, set via %s", jwtPrivateKey))
