@@ -43,11 +43,5 @@ func (r *endpointReconciler) Reconcile(namespace string, desiredResources Endpoi
 			return transition(original.(*Endpoint), desired.(*Endpoint))
 		}
 	}
-	// If the endpoints contain all data by this point, either:
-	//   A. the endpoints are being removed before this, but after doing a `watch`/`List`
-	//   B. endpointsToResources() or `r.base.Reconcile` is not working well with the endpoints
-	//     note: the reconciler is in solo-kit, so hopefully the issue isn't there, since it'll be more work
-	resources := endpointsToResources(desiredResources)
-	contextutils.LoggerFrom(opts.Ctx).Warnf("[fabian log]: resources to reconcile: %v\n", resources)
 	return r.base.Reconcile(namespace, resources, transitionResources, opts)
 }
