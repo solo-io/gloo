@@ -2782,6 +2782,24 @@ spec:
 						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
 					})
 
+					It("sets topologySpreadConstraints", func() {
+
+						gatewayProxyDeployment.Spec.Template.Spec.TopologySpreadConstraints = append(
+							gatewayProxyDeployment.Spec.Template.Spec.TopologySpreadConstraints,
+							v1.TopologySpreadConstraint{
+								MaxSkew:           1,
+								TopologyKey:       "zone",
+								WhenUnsatisfiable: "ScheduleAnyway",
+								LabelSelector: &metav1.LabelSelector{
+									MatchLabels: map[string]string{"gloo": "gateway-proxy"},
+								},
+							})
+
+						prepareMakefileFromValuesFile("values/val_gwp_topologyspreadconstraints.yaml")
+
+						testManifest.ExpectDeploymentAppsV1(gatewayProxyDeployment)
+					})
+
 					It("enables probes", func() {
 						prepareMakefile(namespace, helmValues{
 							valuesArgs: []string{
@@ -4807,6 +4825,23 @@ metadata:
 					}
 					envoyBootstrapCm := cmRb.GetConfigMap()
 					testManifest.ExpectConfigMapWithYamlData(envoyBootstrapCm)
+				})
+
+				It("can create arbitrary configmaps", func() {
+					prepareMakefile(namespace, helmValues{
+						valuesArgs: []string{"global.configMaps[0].name=my-config-map",
+							"global.configMaps[0].namespace=my-ns",
+							"global.configMaps[0].data.key1=value1",
+							"global.configMaps[0].data.key2=value2"},
+					})
+					cmRb := ResourceBuilder{
+						Namespace: "my-ns",
+						Name:      "my-config-map",
+						Labels:    map[string]string{"app": "gloo", "gloo": "gloo"},
+						Data:      map[string]string{"key1": "value1", "key2": "value2"},
+					}
+					cm := cmRb.GetConfigMap()
+					testManifest.ExpectConfigMapWithYamlData(cm)
 				})
 
 				Describe("gateway proxy - AWS", func() {
