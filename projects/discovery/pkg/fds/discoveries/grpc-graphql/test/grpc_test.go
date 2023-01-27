@@ -91,42 +91,42 @@ service Foo {
 `, grpcType, grpcType)
 				doc := getGraphqlDocForProto(1, sampleGrpcProto)
 				fmt.Println(printer.Print(doc))
-				Expect(getInputFieldType(doc)).To(Equal(expectedInputType))
+				Expect(getInputFieldType(doc)).To(Equal(grpc.GetNonNullType(expectedInputType)))
 				Expect(getFieldType(doc)).To(Equal(expectedGraphqlType))
 			},
-			Entry("double", "double", "Float"),
-			Entry("float", "float", "Float"),
-			Entry("int32", "int32", "Int"),
-			Entry("int64", "int64", "Int"),
-			Entry("uint32", "uint32", "Int"),
-			Entry("uint64", "uint64", "Int"),
-			Entry("sint32", "sint32", "Int"),
-			Entry("sint64", "sint64", "Int"),
-			Entry("fixed32", "fixed32", "Int"),
-			Entry("fixed64", "fixed64", "Int"),
-			Entry("sfixed32", "sfixed32", "Int"),
-			Entry("sfixed64", "sfixed64", "Int"),
-			Entry("bool", "bool", "Boolean"),
-			Entry("string", "string", "String"),
-			Entry("repeated string", "repeated string", "[String]"),
-			Entry("repeated double", "repeated double", "[Float]"),
-			Entry("repeated bool", "repeated bool", "[Boolean]"),
-			Entry("repeated int32", "repeated int32", "[Int]"),
+			Entry("double", "double", grpc.GRAPHQL_NON_NULL_FLOAT),
+			Entry("float", "float", grpc.GRAPHQL_NON_NULL_FLOAT),
+			Entry("int32", "int32", grpc.GRAPHQL_NON_NULL_INT),
+			Entry("int64", "int64", grpc.GRAPHQL_NON_NULL_INT),
+			Entry("uint32", "uint32", grpc.GRAPHQL_NON_NULL_INT),
+			Entry("uint64", "uint64", grpc.GRAPHQL_NON_NULL_INT),
+			Entry("sint32", "sint32", grpc.GRAPHQL_NON_NULL_INT),
+			Entry("sint64", "sint64", grpc.GRAPHQL_NON_NULL_INT),
+			Entry("fixed32", "fixed32", grpc.GRAPHQL_NON_NULL_INT),
+			Entry("fixed64", "fixed64", grpc.GRAPHQL_NON_NULL_INT),
+			Entry("sfixed32", "sfixed32", grpc.GRAPHQL_NON_NULL_INT),
+			Entry("sfixed64", "sfixed64", grpc.GRAPHQL_NON_NULL_INT),
+			Entry("bool", "bool", grpc.GRAPHQL_NON_NULL_BOOLEAN),
+			Entry("string", "string", grpc.GRAPHQL_NON_NULL_STRING),
+			Entry("repeated string", "repeated string", "[String!]", "[String]"),
+			Entry("repeated double", "repeated double", "[Float!]", "[Float]"),
+			Entry("repeated bool", "repeated bool", "[Boolean!]", "[Boolean]"),
+			Entry("repeated int32", "repeated int32", "[Int!]", "[Int]"),
 			// google protobuf wrapper types
-			Entry("string wrapper", "google.protobuf.StringValue", "String", "StringValueInput"),
-			Entry("bytes wrapper", "google.protobuf.BytesValue", "String", "BytesValueInput"),
-			Entry("double wrapper", "google.protobuf.DoubleValue", "Float", "DoubleValueInput"),
-			Entry("bool wrapper", "google.protobuf.BoolValue", "Boolean", "BoolValueInput"),
-			Entry("int32 wrapper", "google.protobuf.Int32Value", "Int", "Int32ValueInput"),
-			Entry("uint32 wrapper", "google.protobuf.UInt32Value", "Int", "UInt32ValueInput"),
-			Entry("int64 wrapper", "google.protobuf.Int64Value", "String", "Int64ValueInput"),
-			Entry("uint64 wrapper", "google.protobuf.UInt64Value", "String", "UInt64ValueInput"),
-			Entry("float wrapper", "google.protobuf.FloatValue", "Float", "FloatValueInput"),
+			Entry("string wrapper", "google.protobuf.StringValue", grpc.GRAPHQL_STRING, "StringValueInput"),
+			Entry("bytes wrapper", "google.protobuf.BytesValue", grpc.GRAPHQL_STRING, "BytesValueInput"),
+			Entry("double wrapper", "google.protobuf.DoubleValue", grpc.GRAPHQL_FLOAT, "DoubleValueInput"),
+			Entry("bool wrapper", "google.protobuf.BoolValue", grpc.GRAPHQL_BOOLEAN, "BoolValueInput"),
+			Entry("int32 wrapper", "google.protobuf.Int32Value", grpc.GRAPHQL_INT, "Int32ValueInput"),
+			Entry("uint32 wrapper", "google.protobuf.UInt32Value", grpc.GRAPHQL_INT, "UInt32ValueInput"),
+			Entry("int64 wrapper", "google.protobuf.Int64Value", grpc.GRAPHQL_STRING, "Int64ValueInput"),
+			Entry("uint64 wrapper", "google.protobuf.UInt64Value", grpc.GRAPHQL_STRING, "UInt64ValueInput"),
+			Entry("float wrapper", "google.protobuf.FloatValue", grpc.GRAPHQL_FLOAT, "FloatValueInput"),
 			Entry("repeated int wrapper", "repeated google.protobuf.Int32Value", "[Int]", "[Int32ValueInput]"),
 			// misc google types
-			Entry("duration", "google.protobuf.Duration", "String", "DurationInput"),
-			Entry("field mask", "google.protobuf.FieldMask", "String", "FieldMaskInput"),
-			Entry("time stamp", "google.protobuf.Timestamp", "String", "TimestampInput"),
+			Entry("duration", "google.protobuf.Duration", grpc.GRAPHQL_STRING, "DurationInput"),
+			Entry("field mask", "google.protobuf.FieldMask", grpc.GRAPHQL_STRING, "FieldMaskInput"),
+			Entry("time stamp", "google.protobuf.Timestamp", grpc.GRAPHQL_STRING, "TimestampInput"),
 		)
 
 		Context("translates proto messages", func() {
@@ -155,7 +155,7 @@ service Foo {
 							rpc GetPet(PetRequest) returns (Pet) {};
 						}`
 				})
-				It("creates PetRequestInput and PetInput graphql objects", func() {
+				It("creates both PetRequestInput and PetInput graphql objects", func() {
 					// input types
 					fmt.Println(printer.Print(doc))
 					petRequestInputType := getTypeDefinition(doc, true, "PetRequestInput")
@@ -163,12 +163,12 @@ service Foo {
 					Expect(getFieldsWithType(petRequestInputType, "pet", "PetInput")).To(BeTrue())
 					petInputType := getTypeDefinition(doc, true, "PetInput")
 					Expect(petInputType).NotTo(BeNil())
-					Expect(getFieldsWithType(petInputType, "id", "Int")).To(BeTrue())
+					Expect(getFieldsWithType(petInputType, "id", grpc.GRAPHQL_INT)).To(BeTrue())
 
 					// non input types
 					petType := getTypeDefinition(doc, false, "Pet")
 					Expect(petType).NotTo(BeNil())
-					Expect(getFieldsWithType(petType, "id", "Int")).To(BeTrue())
+					Expect(getFieldsWithType(petType, "id", grpc.GRAPHQL_NON_NULL_INT)).To(BeTrue())
 				})
 			})
 
@@ -193,14 +193,14 @@ service Foo {
 }`
 				})
 
-				It("creates PetRequestInput and PetInput graphql objects", func() {
+				It("creates PetRequestInput and nested PetInput graphql objects", func() {
 					fmt.Println(printer.Print(doc))
 					petRequestInputType := getTypeDefinition(doc, true, "PetRequestInput")
 					Expect(petRequestInputType).NotTo(BeNil())
 					Expect(getFieldsWithType(petRequestInputType, "pet", "PetRequest_PetInput")).To(BeTrue())
 					petInputType := getTypeDefinition(doc, true, "PetRequest_PetInput")
 					Expect(petInputType).NotTo(BeNil())
-					Expect(getFieldsWithType(petInputType, "input_id", "Float")).To(BeTrue())
+					Expect(getFieldsWithType(petInputType, "input_id", grpc.GRAPHQL_FLOAT)).To(BeTrue())
 				})
 			})
 
@@ -239,7 +239,7 @@ service Foo {
 					}
 					return ret
 				}
-				It("creates PetRequestInput and PetInput graphql objects", func() {
+				It("creates PetRequestInput, PetInput, and nested enum Status graphql objects", func() {
 					petStatusEnum := getEnumDefinition(doc, "Status")
 					Expect(petStatusEnum).NotTo(BeNil())
 					Expect(getEnumValues(petStatusEnum)).To(ContainElements("IN_STORE", "IN_TRANSIT"))
@@ -250,6 +250,72 @@ service Foo {
 
 				})
 			})
+
+			Context("translates oneof", func() {
+				BeforeEach(func() {
+					proto =
+						`syntax = "proto3";
+package foo;
+message Pet {
+	int32 id = 1;
+	string name = 2;
+}
+
+message PetRequest {
+	oneof identifier {
+		string name = 1;
+		int32 id = 2;
+		bool active = 3;
+		float f = 4;
+	  }	
+}
+
+service Foo {
+	rpc GetPet(PetRequest) returns (Pet) {};
+}`
+				})
+
+				It("creates PetRequestInput with oneof and PetInput graphql objects", func() {
+					fmt.Println(printer.Print(doc))
+					petRequestInputType := getTypeDefinition(doc, true, "PetRequestInput")
+					Expect(petRequestInputType).NotTo(BeNil())
+					Expect(getFieldsWithType(petRequestInputType, "name", grpc.GRAPHQL_STRING)).To(BeTrue())
+					Expect(getFieldsWithType(petRequestInputType, "id", grpc.GRAPHQL_INT)).To(BeTrue())
+					Expect(getFieldsWithType(petRequestInputType, "active", grpc.GRAPHQL_BOOLEAN)).To(BeTrue())
+					Expect(getFieldsWithType(petRequestInputType, "f", grpc.GRAPHQL_FLOAT)).To(BeTrue())
+				})
+			})
+
+			Context("translates input message that is also output message", func() {
+				// in this case the input message should be different than the output message. So that the values of the input message
+				// will be non-null all the time.
+				BeforeEach(func() {
+					proto =
+						`syntax = "proto3";
+package foo;
+message Pet {
+	int32 id = 1;
+	string name = 2;
+}
+
+service Foo {
+	rpc GetPet(Pet) returns (Pet) {};
+}`
+				})
+
+				It("creates PetInput and Pet graphql objects with only one message type", func() {
+					fmt.Println(printer.Print(doc))
+					petInput := getTypeDefinition(doc, true, "PetInput")
+					Expect(petInput).NotTo(BeNil())
+					Expect(getFieldsWithType(petInput, "id", grpc.GRAPHQL_INT)).To(BeTrue())
+					Expect(getFieldsWithType(petInput, "name", grpc.GRAPHQL_STRING)).To(BeTrue())
+					petOuput := getTypeDefinition(doc, false, "Pet")
+					Expect(petOuput).NotTo(BeNil())
+					Expect(getFieldsWithType(petOuput, "id", grpc.GRAPHQL_NON_NULL_INT)).To(BeTrue())
+					Expect(getFieldsWithType(petOuput, "name", grpc.GRAPHQL_NON_NULL_STRING)).To(BeTrue())
+				})
+			})
+
 		})
 	})
 })

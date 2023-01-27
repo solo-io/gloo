@@ -14,6 +14,8 @@
 
 # Node files
 node_modules/
+# JS files that are bundled
+*_bundled.js*
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out

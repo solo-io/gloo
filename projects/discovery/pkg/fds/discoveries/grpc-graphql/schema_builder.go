@@ -10,6 +10,12 @@ import (
 	errors "github.com/rotisserie/eris"
 )
 
+// GraphqlTypeOptions is used to define the options to handle Graphql types
+type GraphqlTypeOptions struct {
+	// IsNullable will set the scalar types to null types
+	IsNullable bool
+}
+
 type SchemaBuilder struct {
 	QueryType     *ast.ObjectDefinition
 	InputTypeDefs map[string]*ast.InputObjectDefinition
@@ -53,7 +59,9 @@ func CreateNameType(name string) *ast.Name {
 	return ast.NewName(&ast.Name{Value: name})
 }
 
-func (sb *SchemaBuilder) CreateGraphqlType(t *desc.FieldDescriptor, CreateObjTypeFunc CreateTypeFunc) (ast.Type, string, error) {
+// CreateGraphqlType will return the GraphQL Type given the FieldDescriptor. Standard Types will be non-null.
+// Any Field Descriptor that is oneOf will not be non-null.
+func (sb *SchemaBuilder) CreateGraphqlType(t *desc.FieldDescriptor, CreateObjTypeFunc CreateTypeFunc, options GraphqlTypeOptions) (ast.Type, string, error) {
 	named := func(name string) (ast.Type, string, error) {
 		namedNode := CreateNamedType(name)
 		if t.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
@@ -63,13 +71,30 @@ func (sb *SchemaBuilder) CreateGraphqlType(t *desc.FieldDescriptor, CreateObjTyp
 		}
 		return namedNode, name, nil
 	}
+	isOneOfOption := t.GetOneOf() != nil
+	if options.IsNullable || isOneOfOption {
+		typeString, err := sb.getType(t, CreateObjTypeFunc)
+		if err != nil {
+			return nil, "", err
+		}
+		typeString = GetNonNullType(typeString)
+		return named(typeString)
+	}
+	typeString, err := sb.getType(t, CreateObjTypeFunc)
+	if err != nil {
+		return nil, "", err
+	}
+	return named(typeString)
+}
+
+func (sb *SchemaBuilder) getType(t *desc.FieldDescriptor, CreateObjTypeFunc CreateTypeFunc) (string, error) {
 	switch t.GetType() {
 	case descriptor.FieldDescriptorProto_TYPE_BOOL:
-		return named("Boolean")
+		return GRAPHQL_NON_NULL_BOOLEAN, nil
 	case descriptor.FieldDescriptorProto_TYPE_DOUBLE:
 		fallthrough
 	case descriptor.FieldDescriptorProto_TYPE_FLOAT:
-		return named("Float")
+		return GRAPHQL_NON_NULL_FLOAT, nil
 	case descriptor.FieldDescriptorProto_TYPE_INT64:
 		fallthrough
 	case descriptor.FieldDescriptorProto_TYPE_UINT64:
@@ -89,24 +114,24 @@ func (sb *SchemaBuilder) CreateGraphqlType(t *desc.FieldDescriptor, CreateObjTyp
 	case descriptor.FieldDescriptorProto_TYPE_FIXED64:
 		fallthrough
 	case descriptor.FieldDescriptorProto_TYPE_FIXED32:
-		return named("Int")
+		return GRAPHQL_NON_NULL_INT, nil
 	case descriptor.FieldDescriptorProto_TYPE_BYTES:
 		fallthrough
 	case descriptor.FieldDescriptorProto_TYPE_STRING:
-		return named("String")
+		return GRAPHQL_NON_NULL_STRING, nil
 	case descriptor.FieldDescriptorProto_TYPE_GROUP:
 		fallthrough
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
 		_, name, err := CreateObjTypeFunc(t.GetMessageType())
 		if err != nil {
-			return nil, "", err
+			return "", err
 		}
-		return named(name)
+		return name, nil
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
 		enumName := sb.CreateEnumType(t.GetEnumType())
-		return named(enumName)
+		return enumName, nil
 	default:
-		return nil, "", errors.New(fmt.Sprintf("Unable to translate protobuf type %s", t.GetType().String()))
+		return "", errors.New(fmt.Sprintf("Unable to translate protobuf type %s", t.GetType().String()))
 	}
 }
 
@@ -117,6 +142,7 @@ func GetMessageName(t desc.Descriptor) string {
 	return t.GetName()
 }
 
+// CreateOutputMessageType will create the field types for the Output Messages
 func (sb *SchemaBuilder) CreateOutputMessageType(t *desc.MessageDescriptor) (ast.Definition, string, error) {
 	// special case for google.protobuf.WrapperValue types
 	if substitutionName := TranslateGoogleProtobufWrapperTypes(t); substitutionName != "" {
@@ -132,7 +158,7 @@ func (sb *SchemaBuilder) CreateOutputMessageType(t *desc.MessageDescriptor) (ast
 	obj.Description = ast.NewStringValue(&ast.StringValue{Value: "Created from protobuf type " + t.GetFullyQualifiedName()})
 
 	for _, field := range t.GetFields() {
-		t, typeName, err := sb.CreateGraphqlType(field, sb.CreateOutputMessageType)
+		t, typeName, err := sb.CreateGraphqlType(field, sb.CreateOutputMessageType, GraphqlTypeOptions{})
 		if err != nil {
 			return nil, "", err
 		}
@@ -158,13 +184,14 @@ func (sb *SchemaBuilder) CreateOutputMessageType(t *desc.MessageDescriptor) (ast
 			ast.NewFieldDefinition(&ast.FieldDefinition{
 				Name:        CreateNameType("_"),
 				Description: ast.NewStringValue(&ast.StringValue{Value: "This GraphQL type was generated from an empty proto message. This empty field exists to keep the schema GraphQL spec compliant. If queried, this field will always return false."}),
-				Type:        CreateNamedType("Boolean"),
+				Type:        CreateNamedType(GRAPHQL_NON_NULL_BOOLEAN),
 			}),
 		}
 	}
 	return obj, typeName, nil
 }
 
+// CreateInputMessageType will create the field types for the input message. All scalar types for input messages should be nullable.
 func (sb *SchemaBuilder) CreateInputMessageType(inputType *desc.MessageDescriptor) (ast.Definition, string, error) {
 	typeName := GetMessageName(inputType) + "Input"
 	if def := sb.InputTypeDefs[typeName]; def != nil {
@@ -175,7 +202,7 @@ func (sb *SchemaBuilder) CreateInputMessageType(inputType *desc.MessageDescripto
 	inputObj.Description = ast.NewStringValue(&ast.StringValue{Value: "Created from protobuf type " + inputType.GetFullyQualifiedName()})
 	inputObj.Name = CreateNameType(typeName)
 	for _, field := range inputType.GetFields() {
-		t, _, err := sb.CreateGraphqlType(field, sb.CreateInputMessageType)
+		t, _, err := sb.CreateGraphqlType(field, sb.CreateInputMessageType, GraphqlTypeOptions{IsNullable: true})
 		newInputValDef := ast.NewInputValueDefinition(&ast.InputValueDefinition{
 			Name: CreateNameType(field.GetName()),
 			Type: t,
@@ -192,7 +219,7 @@ func (sb *SchemaBuilder) CreateInputMessageType(inputType *desc.MessageDescripto
 			ast.NewInputValueDefinition(&ast.InputValueDefinition{
 				Name:        CreateNameType("_"),
 				Description: ast.NewStringValue(&ast.StringValue{Value: "This GraphQL type was generated from an empty proto message. This empty field exists to keep the schema GraphQL spec compliant. If queried, this field will always return false."}),
-				Type:        CreateNamedType("Boolean"),
+				Type:        CreateNamedType(GRAPHQL_NON_NULL_BOOLEAN),
 			}),
 		}
 	}

@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/6546
+    description: >
+      Change the Grpc Scalar Types in the GraphQL discovery to non-null types. Types will now have `!` appened if they are gRPC non-null scalar types.

@@ -84,16 +84,17 @@ var _ = Describe("Grpc reflection - graphql schema discovery test", func() {
 type Empty {
 
   """This GraphQL type was generated from an empty proto message. This empty field exists to keep the schema GraphQL spec compliant. If queried, this field will always return false."""
-  _: Boolean
+  _: Boolean!
 }`))
 			})
 
 			It("should translate a basic Pet type", func() {
 
 				// translates empty types
+				// the full_name and first_name are non null because they are in a one of
 				Expect(schemaDef).To(ContainSubstring(`"""Created from protobuf type foo.Pet"""
 type Pet {
-  id: Int
+  id: Int!
   full_name: String
   first_name: String
   empty: Empty

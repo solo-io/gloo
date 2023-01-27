@@ -18,13 +18,13 @@ func TranslateGoogleProtobufWrapperTypes(descriptor desc.Descriptor) string {
 		// which GraphQL does not currently support -- this requires a dataplane change to support a JSON type
 		switch descriptor.GetName() {
 		case "DoubleValue", "FloatValue":
-			newFieldType = "Float"
+			newFieldType = GRAPHQL_FLOAT
 		case "Int32Value", "UInt32Value":
-			newFieldType = "Int"
+			newFieldType = GRAPHQL_INT
 		case "BoolValue":
-			newFieldType = "Boolean"
+			newFieldType = GRAPHQL_BOOLEAN
 		case "Int64Value", "UInt64Value", "BytesValue", "Timestamp", "Duration", "StringValue", "FieldMask":
-			newFieldType = "String"
+			newFieldType = GRAPHQL_STRING
 		}
 		return newFieldType
 	}
