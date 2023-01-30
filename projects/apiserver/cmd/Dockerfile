@@ -1,11 +1,11 @@
-FROM node:16.15-alpine
+ARG ENVOY_IMAGE
+FROM $ENVOY_IMAGE
 ARG GOARCH
 
-RUN apk -U upgrade
+RUN apk update;
+
 COPY gloo-fed-apiserver-linux-${GOARCH} /usr/local/bin/gloo-fed-apiserver
 
-COPY js /usr/local/bin/js
-RUN npm install --prefix /usr/local/bin/js
 USER 10101
 
 ENTRYPOINT ["/usr/local/bin/gloo-fed-apiserver"]

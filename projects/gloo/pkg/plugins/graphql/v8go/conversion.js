@@ -1,3 +1,5 @@
+var Buffer = require('buffer/').Buffer
+
 function msgToBase64String(msg) {
   return uintArrayToBase64(msg.serializeBinary());
 }

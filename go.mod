@@ -86,6 +86,7 @@ require (
 	k8s.io/code-generator v0.22.4
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 	knative.dev/pkg v0.0.0-20211206113427-18589ac7627e
+	rogchap.com/v8go v0.7.1-0.20221102201510-1f00b5007d95
 	sigs.k8s.io/controller-runtime v0.11.2
 	sigs.k8s.io/yaml v1.3.0
 )

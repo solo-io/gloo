@@ -1,4 +1,4 @@
-package graphql_handler_test
+package js_test
 
 import (
 	"testing"
@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestRpcGraphqlHandler(t *testing.T) {
+func TestJSUtils(t *testing.T) {
 	RegisterFailHandler(Fail)
 	junitReporter := reporters.NewJUnitReporter("junit.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "Graphql Suite", []Reporter{junitReporter})
+	RunSpecsWithDefaultAndCustomReporters(t, "JS Utils Suite", []Reporter{junitReporter})
 }

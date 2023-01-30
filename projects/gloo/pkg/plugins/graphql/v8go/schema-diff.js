@@ -1,8 +1,20 @@
 #!/usr/local/bin/node
-
+/**
+ * The following methods are created by v8go. getInput() returnOutput(value)
+ * v8go will use these to communicate the input and output from this JS file.
+ * 
+ * The schema diff will report on the differences of the schema's of an original and new schema.
+ */
+import 'core-js/actual';
 const { diff, DiffRule, CriticalityLevel } = require('@graphql-inspector/core');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { msgToBase64String, base64StringToMsg } = require('./conversion');
+const {
+  GraphQLInspectorDiffInput,
+  GraphQLInspectorDiffOutput,
+} = require('../../../../../ui/src/proto/github.com/solo-io/solo-projects/projects/gloo/api/enterprise/graphql/v1/diff_pb');
+const { GraphqlOptions } = require('../../../../../ui/src/proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/settings_pb');
+
 
 // In order for graphql-inspector to be able to validate schemas with custom directives,
 // we need to include the directive definitions in each schema.
@@ -23,24 +35,9 @@ directive @cacheControl(
 
 `;
 
-const protoImportPath = process.env.GRAPHQL_PROTO_ROOT;
-if (!protoImportPath) {
-  console.error(
-    'schema diff script requires GRAPHQL_PROTO_ROOT environment variable'
-  );
-  process.exit(1);
-}
 
-const {
-  GraphQLInspectorDiffInput,
-  GraphQLInspectorDiffOutput,
-} = require(protoImportPath +
-  'github.com/solo-io/solo-projects/projects/gloo/api/enterprise/graphql/v1/diff_pb');
-const { GraphqlOptions } = require(protoImportPath +
-  'github.com/solo-io/solo-apis/api/gloo/gloo/v1/settings_pb');
-
-// the input to this script should be deserializable into a GraphQLInspectorDiffInput message
-const input = process.argv[2];
+// getInput is defined in the control plane by v8go
+var input = getInput();
 const inMsg = base64StringToMsg(
   input,
   GraphQLInspectorDiffInput.deserializeBinary
@@ -82,13 +79,11 @@ diff(oldSchema, newSchema, rules)
     const output = new GraphQLInspectorDiffOutput();
     const changeMsgs = changes.map(convertChangeToMsg);
     output.setChangesList(changeMsgs);
-
-    // This is the stdout output that the control plane reads to get the GraphQLInspectorDiffOutput message
-    console.log(msgToBase64String(output));
+    // returnOutput is defined in the control plane by v8go
+    returnOutput(msgToBase64String(output));
   })
   .catch(err => {
-    console.error(err);
-    process.exit(1);
+    throw new Error(err)
   });
 
 // message conversion functions
@@ -106,8 +101,7 @@ function convertRuleFromMsg(ruleMsg) {
     // TODO support RULE_IGNORE_UNREACHABLE -> safeUnreachable when https://github.com/kamilkisiela/graphql-inspector/issues/2063 is fixed
     // tracking issue here https://github.com/solo-io/solo-projects/issues/3853
     default:
-      console.error('unexpected rule: ' + ruleMsg);
-      process.exit(1);
+      throw new Error('unexpected rule: ' + ruleMsg)
   }
 }
 

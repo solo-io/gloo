@@ -4,11 +4,10 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"k8s.io/utils/lru"
-
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
 	"google.golang.org/protobuf/types/known/structpb"
+	"k8s.io/utils/lru"
 
 	openapi "github.com/getkin/kin-openapi/openapi3"
 	"github.com/ghodss/yaml"

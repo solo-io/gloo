@@ -224,6 +224,13 @@ echo "Registered gloo clusters kind-$MANAGEMENT_CLUSTER and kind-$REMOTE_CLUSTER
 
 # Set up resources for Failover demo
 echo "Set up resources for Failover demo..."
+
+# setup the correct echo image based off chipset type
+HTTP_ECHO_IMAGE="hashicorp/http-echo@sha256:ba27d460cd1f22a1a4331bdf74f4fccbc025552357e8a3249c40ae216275de96"
+if [[ $ARCH == "arm64" ]]; then
+  HTTP_ECHO_IMAGE="gcr.io/solo-test-236622/http-echo@sha256:1efdc13babe46c9ff22154641e75e55400cb5fe1c0521259e6c24a223ccd9beb"
+fi
+
 # Apply blue deployment and service
 kubectl apply -f - <<EOF
 apiVersion: v1
@@ -276,7 +283,7 @@ spec:
       containers:
         - args:
             - -text="blue-pod"
-          image: hashicorp/http-echo@sha256:ba27d460cd1f22a1a4331bdf74f4fccbc025552357e8a3249c40ae216275de96
+          image: $HTTP_ECHO_IMAGE  
           imagePullPolicy: IfNotPresent
           name: echo
           resources: {}
@@ -412,7 +419,7 @@ spec:
       containers:
         - args:
             - -text="green-pod"
-          image: hashicorp/http-echo@sha256:ba27d460cd1f22a1a4331bdf74f4fccbc025552357e8a3249c40ae216275de96
+          image: $HTTP_ECHO_IMAGE
           imagePullPolicy: IfNotPresent
           name: echo
           resources: {}

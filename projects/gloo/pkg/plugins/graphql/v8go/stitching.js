@@ -1,33 +1,30 @@
 #!/usr/local/bin/node
-
+/**
+ * The following methods are created by v8go. getInput() returnOutput(value)
+ * v8go will use these to communicate the input and output from this JS file.
+ * 
+ * The Stitching job will stitch GraphQL Schemas together
+ */
+import 'core-js/actual';
 const graphql = require('graphql');
 const { stitchSchemas } = require('@graphql-tools/stitch');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { msgToBase64String, base64StringToMsg } = require('./conversion');
 
-const protoImportPath = process.env.GRAPHQL_PROTO_ROOT;
-if (!protoImportPath) {
-  console.error(
-    'stitching tools script requires GRAPHQL_PROTO_ROOT environment variable'
-  );
-  process.exit(1);
-}
-
 const {
   GraphQLToolsStitchingInput,
   GraphQLToolsStitchingOutput,
-} = require(protoImportPath +
-  'github.com/solo-io/solo-projects/projects/gloo/api/enterprise/graphql/v1/stitching_info_pb');
+} = require("../../../../../ui/src/proto/github.com/solo-io/solo-projects/projects/gloo/api/enterprise/graphql/v1/stitching_info_pb");
 const {
   MergedTypeConfig,
   FieldNodeMap,
   FieldNodes,
   FieldNode,
   Schemas,
-} = require(protoImportPath +
-  'github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/graphql/stitching_pb');
+} = require('../../../../../ui/src/proto/github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/graphql/stitching_pb')
 
-async function makeStitchedSchema(input) {
+
+function makeStitchedSchema(input) {
   const inMsg = base64StringToMsg(
     input,
     GraphQLToolsStitchingInput.deserializeBinary
@@ -35,13 +32,12 @@ async function makeStitchedSchema(input) {
   let subschemas = [];
   let subschemaList = inMsg.getSubschemasList();
   for (let i = 0; i < subschemaList.length; i++) {
-    subschemaConfig = {};
+    let subschemaConfig = {};
     let subschema = subschemaList[i];
     if (!subschema.getSchema()) {
-      console.error(
+      throw new Error(
         `subschema '${subschema.getName()}' is missing a schema definition`
       );
-      process.exit(1);
     }
     subschemaConfig.schema = makeExecutableSchema({
       typeDefs: subschema.getSchema(),
@@ -76,20 +72,20 @@ function convertStitchingInfo(si) {
   let fieldNodesByField = newSi.getFieldNodesByFieldMap();
   for (let fieldNodeByFieldIdx in si.fieldNodesByField) {
     let newFieldNodeMap = new FieldNodeMap();
-    for (let fieldNodeType in si.fieldNodesByField[fieldNodeByFieldIdx]) {
+    for (let fieldNodeTypeIdx in si.fieldNodesByField[fieldNodeByFieldIdx]) {
       let newFieldNodeList = new FieldNodes();
       for (
-        let i = 0;
-        i < si.fieldNodesByField[fieldNodeByFieldIdx][fieldNodeType].length;
-        i++
+          let i = 0;
+          i < si.fieldNodesByField[fieldNodeByFieldIdx][fieldNodeTypeIdx].length;
+          i++
       ) {
         let newFieldNode = new FieldNode();
         newFieldNode.setName(
-          si.fieldNodesByField[fieldNodeByFieldIdx][fieldNodeType][i].name.value
+            si.fieldNodesByField[fieldNodeByFieldIdx][fieldNodeTypeIdx][i].name.value
         );
         newFieldNodeList.addFieldNodes(newFieldNode);
       }
-      newFieldNodeMap.getNodesMap().set(fieldNodeType, newFieldNodeList);
+      newFieldNodeMap.getNodesMap().set(fieldNodeTypeIdx, newFieldNodeList);
     }
     fieldNodesByField.set(fieldNodeByFieldIdx, newFieldNodeMap);
   }
@@ -135,10 +131,9 @@ function convertStitchingInfo(si) {
   return newSi;
 }
 
-makeStitchedSchema(process.argv[2]).then(schema => {
-  let newSi = convertStitchingInfo(schema.extensions.stitchingInfo);
-  newSi.setStitchedSchema(graphql.printSchema(schema));
-  let b64 = msgToBase64String(newSi);
-  // This is the stdout output that the control plane reads to get the StitchingInfo message
-  console.log(b64);
-});
+// getInput is defined in the go control plane with g8go
+let schema = makeStitchedSchema(getInput());
+let newSi = convertStitchingInfo(schema.extensions.stitchingInfo);
+newSi.setStitchedSchema(graphql.printSchema(schema));
+// returnOutput is defined in the go control plane and injected via v8go
+returnOutput(msgToBase64String(newSi));

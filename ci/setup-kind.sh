@@ -4,7 +4,7 @@
 # you can set GOARCH=amd64 to build amd64 images.
 
 
-# 0. Assign default values to some of our environment variables
+# Assign default values to some of our environment variables
 # The name of the kind cluster to deploy to
 CLUSTER_NAME="${CLUSTER_NAME:-kind}"
 # The version of the Node Docker image to use for booting the cluster
@@ -75,7 +75,7 @@ data:
 EOF
 }
 
-# 1. Create a kind cluster (or skip creation if a cluster with name=CLUSTER_NAME already exists)
+# Create a kind cluster (or skip creation if a cluster with name=CLUSTER_NAME already exists)
 # This config is roughly based on: https://kind.sigs.k8s.io/docs/user/ingress/
 function create_kind_cluster_or_skip() {
   echo "creating cluster ${CLUSTER_NAME}"
@@ -126,7 +126,10 @@ if [[ $FROM_RELEASE == "true" ]]; then
   exit
 fi
 
-# 2. Make all the docker images and load them to the kind cluster
+# Make prerequisites
+make install-node-packages -B
+
+# Make all the docker images and load them to the kind cluster
 if [[ $ARCH == 'arm64' ]]; then
   # if your local machine is arm64, push to the docker registry container, instead of kind
   # GOARCH allows you to support any type of image architecture
@@ -135,10 +138,10 @@ else
   VERSION=$VERSION CLUSTER_NAME=$CLUSTER_NAME USE_FIPS=$USE_FIPS make push-kind-images -B
 fi
 
-# 3. Build the test helm chart, ensuring we have a chart in the `_test` folder
+# Build the test helm chart, ensuring we have a chart in the `_test` folder
 # setting GOARCH here, because we have to set the helm registry values so that they pick up in the helm registry for arm64 support.
 # if this is not done, then helm sets the registry as quay.io, which is only supported for amd64 machines.
 GOARCH=$ARCH VERSION=$VERSION IMAGE_REPO=${IMAGE_REPO:-}  RUNNING_REGRESSION_TESTS=true make build-test-chart
 
-# 4. Build the gloo command line tool, ensuring we have one in the `_output` folder
+# Build the gloo command line tool, ensuring we have one in the `_output` folder
 make glooctl-$OS-$GOARCH

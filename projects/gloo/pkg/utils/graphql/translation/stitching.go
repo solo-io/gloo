@@ -1,11 +1,8 @@
 package translation
 
 import (
-	"bytes"
 	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
-	"os/exec"
 	"strings"
 
 	"k8s.io/utils/lru"
@@ -22,6 +19,7 @@ import (
 	v2 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/external/envoy/extensions/filters/http/graphql/v2"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	enterprisev1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/enterprise/graphql/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/v8go"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/printer"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/types"
 )
@@ -153,7 +151,6 @@ func getGraphQlApiSchemaDefinition(graphQLApi *gloov1beta1.GraphQLApi, gqlApis t
 }
 
 func processStitchingInfo(schemas *enterprisev1.GraphQLToolsStitchingInput, stitchingInfoCache *lru.Cache) (*enterprisev1.GraphQLToolsStitchingOutput, error) {
-
 	schemasBytes, err := proto.Marshal(schemas)
 	if err != nil {
 		return nil, eris.Wrapf(err, "error marshaling to binary data")
@@ -169,35 +166,13 @@ func processStitchingInfo(schemas *enterprisev1.GraphQLToolsStitchingInput, stit
 			return stitchingInfo.(*enterprisev1.GraphQLToolsStitchingOutput), nil
 		}
 	}
-
-	stitchingPath := GetGraphqlJsRoot()
-	cmd := exec.Command("node", stitchingPath+"stitching.js", base64.StdEncoding.EncodeToString(schemasBytes))
-
-	protoDirPath, err := GetGraphqlProtoRoot()
+	runner, err := v8go.GetStitchingScriptRunner()
 	if err != nil {
-		return nil, err
+		return nil, eris.Wrap(err, "error gettting stitching script runner in processStitchingInfo")
 	}
-	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", GraphqlProtoRootEnvVar, protoDirPath))
-	stdOutBuf := bytes.NewBufferString("")
-	stdErrBuf := bytes.NewBufferString("")
-	cmd.Stdout = stdOutBuf
-	cmd.Stderr = stdErrBuf
-	err = cmd.Run()
-	stdOutString := stdOutBuf.String()
+	stitchingInfoOut, err := runner.RunStitching(schemasBytes)
 	if err != nil {
-		return nil, eris.Wrapf(err, "error running stitching info generation, stdout: %s, \nstderr: %s", stdOutString, stdErrBuf.String())
-	}
-	if len(stdOutString) == 0 {
-		return nil, eris.Errorf("error running stitching info generation, no stitching info generated, \nstderr: %s", stdErrBuf.String())
-	}
-	decodedStdOutString, err := base64.StdEncoding.DecodeString(stdOutBuf.String())
-	if err != nil {
-		return nil, eris.Wrapf(err, "error decoding %s from base64 protobuf", stdOutBuf.String())
-	}
-	stitchingInfoOut := &enterprisev1.GraphQLToolsStitchingOutput{}
-	err = proto.Unmarshal(decodedStdOutString, stitchingInfoOut)
-	if err != nil {
-		return nil, eris.Wrap(err, "unable to unmarshal graphql tools output to Go type")
+		return nil, eris.Wrap(err, "error running stitching script")
 	}
 	if stitchingInfoCache != nil {
 		stitchingInfoCache.Add(schemasBytesHash, stitchingInfoOut)

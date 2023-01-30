@@ -12,10 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
-
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/translation"
 
 	"github.com/fgrosse/zaptest"
 	structpb "github.com/golang/protobuf/ptypes/struct"
@@ -323,10 +320,6 @@ type Query {
 
 			err = envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
-			err = os.Setenv(translation.GraphqlJsRootEnvVar, "../../projects/gloo/pkg/plugins/graphql/js/")
-			Expect(err).NotTo(HaveOccurred())
-			err = os.Setenv(translation.GraphqlProtoRootEnvVar, "../../projects/ui/src/proto/")
-			Expect(err).NotTo(HaveOccurred())
 
 			query = `
 {"query":" {products { id seller { username firstName lastName}}}"}`
@@ -364,8 +357,6 @@ type Query {
 			if envoyInstance != nil {
 				envoyInstance.Clean()
 			}
-			Expect(os.Unsetenv(translation.GraphqlProtoRootEnvVar)).NotTo(HaveOccurred())
-			Expect(os.Unsetenv(translation.GraphqlJsRootEnvVar)).NotTo(HaveOccurred())
 		})
 
 		Context("request to stitched schema", func() {

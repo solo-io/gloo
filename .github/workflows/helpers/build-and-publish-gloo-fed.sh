@@ -13,6 +13,7 @@ HELM_SYNC_DIR="_output/helm_gloo_fed"
 HELM_DIR="install/helm"
 
 # build and push images
+make install-node-packages -B
 VERSION=$VERSION make gloofed-docker -B
 VERSION=$VERSION TAGGED_VERSION=$VERSION make docker-push-fed -B
 

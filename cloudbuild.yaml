@@ -76,7 +76,7 @@ steps:
 
 - name: node:16
   secretEnv: ["NPM_TOKEN"]
-  dir: "/workspace/solo-projects/projects/gloo/pkg/plugins/graphql/js"
+  dir: "/workspace/solo-projects/projects/gloo/pkg/plugins/graphql/v8go"
   entrypoint: yarn
   args: ["install"]
   waitFor: ["prepare-workspace"]

@@ -1,4 +1,4 @@
-package graphql_handler_test
+package v8go_test
 
 import (
 	"testing"
@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestRpcGraphqlHandler(t *testing.T) {
+func TestGraphqlValidationUtils(t *testing.T) {
 	RegisterFailHandler(Fail)
 	junitReporter := reporters.NewJUnitReporter("junit.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "Graphql Suite", []Reporter{junitReporter})
+	RunSpecsWithDefaultAndCustomReporters(t, "v8go Utils Suite", []Reporter{junitReporter})
 }

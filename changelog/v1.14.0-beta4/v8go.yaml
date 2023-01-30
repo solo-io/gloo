@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/7651
+    resolvesIssue: false
+    description: Use v8go for running stitching script rather than node.

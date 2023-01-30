@@ -1,4 +1,4 @@
-package validation_test
+package v8go_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -6,17 +6,24 @@ import (
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	. "github.com/solo-io/solo-kit/test/matchers"
 	enterprisev1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/enterprise/graphql/v1"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/validation"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/v8go"
 )
 
 var _ = Describe("SchemaDiff", func() {
+	var runner *v8go.StitchingScriptRunner
+	var err error
+
+	BeforeEach(func() {
+		runner, err = v8go.GetStitchingScriptRunner()
+		Expect(err).ToNot(HaveOccurred())
+	})
 
 	It("returns empty diff when both schemas are empty", func() {
 		in := &enterprisev1.GraphQLInspectorDiffInput{
 			OldSchema: "",
 			NewSchema: "",
 		}
-		out, err := validation.GetSchemaDiff(in)
+		out, err := runner.RunSchemaDiff(in)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(out).To(MatchProto(&enterprisev1.GraphQLInspectorDiffOutput{
 			Changes: []*enterprisev1.GraphQLInspectorDiffOutput_Change{},
@@ -38,7 +45,7 @@ type Product {
 			OldSchema: schema,
 			NewSchema: schema,
 		}
-		out, err := validation.GetSchemaDiff(in)
+		out, err := runner.RunSchemaDiff(in)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(out).To(MatchProto(&enterprisev1.GraphQLInspectorDiffOutput{
 			Changes: []*enterprisev1.GraphQLInspectorDiffOutput_Change{},
@@ -50,7 +57,7 @@ type Product {
 			OldSchema: "blarg",
 			NewSchema: "",
 		}
-		_, err := validation.GetSchemaDiff(in)
+		_, err := runner.RunSchemaDiff(in)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("Syntax Error: Unexpected Name \"blarg\""))
 	})
@@ -81,7 +88,7 @@ type Product {
 			OldSchema: oldSchema,
 			NewSchema: newSchema,
 		}
-		out, err := validation.GetSchemaDiff(in)
+		out, err := runner.RunSchemaDiff(in)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(out).To(MatchProto(&enterprisev1.GraphQLInspectorDiffOutput{
 			Changes: []*enterprisev1.GraphQLInspectorDiffOutput_Change{
@@ -124,7 +131,7 @@ type Product {
 			OldSchema: oldSchema,
 			NewSchema: newSchema,
 		}
-		out, err := validation.GetSchemaDiff(in)
+		out, err := runner.RunSchemaDiff(in)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(out).To(MatchProto(&enterprisev1.GraphQLInspectorDiffOutput{
 			Changes: []*enterprisev1.GraphQLInspectorDiffOutput_Change{
@@ -168,7 +175,7 @@ type Product {
 			OldSchema: oldSchema,
 			NewSchema: newSchema,
 		}
-		out, err := validation.GetSchemaDiff(in)
+		out, err := runner.RunSchemaDiff(in)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(out).To(MatchProto(&enterprisev1.GraphQLInspectorDiffOutput{
 			Changes: []*enterprisev1.GraphQLInspectorDiffOutput_Change{
@@ -256,7 +263,7 @@ type Product {
 			OldSchema: oldSchema,
 			NewSchema: newSchema,
 		}
-		out, err := validation.GetSchemaDiff(in)
+		out, err := runner.RunSchemaDiff(in)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(out).To(MatchProto(&enterprisev1.GraphQLInspectorDiffOutput{
 			Changes: []*enterprisev1.GraphQLInspectorDiffOutput_Change{
@@ -288,7 +295,7 @@ type Product {
 			OldSchema: schema,
 			NewSchema: schema,
 		}
-		_, err := validation.GetSchemaDiff(in)
+		_, err := runner.RunSchemaDiff(in)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("Unknown directive \"@myDirective\""))
 	})
@@ -322,7 +329,7 @@ type Product {
 					gloov1.GraphqlOptions_SchemaChangeValidationOptions_RULE_DANGEROUS_TO_BREAKING,
 				},
 			}
-			out, err := validation.GetSchemaDiff(in)
+			out, err := runner.RunSchemaDiff(in)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(out).To(MatchProto(&enterprisev1.GraphQLInspectorDiffOutput{
 				Changes: []*enterprisev1.GraphQLInspectorDiffOutput_Change{
@@ -376,7 +383,7 @@ type Product {
 					gloov1.GraphqlOptions_SchemaChangeValidationOptions_RULE_DEPRECATED_FIELD_REMOVAL_DANGEROUS,
 				},
 			}
-			out, err := validation.GetSchemaDiff(in)
+			out, err := runner.RunSchemaDiff(in)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(out).To(MatchProto(&enterprisev1.GraphQLInspectorDiffOutput{
 				Changes: []*enterprisev1.GraphQLInspectorDiffOutput_Change{
@@ -422,7 +429,7 @@ type Product {
 					gloov1.GraphqlOptions_SchemaChangeValidationOptions_RULE_IGNORE_DESCRIPTION_CHANGES,
 				},
 			}
-			out, err := validation.GetSchemaDiff(in)
+			out, err := runner.RunSchemaDiff(in)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(out).To(MatchProto(&enterprisev1.GraphQLInspectorDiffOutput{
 				// normally changing a field description is a non-breaking change, but with the above
@@ -459,7 +466,7 @@ type Product {
 					gloov1.GraphqlOptions_SchemaChangeValidationOptions_RULE_DEPRECATED_FIELD_REMOVAL_DANGEROUS,
 				},
 			}
-			out, err := validation.GetSchemaDiff(in)
+			out, err := runner.RunSchemaDiff(in)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(out).To(MatchProto(&enterprisev1.GraphQLInspectorDiffOutput{
 				Changes: []*enterprisev1.GraphQLInspectorDiffOutput_Change{

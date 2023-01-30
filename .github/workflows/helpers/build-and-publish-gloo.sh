@@ -14,6 +14,7 @@ HELM_DIR="install/helm/gloo"
 
 # build and push images
 cd gloo
+make install-node-packages -B
 VERSION=$VERSION make docker-local -B
 VERSION=$VERSION TAGGED_VERSION=$VERSION make docker-push -B
 

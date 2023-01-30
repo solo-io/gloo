@@ -135,8 +135,10 @@ mod-tidy:
 .PHONY: install-node-packages
 install-node-packages:
 	npm install -g yarn
+	npm install -g esbuild@0.16.14
 	make install-graphql-js
 	make update-ui-deps
+	make build-stitching-bundles
 
 .PHONY: clean-artifacts
 clean-artifacts:
@@ -237,7 +239,7 @@ PROTOC_IMPORT_PATH:=$(ROOTDIR)/vendor_any
 MAX_CONCURRENT_PROTOCS ?= 10
 
 .PHONY: generate-all
-generate-all: check-solo-apis generated-code generate-gloo-fed generate-helm-docs
+generate-all: check-solo-apis generated-code generate-gloo-fed generate-helm-docs build-stitching-bundles
 
 GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' ' -f2)
 
@@ -291,17 +293,37 @@ allprojects: gloo-fed-apiserver gloo extauth extauth-fips rate-limit rate-limit-
 #----------------------------------------------------------------------------------
 
 GLOO_FED_DIR=$(ROOTDIR)/projects/gloo-fed
+GLOO_FED_OUT_DIR=$(OUTPUT_DIR)/gloo-fed
 GLOO_FED_SOURCES=$(shell find $(GLOO_FED_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
-$(OUTPUT_DIR)/gloo-fed-linux-$(DOCKER_GOARCH): $(GLOO_FED_SOURCES)
-	CGO_ENABLED=0 GOARCH=$(DOCKER_GOARCH) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_DIR)/cmd/main.go
+$(GLOO_FED_OUT_DIR)/Dockerfile.build: $(GLOO_FED_DIR)/Dockerfile
+	mkdir -p $(GLOO_FED_OUT_DIR)
+	cp $< $@
+
+$(GLOO_FED_OUT_DIR)/.gloo-fed-ee-docker-build: $(GLOO_FED_SOURCES) $(GLOO_FED_OUT_DIR)/Dockerfile.build
+	docker buildx build -t $(IMAGE_REPO)/gloo-fed-ee-build-container:$(VERSION) \
+		-f $(GLOO_FED_OUT_DIR)/Dockerfile.build \
+		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg GITHUB_TOKEN \
+		--build-arg DOCKER_GOARCH=$(DOCKER_GOARCH) \
+		.
+	touch $@
+
+$(GLOO_FED_OUT_DIR)/gloo-fed-linux-$(DOCKER_GOARCH): $(GLOO_FED_OUT_DIR)/.gloo-fed-ee-docker-build
+	docker create -ti --name gloo-fed-temp-container $(IMAGE_REPO)/gloo-fed-ee-build-container:$(VERSION) bash
+	docker cp gloo-fed-temp-container:/gloo-fed-linux-$(DOCKER_GOARCH) $(GLOO_FED_OUT_DIR)/gloo-fed-linux-$(DOCKER_GOARCH)
+	docker rm -f gloo-fed-temp-container
+
 
 .PHONY: gloo-fed
 gloo-fed: $(OUTPUT_DIR)/gloo-fed-linux-$(DOCKER_GOARCH)
 
 .PHONY: gloo-fed-docker
-gloo-fed-docker: $(OUTPUT_DIR)/gloo-fed-linux-$(DOCKER_GOARCH)
-	docker buildx build --load -t $(IMAGE_REPO)/gloo-fed:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_DIR)/cmd/Dockerfile --build-arg GOARCH=$(DOCKER_GOARCH);
+gloo-fed-docker: $(GLOO_FED_OUT_DIR)/gloo-fed-linux-$(DOCKER_GOARCH)
+	docker buildx build --load -t $(IMAGE_REPO)/gloo-fed:$(VERSION) $(DOCKER_BUILD_ARGS) $(GLOO_FED_OUT_DIR) -f $(GLOO_FED_DIR)/cmd/Dockerfile --build-arg GOARCH=$(DOCKER_GOARCH);
 
 .PHONY: kind-load-gloo-fed
 kind-load-gloo-fed: gloo-fed-docker
@@ -321,22 +343,46 @@ gloofed-load-kind-images: kind-load-gloo-fed kind-load-gloo-fed-rbac-validating-
 # Gloo Fed Apiserver
 #----------------------------------------------------------------------------------
 GLOO_FED_APISERVER_DIR=$(ROOTDIR)/projects/apiserver
+GLOO_FED_APISERVER_OUT_DIR=$(OUTPUT_DIR)/apiserver
 
 # proto sources
 APISERVER_DIR=$(ROOTDIR)/projects/apiserver/api/
 APISERVER_SOURCES=$(shell find $(APISERVER_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
-$(OUTPUT_DIR)/gloo-fed-apiserver-linux-$(DOCKER_GOARCH): $(APISERVER_SOURCES)
-	cp -r projects/gloo/pkg/plugins/graphql/js $(OUTPUT_DIR)/js
-	cp -r projects/ui/src/proto $(OUTPUT_DIR)/js
-	CGO_ENABLED=0 GOARCH=$(DOCKER_GOARCH) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_FED_APISERVER_DIR)/cmd/main.go
+$(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build: $(GLOO_FED_APISERVER_DIR)/Dockerfile
+	mkdir -p $(GLOO_FED_APISERVER_OUT_DIR)
+	cp $< $@
+
+# the executable outputs as amd64 only because it is placed in an image that is amd64
+$(GLOO_FED_APISERVER_OUT_DIR)/.gloo-fed-apiserver-docker-build: $(GLOO_FED_SOURCES) $(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build
+	docker buildx build -t $(IMAGE_REPO)/gloo-fed-apiserver-build-container:$(VERSION) \
+		-f $(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build \
+		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg GITHUB_TOKEN \
+		--build-arg DOCKER_GOARCH=amd64 \
+		.
+	touch $@
+
+# Build inside container as we need to target linux and must compile with CGO_ENABLED=1
+# We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
+$(GLOO_FED_APISERVER_OUT_DIR)/gloo-fed-apiserver-linux-amd64: $(GLOO_FED_APISERVER_OUT_DIR)/.gloo-fed-apiserver-docker-build
+	docker create -ti --name gloo-fed-apiserver-temp-container $(IMAGE_REPO)/gloo-fed-apiserver-build-container:$(VERSION) bash
+	docker cp gloo-fed-apiserver-temp-container:/gloo-fed-apiserver-linux-amd64 $(GLOO_FED_APISERVER_OUT_DIR)/gloo-fed-apiserver-linux-amd64
+	docker rm -f gloo-fed-apiserver-temp-container
 
 .PHONY: gloo-fed-apiserver
-gloo-fed-apiserver: $(OUTPUT_DIR)/gloo-fed-apiserver-linux-$(DOCKER_GOARCH)
+gloo-fed-apiserver: $(GLOO_FED_APISERVER_OUT_DIR)/gloo-fed-apiserver-linux-amd64
 
 .PHONY: gloo-fed-apiserver-docker
-gloo-fed-apiserver-docker: $(OUTPUT_DIR)/gloo-fed-apiserver-linux-$(DOCKER_GOARCH)
-	docker buildx build --load -t $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_APISERVER_DIR)/cmd/Dockerfile --build-arg GOARCH=$(DOCKER_GOARCH);
+gloo-fed-apiserver-docker: $(GLOO_FED_APISERVER_OUT_DIR)/gloo-fed-apiserver-linux-amd64
+	docker buildx build --load -t $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) \
+		$(DOCKER_GO_AMD_64_ARGS)  \
+		$(GLOO_FED_APISERVER_OUT_DIR) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
+		-f $(GLOO_FED_APISERVER_DIR)/cmd/Dockerfile --build-arg GOARCH=amd64;
 
 .PHONY: kind-load-gloo-fed-apiserver
 kind-load-gloo-fed-apiserver: gloo-fed-apiserver-docker
@@ -371,17 +417,20 @@ run-ui-local:
 
 .PHONY: install-graphql-js
 install-graphql-js:
-	yarn install -d projects/gloo/pkg/plugins/graphql/js
+	yarn --cwd projects/gloo/pkg/plugins/graphql/v8go install
+
+.PHONY: build-stitching-bundles
+build-stitching-bundles:
+	esbuild projects/gloo/pkg/plugins/graphql/v8go/schema-diff.js --bundle --outfile=projects/gloo/pkg/plugins/graphql/v8go/schema-diff_bundled.js --log-limit=1 --minify
+	esbuild projects/gloo/pkg/plugins/graphql/v8go/stitching.js --bundle --outfile=projects/gloo/pkg/plugins/graphql/v8go/stitching_bundled.js --log-limit=1 --minify
 
 .PHONY: run-apiserver
-run-apiserver: checkprogram-protoc install-graphql-js checkenv-GLOO_LICENSE_KEY
+run-apiserver: checkprogram-protoc install-graphql-js build-stitching-bundles checkenv-GLOO_LICENSE_KEY
 # Todo: This should check that /etc/hosts includes the following line:
 # 127.0.0.1 docker.internal
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore \
 	GRPC_PORT=$(GRPC_PORT) \
 	POD_NAMESPACE=gloo-system \
-	GRAPHQL_JS_ROOT="./projects/gloo/pkg/plugins/graphql/js/" \
-	GRAPHQL_PROTO_ROOT="./projects/ui/src/proto/" \
 	$(GO_BUILD_FLAGS) go run projects/apiserver/cmd/main.go
 
 .PHONY: run-envoy
@@ -947,10 +996,33 @@ GLOO_DIR=projects/gloo
 GLOO_SOURCES=$(shell find $(GLOO_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 GLOO_OUT_DIR=$(OUTPUT_DIR)/gloo
 
-# the executable outputs as amd64 only because it is placed in an image that is amd64
-$(GLOO_OUT_DIR)/gloo-linux-amd64: $(GLOO_SOURCES)
-	GO111MODULE=on CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go
 
+
+
+$(GLOO_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
+	mkdir -p $(GLOO_OUT_DIR)
+	cp $< $@
+
+# the executable outputs as amd64 only because it is placed in an image that is amd64
+$(GLOO_OUT_DIR)/.gloo-ee-docker-build: install-node-packages $(GLOO_SOURCES) $(GLOO_OUT_DIR)/Dockerfile.build
+	docker buildx build -t $(IMAGE_REPO)/gloo-ee-build-container:$(VERSION) \
+		-f $(GLOO_OUT_DIR)/Dockerfile.build \
+		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg USE_APK=true \
+		--build-arg GITHUB_TOKEN \
+		${DOCKER_GO_AMD_64_ARGS} \
+		.
+	touch $@
+
+# Build inside container as we need to target linux and must compile with CGO_ENABLED=1
+# We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
+$(GLOO_OUT_DIR)/gloo-linux-amd64: $(GLOO_OUT_DIR)/.gloo-ee-docker-build
+	docker create -ti --name gloo-temp-container $(IMAGE_REPO)/gloo-ee-build-container:$(VERSION) bash
+	docker cp gloo-temp-container:/gloo-linux-amd64 $(GLOO_OUT_DIR)/gloo-linux-amd64
+	docker rm -f gloo-temp-container
 
 .PHONY: gloo
 gloo: $(GLOO_OUT_DIR)/gloo-linux-amd64
@@ -963,10 +1035,9 @@ $(GLOO_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 gloo-ee-docker: $(GLOO_OUT_DIR)/.gloo-ee-docker
 
 $(GLOO_OUT_DIR)/.gloo-ee-docker: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
-	cp -r projects/gloo/pkg/plugins/graphql/js $(GLOO_OUT_DIR)/js
-	cp -r projects/ui/src/proto $(GLOO_OUT_DIR)/js
 	docker buildx build --load $(call get_test_tag_option,gloo-ee) $(GLOO_OUT_DIR) \
-		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) $(DOCKER_GO_AMD_64_ARGS) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
+		$(DOCKER_GO_AMD_64_ARGS) \
 		-t $(IMAGE_REPO)/gloo-ee:$(VERSION)
 	touch $@
 
@@ -993,6 +1064,7 @@ $(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT
 		--build-arg LDFLAGS=$(LDFLAGS) \
 		--build-arg USE_APK=true \
 		--build-arg GITHUB_TOKEN \
+		--build-arg RACE=-race \
 		$(DOCKER_BUILD_ARGS) \
 		.
 	touch $@
@@ -1012,8 +1084,6 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 .PHONY: gloo-race-ee-docker
 gloo-race-ee-docker: $(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker
 $(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_RACE_OUT_DIR)/Dockerfile
-	cp -r projects/gloo/pkg/plugins/graphql/js $(GLOO_RACE_OUT_DIR)/js
-	cp -r projects/ui/src/proto $(GLOO_RACE_OUT_DIR)/js
 	docker build $(call get_test_tag_option,gloo-ee) $(GLOO_RACE_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) $(DOCKER_BUILD_ARGS) \
 		-t $(IMAGE_REPO)/gloo-ee:$(VERSION)-race
@@ -1026,12 +1096,31 @@ GLOO_DIR=projects/gloo
 GLOO_SOURCES=$(shell find $(GLOO_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 GLOO_FIPS_OUT_DIR=$(OUTPUT_DIR)/gloo-fips
 
-$(GLOO_FIPS_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH): $(GLOO_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go
+$(GLOO_FIPS_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
+	mkdir -p $(GLOO_FIPS_OUT_DIR)
+	cp $< $@
 
+$(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker-build: $(GLOO_SOURCES) $(GLOO_FIPS_OUT_DIR)/Dockerfile.build
+	docker build -t $(IMAGE_REPO)/gloo-ee-fips-build-container:$(VERSION) \
+		-f $(GLOO_FIPS_OUT_DIR)/Dockerfile.build \
+		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GCFLAGS=$(GCFLAGS) \
+		--build-arg LDFLAGS=$(LDFLAGS) \
+		--build-arg USE_APK=true \
+		--build-arg GITHUB_TOKEN \
+		$(DOCKER_GO_BORING_ARGS) \
+		.
+	touch $@
+
+
+$(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64: $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker-build
+	docker create -ti --name gloo-fips-temp-container $(IMAGE_REPO)/gloo-ee-fips-build-container:$(VERSION) bash
+	docker cp gloo-fips-temp-container:/gloo-linux-amd64 $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64
+	docker rm -f gloo-fips-temp-container
 
 .PHONY: gloo-fips
-gloo-fips: $(GLOO_FIPS_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH)
+gloo-fips: $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64
 
 $(GLOO_FIPS_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
@@ -1040,11 +1129,10 @@ $(GLOO_FIPS_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 .PHONY: gloo-fips-ee-docker
 gloo-fips-ee-docker: $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker
 
-$(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker: $(GLOO_FIPS_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_FIPS_OUT_DIR)/Dockerfile
-	cp -r projects/gloo/pkg/plugins/graphql/js $(GLOO_FIPS_OUT_DIR)/js
-	cp -r projects/ui/src/proto $(GLOO_FIPS_OUT_DIR)/js
+$(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker: $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64 $(GLOO_FIPS_OUT_DIR)/Dockerfile
 	docker buildx build --load $(call get_test_tag_option,gloo-ee) $(GLOO_FIPS_OUT_DIR) \
-		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_FIPS_IMAGE) $(DOCKER_GO_BORING_ARGS) \
+		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_FIPS_IMAGE) \
+		$(DOCKER_GO_BORING_ARGS) \
 		-t $(IMAGE_REPO)/gloo-ee-fips:$(VERSION)
 	touch $@
 

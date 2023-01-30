@@ -3,7 +3,7 @@ package graphql_handler
 import (
 	"github.com/rotisserie/eris"
 	rpc_edge_v1 "github.com/solo-io/solo-projects/projects/apiserver/pkg/api/rpc.edge.gloo/v1"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/utils/graphql/validation"
+	sticthing "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/graphql/v8go"
 )
 
 func GetSchemaDiff(request *rpc_edge_v1.GetSchemaDiffRequest) (*rpc_edge_v1.GetSchemaDiffResponse, error) {
@@ -11,7 +11,11 @@ func GetSchemaDiff(request *rpc_edge_v1.GetSchemaDiffRequest) (*rpc_edge_v1.GetS
 	if in == nil {
 		return nil, eris.New("must provide input to schema diff")
 	}
-	out, err := validation.GetSchemaDiff(in)
+	runner, err := sticthing.GetStitchingScriptRunner()
+	if err != nil {
+		return nil, eris.Wrap(err, "could not create the stitching script runner for GetSchemaDiff")
+	}
+	out, err := runner.RunSchemaDiff(in)
 	if err != nil {
 		return nil, err
 	}

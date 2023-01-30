@@ -26,6 +26,7 @@ else
 fi
 
 # build and push images
+make install-node-packages -B
 VERSION=$VERSION make build-kind-images-non-fips -B
 VERSION=$VERSION TAGGED_VERSION=$VERSION make docker-push-non-fips -B
 

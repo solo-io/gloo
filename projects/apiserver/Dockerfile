@@ -1,10 +1,6 @@
 #####################################################################################################################
 #
-#   This Dockerfile describes a container that serves as a reproducible build environment for gloo with race detection enabled.
-#
-#   Also, to be able to build with -race, the gloo image has to be built with CGO_ENABLED=1 (the Go runtime relies
-#   on C code and libraries to load plugins), so cross compiling isn't as easy as `GOARCH=amd64 GOOS=linux go build`
-#   anymore. Using this container you can build the binary on any architecture.
+#   This Dockerfile describes a container that serves as a reproducible build environment for gloo apiserver.
 #
 #####################################################################################################################
 ARG GO_BUILD_IMAGE
@@ -14,11 +10,10 @@ ARG VERSION
 ARG GCFLAGS
 ARG LDFLAGS
 ARG GITHUB_TOKEN
-ARG USE_APK
 ARG DOCKER_GOARCH
-# define race as "-race" to include race
-ARG RACE
 ARG BUILDARCH
+
+
 
 # Fail if VERSION is not set
 RUN if [[ ! $VERSION ]]; then echo "Required VERSION build argument not set" && exit 1; fi
@@ -41,19 +36,13 @@ WORKDIR /
 ADD . /go/src/github.com/solo-io/solo-projects
 WORKDIR /go/src/github.com/solo-io/solo-projects
 
-# make sure that if we need cross compilers that we set the appropriate variables for CC and CCX
-RUN \
-    if [ "${BUILDARCH}" = "arm64" ] && [ "${DOCKER_GOARCH}" = "amd64" ]; then export CC=x86_64-linux-gnu-gcc && export CXX=x86_64-linux-gnu-g++; fi && \
+RUN if [ "${BUILDARCH}" = "arm64" ] && [ "${DOCKER_GOARCH}" = "amd64" ]; then export CC=x86_64-linux-gnu-gcc && export CXX=x86_64-linux-gnu-g++; fi && \
     if [ "${BUILDARCH}" = "amd64" ] && [ "${DOCKER_GOARCH}" = "arm64" ]; then export CC=aarch64-linux-gnu-gcc && export CXX=aarch64-linux-gnu-g++; fi && \
-    CGO_ENABLED=1 GOARCH=${DOCKER_GOARCH} GOOS=linux go build \
-    ${RACE} \
-    -gcflags="$GCFLAGS" \
-    -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION $LDFLAGS" \
-    -o gloo-linux-${DOCKER_GOARCH} \
-    projects/gloo/cmd/main.go
-
+    CGO_ENABLED=1 GOARCH=amd64 GOOS=linux \
+    go build -ldflags="$LDFLAGS" -gcflags="$GCFLAGS" -o gloo-fed-apiserver-linux-${DOCKER_GOARCH} \
+    projects/apiserver/cmd/main.go
 
 FROM alpine:3.17.1
 ARG DOCKER_GOARCH
 
-COPY --from=build-env /go/src/github.com/solo-io/solo-projects/gloo-linux-${DOCKER_GOARCH} /
+COPY --from=build-env /go/src/github.com/solo-io/solo-projects/gloo-fed-apiserver-linux-${DOCKER_GOARCH} /
