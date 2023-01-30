@@ -3712,6 +3712,7 @@ type fakeDiscoveryServer struct {
 	token                    string
 	lastGrant                string
 	handlerStats             map[string]int
+	handlerStatsMutex        sync.Mutex
 
 	// The set of key IDs that are supported by the server
 	keyIds []string
@@ -3779,9 +3780,11 @@ func (f *fakeDiscoveryServer) Start() *rsa.PrivateKey {
 		defer GinkgoRecover()
 		rw.Header().Set("content-type", "application/json")
 
+		f.handlerStatsMutex.Lock()
 		if f.handlerStats != nil {
 			f.handlerStats[r.URL.Path] += 1
 		}
+		f.handlerStatsMutex.Unlock()
 		switch r.URL.Path {
 		case "/auth":
 			// redirect back immediately. This simulates a user that's already logged in by the IDP.
