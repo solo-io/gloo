@@ -262,7 +262,7 @@
 |gloo.gloo.deployment.extraGlooLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the primary gloo deployment.|
 |gloo.gloo.deployment.extraGlooAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the primary gloo deployment.|
 |gloo.gloo.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for Gloo Edge (default is false).|
-|gloo.gloo.deployment.ossImageTag|string|1.14.0-beta6|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
+|gloo.gloo.deployment.ossImageTag|string|1.14.0-beta7|Used for debugging. The version of Gloo OSS that the current version of Gloo Enterprise was built with.|
 |gloo.gloo.deployment.replicas|int||number of instances to deploy|
 |gloo.gloo.deployment.customEnv[].name|string|||
 |gloo.gloo.deployment.customEnv[].value|string|||
@@ -390,7 +390,7 @@
 |gloo.gateway.validation.webhook.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gateway.validation.validationServerGrpcMaxSizeBytes|int||gRPC max message size in bytes for the gloo validation server|
 |gloo.gateway.validation.livenessProbeEnabled|bool||Set to true to enable a liveness probe for the gateway (default is false). You must also set the 'Probes' value to true.|
-|gloo.gateway.certGenJob.image.tag|string|1.14.0-beta6|The image tag for the container.|
+|gloo.gateway.certGenJob.image.tag|string|1.14.0-beta7|The image tag for the container.|
 |gloo.gateway.certGenJob.image.repository|string|certgen|The image repository (name) for the container.|
 |gloo.gateway.certGenJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.certGenJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -412,6 +412,10 @@
 |gloo.gateway.certGenJob.hostAliases[]|interface|||
 |gloo.gateway.certGenJob.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.gateway.certGenJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
+|gloo.gateway.certGenJob.backoffLimit|int||Specifies the number of retries before marking this job failed. In kubernetes, defaults to 6|
+|gloo.gateway.certGenJob.completions|int||Specifies the desired number of successfully finished pods the job should be run with.|
+|gloo.gateway.certGenJob.manualSelector|bool||Controls generation of pod labels and pod selectors.|
+|gloo.gateway.certGenJob.parallelism|int||Specifies the maximum desired number of pods the job should run at any given time.|
 |gloo.gateway.certGenJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.certGenJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.certGenJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
@@ -442,11 +446,15 @@
 |gloo.gateway.rolloutJob.hostAliases[]|interface|||
 |gloo.gateway.rolloutJob.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.gateway.rolloutJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
+|gloo.gateway.rolloutJob.backoffLimit|int||Specifies the number of retries before marking this job failed. In kubernetes, defaults to 6|
+|gloo.gateway.rolloutJob.completions|int||Specifies the desired number of successfully finished pods the job should be run with.|
+|gloo.gateway.rolloutJob.manualSelector|bool||Controls generation of pod labels and pod selectors.|
+|gloo.gateway.rolloutJob.parallelism|int||Specifies the maximum desired number of pods the job should run at any given time.|
 |gloo.gateway.rolloutJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.rolloutJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.rolloutJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gloo.gateway.rolloutJob.enabled|bool||Enable the job that applies default Gloo Edge custom resources at install and upgrade time (default true).|
-|gloo.gateway.rolloutJob.image.tag|string|1.14.0-beta6|The image tag for the container.|
+|gloo.gateway.rolloutJob.image.tag|string|1.14.0-beta7|The image tag for the container.|
 |gloo.gateway.rolloutJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.rolloutJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.rolloutJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -474,11 +482,15 @@
 |gloo.gateway.cleanupJob.hostAliases[]|interface|||
 |gloo.gateway.cleanupJob.initContainers[]|interface||[InitContainers](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers) to be added to the array of initContainers on the deployment.|
 |gloo.gateway.cleanupJob.activeDeadlineSeconds|int||Deadline in seconds for Kubernetes jobs.|
+|gloo.gateway.cleanupJob.backoffLimit|int||Specifies the number of retries before marking this job failed. In kubernetes, defaults to 6|
+|gloo.gateway.cleanupJob.completions|int||Specifies the desired number of successfully finished pods the job should be run with.|
+|gloo.gateway.cleanupJob.manualSelector|bool||Controls generation of pod labels and pod selectors.|
+|gloo.gateway.cleanupJob.parallelism|int||Specifies the maximum desired number of pods the job should run at any given time.|
 |gloo.gateway.cleanupJob.ttlSecondsAfterFinished|int||Clean up the finished job after this many seconds. Defaults to 60|
 |gloo.gateway.cleanupJob.extraPodLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the job.|
 |gloo.gateway.cleanupJob.extraPodAnnotations.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.annotations data of the job.|
 |gloo.gateway.cleanupJob.enabled|bool||Enable the job that removes Gloo Edge custom resources when Gloo Edge is uninstalled (default true).|
-|gloo.gateway.cleanupJob.image.tag|string|1.14.0-beta6|The image tag for the container.|
+|gloo.gateway.cleanupJob.image.tag|string|1.14.0-beta7|The image tag for the container.|
 |gloo.gateway.cleanupJob.image.repository|string|kubectl|The image repository (name) for the container.|
 |gloo.gateway.cleanupJob.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |gloo.gateway.cleanupJob.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -697,10 +709,11 @@
 |gloo.gatewayProxies.NAME.istioMetaMeshId|string||ISTIO_META_MESH_ID Environment Variable. Defaults to "cluster.local"|
 |gloo.gatewayProxies.NAME.istioMetaClusterId|string||ISTIO_META_CLUSTER_ID Environment Variable. Defaults to "Kubernetes"|
 |gloo.gatewayProxies.NAME.istioDiscoveryAddress|string||discoveryAddress field of the PROXY_CONFIG environment variable. Defaults to "istiod.istio-system.svc:15012"|
-|gloo.gatewayProxies.NAME.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
+|gloo.gatewayProxies.NAME.envoyLogLevel|string||Level at which the pod should log. Options include "trace", "info", "debug", "warn", "error", "critical" and "off". Default level is info|
 |gloo.gatewayProxies.NAME.xdsServiceAddress|string||The k8s service name for the xds server. Defaults to gloo.|
 |gloo.gatewayProxies.NAME.xdsServicePort|uint32||The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay.|
 |gloo.gatewayProxies.NAME.tcpKeepaliveTimeSeconds|uint32||The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive|
+|gloo.gatewayProxies.NAME.disableCoreDumps|bool||If set to true, Envoy will not generate core dumps in the event of a crash. Defaults to false|
 |gloo.gatewayProxies.NAME.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.replicas|int||number of instances to deploy|
 |gloo.gatewayProxies.gatewayProxy.kind.deployment.customEnv[].name|string|||
@@ -899,10 +912,11 @@
 |gloo.gatewayProxies.gatewayProxy.istioMetaMeshId|string||ISTIO_META_MESH_ID Environment Variable. Defaults to "cluster.local"|
 |gloo.gatewayProxies.gatewayProxy.istioMetaClusterId|string||ISTIO_META_CLUSTER_ID Environment Variable. Defaults to "Kubernetes"|
 |gloo.gatewayProxies.gatewayProxy.istioDiscoveryAddress|string||discoveryAddress field of the PROXY_CONFIG environment variable. Defaults to "istiod.istio-system.svc:15012"|
-|gloo.gatewayProxies.gatewayProxy.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
+|gloo.gatewayProxies.gatewayProxy.envoyLogLevel|string||Level at which the pod should log. Options include "trace", "info", "debug", "warn", "error", "critical" and "off". Default level is info|
 |gloo.gatewayProxies.gatewayProxy.xdsServiceAddress|string||The k8s service name for the xds server. Defaults to gloo.|
 |gloo.gatewayProxies.gatewayProxy.xdsServicePort|uint32||The k8s service port for the xds server. Defaults to the value from .Values.gloo.deployment.xdsPort, but can be overridden to use, for example, xds-relay.|
 |gloo.gatewayProxies.gatewayProxy.tcpKeepaliveTimeSeconds|uint32||The amount of time in seconds for connections to be idle before sending keep-alive probes. Defaults to 60. See here: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/address.proto#envoy-v3-api-msg-config-core-v3-tcpkeepalive|
+|gloo.gatewayProxies.gatewayProxy.disableCoreDumps|bool||If set to true, Envoy will not generate core dumps in the event of a crash. Defaults to false|
 |gloo.gatewayProxies.gatewayProxy.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |gloo.ingress.enabled|bool|||
 |gloo.ingress.deployment.image.tag|string||The image tag for the container.|
@@ -1356,7 +1370,7 @@
 |global.glooStats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.glooStats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
 |global.glooMtls.enabled|bool|false|Enables internal mtls authentication|
-|global.glooMtls.sds.image.tag|string|1.14.0-beta6|The image tag for the container.|
+|global.glooMtls.sds.image.tag|string|1.14.0-beta7|The image tag for the container.|
 |global.glooMtls.sds.image.repository|string|sds|The image repository (name) for the container.|
 |global.glooMtls.sds.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
 |global.glooMtls.sds.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
@@ -1402,6 +1416,9 @@
 |global.extauthCustomYaml|bool|false|Inject whatever yaml exists in .Values.global.extensions.extAuth into settings.spec.extauth, instead of structured yaml (which is enterprise only). Defaults to true in open source, and false in enterprise|
 |global.console|interface||Configuration options for the Enterprise Console (UI).|
 |global.graphql|interface||(Enterprise Only): GraphQL configuration options.|
+|global.configMaps[].name|string||Name of the ConfigMap to create (required).|
+|global.configMaps[].namespace|string||Namespace in which to create the ConfigMap. If empty, defaults to Gloo Edge install namespace.|
+|global.configMaps[].data.NAME|string||Key-value pairs of ConfigMap data.|
 |global.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
 |global.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |global.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|

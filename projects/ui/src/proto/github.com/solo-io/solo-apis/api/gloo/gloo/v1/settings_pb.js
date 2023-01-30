@@ -56,7 +56,9 @@ goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.KubernetesSecrets', null, glo
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ObservabilityOptions', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.GrafanaIntegration', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.ObservabilityOptions.MetricLabels', null, global);
+goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.VaultAwsAuth', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.VaultSecrets', null, global);
+goog.exportSymbol('proto.gloo.solo.io.SettingsSpec.VaultTlsConfig', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsStatus', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SettingsStatus.State', null, global);
 goog.exportSymbol('proto.gloo.solo.io.UpstreamOptions', null, global);
@@ -925,12 +927,38 @@ proto.gloo.solo.io.SettingsSpec.KubernetesSecrets.serializeBinaryToWriter = func
  * @constructor
  */
 proto.gloo.solo.io.SettingsSpec.VaultSecrets = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.gloo.solo.io.SettingsSpec.VaultSecrets.oneofGroups_);
 };
 goog.inherits(proto.gloo.solo.io.SettingsSpec.VaultSecrets, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.gloo.solo.io.SettingsSpec.VaultSecrets.displayName = 'proto.gloo.solo.io.SettingsSpec.VaultSecrets';
 }
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.oneofGroups_ = [[12,13]];
+
+/**
+ * @enum {number}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.AuthMethodCase = {
+  AUTH_METHOD_NOT_SET: 0,
+  ACCESS_TOKEN: 12,
+  AWS: 13
+};
+
+/**
+ * @return {proto.gloo.solo.io.SettingsSpec.VaultSecrets.AuthMethodCase}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.getAuthMethodCase = function() {
+  return /** @type {proto.gloo.solo.io.SettingsSpec.VaultSecrets.AuthMethodCase} */(jspb.Message.computeOneofCase(this, proto.gloo.solo.io.SettingsSpec.VaultSecrets.oneofGroups_[0]));
+};
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -969,7 +997,10 @@ proto.gloo.solo.io.SettingsSpec.VaultSecrets.toObject = function(includeInstance
     tlsServerName: jspb.Message.getFieldWithDefault(msg, 7, ""),
     insecure: (f = msg.getInsecure()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     rootKey: jspb.Message.getFieldWithDefault(msg, 9, ""),
-    pathPrefix: jspb.Message.getFieldWithDefault(msg, 10, "")
+    pathPrefix: jspb.Message.getFieldWithDefault(msg, 10, ""),
+    tlsConfig: (f = msg.getTlsConfig()) && proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.toObject(includeInstance, f),
+    accessToken: jspb.Message.getFieldWithDefault(msg, 12, ""),
+    aws: (f = msg.getAws()) && proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1046,6 +1077,20 @@ proto.gloo.solo.io.SettingsSpec.VaultSecrets.deserializeBinaryFromReader = funct
     case 10:
       var value = /** @type {string} */ (reader.readString());
       msg.setPathPrefix(value);
+      break;
+    case 11:
+      var value = new proto.gloo.solo.io.SettingsSpec.VaultTlsConfig;
+      reader.readMessage(value,proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.deserializeBinaryFromReader);
+      msg.setTlsConfig(value);
+      break;
+    case 12:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAccessToken(value);
+      break;
+    case 13:
+      var value = new proto.gloo.solo.io.SettingsSpec.VaultAwsAuth;
+      reader.readMessage(value,proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.deserializeBinaryFromReader);
+      msg.setAws(value);
       break;
     default:
       reader.skipField();
@@ -1145,6 +1190,29 @@ proto.gloo.solo.io.SettingsSpec.VaultSecrets.serializeBinaryToWriter = function(
     writer.writeString(
       10,
       f
+    );
+  }
+  f = message.getTlsConfig();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.serializeBinaryToWriter
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 12));
+  if (f != null) {
+    writer.writeString(
+      12,
+      f
+    );
+  }
+  f = message.getAws();
+  if (f != null) {
+    writer.writeMessage(
+      13,
+      f,
+      proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.serializeBinaryToWriter
     );
   }
 };
@@ -1312,6 +1380,693 @@ proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.getPathPrefix = function(
 /** @param {string} value */
 proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.setPathPrefix = function(value) {
   jspb.Message.setProto3StringField(this, 10, value);
+};
+
+
+/**
+ * optional VaultTlsConfig tls_config = 11;
+ * @return {?proto.gloo.solo.io.SettingsSpec.VaultTlsConfig}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.getTlsConfig = function() {
+  return /** @type{?proto.gloo.solo.io.SettingsSpec.VaultTlsConfig} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.SettingsSpec.VaultTlsConfig, 11));
+};
+
+
+/** @param {?proto.gloo.solo.io.SettingsSpec.VaultTlsConfig|undefined} value */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.setTlsConfig = function(value) {
+  jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.clearTlsConfig = function() {
+  this.setTlsConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.hasTlsConfig = function() {
+  return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional string access_token = 12;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.getAccessToken = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 12, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.setAccessToken = function(value) {
+  jspb.Message.setOneofField(this, 12, proto.gloo.solo.io.SettingsSpec.VaultSecrets.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.clearAccessToken = function() {
+  jspb.Message.setOneofField(this, 12, proto.gloo.solo.io.SettingsSpec.VaultSecrets.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.hasAccessToken = function() {
+  return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional VaultAwsAuth aws = 13;
+ * @return {?proto.gloo.solo.io.SettingsSpec.VaultAwsAuth}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.getAws = function() {
+  return /** @type{?proto.gloo.solo.io.SettingsSpec.VaultAwsAuth} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.SettingsSpec.VaultAwsAuth, 13));
+};
+
+
+/** @param {?proto.gloo.solo.io.SettingsSpec.VaultAwsAuth|undefined} value */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.setAws = function(value) {
+  jspb.Message.setOneofWrapperField(this, 13, proto.gloo.solo.io.SettingsSpec.VaultSecrets.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.clearAws = function() {
+  this.setAws(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultSecrets.prototype.hasAws = function() {
+  return jspb.Message.getField(this, 13) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.SettingsSpec.VaultAwsAuth, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.displayName = 'proto.gloo.solo.io.SettingsSpec.VaultAwsAuth';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.SettingsSpec.VaultAwsAuth} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    vaultRole: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    region: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    iamServerIdHeader: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    mountPath: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    accessKeyId: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    secretAccessKey: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    sessionToken: jspb.Message.getFieldWithDefault(msg, 7, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.SettingsSpec.VaultAwsAuth}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.SettingsSpec.VaultAwsAuth;
+  return proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.SettingsSpec.VaultAwsAuth} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.SettingsSpec.VaultAwsAuth}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setVaultRole(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRegion(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setIamServerIdHeader(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMountPath(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAccessKeyId(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSecretAccessKey(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSessionToken(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.SettingsSpec.VaultAwsAuth} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getVaultRole();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getRegion();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getIamServerIdHeader();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getMountPath();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getAccessKeyId();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = message.getSecretAccessKey();
+  if (f.length > 0) {
+    writer.writeString(
+      6,
+      f
+    );
+  }
+  f = message.getSessionToken();
+  if (f.length > 0) {
+    writer.writeString(
+      7,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string vault_role = 1;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.getVaultRole = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.setVaultRole = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string region = 2;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.getRegion = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.setRegion = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string iam_server_id_header = 3;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.getIamServerIdHeader = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.setIamServerIdHeader = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string mount_path = 4;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.getMountPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.setMountPath = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional string access_key_id = 5;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.getAccessKeyId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.setAccessKeyId = function(value) {
+  jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * optional string secret_access_key = 6;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.getSecretAccessKey = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.setSecretAccessKey = function(value) {
+  jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * optional string session_token = 7;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.getSessionToken = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultAwsAuth.prototype.setSessionToken = function(value) {
+  jspb.Message.setProto3StringField(this, 7, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.SettingsSpec.VaultTlsConfig, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.displayName = 'proto.gloo.solo.io.SettingsSpec.VaultTlsConfig';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.SettingsSpec.VaultTlsConfig} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    caCert: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    caPath: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    clientCert: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    clientKey: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    tlsServerName: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    insecure: (f = msg.getInsecure()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.SettingsSpec.VaultTlsConfig}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.SettingsSpec.VaultTlsConfig;
+  return proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.SettingsSpec.VaultTlsConfig} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.SettingsSpec.VaultTlsConfig}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCaCert(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCaPath(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClientCert(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setClientKey(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTlsServerName(value);
+      break;
+    case 6:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setInsecure(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.SettingsSpec.VaultTlsConfig} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getCaCert();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getCaPath();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getClientCert();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getClientKey();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
+    );
+  }
+  f = message.getTlsServerName();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = message.getInsecure();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string ca_cert = 1;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.getCaCert = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.setCaCert = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string ca_path = 2;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.getCaPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.setCaPath = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string client_cert = 3;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.getClientCert = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.setClientCert = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string client_key = 4;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.getClientKey = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.setClientKey = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
+};
+
+
+/**
+ * optional string tls_server_name = 5;
+ * @return {string}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.getTlsServerName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.setTlsServerName = function(value) {
+  jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * optional google.protobuf.BoolValue insecure = 6;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.getInsecure = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 6));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.setInsecure = function(value) {
+  jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.clearInsecure = function() {
+  this.setInsecure(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.SettingsSpec.VaultTlsConfig.prototype.hasInsecure = function() {
+  return jspb.Message.getField(this, 6) != null;
 };
 
 

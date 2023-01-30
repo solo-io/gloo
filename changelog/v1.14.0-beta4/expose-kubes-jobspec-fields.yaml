@@ -1,0 +1,15 @@
+changelog:
+  - type: HELM
+    description: Add backoffLimit, completions, manualSelector, and parallelism fields to Enterprise Resource Rollout job
+    issueLink: https://github.com/solo-io/gloo/issues/7112
+    resolvesIssue: false
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/7060
+    resolvesIssue: false
+    description: >
+      Enterprise changes to fix `argument list too long` errors from resource rollout job. To align with the `gloo-resource-rollout` job
+      implementation, the `gloo-ee-resource-rollout` job now also applies the custom resource yaml via a mounted ConfigMap file.
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v1.14.0-beta7

@@ -49,7 +49,7 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.1
 	github.com/solo-io/ext-auth-service v0.30.0
 	github.com/solo-io/external-apis v0.1.12-0.20220818213511-97f5ab3a6898
-	github.com/solo-io/gloo v1.14.0-beta6
+	github.com/solo-io/gloo v1.14.0-beta7
 	github.com/solo-io/go-list-licenses v0.1.4
 	github.com/solo-io/go-utils v0.23.0
 	github.com/solo-io/k8s-utils v0.1.9
@@ -58,8 +58,8 @@ require (
 	github.com/solo-io/protoc-gen-openapi v0.1.0
 	github.com/solo-io/rate-limiter v0.7.4
 	github.com/solo-io/skv2 v0.26.1
-	github.com/solo-io/solo-apis v0.0.0-20230113151413-cb8b56b65b6c
-	github.com/solo-io/solo-kit v0.30.8
+	github.com/solo-io/solo-apis v0.0.0-20230127204128-ef7fb1548e53
+	github.com/solo-io/solo-kit v0.30.9
 	github.com/solo-io/wasm-kit v0.1.3
 	github.com/solo-io/wasm/tools/wasme/pkg v0.0.0-20201021213306-77f82bdc3cc3
 	github.com/spf13/cobra v1.5.0
@@ -123,11 +123,13 @@ require (
 	github.com/aerospike/aerospike-client-go/v6 v6.3.0 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/armon/go-metrics v0.3.11 // indirect
+	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/bshuster-repo/logrus-logstash-hook v1.0.2 // indirect
 	github.com/bugsnag/bugsnag-go v1.5.0 // indirect
+	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5 // indirect
@@ -208,16 +210,23 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-hclog v1.2.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
+	github.com/hashicorp/go-plugin v1.4.5 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
+	github.com/hashicorp/go-secure-stdlib/awsutil v0.1.6 // indirect
+	github.com/hashicorp/go-secure-stdlib/mlock v0.1.1 // indirect
+	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.6 // indirect
+	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/go-version v1.3.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/serf v0.9.7 // indirect
-	github.com/hashicorp/vault/api v1.0.5-0.20191108163347-bdd38fca2cff // indirect
-	github.com/hashicorp/vault/sdk v0.1.14-0.20191112033314-390e96e22eb2 // indirect
+	github.com/hashicorp/vault/api v1.8.2 // indirect
+	github.com/hashicorp/vault/api/auth/aws v0.3.0 // indirect
+	github.com/hashicorp/vault/sdk v0.6.0 // indirect
+	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/ilackarms/protoc-gen-doc v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
@@ -256,6 +265,7 @@ require (
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
@@ -270,6 +280,7 @@ require (
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/natefinch/lumberjack v2.0.0+incompatible // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
+	github.com/oklog/run v1.0.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/open-policy-agent/opa v0.44.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect

@@ -41,7 +41,7 @@ spec:
 {{- range $name, $spec := $.ProxiesToCreateDataplaneFor }}
 {{- if not $spec.disabled}}
 {{- $ctx := (list $ $name $spec)}}
-{{- include "gloo.util.merge" (list $ctx $override "ratelimit.upstreamSpec") -}}
+{{ include "gloo.util.merge" (list $ctx $override "ratelimit.upstreamSpec") -}}
 {{- end }}{{/* if not $spec.disabled */}}
 {{- end }}{{/* range $name, $spec := $.ProxiesToCreateDataplaneFor */}}
 {{- end }}{{/* .Values.global.extensions.rateLimit.enabled */}}

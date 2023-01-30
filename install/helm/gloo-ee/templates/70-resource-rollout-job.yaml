@@ -16,9 +16,7 @@ metadata:
     "helm.sh/hook-weight": "3" # run this job before the gloo-resource-rollout job but after the RBAC resources are created
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
-  {{- with .Values.gloo.gateway.rolloutJob.activeDeadlineSeconds }}
-  activeDeadlineSeconds: {{ . }}
-  {{- end }}
+  {{- include "gloo.jobSpecStandardFields" .Values.gloo.gateway.rolloutJob | nindent 2 -}}
   template:
     metadata:
       labels:
@@ -42,10 +40,26 @@ spec:
       {{- include "gloo.pullSecret" $image | nindent 6 -}}
       serviceAccountName: gloo-resource-rollout
       {{- include "gloo.podSpecStandardFields" .Values.gloo.gateway.rolloutJob | nindent 6 -}}
+      volumes:
+        - name: custom-resource-config-volume
+          configMap:
+            name: gloo-ee-custom-resource-config
+            items:
+              - key: custom-resources
+                path: custom-resources
       containers:
         - name: kubectl
           image: {{template "gloo.image" $image}}
           imagePullPolicy: {{ $image.pullPolicy }}
+          env:
+            - name: HAS_CUSTOM_RESOURCES
+              valueFrom:
+                configMapKeyRef:
+                  name: gloo-ee-custom-resource-config
+                  key: has-custom-resources
+          volumeMounts:
+            - name: custom-resource-config-volume
+              mountPath: /etc/gloo-custom-resources
           securityContext:
             runAsNonRoot: true
             {{- if not .Values.gloo.gateway.rolloutJob.floatingUserId }}
@@ -63,14 +77,11 @@ spec:
             kubectl rollout status deployment -n {{ .Release.Namespace }} gloo
             {{- end }}
 
-            {{- $cr := include "glooe.customResources" . | indent 12 -}}
-            {{- if contains "kind:" $cr -}}{{/* only render if not empty */}}
             # apply Gloo Edge Enterprise custom resources
-            kubectl apply -f - <<EOF || exit $?
-            {{- $cr -}}
-            EOF
-            {{- else }}
-            echo "no custom resources to apply"
-            {{- end }}
-  ttlSecondsAfterFinished: {{ .Values.gloo.gateway.rolloutJob.ttlSecondsAfterFinished }}
+            if [ $HAS_CUSTOM_RESOURCES == "true" ]
+            then
+              kubectl apply -f /etc/gloo-custom-resources/custom-resources || exit $?
+            else
+              echo "no custom resources to apply"
+            fi
 {{- end }}{{/* if .Values.gloo.gateway.rolloutJob.enabled  */}}

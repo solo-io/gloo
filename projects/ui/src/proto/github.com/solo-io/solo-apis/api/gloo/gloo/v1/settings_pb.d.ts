@@ -285,6 +285,22 @@ export namespace SettingsSpec {
     getPathPrefix(): string;
     setPathPrefix(value: string): void;
 
+    hasTlsConfig(): boolean;
+    clearTlsConfig(): void;
+    getTlsConfig(): SettingsSpec.VaultTlsConfig | undefined;
+    setTlsConfig(value?: SettingsSpec.VaultTlsConfig): void;
+
+    hasAccessToken(): boolean;
+    clearAccessToken(): void;
+    getAccessToken(): string;
+    setAccessToken(value: string): void;
+
+    hasAws(): boolean;
+    clearAws(): void;
+    getAws(): SettingsSpec.VaultAwsAuth | undefined;
+    setAws(value?: SettingsSpec.VaultAwsAuth): void;
+
+    getAuthMethodCase(): VaultSecrets.AuthMethodCase;
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): VaultSecrets.AsObject;
     static toObject(includeInstance: boolean, msg: VaultSecrets): VaultSecrets.AsObject;
@@ -307,6 +323,101 @@ export namespace SettingsSpec {
       insecure?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       rootKey: string,
       pathPrefix: string,
+      tlsConfig?: SettingsSpec.VaultTlsConfig.AsObject,
+      accessToken: string,
+      aws?: SettingsSpec.VaultAwsAuth.AsObject,
+    }
+
+    export enum AuthMethodCase {
+      AUTH_METHOD_NOT_SET = 0,
+      ACCESS_TOKEN = 12,
+      AWS = 13,
+    }
+  }
+
+  export class VaultAwsAuth extends jspb.Message {
+    getVaultRole(): string;
+    setVaultRole(value: string): void;
+
+    getRegion(): string;
+    setRegion(value: string): void;
+
+    getIamServerIdHeader(): string;
+    setIamServerIdHeader(value: string): void;
+
+    getMountPath(): string;
+    setMountPath(value: string): void;
+
+    getAccessKeyId(): string;
+    setAccessKeyId(value: string): void;
+
+    getSecretAccessKey(): string;
+    setSecretAccessKey(value: string): void;
+
+    getSessionToken(): string;
+    setSessionToken(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): VaultAwsAuth.AsObject;
+    static toObject(includeInstance: boolean, msg: VaultAwsAuth): VaultAwsAuth.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: VaultAwsAuth, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): VaultAwsAuth;
+    static deserializeBinaryFromReader(message: VaultAwsAuth, reader: jspb.BinaryReader): VaultAwsAuth;
+  }
+
+  export namespace VaultAwsAuth {
+    export type AsObject = {
+      vaultRole: string,
+      region: string,
+      iamServerIdHeader: string,
+      mountPath: string,
+      accessKeyId: string,
+      secretAccessKey: string,
+      sessionToken: string,
+    }
+  }
+
+  export class VaultTlsConfig extends jspb.Message {
+    getCaCert(): string;
+    setCaCert(value: string): void;
+
+    getCaPath(): string;
+    setCaPath(value: string): void;
+
+    getClientCert(): string;
+    setClientCert(value: string): void;
+
+    getClientKey(): string;
+    setClientKey(value: string): void;
+
+    getTlsServerName(): string;
+    setTlsServerName(value: string): void;
+
+    hasInsecure(): boolean;
+    clearInsecure(): void;
+    getInsecure(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setInsecure(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): VaultTlsConfig.AsObject;
+    static toObject(includeInstance: boolean, msg: VaultTlsConfig): VaultTlsConfig.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: VaultTlsConfig, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): VaultTlsConfig;
+    static deserializeBinaryFromReader(message: VaultTlsConfig, reader: jspb.BinaryReader): VaultTlsConfig;
+  }
+
+  export namespace VaultTlsConfig {
+    export type AsObject = {
+      caCert: string,
+      caPath: string,
+      clientCert: string,
+      clientKey: string,
+      tlsServerName: string,
+      insecure?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     }
   }
 
