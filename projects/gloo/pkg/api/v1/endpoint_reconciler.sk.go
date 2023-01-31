@@ -43,5 +43,5 @@ func (r *endpointReconciler) Reconcile(namespace string, desiredResources Endpoi
 			return transition(original.(*Endpoint), desired.(*Endpoint))
 		}
 	}
-	return r.base.Reconcile(namespace, endpointsToResources(desiredResources), transitionResources, opts)
+	return r.base.Reconcile(namespace, resources, transitionResources, opts)
 }
