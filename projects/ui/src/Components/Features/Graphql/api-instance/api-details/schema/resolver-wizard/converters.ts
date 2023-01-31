@@ -1,5 +1,5 @@
 import { ResolverItem } from 'API/graphql';
-import GQLJsonDescriptor from 'Components/Features/Graphql/data/graphql.json';
+import GQLJsonDescriptor from 'Components/Features/Graphql/source-data/graphql.json';
 import { FieldDefinitionNode } from 'graphql';
 import cloneDeep from 'lodash/cloneDeep';
 import { Resolution } from 'proto/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql_pb';
@@ -245,7 +245,7 @@ export function base64ToString(str: string) {
  * Works with `preMarshallProtoValues(...)`.
  * @param obj The resolver config object returned from the API.
  * @param pbType The protobuffer type, created from the generated file:
- * `'Components/Features/Graphql/data/graphql.json'`
+ * `'Components/Features/Graphql/source-data/graphql.json'`
  * @returns A deep copy of obj, formatted for the resolver wizard config.
  */
 export function postUnmarshallProtoValues(
@@ -324,7 +324,7 @@ export function postUnmarshallProtoValues(
  * Works with `postUnmarshallProtoValues(...)`.
  * @param obj The resolver config object, parsed from the resolver config YAML string.
  * @param pbType The protobuffer type, created from the generated file:
- * `'Components/Features/Graphql/data/graphql.json'`
+ * `'Components/Features/Graphql/source-data/graphql.json'`
  * @returns A deep copy of obj, formatted to be marshalled and sent to the API.
  */
 export function preMarshallProtoValues(

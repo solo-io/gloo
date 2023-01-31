@@ -1,51 +1,34 @@
-# Test with:
+# Envoyinit
+The running instance of Envoy. In Gloo Edge, this is commonly referred to as the `gateway-proxy` component.
 
+This is the Enterprise extension of the Open Source Envoyinit. Please refer to the [Open Source README for further details](https://github.com/solo-io/gloo/blob/master/projects/envoyinit/README.md)
+
+## Background
+### Source Code
+The Gloo Edge service proxies provide all the functionality of the [open source Gateway Proxy](https://github.com/solo-io/envoy-gloo), in addition to some custom extensions. The source code for these proxies is maintained at [envoy-gloo-ee](https://github.com/solo-io/envoy-gloo-ee)
+
+### Versioning
+In the [Makefile](https://github.com/solo-io/solo-projects/blob/master/Makefile), the `ENVOY_GLOO_IMAGE` value defines the version of `envoy-gloo-ee` that Gloo Edge depends on.
+
+Envoy publishes new minor releases [each quarter](https://www.envoyproxy.io/docs/envoy/latest/version_history/version_history#). Gloo attempts to follow this cadence, and increment our minor version of `envoy-gloo-ee` as well.
+
+## Build
+*All make targets are currently defined in the [Makefile](https://github.com/solo-io/solo-projects/blob/master/Makefile) at the root of the repository.*
+
+The `VERSION` env variable determines the name of the tag for the image.
+
+You may either inject the version yourself:
 ```bash
-cat <<EOF > /tmp/envoy.yaml
-node:
-  cluster: doesntmatter
-  id: imspecial
-  metadata:
-    role: "gloo-system~gateway-proxy"
-
-static_resources:
-  clusters:
-  - name: xds_cluster
-    connect_timeout: 5.000s
-    http2_protocol_options: {}
-    type: STRICT_DNS
-    load_assignment:
-      cluster_name: xds_cluster
-      endpoints:
-      - lb_endpoints:
-        - endpoint:
-            address:
-              socket_address:
-                address: 127.0.0.1
-                port_value: 8080
-
-dynamic_resources:
-  ads_config:
-    api_type: GRPC
-    grpc_services:
-    - envoy_grpc: {cluster_name: xds_cluster}
-  cds_config:
-    ads: {}
-  lds_config:
-    ads: {}
-
-admin:
-  access_log_path: /dev/stdout
-  address:
-    socket_address:
-      address: 0.0.0.0
-      port_value: 19000
-
-EOF
+VERSION=<version name> make gloo-ee-envoy-wrapper-docker -B
 ```
 
-and then
-
-```bash
-docker run --rm -ti --network=host -v /tmp/envoy.yaml:/etc/envoy/envoy.yaml:ro soloio/data-plane-ee:v1-304-gce45551
+Or rely on the auto-generated version:
+```shell
+make gloo-ee-envoy-wrapper-docker -B
 ```
+
+## Release
+During a Gloo Edge release, the `gloo-ee-envoy-wrapper` image is published to the [Google Cloud Registry](https://console.cloud.google.com/gcr/images/gloo-edge/GLOBAL) and the [Quay repository](https://quay.io/repository/solo-io/gloo-ee-envoy-wrapper).
+
+## Configuration
+The Gloo Edge Enterprise Gateway-Proxy manages configuration identically to the Open Source implementation. Please refer to the [Open Source README](https://github.com/solo-io/gloo/blob/master/projects/envoyinit/README.md#configuration) for details

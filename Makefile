@@ -496,7 +496,7 @@ generated-gloo-fed-ui: update-gloo-fed-ui-deps generated-gloo-fed-ui-deps genera
 # Generate json descriptor used to convert between graphql protobuf messages and json
 .PHONY: generated-graphqlschema-json-descriptor
 generated-graphqlschema-json-descriptor:
-	yarn --cwd projects/ui pbjs -t json -o src/Components/Features/Graphql/data/graphql.json \
+	yarn --cwd projects/ui pbjs -t json -o src/Components/Features/Graphql/source-data/graphql.json \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/graphql.gloo/v1beta1/graphql.proto \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external/google/protobuf/struct.proto \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/protoc-gen-ext/external/google/protobuf/wrappers.proto \
