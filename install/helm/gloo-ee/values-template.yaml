@@ -460,7 +460,7 @@ grafana:
           options:
             path: /var/lib/grafana/dashboards/gloo
   dashboardsConfigMaps:
-    gloo: glooe-grafana-custom-dashboards
+    gloo: glooe-grafana-custom-dashboards-v2
   testFramework:
     enabled: false
 ########################################################################

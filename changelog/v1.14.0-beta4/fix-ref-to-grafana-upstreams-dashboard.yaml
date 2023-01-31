@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: >
+      follow-up to https://github.com/solo-io/solo-projects/pull/3942 where we missed fixing the default
+      Helm value for the configMap having the new dashboard.
+    
