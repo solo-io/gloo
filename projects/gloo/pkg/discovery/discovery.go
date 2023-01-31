@@ -179,7 +179,6 @@ func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clie
 			logger.Warnw("initializing EDS plugin failed", "plugin", reflect.TypeOf(eds).String(), "error", err)
 			continue
 		}
-		logger.Warnf("[fabian log]: endpoints post-WatchEndpoints (%s/%s): %v\n", eds.Name(), reflect.TypeOf(eds).Name(), endpoints)
 
 		go func(eds DiscoveryPlugin) {
 			edsName := reflect.TypeOf(eds).Name()
@@ -194,9 +193,7 @@ func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clie
 						logger.Infof("Received first EDS update from plugin: %T", eds)
 					}
 					d.endpointsByEds[eds] = endpointList
-					logger.Warnf("[fabian log]: endpointsByEds[%s]: %v\n", edsName, endpointList)
 					desiredEndpoints := aggregateEndpoints(d.endpointsByEds)
-					logger.Warnf("[fabian log]: desiredEndpoints: %v\n", desiredEndpoints)
 					if err := d.endpointReconciler.Reconcile(d.writeNamespace, desiredEndpoints, txnEndpoint, clients.ListOpts{
 						Ctx:      opts.Ctx,
 						Selector: opts.Selector,
