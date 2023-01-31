@@ -197,7 +197,6 @@ func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clie
 					logger.Warnf("[fabian log]: endpointsByEds[%s]: %v\n", edsName, endpointList)
 					desiredEndpoints := aggregateEndpoints(d.endpointsByEds)
 					logger.Warnf("[fabian log]: desiredEndpoints: %v\n", desiredEndpoints)
-					// todo - add logs in Reconcile(), as it's where the desiredEndpoints get transformed to Resources and reconciled.
 					if err := d.endpointReconciler.Reconcile(d.writeNamespace, desiredEndpoints, txnEndpoint, clients.ListOpts{
 						Ctx:      opts.Ctx,
 						Selector: opts.Selector,
