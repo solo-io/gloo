@@ -57,6 +57,7 @@ const (
 	petStoreHost     = "petstore"
 	rateLimitHost    = "ratelimit"
 	authHost         = "auth"
+	queryParamHost   = "extractQueryParams"
 	cachingHost      = "caching"
 	response200      = "HTTP/1.1 200"
 	response429      = "HTTP/1.1 429 Too Many Requests"
@@ -384,6 +385,7 @@ func preUpgradeDataSetup(testHelper *helper.SoloTestHelper) {
 	createResources("petstore")
 	createResources("ratelimit")
 	createResources("auth")
+	createResources("requestprocessing")
 	createResources("caching")
 
 	fmt.Printf("\n=============== Checking Resources ===============\n")
@@ -395,6 +397,7 @@ func preUpgradeDataValidation(testHelper *helper.SoloTestHelper) {
 	validatePetstoreTraffic(testHelper)
 	validateRateLimitTraffic(testHelper)
 	validateAuthTraffic(testHelper)
+	validateRequestTransformTraffic(testHelper)
 	validateCachingTraffic(testHelper)
 }
 
@@ -403,6 +406,7 @@ func postUpgradeValidation(testHelper *helper.SoloTestHelper) {
 	validatePetstoreTraffic(testHelper)
 	validateRateLimitTraffic(testHelper)
 	validateAuthTraffic(testHelper)
+	validateRequestTransformTraffic(testHelper)
 	validateCachingTrafficAfterUpgrade(testHelper)
 }
 
@@ -558,8 +562,7 @@ func validateCachingTraffic(testHelper *helper.SoloTestHelper) {
 	By("sending an initial request to cache the response")
 	res := curlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
 
-	testHeader := map[string]string{"test": "test"}
-	curlOnPathWithHeaders(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", testHeader, response200)
+	curlOnPath(testHelper, cachingHost, "/service/1/valid-for-ten-seconds", response200)
 
 	headers := getResponseHeadersFromCurlOutput(res)
 	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers should not contain an age header, because they are not yet cached")
@@ -632,6 +635,12 @@ func buildAuthHeader(credentials string) map[string]string {
 	}
 }
 
+func validateRequestTransformTraffic(testHelper *helper.SoloTestHelper) {
+	// response contains json object with transformed request values - we want to get that and check it for headers
+	res := curlOnPath(testHelper, queryParamHost, "/get?foo=foo-value&bar=bar-value", "")
+	Expect(res).WithOffset(1).To(ContainSubstring("\"foo\":\"foo-value\""))
+	Expect(res).WithOffset(1).To(ContainSubstring("\"bar\":\"bar-value\""))
+}
 func curlAndAssertResponse(testHelper *helper.SoloTestHelper, host string, path string, expectedResponseSubstring string) {
 	testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 		Protocol:          "http",
@@ -642,6 +651,7 @@ func curlAndAssertResponse(testHelper *helper.SoloTestHelper, host string, path 
 		Port:              gatewayProxyPort,
 		ConnectionTimeout: 5, // this is important, as the first curl call sometimes hangs indefinitely
 		Verbose:           true,
+		LogResponses:      false,
 	}, expectedResponseSubstring, 1, time.Minute*1)
 }
 
@@ -656,6 +666,7 @@ func curlWithHeadersAndAssertResponse(testHelper *helper.SoloTestHelper, host st
 		Port:              gatewayProxyPort,
 		ConnectionTimeout: 5, // this is important, as the first curl call sometimes hangs indefinitely
 		Verbose:           true,
+		LogResponses:      false,
 	}, expectedResponseSubstring, 1, time.Minute*1)
 }
 
@@ -671,30 +682,10 @@ func curlOnPath(testHelper *helper.SoloTestHelper, host string, path string, exp
 		Port:              gatewayProxyPort,
 		ConnectionTimeout: 3, // this is important, as the first curl call sometimes hangs indefinitely
 		Verbose:           true,
+		LogResponses:      false,
 	})
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 	ExpectWithOffset(1, res).To(ContainSubstring(expectedResponseSubstring))
-	println(res)
-	return res
-}
-
-// Method used when further validation of the request is needed that is not supported by the test runner util methods
-// return the full verbose response after validation based on expectedResponseSubstring - general use would be to pass the expected response code (ex 200, 401.. etc)
-func curlOnPathWithHeaders(testHelper *helper.SoloTestHelper, host string, path string, headers map[string]string, expectedResponseSubstring string) string {
-	res, err := testHelper.Curl(helper.CurlOpts{
-		Protocol:          "http",
-		Path:              path,
-		Method:            "GET",
-		Host:              host,
-		Headers:           headers,
-		Service:           gatewayProxyName,
-		Port:              gatewayProxyPort,
-		ConnectionTimeout: 5, // this is important, as the first curl call sometimes hangs indefinitely
-		Verbose:           true,
-	})
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	ExpectWithOffset(1, res).To(ContainSubstring(expectedResponseSubstring))
-	println(res)
 	return res
 }
 

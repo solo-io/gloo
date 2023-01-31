@@ -1,0 +1,10 @@
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: postman-echo
+  namespace: gloo-system
+spec:
+  static:
+    hosts:
+      - addr: postman-echo.com
+        port: 80

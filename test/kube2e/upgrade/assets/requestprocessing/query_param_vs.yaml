@@ -1,0 +1,45 @@
+# source - https://docs.solo.io/gloo-edge/latest/guides/traffic_management/request_processing/transformations/extract_query_params/
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: extract-query-params
+  namespace: gloo-system
+spec:
+  virtualHost:
+    domains:
+      - 'extractQueryParams'
+    routes:
+      - matchers:
+          - prefix: /
+        routeAction:
+          single:
+            upstream:
+              name: postman-echo
+              namespace: gloo-system
+        options:
+          autoHostRewrite: true
+    options:
+      transformations:
+        requestTransformation:
+          transformationTemplate:
+            extractors:
+              # This extracts the 'foo' query param to an extractor named 'foo'
+              foo:
+                # The :path pseudo-header contains the URI
+                header: ':path'
+                # Use a nested capturing group to extract the query param
+                regex: '(.*foo=([^&]*).*)'
+                subgroup: 2
+              # This extracts the 'bar' query param to an extractor named 'bar'
+              bar:
+                # The :path pseudo-header contains the URI
+                header: ':path'
+                # Use a nested capturing group to extract the query param
+                regex: '(.*bar=([^&]*).*)'
+                subgroup: 2
+            # Add two new headers with the values of the 'foo' and 'bar' extractions
+            headers:
+              foo:
+                text: '{{ foo }}'
+              bar:
+                text: '{{ bar }}'
