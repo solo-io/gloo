@@ -136,8 +136,10 @@ func (t *translatorInstance) translateClusterSubsystemComponents(params plugins.
 
 	// endpoints and listeners are shared between listeners
 	logger.Debugf("computing envoy clusters for proxy: %v", proxy.GetMetadata().GetName())
+	logger.Warnf("[fabian log]: computing envoy clusters for proxy: %v\n", proxy.GetMetadata().GetName())
 	clusters, clusterToUpstreamMap := t.computeClusters(params, reports, upstreamRefKeyToEndpoints, proxy)
 	logger.Debugf("computing envoy endpoints for proxy: %v", proxy.GetMetadata().GetName())
+	logger.Warnf("[fabian log]: computing envoy endpoints for proxy: %v\n", proxy.GetMetadata().GetName())
 
 	endpoints := t.computeClusterEndpoints(params, upstreamRefKeyToEndpoints, reports)
 
@@ -150,6 +152,7 @@ func (t *translatorInstance) translateClusterSubsystemComponents(params plugins.
 		})
 		upstreamMap[key] = struct{}{}
 	}
+	logger.Warnf("[fabian log]: upstreamMap len: %d, upstreamMap: %v\n", len(upstreamMap), upstreamMap)
 	endpointMap := make(map[string][]*envoy_config_endpoint_v3.ClusterLoadAssignment, len(endpoints))
 	for _, ep := range endpoints {
 		if _, ok := endpointMap[ep.GetClusterName()]; !ok {
@@ -159,8 +162,10 @@ func (t *translatorInstance) translateClusterSubsystemComponents(params plugins.
 			endpointMap[ep.GetClusterName()] = append(endpointMap[ep.GetClusterName()], ep)
 		}
 	}
+	logger.Warnf("[fabian log]: endpointMap: %v\n", endpointMap)
 	// Find all the EDS clusters without endpoints (can happen with kube service that have no endpoints), and create a zero sized load assignment
 	// this is important as otherwise envoy will wait for them forever wondering their fate and not doing much else.
+	// Maybe HERE??
 ClusterLoop:
 	for _, c := range clusters {
 		if c.GetType() != envoy_config_cluster_v3.Cluster_EDS {
@@ -201,6 +206,7 @@ ClusterLoop:
 		endpoints = append(endpoints, emptyEndpointList)
 	}
 
+	logger.Warnf("[fabian log]: final clusters: %v; final endpoints: %v\n", clusters, endpoints)
 	return clusters, endpoints
 }
 

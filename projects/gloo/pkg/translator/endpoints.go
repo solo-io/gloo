@@ -1,10 +1,12 @@
 package translator
 
 import (
+	"context"
 	envoy_config_core_v3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v2/reporter"
 	"go.opencensus.io/trace"
 
@@ -65,7 +67,7 @@ func loadAssignmentForUpstream(
 						Address: &envoy_config_core_v3.Address_SocketAddress{
 							SocketAddress: &envoy_config_core_v3.SocketAddress{
 								Protocol: envoy_config_core_v3.SocketAddress_TCP,
-								Address:  addr.GetAddress(),
+								Address:  addr.GetAddress(), // for istio integration, this could be ""
 								PortSpecifier: &envoy_config_core_v3.SocketAddress_PortValue{
 									PortValue: addr.GetPort(),
 								},
@@ -89,6 +91,7 @@ func loadAssignmentForUpstream(
 }
 
 func createUpstreamToEndpointsMap(upstreams []*v1.Upstream, endpoints []*v1.Endpoint) map[string][]*v1.Endpoint {
+	contextutils.LoggerFrom(context.TODO()).Warnf("[fabian log]: (createUpstreamToEndpointsMap) upstreams: %v; endpoints: %v\n", upstreams, endpoints)
 	upstreamRefKeyToEndpoints := map[string][]*v1.Endpoint{}
 	for _, us := range upstreams {
 		var eps []*v1.Endpoint
@@ -102,6 +105,7 @@ func createUpstreamToEndpointsMap(upstreams []*v1.Upstream, endpoints []*v1.Endp
 			}
 		}
 	}
+	contextutils.LoggerFrom(context.TODO()).Warnf("[fabian log]: (createUpstreamToEndpointsMap) final: %v\n", upstreamRefKeyToEndpoints)
 	return upstreamRefKeyToEndpoints
 }
 

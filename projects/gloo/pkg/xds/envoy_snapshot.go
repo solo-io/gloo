@@ -15,8 +15,10 @@
 package xds
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/solo-io/go-utils/contextutils"
 
 	envoy_config_endpoint_v3 "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 
@@ -123,6 +125,8 @@ func (s *EnvoySnapshot) Consistent() error {
 // MakeConsistent removes any items that fail to link to parent resources in the snapshot.
 // It will also add placeholder routes for listeners referencing non-existent routes.
 func (s *EnvoySnapshot) MakeConsistent() {
+	logger := contextutils.LoggerFrom(context.TODO())
+	logger.Warnf("[fabian log]: making consistent\n")
 	if s == nil {
 		s.Listeners = cache.Resources{
 			Version: "empty",
@@ -145,6 +149,7 @@ func (s *EnvoySnapshot) MakeConsistent() {
 
 	// for each cluster persisted, add placeholder endpoint if referenced endpoint does not exist
 	childEndpoints := resource.GetResourceReferences(s.Clusters.Items)
+	logger.Warnf("[fabian log]: childEndpoints (pre-null ep fix): %v\n", childEndpoints)
 	persistedEndpointNameSet := map[string]struct{}{}
 	for _, endpoint := range s.Endpoints.Items {
 		persistedEndpointNameSet[endpoint.Self().Name] = struct{}{}
@@ -163,11 +168,14 @@ func (s *EnvoySnapshot) MakeConsistent() {
 
 	// remove each endpoint not referenced by a cluster
 	// it is safe to delete from a map you are iterating over, example in effective go https://go.dev/doc/effective_go#for
+	logger.Warnf("[fabian log]: endpoints (pre-removal): %v\n", s.Endpoints.Items)
 	for name, _ := range s.Endpoints.Items {
 		if _, exists := childEndpoints[name]; !exists {
+			logger.Warnf("[fabian log]: removing endpoint %s\n", name)
 			delete(s.Endpoints.Items, name)
 		}
 	}
+	logger.Warnf("[fabian log]: endpoints (post-removal): %v\n", s.Endpoints.Items)
 
 	// for each listener persisted, add placeholder route if referenced route does not exist
 	childRoutes := resource.GetResourceReferences(s.Listeners.Items)

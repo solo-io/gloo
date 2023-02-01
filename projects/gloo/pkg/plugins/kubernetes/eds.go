@@ -220,13 +220,6 @@ func isIstioIntegrationEnabled() bool {
 	return found && strings.ToLower(lookupResult) == "true"
 }
 
-// experimental function - if all else fails in case it's related to issue #7298
-// only used during testing with uer
-func expShouldUseKubePort() bool {
-	lookupResult, found := os.LookupEnv("USE_SERVICE_PORT_FOR_ISTIO")
-	return found && strings.ToLower(lookupResult) == "true" && isIstioIntegrationEnabled()
-}
-
 func (c *edsWatcher) watch(writeNamespace string, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
 	watch := c.kubeShareFactory.Subscribe()
 
@@ -311,13 +304,10 @@ func filterEndpoints(
 	podMap := generatePodsMap(pods)
 
 	istioIntegrationEnabled := isIstioIntegrationEnabled()
-	useKubeServicePort := expShouldUseKubePort()
 
 	// for each upstream
 	for usRef, spec := range upstreams {
 		warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: UpstreamName: %s; UpstreamNS: %s\n", usRef.GetName(), usRef.GetNamespace()))
-		// does `usRef.String()` print the name & values as a human-readable string?
-		// this _could_ make the final logs gigantic.
 		warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: Upstream Data: %s\n", spec.String()))
 		kubeServicePort, singlePortService := findPortForService(services, spec)
 		if kubeServicePort == nil {
@@ -341,12 +331,6 @@ func filterEndpoints(
 				if istioIntegrationEnabled {
 					copyRef := *usRef
 					hostname := fmt.Sprintf("%v.%v", spec.GetServiceName(), spec.GetServiceNamespace())
-					// IF this was still just usRef...
-					//   THEN "endpointsMap[key] = append(endpointsMap[key], &copyRef)", the key with a reused address (or pointer), COULD end up pointing to a different upstream..?
-					//   BUT... could that cause the issue NYT & PM are seeing?
-					if useKubeServicePort {
-						port = uint32(kubeServicePort.Port)
-					}
 					key := Epkey{hostname, port, spec.GetServiceName(), spec.GetServiceNamespace(), &copyRef}
 					endpointsMap[key] = append(endpointsMap[key], &copyRef)
 					warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: (istioIntegration) endpoint map at key: %v = to %v. With an upstream of %v\n", key, endpointsMap[key], &copyRef))
@@ -359,8 +343,9 @@ func filterEndpoints(
 		warnsToLog = append(warnsToLog, "[fabian log]: upstream end\n")
 	}
 
-	endpoints = generateFilteredEndpointList(endpointsMap, services, podMap, writeNamespace, endpoints, istioIntegrationEnabled)
+	endpoints, warns := generateFilteredEndpointList(endpointsMap, services, podMap, writeNamespace, endpoints, istioIntegrationEnabled)
 	warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: endpoints: %v\n", endpoints))
+	warnsToLog = append(warnsToLog, warns...)
 	return endpoints, warnsToLog, errorsToLog
 }
 
@@ -423,9 +408,9 @@ func generateFilteredEndpointList(
 	pods *podMap,
 	writeNamespace string,
 	endpoints v1.EndpointList,
-	istioIntegrationEnabled bool) v1.EndpointList {
+	istioIntegrationEnabled bool) (v1.EndpointList, []string) {
+	var warnsToLog []string
 	for addr, refs := range endpointsMap {
-
 		// sort refs for idempotency
 		sort.Slice(refs, func(i, j int) bool { return refs[i].Key() < refs[j].Key() })
 		hasher := fnv.New64()
@@ -445,6 +430,11 @@ func generateFilteredEndpointList(
 		if istioIntegrationEnabled {
 			// Istio integration requires assigning endpoints the Kub service VIP rather than pod address
 			service, _ := getServiceForHostname(addr.Address, addr.Name, addr.Namespace, services)
+			service.GetLabels()
+
+			service.GetObjectMeta().GetLabels()
+			warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: objMetaLabels %v; nonObjMetaLabels: %v\n", service.GetObjectMeta().GetLabels(), service.GetLabels()))
+			// why service.GetObjectMeta().GetLabels()? instead of service.GetLabels()?
 			ep = createEndpoint(writeNamespace, endpointName, refs, service.Spec.ClusterIP, addr.Port, service.GetObjectMeta().GetLabels()) // TODO: labels may be nil
 		} else {
 			podLabels, _ := pods.getPodLabelsForIp(addr.Address, addr.Name, addr.Namespace)
@@ -457,7 +447,7 @@ func generateFilteredEndpointList(
 	sort.Slice(endpoints, func(i, j int) bool {
 		return endpoints[i].GetMetadata().GetName() < endpoints[j].GetMetadata().GetName()
 	})
-	return endpoints
+	return endpoints, warnsToLog
 }
 
 func createEndpoint(namespace, name string, upstreams []*core.ResourceRef, address string, port uint32, labels map[string]string) *v1.Endpoint {
