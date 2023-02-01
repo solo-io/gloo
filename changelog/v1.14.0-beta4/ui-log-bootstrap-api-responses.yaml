@@ -1,0 +1,6 @@
+CHANGELOG:
+  - type: NEW_FEATURE
+    issueLink: https://github.com/solo-io/solo-projects/issues/4517
+    description: >
+      The bootstrap API calls (checking for the graphql addon and gloo-fed) 
+      are now logged to the browser console.

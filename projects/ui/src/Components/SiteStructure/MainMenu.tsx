@@ -1,16 +1,17 @@
-import React, { useMemo } from 'react';
 import styled from '@emotion/styled';
-import { ReactComponent as GlooFedIcon } from 'assets/GlooFed-Specific/gloo-edge-logo-white-text.svg';
 import {
+  useIsGlooFedEnabled,
   useIsGraphqlEnabled,
   useListClusterDetails,
   useListGlooInstances,
 } from 'API/hooks';
-import SoloNavbar, { ISoloNavLink } from 'Components/Common/SoloNavbar';
-import { SoloLink } from 'Components/Common/SoloLink';
-import { useLocation } from 'react-router';
-import { ReactComponent as GearIcon } from 'assets/gear-icon.svg';
 import { ReactComponent as AdminGearHover } from 'assets/admin-settings-hover.svg';
+import { ReactComponent as GearIcon } from 'assets/gear-icon.svg';
+import { ReactComponent as GlooFedIcon } from 'assets/GlooFed-Specific/gloo-edge-logo-white-text.svg';
+import { SoloLink } from 'Components/Common/SoloLink';
+import SoloNavbar, { ISoloNavLink } from 'Components/Common/SoloNavbar';
+import React, { useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router';
 
 const GearIconHolder = styled.div`
   display: flex;
@@ -26,6 +27,22 @@ export const MainMenu = () => {
   const { data: graphqlIntegrationEnabled, error: graphqlCheckError } =
     useIsGraphqlEnabled();
   const isGraphQLEnabled = !graphqlCheckError && graphqlIntegrationEnabled;
+  const { data: glooFedEnabled, error: glooFedCheckError } =
+    useIsGlooFedEnabled();
+
+  // Log the bootstrap API checks.
+  useEffect(() => {
+    console.log('Gloo Fed enabled: ', glooFedEnabled?.enabled);
+    if (!!glooFedCheckError) {
+      console.warn('Error checking Gloo Fed status: ', glooFedCheckError);
+    }
+  }, [glooFedEnabled?.enabled, glooFedCheckError]);
+  useEffect(() => {
+    console.log('GraphQL add-on enabled: ', graphqlIntegrationEnabled);
+    if (!!graphqlCheckError) {
+      console.warn('Error checking GraphQL add-on status: ', graphqlCheckError);
+    }
+  }, [graphqlIntegrationEnabled, graphqlCheckError]);
 
   const { data: glooInstances, error: glooError } = useListGlooInstances();
   const { data: clusterDetailsList, error: cError } = useListClusterDetails();
