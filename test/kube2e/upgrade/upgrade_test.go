@@ -338,12 +338,29 @@ func upgradeGloo(testHelper *helper.SoloTestHelper, chartUri string, strictValid
 	//Check that everything is OK
 	checkGlooHealthy(testHelper)
 
+	bumpRedis(testHelper)
+	postUpgradeTests(testHelper)
+}
+
+func bumpRedis(testHelper *helper.SoloTestHelper) {
+	runAndCleanCommand("kubectl", "scale", "deployment", "redis", "--replicas=0", "-n", testHelper.InstallNamespace)
+
+	Eventually(func() (string, error) {
+		return services.KubectlOut("get", "deploy/redis", "-n", testHelper.InstallNamespace, "-o", "jsonpath={.spec.replicas}")
+	}, time.Minute, time.Second*10).Should(Equal("0"))
+
+	runAndCleanCommand("kubectl", "scale", "deployment", "redis", "--replicas=1", "-n", testHelper.InstallNamespace)
+
 	//make sure redis is in a good state after upgrade
 	Eventually(func() (string, error) {
 		return services.KubectlOut("get", "deploy/redis", "-n", testHelper.InstallNamespace, "-o", "jsonpath={.status.unavailableReplicas}")
 	}, time.Minute, time.Second*10).Should(Equal(""))
+}
 
+func postUpgradeTests(testHelper *helper.SoloTestHelper) {
 	postUpgradeValidation(testHelper)
+	postUpgradeDataModification(testHelper)
+	dataModificationValidation(testHelper)
 }
 
 func uninstallGloo(testHelper *helper.SoloTestHelper, ctx context.Context, cancel context.CancelFunc) {
@@ -408,6 +425,20 @@ func postUpgradeValidation(testHelper *helper.SoloTestHelper) {
 	validateAuthTraffic(testHelper)
 	validateRequestTransformTraffic(testHelper)
 	validateCachingTrafficAfterUpgrade(testHelper)
+}
+
+func postUpgradeDataModification(testHelper *helper.SoloTestHelper) {
+	fmt.Printf("\n=============== Update Resources ===============\n")
+	createResources("authafter")
+	createResources("ratelimitafter")
+
+	fmt.Printf("\n=============== Checking Resource Modification ===============\n")
+	checkGlooHealthy(testHelper)
+}
+
+func dataModificationValidation(testHelper *helper.SoloTestHelper) {
+	rateLimitDataModValidation(testHelper)
+	authDataModValidation(testHelper)
 }
 
 // Get all yaml files from a specified directory in upgrade/assets
@@ -535,11 +566,12 @@ func validatePetstoreTraffic(testHelper *helper.SoloTestHelper) {
 }
 
 // This function validates the traffic going to the rate limit vs
-// There are two routes - 1 for /posts1 which is not rate limited and one for /posts2 which is
+// There are two routes - /posts1 which is not rate limited and /posts2 which is
 // The defined rate limit is 1 request per hour to the petstore domain on the route for /posts2
 // after the upgrade we run the same function as redis is bounced as part of the upgrade and all rate limiting gets reset.
 func validateRateLimitTraffic(testHelper *helper.SoloTestHelper) {
 	curlAndAssertResponse(testHelper, rateLimitHost, "/posts1", response200)
+	curlAndAssertResponse(testHelper, rateLimitHost, "/posts2", response200)
 	curlAndAssertResponse(testHelper, rateLimitHost, "/posts2", response429)
 }
 
@@ -626,6 +658,35 @@ func validateCachingTrafficAfterUpgrade(testHelper *helper.SoloTestHelper) {
 	headers = getResponseHeadersFromCurlOutput(res)
 	ExpectWithOffset(1, headers).NotTo(HaveKey("age"), "headers to not contain an age header, because the cached response is expired")
 	ExpectWithOffset(1, headers["date"]).NotTo(Equal(date.Format(time.RFC1123)), "validation workflow should update the date header")
+}
+
+// after modification the new rate limit for /posts2 is set to 3 requests an hour
+func rateLimitDataModValidation(testHelper *helper.SoloTestHelper) {
+	curlAndAssertResponse(testHelper, rateLimitHost, "/posts1", response200)
+	//100 requests should be allowed before hitting new rate limit - run ten to verify the new headroom
+	for i := 0; i < 10; i++ {
+		curlAndAssertResponse(testHelper, rateLimitHost, "/posts2", response200)
+	}
+}
+
+func authDataModValidation(testHelper *helper.SoloTestHelper) {
+	By("denying unauthenticated requests on both routes", func() {
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", nil, response401)
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", nil, response401)
+		//strict admin only on route
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("user:password"), response401)
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("user2:password"), response401)
+		//old admin can no longer call any endpoints
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("admin:password"), response401)
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("admin:password"), response401)
+	})
+
+	By("allowing authenticated requests on both routes", func() {
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("user:password"), appName1)
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("user2:password"), appName1)
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/1", buildAuthHeader("admin2:password"), appName1)
+		curlWithHeadersAndAssertResponse(testHelper, authHost, "/test/2", buildAuthHeader("admin2:password"), appName2)
+	})
 }
 
 func buildAuthHeader(credentials string) map[string]string {

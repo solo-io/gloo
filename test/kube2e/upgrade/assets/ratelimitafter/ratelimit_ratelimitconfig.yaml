@@ -1,0 +1,18 @@
+apiVersion: ratelimit.solo.io/v1alpha1
+kind: RateLimitConfig
+metadata:
+  name: upgrade-rate-limit
+  namespace: gloo-system
+spec:
+  raw:
+    descriptors:
+      - key: generic_key
+        value: counter
+        rateLimit:
+          # rate limit is modified from 1 -> 100 after upgrade
+          requestsPerUnit: 100
+          unit: HOUR
+    rateLimits:
+      - actions:
+          - genericKey:
+              descriptorValue: counter

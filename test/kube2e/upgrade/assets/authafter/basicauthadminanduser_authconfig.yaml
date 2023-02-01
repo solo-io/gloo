@@ -1,0 +1,24 @@
+apiVersion: enterprise.gloo.solo.io/v1
+kind: AuthConfig
+metadata:
+  name: basic-auth-user-and-admin
+  namespace: gloo-system
+spec:
+  configs:
+    - basicAuth:
+        apr:
+          users:
+            admin2:
+              # generated with: `htpasswd -nbm admin2 password`
+              # remove previous admin and add admin2
+              hashedPassword: Slwr6oIxIt7hl0TncRkqq/
+              salt: pLTiSIjT
+            user:
+              # generated with: `htpasswd -nbm user password`
+              hashedPassword: 14o4fMw/Pm2L34SvyyA2r.
+              salt: 0adzfifo
+            user2:
+              # generated with: `htpasswd -nbm user2 password`
+              hashedPassword: TxwnMgev5Hi3q17Co5KGR1
+              salt: CdVtqOLH
+        realm: gloo

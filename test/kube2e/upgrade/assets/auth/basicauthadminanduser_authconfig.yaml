@@ -9,9 +9,11 @@ spec:
         apr:
           users:
             admin:
+              # generated with: `htpasswd -nbm admin password`
               hashedPassword: O8kUlD9Xbyj6l1WPcgWxM1
               salt: o6PF7xkS
             user:
+              # generated with: `htpasswd -nbm user password`
               hashedPassword: 14o4fMw/Pm2L34SvyyA2r.
               salt: 0adzfifo
         realm: gloo
