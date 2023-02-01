@@ -254,7 +254,7 @@ dn: cn=managers,ou=groups,dc=solo,dc=io
 Now that we have all the necessary components in place, let use the LDAP server to secure the Virtual Service we created 
 earlier .
 
-#### LDAP auth flow
+#### LDAP auth flow with Single User
 Before updating our Virtual Service, it is important to understand how Gloo Edge interacts with the LDAP server. Let's first 
 look at the {{< protobuf
 display="LDAP auth configuration"
@@ -449,6 +449,47 @@ returns
 'Hello World!'
 * Connection #0 to host 192.168.99.100 left intact
 {{< /highlight >}}
+
+#### LDAP Auth with Service Account
+
+This procedure is similar to the above method. However, it uses a privileged service account to authenticate against the LDAP server, and then queries the user's unique credentials to authenticate the user.
+
+{{% notice warning %}}
+For the sake of brevity, this section uses the LDAP `admin` account as the service account. This is **NOT** the recommended best security practice, and users should instead take care to create their own service account and use that in place of the admin credentials in this section of the guide. Instructions on how to do this are outside the scope of this guide.
+{{% /notice %}}
+
+First, create a secret to store the credentials of the service account that will be used:
+
+```sh
+glooctl create secret authcredentials --name ldapcredentials --username ldapusername --username cn=admin,dc=solo,dc=io  --password solopwd
+```
+
+Next, update the `AuthConfig` object created above like so:
+
+{{< highlight shell "hl_lines=14-18" >}}
+kubectl apply -f - <<EOF
+apiVersion: enterprise.gloo.solo.io/v1
+kind: AuthConfig
+metadata:
+  name: ldap
+  namespace: gloo-system
+spec:
+  configs:
+  - ldap:
+      address: "ldap://ldap.default.svc.cluster.local:389" # Substitute your namespace for `default` here
+      userDnTemplate: "uid=%s,ou=people,dc=solo,dc=io"
+      allowedGroups:
+      - "cn=managers,ou=groups,dc=solo,dc=io"
+      searchFilter: "(objectClass=*)"
+      groupLookupSettings:
+          checkGroupsWithServiceAccount: true
+          credentialsSecretRef:
+              name: ldapcredentials
+              namespace: gloo-system
+EOF
+{{< /highlight >}}
+
+Run the `curl` commands used above to test authentication against the server. The developer account should receive a 403, the manager account should receive a 200, and all other requests should return 401. Note that if the service account credentials are incorrect, the server will return a 500 response.
 
 ### Summary 
 I this tutorial we have shown how Gloo Edge can integrate with LDAP to authenticate incoming requests and authorize them based 
