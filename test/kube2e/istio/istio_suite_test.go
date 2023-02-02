@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -59,9 +60,17 @@ var (
 var _ = BeforeSuite(func() {
 	var err error
 
+	cwd, err := os.Getwd()
+	Expect(err).NotTo(HaveOccurred())
 	ctx, cancel = context.WithCancel(context.Background())
 
-	testHelper, err = kube2e.GetTestHelper(ctx, namespace)
+	testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
+		defaults.RootDir = filepath.Join(cwd, "../../..")
+		defaults.HelmChartName = "gloo"
+		defaults.InstallNamespace = namespace
+		defaults.Verbose = true
+		return defaults
+	})
 	Expect(err).NotTo(HaveOccurred())
 
 	skhelpers.RegisterPreFailHandler(helpers.KubeDumpOnFail(GinkgoWriter, testHelper.InstallNamespace))
