@@ -270,6 +270,7 @@ type Epkey struct {
 	Name        string
 	Namespace   string
 	UpstreamRef *core.ResourceRef
+	IsHeadless  bool // used for istio integration. other data in this key isn't enough to determine if it's part of a headless service
 }
 
 // Returns first matching port in the namespace and boolean value of true if the
@@ -307,8 +308,6 @@ func filterEndpoints(
 
 	// for each upstream
 	for usRef, spec := range upstreams {
-		warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: UpstreamName: %s; UpstreamNS: %s\n", usRef.GetName(), usRef.GetNamespace()))
-		warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: Upstream Data: %s\n", spec.String()))
 		kubeServicePort, singlePortService := findPortForService(services, spec)
 		if kubeServicePort == nil {
 			errorsToLog = append(errorsToLog, fmt.Sprintf("upstream %v: port %v not found for service %v", usRef.Key(), spec.GetServicePort(), spec.GetServiceName()))
@@ -319,7 +318,6 @@ func filterEndpoints(
 			if eps.Namespace != spec.GetServiceNamespace() || eps.Name != spec.GetServiceName() {
 				continue
 			}
-			warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: EndpointName: %s; EndpointNS: %s\n", eps.GetName(), eps.GetNamespace()))
 			// for each subset in the matching endpoint
 			for _, subset := range eps.Subsets {
 				port := findFirstPortInEndpointSubsets(subset, singlePortService, kubeServicePort)
@@ -328,14 +326,16 @@ func filterEndpoints(
 					continue
 				}
 
-				if istioIntegrationEnabled {
+				// Headless services do not contain a ClusterIP address, so we need to use the pod IPs instead.
+				svc := getServiceFromUpstreamSpec(services, spec)
+				isHeadless := isHeadlessService(svc)
+				if istioIntegrationEnabled && !isHeadless {
 					copyRef := *usRef
 					hostname := fmt.Sprintf("%v.%v", spec.GetServiceName(), spec.GetServiceNamespace())
-					key := Epkey{hostname, port, spec.GetServiceName(), spec.GetServiceNamespace(), &copyRef}
+					key := Epkey{hostname, port, spec.GetServiceName(), spec.GetServiceNamespace(), &copyRef, isHeadless}
 					endpointsMap[key] = append(endpointsMap[key], &copyRef)
-					warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: (istioIntegration) endpoint map at key: %v = to %v. With an upstream of %v\n", key, endpointsMap[key], &copyRef))
 				} else {
-					warnings := processSubsetAddresses(subset, spec, podMap, usRef, port, endpointsMap)
+					warnings := processSubsetAddresses(subset, spec, podMap, usRef, port, endpointsMap, isHeadless)
 					warnsToLog = append(warnsToLog, warnings...)
 				}
 			}
@@ -349,8 +349,7 @@ func filterEndpoints(
 	return endpoints, warnsToLog, errorsToLog
 }
 
-// could (something like) this needed for istio as well? or no?
-func processSubsetAddresses(subset kubev1.EndpointSubset, spec *kubeplugin.UpstreamSpec, pods *podMap, usRef *core.ResourceRef, port uint32, endpointsMap map[Epkey][]*core.ResourceRef) []string {
+func processSubsetAddresses(subset kubev1.EndpointSubset, spec *kubeplugin.UpstreamSpec, pods *podMap, usRef *core.ResourceRef, port uint32, endpointsMap map[Epkey][]*core.ResourceRef, isHeadless bool) []string {
 	var warnings []string
 	for _, addr := range subset.Addresses {
 		var podName, podNamespace string
@@ -377,10 +376,9 @@ func processSubsetAddresses(subset kubev1.EndpointSubset, spec *kubeplugin.Upstr
 				continue
 			}
 		}
-		key := Epkey{addr.IP, port, podName, podNamespace, usRef}
+		key := Epkey{addr.IP, port, podName, podNamespace, usRef, isHeadless}
 		copyRef := *usRef
 		endpointsMap[key] = append(endpointsMap[key], &copyRef)
-		warnings = append(warnings, fmt.Sprintf("[fabian log]: (processSubsetAddresses) endpoint map at key: %v = to %v. With an upstream of %v\n", key, endpointsMap[key], &copyRef))
 	}
 	return warnings
 }
@@ -401,7 +399,6 @@ func findFirstPortInEndpointSubsets(subset kubev1.EndpointSubset, singlePortServ
 	return port
 }
 
-// todo - add a log here?
 func generateFilteredEndpointList(
 	endpointsMap map[Epkey][]*core.ResourceRef,
 	services []*kubev1.Service,
@@ -427,14 +424,10 @@ func generateFilteredEndpointList(
 		endpointName := fmt.Sprintf("ep-%v-%v-%x", dnsname, addr.Port, hasher.Sum64())
 
 		var ep *v1.Endpoint
-		if istioIntegrationEnabled {
+
+		if istioIntegrationEnabled && !addr.IsHeadless {
 			// Istio integration requires assigning endpoints the Kub service VIP rather than pod address
 			service, _ := getServiceForHostname(addr.Address, addr.Name, addr.Namespace, services)
-			service.GetLabels()
-
-			service.GetObjectMeta().GetLabels()
-			warnsToLog = append(warnsToLog, fmt.Sprintf("[fabian log]: objMetaLabels %v; nonObjMetaLabels: %v\n", service.GetObjectMeta().GetLabels(), service.GetLabels()))
-			// why service.GetObjectMeta().GetLabels()? instead of service.GetLabels()?
 			ep = createEndpoint(writeNamespace, endpointName, refs, service.Spec.ClusterIP, addr.Port, service.GetObjectMeta().GetLabels()) // TODO: labels may be nil
 		} else {
 			podLabels, _ := pods.getPodLabelsForIp(addr.Address, addr.Name, addr.Namespace)
@@ -486,4 +479,17 @@ func getServiceForHostname(hostname string, serviceName, serviceNamespace string
 	}
 
 	return nil, errors.Errorf("service not found with hostname %v", hostname)
+}
+
+func getServiceFromUpstreamSpec(services []*kubev1.Service, upstreamSpec *kubeplugin.UpstreamSpec) *kubev1.Service {
+	for _, svc := range services {
+		if svc.Namespace == upstreamSpec.GetServiceNamespace() && svc.Name == upstreamSpec.GetServiceName() {
+			return svc
+		}
+	}
+	return nil
+}
+
+func isHeadlessService(svc *kubev1.Service) bool {
+	return svc != nil && svc.Spec.ClusterIP == "None"
 }
