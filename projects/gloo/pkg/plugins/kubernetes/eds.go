@@ -332,7 +332,7 @@ func filterEndpoints(
 				if istioIntegrationEnabled && !isHeadless {
 					copyRef := *usRef
 					hostname := fmt.Sprintf("%v.%v", spec.GetServiceName(), spec.GetServiceNamespace())
-					key := Epkey{hostname, port, spec.GetServiceName(), spec.GetServiceNamespace(), &copyRef, isHeadless}
+					key := Epkey{hostname, uint32(kubeServicePort.Port), spec.GetServiceName(), spec.GetServiceNamespace(), &copyRef, isHeadless}
 					endpointsMap[key] = append(endpointsMap[key], &copyRef)
 				} else {
 					warnings := processSubsetAddresses(subset, spec, podMap, usRef, port, endpointsMap, isHeadless)
@@ -408,6 +408,7 @@ func generateFilteredEndpointList(
 	istioIntegrationEnabled bool) (v1.EndpointList, []string) {
 	var warnsToLog []string
 	for addr, refs := range endpointsMap {
+
 		// sort refs for idempotency
 		sort.Slice(refs, func(i, j int) bool { return refs[i].Key() < refs[j].Key() })
 		hasher := fnv.New64()
@@ -444,7 +445,7 @@ func generateFilteredEndpointList(
 }
 
 func createEndpoint(namespace, name string, upstreams []*core.ResourceRef, address string, port uint32, labels map[string]string) *v1.Endpoint {
-	ep := &v1.Endpoint{
+	return &v1.Endpoint{
 		Metadata: &core.Metadata{
 			Namespace: namespace,
 			Name:      name,
@@ -454,9 +455,7 @@ func createEndpoint(namespace, name string, upstreams []*core.ResourceRef, addre
 		Address:   address,
 		Port:      port,
 		// TODO: add locality info
-
 	}
-	return ep
 }
 
 func getServiceForHostname(hostname string, serviceName, serviceNamespace string, services []*kubev1.Service) (*kubev1.Service, error) {
