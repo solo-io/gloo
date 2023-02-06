@@ -852,10 +852,10 @@ func glooctlCheckEventuallyHealthy(offset int, testHelper *helper.SoloTestHelper
 			},
 		}
 		err := check.CheckResources(opts)
+		cancel() //attempt to avoid hitting go-routine limit
 		if err != nil {
 			return eris.Wrap(err, "glooctl check detected a problem with the installation")
 		}
-		cancel() //attempt to avoid hitting go-routine limit
 		return nil
 	}, timeoutInterval, "5s").Should(BeNil())
 }

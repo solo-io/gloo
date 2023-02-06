@@ -6,6 +6,7 @@ import * as jspb from "google-protobuf";
 import * as github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_base_pb from "../../../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/base_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_range_pb from "../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/type/range_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb from "../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/advanced_http/advanced_http_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb from "../../../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/base_pb";
 import * as google_protobuf_any_pb from "google-protobuf/google/protobuf/any_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
@@ -192,6 +193,9 @@ export namespace HealthCheck {
     getResponseAssertions(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions | undefined;
     setResponseAssertions(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions): void;
 
+    getMethod(): github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RequestMethodMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RequestMethodMap];
+    setMethod(value: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RequestMethodMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RequestMethodMap]): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): HttpHealthCheck.AsObject;
     static toObject(includeInstance: boolean, msg: HttpHealthCheck): HttpHealthCheck.AsObject;
@@ -212,6 +216,7 @@ export namespace HealthCheck {
       useHttp2: boolean,
       expectedStatusesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_type_range_pb.Int64Range.AsObject>,
       responseAssertions?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_advanced_http_advanced_http_pb.ResponseAssertions.AsObject,
+      method: github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RequestMethodMap[keyof github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_base_pb.RequestMethodMap],
     }
   }
 
