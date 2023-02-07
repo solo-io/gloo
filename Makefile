@@ -132,12 +132,9 @@ mod-download:
 mod-tidy:
 	GOBIN=$(DEPSGOBIN) go mod tidy
 
-HAS_YARN=$(shell npm ls -g | grep yarn)
 .PHONY: install-node-packages
 install-node-packages:
-ifeq ($(HAS_YARN), )
-	npm install -g yarn
-endif
+	npm install -g yarn --force
 	npm install -g esbuild@0.16.14
 	make install-graphql-js
 	make update-ui-deps
