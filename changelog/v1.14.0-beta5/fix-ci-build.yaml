@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4533
+    resolvesIssue: true
+    description: >
+      fix issue with CI failing when installing yarn with npm.
