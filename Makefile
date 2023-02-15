@@ -1483,48 +1483,48 @@ endif
 .PHONY: docker-info docker-retag-images
 docker-retag-images:
 ifeq ($(RELEASE),"true")
-	docker tag $(RETAG_IMAGE_REGISTRY)/rate-limit-ee:$(VERSION) $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/rate-limit-ee-fips:$(VERSION) $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee:$(VERSION) $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-fips:$(VERSION) $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee:$(VERSION)-race $(IMAGE_REPO)/gloo-ee:$(VERSION)-race && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION) $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION)-debug $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION) $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/observability-ee:$(VERSION) $(IMAGE_REPO)/observability-ee:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/caching-ee:$(VERSION) $(IMAGE_REPO)/caching-ee:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/extauth-ee:$(VERSION) $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/extauth-ee-fips:$(VERSION) $(IMAGE_REPO)/extauth-ee-fips:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/discovery-ee:$(VERSION) $(IMAGE_REPO)/discovery-ee:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/ext-auth-plugins:$(VERSION) $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/ext-auth-plugins-fips:$(VERSION) $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed:$(VERSION) $(IMAGE_REPO)/gloo-fed:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed-apiserver:$(VERSION) $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed-apiserver-envoy:$(VERSION) $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-federation-console:$(VERSION) $(IMAGE_REPO)/gloo-federation-console:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed-rbac-validating-webhook:$(VERSION) $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION)
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/rate-limit-ee:$(VERSION) $(FINAL_IMAGE_REGISTRY)/rate-limit-ee:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/rate-limit-ee-fips:$(VERSION) $(FINAL_IMAGE_REGISTRY)/rate-limit-ee-fips:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-ee:$(VERSION) $(FINAL_IMAGE_REGISTRY)/gloo-ee:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-ee-fips:$(VERSION) $(FINAL_IMAGE_REGISTRY)/gloo-ee-fips:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-ee:$(VERSION)-race $(FINAL_IMAGE_REGISTRY)/gloo-ee:$(VERSION)-race && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION) $(FINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION)-debug $(FINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION)-debug && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION) $(FINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug $(FINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/observability-ee:$(VERSION) $(FINAL_IMAGE_REGISTRY)/observability-ee:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/caching-ee:$(VERSION) $(FINAL_IMAGE_REGISTRY)/caching-ee:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/extauth-ee:$(VERSION) $(FINAL_IMAGE_REGISTRY)/extauth-ee:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/extauth-ee-fips:$(VERSION) $(FINAL_IMAGE_REGISTRY)/extauth-ee-fips:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/discovery-ee:$(VERSION) $(FINAL_IMAGE_REGISTRY)/discovery-ee:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/ext-auth-plugins:$(VERSION) $(FINAL_IMAGE_REGISTRY)/ext-auth-plugins:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/ext-auth-plugins-fips:$(VERSION) $(FINAL_IMAGE_REGISTRY)/ext-auth-plugins-fips:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-fed:$(VERSION) $(FINAL_IMAGE_REGISTRY)/gloo-fed:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-fed-apiserver:$(VERSION) $(FINAL_IMAGE_REGISTRY)/gloo-fed-apiserver:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-fed-apiserver-envoy:$(VERSION) $(FINAL_IMAGE_REGISTRY)/gloo-fed-apiserver-envoy:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-federation-console:$(VERSION) $(FINAL_IMAGE_REGISTRY)/gloo-federation-console:$(VERSION) && \
+	docker tag $(ORIGINAL_IMAGE_REGISTRY)/gloo-fed-rbac-validating-webhook:$(VERSION) $(FINAL_IMAGE_REGISTRY)/gloo-fed-rbac-validating-webhook:$(VERSION)
 
-	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug && \
-	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/caching-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/discovery-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/extauth-ee-fips:$(VERSION) && \
-	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) && \
-	docker push $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-fed:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-federation-console:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION)
+	docker push $(FINAL_IMAGE_REGISTRY)/rate-limit-ee:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/rate-limit-ee-fips:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/gloo-ee:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/gloo-ee-fips:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION)-debug && \
+	docker push $(FINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug && \
+	docker push $(FINAL_IMAGE_REGISTRY)/observability-ee:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/caching-ee:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/extauth-ee:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/discovery-ee:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/extauth-ee-fips:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/ext-auth-plugins:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/ext-auth-plugins-fips:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/gloo-fed:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/gloo-fed-apiserver:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/gloo-fed-apiserver-envoy:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/gloo-federation-console:$(VERSION) && \
+	docker push $(FINAL_IMAGE_REGISTRY)/gloo-fed-rbac-validating-webhook:$(VERSION)
 endif
 
 # Helper targets for CI
