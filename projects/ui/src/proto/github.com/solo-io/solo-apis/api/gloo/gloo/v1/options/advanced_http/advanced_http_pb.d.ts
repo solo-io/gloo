@@ -3,7 +3,6 @@
 // file: github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/advanced_http/advanced_http.proto
 
 import * as jspb from "google-protobuf";
-import * as udpa_annotations_status_pb from "../../../../../../../../../udpa/annotations/status_pb";
 import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb";
 import * as validate_validate_pb from "../../../../../../../../../validate/validate_pb";
 

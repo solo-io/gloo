@@ -73,6 +73,11 @@ export class ListenerOptions extends jspb.Message {
   getProxyProtocol(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb.ProxyProtocol | undefined;
   setProxyProtocol(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb.ProxyProtocol): void;
 
+  hasConnectionBalanceConfig(): boolean;
+  clearConnectionBalanceConfig(): void;
+  getConnectionBalanceConfig(): ConnectionBalanceConfig | undefined;
+  setConnectionBalanceConfig(value?: ConnectionBalanceConfig): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListenerOptions.AsObject;
   static toObject(includeInstance: boolean, msg: ListenerOptions): ListenerOptions.AsObject;
@@ -90,6 +95,45 @@ export namespace ListenerOptions {
     perConnectionBufferLimitBytes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     socketOptionsList: Array<github_com_solo_io_solo_kit_api_external_envoy_api_v2_core_socket_option_pb.SocketOption.AsObject>,
     proxyProtocol?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_proxy_protocol_proxy_protocol_pb.ProxyProtocol.AsObject,
+    connectionBalanceConfig?: ConnectionBalanceConfig.AsObject,
+  }
+}
+
+export class ConnectionBalanceConfig extends jspb.Message {
+  hasExactBalance(): boolean;
+  clearExactBalance(): void;
+  getExactBalance(): ConnectionBalanceConfig.ExactBalance | undefined;
+  setExactBalance(value?: ConnectionBalanceConfig.ExactBalance): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConnectionBalanceConfig.AsObject;
+  static toObject(includeInstance: boolean, msg: ConnectionBalanceConfig): ConnectionBalanceConfig.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConnectionBalanceConfig, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConnectionBalanceConfig;
+  static deserializeBinaryFromReader(message: ConnectionBalanceConfig, reader: jspb.BinaryReader): ConnectionBalanceConfig;
+}
+
+export namespace ConnectionBalanceConfig {
+  export type AsObject = {
+    exactBalance?: ConnectionBalanceConfig.ExactBalance.AsObject,
+  }
+
+  export class ExactBalance extends jspb.Message {
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ExactBalance.AsObject;
+    static toObject(includeInstance: boolean, msg: ExactBalance): ExactBalance.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ExactBalance, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ExactBalance;
+    static deserializeBinaryFromReader(message: ExactBalance, reader: jspb.BinaryReader): ExactBalance;
+  }
+
+  export namespace ExactBalance {
+    export type AsObject = {
+    }
   }
 }
 

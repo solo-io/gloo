@@ -12,7 +12,6 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
-var udpa_annotations_status_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/udpa/annotations/status_pb.js');
 var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
 var validate_validate_pb = require('../../../../../../../../../validate/validate_pb.js');
 goog.exportSymbol('proto.advancedhttp.options.gloo.solo.io.HealthCheckResult', null, global);
