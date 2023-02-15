@@ -1,0 +1,169 @@
+steps:
+
+# Setup SSH
+# These are required before prepare-workspace
+- name: gcr.io/cloud-builders/gcloud
+  args:
+    - kms
+    - decrypt
+    - --ciphertext-file=ci/id_rsa.enc
+    - --plaintext-file=/root/.ssh/id_rsa
+    - --location=global
+    - --keyring=build
+    - --key=build-key
+  id: "get-ssh-key"
+
+- name: "gcr.io/cloud-builders/git"
+  entrypoint: "bash"
+  args:
+    - "-c"
+    - |
+      chmod 600 /root/.ssh/id_rsa
+      cat <<EOF >/root/.ssh/config
+      Hostname github.com
+      IdentityFile /root/.ssh/id_rsa
+      EOF
+      mv ./ci/github_known_hosts /root/.ssh/known_hosts
+      git config --global url."ssh://git@github.com/solo-io".insteadOf https://github.com/solo-io
+  id: "configure-git"
+
+- name: "golang:1.18.2"
+  args: ["go", "env", "-w", "GOPRIVATE=github.com/solo-io"]
+  id: "set-private"
+
+# clones Gloo so it can be setup & tested
+# All steps after this must set working directory to use the cloned Gloo source
+
+# $COMMIT_SHA is a default gcloud env var, to run via cloudbuild submit use:
+# gcloud builds submit --substitutions COMMIT_SHA=<commitsha>,REPO_NAME=solo-io/solo-projects --project gloo-ee
+- name: "gcr.io/solo-public/prepare-go-workspace:0.4.28"
+  args:
+    - "--repo-name"
+    - "$REPO_NAME"
+    - "--repo-sha"
+    - "$COMMIT_SHA"
+    - "--repo-output-dir"
+    - "."
+    - "--use-ssh"
+  id: "prepare-workspace"
+
+- name: gcr.io/cloud-builders/gsutil
+  entrypoint: "bash"
+  args:
+    [
+      "-c",
+      'mkdir -p ./gopath/pkg && cd ./gopath/pkg && gsutil cat gs://$PROJECT_ID-cache/solo-projects/solo-projects-mod.tar.gz | tar -xzf - || echo "untar mod cache failed; continuing because we can download deps as we need them"',
+    ]
+  waitFor: ["-"]
+  id: "untar-mod-cache"
+
+# e2e-go-mod-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-go-mod-ginkgo
+# Must set the GOPATH to tell the container the workspace has already been set up (by the prepare-workspace step above)
+- name: node:16
+  secretEnv: ["NPM_TOKEN"]
+  dir: "/workspace/solo-projects/projects/ui"
+  entrypoint: yarn
+  args: ["install"]
+  waitFor: ["prepare-workspace"]
+  id: "yarn-install"
+
+- name: "gcr.io/cloud-builders/yarn"
+  secretEnv: ["NPM_TOKEN"]
+  args: ["build"]
+  dir: "/workspace/solo-projects/projects/ui"
+  waitFor: ["yarn-install"]
+  id: "yarn-build"
+
+- name: node:16
+  secretEnv: ["NPM_TOKEN"]
+  dir: "/workspace/solo-projects/projects/gloo/pkg/plugins/graphql/v8go"
+  entrypoint: yarn
+  args: ["install"]
+  waitFor: ["prepare-workspace"]
+  id: "yarn-install-graphql-js"
+
+# Setup and run E2E tests (from here until "test")
+
+# Pull Envoy images
+- name: "gcr.io/solo-public/go-mod-make:0.4.28"
+  entrypoint: "bash"
+  args:
+    - "-ce"
+    - |
+      ENVOY_VERSION=v$$(make print-ENVOY_GLOO_IMAGE | cut -d: -f2)
+      gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION//envoy.stripped /workspace/envoy
+      gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION//libsaxon-solo.so /workspace/libsaxon-solo.so
+      chmod +x /workspace/envoy
+  dir: &dir "/workspace/solo-projects"
+  waitFor: ["prepare-workspace"]
+  id: "get-envoy"
+
+- name: gcr.io/cloud-builders/gcloud
+  args:
+    - kms
+    - decrypt
+    - --ciphertext-file=./ci/aws_credentials.enc
+    - --plaintext-file=/workspace/aws_credentials
+    - --location=global
+    - --keyring=build
+    - --key=build-key
+  waitFor: ["prepare-workspace"]
+  dir: *dir
+  id: "setup-aws-creds"
+
+- name: gcr.io/cloud-builders/gcloud
+  args: ["config", "set", "compute/zone", "us-central1-a"]
+  waitFor: ["-"]
+  id: "set-test-zone"
+
+- name: gcr.io/cloud-builders/gcloud
+  args: ["container", "clusters", "get-credentials", "test-cluster"]
+  waitFor: ["set-test-zone"]
+  id: "get-test-credentials"
+
+# e2e-go-mod-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-go-mod-ginkgo
+# sets up redis, consul, kubectl, go with required environment variables
+# need to use the provided entrypoint
+# This step HAS to run after codegen, because codegen also runs `go generate` and might overwrite existing plugin files.
+# Can't run gingko with -race because this changes the go runtime dependency and extauth plugin dependency test will fail
+- name: "gcr.io/solo-public/e2e-go-mod-ginkgo:0.4.28"
+  dir: *dir
+  entrypoint: make
+  args: ["run-tests"]
+  env:
+    - "ENVOY_BINARY=/workspace/envoy"
+    - "LIBSAXON_SHARED_OBJECT_PATH=/workspace/libsaxon-solo.so"
+    - "AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials"
+    - "RUN_KUBE_TESTS=1"
+    - "GCLOUD_BUILD_ID=$BUILD_ID"
+  waitFor:
+    [
+      "prepare-workspace",
+      "get-envoy",
+      "yarn-build",
+      "setup-aws-creds",
+      "get-test-credentials",
+    ]
+  id: "test"
+
+secrets:
+- kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key
+  secretEnv:
+    NPM_TOKEN: CiQAwdWthsrcxx34V1hGZL7uH3KcYsp9n2yiXMZ/IrDKqxD8vxgSTQD5SXFI/acbV54LBG26hMvU6qtvmoSIPLdi9F2LxdJQs+kGupmD7GykLRW6eWqJs8UJQMNmMo1u+tK8YsTvja7IhqeL2+dmZSByLIcB
+# Overall build timeout of 60m. The release builds take extra time for uploading and pushing artifacts. We can
+# set timeouts on specific steps (prepare-workspace, tests, etc) if we want to limit the time in sections, but want a forgiving
+# timeout for the final step, and the default (10m) is not enough.
+timeout: 3600s
+
+tags: ["solo-projects"]
+options:
+  machineType: "N1_HIGHCPU_32"
+  env:
+    - "TAGGED_VERSION=$TAG_NAME"
+    - "PROJECT_ROOT=github.com/solo-io/solo-projects"
+    - "HELM_HOME=/root/.helm"
+  volumes:
+    - name: "gopath"
+      path: "/go"
+    - name: "ssh"
+      path: /root/.ssh

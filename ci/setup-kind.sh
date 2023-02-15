@@ -37,9 +37,9 @@ REGISTRY_NAME='kind-registry'
 REGISTRY_PORT="${REGISTRY_PORT:-5000}"
 
 # set the image repo to the kind registry endpoint
-IMAGE_REPO="${IMAGE_REPO:-}"
+IMAGE_REG="${IMAGE_REG:-}"
 if [[ $ARCH == 'arm64' ]]; then
-  IMAGE_REPO="${IMAGE_REPO:-localhost:${REGISTRY_PORT}}"
+  IMAGE_REG="${IMAGE_REG:-localhost:${REGISTRY_PORT}}"
 fi
 
 function create_kind_registry() {
@@ -133,7 +133,7 @@ make install-node-packages -B
 if [[ $ARCH == 'arm64' ]]; then
   # if your local machine is arm64, push to the docker registry container, instead of kind
   # GOARCH allows you to support any type of image architecture
-  GOARCH=$GOARCH VERSION=$VERSION IMAGE_REPO=${IMAGE_REPO:-} USE_FIPS=$USE_FIPS PUSH_TESTS_ARM=true make docker-push-local-arm -B
+  GOARCH=$GOARCH VERSION=$VERSION IMAGE_REG=${IMAGE_REG:-} USE_FIPS=$USE_FIPS PUSH_TESTS_ARM=true make docker-push-local-arm -B
 else
   VERSION=$VERSION CLUSTER_NAME=$CLUSTER_NAME USE_FIPS=$USE_FIPS make push-kind-images -B
 fi
@@ -141,7 +141,7 @@ fi
 # Build the test helm chart, ensuring we have a chart in the `_test` folder
 # setting GOARCH here, because we have to set the helm registry values so that they pick up in the helm registry for arm64 support.
 # if this is not done, then helm sets the registry as quay.io, which is only supported for amd64 machines.
-GOARCH=$ARCH VERSION=$VERSION IMAGE_REPO=${IMAGE_REPO:-}  RUNNING_REGRESSION_TESTS=true make build-test-chart
+GOARCH=$ARCH VERSION=$VERSION IMAGE_REG=${IMAGE_REG:-}  RUNNING_REGRESSION_TESTS=true make build-test-chart
 
 # Build the gloo command line tool, ensuring we have one in the `_output` folder
 make glooctl-$OS-$GOARCH

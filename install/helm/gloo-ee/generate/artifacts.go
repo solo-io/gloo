@@ -113,7 +113,7 @@ func GetGenerationConfig(args *GenerationArguments, osGlooVersion string, genera
 	// when running in arm64, use work around settings
 	imageRepo := args.RepoPrefixOverride
 	if runtime.GOARCH == "arm64" && imageRepo == "" && os.Getenv("RUNNING_REGRESSION_TESTS") == "true" {
-		imageRepo = os.Getenv("IMAGE_REPO")
+		imageRepo = os.Getenv("IMAGE_REG")
 		if imageRepo == "" {
 			imageRepo = defaultArmImageRegistry
 		}

@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/solo-projects/issues/4564
+    resolvesIssue: false
+    description: We will now build all images when running ci in prs - this will avoid catching failing builds on release

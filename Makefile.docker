@@ -8,13 +8,13 @@ OUTPUT_DIR ?= $(ROOTDIR)/$(RELATIVE_OUTPUT_DIR)
 UNAME_M ?=$(shell uname -m)
 
 # If you just put your username, then that refers to your account at hub.docker.com
-# To use quay images, set the IMAGE_REPO to "quay.io/solo-io" (or leave unset)
-# To use dockerhub images, set the IMAGE_REPO to "soloio"
-# To use gcr images, set the IMAGE_REPO to "gcr.io/$PROJECT_NAME"
+# To use quay images, set the IMAGE_REG to "quay.io/solo-io" (or leave unset)
+# To use dockerhub images, set the IMAGE_REG to "soloio"
+# To use gcr images, set the IMAGE_REG to "gcr.io/$PROJECT_NAME"
 # leave default value unset
 
-IMAGE_REPO_DEFAULT_VALUE := quay.io/solo-io
-IMAGE_REPO ?= $(IMAGE_REPO_DEFAULT_VALUE)
+IMAGE_REG_DEFAULT_VALUE := quay.io/solo-io
+IMAGE_REG ?= $(IMAGE_REG_DEFAULT_VALUE)
 
 GOLANG_VERSION := golang:1.18.2-alpine
 # the build image for GLOO is much different than for rate-limit and ext-auth
@@ -40,7 +40,7 @@ endif
 
 ifeq ($(PUSH_TESTS_ARM), true)
 	RELEASE := "true"
-	IMAGE_REPO ?= localhost:5000
+	IMAGE_REG ?= localhost:5000
 endif
 
 
@@ -82,13 +82,13 @@ DOCKER_GO_AMD_64_ARGS=--build-arg DOCKER_GOARCH=amd64 --build-arg DOCKER_CGO_ENA
 CLUSTER_NAME ?= kind
 
 kind-load-%:
-	kind load docker-image $(IMAGE_REPO)/$*:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REG)/$*:$(VERSION) --name $(CLUSTER_NAME)
 
 kind-load-%-debug:
-	kind load docker-image $(IMAGE_REPO)/$*:$(VERSION)-debug --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REG)/$*:$(VERSION)-debug --name $(CLUSTER_NAME)
 
 kind-load-%-extended:
-	kind load docker-image $(IMAGE_REPO)/$*:$(VERSION)-extended --name $(CLUSTER_NAME)
+	kind load docker-image $(IMAGE_REG)/$*:$(VERSION)-extended --name $(CLUSTER_NAME)
 
 # Useful utility for listing images loaded into the kind cluster
 .PHONY: kind-list-images
@@ -104,8 +104,8 @@ kind-prune-images: ## Remove images in the kind cluster named {CLUSTER_NAME}
 # Push Images
 #----------------------------------------------------------------------------------
 
-push-image-%: ## Docker push image, according to {IMAGE_REPO, VERSION}
-	docker push $(IMAGE_REPO)/$*:$(VERSION)
+push-image-%: ## Docker push image, according to {IMAGE_REG, VERSION}
+	docker push $(IMAGE_REG)/$*:$(VERSION)
 
 push-image-%-extended:
-	docker push $(IMAGE_REPO)/$*:$(VERSION)-extended
+	docker push $(IMAGE_REG)/$*:$(VERSION)-extended

@@ -167,8 +167,9 @@ test: install-test-tools ## Run all tests, or only run the test package at {TEST
 		$(USER_GINKGO_FLAGS) \
 		$(TEST_PKG)
 
+
 .PHONY: run-tests
-run-tests: install-node-packages ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
+run-tests: install-test-tools install-node-packages ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
 ifneq ($(RELEASE), "true")
 	PATH=$(DEPSGOBIN):$$PATH go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
 	$(GINKGO_ENV) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor -skipPackage=kube2e,federation-kube2e $(TEST_PKG)
@@ -301,7 +302,7 @@ $(GLOO_FED_OUT_DIR)/Dockerfile.build: $(GLOO_FED_DIR)/Dockerfile
 	cp $< $@
 
 $(GLOO_FED_OUT_DIR)/.gloo-fed-ee-docker-build: $(GLOO_FED_SOURCES) $(GLOO_FED_OUT_DIR)/Dockerfile.build
-	docker buildx build -t $(IMAGE_REPO)/gloo-fed-ee-build-container:$(VERSION) \
+	docker buildx build -t $(IMAGE_REG)/gloo-fed-ee-build-container:$(VERSION) \
 		-f $(GLOO_FED_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
@@ -313,7 +314,7 @@ $(GLOO_FED_OUT_DIR)/.gloo-fed-ee-docker-build: $(GLOO_FED_SOURCES) $(GLOO_FED_OU
 	touch $@
 
 $(GLOO_FED_OUT_DIR)/gloo-fed-linux-$(DOCKER_GOARCH): $(GLOO_FED_OUT_DIR)/.gloo-fed-ee-docker-build
-	docker create -ti --name gloo-fed-temp-container $(IMAGE_REPO)/gloo-fed-ee-build-container:$(VERSION) bash
+	docker create -ti --name gloo-fed-temp-container $(IMAGE_REG)/gloo-fed-ee-build-container:$(VERSION) bash
 	docker cp gloo-fed-temp-container:/gloo-fed-linux-$(DOCKER_GOARCH) $(GLOO_FED_OUT_DIR)/gloo-fed-linux-$(DOCKER_GOARCH)
 	docker rm -f gloo-fed-temp-container
 
@@ -323,11 +324,11 @@ gloo-fed: $(OUTPUT_DIR)/gloo-fed-linux-$(DOCKER_GOARCH)
 
 .PHONY: gloo-fed-docker
 gloo-fed-docker: $(GLOO_FED_OUT_DIR)/gloo-fed-linux-$(DOCKER_GOARCH)
-	docker buildx build --load -t $(IMAGE_REPO)/gloo-fed:$(VERSION) $(DOCKER_BUILD_ARGS) $(GLOO_FED_OUT_DIR) -f $(GLOO_FED_DIR)/cmd/Dockerfile --build-arg GOARCH=$(DOCKER_GOARCH);
+	docker buildx build --load -t $(IMAGE_REG)/gloo-fed:$(VERSION) $(DOCKER_BUILD_ARGS) $(GLOO_FED_OUT_DIR) -f $(GLOO_FED_DIR)/cmd/Dockerfile --build-arg GOARCH=$(DOCKER_GOARCH);
 
 .PHONY: kind-load-gloo-fed
 kind-load-gloo-fed: gloo-fed-docker
-	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REPO)/gloo-fed:$(VERSION)
+	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REG)/gloo-fed:$(VERSION)
 
 #----------------------------------------------------------------------------------
 # Gloo Federation Projects
@@ -355,7 +356,7 @@ $(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build: $(GLOO_FED_APISERVER_DIR)/Docker
 
 # the executable outputs as amd64 only because it is placed in an image that is amd64
 $(GLOO_FED_APISERVER_OUT_DIR)/.gloo-fed-apiserver-docker-build: $(GLOO_FED_SOURCES) $(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build
-	docker buildx build -t $(IMAGE_REPO)/gloo-fed-apiserver-build-container:$(VERSION) \
+	docker buildx build -t $(IMAGE_REG)/gloo-fed-apiserver-build-container:$(VERSION) \
 		-f $(GLOO_FED_APISERVER_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
@@ -369,7 +370,7 @@ $(GLOO_FED_APISERVER_OUT_DIR)/.gloo-fed-apiserver-docker-build: $(GLOO_FED_SOURC
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(GLOO_FED_APISERVER_OUT_DIR)/gloo-fed-apiserver-linux-amd64: $(GLOO_FED_APISERVER_OUT_DIR)/.gloo-fed-apiserver-docker-build
-	docker create -ti --name gloo-fed-apiserver-temp-container $(IMAGE_REPO)/gloo-fed-apiserver-build-container:$(VERSION) bash
+	docker create -ti --name gloo-fed-apiserver-temp-container $(IMAGE_REG)/gloo-fed-apiserver-build-container:$(VERSION) bash
 	docker cp gloo-fed-apiserver-temp-container:/gloo-fed-apiserver-linux-amd64 $(GLOO_FED_APISERVER_OUT_DIR)/gloo-fed-apiserver-linux-amd64
 	docker rm -f gloo-fed-apiserver-temp-container
 
@@ -378,7 +379,7 @@ gloo-fed-apiserver: $(GLOO_FED_APISERVER_OUT_DIR)/gloo-fed-apiserver-linux-amd64
 
 .PHONY: gloo-fed-apiserver-docker
 gloo-fed-apiserver-docker: $(GLOO_FED_APISERVER_OUT_DIR)/gloo-fed-apiserver-linux-amd64
-	docker buildx build --load -t $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) \
+	docker buildx build --load -t $(IMAGE_REG)/gloo-fed-apiserver:$(VERSION) \
 		$(DOCKER_GO_AMD_64_ARGS)  \
 		$(GLOO_FED_APISERVER_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
@@ -386,7 +387,7 @@ gloo-fed-apiserver-docker: $(GLOO_FED_APISERVER_OUT_DIR)/gloo-fed-apiserver-linu
 
 .PHONY: kind-load-gloo-fed-apiserver
 kind-load-gloo-fed-apiserver: gloo-fed-apiserver-docker
-	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION)
+	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REG)/gloo-fed-apiserver:$(VERSION)
 
 #----------------------------------------------------------------------------------
 # apiserver-envoy
@@ -398,11 +399,11 @@ GLOO_FED_APISERVER_ENVOY_DIR=$(ROOTDIR)/projects/apiserver/apiserver-envoy
 .PHONY: gloo-fed-apiserver-envoy-docker
 gloo-fed-apiserver-envoy-docker:
 	cp $(GLOO_FED_APISERVER_ENVOY_DIR)/$(CONFIG_YAML) $(OUTPUT_DIR)/$(CONFIG_YAML)
-	docker buildx build --load -t $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_APISERVER_ENVOY_DIR)/Dockerfile;
+	docker buildx build --load -t $(IMAGE_REG)/gloo-fed-apiserver-envoy:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_APISERVER_ENVOY_DIR)/Dockerfile;
 
 .PHONY: kind-load-gloo-fed-apiserver-envoy
 kind-load-gloo-fed-apiserver-envoy: gloo-fed-apiserver-envoy-docker
-	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION)
+	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REG)/gloo-fed-apiserver-envoy:$(VERSION)
 
 #----------------------------------------------------------------------------------
 # helpers for local testing
@@ -462,11 +463,11 @@ gloo-fed-rbac-validating-webhook: $(OUTPUT_DIR)/gloo-fed-rbac-validating-webhook
 
 .PHONY: gloo-fed-rbac-validating-webhook-docker
 gloo-fed-rbac-validating-webhook-docker: $(OUTPUT_DIR)/gloo-fed-rbac-validating-webhook-linux-$(DOCKER_GOARCH)
-	docker buildx build --load -t $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_RBAC_WEBHOOK_DIR)/cmd/Dockerfile --build-arg GOARCH=$(DOCKER_GOARCH);
+	docker buildx build --load -t $(IMAGE_REG)/gloo-fed-rbac-validating-webhook:$(VERSION) $(DOCKER_BUILD_ARGS) $(OUTPUT_DIR) -f $(GLOO_FED_RBAC_WEBHOOK_DIR)/cmd/Dockerfile --build-arg GOARCH=$(DOCKER_GOARCH);
 
 .PHONY: kind-load-gloo-fed-rbac-validating-webhook
 kind-load-gloo-fed-rbac-validating-webhook: gloo-fed-rbac-validating-webhook-docker
-	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION)
+	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REG)/gloo-fed-rbac-validating-webhook:$(VERSION)
 
 #----------------------------------------------------------------------------------
 # ApiServer gRPC Code Generation
@@ -694,11 +695,11 @@ endif
 
 .PHONY: gloo-federation-console-docker
 gloo-federation-console-docker: build-ui
-	docker buildx build --load -t $(IMAGE_REPO)/gloo-federation-console:$(VERSION) $(DOCKER_BUILD_ARGS) $(APISERVER_UI_DIR) -f $(APISERVER_UI_DIR)/Dockerfile
+	docker buildx build --load -t $(IMAGE_REG)/gloo-federation-console:$(VERSION) $(DOCKER_BUILD_ARGS) $(APISERVER_UI_DIR) -f $(APISERVER_UI_DIR)/Dockerfile
 
 .PHONY: kind-load-ui
 kind-load-ui: gloo-federation-console-docker
-	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REPO)/gloo-federation-console:$(VERSION)
+	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_REG)/gloo-federation-console:$(VERSION)
 
 .PHONY: cleanup-node-modules
 cleanup-node-modules:
@@ -726,7 +727,7 @@ $(RATELIMIT_OUT_DIR)/Dockerfile.build: $(RATELIMIT_DIR)/Dockerfile
 	cp $< $@
 
 $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RATELIMIT_OUT_DIR)/Dockerfile.build
-	docker buildx build --load -t $(IMAGE_REPO)/rate-limit-ee-build-container:$(VERSION) \
+	docker buildx build --load -t $(IMAGE_REG)/rate-limit-ee-build-container:$(VERSION) \
 		-f $(RATELIMIT_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
@@ -743,7 +744,7 @@ $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RATELIM
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(RATELIMIT_OUT_DIR)/rate-limit-linux-$(DOCKER_GOARCH): $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker-build
-	docker create -ti --name rate-limit-temp-container $(IMAGE_REPO)/rate-limit-ee-build-container:$(VERSION) bash
+	docker create -ti --name rate-limit-temp-container $(IMAGE_REG)/rate-limit-ee-build-container:$(VERSION) bash
 	docker cp rate-limit-temp-container:/rate-limit-linux-$(DOCKER_GOARCH) $(RATELIMIT_OUT_DIR)/rate-limit-linux-$(DOCKER_GOARCH)
 	docker rm -f rate-limit-temp-container
 
@@ -757,7 +758,7 @@ $(RATELIMIT_OUT_DIR)/Dockerfile: $(RATELIMIT_DIR)/cmd/Dockerfile
 rate-limit-ee-docker: $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker
 
 $(RATELIMIT_OUT_DIR)/.rate-limit-ee-docker: $(RATELIMIT_OUT_DIR)/rate-limit-linux-$(DOCKER_GOARCH) $(RATELIMIT_OUT_DIR)/Dockerfile
-	docker buildx build --load -t $(IMAGE_REPO)/rate-limit-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(call get_test_tag_option,rate-limit-ee) $(RATELIMIT_OUT_DIR)
+	docker buildx build --load -t $(IMAGE_REG)/rate-limit-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(call get_test_tag_option,rate-limit-ee) $(RATELIMIT_OUT_DIR)
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -773,7 +774,7 @@ $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build: $(RATELIMIT_DIR)/Dockerfile
 # GO_BORING_ARGS is set to amd64 currently this is because BORING will only work on amd64
 # https://go.googlesource.com/go/+/refs/heads/dev.boringcrypto.go1.12/misc/boring/
 $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build
-	docker buildx build --load -t $(IMAGE_REPO)/rate-limit-ee-build-container-fips:$(VERSION) \
+	docker buildx build --load -t $(IMAGE_REG)/rate-limit-ee-build-container-fips:$(VERSION) \
 		-f $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg VERSION=$(VERSION) \
@@ -787,7 +788,7 @@ $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker-build: $(RATELIMIT_SOURCES) $(RA
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(RATELIMIT_FIPS_OUT_DIR)/rate-limit-linux-amd64: $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker-build
-	docker create -ti --name rate-limit-temp-container $(IMAGE_REPO)/rate-limit-ee-build-container-fips:$(VERSION) bash
+	docker create -ti --name rate-limit-temp-container $(IMAGE_REG)/rate-limit-ee-build-container-fips:$(VERSION) bash
 	docker cp rate-limit-temp-container:/rate-limit-linux-amd64 $(RATELIMIT_FIPS_OUT_DIR)/rate-limit-linux-amd64
 	docker rm -f rate-limit-temp-container
 
@@ -801,7 +802,7 @@ $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile: $(RATELIMIT_DIR)/cmd/Dockerfile
 rate-limit-ee-fips-docker: $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker
 
 $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker: $(RATELIMIT_FIPS_OUT_DIR)/rate-limit-linux-amd64 $(RATELIMIT_FIPS_OUT_DIR)/Dockerfile
-	docker buildx build --load -t $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION) $(DOCKER_GO_BORING_ARGS) $(call get_test_tag_option,rate-limit-ee-fips) $(RATELIMIT_FIPS_OUT_DIR) \
+	docker buildx build --load -t $(IMAGE_REG)/rate-limit-ee-fips:$(VERSION) $(DOCKER_GO_BORING_ARGS) $(call get_test_tag_option,rate-limit-ee-fips) $(RATELIMIT_FIPS_OUT_DIR) \
        --build-arg EXTRA_PACKAGES=libc6-compat
 	touch $@
 
@@ -822,7 +823,7 @@ $(EXTAUTH_OUT_DIR)/Dockerfile: $(EXTAUTH_DIR)/cmd/Dockerfile
 	cp $< $@
 
 $(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_OUT_DIR)/Dockerfile.build
-	docker buildx build --load -t $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) \
+	docker buildx build --load -t $(IMAGE_REG)/extauth-ee-build-container:$(VERSION) \
 		-f $(EXTAUTH_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
@@ -837,14 +838,14 @@ $(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_OUT_DI
 
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 $(EXTAUTH_OUT_DIR)/extauth-linux-$(DOCKER_GOARCH): $(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build
-	docker create -ti --name extauth-temp-container $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) bash
+	docker create -ti --name extauth-temp-container $(IMAGE_REG)/extauth-ee-build-container:$(VERSION) bash
 	docker cp extauth-temp-container:/extauth-linux-$(DOCKER_GOARCH) $(EXTAUTH_OUT_DIR)/extauth-linux-$(DOCKER_GOARCH)
 	docker rm -f extauth-temp-container
 
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 # we need to be able to pass a variable to the extauth-ee-docker buildx build --load for Docker_CGO_ENABLED
 $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_OUT_DIR)/.extauth-ee-docker-build
-	docker create -ti --name verify-plugins-temp-container $(IMAGE_REPO)/extauth-ee-build-container:$(VERSION) bash
+	docker create -ti --name verify-plugins-temp-container $(IMAGE_REG)/extauth-ee-build-container:$(VERSION) bash
 	docker cp verify-plugins-temp-container:/verify-plugins-linux-amd64 $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 	docker rm -f verify-plugins-temp-container
 
@@ -856,7 +857,7 @@ extauth: $(EXTAUTH_OUT_DIR)/extauth-linux-$(DOCKER_GOARCH) $(EXTAUTH_OUT_DIR)/ve
 .PHONY: ext-auth-plugins-docker
 ifeq  ($(IS_ARM_MACHINE), )
 ext-auth-plugins-docker: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
-	docker buildx build --load -t $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
+	docker buildx build --load -t $(IMAGE_REG)/ext-auth-plugins:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
@@ -872,7 +873,7 @@ endif
 extauth-ee-docker: $(EXTAUTH_OUT_DIR)/.extauth-ee-docker
 
 $(EXTAUTH_OUT_DIR)/.extauth-ee-docker: $(EXTAUTH_OUT_DIR)/extauth-linux-$(DOCKER_GOARCH) $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 $(EXTAUTH_OUT_DIR)/Dockerfile
-	docker buildx build --load -t $(IMAGE_REPO)/extauth-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(call get_test_tag_option,extauth-ee) $(EXTAUTH_OUT_DIR)
+	docker buildx build --load -t $(IMAGE_REG)/extauth-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(call get_test_tag_option,extauth-ee) $(EXTAUTH_OUT_DIR)
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -892,7 +893,7 @@ $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile: $(EXTAUTH_DIR)/cmd/Dockerfile
 # GO_BORING_ARGS is set to amd64 currently this is because BORING will only work on amd64
 # https://go.googlesource.com/go/+/refs/heads/dev.boringcrypto.go1.12/misc/boring/
 $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile.build
-	docker buildx build --load -t $(IMAGE_REPO)/extauth-ee-build-container-fips:$(VERSION) \
+	docker buildx build --load -t $(IMAGE_REG)/extauth-ee-build-container-fips:$(VERSION) \
 		-f $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg VERSION=$(VERSION) \
@@ -905,13 +906,13 @@ $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_F
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(EXTAUTH_FIPS_OUT_DIR)/extauth-linux-amd64: $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker-build
-	docker create -ti --name extauth-temp-container $(IMAGE_REPO)/extauth-ee-build-container-fips:$(VERSION) bash
+	docker create -ti --name extauth-temp-container $(IMAGE_REG)/extauth-ee-build-container-fips:$(VERSION) bash
 	docker cp extauth-temp-container:/extauth-linux-amd64 $(EXTAUTH_FIPS_OUT_DIR)/extauth-linux-amd64
 	docker rm -f extauth-temp-container
 
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64: $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker-build
-	docker create -ti --name verify-plugins-temp-container $(IMAGE_REPO)/extauth-ee-build-container-fips:$(VERSION) bash
+	docker create -ti --name verify-plugins-temp-container $(IMAGE_REG)/extauth-ee-build-container-fips:$(VERSION) bash
 	docker cp verify-plugins-temp-container:/verify-plugins-linux-amd64 $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64
 	docker rm -f verify-plugins-temp-container
 
@@ -923,7 +924,7 @@ extauth-fips: $(EXTAUTH_FIPS_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_FIPS_OUT_DIR
 # NOTE: ext-auth-plugin will not build on arm64 machines
 .PHONY: ext-auth-plugins-fips-docker
 ext-auth-plugins-fips-docker: $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64
-	docker buildx build --load -t $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION) -f projects/extauth/plugins/Dockerfile \
+	docker buildx build --load -t $(IMAGE_REG)/ext-auth-plugins-fips:$(VERSION) -f projects/extauth/plugins/Dockerfile \
 		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
@@ -936,7 +937,7 @@ ext-auth-plugins-fips-docker: $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64
 extauth-ee-fips-docker: $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker
 
 $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker: $(EXTAUTH_FIPS_OUT_DIR)/extauth-linux-amd64 $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile
-	docker buildx build --load -t $(IMAGE_REPO)/extauth-ee-fips:$(VERSION) $(DOCKER_GO_BORING_ARGS) $(call get_test_tag_option,extauth-ee-fips) $(EXTAUTH_FIPS_OUT_DIR) \
+	docker buildx build --load -t $(IMAGE_REG)/extauth-ee-fips:$(VERSION) $(DOCKER_GO_BORING_ARGS) $(call get_test_tag_option,extauth-ee-fips) $(EXTAUTH_FIPS_OUT_DIR) \
 		--build-arg EXTRA_PACKAGES=libc6-compat
 	touch $@
 
@@ -961,7 +962,7 @@ $(OBS_OUT_DIR)/Dockerfile: $(OBSERVABILITY_DIR)/cmd/Dockerfile
 observability-ee-docker: $(OBS_OUT_DIR)/.observability-ee-docker
 
 $(OBS_OUT_DIR)/.observability-ee-docker: $(OBS_OUT_DIR)/observability-linux-$(DOCKER_GOARCH) $(OBS_OUT_DIR)/Dockerfile
-	docker buildx build --load -t $(IMAGE_REPO)/observability-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(call get_test_tag_option,observability-ee) $(OBS_OUT_DIR)
+	docker buildx build --load -t $(IMAGE_REG)/observability-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(call get_test_tag_option,observability-ee) $(OBS_OUT_DIR)
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -985,7 +986,7 @@ $(CACHE_OUT_DIR)/Dockerfile: $(CACHING_DIR)/cmd/Dockerfile
 caching-ee-docker: $(CACHE_OUT_DIR)/.caching-ee-docker
 
 $(CACHE_OUT_DIR)/.caching-ee-docker: $(CACHE_OUT_DIR)/caching-linux-amd64 $(CACHE_OUT_DIR)/Dockerfile
-	docker buildx build --load -t $(IMAGE_REPO)/caching-ee:$(VERSION) $(call get_test_tag_option,caching-ee) $(CACHE_OUT_DIR) $(PLATFORM)
+	docker buildx build --load -t $(IMAGE_REG)/caching-ee:$(VERSION) $(call get_test_tag_option,caching-ee) $(CACHE_OUT_DIR) $(PLATFORM)
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -1005,7 +1006,7 @@ $(GLOO_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
 
 # the executable outputs as amd64 only because it is placed in an image that is amd64
 $(GLOO_OUT_DIR)/.gloo-ee-docker-build: install-node-packages $(GLOO_SOURCES) $(GLOO_OUT_DIR)/Dockerfile.build
-	docker buildx build -t $(IMAGE_REPO)/gloo-ee-build-container:$(VERSION) \
+	docker buildx build -t $(IMAGE_REG)/gloo-ee-build-container:$(VERSION) \
 		-f $(GLOO_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
@@ -1020,7 +1021,7 @@ $(GLOO_OUT_DIR)/.gloo-ee-docker-build: install-node-packages $(GLOO_SOURCES) $(G
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
 $(GLOO_OUT_DIR)/gloo-linux-amd64: $(GLOO_OUT_DIR)/.gloo-ee-docker-build
-	docker create -ti --name gloo-temp-container $(IMAGE_REPO)/gloo-ee-build-container:$(VERSION) bash
+	docker create -ti --name gloo-temp-container $(IMAGE_REG)/gloo-ee-build-container:$(VERSION) bash
 	docker cp gloo-temp-container:/gloo-linux-amd64 $(GLOO_OUT_DIR)/gloo-linux-amd64
 	docker rm -f gloo-temp-container
 
@@ -1038,11 +1039,11 @@ $(GLOO_OUT_DIR)/.gloo-ee-docker: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR
 	docker buildx build --load $(call get_test_tag_option,gloo-ee) $(GLOO_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) \
 		$(DOCKER_GO_AMD_64_ARGS) \
-		-t $(IMAGE_REPO)/gloo-ee:$(VERSION)
+		-t $(IMAGE_REG)/gloo-ee:$(VERSION)
 	touch $@
 
 gloo-ee-docker-dev: $(GLOO_OUT_DIR)/gloo-linux-amd64 $(GLOO_OUT_DIR)/Dockerfile
-	docker buildx build --load -t $(IMAGE_REPO)/gloo-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(GLOO_OUT_DIR) --no-cache
+	docker buildx build --load -t $(IMAGE_REG)/gloo-ee:$(VERSION) $(DOCKER_BUILD_ARGS) $(GLOO_OUT_DIR) --no-cache
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -1055,10 +1056,10 @@ $(GLOO_RACE_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
 	mkdir -p $(GLOO_RACE_OUT_DIR)
 	cp $< $@
 
-$(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT_DIR)/Dockerfile.build
-	docker build -t $(IMAGE_REPO)/gloo-race-ee-build-container:$(VERSION) \
+$(GLOO_RACE_OUT_DIR)/.gloo-ee-race-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT_DIR)/Dockerfile.build
+	docker build -t $(IMAGE_REG)/gloo-race-ee-build-container:$(VERSION) \
 		-f $(GLOO_RACE_OUT_DIR)/Dockerfile.build \
-		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
+		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
@@ -1070,8 +1071,8 @@ $(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker-build: $(GLOO_SOURCES) $(GLOO_RACE_OUT
 	touch $@
 # Build inside container as we need to target linux and must compile with CGO_ENABLED=1
 # We may be running Docker in a VM (eg, minikube) so be careful about how we copy files out of the containers
-$(GLOO_RACE_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH): $(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker-build
-	docker create -ti --name gloo-race-temp-container $(IMAGE_REPO)/gloo-race-ee-build-container:$(VERSION) bash
+$(GLOO_RACE_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH): $(GLOO_RACE_OUT_DIR)/.gloo-ee-race-docker-build
+	docker create -ti --name gloo-race-temp-container $(IMAGE_REG)/gloo-race-ee-build-container:$(VERSION) bash
 	docker cp gloo-race-temp-container:/gloo-linux-$(DOCKER_GOARCH) $(GLOO_RACE_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH)
 	docker rm -f gloo-race-temp-container
 
@@ -1081,12 +1082,12 @@ gloo-race: $(GLOO_RACE_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH)
 $(GLOO_RACE_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
 
-.PHONY: gloo-race-ee-docker
-gloo-race-ee-docker: $(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker
-$(GLOO_RACE_OUT_DIR)/.gloo-race-ee-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_RACE_OUT_DIR)/Dockerfile
+.PHONY: gloo-ee-race-docker
+gloo-ee-race-docker: $(GLOO_RACE_OUT_DIR)/.gloo-ee-race-docker
+$(GLOO_RACE_OUT_DIR)/.gloo-ee-race-docker: $(GLOO_RACE_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_RACE_OUT_DIR)/Dockerfile
 	docker build $(call get_test_tag_option,gloo-ee) $(GLOO_RACE_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) $(DOCKER_BUILD_ARGS) \
-		-t $(IMAGE_REPO)/gloo-ee:$(VERSION)-race
+		-t $(IMAGE_REG)/gloo-ee:$(VERSION)-race
 	touch $@
 #----------------------------------------------------------------------------------
 # Gloo with FIPS Envoy
@@ -1101,7 +1102,7 @@ $(GLOO_FIPS_OUT_DIR)/Dockerfile.build: $(GLOO_DIR)/Dockerfile
 	cp $< $@
 
 $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker-build: $(GLOO_SOURCES) $(GLOO_FIPS_OUT_DIR)/Dockerfile.build
-	docker build -t $(IMAGE_REPO)/gloo-ee-fips-build-container:$(VERSION) \
+	docker build -t $(IMAGE_REG)/gloo-ee-fips-build-container:$(VERSION) \
 		-f $(GLOO_FIPS_OUT_DIR)/Dockerfile.build \
 		--build-arg GO_BUILD_IMAGE=$(GLOO_GOLANG_VERSION) \
 		--build-arg VERSION=$(VERSION) \
@@ -1115,7 +1116,7 @@ $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker-build: $(GLOO_SOURCES) $(GLOO_FIPS_OUT_DIR)
 
 
 $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64: $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker-build
-	docker create -ti --name gloo-fips-temp-container $(IMAGE_REPO)/gloo-ee-fips-build-container:$(VERSION) bash
+	docker create -ti --name gloo-fips-temp-container $(IMAGE_REG)/gloo-ee-fips-build-container:$(VERSION) bash
 	docker cp gloo-fips-temp-container:/gloo-linux-amd64 $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64
 	docker rm -f gloo-fips-temp-container
 
@@ -1126,18 +1127,18 @@ $(GLOO_FIPS_OUT_DIR)/Dockerfile: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
 
 
-.PHONY: gloo-fips-ee-docker
-gloo-fips-ee-docker: $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker
+.PHONY: gloo-ee-fips-docker
+gloo-ee-fips-docker: $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker
 
 $(GLOO_FIPS_OUT_DIR)/.gloo-ee-docker: $(GLOO_FIPS_OUT_DIR)/gloo-linux-amd64 $(GLOO_FIPS_OUT_DIR)/Dockerfile
 	docker buildx build --load $(call get_test_tag_option,gloo-ee) $(GLOO_FIPS_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_FIPS_IMAGE) \
 		$(DOCKER_GO_BORING_ARGS) \
-		-t $(IMAGE_REPO)/gloo-ee-fips:$(VERSION)
+		-t $(IMAGE_REG)/gloo-ee-fips:$(VERSION)
 	touch $@
 
-gloo-fips-ee-docker-dev: $(GLOO_FIPS_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_FIPS_OUT_DIR)/Dockerfile
-	docker buildx build --load -t $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) $(DOCKER_BUILD_ARGS) $(GLOO_FIPS_OUT_DIR) --no-cache
+gloo-ee-fips-docker-dev: $(GLOO_FIPS_OUT_DIR)/gloo-linux-$(DOCKER_GOARCH) $(GLOO_FIPS_OUT_DIR)/Dockerfile
+	docker buildx build --load -t $(IMAGE_REG)/gloo-ee-fips:$(VERSION) $(DOCKER_BUILD_ARGS) $(GLOO_FIPS_OUT_DIR) --no-cache
 	touch $@
 #----------------------------------------------------------------------------------
 # discovery (enterprise)
@@ -1158,7 +1159,7 @@ $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery: $(DISCOVERY_DIR)/cmd/Dockerfile
 .PHONY: discovery-ee-docker
 discovery-ee-docker: $(DISCOVERY_OUTPUT_DIR)/discovery-ee-linux-$(DOCKER_GOARCH) $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery
 	docker buildx build --load $(DISCOVERY_OUTPUT_DIR) -f $(DISCOVERY_OUTPUT_DIR)/Dockerfile.discovery \
-		$(DOCKER_BUILD_ARGS) -t $(IMAGE_REPO)/discovery-ee:$(VERSION) $(QUAY_EXPIRATION_LABEL)
+		$(DOCKER_BUILD_ARGS) -t $(IMAGE_REG)/discovery-ee:$(VERSION) $(QUAY_EXPIRATION_LABEL)
 
 #----------------------------------------------------------------------------------
 # glooctl
@@ -1207,7 +1208,7 @@ ENVOYINIT_SOURCES=$(shell find $(ENVOYINIT_DIR) -name "*.go" | grep -v test | gr
 ENVOYINIT_OUT_DIR=$(OUTPUT_DIR)/$(ENVOYINIT_DIR)
 
 $(ENVOYINIT_OUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH): $(ENVOYINIT_SOURCES)
-	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOYINIT_DIR)/main.go 
+	$(GO_BUILD_FLAGS) GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(ENVOYINIT_DIR)/main.go
 
 .PHONY: envoyinit
 envoyinit: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH)
@@ -1223,7 +1224,7 @@ gloo-ee-envoy-wrapper-docker: $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-docker
 $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH) $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_OUT_DIR)/docker-entrypoint.sh
 	docker buildx build --load $(call get_test_tag_option,gloo-ee-envoy-wrapper) $(ENVOYINIT_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_IMAGE) $(DOCKER_BUILD_ARGS) \
-		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) \
+		-t $(IMAGE_REG)/gloo-ee-envoy-wrapper:$(VERSION) \
 		-f $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit
 	touch $@
 
@@ -1233,7 +1234,7 @@ gloo-ee-envoy-wrapper-debug-docker: $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-
 $(ENVOYINIT_OUT_DIR)/.gloo-ee-envoy-wrapper-debug-docker: $(ENVOYINIT_OUT_DIR)/envoyinit-linux-$(DOCKER_GOARCH) $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_OUT_DIR)/docker-entrypoint.sh
 	docker buildx build --load $(call get_test_tag_option,gloo-ee-envoy-wrapper-debug) $(ENVOYINIT_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_DEBUG_IMAGE) $(DOCKER_BUILD_ARGS) \
-		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug \
+		-t $(IMAGE_REG)/gloo-ee-envoy-wrapper:$(VERSION)-debug \
 		-f $(ENVOYINIT_OUT_DIR)/Dockerfile.envoyinit
 	touch $@
 
@@ -1260,7 +1261,7 @@ gloo-ee-envoy-wrapper-fips-docker: $(ENVOYINIT_FIPS_OUT_DIR)/.gloo-ee-envoy-wrap
 $(ENVOYINIT_FIPS_OUT_DIR)/.gloo-ee-envoy-wrapper-fips-docker: $(ENVOYINIT_FIPS_OUT_DIR)/envoyinit-linux-amd64 $(ENVOYINIT_FIPS_OUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_FIPS_OUT_DIR)/docker-entrypoint.sh
 	docker buildx build --load $(call get_test_tag_option,gloo-ee-envoy-wrapper-fips) $(ENVOYINIT_FIPS_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_FIPS_IMAGE) $(DOCKER_GO_BORING_ARGS) \
-		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) \
+		-t $(IMAGE_REG)/gloo-ee-envoy-wrapper-fips:$(VERSION) \
 		-f $(ENVOYINIT_FIPS_OUT_DIR)/Dockerfile.envoyinit
 	touch $@
 
@@ -1270,7 +1271,7 @@ gloo-ee-envoy-wrapper-fips-debug-docker: $(ENVOYINIT_FIPS_OUT_DIR)/.gloo-ee-envo
 $(ENVOYINIT_FIPS_OUT_DIR)/.gloo-ee-envoy-wrapper-fips-debug-docker: $(ENVOYINIT_FIPS_OUT_DIR)/envoyinit-linux-amd64 $(ENVOYINIT_FIPS_OUT_DIR)/Dockerfile.envoyinit $(ENVOYINIT_FIPS_OUT_DIR)/docker-entrypoint.sh
 	docker buildx build --load $(call get_test_tag_option,gloo-ee-envoy-wrapper-fips-debug) $(ENVOYINIT_FIPS_OUT_DIR) \
 		--build-arg ENVOY_IMAGE=$(ENVOY_GLOO_FIPS_DEBUG_IMAGE) $(DOCKER_GO_BORING_ARGS) \
-		-t $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug \
+		-t $(IMAGE_REG)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug \
 		-f $(ENVOYINIT_FIPS_OUT_DIR)/Dockerfile.envoyinit
 	touch $@
 
@@ -1405,78 +1406,81 @@ $(DEPS_DIR)/fips-verify-plugins-linux-amd64: $(EXTAUTH_FIPS_OUT_DIR)/verify-plug
 #----------------------------------------------------------------------------------
 # Docker push
 #----------------------------------------------------------------------------------
+.PHONY: docker-info
+docker-info:
+	./ci/docker-info.sh
 
-DOCKER_IMAGES :=
-ifeq ($(RELEASE),"true")
-	DOCKER_IMAGES := docker
-endif
+.PHONY: docker-info docker
+ docker: \
+	rate-limit-ee-docker \
+	gloo-ee-docker \
+	gloo-ee-envoy-wrapper-docker \
+	discovery-ee-docker \
+	ext-auth-plugins-docker \
+	gloo-fed-docker \
+	gloo-fed-apiserver-docker \
+	gloo-fed-apiserver-envoy-docker \
+	gloo-federation-console-docker \
+	gloo-fed-rbac-validating-webhook-docker \
+	observability-ee-docker \
+	caching-ee-docker \
+	extauth-ee-docker \
+	rate-limit-ee-fips-docker \
+	gloo-ee-fips-docker \
+	gloo-ee-envoy-wrapper-fips-docker \
+	extauth-ee-fips-docker \
+	ext-auth-plugins-fips-docker \
+	gloo-ee-envoy-wrapper-debug-docker \
+	gloo-ee-envoy-wrapper-fips-debug-docker \
+	gloo-ee-race-docker
 
-.PHONY: docker docker-push
- docker: rate-limit-ee-docker rate-limit-ee-fips-docker extauth-ee-docker \
-       extauth-ee-fips-docker gloo-ee-docker gloo-fips-ee-docker gloo-race-ee-docker gloo-ee-envoy-wrapper-docker gloo-ee-envoy-wrapper-debug-docker discovery-ee-docker\
-       gloo-ee-envoy-wrapper-fips-docker gloo-ee-envoy-wrapper-fips-debug-docker observability-ee-docker caching-ee-docker ext-auth-plugins-docker ext-auth-plugins-fips-docker \
-       gloo-fed-docker gloo-fed-apiserver-docker gloo-fed-apiserver-envoy-docker gloo-federation-console-docker gloo-fed-rbac-validating-webhook-docker
-
-# Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
-# This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
-# to be used for local testing.
 # docker-push is intended to be run by CI
-docker-push: $(DOCKER_IMAGES)
 .PHONY: docker-push
-docker-push: docker-push-non-fips docker-push-fips docker-push-fed
+docker-push: docker docker-push-non-fips docker-push-fips docker-push-fed
 
-docker-push-non-fips:
 .PHONY: docker-push-non-fips
 docker-push-non-fips:
 ifeq ($(RELEASE), "true")
-	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION) && \
-	docker push $(IMAGE_REPO)/observability-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/caching-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION) && \
-	docker push $(IMAGE_REPO)/discovery-ee:$(VERSION)
+	docker push $(IMAGE_REG)/rate-limit-ee:$(VERSION) && \
+	docker push $(IMAGE_REG)/gloo-ee:$(VERSION) && \
+	docker push $(IMAGE_REG)/gloo-ee-envoy-wrapper:$(VERSION) && \
+	docker push $(IMAGE_REG)/observability-ee:$(VERSION) && \
+	docker push $(IMAGE_REG)/caching-ee:$(VERSION) && \
+	docker push $(IMAGE_REG)/extauth-ee:$(VERSION) && \
+	docker push $(IMAGE_REG)/discovery-ee:$(VERSION)
 ifeq  ($(IS_ARM_MACHINE), )
 	# these images are not built on ARM, so this is adding complexity.  There is no reason to add this as well to the normal build of gloo-ee.
 	# so if pushing because of ARM, we will
-	docker push $(IMAGE_REPO)/ext-auth-plugins:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION)-race && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-debug
+	docker push $(IMAGE_REG)/ext-auth-plugins:$(VERSION) && \
+	docker push $(IMAGE_REG)/gloo-ee:$(VERSION)-race && \
+	docker push $(IMAGE_REG)/gloo-ee-envoy-wrapper:$(VERSION)-debug
 endif
 #
 endif
 
-docker-push-fips:
 .PHONY: docker-push-fips
 docker-push-fips:
 ifeq ($(RELEASE),"true")
-	docker push $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee-fips:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug && \
-	docker push $(IMAGE_REPO)/extauth-ee-fips:$(VERSION) && \
-	docker push $(IMAGE_REPO)/ext-auth-plugins-fips:$(VERSION)
+	docker push $(IMAGE_REG)/rate-limit-ee-fips:$(VERSION) && \
+	docker push $(IMAGE_REG)/gloo-ee-fips:$(VERSION) && \
+	docker push $(IMAGE_REG)/gloo-ee-envoy-wrapper-fips:$(VERSION) && \
+	docker push $(IMAGE_REG)/gloo-ee-envoy-wrapper-fips:$(VERSION)-debug && \
+	docker push $(IMAGE_REG)/extauth-ee-fips:$(VERSION) && \
+	docker push $(IMAGE_REG)/ext-auth-plugins-fips:$(VERSION)
 endif
 
-docker-push-fed:
 .PHONY: docker-push-fed
 docker-push-fed:
 ifeq ($(RELEASE),"true")
-	docker push $(IMAGE_REPO)/gloo-fed:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-federation-console:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION)
-endif
-
-.PHONY: docker-push-extended
-docker-push-extended:
-ifeq ($(RELEASE),"true")
-	ci/extended-docker/extended-docker.sh
+	docker push $(IMAGE_REG)/gloo-fed:$(VERSION) && \
+	docker push $(IMAGE_REG)/gloo-fed-apiserver:$(VERSION) && \
+	docker push $(IMAGE_REG)/gloo-fed-apiserver-envoy:$(VERSION) && \
+	docker push $(IMAGE_REG)/gloo-federation-console:$(VERSION) && \
+	docker push $(IMAGE_REG)/gloo-fed-rbac-validating-webhook:$(VERSION)
 endif
 
 # Retag and push images that are already built
-.PHONY: docker-retag-images
+.PHONY: docker-info docker-retag-images
 docker-retag-images:
 ifeq ($(RELEASE),"true")
 	docker tag $(RETAG_IMAGE_REGISTRY)/rate-limit-ee:$(VERSION) $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
@@ -1499,22 +1503,7 @@ ifeq ($(RELEASE),"true")
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed-apiserver:$(VERSION) $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed-apiserver-envoy:$(VERSION) $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION) && \
 	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-federation-console:$(VERSION) $(IMAGE_REPO)/gloo-federation-console:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed-rbac-validating-webhook:$(VERSION) $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION) && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/rate-limit-ee:$(VERSION)-extended $(IMAGE_REPO)/rate-limit-ee:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/rate-limit-ee-fips:$(VERSION)-extended $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee:$(VERSION)-extended $(IMAGE_REPO)/gloo-ee:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-fips:$(VERSION)-extended $(IMAGE_REPO)/gloo-ee-fips:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper:$(VERSION)-extended $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-ee-envoy-wrapper-fips:$(VERSION)-extended $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/observability-ee:$(VERSION)-extended $(IMAGE_REPO)/observability-ee:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/caching-ee:$(VERSION)-extended $(IMAGE_REPO)/caching-ee:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/extauth-ee:$(VERSION)-extended $(IMAGE_REPO)/extauth-ee:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/extauth-ee-fips:$(VERSION)-extended $(IMAGE_REPO)/extauth-ee-fips:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed:$(VERSION)-extended $(IMAGE_REPO)/gloo-fed:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed-apiserver:$(VERSION)-extended $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed-apiserver-envoy:$(VERSION)-extended $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-federation-console:$(VERSION)-extended $(IMAGE_REPO)/gloo-federation-console:$(VERSION)-extended && \
-	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed-rbac-validating-webhook:$(VERSION)-extended $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION)-extended
+	docker tag $(RETAG_IMAGE_REGISTRY)/gloo-fed-rbac-validating-webhook:$(VERSION) $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION)
 
 	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION) && \
 	docker push $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION) && \
@@ -1535,22 +1524,7 @@ ifeq ($(RELEASE),"true")
 	docker push $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION) && \
 	docker push $(IMAGE_REPO)/gloo-federation-console:$(VERSION) && \
-	docker push $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION) && \
-	docker push $(IMAGE_REPO)/rate-limit-ee:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/rate-limit-ee-fips:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/gloo-ee:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/gloo-ee-fips:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/gloo-ee-envoy-wrapper-fips:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/observability-ee:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/caching-ee:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/extauth-ee:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/extauth-ee-fips:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/gloo-fed:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/gloo-fed-apiserver:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/gloo-fed-apiserver-envoy:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/gloo-federation-console:$(VERSION)-extended && \
-	docker push $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION)-extended
+	docker push $(IMAGE_REPO)/gloo-fed-rbac-validating-webhook:$(VERSION)
 endif
 
 # Helper targets for CI
@@ -1600,7 +1574,7 @@ load-kind-images-non-fips: kind-load-discovery-ee # discovery
 build-and-load-kind-images-fips: build-kind-images-fips load-kind-images-fips
 
 .PHONY: build-kind-images-fips
-build-kind-images-fips: gloo-fips-ee-docker # gloo
+build-kind-images-fips: gloo-ee-fips-docker # gloo
 build-kind-images-fips: gloo-ee-envoy-wrapper-fips-docker # envoy
 build-kind-images-fips: rate-limit-ee-fips-docker # rate limit
 build-kind-images-fips: extauth-ee-fips-docker # ext auth
@@ -1711,7 +1685,7 @@ build-chart-with-local-gloo-dev: build-test-chart-fed
 	#  we specify it this way to not delete the gloo-fed chart
 	rm install/helm/gloo-ee/charts/gloo-1*
 	cp ../gloo/_test/gloo-v0.0.0-dev.tgz install/helm/gloo-ee/charts/
-	
+
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
 	helm repo index $(TEST_ASSET_DIR)
 
