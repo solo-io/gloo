@@ -33,7 +33,7 @@ RUN go env -w GOPRIVATE=github.com/solo-io
 # Build ext-auth server with CGO enabled
 RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=${DOCKER_GOARCH} GOOS=linux go build \
     -gcflags="$GCFLAGS" \
-    -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION $LDFLAGS" \
+    -ldflags="$LDFLAGS" \
     -o extauth-linux-${DOCKER_GOARCH} \
     projects/extauth/cmd/main.go
 

@@ -1,0 +1,7 @@
+changelog:
+  - type: NON_USER_FACING
+    issueLink: https://github.com/solo-io/gloo/issues/7222
+    resolvesIssue: false
+    description: >-
+      Prepare Makefile for changes that our ginkgo v2 update will rely on. This is introduced
+      separately so as to make reviewing the ginkgo v2 upgrade easier.

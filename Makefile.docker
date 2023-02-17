@@ -2,9 +2,6 @@
 # Default Variables
 #----------------------------------------------------------------------------------
 
-ROOTDIR := $(shell pwd)
-RELATIVE_OUTPUT_DIR ?= _output
-OUTPUT_DIR ?= $(ROOTDIR)/$(RELATIVE_OUTPUT_DIR)
 UNAME_M ?=$(shell uname -m)
 
 # If you just put your username, then that refers to your account at hub.docker.com

@@ -34,7 +34,7 @@ RUN go env -w GOPRIVATE=github.com/solo-io
 # Build rate-limit server with CGO enabled
 RUN CGO_ENABLED=${DOCKER_CGO_ENABLED} GOARCH=${DOCKER_GOARCH} GOOS=linux go build \
     -gcflags="$GCFLAGS" \
-    -ldflags="-X github.com/solo-io/solo-projects/pkg/version.Version=$VERSION $LDFLAGS" \
+    -ldflags="$LDFLAGS" \
     -o rate-limit-linux-${DOCKER_GOARCH} \
     projects/rate-limit/cmd/main.go
 

@@ -24,6 +24,15 @@ help: ## Output the self-documenting make targets
 # Base
 #----------------------------------------------------------------------------------
 
+ROOTDIR := $(shell pwd)
+OUTPUT_DIR ?= $(ROOTDIR)/_output
+DEPSGOBIN := $(OUTPUT_DIR)/.bin
+TEST_ASSET_DIR := $(ROOTDIR)/_test
+
+# Important to use binaries built from module.
+export PATH:=$(DEPSGOBIN):$(PATH)
+export GOBIN:=$(DEPSGOBIN)
+
 PACKAGE_PATH:=github.com/solo-io/solo-projects
 # Kind of a hack to make sure _output exists
 z := $(shell mkdir -p $(OUTPUT_DIR))
@@ -56,19 +65,13 @@ LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION) -
 GCFLAGS := 'all=-N -l'
 
 GO_BUILD_FLAGS := GO111MODULE=on CGO_ENABLED=0 GOARCH=$(DOCKER_GOARCH)
-UNAME_M ?=$(shell uname -m)
 
 # Passed by cloudbuild
 GCLOUD_PROJECT_ID := $(GCLOUD_PROJECT_ID)
 BUILD_ID := $(BUILD_ID)
 
 TEST_IMAGE_TAG := test-$(BUILD_ID)
-TEST_ASSET_DIR := $(ROOTDIR)/_test
 GCR_REPO_PREFIX := gcr.io/$(GCLOUD_PROJECT_ID)
-
-GINKGO_ENV := GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore ACK_GINKGO_RC=true ACK_GINKGO_DEPRECATIONS=1.16.5
-GINKGO_FLAGS := -failFast -trace -progress -compilers=4 -failOnPending -noColor -randomizeSuites -randomizeAllSpecs
-USER_GINKGO_FLAGS ?=
 
 #----------------------------------------------------------------------------------
 # Macros
@@ -99,38 +102,30 @@ endif
 init:
 	git config core.hooksPath .githooks
 
-.PHONY: update-all-deps
-update-all-deps: install-go-tools install-node-packages ## install-go-tools and install-node-packages
-
-DEPSGOBIN=$(ROOTDIR)/.bin
-
-# https://github.com/go-modules-by-example/index/blob/master/010_tools/README.md
-.PHONY: install-go-tools
-install-go-tools: mod-download install-test-tools ## Download and install Go dependencies
-	mkdir -p $(DEPSGOBIN)
-	GOBIN=$(DEPSGOBIN) go install istio.io/tools/cmd/protoc-gen-jsonshim
-	GOBIN=$(DEPSGOBIN) go install istio.io/pkg/version
-	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-ext
-	GOBIN=$(DEPSGOBIN) go install golang.org/x/tools/cmd/goimports
-	GOBIN=$(DEPSGOBIN) go install github.com/envoyproxy/protoc-gen-validate
-	GOBIN=$(DEPSGOBIN) go install github.com/golang/protobuf/protoc-gen-go
-	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/gomock
-	GOBIN=$(DEPSGOBIN) go install github.com/golang/mock/mockgen
-	GOBIN=$(DEPSGOBIN) go install github.com/google/wire/cmd/wire
-	GOBIN=$(DEPSGOBIN) go install github.com/solo-io/protoc-gen-openapi
-
-.PHONY: install-test-tools
-install-test-tools:
-	mkdir -p $(DEPSGOBIN)
-	GOBIN=$(DEPSGOBIN) go install github.com/onsi/ginkgo/ginkgo
-
 .PHONY: mod-download
 mod-download:
 	go mod download all
 
 .PHONY: mod-tidy
 mod-tidy:
-	GOBIN=$(DEPSGOBIN) go mod tidy
+	go mod tidy
+
+# https://github.com/go-modules-by-example/index/blob/master/010_tools/README.md
+.PHONY: install-go-tools
+install-go-tools: mod-download ## Download and install Go dependencies
+	go install istio.io/tools/cmd/protoc-gen-jsonshim
+	go install istio.io/pkg/version
+	go install github.com/solo-io/protoc-gen-ext
+	go install golang.org/x/tools/cmd/goimports
+	go install github.com/envoyproxy/protoc-gen-validate
+	go install github.com/golang/protobuf/protoc-gen-go
+	go install github.com/golang/mock/gomock
+	go install github.com/golang/mock/mockgen
+	go install github.com/google/wire/cmd/wire
+	go install github.com/solo-io/protoc-gen-openapi
+
+.PHONY: update-all-deps
+update-all-deps: install-go-tools install-node-packages ## install-go-tools and install-node-packages
 
 .PHONY: install-node-packages
 install-node-packages:
@@ -140,9 +135,92 @@ install-node-packages:
 	make update-ui-deps
 	make build-stitching-bundles
 
+.PHONY: update-ui-deps
+update-ui-deps:
+	yarn --cwd=$(APISERVER_UI_DIR) install
+
+.PHONY: fmt-changed
+fmt-changed:
+	git diff --name-only | grep '.*.go$$' | xargs goimports -w
+
+SUBDIRS:=projects install pkg test
+.PHONY: fmt
+fmt:
+	goimports -w $(SUBDIRS)
+
+.PHONY: check-format
+check-format:
+	NOT_FORMATTED=$$(gofmt -l ./projects/ ./pkg/ ./test/ ./install/) && if [ -n "$$NOT_FORMATTED" ]; then echo These files are not formatted: $$NOT_FORMATTED; exit 1; fi
+
+#----------------------------------------------------------------------------------
+# Tests
+#----------------------------------------------------------------------------------
+
+GINKGO_VERSION ?= 1.16.5 # match our go.mod
+GINKGO_ENV ?= GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore ACK_GINKGO_RC=true ACK_GINKGO_DEPRECATIONS=$(GINKGO_VERSION) VERSION=$(VERSION)
+GINKGO_FLAGS ?= -failFast -trace -progress -compilers=4 -failOnPending -noColor
+GINKGO_RANDOMIZE_FLAGS ?= -randomizeSuites -randomizeAllSpecs # Not yet actively supported
+GINKGO_REPORT_FLAGS ?= #--json-report=test-report.json --junit-report=junit.xml -output-dir=$(OUTPUT_DIR)
+GINKGO_COVERAGE_FLAGS ?= #--cover --covermode=count --coverprofile=coverage.cov
+TEST_PKG ?= ./... # Default to run all tests
+
+# This is a way for a user executing `make test` to be able to provide flags which we do not include by default
+# For example, you may want to run tests multiple times, or with various timeouts
+GINKGO_USER_FLAGS ?=
+
+.PHONY: install-test-tools
+install-test-tools:
+	go install github.com/onsi/ginkgo/ginkgo@v$(GINKGO_VERSION)
+
+.PHONY: test
+test: install-test-tools ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
+	$(GINKGO_ENV) ginkgo -ldflags=$(LDFLAGS) \
+	$(GINKGO_FLAGS) $(GINKGO_REPORT_FLAGS) $(GINKGO_USER_FLAGS) \
+	$(TEST_PKG)
+
+.PHONY: test-with-coverage
+test-with-coverage: GINKGO_FLAGS += $(GINKGO_COVERAGE_FLAGS)
+test-with-coverage: test
+	go tool cover -html $(OUTPUT_DIR)/coverage.cov
+
+.PHONY: run-tests
+run-tests: GINKGO_FLAGS += -skipPackage=kube2e,federation-kube2e ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
+ifneq ($(RELEASE), "true")
+run-tests: generate-extauth-test-plugins
+run-tests: test
+endif
+
+# requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
+.PHONY: run-ci-regression-tests
+run-ci-regression-tests: TEST_PKG = ./test/kube2e/$(KUBE2E_TESTS) ## Run the Kubernetes E2E Tests in the {KUBE2E_TESTS} package
+run-ci-regression-tests: test
+
+# requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
+.PHONY: run-ci-gloo-fed-regression-tests
+run-ci-gloo-fed-regression-tests: TEST_PKG = ./test/federation-kube2e/$(KUBE2E_TESTS) ## Run the Federation Kubernetes E2E Tests in the {KUBE2E_TESTS} package
+run-ci-gloo-fed-regression-tests: test
+
+# command to run e2e tests
+# requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
+.PHONY: run-e2e-tests
+run-e2e-tests: TEST_PKG = ./test/e2e/ ## Run the in memory Envoy e2e tests (ENVOY_IMAGE_TAG)
+run-e2e-tests: test
+
+#----------------------------------------------------------------------------------
+# Clean
+#----------------------------------------------------------------------------------
+
+# Important to clean before pushing new releases. Dockerfiles and binaries may not update properly
+.PHONY: clean
+clean: clean-artifacts
+	rm -rf $(TEST_ASSET_DIR)
+	rm -rf $(APISERVER_UI_DIR)/build
+	rm -rf $(ROOTDIR)/vendor_any
+	git clean -xdf install
+
 .PHONY: clean-artifacts
 clean-artifacts:
-	rm -rf _output
+	rm -rf $(OUTPUT_DIR)
 
 .PHONY: clean-generated-protos
 clean-generated-protos:
@@ -151,7 +229,7 @@ clean-generated-protos:
 
 # Clean
 .PHONY: clean-fed
-clean-fed: clean-artifacts clean-generated-protos
+clean-fed: clean-generated-protos
 	rm -rf $(ROOTDIR)/vendor_any
 	rm -rf $(ROOTDIR)/projects/gloo/pkg/api
 	rm -rf $(ROOTDIR)/projects/gloo-fed/pkg/api
@@ -159,75 +237,6 @@ clean-fed: clean-artifacts clean-generated-protos
 	rm -rf $(ROOTDIR)/projects/glooctl-plugins/fed/pkg/api
 	rm -rf $(ROOTDIR)/projects/apiserver/server/services/single_cluster_resource_handler/*
 
-.PHONY: test
-test: install-test-tools ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
-	$(GINKGO_ENV) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo \
-		-ldflags=$(LDFLAGS) \
-		$(GINKGO_FLAGS) \
-		$(USER_GINKGO_FLAGS) \
-		$(TEST_PKG)
-
-
-.PHONY: run-tests
-run-tests: install-test-tools install-node-packages ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
-ifneq ($(RELEASE), "true")
-	PATH=$(DEPSGOBIN):$$PATH go generate ./test/extauth/plugins/... ./projects/extauth/plugins/...
-	$(GINKGO_ENV) VERSION=$(VERSION) $(DEPSGOBIN)/ginkgo -ldflags=$(LDFLAGS) -r -failFast -trace -progress -compilers=4 -failOnPending -noColor -skipPackage=kube2e,federation-kube2e $(TEST_PKG)
-endif
-
-# command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
-# requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
-.PHONY: run-ci-regression-tests
-run-ci-regression-tests: install-test-tools ## Run the Kubernetes E2E Tests in the {KUBE2E_TESTS} package
-run-ci-regression-tests:
-	# We intentionally leave out the `-r` ginkgo flag, since we are specifying the exact package that we want run
-	$(GINKGO_ENV) $(DEPSGOBIN)/ginkgo -failFast -trace -progress -race -failOnPending -noColor ./test/kube2e/$(KUBE2E_TESTS)
-
-# command to run regression tests with guaranteed access to $(DEPSGOBIN)/ginkgo
-# requires the environment variable KUBE2E_TESTS to be set to the test type you wish to run
-.PHONY: run-ci-gloo-fed-regression-tests
-run-ci-gloo-fed-regression-tests: install-test-tools ## Run the Federation Kubernetes E2E Tests in the {KUBE2E_TESTS} package
-	# We intentionally leave out the `-r` ginkgo flag, since we are specifying the exact package that we want run
-	$(GINKGO_ENV) $(DEPSGOBIN)/ginkgo -failFast -trace -progress -race -failOnPending -noColor ./test/federation-kube2e/$(KUBE2E_TESTS)
-
-# command to run e2e tests
-# requires the environment variable ENVOY_IMAGE_TAG to be set to the tag of the gloo-ee-envoy-wrapper Docker image you wish to run
-.PHONY: run-e2e-tests
-run-e2e-tests: ## Run the in memory Envoy e2e tests (ENVOY_IMAGE_TAG)
-run-e2e-tests: install-test-tools
-	# # We intentionally leave out the `-r` ginkgo flag, since we are specifying the exact package that we want run
-	$(GINKGO_ENV) $(DEPSGOBIN)/ginkgo -failFast -trace -progress -race -compilers=4 -failOnPending ./test/e2e/
-
-.PHONY: update-ui-deps
-update-ui-deps:
-	yarn --cwd=$(APISERVER_UI_DIR) install
-
-.PHONY: fmt-changed
-fmt-changed:
-	GOBIN=$(DEPSGOBIN) git diff --name-only | grep '.*.go$$' | xargs goimports -w
-
-SUBDIRS:=projects install pkg test
-.PHONY: fmt
-fmt:
-	GOBIN=$(DEPSGOBIN) goimports -w $(SUBDIRS)
-
-.PHONY: check-format
-check-format:
-	NOT_FORMATTED=$$(gofmt -l ./projects/ ./pkg/ ./test/ ./install/) && if [ -n "$$NOT_FORMATTED" ]; then echo These files are not formatted: $$NOT_FORMATTED; exit 1; fi
-
-
-#----------------------------------------------------------------------------------
-# Clean
-#----------------------------------------------------------------------------------
-
-# Important to clean before pushing new releases. Dockerfiles and binaries may not update properly
-.PHONY: clean
-clean:
-	rm -rf $(OUTPUT_DIR)
-	rm -rf $(TEST_ASSET_DIR)
-	rm -rf $(APISERVER_UI_DIR)/build
-	rm -rf $(ROOTDIR)/vendor_any
-	git clean -xdf install
 
 #----------------------------------------------------------------------------------
 # Generated Code
@@ -254,9 +263,9 @@ endif
 .PHONY: generated-code
 generated-code: update-licenses ## Evaluate go generate
 	rm -rf $(ROOTDIR)/vendor_any
-	PATH=$(DEPSGOBIN):$$PATH GO111MODULE=on CGO_ENABLED=1 go generate ./...
-	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
-	PATH=$(DEPSGOBIN):$$PATH go mod tidy
+	GO111MODULE=on CGO_ENABLED=1 go generate ./...
+	goimports -w $(SUBDIRS)
+	go mod tidy
 	ci/check-protoc.sh
 
 .PHONY: generate-gloo-fed
@@ -265,18 +274,21 @@ generate-gloo-fed: generate-gloo-fed-code generated-gloo-fed-ui
 # Generated Code - Required to update Codgen Templates
 .PHONY: generate-gloo-fed-code
 generate-gloo-fed-code: clean-fed
-	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/projects/gloo-fed/generate.go # Generates clients, controllers, etc
-	PATH=$(DEPSGOBIN):$$PATH $(ROOTDIR)/projects/gloo-fed/ci/hack-fix-marshal.sh # TODO: figure out a more permanent way to deal with this
-	PATH=$(DEPSGOBIN):$$PATH go run projects/gloo-fed/generate.go -apiserver # Generates apiserver protos into go code
-	PATH=$(DEPSGOBIN):$$PATH go generate $(ROOTDIR)/projects/... # Generates mocks
-	PATH=$(DEPSGOBIN):$$PATH goimports -w $(SUBDIRS)
-	PATH=$(DEPSGOBIN):$$PATH go mod tidy
+	go run $(ROOTDIR)/projects/gloo-fed/generate.go # Generates clients, controllers, etc
+	$(ROOTDIR)/projects/gloo-fed/ci/hack-fix-marshal.sh # TODO: figure out a more permanent way to deal with this
+	go run projects/gloo-fed/generate.go -apiserver # Generates apiserver protos into go code
+	go generate $(ROOTDIR)/projects/... # Generates mocks
+	goimports -w $(SUBDIRS)
+	go mod tidy
 
 .PHONY: generate-helm-docs
 generate-helm-docs:
-	PATH=$(DEPSGOBIN):$$PATH go run $(ROOTDIR)/install/helm/gloo-ee/generate.go $(VERSION) --generate-helm-docs $(USE_DIGESTS) # Generate Helm Documentation
+	go run $(ROOTDIR)/install/helm/gloo-ee/generate.go $(VERSION) --generate-helm-docs $(USE_DIGESTS) # Generate Helm Documentation
 
 
+.PHONY: generate-extauth-test-plugins
+generate-extauth-test-plugins:
+	go generate $(ROOTDIR)/test/extauth/plugins/... $(ROOTDIR)/projects/extauth/plugins/...
 
 #################
 #     Build     #
@@ -809,11 +821,13 @@ $(RATELIMIT_FIPS_OUT_DIR)/.rate-limit-ee-docker: $(RATELIMIT_FIPS_OUT_DIR)/rate-
 #----------------------------------------------------------------------------------
 # ExtAuth
 #----------------------------------------------------------------------------------
+# When referencing files within a Docker build context, we use relative paths
+DOCKER_OUTPUT_DIR := ./_output
 
 EXTAUTH_DIR=projects/extauth
 EXTAUTH_SOURCES=$(shell find $(EXTAUTH_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 EXTAUTH_OUT_DIR=$(OUTPUT_DIR)/extauth
-RELATIVE_EXTAUTH_OUT_DIR=$(RELATIVE_OUTPUT_DIR)/extauth
+DOCKER_EXTAUTH_OUT_DIR=$(DOCKER_OUTPUT_DIR)/extauth
 _ := $(shell mkdir -p $(EXTAUTH_OUT_DIR))
 
 $(EXTAUTH_OUT_DIR)/Dockerfile.build: $(EXTAUTH_DIR)/Dockerfile
@@ -861,7 +875,7 @@ ext-auth-plugins-docker: $(EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64
 		--build-arg GO_BUILD_IMAGE=$(GOLANG_VERSION) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
-		--build-arg VERIFY_SCRIPT=$(RELATIVE_EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 \
+		--build-arg VERIFY_SCRIPT=$(DOCKER_EXTAUTH_OUT_DIR)/verify-plugins-linux-amd64 \
 		--build-arg GITHUB_TOKEN \
 		--build-arg USE_APK=true \
 		$(DOCKER_BUILD_ARGS) \
@@ -881,7 +895,7 @@ $(EXTAUTH_OUT_DIR)/.extauth-ee-docker: $(EXTAUTH_OUT_DIR)/extauth-linux-$(DOCKER
 #----------------------------------------------------------------------------------
 
 EXTAUTH_FIPS_OUT_DIR=$(OUTPUT_DIR)/extauth_fips
-RELATIVE_EXTAUTH_FIPS_OUT_DIR=$(RELATIVE_OUTPUT_DIR)/extauth_fips
+DOCKER_EXTAUTH_FIPS_OUT_DIR=$(DOCKER_OUTPUT_DIR)/extauth_fips
 _ := $(shell mkdir -p $(EXTAUTH_FIPS_OUT_DIR))
 
 $(EXTAUTH_FIPS_OUT_DIR)/Dockerfile.build: $(EXTAUTH_DIR)/Dockerfile
@@ -899,7 +913,8 @@ $(EXTAUTH_FIPS_OUT_DIR)/.extauth-ee-docker-build: $(EXTAUTH_SOURCES) $(EXTAUTH_F
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GCFLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
-		--build-arg GITHUB_TOKEN $(DOCKER_GO_BORING_ARGS) \
+		--build-arg GITHUB_TOKEN \
+		$(DOCKER_GO_BORING_ARGS) \
 		.
 	touch $@
 
@@ -928,8 +943,9 @@ ext-auth-plugins-fips-docker: $(EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64
 		--build-arg GO_BUILD_IMAGE=$(GOBORING_VERSION) \
 		--build-arg GC_FLAGS=$(GCFLAGS) \
 		--build-arg LDFLAGS=$(LDFLAGS) \
-		--build-arg VERIFY_SCRIPT=$(RELATIVE_EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 \
-		--build-arg GITHUB_TOKEN $(DOCKER_GO_BORING_ARGS) \
+		--build-arg VERIFY_SCRIPT=$(DOCKER_EXTAUTH_FIPS_OUT_DIR)/verify-plugins-linux-amd64 \
+		--build-arg GITHUB_TOKEN \
+		 $(DOCKER_GO_BORING_ARGS) \
 		.
 
 # Build extauth server docker image
@@ -1295,7 +1311,7 @@ endif
 .PHONY: helm-template
 helm-template:
 	mkdir -p $(HELM_SYNC_DIR_FOR_GLOO_EE)
-	PATH=$(DEPSGOBIN):$$PATH $(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)" $(USE_DIGESTS) --gloo-repo-override=$(GLOO_REPO_OVERRIDE)
+	$(GO_BUILD_FLAGS) go run install/helm/gloo-ee/generate.go $(VERSION) --gloo-fed-repo-override="file://$(GLOO_FED_CHART_DIR)" $(USE_DIGESTS) --gloo-repo-override=$(GLOO_REPO_OVERRIDE)
 
 .PHONY: init-helm
 init-helm: helm-template gloofed-helm-template $(OUTPUT_DIR)/.helm-initialized

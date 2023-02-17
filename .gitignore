@@ -32,7 +32,6 @@ install/helm/*.tgz
 install/manifest/*.yaml
 
 # codegen
-.bin
 .github.com
 
 # Spurious files

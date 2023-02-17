@@ -4,10 +4,6 @@ set -ex
 
 protoc --version
 
-if [ ! -f .gitignore ]; then
-  echo "_output" > .gitignore
-fi
-
 make update-all-deps
 
 set +e
