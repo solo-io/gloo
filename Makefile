@@ -42,10 +42,10 @@ GCS_BUCKET := glooctl-plugins
 WASM_GCS_PATH := glooctl-wasm
 FED_GCS_PATH := glooctl-fed
 
-ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.24.0-patch6
-ENVOY_GLOO_DEBUG_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-debug:1.24.0-patch6
-ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.24.0-patch6
-ENVOY_GLOO_FIPS_DEBUG_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips-debug:1.24.0-patch6
+ENVOY_GLOO_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee:1.24.1-patch3
+ENVOY_GLOO_DEBUG_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-debug:1.24.1-patch3
+ENVOY_GLOO_FIPS_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips:1.24.1-patch3
+ENVOY_GLOO_FIPS_DEBUG_IMAGE ?= gcr.io/gloo-ee/envoy-gloo-ee-fips-debug:1.24.1-patch3
 
 # The full SHA of the currently checked out commit
 CHECKED_OUT_SHA := $(shell git rev-parse HEAD)

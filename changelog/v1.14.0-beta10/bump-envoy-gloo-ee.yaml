@@ -1,0 +1,7 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    dependencyOwner: solo-io
+    dependencyRepo: envoy-gloo-ee
+    dependencyTag: v1.24.1-patch3
+    description: >
+      Bump envoy-gloo-ee to v1.24.1-patch3 to resolve CVE-2023-0286
