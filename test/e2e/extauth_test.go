@@ -65,6 +65,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/hcm"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/tracing"
+	gloossl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	gloohelpers "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/contextutils"
@@ -1187,8 +1188,8 @@ var _ = Describe("External auth", func() {
 								}
 								_, err := testClients.SecretClient.Write(tlsSecret, clients.WriteOpts{})
 								Expect(err).NotTo(HaveOccurred())
-								vs := getVirtualServiceToUpstream(testUpstream.Upstream.Metadata.Ref(), &gloov1.SslConfig{
-									SslSecrets: &gloov1.SslConfig_SecretRef{
+								vs := getVirtualServiceToUpstream(testUpstream.Upstream.Metadata.Ref(), &gloossl.SslConfig{
+									SslSecrets: &gloossl.SslConfig_SecretRef{
 										SecretRef: tlsSecret.Metadata.Ref(),
 									},
 								})

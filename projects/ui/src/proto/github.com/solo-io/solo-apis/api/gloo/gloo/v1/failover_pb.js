@@ -14,7 +14,7 @@ var global = Function('return this')();
 
 var extproto_ext_pb = require('../../../../../../../extproto/ext_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
-var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb.js');
 var validate_validate_pb = require('../../../../../../../validate/validate_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.Failover', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Failover.Policy', null, global);
@@ -868,7 +868,7 @@ proto.gloo.solo.io.LbEndpoint.toObject = function(includeInstance, msg) {
     address: jspb.Message.getFieldWithDefault(msg, 1, ""),
     port: jspb.Message.getFieldWithDefault(msg, 2, 0),
     healthCheckConfig: (f = msg.getHealthCheckConfig()) && proto.gloo.solo.io.LbEndpoint.HealthCheckConfig.toObject(includeInstance, f),
-    upstreamSslConfig: (f = msg.getUpstreamSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.toObject(includeInstance, f),
+    upstreamSslConfig: (f = msg.getUpstreamSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.toObject(includeInstance, f),
     loadBalancingWeight: (f = msg.getLoadBalancingWeight()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f)
   };
 
@@ -920,8 +920,8 @@ proto.gloo.solo.io.LbEndpoint.deserializeBinaryFromReader = function(msg, reader
       msg.setHealthCheckConfig(value);
       break;
     case 4:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.deserializeBinaryFromReader);
       msg.setUpstreamSslConfig(value);
       break;
     case 5:
@@ -985,7 +985,7 @@ proto.gloo.solo.io.LbEndpoint.serializeBinaryToWriter = function(message, writer
     writer.writeMessage(
       4,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.serializeBinaryToWriter
     );
   }
   f = message.getLoadBalancingWeight();
@@ -1288,7 +1288,7 @@ proto.gloo.solo.io.LbEndpoint.prototype.hasHealthCheckConfig = function() {
  */
 proto.gloo.solo.io.LbEndpoint.prototype.getUpstreamSslConfig = function() {
   return /** @type{?proto.gloo.solo.io.UpstreamSslConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig, 4));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig, 4));
 };
 
 

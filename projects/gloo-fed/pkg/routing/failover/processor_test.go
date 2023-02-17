@@ -14,6 +14,7 @@ import (
 	gloo_types "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	mock_gloo_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/mocks"
+	gloossl "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/ssl"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	. "github.com/solo-io/solo-kit/test/matchers"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
@@ -308,8 +309,8 @@ var _ = Describe("Processor", func() {
 										{
 											Address: instanceCluster1.Spec.GetProxies()[0].GetIngressEndpoints()[0].GetAddress(),
 											Port:    failover.PortNumber,
-											UpstreamSslConfig: &gloo_api_v1.UpstreamSslConfig{
-												SslSecrets: &gloo_api_v1.UpstreamSslConfig_SecretRef{
+											UpstreamSslConfig: &gloossl.UpstreamSslConfig{
+												SslSecrets: &gloossl.UpstreamSslConfig_SecretRef{
 													SecretRef: &core.ResourceRef{
 														Name:      failover.UpstreamSecretName,
 														Namespace: defaults.GlooSystem,

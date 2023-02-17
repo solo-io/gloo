@@ -13,7 +13,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_cac
 import * as github_com_solo_io_solo_apis_api_gloo_enterprise_gloo_v1_auth_config_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/rbac/rbac_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_circuit_breaker_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/circuit_breaker_pb";
-import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_extensions_aws_filter_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/aws/filter_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_query_options_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/consul/query_options_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
@@ -891,8 +891,8 @@ export namespace SettingsSpec {
 export class UpstreamOptions extends jspb.Message {
   hasSslParameters(): boolean;
   clearSslParameters(): void;
-  getSslParameters(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslParameters | undefined;
-  setSslParameters(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslParameters): void;
+  getSslParameters(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslParameters | undefined;
+  setSslParameters(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslParameters): void;
 
   getGlobalAnnotationsMap(): jspb.Map<string, string>;
   clearGlobalAnnotationsMap(): void;
@@ -908,7 +908,7 @@ export class UpstreamOptions extends jspb.Message {
 
 export namespace UpstreamOptions {
   export type AsObject = {
-    sslParameters?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslParameters.AsObject,
+    sslParameters?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslParameters.AsObject,
     globalAnnotationsMap: Array<[string, string]>,
   }
 }

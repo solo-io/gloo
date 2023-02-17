@@ -12,7 +12,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gateway_v1_http_gateway_pb fro
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_proxy_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_hcm_hcm_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/hcm/hcm_pb";
-import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_selectors_selectors_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/selectors/selectors_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb";
 
@@ -171,8 +171,8 @@ export class DelegatedHttpGateway extends jspb.Message {
 
   hasSslConfig(): boolean;
   clearSslConfig(): void;
-  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig | undefined;
-  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig): void;
+  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig | undefined;
+  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig): void;
 
   getSelectionTypeCase(): DelegatedHttpGateway.SelectionTypeCase;
   serializeBinary(): Uint8Array;
@@ -191,7 +191,7 @@ export namespace DelegatedHttpGateway {
     selector?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector.AsObject,
     preventChildOverrides: boolean,
     httpConnectionManagerSettings?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_hcm_hcm_pb.HttpConnectionManagerSettings.AsObject,
-    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject,
+    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.AsObject,
   }
 
   export enum SelectionTypeCase {
@@ -245,8 +245,8 @@ export namespace MatchedGateway {
 export class Matcher extends jspb.Message {
   hasSslConfig(): boolean;
   clearSslConfig(): void;
-  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig | undefined;
-  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig): void;
+  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig | undefined;
+  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig): void;
 
   clearSourcePrefixRangesList(): void;
   getSourcePrefixRangesList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange>;
@@ -265,7 +265,7 @@ export class Matcher extends jspb.Message {
 
 export namespace Matcher {
   export type AsObject = {
-    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject,
+    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.AsObject,
     sourcePrefixRangesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.AsObject>,
   }
 }

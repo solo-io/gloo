@@ -20,6 +20,7 @@ import (
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloossl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 
 	"github.com/rotisserie/eris"
 	"k8s.io/client-go/rest"
@@ -135,11 +136,11 @@ var _ = Describe("Kube2e: wasm", func() {
 
 })
 
-func getVirtualService(dest *gloov1.Destination, sslConfig *gloov1.SslConfig) *gatewayv1.VirtualService {
+func getVirtualService(dest *gloov1.Destination, sslConfig *gloossl.SslConfig) *gatewayv1.VirtualService {
 	return getVirtualServiceWithRoute(getRouteWithDest(dest, "/"), sslConfig)
 }
 
-func getVirtualServiceWithRoute(route *gatewayv1.Route, sslConfig *gloov1.SslConfig) *gatewayv1.VirtualService {
+func getVirtualServiceWithRoute(route *gatewayv1.Route, sslConfig *gloossl.SslConfig) *gatewayv1.VirtualService {
 	return &gatewayv1.VirtualService{
 		Metadata: &core.Metadata{
 			Name:      "vs",

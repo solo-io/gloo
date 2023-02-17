@@ -32,6 +32,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloossl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/k8s-utils/kubeutils"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
@@ -156,8 +157,8 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			}, "10s", "0.5s").Should(BeNil())
 			time.Sleep(3 * time.Second) // Wait a few seconds so Gloo can pick up the secret, otherwise the webhook validation might fail
 
-			sslConfig := &gloov1.SslConfig{
-				SslSecrets: &gloov1.SslConfig_SecretRef{
+			sslConfig := &gloossl.SslConfig{
+				SslSecrets: &gloossl.SslConfig_SecretRef{
 					SecretRef: &core.ResourceRef{
 						Name:      createdSecret.ObjectMeta.Name,
 						Namespace: createdSecret.ObjectMeta.Namespace,
@@ -431,11 +432,11 @@ spec:
 	})
 })
 
-func getVirtualService(dest *gloov1.Destination, sslConfig *gloov1.SslConfig) *v1.VirtualService {
+func getVirtualService(dest *gloov1.Destination, sslConfig *gloossl.SslConfig) *v1.VirtualService {
 	return getVirtualServiceWithRoute(getRouteWithDest(dest, "/"), sslConfig)
 }
 
-func getVirtualServiceWithRoute(route *v1.Route, sslConfig *gloov1.SslConfig) *v1.VirtualService {
+func getVirtualServiceWithRoute(route *v1.Route, sslConfig *gloossl.SslConfig) *v1.VirtualService {
 	return &v1.VirtualService{
 		Metadata: &core.Metadata{
 			Name:      "vs",

@@ -21,7 +21,7 @@ var github_com_solo$io_solo$apis_api_gloo_gateway_v1_http_gateway_pb = require('
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_proxy_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_hcm_hcm_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/hcm/hcm_pb.js');
-var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/selectors/selectors_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb.js');
 goog.exportSymbol('proto.gateway.solo.io.DelegatedHttpGateway', null, global);
@@ -1071,7 +1071,7 @@ proto.gateway.solo.io.DelegatedHttpGateway.toObject = function(includeInstance, 
     selector: (f = msg.getSelector()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_core_selectors_selectors_pb.Selector.toObject(includeInstance, f),
     preventChildOverrides: jspb.Message.getFieldWithDefault(msg, 5, false),
     httpConnectionManagerSettings: (f = msg.getHttpConnectionManagerSettings()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_hcm_hcm_pb.HttpConnectionManagerSettings.toObject(includeInstance, f),
-    sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.toObject(includeInstance, f)
+    sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1128,8 +1128,8 @@ proto.gateway.solo.io.DelegatedHttpGateway.deserializeBinaryFromReader = functio
       msg.setHttpConnectionManagerSettings(value);
       break;
     case 2:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.deserializeBinaryFromReader);
       msg.setSslConfig(value);
       break;
     default:
@@ -1197,7 +1197,7 @@ proto.gateway.solo.io.DelegatedHttpGateway.serializeBinaryToWriter = function(me
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.serializeBinaryToWriter
     );
   }
 };
@@ -1316,7 +1316,7 @@ proto.gateway.solo.io.DelegatedHttpGateway.prototype.hasHttpConnectionManagerSet
  */
 proto.gateway.solo.io.DelegatedHttpGateway.prototype.getSslConfig = function() {
   return /** @type{?proto.gloo.solo.io.SslConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig, 2));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig, 2));
 };
 
 
@@ -1667,7 +1667,7 @@ proto.gateway.solo.io.Matcher.prototype.toObject = function(opt_includeInstance)
  */
 proto.gateway.solo.io.Matcher.toObject = function(includeInstance, msg) {
   var f, obj = {
-    sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.toObject(includeInstance, f),
+    sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.toObject(includeInstance, f),
     sourcePrefixRangesList: jspb.Message.toObjectList(msg.getSourcePrefixRangesList(),
     github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.toObject, includeInstance)
   };
@@ -1707,8 +1707,8 @@ proto.gateway.solo.io.Matcher.deserializeBinaryFromReader = function(msg, reader
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.deserializeBinaryFromReader);
       msg.setSslConfig(value);
       break;
     case 2:
@@ -1750,7 +1750,7 @@ proto.gateway.solo.io.Matcher.serializeBinaryToWriter = function(message, writer
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.serializeBinaryToWriter
     );
   }
   f = message.getSourcePrefixRangesList();
@@ -1770,7 +1770,7 @@ proto.gateway.solo.io.Matcher.serializeBinaryToWriter = function(message, writer
  */
 proto.gateway.solo.io.Matcher.prototype.getSslConfig = function() {
   return /** @type{?proto.gloo.solo.io.SslConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslConfig, 1));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig, 1));
 };
 
 

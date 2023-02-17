@@ -17,6 +17,7 @@ var validate_validate_pb = require('../../../../../../../../../validate/validate
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb = require('../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb.js');
 goog.exportSymbol('proto.dfp.options.gloo.solo.io.AppleDnsResolverConfig', null, global);
 goog.exportSymbol('proto.dfp.options.gloo.solo.io.CaresDnsResolverConfig', null, global);
 goog.exportSymbol('proto.dfp.options.gloo.solo.io.DnsCacheCircuitBreakers', null, global);
@@ -74,7 +75,8 @@ proto.dfp.options.gloo.solo.io.FilterConfig.prototype.toObject = function(opt_in
 proto.dfp.options.gloo.solo.io.FilterConfig.toObject = function(includeInstance, msg) {
   var f, obj = {
     dnsCacheConfig: (f = msg.getDnsCacheConfig()) && proto.dfp.options.gloo.solo.io.DnsCacheConfig.toObject(includeInstance, f),
-    saveUpstreamAddress: jspb.Message.getFieldWithDefault(msg, 2, false)
+    saveUpstreamAddress: jspb.Message.getFieldWithDefault(msg, 2, false),
+    sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -120,6 +122,11 @@ proto.dfp.options.gloo.solo.io.FilterConfig.deserializeBinaryFromReader = functi
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setSaveUpstreamAddress(value);
       break;
+    case 3:
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.deserializeBinaryFromReader);
+      msg.setSslConfig(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -162,6 +169,14 @@ proto.dfp.options.gloo.solo.io.FilterConfig.serializeBinaryToWriter = function(m
     writer.writeBool(
       2,
       f
+    );
+  }
+  f = message.getSslConfig();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.serializeBinaryToWriter
     );
   }
 };
@@ -211,6 +226,36 @@ proto.dfp.options.gloo.solo.io.FilterConfig.prototype.getSaveUpstreamAddress = f
 /** @param {boolean} value */
 proto.dfp.options.gloo.solo.io.FilterConfig.prototype.setSaveUpstreamAddress = function(value) {
   jspb.Message.setProto3BooleanField(this, 2, value);
+};
+
+
+/**
+ * optional gloo.solo.io.UpstreamSslConfig ssl_config = 3;
+ * @return {?proto.gloo.solo.io.UpstreamSslConfig}
+ */
+proto.dfp.options.gloo.solo.io.FilterConfig.prototype.getSslConfig = function() {
+  return /** @type{?proto.gloo.solo.io.UpstreamSslConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig, 3));
+};
+
+
+/** @param {?proto.gloo.solo.io.UpstreamSslConfig|undefined} value */
+proto.dfp.options.gloo.solo.io.FilterConfig.prototype.setSslConfig = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.dfp.options.gloo.solo.io.FilterConfig.prototype.clearSslConfig = function() {
+  this.setSslConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.dfp.options.gloo.solo.io.FilterConfig.prototype.hasSslConfig = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

@@ -30,7 +30,7 @@ import {
   ProxySpec,
   TcpHost,
 } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/proxy_pb';
-import { SslConfig } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb';
+import { SslConfig } from 'proto/github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb';
 import {
   UpstreamSpec,
   UpstreamStatus,

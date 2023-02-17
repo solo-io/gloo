@@ -14,8 +14,8 @@ var global = Function('return this')();
 
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
-var extproto_ext_pb = require('../../../../../../../extproto/ext_pb.js');
-var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
+var extproto_ext_pb = require('../../../../../../../../extproto/ext_pb.js');
+var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.CallCredentials', null, global);
 goog.exportSymbol('proto.gloo.solo.io.CallCredentials.FileCredentialSource', null, global);
 goog.exportSymbol('proto.gloo.solo.io.SDSConfig', null, global);

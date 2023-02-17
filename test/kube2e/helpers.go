@@ -17,6 +17,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
+	gloossl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/k8s-utils/kubeutils"
 	"github.com/solo-io/k8s-utils/testutils/helper"
@@ -48,7 +49,7 @@ func WriteVirtualService(
 	vsClient v1.VirtualServiceClient,
 	virtualHostOptions *gloov1.VirtualHostOptions,
 	routeOptions *gloov1.RouteOptions,
-	sslConfig *gloov1.SslConfig,
+	sslConfig *gloossl.SslConfig,
 ) {
 
 	upstreamRef := &core.ResourceRef{
@@ -75,7 +76,7 @@ func WriteCustomVirtualService(
 	vsClient v1.VirtualServiceClient,
 	virtualHostOptions *gloov1.VirtualHostOptions,
 	routeOptions *gloov1.RouteOptions,
-	sslConfig *gloov1.SslConfig,
+	sslConfig *gloossl.SslConfig,
 	upstreamRef *core.ResourceRef,
 	matcherPrefix string,
 ) {

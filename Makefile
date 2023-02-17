@@ -607,15 +607,15 @@ generated-gloo-fed-ui-deps:
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
+	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/*.proto	
+
+	$(PROTOC) -I$(APISERVER_DIR) \
+	$(TS_OUT) \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/rate-limiter/v1alpha1/*.proto
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \
 	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/*/*.proto
-
-	$(PROTOC) -I$(APISERVER_DIR) \
-	$(TS_OUT) \
-	$(PROTOC_IMPORT_PATH)/github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/*/*/*.proto
 
 	$(PROTOC) -I$(APISERVER_DIR) \
 	$(TS_OUT) \

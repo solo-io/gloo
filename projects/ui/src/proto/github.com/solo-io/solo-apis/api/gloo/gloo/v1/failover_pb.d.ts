@@ -5,7 +5,7 @@
 import * as jspb from "google-protobuf";
 import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
-import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb";
 import * as validate_validate_pb from "../../../../../../../validate/validate_pb";
 
 export class Failover extends jspb.Message {
@@ -128,8 +128,8 @@ export class LbEndpoint extends jspb.Message {
 
   hasUpstreamSslConfig(): boolean;
   clearUpstreamSslConfig(): void;
-  getUpstreamSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig | undefined;
-  setUpstreamSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig): void;
+  getUpstreamSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig | undefined;
+  setUpstreamSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig): void;
 
   hasLoadBalancingWeight(): boolean;
   clearLoadBalancingWeight(): void;
@@ -151,7 +151,7 @@ export namespace LbEndpoint {
     address: string,
     port: number,
     healthCheckConfig?: LbEndpoint.HealthCheckConfig.AsObject,
-    upstreamSslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.AsObject,
+    upstreamSslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.AsObject,
     loadBalancingWeight?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
   }
 

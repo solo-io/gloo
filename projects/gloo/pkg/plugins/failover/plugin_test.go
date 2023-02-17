@@ -20,6 +20,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloov1snap "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/gloosnapshot"
+	gloossl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	mock_consul "github.com/solo-io/gloo/projects/gloo/pkg/plugins/consul/mocks"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/static"
@@ -125,7 +126,7 @@ var _ = Describe("Failover", func() {
 		sslEndpoint = &gloov1.LbEndpoint{
 			Address: "ssl.address.who.dis",
 			Port:    10101,
-			UpstreamSslConfig: &gloov1.UpstreamSslConfig{
+			UpstreamSslConfig: &gloossl.UpstreamSslConfig{
 				Sni: "test",
 			},
 		}

@@ -9,7 +9,7 @@ import (
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	"github.com/solo-io/skv2/pkg/ezkube"
 	gloo_api_v1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
-	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
+	gloossl "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1/ssl"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	v1sets "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1/sets"
@@ -67,7 +67,7 @@ var (
 )
 
 func NewFailoverProcessor(
-	glooClientset gloov1.MulticlusterClientset,
+	glooClientset gloo_api_v1.MulticlusterClientset,
 	glooInstanceClient fedv1.GlooInstanceClient,
 	failoverSchemeClient fedv1.FailoverSchemeClient,
 	statusManager *StatusManager,
@@ -81,7 +81,7 @@ func NewFailoverProcessor(
 }
 
 type failoverProcessorImpl struct {
-	glooClientset        gloov1.MulticlusterClientset
+	glooClientset        gloo_api_v1.MulticlusterClientset
 	glooInstanceClient   fedv1.GlooInstanceClient
 	failoverSchemeClient fedv1.FailoverSchemeClient
 	statusManager        *StatusManager
@@ -90,7 +90,7 @@ type failoverProcessorImpl struct {
 func (f failoverProcessorImpl) ProcessFailoverUpdate(
 	ctx context.Context,
 	obj *fedv1.FailoverScheme,
-) (*gloov1.Upstream, StatusBuilder) {
+) (*gloo_api_v1.Upstream, StatusBuilder) {
 	statusBuilder := f.statusManager.NewStatusBuilder(obj)
 	if obj.Spec.GetPrimary() == nil {
 		return nil, statusBuilder.Invalidate(EmptyPrimaryTargetError)
@@ -247,8 +247,8 @@ func (f *failoverProcessorImpl) computeEndpoints(
 	glooLocality.LbEndpoints = append(glooLocality.LbEndpoints, &gloo_api_v1.LbEndpoint{
 		Address: endpoint.GetAddress(),
 		Port:    port,
-		UpstreamSslConfig: &gloo_api_v1.UpstreamSslConfig{
-			SslSecrets: &gloo_api_v1.UpstreamSslConfig_SecretRef{
+		UpstreamSslConfig: &gloossl.UpstreamSslConfig{
+			SslSecrets: &gloossl.UpstreamSslConfig_SecretRef{
 				// TODO: Allow configuration of Upstream/Downstream ssl secrets
 				SecretRef: &core.ResourceRef{
 					Name:      UpstreamSecretName,
@@ -286,7 +286,7 @@ func (f *failoverProcessorImpl) getEndpointAndPort(
 func (f *failoverProcessorImpl) ProcessFailoverDelete(
 	ctx context.Context,
 	obj *fedv1.FailoverScheme,
-) (*gloov1.Upstream, error) {
+) (*gloo_api_v1.Upstream, error) {
 	// If the primary is nil during a deletion, it means that the object would already be in an error state, and there
 	// is nothing to be done about it here, so we can simply return
 	if obj.Spec.GetPrimary() == nil {

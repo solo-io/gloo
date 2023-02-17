@@ -21,6 +21,7 @@ import (
 	kubeconverters "github.com/solo-io/gloo/projects/gloo/pkg/api/converters/kube"
 	corev2 "github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/api/v2/core"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloossl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/v1helpers"
@@ -190,8 +191,8 @@ var _ = Describe("Failover", func() {
 										{
 											Address: address,
 											Port:    testUpstream2.Port,
-											UpstreamSslConfig: &gloov1.UpstreamSslConfig{
-												SslSecrets: &gloov1.UpstreamSslConfig_SecretRef{
+											UpstreamSslConfig: &gloossl.UpstreamSslConfig{
+												SslSecrets: &gloossl.UpstreamSslConfig_SecretRef{
 													SecretRef: &core.ResourceRef{
 														Name:      "tls",
 														Namespace: "gloo-system",
@@ -278,8 +279,8 @@ var _ = Describe("Failover", func() {
 											},
 											Address: envoyInstance.LocalAddr(),
 											Port:    testUpstream2.Port,
-											UpstreamSslConfig: &gloov1.UpstreamSslConfig{
-												SslSecrets: &gloov1.UpstreamSslConfig_SecretRef{
+											UpstreamSslConfig: &gloossl.UpstreamSslConfig{
+												SslSecrets: &gloossl.UpstreamSslConfig_SecretRef{
 													SecretRef: &core.ResourceRef{
 														Name:      "tls",
 														Namespace: "gloo-system",
@@ -376,8 +377,8 @@ var _ = Describe("Failover", func() {
 										{
 											Address: envoyInstance.LocalAddr(),
 											Port:    testUpstreamEast.Port,
-											UpstreamSslConfig: &gloov1.UpstreamSslConfig{
-												SslSecrets: &gloov1.UpstreamSslConfig_SecretRef{
+											UpstreamSslConfig: &gloossl.UpstreamSslConfig{
+												SslSecrets: &gloossl.UpstreamSslConfig_SecretRef{
 													SecretRef: &core.ResourceRef{
 														Name:      "tls",
 														Namespace: "gloo-system",
@@ -400,8 +401,8 @@ var _ = Describe("Failover", func() {
 										{
 											Address: envoyInstance.LocalAddr(),
 											Port:    testUpstreamWest.Port,
-											UpstreamSslConfig: &gloov1.UpstreamSslConfig{
-												SslSecrets: &gloov1.UpstreamSslConfig_SecretRef{
+											UpstreamSslConfig: &gloossl.UpstreamSslConfig{
+												SslSecrets: &gloossl.UpstreamSslConfig_SecretRef{
 													SecretRef: &core.ResourceRef{
 														Name:      "tls",
 														Namespace: "gloo-system",

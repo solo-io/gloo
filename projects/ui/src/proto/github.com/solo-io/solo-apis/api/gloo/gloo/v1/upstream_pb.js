@@ -14,7 +14,7 @@ var global = Function('return this')();
 
 var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 var extproto_ext_pb = require('../../../../../../../extproto/ext_pb.js');
-var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_circuit_breaker_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/circuit_breaker_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_load_balancer_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/load_balancer_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_connection_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/connection_pb.js');
@@ -29,6 +29,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_azure_azure_pb = requi
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_consul_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/consul/consul_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_aws_ec2_aws_ec2_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/aws/ec2/aws_ec2_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_failover_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/failover_pb.js');
+var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.DiscoveryMetadata', null, global);
 goog.exportSymbol('proto.gloo.solo.io.HeaderValue', null, global);
@@ -123,7 +124,7 @@ proto.gloo.solo.io.UpstreamSpec.prototype.toObject = function(opt_includeInstanc
 proto.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance, msg) {
   var f, obj = {
     discoveryMetadata: (f = msg.getDiscoveryMetadata()) && proto.gloo.solo.io.DiscoveryMetadata.toObject(includeInstance, f),
-    sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.toObject(includeInstance, f),
+    sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.toObject(includeInstance, f),
     circuitBreakers: (f = msg.getCircuitBreakers()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_circuit_breaker_pb.CircuitBreakerConfig.toObject(includeInstance, f),
     loadBalancerConfig: (f = msg.getLoadBalancerConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_load_balancer_pb.LoadBalancerConfig.toObject(includeInstance, f),
     healthChecksList: jspb.Message.toObjectList(msg.getHealthChecksList(),
@@ -145,10 +146,12 @@ proto.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance, msg) {
     maxConcurrentStreams: (f = msg.getMaxConcurrentStreams()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     overrideStreamErrorOnInvalidHttpMessage: (f = msg.getOverrideStreamErrorOnInvalidHttpMessage()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
     httpProxyHostname: (f = msg.getHttpProxyHostname()) && google_protobuf_wrappers_pb.StringValue.toObject(includeInstance, f),
-    httpConnectSslConfig: (f = msg.getHttpConnectSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.toObject(includeInstance, f),
+    httpConnectSslConfig: (f = msg.getHttpConnectSslConfig()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.toObject(includeInstance, f),
     httpConnectHeadersList: jspb.Message.toObjectList(msg.getHttpConnectHeadersList(),
     proto.gloo.solo.io.HeaderValue.toObject, includeInstance),
-    ignoreHealthOnHostRemoval: (f = msg.getIgnoreHealthOnHostRemoval()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    ignoreHealthOnHostRemoval: (f = msg.getIgnoreHealthOnHostRemoval()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    respectDnsTtl: (f = msg.getRespectDnsTtl()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    dnsRefreshRate: (f = msg.getDnsRefreshRate()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -191,8 +194,8 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       msg.setDiscoveryMetadata(value);
       break;
     case 4:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.deserializeBinaryFromReader);
       msg.setSslConfig(value);
       break;
     case 5:
@@ -295,8 +298,8 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       msg.setHttpProxyHostname(value);
       break;
     case 27:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.deserializeBinaryFromReader);
       msg.setHttpConnectSslConfig(value);
       break;
     case 28:
@@ -308,6 +311,16 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setIgnoreHealthOnHostRemoval(value);
+      break;
+    case 29:
+      var value = new google_protobuf_wrappers_pb.BoolValue;
+      reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
+      msg.setRespectDnsTtl(value);
+      break;
+    case 30:
+      var value = new google_protobuf_duration_pb.Duration;
+      reader.readMessage(value,google_protobuf_duration_pb.Duration.deserializeBinaryFromReader);
+      msg.setDnsRefreshRate(value);
       break;
     default:
       reader.skipField();
@@ -351,7 +364,7 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
     writer.writeMessage(
       4,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.serializeBinaryToWriter
     );
   }
   f = message.getCircuitBreakers();
@@ -518,7 +531,7 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
     writer.writeMessage(
       27,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.serializeBinaryToWriter
     );
   }
   f = message.getHttpConnectHeadersList();
@@ -535,6 +548,22 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
       22,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getRespectDnsTtl();
+  if (f != null) {
+    writer.writeMessage(
+      29,
+      f,
+      google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getDnsRefreshRate();
+  if (f != null) {
+    writer.writeMessage(
+      30,
+      f,
+      google_protobuf_duration_pb.Duration.serializeBinaryToWriter
     );
   }
 };
@@ -584,7 +613,7 @@ proto.gloo.solo.io.UpstreamSpec.prototype.hasDiscoveryMetadata = function() {
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getSslConfig = function() {
   return /** @type{?proto.gloo.solo.io.UpstreamSslConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig, 4));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig, 4));
 };
 
 
@@ -1200,7 +1229,7 @@ proto.gloo.solo.io.UpstreamSpec.prototype.hasHttpProxyHostname = function() {
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.getHttpConnectSslConfig = function() {
   return /** @type{?proto.gloo.solo.io.UpstreamSslConfig} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig, 27));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig, 27));
 };
 
 
@@ -1282,6 +1311,66 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearIgnoreHealthOnHostRemoval = funct
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasIgnoreHealthOnHostRemoval = function() {
   return jspb.Message.getField(this, 22) != null;
+};
+
+
+/**
+ * optional google.protobuf.BoolValue respect_dns_ttl = 29;
+ * @return {?proto.google.protobuf.BoolValue}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getRespectDnsTtl = function() {
+  return /** @type{?proto.google.protobuf.BoolValue} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 29));
+};
+
+
+/** @param {?proto.google.protobuf.BoolValue|undefined} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setRespectDnsTtl = function(value) {
+  jspb.Message.setWrapperField(this, 29, value);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearRespectDnsTtl = function() {
+  this.setRespectDnsTtl(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.hasRespectDnsTtl = function() {
+  return jspb.Message.getField(this, 29) != null;
+};
+
+
+/**
+ * optional google.protobuf.Duration dns_refresh_rate = 30;
+ * @return {?proto.google.protobuf.Duration}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getDnsRefreshRate = function() {
+  return /** @type{?proto.google.protobuf.Duration} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_duration_pb.Duration, 30));
+};
+
+
+/** @param {?proto.google.protobuf.Duration|undefined} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setDnsRefreshRate = function(value) {
+  jspb.Message.setWrapperField(this, 30, value);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearDnsRefreshRate = function() {
+  this.setDnsRefreshRate(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.hasDnsRefreshRate = function() {
+  return jspb.Message.getField(this, 30) != null;
 };
 
 

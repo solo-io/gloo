@@ -8,7 +8,7 @@ import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gateway_v1_http_gateway_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gateway/v1/http_gateway_pb";
-import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb";
 
 export class MatchableHttpGatewaySpec extends jspb.Message {
@@ -46,8 +46,8 @@ export namespace MatchableHttpGatewaySpec {
 
     hasSslConfig(): boolean;
     clearSslConfig(): void;
-    getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig | undefined;
-    setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig): void;
+    getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig | undefined;
+    setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Matcher.AsObject;
@@ -62,7 +62,7 @@ export namespace MatchableHttpGatewaySpec {
   export namespace Matcher {
     export type AsObject = {
       sourcePrefixRangesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.AsObject>,
-      sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject,
+      sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.AsObject,
     }
   }
 }

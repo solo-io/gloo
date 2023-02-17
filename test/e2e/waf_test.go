@@ -26,6 +26,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/dlp"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/waf"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/als"
+	gloossl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/gloo/test/helpers"
 	gloohelpers "github.com/solo-io/gloo/test/helpers"
@@ -393,8 +394,8 @@ var _ = Describe("waf", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// configure TLS on the proxy
-					proxy.Listeners[0].SslConfigurations = []*gloov1.SslConfig{{
-						SslSecrets: &gloov1.SslConfig_SecretRef{
+					proxy.Listeners[0].SslConfigurations = []*gloossl.SslConfig{{
+						SslSecrets: &gloossl.SslConfig_SecretRef{
 							SecretRef: secret.GetMetadata().Ref(),
 						},
 					}}

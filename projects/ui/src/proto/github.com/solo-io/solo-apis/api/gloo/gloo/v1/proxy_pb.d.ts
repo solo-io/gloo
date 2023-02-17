@@ -9,7 +9,7 @@ import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/stru
 import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
-import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_subset_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/subset_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_core_matchers_matchers_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/core/matchers/matchers_pb";
@@ -74,9 +74,9 @@ export class Listener extends jspb.Message {
   setAggregateListener(value?: AggregateListener): void;
 
   clearSslConfigurationsList(): void;
-  getSslConfigurationsList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig>;
-  setSslConfigurationsList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig>): void;
-  addSslConfigurations(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig, index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig;
+  getSslConfigurationsList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig>;
+  setSslConfigurationsList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig>): void;
+  addSslConfigurations(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig, index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig;
 
   hasUseProxyProto(): boolean;
   clearUseProxyProto(): void;
@@ -124,7 +124,7 @@ export namespace Listener {
     tcpListener?: TcpListener.AsObject,
     hybridListener?: HybridListener.AsObject,
     aggregateListener?: AggregateListener.AsObject,
-    sslConfigurationsList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject>,
+    sslConfigurationsList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.AsObject>,
     useProxyProto?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     options?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_pb.ListenerOptions.AsObject,
     metadata?: google_protobuf_struct_pb.Struct.AsObject,
@@ -185,8 +185,8 @@ export class TcpHost extends jspb.Message {
 
   hasSslConfig(): boolean;
   clearSslConfig(): void;
-  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig | undefined;
-  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig): void;
+  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig | undefined;
+  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig): void;
 
   hasDestination(): boolean;
   clearDestination(): void;
@@ -206,7 +206,7 @@ export class TcpHost extends jspb.Message {
 export namespace TcpHost {
   export type AsObject = {
     name: string,
-    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject,
+    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.AsObject,
     destination?: TcpHost.TcpAction.AsObject,
   }
 
@@ -331,9 +331,9 @@ export class MatchedListener extends jspb.Message {
   setTcpListener(value?: TcpListener): void;
 
   clearSslConfigurationsList(): void;
-  getSslConfigurationsList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig>;
-  setSslConfigurationsList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig>): void;
-  addSslConfigurations(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig, index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig;
+  getSslConfigurationsList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig>;
+  setSslConfigurationsList(value: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig>): void;
+  addSslConfigurations(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig, index?: number): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig;
 
   getListenertypeCase(): MatchedListener.ListenertypeCase;
   serializeBinary(): Uint8Array;
@@ -351,7 +351,7 @@ export namespace MatchedListener {
     matcher?: Matcher.AsObject,
     httpListener?: HttpListener.AsObject,
     tcpListener?: TcpListener.AsObject,
-    sslConfigurationsList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject>,
+    sslConfigurationsList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.AsObject>,
   }
 
   export enum ListenertypeCase {
@@ -364,8 +364,8 @@ export namespace MatchedListener {
 export class Matcher extends jspb.Message {
   hasSslConfig(): boolean;
   clearSslConfig(): void;
-  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig | undefined;
-  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig): void;
+  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig | undefined;
+  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig): void;
 
   clearSourcePrefixRangesList(): void;
   getSourcePrefixRangesList(): Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange>;
@@ -384,7 +384,7 @@ export class Matcher extends jspb.Message {
 
 export namespace Matcher {
   export type AsObject = {
-    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.SslConfig.AsObject,
+    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.SslConfig.AsObject,
     sourcePrefixRangesList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb.CidrRange.AsObject>,
   }
 }

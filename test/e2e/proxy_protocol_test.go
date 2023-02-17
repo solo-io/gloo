@@ -23,6 +23,7 @@ import (
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloossl "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/ssl"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	gloohelpers "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/v1helpers"
@@ -200,8 +201,8 @@ var _ = Describe("Proxy Protocol", func() {
 				// https gateway
 				gateway = gatewaydefaults.DefaultSslGateway(defaults.GlooSystem)
 				// vs with sslConfig
-				sslConfig := &gloov1.SslConfig{
-					SslSecrets: &gloov1.SslConfig_SecretRef{
+				sslConfig := &gloossl.SslConfig{
+					SslSecrets: &gloossl.SslConfig_SecretRef{
 						SecretRef: secret.Metadata.Ref(),
 					},
 				}
@@ -257,8 +258,8 @@ var _ = Describe("Proxy Protocol", func() {
 						},
 					}
 
-					sslConfig := &gloov1.SslConfig{
-						SslSecrets: &gloov1.SslConfig_SecretRef{
+					sslConfig := &gloossl.SslConfig{
+						SslSecrets: &gloossl.SslConfig_SecretRef{
 							SecretRef: secret.Metadata.Ref(),
 						},
 						SniDomains: []string{"gateway-proxy"},
@@ -354,7 +355,7 @@ func getHttpClient(rootCACert string, proxyProtocolBytes []byte) (*http.Client, 
 
 }
 
-func getVirtualServiceToUpstream(upstreamRef *core.ResourceRef, sslConfig *gloov1.SslConfig) *gatewayv1.VirtualService {
+func getVirtualServiceToUpstream(upstreamRef *core.ResourceRef, sslConfig *gloossl.SslConfig) *gatewayv1.VirtualService {
 	vs := &gatewayv1.VirtualService{
 		Metadata: &core.Metadata{
 			Name:      "vs",

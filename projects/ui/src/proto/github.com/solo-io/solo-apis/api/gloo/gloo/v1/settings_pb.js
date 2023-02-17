@@ -22,7 +22,7 @@ var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_caching_cac
 var github_com_solo$io_solo$apis_api_gloo_enterprise_gloo_v1_auth_config_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/enterprise.gloo/v1/auth_config_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_enterprise_options_rbac_rbac_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/enterprise/options/rbac/rbac_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_circuit_breaker_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/circuit_breaker_pb.js');
-var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb.js');
+var github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_external_envoy_extensions_aws_filter_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/extensions/aws/filter_pb.js');
 var github_com_solo$io_solo$apis_api_gloo_gloo_v1_options_consul_query_options_pb = require('../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/consul/query_options_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
@@ -6182,7 +6182,7 @@ proto.gloo.solo.io.UpstreamOptions.prototype.toObject = function(opt_includeInst
  */
 proto.gloo.solo.io.UpstreamOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
-    sslParameters: (f = msg.getSslParameters()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslParameters.toObject(includeInstance, f),
+    sslParameters: (f = msg.getSslParameters()) && github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslParameters.toObject(includeInstance, f),
     globalAnnotationsMap: (f = msg.getGlobalAnnotationsMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
@@ -6221,8 +6221,8 @@ proto.gloo.solo.io.UpstreamOptions.deserializeBinaryFromReader = function(msg, r
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslParameters;
-      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslParameters.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslParameters;
+      reader.readMessage(value,github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslParameters.deserializeBinaryFromReader);
       msg.setSslParameters(value);
       break;
     case 2:
@@ -6265,7 +6265,7 @@ proto.gloo.solo.io.UpstreamOptions.serializeBinaryToWriter = function(message, w
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslParameters.serializeBinaryToWriter
+      github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslParameters.serializeBinaryToWriter
     );
   }
   f = message.getGlobalAnnotationsMap(true);
@@ -6281,7 +6281,7 @@ proto.gloo.solo.io.UpstreamOptions.serializeBinaryToWriter = function(message, w
  */
 proto.gloo.solo.io.UpstreamOptions.prototype.getSslParameters = function() {
   return /** @type{?proto.gloo.solo.io.SslParameters} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_pb.SslParameters, 1));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$apis_api_gloo_gloo_v1_ssl_ssl_pb.SslParameters, 1));
 };
 
 

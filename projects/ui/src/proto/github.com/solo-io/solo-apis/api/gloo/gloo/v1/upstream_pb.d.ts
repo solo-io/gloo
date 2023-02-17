@@ -5,7 +5,7 @@
 import * as jspb from "google-protobuf";
 import * as google_protobuf_struct_pb from "google-protobuf/google/protobuf/struct_pb";
 import * as extproto_ext_pb from "../../../../../../../extproto/ext_pb";
-import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_circuit_breaker_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/circuit_breaker_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_load_balancer_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/load_balancer_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_connection_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/connection_pb";
@@ -20,6 +20,7 @@ import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_azure_azure_pb
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_consul_consul_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/consul/consul_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_options_aws_ec2_aws_ec2_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/options/aws/ec2/aws_ec2_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_failover_pb from "../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/failover_pb";
+import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
 export class UpstreamSpec extends jspb.Message {
@@ -30,8 +31,8 @@ export class UpstreamSpec extends jspb.Message {
 
   hasSslConfig(): boolean;
   clearSslConfig(): void;
-  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig | undefined;
-  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig): void;
+  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig | undefined;
+  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig): void;
 
   hasCircuitBreakers(): boolean;
   clearCircuitBreakers(): void;
@@ -133,8 +134,8 @@ export class UpstreamSpec extends jspb.Message {
 
   hasHttpConnectSslConfig(): boolean;
   clearHttpConnectSslConfig(): void;
-  getHttpConnectSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig | undefined;
-  setHttpConnectSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig): void;
+  getHttpConnectSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig | undefined;
+  setHttpConnectSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig): void;
 
   clearHttpConnectHeadersList(): void;
   getHttpConnectHeadersList(): Array<HeaderValue>;
@@ -145,6 +146,16 @@ export class UpstreamSpec extends jspb.Message {
   clearIgnoreHealthOnHostRemoval(): void;
   getIgnoreHealthOnHostRemoval(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setIgnoreHealthOnHostRemoval(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+  hasRespectDnsTtl(): boolean;
+  clearRespectDnsTtl(): void;
+  getRespectDnsTtl(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setRespectDnsTtl(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+  hasDnsRefreshRate(): boolean;
+  clearDnsRefreshRate(): void;
+  getDnsRefreshRate(): google_protobuf_duration_pb.Duration | undefined;
+  setDnsRefreshRate(value?: google_protobuf_duration_pb.Duration): void;
 
   getUpstreamTypeCase(): UpstreamSpec.UpstreamTypeCase;
   serializeBinary(): Uint8Array;
@@ -160,7 +171,7 @@ export class UpstreamSpec extends jspb.Message {
 export namespace UpstreamSpec {
   export type AsObject = {
     discoveryMetadata?: DiscoveryMetadata.AsObject,
-    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.AsObject,
+    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.AsObject,
     circuitBreakers?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
     loadBalancerConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_load_balancer_pb.LoadBalancerConfig.AsObject,
     healthChecksList: Array<github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_api_v2_core_health_check_pb.HealthCheck.AsObject>,
@@ -181,9 +192,11 @@ export namespace UpstreamSpec {
     maxConcurrentStreams?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     overrideStreamErrorOnInvalidHttpMessage?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     httpProxyHostname?: google_protobuf_wrappers_pb.StringValue.AsObject,
-    httpConnectSslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_pb.UpstreamSslConfig.AsObject,
+    httpConnectSslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.AsObject,
     httpConnectHeadersList: Array<HeaderValue.AsObject>,
     ignoreHealthOnHostRemoval?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    respectDnsTtl?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    dnsRefreshRate?: google_protobuf_duration_pb.Duration.AsObject,
   }
 
   export interface ClusterProtocolSelectionMap {

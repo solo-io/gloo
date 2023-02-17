@@ -8,6 +8,7 @@ import * as validate_validate_pb from "../../../../../../../../../validate/valid
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as github_com_solo_io_solo_apis_api_gloo_gloo_external_envoy_config_core_v3_address_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/external/envoy/config/core/v3/address_pb";
+import * as github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb from "../../../../../../../../../github.com/solo-io/solo-apis/api/gloo/gloo/v1/ssl/ssl_pb";
 
 export class FilterConfig extends jspb.Message {
   hasDnsCacheConfig(): boolean;
@@ -17,6 +18,11 @@ export class FilterConfig extends jspb.Message {
 
   getSaveUpstreamAddress(): boolean;
   setSaveUpstreamAddress(value: boolean): void;
+
+  hasSslConfig(): boolean;
+  clearSslConfig(): void;
+  getSslConfig(): github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig | undefined;
+  setSslConfig(value?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): FilterConfig.AsObject;
@@ -32,6 +38,7 @@ export namespace FilterConfig {
   export type AsObject = {
     dnsCacheConfig?: DnsCacheConfig.AsObject,
     saveUpstreamAddress: boolean,
+    sslConfig?: github_com_solo_io_solo_apis_api_gloo_gloo_v1_ssl_ssl_pb.UpstreamSslConfig.AsObject,
   }
 }
 
