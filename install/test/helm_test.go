@@ -1706,6 +1706,76 @@ gloo:
 					Expect(extAuthResources.NumResources()).To(Equal(4), "Expecting ExtAuth Deployment, Service, ServiceAccount, and Secret")
 					Expect(strings.Count(configMap.Data["custom-resources"], "gloo: extauth")).To(Equal(1), "Expecting ExtAuth Upstream")
 				})
+
+				It("Redis/Extauth objects are built when default gwProxy is disabled and custom gwProxy has name starting with [a-f]", func() {
+					helmOverrideFile := "helm-override-*.yaml"
+					tmpFile, err := ioutil.TempFile("", helmOverrideFile)
+					Expect(err).ToNot(HaveOccurred())
+					_, err = tmpFile.WriteString(`gloo:
+  gatewayProxies:
+    publicGw: # Proxy name for public access (Internet facing)
+      disabled: false # overwrite the "default" value in the merge step
+      kind:
+        deployment:
+          replicas: 2
+      service:
+        kubeResourceOverride: # workaround for https://github.com/solo-io/gloo/issues/5297
+          spec:
+            ports:
+              - port: 443
+                protocol: TCP
+                name: https
+                targetPort: 8443
+            type: LoadBalancer
+      gatewaySettings:
+        customHttpsGateway: # using the default HTTPS Gateway
+          virtualServiceSelector:
+            gateway-type: public # label set on the VirtualService
+        disableHttpGateway: true # disable the default HTTP Gateway
+    privateGw: # Proxy name for private access (intranet facing)
+      disabled: false # overwrite the "default" value in the merge step
+      service:
+        httpPort: 80
+        httpsFirst: false
+        httpsPort: 443
+        httpNodePort: 32080 # random port to be fixed in your private network
+        type: NodePort
+      gatewaySettings:
+        customHttpGateway: # using the default HTTP Gateway
+          virtualServiceSelector:
+            gateway-type: private # label set on the VirtualService
+        disableHttpsGateway: true # disable the default HTTPS Gateway
+    gatewayProxy:
+      disabled: true # disable the default gateway-proxy deployment and its 2 default Gateway CRs
+`)
+					Expect(err).NotTo(HaveOccurred())
+					defer tmpFile.Close()
+					defer os.Remove(tmpFile.Name())
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesFile: tmpFile.Name(),
+					})
+					Expect(err).NotTo(HaveOccurred())
+					// upstreams are stored as yaml in a configmap
+					configMap := getConfigMap(testManifest, namespace, "gloo-ee-custom-resource-config")
+					Expect(configMap.Data).ToNot(BeNil())
+					Expect(configMap.Data["custom-resources"]).NotTo(BeEmpty())
+
+					rateLimitResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetLabels()["gloo"] == "rate-limit"
+					})
+					Expect(rateLimitResources.NumResources()).To(Equal(3), "Expecting RateLimit Deployment, Service, and ServiceAccount")
+					Expect(strings.Count(configMap.Data["custom-resources"], "gloo: rate-limit")).To(Equal(1), "Expecting RateLimit Upstream")
+
+					redisResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetLabels()["gloo"] == "redis"
+					})
+					Expect(redisResources.NumResources()).To(Equal(3), "Expecting Redis Deployment, Service, and Secret")
+
+					extAuthResources := testManifest.SelectResources(func(unstructured *unstructured.Unstructured) bool {
+						return unstructured.GetLabels()["gloo"] == "extauth"
+					})
+					Expect(extAuthResources.NumResources()).To(Equal(4), "Expecting ExtAuth Deployment, Service, ServiceAccount, and Secret")
+				})
 			})
 
 			It("allows setting the number of replicas for the deployment", func() {

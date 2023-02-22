@@ -410,6 +410,7 @@ func checkGlooHealthy(testHelper *helper.SoloTestHelper) {
 func glooctlCheckEventuallyHealthy(offset int, testHelper *helper.SoloTestHelper, timeoutInterval string) {
 	EventuallyWithOffset(offset, func() error {
 		contextWithCancel, cancel := context.WithCancel(context.Background())
+		defer cancel() //attempt to avoid hitting go-routine limit
 		opts := &options.Options{
 			Metadata: core.Metadata{
 				Namespace: testHelper.InstallNamespace,
@@ -427,7 +428,6 @@ func glooctlCheckEventuallyHealthy(offset int, testHelper *helper.SoloTestHelper
 		if err != nil {
 			return eris.Wrap(err, "glooctl check detected a problem with the installation")
 		}
-		cancel() //attempt to avoid hitting go-routine limit
 		return nil
 	}, timeoutInterval, "5s").Should(BeNil())
 }

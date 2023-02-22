@@ -232,8 +232,17 @@ Expand the name of the chart.
 {{- if $.Values.global.extensions.dataplanePerProxy }}
 {{ $proxiesToCreateDataplaneFor = merge $proxiesToCreateDataplaneFor .Values.gloo.gatewayProxies }}
 {{- else }}
-{{- $firstKey := keys .Values.gloo.gatewayProxies | sortAlpha | first }}
-{{- $proxiesToCreateDataplaneFor = pick .Values.gloo.gatewayProxies $firstKey }}
+{{/*
+Find the first gateway proxy that isn't disabled
+*/}}
+{{- $nonDisabledGwProxies := dict }}
+{{- range $gwProxyName, $gwProxy := .Values.gloo.gatewayProxies -}}
+{{- if not $gwProxy.disabled }}
+{{- $nonDisabledGwProxies := set $nonDisabledGwProxies $gwProxyName $gwProxy}}
+{{- end }}
+{{- end }}
+{{- $firstKey := keys $nonDisabledGwProxies | sortAlpha | first }}
+{{- $proxiesToCreateDataplaneFor = pick $nonDisabledGwProxies $firstKey }}
 {{- end }}
 {{- $_ := set $ "ProxiesToCreateDataplaneFor" $proxiesToCreateDataplaneFor -}}
 {{- end }}

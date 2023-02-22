@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    issueLink: https://github.com/solo-io/gloo/issues/5298
+    description: Fixed bug where CRs are not rendered in helm chart if lexicographically smallest gwProxy disabled
