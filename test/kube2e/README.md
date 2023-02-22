@@ -24,7 +24,7 @@ As part of CI in Gloo, we publish the helm chart. These assets are published to 
 Step #14 - "release-chart": Uploading helm chart to gs://solo-public-tagged-helm with name gloo-1.12.0-beta5-6341.tgz
 ```
 
-We need to update the [gloo subchart dependency](https://github.com/solo-io/solo-projects/blob/393276665446d69fcfde7d5e65cc9c678ab3a100/install/helm/gloo-ee/requirements-template.yaml#L2) to point to this path. An example is below:
+We need to update the [gloo subchart dependency](https://github.com/solo-io/solo-projects/blob/393276665446d69fcfde7d5e65cc9c678ab3a100/install/helm/gloo-ee/requirements-template.yaml#L2) to point to this path. An example is below, please note that the `repository` needs to change as well as the `version`:
 
 ```text
 dependencies:

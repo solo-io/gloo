@@ -42,6 +42,10 @@ spec:
       initContainers:
         - name: createconf
           image: {{template "glooe.imagenonextended" $initImage}}
+          {{- with .Values.redis.deployment.initContainer.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12  }}
+          {{- end }}
           command: [ "/bin/sh", "-c", "echo 'aclfile /redis-acl/users.acl' > /conf/redis.conf" ]
           volumeMounts:
             - name: conf
@@ -51,6 +55,10 @@ spec:
         - image: {{template "glooe.imagenonextended" $image}}
           imagePullPolicy:  {{ $image.pullPolicy }}
           name: redis
+          {{- with .Values.redis.deployment.redisContainerSecurityContext }}
+          securityContext:
+          {{- toYaml . | nindent 12  }}
+          {{- end }}
           {{- if or .Values.redis.cert.enabled .Values.global.extensions.glooRedis.enableAcl }}
           args:
             {{- if .Values.redis.cert.enabled }}
@@ -91,12 +99,17 @@ spec:
 {{ toYaml .Values.redis.deployment.resources | indent 12}}
           {{- end}}
       {{- if .Values.redis.deployment.enablePodSecurityContext }}
+        {{- $fmtRunAsUser := int64 (printf "%.0f" (float64 .Values.redis.deployment.runAsUser)) }}
+        {{- $fmtRunAsGroup := int64 (printf "%.0f" (float64 .Values.redis.deployment.runAsGroup)) }}
+        {{- $fmtFsGroup := int64 (printf "%.0f" (float64 .Values.redis.deployment.fsGroup )) }}
+        {{- $securityDefaults := dict "runAsNonRoot" true "runAsGroup" $fmtRunAsGroup "fsGroup" $fmtFsGroup}}
+        {{- if not .Values.redis.deployment.floatingUserId -}}
+          {{- $_ := set $securityDefaults "runAsUser" $fmtRunAsUser }}
+        {{- end -}}
+        {{- $securityContext := or  .Values.redis.deployment.podSecurityContext $securityDefaults }}
+        {{- with $securityContext }}
       securityContext:
-        runAsNonRoot: true
-        runAsGroup: {{ printf "%.0f" (float64 .Values.redis.deployment.runAsGroup) }}
-        fsGroup: {{ printf "%.0f" (float64 .Values.redis.deployment.fsGroup) }}
-        {{- if not .Values.redis.deployment.floatingUserId }}
-        runAsUser: {{ printf "%.0f" (float64 .Values.redis.deployment.runAsUser) -}}
+        {{- toYaml . | nindent 8  }}
         {{- end }}
       {{- end }}
       volumes:

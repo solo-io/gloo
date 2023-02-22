@@ -1,0 +1,19 @@
+changelog:
+  - type: HELM
+    description: >
+      Added the ability to specify the container SecurityContexts PodSecurityContext for the Redis and rateLimit
+      deployment charts by setting values for:
+        global.extensions.rateLimit.deployment.podSecurityContext
+        global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext
+        redis.deployment.podSecurityContext 
+        redis.deployment.redisContainerSecurityContext
+        redis.deployment.initContainer.securityContext
+        global.glooMtls.envoy.securityContext
+        global.glooMtls.sds.securityContext
+    issueLink: https://github.com/solo-io/gloo/issues/7473
+    resolvesIssue: false
+  - type: NON_USER_FACING
+    description: >
+      Moving the check-solo-apis action to later in the pipeline, so that in situations where it will fail,
+      such as when using an unreleased/unmerged/development branch of gloo. This is because the action will fail, 
+      but will at least fail late and allow developers to see if tests ran properly

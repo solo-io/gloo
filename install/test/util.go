@@ -31,6 +31,11 @@ func (ec *ExpectContainer) ExpectToHaveVolumeMount(name string) *v1.VolumeMount 
 	return vm
 }
 
+func (ec *ExpectContainer) ExpectToHaveSecurityContext(expected_sc *v1.SecurityContext) {
+	container_sc := ec.getSecurityContext()
+	Expect(container_sc).To(BeEquivalentTo(expected_sc))
+}
+
 func (ec *ExpectContainer) ExpectToNotHaveVolumeMount(name string) *v1.VolumeMount {
 	vm := ec.getVolumeMount(name)
 	Expect(vm).To(BeNil())
@@ -54,6 +59,11 @@ func (ec *ExpectContainer) getVolumeMount(name string) *v1.VolumeMount {
 		}
 	}
 	return nil
+}
+
+func (ec *ExpectContainer) getSecurityContext() *v1.SecurityContext {
+	c := ec.getContainer()
+	return c.SecurityContext
 }
 
 func (ec *ExpectContainer) hasArgument(arg string) bool {

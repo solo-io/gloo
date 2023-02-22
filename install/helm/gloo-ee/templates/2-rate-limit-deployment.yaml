@@ -51,6 +51,10 @@ spec:
         - image: {{ template "gloo.image" $image}}
           imagePullPolicy: {{ $image.pullPolicy }}
           name: rate-limit
+          {{- with .Values.global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext }}
+          securityContext:
+          {{- toYaml . | nindent 12  }}
+          {{- end }}
           {{- if .Values.global.extensions.rateLimit.deployment.resources }}
           resources:
 {{ toYaml .Values.global.extensions.rateLimit.deployment.resources | indent 12}}
@@ -238,6 +242,10 @@ spec:
             - name: ENVOY_SIDECAR
               value: "true"
           image: {{ template "gloo.image" $envoyImage }}
+          {{- with .Values.global.glooMtls.envoy.securityContext }}}
+          securityContext:
+          {{- toYaml . | nindent 12  }}
+          {{- end }}
           imagePullPolicy: {{ $envoyImage.pullPolicy }}
           volumeMounts:
             - mountPath: /etc/envoy
@@ -260,6 +268,10 @@ spec:
         {{- $sdsImage := merge .Values.global.glooMtls.sds.image .Values.global.image }}
         - name: sds
           image: {{ template "gloo.image" $sdsImage }}
+          {{- with .Values.global.glooMtls.sds.securityContext }}
+          securityContext:
+          {{- toYaml . | nindent 12  }}
+          {{- end }}
           imagePullPolicy: {{ $sdsImage.pullPolicy }}
           env:
             - name: GLOO_MTLS_SDS_ENABLED
@@ -273,14 +285,19 @@ spec:
 {{ toYaml .Values.global.glooMtls.sdsResources | indent 12}}
           {{- end }}
         {{- end }}{{/* End SDS container */}}
+      {{- $securityDefaults := dict "runAsNonRoot" true }}
+      {{- /* set floatingUserId to true in the helm install to let the pod be assigned a dynamic user ID */ -}}
+      {{- /* see https://github.com/helm/helm/issues/1707#issuecomment-520357573 */ -}}
+      {{- /* the user id may be set quite high -- openshift wants userids that may get printed as scientific notation */}}
+      {{- if not .Values.global.extensions.rateLimit.deployment.floatingUserId -}}
+        {{- $fmtRunAsUser := int64 (printf "%.0f" (float64 .Values.global.extensions.rateLimit.deployment.runAsUser)) }}
+        {{- $_ := set $securityDefaults "runAsUser" $fmtRunAsUser }}
+      {{- end -}}
+      {{- $securityContext := or  .Values.global.extensions.rateLimit.deployment.podSecurityContext $securityDefaults }}
+      {{- with $securityContext }}
       securityContext:
-        runAsNonRoot: true
-        {{- /* set floatingUserId to true in the helm install to let the pod be assigned a dynamic user ID */ -}}
-        {{- /* see https://github.com/helm/helm/issues/1707#issuecomment-520357573 */ -}}
-        {{- /* the user id may be set quite high -- openshift wants userids that may get printed as scientific notation */}}
-        {{- if not .Values.global.extensions.rateLimit.deployment.floatingUserId }}
-        runAsUser: {{ printf "%.0f" (float64 .Values.global.extensions.rateLimit.deployment.runAsUser) -}}
-        {{- end }}
+        {{- toYaml . | nindent 8  }}
+      {{- end }}
       {{ if or (.Values.global.extensions.rateLimit.antiAffinity) (.Values.global.extensions.rateLimit.affinity) }}
       affinity:
       {{- end}}

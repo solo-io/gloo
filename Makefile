@@ -249,7 +249,7 @@ PROTOC_IMPORT_PATH:=$(ROOTDIR)/vendor_any
 MAX_CONCURRENT_PROTOCS ?= 10
 
 .PHONY: generate-all
-generate-all: check-solo-apis generated-code generate-gloo-fed generate-helm-docs build-stitching-bundles
+generate-all: generated-code generate-gloo-fed generate-helm-docs build-stitching-bundles
 
 GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' ' -f2)
 

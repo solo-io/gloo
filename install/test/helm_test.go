@@ -3632,20 +3632,32 @@ spec:
 			})
 
 			It("can override redis images", func() {
+				podSecurityRoot := "redis.deployment.podSecurityContext"
+				containerSecurityRoot := "redis.deployment.redisContainerSecurityContext"
+				initContainerSecurityRoot := "redis.deployment.initContainer.securityContext"
+				valuesArgs := append([]string{
+					"redis.deployment.image.registry=X",
+					"redis.deployment.image.repository=Y",
+					"redis.deployment.image.tag=Z",
+					"redis.deployment.initContainer.image.registry=A",
+					"redis.deployment.initContainer.image.repository=B",
+					"redis.deployment.initContainer.image.tag=C"},
+					getPodSecurityContextValues(podSecurityRoot)...,
+				)
+				valuesArgs = append(valuesArgs, getContainerSecurityContextValues(containerSecurityRoot, "redis")...)
+				valuesArgs = append(valuesArgs, getContainerSecurityContextValues(initContainerSecurityRoot, "init")...)
+
 				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
-					valuesArgs: []string{
-						"redis.deployment.image.registry=X",
-						"redis.deployment.image.repository=Y",
-						"redis.deployment.image.tag=Z",
-						"redis.deployment.initContainer.image.registry=A",
-						"redis.deployment.initContainer.image.repository=B",
-						"redis.deployment.initContainer.image.tag=C",
-					},
+					valuesArgs: valuesArgs,
 				})
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedDeployment.Spec.Template.Spec.Containers[0].Image = "X/Y:Z"
 				expectedDeployment.Spec.Template.Spec.InitContainers[0].Image = "A/B:C"
+				expectedDeployment.Spec.Template.Spec.SecurityContext = getPodSecurityContext()
+				expectedDeployment.Spec.Template.Spec.Containers[0].SecurityContext = getContainerSecurityContext("redis")
+				expectedDeployment.Spec.Template.Spec.InitContainers[0].SecurityContext = getContainerSecurityContext("init")
+
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
 		})
@@ -4243,6 +4255,58 @@ spec:
 
 				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
 			})
+
+			It("can override rate limit security context", func() {
+				podSecurityRoot := "global.extensions.rateLimit.deployment.podSecurityContext"
+				containerSecurityRoot := "global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext"
+				valuesArgs := append(getPodSecurityContextValues(podSecurityRoot), getContainerSecurityContextValues(containerSecurityRoot, "rateLimit")...)
+
+				testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+					valuesArgs: valuesArgs,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				expectedDeployment.Spec.Template.Spec.SecurityContext = getPodSecurityContext()
+				expectedDeployment.Spec.Template.Spec.Containers[0].SecurityContext = getContainerSecurityContext("rateLimit")
+
+				testManifest.ExpectDeploymentAppsV1(expectedDeployment)
+			})
+
+			DescribeTable("Container securityContexts can be set in redis and rate-limit deployment charts",
+				func(podGlooName string, containerName string, containerSecurityRoot string) {
+					valuesArgs := append([]string{
+						"global.glooMtls.enabled=true"},
+						getContainerSecurityContextValues(containerSecurityRoot, containerName)...,
+					)
+
+					testManifest, err := BuildTestManifest(install.GlooEnterpriseChartName, namespace, helmValues{
+						valuesArgs: valuesArgs,
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					foundContainerCount := 0
+					testManifest.SelectResources(func(resource *unstructured.Unstructured) bool {
+						return resource.GetKind() == "Deployment" && resource.GetLabels()["gloo"] == podGlooName
+					}).ExpectAll(func(deployment *unstructured.Unstructured) {
+						deploymentObject, err := kuberesource.ConvertUnstructured(deployment)
+						Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Deployment %+v should be able to convert from unstructured.", deployment))
+						structuredDeployment, ok := deploymentObject.(*appsv1.Deployment)
+						Expect(ok).To(BeTrue(), fmt.Sprintf("Deployment %+v should be able to cast to a structured deployment.", deployment))
+
+						foundContainerCount++
+						ex := ExpectContainer{
+							Containers: structuredDeployment.Spec.Template.Spec.Containers,
+							Name:       containerName,
+						}
+						ex.ExpectToHaveSecurityContext(getContainerSecurityContext(containerName))
+					})
+
+					Expect(foundContainerCount).To(Equal(1))
+				},
+				Entry("2-rate-limit-deployment-sds", "rate-limit", "sds", "global.glooMtls.sds.securityContext"),
+				Entry("2-rate-limit-deployment-sds", "rate-limit", "envoy-sidecar", "global.glooMtls.envoy.securityContext"),
+				Entry("2-rate-limit-deployment-rate-limit", "rate-limit", "rate-limit", "global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext"),
+				Entry("1-redis-deployment-sds", "redis", "redis", "redis.deployment.redisContainerSecurityContext"),
+			)
 		})
 
 		Context("caching deployment", func() {
@@ -5415,4 +5479,111 @@ func getConfigMap(testManifest TestManifest, namespace string, name string) *v1.
 	Expect(err).NotTo(HaveOccurred())
 	Expect(configMapObj).To(BeAssignableToTypeOf(&v1.ConfigMap{}))
 	return configMapObj.(*v1.ConfigMap)
+}
+
+func getPodSecurityContext() *v1.PodSecurityContext {
+	fsGroupChangePolicy := v1.PodFSGroupChangePolicy("fsGroupChangePolicyValue")
+	return &v1.PodSecurityContext{
+		FSGroup:             pointer.Int64(int64(101010)),
+		FSGroupChangePolicy: &fsGroupChangePolicy,
+		RunAsGroup:          pointer.Int64(int64(202020)),
+		RunAsNonRoot:        pointer.Bool(true),
+		RunAsUser:           pointer.Int64(int64(303030)),
+		SupplementalGroups:  []int64{int64(11), int64(22), int64(33)},
+		SELinuxOptions: &v1.SELinuxOptions{
+			Level: "seLevel",
+			Role:  "seRole",
+			Type:  "seType",
+			User:  "seUser",
+		},
+		SeccompProfile: &v1.SeccompProfile{
+			LocalhostProfile: pointer.String("seccompLHP"),
+			Type:             "seccompType",
+		},
+		WindowsOptions: &v1.WindowsSecurityContextOptions{
+			GMSACredentialSpecName: pointer.String("winGmsaCredSpecName"),
+			GMSACredentialSpec:     pointer.String("winGmsaCredSpec"),
+			RunAsUserName:          pointer.String("winUser"),
+			HostProcess:            pointer.Bool(true),
+		},
+		Sysctls: []v1.Sysctl{
+			{
+				Name:  "sysctlName",
+				Value: "sysctlValue",
+			},
+		},
+	}
+}
+
+func getPodSecurityContextValues(securityRoot string) []string {
+	return []string{
+		securityRoot + ".fsGroup=101010",
+		securityRoot + ".fsGroupChangePolicy=fsGroupChangePolicyValue",
+		securityRoot + ".runAsGroup=202020",
+		securityRoot + ".runAsNonRoot=true",
+		securityRoot + ".runAsUser=303030",
+		securityRoot + ".supplementalGroups={11,22,33}",
+		securityRoot + ".seLinuxOptions.level=seLevel",
+		securityRoot + ".seLinuxOptions.role=seRole",
+		securityRoot + ".seLinuxOptions.type=seType",
+		securityRoot + ".seLinuxOptions.user=seUser",
+		securityRoot + ".seccompProfile.localhostProfile=seccompLHP",
+		securityRoot + ".seccompProfile.type=seccompType",
+		securityRoot + ".windowsOptions.gmsaCredentialSpec=winGmsaCredSpec",
+		securityRoot + ".windowsOptions.gmsaCredentialSpecName=winGmsaCredSpecName",
+		securityRoot + ".windowsOptions.hostProcess=true",
+		securityRoot + ".windowsOptions.runAsUserName=winUser",
+		securityRoot + ".sysctls[0].name=sysctlName",
+		securityRoot + ".sysctls[0].value=sysctlValue",
+	}
+}
+
+func getContainerSecurityContext(id_token string) *v1.SecurityContext {
+	return &v1.SecurityContext{
+		RunAsUser:                pointer.Int64(int64(1234)),
+		AllowPrivilegeEscalation: pointer.Bool(true),
+		ReadOnlyRootFilesystem:   pointer.Bool(false),
+		RunAsNonRoot:             pointer.Bool(true),
+		SELinuxOptions: &v1.SELinuxOptions{
+			Level: "seLevel" + id_token,
+			Role:  "seRole" + id_token,
+			Type:  "seType" + id_token,
+			User:  "seUser" + id_token,
+		},
+		Capabilities: &v1.Capabilities{
+			Add:  []v1.Capability{"ADD"},
+			Drop: []v1.Capability{"DROP"},
+		},
+		SeccompProfile: &v1.SeccompProfile{
+			LocalhostProfile: pointer.String("seccompLHP"),
+			Type:             "seccompType",
+		},
+		WindowsOptions: &v1.WindowsSecurityContextOptions{
+			GMSACredentialSpecName: pointer.String("winGmsaCredSpecName"),
+			GMSACredentialSpec:     pointer.String("winGmsaCredSpec"),
+			RunAsUserName:          pointer.String("winUser"),
+			HostProcess:            pointer.Bool(true),
+		},
+	}
+}
+
+func getContainerSecurityContextValues(securityRoot string, id_token string) []string {
+	return []string{
+		securityRoot + ".runAsNonRoot=true",
+		securityRoot + ".runAsUser=1234",
+		securityRoot + ".allowPrivilegeEscalation=true",
+		securityRoot + ".readOnlyRootFilesystem=false",
+		securityRoot + ".seLinuxOptions.level=seLevel" + id_token,
+		securityRoot + ".seLinuxOptions.role=seRole" + id_token,
+		securityRoot + ".seLinuxOptions.type=seType" + id_token,
+		securityRoot + ".seLinuxOptions.user=seUser" + id_token,
+		securityRoot + ".capabilities.add={ADD}",
+		securityRoot + ".capabilities.drop={DROP}",
+		securityRoot + ".seccompProfile.localhostProfile=seccompLHP",
+		securityRoot + ".seccompProfile.type=seccompType",
+		securityRoot + ".windowsOptions.gmsaCredentialSpec=winGmsaCredSpec",
+		securityRoot + ".windowsOptions.gmsaCredentialSpecName=winGmsaCredSpecName",
+		securityRoot + ".windowsOptions.hostProcess=true",
+		securityRoot + ".windowsOptions.runAsUserName=winUser",
+	}
 }

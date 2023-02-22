@@ -8,7 +8,7 @@ make update-all-deps
 
 set +e
 
-make generate-all -B  > /dev/null
+make generate-all check-solo-apis -B  > /dev/null
 
 if [[ $? -ne 0 ]]; then
   echo "Code generation failed"

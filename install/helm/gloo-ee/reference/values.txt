@@ -1212,15 +1212,6 @@
 |gloo.accessLogger.resources.requests.memory|string||amount of memory|
 |gloo.accessLogger.resources.requests.cpu|string||amount of CPUs|
 |gloo.accessLogger.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
-|redis.deployment.image.tag|string|6.2.4|The image tag for the container.|
-|redis.deployment.image.repository|string|redis|The image repository (name) for the container.|
-|redis.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
-|redis.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
-|redis.deployment.image.registry|string|docker.io|The image hostname prefix and registry, such as quay.io/solo-io.|
-|redis.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
-|redis.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
-|redis.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
-|redis.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |redis.deployment.initContainer.image.tag|string|1.28|The image tag for the container.|
 |redis.deployment.initContainer.image.repository|string|busybox|The image repository (name) for the container.|
 |redis.deployment.initContainer.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
@@ -1230,14 +1221,51 @@
 |redis.deployment.initContainer.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
 |redis.deployment.initContainer.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
 |redis.deployment.initContainer.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
+|redis.deployment.initContainer.securityContext.capabilities.add[]|string|||
+|redis.deployment.initContainer.securityContext.capabilities.drop[]|string|||
+|redis.deployment.initContainer.securityContext.privileged|bool|||
+|redis.deployment.initContainer.securityContext.seLinuxOptions.user|string|||
+|redis.deployment.initContainer.securityContext.seLinuxOptions.role|string|||
+|redis.deployment.initContainer.securityContext.seLinuxOptions.type|string|||
+|redis.deployment.initContainer.securityContext.seLinuxOptions.level|string|||
+|redis.deployment.initContainer.securityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|redis.deployment.initContainer.securityContext.windowsOptions.gmsaCredentialSpec|string|||
+|redis.deployment.initContainer.securityContext.windowsOptions.runAsUserName|string|||
+|redis.deployment.initContainer.securityContext.windowsOptions.hostProcess|bool|||
+|redis.deployment.initContainer.securityContext.runAsUser|int64|||
+|redis.deployment.initContainer.securityContext.runAsGroup|int64|||
+|redis.deployment.initContainer.securityContext.runAsNonRoot|bool|||
+|redis.deployment.initContainer.securityContext.readOnlyRootFilesystem|bool|||
+|redis.deployment.initContainer.securityContext.allowPrivilegeEscalation|bool|||
+|redis.deployment.initContainer.securityContext.procMount|string|||
+|redis.deployment.initContainer.securityContext.seccompProfile.type|string|||
+|redis.deployment.initContainer.securityContext.seccompProfile.localhostProfile|string|||
 |redis.deployment.name|string|redis||
 |redis.deployment.staticPort|uint|6379||
-|redis.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 999|
-|redis.deployment.runAsGroup|float64||Explicitly set the group ID for the container to run as. Default is 999|
-|redis.deployment.fsGroup|float64||Explicitly set the fsGroup ID for the container to run as. Default is 999|
-|redis.deployment.floatingUserId|bool|false|set to true to allow the cluster to dynamically assign a user ID|
+|redis.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as in the podSecurityContext. Default is 999. If a podSecurityContext is defined for the pod , this value is not applied.|
+|redis.deployment.runAsGroup|float64||Explicitly set the group ID for the container to run as in the podSecurityContext. Default is 999. If a podSecurityContext is defined for the pod, this value is not applied.|
+|redis.deployment.fsGroup|float64||Explicitly set the fsGroup ID for the container to run as in the podSecurityContext. Default is 999. If a podSecurityContext is defined for the pod, this value is not applied.|
+|redis.deployment.floatingUserId|bool|false|set to true to allow the cluster to dynamically assign a user ID. If podSecurityContext is defined, this value is not applied.|
 |redis.deployment.extraRedisLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the redis deployment.|
-|redis.deployment.enablePodSecurityContext|bool|true|Whether or not to render the pod security context. Default is true|
+|redis.deployment.enablePodSecurityContext|bool|true|Whether or not to render the pod security context. Default is true.|
+|redis.deployment.podSecurityContext.seLinuxOptions.user|string|||
+|redis.deployment.podSecurityContext.seLinuxOptions.role|string|||
+|redis.deployment.podSecurityContext.seLinuxOptions.type|string|||
+|redis.deployment.podSecurityContext.seLinuxOptions.level|string|||
+|redis.deployment.podSecurityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|redis.deployment.podSecurityContext.windowsOptions.gmsaCredentialSpec|string|||
+|redis.deployment.podSecurityContext.windowsOptions.runAsUserName|string|||
+|redis.deployment.podSecurityContext.windowsOptions.hostProcess|bool|||
+|redis.deployment.podSecurityContext.runAsUser|int64|||
+|redis.deployment.podSecurityContext.runAsGroup|int64|||
+|redis.deployment.podSecurityContext.runAsNonRoot|bool|||
+|redis.deployment.podSecurityContext.supplementalGroups[]|int64|||
+|redis.deployment.podSecurityContext.fsGroup|int64|||
+|redis.deployment.podSecurityContext.sysctls[].name|string|||
+|redis.deployment.podSecurityContext.sysctls[].value|string|||
+|redis.deployment.podSecurityContext.fsGroupChangePolicy|string|||
+|redis.deployment.podSecurityContext.seccompProfile.type|string|||
+|redis.deployment.podSecurityContext.seccompProfile.localhostProfile|string|||
 |redis.deployment.replicas|int||number of instances to deploy|
 |redis.deployment.customEnv[].name|string|||
 |redis.deployment.customEnv[].value|string|||
@@ -1276,6 +1304,34 @@
 |redis.deployment.resources.requests.cpu|string||amount of CPUs|
 |redis.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |redis.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|redis.deployment.redisContainerSecurityContext.capabilities.add[]|string|||
+|redis.deployment.redisContainerSecurityContext.capabilities.drop[]|string|||
+|redis.deployment.redisContainerSecurityContext.privileged|bool|||
+|redis.deployment.redisContainerSecurityContext.seLinuxOptions.user|string|||
+|redis.deployment.redisContainerSecurityContext.seLinuxOptions.role|string|||
+|redis.deployment.redisContainerSecurityContext.seLinuxOptions.type|string|||
+|redis.deployment.redisContainerSecurityContext.seLinuxOptions.level|string|||
+|redis.deployment.redisContainerSecurityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|redis.deployment.redisContainerSecurityContext.windowsOptions.gmsaCredentialSpec|string|||
+|redis.deployment.redisContainerSecurityContext.windowsOptions.runAsUserName|string|||
+|redis.deployment.redisContainerSecurityContext.windowsOptions.hostProcess|bool|||
+|redis.deployment.redisContainerSecurityContext.runAsUser|int64|||
+|redis.deployment.redisContainerSecurityContext.runAsGroup|int64|||
+|redis.deployment.redisContainerSecurityContext.runAsNonRoot|bool|||
+|redis.deployment.redisContainerSecurityContext.readOnlyRootFilesystem|bool|||
+|redis.deployment.redisContainerSecurityContext.allowPrivilegeEscalation|bool|||
+|redis.deployment.redisContainerSecurityContext.procMount|string|||
+|redis.deployment.redisContainerSecurityContext.seccompProfile.type|string|||
+|redis.deployment.redisContainerSecurityContext.seccompProfile.localhostProfile|string|||
+|redis.deployment.image.tag|string|6.2.4|The image tag for the container.|
+|redis.deployment.image.repository|string|redis|The image repository (name) for the container.|
+|redis.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|redis.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
+|redis.deployment.image.registry|string|docker.io|The image hostname prefix and registry, such as quay.io/solo-io.|
+|redis.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|redis.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|redis.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|redis.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |redis.service.port|uint|6379|This is the port set for the redis service.|
 |redis.service.name|string|redis|This is the name of the redis service. If there is an external service, this can be used to set the endpoint of the external service.  Set redis.disabled if setting the value of the redis service.|
 |redis.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
@@ -1722,15 +1778,6 @@
 |global.extensions.rateLimit.deployment.aerospike.tls.certSecretName|string||The name of the `kubernetes.io/tls` secret that has the `tls.crt` and `tls.key` data. To enable TLS, you must provide at least this value and the `name` value.|
 |global.extensions.rateLimit.deployment.aerospike.tls.rootCASecretName|string||The secret name for the Opaque root CA that sets the key as `tls.crt`.|
 |global.extensions.rateLimit.deployment.aerospike.tls.curveGroups[]|string||The TLS identifier for an elliptic curve. For more information, see [TLS supported groups](https://www.iana.org/assignments/tls-parameters/tls-parameters.xml#tls-parameters-8).|
-|global.extensions.rateLimit.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
-|global.extensions.rateLimit.deployment.image.repository|string|rate-limit-ee|The image repository (name) for the container.|
-|global.extensions.rateLimit.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
-|global.extensions.rateLimit.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
-|global.extensions.rateLimit.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
-|global.extensions.rateLimit.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
-|global.extensions.rateLimit.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
-|global.extensions.rateLimit.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
-|global.extensions.rateLimit.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |global.extensions.rateLimit.deployment.stats.enabled|bool||Controls whether or not Envoy stats are enabled|
 |global.extensions.rateLimit.deployment.stats.routePrefixRewrite|string||The Envoy stats endpoint to which the metrics are written|
 |global.extensions.rateLimit.deployment.stats.setDatadogAnnotations|bool||Sets the default datadog annotations|
@@ -1738,13 +1785,31 @@
 |global.extensions.rateLimit.deployment.stats.statsPrefixRewrite|string||The Envoy stats endpoint with general metrics for the additional stats route|
 |global.extensions.rateLimit.deployment.stats.serviceMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Service Monitor. Requires that 'enabled' is also true|
 |global.extensions.rateLimit.deployment.stats.podMonitorEnabled|bool||Whether or not to expose an http-monitoring port that can be scraped by a Prometheus Pod Monitor. Requires that 'enabled' is also true|
-|global.extensions.rateLimit.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as. Default is 10101|
+|global.extensions.rateLimit.deployment.runAsUser|float64||Explicitly set the user ID for the container to run as in the podSecurityContext. Default is 10101. If podSecurityContext is defined, this value is not applied.|
 |global.extensions.rateLimit.deployment.livenessProbeEnabled|bool||Set to true to enable a liveness probe for RateLimit (default is false).|
-|global.extensions.rateLimit.deployment.floatingUserId|bool|false|set to true to allow the cluster to dynamically assign a user ID|
+|global.extensions.rateLimit.deployment.floatingUserId|bool|false|set to true to allow the cluster to dynamically assign a user ID in the podSecurityContext. If podSecurityContext is defined, this value is not applied.|
 |global.extensions.rateLimit.deployment.extraRateLimitLabels.NAME|string||Optional extra key-value pairs to add to the spec.template.metadata.labels data of the rateLimit deployment.|
-|global.extensions.rateLimit.deployment.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info|
+|global.extensions.rateLimit.deployment.logLevel|string||Level at which the pod should log. Options include "info", "debug", "warn", "error", "panic" and "fatal". Default level is info.|
 |global.extensions.rateLimit.deployment.podDisruptionBudget.minAvailable|int32||An eviction is allowed if at least "minAvailable" pods selected by "selector" will still be available after the eviction, i.e. even in the absence of the evicted pod. So for example you can prevent all voluntary evictions by specifying "100%".|
 |global.extensions.rateLimit.deployment.podDisruptionBudget.maxUnavailable|int32||An eviction is allowed if at most "maxUnavailable" pods selected by "selector" are unavailable after the eviction, i.e. even in absence of the evicted pod. For example, one can prevent all voluntary evictions by specifying 0. This is a mutually exclusive setting with "minAvailable".|
+|global.extensions.rateLimit.deployment.podSecurityContext.seLinuxOptions.user|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.seLinuxOptions.role|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.seLinuxOptions.type|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.seLinuxOptions.level|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.windowsOptions.gmsaCredentialSpec|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.windowsOptions.runAsUserName|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.windowsOptions.hostProcess|bool|||
+|global.extensions.rateLimit.deployment.podSecurityContext.runAsUser|int64|||
+|global.extensions.rateLimit.deployment.podSecurityContext.runAsGroup|int64|||
+|global.extensions.rateLimit.deployment.podSecurityContext.runAsNonRoot|bool|||
+|global.extensions.rateLimit.deployment.podSecurityContext.supplementalGroups[]|int64|||
+|global.extensions.rateLimit.deployment.podSecurityContext.fsGroup|int64|||
+|global.extensions.rateLimit.deployment.podSecurityContext.sysctls[].name|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.sysctls[].value|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.fsGroupChangePolicy|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.seccompProfile.type|string|||
+|global.extensions.rateLimit.deployment.podSecurityContext.seccompProfile.localhostProfile|string|||
 |global.extensions.rateLimit.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
 |global.extensions.rateLimit.deployment.replicas|int||number of instances to deploy|
 |global.extensions.rateLimit.deployment.customEnv[].name|string|||
@@ -1783,6 +1848,34 @@
 |global.extensions.rateLimit.deployment.resources.requests.memory|string||amount of memory|
 |global.extensions.rateLimit.deployment.resources.requests.cpu|string||amount of CPUs|
 |global.extensions.rateLimit.deployment.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.capabilities.add[]|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.capabilities.drop[]|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.privileged|bool|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.seLinuxOptions.user|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.seLinuxOptions.role|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.seLinuxOptions.type|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.seLinuxOptions.level|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.windowsOptions.gmsaCredentialSpecName|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.windowsOptions.gmsaCredentialSpec|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.windowsOptions.runAsUserName|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.windowsOptions.hostProcess|bool|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.runAsUser|int64|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.runAsGroup|int64|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.runAsNonRoot|bool|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.readOnlyRootFilesystem|bool|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.allowPrivilegeEscalation|bool|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.procMount|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.seccompProfile.type|string|||
+|global.extensions.rateLimit.deployment.rateLimitContainerSecurityContext.seccompProfile.localhostProfile|string|||
+|global.extensions.rateLimit.deployment.image.tag|string|Version number, ex. 1.8.0|The image tag for the container.|
+|global.extensions.rateLimit.deployment.image.repository|string|rate-limit-ee|The image repository (name) for the container.|
+|global.extensions.rateLimit.deployment.image.digest|string||The hash digest of the container's image, ie. sha256:12345....|
+|global.extensions.rateLimit.deployment.image.fipsDigest|string||The hash digest of the container's fips image, ie. sha256:12345....  Only consumed if fips=true|
+|global.extensions.rateLimit.deployment.image.registry|string||The image hostname prefix and registry, such as quay.io/solo-io.|
+|global.extensions.rateLimit.deployment.image.pullPolicy|string|IfNotPresent|The image pull policy for the container. For default values, see the Kubernetes docs: https://kubernetes.io/docs/concepts/containers/images/#imagepullpolicy-defaulting|
+|global.extensions.rateLimit.deployment.image.pullSecret|string||The image pull secret to use for the container, in the same namespace as the container pod.|
+|global.extensions.rateLimit.deployment.image.extended|bool||If true, deploys an extended version of the container with additional debug tools.|
+|global.extensions.rateLimit.deployment.image.fips|bool||If true, deploys a version of the data-plane containers that is built with FIPS-compliant crypto libraries. (Enterprise-only feature.)|
 |global.extensions.rateLimit.service.port|uint|18081||
 |global.extensions.rateLimit.service.name|string|rate-limit||
 |global.extensions.rateLimit.service.kubeResourceOverride.NAME|interface||override fields in the generated resource by specifying the yaml structure to override under the top-level key.|
