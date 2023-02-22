@@ -7,9 +7,14 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/solo-io/gloo/test/kube2e/upgrade"
+	"github.com/solo-io/go-utils/versionutils"
+	"github.com/solo-io/skv2/codegen/util"
 
 	exec_utils "github.com/solo-io/go-utils/testutils/exec"
 	"github.com/solo-io/k8s-utils/kubeutils"
