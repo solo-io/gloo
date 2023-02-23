@@ -22,6 +22,7 @@ import (
 )
 
 var _ = Describe("DependentsCalculator", func() {
+
 	var (
 		ctx  context.Context
 		ctrl *gomock.Controller
@@ -125,75 +126,83 @@ var _ = Describe("DependentsCalculator", func() {
 
 		Context("ForGlooInstance", func() {
 
-			Context("will return whole list and error", func() {
+			It("will return whole list and error when gloo instance cannot be found", func() {
+				depCalc := failover.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
 
-				var (
-					list = &fedv1.FailoverSchemeList{
-						Items: []fedv1.FailoverScheme{
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name: "one",
-								},
-							},
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name: "two",
-								},
+				list := &fedv1.FailoverSchemeList{
+					Items: []fedv1.FailoverScheme{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name: "one",
 							},
 						},
-					}
-				)
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name: "two",
+							},
+						},
+					},
+				}
 
-				It("gloo instance cannot be found", func() {
-					depCalc := failover.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
+				failoverSchemeClient.EXPECT().
+					ListFailoverScheme(ctx).
+					Return(list, nil)
 
-					failoverSchemeClient.EXPECT().
-						ListFailoverScheme(ctx).
-						Return(list, nil)
+				instanceRef := &skv2v1.ObjectRef{
+					Name:      "hello",
+					Namespace: "world",
+				}
 
-					instanceRef := &skv2v1.ObjectRef{
-						Name:      "hello",
-						Namespace: "world",
-					}
+				glooInstanceClient.EXPECT().
+					GetGlooInstance(ctx, client.ObjectKey{
+						Namespace: instanceRef.GetNamespace(),
+						Name:      instanceRef.GetName(),
+					}).
+					Return(nil, errors.NewNotFound(schema.GroupResource{}, ""))
 
-					glooInstanceClient.EXPECT().
-						GetGlooInstance(ctx, client.ObjectKey{
-							Namespace: instanceRef.GetNamespace(),
-							Name:      instanceRef.GetName(),
-						}).
-						Return(nil, errors.NewNotFound(schema.GroupResource{}, ""))
+				result, err := depCalc.ForGlooInstance(ctx, instanceRef)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result).To(Equal(v1sets.NewFailoverSchemeSetFromList(list).List()))
+			})
 
-					result, err := depCalc.ForGlooInstance(ctx, instanceRef)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(result).To(Equal(v1sets.NewFailoverSchemeSetFromList(list).List()))
-				})
+			It("will return whole list and error when gloo instance fails for any other reason", func() {
+				depCalc := failover.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
 
-				It("gloo instance fails for any other reason", func() {
+				list := &fedv1.FailoverSchemeList{
+					Items: []fedv1.FailoverScheme{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name: "one",
+							},
+						},
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name: "two",
+							},
+						},
+					},
+				}
 
-					depCalc := failover.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
+				failoverSchemeClient.EXPECT().
+					ListFailoverScheme(ctx).
+					Return(list, nil)
 
-					failoverSchemeClient.EXPECT().
-						ListFailoverScheme(ctx).
-						Return(list, nil)
+				instanceRef := &skv2v1.ObjectRef{
+					Name:      "hello",
+					Namespace: "world",
+				}
 
-					instanceRef := &skv2v1.ObjectRef{
-						Name:      "hello",
-						Namespace: "world",
-					}
+				testErr := eris.New("error")
+				glooInstanceClient.EXPECT().
+					GetGlooInstance(ctx, client.ObjectKey{
+						Namespace: instanceRef.GetNamespace(),
+						Name:      instanceRef.GetName(),
+					}).
+					Return(nil, testErr)
 
-					testErr := eris.New("error")
-					glooInstanceClient.EXPECT().
-						GetGlooInstance(ctx, client.ObjectKey{
-							Namespace: instanceRef.GetNamespace(),
-							Name:      instanceRef.GetName(),
-						}).
-						Return(nil, testErr)
-
-					result, err := depCalc.ForGlooInstance(ctx, instanceRef)
-					Expect(err).To(testutils.HaveInErrorChain(testErr))
-					Expect(result).To(Equal(v1sets.NewFailoverSchemeSetFromList(list).List()))
-				})
-
+				result, err := depCalc.ForGlooInstance(ctx, instanceRef)
+				Expect(err).To(testutils.HaveInErrorChain(testErr))
+				Expect(result).To(Equal(v1sets.NewFailoverSchemeSetFromList(list).List()))
 			})
 
 			It("will return all relevant schemes for the instance owned upstreams", func() {

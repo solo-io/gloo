@@ -141,12 +141,11 @@ update-ui-deps:
 
 .PHONY: fmt-changed
 fmt-changed:
-	git diff --name-only | grep '.*.go$$' | xargs goimports -w
+	git diff --name-only | grep '.*.go$$' | xargs $(DEPSGOBIN)/goimports -w
 
-SUBDIRS:=projects install pkg test
 .PHONY: fmt
 fmt:
-	goimports -w $(SUBDIRS)
+	$(DEPSGOBIN)/goimports -w $(shell ls -d */ | grep -E -v 'vendor|node_modules|_output|_test|changelog')
 
 .PHONY: check-format
 check-format:
@@ -222,6 +221,10 @@ clean: clean-artifacts
 clean-artifacts:
 	rm -rf $(OUTPUT_DIR)
 
+.PHONY: clean-vendor-any
+clean-vendor-any:
+	rm -rf vendor_any
+
 .PHONY: clean-generated-protos
 clean-generated-protos:
 	rm -rf $(ROOTDIR)/projects/apiserver/api/fed.rpc/v1/*resources.proto
@@ -250,6 +253,9 @@ MAX_CONCURRENT_PROTOCS ?= 10
 
 .PHONY: generate-all
 generate-all: generated-code generate-gloo-fed generate-helm-docs build-stitching-bundles
+generate-all: fmt
+generate-all:
+	go mod tidy
 
 GLOO_VERSION=$(shell echo $(shell go list -m github.com/solo-io/gloo) | cut -d' ' -f2)
 
@@ -261,11 +267,8 @@ ifeq ($(GLOO_BRANCH_BUILD),)
 endif
 
 .PHONY: generated-code
-generated-code: update-licenses ## Evaluate go generate
-	rm -rf $(ROOTDIR)/vendor_any
+generated-code: clean-vendor-any update-licenses ## Evaluate go generate
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore GO111MODULE=on CGO_ENABLED=1 go generate ./...
-	goimports -w $(SUBDIRS)
-	go mod tidy
 	ci/check-protoc.sh
 
 .PHONY: generate-gloo-fed
@@ -278,8 +281,6 @@ generate-gloo-fed-code: clean-fed
 	$(ROOTDIR)/projects/gloo-fed/ci/hack-fix-marshal.sh # TODO: figure out a more permanent way to deal with this
 	go run projects/gloo-fed/generate.go -apiserver # Generates apiserver protos into go code
 	go generate $(ROOTDIR)/projects/... # Generates mocks
-	goimports -w $(SUBDIRS)
-	go mod tidy
 
 .PHONY: generate-helm-docs
 generate-helm-docs:

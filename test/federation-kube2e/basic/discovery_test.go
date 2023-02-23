@@ -22,10 +22,8 @@ var _ = Describe("Discovery e2e", func() {
 	)
 
 	BeforeEach(func() {
-		cfg, err := config.GetConfigWithContext("")
+		restCfg, err = config.GetConfigWithContext("")
 		Expect(err).NotTo(HaveOccurred())
-
-		restCfg = cfg
 	})
 
 	It("works for discovering the remote gloo instance installed by the test harness", func() {

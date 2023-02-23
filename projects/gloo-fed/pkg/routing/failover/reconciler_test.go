@@ -55,73 +55,66 @@ var _ = Describe("Reconciler", func() {
 	})
 
 	Context("ReconcileFailoverScheme", func() {
-		Context("will skip reconcile", func() {
 
-			It("generation is equal and status is invalid", func() {
-				reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
-				_, err := reconciler.ReconcileFailoverScheme(&fedv1.FailoverScheme{
-					ObjectMeta: metav1.ObjectMeta{
-						Generation: 10,
-					},
-					Status: createStatus(&failover.StatusImpl{
-						State:              fed_types.FailoverSchemeStatus_INVALID,
-						ObservedGeneration: 10,
-					}),
-				})
-				Expect(err).NotTo(HaveOccurred())
+		It("will skip reconcile when generation is equal and status is invalid", func() {
+			reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
+			_, err := reconciler.ReconcileFailoverScheme(&fedv1.FailoverScheme{
+				ObjectMeta: metav1.ObjectMeta{
+					Generation: 10,
+				},
+				Status: createStatus(&failover.StatusImpl{
+					State:              fed_types.FailoverSchemeStatus_INVALID,
+					ObservedGeneration: 10,
+				}),
 			})
-
-			It("generation is equal and status is accepted", func() {
-				reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
-				_, err := reconciler.ReconcileFailoverScheme(&fedv1.FailoverScheme{
-					ObjectMeta: metav1.ObjectMeta{
-						Generation: 10,
-					},
-					Status: createStatus(&failover.StatusImpl{
-						State:              fed_types.FailoverSchemeStatus_ACCEPTED,
-						ObservedGeneration: 10,
-					}),
-				})
-				Expect(err).NotTo(HaveOccurred())
-			})
-
+			Expect(err).NotTo(HaveOccurred())
 		})
 
-		Context("will return the returned status from a processor", func() {
-
-			It("the status is non-nil", func() {
-				reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
-
-				obj := &fedv1.FailoverScheme{
-					ObjectMeta: metav1.ObjectMeta{
-						Generation: 11,
-					},
-					Status: createStatus(&failover.StatusImpl{
-						State:              fed_types.FailoverSchemeStatus_ACCEPTED,
-						ObservedGeneration: 10,
-					}),
-				}
-
-				failoverStatus := &failover.StatusImpl{
-					State:              fed_types.FailoverSchemeStatus_FAILED,
-					Message:            "im.a.status",
-					ObservedGeneration: 8,
-				}
-
-				statusBuilder := statusManager.NewStatusBuilder(obj).Set(failoverStatus)
-
-				// The processor returns a statusBuilder, will validate the exact shape later on
-				// so for now just validate that it's not nil
-				processor.EXPECT().ProcessFailoverUpdate(ctx, obj).Return(nil, statusBuilder)
-
-				expected := obj.DeepCopy()
-				expected.Status = createStatus(failoverStatus)
-				failoverSchemeClient.EXPECT().UpdateFailoverSchemeStatus(ctx, GomockMatchPublicFields(expected)).Return(nil)
-				_, err := reconciler.ReconcileFailoverScheme(obj)
-				Expect(obj).To(MatchPublicFields(expected))
-				Expect(err).NotTo(HaveOccurred())
+		It("will skip reconcile when generation is equal and status is accepted", func() {
+			reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
+			_, err := reconciler.ReconcileFailoverScheme(&fedv1.FailoverScheme{
+				ObjectMeta: metav1.ObjectMeta{
+					Generation: 10,
+				},
+				Status: createStatus(&failover.StatusImpl{
+					State:              fed_types.FailoverSchemeStatus_ACCEPTED,
+					ObservedGeneration: 10,
+				}),
 			})
+			Expect(err).NotTo(HaveOccurred())
+		})
 
+		It("will return the returned status from a processor when the status is non-nil", func() {
+			reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
+
+			obj := &fedv1.FailoverScheme{
+				ObjectMeta: metav1.ObjectMeta{
+					Generation: 11,
+				},
+				Status: createStatus(&failover.StatusImpl{
+					State:              fed_types.FailoverSchemeStatus_ACCEPTED,
+					ObservedGeneration: 10,
+				}),
+			}
+
+			failoverStatus := &failover.StatusImpl{
+				State:              fed_types.FailoverSchemeStatus_FAILED,
+				Message:            "im.a.status",
+				ObservedGeneration: 8,
+			}
+
+			statusBuilder := statusManager.NewStatusBuilder(obj).Set(failoverStatus)
+
+			// The processor returns a statusBuilder, will validate the exact shape later on
+			// so for now just validate that it's not nil
+			processor.EXPECT().ProcessFailoverUpdate(ctx, obj).Return(nil, statusBuilder)
+
+			expected := obj.DeepCopy()
+			expected.Status = createStatus(failoverStatus)
+			failoverSchemeClient.EXPECT().UpdateFailoverSchemeStatus(ctx, GomockMatchPublicFields(expected)).Return(nil)
+			_, err := reconciler.ReconcileFailoverScheme(obj)
+			Expect(obj).To(MatchPublicFields(expected))
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("can successfully upsert upstream", func() {
@@ -182,82 +175,78 @@ var _ = Describe("Reconciler", func() {
 
 	Context("FinalizeFailoverScheme", func() {
 
-		Context("will ignore a not found error", func() {
+		It("will ignore a not found error when one is returned from the processor", func() {
+			reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
 
-			It("one is returned from the processor", func() {
-				reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
-
-				obj := &fedv1.FailoverScheme{
-					ObjectMeta: metav1.ObjectMeta{
-						Generation: 1,
+			obj := &fedv1.FailoverScheme{
+				ObjectMeta: metav1.ObjectMeta{
+					Generation: 1,
+				},
+				Spec: fed_types.FailoverSchemeSpec{
+					Primary: &skv2v1.ClusterObjectRef{
+						Name:        "hello",
+						Namespace:   "world",
+						ClusterName: "cluster",
 					},
-					Spec: fed_types.FailoverSchemeSpec{
-						Primary: &skv2v1.ClusterObjectRef{
-							Name:        "hello",
-							Namespace:   "world",
-							ClusterName: "cluster",
-						},
+				},
+				Status: createStatus(&failover.StatusImpl{
+					ObservedGeneration: 0,
+				}),
+			}
+
+			processor.EXPECT().
+				ProcessFailoverDelete(ctx, obj).
+				Return(nil, errors.NewNotFound(schema.GroupResource{}, ""))
+
+			err := reconciler.FinalizeFailoverScheme(obj)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("will ignore a not found error when one is returned from the upstream upsert", func() {
+			reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
+
+			obj := &fedv1.FailoverScheme{
+				ObjectMeta: metav1.ObjectMeta{
+					Generation: 1,
+				},
+				Spec: fed_types.FailoverSchemeSpec{
+					Primary: &skv2v1.ClusterObjectRef{
+						Name:        "hello",
+						Namespace:   "world",
+						ClusterName: "cluster",
 					},
-					Status: createStatus(&failover.StatusImpl{
-						ObservedGeneration: 0,
-					}),
-				}
+				},
+				Status: createStatus(&failover.StatusImpl{
+					ObservedGeneration: 0,
+				}),
+			}
 
-				processor.EXPECT().
-					ProcessFailoverDelete(ctx, obj).
-					Return(nil, errors.NewNotFound(schema.GroupResource{}, ""))
+			us := &gloov1.Upstream{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "route",
+					Namespace: "#1",
+				},
+				Spec: gloo_types.UpstreamSpec{},
+			}
 
-				err := reconciler.FinalizeFailoverScheme(obj)
-				Expect(err).NotTo(HaveOccurred())
-			})
+			processor.EXPECT().
+				ProcessFailoverDelete(ctx, obj).
+				Return(us, nil)
 
-			It("one is returned from the upstream upsert", func() {
-				reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
+			glooMcClientset.EXPECT().
+				Cluster(obj.Spec.GetPrimary().GetClusterName()).
+				Return(glooClientset, nil)
 
-				obj := &fedv1.FailoverScheme{
-					ObjectMeta: metav1.ObjectMeta{
-						Generation: 1,
-					},
-					Spec: fed_types.FailoverSchemeSpec{
-						Primary: &skv2v1.ClusterObjectRef{
-							Name:        "hello",
-							Namespace:   "world",
-							ClusterName: "cluster",
-						},
-					},
-					Status: createStatus(&failover.StatusImpl{
-						ObservedGeneration: 0,
-					}),
-				}
+			glooClientset.EXPECT().
+				Upstreams().
+				Return(upstreamClient)
 
-				us := &gloov1.Upstream{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "route",
-						Namespace: "#1",
-					},
-					Spec: gloo_types.UpstreamSpec{},
-				}
+			upstreamClient.EXPECT().
+				UpsertUpstream(ctx, us).
+				Return(errors.NewNotFound(schema.GroupResource{}, ""))
 
-				processor.EXPECT().
-					ProcessFailoverDelete(ctx, obj).
-					Return(us, nil)
-
-				glooMcClientset.EXPECT().
-					Cluster(obj.Spec.GetPrimary().GetClusterName()).
-					Return(glooClientset, nil)
-
-				glooClientset.EXPECT().
-					Upstreams().
-					Return(upstreamClient)
-
-				upstreamClient.EXPECT().
-					UpsertUpstream(ctx, us).
-					Return(errors.NewNotFound(schema.GroupResource{}, ""))
-
-				err := reconciler.FinalizeFailoverScheme(obj)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
+			err := reconciler.FinalizeFailoverScheme(obj)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 	})
