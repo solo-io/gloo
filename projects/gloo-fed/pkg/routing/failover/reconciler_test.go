@@ -6,7 +6,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
 	gloo_types "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
@@ -55,9 +55,9 @@ var _ = Describe("Reconciler", func() {
 	})
 
 	Context("ReconcileFailoverScheme", func() {
-		It("will skip reconcile", func() {
+		Context("will skip reconcile", func() {
 
-			When("generation is equal and status is invalid", func() {
+			It("generation is equal and status is invalid", func() {
 				reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
 				_, err := reconciler.ReconcileFailoverScheme(&fedv1.FailoverScheme{
 					ObjectMeta: metav1.ObjectMeta{
@@ -71,7 +71,7 @@ var _ = Describe("Reconciler", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			When("generation is equal and status is accepted", func() {
+			It("generation is equal and status is accepted", func() {
 				reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
 				_, err := reconciler.ReconcileFailoverScheme(&fedv1.FailoverScheme{
 					ObjectMeta: metav1.ObjectMeta{
@@ -87,9 +87,9 @@ var _ = Describe("Reconciler", func() {
 
 		})
 
-		It("will return the returned status from a processor", func() {
+		Context("will return the returned status from a processor", func() {
 
-			When("the status is non-nil", func() {
+			It("the status is non-nil", func() {
 				reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
 
 				obj := &fedv1.FailoverScheme{
@@ -182,9 +182,9 @@ var _ = Describe("Reconciler", func() {
 
 	Context("FinalizeFailoverScheme", func() {
 
-		It("will ignore a not found error", func() {
+		Context("will ignore a not found error", func() {
 
-			When("one is returned from the processor", func() {
+			It("one is returned from the processor", func() {
 				reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
 
 				obj := &fedv1.FailoverScheme{
@@ -211,7 +211,7 @@ var _ = Describe("Reconciler", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			When("one is returned from the upstream upsert", func() {
+			It("one is returned from the upstream upsert", func() {
 				reconciler := failover.NewFailoverSchemeReconciler(ctx, processor, failoverSchemeClient, glooMcClientset, statusManager)
 
 				obj := &fedv1.FailoverScheme{

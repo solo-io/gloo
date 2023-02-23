@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/solo-io/gloo/test/ginkgo/parallel"
+
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/config"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-projects/test/services"
@@ -102,7 +103,7 @@ var _ = Describe("External http", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// Start HTTP ext auth server
-		extauthPort := atomic.AddUint32(&baseExtauthPort, 1) + uint32(config.GinkgoConfig.ParallelNode*1000)
+		extauthPort := atomic.AddUint32(&baseExtauthPort, 1) + uint32(parallel.GetPortOffset())
 		go func(testCtx context.Context) {
 			defer GinkgoRecover()
 			startLocalHttpExtAuthServer(testCtx, extauthPort)

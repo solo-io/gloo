@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
 	. "github.com/onsi/gomega"
-	skv2_test "github.com/solo-io/skv2/test"
 	gatewayv1 "github.com/solo-io/solo-apis/pkg/api/gateway.solo.io/v1"
 	gloov1 "github.com/solo-io/solo-apis/pkg/api/gloo.solo.io/v1"
 	fedv1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
@@ -31,7 +32,9 @@ func CreateClusterConfigFromKubeClusterNameEnv(clusterNameEnv string) *ClusterCo
 
 func CreateClusterConfigFromKubeClusterName(clusterName string) *ClusterConfig {
 	kubeCtx := fmt.Sprintf("kind-%s", clusterName)
-	restCfg := skv2_test.MustConfig(kubeCtx)
+	restCfg, err := config.GetConfigWithContext(kubeCtx)
+	Expect(err).NotTo(HaveOccurred())
+
 	fedClientset, err := fedv1.NewClientsetFromConfig(restCfg)
 	Expect(err).NotTo(HaveOccurred())
 

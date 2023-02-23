@@ -16,7 +16,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"k8s.io/apimachinery/pkg/util/rand"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 )
 
 // syncer.TranslatorSyncerExtension Sync methods are assumed to be thread-safe.

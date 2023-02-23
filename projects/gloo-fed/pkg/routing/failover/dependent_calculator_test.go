@@ -6,7 +6,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo-fed/pkg/routing/failover"
 
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/go-utils/testutils"
@@ -125,7 +125,7 @@ var _ = Describe("DependentsCalculator", func() {
 
 		Context("ForGlooInstance", func() {
 
-			It("will return whole list and error", func() {
+			Context("will return whole list and error", func() {
 
 				var (
 					list = &fedv1.FailoverSchemeList{
@@ -144,7 +144,7 @@ var _ = Describe("DependentsCalculator", func() {
 					}
 				)
 
-				When("gloo instance cannot be found", func() {
+				It("gloo instance cannot be found", func() {
 					depCalc := failover.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
 
 					failoverSchemeClient.EXPECT().
@@ -168,7 +168,7 @@ var _ = Describe("DependentsCalculator", func() {
 					Expect(result).To(Equal(v1sets.NewFailoverSchemeSetFromList(list).List()))
 				})
 
-				When("gloo instance fails for any other reason", func() {
+				It("gloo instance fails for any other reason", func() {
 
 					depCalc := failover.NewFailoverDependencyCalculator(failoverSchemeClient, glooInstanceClient)
 

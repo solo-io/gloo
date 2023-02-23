@@ -23,8 +23,7 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/go-utils/log"
 )
@@ -57,8 +56,8 @@ func TestCanary(t *testing.T) {
 		return
 	}
 	RegisterFailHandler(Fail)
-	junitReporter := reporters.NewJUnitReporter("junit.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "Federation Canary Suite", []Reporter{junitReporter})
+
+	RunSpecs(t, "Federation Canary Suite")
 }
 
 var (

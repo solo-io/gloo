@@ -11,7 +11,8 @@ import (
 	"runtime"
 	"sync/atomic"
 
-	"github.com/onsi/ginkgo/config"
+	"github.com/solo-io/gloo/test/ginkgo/parallel"
+
 	"github.com/solo-io/ext-auth-service/pkg/server"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	extauth "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
@@ -21,7 +22,7 @@ import (
 	"github.com/fgrosse/zaptest"
 	"github.com/form3tech-oss/jwt-go"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
@@ -62,8 +63,8 @@ var _ = Describe("Staged JWT + extauth ", func() {
 
 		// Extauth service setup
 
-		extAuthPort := atomic.AddUint32(&baseExtauthPort, 1) + uint32(config.GinkgoConfig.ParallelNode*1000)
-		extAuthHealthPort := atomic.AddUint32(&baseExtauthPort, 1) + uint32(config.GinkgoConfig.ParallelNode*1000)
+		extAuthPort := atomic.AddUint32(&baseExtauthPort, 1) + uint32(parallel.GetPortOffset())
+		extAuthHealthPort := atomic.AddUint32(&baseExtauthPort, 1) + uint32(parallel.GetPortOffset())
 		extauthAddr := "localhost"
 		if runtime.GOOS == "darwin" {
 			extauthAddr = "host.docker.internal"

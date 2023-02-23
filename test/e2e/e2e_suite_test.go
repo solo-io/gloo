@@ -6,8 +6,7 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/solo-io/solo-kit/test/helpers"
@@ -57,6 +56,6 @@ func TestE2e(t *testing.T) {
 	helpers.RegisterCommonFailHandlers()
 	helpers.SetupLog()
 	// RegisterFailHandler(Fail)
-	junitReporter := reporters.NewJUnitReporter("junit.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "E2e Suite", []Reporter{junitReporter})
+
+	RunSpecs(t, "E2e Suite")
 }

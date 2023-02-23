@@ -12,9 +12,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/fgrosse/zaptest"
+	"github.com/solo-io/gloo/test/ginkgo/parallel"
 
-	"github.com/onsi/ginkgo/config"
+	"github.com/fgrosse/zaptest"
 
 	"github.com/solo-io/rate-limiter/pkg/cache/aerospike"
 	"github.com/solo-io/rate-limiter/pkg/cache/dynamodb"
@@ -34,7 +34,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
@@ -89,8 +89,8 @@ var _ = Describe("Rate Limit Local E2E", func() {
 
 		rlServerSettings = ratelimitserver.NewSettings()
 		rlServerSettings.HealthFailTimeout = 2 // seconds
-		rlServerSettings.RateLimitPort = int(atomic.AddUint32(&baseRateLimitPort, 1) + uint32(config.GinkgoConfig.ParallelNode))
-		rlServerSettings.ReadyPort = int(atomic.AddUint32(&baseRateLimitPort, 1) + uint32(config.GinkgoConfig.ParallelNode))
+		rlServerSettings.RateLimitPort = int(atomic.AddUint32(&baseRateLimitPort, 1) + uint32(parallel.GetPortOffset()))
+		rlServerSettings.ReadyPort = int(atomic.AddUint32(&baseRateLimitPort, 1) + uint32(parallel.GetPortOffset()))
 
 		// Tests are responsible for managing these settings
 		rlServerSettings.RedisSettings = redis.Settings{}

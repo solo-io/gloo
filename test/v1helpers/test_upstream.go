@@ -13,7 +13,7 @@ import (
 
 	"github.com/solo-io/gloo/test/helpers"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/golang/protobuf/proto"

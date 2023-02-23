@@ -18,7 +18,7 @@ import (
 	"github.com/solo-io/solo-projects/test/v1helpers"
 
 	"github.com/fgrosse/zaptest"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"

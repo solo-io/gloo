@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/rotisserie/eris"
 	mock_k8s_ar_clients "github.com/solo-io/external-apis/pkg/api/k8s/admissionregistration.k8s.io/v1/mocks"

@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/solo-io/gloo/test/ginkgo/parallel"
+
 	errors "github.com/rotisserie/eris"
 
 	"github.com/solo-io/gloo/test/helpers"
@@ -19,8 +21,7 @@ import (
 	"github.com/fgrosse/zaptest"
 	"github.com/form3tech-oss/jwt-go"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/config"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/external/envoy/extensions/transformation"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -71,7 +72,7 @@ func jwks(ctx context.Context) (uint32, *rsa.PrivateKey) {
 	jwksBytes, err := json.Marshal(keySet)
 	Expect(err).NotTo(HaveOccurred())
 
-	jwksPort := atomic.AddUint32(&baseJwksPort, 1) + uint32(config.GinkgoConfig.ParallelNode*1000)
+	jwksPort := atomic.AddUint32(&baseJwksPort, 1) + uint32(parallel.GetPortOffset())
 	jwtHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("content-type", "application/json")
 		w.Write(jwksBytes)

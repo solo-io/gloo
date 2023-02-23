@@ -3,8 +3,7 @@ package license_test
 import (
 	"time"
 
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/rotisserie/eris"
 	"github.com/solo-io/licensing/pkg/model"
@@ -48,32 +47,32 @@ var _ = Describe("LicensedFeatureProvider", func() {
 		licensedFeatureProvider = license.NewLicensedFeatureProvider()
 	})
 
-	table.DescribeTable("Enterprise",
+	DescribeTable("Enterprise",
 		func(validatedLicense *license.ValidatedLicense, expectedEnabled bool) {
 			licensedFeatureProvider.SetValidatedLicense(validatedLicense)
 
 			featureState := licensedFeatureProvider.GetStateForLicensedFeature(license.Enterprise)
 			Expect(featureState.Enabled).To(Equal(expectedEnabled))
 		},
-		table.Entry("nil license", nilLicense, false),
-		table.Entry("invalid license", invalidLicense, true),
-		table.Entry("expired license", expiredLicense, true),
-		table.Entry("valid license", validLicense, true),
+		Entry("nil license", nilLicense, false),
+		Entry("invalid license", invalidLicense, true),
+		Entry("expired license", expiredLicense, true),
+		Entry("valid license", validLicense, true),
 	)
 
-	table.DescribeTable("GraphQL",
+	DescribeTable("GraphQL",
 		func(validatedLicense *license.ValidatedLicense, expectedEnabled bool) {
 			licensedFeatureProvider.SetValidatedLicense(validatedLicense)
 
 			featureState := licensedFeatureProvider.GetStateForLicensedFeature(license.GraphQL)
 			Expect(featureState.Enabled).To(Equal(expectedEnabled))
 		},
-		table.Entry("nil license", nilLicense, false),
-		table.Entry("invalid license", invalidLicense, true),
-		table.Entry("valid license without add-on", validLicense, false),
-		table.Entry("valid license with add-on", getGraphQLLicense(false, false), true),
-		table.Entry("expired license with add-on", getGraphQLLicense(true, false), true),
-		table.Entry("invalid license with add-on", getGraphQLLicense(true, true), true),
+		Entry("nil license", nilLicense, false),
+		Entry("invalid license", invalidLicense, true),
+		Entry("valid license without add-on", validLicense, false),
+		Entry("valid license with add-on", getGraphQLLicense(false, false), true),
+		Entry("expired license with add-on", getGraphQLLicense(true, false), true),
+		Entry("invalid license with add-on", getGraphQLLicense(true, true), true),
 	)
 })
 

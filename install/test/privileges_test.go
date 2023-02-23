@@ -3,7 +3,7 @@ package test
 import (
 	"encoding/json"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/k8s-utils/manifesttestutils"
 	"github.com/solo-io/solo-projects/pkg/install"

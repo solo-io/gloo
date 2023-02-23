@@ -3,11 +3,12 @@ package e2e_test
 import (
 	"context"
 
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"
-	"github.com/solo-io/skv2/test"
 	multicluster_v1alpha1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1"
 	multicluster_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
 	test_v1alpha1 "github.com/solo-io/solo-projects/projects/multicluster-admission-webhook/test/internal/api/test.multicluster.solo.io/v1alpha1"
@@ -30,8 +31,10 @@ var _ = Describe("Multicluster Admission Webhook E2E", func() {
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.TODO())
-		cfg := test.MustConfig("")
-		var err error
+
+		cfg, err := config.GetConfigWithContext("")
+		Expect(err).NotTo(HaveOccurred())
+
 		mcClientset, err = multicluster_v1alpha1.NewClientsetFromConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
 		testClientset, err = test_v1alpha1.NewClientsetFromConfig(cfg)

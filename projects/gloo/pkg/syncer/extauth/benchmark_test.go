@@ -6,8 +6,7 @@ import (
 	"sort"
 	"time"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -85,7 +84,7 @@ var _ = Describe("ExtAuth Translation - Benchmarking Tests", func() {
 			print(eightyPercentile) // Helpful to gather details about results in CI
 			Expect(eightyPercentile).To(durationAssertion)
 		},
-		getBenchmarkingTestEntries()...,
+		getBenchmarkingTestEntries(),
 	)
 
 })

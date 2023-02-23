@@ -7,16 +7,14 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/solo-io/k8s-utils/kubeutils"
-	"github.com/solo-io/k8s-utils/testutils/clusterlock"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
 	"github.com/solo-io/solo-kit/test/testutils"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
@@ -26,8 +24,7 @@ func TestObservabilitySoloIo(t *testing.T) {
 }
 
 var (
-	lock *clusterlock.TestClusterLocker
-	cfg  *rest.Config
+	cfg *rest.Config
 
 	_ = SynchronizedAfterSuite(func() {}, func() {
 		var err error
@@ -76,7 +73,6 @@ var (
 		testutils.ErrorNotOccuredOrNotFound(err)
 		err = clientset.ApiextensionsV1().CustomResourceDefinitions().Delete(ctx, "virtualservices.gateway.solo.io", metav1.DeleteOptions{})
 		testutils.ErrorNotOccuredOrNotFound(err)
-		Expect(lock.ReleaseLock()).NotTo(HaveOccurred())
 	})
 
 	_ = SynchronizedBeforeSuite(func() []byte {
@@ -87,14 +83,6 @@ var (
 		if os.Getenv("RUN_KUBE_TESTS") != "1" {
 			return nil
 		}
-
-		cfg, err = kubeutils.GetConfig("", "")
-		Expect(err).NotTo(HaveOccurred())
-		clientset, err := kubernetes.NewForConfig(cfg)
-		Expect(err).NotTo(HaveOccurred())
-		lock, err = clusterlock.NewTestClusterLocker(clientset, clusterlock.Options{})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(lock.AcquireLock()).NotTo(HaveOccurred())
 		return nil
 	}, func([]byte) {})
 )

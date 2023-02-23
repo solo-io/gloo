@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"context"
 	"fmt"
+
 	"io"
 	"net"
 	"net/http"
@@ -14,7 +15,6 @@ import (
 
 	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"github.com/fgrosse/zaptest"
-	"github.com/solo-io/ext-auth-service/pkg/config/passthrough/test_utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/core/matchers"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/enterprise/options/extauth/v1"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/options/static"
@@ -23,7 +23,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/test/v1helpers"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -113,17 +113,17 @@ var _ = Describe("External auth with multiple auth servers", func() {
 			proxy        *gloov1.Proxy
 
 			// A running instance of an authServer
-			authServerDefault         *test_utils.GrpcAuthServer
+			authServerDefault         *services.GrpcAuthServer
 			authServerDefaultPort     = 5556
 			authServerDefaultUpstream *gloov1.Upstream
 
 			// A running instance of an authServer
-			authServerNamedA         *test_utils.GrpcAuthServer
+			authServerNamedA         *services.GrpcAuthServer
 			authServerNamedAPort     = 5557
 			authServerNamedAUpstream *gloov1.Upstream
 
 			// A running instance of an authServer
-			authServerNamedB         *test_utils.GrpcAuthServer
+			authServerNamedB         *services.GrpcAuthServer
 			authServerNamedBPort     = 5558
 			authServerNamedBUpstream *gloov1.Upstream
 		)
@@ -660,23 +660,23 @@ var _ = Describe("External auth with multiple auth servers", func() {
 // Represents an external auth service that returns:
 // 	200 Ok - if presented with a Bearer token with the proper prefix
 // 	401 Unauthorized - Otherwise
-func startLocalGrpcExtAuthServer(port int, expectedBearerTokenPrefix string) *test_utils.GrpcAuthServer {
-	authServer := &test_utils.GrpcAuthServer{
+func startLocalGrpcExtAuthServer(port int, expectedBearerTokenPrefix string) *services.GrpcAuthServer {
+	authServer := &services.GrpcAuthServer{
 		AuthChecker: func(ctx context.Context, req *envoy_service_auth_v3.CheckRequest) (*envoy_service_auth_v3.CheckResponse, error) {
 			authorizationHeaders, ok := req.GetAttributes().GetRequest().GetHttp().GetHeaders()["authorization"]
 
 			if !ok {
-				return test_utils.DeniedResponse(), nil
+				return services.DeniedResponse(), nil
 			}
 
 			extracted := strings.Fields(authorizationHeaders)
 			if len(extracted) == 2 && extracted[0] == "Bearer" {
 				token := extracted[1]
 				if strings.HasPrefix(token, expectedBearerTokenPrefix) {
-					return test_utils.OkResponse(), nil
+					return services.OkResponse(), nil
 				}
 			}
-			return test_utils.DeniedResponse(), nil
+			return services.DeniedResponse(), nil
 		},
 	}
 

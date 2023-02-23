@@ -5,7 +5,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	skv2v1 "github.com/solo-io/skv2/pkg/api/core.skv2.solo.io/v1"

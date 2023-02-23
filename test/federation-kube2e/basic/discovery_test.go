@@ -4,10 +4,12 @@ import (
 	"context"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	k8s_core_v1 "github.com/solo-io/external-apis/pkg/api/k8s/core/v1"
-	"github.com/solo-io/skv2/test"
 	v1 "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/fed.solo.io/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -15,8 +17,19 @@ import (
 
 var _ = Describe("Discovery e2e", func() {
 
+	var (
+		restCfg *rest.Config
+	)
+
+	BeforeEach(func() {
+		cfg, err := config.GetConfigWithContext("")
+		Expect(err).NotTo(HaveOccurred())
+
+		restCfg = cfg
+	})
+
 	It("works for discovering the remote gloo instance installed by the test harness", func() {
-		clientset, err := v1.NewClientsetFromConfig(test.MustConfig(""))
+		clientset, err := v1.NewClientsetFromConfig(restCfg)
 		Expect(err).NotTo(HaveOccurred())
 
 		var instance *v1.GlooInstance
@@ -70,7 +83,7 @@ var _ = Describe("Discovery e2e", func() {
 	})
 
 	It("works for discovering the gloo-ee instance installed on the local cluster by the test harness", func() {
-		clientset, err := v1.NewClientsetFromConfig(test.MustConfig(""))
+		clientset, err := v1.NewClientsetFromConfig(restCfg)
 		Expect(err).NotTo(HaveOccurred())
 		var instance *v1.GlooInstance
 		Eventually(func() *v1.GlooInstance {

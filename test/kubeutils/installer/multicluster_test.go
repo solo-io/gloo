@@ -8,7 +8,7 @@ import (
 
 	"github.com/solo-io/solo-projects/test/kubeutils/installer"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

@@ -35,7 +35,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 
 	"github.com/ghodss/yaml"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/version"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -699,8 +699,8 @@ func buildAuthHeader(credentials string) map[string]string {
 func validateRequestTransformTraffic(testHelper *helper.SoloTestHelper) {
 	// response contains json object with transformed request values - we want to get that and check it for headers
 	res := curlOnPath(testHelper, queryParamHost, "/get?foo=foo-value&bar=bar-value", "")
-	Expect(res).WithOffset(1).To(ContainSubstring("\"foo\":\"foo-value\""))
-	Expect(res).WithOffset(1).To(ContainSubstring("\"bar\":\"bar-value\""))
+	Expect(res).WithOffset(1).To(ContainSubstring("\"foo\": \"foo-value\""))
+	Expect(res).WithOffset(1).To(ContainSubstring("\"bar\": \"bar-value\""))
 }
 func curlAndAssertResponse(testHelper *helper.SoloTestHelper, host string, path string, expectedResponseSubstring string) {
 	testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{

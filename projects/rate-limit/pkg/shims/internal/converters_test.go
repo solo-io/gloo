@@ -2,7 +2,7 @@ package internal_test
 
 import (
 	"github.com/golang/protobuf/ptypes/wrappers"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	rl_api "github.com/solo-io/rate-limiter/pkg/api/ratelimit.solo.io/v1alpha1"
 	rl_api_types "github.com/solo-io/rate-limiter/pkg/api/ratelimit.solo.io/v1alpha1/types"

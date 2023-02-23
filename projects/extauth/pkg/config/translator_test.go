@@ -8,7 +8,6 @@ import (
 	"github.com/solo-io/ext-auth-service/pkg/config/oauth2"
 
 	"github.com/golang/protobuf/ptypes/duration"
-	"github.com/onsi/ginkgo/extensions/table"
 	"github.com/solo-io/ext-auth-service/pkg/config/utils/jwks"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -16,7 +15,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/ext-auth-plugins/api"
 	"github.com/solo-io/ext-auth-service/pkg/chain"
@@ -830,7 +829,7 @@ var _ = Describe("Ext Auth Config Translator", func() {
 
 	Context("jwks on demand cache refresh policy", func() {
 
-		table.DescribeTable("returns the expected cache refresh policy",
+		DescribeTable("returns the expected cache refresh policy",
 			func(policyConfig *extauthv1.JwksOnDemandCacheRefreshPolicy, expectedCacheRefreshPolicy jwks.KeySourceFactory) {
 				oAuthConfig := &extauthv1.ExtAuthConfig{
 					AuthConfigRefName: "default.oauth2-authconfig",
@@ -886,23 +885,23 @@ var _ = Describe("Ext Auth Config Translator", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(authService).NotTo(BeNil())
 			},
-			table.Entry("nil",
+			Entry("nil",
 				nil,
 				jwks.NewNilKeySourceFactory(),
 			),
-			table.Entry("NEVER",
+			Entry("NEVER",
 				&extauthv1.JwksOnDemandCacheRefreshPolicy{
 					Policy: &extauthv1.JwksOnDemandCacheRefreshPolicy_Never{},
 				},
 				jwks.NewNilKeySourceFactory(),
 			),
-			table.Entry("ALWAYS",
+			Entry("ALWAYS",
 				&extauthv1.JwksOnDemandCacheRefreshPolicy{
 					Policy: &extauthv1.JwksOnDemandCacheRefreshPolicy_Always{},
 				},
 				jwks.NewHttpKeySourceFactory(nil),
 			),
-			table.Entry("MAX_IDP_REQUESTS_PER_POLLING_INTERVAL",
+			Entry("MAX_IDP_REQUESTS_PER_POLLING_INTERVAL",
 				&extauthv1.JwksOnDemandCacheRefreshPolicy{
 					Policy: &extauthv1.JwksOnDemandCacheRefreshPolicy_MaxIdpReqPerPollingInterval{
 						MaxIdpReqPerPollingInterval: 5,

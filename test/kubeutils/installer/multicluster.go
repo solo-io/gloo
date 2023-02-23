@@ -5,7 +5,7 @@ import (
 
 	"github.com/solo-io/solo-projects/test/kubeutils"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 
 	"golang.org/x/sync/errgroup"
 )

@@ -8,8 +8,7 @@ import (
 
 	"github.com/solo-io/solo-projects/test/kubeutils"
 
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/utils/statusutils"
@@ -50,8 +49,8 @@ func TestE2e(t *testing.T) {
 	}
 
 	RegisterFailHandler(Fail)
-	junitReporter := reporters.NewJUnitReporter("junit.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "Fed E2e Suite", []Reporter{junitReporter})
+
+	RunSpecs(t, "Fed E2e Suite")
 }
 
 var (

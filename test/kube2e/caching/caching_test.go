@@ -16,7 +16,7 @@ import (
 	"github.com/solo-io/gloo/pkg/utils/statusutils"
 	"github.com/solo-io/k8s-utils/testutils/helper"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 
@@ -247,7 +247,7 @@ var _ = Describe("Installing gloo", func() {
 		// expect headers to contain an age header
 		Expect(headers).To(HaveKey("age"))
 		// check header age
-		Expect(strconv.Atoi(headers["age"])).To(And(BeNumerically("<=", 3)), BeNumerically(">=", 0), "age header should be between 0 and 3")
+		Expect(strconv.Atoi(headers["age"])).To(And(BeNumerically("<=", 3), BeNumerically(">=", 0)), "age header should be between 0 and 3")
 		// expect the date header to be the same as the first request
 		Expect(headers["date"]).To(Equal(date.Format(time.RFC1123)))
 	}
@@ -276,7 +276,7 @@ var _ = Describe("Installing gloo", func() {
 		// expect headers to contain an age header
 		Expect(headers).To(HaveKey("age"))
 		// Check header age
-		Expect(strconv.Atoi(headers["age"])).To(And(BeNumerically("<=", 3)), BeNumerically(">=", 0), "age header should be between 0 and 3")
+		Expect(strconv.Atoi(headers["age"])).To(And(BeNumerically("<=", 3), BeNumerically(">=", 0)), "age header should be between 0 and 3")
 		// expect the date header to be the same as the first request
 		Expect(headers["date"]).To(Equal(date.Format(time.RFC1123)))
 

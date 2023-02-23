@@ -13,7 +13,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana/template"
 
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
@@ -398,10 +398,22 @@ var _ = Describe("Build Rest Client", func() {
 })
 
 var _ = Describe("Load Default Dashboards", func() {
-	mockCtrl = gomock.NewController(GinkgoT())
-	dashboardClient = mocks.NewMockDashboardClient(mockCtrl)
-	templateGenerator := template.NewDefaultJsonGenerator("default", `{"foo":"bar"}`)
-	uid := templateGenerator.GenerateUid()
+
+	var (
+		templateGenerator template.TemplateGenerator
+		uid               string
+	)
+
+	BeforeEach(func() {
+		mockCtrl = gomock.NewController(GinkgoT())
+		dashboardClient = mocks.NewMockDashboardClient(mockCtrl)
+		templateGenerator = template.NewDefaultJsonGenerator("default", `{"foo":"bar"}`)
+		uid = templateGenerator.GenerateUid()
+	})
+
+	AfterEach(func() {
+		mockCtrl.Finish()
+	})
 
 	It("returns before generating when dashboard already exists", func() {
 		dashboardClient.EXPECT().GetRawDashboard(uid).

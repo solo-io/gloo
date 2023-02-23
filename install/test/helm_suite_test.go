@@ -29,8 +29,7 @@ import (
 	. "github.com/solo-io/k8s-utils/manifesttestutils"
 	"helm.sh/helm/v3/pkg/chart/loader"
 
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -43,8 +42,7 @@ const (
 func TestHelm(t *testing.T) {
 	RegisterFailHandler(Fail)
 	testutils.RegisterCommonFailHandlers()
-	junitReporter := reporters.NewJUnitReporter("junit.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "Helm Suite", []Reporter{junitReporter})
+	RunSpecs(t, "Helm Suite")
 }
 
 var _ = BeforeSuite(func() {

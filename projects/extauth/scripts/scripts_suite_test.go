@@ -6,8 +6,7 @@ import (
 	"testing"
 
 	structpb "github.com/golang/protobuf/ptypes/struct"
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	errors "github.com/rotisserie/eris"
 	"github.com/solo-io/anyvendor/pkg/modutils"
@@ -20,34 +19,34 @@ import (
 
 func TestScripts(t *testing.T) {
 	RegisterFailHandler(Fail)
-	junitReporter := reporters.NewJUnitReporter("junit.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "Plugin Verification Script Suite", []Reporter{junitReporter})
+
+	RunSpecs(t, "Plugin Verification Script Suite")
 }
 
+var (
+	testAssetDir        string
+	pluginDir           string
+	validManifest       string
+	wrongNameManifest   string
+	wrongSymbolManifest string
+	malformedManifest   string
+)
+
+var _ = BeforeSuite(func() {
+	contextutils.SetLogLevel(zap.DebugLevel)
+	modPackageFile, err := modutils.GetCurrentModPackageFile()
+	Expect(err).NotTo(HaveOccurred())
+	repoPath := filepath.Dir(modPackageFile)
+	testAssetDir = filepath.Join(repoPath, "test/extauth")
+
+	pluginDir = filepath.Join(testAssetDir, "plugins")
+	validManifest = filepath.Join(testAssetDir, "manifests", "valid.yaml")
+	wrongNameManifest = filepath.Join(testAssetDir, "manifests", "wrong_name.yaml")
+	wrongSymbolManifest = filepath.Join(testAssetDir, "manifests", "wrong_symbol.yaml")
+	malformedManifest = filepath.Join(testAssetDir, "manifests", "malformed.yaml")
+})
+
 var _ = Describe("Plugin verification script", func() {
-
-	var (
-		testAssetDir        string
-		pluginDir           string
-		validManifest       string
-		wrongNameManifest   string
-		wrongSymbolManifest string
-		malformedManifest   string
-	)
-
-	BeforeSuite(func() {
-		contextutils.SetLogLevel(zap.DebugLevel)
-		modPackageFile, err := modutils.GetCurrentModPackageFile()
-		Expect(err).NotTo(HaveOccurred())
-		repoPath := filepath.Dir(modPackageFile)
-		testAssetDir = filepath.Join(repoPath, "test/extauth")
-
-		pluginDir = filepath.Join(testAssetDir, "plugins")
-		validManifest = filepath.Join(testAssetDir, "manifests", "valid.yaml")
-		wrongNameManifest = filepath.Join(testAssetDir, "manifests", "wrong_name.yaml")
-		wrongSymbolManifest = filepath.Join(testAssetDir, "manifests", "wrong_symbol.yaml")
-		malformedManifest = filepath.Join(testAssetDir, "manifests", "malformed.yaml")
-	})
 
 	Describe("parsing manifest file", func() {
 

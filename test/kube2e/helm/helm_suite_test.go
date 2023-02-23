@@ -7,8 +7,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/solo-projects/test/kube2e"
 
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -31,8 +30,8 @@ func TestHelm(t *testing.T) {
 	_ = os.Remove(cliutil.GetLogsPath())
 	skhelpers.RegisterPreFailHandler(kube2e.PrintGlooDebugLogs)
 	skhelpers.RegisterPreFailHandler(helpers.KubeDumpOnFail(GinkgoWriter, namespace))
-	junitReporter := reporters.NewJUnitReporter("junit.xml")
-	RunSpecsWithDefaultAndCustomReporters(t, "Helm Suite", []Reporter{junitReporter})
+
+	RunSpecs(t, "Helm Suite")
 }
 
 var _ = BeforeSuite(func() {

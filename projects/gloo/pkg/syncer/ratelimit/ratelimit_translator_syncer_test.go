@@ -27,7 +27,7 @@ import (
 	mock_cache "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit/mocks"
 	mock_shims "github.com/solo-io/solo-projects/projects/rate-limit/pkg/shims/mocks"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 

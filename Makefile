@@ -156,12 +156,12 @@ check-format:
 # Tests
 #----------------------------------------------------------------------------------
 
-GINKGO_VERSION ?= 1.16.5 # match our go.mod
+GINKGO_VERSION ?= 2.5.0 # match our go.mod
 GINKGO_ENV ?= GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore ACK_GINKGO_RC=true ACK_GINKGO_DEPRECATIONS=$(GINKGO_VERSION) VERSION=$(VERSION)
-GINKGO_FLAGS ?= -failFast -trace -progress -compilers=4 -failOnPending -noColor
-GINKGO_RANDOMIZE_FLAGS ?= -randomizeSuites -randomizeAllSpecs # Not yet actively supported
-GINKGO_REPORT_FLAGS ?= #--json-report=test-report.json --junit-report=junit.xml -output-dir=$(OUTPUT_DIR)
-GINKGO_COVERAGE_FLAGS ?= #--cover --covermode=count --coverprofile=coverage.cov
+GINKGO_FLAGS ?= -fail-fast -trace -progress -compilers=4 -fail-on-pending
+GINKGO_RANDOMIZE_FLAGS ?= -randomize-all # Not yet actively supported
+GINKGO_REPORT_FLAGS ?= --json-report=test-report.json --junit-report=junit.xml -output-dir=$(OUTPUT_DIR)
+GINKGO_COVERAGE_FLAGS ?= --cover --covermode=count --coverprofile=coverage.cov
 TEST_PKG ?= ./... # Default to run all tests
 
 # This is a way for a user executing `make test` to be able to provide flags which we do not include by default
@@ -170,7 +170,7 @@ GINKGO_USER_FLAGS ?=
 
 .PHONY: install-test-tools
 install-test-tools:
-	go install github.com/onsi/ginkgo/ginkgo@v$(GINKGO_VERSION)
+	go install github.com/onsi/ginkgo/v2/ginkgo@v$(GINKGO_VERSION)
 
 .PHONY: test
 test: install-test-tools ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
@@ -184,7 +184,7 @@ test-with-coverage: test
 	go tool cover -html $(OUTPUT_DIR)/coverage.cov
 
 .PHONY: run-tests
-run-tests: GINKGO_FLAGS += -skipPackage=kube2e,federation-kube2e ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
+run-tests: GINKGO_FLAGS += -skip-package=kube2e,federation-kube2e ## Run all tests, or only run the test package at {TEST_PKG} if it is specified
 ifneq ($(RELEASE), "true")
 run-tests: generate-extauth-test-plugins
 run-tests: test
@@ -263,7 +263,7 @@ endif
 .PHONY: generated-code
 generated-code: update-licenses ## Evaluate go generate
 	rm -rf $(ROOTDIR)/vendor_any
-	GO111MODULE=on CGO_ENABLED=1 go generate ./...
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore GO111MODULE=on CGO_ENABLED=1 go generate ./...
 	goimports -w $(SUBDIRS)
 	go mod tidy
 	ci/check-protoc.sh

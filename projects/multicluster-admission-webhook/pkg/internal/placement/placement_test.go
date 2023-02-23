@@ -3,7 +3,7 @@ package placement_test
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	multicluster_types "github.com/solo-io/solo-projects/projects/gloo-fed/pkg/api/multicluster.solo.io/v1alpha1/types"
 	"github.com/solo-io/solo-projects/projects/multicluster-admission-webhook/pkg/internal/placement"
